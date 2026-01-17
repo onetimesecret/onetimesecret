@@ -1,0 +1,329 @@
+# docs/test-plans/features/auth/mfa-disable.yaml
+---
+# LLM-Optimized Test Cases: MFA Disable Flow
+# Schema version: 1.0.0
+#
+# Tests disabling multi-factor authentication including:
+# - Password confirmation requirement
+# - Confirmation dialog warnings
+# - State cleanup after disable
+
+suite:
+  id: mfa-disable
+  name: Multi-Factor Authentication Disable Flow
+  feature: Disabling TOTP-based MFA
+  tags: [auth, mfa, security, account-settings]
+  notes: |
+    Disabling MFA is a security-sensitive operation that requires
+    password confirmation to prevent unauthorized account weakening.
+
+definitions:
+  users:
+    authenticated_with_mfa: &user_with_mfa
+      auth: logged_in
+      state:
+        mfa_enabled: true
+        has_recovery_codes: true
+      description: Authenticated user with MFA enabled
+
+    authenticated_no_mfa: &user_no_mfa
+      auth: logged_in
+      state:
+        mfa_enabled: false
+      description: Authenticated user without MFA
+
+tests:
+  # ===========================================================================
+  # SECTION 1: Disable MFA Flow
+  # ===========================================================================
+
+  - id: TC-MFA-D001
+    intent: User with MFA enabled sees disable option in security settings
+    setup:
+      <<: *user_with_mfa
+    target: /account/security
+    action:
+      type: none
+    verify:
+      - MFA status shows enabled
+      - Disable MFA button or link visible
+      - Warning text about security implications
+      - selector: "[data-testid='disable-mfa-button']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [MfaSettings.vue, mfaEnabled]
+
+  - id: TC-MFA-D002
+    intent: Clicking disable MFA opens confirmation dialog
+    setup:
+      <<: *user_with_mfa
+    target: /account/security
+    action:
+      type: click
+      element: Disable MFA button
+    verify:
+      - Confirmation modal or dialog opens
+      - Warning about reduced security displayed
+      - Password input field visible
+      - Cancel and Confirm buttons available
+      - selector: "[data-testid='disable-mfa-modal']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [MfaSettings.vue, showDisableConfirm]
+
+  - id: TC-MFA-D003
+    intent: Confirmation dialog warns about security implications
+    setup:
+      <<: *user_with_mfa
+    target: /account/security (disable modal open)
+    action:
+      type: none
+    verify:
+      - Warning text explains MFA provides extra security
+      - Mentions account will be less secure
+      - Recommends keeping MFA enabled
+      - Visual warning styling (caution colors)
+    priority: medium
+    type: ui
+    covers: [MfaSettings.vue, security-warning]
+
+  - id: TC-MFA-D004
+    intent: Correct password disables MFA
+    setup:
+      <<: *user_with_mfa
+    target: /account/security (disable modal open)
+    action:
+      type: submit
+      element: Disable confirmation form
+      data:
+        password: correct_password
+    verify:
+      - MFA is disabled
+      - Modal closes
+      - Success message displayed
+      - Security page shows MFA is disabled
+      - Enable MFA option now visible
+    postconditions:
+      - MFA disabled for account
+      - Recovery codes invalidated
+      - Future logins require only password
+    priority: critical
+    type: functional
+    covers: [MfaSettings.vue, handleDisableConfirm]
+
+  - id: TC-MFA-D005
+    intent: Incorrect password prevents MFA disable
+    setup:
+      <<: *user_with_mfa
+    target: /account/security (disable modal open)
+    action:
+      type: submit
+      element: Disable confirmation form
+      data:
+        password: wrong_password
+    verify:
+      - Error message about incorrect password
+      - MFA remains enabled
+      - Modal stays open for retry
+      - Can retry with correct password
+    priority: critical
+    type: error
+    covers: [MfaSettings.vue, password-validation]
+
+  - id: TC-MFA-D006
+    intent: Cancel button closes dialog without disabling
+    setup:
+      <<: *user_with_mfa
+    target: /account/security (disable modal open)
+    action:
+      type: click
+      element: Cancel button
+    verify:
+      - Modal closes
+      - MFA remains enabled
+      - No changes to account security
+      - Returns to security settings page
+    priority: medium
+    type: functional
+    covers: [MfaSettings.vue, modal-cancel]
+
+  - id: TC-MFA-D007
+    intent: Escape key closes dialog without disabling
+    setup:
+      <<: *user_with_mfa
+    target: /account/security (disable modal open)
+    action:
+      type: submit
+      data:
+        key: Escape
+    verify:
+      - Modal closes
+      - MFA remains enabled
+      - Keyboard dismissal works
+    priority: low
+    type: accessibility
+    covers: [MfaSettings.vue, keyboard-navigation]
+
+  # ===========================================================================
+  # SECTION 2: Post-Disable State
+  # ===========================================================================
+
+  - id: TC-MFA-D010
+    intent: After disabling, security page shows MFA disabled
+    setup:
+      <<: *user_no_mfa
+    target: /account/security
+    action:
+      type: none
+    verify:
+      - MFA status shows disabled
+      - Enable MFA option visible
+      - No recovery codes section (or shows none)
+      - Recommendation to enable MFA
+    priority: high
+    type: functional
+    covers: [MfaSettings.vue, SecurityOverview.vue]
+
+  - id: TC-MFA-D011
+    intent: After disabling, login requires only password
+    setup:
+      auth: logged_out
+      state:
+        mfa_was_disabled: true
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: user@example.com
+        password: correct_password
+    verify:
+      - User is signed in directly
+      - No MFA challenge shown
+      - Redirects to dashboard
+    priority: critical
+    type: functional
+    covers: [login-flow, mfa-disabled]
+
+  - id: TC-MFA-D012
+    intent: Recovery codes no longer work after MFA disabled
+    setup:
+      auth: logged_out
+      state:
+        mfa_was_disabled: true
+        had_recovery_codes: true
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: user@example.com
+        password: correct_password
+    verify:
+      - Login succeeds with password only
+      - No option to use recovery codes
+      - Previous recovery codes are invalidated
+    priority: high
+    type: security
+    covers: [recovery-code-cleanup]
+
+  # ===========================================================================
+  # SECTION 3: Edge Cases
+  # ===========================================================================
+
+  - id: TC-MFA-D020
+    intent: User without MFA does not see disable option
+    setup:
+      <<: *user_no_mfa
+    target: /account/security
+    action:
+      type: none
+    verify:
+      - No disable MFA button visible
+      - Only enable MFA option shown
+      - Correct state reflected in UI
+      - selector: "[data-testid='disable-mfa-button']"
+        assertion: hidden
+    priority: medium
+    type: edge
+    covers: [MfaSettings.vue, conditional-ui]
+
+  - id: TC-MFA-D021
+    intent: Empty password submission shows validation error
+    setup:
+      <<: *user_with_mfa
+    target: /account/security (disable modal open)
+    action:
+      type: submit
+      element: Disable confirmation form
+      data:
+        password: ""
+    verify:
+      - Validation error for empty password
+      - Form not submitted to server
+      - MFA remains enabled
+    priority: medium
+    type: error
+    covers: [MfaSettings.vue, form-validation]
+
+  - id: TC-MFA-D022
+    intent: Multiple failed password attempts do not lock account
+    setup:
+      <<: *user_with_mfa
+    target: /account/security (disable modal open)
+    action:
+      type: submit
+      element: Disable confirmation form (multiple times)
+      data:
+        password: wrong_password
+    verify:
+      - Error shown each time
+      - Account is not locked
+      - Can eventually succeed with correct password
+      - May show rate limiting warning after many attempts
+    priority: medium
+    type: edge
+    covers: [rate-limiting, account-protection]
+    notes: |
+      User is already authenticated, so lockout behavior may differ
+      from login attempts. Rate limiting may apply.
+
+  - id: TC-MFA-D023
+    intent: Session remains valid after disabling MFA
+    setup:
+      <<: *user_with_mfa
+    target: /account/security
+    action:
+      type: submit
+      element: Disable MFA flow (complete)
+      data:
+        password: correct_password
+    verify:
+      - User remains logged in
+      - Session is not invalidated
+      - Can continue using application
+      - No forced logout
+    priority: medium
+    type: functional
+    covers: [session-continuity]
+
+  - id: TC-MFA-D024
+    intent: Re-enabling MFA after disable starts fresh setup
+    setup:
+      <<: *user_no_mfa
+      state:
+        previously_had_mfa: true
+    target: /account/security
+    action:
+      type: click
+      element: Enable MFA button
+    verify:
+      - Fresh setup wizard opens
+      - New QR code/secret generated
+      - New recovery codes will be created
+      - No remnants of previous MFA setup
+    priority: medium
+    type: functional
+    covers: [MfaSettings.vue, OtpSetupWizard.vue, fresh-setup]

@@ -42,6 +42,7 @@ export const TestType = z.enum([
   'smoke',
   'edge',
   'accessibility',
+  'security',
 ]);
 
 // -----------------------------------------------------------------------------
