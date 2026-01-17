@@ -6,8 +6,10 @@ import LockoutAlert from '@/apps/session/components/LockoutAlert.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
+const route = useRoute();
 
 export interface Props {
   enabled?: boolean;
@@ -21,7 +23,9 @@ withDefaults(defineProps<Props>(), {
 
 const { login, isLoading, error, lockoutStatus, clearErrors } = useAuth();
 
-const email = ref('');
+// Prefill email from query param (e.g., from invitation flow)
+const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
+const email = ref(emailFromQuery);
 const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);

@@ -6,6 +6,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { Jurisdiction } from '@/schemas/models';
 import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 export interface Props {
   enabled?: boolean;
@@ -18,11 +19,14 @@ withDefaults(defineProps<Props>(), {
   locale: 'en',
 })
 
+const route = useRoute();
 const { signup, isLoading, error, fieldError, clearErrors } = useAuth();
 
 const { t } = useI18n();
 
-const email = ref('');
+// Prefill email from query param (e.g., from invitation flow)
+const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
+const email = ref(emailFromQuery);
 const password = ref('');
 const termsAgreed = ref(false);
 const showPassword = ref(false);
