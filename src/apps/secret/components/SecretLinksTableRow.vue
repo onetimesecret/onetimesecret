@@ -8,7 +8,7 @@ import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
 import { formatTTL } from '@/utils/formatters';
 import { formatDistanceToNow } from 'date-fns';
 import { storeToRefs } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 
 const { t } = useI18n();
 
@@ -32,11 +32,12 @@ const isEditingMemo = ref(false);
 const memoInputValue = ref('');
 const memoInputRef = ref<HTMLInputElement | null>(null);
 
-const startEditingMemo = () => {
+const startEditingMemo = async () => {
   memoInputValue.value = props.record.memo || '';
   isEditingMemo.value = true;
   // Focus input on next tick after it renders
-  setTimeout(() => memoInputRef.value?.focus(), 0);
+  await nextTick();
+  memoInputRef.value?.focus();
 };
 
 const saveMemo = () => {

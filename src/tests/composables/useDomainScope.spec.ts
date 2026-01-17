@@ -630,7 +630,7 @@ describe('useDomainScope', () => {
       mockOrganizationStoreState.currentOrganization = { id: 'org-1' };
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, availableDomains } = useDomainScope();
+      const { currentScope } = useDomainScope();
 
       // Wait for async initialization
       await nextTick();

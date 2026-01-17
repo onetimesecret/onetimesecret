@@ -11,7 +11,6 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { getPlanDisplayName } from '@/types/billing';
@@ -22,7 +21,6 @@ const { t } = useI18n();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
 const bootstrapStore = useBootstrapStore();
-const domainsStore = useDomainsStore();
 
 const isLoading = ref(false);
 const showCreateModal = ref(false);
@@ -78,19 +76,11 @@ const canCreateMultipleOrgs = computed(() =>
  */
 const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.MANAGE_TEAMS));
 
-/**
- * Domain count from domains store
- */
-const domainCount = computed(() => domainsStore.count ?? 0);
-
 onMounted(async () => {
   isLoading.value = true;
   try {
-    // Fetch organizations and domains in parallel
-    await Promise.all([
-      organizationStore.fetchOrganizations(),
-      domainsStore.fetchList(),
-    ]);
+    // Fetch organizations - each org includes domain_count from backend
+    await organizationStore.fetchOrganizations();
   } catch (error) {
     console.error('[OrganizationsSettings] Error fetching organizations:', error);
   } finally {
@@ -270,7 +260,7 @@ const handleManageOrganization = (org: Organization) => {
                     name="globe-alt"
                     class="size-4"
                     aria-hidden="true" />
-                  <span>{{ t('web.organizations.domain_count', { count: domainCount }) }}</span>
+                  <span>{{ t('web.organizations.domain_count', { count: org.domain_count ?? 0 }) }}</span>
                 </router-link>
               </div>
             </div>
