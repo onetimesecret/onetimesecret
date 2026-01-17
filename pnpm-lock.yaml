@@ -34,7 +34,7 @@ importers:
         version: 11.1.12
       '@prettier/plugin-ruby':
         specifier: 4.0.4
-        version: 4.0.4(prettier@3.5.3)
+        version: 4.0.4(prettier@3.6.2)
       '@sentry/browser':
         specifier: 9.17.0
         version: 9.17.0
@@ -214,11 +214,11 @@ importers:
         specifier: 8.5.6
         version: 8.5.6
       prettier:
-        specifier: 3.5.3
-        version: 3.5.3
+        specifier: 3.6.2
+        version: 3.6.2
       prettier-plugin-tailwindcss:
         specifier: 0.6.14
-        version: 0.6.14(prettier@3.5.3)
+        version: 0.6.14(prettier@3.6.2)
       prettier-plugin-vue:
         specifier: 1.1.6
         version: 1.1.6
@@ -3449,8 +3449,8 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
-  prettier@3.5.3:
-    resolution: {integrity: sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==}
+  prettier@3.6.2:
+    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -4960,9 +4960,9 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@prettier/plugin-ruby@4.0.4(prettier@3.5.3)':
+  '@prettier/plugin-ruby@4.0.4(prettier@3.6.2)':
     dependencies:
-      prettier: 3.5.3
+      prettier: 3.6.2
 
   '@rollup/pluginutils@4.2.1':
     dependencies:
@@ -7348,9 +7348,9 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.6.14(prettier@3.5.3):
+  prettier-plugin-tailwindcss@0.6.14(prettier@3.6.2):
     dependencies:
-      prettier: 3.5.3
+      prettier: 3.6.2
 
   prettier-plugin-vue@1.1.6:
     dependencies:
@@ -7358,7 +7358,7 @@ snapshots:
 
   prettier@2.8.8: {}
 
-  prettier@3.5.3: {}
+  prettier@3.6.2: {}
 
   progress@2.0.3: {}
 
