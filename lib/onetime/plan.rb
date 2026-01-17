@@ -70,16 +70,22 @@ module Onetime
         add_plan :identity, 35, 0, ttl: identity_ttl, size: 10_000_000, api: true, name: 'Identity', email: true, custom_domains: true, dark_mode: true
       end
 
+      # Maximum allowed TTL to prevent resource exhaustion (1 year)
+      MAX_TTL = 365.days
+
       # Parse TTL from environment variable, returning default if not set or invalid.
+      # Values are clamped to MAX_TTL (365 days) to prevent resource exhaustion.
       # @param env_var [String] Name of the environment variable
       # @param default [Integer] Default TTL in seconds
-      # @return [Integer] TTL value in seconds
+      # @return [Integer] TTL value in seconds (capped at MAX_TTL)
       def parse_ttl_env(env_var, default)
         value = ENV[env_var]
         return default if value.nil? || value.empty?
 
         parsed = value.to_i
-        parsed.positive? ? parsed : default
+        return default unless parsed.positive?
+
+        [parsed, MAX_TTL].min
       end
     end
 
