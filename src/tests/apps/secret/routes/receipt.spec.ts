@@ -56,7 +56,7 @@ describe('Receipt Routes', () => {
   describe('Burn Secret Route', () => {
     it('should define burn secret route correctly', () => {
       const route = routes.find(
-        (route: RouteRecordRaw) => route.path === '/private/:receiptIdentifier/burn'
+        (route: RouteRecordRaw) => route.path === '/receipt/:receiptIdentifier/burn'
       );
       expect(route).toBeDefined();
       expect(route?.meta?.layout).toBeDefined();
