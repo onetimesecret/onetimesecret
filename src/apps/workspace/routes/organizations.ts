@@ -35,7 +35,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/org/:extid',
+    path: '/org/:extid/:tab?',
     name: 'Organization Settings',
     component: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
     meta: {
@@ -45,6 +45,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher - org name shown in page header
     },
+    props: true,
   },
   {
     path: '/org/:extid/members',

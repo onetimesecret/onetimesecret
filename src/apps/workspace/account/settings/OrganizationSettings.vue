@@ -23,10 +23,27 @@ import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { z } from 'zod';
 
 type TabType = 'general' | 'members' | 'domains' | 'billing';
+
+// URL tab names map to internal tab names
+// URL: team -> internal: members
+// URL: settings -> internal: general
+const URL_TO_TAB: Record<string, TabType> = {
+  team: 'members',
+  domains: 'domains',
+  billing: 'billing',
+  settings: 'general',
+};
+
+const TAB_TO_URL: Record<TabType, string> = {
+  members: 'team',
+  domains: 'domains',
+  billing: 'billing',
+  general: 'settings',
+};
 
 const props = withDefaults(defineProps<{
   initialTab?: TabType;
@@ -36,10 +53,20 @@ const props = withDefaults(defineProps<{
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 const organizationStore = useOrganizationStore();
 const membersStore = useMembersStore();
 
 const orgId = computed(() => route.params.extid as string);
+
+// Resolve initial tab from route param or prop
+const resolveInitialTab = (): TabType => {
+  const urlTab = route.params.tab as string | undefined;
+  if (urlTab && URL_TO_TAB[urlTab]) {
+    return URL_TO_TAB[urlTab];
+  }
+  return props.initialTab;
+};
 const organization = ref<Organization | null>(null);
 const subscription = ref<Subscription | null>(null);
 const invitations = ref<OrganizationInvitation[]>([]);
@@ -62,7 +89,28 @@ const invitations = ref<OrganizationInvitation[]>([]);
  * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
  * actions, accept higher cost for infrequent ones.
  */
-const activeTab = ref<TabType>(props.initialTab);
+const activeTab = ref<TabType>(resolveInitialTab());
+
+// Update URL when tab changes (without adding history entries)
+const setActiveTab = (tab: TabType) => {
+  activeTab.value = tab;
+  const urlTab = TAB_TO_URL[tab];
+  router.replace({ params: { ...route.params, tab: urlTab } });
+};
+
+// Watch for route param changes (e.g., back/forward navigation)
+watch(
+  () => route.params.tab,
+  (newTab) => {
+    const urlTab = newTab as string | undefined;
+    if (urlTab && URL_TO_TAB[urlTab]) {
+      activeTab.value = URL_TO_TAB[urlTab];
+    } else if (!urlTab) {
+      // No tab in URL, default to members (team)
+      activeTab.value = 'members';
+    }
+  }
+);
 
 // Domains management
 const {
@@ -450,7 +498,7 @@ watch(activeTab, async (newTab) => {
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
           <!-- Team tab - primary action, shown first -->
           <button
-            @click="activeTab = 'members'"
+            @click="setActiveTab('members')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
               activeTab === 'members'
@@ -461,7 +509,7 @@ watch(activeTab, async (newTab) => {
           </button>
           <!-- Domains tab -->
           <button
-            @click="activeTab = 'domains'"
+            @click="setActiveTab('domains')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
               activeTab === 'domains'
@@ -472,7 +520,7 @@ watch(activeTab, async (newTab) => {
           </button>
           <!-- Billing tab - shown for all organizations -->
           <button
-            @click="activeTab = 'billing'"
+            @click="setActiveTab('billing')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
               activeTab === 'billing'
@@ -483,7 +531,7 @@ watch(activeTab, async (newTab) => {
           </button>
           <!-- Settings tab - infrequently changed fields -->
           <button
-            @click="activeTab = 'general'"
+            @click="setActiveTab('general')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
               activeTab === 'general'
@@ -907,7 +955,8 @@ watch(activeTab, async (newTab) => {
               v-else-if="domainCount > 0 && domainRecords"
               :domains="domainRecords"
               :is-loading="isLoadingDomains"
-              :orgid="orgId" />
+              :orgid="orgId"
+              compact />
 
             <!-- Empty State -->
             <EmptyState
