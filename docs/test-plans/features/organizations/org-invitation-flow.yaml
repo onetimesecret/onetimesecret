@@ -17,6 +17,7 @@ suite:
   issue: https://github.com/onetimesecret/onetimesecret/issues/2319
   tags: [organizations, invitations, auth, email, redirect]
   priority: high
+  e2e_spec: e2e/full/org-invitation-flow.spec.ts
   notes: |
     AGENT EXECUTION REQUIREMENTS:
     - ALL tests must be executed. Do not skip tests.
