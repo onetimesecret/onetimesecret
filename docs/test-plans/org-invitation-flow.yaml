@@ -14,350 +14,412 @@ suite:
   id: org-invitation-flow
   name: Organization Member Invitation Flow
   feature: Organization invitations with auth flow integration
+  issue: https://github.com/onetimesecret/onetimesecret/issues/2319
   tags: [organizations, invitations, auth, email, redirect]
-  priority: critical
+  priority: high
   notes: |
-    Tests involving both invitation sender and recipient (e.g., INV-001 → INV-002)
-    require two browser contexts. Use separate Chrome profiles or incognito windows:
-    one for the org owner, one for the invitee. Capture the invitation link from
-    Context A before switching to Context B.
+    Multi-context testing required for email mismatch scenarios.
+    Tests involving sender and recipient require two browser contexts
+    (separate Chrome profiles or incognito windows).
+
+# Data-testid Attribute Reference:
+# These attributes should be present in the Vue components for test automation.
+#
+# Invitation UI:
+#   - data-testid="invite-member-btn"           : Invite member button
+#   - data-testid="invite-form"                 : Invitation form container
+#   - data-testid="invite-email-input"          : Email input field
+#   - data-testid="invite-role-select"          : Role selection dropdown
+#   - data-testid="invite-submit-btn"           : Submit invitation button
+#   - data-testid="pending-invitations-list"    : Pending invitations container
+#   - data-testid="invitation-row"              : Individual invitation row
+#   - data-testid="resend-invitation-btn"       : Resend invitation button
+#   - data-testid="revoke-invitation-btn"       : Revoke invitation button
+#
+# Accept Invitation Page:
+#   - data-testid="invitation-details"          : Invitation details container
+#   - data-testid="email-mismatch-warning"      : Email mismatch warning banner
+#   - data-testid="switch-account-btn"          : Switch account button
+#   - data-testid="accept-invitation-btn"       : Accept invitation button
+#   - data-testid="decline-invitation-btn"      : Decline invitation button
+#   - data-testid="sign-in-notice"              : Sign in required notice
 
 definitions:
   users:
     org_owner: &user_org_owner
       auth: logged_in
-      role: owner
+      user_type: owner
       description: User who owns the organization
 
-    invitee_new: &user_invitee_new
+    invitee_logged_out: &user_invitee_logged_out
       auth: logged_out
       description: Unauthenticated user receiving invitation
 
     invitee_wrong_email: &user_invitee_wrong_email
       auth: logged_in
-      email: different@example.com
+      user_type: other_account
+      state:
+        email: different@example.com
       description: Logged-in user with different email than invitation
 
     invitee_matching: &user_invitee_matching
       auth: logged_in
-      email: invited@example.com
+      state:
+        email: invited@example.com
       description: Logged-in user with matching email to invitation
 
   fixtures:
     organization: &fixture_org
       type: organization
       props:
-        name: "Acme Corporation"
+        name: Acme Corporation
+        display_name: Acme Corporation
 
-    invitation: &fixture_invitation
+    invitation_pending: &fixture_invitation_pending
       type: organization_invitation
       props:
         email: invited@example.com
         role: member
         status: pending
 
-tests:
-  # -------------------------------------------------------------------------
-  # INV-001: Owner sends invitation
-  # -------------------------------------------------------------------------
-  - id: INV-001
-    intent: |
-      Organization owner can send invitation to new member.
-      Form validates email and role, shows success on send.
+    invitation_expired: &fixture_invitation_expired
+      type: organization_invitation
+      props:
+        email: invited@example.com
+        role: member
+        status: expired
 
+tests:
+  # ===========================================================================
+  # SECTION 1: Invitation Sending
+  # ===========================================================================
+
+  - id: INV-001
+    intent: Organization owner can send invitation to new member with email validation
     setup:
       <<: *user_org_owner
       fixtures:
         - <<: *fixture_org
           capture_as: org
+    target: /org/{{org.extid}}/team
+    action:
+      type: click
+      element: "[data-testid='invite-member-btn']"
+      data:
+        email: newmember@example.com
+        role: member
+    verify:
+      - Invitation form is visible after clicking Invite Member
+      - Email input accepts valid email address
+      - Role selector shows member and admin options
+      - Success message "Invitation sent successfully" appears after submit
+      - New invitation appears in pending invitations list
+      - selector: "[data-testid='pending-invitations-list']"
+        assertion: contains
+        value: newmember@example.com
+    priority: critical
+    severity: blocker
+    type: functional
+    covers:
+      - OrganizationSettings.vue
+      - POST /api/v2/org/:extid/invitations
+      - organizationStore.createInvitation
 
-    actions:
-      - navigate: /org/{org.extid}/settings/members
-      - click: Invite Member button
-      - fill:
-          email: newmember@example.com
-          role: member
-      - click: Send Invitation
+  # ===========================================================================
+  # SECTION 2: Invitation Acceptance Flow
+  # ===========================================================================
 
-    expect:
-      - success_message: "Invitation sent successfully"
-      - pending_list_contains: newmember@example.com
-      - email_sent_to: newmember@example.com
-
-  # -------------------------------------------------------------------------
-  # INV-002: Unauthenticated user accepts invitation
-  # -------------------------------------------------------------------------
   - id: INV-002
-    intent: |
-      Unauthenticated user clicking invitation link is redirected to signin
-      with redirect param preserved. After login, returns to invitation page.
-
+    intent: Unauthenticated user clicking invitation link is redirected to signin with redirect preserved
     setup:
-      <<: *user_invitee_new
+      <<: *user_invitee_logged_out
       fixtures:
-        - <<: *fixture_invitation
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: click
+      element: "[data-testid='accept-invitation-btn']"
+    verify:
+      - Invitation details page loads showing organization name
+      - Sign in notice is visible for unauthenticated user
+      - Clicking Accept redirects to /signin with redirect query param
+      - URL contains redirect=/invite/{{invitation.token}}
+      - selector: "[data-testid='sign-in-notice']"
+        assertion: visible
+    postconditions:
+      - User is redirected to signin page
+      - Redirect param preserved in URL
+    priority: critical
+    severity: blocker
+    type: functional
+    covers:
+      - AcceptInvite.vue
+      - useAuth.login redirect handling
 
-    actions:
-      - navigate: /invite/{invitation.token}
-      - observe: Sign in notice displayed
-      - click: Accept Invitation button
-      - verify_redirect: /signin?redirect=/invite/{invitation.token}
-      - login:
-          email: invited@example.com
-          password: testpassword
-      - verify_redirect: /invite/{invitation.token}
-      - click: Accept Invitation button
-
-    expect:
-      - success_message: "Invitation accepted successfully"
-      - redirect_to: /org
-      - user_is_member_of: {org.extid}
-
-  # -------------------------------------------------------------------------
-  # INV-003: User with wrong email sees mismatch warning
-  # -------------------------------------------------------------------------
   - id: INV-003
-    intent: |
-      User logged in with different email than invitation sees clear
-      mismatch warning (not confusing "sign in first" message).
-      Can switch accounts to sign in with correct email.
-
+    intent: User logged in with different email sees clear mismatch warning with switch account option
     setup:
       <<: *user_invitee_wrong_email
       fixtures:
-        - <<: *fixture_invitation
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: none
+    verify:
+      - Email mismatch warning is visible with amber styling
+      - Warning heading shows "Wrong Account"
+      - Warning body shows invited email (invited@example.com)
+      - Warning body shows current session email (different@example.com)
+      - "Sign In with Different Account" button is visible
+      - "Please sign in" notice is NOT visible
+      - selector: "[data-testid='email-mismatch-warning']"
+        assertion: visible
+      - selector: "[data-testid='switch-account-btn']"
+        assertion: visible
+      - selector: "[data-testid='sign-in-notice']"
+        assertion: hidden
+    priority: high
+    severity: major
+    type: error
+    covers:
+      - AcceptInvite.vue
+      - emailMismatch computed property
+      - normalizeEmail function
 
-    actions:
-      - navigate: /invite/{invitation.token}
-
-    expect:
-      - visible:
-          element: email_mismatch_warning
-          contains:
-            - "Wrong Account"
-            - "invited@example.com"
-            - "different@example.com"
-      - visible: "Sign In with Different Account" button
-      - not_visible: "Please sign in" notice
-
-  # -------------------------------------------------------------------------
-  # INV-004: Switch account from mismatch warning
-  # -------------------------------------------------------------------------
   - id: INV-004
-    intent: |
-      Clicking "Switch Account" logs out user and redirects to signin
-      with invited email prefilled and redirect param preserved.
-
+    intent: Clicking Switch Account logs out and redirects to signin with email prefilled
     setup:
       <<: *user_invitee_wrong_email
       fixtures:
-        - <<: *fixture_invitation
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: click
+      element: "[data-testid='switch-account-btn']"
+    verify:
+      - User is logged out after clicking switch account
+      - Redirects to /signin with email and redirect query params
+      - Email field is prefilled with invited@example.com
+      - Redirect param contains /invite/{{invitation.token}}
+    postconditions:
+      - User session is cleared
+      - URL is /signin?email=invited@example.com&redirect=/invite/{{invitation.token}}
+    priority: high
+    severity: major
+    type: functional
+    covers:
+      - AcceptInvite.vue
+      - handleSwitchAccount function
+      - useAuth.logout
+      - SignInForm.vue email prefill
 
-    actions:
-      - navigate: /invite/{invitation.token}
-      - click: "Sign In with Different Account"
-      - verify_redirect: /signin?email=invited@example.com&redirect=/invite/{invitation.token}
-      - verify: user is logged out
-      - verify: email field prefilled with invited@example.com
-
-    expect:
-      - auth_state: logged_out
-      - form_prefill:
-          email: invited@example.com
-      - url_param:
-          redirect: /invite/{invitation.token}
-
-  # -------------------------------------------------------------------------
-  # INV-005: User with matching email can accept immediately
-  # -------------------------------------------------------------------------
   - id: INV-005
-    intent: |
-      User logged in with matching email sees no sign-in notices
-      and can immediately accept invitation.
-
+    intent: User logged in with matching email can immediately accept invitation
     setup:
       <<: *user_invitee_matching
       fixtures:
-        - <<: *fixture_invitation
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: none
+    verify:
+      - No email mismatch warning visible
+      - No sign in notice visible
+      - Accept Invitation button is enabled and clickable
+      - Invitation details show correct organization and role
+      - selector: "[data-testid='email-mismatch-warning']"
+        assertion: hidden
+      - selector: "[data-testid='sign-in-notice']"
+        assertion: hidden
+      - selector: "[data-testid='accept-invitation-btn']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers:
+      - AcceptInvite.vue
+      - emailMismatch computed property
 
-    actions:
-      - navigate: /invite/{invitation.token}
+  # ===========================================================================
+  # SECTION 3: Decline and Error States
+  # ===========================================================================
 
-    expect:
-      - not_visible: email_mismatch_warning
-      - not_visible: sign_in_notice
-      - enabled: Accept Invitation button
-
-  # -------------------------------------------------------------------------
-  # INV-006: MFA flow preserves redirect
-  # -------------------------------------------------------------------------
-  - id: INV-006
-    intent: |
-      User with MFA enabled is redirected to MFA verification
-      with redirect param preserved. After MFA, completes to invitation.
-
+  - id: INV-007a
+    intent: Authenticated user can decline invitation and is redirected home
     setup:
-      auth: logged_out
-      user_config:
-        mfa_enabled: true
+      <<: *user_invitee_matching
       fixtures:
-        - <<: *fixture_invitation
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: click
+      element: "[data-testid='decline-invitation-btn']"
+    verify:
+      - Success message "Invitation declined" appears
+      - User is redirected to home page after short delay
+      - Invitation status changes to declined
+    postconditions:
+      - Invitation is marked as declined in database
+      - User is redirected to /
+    priority: medium
+    type: functional
+    covers:
+      - AcceptInvite.vue
+      - handleDecline function
+      - POST /api/invite/:token/decline
 
-    actions:
-      - navigate: /invite/{invitation.token}
-      - click: Accept Invitation
-      - verify_redirect: /signin?redirect=/invite/{invitation.token}
-      - login:
-          email: invited@example.com
-          password: testpassword
-      - verify_redirect: /mfa-verify?redirect=/invite/{invitation.token}
-      - enter_otp: valid_code
-      - verify_redirect: /invite/{invitation.token}
-
-    expect:
-      - final_location: /invite/{invitation.token}
-      - auth_state: authenticated
-
-  # -------------------------------------------------------------------------
-  # INV-007: Decline invitation (any auth state)
-  # -------------------------------------------------------------------------
-  - id: INV-007
-    intent: |
-      User can decline invitation without authentication.
-      Redirects to home after decline.
-
+  - id: INV-007b
+    intent: Unauthenticated user can decline invitation without signing in
     setup:
-      auth: any
+      <<: *user_invitee_logged_out
       fixtures:
-        - <<: *fixture_invitation
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: click
+      element: "[data-testid='decline-invitation-btn']"
+    verify:
+      - Decline button works without authentication
+      - Success message "Invitation declined" appears
+      - User is redirected to home page
+    priority: medium
+    type: functional
+    covers:
+      - AcceptInvite.vue
+      - handleDecline function
 
-    actions:
-      - navigate: /invite/{invitation.token}
-      - click: Decline Invitation
-
-    expect:
-      - success_message: "Invitation declined"
-      - redirect_to: /
-      - invitation_status: declined
-
-  # -------------------------------------------------------------------------
-  # INV-008: Expired invitation shows error
-  # -------------------------------------------------------------------------
   - id: INV-008
-    intent: |
-      User clicking expired invitation link sees clear error message
-      explaining expiration. No action buttons shown.
-
-    setup:
-      auth: any
-      fixtures:
-        - <<: *fixture_invitation
-          props:
-            status: expired
-          capture_as: invitation
-
-    actions:
-      - navigate: /invite/{invitation.token}
-
-    expect:
-      - error_message: "This invitation has expired"
-      - not_visible: Accept Invitation button
-      - not_visible: Decline Invitation button
-
-  # -------------------------------------------------------------------------
-  # INV-009: Signup flow preserves redirect
-  # -------------------------------------------------------------------------
-  - id: INV-009
-    intent: |
-      New user creating account from invitation flow has email prefilled
-      and redirect preserved through signup to signin.
-
+    intent: Expired invitation shows clear error with no action buttons
     setup:
       auth: logged_out
       fixtures:
-        - <<: *fixture_invitation
+        - <<: *fixture_invitation_expired
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: none
+    verify:
+      - Error message "This invitation has expired" is visible
+      - Accept Invitation button is NOT visible
+      - Decline Invitation button is NOT visible
+      - Invitation details may show expired status
+    priority: high
+    severity: major
+    type: error
+    covers:
+      - AcceptInvite.vue
+      - Invitation status handling
 
-    actions:
-      - navigate: /signin?email=newuser@example.com&redirect=/invite/{invitation.token}
-      - click: Create account link
-      - verify_redirect: /signup?email=newuser@example.com&redirect=/invite/{invitation.token}
-      - verify: email field prefilled with newuser@example.com
+  # ===========================================================================
+  # SECTION 4: Signup Flow Integration
+  # ===========================================================================
 
-    expect:
-      - form_prefill:
-          email: newuser@example.com
-      - url_param:
-          redirect: /invite/{invitation.token}
+  - id: INV-009
+    intent: New user creating account has email prefilled and redirect preserved through signup
+    setup:
+      auth: logged_out
+      fixtures:
+        - <<: *fixture_invitation_pending
+          capture_as: invitation
+    target: /signin?email=newuser@example.com&redirect=/invite/{{invitation.token}}
+    action:
+      type: click
+      element: Create account link
+    verify:
+      - Navigates to /signup with email and redirect params preserved
+      - Email field is prefilled with newuser@example.com
+      - After account creation, redirects to signin with params preserved
+      - After signin, returns to invitation page
+    priority: high
+    type: integration
+    covers:
+      - Login.vue signupLink computed
+      - Register.vue signinLink computed
+      - SignUpForm.vue email prefill
+      - useAuth.signup redirect preservation
 
-  # -------------------------------------------------------------------------
-  # INV-010: Resend invitation
-  # -------------------------------------------------------------------------
+  # ===========================================================================
+  # SECTION 5: Owner Actions (Resend/Revoke)
+  # ===========================================================================
+
   - id: INV-010
-    intent: |
-      Organization owner can resend pending invitation.
-      New email sent to invitee.
-
+    intent: Organization owner can resend pending invitation
     setup:
       <<: *user_org_owner
       fixtures:
         - <<: *fixture_org
           capture_as: org
-        - <<: *fixture_invitation
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /org/{{org.extid}}/team
+    action:
+      type: click
+      element: "[data-testid='resend-invitation-btn']"
+    verify:
+      - Resend button has proper cursor and hover state
+      - Success message "Invitation resent successfully" appears
+      - Invitation remains in pending list
+      - selector: "[data-testid='resend-invitation-btn']"
+        assertion: visible
+    priority: medium
+    type: functional
+    covers:
+      - OrganizationSettings.vue
+      - handleResendInvitation function
+      - POST /api/v2/org/:extid/invitations/:token/resend
 
-    actions:
-      - navigate: /org/{org.extid}/settings/members
-      - find: pending invitation for invited@example.com
-      - click: Resend button
-
-    expect:
-      - success_message: "Invitation resent successfully"
-      - email_sent_to: invited@example.com
-
-  # -------------------------------------------------------------------------
-  # INV-011: Revoke invitation
-  # -------------------------------------------------------------------------
   - id: INV-011
-    intent: |
-      Organization owner can revoke pending invitation.
-      Invitation link becomes invalid.
-
+    intent: Organization owner can revoke pending invitation making link invalid
     setup:
       <<: *user_org_owner
       fixtures:
         - <<: *fixture_org
           capture_as: org
-        - <<: *fixture_invitation
+        - <<: *fixture_invitation_pending
           capture_as: invitation
+    target: /org/{{org.extid}}/team
+    action:
+      type: click
+      element: "[data-testid='revoke-invitation-btn']"
+    verify:
+      - Revoke button has proper cursor and hover state
+      - Success message "Invitation revoked successfully" appears
+      - Invitation is removed from pending list
+      - Original invitation link becomes invalid
+      - selector: "[data-testid='pending-invitations-list']"
+        assertion: visible
+    postconditions:
+      - Visiting /invite/{{invitation.token}} shows invalid error
+    priority: medium
+    type: functional
+    covers:
+      - OrganizationSettings.vue
+      - handleRevokeInvitation function
+      - DELETE /api/v2/org/:extid/invitations/:token
 
-    actions:
-      - navigate: /org/{org.extid}/settings/members
-      - find: pending invitation for invited@example.com
-      - click: Revoke button
+  # ===========================================================================
+  # SECTION 6: Email Normalization
+  # ===========================================================================
 
-    expect:
-      - success_message: "Invitation revoked successfully"
-      - not_in_list: invited@example.com
-      - verify_link_invalid: /invite/{invitation.token}
-
-  # -------------------------------------------------------------------------
-  # INV-012: Gmail alias normalization
-  # -------------------------------------------------------------------------
   - id: INV-012
-    intent: |
-      Email comparison normalizes Gmail-style aliases.
-      user+tag@gmail.com matches user@gmail.com for mismatch detection.
-
+    intent: Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com
     setup:
       auth: logged_in
-      email: user@gmail.com
+      state:
+        email: user@gmail.com
       fixtures:
         - type: organization_invitation
           props:
@@ -365,32 +427,174 @@ tests:
             role: member
             status: pending
           capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: click
+      element: "[data-testid='accept-invitation-btn']"
+    verify:
+      - No email mismatch warning visible (emails match after normalization)
+      - Accept button is enabled
+      - User can successfully accept invitation
+      - selector: "[data-testid='email-mismatch-warning']"
+        assertion: hidden
+      - selector: "[data-testid='accept-invitation-btn']"
+        assertion: visible
+    postconditions:
+      - Invitation is accepted successfully
+      - User becomes organization member
+    priority: medium
+    type: edge
+    covers:
+      - AcceptInvite.vue
+      - normalizeEmail function
 
-    actions:
-      - navigate: /invite/{invitation.token}
+  # ===========================================================================
+  # SECTION 7: Additional Error Scenarios
+  # ===========================================================================
 
-    expect:
-      - not_visible: email_mismatch_warning
-      - enabled: Accept Invitation button
+  - id: INV-013
+    intent: Already accepted invitation shows appropriate message
+    setup:
+      auth: logged_in
+      fixtures:
+        - type: organization_invitation
+          props:
+            email: invited@example.com
+            status: accepted
+          capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: none
+    verify:
+      - Error or info message indicates invitation already accepted
+      - No Accept/Decline buttons visible
+      - User may be redirected to organization page
+    priority: medium
+    type: error
+    covers:
+      - AcceptInvite.vue
+      - Invitation status handling
 
-edge_cases:
-  - id: EDGE-001
-    description: Open redirect prevention
-    verify: |
-      Redirect param validation rejects:
+  - id: INV-014
+    intent: Inviting existing organization member shows validation error
+    setup:
+      <<: *user_org_owner
+      state:
+        existing_member_email: member@example.com
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/team
+    action:
+      type: submit
+      element: "[data-testid='invite-form']"
+      data:
+        email: member@example.com
+        role: member
+    verify:
+      - Error message indicates user is already a member
+      - Invitation is not created
+      - Form remains visible for correction
+    priority: medium
+    type: error
+    covers:
+      - OrganizationSettings.vue
+      - Backend validation
+
+  - id: INV-015
+    intent: Owner cannot invite themselves to organization
+    setup:
+      <<: *user_org_owner
+      state:
+        owner_email: owner@example.com
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/team
+    action:
+      type: submit
+      element: "[data-testid='invite-form']"
+      data:
+        email: owner@example.com
+        role: member
+    verify:
+      - Error message indicates cannot invite yourself
+      - Invitation is not created
+    priority: low
+    type: error
+    covers:
+      - Backend validation
+      - Self-invite prevention
+
+  - id: INV-016
+    intent: Invalid invitation token shows clear error message
+    setup:
+      auth: logged_out
+    target: /invite/invalid-token-format-12345
+    action:
+      type: none
+    verify:
+      - Error message "Invalid or expired invitation" visible
+      - No invitation details shown
+      - No action buttons visible
+    priority: medium
+    type: error
+    covers:
+      - AcceptInvite.vue
+      - GET /api/invite/:token error handling
+
+  # ===========================================================================
+  # SECTION 8: Security Edge Cases
+  # ===========================================================================
+
+  - id: INV-SEC-001
+    intent: Open redirect attack prevention validates redirect parameter
+    setup:
+      auth: logged_out
+    target: /signin?redirect=https://evil.com/phishing
+    action:
+      type: submit
+      data:
+        email: user@example.com
+        password: password
+    verify:
+      - After login, user is NOT redirected to external URL
+      - User is redirected to dashboard or safe default
+      - Malicious redirect is rejected
+    priority: critical
+    severity: blocker
+    type: edge
+    covers:
+      - useAuth.ts isValidRedirect function
+      - Open redirect prevention
+    notes: |
+      Security test - validates redirect param rejection for:
       - URLs starting with //
       - URLs containing ://
       - URLs not starting with /
       - URLs exceeding 2048 characters
 
-  - id: EDGE-002
-    description: Security - no account existence disclosure
-    verify: |
-      Switch account flow directs to signin (not signup) to avoid
-      revealing whether invited email has existing account.
-
-  - id: EDGE-003
-    description: Concurrent session handling
-    verify: |
-      User logged in on multiple tabs sees consistent state
-      after switching accounts for invitation.
+  - id: INV-SEC-002
+    intent: Switch account flow does not reveal whether invited email has existing account
+    setup:
+      <<: *user_invitee_wrong_email
+      fixtures:
+        - <<: *fixture_invitation_pending
+          capture_as: invitation
+    target: /invite/{{invitation.token}}
+    action:
+      type: click
+      element: "[data-testid='switch-account-btn']"
+    verify:
+      - Redirects to signin page (not signup)
+      - No indication whether account exists for invited email
+      - User can click "Create account" link if needed
+    priority: high
+    severity: major
+    type: edge
+    covers:
+      - handleSwitchAccount function
+      - Account enumeration prevention
+    notes: |
+      Security: Direct to signin to avoid revealing account existence.
+      If no account exists, user clicks "Create account" link.
