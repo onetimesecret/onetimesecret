@@ -1,0 +1,174 @@
+# docs/test-plans/subscription-downgrade.yaml
+---
+# LLM-Optimized Test Cases: Subscription Downgrade
+# Version: 1.0.0
+
+suite:
+  id: subscription-downgrade
+  name: Subscription Downgrade - Credit Preview & Plan Changes
+  feature: Downgrade flow with proration credit handling
+  tags: [billing, downgrade, proration, subscription, stripe]
+  notes: |
+    Plan hierarchy (descending value):
+    - Team Plus ($85/mo) -> Identity Plus ($35/mo) -> Free ($0)
+    Downgrades generate proration credits for unused subscription time.
+
+# -----------------------------------------------------------------------------
+# SHARED DEFINITIONS
+# -----------------------------------------------------------------------------
+
+definitions:
+  users:
+    team_plus_user:
+      description: User with active Team Plus subscription
+      auth: logged_in
+      state:
+        current_plan: team_plus_v1
+        subscription_status: active
+    identity_plus_user:
+      description: User with active Identity Plus subscription
+      auth: logged_in
+      state:
+        current_plan: identity_plus_v1
+        subscription_status: active
+
+# -----------------------------------------------------------------------------
+# TEST CASES
+# -----------------------------------------------------------------------------
+
+tests:
+  # ---------------------------------------------------------------------------
+  # CRITICAL: Credit Preview Display
+  # ---------------------------------------------------------------------------
+
+  - id: DOWNGRADE-001
+    intent: User sees proration credit preview before confirming downgrade from Team Plus to Identity Plus
+    setup:
+      auth: logged_in
+      user_type: team_plus_user
+      description: User on Team Plus plan with mid-cycle billing period
+      state:
+        current_plan: team_plus_v1
+        subscription_status: active
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Select button on Identity Plus plan card
+    verify:
+      - PlanChangeModal opens with yellow downgrade styling
+      - Modal title shows "Downgrade to Identity Plus?"
+      - Current plan displays "Team Plus" with price
+      - New plan displays "Identity Plus" with price
+      - Credit for unused time shows positive amount
+      - Network request to /billing/api/org/:extid/preview-plan-change returns 200
+      - Preview response contains credit_applied > 0
+    priority: critical
+    type: functional
+    covers:
+      - PlanChangeModal.vue
+      - POST /billing/api/org/:extid/preview-plan-change
+      - BillingService.previewPlanChange
+
+  # ---------------------------------------------------------------------------
+  # CRITICAL: Confirm Downgrade
+  # ---------------------------------------------------------------------------
+
+  - id: DOWNGRADE-002
+    intent: User confirms downgrade from Team Plus to Identity Plus and subscription updates immediately
+    setup:
+      auth: logged_in
+      user_type: team_plus_user
+      description: Team Plus user with preview modal open for Identity Plus
+      state:
+        current_plan: team_plus_v1
+        subscription_status: active
+        modal_open: true
+        target_plan: identity_plus_v1
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Confirm Downgrade button in modal
+    verify:
+      - Network request to /billing/api/org/:extid/change-plan returns success
+      - Modal closes after successful change
+      - Success message displays new plan name
+      - Plan selector refreshes to show Identity Plus as current plan
+      - No console errors during plan change
+    priority: critical
+    type: functional
+    covers:
+      - PlanChangeModal.vue handleConfirm
+      - POST /billing/api/org/:extid/change-plan
+      - BillingService.changePlan
+    postconditions:
+      - Subscription updated in Stripe
+      - Feature limits updated immediately
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Credit Applied to Next Invoice
+  # ---------------------------------------------------------------------------
+
+  - id: DOWNGRADE-003
+    intent: Downgrade with significant credit shows credit breakdown and remaining balance
+    setup:
+      auth: logged_in
+      user_type: team_plus_user
+      description: User on Team Plus near start of billing cycle (high credit available)
+      state:
+        current_plan: team_plus_v1
+        subscription_status: active
+        billing_cycle_position: early
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Select button on Identity Plus plan card
+    verify:
+      - Credit breakdown section visible when credit >= next bill
+      - "How your credit applies" heading displays
+      - Next bill amount shows Identity Plus price
+      - Credit applied line shows negative amount (green)
+      - Amount due at next billing shows $0 or reduced amount
+      - Remaining account credit displays if credit exceeds next bill
+      - Note about credit applying to future invoices visible
+    priority: high
+    type: functional
+    covers:
+      - PlanChangeModal.vue showCreditBreakdown computed
+      - PlanChangeModal.vue remainingCreditAfterBill computed
+      - PlanChangeModal.vue creditAppliedToBill computed
+    notes: |
+      Credit breakdown appears when credit_applied >= next_period_amount.
+      Remaining credit carries forward to future invoices.
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Downgrade to Free Tier
+  # ---------------------------------------------------------------------------
+
+  - id: DOWNGRADE-004
+    intent: Paid user downgrades to Free plan via subscription cancellation flow
+    setup:
+      auth: logged_in
+      user_type: identity_plus_user
+      description: User on Identity Plus wants to return to Free tier
+      state:
+        current_plan: identity_plus_v1
+        subscription_status: active
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Cancel subscription link
+    verify:
+      - CancelSubscriptionModal opens with confirmation prompt
+      - Warning explains access retained until billing period ends
+      - "Your account will revert to the free plan" message visible
+      - After confirmation, subscription status shows cancel_at_period_end
+      - Cancel subscription button disabled during processing
+    priority: high
+    type: functional
+    covers:
+      - CancelSubscriptionModal.vue
+      - POST /billing/api/org/:extid/cancel-subscription
+      - BillingService.cancelSubscription
+    notes: |
+      Free tier downgrade uses cancellation flow rather than plan change.
+      Access continues until current billing period expires.

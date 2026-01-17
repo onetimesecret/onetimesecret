@@ -1,0 +1,184 @@
+# docs/test-plans/subscription-upgrade.yaml
+---
+# LLM-Optimized Test Cases: Subscription Upgrade
+# Version: 1.0.0
+
+suite:
+  id: subscription-upgrade
+  name: Subscription Upgrade - Checkout and Plan Change Flows
+  feature: Subscription management and upgrade workflows
+  tags: [stripe, billing, upgrade, checkout, subscription]
+  notes: |
+    Tests cover two distinct upgrade paths:
+    1. New subscription checkout (free → paid via Stripe Checkout)
+    2. Plan change (paid → different paid via in-app modal)
+
+# -----------------------------------------------------------------------------
+# SHARED DEFINITIONS
+# -----------------------------------------------------------------------------
+
+definitions:
+  users:
+    free_user:
+      description: Authenticated user on Free plan with no subscription
+      auth: logged_in
+      state:
+        plan: free
+        has_subscription: false
+
+    paid_user_monthly:
+      description: User with active monthly subscription (Identity Plus)
+      auth: logged_in
+      state:
+        plan: identity_plus_v1
+        has_subscription: true
+        billing_interval: month
+
+# -----------------------------------------------------------------------------
+# TEST CASES
+# -----------------------------------------------------------------------------
+
+tests:
+  # ---------------------------------------------------------------------------
+  # CRITICAL: New Subscription Checkout
+  # ---------------------------------------------------------------------------
+
+  - id: SUB-UPGRADE-001
+    intent: Free user initiates Stripe checkout when selecting a paid plan
+    setup:
+      auth: logged_in
+      user_type: free_user
+      description: User has no active subscription
+      state:
+        has_subscription: false
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Select button on a paid plan card
+    verify:
+      - Network request to POST /billing/api/org/:extid/checkout returns 200
+      - Response contains checkout_url field
+      - Browser redirects to Stripe checkout page (checkout.stripe.com)
+    priority: critical
+    severity: blocker
+    type: functional
+    covers:
+      - src/apps/workspace/billing/PlanSelector.vue
+      - POST /billing/api/org/:extid/checkout
+
+  # ---------------------------------------------------------------------------
+  # CRITICAL: Plan Upgrade with Proration
+  # ---------------------------------------------------------------------------
+
+  - id: SUB-UPGRADE-002
+    intent: Existing subscriber sees proration preview when upgrading to higher tier
+    setup:
+      auth: logged_in
+      user_type: paid_user_monthly
+      description: User has active Identity Plus subscription
+      state:
+        plan: identity_plus_v1
+        has_subscription: true
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Select button on Team Plus plan card
+    verify:
+      - PlanChangeModal opens instead of Stripe redirect
+      - Modal shows current plan name (Identity Plus)
+      - Modal shows target plan name (Team Plus)
+      - Proration preview displays amount due or credit
+      - Network request to POST /billing/api/org/:extid/preview-plan-change returns 200
+      - Confirm button visible to execute plan change
+    priority: critical
+    severity: blocker
+    type: functional
+    covers:
+      - src/apps/workspace/billing/PlanChangeModal.vue
+      - POST /billing/api/org/:extid/preview-plan-change
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Billing Interval Change
+  # ---------------------------------------------------------------------------
+
+  - id: SUB-UPGRADE-003
+    intent: Subscriber can switch from monthly to yearly billing with preview
+    setup:
+      auth: logged_in
+      user_type: paid_user_monthly
+      description: User has active monthly subscription
+      state:
+        plan: identity_plus_v1
+        billing_interval: month
+        has_subscription: true
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Yearly billing tab, then Select on same tier plan
+    verify:
+      - PlanChangeModal opens showing interval change
+      - Preview shows yearly price vs monthly price
+      - Proration calculation reflects interval change
+      - POST /billing/api/org/:extid/preview-plan-change called with yearly price_id
+    priority: high
+    severity: major
+    type: functional
+    covers:
+      - src/apps/workspace/billing/PlanSelector.vue
+      - src/apps/workspace/billing/PlanChangeModal.vue
+    notes: Yearly plans typically offer discount over monthly
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Checkout Cancellation Recovery
+  # ---------------------------------------------------------------------------
+
+  - id: SUB-UPGRADE-004
+    intent: User returning from cancelled Stripe checkout sees plans page without error
+    setup:
+      auth: logged_in
+      user_type: free_user
+      description: User abandoned Stripe checkout and returned via cancel URL
+      state:
+        has_subscription: false
+    target: /billing/:extid/plans
+    action:
+      type: none
+    verify:
+      - Plans page loads without error
+      - User sees available plans with pricing
+      - No error banner or checkout failure message
+      - User can select a plan to attempt checkout again
+    priority: high
+    severity: major
+    type: functional
+    covers:
+      - src/apps/workspace/billing/PlanSelector.vue
+    notes: Stripe redirects to cancel_url when user abandons checkout
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Upgrade Success Confirmation
+  # ---------------------------------------------------------------------------
+
+  - id: SUB-UPGRADE-005
+    intent: User returning from successful checkout sees confirmation and updated plan
+    setup:
+      auth: logged_in
+      description: User completed Stripe checkout and returned via success URL
+      state:
+        checkout_completed: true
+    target: /billing/:extid/overview?upgraded=true
+    action:
+      type: none
+    verify:
+      - Success banner displayed with upgrade confirmation message
+      - Current plan shows newly subscribed tier (not Free)
+      - Plan features section reflects upgraded entitlements
+      - No error messages in console
+    priority: high
+    severity: major
+    type: functional
+    covers:
+      - src/apps/workspace/billing/BillingOverview.vue
+    postconditions:
+      - User organization has active subscription
+      - Entitlements reflect new plan tier

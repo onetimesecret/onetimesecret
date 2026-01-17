@@ -1,0 +1,198 @@
+# docs/test-plans/edge-cases.yaml
+---
+# LLM-Optimized Test Cases: Billing & Auth Edge Cases
+# Version: 1.0.0
+
+suite:
+  id: billing-auth-edge-cases
+  name: Billing & Auth Edge Cases
+  feature: Edge cases for billing disabled mode, free tier limits, session expiry, and entitlement enforcement
+  tags: [billing, auth, edge-cases, entitlements, standalone]
+  notes: |
+    These tests cover boundary conditions and failure modes in billing/auth flows.
+    Some tests require specific deployment configurations (standalone vs hosted).
+
+# -----------------------------------------------------------------------------
+# SHARED DEFINITIONS
+# -----------------------------------------------------------------------------
+
+definitions:
+  users:
+    free_user:
+      description: Authenticated user on Free plan
+      auth: logged_in
+    paid_user:
+      description: User with active paid subscription
+      auth: logged_in
+      state:
+        plan: identity_plus
+
+  fixtures:
+    default_workspace:
+      type: organization
+      props:
+        name: Workspace
+        is_default: true
+
+# -----------------------------------------------------------------------------
+# TEST CASES
+# -----------------------------------------------------------------------------
+
+tests:
+  # ---------------------------------------------------------------------------
+  # CRITICAL: Billing Disabled Mode (Standalone Deployment)
+  # ---------------------------------------------------------------------------
+
+  - id: EDGE-001
+    intent: Standalone deployment hides all billing UI elements
+    setup:
+      auth: logged_in
+      user_type: free_user
+      description: Billing disabled in deployment configuration
+      state:
+        billing_enabled: false
+    target: /dashboard
+    verify:
+      - No "Upgrade" button visible in header or dashboard
+      - No "Plans" or "Billing" links in navigation
+      - User menu dropdown has no billing option
+      - Footer contains no pricing or plans links
+    priority: critical
+    type: edge
+    covers: [bootstrapStore.billing_enabled, navigation guards]
+    skip:
+      reason: Only applicable to standalone deployments
+      when: hosted_mode
+    notes: |
+      In standalone mode, billing_enabled=false in bootstrap data.
+      All billing routes should be hidden, not just disabled.
+
+  - id: EDGE-002
+    intent: Standalone mode grants full entitlements without subscription
+    setup:
+      auth: logged_in
+      user_type: free_user
+      state:
+        billing_enabled: false
+    target: /org
+    verify:
+      - Organization settings show no plan restrictions
+      - Custom domains feature accessible without upgrade prompt
+      - Teams feature accessible without upgrade prompt
+      - No "upgrade required" messaging anywhere
+    priority: critical
+    type: edge
+    covers: [WithEntitlements.can?, standalone entitlements]
+    skip:
+      reason: Only applicable to standalone deployments
+      when: hosted_mode
+    notes: |
+      org.can?() returns true for all features when billing is disabled.
+      STANDALONE_ENTITLEMENTS includes: api_access, custom_domains,
+      custom_branding, manage_teams, manage_orgs, audit_logs, etc.
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Free Tier Limits
+  # ---------------------------------------------------------------------------
+
+  - id: EDGE-003
+    intent: Free user encounters upgrade prompt when attempting premium feature
+    setup:
+      auth: logged_in
+      user_type: free_user
+      state:
+        plan: free_v1
+    target: /org/domains
+    action:
+      type: click
+      element: Add Domain button
+    verify:
+      - Upgrade prompt modal or inline message appears
+      - Message explains feature requires paid plan
+      - Clear path to upgrade (link to /billing/plans)
+      - No silent failure or generic error
+    priority: high
+    severity: major
+    type: edge
+    covers: [custom_domains entitlement, upgrade prompts]
+    notes: |
+      Free tier has can?('custom_domains') = false.
+      UI should gracefully prompt upgrade, not error.
+
+  - id: EDGE-004
+    intent: Free user sees correct TTL limit for secret lifetime
+    setup:
+      auth: logged_in
+      user_type: free_user
+      state:
+        plan: free_v1
+    target: /
+    verify:
+      - Secret creation form shows TTL options
+      - Maximum TTL option reflects free tier limit (7 days / 604800 seconds)
+      - No options beyond free tier limit available
+      - Tooltip or help text explains limits if present
+    priority: high
+    type: edge
+    covers: [limit_for('secret_lifetime'), TTL controls]
+    notes: |
+      FREE_TIER_LIMITS['secret_lifetime.max'] = 604800 (7 days).
+      BaseSecretAction uses org.limit_for('secret_lifetime') for max TTL.
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Session Expiry During Checkout
+  # ---------------------------------------------------------------------------
+
+  - id: EDGE-005
+    intent: Expired session during checkout redirects to login with return URL
+    setup:
+      auth: logged_in
+      user_type: free_user
+      description: Session will expire during checkout flow
+    target: /billing/plans
+    action:
+      type: click
+      element: Select button on paid plan
+    verify:
+      - If session expired, redirect to /login occurs
+      - Login page shows "session expired" message
+      - After re-login, user returns to billing flow
+      - No checkout data lost (if any was entered)
+    priority: high
+    severity: major
+    type: edge
+    covers: [session middleware, checkout flow, return URLs]
+    notes: |
+      Simulating this requires either waiting for session timeout
+      or manually clearing session cookie mid-flow.
+      Agent should document observed behavior.
+
+  # ---------------------------------------------------------------------------
+  # MEDIUM: Entitlement Enforcement
+  # ---------------------------------------------------------------------------
+
+  - id: EDGE-006
+    intent: API enforces entitlements even if UI is bypassed
+    setup:
+      auth: logged_in
+      user_type: free_user
+      state:
+        plan: free_v1
+    target: /api/v2/domains
+    action:
+      type: submit
+      data:
+        method: POST
+        body:
+          domain: test.example.com
+    verify:
+      - API returns 403 or entitlement error
+      - Error message indicates feature not available on plan
+      - No domain created in system
+    priority: medium
+    severity: major
+    type: edge
+    covers: [AddDomain.can?, API entitlement guards]
+    notes: |
+      Backend checks target_organization.can?('custom_domains') in AddDomain.
+      This test verifies defense in depth beyond UI hiding.

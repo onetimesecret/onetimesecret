@@ -1,0 +1,132 @@
+# docs/test-plans/subscription-cancellation.yaml
+---
+# LLM-Optimized Test Cases: Subscription Cancellation
+# Version: 1.0.0
+
+suite:
+  id: subscription-cancellation
+  name: Subscription Cancellation Flow
+  feature: Cancel subscription at period end with access retention
+  tags: [billing, subscription, cancellation, stripe]
+
+# -----------------------------------------------------------------------------
+# SHARED DEFINITIONS
+# -----------------------------------------------------------------------------
+
+definitions:
+  users:
+    paid_user:
+      description: User with active paid subscription
+      auth: logged_in
+
+# -----------------------------------------------------------------------------
+# TEST CASES
+# -----------------------------------------------------------------------------
+
+tests:
+  # ---------------------------------------------------------------------------
+  # CRITICAL: Cancel at Period End
+  # ---------------------------------------------------------------------------
+
+  - id: CANCEL-001
+    intent: User initiates cancellation and access is retained until period ends
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        has_active_subscription: true
+        plan_name: Identity Plus
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Cancel subscription button
+    verify:
+      - Cancel subscription modal opens
+      - Modal shows plan name being cancelled
+      - Confirm cancellation button visible
+      - After confirmation, subscription status shows "Canceling at period end"
+    priority: critical
+    type: functional
+    covers:
+      - CancelSubscriptionModal.vue
+      - POST /billing/api/org/:extid/cancel-subscription
+    notes: Cancellation should be "at period end" not immediate
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Confirmation Display
+  # ---------------------------------------------------------------------------
+
+  - id: CANCEL-002
+    intent: Cancellation confirmation shows period end date and what happens next
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        has_active_subscription: true
+        period_end: 1737072000
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: Cancel subscription button
+    verify:
+      - Modal displays formatted end date (e.g., "January 16, 2025")
+      - "Access until" message shows the period end date
+      - "No future charges" message visible
+      - "Downgrade to free" message visible
+    priority: high
+    type: ui
+    covers:
+      - CancelSubscriptionModal.vue
+      - formattedPeriodEnd computed property
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Access Retained Until Period End
+  # ---------------------------------------------------------------------------
+
+  - id: CANCEL-003
+    intent: After cancellation initiated, paid features remain accessible until period end
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        subscription_cancel_at_period_end: true
+        period_end_not_reached: true
+    target: /billing/:extid/overview
+    verify:
+      - Subscription status shows canceling state
+      - Current plan still shows paid tier name
+      - Paid features remain accessible (e.g., custom domains, team features)
+      - Upgrade button not shown (already on paid plan until period end)
+      - Period end date displayed
+    priority: high
+    type: functional
+    covers:
+      - BillingOverview.vue
+      - subscription status display
+    notes: User should retain full access until billing period ends
+
+  # ---------------------------------------------------------------------------
+  # MEDIUM: Post-Cancellation State
+  # ---------------------------------------------------------------------------
+
+  - id: CANCEL-004
+    intent: After period ends, user is on free tier with upgrade prompts
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        subscription_cancelled: true
+        period_has_ended: true
+    target: /billing/:extid/overview
+    verify:
+      - Current plan shows "Free"
+      - No active subscription indicator
+      - Upgrade Plan button visible
+      - Paid-only features show upgrade prompts or restrictions
+      - No cancellation pending indicator
+    priority: medium
+    type: functional
+    covers:
+      - BillingOverview.vue
+      - plan downgrade logic
+    notes: After period end, account reverts to free tier capabilities
