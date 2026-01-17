@@ -715,7 +715,7 @@ watch(activeTab, async (newTab) => {
                 <button
                   type="submit"
                   :disabled="!isDirty || isSaving"
-                  class="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                  class="rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
                   <span v-if="!isSaving">{{ t('web.COMMON.save_changes') }}</span>
                   <span v-else>{{ t('web.COMMON.saving') }}</span>
                 </button>
@@ -862,7 +862,7 @@ watch(activeTab, async (newTab) => {
                     <button
                       type="submit"
                       :disabled="isInviting || !inviteFormData.email"
-                      class="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                      class="rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
                       {{ isInviting ? t('web.COMMON.processing') : t('web.organizations.invitations.send_invite') }}
                     </button>
                   </div>
@@ -963,7 +963,7 @@ watch(activeTab, async (newTab) => {
               </div>
               <router-link
                 :to="`/org/${orgId}/domains/add`"
-                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
                   name="plus"
@@ -1154,7 +1154,7 @@ watch(activeTab, async (newTab) => {
                   <div class="flex flex-wrap gap-3 pt-4">
                     <router-link
                       :to="`/billing/${orgId}/plans`"
-                      class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                      class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                       <OIcon
                         collection="heroicons"
                         name="arrow-up-circle"
@@ -1200,7 +1200,7 @@ watch(activeTab, async (newTab) => {
                   </p>
                   <router-link
                     :to="`/billing/${orgId}/plans`"
-                    class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                    class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                     <OIcon
                       collection="heroicons"
                       name="arrow-up-circle"

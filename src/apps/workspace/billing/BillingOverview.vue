@@ -181,7 +181,7 @@ onMounted(async () => {
         <div class="mt-6">
           <router-link
             :to="{ name: 'Organizations' }"
-            class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+            class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
             <OIcon
               collection="heroicons"
               name="plus"
@@ -230,7 +230,7 @@ onMounted(async () => {
               </div>
               <router-link
                 :to="{ name: 'Billing Plans', params: { extid: orgExtid } }"
-                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
                   name="arrow-up-circle"
