@@ -8,6 +8,15 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import FeedbackModal from '@/shared/components/modals/FeedbackModal.vue';
 
+  interface Props {
+    /** When true, only shows the icon without any text (useful for compact layouts) */
+    iconOnly?: boolean;
+  }
+
+  withDefaults(defineProps<Props>(), {
+    iconOnly: false,
+  });
+
   const isFeedbackModalOpen = ref(false);
 
   const toggleFeedbackModal = () => {
@@ -27,13 +36,15 @@
                  bg-gray-200 px-3
                  py-1.5 text-sm
                  font-medium text-gray-700
-                 transition-colors hover:bg-gray-200
+                 transition-colors hover:bg-gray-300
                  hover:text-gray-900 focus:outline-none focus:ring-2
                  focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white
-                 dark:bg-gray-700 dark:text-gray-400
-                 dark:ring-offset-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900 sm:space-x-2"
+                 dark:bg-gray-600 dark:text-gray-300
+                 dark:ring-offset-gray-900 dark:hover:bg-gray-500 dark:hover:text-gray-100 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900 sm:space-x-2"
       :aria-label="t('web.feedback.open_feedback_form')">
-      <span class="hidden sm:inline sm:pl-1">{{ t('web.feedback.send_feedback') }}</span>
+      <span
+        v-if="!iconOnly"
+        class="hidden sm:inline sm:pl-1">{{ t('web.feedback.send_feedback') }}</span>
       <OIcon
         class="size-5 text-gray-500 transition-colors
              group-hover:text-brand-500 dark:text-gray-400

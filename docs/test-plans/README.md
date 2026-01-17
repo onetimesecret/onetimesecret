@@ -10,6 +10,14 @@ Intent-based test specifications for browser automation agents.
 
 LLM agents infer mechanics from intent, so step-by-step instructions are unnecessary.
 
+## Agent Execution Rules
+
+1. **ALL tests must be executed** - do not skip tests
+2. **Fixtures are declarative** - you CREATE the state dynamically during test execution
+3. **No pre-built test data** - create accounts, invitations, secrets as needed
+4. **Valid skip reasons** - only specific technical blockers (e.g., "MFA requires TOTP app not available")
+5. **Invalid skip reasons** - "time constraints", "missing fixtures", "would need to create data"
+
 ## Files
 
 - `schema.ts` - Zod v4 schema (source of truth for field types)

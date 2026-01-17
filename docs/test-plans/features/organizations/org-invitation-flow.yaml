@@ -18,6 +18,15 @@ suite:
   tags: [organizations, invitations, auth, email, redirect]
   priority: high
   notes: |
+    AGENT EXECUTION REQUIREMENTS:
+    - ALL tests must be executed. Do not skip tests.
+    - "Fixtures" in this schema are DECLARATIVE - you create the state dynamically.
+    - To test "expired invitation": create an invitation, then use an invalid/fake token.
+    - To test "email mismatch": create account A, send invite to email B, log in as A.
+    - To test "Gmail alias": use user+tag@domain.com format with any valid domain.
+    - There are no pre-built fixtures. You create all test data during execution.
+    - If a test cannot be run, document the SPECIFIC technical blocker, not "time" or "fixtures".
+
     Multi-context testing required for email mismatch scenarios.
     Tests involving sender and recipient require two browser contexts
     (separate Chrome profiles or incognito windows).
