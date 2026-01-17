@@ -63,7 +63,7 @@ export default defineConfig({
     alias: {
       '@': resolve(process.cwd(), './src'),
       '@tests': resolve(process.cwd(), './src/tests'),
-      '@locales-content': resolve(process.cwd(), './locales/content'),
+      '@locales': resolve(process.cwd(), './locales'),
     },
   },
 });
