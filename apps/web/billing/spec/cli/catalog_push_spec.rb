@@ -63,6 +63,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         'limit_custom_domains' => '2',
         'limit_secret_lifetime' => '604800',
         'limit_secrets_per_day' => '100',
+        'ots_includes_plan' => '',
+        'ots_is_popular' => 'false',
       },
     }
     double('Stripe::Product', defaults.merge(overrides))

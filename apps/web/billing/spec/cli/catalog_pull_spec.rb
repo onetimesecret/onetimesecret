@@ -44,7 +44,7 @@ RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
         output = capture_stdout { command.call }
 
         expect(output).to include('Pulling from Stripe to Redis cache')
-        expect(output).to include('Successfully pulled 5 plan(s) to cache')
+        expect(output).to include('Successfully pulled 5 plan(s) from Stripe')
       end
 
       it 'shows next steps after successful pull' do
