@@ -17,7 +17,7 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[ListOrganizations] Listing organizations for user #{cust.custid}"
+        OT.ld "[ListOrganizations] Listing organizations for user #{cust.extid}"
 
         # Use Familia v2 reverse collection method
         @organizations = cust.organization_instances

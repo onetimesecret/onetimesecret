@@ -44,7 +44,7 @@ module OrganizationAPI::Logic
       def process
         # Mask display_name in debug logs - safe even for 1-2 char names (Ruby returns available chars)
         masked_name = display_name.length > 3 ? "#{display_name[0, 3]}..." : "[#{display_name.length}chars]"
-        OT.ld "[CreateOrganization] Creating organization '#{masked_name}' for user #{cust.custid}"
+        OT.ld "[CreateOrganization] Creating organization '#{masked_name}' for user #{cust.extid}"
 
         # Acquire distributed lock for organization creation to prevent quota race conditions
         lock_key   = "customer:#{cust.objid}:org_creation_lock"

@@ -101,7 +101,7 @@ module DomainsAPI::Logic
           # This delegates to the appropriate backend (Approximated, Caddy, passthrough, etc.)
           request_certificate
         rescue HTTParty::ResponseError => ex
-          OT.le format('[AddDomain.request_certificate error] %s %s %s', @cust.custid, @display_domain, ex)
+          OT.le format('[AddDomain.request_certificate error] %s %s %s', @cust.extid, @display_domain, ex)
           # Continue processing despite certificate request error
         rescue StandardError => ex
           OT.le "[AddDomain] Unexpected error: #{ex.message}"

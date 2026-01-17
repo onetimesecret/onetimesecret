@@ -42,7 +42,7 @@ module AccountAPI::Logic
 
           auth_logger.warn 'Invalid reset secret attempted',
             {
-              customer_id: @cust.custid,
+              customer_id: @cust.extid,
               email: @cust.obscure_email,
               secret_identifier: secret.identifier,
               ip: @strategy_result&.metadata&.dig(:ip),
@@ -59,7 +59,7 @@ module AccountAPI::Logic
 
           auth_logger.warn 'Password reset attempted for unverified account',
             {
-              customer_id: @cust.custid,
+              customer_id: @cust.extid,
               email: @cust.obscure_email,
               status: :pending,
               ip: @strategy_result&.metadata&.dig(:ip),
@@ -81,7 +81,7 @@ module AccountAPI::Logic
 
         auth_logger.info 'Password successfully changed',
           {
-            customer_id: @cust.custid,
+            customer_id: @cust.extid,
             email: @cust.obscure_email,
             ip: @strategy_result&.metadata&.dig(:ip),
             session_id: sess&.id,
