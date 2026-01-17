@@ -27,7 +27,7 @@ function validateFile(filePath: string): ValidationResult {
 
   try {
     const content = readFileSync(filePath, 'utf-8');
-    const data = parse(content);
+    const data = parse(content, { merge: true });
 
     const result = LLMTestFile.safeParse(data);
 
