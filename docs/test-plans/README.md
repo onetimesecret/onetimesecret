@@ -10,6 +10,51 @@ Intent-based test specifications for browser automation agents.
 
 LLM agents infer mechanics from intent, so step-by-step instructions are unnecessary.
 
+## Writing Verify Assertions
+
+The agent determines *how* to validate, but the test plan must ensure outcomes are **verifiable**, not assumed.
+
+### When intent is sufficient
+
+For UI-visible outcomes, simple intent statements work - the agent infers validation:
+
+```yaml
+verify:
+  - User is redirected to dashboard        # agent checks URL
+  - Success message appears                # agent checks visible element
+  - Login form is no longer visible        # agent checks element hidden
+```
+
+### When explicit validation is required
+
+Add explicit `api:` or `selector:` assertions when:
+
+1. **Backend state not visible in UI** - database changes, session state, token invalidation
+2. **Security/integrity checks** - must prove state, not assume it
+3. **Postconditions that affect other tests** - ensure state is actually set
+
+```yaml
+# BAD - assumption-based (agent may just assume this happened)
+verify:
+  - Invitation status changes to declined
+  - Recovery codes are invalidated
+  - MFA is now enabled
+
+# GOOD - explicit validation
+verify:
+  - api: GET /api/invite/{{token}}
+    assert:
+      status: declined
+  - api: GET /api/v2/account/mfa/status
+    assert:
+      mfa_enabled: true
+      has_recovery_codes: false
+```
+
+### Rule of thumb
+
+If the outcome is **visible on the page**, intent is enough. If the outcome is **backend state**, add an API assertion.
+
 ## Agent Execution Rules
 
 1. **ALL tests must be executed** - do not skip tests

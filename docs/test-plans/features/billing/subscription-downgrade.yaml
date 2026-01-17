@@ -115,6 +115,11 @@ tests:
       - description: No console errors during plan change
         assert: console_errors
         value: 0
+      - description: Bootstrap confirms new plan is active
+        api: GET /bootstrap/me
+        assert:
+          organization.plan.code: identity_plus_v1
+          organization.subscription.status: active
     priority: critical
     type: functional
     covers:
@@ -122,7 +127,7 @@ tests:
       - POST /billing/api/org/:extid/change-plan
       - BillingService.changePlan
     postconditions:
-      - Subscription updated in Stripe
+      - Subscription updated in Stripe (verified via bootstrap API)
       - Feature limits updated immediately
 
   - id: DOWNGRADE-003

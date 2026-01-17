@@ -120,9 +120,10 @@ tests:
       - api: GET /api/v2/account/mfa/status
         assert:
           mfa_enabled: false
+          has_recovery_codes: false
     postconditions:
       - MFA disabled for account
-      - Recovery codes invalidated
+      - Recovery codes invalidated (verified via API)
       - Future logins require only password
     priority: critical
     type: functional

@@ -181,9 +181,17 @@ tests:
       - Checkbox or confirmation required
       - Cannot complete without acknowledging codes saved
       - After confirmation, setup completes
-      - MFA is now enabled on account
+      - selector: "[data-testid='mfa-setup-wizard']"
+        assertion: hidden
+      - selector: "[data-testid='mfa-status']"
+        assertion: contains_text
+        expected: "enabled"
+      - api: GET /api/v2/account/mfa/status
+        assert:
+          mfa_enabled: true
+          has_recovery_codes: true
     postconditions:
-      - MFA enabled for user account
+      - MFA enabled for user account (verified via API)
       - Recovery codes stored (hashed) server-side
     priority: critical
     type: functional
