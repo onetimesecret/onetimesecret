@@ -499,17 +499,17 @@ watch(activeTab, async (newTab) => {
         <div class="flex items-center gap-3">
           <router-link
             to="/org"
-            class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            class="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             :title="t('web.organizations.title')">
             <OIcon
               collection="heroicons"
               name="arrow-left"
-              class="size-4"
+              class="size-5"
               aria-hidden="true" />
+            <h1 class="m-0 text-xl font-brand font-semibold text-gray-900 dark:text-white">
+              {{ organization?.display_name || t('web.COMMON.loading') }}
+            </h1>
           </router-link>
-          <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{ organization?.display_name || t('web.COMMON.loading') }}
-          </h1>
         </div>
       </div>
 
