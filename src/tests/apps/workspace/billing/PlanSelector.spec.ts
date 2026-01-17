@@ -733,6 +733,45 @@ describe('PlanSelector Logic', () => {
       });
     });
 
+    describe('cancel subscription link visibility', () => {
+      /**
+       * Logic extracted from PlanSelector.vue:
+       * Cancel link is shown when:
+       * 1. hasActiveSubscription is true
+       * 2. currentTier is not 'free'
+       *
+       * Template: v-if="hasActiveSubscription && currentTier !== 'free'"
+       */
+      function shouldShowCancelLink(
+        hasActiveSubscription: boolean,
+        currentTier: string
+      ): boolean {
+        return hasActiveSubscription && currentTier !== 'free';
+      }
+
+      it('shows cancel link for active paid subscriber on single_team tier', () => {
+        expect(shouldShowCancelLink(true, 'single_team')).toBe(true);
+      });
+
+      it('shows cancel link for active paid subscriber on multi_team tier', () => {
+        expect(shouldShowCancelLink(true, 'multi_team')).toBe(true);
+      });
+
+      it('hides cancel link for free tier users', () => {
+        expect(shouldShowCancelLink(true, 'free')).toBe(false);
+      });
+
+      it('hides cancel link when no active subscription', () => {
+        expect(shouldShowCancelLink(false, 'single_team')).toBe(false);
+        expect(shouldShowCancelLink(false, 'multi_team')).toBe(false);
+      });
+
+      it('hides cancel link for free tier even with subscription flag', () => {
+        // Edge case: subscription data might be stale
+        expect(shouldShowCancelLink(true, 'free')).toBe(false);
+      });
+    });
+
     describe('freePlanStandalone filtering', () => {
       /**
        * Logic extracted from PlanSelector.vue: filteredPlans
