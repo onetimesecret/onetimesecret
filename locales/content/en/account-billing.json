@@ -194,6 +194,15 @@
   "web.billing.features.sla": {
     "text": "Service Level Agreement"
   },
+  "web.billing.features.centralized_billing": {
+    "text": "Centralized Billing"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Audit Trail"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Shared Workflows"
+  },
   "web.billing.plans.title": {
     "text": "Select a Plan"
   },

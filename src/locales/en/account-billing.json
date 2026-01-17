@@ -88,7 +88,10 @@
         "priority_support": "Priority Support",
         "sla": "Service Level Agreement",
         "unlimited_custom_domains": "Unlimited Custom Domains",
-        "custom_domain": "1 Custom Domain"
+        "custom_domain": "1 Custom Domain",
+        "centralized_billing": "Centralized Billing",
+        "audit_trail": "Audit Trail",
+        "shared_workflows": "Shared Workflows"
       },
       "plans": {
         "title": "Select a Plan",
