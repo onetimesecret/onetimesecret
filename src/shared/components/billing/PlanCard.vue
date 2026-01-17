@@ -112,7 +112,7 @@
     <!-- Current Badge -->
     <div
       v-if="isCurrent"
-      class="absolute -top-3 right-4 z-10 rounded-full border-2 border-green-600 bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow-md dark:border-green-500 dark:bg-green-500">
+      class="absolute -top-3 right-4 z-10 rounded-full border-2 border-brandcomp-600 bg-brandcomp-600 px-3 py-1 text-xs font-semibold text-white shadow-md dark:border-brandcomp-500 dark:bg-brandcomp-500">
       {{ t('web.billing.plans.current_badge') }}
     </div>
 
@@ -179,7 +179,7 @@
             <OIcon
               collection="heroicons"
               name="check"
-              class="mt-0.5 size-5 shrink-0 text-green-500 dark:text-green-400"
+              class="mt-0.5 size-5 shrink-0 text-brandcomp-500 dark:text-brandcomp-400"
               aria-hidden="true" />
             <span>{{ t(feature) }}</span>
           </li>
