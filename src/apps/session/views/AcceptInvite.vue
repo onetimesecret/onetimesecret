@@ -223,6 +223,7 @@
       <!-- Invitation Details -->
       <div
         v-if="invitation && invitation.status === 'pending'"
+        data-testid="invitation-details"
         class="space-y-4">
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
           <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
@@ -274,6 +275,7 @@
         <!-- Email Mismatch Warning (authenticated but wrong email) -->
         <div
           v-if="emailMismatch"
+          data-testid="email-mismatch-warning"
           class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
           <div class="flex">
             <OIcon
@@ -296,6 +298,7 @@
                   type="button"
                   @click="handleSwitchAccount"
                   :disabled="isProcessing"
+                  data-testid="switch-account-btn"
                   class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
                   {{ t('web.organizations.invitations.switch_account') }}
                 </button>
@@ -307,6 +310,7 @@
         <!-- Sign In Notice (unauthenticated) -->
         <div
           v-else-if="!authStore.isAuthenticated"
+          data-testid="sign-in-notice"
           class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
           <div class="flex">
             <OIcon
@@ -328,6 +332,7 @@
             type="button"
             @click="handleAccept"
             :disabled="isProcessing"
+            data-testid="accept-invitation-btn"
             class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto">
             <span v-if="!isProcessing">
               {{ t('web.organizations.invitations.accept_invitation') }}
@@ -338,6 +343,7 @@
             type="button"
             @click="handleDecline"
             :disabled="isProcessing"
+            data-testid="decline-invitation-btn"
             class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:w-auto">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
