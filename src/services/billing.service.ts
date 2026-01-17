@@ -111,6 +111,10 @@ export interface SubscriptionStatusResponse {
   subscription_item_id?: string;
   subscription_status?: string;
   current_period_end?: number;
+  /** True if subscription is scheduled for cancellation at period end */
+  cancel_at_period_end?: boolean;
+  /** Unix timestamp when subscription will be cancelled (if scheduled) */
+  cancel_at?: number | null;
 }
 
 /**

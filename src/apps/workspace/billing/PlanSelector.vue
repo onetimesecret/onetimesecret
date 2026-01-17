@@ -52,6 +52,18 @@ const selectedOrg = ref<Organization | null>(null);
 // Subscription status for plan switching
 const subscriptionStatus = ref<SubscriptionStatusResponse | null>(null);
 const hasActiveSubscription = computed(() => subscriptionStatus.value?.has_active_subscription ?? false);
+const isCancelScheduled = computed(() => subscriptionStatus.value?.cancel_at_period_end ?? false);
+
+// Format the cancellation date for display
+const cancelAtFormatted = computed(() => {
+  const cancelAt = subscriptionStatus.value?.cancel_at;
+  if (!cancelAt) return null;
+  return new Date(cancelAt * 1000).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+});
 
 // Plan change modal state
 const showPlanChangeModal = ref(false);
@@ -312,6 +324,32 @@ onMounted(async () => {
 <template>
   <BillingLayout>
     <div class="space-y-8">
+      <!-- Cancellation Scheduled Notice (most prominent placement - top of page) -->
+      <div
+        v-if="isCancelScheduled && cancelAtFormatted && !isLoadingContent"
+        class="rounded-lg border-2 border-amber-300 bg-amber-50 p-5 dark:border-amber-600 dark:bg-amber-900/30">
+        <div class="flex items-start gap-4">
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              class="size-6 text-amber-600 dark:text-amber-300"
+              aria-hidden="true" />
+          </div>
+          <div class="flex-1">
+            <h3 class="text-base font-semibold text-amber-800 dark:text-amber-200">
+              {{ t('web.billing.cancel.scheduled_title') }}
+            </h3>
+            <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+              {{ t('web.billing.cancel.scheduled_description', { date: cancelAtFormatted }) }}
+            </p>
+            <p class="mt-2 text-sm text-amber-600 dark:text-amber-400">
+              {{ t('web.billing.cancel.scheduled_note') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Billing Interval Toggle -->
       <div class="flex items-center justify-center gap-3"
 role="group"
@@ -422,9 +460,9 @@ aria-live="polite">
           @select="handlePlanSelect" />
       </div>
 
-      <!-- Cancel Subscription (only shown for active paid subscriptions) -->
+      <!-- Cancel Subscription (only shown for active paid subscriptions NOT already scheduled for cancellation) -->
       <div
-        v-if="hasActiveSubscription && currentTier !== 'free'"
+        v-if="hasActiveSubscription && currentTier !== 'free' && !isCancelScheduled"
         class="text-center">
         <button
           type="button"
