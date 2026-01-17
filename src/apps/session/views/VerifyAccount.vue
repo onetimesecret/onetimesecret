@@ -2,13 +2,15 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { useAuth } from '@/shared/composables/useAuth';
-import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+  import { useAuth } from '@/shared/composables/useAuth';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { computed, onMounted, ref } from 'vue';
+  import { useRoute } from 'vue-router';
 
   const route = useRoute();
   const { t } = useI18n();
   const { verifyAccount, isLoading, error } = useAuth();
+  const bootstrapStore = useBootstrapStore();
 
   const verificationKey = ref<string>('');
   const verificationComplete = ref(false);
@@ -46,6 +48,11 @@ import { useRoute } from 'vue-router';
     // Auto-submit verification on mount if key is present
     if (verificationKey.value) {
       try {
+        // Refresh bootstrap to ensure fresh CSRF token before verification
+        // This handles the case where user clicks verification link from email
+        // in a new session or after the original session expired
+        await bootstrapStore.refresh();
+
         const success = await verifyAccount(verificationKey.value);
         verificationSuccess.value = success;
       } catch {
