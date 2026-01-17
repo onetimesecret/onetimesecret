@@ -1,4 +1,4 @@
-// docs/test-cases/schema.ts
+// docs/test-plans/schema.ts
 
 /**
  * LLM-Optimized Test Case Schema

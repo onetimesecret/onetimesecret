@@ -19,6 +19,9 @@ LLM agents infer mechanics from intent, so step-by-step instructions are unneces
 
 Use @browser-tester which has access to chrome devtools MCP and serena tools.
 
+- Run Caddy, use TLS certs
+- Clean mail from Mailpit inbox
+
 ## Converting from Qase
 
 1. Extract ID and metadata
