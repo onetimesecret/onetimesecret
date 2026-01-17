@@ -375,7 +375,7 @@ export function useAuth() {
 
       const validated = loginResponseSchema.parse(response.data);
 
-      console.log('[useAuth] Login response:', {
+      loggingService.debug('[useAuth] Login response:', {
         data: response.data,
         validated: validated,
         hasMfaRequired: 'mfa_required' in response.data,
