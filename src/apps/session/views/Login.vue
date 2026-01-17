@@ -6,12 +6,29 @@ import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue
 import AuthView from '@/apps/session/components/AuthView.vue';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { isMagicLinksEnabled } from '@/utils/features';
-import { ref, type ComponentPublicInstance } from 'vue';
+import { ref, computed, type ComponentPublicInstance } from 'vue';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
+const route = useRoute();
 
 const languageStore = useLanguageStore();
 const magicLinksEnabled = isMagicLinksEnabled();
+
+// Build signup link with preserved query params (email, redirect)
+const signupLink = computed(() => {
+  const query: Record<string, string> = {};
+  if (typeof route.query.email === 'string') {
+    query.email = route.query.email;
+  }
+  if (typeof route.query.redirect === 'string') {
+    query.redirect = route.query.redirect;
+  }
+  if (Object.keys(query).length > 0) {
+    return { path: '/signup', query };
+  }
+  return '/signup';
+});
 
 // Reference to AuthMethodSelector (kept for potential future use)
 const authMethodSelectorRef = ref<ComponentPublicInstance<{ currentMode: 'passwordless' | 'password' }> | null>(null);
@@ -49,7 +66,7 @@ const handleModeChange = (_mode: 'passwordless' | 'password') => {
           </router-link>
           <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
           <router-link
-            to="/signup"
+            :to="signupLink"
             class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
             {{ t('web.login.create_account') }}
           </router-link>
@@ -61,7 +78,7 @@ const handleModeChange = (_mode: 'passwordless' | 'password') => {
           </span>
           {{ ' ' }}
           <router-link
-            to="/signup"
+            :to="signupLink"
             class="font-medium text-brand-600 underline transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
             {{ t('web.login.need_an_account') }}
           </router-link>
