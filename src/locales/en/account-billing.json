@@ -185,6 +185,20 @@
         "open_portal": "Open Billing Portal",
         "redirecting": "Redirecting to billing portal..."
       },
+      "cancel": {
+        "link_text": "Cancel subscription",
+        "title": "Cancel Subscription",
+        "confirmation": "Are you sure you want to cancel your {plan} subscription?",
+        "what_happens": "What happens when you cancel:",
+        "access_until": "You'll retain access to all features until {date}",
+        "access_until_period_end": "You'll retain access until your current billing period ends",
+        "no_future_charges": "You won't be charged again",
+        "downgrade_to_free": "Your account will revert to the free plan",
+        "keep_subscription": "Keep Subscription",
+        "confirm_cancel": "Cancel Subscription",
+        "success": "Your subscription has been cancelled. You'll retain access until the end of your billing period.",
+        "error": "Failed to cancel subscription. Please try again."
+      },
       "start_today": "Start today",
       "start_today_with_identity_plus": "Start today with Identity Plus",
       "per_month": "per month",

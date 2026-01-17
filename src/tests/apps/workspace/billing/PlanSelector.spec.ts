@@ -732,5 +732,69 @@ describe('PlanSelector Logic', () => {
         expect(deduplicated).toHaveLength(1);
       });
     });
+
+    describe('freePlanStandalone filtering', () => {
+      /**
+       * Logic extracted from PlanSelector.vue: filteredPlans
+       *
+       * When freePlanStandalone is true, free plans are excluded from the grid
+       * and shown in a standalone banner instead.
+       * When freePlanStandalone is false, free plans are included in the grid.
+       */
+      function filterPlans(
+        plans: BillingPlan[],
+        billingInterval: 'month' | 'year',
+        freePlanStandalone: boolean
+      ): BillingPlan[] {
+        return plans.filter((plan) => {
+          if (plan.tier === 'free') {
+            return !freePlanStandalone;
+          }
+          return plan.interval === billingInterval;
+        });
+      }
+
+      it('includes free plan in grid when freePlanStandalone is false', () => {
+        const plans = [
+          createMockPlan({ id: 'free_v1', tier: 'free', interval: 'month' }),
+          createMockPlan({ id: 'identity_plus_monthly', tier: 'single_team', interval: 'month' }),
+        ];
+
+        const filtered = filterPlans(plans, 'month', false);
+
+        expect(filtered).toHaveLength(2);
+        expect(filtered.some(p => p.tier === 'free')).toBe(true);
+      });
+
+      it('excludes free plan from grid when freePlanStandalone is true', () => {
+        const plans = [
+          createMockPlan({ id: 'free_v1', tier: 'free', interval: 'month' }),
+          createMockPlan({ id: 'identity_plus_monthly', tier: 'single_team', interval: 'month' }),
+        ];
+
+        const filtered = filterPlans(plans, 'month', true);
+
+        expect(filtered).toHaveLength(1);
+        expect(filtered.some(p => p.tier === 'free')).toBe(false);
+      });
+
+      it('paid plans are filtered by interval regardless of freePlanStandalone', () => {
+        const plans = [
+          createMockPlan({ id: 'free_v1', tier: 'free', interval: 'month' }),
+          createMockPlan({ id: 'identity_plus_monthly', tier: 'single_team', interval: 'month' }),
+          createMockPlan({ id: 'identity_plus_yearly', tier: 'single_team', interval: 'year' }),
+        ];
+
+        // Monthly view
+        const monthlyFiltered = filterPlans(plans, 'month', false);
+        expect(monthlyFiltered).toHaveLength(2); // free + monthly paid
+        expect(monthlyFiltered.find(p => p.id === 'identity_plus_yearly')).toBeUndefined();
+
+        // Yearly view
+        const yearlyFiltered = filterPlans(plans, 'year', false);
+        expect(yearlyFiltered).toHaveLength(2); // free + yearly paid
+        expect(yearlyFiltered.find(p => p.id === 'identity_plus_monthly')).toBeUndefined();
+      });
+    });
   });
 });

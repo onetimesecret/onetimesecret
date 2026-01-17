@@ -156,6 +156,17 @@ export interface PlanChangeResponse {
   current_period_end: number;
 }
 
+/**
+ * Cancel subscription result response
+ */
+export interface CancelSubscriptionResponse {
+  success: boolean;
+  /** Unix timestamp when subscription will end */
+  cancel_at: number;
+  /** Current subscription status (typically 'active' until period ends) */
+  status: string;
+}
+
 export const BillingService = {
   /**
    * Get billing overview for an organization
@@ -268,6 +279,20 @@ export const BillingService = {
     const response = await $api.post(`/billing/api/org/${orgExtId}/change-plan`, {
       new_price_id: newPriceId,
     });
+    return response.data;
+  },
+
+  /**
+   * Cancel subscription
+   *
+   * Cancels the organization's subscription at the end of the current billing period.
+   * The subscription remains active until the period ends, then downgrades to free tier.
+   *
+   * @param orgExtId - Organization external ID
+   * @returns Result of cancellation with effective date
+   */
+  async cancelSubscription(orgExtId: string): Promise<CancelSubscriptionResponse> {
+    const response = await $api.post(`/billing/api/org/${orgExtId}/cancel-subscription`);
     return response.data;
   },
 };

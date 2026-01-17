@@ -8,6 +8,7 @@ import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import PlanCard from '@/shared/components/billing/PlanCard.vue';
 import PlanChangeModal from './PlanChangeModal.vue';
+import CancelSubscriptionModal from './CancelSubscriptionModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
@@ -16,6 +17,16 @@ import type { BillingInterval } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+
+const props = withDefaults(
+  defineProps<{
+    /** Display free plan as a standalone banner (true) or as a card in the grid (false) */
+    freePlanStandalone?: boolean;
+  }>(),
+  {
+    freePlanStandalone: false,
+  }
+);
 
 const { t } = useI18n();
 const route = useRoute();
@@ -46,11 +57,17 @@ const hasActiveSubscription = computed(() => subscriptionStatus.value?.has_activ
 const showPlanChangeModal = ref(false);
 const targetPlan = ref<BillingPlan | null>(null);
 
+// Cancel subscription modal state
+const showCancelModal = ref(false);
+
 // Current plan for the modal (find from plans list based on subscription)
 const currentPlanForModal = computed(() => {
   if (!subscriptionStatus.value?.current_price_id) return null;
   return plans.value.find(p => p.stripe_price_id === subscriptionStatus.value?.current_price_id) ?? null;
 });
+
+// Current plan name for cancel modal
+const currentPlanName = computed(() => currentPlanForModal.value?.name ?? '');
 
 // Use entitlements composable for definitions loading
 const {
@@ -81,10 +98,19 @@ const currentTier = computed((): string => {
 });
 
 // Filter plans by selected billing interval
-// Free tier plans (tier === 'free') always show regardless of interval toggle
+// When freePlanStandalone is true, exclude free plans (they show in banner)
+// When freePlanStandalone is false, include free plans in the grid
 const filteredPlans = computed(() =>
-  plans.value.filter(plan => plan.tier === 'free' || plan.interval === billingInterval.value)
+  plans.value.filter((plan) => {
+    if (plan.tier === 'free') {
+      return !props.freePlanStandalone;
+    }
+    return plan.interval === billingInterval.value;
+  })
 );
+
+// Get the free plan (if available)
+const freePlan = computed(() => plans.value.find((plan) => plan.tier === 'free'));
 
 /**
  * Combined loading state for the component
@@ -186,6 +212,27 @@ const handlePlanChangeSuccess = async (newPlan: string) => {
   if (orgExtid.value) {
     await loadSubscriptionStatus(orgExtid.value);
     // Refresh org data
+    const org = await organizationStore.fetchOrganization(orgExtid.value);
+    selectedOrg.value = org;
+  }
+};
+
+// Cancel subscription handlers
+const handleCancelSubscriptionClick = () => {
+  showCancelModal.value = true;
+};
+
+const handleCancelModalClose = () => {
+  showCancelModal.value = false;
+};
+
+const handleCancelSuccess = async () => {
+  showCancelModal.value = false;
+  successMessage.value = t('web.billing.cancel.success');
+
+  // Refresh subscription status and organization data
+  if (orgExtid.value) {
+    await loadSubscriptionStatus(orgExtid.value);
     const org = await organizationStore.fetchOrganization(orgExtid.value);
     selectedOrg.value = org;
   }
@@ -332,8 +379,29 @@ aria-live="polite">
         </div>
       </div>
 
+      <!-- Free Tier Section (standalone banner mode) -->
+      <div
+        v-if="freePlanStandalone && freePlan && !isLoadingContent"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900/50">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ freePlan.name }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.pricing.free_tier_description') }}
+            </p>
+          </div>
+          <span
+            v-if="currentTier === 'free'"
+            class="shrink-0 rounded-md bg-green-100 px-4 py-2 text-sm font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-300">
+            {{ t('web.billing.plans.current') }}
+          </span>
+        </div>
+      </div>
+
       <!-- No Plans Message -->
-      <div v-else-if="filteredPlans.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
+      <div v-else-if="!isLoadingContent && filteredPlans.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
         <p class="text-gray-600 dark:text-gray-400">
           {{ t('web.billing.plans.no_plans_available', { interval: billingInterval === 'year' ? t('web.billing.plans.yearly').toLowerCase() : t('web.billing.plans.monthly').toLowerCase() }) }}
         </p>
@@ -352,6 +420,18 @@ aria-live="polite">
           :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.tier === 'free'"
           :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
           @select="handlePlanSelect" />
+      </div>
+
+      <!-- Cancel Subscription (only shown for active paid subscriptions) -->
+      <div
+        v-if="hasActiveSubscription && currentTier !== 'free'"
+        class="text-center">
+        <button
+          type="button"
+          @click="handleCancelSubscriptionClick"
+          class="text-sm text-gray-500 underline decoration-gray-300 underline-offset-2 hover:text-gray-700 hover:decoration-gray-400 dark:text-gray-400 dark:decoration-gray-600 dark:hover:text-gray-300 dark:hover:decoration-gray-500">
+          {{ t('web.billing.cancel.link_text') }}
+        </button>
       </div>
 
       <!-- Custom Needs -->
@@ -376,6 +456,16 @@ aria-live="polite">
       :target-plan="targetPlan"
       @close="handlePlanChangeClose"
       @success="handlePlanChangeSuccess"
+    />
+
+    <!-- Cancel Subscription Modal -->
+    <CancelSubscriptionModal
+      :open="showCancelModal"
+      :org-ext-id="selectedOrg?.extid ?? ''"
+      :plan-name="currentPlanName"
+      :period-end="subscriptionStatus?.current_period_end ?? null"
+      @close="handleCancelModalClose"
+      @success="handleCancelSuccess"
     />
   </BillingLayout>
 </template>
