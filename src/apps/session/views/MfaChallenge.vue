@@ -134,9 +134,9 @@
   // Handle cancel - logout and return to signin
   const handleCancel = async () => {
     clearError();
-    await logout();
-    await authStore.setAuthenticated(false);
-    router.push('/signin');
+    // Pass the redirect URL to logout - it handles the navigation via window.location.href
+    await logout('/signin');
+    // No router.push needed - logout handles the redirect
   };
 </script>
 

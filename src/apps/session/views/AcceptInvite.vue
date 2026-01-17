@@ -83,15 +83,13 @@
   async function handleSwitchAccount() {
     const invitedEmail = invitation.value?.email;
     const token = invitationToken.value;
-    await logout();
-    // Redirect to signin with email prefill and redirect back to invitation
-    router.push({
-      name: 'Sign In',
-      query: {
-        email: invitedEmail,
-        redirect: `/invite/${token}`,
-      },
-    });
+
+    // Build the signin URL with email prefill and redirect back to invitation
+    const signinUrl = `/signin?email=${encodeURIComponent(invitedEmail || '')}&redirect=${encodeURIComponent(`/invite/${token}`)}`;
+
+    // Pass the redirect URL to logout - it handles the navigation via window.location.href
+    await logout(signinUrl);
+    // No router.push needed - logout handles the redirect
   }
 
   onMounted(async () => {

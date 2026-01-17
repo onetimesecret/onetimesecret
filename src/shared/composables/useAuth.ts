@@ -501,9 +501,10 @@ export function useAuth() {
   /**
    * Logs out the current user
    *
+   * @param redirectTo - Optional path to redirect to after logout (must be a valid internal path)
    * @returns true if logout successful
    */
-  async function logout(): Promise<boolean> {
+  async function logout(redirectTo?: string): Promise<boolean> {
     clearErrors();
 
     const result = await wrap(async () => {
@@ -521,7 +522,9 @@ export function useAuth() {
       await authStore.logout();
 
       // Force page reload to fetch fresh unauthenticated state from backend
-      window.location.href = '/';
+      // Validate redirect URL to prevent open redirect attacks
+      const safeRedirect = isValidRedirect(redirectTo) ? redirectTo : '/';
+      window.location.href = safeRedirect;
       return true;
     });
 
