@@ -431,9 +431,6 @@
   "web.colonel.customDomains.description": {
     "text": "Manage custom domains and branding"
   },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "When you submit feedback, we'll see:"
-  },
   "web.colonel.feedback.send_feedback": {
     "text": "Send feedback"
   },

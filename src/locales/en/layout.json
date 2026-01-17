@@ -103,6 +103,9 @@
       "blank_mode_enabled": "{0} mode enabled",
       "workspace": "Workspace",
       "workspace_context": "Workspace context"
+    },
+    "feedback": {
+      "when_you_submit_feedback_well_see": "When you submit feedback, we'll see:"
     }
   }
 }
