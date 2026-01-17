@@ -12,6 +12,16 @@
   import type { BillingInterval } from '@/types/billing';
   import { computed, onMounted, ref, watch } from 'vue';
 
+  const props = withDefaults(
+    defineProps<{
+      /** Display free plan as a standalone banner (true) or as a card in the grid (false) */
+      freePlanStandalone?: boolean;
+    }>(),
+    {
+      freePlanStandalone: true,
+    }
+  );
+
   const { t } = useI18n();
   const route = useRoute();
 
@@ -65,11 +75,16 @@
   // Plans loaded from API
   const plans = ref<BillingPlan[]>([]);
 
-  // Filter paid plans by selected billing interval
+  // Filter plans by selected billing interval
+  // When freePlanStandalone is true, exclude free plans (they show in banner)
+  // When freePlanStandalone is false, include free plans in the grid
   const filteredPlans = computed(() =>
-    plans.value.filter(
-      (plan) => plan.tier !== 'free' && plan.interval === billingInterval.value
-    )
+    plans.value.filter((plan) => {
+      if (plan.tier === 'free') {
+        return !props.freePlanStandalone;
+      }
+      return plan.interval === billingInterval.value;
+    })
   );
 
   // Get the free plan (if available)
@@ -218,9 +233,9 @@
         </div>
       </div>
 
-      <!-- Free Tier Section -->
+      <!-- Free Tier Section (standalone banner mode) -->
       <div
-        v-if="freePlan && !isLoadingPlans"
+        v-if="freePlanStandalone && freePlan && !isLoadingPlans"
         class="mb-10 rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900/50">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>

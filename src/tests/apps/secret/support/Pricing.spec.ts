@@ -141,8 +141,9 @@ describe('Pricing.vue', () => {
     wrapper?.unmount();
   });
 
-  const mountComponent = async () => {
+  const mountComponent = async (props: { freePlanStandalone?: boolean } = {}) => {
     wrapper = mount(Pricing, {
+      props,
       global: {
         plugins: [i18n],
         stubs: {
@@ -717,7 +718,8 @@ describe('Pricing.vue', () => {
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
-      await mountComponent();
+      // Use freePlanStandalone: false to render free plan as a PlanCard with features
+      await mountComponent({ freePlanStandalone: false });
 
       expect(wrapper.text()).toContain('Basic secret sharing');
     });
@@ -737,6 +739,41 @@ describe('Pricing.vue', () => {
       // Entitlements should be displayed (as-is or translated)
       expect(freePlan.entitlements).toContain('create_secrets');
       expect(freePlan.entitlements).toContain('api_access');
+    });
+  });
+
+  // ============================================================
+  // 8. freePlanStandalone prop
+  // ============================================================
+  describe('freePlanStandalone prop', () => {
+    it('shows free plan as standalone banner by default (freePlanStandalone: true)', async () => {
+      await mountComponent();
+
+      // Free plan should appear in standalone banner section
+      expect(wrapper.text()).toContain('Free');
+      expect(wrapper.text()).toContain('Get Started Free');
+      expect(wrapper.text()).toContain('Create and share secrets with basic features');
+    });
+
+    it('shows free plan as card when freePlanStandalone is false', async () => {
+      await mountComponent({ freePlanStandalone: false });
+
+      // Free plan should appear as a PlanCard
+      const planCards = wrapper.findAll('[class*="flex-col rounded-2xl"]');
+      expect(planCards.length).toBeGreaterThanOrEqual(1);
+
+      // Should have Free plan name in cards
+      expect(wrapper.text()).toContain('Free');
+    });
+
+    it('hides standalone banner when freePlanStandalone is false', async () => {
+      await mountComponent({ freePlanStandalone: false });
+
+      // The standalone banner has this specific description text
+      // When freePlanStandalone is false, it should not appear
+      // Instead, free plan shows as a card with different layout
+      const bannerSection = wrapper.find('.mb-10.rounded-lg');
+      expect(bannerSection.exists()).toBe(false);
     });
   });
 });
