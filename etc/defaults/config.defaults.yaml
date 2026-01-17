@@ -140,6 +140,21 @@ site:
         receipt: <%= ENV['API_GUEST_RECEIPT'] != 'false' %>
         burn: <%= ENV['API_GUEST_BURN'] != 'false' %>
   # Configuration options for secret management
+  #
+  # NOTE: TTL limits are enforced at two levels:
+  #   1. Config level (below): DEFAULT_TTL and TTL_OPTIONS control what's shown to users
+  #   2. Plan level: Each plan has a max TTL that caps the actual value
+  #
+  # Plan TTL limits can be overridden via environment variables:
+  #   - PLAN_TTL_ANONYMOUS: Max TTL for anonymous users (default: 604800 = 7 days)
+  #   - PLAN_TTL_BASIC: Max TTL for basic plan users (default: 1209600 = 14 days)
+  #   - PLAN_TTL_IDENTITY: Max TTL for identity plan users (default: 2592000 = 30 days)
+  #   - Maximum allowed value: 31536000 (365 days) to prevent resource exhaustion
+  #
+  # To allow 30-day TTL for anonymous users in Docker:
+  #   TTL_OPTIONS='604800 1209600 2592000'  # 7d, 14d, 30d options
+  #   PLAN_TTL_ANONYMOUS=2592000             # Allow anonymous up to 30 days
+  #
   secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds
     # This value is used if no specific TTL is provided when creating a secret
