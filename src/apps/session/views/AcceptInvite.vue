@@ -6,8 +6,10 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
   import { classifyError } from '@/schemas/errors';
+  import { useAuth } from '@/shared/composables/useAuth';
   import { useAuthStore } from '@/shared/stores/authStore';
-  import { inject, onMounted, ref } from 'vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { inject, onMounted, ref, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import type { AxiosInstance } from 'axios';
   import { z } from 'zod';
@@ -16,6 +18,8 @@
   const route = useRoute();
   const router = useRouter();
   const authStore = useAuthStore();
+  const bootstrapStore = useBootstrapStore();
+  const { logout } = useAuth();
   const $api = inject('api') as AxiosInstance;
 
   const { wrap } = useAsyncHandler({
@@ -47,6 +51,46 @@
     expires_at: z.number(),
     status: z.string(),
   });
+
+  /**
+   * Normalizes an email address for comparison.
+   * - Lowercases the entire email
+   * - Strips Gmail-style + suffixes (user+tag@gmail.com → user@gmail.com)
+   */
+  function normalizeEmail(email: string): string {
+    const [local, domain] = email.toLowerCase().split('@');
+    if (!domain) return email.toLowerCase();
+    const normalizedLocal = local.split('+')[0];
+    return `${normalizedLocal}@${domain}`;
+  }
+
+  /**
+   * Detects if the currently logged-in user has a different email
+   * than the one the invitation was sent to.
+   */
+  const emailMismatch = computed(() => {
+    if (!authStore.isAuthenticated || !invitation.value?.email) return false;
+    const currentEmail = bootstrapStore.email;
+    if (!currentEmail) return false;
+    return normalizeEmail(currentEmail) !== normalizeEmail(invitation.value.email);
+  });
+
+  /**
+   * Logs out the current user and redirects to sign in with the invited email prefilled.
+   */
+  async function handleSwitchAccount() {
+    const invitedEmail = invitation.value?.email;
+    const token = invitationToken.value;
+    await logout();
+    // Redirect to signin with email prefill and redirect back to invitation
+    router.push({
+      name: 'Sign In',
+      query: {
+        email: invitedEmail,
+        redirect: `/invite/${token}`,
+      },
+    });
+  }
 
   onMounted(async () => {
     const result = await wrap(async () => {
@@ -217,9 +261,42 @@
           </div>
         </div>
 
-        <!-- Sign In Notice -->
+        <!-- Email Mismatch Warning (authenticated but wrong email) -->
         <div
-          v-if="!authStore.isAuthenticated"
+          v-if="emailMismatch"
+          class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+          <div class="flex">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              class="size-5 shrink-0 text-amber-500"
+              aria-hidden="true" />
+            <div class="ml-3">
+              <p class="font-medium text-amber-800 dark:text-amber-200">
+                {{ t('web.organizations.invitations.email_mismatch_title') }}
+              </p>
+              <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                {{ t('web.organizations.invitations.email_mismatch_body', {
+                  invitedEmail: invitation?.email,
+                  currentEmail: bootstrapStore.email
+                }) }}
+              </p>
+              <div class="mt-3">
+                <button
+                  type="button"
+                  @click="handleSwitchAccount"
+                  :disabled="isProcessing"
+                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
+                  {{ t('web.organizations.invitations.switch_account') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sign In Notice (unauthenticated) -->
+        <div
+          v-else-if="!authStore.isAuthenticated"
           class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
           <div class="flex">
             <OIcon
