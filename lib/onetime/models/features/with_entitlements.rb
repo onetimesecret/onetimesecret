@@ -53,6 +53,12 @@ module Onetime
       module WithEntitlements
         Familia::Base.add_feature self, :with_entitlements
 
+        # Maximum TTL allowed (365 days) - prevents resource exhaustion
+        MAX_TTL = 365 * 24 * 60 * 60
+
+        # Default TTL values (in seconds)
+        DEFAULT_FREE_TTL = 604_800  # 7 days
+
         # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
         STANDALONE_ENTITLEMENTS = %w[
@@ -73,13 +79,53 @@ module Onetime
           api_access
         ].freeze
 
+        # Parse TTL value from environment variable with strict validation
+        #
+        # Uses Integer() for strict parsing to reject malformed values like "123abc".
+        # Applies upper-bound validation to prevent resource exhaustion.
+        #
+        # @param env_var [String] Environment variable name
+        # @param default [Integer] Default value if env var is not set or invalid
+        # @return [Integer] Validated TTL value in seconds
+        #
+        # @example
+        #   parse_ttl_env('PLAN_TTL_FREE', 604_800)  # => 604800 (or env value)
+        def self.parse_ttl_env(env_var, default)
+          raw = ENV.fetch(env_var, nil)
+          return default if raw.nil? || raw.strip.empty?
+
+          begin
+            value = Integer(raw.strip, 10) # Strict integer parsing, base 10
+            # Apply upper-bound: cap at MAX_TTL (365 days)
+            [value, MAX_TTL].min
+          rescue ArgumentError => ex
+            OT.lw "[WithEntitlements] Invalid #{env_var} value '#{raw}': #{ex.message}, using default #{default}"
+            default
+          end
+        end
+
         # FREE tier default limits when cache is unavailable
-        FREE_TIER_LIMITS = {
-          'organizations.max' => 5,       # 1 organization (default workspace)
-          'teams.max' => 0,
-          'members_per_team.max' => 0,
-          'secret_lifetime.max' => 604_800, # 7 days in seconds
-        }.freeze
+        #
+        # The secret_lifetime.max value can be overridden via PLAN_TTL_ANONYMOUS
+        # environment variable for Docker/self-hosted deployments.
+        # This provides upgrade continuity with PR #2393 from main branch.
+        #
+        # Environment variables:
+        #   PLAN_TTL_ANONYMOUS - Maximum secret TTL for anonymous/free tier users (default: 604800 = 7 days)
+        #
+        # @see https://github.com/onetimesecret/onetimesecret/issues/2390
+        def self.free_tier_limits
+          {
+            'organizations.max' => 5,       # 5 organizations (default workspace)
+            'teams.max' => 0,
+            'members_per_team.max' => 0,
+            'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', DEFAULT_FREE_TTL),
+          }.freeze
+        end
+
+        # Legacy constant for backward compatibility
+        # @deprecated Use free_tier_limits method instead
+        FREE_TIER_LIMITS = free_tier_limits
 
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
@@ -324,10 +370,13 @@ module Onetime
 
           # Get FREE tier limit for a resource key
           #
+          # Uses WithEntitlements.free_tier_limits to support runtime
+          # environment variable overrides (e.g., PLAN_TTL_ANONYMOUS).
+          #
           # @param key [String] Flattened limit key (e.g., "teams.max")
           # @return [Numeric] Limit value, defaults to 0 for unknown keys
           def free_tier_limit_for(key)
-            val = WithEntitlements::FREE_TIER_LIMITS[key]
+            val = WithEntitlements.free_tier_limits[key]
             return 0 if val.nil?
 
             val
