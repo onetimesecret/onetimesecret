@@ -1,3 +1,5 @@
+// docs/test-cases/schema.ts
+
 /**
  * LLM-Optimized Test Case Schema
  *
@@ -32,7 +34,15 @@ export const Priority = z.enum(['critical', 'high', 'medium', 'low']);
 export const Severity = z.enum(['blocker', 'major', 'minor', 'trivial']);
 
 /** Test classification types */
-export const TestType = z.enum(['functional', 'ui', 'error', 'integration', 'smoke', 'edge', 'accessibility']);
+export const TestType = z.enum([
+  'functional',
+  'ui',
+  'error',
+  'integration',
+  'smoke',
+  'edge',
+  'accessibility',
+]);
 
 // -----------------------------------------------------------------------------
 // Fixtures & Setup
@@ -89,10 +99,7 @@ export const StructuredAssertion = z.object({
 });
 
 /** Verification assertion - simple string or structured */
-export const Assertion = z.union([
-  z.string(),
-  StructuredAssertion,
-]);
+export const Assertion = z.union([z.string(), StructuredAssertion]);
 
 // -----------------------------------------------------------------------------
 // Skip Conditions

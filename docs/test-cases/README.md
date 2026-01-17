@@ -15,6 +15,10 @@ LLM agents infer mechanics from intent, so step-by-step instructions are unneces
 - `schema.ts` - Zod v4 schema (source of truth for field types)
 - `issue-{number}-{feature}.yaml` - Test cases linked to GitHub issues
 
+## Running
+
+Use @browser-tester which has access to chrome devtools MCP and serena tools.
+
 ## Converting from Qase
 
 1. Extract ID and metadata
