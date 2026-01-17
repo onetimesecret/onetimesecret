@@ -1,7 +1,7 @@
 # docs/test-plans/issue-2309-stripe-integration.yaml
 ---
 # LLM-Optimized Test Cases: Stripe Integration
-# Version: 1.0.0
+# Version: 1.1.0
 # Date: 2025-12-30
 # Environment: dev.onetime.dev
 
@@ -32,6 +32,29 @@ definitions:
         name: Workspace
         is_default: true
 
+  selectors:
+    plan_card: '[data-testid="plan-card"]'
+    plan_name: '[data-testid="plan-name"]'
+    plan_price: '[data-testid="plan-price"]'
+    plan_features: '[data-testid="plan-features"]'
+    plan_select_button: '[data-testid="plan-select-button"]'
+    billing_tab_monthly: '[data-testid="billing-tab-monthly"]'
+    billing_tab_yearly: '[data-testid="billing-tab-yearly"]'
+    savings_badge: '[data-testid="savings-badge"]'
+    current_plan_badge: '[data-testid="current-plan-badge"]'
+    upgrade_cta: '[data-testid="upgrade-cta"]'
+    sidebar_billing_link: '[data-testid="sidebar-billing-link"]'
+    features_list: '[data-testid="features-list"]'
+    feature_item: '[data-testid="feature-item"]'
+    org_selector: '[data-testid="org-selector"]'
+    org_option: '[data-testid="org-option"]'
+    billing_status: '[data-testid="billing-status"]'
+    checkout_modal: '[data-testid="checkout-modal"]'
+    payment_form: '[data-testid="payment-form"]'
+    card_number_input: '[data-testid="card-number-input"]'
+    user_menu: '[data-testid="user-menu"]'
+    user_menu_billing: '[data-testid="user-menu-billing"]'
+
 # -----------------------------------------------------------------------------
 # TEST CASES
 # -----------------------------------------------------------------------------
@@ -49,12 +72,26 @@ tests:
     target: /billing/plans
     action:
       type: click
-      element: Monthly tab button
+      element: '[data-testid="billing-tab-monthly"]'
     verify:
       - Plan cards visible (not "No monthly plans available")
       - At least one plan shows monthly price
       - Each plan card has name, price, and feature list
       - Select or Upgrade button on each paid plan
+    explicit_checks:
+      - selector: '[data-testid="plan-card"]'
+        assertion: count >= 1
+        description: At least one plan card is rendered
+      - selector: '[data-testid="plan-card"]'
+        each:
+          - child: '[data-testid="plan-name"]'
+            assertion: visible and text not empty
+          - child: '[data-testid="plan-price"]'
+            assertion: visible and text matches /\$\d+/
+          - child: '[data-testid="plan-features"] [data-testid="feature-item"]'
+            assertion: count >= 1
+      - selector: '[data-testid="plan-card"]:not([data-plan="free"]) [data-testid="plan-select-button"]'
+        assertion: each is visible
     priority: critical
     type: functional
     covers: [/billing/api/plans, PlanSelector.vue]
@@ -68,11 +105,19 @@ tests:
     target: /billing/plans
     action:
       type: click
-      element: Yearly tab button
+      element: '[data-testid="billing-tab-yearly"]'
     verify:
       - Plan cards visible (not "No yearly plans available")
       - Annual prices shown with savings indicator
       - Price reflects 12-month billing cycle
+    explicit_checks:
+      - selector: '[data-testid="plan-card"]'
+        assertion: count >= 1
+      - selector: '[data-testid="savings-badge"]'
+        assertion: visible on at least one plan card
+        description: Savings indicator showing discount vs monthly
+      - selector: '[data-testid="plan-price"]'
+        assertion: text matches /\$\d+.*\/(year|yr|annually)/i
     priority: critical
     type: functional
     covers: [/billing/api/plans, billingCycle toggle]
@@ -88,6 +133,17 @@ tests:
       - Response contains non-empty plans array
       - Each plan has stripe_price_id or equivalent
       - Plans include identity_plus, team_plus, org_plus tiers
+    explicit_checks:
+      - api: GET /billing/api/plans
+        assertion: status == 200
+      - api: GET /billing/api/plans
+        response_body:
+          - path: $.plans
+            assertion: is array and length >= 1
+          - path: $.plans[*].stripe_price_id
+            assertion: each is non-empty string matching /^price_/
+          - path: $.plans[*].name
+            assertion: includes values from ["identity_plus", "team_plus", "org_plus"]
     priority: critical
     type: integration
     covers: [Stripe API sync, billing backend]
@@ -108,6 +164,15 @@ tests:
     verify:
       - Current plan indicator visible (badge or text showing "Free")
       - Upgrade CTA or View Plans link accessible
+    explicit_checks:
+      - api: GET /api/v2/bootstrap/me
+        response_body:
+          - path: $.details.plan_id
+            assertion: equals "free_v1" or null
+      - selector: '[data-testid="current-plan-badge"]'
+        assertion: visible and text contains "Free"
+      - selector: '[data-testid="upgrade-cta"]'
+        assertion: visible and clickable
     priority: high
     type: ui
     covers: [Dashboard.vue, plan status display]
@@ -123,6 +188,11 @@ tests:
       - Settings sidebar visible with navigation items
       - Billing or Subscription link present in sidebar
       - Clicking billing link navigates to billing area
+    explicit_checks:
+      - selector: '[data-testid="sidebar-billing-link"]'
+        assertion: visible
+      - action: click '[data-testid="sidebar-billing-link"]'
+        assertion: url changes to /billing/overview
     priority: high
     type: ui
     covers: [AccountSettings.vue, SettingsSidebar.vue]
@@ -139,6 +209,17 @@ tests:
       - Plan Features section lists included features
       - Features include create_secrets, view_receipt, api_access
       - Not showing "No features available"
+    explicit_checks:
+      - selector: '[data-testid="current-plan-badge"]'
+        assertion: text contains "Free"
+      - selector: '[data-testid="features-list"]'
+        assertion: visible
+      - selector: '[data-testid="features-list"] [data-testid="feature-item"]'
+        assertion: count >= 3
+      - selector: '[data-testid="feature-item"]'
+        assertion: text values include "create_secrets", "view_receipt", "api_access"
+      - selector: text="No features available"
+        assertion: not visible
     priority: high
     type: functional
     covers: [BillingOverview.vue, entitlements display]
@@ -152,11 +233,18 @@ tests:
     target: /billing/overview
     action:
       type: click
-      element: Upgrade Plan button
+      element: '[data-testid="upgrade-cta"]'
     verify:
       - Navigates to /billing/plans
       - Plans page shows available plans (not empty state)
       - Can select a plan to begin checkout
+    explicit_checks:
+      - action: click '[data-testid="upgrade-cta"]'
+        assertion: url changes to /billing/plans
+      - selector: '[data-testid="plan-card"]'
+        assertion: count >= 1
+      - action: click '[data-testid="plan-select-button"]' on first paid plan
+        assertion: checkout modal visible OR url contains "checkout"
     priority: critical
     type: functional
     covers: [upgrade flow, plan selection]
@@ -177,6 +265,21 @@ tests:
       - Response contains entitlements array
       - No 500 error in console
       - No "Failed to load entitlements" error
+    explicit_checks:
+      - api: GET /api/v2/bootstrap/me
+        response_body:
+          - path: $.organizations[0].extid
+            store_as: org_id
+      - api: GET /billing/api/entitlements/{org_id}
+        assertion: status == 200
+        response_body:
+          - path: $.entitlements
+            assertion: is array
+      - network_errors:
+          filter: status >= 500
+          assertion: count == 0
+      - selector: text="Failed to load entitlements"
+        assertion: not visible
     priority: high
     type: integration
     covers: [org entitlements endpoint, Stripe customer lookup]
@@ -193,6 +296,17 @@ tests:
       - No "Organization not found" error
       - Organization selector works correctly
       - Shows "No invoices yet" for free users (expected)
+    explicit_checks:
+      - selector: '[data-testid="error-banner"]'
+        assertion: not visible
+      - selector: text="Organization not found"
+        assertion: not visible
+      - selector: '[data-testid="org-selector"]'
+        assertion: visible and enabled
+      - action: click '[data-testid="org-selector"]'
+        assertion: '[data-testid="org-option"]' count >= 1
+      - selector: text="No invoices yet"
+        assertion: visible (expected for free user)
     priority: high
     type: functional
     covers: [BillingHistory.vue, org resolution]
@@ -207,11 +321,30 @@ tests:
     target: /billing/invoices
     action:
       type: click
-      element: Organization dropdown
+      element: '[data-testid="org-selector"]'
       data: { value: different_org }
     verify:
       - Organization switch succeeds without error
       - Content updates to reflect selected organization
+    explicit_checks:
+      - precondition:
+          api: GET /api/v2/bootstrap/me
+          response_body:
+            - path: $.organizations
+              assertion: length >= 2
+      - capture:
+          selector: '[data-testid="org-selector"]'
+          attribute: text
+          store_as: initial_org_name
+      - action: click '[data-testid="org-selector"]'
+      - action: click '[data-testid="org-option"]:not(:first-child)'
+      - selector: '[data-testid="org-selector"]'
+        assertion: text != {initial_org_name}
+      - selector: '[data-testid="error-banner"]'
+        assertion: not visible
+      - wait: network idle
+      - selector: '[data-testid="billing-content"]'
+        assertion: visible (content refreshed)
     priority: medium
     type: functional
     covers: [org switcher, billing context]
@@ -230,6 +363,23 @@ tests:
       - Page loads without error
       - 'No "Organization not found: domains" message'
       - Shows domain management UI or upgrade prompt
+    explicit_checks:
+      - api: GET /api/v2/bootstrap/me
+        response_body:
+          - path: $.details.plan_id
+            store_as: current_plan
+      - selector: text="Organization not found"
+        assertion: not visible
+      - selector: '[data-testid="error-banner"]'
+        assertion: not visible
+      - conditional:
+          if: '{current_plan}' in ["team_plus_v1", "org_plus_v1"]
+          then:
+            selector: '[data-testid="domain-management-ui"]'
+            assertion: visible
+          else:
+            selector: '[data-testid="upgrade-cta"]'
+            assertion: visible and text contains "upgrade" (case insensitive)
     priority: medium
     type: functional
     covers: [route configuration, org domains]
@@ -243,11 +393,19 @@ tests:
     target: /org
     action:
       type: click
-      element: Manage button on default workspace
+      element: '[data-testid="org-manage-button"]'
     verify:
       - Organization settings page loads
       - Billing tab shows "Free" plan status
       - Upgrade Plan button visible and clickable
+    explicit_checks:
+      - action: click '[data-testid="org-manage-button"]'
+        assertion: url contains /org/
+      - action: click '[data-testid="billing-tab"]'
+      - selector: '[data-testid="billing-status"]'
+        assertion: visible and text contains "Free"
+      - selector: '[data-testid="upgrade-cta"]'
+        assertion: visible and enabled
     priority: high
     type: functional
     covers: [OrgSettings.vue, billing tab]
@@ -262,10 +420,19 @@ tests:
     target: /dashboard
     action:
       type: click
-      element: Plans link in footer
+      element: '[data-testid="footer-plans-link"]'
     verify:
       - Navigates to /billing/plans
       - Plans are displayed (not empty)
+    explicit_checks:
+      - selector: '[data-testid="footer-plans-link"]'
+        assertion: visible
+      - action: click '[data-testid="footer-plans-link"]'
+        assertion: url changes to /billing/plans
+      - selector: '[data-testid="plan-card"]'
+        assertion: count >= 1
+      - selector: text="No plans available"
+        assertion: not visible
     priority: medium
     type: ui
     covers: [footer navigation, plans visibility]
@@ -278,11 +445,23 @@ tests:
     target: /dashboard
     action:
       type: click
-      element: User menu dropdown
+      element: '[data-testid="user-menu"]'
     verify:
       - Billing option visible in dropdown menu
       - Clicking Billing navigates to /billing/overview
       - Billing overview loads without errors
+    explicit_checks:
+      - action: click '[data-testid="user-menu"]'
+      - selector: '[data-testid="user-menu-billing"]'
+        assertion: visible
+      - action: click '[data-testid="user-menu-billing"]'
+        assertion: url changes to /billing/overview
+      - wait: network idle
+      - network_errors:
+          filter: status >= 400
+          assertion: count == 0
+      - selector: '[data-testid="error-banner"]'
+        assertion: not visible
     priority: medium
     type: ui
     covers: [user menu, billing navigation]
@@ -301,6 +480,14 @@ tests:
       - Network request to /api/v3/receipt/recent returns 200 or 204
       - No 403 Forbidden error
       - No console errors related to receipt endpoint
+    explicit_checks:
+      - api: GET /api/v3/receipt/recent
+        assertion: status in [200, 204]
+      - api: GET /api/v3/receipt/recent
+        assertion: status != 403
+      - network_errors:
+          filter: url contains "receipt" and status >= 400
+          assertion: count == 0
     priority: medium
     type: integration
     covers: [receipt API, auth middleware]
@@ -334,11 +521,23 @@ tests:
     target: /billing/plans
     action:
       type: click
-      element: Select button on Identity Plus plan
+      element: '[data-testid="plan-select-button"][data-plan="identity_plus"]'
     verify:
       - Checkout modal or redirect initiated
       - Stripe checkout session created
       - User can enter payment details
+    explicit_checks:
+      - action: click '[data-testid="plan-select-button"][data-plan="identity_plus"]'
+      - wait: either '[data-testid="checkout-modal"]' visible OR url contains "checkout.stripe.com"
+      - conditional:
+          if: '[data-testid="checkout-modal"]' visible
+          then:
+            - selector: '[data-testid="payment-form"]'
+              assertion: visible
+            - selector: '[data-testid="card-number-input"]'
+              assertion: visible and enabled
+          else:
+            - assertion: url matches /checkout\.stripe\.com/
     priority: critical
     type: functional
     covers: [Stripe checkout, payment flow]
@@ -357,6 +556,27 @@ tests:
       - Feature comparison visible
       - Higher tiers show additional features
       - Free tier shows current/included indicator
+    explicit_checks:
+      - selector: '[data-testid="plan-card"]'
+        assertion: count >= 3
+      - selector: '[data-testid="plan-features"]'
+        assertion: visible on each plan card
+      - capture:
+          selector: '[data-testid="plan-card"][data-plan="free"] [data-testid="feature-item"]'
+          count: true
+          store_as: free_feature_count
+      - capture:
+          selector: '[data-testid="plan-card"][data-plan="identity_plus"] [data-testid="feature-item"]'
+          count: true
+          store_as: identity_feature_count
+      - capture:
+          selector: '[data-testid="plan-card"][data-plan="team_plus"] [data-testid="feature-item"]'
+          count: true
+          store_as: team_feature_count
+      - assertion: '{team_feature_count}' > '{identity_feature_count}' >= '{free_feature_count}'
+        description: Higher tiers have more features than lower tiers
+      - selector: '[data-testid="plan-card"][data-plan="free"] [data-testid="current-plan-badge"]'
+        assertion: visible
     priority: medium
     type: ui
     covers: [plan comparison, feature matrix]

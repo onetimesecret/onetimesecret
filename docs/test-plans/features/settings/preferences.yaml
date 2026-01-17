@@ -24,15 +24,28 @@ tests:
     action:
       type: click
       element: Language toggle dropdown button
+      selector: '[data-testid="language-toggle-button"]'
       data:
         select_locale: es
     verify:
-      - Language dropdown opens showing available locales
-      - Each locale shows name and code
-      - Current locale has checkmark indicator
-      - After selection, UI text updates to new language
-      - Screen reader announces language change
-      - Locale persists in localStorage
+      - description: Language dropdown opens showing available locales
+        selector: '[data-testid="language-dropdown-menu"]'
+        assertion: visible
+      - description: Each locale shows name and code
+        selector: '[data-testid="language-option"]'
+        assertion: count_gt(0)
+      - description: Current locale has checkmark indicator
+        selector: '[data-testid="language-option-selected"] [data-testid="checkmark-icon"]'
+        assertion: visible
+      - description: After selection, UI text updates to new language
+        selector: '[data-testid="settings-page-title"]'
+        assertion: text_matches("Configuración|Preferencias")
+      - description: Screen reader announces language change
+        selector: '[role="status"][aria-live="polite"]'
+        assertion: text_contains("idioma")
+      - description: Locale persists in localStorage
+        script: "window.localStorage.getItem('ots-locale')"
+        assertion: equals("es")
     priority: high
     type: functional
     covers: [LanguageToggle.vue, useLanguage, languageStore]
@@ -48,13 +61,27 @@ tests:
     action:
       type: click
       element: Notify on reveal toggle switch
+      selector: '[data-testid="notify-on-reveal-toggle"]'
     verify:
-      - Toggle switch visible with proper ARIA attributes
-      - Clicking toggle changes visual state
-      - aria-checked attribute updates to reflect new state
-      - API call updates notify_on_reveal preference
-      - No error message appears on successful update
-      - Setting persists after page reload
+      - description: Toggle switch visible with proper ARIA attributes
+        selector: '[data-testid="notify-on-reveal-toggle"]'
+        assertion: has_attribute("role", "switch")
+      - description: Clicking toggle changes visual state
+        selector: '[data-testid="notify-on-reveal-toggle"]'
+        assertion: has_class("bg-brand-600")
+      - description: aria-checked attribute updates to reflect new state
+        selector: '[data-testid="notify-on-reveal-toggle"]'
+        assertion: has_attribute("aria-checked", "true")
+      - description: API call updates notify_on_reveal preference
+        api: GET /api/v2/account/cust/preferences
+        assertion: json_path("$.notify_on_reveal", true)
+      - description: No error message appears on successful update
+        selector: '[data-testid="notification-error"]'
+        assertion: not_visible
+      - description: Setting persists after page reload
+        action: reload
+        api: GET /api/v2/account/cust/preferences
+        assertion: json_path("$.notify_on_reveal", true)
     priority: high
     type: functional
     covers: [NotificationSettings.vue, accountStore.updateNotificationPreference]
@@ -72,16 +99,35 @@ tests:
     action:
       type: submit
       element: Change password form
+      selector: '[data-testid="change-password-form"]'
       data:
         current_password: currentPassword123
         new_password: newSecurePassword456
         confirm_password: newSecurePassword456
     verify:
-      - Form displays three password fields with visibility toggles
-      - Submit button enabled only when all fields valid
-      - On success, form fields are cleared
-      - No error messages displayed
-      - User can login with new password
+      - description: Form displays three password fields with visibility toggles
+        selector: '[data-testid="change-password-form"] input[type="password"]'
+        assertion: count(3)
+      - description: Submit button enabled only when all fields valid
+        selector: '[data-testid="change-password-submit"]'
+        assertion: not_disabled
+      - description: On success, form fields are cleared
+        selectors:
+          - selector: '[data-testid="current-password-input"]'
+            assertion: value_equals("")
+          - selector: '[data-testid="new-password-input"]'
+            assertion: value_equals("")
+          - selector: '[data-testid="confirm-password-input"]'
+            assertion: value_equals("")
+      - description: No error messages displayed
+        selector: '[data-testid="password-change-error"]'
+        assertion: not_visible
+      - description: User can login with new password
+        action: logout_then_login
+        data:
+          email: "{{current_user_email}}"
+          password: newSecurePassword456
+        assertion: redirect_to("/dashboard")
     priority: critical
     type: functional
     covers: [ChangePassword.vue, useAuth.changePassword]
@@ -98,14 +144,30 @@ tests:
     action:
       type: click
       element: Theme toggle button
+      selector: '[data-testid="theme-toggle-button"]'
     verify:
-      - Theme toggle button visible with sun/moon icon
-      - Button has aria-pressed attribute reflecting current state
-      - Clicking toggles between dark and light modes
-      - Dark mode adds dark class to document element
-      - Icon changes (sun for light, moon for dark)
-      - Screen reader announces theme change
-      - Theme persists in localStorage across page reload
+      - description: Theme toggle button visible with sun/moon icon
+        selector: '[data-testid="theme-toggle-button"] svg'
+        assertion: visible
+      - description: Button has aria-pressed attribute reflecting current state
+        selector: '[data-testid="theme-toggle-button"]'
+        assertion: has_attribute("aria-pressed", "true")
+      - description: Clicking toggles between dark and light modes
+        selector: '[data-testid="theme-toggle-button"]'
+        assertion: has_attribute("aria-pressed")
+      - description: Dark mode adds dark class to document element
+        selector: 'html'
+        assertion: has_class("dark")
+      - description: Icon changes (sun for light, moon for dark)
+        selector: '[data-testid="theme-icon-moon"]'
+        assertion: visible
+      - description: Screen reader announces theme change
+        selector: '[role="status"][aria-live="polite"]'
+        assertion: text_contains("dark mode")
+      - description: Theme persists in localStorage across page reload
+        action: reload
+        script: "window.localStorage.getItem('ots-theme')"
+        assertion: equals("dark")
     priority: high
     type: functional
     covers: [ThemeToggle.vue, useTheme]

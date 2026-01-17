@@ -227,6 +227,12 @@ tests:
       - Redirects to MFA verification page
       - Shows TOTP code input
       - Option to use recovery code visible
+      - url: /mfa-verify
+        assertion: matches
+      - selector: "[data-testid='mfa-setup-form']"
+        assertion: visible
+      - selector: "[data-testid='otp-code-input']"
+        assertion: visible
     priority: critical
     type: functional
     covers: [MfaChallenge.vue, useAuth.ts]
@@ -250,6 +256,10 @@ tests:
       - Session is established
       - selector: "[data-testid='otp-code-input']"
         assertion: visible
+      - api: GET /bootstrap/me
+        assertion: { authenticated: true, mfa_enabled: true, awaiting_mfa: false }
+      - url: /dashboard
+        assertion: matches
     postconditions:
       - User authenticated
       - Session created
@@ -307,6 +317,7 @@ tests:
       state:
         account_has_mfa: true
         awaiting_mfa: true
+        recovery_codes_remaining: 8
     target: /mfa-verify (recovery mode)
     action:
       type: submit
@@ -318,6 +329,10 @@ tests:
       - Redirects to dashboard
       - Recovery code is consumed (one-time use)
       - Warning shown about reduced recovery codes remaining
+      - api: GET /bootstrap/me
+        assertion: { authenticated: true, mfa_enabled: true, awaiting_mfa: false }
+      - api: GET /api/v2/account/recovery-codes/count
+        assertion: { remaining: 7 }
     postconditions:
       - User authenticated
       - Used recovery code invalidated
@@ -411,6 +426,8 @@ tests:
     intent: Correct password generates new recovery codes
     setup:
       <<: *user_with_mfa
+      state:
+        old_recovery_code: "old-code-123456"
     target: /account/security (regenerate modal open)
     action:
       type: submit
@@ -422,9 +439,16 @@ tests:
       - Old codes are invalidated
       - Download/copy options available
       - Must acknowledge saving new codes
+      - selector: "[data-testid='recovery-codes']"
+        assertion: visible
     postconditions:
       - Previous recovery codes no longer work
       - New recovery codes active
+    postcondition_validation:
+      - action: attempt_login_with_old_recovery_code
+        data:
+          recovery_code: "old-code-123456"
+        expected: { error: "Invalid recovery code", authenticated: false }
     priority: high
     type: functional
     covers: [RecoveryCodes.vue, handleGenerateNew]
@@ -446,6 +470,10 @@ tests:
       - MFA remains disabled
       - No partial state saved
       - Can restart setup fresh
+      - selector: "[data-testid='mfa-setup-wizard']"
+        assertion: hidden
+      - api: GET /bootstrap/me
+        assertion: { mfa_enabled: false }
     priority: medium
     type: edge
     covers: [OtpSetupWizard.vue, handleCancel]
@@ -466,6 +494,12 @@ tests:
       - User remains on MFA verification page
       - awaiting_mfa state preserved (or re-authenticated)
       - Can still enter TOTP code
+      - url: /mfa-verify
+        assertion: matches
+      - selector: "[data-testid='mfa-setup-form']"
+        assertion: visible
+      - selector: "[data-testid='otp-code-input']"
+        assertion: visible
     priority: medium
     type: edge
     covers: [MfaChallenge.vue, state-persistence]
@@ -483,6 +517,10 @@ tests:
       - Redirects to /signin
       - Cannot access MFA page without pending authentication
       - Route guard protects MFA page
+      - url: /signin
+        assertion: matches
+      - selector: "[data-testid='signin-form']"
+        assertion: visible
     priority: high
     type: security
     covers: [route-guards, MfaChallenge.vue]

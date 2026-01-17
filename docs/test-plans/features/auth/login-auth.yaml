@@ -38,10 +38,20 @@ tests:
         password: validPassword123
     verify:
       - User is redirected to home page after successful login
+      - url:
+          pattern: "^/$"
+          description: Redirected to home page
       - No error message is displayed
-      - User menu or authenticated UI elements are visible
       - selector: "#signin-error"
         assertion: hidden
+      - User menu or authenticated UI elements are visible
+      - selector: "[data-testid='header-dashboard-link']"
+        assertion: visible
+        description: Dashboard link visible in user menu indicates authenticated state
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: true
     priority: critical
     severity: blocker
     type: functional
@@ -61,10 +71,20 @@ tests:
     verify:
       - Error message is displayed in alert container
       - Error message is generic (does not reveal if email exists)
-      - Form remains on login page (no redirect)
-      - Password field is available for re-entry
       - selector: "[role='alert']"
         assertion: visible
+      - Form remains on login page (no redirect)
+      - url:
+          pattern: "^/signin"
+          description: URL still on signin page
+      - Password field is available for re-entry
+      - selector: "input#password"
+        assertion: visible
+        state: enabled
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: false
     priority: critical
     severity: blocker
     type: error
@@ -86,9 +106,25 @@ tests:
         password: validPassword123
     verify:
       - User is redirected to /mfa-verify
+      - url:
+          pattern: "^/mfa-verify"
+          description: Redirected to MFA verification page
       - MFA verification form is displayed
+      - selector: "#mfa-verify-heading"
+        assertion: visible
+        description: MFA verification heading present
+      - selector: "#otp-instructions"
+        assertion: visible
+        description: OTP input instructions displayed
       - No error message shown (credentials were valid)
+      - selector: "#otp-error"
+        assertion: hidden
       - User is not fully authenticated yet
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: false
+            awaiting_mfa: true
     postconditions:
       - bootstrapStore.awaiting_mfa is true
       - bootstrapStore.authenticated is false
@@ -113,8 +149,19 @@ tests:
         password: validPassword123
     verify:
       - User is redirected to billing plans page after successful login
+      - url:
+          pattern: "^/billing/[^/]+/plans"
+          description: Redirected to billing plans page with org extid
       - URL contains billing path with plan parameters preserved
+      - url:
+          query_params:
+            plan: identity
+            interval: month
+          description: Plan parameters preserved in redirect
       - Plan selection UI is displayed
+      - selector: "[data-testid='plan-selector'], .plan-card, [aria-label*='plan']"
+        assertion: visible
+        description: Plan selection UI component rendered
     priority: high
     severity: major
     type: functional
@@ -135,9 +182,26 @@ tests:
         remember_me: true
     verify:
       - User is authenticated after login
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: true
       - Remember me checkbox was checked before submit
+      - selector: "input#remember-me"
+        assertion: checked
       - Session cookie has extended expiration (not session-only)
+      - cookie:
+          name: rack.session
+          assert:
+            expires: not_session_only
+          description: Cookie should have expiry date, not be session-only
       - User remains logged in on page reload
+      - action: reload
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: true
+          description: Still authenticated after page reload
     priority: high
     severity: major
     type: functional
@@ -159,8 +223,35 @@ tests:
         password: validPassword123
     verify:
       - Appropriate message about email verification is displayed
+      - selector: "[role='alert']"
+        assertion: visible
+        text_contains: ["verify", "verification", "confirm"]
+        description: Alert message contains verification-related text
       - User is either blocked from login or shown verification prompt
+      - branching:
+          - condition: blocked
+            verify:
+              - url:
+                  pattern: "^/signin"
+                  description: Remains on signin page
+              - api:
+                  endpoint: GET /bootstrap/me
+                  assert:
+                    authenticated: false
+          - condition: allowed_with_warning
+            verify:
+              - selector: "[data-testid='verification-warning'], .verification-banner"
+                assertion: visible
+                description: Verification warning banner displayed
+              - api:
+                  endpoint: GET /bootstrap/me
+                  assert:
+                    authenticated: true
+                    verified: false
       - Path to request new verification email is available or indicated
+      - selector: "a[href*='verify'], a[href*='resend'], button:has-text('resend')"
+        assertion: visible
+        description: Link or button to resend verification email
     priority: high
     severity: major
     type: error

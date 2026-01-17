@@ -1,7 +1,7 @@
 # docs/test-plans/edge-cases.yaml
 ---
 # LLM-Optimized Test Cases: Billing & Auth Edge Cases
-# Version: 1.0.0
+# Version: 1.1.0
 
 suite:
   id: billing-auth-edge-cases
@@ -53,10 +53,24 @@ tests:
         billing_enabled: false
     target: /dashboard
     verify:
-      - No "Upgrade" button visible in header or dashboard
-      - No "Plans" or "Billing" links in navigation
-      - User menu dropdown has no billing option
-      - Footer contains no pricing or plans links
+      - description: Bootstrap confirms billing is disabled
+        api: GET /bootstrap/me
+        assert:
+          billing_enabled: false
+      - description: No Upgrade button visible in header or dashboard
+        selector: "[data-testid='upgrade-banner'], [data-testid='upgrade-button'], [aria-label='Upgrade offer']"
+        assertion: not_visible
+      - description: No Plans or Billing links in navigation
+        selector: "nav a[href*='/billing'], nav a[href*='/plans']"
+        assertion: not_visible
+      - description: User menu dropdown has no billing option
+        action:
+          click: "[data-testid='user-menu-trigger']"
+        selector: "[data-testid='user-menu-dropdown'] a[href*='/billing']"
+        assertion: not_visible
+      - description: Footer contains no pricing or plans links
+        selector: "footer a[href*='/billing/plans'], footer a[href*='/pricing']"
+        assertion: not_visible
     priority: critical
     type: edge
     covers: [bootstrapStore.billing_enabled, navigation guards]
@@ -76,10 +90,32 @@ tests:
         billing_enabled: false
     target: /org
     verify:
-      - Organization settings show no plan restrictions
-      - Custom domains feature accessible without upgrade prompt
-      - Teams feature accessible without upgrade prompt
-      - No "upgrade required" messaging anywhere
+      - description: Bootstrap confirms standalone mode entitlements
+        api: GET /bootstrap/me
+        assert:
+          billing_enabled: false
+      - description: Organization settings show no plan restrictions
+        selector: "[data-testid='plan-restriction-notice'], [data-testid='upgrade-required-message']"
+        assertion: not_visible
+      - description: Custom domains feature accessible without upgrade prompt
+        action:
+          navigate: /domains
+        selector: "[data-testid='add-domain-button']"
+        assertion: enabled
+        absence_check:
+          selector: "[role='alert'][data-testid='upgrade-prompt']"
+          assertion: not_visible
+      - description: Teams feature accessible without upgrade prompt
+        action:
+          navigate: /org/teams
+        selector: "[data-testid='add-team-button'], [data-testid='team-list']"
+        assertion: visible
+        absence_check:
+          selector: "[role='alert'][data-testid='upgrade-prompt']"
+          assertion: not_visible
+      - description: No upgrade required messaging anywhere on organization pages
+        selector: "[data-testid='upgrade-required'], [data-testid='upgrade-prompt'], [role='alert']:has-text('upgrade')"
+        assertion: not_visible
     priority: critical
     type: edge
     covers: [WithEntitlements.can?, standalone entitlements]
@@ -102,15 +138,26 @@ tests:
       user_type: free_user
       state:
         plan: free_v1
+        billing_enabled: true
     target: /org/domains
     action:
       type: click
-      element: Add Domain button
+      element: "[data-testid='add-domain-button']"
     verify:
-      - Upgrade prompt modal or inline message appears
-      - Message explains feature requires paid plan
-      - Clear path to upgrade (link to /billing/plans)
-      - No silent failure or generic error
+      - description: Upgrade prompt modal or inline message appears
+        selector: "[role='alert'][data-testid='upgrade-prompt'], [data-testid='entitlement-upgrade-prompt']"
+        assertion: visible
+        timeout: 3000
+      - description: Message explains feature requires paid plan
+        selector: "[data-testid='upgrade-prompt-message'], [data-testid='entitlement-upgrade-prompt']"
+        assertion:
+          text_matches: "(upgrade|paid plan|subscription required)"
+      - description: Clear path to upgrade with link to billing plans
+        selector: "a[href*='/billing/plans'], a[href*='/billing'][data-testid='view-plans-link']"
+        assertion: visible
+      - description: No silent failure or generic error
+        selector: "[role='alert']:not([data-testid='upgrade-prompt'])"
+        assertion: not_visible
     priority: high
     severity: major
     type: edge
@@ -128,10 +175,27 @@ tests:
         plan: free_v1
     target: /
     verify:
-      - Secret creation form shows TTL options
-      - Maximum TTL option reflects free tier limit (7 days / 604800 seconds)
-      - No options beyond free tier limit available
-      - Tooltip or help text explains limits if present
+      - description: Bootstrap returns free tier TTL limits
+        api: GET /bootstrap/me
+        assert:
+          secret_options.ttl.max:
+            operator: lte
+            value: 604800
+      - description: Secret creation form shows TTL options
+        selector: "[data-testid='ttl-select'], select[name='ttl'], [data-testid='lifetime-select']"
+        assertion: visible
+      - description: Maximum TTL option reflects free tier limit (7 days / 604800 seconds)
+        selector: "[data-testid='ttl-select'] option:last-child, [data-testid='lifetime-select'] option:last-child"
+        assertion:
+          attribute_lte:
+            name: value
+            value: 604800
+      - description: No options beyond free tier limit available
+        selector: "[data-testid='ttl-select'] option[value='1209600'], [data-testid='lifetime-select'] option[value='2592000']"
+        assertion: not_exists
+      - description: Tooltip or help text explains limits if present
+        selector: "[data-testid='ttl-help-text'], [data-testid='lifetime-tooltip']"
+        assertion: optional
     priority: high
     type: edge
     covers: [limit_for('secret_lifetime'), TTL controls]
@@ -150,14 +214,35 @@ tests:
       user_type: free_user
       description: Session will expire during checkout flow
     target: /billing/plans
+    precondition:
+      description: Simulate session expiry by clearing session cookie
+      action:
+        clear_cookie: session
     action:
       type: click
-      element: Select button on paid plan
+      element: "[data-testid='select-plan-button']"
     verify:
-      - If session expired, redirect to /login occurs
-      - Login page shows "session expired" message
-      - After re-login, user returns to billing flow
-      - No checkout data lost (if any was entered)
+      - description: Redirect to login page occurs after session expiry
+        url:
+          path_matches: "^/signin|^/login"
+        timeout: 5000
+      - description: Login page shows session expired message
+        selector: "[role='alert'][data-testid='session-expired-message'], [data-testid='auth-message']"
+        assertion:
+          any_of:
+            - visible
+            - text_matches: "(session expired|please sign in again|logged out)"
+      - description: Return URL is preserved in query parameters
+        url:
+          query_contains: "redirect|return_to|next"
+      - description: After re-login user returns to billing flow
+        action:
+          submit_login:
+            email: testuser@example.com
+            password: validPassword123
+        url:
+          path_contains: /billing
+        timeout: 5000
     priority: high
     severity: major
     type: edge
@@ -180,15 +265,33 @@ tests:
         plan: free_v1
     target: /api/v2/domains
     action:
-      type: submit
-      data:
-        method: POST
+      type: api_request
+      method: POST
+      body:
+        domain: test.example.com
+    verify:
+      - description: API returns 403 Forbidden status for entitlement violation
+        api: POST /api/v2/domains
         body:
           domain: test.example.com
-    verify:
-      - API returns 403 or entitlement error
-      - Error message indicates feature not available on plan
-      - No domain created in system
+        assert:
+          status: 403
+      - description: Error response indicates feature not available on plan
+        api_response:
+          assert:
+            any_of:
+              - body.error:
+                  matches: "(entitlement|feature|not available|upgrade|subscription)"
+              - body.message:
+                  matches: "(entitlement|feature|not available|upgrade|subscription)"
+              - body.details.code:
+                  equals: "ENTITLEMENT_DENIED"
+      - description: No domain created in system
+        api: GET /api/v2/domains
+        assert:
+          body.records:
+            not_contains:
+              domain: test.example.com
     priority: medium
     severity: major
     type: edge

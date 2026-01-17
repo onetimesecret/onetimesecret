@@ -1,7 +1,7 @@
 # docs/test-plans/subscription-cancellation.yaml
 ---
 # LLM-Optimized Test Cases: Subscription Cancellation
-# Version: 1.0.0
+# Version: 1.1.0
 
 suite:
   id: subscription-cancellation
@@ -27,12 +27,27 @@ tests:
     target: /billing/:extid/plans
     action:
       type: click
-      element: Cancel subscription button
+      element: "[data-testid='cancel-subscription-button']"
     verify:
-      - Cancel subscription modal opens
-      - Modal shows plan name being cancelled
-      - Confirm cancellation button visible
-      - After confirmation, subscription status shows Canceling at period end
+      - description: Cancel subscription modal opens
+        selector: "[data-testid='cancel-subscription-modal']"
+        assert: visible
+      - description: Modal shows plan name being cancelled
+        selector: "[data-testid='cancel-modal-plan-name']"
+        assert:
+          text_contains: Identity Plus
+      - description: Confirm cancellation button visible
+        selector: "[data-testid='confirm-cancel-button']"
+        assert: visible
+      - description: After confirmation, subscription status shows Canceling at period end
+        action:
+          click: "[data-testid='confirm-cancel-button']"
+        api: GET /bootstrap/me
+        assert:
+          subscription.cancel_at_period_end: true
+        selector: "[data-testid='subscription-status']"
+        selector_assert:
+          text_contains: Canceling
     priority: critical
     type: functional
     covers:
@@ -51,12 +66,22 @@ tests:
     target: /billing/:extid/plans
     action:
       type: click
-      element: Cancel subscription button
+      element: "[data-testid='cancel-subscription-button']"
     verify:
-      - Modal displays formatted end date
-      - Access until message shows the period end date
-      - No future charges message visible
-      - Downgrade to free message visible
+      - description: Modal displays formatted end date
+        selector: "[data-testid='cancel-modal-period-end']"
+        assert:
+          text_matches: '\w+ \d{1,2}, \d{4}'
+      - description: Access until message shows the period end date
+        selector: "[data-testid='access-until-message']"
+        assert:
+          text_matches: 'access until \w+ \d{1,2}, \d{4}'
+      - description: No future charges message visible
+        selector: "[data-testid='no-future-charges-message']"
+        assert: visible
+      - description: Downgrade to free message visible
+        selector: "[data-testid='downgrade-to-free-message']"
+        assert: visible
     priority: high
     type: ui
     covers:
@@ -75,11 +100,35 @@ tests:
     action:
       type: none
     verify:
-      - Subscription status shows canceling state
-      - Current plan still shows paid tier name
-      - Paid features remain accessible
-      - Upgrade button not shown
-      - Period end date displayed
+      - description: Subscription status shows canceling state
+        api: GET /bootstrap/me
+        assert:
+          subscription.cancel_at_period_end: true
+          subscription.status: active
+        selector: "[data-testid='subscription-status']"
+        selector_assert:
+          text_contains: Canceling
+      - description: Current plan still shows paid tier name
+        selector: "[data-testid='current-plan-name']"
+        assert:
+          text_contains: Identity Plus
+      - description: Paid features remain accessible
+        features_to_check:
+          - selector: "[data-testid='custom-domains-section']"
+            assert: enabled
+          - selector: "[data-testid='api-access-section']"
+            assert: enabled
+        api: GET /bootstrap/me
+        assert:
+          subscription.plan_tier: paid
+      - description: Upgrade button not shown
+        selector: "[data-testid='upgrade-plan-button']"
+        assert: not_visible
+      - description: Period end date displayed
+        selector: "[data-testid='period-end-date']"
+        assert:
+          visible: true
+          text_matches: '\w+ \d{1,2}, \d{4}'
     priority: high
     type: functional
     covers:
@@ -99,11 +148,34 @@ tests:
     action:
       type: none
     verify:
-      - Current plan shows Free
-      - No active subscription indicator
-      - Upgrade Plan button visible
-      - Paid-only features show upgrade prompts or restrictions
-      - No cancellation pending indicator
+      - description: Current plan shows Free
+        selector: "[data-testid='current-plan-name']"
+        assert:
+          text: Free
+        api: GET /bootstrap/me
+        api_assert:
+          subscription.plan_tier: free
+      - description: No active subscription indicator
+        selector: "[data-testid='active-subscription-badge']"
+        assert: not_visible
+        api: GET /bootstrap/me
+        api_assert:
+          subscription.status:
+            not: active
+      - description: Upgrade Plan button visible
+        selector: "[data-testid='upgrade-plan-button']"
+        assert: visible
+      - description: Paid-only features show upgrade prompts or restrictions
+        features_to_check:
+          - selector: "[data-testid='custom-domains-section']"
+            child: "[data-testid='upgrade-prompt']"
+            assert: visible
+          - selector: "[data-testid='api-access-section']"
+            child: "[data-testid='upgrade-prompt']"
+            assert: visible
+      - description: No cancellation pending indicator
+        selector: "[data-testid='cancellation-pending-badge']"
+        assert: not_visible
     priority: medium
     type: functional
     covers:

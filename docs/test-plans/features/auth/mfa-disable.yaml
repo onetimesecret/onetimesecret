@@ -85,6 +85,11 @@ tests:
       - Mentions account will be less secure
       - Recommends keeping MFA enabled
       - Visual warning styling (caution colors)
+      - selector: "[data-testid='disable-mfa-modal'] [data-testid='mfa-warning-text']"
+        assertion: visible
+      - selector: "[data-testid='disable-mfa-modal'] [data-testid='mfa-warning-text']"
+        assertion: contains_text
+        expected: "security"
     priority: medium
     type: ui
     covers: [MfaSettings.vue, security-warning]
@@ -105,6 +110,16 @@ tests:
       - Success message displayed
       - Security page shows MFA is disabled
       - Enable MFA option now visible
+      - selector: "[data-testid='disable-mfa-modal']"
+        assertion: hidden
+      - selector: "[data-testid='mfa-status']"
+        assertion: contains_text
+        expected: "disabled"
+      - selector: "[data-testid='enable-mfa-button']"
+        assertion: visible
+      - api: GET /api/v2/account/mfa/status
+        assert:
+          mfa_enabled: false
     postconditions:
       - MFA disabled for account
       - Recovery codes invalidated
@@ -128,6 +143,13 @@ tests:
       - MFA remains enabled
       - Modal stays open for retry
       - Can retry with correct password
+      - selector: "[data-testid='disable-mfa-modal']"
+        assertion: visible
+      - selector: "[data-testid='password-error']"
+        assertion: visible
+      - api: GET /api/v2/account/mfa/status
+        assert:
+          mfa_enabled: true
     priority: critical
     type: error
     covers: [MfaSettings.vue, password-validation]
@@ -145,6 +167,15 @@ tests:
       - MFA remains enabled
       - No changes to account security
       - Returns to security settings page
+      - selector: "[data-testid='disable-mfa-modal']"
+        assertion: hidden
+      - selector: "[data-testid='mfa-status']"
+        assertion: contains_text
+        expected: "enabled"
+      - url: contains /account/security
+      - api: GET /api/v2/account/mfa/status
+        assert:
+          mfa_enabled: true
     priority: medium
     type: functional
     covers: [MfaSettings.vue, modal-cancel]
@@ -162,6 +193,11 @@ tests:
       - Modal closes
       - MFA remains enabled
       - Keyboard dismissal works
+      - selector: "[data-testid='disable-mfa-modal']"
+        assertion: hidden
+      - api: GET /api/v2/account/mfa/status
+        assert:
+          mfa_enabled: true
     priority: low
     type: accessibility
     covers: [MfaSettings.vue, keyboard-navigation]
@@ -182,6 +218,13 @@ tests:
       - Enable MFA option visible
       - No recovery codes section (or shows none)
       - Recommendation to enable MFA
+      - selector: "[data-testid='mfa-status']"
+        assertion: contains_text
+        expected: "disabled"
+      - selector: "[data-testid='enable-mfa-button']"
+        assertion: visible
+      - selector: "[data-testid='disable-mfa-button']"
+        assertion: hidden
     priority: high
     type: functional
     covers: [MfaSettings.vue, SecurityOverview.vue]
@@ -203,6 +246,13 @@ tests:
       - User is signed in directly
       - No MFA challenge shown
       - Redirects to dashboard
+      - selector: "[data-testid='mfa-challenge']"
+        assertion: hidden
+      - url: contains /dashboard
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          mfa_enabled: false
     priority: critical
     type: functional
     covers: [login-flow, mfa-disabled]
@@ -225,6 +275,13 @@ tests:
       - Login succeeds with password only
       - No option to use recovery codes
       - Previous recovery codes are invalidated
+      - selector: "[data-testid='recovery-code-option']"
+        assertion: hidden
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          mfa_enabled: false
+          has_recovery_codes: false
     priority: high
     type: security
     covers: [recovery-code-cleanup]
@@ -264,6 +321,13 @@ tests:
       - Validation error for empty password
       - Form not submitted to server
       - MFA remains enabled
+      - selector: "[data-testid='password-error']"
+        assertion: visible
+      - selector: "[data-testid='disable-mfa-modal']"
+        assertion: visible
+      - api: GET /api/v2/account/mfa/status
+        assert:
+          mfa_enabled: true
     priority: medium
     type: error
     covers: [MfaSettings.vue, form-validation]
@@ -283,6 +347,12 @@ tests:
       - Account is not locked
       - Can eventually succeed with correct password
       - May show rate limiting warning after many attempts
+      - selector: "[data-testid='account-locked-message']"
+        assertion: hidden
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          account_locked: false
     priority: medium
     type: edge
     covers: [rate-limiting, account-protection]
@@ -305,6 +375,12 @@ tests:
       - Session is not invalidated
       - Can continue using application
       - No forced logout
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+      - selector: "[data-testid='user-menu']"
+        assertion: visible
+      - url: does_not_contain /signin
     priority: medium
     type: functional
     covers: [session-continuity]
@@ -324,6 +400,14 @@ tests:
       - New QR code/secret generated
       - New recovery codes will be created
       - No remnants of previous MFA setup
+      - selector: "[data-testid='mfa-setup-wizard']"
+        assertion: visible
+      - selector: "[data-testid='mfa-qr-code']"
+        assertion: visible
+      - api: GET /api/v2/account/mfa/setup
+        assert:
+          secret: not_null
+          is_new_secret: true
     priority: medium
     type: functional
     covers: [MfaSettings.vue, OtpSetupWizard.vue, fresh-setup]

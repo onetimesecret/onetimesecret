@@ -1,7 +1,7 @@
 # docs/test-plans/subscription-downgrade.yaml
 ---
 # LLM-Optimized Test Cases: Subscription Downgrade
-# Version: 1.0.0
+# Version: 1.1.0
 
 suite:
   id: subscription-downgrade
@@ -36,14 +36,38 @@ tests:
     action:
       type: click
       element: Select button on Identity Plus plan card
+      selector: "[data-testid='plan-card-identity_plus_v1'] [data-testid='select-plan-button']"
     verify:
-      - PlanChangeModal opens with yellow downgrade styling
-      - Modal title shows Downgrade to Identity Plus
-      - Current plan displays Team Plus with price
-      - New plan displays Identity Plus with price
-      - Credit for unused time shows positive amount
-      - Network request to preview-plan-change returns 200
-      - Preview response contains credit_applied greater than 0
+      - description: PlanChangeModal opens with yellow downgrade styling
+        selector: "[data-testid='plan-change-modal']"
+        assert: visible
+        has_class: border-yellow-500
+      - description: Modal title shows Downgrade to Identity Plus
+        selector: "[data-testid='plan-change-modal-title']"
+        assert: text_contains
+        value: Downgrade to Identity Plus
+      - description: Current plan displays Team Plus with price
+        selector: "[data-testid='current-plan-display']"
+        assert: text_contains
+        value: Team Plus
+      - description: New plan displays Identity Plus with price
+        selector: "[data-testid='new-plan-display']"
+        assert: text_contains
+        value: Identity Plus
+      - description: Credit for unused time shows positive amount
+        selector: "[data-testid='credit-amount']"
+        assert: text_matches
+        pattern: "\\$\\d+\\.\\d{2}"
+      - description: Network request to preview-plan-change returns 200
+        api: POST /billing/api/org/:extid/preview-plan-change
+        assert: status
+        value: 200
+      - description: Preview response contains credit_applied greater than 0
+        api: POST /billing/api/org/:extid/preview-plan-change
+        assert: json_path
+        path: $.credit_applied
+        condition: greater_than
+        value: 0
     priority: critical
     type: functional
     covers:
@@ -66,12 +90,31 @@ tests:
     action:
       type: click
       element: Confirm Downgrade button in modal
+      selector: "[data-testid='confirm-plan-change-button']"
     verify:
-      - Network request to change-plan returns success
-      - Modal closes after successful change
-      - Success message displays new plan name
-      - Plan selector refreshes to show Identity Plus as current plan
-      - No console errors during plan change
+      - description: Network request to change-plan returns success
+        api: POST /billing/api/org/:extid/change-plan
+        assert: status
+        value: 200
+      - description: Modal closes after successful change
+        selector: "[data-testid='plan-change-modal']"
+        assert: not_visible
+      - description: Success message displays new plan name
+        selector: "[data-testid='plan-change-success-message']"
+        assert: text_contains
+        value: Identity Plus
+      - description: Plan selector refreshes to show Identity Plus as current plan
+        selector: "[data-testid='current-plan-badge']"
+        assert: text_contains
+        value: Identity Plus
+        api_fallback:
+          api: GET /bootstrap/me
+          assert: json_path
+          path: $.organization.plan.code
+          value: identity_plus_v1
+      - description: No console errors during plan change
+        assert: console_errors
+        value: 0
     priority: critical
     type: functional
     covers:
@@ -96,14 +139,48 @@ tests:
     action:
       type: click
       element: Select button on Identity Plus plan card
+      selector: "[data-testid='plan-card-identity_plus_v1'] [data-testid='select-plan-button']"
     verify:
-      - Credit breakdown section visible when credit exceeds next bill
-      - How your credit applies heading displays
-      - Next bill amount shows Identity Plus price
-      - Credit applied line shows negative amount (green)
-      - Amount due at next billing shows $0 or reduced amount
-      - Remaining account credit displays if credit exceeds next bill
-      - Note about credit applying to future invoices visible
+      - description: Credit breakdown section visible when credit exceeds next bill
+        precondition:
+          api: POST /billing/api/org/:extid/preview-plan-change
+          assert: json_path
+          path: $.credit_applied
+          condition: greater_than_or_equal
+          compare_path: $.next_period_amount
+        selector: "[data-testid='credit-breakdown-section']"
+        assert: visible
+      - description: How your credit applies heading displays
+        selector: "[data-testid='credit-breakdown-heading']"
+        assert: text_contains
+        value: How your credit applies
+      - description: Next bill amount shows Identity Plus price
+        selector: "[data-testid='next-bill-amount']"
+        assert: text_contains
+        value: "$35.00"
+      - description: Credit applied line shows negative amount (green)
+        selector: "[data-testid='credit-applied-line']"
+        assert: text_matches
+        pattern: "-\\$\\d+\\.\\d{2}"
+        has_class: text-green
+      - description: Amount due at next billing shows $0 or reduced amount
+        selector: "[data-testid='amount-due']"
+        assert: text_matches
+        pattern: "\\$\\d+\\.\\d{2}"
+        condition: less_than_or_equal
+        compare_value: 35.00
+      - description: Remaining account credit displays if credit exceeds next bill
+        precondition:
+          api: POST /billing/api/org/:extid/preview-plan-change
+          assert: json_path
+          path: $.credit_applied
+          condition: greater_than
+          compare_path: $.next_period_amount
+        selector: "[data-testid='remaining-credit-display']"
+        assert: visible
+      - description: Note about credit applying to future invoices visible
+        selector: "[data-testid='credit-future-invoices-note']"
+        assert: visible
     priority: high
     type: functional
     covers:
@@ -127,12 +204,31 @@ tests:
     action:
       type: click
       element: Cancel subscription link
+      selector: "[data-testid='cancel-subscription-link']"
     verify:
-      - CancelSubscriptionModal opens with confirmation prompt
-      - Warning explains access retained until billing period ends
-      - Your account will revert to the free plan message visible
-      - After confirmation, subscription status shows cancel_at_period_end
-      - Cancel subscription button disabled during processing
+      - description: CancelSubscriptionModal opens with confirmation prompt
+        selector: "[data-testid='cancel-subscription-modal']"
+        assert: visible
+      - description: Warning explains access retained until billing period ends
+        selector: "[data-testid='cancel-warning-message']"
+        assert: text_contains
+        value: until billing period ends
+      - description: Your account will revert to the free plan message visible
+        selector: "[data-testid='cancel-revert-message']"
+        assert: text_contains
+        value: revert to the free plan
+      - description: After confirmation, subscription status shows cancel_at_period_end
+        action:
+          type: click
+          selector: "[data-testid='confirm-cancel-button']"
+        api: GET /bootstrap/me
+        assert: json_path
+        path: $.organization.subscription.status
+        value: cancel_at_period_end
+      - description: Cancel subscription button disabled during processing
+        selector: "[data-testid='confirm-cancel-button']"
+        assert: disabled
+        during: api_request
     priority: high
     type: functional
     covers:

@@ -36,8 +36,17 @@ tests:
         terms: true
     verify:
       - Success notification appears with account created message
+      - selector: "[data-testid='signup-success-notification']"
+        assertion: visible
+        contains: account created
       - User is redirected to /signin page
+      - url:
+          path: /signin
+          assertion: equals
       - Email field on signin page is NOT prefilled
+      - selector: "[data-testid='email-input']"
+        assertion: value
+        expected: ""
       - selector: "[role='alert']"
         assertion: hidden
     priority: critical
@@ -46,6 +55,12 @@ tests:
     covers: [SignUpForm, useAuth.signup, /auth/create-account]
     postconditions:
       - Account exists in database
+      - api: GET /api/v2/account/verify-exists
+        params:
+          email: newuser-{{timestamp}}@example.com
+        assert:
+          status: 200
+          body.exists: true
       - User can sign in with created credentials
 
   - id: TC-AC-002
@@ -65,8 +80,16 @@ tests:
         terms: true
     verify:
       - Error alert appears with role=alert
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: visible
       - Error message indicates email is already registered
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: contains
+        text: already registered
       - User remains on /signup page
+      - url:
+          path: /signup
+          assertion: equals
       - Form is NOT cleared (email value preserved)
       - selector: "[role='alert']"
         assertion: visible
@@ -114,8 +137,17 @@ tests:
         terms: true
     verify:
       - Error alert appears with role=alert
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: visible
       - Error message references password requirements
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: contains
+        text: password
       - Password field is marked as invalid
+      - selector: "[data-testid='password-input']"
+        assertion: has-attribute
+        attribute: aria-invalid
+        value: "true"
       - selector: "[role='alert']"
         assertion: visible
     priority: high

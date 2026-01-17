@@ -137,6 +137,15 @@ tests:
       - No account existence information revealed
       - Email sent to invited@example.com
       - Email contains link back to invite flow
+      - selector: "[data-testid='magic-link-sent-message']"
+        assertion: visible
+      - api: GET /api/v2/test/emails/last
+        assert:
+          to: "invited@example.com"
+          subject_contains: "invitation"
+      - api: GET /api/v2/test/emails/last
+        assert:
+          body_contains: "/invite/"
     priority: critical
     type: functional
     covers: [magic-link-api, invite-context]
@@ -190,6 +199,16 @@ tests:
       - Accept/Decline buttons now visible
       - No password prompt shown
       - Session is established
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          email: "invited@example.com"
+      - url: matches
+        pattern: "/invite/{{invite.token}}"
+      - selector: "[data-testid='accept-invitation-button']"
+        assertion: visible
+      - selector: "[data-testid='user-session-indicator']"
+        assertion: visible
     priority: critical
     type: functional
     covers: [magic-link-verification, session-creation]
@@ -206,13 +225,20 @@ tests:
     target: /auth/magic-link/{{magic_token}}
     action:
       type: click
-      element: Accept Invitation button (after redirect)
+      element: "[data-testid='accept-invitation-button']"
     verify:
       - User becomes organization member
       - Success message displayed
       - Redirects to organization dashboard
+      - api: GET /api/v2/organizations/{{org.extid}}/members
+        assert:
+          contains_email: "invited@example.com"
+          role: "member"
     postconditions:
       - User is member of organization with invited role
+      - api: GET /api/v2/organizations/{{org.extid}}/members
+        assert:
+          contains_email: "invited@example.com"
     priority: critical
     type: functional
     covers: [invitation-acceptance, org-membership]
@@ -242,6 +268,12 @@ tests:
       - No account created yet (created on submit)
       - selector: "[data-testid='set-password-form']"
         assertion: visible
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: false
+      - api: GET /api/v2/admin/customers?email=invited@example.com
+        assert:
+          count: 0
     priority: critical
     type: functional
     covers: [magic-link-verification, account-creation-flow]
@@ -267,10 +299,21 @@ tests:
       - Redirects to /invite/{{invite.token}}
       - Accept/Decline buttons visible
       - Email is verified (magic link click proves ownership)
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          email: "invited@example.com"
+          email_verified: true
+      - url: matches
+        pattern: "/invite/{{invite.token}}"
     postconditions:
       - New user account exists
       - User session established
       - Email marked as verified
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          email_verified: true
     priority: critical
     type: functional
     covers: [account-creation, session-creation, email-verification]
@@ -364,9 +407,17 @@ tests:
       - Page shows email entry field
       - Email prefilled with invited email
       - Can proceed with magic link flow
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: false
+      - selector: "[data-testid='invite-email-input']"
+        assertion: visible
     postconditions:
       - Session cleared
       - User unauthenticated
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: false
     priority: high
     type: functional
     covers: [AcceptInvite.vue, account-switching]
@@ -417,6 +468,12 @@ tests:
       - Suggests contacting organization admin
       - selector: "[data-testid='invite-expired-error']"
         assertion: visible
+      - selector: "[data-testid='invite-email-input']"
+        assertion: not_visible
+      - selector: "[data-testid='accept-invitation-button']"
+        assertion: not_visible
+      - selector: "[data-testid='decline-invitation-button']"
+        assertion: not_visible
     priority: high
     type: error
     covers: [AcceptInvite.vue, expired-handling]
@@ -454,6 +511,13 @@ tests:
       - First click succeeds (signs in, redirects)
       - Second click shows token expired/used error
       - Cannot reuse magic link token
+      - step: first_click
+        api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+      - step: second_click
+        selector: "[data-testid='magic-link-expired-error']"
+        assertion: visible
     priority: high
     type: security
     covers: [magic-link-security, token-invalidation]
@@ -476,6 +540,12 @@ tests:
       - Same "check your email" response
       - No indication whether account exists
       - Response timing is consistent (no timing attack)
+      - selector: "[data-testid='magic-link-sent-message']"
+        assertion: visible
+      - timing:
+          measure: response_time
+          compare_with: existing_account_response
+          tolerance_ms: 100
     priority: critical
     severity: blocker
     type: security
@@ -532,6 +602,11 @@ tests:
       - Invitation marked as declined
       - Redirects to home page
       - No account required to decline
+      - api: GET /api/v2/invitations/{{invite.extid}}
+        assert:
+          status: "declined"
+      - url: matches
+        pattern: "/"
     priority: medium
     type: functional
     covers: [invitation-decline, unauthenticated-decline]
@@ -555,6 +630,11 @@ tests:
       - Success message after decline
       - Invitation no longer valid
       - Redirects away from invite page
+      - action: navigate_to
+        target: /invite/{{invite.token}}
+        expect:
+          selector: "[data-testid='invite-invalid-error']"
+          assertion: visible
     priority: medium
     type: functional
     covers: [invitation-decline, ux-feedback]

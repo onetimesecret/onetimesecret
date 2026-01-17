@@ -1,7 +1,7 @@
 # docs/test-plans/subscription-upgrade.yaml
 ---
 # LLM-Optimized Test Cases: Subscription Upgrade
-# Version: 1.0.0
+# Version: 1.1.0
 
 suite:
   id: subscription-upgrade
@@ -12,6 +12,34 @@ suite:
     Tests cover two distinct upgrade paths:
     1. New subscription checkout (free → paid via Stripe Checkout)
     2. Plan change (paid → different paid via in-app modal)
+
+# Data-testid Attribute Reference:
+# These attributes should be present in Vue components for test automation.
+#
+# Plan Selection UI:
+#   - data-testid="plan-card-{plan_id}"       : Individual plan card container
+#   - data-testid="plan-select-btn"           : Select/upgrade button on plan card
+#   - data-testid="billing-interval-monthly"  : Monthly billing tab
+#   - data-testid="billing-interval-yearly"   : Yearly billing tab
+#   - data-testid="current-plan-badge"        : Badge indicating current plan
+#   - data-testid="plans-container"           : Container for all plan cards
+#   - data-testid="plans-error-boundary"      : Error boundary for plans page
+#
+# Plan Change Modal:
+#   - data-testid="plan-change-modal"         : Modal container
+#   - data-testid="current-plan-name"         : Current plan name display
+#   - data-testid="target-plan-name"          : Target plan name display
+#   - data-testid="proration-amount"          : Proration preview amount
+#   - data-testid="confirm-plan-change-btn"   : Confirm button
+#   - data-testid="cancel-plan-change-btn"    : Cancel button
+#   - data-testid="yearly-price"              : Yearly price display
+#   - data-testid="monthly-price"             : Monthly price display
+#
+# Billing Overview:
+#   - data-testid="success-banner"            : Success/upgrade confirmation banner
+#   - data-testid="current-plan-display"      : Current plan tier display
+#   - data-testid="plan-features-list"        : Plan features/entitlements list
+#   - data-testid="upgrade-plan-btn"          : Upgrade plan button
 
 # -----------------------------------------------------------------------------
 # SHARED DEFINITIONS
@@ -54,11 +82,22 @@ tests:
     target: /billing/:extid/plans
     action:
       type: click
-      element: Select button on a paid plan card
+      element: "[data-testid='plan-select-btn']"
+      notes: Select button on a paid plan card
     verify:
       - Network request to POST /billing/api/org/:extid/checkout returns 200
       - Response contains checkout_url field
       - Browser redirects to Stripe checkout page (checkout.stripe.com)
+      - selector: "[data-testid='plans-container']"
+        assertion: visible
+        notes: Verify plans page loaded before action
+      - api: POST /billing/api/org/:extid/checkout
+        assert:
+          status: 200
+          body.checkout_url: matches "^https://checkout\\.stripe\\.com/"
+        notes: Verify checkout URL is valid Stripe domain
+    postconditions:
+      - Window location starts with https://checkout.stripe.com
     priority: critical
     severity: blocker
     type: functional
@@ -82,7 +121,8 @@ tests:
     target: /billing/:extid/plans
     action:
       type: click
-      element: Select button on Team Plus plan card
+      element: "[data-testid='plan-select-btn']"
+      notes: Select button on Team Plus plan card
     verify:
       - PlanChangeModal opens instead of Stripe redirect
       - Modal shows current plan name (Identity Plus)
@@ -90,6 +130,20 @@ tests:
       - Proration preview displays amount due or credit
       - Network request to POST /billing/api/org/:extid/preview-plan-change returns 200
       - Confirm button visible to execute plan change
+      - selector: "[data-testid='plan-change-modal']"
+        assertion: visible
+        notes: Modal must be visible after clicking upgrade on existing subscription
+      - selector: "[data-testid='current-plan-name']"
+        assertion: contains
+        value: Identity Plus
+      - selector: "[data-testid='target-plan-name']"
+        assertion: contains
+        value: Team Plus
+      - selector: "[data-testid='proration-amount']"
+        assertion: visible
+        notes: Proration amount element must exist and display a value
+      - selector: "[data-testid='confirm-plan-change-btn']"
+        assertion: visible
     priority: critical
     severity: blocker
     type: functional
@@ -114,12 +168,24 @@ tests:
     target: /billing/:extid/plans
     action:
       type: click
-      element: Yearly billing tab, then Select on same tier plan
+      element: "[data-testid='billing-interval-yearly']"
+      notes: Yearly billing tab, then Select on same tier plan
     verify:
       - PlanChangeModal opens showing interval change
       - Preview shows yearly price vs monthly price
       - Proration calculation reflects interval change
       - POST /billing/api/org/:extid/preview-plan-change called with yearly price_id
+      - selector: "[data-testid='plan-change-modal']"
+        assertion: visible
+        notes: Modal should open for interval change on existing subscription
+      - selector: "[data-testid='yearly-price']"
+        assertion: visible
+        notes: Yearly price must be displayed in modal
+      - selector: "[data-testid='monthly-price']"
+        assertion: visible
+        notes: Monthly price shown for comparison
+      - selector: "[data-testid='proration-amount']"
+        assertion: visible
     priority: high
     severity: major
     type: functional
@@ -148,6 +214,18 @@ tests:
       - User sees available plans with pricing
       - No error banner or checkout failure message
       - User can select a plan to attempt checkout again
+      - selector: "[data-testid='plans-container']"
+        assertion: visible
+        notes: Plans container must render successfully
+      - selector: "[data-testid='plans-error-boundary']"
+        assertion: hidden
+        notes: Error boundary should not be triggered
+      - selector: "[role='alert']"
+        assertion: hidden
+        notes: No error alerts should be visible
+      - selector: "[data-testid='plan-select-btn']"
+        assertion: visible
+        notes: Select buttons must be available for retry
     priority: high
     severity: major
     type: functional
@@ -174,11 +252,41 @@ tests:
       - Current plan shows newly subscribed tier (not Free)
       - Plan features section reflects upgraded entitlements
       - No error messages in console
+      - selector: "[data-testid='success-banner']"
+        assertion: visible
+        notes: Success banner must be visible on upgrade confirmation
+      - selector: "[data-testid='success-banner']"
+        assertion: contains
+        value: upgrade
+        notes: Banner should contain upgrade-related messaging
+      - selector: "[data-testid='current-plan-display']"
+        assertion: visible
+      - selector: "[data-testid='current-plan-display']"
+        assertion: not-contains
+        value: Free
+        notes: Plan display must not show Free after successful upgrade
+      - selector: "[data-testid='plan-features-list']"
+        assertion: visible
+        notes: Features list must be visible showing upgraded entitlements
+      - selector: "[data-testid='plan-features-list'] li"
+        assertion: count-gt
+        value: 0
+        notes: At least one feature item should be listed
+    postconditions:
+      - User organization has active subscription
+      - Entitlements reflect new plan tier
+      - api: GET /bootstrap/me
+        assert:
+          authenticated: true
+          organization.subscription.status: active
+        notes: Verify via bootstrap API that subscription is active
+      - api: GET /billing/api/org/:extid/entitlements
+        assert:
+          status: 200
+          body.plan: not-equals "free_v1"
+        notes: Verify entitlements API returns upgraded plan tier
     priority: high
     severity: major
     type: functional
     covers:
       - src/apps/workspace/billing/BillingOverview.vue
-    postconditions:
-      - User organization has active subscription
-      - Entitlements reflect new plan tier
