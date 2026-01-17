@@ -117,7 +117,10 @@
     if (!authStore.isAuthenticated) {
       router.push({
         name: 'Sign In',
-        query: { redirect: `/invite/${invitationToken.value}` },
+        query: {
+          email: invitation.value?.email,
+          redirect: `/invite/${invitationToken.value}`,
+        },
       });
       return;
     }
@@ -152,6 +155,10 @@
     try {
       await $api.post(`/api/invite/${invitationToken.value}/decline`);
 
+      // Update local state to hide invitation details immediately
+      if (invitation.value) {
+        invitation.value.status = 'declined';
+      }
       success.value = t('web.organizations.invitations.decline_success');
 
       setTimeout(() => {
