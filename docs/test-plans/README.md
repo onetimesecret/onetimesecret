@@ -1,6 +1,8 @@
 # LLM-Optimized Test Cases
 
-Intent-based test specifications for browser automation agents.
+Intent-based test specifications that serve two purposes:
+1. **Direct execution** by browser automation agents (slow but thorough)
+2. **Living documentation** for Playwright E2E tests (fast, repeatable)
 
 ## Design Rationale
 
@@ -9,6 +11,38 @@ Intent-based test specifications for browser automation agents.
 - **Verify as assertions** - what to check, not how to check it
 
 LLM agents infer mechanics from intent, so step-by-step instructions are unnecessary.
+
+## Hybrid Workflow: YAML + Playwright
+
+Running test plans via LLM agents is thorough but slow (1+ hours for complex flows). For practical QA:
+
+1. **YAML test plans** document the *intent* and *spirit* of what tests should verify
+2. **Playwright specs** implement fast, repeatable E2E tests
+3. **When tests drift**, use an LLM with both files to repair/sync them
+
+### Linking YAML to Playwright
+
+Add `e2e_spec` to the suite metadata:
+
+```yaml
+suite:
+  id: org-invitation-flow
+  name: Organization Member Invitation Flow
+  feature: Organization invitations with auth flow integration
+  e2e_spec: e2e/full/org-invitation-flow.spec.ts  # or array for multiple files
+```
+
+### Sync Workflow
+
+When Playwright tests fail or behavior changes:
+
+```
+Prompt: "Compare the test plan YAML with the Playwright spec.
+         Identify which tests are out of sync and update the spec
+         to match the documented intent."
+```
+
+This keeps the YAML as the source of truth for *what* to test, while Playwright handles *how*.
 
 ## Writing Verify Assertions
 

@@ -172,6 +172,12 @@ export const Suite = z.object({
   priority: Priority.optional(),
   /** Execution notes for test agents (e.g., multi-context requirements) */
   notes: z.string().optional(),
+  /**
+   * Associated Playwright E2E spec file(s) that implement this test plan.
+   * Paths are relative to project root (e.g., "e2e/full/org-invitation-flow.spec.ts").
+   * Used to keep YAML intent docs in sync with executable tests.
+   */
+  e2e_spec: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 // -----------------------------------------------------------------------------
