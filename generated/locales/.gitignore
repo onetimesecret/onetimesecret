@@ -1,0 +1,6 @@
+# Ignore generated locale files (they are generated from locales/content/)
+*.json
+
+# Keep this directory in git
+!.gitkeep
+!.gitignore

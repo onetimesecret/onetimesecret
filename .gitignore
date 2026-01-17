@@ -76,6 +76,9 @@ src/auto-imports.d.ts
 src/.eslintrc-auto-import.json
 *.pyc
 
+# Generated locale files - has its own .gitignore created by sync script
+# generated/locales/
+
 # Environment files
 .env*
 !.env.example
