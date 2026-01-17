@@ -18,7 +18,6 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     let(:default_value) { 604_800 } # 7 days
 
     after do
-      # Clean up environment after each test
       ENV.delete('TEST_TTL_VAR')
     end
 
@@ -92,10 +91,10 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
         expect(result).to eq(default_value)
       end
 
-      it 'logs a warning' do
+      it 'logs a warning with env var name' do
         expect(OT).to receive(:lw).with(
-          /Invalid TEST_TTL_VAR value '123abc'/,
-          anything
+          '[WithEntitlements] Invalid TEST_TTL_VAR value, using default',
+          hash_including(env_var: 'TEST_TTL_VAR', default: default_value)
         )
         described_class.parse_ttl_env('TEST_TTL_VAR', default_value)
       end
@@ -113,9 +112,9 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     context 'when environment variable is negative' do
       before { ENV['TEST_TTL_VAR'] = '-100' }
 
-      it 'returns the negative value (allows negative for potential special cases)' do
+      it 'clamps to zero (lower bound)' do
         result = described_class.parse_ttl_env('TEST_TTL_VAR', default_value)
-        expect(result).to eq(-100)
+        expect(result).to eq(0)
       end
     end
 
@@ -131,27 +130,32 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     context 'when environment variable is hexadecimal' do
       before { ENV['TEST_TTL_VAR'] = '0x1234' }
 
-      it 'returns the default value (base 10 only)' do
-        # Integer() with explicit base 10 rejects hex
+      it 'returns the default value (base 10 only rejects hex)' do
         result = described_class.parse_ttl_env('TEST_TTL_VAR', default_value)
         expect(result).to eq(default_value)
       end
     end
 
-    context 'when environment variable is octal' do
+    context 'when environment variable has leading zero' do
       before { ENV['TEST_TTL_VAR'] = '0777' }
 
-      it 'returns the default value (base 10 only)' do
-        # Integer() with explicit base 10 rejects octal prefix
+      it 'parses as base 10 (leading zero ignored)' do
+        # Integer('0777', 10) parses as 777 in base 10, not octal
         result = described_class.parse_ttl_env('TEST_TTL_VAR', default_value)
-        expect(result).to eq(default_value)
+        expect(result).to eq(777)
       end
     end
   end
 
   describe '.free_tier_limits' do
+    before do
+      # Reset memoization before each test
+      described_class.reset_free_tier_limits!
+    end
+
     after do
       ENV.delete('PLAN_TTL_ANONYMOUS')
+      described_class.reset_free_tier_limits!
     end
 
     context 'when PLAN_TTL_ANONYMOUS is not set' do
@@ -169,7 +173,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     context 'when PLAN_TTL_ANONYMOUS is set to 30 days' do
-      before { ENV['PLAN_TTL_ANONYMOUS'] = '2592000' } # 30 days
+      before { ENV['PLAN_TTL_ANONYMOUS'] = '2592000' }
 
       it 'returns overridden secret_lifetime.max' do
         limits = described_class.free_tier_limits
@@ -198,6 +202,29 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       it 'falls back to default value' do
         limits = described_class.free_tier_limits
         expect(limits['secret_lifetime.max']).to eq(604_800)
+      end
+    end
+
+    context 'memoization behavior' do
+      it 'returns the same frozen hash on subsequent calls' do
+        first_call = described_class.free_tier_limits
+        second_call = described_class.free_tier_limits
+        expect(first_call).to be(second_call)
+        expect(first_call).to be_frozen
+      end
+
+      it 'can be reset for testing' do
+        ENV['PLAN_TTL_ANONYMOUS'] = '1000'
+        first_limits = described_class.free_tier_limits
+        expect(first_limits['secret_lifetime.max']).to eq(1000)
+
+        ENV['PLAN_TTL_ANONYMOUS'] = '2000'
+        # Without reset, should return memoized value
+        expect(described_class.free_tier_limits['secret_lifetime.max']).to eq(1000)
+
+        # After reset, should pick up new value
+        described_class.reset_free_tier_limits!
+        expect(described_class.free_tier_limits['secret_lifetime.max']).to eq(2000)
       end
     end
   end
@@ -251,8 +278,13 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
 
     let(:org) { test_class.new(nil) } # No plan = free tier
 
+    before do
+      described_class.reset_free_tier_limits!
+    end
+
     after do
       ENV.delete('PLAN_TTL_ANONYMOUS')
+      described_class.reset_free_tier_limits!
     end
 
     context 'when PLAN_TTL_ANONYMOUS is not set' do
@@ -266,6 +298,14 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
 
       it 'limit_for returns overridden value' do
         expect(org.limit_for('secret_lifetime')).to eq(2_592_000)
+      end
+    end
+
+    context 'when PLAN_TTL_ANONYMOUS is negative' do
+      before { ENV['PLAN_TTL_ANONYMOUS'] = '-500' }
+
+      it 'limit_for clamps to zero' do
+        expect(org.limit_for('secret_lifetime')).to eq(0)
       end
     end
   end

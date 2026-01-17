@@ -82,24 +82,28 @@ module Onetime
         # Parse TTL value from environment variable with strict validation
         #
         # Uses Integer() for strict parsing to reject malformed values like "123abc".
-        # Applies upper-bound validation to prevent resource exhaustion.
+        # Applies bounds validation: minimum 0, maximum MAX_TTL (365 days).
         #
         # @param env_var [String] Environment variable name
         # @param default [Integer] Default value if env var is not set or invalid
-        # @return [Integer] Validated TTL value in seconds
+        # @return [Integer] Validated TTL value in seconds (0 to MAX_TTL)
         #
         # @example
-        #   parse_ttl_env('PLAN_TTL_FREE', 604_800)  # => 604800 (or env value)
+        #   parse_ttl_env('PLAN_TTL_ANONYMOUS', 604_800)  # => 604800 (or env value)
         def self.parse_ttl_env(env_var, default)
           raw = ENV.fetch(env_var, nil)
           return default if raw.nil? || raw.strip.empty?
 
           begin
             value = Integer(raw.strip, 10) # Strict integer parsing, base 10
-            # Apply upper-bound: cap at MAX_TTL (365 days)
-            [value, MAX_TTL].min
-          rescue ArgumentError => ex
-            OT.lw "[WithEntitlements] Invalid #{env_var} value '#{raw}': #{ex.message}, using default #{default}"
+            # Apply bounds: clamp between 0 and MAX_TTL (365 days)
+            value.clamp(0, MAX_TTL)
+          rescue ArgumentError
+            OT.lw "[WithEntitlements] Invalid #{env_var} value, using default",
+              {
+                env_var: env_var,
+                default: default,
+              }
             default
           end
         end
@@ -110,17 +114,24 @@ module Onetime
         # environment variable for Docker/self-hosted deployments.
         # This provides upgrade continuity with PR #2393 from main branch.
         #
+        # Results are memoized at class level for consistent behavior and performance.
+        #
         # Environment variables:
         #   PLAN_TTL_ANONYMOUS - Maximum secret TTL for anonymous/free tier users (default: 604800 = 7 days)
         #
         # @see https://github.com/onetimesecret/onetimesecret/issues/2390
         def self.free_tier_limits
-          {
-            'organizations.max' => 5,       # 5 organizations (default workspace)
+          @free_tier_limits ||= {
+            'organizations.max' => 5,
             'teams.max' => 0,
             'members_per_team.max' => 0,
             'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', DEFAULT_FREE_TTL),
           }.freeze
+        end
+
+        # Reset memoized free_tier_limits (for testing)
+        def self.reset_free_tier_limits!
+          @free_tier_limits = nil
         end
 
         # Legacy constant for backward compatibility
