@@ -19,8 +19,16 @@ LLM agents infer mechanics from intent, so step-by-step instructions are unneces
 
 Use @browser-tester which has access to chrome devtools MCP and serena tools.
 
+Before you start:
 - Run Caddy, use TLS certs
 - Clean mail from Mailpit inbox
+
+Example prompt:
+
+> Use @browser-tester to run this testplan. Use https://dev.onetime.dev and
+> https://dev.onetime.dev:8025/ for mailpit UI. When dealing with accounts,
+> the email addresses must use a valid domain that will pass Truemail checks.
+
 
 ## Converting from Qase
 

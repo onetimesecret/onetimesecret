@@ -206,7 +206,7 @@ tests:
       state: { organizations_count: 3 }
     target: /billing/invoices
     action:
-      type: select
+      type: click
       element: Organization dropdown
       data: { value: different_org }
     verify:
@@ -228,7 +228,7 @@ tests:
     target: /org/domains
     verify:
       - Page loads without error
-      - No "Organization not found: domains" message
+      - 'No "Organization not found: domains" message'
       - Shows domain management UI or upgrade prompt
     priority: medium
     type: functional

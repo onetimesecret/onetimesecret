@@ -176,8 +176,8 @@ tests:
       - Warning heading shows "Wrong Account"
       - Warning body shows invited email (invited@example.com)
       - Warning body shows current session email (different@example.com)
-      - "Sign In with Different Account" button is visible
-      - "Please sign in" notice is NOT visible
+      - '"Sign In with Different Account" button is visible'
+      - '"Please sign in" notice is NOT visible'
       - selector: "[data-testid='email-mismatch-warning']"
         assertion: visible
       - selector: "[data-testid='switch-account-btn']"

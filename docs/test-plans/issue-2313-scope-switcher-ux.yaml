@@ -347,7 +347,7 @@ tests:
       - All user's organizations are listed
       - Current organization has checkmark indicator
       - Menu has role="menu" for accessibility
-      - "Manage Organizations" link is available
+      - '"Manage Organizations" link is available'
       - selector: "[data-testid='org-scope-switcher-dropdown']"
         assertion: visible
       - selector: "[data-testid='org-scope-switcher-dropdown'][role='menu']"
@@ -581,7 +581,7 @@ tests:
       - Switcher is visible
       - Dropdown shows one organization (Personal/default)
       - Checkmark indicates current selection
-      - "Manage Organizations" link still available
+      - '"Manage Organizations" link still available'
     priority: medium
     type: edge
     covers: [OrganizationScopeSwitcher, single org user]
@@ -599,7 +599,7 @@ tests:
     verify:
       - Domain switcher is visible regardless of plan or custom domains
       - Shows canonical domain (e.g., dev.onetime.dev) as default scope
-      - Dropdown shows "Manage Domains" link for adding custom domains
+      - 'Dropdown shows "Manage Domains" link for adding custom domains'
       - selector: "[data-testid='domain-scope-switcher']"
         assertion: visible
       - selector: "[data-testid='domain-scope-switcher-dropdown']"
