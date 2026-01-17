@@ -96,6 +96,39 @@ export function useAuth() {
   const organizationStore = useOrganizationStore();
 
   /**
+   * Validates a redirect path to prevent open redirect attacks.
+   * Only allows internal paths starting with '/' and prevents protocol-relative URLs.
+   *
+   * @param path - The path to validate
+   * @returns true if the path is safe to redirect to
+   */
+  function isValidRedirect(path: string | undefined): path is string {
+    if (!path) return false;
+    // Security: prevent open redirect attacks
+    // - Must start with /
+    // - Must not start with // (protocol-relative URLs)
+    // - Must not contain :// (absolute URLs with protocol)
+    // - Reasonable length limit
+    return (
+      path.startsWith('/') &&
+      !path.startsWith('//') &&
+      !path.includes('://') &&
+      path.length < 2048
+    );
+  }
+
+  /**
+   * Gets the redirect path from query params if valid.
+   *
+   * @returns The redirect path if valid, undefined otherwise
+   */
+  function getRedirectParam(): string | undefined {
+    const redirect = route.query.redirect;
+    const redirectPath = typeof redirect === 'string' ? redirect : undefined;
+    return isValidRedirect(redirectPath) ? redirectPath : undefined;
+  }
+
+  /**
    * Extracts billing-related query params from the current route.
    * Used to forward product/interval selection through auth flows.
    *
@@ -370,7 +403,12 @@ export function useAuth() {
         bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
 
         // Redirect to MFA verification - guard will allow access since awaiting_mfa is set
-        await router.push('/mfa-verify');
+        // Preserve redirect param so MFA flow can complete the redirect after verification
+        const redirectPath = getRedirectParam();
+        await router.push({
+          path: '/mfa-verify',
+          query: redirectPath ? { redirect: redirectPath } : undefined,
+        });
         return false; // Not fully logged in yet
       }
 
@@ -382,6 +420,14 @@ export function useAuth() {
       const redirected = await handleBillingRedirect(validated);
       if (redirected) {
         return true; // Redirected to billing plans or overview
+      }
+
+      // Check for redirect param (e.g., from invitation flow)
+      const redirectPath = getRedirectParam();
+      if (redirectPath) {
+        loggingService.debug('[useAuth] Redirecting to saved path after login', { redirectPath });
+        await router.push(redirectPath);
+        return true;
       }
 
       await router.push('/');
@@ -429,16 +475,23 @@ export function useAuth() {
       // User needs to either verify email or sign in
       notificationsStore.show(validated.success, 'success', 'top');
 
-      // Preserve billing params when redirecting to signin
-      // so the subsequent login can pick them up for billing redirect
+      // Build query params for signin redirect
+      // Preserve billing params and redirect path for subsequent login
+      const redirectPath = getRedirectParam();
+      const query: Record<string, string> = {};
+
       if (billingParams.product && billingParams.interval) {
-        await router.push({
-          path: '/signin',
-          query: { product: billingParams.product, interval: billingParams.interval },
-        });
-      } else {
-        await router.push('/signin');
+        query.product = billingParams.product;
+        query.interval = billingParams.interval;
       }
+      if (redirectPath) {
+        query.redirect = redirectPath;
+      }
+
+      await router.push({
+        path: '/signin',
+        query: Object.keys(query).length > 0 ? query : undefined,
+      });
       return true;
     });
 

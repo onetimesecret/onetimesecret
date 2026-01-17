@@ -8,11 +8,26 @@
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
   import { useAuthStore } from '@/shared/stores/authStore';
-  import { ref, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { ref, onMounted, computed } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
 
   const { t } = useI18n();
+  const route = useRoute();
   const router = useRouter();
+
+  /**
+   * Gets the redirect path from query params if valid.
+   * Security: Only allows internal paths to prevent open redirect attacks.
+   */
+  const redirectPath = computed(() => {
+    const redirect = route.query.redirect;
+    if (typeof redirect !== 'string') return null;
+    // Security: prevent open redirect attacks
+    if (!redirect.startsWith('/') || redirect.startsWith('//') || redirect.includes('://')) {
+      return null;
+    }
+    return redirect;
+  });
   const authStore = useAuthStore();
   const { verifyOtp, verifyRecoveryCode, fetchMfaStatus, isLoading, error, clearError } = useMfa();
   const { logout } = useAuth();
@@ -69,7 +84,10 @@
       loggingService.debug('[MfaChallenge] Setting authenticated=true');
       await authStore.setAuthenticated(true);
       loggingService.debug('[MfaChallenge] After setAuthenticated - auth complete');
-      router.push('/');
+      // Redirect to saved path or dashboard
+      const destination = redirectPath.value || '/';
+      loggingService.debug('[MfaChallenge] Redirecting to', { destination });
+      router.push(destination);
     } else {
       // Clear input on error
       loggingService.debug('[MfaChallenge] OTP failed, clearing input');
@@ -104,7 +122,9 @@
     if (success) {
       // Update auth state and navigate
       await authStore.setAuthenticated(true);
-      router.push('/');
+      // Redirect to saved path or dashboard
+      const destination = redirectPath.value || '/';
+      router.push(destination);
     } else {
       // Clear input on error
       recoveryCode.value = '';
