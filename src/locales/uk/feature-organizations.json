@@ -105,7 +105,7 @@
         "pending_invitations": "Очікувані запрошення",
         "no_pending_invitations": "Немає очікуваних запрошень",
         "email_address": "Електронна адреса",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "Роль",
         "send_invite": "Надіслати запрошення",
         "invite_sent": "Запрошення успішно надіслано",

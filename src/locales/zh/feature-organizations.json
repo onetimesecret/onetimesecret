@@ -105,7 +105,7 @@
         "pending_invitations": "待处理邀请",
         "no_pending_invitations": "暂无待处理邀请",
         "email_address": "邮箱地址",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "角色",
         "send_invite": "发送邀请",
         "invite_sent": "邀请发送成功",

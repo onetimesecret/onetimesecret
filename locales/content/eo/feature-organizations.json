@@ -288,7 +288,7 @@
     "text": "Retpoŝta Adreso"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "membro@ekzemplo.com"
+    "text": "membro{'@'}ekzemplo.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rolo"

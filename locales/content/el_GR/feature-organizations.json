@@ -395,7 +395,7 @@
     "text": "Διεύθυνση Email"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "melos@example.com"
+    "text": "melos{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Ρόλος"

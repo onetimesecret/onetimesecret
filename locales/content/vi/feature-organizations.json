@@ -285,7 +285,7 @@
     "text": "Địa chỉ email"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "thanhvien@example.com"
+    "text": "thanhvien{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Vai trò"

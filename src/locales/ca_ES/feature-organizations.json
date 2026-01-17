@@ -105,7 +105,7 @@
         "pending_invitations": "Invitacions pendents",
         "no_pending_invitations": "No hi ha invitacions pendents",
         "email_address": "Adreça de correu electrònic",
-        "email_placeholder": "membre@exemple.com",
+        "email_placeholder": "membre{'@'}exemple.com",
         "role": "Rol",
         "send_invite": "Envia la invitació",
         "invite_sent": "Invitació enviada correctament",

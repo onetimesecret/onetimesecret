@@ -285,7 +285,7 @@
     "text": "E-postadress"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "medlem@example.com"
+    "text": "medlem{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Roll"

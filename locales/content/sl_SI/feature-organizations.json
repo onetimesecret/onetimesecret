@@ -285,7 +285,7 @@
     "text": "E-poštni naslov"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "clan@primer.com"
+    "text": "clan{'@'}primer.com"
   },
   "web.organizations.invitations.role": {
     "text": "Vloga"

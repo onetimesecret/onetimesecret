@@ -105,7 +105,7 @@
         "pending_invitations": "Väntande inbjudningar",
         "no_pending_invitations": "Inga väntande inbjudningar",
         "email_address": "E-postadress",
-        "email_placeholder": "medlem@example.com",
+        "email_placeholder": "medlem{'@'}example.com",
         "role": "Roll",
         "send_invite": "Skicka inbjudan",
         "invite_sent": "Inbjudan skickad",

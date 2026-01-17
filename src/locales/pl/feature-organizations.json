@@ -105,7 +105,7 @@
         "pending_invitations": "Oczekujące zaproszenia",
         "no_pending_invitations": "Brak oczekujących zaproszeń",
         "email_address": "Adres e-mail",
-        "email_placeholder": "czlonek@przyklad.com",
+        "email_placeholder": "czlonek{'@'}przyklad.com",
         "role": "Rola",
         "send_invite": "Wyślij zaproszenie",
         "invite_sent": "Zaproszenie wysłane pomyślnie",

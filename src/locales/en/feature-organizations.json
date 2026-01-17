@@ -110,7 +110,7 @@
         "pending_invitations": "Pending Invitations",
         "no_pending_invitations": "No pending invitations",
         "email_address": "Email Address",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "Role",
         "send_invite": "Send Invitation",
         "invite_sent": "Invitation sent successfully",

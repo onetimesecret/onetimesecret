@@ -50,7 +50,7 @@
         "pending_invitations": "Bekleyen Davetler",
         "no_pending_invitations": "Bekleyen davet yok",
         "email_address": "E-posta Adresi",
-        "email_placeholder": "uye@example.com",
+        "email_placeholder": "uye{'@'}example.com",
         "role": "Rol",
         "send_invite": "Davet Gönder",
         "invite_sent": "Davet başarıyla gönderildi",

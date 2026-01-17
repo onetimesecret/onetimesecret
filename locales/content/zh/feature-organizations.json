@@ -285,7 +285,7 @@
     "text": "邮箱地址"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "member@example.com"
+    "text": "member{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "角色"

@@ -105,7 +105,7 @@
         "pending_invitations": "Ausstehende Einladungen",
         "no_pending_invitations": "Keine ausstehenden Einladungen",
         "email_address": "E-Mail-Adresse",
-        "email_placeholder": "mitglied@beispiel.de",
+        "email_placeholder": "mitglied{'@'}beispiel.de",
         "role": "Rolle",
         "send_invite": "Einladung senden",
         "invite_sent": "Einladung erfolgreich gesendet",

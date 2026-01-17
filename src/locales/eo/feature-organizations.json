@@ -106,7 +106,7 @@
         "pending_invitations": "Atendantaj Invitoj",
         "no_pending_invitations": "Neniuj atendantaj invitoj",
         "email_address": "Retpoŝta Adreso",
-        "email_placeholder": "membro@ekzemplo.com",
+        "email_placeholder": "membro{'@'}ekzemplo.com",
         "role": "Rolo",
         "send_invite": "Sendi Inviton",
         "invite_sent": "Invito sukcese sendita",

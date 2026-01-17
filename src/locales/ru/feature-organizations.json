@@ -105,7 +105,7 @@
         "pending_invitations": "Ожидающие приглашения",
         "no_pending_invitations": "Нет ожидающих приглашений",
         "email_address": "Адрес электронной почты",
-        "email_placeholder": "участник@пример.com",
+        "email_placeholder": "участник{'@'}пример.com",
         "role": "Роль",
         "send_invite": "Отправить приглашение",
         "invite_sent": "Приглашение успешно отправлено",

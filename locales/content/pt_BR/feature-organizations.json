@@ -285,7 +285,7 @@
     "text": "Endereço de E-mail"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "membro@exemplo.com"
+    "text": "membro{'@'}exemplo.com"
   },
   "web.organizations.invitations.role": {
     "text": "Papel"

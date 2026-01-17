@@ -105,7 +105,7 @@
         "pending_invitations": "Ngā Pōwhiri Kei te Tatari",
         "no_pending_invitations": "Kāore he pōwhiri kei te tatari",
         "email_address": "Wāhitau Īmēra",
-        "email_placeholder": "mema@tauira.com",
+        "email_placeholder": "mema{'@'}tauira.com",
         "role": "Tūranga",
         "send_invite": "Tuku Pōwhiri",
         "invite_sent": "Kua tukuna angituhia te pōwhiri",

@@ -285,7 +285,7 @@
     "text": "Dirección de Correo Electrónico"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "miembro@ejemplo.com"
+    "text": "miembro{'@'}ejemplo.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rol"

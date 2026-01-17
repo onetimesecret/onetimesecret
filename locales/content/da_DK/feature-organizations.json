@@ -395,7 +395,7 @@
     "text": "E-mail-adresse"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "medlem@eksempel.dk"
+    "text": "medlem{'@'}eksempel.dk"
   },
   "web.organizations.invitations.role": {
     "text": "Rolle"

@@ -285,7 +285,7 @@
     "text": "E-mailadres"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "lid@voorbeeld.com"
+    "text": "lid{'@'}voorbeeld.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rol"

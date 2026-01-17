@@ -105,7 +105,7 @@
         "pending_invitations": "Čekající pozvánky",
         "no_pending_invitations": "Žádné čekající pozvánky",
         "email_address": "E-mailová adresa",
-        "email_placeholder": "clen@example.com",
+        "email_placeholder": "clen{'@'}example.com",
         "role": "Role",
         "send_invite": "Odeslat pozvánku",
         "invite_sent": "Pozvánka byla úspěšně odeslána",

@@ -105,7 +105,7 @@
         "pending_invitations": "Convites Pendentes",
         "no_pending_invitations": "Sem convites pendentes",
         "email_address": "Endereço de E-mail",
-        "email_placeholder": "membro@exemplo.com",
+        "email_placeholder": "membro{'@'}exemplo.com",
         "role": "Papel",
         "send_invite": "Enviar Convite",
         "invite_sent": "Convite enviado com sucesso",
