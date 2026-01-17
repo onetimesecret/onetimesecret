@@ -160,6 +160,10 @@ export const Suite = z.object({
   issue: z.url().optional(),
   /** Tags for categorization */
   tags: z.array(z.string()).optional(),
+  /** Suite-level priority (inherited by tests without explicit priority) */
+  priority: Priority.optional(),
+  /** Execution notes for test agents (e.g., multi-context requirements) */
+  notes: z.string().optional(),
 });
 
 // -----------------------------------------------------------------------------

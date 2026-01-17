@@ -12,8 +12,13 @@ suite:
   id: org-invitation-flow
   name: Organization Member Invitation Flow
   feature: Organization invitations with auth flow integration
-  priority: high
   tags: [organizations, invitations, auth, email, redirect]
+  priority: critical
+  notes: |
+    Tests involving both invitation sender and recipient (e.g., INV-001 → INV-002)
+    require two browser contexts. Use separate Chrome profiles or incognito windows:
+    one for the org owner, one for the invitee. Capture the invitation link from
+    Context A before switching to Context B.
 
 definitions:
   users:
