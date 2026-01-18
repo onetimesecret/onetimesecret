@@ -979,6 +979,12 @@
   "web.LABELS.edit_note": {
     "text": "Edit note"
   },
+  "web.LABELS.add_memo": {
+    "text": "Add memo..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Edit memo"
+  },
   "web.pricing.free_tier_description": {
     "text": "Create and share secrets with basic features. No credit card required."
   }
