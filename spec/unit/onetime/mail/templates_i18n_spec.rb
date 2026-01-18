@@ -22,11 +22,9 @@ RSpec.describe 'Email template i18n integration' do
       I18n::Backend::Simple.include(Onetime::Initializers::SetupI18n::JsonBackend)
     end
 
-    # Load email locale files
-    locale_files = Dir[File.join(Onetime::HOME, 'src/locales/en/*.json')]
-    locale_files.each do |file|
-      I18n.load_path << file unless I18n.load_path.include?(file)
-    end
+    # Load email locale files (merged single-file format)
+    locale_file = File.join(Onetime::HOME, 'generated/locales/en.json')
+    I18n.load_path << locale_file unless I18n.load_path.include?(locale_file)
 
     # Force reload of translations
     I18n.backend.reload!
