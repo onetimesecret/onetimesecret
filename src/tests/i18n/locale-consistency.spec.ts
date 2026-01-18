@@ -3,16 +3,15 @@
 /**
  * Cross-Locale Consistency Tests
  *
- * These tests verify that all locale directories have consistent key structures
+ * These tests verify that all locale files have consistent key structures
  * compared to the English (en) baseline locale.
  *
  * Test Coverage:
- * 1. All locales have the same JSON files as English
- * 2. All locales have the same key structure as English
- * 3. Report keys missing in non-English locales
- * 4. Report extra keys in non-English locales (potential orphans)
+ * 1. All locales have the same key structure as English
+ * 2. Report keys missing in non-English locales
+ * 3. Report extra keys in non-English locales (potential orphans)
  *
- * @see src/locales/README.md for locale file structure
+ * @see generated/locales/ for pre-merged locale files (single file per locale)
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -24,7 +23,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Configuration
-const LOCALES_DIR = path.resolve(__dirname, '../../locales');
+// Use generated/locales for pre-merged locale files (flat structure: en.json, de.json, etc.)
+const LOCALES_DIR = path.resolve(__dirname, '../../../generated/locales');
 const BASELINE_LOCALE = 'en';
 
 interface LocaleMessages {
@@ -33,47 +33,30 @@ interface LocaleMessages {
 
 interface LocaleComparison {
   locale: string;
-  missingFiles: string[];
-  extraFiles: string[];
   missingKeys: string[];
   extraKeys: string[];
 }
 
 /**
- * Get all locale directories
+ * Get all available locales from the generated directory.
+ * Scans for {locale}.json files directly in the locales directory.
  */
-function getLocaleDirectories(): string[] {
+function getAvailableLocales(): string[] {
   if (!fs.existsSync(LOCALES_DIR)) {
     return [];
   }
 
   return fs
-    .readdirSync(LOCALES_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
+    .readdirSync(LOCALES_DIR)
+    .filter((file) => file.endsWith('.json') && !file.startsWith('.'))
+    .map((file) => file.replace('.json', ''));
 }
 
 /**
- * Get all JSON files in a locale directory
+ * Load a locale's merged JSON file and return its content
  */
-function getLocaleFiles(locale: string): string[] {
-  const localeDir = path.join(LOCALES_DIR, locale);
-
-  if (!fs.existsSync(localeDir)) {
-    return [];
-  }
-
-  return fs.readdirSync(localeDir).filter((file) =>
-    // Only include actual translation files, not analysis files
-     file.endsWith('.json') && !file.startsWith('_') && !file.includes('.analysis')
-  );
-}
-
-/**
- * Load a JSON file and return its content
- */
-function loadJsonFile(locale: string, fileName: string): LocaleMessages | null {
-  const filePath = path.join(LOCALES_DIR, locale, fileName);
+function loadLocaleFile(locale: string): LocaleMessages | null {
+  const filePath = path.join(LOCALES_DIR, `${locale}.json`);
 
   if (!fs.existsSync(filePath)) {
     return null;
@@ -113,49 +96,40 @@ function flattenKeys(obj: LocaleMessages, prefix: string = ''): string[] {
 /**
  * Compare a locale against the baseline (English)
  */
-function compareLocale(locale: string, baselineFiles: string[]): LocaleComparison {
-  const localeFiles = getLocaleFiles(locale);
+function compareLocale(locale: string, baselineKeys: string[]): LocaleComparison {
+  const localeContent = loadLocaleFile(locale);
 
-  const missingFiles = baselineFiles.filter((f) => !localeFiles.includes(f));
-  const extraFiles = localeFiles.filter((f) => !baselineFiles.includes(f));
+  if (!localeContent) {
+    return {
+      locale,
+      missingKeys: baselineKeys,
+      extraKeys: [],
+    };
+  }
+
+  const localeKeys = flattenKeys(localeContent);
+  const baselineSet = new Set(baselineKeys);
+  const localeSet = new Set(localeKeys);
 
   const missingKeys: string[] = [];
   const extraKeys: string[] = [];
 
-  // Compare keys in each file that exists in both
-  for (const file of baselineFiles) {
-    if (!localeFiles.includes(file)) continue;
-
-    const baselineContent = loadJsonFile(BASELINE_LOCALE, file);
-    const localeContent = loadJsonFile(locale, file);
-
-    if (!baselineContent || !localeContent) continue;
-
-    const baselineKeys = flattenKeys(baselineContent);
-    const localeKeys = flattenKeys(localeContent);
-
-    const baselineSet = new Set(baselineKeys);
-    const localeSet = new Set(localeKeys);
-
-    // Find missing keys (in baseline but not in locale)
-    for (const key of baselineKeys) {
-      if (!localeSet.has(key)) {
-        missingKeys.push(`${file}:${key}`);
-      }
+  // Find missing keys (in baseline but not in locale)
+  for (const key of baselineKeys) {
+    if (!localeSet.has(key)) {
+      missingKeys.push(key);
     }
+  }
 
-    // Find extra keys (in locale but not in baseline)
-    for (const key of localeKeys) {
-      if (!baselineSet.has(key)) {
-        extraKeys.push(`${file}:${key}`);
-      }
+  // Find extra keys (in locale but not in baseline)
+  for (const key of localeKeys) {
+    if (!baselineSet.has(key)) {
+      extraKeys.push(key);
     }
   }
 
   return {
     locale,
-    missingFiles,
-    extraFiles,
     missingKeys,
     extraKeys,
   };
@@ -163,32 +137,34 @@ function compareLocale(locale: string, baselineFiles: string[]): LocaleCompariso
 
 describe('Cross-Locale Consistency', () => {
   let locales: string[];
-  let baselineFiles: string[];
+  let baselineKeys: string[];
+  let baselineContent: LocaleMessages | null;
   let comparisons: Map<string, LocaleComparison>;
 
   beforeAll(() => {
-    locales = getLocaleDirectories();
-    baselineFiles = getLocaleFiles(BASELINE_LOCALE);
+    locales = getAvailableLocales();
+    baselineContent = loadLocaleFile(BASELINE_LOCALE);
+    baselineKeys = baselineContent ? flattenKeys(baselineContent) : [];
     comparisons = new Map();
 
     // Compare each non-baseline locale
     for (const locale of locales) {
       if (locale === BASELINE_LOCALE) continue;
-      comparisons.set(locale, compareLocale(locale, baselineFiles));
+      comparisons.set(locale, compareLocale(locale, baselineKeys));
     }
   });
 
-  describe('Locale Directory Structure', () => {
+  describe('Locale File Structure', () => {
     it('should have English (en) as baseline locale', () => {
       expect(locales).toContain(BASELINE_LOCALE);
     });
 
-    it('should have multiple locale directories', () => {
+    it('should have multiple locale files', () => {
       expect(locales.length).toBeGreaterThan(1);
     });
 
-    it('should have translation files in English locale', () => {
-      expect(baselineFiles.length).toBeGreaterThan(0);
+    it('should have translation keys in English locale', () => {
+      expect(baselineKeys.length).toBeGreaterThan(0);
     });
 
     it('should report all available locales', () => {
@@ -197,62 +173,9 @@ Locale Structure:
   - Baseline locale: ${BASELINE_LOCALE}
   - Total locales: ${locales.length}
   - Locales: ${locales.join(', ')}
-  - Baseline files: ${baselineFiles.length}
+  - Baseline keys: ${baselineKeys.length}
       `);
       expect(locales.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('File Consistency', () => {
-    it('should report missing files per locale', () => {
-      const localesWithMissingFiles: string[] = [];
-
-      for (const [locale, comparison] of comparisons) {
-        if (comparison.missingFiles.length > 0) {
-          localesWithMissingFiles.push(locale);
-        }
-      }
-
-      if (localesWithMissingFiles.length > 0) {
-        const report: string[] = ['Locales with missing files:'];
-        for (const locale of localesWithMissingFiles) {
-          const comp = comparisons.get(locale)!;
-          report.push(`\n  ${locale}:`);
-          for (const file of comp.missingFiles) {
-            report.push(`    - ${file}`);
-          }
-        }
-        console.warn(report.join('\n'));
-      }
-
-      // This is informational - we track but don't fail
-      // Update as translations are added
-      expect(true).toBe(true);
-    });
-
-    it('should report extra files per locale (potential orphans)', () => {
-      const localesWithExtraFiles: string[] = [];
-
-      for (const [locale, comparison] of comparisons) {
-        if (comparison.extraFiles.length > 0) {
-          localesWithExtraFiles.push(locale);
-        }
-      }
-
-      if (localesWithExtraFiles.length > 0) {
-        const report: string[] = ['Locales with extra files (not in baseline):'];
-        for (const locale of localesWithExtraFiles) {
-          const comp = comparisons.get(locale)!;
-          report.push(`\n  ${locale}:`);
-          for (const file of comp.extraFiles) {
-            report.push(`    - ${file}`);
-          }
-        }
-        console.warn(report.join('\n'));
-      }
-
-      // Extra files might be intentional locale-specific content
-      expect(true).toBe(true);
     });
   });
 
@@ -341,16 +264,15 @@ ${summary.map((s) => `  ${s.locale}: ${s.count} extra keys`).join('\n')}
 
   describe('Translation Coverage', () => {
     it('should calculate translation coverage per locale', () => {
-      const baselineKeyCount = baselineFiles.reduce((count, file) => {
-        const content = loadJsonFile(BASELINE_LOCALE, file);
-        return count + (content ? flattenKeys(content).length : 0);
-      }, 0);
+      const baselineKeyCount = baselineKeys.length;
 
       const coverageReport: { locale: string; coverage: number; missing: number }[] = [];
 
       for (const [locale, comparison] of comparisons) {
         const missingCount = comparison.missingKeys.length;
-        const coverage = ((baselineKeyCount - missingCount) / baselineKeyCount) * 100;
+        const coverage = baselineKeyCount > 0
+          ? ((baselineKeyCount - missingCount) / baselineKeyCount) * 100
+          : 0;
         coverageReport.push({
           locale,
           coverage: Math.round(coverage * 100) / 100,
@@ -389,13 +311,17 @@ ${coverageReport.map((r) => `  ${r.locale}: ${r.coverage}% (${r.missing} missing
         }
 
         // Log status for critical locales
+        const coverage = baselineKeys.length > 0
+          ? ((baselineKeys.length - comparison.missingKeys.length) / baselineKeys.length) * 100
+          : 0;
+
         console.info(`${locale} status:
-  - Missing files: ${comparison.missingFiles.length}
+  - Coverage: ${coverage.toFixed(1)}%
   - Missing keys: ${comparison.missingKeys.length}
   - Extra keys: ${comparison.extraKeys.length}`);
 
-        // Critical locales should have all files
-        expect(comparison.missingFiles.length).toBe(0);
+        // Critical locales should exist and have the locale file
+        expect(locales).toContain(locale);
       });
     }
   });

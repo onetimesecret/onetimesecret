@@ -13,7 +13,7 @@
  *
  * Target Convention: snake_case (e.g., "user_settings", "login_button")
  *
- * @see src/locales/README.md for locale file structure
+ * Structure: generated/locales/{locale}.json (single merged file per locale)
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -24,9 +24,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuration
-const LOCALES_DIR = path.resolve(__dirname, '../../locales');
-const EN_LOCALE_DIR = path.join(LOCALES_DIR, 'en');
+// Configuration - use generated/locales for pre-merged locale files
+const LOCALES_DIR = path.resolve(__dirname, '../../../generated/locales');
+const EN_LOCALE_FILE = path.join(LOCALES_DIR, 'en.json');
 
 // Target convention is snake_case
 const TARGET_CONVENTION = 'snake_case';
@@ -37,7 +37,6 @@ interface LocaleMessages {
 
 interface KeyConvention {
   key: string;
-  file: string;
   convention: 'snake_case' | 'kebab-case' | 'camelCase' | 'mixed' | 'unknown';
 }
 
@@ -77,7 +76,7 @@ function detectConvention(segment: string): KeyConvention['convention'] {
 /**
  * Analyze a full key path and return convention for each meaningful segment
  */
-function analyzeKeyPath(fullKey: string, file: string): KeyConvention[] {
+function analyzeKeyPath(fullKey: string): KeyConvention[] {
   const results: KeyConvention[] = [];
   const segments = fullKey.split('.');
 
@@ -92,7 +91,6 @@ function analyzeKeyPath(fullKey: string, file: string): KeyConvention[] {
       const convention = detectConvention(segment);
       results.push({
         key: fullKey,
-        file,
         convention,
       });
     }
@@ -102,20 +100,9 @@ function analyzeKeyPath(fullKey: string, file: string): KeyConvention[] {
 }
 
 /**
- * Get all JSON files in a locale directory
+ * Load the locale JSON file
  */
-function getLocaleFiles(localeDir: string): string[] {
-  if (!fs.existsSync(localeDir)) {
-    return [];
-  }
-
-  return fs.readdirSync(localeDir).filter((file) => file.endsWith('.json') && !file.startsWith('_') && !file.includes('.analysis'));
-}
-
-/**
- * Load a JSON file
- */
-function loadJsonFile(filePath: string): LocaleMessages | null {
+function loadLocaleFile(filePath: string): LocaleMessages | null {
   if (!fs.existsSync(filePath)) {
     return null;
   }
@@ -129,14 +116,10 @@ function loadJsonFile(filePath: string): LocaleMessages | null {
 }
 
 /**
- * Flatten nested object keys into dot-notation array with file context
+ * Flatten nested object keys into dot-notation array
  */
-function flattenKeysWithFile(
-  obj: LocaleMessages,
-  file: string,
-  prefix: string = ''
-): { key: string; file: string }[] {
-  const keys: { key: string; file: string }[] = [];
+function flattenKeys(obj: LocaleMessages, prefix: string = ''): string[] {
+  const keys: string[] = [];
 
   for (const key of Object.keys(obj)) {
     // Skip metadata keys
@@ -145,9 +128,9 @@ function flattenKeysWithFile(
     const fullKey = prefix ? `${prefix}.${key}` : key;
 
     if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-      keys.push(...flattenKeysWithFile(obj[key] as LocaleMessages, file, fullKey));
+      keys.push(...flattenKeys(obj[key] as LocaleMessages, fullKey));
     } else {
-      keys.push({ key: fullKey, file });
+      keys.push(fullKey);
     }
   }
 
@@ -155,33 +138,27 @@ function flattenKeysWithFile(
 }
 
 describe('i18n Naming Convention', () => {
-  let allKeys: { key: string; file: string }[];
+  let allKeys: string[];
   let conventionAnalysis: KeyConvention[];
 
   beforeAll(() => {
     allKeys = [];
     conventionAnalysis = [];
 
-    const files = getLocaleFiles(EN_LOCALE_DIR);
+    const content = loadLocaleFile(EN_LOCALE_FILE);
 
-    for (const file of files) {
-      const filePath = path.join(EN_LOCALE_DIR, file);
-      const content = loadJsonFile(filePath);
+    if (content) {
+      allKeys = flattenKeys(content);
 
-      if (content) {
-        const keys = flattenKeysWithFile(content, file);
-        allKeys.push(...keys);
-
-        // Analyze conventions
-        for (const { key, file: f } of keys) {
-          conventionAnalysis.push(...analyzeKeyPath(key, f));
-        }
+      // Analyze conventions
+      for (const key of allKeys) {
+        conventionAnalysis.push(...analyzeKeyPath(key));
       }
     }
   });
 
   describe('Key Loading', () => {
-    it('should load keys from English locale files', () => {
+    it('should load keys from English locale file', () => {
       expect(allKeys.length).toBeGreaterThan(0);
     });
 
@@ -218,26 +195,15 @@ Naming Convention Distribution:
       const kebabKeys = conventionAnalysis.filter((k) => k.convention === 'kebab-case');
 
       if (kebabKeys.length > 0) {
-        // Group by file
-        const byFile = new Map<string, string[]>();
-        for (const k of kebabKeys) {
-          if (!byFile.has(k.file)) {
-            byFile.set(k.file, []);
-          }
-          byFile.get(k.file)!.push(k.key);
-        }
+        const uniqueKeys = [...new Set(kebabKeys.map((k) => k.key))];
 
         const report: string[] = [`Found ${kebabKeys.length} kebab-case keys to migrate:`];
-        for (const [file, keys] of byFile) {
-          report.push(`\n  ${file} (${keys.length} keys):`);
-          // Show sample
-          const sample = [...new Set(keys)].slice(0, 5);
-          for (const key of sample) {
-            report.push(`    - ${key}`);
-          }
-          if (keys.length > 5) {
-            report.push(`    ... and ${keys.length - 5} more`);
-          }
+        report.push(`\n  Sample (${Math.min(10, uniqueKeys.length)} of ${uniqueKeys.length}):`);
+        for (const key of uniqueKeys.slice(0, 10)) {
+          report.push(`    - ${key}`);
+        }
+        if (uniqueKeys.length > 10) {
+          report.push(`    ... and ${uniqueKeys.length - 10} more`);
         }
         console.warn(report.join('\n'));
       }
@@ -265,25 +231,15 @@ ${uniqueKeys.slice(0, 20).map((k) => `  - ${k}`).join('\n')}
       const camelKeys = conventionAnalysis.filter((k) => k.convention === 'camelCase');
 
       if (camelKeys.length > 0) {
-        // Group by file
-        const byFile = new Map<string, string[]>();
-        for (const k of camelKeys) {
-          if (!byFile.has(k.file)) {
-            byFile.set(k.file, []);
-          }
-          byFile.get(k.file)!.push(k.key);
-        }
+        const uniqueKeys = [...new Set(camelKeys.map((k) => k.key))];
 
         const report: string[] = [`Found ${camelKeys.length} camelCase keys to migrate:`];
-        for (const [file, keys] of byFile) {
-          report.push(`\n  ${file} (${keys.length} keys):`);
-          const sample = [...new Set(keys)].slice(0, 5);
-          for (const key of sample) {
-            report.push(`    - ${key}`);
-          }
-          if (keys.length > 5) {
-            report.push(`    ... and ${keys.length - 5} more`);
-          }
+        report.push(`\n  Sample (${Math.min(10, uniqueKeys.length)} of ${uniqueKeys.length}):`);
+        for (const key of uniqueKeys.slice(0, 10)) {
+          report.push(`    - ${key}`);
+        }
+        if (uniqueKeys.length > 10) {
+          report.push(`    ... and ${uniqueKeys.length - 10} more`);
         }
         console.warn(report.join('\n'));
       }
@@ -314,7 +270,9 @@ ${[...new Set(mixedKeys.map((k) => k.key))].slice(0, 20).map((k) => `  - ${k}`).
         ['kebab-case', 'camelCase', 'mixed'].includes(k.convention)
       );
 
-      const compliance = (snakeKeys.length / conventionAnalysis.length) * 100;
+      const compliance = conventionAnalysis.length > 0
+        ? (snakeKeys.length / conventionAnalysis.length) * 100
+        : 100;
 
       console.info(`
 Target Convention Compliance (${TARGET_CONVENTION}):
@@ -327,7 +285,7 @@ Target Convention Compliance (${TARGET_CONVENTION}):
       expect(compliance).toBeGreaterThanOrEqual(0);
     });
 
-    it('should report migration effort by file', () => {
+    it('should report migration effort summary', () => {
       const nonCompliant = conventionAnalysis.filter((k) =>
         ['kebab-case', 'camelCase', 'mixed'].includes(k.convention)
       );
@@ -337,30 +295,18 @@ Target Convention Compliance (${TARGET_CONVENTION}):
         return;
       }
 
-      // Group by file and count
-      const byFile = new Map<string, { kebab: number; camel: number; mixed: number }>();
+      // Count by type
+      const kebabCount = nonCompliant.filter((k) => k.convention === 'kebab-case').length;
+      const camelCount = nonCompliant.filter((k) => k.convention === 'camelCase').length;
+      const mixedCount = nonCompliant.filter((k) => k.convention === 'mixed').length;
 
-      for (const k of nonCompliant) {
-        if (!byFile.has(k.file)) {
-          byFile.set(k.file, { kebab: 0, camel: 0, mixed: 0 });
-        }
-        const counts = byFile.get(k.file)!;
-        if (k.convention === 'kebab-case') counts.kebab++;
-        if (k.convention === 'camelCase') counts.camel++;
-        if (k.convention === 'mixed') counts.mixed++;
-      }
-
-      const report: string[] = ['Migration Effort by File:'];
-      const sortedFiles = [...byFile.entries()].sort(
-        (a, b) => (b[1].kebab + b[1].camel + b[1].mixed) - (a[1].kebab + a[1].camel + a[1].mixed)
-      );
-
-      for (const [file, counts] of sortedFiles) {
-        const total = counts.kebab + counts.camel + counts.mixed;
-        report.push(`  ${file}: ${total} keys (kebab: ${counts.kebab}, camel: ${counts.camel}, mixed: ${counts.mixed})`);
-      }
-
-      console.info(report.join('\n'));
+      console.info(`
+Migration Effort Summary:
+  - kebab-case keys: ${kebabCount}
+  - camelCase keys: ${camelCount}
+  - mixed keys: ${mixedCount}
+  - Total to migrate: ${nonCompliant.length}
+      `);
 
       expect(nonCompliant.length).toBeGreaterThanOrEqual(0);
     });

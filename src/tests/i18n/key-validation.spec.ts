@@ -4,14 +4,14 @@
  * i18n Key Validation Tests
  *
  * These tests extract all t() calls from Vue components and TypeScript files,
- * then verify each key exists in the English locale files.
+ * then verify each key exists in the English locale file.
  *
  * Test Coverage:
  * 1. Extract t() calls from source files
- * 2. Verify each key exists in en/*.json locale files
+ * 2. Verify each key exists in generated/locales/en.json
  * 3. Report missing keys with file:line location
  *
- * @see src/locales/README.md for locale file structure
+ * Structure: generated/locales/{locale}.json (single merged file per locale)
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -22,10 +22,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuration
-const LOCALES_DIR = path.resolve(__dirname, '../../locales');
+// Configuration - use generated/locales for pre-merged locale files
+const LOCALES_DIR = path.resolve(__dirname, '../../../generated/locales');
 const SRC_DIR = path.resolve(__dirname, '../../');
-const EN_LOCALE_DIR = path.join(LOCALES_DIR, 'en');
+const EN_LOCALE_FILE = path.join(LOCALES_DIR, 'en.json');
 
 // Patterns to match t() calls in Vue/TypeScript files
 // Matches: t('key'), t("key"), $t('key'), $t("key")
@@ -56,51 +56,42 @@ interface LocaleMessages {
 }
 
 /**
- * Recursively load all JSON files from a locale directory and merge them
+ * Load the locale JSON file
  */
-function loadLocaleMessages(localeDir: string): LocaleMessages {
-  const messages: LocaleMessages = {};
-
-  if (!fs.existsSync(localeDir)) {
-    return messages;
+function loadLocaleFile(filePath: string): LocaleMessages {
+  if (!fs.existsSync(filePath)) {
+    return {};
   }
 
-  const files = fs.readdirSync(localeDir);
-
-  for (const file of files) {
-    if (!file.endsWith('.json')) continue;
-    if (file.startsWith('_')) continue; // Skip analysis files like _common.analysis.md
-
-    const filePath = path.join(localeDir, file);
-    try {
-      const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      deepMerge(messages, content);
-    } catch (e) {
-      console.warn(`Failed to parse ${filePath}:`, e);
-    }
+  try {
+    const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    // Filter out metadata keys
+    return filterMetadataKeys(content);
+  } catch (e) {
+    console.warn(`Failed to parse ${filePath}:`, e);
+    return {};
   }
-
-  return messages;
 }
 
 /**
- * Deep merge source into target
+ * Recursively filter out metadata keys (starting with _)
  */
-function deepMerge(target: LocaleMessages, source: LocaleMessages): LocaleMessages {
-  for (const key of Object.keys(source)) {
-    if (key.startsWith('_')) continue; // Skip metadata keys like _context, _README
+function filterMetadataKeys(obj: LocaleMessages): LocaleMessages {
+  const result: LocaleMessages = {};
+
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith('_')) continue;
     // Guard against prototype pollution
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      if (!target[key]) {
-        target[key] = {};
-      }
-      deepMerge(target[key] as LocaleMessages, source[key] as LocaleMessages);
+
+    if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+      result[key] = filterMetadataKeys(obj[key] as LocaleMessages);
     } else {
-      target[key] = source[key];
+      result[key] = obj[key];
     }
   }
-  return target;
+
+  return result;
 }
 
 /**
@@ -221,8 +212,8 @@ describe('i18n Key Validation', () => {
   let sourceFiles: string[];
 
   beforeAll(() => {
-    // Load English locale messages
-    enMessages = loadLocaleMessages(EN_LOCALE_DIR);
+    // Load English locale messages from single file
+    enMessages = loadLocaleFile(EN_LOCALE_FILE);
 
     // Scan source files
     sourceFiles = scanDirectory(SRC_DIR);
@@ -235,7 +226,7 @@ describe('i18n Key Validation', () => {
   });
 
   describe('Locale File Loading', () => {
-    it('should load English locale files', () => {
+    it('should load English locale file', () => {
       expect(Object.keys(enMessages).length).toBeGreaterThan(0);
     });
 
@@ -302,7 +293,6 @@ describe('i18n Key Validation', () => {
       // The test passes to allow CI to continue, but warns about missing keys
       // As keys are added to locale files, this number should decrease
       // Set to 0 once all keys are properly defined
-      // Current baseline: 393 missing keys as of initial scan
       expect(missingKeys.length).toBeGreaterThanOrEqual(0);
     });
   });
@@ -326,7 +316,7 @@ i18n Key Statistics:
   - Total t() calls found: ${extractedKeys.length}
   - Unique keys used: ${uniqueKeys.size}
   - Keys found in locale: ${usedKeys.size}
-  - Total keys in locale files: ${allLocaleKeys.length}
+  - Total keys in locale file: ${allLocaleKeys.length}
   - Potentially unused keys: ${unusedLocaleKeys.length}
       `);
 
