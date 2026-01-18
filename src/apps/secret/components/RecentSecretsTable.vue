@@ -4,7 +4,7 @@
 import { useI18n } from 'vue-i18n';
 import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
 import { useRecentSecrets } from '@/shared/composables/useRecentSecrets';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 export interface Props {
   /** Whether to show the workspace mode toggle checkbox. Default true. */
@@ -24,13 +24,27 @@ const {
   fetch,
   clear,
   updateMemo,
+  isAuthenticated,
 } = useRecentSecrets();
 
 const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
-// Fetch records on mount
+// Refresh data when tab becomes visible (user returns from another tab)
+// Only for authenticated users since guest data is local storage
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible' && isAuthenticated.value) {
+    fetch();
+  }
+};
+
+// Fetch records on mount and set up visibility listener
 onMounted(() => {
   fetch();
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 
 // Method to dismiss/clear all recent secrets

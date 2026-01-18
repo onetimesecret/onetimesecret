@@ -99,10 +99,12 @@
   const hasPassphrase = computed(() => props.record.hasPassphrase);
   const timeRemaining = computed(() => formatTTL(props.record.ttl));
 
-  // Secret state computations - prioritize SECRET state over receipt state
+  // Secret state computations
   const isExpired = computed(() => props.record.isExpired || props.record.ttl <= 0);
   const isBurned = computed(() => props.record.isBurned);
-  // isReceived means the SECRET was viewed by recipient (the important state)
+  // isViewed means the secret link page was opened (but not yet revealed)
+  const isViewed = computed(() => props.record.isViewed);
+  // isReceived means the secret was actually revealed to the recipient
   const isReceived = computed(() => props.record.isReceived);
 
   // Calculate TTL percentage for urgency
@@ -112,13 +114,14 @@
   });
 
   /**
-   * Determine item state based on SECRET state (not receipt viewed state).
-   * Priority: expired > burned > received > active
+   * Determine item state based on receipt state.
+   * Priority: expired > burned > received > viewed > active (new)
    */
-  const itemState = computed((): 'active' | 'received' | 'burned' | 'expired' => {
+  const itemState = computed((): 'active' | 'viewed' | 'received' | 'burned' | 'expired' => {
     if (isExpired.value) return 'expired';
     if (isBurned.value) return 'burned';
     if (isReceived.value) return 'received';
+    if (isViewed.value) return 'viewed';
     return 'active';
   });
 
@@ -140,10 +143,16 @@
       case 'received':
         return {
           icon: 'check-circle',
-          badgeClass: 'bg-slate-50 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
+          badgeClass: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
           label: t('web.STATUS.received'),
         };
-      default: // active
+      case 'viewed':
+        return {
+          icon: 'eye',
+          badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+          label: t('web.STATUS.viewed'),
+        };
+      default: // active (new)
         return {
           icon: 'paper-airplane',
           badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -161,7 +170,8 @@
   });
 
   // Check if secret is still active (shareable/actionable)
-  const isActive = computed(() => itemState.value === 'active');
+  // Both 'active' (new) and 'viewed' (link opened) states are actionable
+  const isActive = computed(() => itemState.value === 'active' || itemState.value === 'viewed');
 
   // Time remaining urgency
   const isUrgent = computed(() => getTtlPercentage.value <= 25 && isActive.value);
