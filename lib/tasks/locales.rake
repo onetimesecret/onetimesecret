@@ -1,27 +1,28 @@
-# lib/onetime/tasks/locales.rake
+# lib/tasks/locales.rake
 #
 # frozen_string_literal: true
 
-# bundle exec rake locales:precompile
-# bundle exec rake locales:clean
-
-require 'onetime'
+# Locale sync tasks
+#
+# The primary workflow for locale management is now:
+#   python locales/scripts/sync_to_src.py --all --merged
+#
+# This generates pre-merged JSON files in generated/locales/ which
+# are consumed directly by the Ruby backend at boot time.
+#
+# The precompile/clean tasks have been removed as the cache system
+# is no longer used.
 
 namespace :locales do
-  desc 'Generate merged locale cache files for OCI builds'
-  task :precompile do
-    $LOAD_PATH.unshift(File.expand_path('../..', __dir__))
-    require 'onetime'
-
-    OT.boot!(:cli, false)
-    Onetime::Initializers::LoadLocales.precompile
+  desc 'Generate merged locale files from content JSON (calls Python sync script)'
+  task :sync do
+    script_path = File.join(Onetime::HOME, 'locales', 'scripts', 'sync_to_src.py')
+    system('python3', script_path, '--all', '--merged') || exit(1)
   end
 
-  desc 'Clean up all merged locale cache files'
-  task :clean do
-    $LOAD_PATH.unshift(File.expand_path('../..', __dir__))
-    require 'onetime'
-
-    Onetime::Initializers::LoadLocales.cleanup_caches
+  desc 'Generate merged locale files (dry-run)'
+  task :sync_dry_run do
+    script_path = File.join(Onetime::HOME, 'locales', 'scripts', 'sync_to_src.py')
+    system('python3', script_path, '--all', '--merged', '--dry-run') || exit(1)
   end
 end
