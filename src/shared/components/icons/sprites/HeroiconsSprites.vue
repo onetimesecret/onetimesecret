@@ -15,6 +15,26 @@
     <defs>
       <symbol
         viewBox="0 0 24 24"
+        id="heroicons-paper-airplane-solid">
+        <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+        <path
+          fill="currentColor"
+          d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94a60.5 60.5 0 0 0 18.445-8.986a.75.75 0 0 0 0-1.218A60.5 60.5 0 0 0 3.478 2.404" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-paper-airplane">
+        <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M6 12L3.269 3.125A59.8 59.8 0 0 1 21.486 12a59.8 59.8 0 0 1-18.217 8.875zm0 0h7.5" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
         id="heroicons-arrow-trending-down-solid">
         <path
           fill="currentColor"
