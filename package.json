@@ -21,7 +21,7 @@
     "openapi:test-parser": "tsx src/scripts/openapi/test-parser.ts",
     "openapi:poc": "tsx src/scripts/openapi/poc.ts",
     "config:validate": "yamale -s etc/config.schema.yaml etc/config.yaml",
-    "predev": "pnpm run locales:sync",
+    "predev": "pnpm run i18n:generate-types",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
     "format": "prettier --write",
