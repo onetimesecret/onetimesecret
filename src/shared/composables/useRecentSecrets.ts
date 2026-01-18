@@ -133,6 +133,7 @@ function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
     isExpired: record.is_expired ?? false,
     source: 'api',
     originalRecord: record,
+    memo: record.memo ?? undefined,
   };
 }
 
