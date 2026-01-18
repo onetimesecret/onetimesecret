@@ -193,15 +193,17 @@ def sync_locale_merged(
     content_dir = CONTENT_DIR / locale
 
     if not content_dir.exists():
-        print(f"No content found for '{locale}'")
-        print(f"  Expected: {content_dir}")
+        if verbose:
+            print(f"No content found for '{locale}'")
+            print(f"  Expected: {content_dir}")
         return 0
 
     # Get all content JSON files
     content_files = sorted(content_dir.glob("*.json"))
 
     if not content_files:
-        print(f"No content files found in {content_dir}")
+        if verbose:
+            print(f"No content files found in {content_dir}")
         return 0
 
     # Collect all translations from all files
@@ -219,7 +221,8 @@ def sync_locale_merged(
             print(f"  {content_file.name}: {len(translations)} keys")
 
     if not all_translations:
-        print(f"No translations found for '{locale}'")
+        if verbose:
+            print(f"No translations found for '{locale}'")
         return 0
 
     if dry_run:
@@ -247,7 +250,9 @@ def sync_locale_merged(
     # Write merged output file
     output_file = output_dir / f"{locale}.json"
     save_json_file(output_file, merged_data)
-    print(f"Updated {output_file}: {len(all_translations)} keys")
+
+    if verbose:
+        print(f"Updated {output_file}: {len(all_translations)} keys")
 
     return len(all_translations)
 
@@ -343,17 +348,19 @@ Examples:
             print(f"Output directory: {output_dir}")
 
         all_key_counts: dict[str, int] = {}
+        default_locale = "en"  # Will be used for percentage calculation
 
         for locale in locale_dirs:
-            if args.all:
-                print(f"\n{'='*60}")
-                print(f"Locale: {locale}")
-                print(f"{'='*60}")
+            if args.verbose:
+                if args.all:
+                    print(f"\n{'='*60}")
+                    print(f"Locale: {locale}")
+                    print(f"{'='*60}")
 
-            print(f"Syncing translations for '{locale}' (merged mode)")
-            print(f"  From: {CONTENT_DIR / locale}")
-            print(f"  To:   {output_dir / f'{locale}.json'}")
-            print()
+                print(f"Syncing translations for '{locale}' (merged mode)")
+                print(f"  From: {CONTENT_DIR / locale}")
+                print(f"  To:   {output_dir / f'{locale}.json'}")
+                print()
 
             key_count = sync_locale_merged(
                 locale=locale,
@@ -367,14 +374,28 @@ Examples:
 
         # Summary for merged mode
         if args.all and all_key_counts and not args.dry_run:
+            # Get default locale key count for percentage calculation
+            default_keys = all_key_counts.get(default_locale, 0)
+
+            # Sort by key count descending
+            sorted_locales = sorted(all_key_counts.items(), key=lambda x: x[1], reverse=True)
+
             print(f"\n{'='*60}")
-            print("Summary (merged mode)")
+            print(f"Locale sync complete ({len(all_key_counts)} locales)")
             print(f"{'='*60}")
+
             grand_total = sum(all_key_counts.values())
-            for locale, count in sorted(all_key_counts.items()):
-                print(f"  {locale}: {count} keys")
+            for locale, count in sorted_locales:
+                if default_keys > 0:
+                    pct = (count / default_keys) * 100
+                    pct_str = f"{pct:5.1f}%"
+                else:
+                    pct_str = "  N/A"
+                marker = " *" if locale == default_locale else ""
+                print(f"  {locale:8} {count:5} keys ({pct_str}){marker}")
+
             print(f"{'='*60}")
-            print(f"Total: {grand_total} keys across {len(all_key_counts)} locales")
+            print(f"Total: {grand_total} keys  (* = default locale)")
 
         return 0
 
