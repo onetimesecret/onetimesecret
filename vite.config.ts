@@ -9,7 +9,6 @@ import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
-import { syncLocales } from './src/build/plugins/syncLocales';
 import { DEBUG } from './src/utils/debug';
 
 import VueDevTools from 'vite-plugin-vue-devtools';
@@ -56,9 +55,6 @@ export default defineConfig({
   root: './src',
 
   plugins: [
-    // Sync locale files from source to generated/ directory
-    syncLocales(),
-
     // Plugin order matters: Tailwind CSS first for stylesheet processing
     tailwindcss(),
 
