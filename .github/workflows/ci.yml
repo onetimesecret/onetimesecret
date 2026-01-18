@@ -372,6 +372,14 @@ jobs:
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
       - name: Run smoke test
         shell: bash
         env:
