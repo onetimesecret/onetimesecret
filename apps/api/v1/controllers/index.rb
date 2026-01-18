@@ -65,7 +65,7 @@ module V1
                                 :value => logic.secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
-            logic.receipt.viewed!
+            logic.receipt.previewed!
           end
         end
       end
@@ -87,7 +87,7 @@ module V1
                                 :secret_ttl => secret ? secret.current_expiration : nil,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
-          logic.receipt.viewed!
+          logic.receipt.previewed!
         end
       end
 

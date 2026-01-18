@@ -107,9 +107,9 @@ module V2::Logic
               # even though the account was already verified?
               #
               # In any case, we logged it as an error but mark the secret as
-              # having been received (which updates the receipt record and then
+              # having been revealed (which updates the receipt record and then
               # expunges the secret record) and allows the user to carry on.
-              secret.received!
+              secret.revealed!
 
             elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
               secret_logger.info 'Owner verification successful',
@@ -124,7 +124,7 @@ module V2::Logic
               owner.save
               owner.reset_secret.delete!
               sess.destroy!
-              secret.received!
+              secret.revealed!
 
             else
               secret_logger.error 'Invalid verification - user already logged in',
@@ -153,7 +153,7 @@ module V2::Logic
 
             Onetime::Customer.secrets_shared.increment
 
-            # Immediately mark the secret as viewed, so that it
+            # Immediately mark the secret as revealed, so that it
             # can't be shown again. If there's a network failure
             # that prevents the client from receiving the response,
             # we're not able to show it again. This is a feature
@@ -164,7 +164,7 @@ module V2::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            secret.received!
+            secret.revealed!
 
           end
 

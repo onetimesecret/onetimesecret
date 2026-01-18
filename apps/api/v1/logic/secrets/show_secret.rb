@@ -45,7 +45,7 @@ module V1::Logic
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified! "true"
               sess.destroy!
-              secret.received!
+              secret.revealed!
             else
               raise_form_error "You can't verify an account when you're already logged in."
             end
@@ -55,7 +55,7 @@ module V1::Logic
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_shared
 
-            # Immediately mark the secret as viewed, so that it
+            # Immediately mark the secret as revealed, so that it
             # can't be shown again. If there's a network failure
             # that prevents the client from receiving the response,
             # we're not able to show it again. This is a feature
@@ -66,7 +66,7 @@ module V1::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            secret.received!
+            secret.revealed!
 
           end
 
@@ -86,7 +86,7 @@ module V1::Logic
         @is_owner = secret.owner?(cust)
         @one_liner = one_liner
 
-        secret.viewed! if secret.state?(:new)
+        secret.previewed! if secret.state?(:new)
       end
 
       def success_data
