@@ -16,6 +16,8 @@ module Onetime::Receipt::Features
 
       base.field_group :deprecated_fields do
         base.field :key
+        # MIGRATION NOTE: Legacy timestamp fields - kept for backward compatibility.
+        # New code should use `previewed` and `revealed` instead.
         base.field :viewed, fast_method: false
         base.field :received, fast_method: false
         base.field :shared, fast_method: false
@@ -24,6 +26,12 @@ module Onetime::Receipt::Features
         base.field :truncate # boolean
         base.field :secret_key # use secret_identifier
       end
+
+      # MIGRATION NOTE: New canonical fields for state terminology rename.
+      # - `previewed` replaces legacy `viewed` timestamp
+      # - `revealed` replaces legacy `received` timestamp
+      base.field :previewed, fast_method: false
+      base.field :revealed, fast_method: false
     end
 
     module ClassMethods
@@ -103,52 +111,57 @@ module Onetime::Receipt::Features
       # object's state doesn't affect its original expiration time.
       #
       # TODO: Replace with transaction (i.e. MULTI/EXEC command)
-      def viewed!
-        # A guard to allow only a fresh, new secret to be viewed. Also ensures
-        # that we don't support going from viewed back to something else.
+
+      # MIGRATION NOTE: Replaces legacy `viewed!` method.
+      # - Sets state to 'previewed' (was 'viewed')
+      # - Sets `previewed` timestamp (legacy `viewed` kept for backward compat in safe_dump)
+      def previewed!
+        # A guard to allow only a fresh, new secret to be previewed. Also ensures
+        # that we don't support going from previewed back to something else.
         return unless state?(:new)
 
-        self.state  = 'viewed'
-        self.viewed = Familia.now.to_i
-        # The nuance bewteen being "viewed" vs "received" or "burned" is
+        self.state     = 'previewed'
+        self.previewed = Familia.now.to_i
+        # The nuance between being "previewed" vs "revealed" or "burned" is
         # that the secret link page has been requested (via GET)
         # but the "View Secret" button hasn't been clicked yet (i.e. we haven't
         # yet received the POST request that actually reveals the contents
         # of the secret). It's a subtle but important distinction bc it
-        # communicates an amount of activity around the secret. The terminology
-        # can be improved though and we'll also want to achieve parity with the
-        # API by allowing a GET (or OPTIONS) for the secret as a check that it
-        # is still valid -- that should set the state to viewed as well.
+        # communicates an amount of activity around the secret.
         save update_expiration: false
 
-        secret_logger.info 'Receipt state transition to viewed',
+        secret_logger.info 'Receipt state transition to previewed',
           {
             receipt_id: shortid,
             secret_id: secret_identifier,
             previous_state: 'new',
-            new_state: 'viewed',
-            timestamp: viewed,
+            new_state: 'previewed',
+            timestamp: previewed,
           }
       end
 
-      def received!
-        # A guard to allow only a fresh secret to be received. Also ensures
-        # that we don't support going from received back to something else.
-        return unless state?(:new) || state?(:viewed)
+      # MIGRATION NOTE: Replaces legacy `received!` method.
+      # - Sets state to 'revealed' (was 'received')
+      # - Sets `revealed` timestamp (legacy `received` kept for backward compat in safe_dump)
+      # - Clears secret_identifier
+      def revealed!
+        # A guard to allow only a fresh secret to be revealed. Also ensures
+        # that we don't support going from revealed back to something else.
+        return unless state?(:new) || state?(:previewed)
 
         previous_state         = state
-        self.state             = 'received'
-        self.received          = Familia.now.to_i
+        self.state             = 'revealed'
+        self.revealed          = Familia.now.to_i
         self.secret_identifier = ''
         save update_expiration: false
 
-        secret_logger.info 'Receipt state transition to received',
+        secret_logger.info 'Receipt state transition to revealed',
           {
             receipt_id: shortid,
             secret_id: secret_identifier,
             previous_state: previous_state,
-            new_state: 'received',
-            timestamp: received,
+            new_state: 'revealed',
+            timestamp: revealed,
           }
       end
 
@@ -160,7 +173,8 @@ module Onetime::Receipt::Features
         # A guard to prevent modifying receipt records that already have
         # cleared out the secret (and that probably have already set a reason).
         return if secret_identifier.to_s.empty?
-        return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
+        # Only new or previewed secrets can be orphaned (was state?(:viewed))
+        return unless state?(:new) || state?(:previewed)
 
         previous_state         = state
         original_secret_id     = secret_identifier
@@ -180,8 +194,8 @@ module Onetime::Receipt::Features
       end
 
       def burned!
-        # See guard comment on `received!`
-        return unless state?(:new) || state?(:viewed)
+        # See guard comment on `revealed!` (was `received!`)
+        return unless state?(:new) || state?(:previewed)
 
         previous_state         = state
         self.state             = 'burned'

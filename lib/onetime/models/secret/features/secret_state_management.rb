@@ -29,36 +29,42 @@ module Onetime::Secret::Features
       end
 
       def viewable?
-        key?(:value) && (state?(:new) || state?(:viewed))
+        key?(:value) && (state?(:new) || state?(:previewed))
       end
 
       def receivable?
-        key?(:value) && (state?(:new) || state?(:viewed))
+        key?(:value) && (state?(:new) || state?(:previewed))
       end
 
-      def viewed!
-        # A guard to prevent regressing (e.g. from :burned back to :viewed)
+      # MIGRATION NOTE: This method replaces the legacy `viewed!` method.
+      # Existing data with state='viewed' should be migrated to state='previewed'.
+      # The `viewed` timestamp field maps to the new `previewed` field.
+      def previewed!
+        # A guard to prevent regressing (e.g. from :burned back to :previewed)
         return unless state?(:new)
 
         # The secret link has been accessed but the secret has not been consumed yet
-        @state = 'viewed'
+        @state = 'previewed'
         # NOTE: calling save re-creates all fields so if you're relying on
         # has_field? to be false, it will start returning true after a save.
         save update_expiration: false
       end
 
-      def received!
-        # A guard to allow only a fresh, new secret to be received. Also ensures that
-        # we don't support going from :viewed back to something else.
-        return unless state?(:new) || state?(:viewed)
+      # MIGRATION NOTE: This method replaces the legacy `received!` method.
+      # Existing data with state='received' should be migrated to state='revealed'.
+      # The `received` timestamp field maps to the new `revealed` field.
+      def revealed!
+        # A guard to allow only a fresh, new secret to be revealed. Also ensures that
+        # we don't support going from :previewed back to something else.
+        return unless state?(:new) || state?(:previewed)
 
         md               = load_receipt
-        md.received! unless md.nil?
+        md.revealed! unless md.nil?
         # It's important for the state to change here, even though we're about to
         # destroy the secret. This is because the state is used to determine if
         # the secret is viewable. If we don't change the state here, the secret
-        # will still be viewable b/c (state?(:new) || state?(:viewed) == true).
-        @state           = 'received'
+        # will still be viewable b/c (state?(:new) || state?(:previewed) == true).
+        @state           = 'revealed'
         # We clear the value, ciphertext, and passphrase_temp immediately so that
         # the secret payload is not recoverable from this instance of the secret;
         # however, we shouldn't clear arbitrary fields here b/c there are valid
@@ -78,7 +84,7 @@ module Onetime::Secret::Features
       def burned!
         # A guard to allow only a fresh, new secret to be burned. Also ensures that
         # we don't support going from :burned back to something else.
-        return unless state?(:new) || state?(:viewed)
+        return unless state?(:new) || state?(:previewed)
 
         md               = load_receipt
         md.burned! unless md.nil?
