@@ -26,10 +26,11 @@
     showKeyboardHint: { type: Boolean, default: false },
   });
 
-  const emit = defineEmits(['generate-password', 'create-link', 'update:action']);
+  const emit = defineEmits(['update:action']);
 
   const isDropdownOpen = ref(false);
   const buttonRef = ref<HTMLElement | null>(null);
+  const submitButtonRef = ref<HTMLButtonElement | null>(null);
   const selectedAction = ref<ActionType>('create-link');
   const isContentEmpty = computed(() => !props.content.trim());
   const isMainButtonDisabled = computed(() => {
@@ -72,24 +73,13 @@
   const ringColorStyle = computed(() => props.primaryColor ? props.primaryColor : 'var(--color-brand-600)');
 
   // Button labels based on selected action
-  const buttonConfig = computed(() => {
-    const configs = {
-      'create-link': {
-        label: t('web.LABELS.create_link_short'),
-        emit: () => emit('create-link'),
-      },
-      'generate-password': {
-        label: t('web.COMMON.button_generate_secret_short'),
-        emit: () => emit('generate-password'),
-      },
+  const buttonLabel = computed(() => {
+    const labels = {
+      'create-link': t('web.LABELS.create_link_short'),
+      'generate-password': t('web.COMMON.button_generate_secret_short'),
     };
-    return configs[selectedAction.value];
+    return labels[selectedAction.value];
   });
-
-  function handleMainClick() {
-    if (isMainButtonDisabled.value) return;
-    buttonConfig.value.emit();
-  }
 
   function handleDropdownToggle() {
     isDropdownOpen.value = !isDropdownOpen.value;
@@ -131,7 +121,8 @@
 
   whenever(submitShortcut, () => {
     if (!isMainButtonDisabled.value) {
-      handleMainClick();
+      // Programmatically click the submit button to trigger native form submission
+      submitButtonRef.value?.click();
     }
   });
 </script>
@@ -145,9 +136,10 @@
       v-if="selectedAction"
       class="sr-only"
       aria-live="assertive">
-      {{ buttonConfig.label }} mode activated
+      {{ buttonLabel }} mode activated
     </div>
     <button
+      ref="submitButtonRef"
       type="submit"
       :class="[
         corners.leftCorner,
@@ -169,9 +161,8 @@
         '--tw-ring-opacity': '0.2',
         '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
       }"
-      @click="handleMainClick"
       :disabled="isMainButtonDisabled"
-      :aria-label="buttonConfig.label">
+      :aria-label="buttonLabel">
       <!-- Gradient overlay for depth -->
       <span class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"></span>
 
@@ -209,7 +200,7 @@ ry="2" />
           <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
         </svg>
       </span>
-      <span class="relative z-10">{{ buttonConfig.label }}</span>
+      <span class="relative z-10">{{ buttonLabel }}</span>
       <kbd
         v-if="showKeyboardHint"
         class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
