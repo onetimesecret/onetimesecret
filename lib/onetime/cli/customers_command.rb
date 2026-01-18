@@ -275,5 +275,6 @@ module Onetime
     end
 
     register 'customers', CustomersCommand
+    register 'customer', CustomersCommand
   end
 end

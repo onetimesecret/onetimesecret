@@ -84,7 +84,7 @@ module Auth
       # @return [Onetime::Organization]
       def create_default_organization
         org = Onetime::Organization.create!(
-          'Default Organization',  # Not shown to individual plan users
+          'Personal Workspace',  # Not shown to individual plan users
           @customer,
           @customer.email,
         )

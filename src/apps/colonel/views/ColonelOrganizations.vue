@@ -2,7 +2,7 @@
 <!--
   Billing Health Monitor - Admin view for identifying organizations with billing sync issues.
   Design principles:
-  - Lead with unique identifier (contact_email), not generic "Default Organization"
+  - Lead with unique identifier (contact_email), not generic "Personal Workspace"
   - Only badge problems (potentially_stale), not normal state (synced)
   - Table format for scanability during admin triage
   - Group billing data together
@@ -447,7 +447,7 @@
                     {{ getPrimaryIdentifier(org) }}
                   </div>
                   <div
-                    v-if="org.display_name && org.display_name !== 'Default Organization'"
+                    v-if="org.display_name && org.display_name !== 'Personal Workspace'"
                     class="text-xs text-gray-500 dark:text-gray-400">
                     {{ org.display_name }}
                   </div>
