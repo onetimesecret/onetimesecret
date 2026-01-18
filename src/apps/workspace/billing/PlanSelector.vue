@@ -151,6 +151,7 @@ const canDowngrade = (plan: BillingPlan): boolean => {
 
 const getButtonLabel = (plan: BillingPlan): string => {
   if (isPlanCurrent(plan)) return t('web.billing.plans.current');
+  if (plan.tier === 'free') return t('web.billing.plans.current');
   if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
   if (canDowngrade(plan)) return t('web.billing.plans.downgrade');
   return t('web.billing.plans.select_plan');
@@ -446,18 +447,24 @@ aria-live="polite">
       </div>
 
       <!-- Plan Cards -->
-      <div v-else class="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <PlanCard
+      <div v-else class="mx-auto flex max-w-[1600px] flex-wrap justify-center gap-6">
+        <div
           v-for="plan in filteredPlans"
           :key="plan.id"
-          :plan="plan"
-          :is-current="isPlanCurrent(plan)"
-          :is-recommended="isPlanRecommended(plan)"
-          :is-suggested="suggestedPlanId === plan.id"
-          :button-label="getButtonLabel(plan)"
-          :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.tier === 'free'"
-          :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
-          @select="handlePlanSelect" />
+          :class="[
+            'flex w-full max-w-sm',
+            plan.tier === 'free' ? 'order-last sm:order-none' : '',
+          ]">
+          <PlanCard
+            :plan="plan"
+            :is-current="isPlanCurrent(plan)"
+            :is-recommended="isPlanRecommended(plan)"
+            :is-suggested="suggestedPlanId === plan.id"
+            :button-label="getButtonLabel(plan)"
+            :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.tier === 'free'"
+            :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
+            @select="handlePlanSelect" />
+        </div>
       </div>
 
       <!-- Cancel Subscription (only shown for active paid subscriptions NOT already scheduled for cancellation) -->
