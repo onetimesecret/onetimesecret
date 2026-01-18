@@ -89,8 +89,7 @@ RUN set -eux && \
         curl \
         python3 && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
-    ln -sf /usr/bin/python3 /usr/bin/python
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 # Install yq (optimized for multi-arch)
 # We use this for migrating config from v0.22 to v0.23.

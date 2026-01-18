@@ -245,7 +245,7 @@ def sync_locale_merged(
             print(f"Error in {locale}: {e}", file=sys.stderr)
             print("  This indicates conflicting key structures.", file=sys.stderr)
             print("  Fix the source data before syncing.", file=sys.stderr)
-            return 0
+            sys.exit(1)
 
     # Write merged output file
     output_file = output_dir / f"{locale}.json"
