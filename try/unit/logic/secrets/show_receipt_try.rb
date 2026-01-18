@@ -163,16 +163,16 @@ logic.process
 logic.natural_expiration
 #=> "2 days"
 
-## Knows that the receipt has been viewed b/c process has been called several times already
+## Knows that the receipt has been previewed b/c process has been called several times already
 params = {
   'identifier' => @receipt.identifier
 }
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 [logic.receipt.state, logic.show_secret_link]
-#=> ["viewed", false]
+#=> ["previewed", false]
 
-## Shows secret link when viewed for the first time (i.e. processed)
+## Shows secret link when previewed for the first time (i.e. processed)
 receipt = @create_receipt.call
 params = {
   'identifier' => receipt.identifier
@@ -180,7 +180,7 @@ params = {
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 [logic.receipt.state, logic.show_secret_link]
-#=> ["viewed", true]
+#=> ["previewed", true]
 
 ## Doesn't show secret link when for the second time though
 receipt = @create_receipt.call
@@ -191,18 +191,18 @@ logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 logic.process
 [logic.receipt.state, logic.show_secret_link]
-#=> ["viewed", false]
+#=> ["previewed", false]
 
-## Hides secret link when receipt is in received state
+## Hides secret link when receipt is in revealed state
 receipt = @create_receipt.call
-receipt.received!
+receipt.revealed!
 params = {
   'identifier' => receipt.identifier
 }
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 [logic.receipt.state, logic.show_secret_link]
-#=> ["received", false]
+#=> ["revealed", false]
 
 ## Asking the logic about whether the secret value is a single line returns nil when no secret
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, {}, 'en')
@@ -226,7 +226,7 @@ params = {
   'identifier' => receipt.identifier
 }
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
-secret.received!
+secret.revealed!
 logic.process
 [secret.viewable?, logic.one_liner]
 #=> [false, nil]

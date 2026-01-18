@@ -114,7 +114,7 @@ end
 ## Raises an exception when there's no viewable secret
 receipt = @create_receipt.call
 secret = receipt.load_secret
-secret.received!
+secret.revealed!
 params = {
   'identifier' => receipt.secret_identifier
 }
@@ -190,7 +190,7 @@ logic.process
 ## Correctly determines if secret is a one-liner once we've confirmed to
 ## continue (even though viewable? now reports false b/c logic.process has
 ## been run successfully and can never be run again -- as far as its concerned
-## the secret has been received).
+## the secret has been revealed).
 receipt = @create_receipt.call
 params = {
   'identifier' => receipt.secret_identifier,
@@ -209,7 +209,7 @@ params = {
   'identifier' => receipt.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
-secret.received!
+secret.revealed!
 logic.process
 [secret.viewable?, logic.one_liner]
 #=> [false, nil]
