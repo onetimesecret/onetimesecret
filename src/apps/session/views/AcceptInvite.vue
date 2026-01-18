@@ -138,7 +138,7 @@
       organizationStore.$reset();
 
       setTimeout(() => {
-        router.push('/org');
+        router.push('/orgs');
       }, 2000);
     } catch (err) {
       const classified = classifyError(err);

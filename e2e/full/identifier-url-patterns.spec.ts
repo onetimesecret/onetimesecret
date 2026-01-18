@@ -22,7 +22,7 @@
 //   TEST_USER_EMAIL=test@example.com TEST_USER_PASSWORD=secret \
 //     pnpm test:playwright src/tests/e2e/identifier-url-patterns.spec.ts
 
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 // Extend Window interface for test-specific properties
 declare global {
@@ -187,7 +187,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
         ).toBe(false);
       } else {
         // Navigate to org list and find an org
-        await page.goto('/org');
+        await page.goto('/orgs');
         await page.waitForLoadState('networkidle');
 
         const orgCard = page.locator('a[href*="/org/on"]').first();
@@ -206,7 +206,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
 
     test('TC-ID-002: Organization members URL uses ExtId', async ({ page }) => {
       // Navigate to an organization first
-      await page.goto('/org');
+      await page.goto('/orgs');
       await page.waitForLoadState('networkidle');
 
       const orgLink = page.locator('a[href*="/org/on"]').first();
@@ -244,7 +244,9 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       await page.waitForLoadState('networkidle');
 
       // Try to find the org scope switcher or org card
-      const orgSwitcher = page.locator('[data-testid="org-scope-switcher-trigger"], button[aria-label*="organization" i]');
+      const orgSwitcher = page.locator(
+        '[data-testid="org-scope-switcher-trigger"], button[aria-label*="organization" i]'
+      );
       const hasSwitcher = await orgSwitcher.isVisible().catch(() => false);
 
       if (hasSwitcher) {
@@ -413,12 +415,12 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       });
 
       // Navigate to organizations page
-      const orgNavLink = page.locator('a[href="/org"]');
+      const orgNavLink = page.locator('a[href="/orgs"]');
       if (await orgNavLink.isVisible().catch(() => false)) {
         await orgNavLink.click();
         await page.waitForLoadState('networkidle');
       } else {
-        await page.goto('/org');
+        await page.goto('/orgs');
         await page.waitForLoadState('networkidle');
       }
 
@@ -502,7 +504,7 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
-    await page.goto('/org');
+    await page.goto('/orgs');
     await page.waitForLoadState('networkidle');
 
     const orgLink = page.locator('a[href*="/org/on"]').first();
@@ -515,9 +517,10 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
     await page.waitForLoadState('networkidle');
 
     // Filter out known exceptions (if any)
-    const unexpectedInternalIds = requestsWithInternalIds.filter((_url) =>
-      // Add any known exceptions here
-       true
+    const unexpectedInternalIds = requestsWithInternalIds.filter(
+      (_url) =>
+        // Add any known exceptions here
+        true
     );
 
     expect(
@@ -553,7 +556,7 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
     });
 
     // Navigate through the app
-    await page.goto('/org');
+    await page.goto('/orgs');
     await page.waitForLoadState('networkidle');
 
     const orgLink = page.locator('a[href*="/org/on"]').first();
@@ -563,9 +566,7 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
     }
 
     // Check all history entries for internal IDs
-    const entriesWithInternalIds = historyEntries.filter(
-      (entry) => entry && containsUUID(entry)
-    );
+    const entriesWithInternalIds = historyEntries.filter((entry) => entry && containsUUID(entry));
 
     expect(
       entriesWithInternalIds.length,
@@ -608,7 +609,7 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
   });
 
   test('TC-ID-050: Organization ExtIds consistently use "on" prefix', async ({ page }) => {
-    await page.goto('/org');
+    await page.goto('/orgs');
     await page.waitForLoadState('networkidle');
 
     // Find all org-related links
@@ -678,7 +679,7 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
     };
 
     // Visit multiple pages and collect identifiers
-    const pagesToVisit = ['/dashboard', '/org', '/domains', '/account'];
+    const pagesToVisit = ['/dashboard', '/orgs', '/domains', '/account'];
 
     for (const pagePath of pagesToVisit) {
       await page.goto(pagePath);
@@ -738,7 +739,7 @@ test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
 
   test('TC-ID-061: Direct URL navigation with ExtId works', async ({ page }) => {
     // First, find a valid org ExtId
-    await page.goto('/org');
+    await page.goto('/orgs');
     await page.waitForLoadState('networkidle');
 
     const orgLink = page.locator('a[href*="/org/on"]').first();

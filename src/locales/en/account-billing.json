@@ -199,7 +199,10 @@
         "keep_subscription": "Keep Subscription",
         "confirm_cancel": "Cancel Subscription",
         "success": "Your subscription has been cancelled. You'll retain access until the end of your billing period.",
-        "error": "Failed to cancel subscription. Please try again."
+        "error": "Failed to cancel subscription. Please try again.",
+        "scheduled_title": "Subscription Cancellation Scheduled",
+        "scheduled_description": "Your subscription will remain active until {date}. You'll continue to have full access to all features until then.",
+        "scheduled_note": "Changed your mind? You can reactivate your subscription anytime before the cancellation date."
       },
       "start_today": "Start today",
       "start_today_with_identity_plus": "Start today with Identity Plus",

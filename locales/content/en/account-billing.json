@@ -517,5 +517,57 @@
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "Identity tier not found in product tiers"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Cancel subscription",
+    "context": "Link text shown below the plan selector for paid users"
+  },
+  "web.billing.cancel.title": {
+    "text": "Cancel Subscription",
+    "context": "Modal dialog heading/title"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Are you sure you want to cancel your {plan} subscription?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "What happens when you cancel:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "You'll retain access to all features until {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "You'll retain access until your current billing period ends"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "You won't be charged again"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Your account will revert to the free plan"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Keep Subscription",
+    "context": "Secondary button in modal - keeps subscription active"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Cancel Subscription",
+    "context": "Primary action button in modal - confirms the cancellation"
+  },
+  "web.billing.cancel.success": {
+    "text": "Your subscription has been cancelled. You'll retain access until the end of your billing period."
+  },
+  "web.billing.cancel.error": {
+    "text": "Failed to cancel subscription. Please try again."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Subscription Cancellation Scheduled",
+    "context": "Alert banner heading shown when cancellation is pending"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Your subscription will remain active until {date}. You'll continue to have full access to all features until then.",
+    "context": "Alert banner description explaining continued access"
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Changed your mind? You can reactivate your subscription anytime before the cancellation date.",
+    "context": "Alert banner note encouraging reactivation"
   }
 }

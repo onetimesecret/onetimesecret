@@ -23,7 +23,7 @@
 //   # Against external URL
 //   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev TEST_USER_EMAIL=... pnpm test:playwright billing-blockers.spec.ts
 
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 // Check if test credentials are configured
 const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
@@ -51,7 +51,10 @@ async function loginUser(page: Page): Promise<void> {
 /**
  * Wait for API response and capture result
  */
-async function _waitForApiResponse(page: Page, urlPattern: string | RegExp): Promise<{
+async function _waitForApiResponse(
+  page: Page,
+  urlPattern: string | RegExp
+): Promise<{
   status: number;
   body: unknown;
 }> {
@@ -176,10 +179,7 @@ test.describe('Stripe Integration Blockers - E2E', () => {
 
       const data = (await response.json()) as { plans: unknown[] };
 
-      expect(
-        data.plans,
-        'BLOCKER 7 (API): Plans array should not be empty'
-      ).toBeDefined();
+      expect(data.plans, 'BLOCKER 7 (API): Plans array should not be empty').toBeDefined();
 
       expect(
         data.plans.length,
@@ -219,16 +219,20 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       await page.waitForLoadState('networkidle');
 
       // Look for plan status indicator (badge, text, etc.)
-      const planIndicator = page.locator(
-        'text=/free|current plan|upgrade|view plans/i'
-      );
+      const planIndicator = page.locator('text=/free|current plan|upgrade|view plans/i');
 
       const upgradeLink = page.locator(
         'a[href*="/billing"], a[href*="/plans"], button:has-text(/upgrade/i)'
       );
 
-      const hasIndicator = await planIndicator.first().isVisible().catch(() => false);
-      const hasUpgradeLink = await upgradeLink.first().isVisible().catch(() => false);
+      const hasIndicator = await planIndicator
+        .first()
+        .isVisible()
+        .catch(() => false);
+      const hasUpgradeLink = await upgradeLink
+        .first()
+        .isVisible()
+        .catch(() => false);
 
       // At least one of these should be present for free users
       expect(
@@ -243,9 +247,9 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 
-      const upgradeLink = page.locator(
-        'a[href*="/billing/plans"], a[href*="/plans"]:not([href*="pricing"])'
-      ).first();
+      const upgradeLink = page
+        .locator('a[href*="/billing/plans"], a[href*="/plans"]:not([href*="pricing"])')
+        .first();
 
       const isVisible = await upgradeLink.isVisible().catch(() => false);
       test.skip(!isVisible, 'No upgrade link found on dashboard (may already be on paid plan)');
@@ -268,12 +272,15 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       // Look for billing/subscription link in navigation
       const billingLink = page.locator(
         'nav a:has-text(/billing|subscription/i), ' +
-        'aside a:has-text(/billing|subscription/i), ' +
-        '[class*="sidebar"] a:has-text(/billing|subscription/i), ' +
-        '[class*="nav"] a:has-text(/billing|subscription/i)'
+          'aside a:has-text(/billing|subscription/i), ' +
+          '[class*="sidebar"] a:has-text(/billing|subscription/i), ' +
+          '[class*="nav"] a:has-text(/billing|subscription/i)'
       );
 
-      const isVisible = await billingLink.first().isVisible().catch(() => false);
+      const isVisible = await billingLink
+        .first()
+        .isVisible()
+        .catch(() => false);
 
       expect(
         isVisible,
@@ -339,15 +346,13 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       await expect(planCard).toBeVisible();
 
       // Should show plan name (Free, Identity Plus, etc.)
-      const planName = page.locator(
-        'text=/free|identity|team|org|plus/i'
-      );
-      const hasPlanName = await planName.first().isVisible().catch(() => false);
+      const planName = page.locator('text=/free|identity|team|org|plus/i');
+      const hasPlanName = await planName
+        .first()
+        .isVisible()
+        .catch(() => false);
 
-      expect(
-        hasPlanName,
-        'Billing overview should display current plan name'
-      ).toBe(true);
+      expect(hasPlanName, 'Billing overview should display current plan name').toBe(true);
     });
 
     test('Entitlements API returns 200', async ({ page }) => {
@@ -366,7 +371,8 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       // BLOCKER 8 ASSERTION
       expect(
         response.status(),
-        'BLOCKER 8 (API): Entitlements API returned ' + response.status() +
+        'BLOCKER 8 (API): Entitlements API returned ' +
+          response.status() +
           '. Expected 200. Check organization lookup and plan resolution.'
       ).not.toBe(500);
 
@@ -396,7 +402,10 @@ test.describe('Stripe Integration Blockers - E2E', () => {
 
       // Page should show either invoices or "No invoices yet" (both valid)
       const content = page.locator('text=/invoice|no invoices|billing history/i');
-      const hasContent = await content.first().isVisible().catch(() => false);
+      const hasContent = await content
+        .first()
+        .isVisible()
+        .catch(() => false);
 
       expect(
         hasContent,
@@ -442,20 +451,18 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       ).toBe(false);
 
       // Page should show domain management or upgrade prompt
-      const pageContent = page.locator(
-        'text=/domain|custom domain|upgrade|add domain/i'
-      );
-      const hasContent = await pageContent.first().isVisible().catch(() => false);
+      const pageContent = page.locator('text=/domain|custom domain|upgrade|add domain/i');
+      const hasContent = await pageContent
+        .first()
+        .isVisible()
+        .catch(() => false);
 
-      expect(
-        hasContent,
-        'BLOCKER 10 FAILURE: Domains page not rendering correctly.'
-      ).toBe(true);
+      expect(hasContent, 'BLOCKER 10 FAILURE: Domains page not rendering correctly.').toBe(true);
     });
 
     test('Domains page accessible from organization navigation', async ({ page }) => {
       await loginUser(page);
-      await page.goto('/org');
+      await page.goto('/orgs');
       await page.waitForLoadState('networkidle');
 
       // Look for domains link in org navigation
@@ -487,9 +494,9 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       await page.goto('/dashboard');
 
       // Open user menu
-      const userMenu = page.locator(
-        '[class*="user-menu"], [class*="avatar"], button[aria-haspopup="menu"]'
-      ).first();
+      const userMenu = page
+        .locator('[class*="user-menu"], [class*="avatar"], button[aria-haspopup="menu"]')
+        .first();
       const hasMenu = await userMenu.isVisible().catch(() => false);
 
       if (hasMenu) {
@@ -499,12 +506,12 @@ test.describe('Stripe Integration Blockers - E2E', () => {
         const billingOption = page.locator(
           '[role="menuitem"]:has-text(/billing/i), a:has-text(/billing/i)'
         );
-        const hasBilling = await billingOption.first().isVisible().catch(() => false);
+        const hasBilling = await billingOption
+          .first()
+          .isVisible()
+          .catch(() => false);
 
-        expect(
-          hasBilling,
-          'User menu should have Billing option'
-        ).toBe(true);
+        expect(hasBilling, 'User menu should have Billing option').toBe(true);
       }
     });
 
@@ -514,7 +521,10 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       await page.waitForLoadState('networkidle');
 
       const footerPlansLink = page.locator('footer a:has-text(/plans|pricing/i)');
-      const isVisible = await footerPlansLink.first().isVisible().catch(() => false);
+      const isVisible = await footerPlansLink
+        .first()
+        .isVisible()
+        .catch(() => false);
 
       if (isVisible) {
         await footerPlansLink.first().click();
@@ -540,10 +550,9 @@ test.describe('Stripe Integration Blockers - E2E', () => {
 
       const hasPlans = (await planCards.count()) > 0;
 
-      expect(
-        hasPlans,
-        'Complete upgrade flow: Plans page should display selectable plans'
-      ).toBe(true);
+      expect(hasPlans, 'Complete upgrade flow: Plans page should display selectable plans').toBe(
+        true
+      );
     });
   });
 });
