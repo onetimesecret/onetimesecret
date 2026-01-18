@@ -36,12 +36,15 @@
   });
 
   // Status styling maps with enhanced design
+  // Note: previewed/revealed are the new canonical states; viewed/received are deprecated aliases
   const statusClasses: Record<DisplayStatus, string> = {
     new: 'bg-gradient-to-r from-green-50 to-green-100 text-green-800 dark:from-green-900/60 dark:to-green-800/40 dark:text-green-300 border border-green-200 dark:border-green-800/50',
     unread: 'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-800 dark:from-slate-900/60 dark:to-slate-800/40 dark:text-slate-300 border border-slate-200 dark:border-slate-800/50',
     viewed: 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 dark:from-blue-900/60 dark:to-blue-800/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50',
+    previewed: 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 dark:from-blue-900/60 dark:to-blue-800/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50',
     burned: 'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 dark:from-yellow-900/60 dark:to-yellow-800/40 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800/50',
     received: 'bg-gradient-to-r from-red-50 to-red-100 text-red-800 dark:from-red-900/60 dark:to-red-800/40 dark:text-red-300 border border-red-200 dark:border-red-800/50',
+    revealed: 'bg-gradient-to-r from-red-50 to-red-100 text-red-800 dark:from-red-900/60 dark:to-red-800/40 dark:text-red-300 border border-red-200 dark:border-red-800/50',
     expiring_soon: 'bg-gradient-to-r from-orange-50 to-orange-100 text-orange-800 dark:from-orange-900/60 dark:to-orange-800/40 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50',
     orphaned: 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 dark:from-purple-900/60 dark:to-purple-800/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50',
     expired: 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-800 dark:from-purple-900/60 dark:to-purple-800/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50',
@@ -51,8 +54,10 @@
     new: 'check-circle-outline',
     unread: 'mark-email-unread-outline',
     viewed: 'mark-email-unread-outline',
+    previewed: 'mark-email-unread-outline',
     burned: 'local-fire-department-rounded',
     received: 'mark-email-read-outline',
+    revealed: 'mark-email-read-outline',
     expiring_soon: 'timer-outline',
     orphaned: 'warning-outline',
     expired: 'timer-off-outline',

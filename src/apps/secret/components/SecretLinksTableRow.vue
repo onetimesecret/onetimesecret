@@ -115,13 +115,20 @@
 
   /**
    * Determine item state based on receipt state.
-   * Priority: expired > burned > received > viewed > active (new)
+   * Priority: expired > burned > revealed > previewed > active (new)
+   *
+   * STATE TERMINOLOGY MIGRATION:
+   *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+   *   'received' -> 'revealed'   (secret content decrypted/consumed)
+   *
+   * Internal state uses new terminology; locale keys support both.
    */
-  const itemState = computed((): 'active' | 'viewed' | 'received' | 'burned' | 'expired' => {
+  const itemState = computed((): 'active' | 'previewed' | 'revealed' | 'burned' | 'expired' => {
     if (isExpired.value) return 'expired';
     if (isBurned.value) return 'burned';
-    if (isReceived.value) return 'received';
-    if (isViewed.value) return 'viewed';
+    // isReceived/isViewed check both new and legacy API fields
+    if (isReceived.value) return 'revealed';
+    if (isViewed.value) return 'previewed';
     return 'active';
   });
 
@@ -140,17 +147,17 @@
           badgeClass: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
           label: t('web.STATUS.burned'),
         };
-      case 'received':
+      case 'revealed':
         return {
           icon: 'check-circle',
           badgeClass: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-          label: t('web.STATUS.received'),
+          label: t('web.STATUS.revealed'),
         };
-      case 'viewed':
+      case 'previewed':
         return {
           icon: 'eye',
           badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-          label: t('web.STATUS.viewed'),
+          label: t('web.STATUS.previewed'),
         };
       default: // active (new)
         return {
@@ -170,8 +177,8 @@
   });
 
   // Check if secret is still active (shareable/actionable)
-  // Both 'active' (new) and 'viewed' (link opened) states are actionable
-  const isActive = computed(() => itemState.value === 'active' || itemState.value === 'viewed');
+  // Both 'active' (new) and 'previewed' (link opened) states are actionable
+  const isActive = computed(() => itemState.value === 'active' || itemState.value === 'previewed');
 
   // Time remaining urgency
   const isUrgent = computed(() => getTtlPercentage.value <= 25 && isActive.value);
