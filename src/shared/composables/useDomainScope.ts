@@ -16,8 +16,9 @@
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import type { AxiosInstance } from 'axios';
 import { storeToRefs } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 
 export interface DomainScope {
   /** The domain hostname (e.g., "acme.example.com" or "onetimesecret.com") */
@@ -42,6 +43,7 @@ let currentFetchRequestId = 0;
 let domainsEnabled: boolean = false;
 let canonicalDomain: string = '';
 let displayDomain: string = '';
+let serverDomainScope: string | null = null;
 let configInitialized = false;
 
 /** Initialize config from bootstrap store (called on first composable use) */
@@ -52,6 +54,7 @@ function initConfig(): void {
   domainsEnabled = refs.domains_enabled.value;
   canonicalDomain = refs.site_host.value;
   displayDomain = refs.display_domain.value;
+  serverDomainScope = refs.domain_scope.value;
   configInitialized = true;
 }
 
@@ -86,6 +89,47 @@ function findExtidByDomain(
   return storeDomains.find((d) => d.display_domain === domain)?.extid;
 }
 
+/** Sync domain scope to backend (fire-and-forget) */
+async function syncDomainScopeToServer(
+  $api: AxiosInstance | undefined,
+  domain: string
+): Promise<void> {
+  if (!$api) return;
+  try {
+    await $api.post('/api/account/update-domain-scope', { domain });
+  } catch (error) {
+    console.warn('[useDomainScope] Failed to sync to server:', error);
+  }
+}
+
+/** Create domain fetcher for an organization store */
+function createDomainFetcher(
+  organizationStore: ReturnType<typeof useOrganizationStore>,
+  domainsStore: ReturnType<typeof useDomainsStore>
+) {
+  return async (): Promise<boolean> => {
+    if (!domainsEnabled) return true;
+    const orgId = organizationStore.currentOrganization?.id;
+    if (!orgId) {
+      console.debug('[useDomainScope] Skipping fetch: no currentOrganization set yet');
+      return false;
+    }
+    const requestId = ++currentFetchRequestId;
+    isLoadingDomains.value = true;
+    try {
+      await domainsStore.fetchList(orgId);
+      return requestId === currentFetchRequestId;
+    } catch (error) {
+      console.warn('[useDomainScope] Failed to fetch domains:', error);
+      return false;
+    } finally {
+      if (requestId === currentFetchRequestId) {
+        isLoadingDomains.value = false;
+      }
+    }
+  };
+}
+
 /** Initialize domain scope on module load (runs once). Returns promise for awaiting. */
 async function initializeDomainScope(
   fetchFn: () => Promise<boolean | void>,
@@ -96,11 +140,22 @@ async function initializeDomainScope(
   try {
     if (domainsEnabled) {
       await fetchFn();
-      const saved = localStorage.getItem('domainScope');
       const available = getAvailable();
-      // Use saved preference if valid, otherwise prefer custom domain
-      currentDomain.value = (saved && available.includes(saved))
-        ? saved : getPreferredDomain(available);
+
+      // Priority: server preference > localStorage > preferred domain
+      const localScope = localStorage.getItem('domainScope');
+
+      if (serverDomainScope && available.includes(serverDomainScope)) {
+        // Server-side preference takes priority
+        currentDomain.value = serverDomainScope;
+        localStorage.setItem('domainScope', serverDomainScope); // Sync localStorage
+      } else if (localScope && available.includes(localScope)) {
+        // Fall back to localStorage if valid
+        currentDomain.value = localScope;
+      } else {
+        // Fall back to preferred domain (first custom domain or canonical)
+        currentDomain.value = getPreferredDomain(available);
+      }
     } else {
       currentDomain.value = canonicalDomain || '';
     }
@@ -115,9 +170,9 @@ async function initializeDomainScope(
  * Domains are scoped to the current organization.
  */
 export function useDomainScope() {
-  // Initialize config from bootstrap store on first use
   initConfig();
 
+  const $api = inject('api') as AxiosInstance | undefined;
   const domainsStore = useDomainsStore();
   const organizationStore = useOrganizationStore();
 
@@ -125,52 +180,18 @@ export function useDomainScope() {
     buildAvailableDomains(domainsStore.domains || [])
   );
 
-  const fetchDomainsForOrganization = async (): Promise<boolean> => {
-    if (!domainsEnabled) return true;
-    // Guard: Only fetch if we have a valid organization ID
-    const orgId = organizationStore.currentOrganization?.id;
-    if (!orgId) {
-      console.debug('[useDomainScope] Skipping fetch: no currentOrganization set yet');
-      return false;
-    }
-
-    // Increment request ID to track this specific request
-    const requestId = ++currentFetchRequestId;
-    isLoadingDomains.value = true;
-
-    try {
-      await domainsStore.fetchList(orgId);
-      // Check if this request is still current (not superseded by a newer org switch)
-      return requestId === currentFetchRequestId;
-    } catch (error) {
-      console.warn('[useDomainScope] Failed to fetch domains:', error);
-      return false;
-    } finally {
-      // Only clear loading if this is still the current request
-      if (requestId === currentFetchRequestId) {
-        isLoadingDomains.value = false;
-      }
-    }
-  };
+  const fetchDomainsForOrganization = createDomainFetcher(organizationStore, domainsStore);
 
   // Watch for organization changes (including initial load from null -> org)
-  // immediate: true ensures we catch the first org load from OrganizationContextBar
   watch(() => organizationStore.currentOrganization?.id, async (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
       const isCurrentRequest = await fetchDomainsForOrganization();
-      // Only update domain selection if this request wasn't superseded by a newer org switch
-      if (isCurrentRequest) {
-        // If current selection is invalid for new org, prefer custom domain
-        if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-          currentDomain.value = getPreferredDomain(availableDomains.value);
-        }
+      if (isCurrentRequest && currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
+        currentDomain.value = getPreferredDomain(availableDomains.value);
       }
     }
   }, { immediate: true });
 
-  // Initialize async - returns promise for components that need to await
-  // Note: If currentOrganization is not yet set, initializeDomainScope will skip the fetch
-  // and the watcher above will handle fetching when the organization becomes available
   const initPromise = initializeDomainScope(fetchDomainsForOrganization, () => availableDomains.value);
 
   const currentScope = computed<DomainScope>(() => {
@@ -184,11 +205,11 @@ export function useDomainScope() {
     };
   });
 
-  const setScope = (domain: string) => {
-    if (availableDomains.value.includes(domain)) {
-      currentDomain.value = domain;
-      localStorage.setItem('domainScope', domain);
-    }
+  const setScope = async (domain: string): Promise<void> => {
+    if (!availableDomains.value.includes(domain)) return;
+    currentDomain.value = domain;
+    localStorage.setItem('domainScope', domain);
+    await syncDomainScopeToServer($api, domain);
   };
 
   return {
@@ -202,7 +223,6 @@ export function useDomainScope() {
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
     getExtidByDomain: (domain: string) => findExtidByDomain(domainsStore.domains || [], domain),
-    /** Promise that resolves when initial domain fetch completes */
     initialized: initPromise,
   };
 }
