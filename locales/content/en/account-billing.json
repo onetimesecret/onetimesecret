@@ -569,5 +569,56 @@
   "web.billing.cancel.scheduled_note": {
     "text": "Changed your mind? You can reactivate your subscription anytime before the cancellation date.",
     "context": "Alert banner note encouraging reactivation"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Homepage Secrets"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Email Notifications"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP Access Rules"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Workspace Branding"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30-day Secret Retention"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Homepage Secrets"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Incoming Secrets"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Up to 5 team members"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Up to 10 team members"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Up to 25 team members"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Up to 50 team members"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Unlimited team members"
+  },
+  "web.billing.features.notifications": {
+    "text": "Email Notifications"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP Access Rules"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Workspace Branding"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dedicated Infrastructure"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Shared Workflows"
   }
 }
