@@ -51,8 +51,8 @@ importers:
         specifier: 13.1.0
         version: 13.1.0(axios@1.12.2)(focus-trap@7.6.6)(vue@3.5.26(typescript@5.8.3))
       altcha:
-        specifier: 1.4.4
-        version: 1.4.4
+        specifier: 2.3.0
+        version: 2.3.0
       axios:
         specifier: 1.12.2
         version: 1.12.2
@@ -1791,8 +1791,8 @@ packages:
   alien-signals@1.0.13:
     resolution: {integrity: sha512-OGj9yyTnJEttvzhTUWuscOvtqxq5vrhF7vL9oS0xJ2mK0ItPYP1/y+vCFebfxoEyAz0++1AIwJ5CMr+Fk3nDmg==}
 
-  altcha@1.4.4:
-    resolution: {integrity: sha512-4ZoRt4xOz4+NnOcnMvW9gEDjGUC6d9k+4xf6RFty6FWPbyNlYE/2BPJaOhP6WS/PliYkXnPjer1Yk/U47VMiqQ==}
+  altcha@2.3.0:
+    resolution: {integrity: sha512-vl8I0dQvSQB7/Mx09XuWZ1+LdSP7vEda6OLbg9kUQ2ZO2LT7MzgUyLK7Iips+GAV6c0ntVcS1XWOqhEPpwbDhQ==}
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -3472,8 +3472,8 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  qs@6.14.0:
-    resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
+  qs@6.14.1:
+    resolution: {integrity: sha512-4EK3+xJl8Ts67nLYNwqw/dsFVnCf+qR7RgXSK9jEEm9unao3njwMDdmsdvoKBKHzxd7tCYz5e5M+SnMjdtXGQQ==}
     engines: {node: '>=0.6'}
 
   queue-microtask@1.2.3:
@@ -5620,7 +5620,7 @@ snapshots:
 
   alien-signals@1.0.13: {}
 
-  altcha@1.4.4:
+  altcha@2.3.0:
     dependencies:
       '@altcha/crypto': 0.0.1
     optionalDependencies:
@@ -7370,7 +7370,7 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  qs@6.14.0:
+  qs@6.14.1:
     dependencies:
       side-channel: 1.1.0
 
@@ -7632,7 +7632,7 @@ snapshots:
   stripe@17.7.0:
     dependencies:
       '@types/node': 22.19.6
-      qs: 6.14.0
+      qs: 6.14.1
 
   style-mod@4.1.2: {}
 
