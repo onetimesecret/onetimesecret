@@ -15,7 +15,7 @@
  *   tsx src/scripts/generate-i18n-types.ts
  *
  * Output:
- *   src/types/generated/i18n-keys.d.ts
+ *   generated/types/i18n-keys.d.ts
  *
  * The generated types augment vue-i18n's DefineLocaleMessage interface
  * to provide strict key validation for the t() function.
@@ -29,9 +29,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Read from the pre-merged locale file in generated/locales/
-const LOCALES_DIR = path.resolve(__dirname, '../../generated/locales');
-const EN_LOCALE_FILE = path.join(LOCALES_DIR, 'en.json');
-const OUTPUT_FILE = path.resolve(__dirname, '../types/generated/i18n-keys.d.ts');
+const PROJECT_ROOT = path.resolve(__dirname, '../..');
+const EN_LOCALE_FILE = path.join(PROJECT_ROOT, 'generated/locales/en.json');
+const OUTPUT_FILE = path.join(PROJECT_ROOT, 'generated/types/i18n-keys.d.ts');
 
 interface NestedObject {
   [key: string]: string | NestedObject;

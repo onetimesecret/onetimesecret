@@ -2,13 +2,13 @@
 
 //
 // This file provides type declarations for locale JSON imports.
-// For type-safe i18n keys, see: src/types/generated/i18n-keys.d.ts
+// For type-safe i18n keys, see: generated/types/i18n-keys.d.ts
 //
 // Regenerate i18n key types after modifying locale files:
 //   pnpm run i18n:generate-types
 
 // Re-export generated types for convenience
-export type { I18nKey, LocaleMessageSchema } from '../generated/i18n-keys';
+export type { I18nKey, LocaleMessageSchema } from '@generated/types/i18n-keys';
 
 type JSONValue = string | number | boolean | { [key: string]: JSONValue } | JSONValue[];
 
