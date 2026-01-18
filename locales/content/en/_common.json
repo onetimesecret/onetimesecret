@@ -667,6 +667,12 @@
   "web.STATUS.received": {
     "text": "Received"
   },
+  "web.STATUS.previewed": {
+    "text": "Link opened"
+  },
+  "web.STATUS.revealed": {
+    "text": "Revealed"
+  },
   "web.STATUS.burned": {
     "text": "Burned"
   },
@@ -711,6 +717,12 @@
   },
   "web.STATUS.received_description": {
     "text": "Secret has been revealed to the recipient"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Secret link has been opened and is ready to be revealed"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Secret content has been revealed to the recipient"
   },
   "web.STATUS.burned_description": {
     "text": "Secret was manually burned before being viewed"

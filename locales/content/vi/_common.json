@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Luôn xác minh bạn đang ở trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, kiểm tra tên miền khu vực trước khi tạo liên kết mới."
+  },
+  "web.STATUS.previewed": {
+    "text": "Đã mở liên kết"
+  },
+  "web.STATUS.revealed": {
+    "text": "Đã tiết lộ"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Liên kết bí mật đã được mở và sẵn sàng tiết lộ"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Nội dung bí mật đã được tiết lộ cho người nhận"
   }
 }

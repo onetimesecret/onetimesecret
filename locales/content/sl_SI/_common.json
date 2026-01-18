@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Vedno preverite, da ste na uradni spletni strani Onetime Secret. Prevaranti včasih ustvarijo lažne spletne strani, ki so videti enako kot Onetime Secret, da bi ukradli vaše skrivnosti. Za preprečitev ribarjenja preverite domensko ime regije pred ustvarjanjem novih povezav."
+  },
+  "web.STATUS.previewed": {
+    "text": "Povezava odprta"
+  },
+  "web.STATUS.revealed": {
+    "text": "Razkrito"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Skrivna povezava je bila odprta in pripravljena za razkritje"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Skrivna vsebina je bila razkrita prejemniku"
   }
 }

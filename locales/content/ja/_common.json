@@ -928,5 +928,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "常に公式のOnetime Secretウェブサイトにアクセスしていることを確認してください。詐欺師はOnetime Secretとそっくりな偽のウェブサイトを作成してシークレットを盗もうとすることがあります。フィッシング攻撃を避けるために、新しいリンクを作成する前にリージョンドメインを確認してください。"
+  },
+  "web.STATUS.previewed": {
+    "text": "リンクが開かれました"
+  },
+  "web.STATUS.revealed": {
+    "text": "公開済み"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "シークレットリンクが開かれ、公開する準備ができました"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "シークレットの内容が受信者に公開されました"
   }
 }

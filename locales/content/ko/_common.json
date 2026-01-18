@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "항상 공식 Onetime Secret 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 Onetime Secret과 똑같이 보이는 가짜 웹사이트를 만들어 귀하의 비밀 메시지를 훔치려고 합니다. 피싱 공격을 방지하려면 새 링크를 생성하기 전에 지역 도메인을 확인하세요."
+  },
+  "web.STATUS.previewed": {
+    "text": "링크 열림"
+  },
+  "web.STATUS.revealed": {
+    "text": "공개됨"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "비밀 링크가 열렸으며 공개 준비가 되었습니다"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "비밀 내용이 수신자에게 공개되었습니다"
   }
 }

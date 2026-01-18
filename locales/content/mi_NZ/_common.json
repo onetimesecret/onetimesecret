@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Me whakaū tonu kei runga koe i te paetukutuku ōkawa o Onetime Secret. I ētahi wā ka hanga ngā kaitapahi i ngā paetukutuku parau e rite tino ana ki Onetime Secret hei tāhae i ō karere huna. Hei karo i ngā whakaekenga hī-ika, tirohia te rohe rohe i mua i te waihanga hononga hou."
+  },
+  "web.STATUS.previewed": {
+    "text": "Kua huaki te hononga"
+  },
+  "web.STATUS.revealed": {
+    "text": "Kua whakakitea"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Kua huaki te hononga karere huna, ā, kua reri ki te whakakite"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Kua whakakitea te ihirangi huna ki te tangata whakawhiwhi"
   }
 }

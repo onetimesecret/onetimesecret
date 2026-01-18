@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domént, mielőtt új hivatkozásokat hoz létre."
+  },
+  "web.STATUS.previewed": {
+    "text": "Hivatkozás megnyitva"
+  },
+  "web.STATUS.revealed": {
+    "text": "Felfedve"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "A titkos hivatkozás meg lett nyitva és készen áll a felfedésre"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "A titkos tartalom fel lett fedve a címzettnek"
   }
 }

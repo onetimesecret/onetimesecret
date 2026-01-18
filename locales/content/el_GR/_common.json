@@ -1060,5 +1060,17 @@
     "text": "",
     "skip": true,
     "note": "empty"
+  },
+  "web.STATUS.previewed": {
+    "text": "Ο σύνδεσμος ανοίχτηκε"
+  },
+  "web.STATUS.revealed": {
+    "text": "Αποκαλύφθηκε"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Ο μυστικός σύνδεσμος έχει ανοιχτεί και είναι έτοιμος για αποκάλυψη"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Το μυστικό περιεχόμενο αποκαλύφθηκε στον παραλήπτη"
   }
 }
