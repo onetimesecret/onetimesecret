@@ -399,6 +399,22 @@ jobs:
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
         with:
@@ -421,6 +437,22 @@ jobs:
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
@@ -459,6 +491,22 @@ jobs:
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
         with:
@@ -483,6 +531,22 @@ jobs:
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
