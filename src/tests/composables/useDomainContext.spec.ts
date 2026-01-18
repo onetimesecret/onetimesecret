@@ -1,4 +1,4 @@
-// src/tests/composables/useDomainScope.spec.ts
+// src/tests/composables/useDomainContext.spec.ts
 
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import { nextTick } from 'vue';
@@ -35,7 +35,7 @@ function setMockDomains(domains: string[]) {
   }));
 }
 
-describe('useDomainScope', () => {
+describe('useDomainContext', () => {
   const mockLocalStorage = (() => {
     let store: Record<string, string> = {};
     return {
@@ -108,18 +108,18 @@ describe('useDomainScope', () => {
       // No custom domains in store
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, isScopeActive, hasMultipleScopes } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(currentScope.value.displayName).toBe('onetimesecret.com');
-      expect(currentScope.value.isCanonical).toBe(true);
-      expect(isScopeActive.value).toBe(true);
-      expect(hasMultipleScopes.value).toBe(false);
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.displayName).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+      expect(isContextActive.value).toBe(true);
+      expect(hasMultipleContexts.value).toBe(false);
     });
 
     it('initializes with first custom domain when custom domains exist', async () => {
@@ -132,22 +132,22 @@ describe('useDomainScope', () => {
       // Set custom domains in store
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, isScopeActive, hasMultipleScopes } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.domain).toBe('acme.example.com');
-      expect(currentScope.value.displayName).toBe('acme.example.com');
-      expect(currentScope.value.isCanonical).toBe(false);
-      expect(isScopeActive.value).toBe(true);
-      expect(hasMultipleScopes.value).toBe(true);
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.displayName).toBe('acme.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
+      expect(isContextActive.value).toBe(true);
+      expect(hasMultipleContexts.value).toBe(true);
     });
 
     it('initializes with saved domain from localStorage if valid', async () => {
-      mockLocalStorage.setItem('domainScope', 'widgets.example.com');
+      mockLocalStorage.setItem('domainContext', 'widgets.example.com');
 
       setupBootstrapStore({
         domains_enabled: true,
@@ -157,19 +157,19 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.domain).toBe('widgets.example.com');
-      expect(currentScope.value.isCanonical).toBe(false);
+      expect(currentContext.value.domain).toBe('widgets.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
     });
 
     it('ignores invalid saved domain from localStorage', async () => {
-      mockLocalStorage.setItem('domainScope', 'invalid.example.com');
+      mockLocalStorage.setItem('domainContext', 'invalid.example.com');
 
       setupBootstrapStore({
         domains_enabled: true,
@@ -179,15 +179,15 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Should fall back to first available domain
-      expect(currentScope.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.domain).toBe('acme.example.com');
     });
 
     it('handles domains_enabled being false', async () => {
@@ -199,10 +199,10 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { isScopeActive } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { isContextActive } = useDomainContext();
 
-      expect(isScopeActive.value).toBe(false);
+      expect(isContextActive.value).toBe(false);
     });
 
     it('handles missing custom_domains array', async () => {
@@ -215,15 +215,15 @@ describe('useDomainScope', () => {
       // Empty domains
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, isScopeActive } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, isContextActive } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(isScopeActive.value).toBe(true);
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(isContextActive.value).toBe(true);
     });
   });
 
@@ -237,8 +237,8 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { availableDomains } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { availableDomains } = useDomainContext();
 
       expect(availableDomains.value).toEqual([
         'acme.example.com',
@@ -256,14 +256,14 @@ describe('useDomainScope', () => {
 
       setMockDomains(['onetimesecret.com', 'acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { availableDomains } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { availableDomains } = useDomainContext();
 
       expect(availableDomains.value).toEqual(['onetimesecret.com', 'acme.example.com']);
     });
   });
 
-  describe('currentScope computed properties', () => {
+  describe('currentContext computed properties', () => {
     it('correctly identifies canonical domain', async () => {
       setupBootstrapStore({
         domains_enabled: true,
@@ -273,21 +273,21 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, setScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Start with custom domain
-      expect(currentScope.value.isCanonical).toBe(false);
-      expect(currentScope.value.displayName).toBe('acme.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
+      expect(currentContext.value.displayName).toBe('acme.example.com');
 
       // Switch to canonical
-      setScope('onetimesecret.com');
-      expect(currentScope.value.isCanonical).toBe(true);
-      expect(currentScope.value.displayName).toBe('onetimesecret.com');
+      setContext('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+      expect(currentContext.value.displayName).toBe('onetimesecret.com');
     });
 
     it('sets displayName to domain name for canonical domain', async () => {
@@ -299,14 +299,14 @@ describe('useDomainScope', () => {
 
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.displayName).toBe('onetimesecret.com');
+      expect(currentContext.value.displayName).toBe('onetimesecret.com');
     });
 
     it('sets displayName to domain for custom domains', async () => {
@@ -318,18 +318,18 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.displayName).toBe('acme.example.com');
+      expect(currentContext.value.displayName).toBe('acme.example.com');
     });
   });
 
-  describe('setScope', () => {
+  describe('setContext', () => {
     it('updates currentDomain when valid domain is provided', async () => {
       setupBootstrapStore({
         domains_enabled: true,
@@ -339,16 +339,16 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, setScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      setScope('widgets.example.com');
+      setContext('widgets.example.com');
 
-      expect(currentScope.value.domain).toBe('widgets.example.com');
+      expect(currentContext.value.domain).toBe('widgets.example.com');
     });
 
     it('saves domain to localStorage', async () => {
@@ -360,16 +360,16 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { setScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { setContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      setScope('acme.example.com');
+      setContext('acme.example.com');
 
-      expect(mockLocalStorage.getItem('domainScope')).toBe('acme.example.com');
+      expect(mockLocalStorage.getItem('domainContext')).toBe('acme.example.com');
     });
 
     it('ignores invalid domain', async () => {
@@ -381,19 +381,19 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, setScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      const initialDomain = currentScope.value.domain;
+      const initialDomain = currentContext.value.domain;
 
-      setScope('invalid.example.com');
+      setContext('invalid.example.com');
 
-      expect(currentScope.value.domain).toBe(initialDomain);
-      expect(mockLocalStorage.getItem('domainScope')).toBeNull();
+      expect(currentContext.value.domain).toBe(initialDomain);
+      expect(mockLocalStorage.getItem('domainContext')).toBeNull();
     });
 
     it('can switch to canonical domain', async () => {
@@ -405,21 +405,21 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, setScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      setScope('onetimesecret.com');
+      setContext('onetimesecret.com');
 
-      expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(currentScope.value.isCanonical).toBe(true);
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
     });
   });
 
-  describe('resetScope', () => {
+  describe('resetContext', () => {
     it('resets to canonical domain', async () => {
       setupBootstrapStore({
         domains_enabled: true,
@@ -429,24 +429,24 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, setScope, resetScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext, resetContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Start with custom domain
-      setScope('acme.example.com');
-      expect(currentScope.value.domain).toBe('acme.example.com');
+      setContext('acme.example.com');
+      expect(currentContext.value.domain).toBe('acme.example.com');
 
       // Reset
-      resetScope();
-      expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(currentScope.value.isCanonical).toBe(true);
+      resetContext();
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
     });
 
-    it('removes domainScope from localStorage', async () => {
+    it('removes domainContext from localStorage', async () => {
       setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -455,22 +455,22 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { setScope, resetScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { setContext, resetContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      setScope('acme.example.com');
-      expect(mockLocalStorage.getItem('domainScope')).toBe('acme.example.com');
+      setContext('acme.example.com');
+      expect(mockLocalStorage.getItem('domainContext')).toBe('acme.example.com');
 
-      resetScope();
-      expect(mockLocalStorage.getItem('domainScope')).toBeNull();
+      resetContext();
+      expect(mockLocalStorage.getItem('domainContext')).toBeNull();
     });
   });
 
-  describe('isScopeActive computed', () => {
+  describe('isContextActive computed', () => {
     it('returns false when domains_enabled is false', async () => {
       setupBootstrapStore({
         domains_enabled: false,
@@ -480,10 +480,10 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { isScopeActive } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { isContextActive } = useDomainContext();
 
-      expect(isScopeActive.value).toBe(false);
+      expect(isContextActive.value).toBe(false);
     });
 
     it('returns true when domains_enabled even with empty custom_domains', async () => {
@@ -495,10 +495,10 @@ describe('useDomainScope', () => {
 
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { isScopeActive } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { isContextActive } = useDomainContext();
 
-      expect(isScopeActive.value).toBe(true);
+      expect(isContextActive.value).toBe(true);
     });
 
     it('returns true when domains_enabled even with undefined custom_domains', async () => {
@@ -511,10 +511,10 @@ describe('useDomainScope', () => {
       // Set domains to empty (simulating undefined)
       mockDomainsStoreState.domains = [];
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { isScopeActive } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { isContextActive } = useDomainContext();
 
-      expect(isScopeActive.value).toBe(true);
+      expect(isContextActive.value).toBe(true);
     });
 
     it('returns true when domains enabled and custom domains exist', async () => {
@@ -526,14 +526,14 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { isScopeActive } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { isContextActive } = useDomainContext();
 
-      expect(isScopeActive.value).toBe(true);
+      expect(isContextActive.value).toBe(true);
     });
   });
 
-  describe('hasMultipleScopes computed', () => {
+  describe('hasMultipleContexts computed', () => {
     it('returns false when only canonical domain exists', async () => {
       setupBootstrapStore({
         domains_enabled: true,
@@ -543,10 +543,10 @@ describe('useDomainScope', () => {
 
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { hasMultipleScopes } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { hasMultipleContexts } = useDomainContext();
 
-      expect(hasMultipleScopes.value).toBe(false);
+      expect(hasMultipleContexts.value).toBe(false);
     });
 
     it('returns true when custom domains exist', async () => {
@@ -558,10 +558,10 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { hasMultipleScopes } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { hasMultipleContexts } = useDomainContext();
 
-      expect(hasMultipleScopes.value).toBe(true);
+      expect(hasMultipleContexts.value).toBe(true);
     });
 
     it('returns true when multiple custom domains exist', async () => {
@@ -573,10 +573,10 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { hasMultipleScopes } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { hasMultipleContexts } = useDomainContext();
 
-      expect(hasMultipleScopes.value).toBe(true);
+      expect(hasMultipleContexts.value).toBe(true);
     });
   });
 
@@ -590,14 +590,14 @@ describe('useDomainScope', () => {
 
       setMockDomains(['acme.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.domain).toBe('acme.example.com');
     });
 
     it('handles all missing configuration gracefully', async () => {
@@ -609,11 +609,11 @@ describe('useDomainScope', () => {
 
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, isScopeActive } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, isContextActive } = useDomainContext();
 
-      expect(currentScope.value.domain).toBe('');
-      expect(isScopeActive.value).toBe(false);
+      expect(currentContext.value.domain).toBe('');
+      expect(isContextActive.value).toBe(false);
     });
   });
 
@@ -629,14 +629,14 @@ describe('useDomainScope', () => {
       setMockDomains(['org1-domain.example.com']);
       mockOrganizationStoreState.currentOrganization = { id: 'org-1' };
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(currentScope.value.domain).toBe('org1-domain.example.com');
+      expect(currentContext.value.domain).toBe('org1-domain.example.com');
       expect(mockDomainsStoreState.fetchList).toHaveBeenCalled();
     });
 
@@ -651,16 +651,16 @@ describe('useDomainScope', () => {
       setMockDomains(['org1-domain.example.com', 'shared-domain.example.com']);
       mockOrganizationStoreState.currentOrganization = { id: 'org-1' };
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, setScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Select org1-specific domain
-      setScope('org1-domain.example.com');
-      expect(currentScope.value.domain).toBe('org1-domain.example.com');
+      setContext('org1-domain.example.com');
+      expect(currentContext.value.domain).toBe('org1-domain.example.com');
 
       // Simulate org switch - org2 has different domains
       setMockDomains(['org2-domain.example.com']);
@@ -703,8 +703,8 @@ describe('useDomainScope', () => {
         return promise;
       });
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { refreshDomains } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { refreshDomains } = useDomainContext();
 
       // Wait for initialization watcher to trigger
       await nextTick();
@@ -747,8 +747,8 @@ describe('useDomainScope', () => {
       mockOrganizationStoreState.currentOrganization = null;
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { refreshDomains } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { refreshDomains } = useDomainContext();
 
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
@@ -773,8 +773,8 @@ describe('useDomainScope', () => {
       // Mock fetchList to throw error
       mockDomainsStoreState.fetchList.mockRejectedValue(new Error('Network error'));
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { refreshDomains, isLoadingDomains } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { refreshDomains, isLoadingDomains } = useDomainContext();
 
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
@@ -803,16 +803,16 @@ describe('useDomainScope', () => {
       // Set custom domains - first non-canonical should be preferred
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Should select first custom domain, not canonical
-      expect(currentScope.value.domain).toBe('acme.example.com');
-      expect(currentScope.value.isCanonical).toBe(false);
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
     });
 
     it('falls back to canonical when no custom domains available', async () => {
@@ -825,16 +825,16 @@ describe('useDomainScope', () => {
       // No custom domains - only canonical available
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope, availableDomains } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Should fall back to canonical
-      expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(currentScope.value.isCanonical).toBe(true);
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
       // Available domains should include canonical even when no custom domains
       expect(availableDomains.value).toContain('onetimesecret.com');
     });
@@ -849,15 +849,15 @@ describe('useDomainScope', () => {
       // Multiple custom domains - first should be selected
       setMockDomains(['zebra.example.com', 'alpha.example.com', 'beta.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Should select first in array order, not alphabetical
-      expect(currentScope.value.domain).toBe('zebra.example.com');
+      expect(currentContext.value.domain).toBe('zebra.example.com');
     });
 
     it('handles array with only canonical domain', async () => {
@@ -870,16 +870,16 @@ describe('useDomainScope', () => {
       // Only canonical domain in the list
       setMockDomains(['onetimesecret.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // No custom domains to prefer, should use canonical
-      expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(currentScope.value.isCanonical).toBe(true);
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
     });
 
     it('skips canonical in the list when selecting preferred domain', async () => {
@@ -892,16 +892,16 @@ describe('useDomainScope', () => {
       // Canonical appears first but should be skipped for a custom domain
       setMockDomains(['onetimesecret.com', 'custom.example.com']);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // Should skip canonical and prefer custom domain
-      expect(currentScope.value.domain).toBe('custom.example.com');
-      expect(currentScope.value.isCanonical).toBe(false);
+      expect(currentContext.value.domain).toBe('custom.example.com');
+      expect(currentContext.value.isCanonical).toBe(false);
     });
 
     it('returns empty string when no domains available and no canonical', async () => {
@@ -913,15 +913,15 @@ describe('useDomainScope', () => {
 
       setMockDomains([]);
 
-      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
-      const { currentScope } = useDomainScope();
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
 
       // Wait for async initialization
       await nextTick();
       await new Promise((r) => setTimeout(r, 10));
 
       // With no domains at all, should be empty
-      expect(currentScope.value.domain).toBe('');
+      expect(currentContext.value.domain).toBe('');
     });
   });
 });

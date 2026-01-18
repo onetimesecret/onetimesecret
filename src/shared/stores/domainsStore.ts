@@ -87,7 +87,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * @param domain - The domain name to add
    * @param orgId - Optional organization ID. If provided, adds domain for that org.
    *                If not provided, uses the organization from session context.
-   * @returns Object containing the domain record and details (including domain_scope if set by server)
+   * @returns Object containing the domain record and details (including domain_context if set by server)
    */
   async function addDomain(domain: string, orgId?: string) {
     const payload: { domain: string; org_id?: string } = { domain };

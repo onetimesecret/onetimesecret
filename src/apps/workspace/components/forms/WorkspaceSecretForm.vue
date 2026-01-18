@@ -17,7 +17,7 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
-  import { useDomainScope } from '@/shared/composables/useDomainScope';
+  import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
@@ -66,7 +66,7 @@
   const { secret_options } = storeToRefs(bootstrapStore);
   const defaultTtl = computed(() => secret_options.value?.default_ttl ?? 604800);
 
-  const { currentScope, isScopeActive } = useDomainScope();
+  const { currentContext, isContextActive } = useDomainContext();
 
   // Textarea setup with larger dimensions for workspace
   const maxLength = 10000;
@@ -145,9 +145,9 @@
     operations.updateField('secret', newContent);
   });
 
-  // Watch for domain scope changes and update form
+  // Watch for domain context changes and update form
   watch(
-    () => currentScope.value.domain,
+    () => currentContext.value.domain,
     (domain) => {
       if (domain) {
         operations.updateField('share_domain', domain);
@@ -350,9 +350,9 @@
             <div
               class="flex flex-col gap-4 sm:flex-row sm:items-center
                 sm:justify-between">
-              <!-- Domain Scope Indicator -->
+              <!-- Domain Context Indicator -->
               <div
-                v-if="isScopeActive"
+                v-if="isContextActive"
                 class="flex items-center gap-2 text-base font-brand">
                 <span class="text-gray-600 dark:text-gray-400">
                   {{ t('web.LABELS.creating_links_for') }}
@@ -361,27 +361,27 @@
                   class="inline-flex items-center gap-1.5 rounded-full px-3
                     py-1.5 text-base font-medium transition-all duration-150"
                   :class="
-                    currentScope.isCanonical
+                    currentContext.isCanonical
                       ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                       : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                   "
                   role="status"
                   :aria-label="
                     t('web.LABELS.scope_indicator', {
-                      domain: currentScope.displayName,
+                      domain: currentContext.displayName,
                     })
                   ">
                   <OIcon
                     collection="heroicons"
                     :name="
-                      currentScope.isCanonical
+                      currentContext.isCanonical
                         ? 'user-circle'
                         : 'building-office'
                     "
                     class="size-4"
                     aria-hidden="true" />
                   <span class="max-w-[180px] truncate">
-                    {{ currentScope.displayName }}
+                    {{ currentContext.displayName }}
                   </span>
                 </div>
               </div>

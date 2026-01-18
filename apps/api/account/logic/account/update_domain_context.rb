@@ -1,12 +1,12 @@
-# apps/api/account/logic/account/update_domain_scope.rb
+# apps/api/account/logic/account/update_domain_context.rb
 #
 # frozen_string_literal: true
 
 module AccountAPI::Logic
   module Account
-    # Updates the user's domain scope preference in their session
+    # Updates the user's domain context preference in their session
     #
-    # Domain scope determines which domain context the user operates in.
+    # Domain context determines which domain context the user operates in.
     # This is stored in the session so it persists across page refreshes,
     # new tabs, and browser restarts.
     #
@@ -15,15 +15,15 @@ module AccountAPI::Logic
     # - One of the user's custom domains from their organizations
     #
     # Anonymous users can only use the canonical domain.
-    class UpdateDomainScope < UpdateAccountField
+    class UpdateDomainContext < UpdateAccountField
       include Onetime::LoggerMethods
 
-      attr_reader :new_domain_scope, :old_domain_scope
+      attr_reader :new_domain_context, :old_domain_context
 
       def process_params
-        domain_param      = params['domain']
-        @new_domain_scope = normalize_domain(domain_param)
-        @old_domain_scope = sess&.[]('domain_scope')
+        domain_param         = params['domain']
+        @new_domain_context  = normalize_domain(domain_param)
+        @old_domain_context  = sess&.[]('domain_context')
       end
 
       def normalize_domain(value)
@@ -33,7 +33,7 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
-        # Require authentication - anonymous users cannot set domain scope
+        # Require authentication - anonymous users cannot set domain context
         raise OT::Unauthorized, 'Authentication required' if cust.anonymous?
 
         field_specific_concerns
@@ -41,35 +41,35 @@ module AccountAPI::Logic
 
       def success_data
         {
-          domain_scope: new_domain_scope,
-          previous_domain_scope: old_domain_scope,
+          domain_context: new_domain_context,
+          previous_domain_context: old_domain_context,
         }
       end
 
       private
 
       def field_name
-        :domain_scope
+        :domain_context
       end
 
       def field_specific_concerns
-        raise_form_error 'Domain is required' if new_domain_scope.nil? || new_domain_scope.empty?
-        raise_form_error 'Invalid domain' unless valid_domain?(new_domain_scope)
+        raise_form_error 'Domain is required' if new_domain_context.nil? || new_domain_context.empty?
+        raise_form_error 'Invalid domain' unless valid_domain?(new_domain_context)
       end
 
       def valid_update?
-        valid_domain?(new_domain_scope)
+        valid_domain?(new_domain_context)
       end
 
       def perform_update
-        app_logger.debug 'Updating domain scope in session',
+        app_logger.debug 'Updating domain context in session',
           {
-            old_domain_scope: old_domain_scope,
-            new_domain_scope: new_domain_scope,
+            old_domain_context: old_domain_context,
+            new_domain_context: new_domain_context,
             customer_id: cust.custid,
           }
 
-        sess['domain_scope'] = new_domain_scope
+        sess['domain_context'] = new_domain_context
       end
 
       # Validates that the domain is either the canonical domain or
@@ -92,12 +92,12 @@ module AccountAPI::Logic
       end
 
       def log_update
-        app_logger.info 'Domain scope updated',
+        app_logger.info 'Domain context updated',
           {
             customer_id: cust.custid,
             session_id: session_sid,
-            old_domain_scope: old_domain_scope,
-            new_domain_scope: new_domain_scope,
+            old_domain_context: old_domain_context,
+            new_domain_context: new_domain_context,
           }
       end
     end

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for DomainSerializer including domain_scope persistence
+# Unit tests for DomainSerializer including domain_context persistence
 #
 # Run with:
 #   source .env.test && bundle exec rspec apps/web/core/spec/views/serializers/domain_serializer_spec.rb
@@ -23,7 +23,7 @@ RSpec.describe Core::Views::DomainSerializer do
   let(:session) do
     {
       'csrf' => 'test-csrf-token',
-      'domain_scope' => nil,
+      'domain_context' => nil,
     }
   end
 
@@ -43,9 +43,9 @@ RSpec.describe Core::Views::DomainSerializer do
   end
 
   describe '.output_template' do
-    it 'includes domain_scope field' do
+    it 'includes domain_context field' do
       template = described_class.output_template
-      expect(template).to have_key('domain_scope')
+      expect(template).to have_key('domain_context')
     end
 
     it 'includes all expected domain fields' do
@@ -58,7 +58,7 @@ RSpec.describe Core::Views::DomainSerializer do
         domain_id
         domain_locale
         domain_logo
-        domain_scope
+        domain_context
         domain_strategy
       ]
       expected_keys.each do |key|
@@ -80,9 +80,9 @@ RSpec.describe Core::Views::DomainSerializer do
         }
       end
 
-      it 'returns nil for domain_scope' do
+      it 'returns nil for domain_context' do
         result = described_class.serialize(view_vars)
-        expect(result['domain_scope']).to be_nil
+        expect(result['domain_context']).to be_nil
       end
     end
 
@@ -98,16 +98,16 @@ RSpec.describe Core::Views::DomainSerializer do
         }
       end
 
-      it 'returns domain_scope from session' do
-        session['domain_scope'] = 'custom.example.com'
+      it 'returns domain_context from session' do
+        session['domain_context'] = 'custom.example.com'
         result = described_class.serialize(view_vars)
-        expect(result['domain_scope']).to eq('custom.example.com')
+        expect(result['domain_context']).to eq('custom.example.com')
       end
 
-      it 'returns nil when domain_scope is not set in session' do
-        session['domain_scope'] = nil
+      it 'returns nil when domain_context is not set in session' do
+        session['domain_context'] = nil
         result = described_class.serialize(view_vars)
-        expect(result['domain_scope']).to be_nil
+        expect(result['domain_context']).to be_nil
       end
     end
 
@@ -125,7 +125,7 @@ RSpec.describe Core::Views::DomainSerializer do
 
       it 'handles missing session gracefully' do
         result = described_class.serialize(view_vars)
-        expect(result['domain_scope']).to be_nil
+        expect(result['domain_context']).to be_nil
       end
     end
 

@@ -1,15 +1,15 @@
-<!-- src/shared/components/navigation/DomainScopeSwitcher.vue -->
+<!-- src/shared/components/navigation/DomainContextSwitcher.vue -->
 
 <!--
-  Domain Scope Switcher Component
+  Domain Context Switcher Component
 
   Allows consultants to switch between their custom domains in the workspace header.
   Only visible when user has multiple domains configured.
 
   Key behaviors:
-  - Shows current domain scope with visual indicator
+  - Shows current domain context with visual indicator
   - Dropdown menu with all available domains
-  - Persists selection via useDomainScope composable
+  - Persists selection via useDomainContext composable
   - Compact header-friendly design
 
   Uses HeadlessUI Menu for accessible keyboard navigation and focus management.
@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useDomainScope } from '@/shared/composables/useDomainScope';
+import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
@@ -54,18 +54,18 @@ const onDomainSwitch = computed<string | undefined>(() => {
 });
 
 const {
-  currentScope,
+  currentContext,
   availableDomains,
-  isScopeActive,
-  setScope,
+  isContextActive,
+  setContext,
   getDomainDisplayName,
   getExtidByDomain,
-} = useDomainScope();
+} = useDomainContext();
 
 /**
- * Check if a domain is the currently selected scope
+ * Check if a domain is the currently selected context
  */
-const isCurrentScope = (domain: string): boolean => domain === currentScope.value.domain;
+const isCurrentContext = (domain: string): boolean => domain === currentContext.value.domain;
 
 /**
  * Check if a domain option should be disabled.
@@ -90,7 +90,7 @@ const selectDomain = (domain: string): void => {
     return;
   }
 
-  setScope(domain);
+  setContext(domain);
 
   // Handle route-aware navigation based on onDomainSwitch meta
   const switchTarget = onDomainSwitch.value;
@@ -104,7 +104,7 @@ const selectDomain = (domain: string): void => {
   if (switchTarget === 'same') {
     // Stay on current route pattern, replace :extid with new domain's extid
     if (!extid) {
-      console.warn('[DomainScopeSwitcher] Cannot navigate: domain missing extid', domain);
+      console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
       return;
     }
     const matchedRoute = route.matched[route.matched.length - 1];
@@ -115,7 +115,7 @@ const selectDomain = (domain: string): void => {
   } else if (switchTarget.includes(':extid')) {
     // Path with :extid placeholder - replace and navigate
     if (!extid) {
-      console.warn('[DomainScopeSwitcher] Cannot navigate: domain missing extid', domain);
+      console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
       return;
     }
     const newPath = switchTarget.replace(':extid', extid);
@@ -129,7 +129,7 @@ const selectDomain = (domain: string): void => {
 /**
  * Should component be visible
  */
-const shouldShow = computed(() => isScopeActive.value);
+const shouldShow = computed(() => isContextActive.value);
 
 /**
  * Navigate to domains management page (org-qualified)
@@ -160,7 +160,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
     v-if="shouldShow"
     as="div"
     class="relative inline-flex"
-    data-testid="domain-scope-switcher"
+    data-testid="domain-context-switcher"
     v-slot="{ open }">
     <!-- Trigger Button -->
     <MenuButton
@@ -174,7 +174,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       :title="props.locked ? t('web.domains.switcher_locked') : undefined"
       :aria-label="t('web.domains.scope_switch_label')"
       :aria-disabled="props.locked ? 'true' : undefined"
-      data-testid="domain-scope-switcher-trigger">
+      data-testid="domain-context-switcher-trigger">
       <!-- Domain Icon -->
       <OIcon
         collection="heroicons"
@@ -185,8 +185,8 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       <!-- Current Domain Display -->
       <span
         class="max-w-[120px] truncate md:max-w-[160px] lg:max-w-[200px]"
-        :title="currentScope.domain">
-        {{ currentScope.displayName }}
+        :title="currentContext.domain">
+        {{ currentContext.displayName }}
       </span>
 
       <!-- Chevron or Lock icon -->
@@ -214,7 +214,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       leave-to-class="transform opacity-0 scale-95">
       <MenuItems
         class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
-        data-testid="domain-scope-switcher-dropdown">
+        data-testid="domain-context-switcher-dropdown">
         <!-- Header -->
         <div
           class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -236,7 +236,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
                 ? 'cursor-not-allowed text-gray-400 opacity-60 dark:text-gray-600'
                 : 'cursor-pointer text-gray-700 dark:text-gray-200',
               !isOptionDisabled(domain) && active ? 'bg-gray-100 dark:bg-gray-700' : '',
-              isCurrentScope(domain) && !isOptionDisabled(domain)
+              isCurrentContext(domain) && !isOptionDisabled(domain)
                 ? 'bg-brand-50 dark:bg-brand-900/20'
                 : '',
             ]"
@@ -250,7 +250,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
               <!-- Domain-specific icon -->
               <OIcon
                 collection="heroicons"
-                :name="isCurrentScope(domain) && currentScope.isCanonical ? 'home' : 'globe-alt'"
+                :name="isCurrentContext(domain) && currentContext.isCanonical ? 'home' : 'globe-alt'"
                 class="size-4"
                 :class="
                   isOptionDisabled(domain)
@@ -262,7 +262,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
               <!-- Domain Name -->
               <span
                 class="block truncate"
-                :class="{ 'font-semibold': isCurrentScope(domain) && !isOptionDisabled(domain) }">
+                :class="{ 'font-semibold': isCurrentContext(domain) && !isOptionDisabled(domain) }">
                 {{ getDomainDisplayName(domain) }}
               </span>
             </span>
@@ -273,7 +273,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
               <!-- For custom domains: hidden on row hover to show gear -->
               <!-- For canonical domain: always visible (no settings page) -->
               <OIcon
-                v-if="isCurrentScope(domain)"
+                v-if="isCurrentContext(domain)"
                 collection="heroicons"
                 name="check-20-solid"
                 class="size-5 text-brand-600 dark:text-brand-400"
@@ -309,7 +309,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
             type="button"
             class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
             :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
-            data-testid="domain-scope-manage-link">
+            data-testid="domain-context-manage-link">
             <span class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"

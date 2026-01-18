@@ -13,7 +13,7 @@
 -->
 
 <script setup lang="ts">
-import DomainScopeSwitcher from '@/shared/components/navigation/DomainScopeSwitcher.vue';
+import DomainContextSwitcher from '@/shared/components/navigation/DomainContextSwitcher.vue';
 import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
@@ -89,7 +89,7 @@ const showSeparator = computed(() => showOrgSwitcher.value && showDomainSwitcher
       aria-hidden="true">|</span>
 
     <!-- Domain Switcher -->
-    <DomainScopeSwitcher
+    <DomainContextSwitcher
       v-if="showDomainSwitcher"
       :locked="lockDomainSwitcher" />
   </template>

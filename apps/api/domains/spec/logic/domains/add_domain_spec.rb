@@ -41,7 +41,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
   let(:session) do
     {
       'csrf' => 'test-csrf-token',
-      'domain_scope' => nil,
+      'domain_context' => nil,
     }
   end
 
@@ -254,29 +254,29 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       expect(logic.greenlighted).to be true
     end
 
-    it 'sets domain_scope in session after creating domain' do
-      expect(session['domain_scope']).to be_nil
+    it 'sets domain_context in session after creating domain' do
+      expect(session['domain_context']).to be_nil
       logic.send(:process)
-      expect(session['domain_scope']).to eq('example.com')
+      expect(session['domain_context']).to eq('example.com')
     end
 
-    it 'sets domain_scope to match the display_domain' do
+    it 'sets domain_context to match the display_domain' do
       logic.send(:process)
-      expect(session['domain_scope']).to eq(custom_domain.display_domain)
+      expect(session['domain_context']).to eq(custom_domain.display_domain)
     end
 
-    context 'when session already has a domain_scope' do
+    context 'when session already has a domain_context' do
       let(:session) do
         {
           'csrf' => 'test-csrf-token',
-          'domain_scope' => 'old-domain.com',
+          'domain_context' => 'old-domain.com',
         }
       end
 
-      it 'overwrites existing domain_scope with new domain' do
-        expect(session['domain_scope']).to eq('old-domain.com')
+      it 'overwrites existing domain_context with new domain' do
+        expect(session['domain_context']).to eq('old-domain.com')
         logic.send(:process)
-        expect(session['domain_scope']).to eq('example.com')
+        expect(session['domain_context']).to eq('example.com')
       end
     end
   end
@@ -318,14 +318,14 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       expect(data[:details]).to have_key(:cluster)
     end
 
-    it 'includes domain_scope in response' do
+    it 'includes domain_context in response' do
       data = logic.send(:success_data)
-      expect(data).to have_key(:domain_scope)
+      expect(data).to have_key(:domain_context)
     end
 
-    it 'returns domain_scope matching display_domain' do
+    it 'returns domain_context matching display_domain' do
       data = logic.send(:success_data)
-      expect(data[:domain_scope]).to eq('example.com')
+      expect(data[:domain_context]).to eq('example.com')
     end
 
     context 'with subdomain' do
@@ -334,14 +334,14 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
         allow(custom_domain).to receive(:display_domain).and_return('secrets.example.com')
       end
 
-      it 'returns domain_scope for subdomain' do
+      it 'returns domain_context for subdomain' do
         data = logic.send(:success_data)
-        expect(data[:domain_scope]).to eq('secrets.example.com')
+        expect(data[:domain_context]).to eq('secrets.example.com')
       end
     end
   end
 
-  describe 'domain_scope integration' do
+  describe 'domain_context integration' do
     let(:strategy) { instance_double(Onetime::DomainValidation::PassthroughStrategy) }
     let(:result) { { status: 'external' } }
 
@@ -352,17 +352,17 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       logic.instance_variable_set(:@display_domain, 'example.com')
     end
 
-    it 'session domain_scope matches success_data domain_scope after process' do
+    it 'session domain_context matches success_data domain_context after process' do
       result_data = logic.send(:process)
 
-      expect(session['domain_scope']).to eq(result_data[:domain_scope])
+      expect(session['domain_context']).to eq(result_data[:domain_context])
     end
 
     it 'both session and response contain the same display_domain' do
       logic.send(:process)
 
-      expect(session['domain_scope']).to eq('example.com')
-      expect(logic.send(:success_data)[:domain_scope]).to eq('example.com')
+      expect(session['domain_context']).to eq('example.com')
+      expect(logic.send(:success_data)[:domain_context]).to eq('example.com')
     end
   end
 end

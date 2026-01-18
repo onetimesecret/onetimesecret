@@ -8,7 +8,7 @@
  *
  * @see src/types/router.ts - ScopesAvailable interface
  * @see src/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue
- * @see src/shared/components/navigation/DomainScopeSwitcher.vue
+ * @see src/shared/components/navigation/DomainContextSwitcher.vue
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -51,18 +51,18 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => mockOrganizationStore,
 }));
 
-// Mock domain scope composable
-const mockDomainScope = {
-  currentScope: { domain: 'test.example.com', extid: 'domain123', displayName: 'test.example.com', isCanonical: false },
+// Mock domain context composable
+const mockDomainContext = {
+  currentContext: { domain: 'test.example.com', extid: 'domain123', displayName: 'test.example.com', isCanonical: false },
   availableDomains: ['test.example.com', 'onetimesecret.com'],
-  isScopeActive: { value: true },
-  setScope: vi.fn(),
+  isContextActive: { value: true },
+  setContext: vi.fn(),
   getDomainDisplayName: (domain: string) => domain,
   getExtidByDomain: vi.fn((domain: string) => domain === 'test.example.com' ? 'domain123' : undefined),
 };
 
-vi.mock('@/shared/composables/useDomainScope', () => ({
-  useDomainScope: () => mockDomainScope,
+vi.mock('@/shared/composables/useDomainContext', () => ({
+  useDomainContext: () => mockDomainContext,
 }));
 
 // Mock i18n
@@ -179,16 +179,16 @@ describe('ScopeSwitcher Navigation', () => {
   describe('onDomainSwitch navigation behavior', () => {
     /**
      * Helper to simulate domain selection with navigation logic.
-     * This mirrors the logic in DomainScopeSwitcher.vue selectDomain()
+     * This mirrors the logic in DomainContextSwitcher.vue selectDomain()
      */
     function simulateDomainSwitch(domain: string, switchTarget?: string) {
-      mockDomainScope.setScope(domain);
+      mockDomainContext.setContext(domain);
 
       if (!switchTarget) {
         return; // No navigation configured
       }
 
-      const extid = mockDomainScope.getExtidByDomain(domain);
+      const extid = mockDomainContext.getExtidByDomain(domain);
 
       if (switchTarget === 'same') {
         if (!extid) {
@@ -215,7 +215,7 @@ describe('ScopeSwitcher Navigation', () => {
     it('does not navigate when onDomainSwitch is undefined', () => {
       simulateDomainSwitch('test.example.com', undefined);
 
-      expect(mockDomainScope.setScope).toHaveBeenCalledWith('test.example.com');
+      expect(mockDomainContext.setContext).toHaveBeenCalledWith('test.example.com');
       expect(mockPush).not.toHaveBeenCalled();
     });
 
@@ -303,10 +303,10 @@ describe('ScopeSwitcher Navigation', () => {
   describe('canonical domain disabled state', () => {
     /**
      * Helper to check if domain option should be disabled.
-     * Mirrors logic in DomainScopeSwitcher.vue isOptionDisabled()
+     * Mirrors logic in DomainContextSwitcher.vue isOptionDisabled()
      */
     function isOptionDisabled(domain: string, switchTarget?: string): boolean {
-      const extid = mockDomainScope.getExtidByDomain(domain);
+      const extid = mockDomainContext.getExtidByDomain(domain);
       if (!extid && switchTarget) {
         return switchTarget === 'same' || switchTarget.includes(':extid');
       }
@@ -315,7 +315,7 @@ describe('ScopeSwitcher Navigation', () => {
 
     /**
      * Helper to simulate domain selection with disabled check.
-     * Mirrors logic in DomainScopeSwitcher.vue selectDomain()
+     * Mirrors logic in DomainContextSwitcher.vue selectDomain()
      */
     function simulateDomainSwitchWithDisabledCheck(domain: string, switchTarget?: string) {
       // Don't allow selection of disabled options
@@ -323,13 +323,13 @@ describe('ScopeSwitcher Navigation', () => {
         return;
       }
 
-      mockDomainScope.setScope(domain);
+      mockDomainContext.setContext(domain);
 
       if (!switchTarget) {
         return;
       }
 
-      const extid = mockDomainScope.getExtidByDomain(domain);
+      const extid = mockDomainContext.getExtidByDomain(domain);
 
       if (switchTarget === 'same') {
         if (!extid) {
@@ -386,7 +386,7 @@ describe('ScopeSwitcher Navigation', () => {
       simulateDomainSwitchWithDisabledCheck('onetimesecret.com', 'same');
 
       // Neither setScope nor navigation should have been called
-      expect(mockDomainScope.setScope).not.toHaveBeenCalled();
+      expect(mockDomainContext.setContext).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
     });
 
@@ -396,7 +396,7 @@ describe('ScopeSwitcher Navigation', () => {
       // Select custom domain (has extid, should work)
       simulateDomainSwitchWithDisabledCheck('test.example.com', 'same');
 
-      expect(mockDomainScope.setScope).toHaveBeenCalledWith('test.example.com');
+      expect(mockDomainContext.setContext).toHaveBeenCalledWith('test.example.com');
       expect(mockPush).toHaveBeenCalledWith('/domains/domain123/brand');
     });
 
@@ -404,7 +404,7 @@ describe('ScopeSwitcher Navigation', () => {
       // Select canonical domain when onDomainSwitch is static (no :extid)
       simulateDomainSwitchWithDisabledCheck('onetimesecret.com', '/domains');
 
-      expect(mockDomainScope.setScope).toHaveBeenCalledWith('onetimesecret.com');
+      expect(mockDomainContext.setContext).toHaveBeenCalledWith('onetimesecret.com');
       expect(mockPush).toHaveBeenCalledWith('/domains');
     });
   });

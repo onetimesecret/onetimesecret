@@ -1,4 +1,4 @@
-// src/tests/components/SecretFormDomainScope.spec.ts
+// src/tests/components/SecretFormDomainContext.spec.ts
 
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
@@ -7,7 +7,7 @@ import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
 import { nextTick } from 'vue';
 
 // Mock composables
-const mockCurrentScope = {
+const mockCurrentContext = {
   value: {
     domain: 'acme.example.com',
     displayName: 'acme.example.com',
@@ -15,17 +15,17 @@ const mockCurrentScope = {
   },
 };
 
-const mockIsScopeActive = { value: true };
-const mockSetScope = vi.fn();
+const mockIsContextActive = { value: true };
+const mockSetContext = vi.fn();
 
-vi.mock('@/shared/composables/useDomainScope', () => ({
-  useDomainScope: vi.fn(() => ({
-    currentScope: mockCurrentScope,
-    isScopeActive: mockIsScopeActive,
-    hasMultipleScopes: { value: true },
+vi.mock('@/shared/composables/useDomainContext', () => ({
+  useDomainContext: vi.fn(() => ({
+    currentContext: mockCurrentContext,
+    isContextActive: mockIsContextActive,
+    hasMultipleContexts: { value: true },
     availableDomains: { value: ['acme.example.com', 'widgets.example.com', 'onetimesecret.com'] },
-    setScope: mockSetScope,
-    resetScope: vi.fn(),
+    setContext: mockSetContext,
+    resetContext: vi.fn(),
   })),
 }));
 
@@ -92,22 +92,22 @@ const createMountPinia = () =>
     },
   });
 
-describe('SecretForm - Domain Scope Integration', () => {
+describe('SecretForm - Domain Context Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Reset mock scope state
-    mockCurrentScope.value = {
+    // Reset mock context state
+    mockCurrentContext.value = {
       domain: 'acme.example.com',
       displayName: 'acme.example.com',
       isCanonical: false,
     };
-    mockIsScopeActive.value = true;
+    mockIsContextActive.value = true;
   });
 
-  describe('Domain Scope Indicator', () => {
-    it('displays scope indicator when isScopeActive is true', () => {
-      mockIsScopeActive.value = true;
+  describe('Domain Context Indicator', () => {
+    it('displays context indicator when isContextActive is true', () => {
+      mockIsContextActive.value = true;
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
@@ -118,30 +118,30 @@ describe('SecretForm - Domain Scope Integration', () => {
       expect(indicator.exists()).toBe(true);
     });
 
-    it('hides scope indicator when isScopeActive is false', () => {
-      mockIsScopeActive.value = false;
+    it('hides context indicator when isContextActive is false', () => {
+      mockIsContextActive.value = false;
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
         global: { plugins: [createMountPinia()] },
       });
 
-      // When scope is inactive, the v-if should not render the scope indicator
-      const scopeSection = wrapper.find('[data-testid="domain-scope-section"]');
-      if (!scopeSection.exists()) {
+      // When context is inactive, the v-if should not render the context indicator
+      const contextSection = wrapper.find('[data-testid="domain-context-section"]');
+      if (!contextSection.exists()) {
         // The v-if prevented rendering - this is correct
         expect(true).toBe(true);
       } else {
         // If it exists, it should not be visible
-        expect(scopeSection.isVisible()).toBe(false);
+        expect(contextSection.isVisible()).toBe(false);
       }
     });
 
     it.skip('displays correct domain name for custom domain', () => {
       // SKIP: Reactive mock computed properties don't propagate to template bindings
-      // The template uses {{ currentScope.displayName }} which evaluates at render time
+      // The template uses {{ currentContext.displayName }} which evaluates at render time
       // E2E tests will cover this with real composable
-      mockCurrentScope.value = {
+      mockCurrentContext.value = {
         domain: 'acme.example.com',
         displayName: 'acme.example.com',
         isCanonical: false,
@@ -159,7 +159,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
     it.skip('displays "Personal" for canonical domain', () => {
       // SKIP: Same issue - mock doesn't propagate to template interpolations
-      mockCurrentScope.value = {
+      mockCurrentContext.value = {
         domain: 'onetimesecret.com',
         displayName: 'Personal',
         isCanonical: true,
@@ -176,9 +176,9 @@ describe('SecretForm - Domain Scope Integration', () => {
     });
   });
 
-  describe('Domain Scope Styling', () => {
-    it('applies custom domain styling for non-canonical scope', () => {
-      mockCurrentScope.value = {
+  describe('Domain Context Styling', () => {
+    it('applies custom domain styling for non-canonical context', () => {
+      mockCurrentContext.value = {
         domain: 'acme.example.com',
         displayName: 'acme.example.com',
         isCanonical: false,
@@ -197,12 +197,12 @@ describe('SecretForm - Domain Scope Integration', () => {
       expect(classes).toContain('text-brand-700');
     });
 
-    it.skip('applies canonical domain styling for canonical scope', () => {
+    it.skip('applies canonical domain styling for canonical context', () => {
       // SKIP: Reactive mock values don't properly propagate to :class bindings in templates
-      // The :class binding checks currentScope.isCanonical at render time
+      // The :class binding checks currentContext.isCanonical at render time
       // This requires E2E testing with real state management
-      mockIsScopeActive.value = true;
-      mockCurrentScope.value = {
+      mockIsContextActive.value = true;
+      mockCurrentContext.value = {
         domain: 'onetimesecret.com',
         displayName: 'Personal',
         isCanonical: true,
@@ -222,7 +222,7 @@ describe('SecretForm - Domain Scope Integration', () => {
     });
 
     it('displays correct icon for custom domain', () => {
-      mockCurrentScope.value = {
+      mockCurrentContext.value = {
         domain: 'acme.example.com',
         displayName: 'acme.example.com',
         isCanonical: false,
@@ -240,8 +240,8 @@ describe('SecretForm - Domain Scope Integration', () => {
 
     it.skip('displays correct icon for canonical domain', () => {
       // SKIP: Same issue as above - reactive mocks don't propagate to template conditionals
-      mockIsScopeActive.value = true;
-      mockCurrentScope.value = {
+      mockIsContextActive.value = true;
+      mockCurrentContext.value = {
         domain: 'onetimesecret.com',
         displayName: 'Personal',
         isCanonical: true,
@@ -259,7 +259,7 @@ describe('SecretForm - Domain Scope Integration', () => {
   });
 
   describe('Accessibility', () => {
-    it('has proper ARIA attributes on scope indicator', () => {
+    it('has proper ARIA attributes on context indicator', () => {
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
         global: { plugins: [createMountPinia()] },
@@ -271,7 +271,7 @@ describe('SecretForm - Domain Scope Integration', () => {
     });
 
     it('includes descriptive aria-label with domain name', () => {
-      mockCurrentScope.value = {
+      mockCurrentContext.value = {
         domain: 'acme.example.com',
         displayName: 'acme.example.com',
         isCanonical: false,
@@ -286,12 +286,12 @@ describe('SecretForm - Domain Scope Integration', () => {
       const ariaLabel = indicator.attributes('aria-label');
       // The aria-label should reference the i18n key with domain parameter
       expect(ariaLabel).toBeTruthy();
-      expect(ariaLabel).toContain('scope_indicator');
+      expect(ariaLabel).toContain('context_indicator');
     });
   });
 
-  describe('Scope Change Handling', () => {
-    it('updates share_domain field when scope changes', async () => {
+  describe('Context Change Handling', () => {
+    it('updates share_domain field when context changes', async () => {
       const mockUpdateField = vi.fn();
 
       vi.mocked(
@@ -314,11 +314,11 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       await nextTick();
 
-      // Should initialize with current scope domain
+      // Should initialize with current context domain
       expect(mockUpdateField).toHaveBeenCalledWith('share_domain', 'acme.example.com');
     });
 
-    it.skip('reactively updates when currentScope changes', async () => {
+    it.skip('reactively updates when currentContext changes', async () => {
       // This test is skipped because reactive mocking of composable state is complex
       // The actual reactivity is tested in the composable unit tests
       // Integration testing should cover this workflow
@@ -343,8 +343,8 @@ describe('SecretForm - Domain Scope Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      // Change the scope
-      mockCurrentScope.value = {
+      // Change the context
+      mockCurrentContext.value = {
         domain: 'widgets.example.com',
         displayName: 'widgets.example.com',
         isCanonical: false,
@@ -358,7 +358,7 @@ describe('SecretForm - Domain Scope Integration', () => {
   });
 
   describe('Layout and Positioning', () => {
-    it('positions scope indicator correctly in the form footer', () => {
+    it('positions context indicator correctly in the form footer', () => {
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
         global: { plugins: [createMountPinia()] },
@@ -371,7 +371,7 @@ describe('SecretForm - Domain Scope Integration', () => {
       expect(parent?.classList.contains('flex')).toBe(true);
     });
 
-    it('renders scope indicator before action button on desktop', () => {
+    it('renders context indicator before action button on desktop', () => {
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
         global: { plugins: [createMountPinia()] },
@@ -385,7 +385,7 @@ describe('SecretForm - Domain Scope Integration', () => {
     });
 
     it('truncates long domain names with ellipsis', () => {
-      mockCurrentScope.value = {
+      mockCurrentContext.value = {
         domain: 'very-long-domain-name.example.com',
         displayName: 'very-long-domain-name.example.com',
         isCanonical: false,

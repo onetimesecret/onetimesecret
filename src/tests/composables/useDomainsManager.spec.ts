@@ -57,9 +57,18 @@ const mockDependencies: MockDependencies = {
   },
 };
 
-// Mock for useDomainScope
-const mockDomainScope = {
-  setScope: vi.fn(),
+// Mock for useDomainContext
+const mockDomainContext = {
+  setContext: vi.fn(),
+  currentContext: { value: { domain: '', isCanonical: true, displayName: '', extid: undefined } },
+  isContextActive: { value: true },
+  hasMultipleContexts: { value: false },
+  availableDomains: { value: [] },
+  resetContext: vi.fn(),
+  refreshDomains: vi.fn(),
+  getDomainDisplayName: vi.fn(),
+  getExtidByDomain: vi.fn(),
+  initialized: Promise.resolve(),
 };
 
 // Mock imports
@@ -70,8 +79,8 @@ vi.mock('vue-router', () => ({
   }),
 }));
 
-vi.mock('@/shared/composables/useDomainScope', () => ({
-  useDomainScope: () => mockDomainScope,
+vi.mock('@/shared/composables/useDomainContext', () => ({
+  useDomainContext: () => mockDomainContext,
 }));
 
 vi.mock('@/shared/stores/domainsStore', () => ({
@@ -147,8 +156,8 @@ describe('useDomainsManager', () => {
     // Reset reactive refs
     mockDependencies.domainsStore.records.value = mockDomainsArray;
     mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => await fn());
-    // Reset domain scope mock
-    mockDomainScope.setScope.mockClear();
+    // Reset domain context mock
+    mockDomainContext.setContext.mockClear();
   });
 
   describe('domain addition', () => {
@@ -157,7 +166,7 @@ describe('useDomainsManager', () => {
         // Store's addDomain now returns { record, details }
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
           record: newDomainData,
-          details: { domain_scope: newDomainData.display_domain },
+          details: { domain_context: newDomainData.display_domain },
         });
 
         const { handleAddDomain } = mountComposable(() => useDomainsManager());
@@ -179,23 +188,23 @@ describe('useDomainsManager', () => {
         );
       });
 
-      it('auto-switches domain scope to newly added domain using server-provided scope', async () => {
+      it('auto-switches domain context to newly added domain using server-provided context', async () => {
         // Store's addDomain now returns { record, details }
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
           record: newDomainData,
-          details: { domain_scope: newDomainData.display_domain },
+          details: { domain_context: newDomainData.display_domain },
         });
 
         const { handleAddDomain } = mountComposable(() => useDomainsManager());
         await handleAddDomain(newDomainData.domainid);
 
-        // Verify setScope was called with domain_scope from server and skipBackendSync=true
-        expect(mockDomainScope.setScope).toHaveBeenCalledWith(newDomainData.display_domain, true);
-        expect(mockDomainScope.setScope).toHaveBeenCalledTimes(1);
+        // Verify setContext was called with domain_context from server and skipBackendSync=true
+        expect(mockDomainContext.setContext).toHaveBeenCalledWith(newDomainData.display_domain, true);
+        expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
       });
 
-      it('falls back to display_domain when domain_scope not in response', async () => {
-        // Store's addDomain returns { record, details } without domain_scope
+      it('falls back to display_domain when domain_context not in response', async () => {
+        // Store's addDomain returns { record, details } without domain_context
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
           record: newDomainData,
           details: {},
@@ -204,12 +213,12 @@ describe('useDomainsManager', () => {
         const { handleAddDomain } = mountComposable(() => useDomainsManager());
         await handleAddDomain(newDomainData.domainid);
 
-        // Verify setScope was called with display_domain and without skipBackendSync
-        expect(mockDomainScope.setScope).toHaveBeenCalledWith(newDomainData.display_domain);
-        expect(mockDomainScope.setScope).toHaveBeenCalledTimes(1);
+        // Verify setContext was called with display_domain and without skipBackendSync
+        expect(mockDomainContext.setContext).toHaveBeenCalledWith(newDomainData.display_domain);
+        expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
       });
 
-      it('does not switch domain scope when domain addition fails', async () => {
+      it('does not switch domain context when domain addition fails', async () => {
         // Store returns null (no record)
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({ record: null, details: {} });
         mockDependencies.errorHandler.createError.mockImplementation((message, type, severity) => ({
@@ -222,8 +231,8 @@ describe('useDomainsManager', () => {
         const { handleAddDomain } = mountComposable(() => useDomainsManager());
         await handleAddDomain('failing-domain.com');
 
-        // Verify setScope was NOT called when domain addition fails
-        expect(mockDomainScope.setScope).not.toHaveBeenCalled();
+        // Verify setContext was NOT called when domain addition fails
+        expect(mockDomainContext.setContext).not.toHaveBeenCalled();
       });
 
       describe('error handling', () => {
@@ -351,7 +360,7 @@ describe('useDomainsManager', () => {
       // Store returns { record, details } on success
       mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
         record: newDomainData,
-        details: { domain_scope: newDomainData.display_domain },
+        details: { domain_context: newDomainData.display_domain },
       });
       const { handleAddDomain, error } = mountComposable(() => useDomainsManager());
 

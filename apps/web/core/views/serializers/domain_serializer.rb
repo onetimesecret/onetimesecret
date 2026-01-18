@@ -75,11 +75,11 @@ module Core
           output['custom_domains'] = custom_domains.sort
         end
 
-        # Include user's domain scope preference from session
+        # Include user's domain context preference from session
         # This persists across page refreshes, new tabs, and browser restarts
         sess = view_vars['sess']
         if is_authenticated && sess
-          output['domain_scope'] = sess['domain_scope']
+          output['domain_context'] = sess['domain_context']
         end
 
         output
@@ -98,7 +98,7 @@ module Core
             'domain_id' => nil,
             'domain_locale' => nil,
             'domain_logo' => nil,
-            'domain_scope' => nil,
+            'domain_context' => nil,
             'domain_strategy' => nil,
             # Were in original implementation, now removed:
             # display_locale: nil,

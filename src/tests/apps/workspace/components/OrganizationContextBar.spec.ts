@@ -7,9 +7,9 @@ import { ref } from 'vue';
 import OrganizationContextBar from '@/apps/workspace/components/navigation/OrganizationContextBar.vue';
 
 // Mock child components
-vi.mock('@/shared/components/navigation/DomainScopeSwitcher.vue', () => ({
+vi.mock('@/shared/components/navigation/DomainContextSwitcher.vue', () => ({
   default: {
-    name: 'DomainScopeSwitcher',
+    name: 'DomainContextSwitcher',
     template: '<div class="domain-switcher" :data-locked="locked">Domain Switcher</div>',
     props: ['locked'],
   },

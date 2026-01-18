@@ -85,8 +85,8 @@ module DomainsAPI::Logic
 
         @custom_domain = Onetime::CustomDomain.create!(@display_domain, target_organization.objid)
 
-        # After creating the domain, make it the active scope in the session
-        sess['domain_scope'] = @display_domain
+        # After creating the domain, make it the active context in the session
+        sess['domain_context'] = @display_domain
 
         begin
           # Request certificate using the configured strategy
@@ -130,7 +130,7 @@ module DomainsAPI::Logic
           user_id: @cust.objid,
           organization: target_organization.safe_dump,
           record: @custom_domain.safe_dump,
-          domain_scope: @display_domain,
+          domain_context: @display_domain,
           details: {
             cluster: Onetime::Cluster::Features.cluster_safe_dump,
           },
