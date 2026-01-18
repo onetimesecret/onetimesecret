@@ -4,6 +4,107 @@ import { ReceiptState } from '@/schemas/models/receipt';
 import { Secret, SecretState } from '@/schemas/models/secret';
 import type { Receipt, ReceiptDetails } from '@/schemas/models/receipt';
 
+// =============================================================================
+// NEW TERMINOLOGY FIXTURES (previewed/revealed)
+// =============================================================================
+// These fixtures use the new state terminology:
+//   - viewed -> previewed (secret link was accessed but not yet revealed)
+//   - received -> revealed (secret content was actually revealed to recipient)
+//
+// Backward compatibility: Old fixtures using VIEWED/RECEIVED still exist below
+
+/**
+ * Raw API response for a PREVIEWED receipt (new terminology)
+ * Previewed = secret link was accessed, confirmation page shown
+ */
+export const mockPreviewedReceiptRecordRaw = {
+  key: 'previewedkey',
+  shortid: 'prev123',
+  secret_identifier: 'secret-previewed-key-123',
+  secret_shortid: 'secret-previewed-abc123',
+  state: 'previewed', // New state value
+  natural_expiration: '24 hours',
+  expiration: 1735171614,
+  expiration_in_seconds: '86400',
+  share_path: '/share/prev123',
+  burn_path: '/burn/prev123',
+  receipt_path: '/receipt/prev123',
+  share_url: 'https://example.com/share/prev123',
+  receipt_url: 'https://example.com/receipt/prev123',
+  burn_url: 'https://example.com/burn/prev123',
+  identifier: 'previewed-identifier',
+  // New boolean fields
+  is_previewed: 'true',
+  is_revealed: 'false',
+  // Backward compat boolean fields
+  is_viewed: 'true',
+  is_received: 'false',
+  is_burned: 'false',
+  is_destroyed: 'false',
+  is_expired: 'false',
+  is_orphaned: 'false',
+  burned: null,
+  // New timestamp fields
+  previewed: '2024-12-25T16:06:54Z',
+  revealed: null,
+  // Backward compat timestamp fields
+  viewed: '2024-12-25T16:06:54Z',
+  received: null,
+  created: 1735142814,
+  updated: 1735204014,
+  secret_ttl: '3600',
+  receipt_ttl: '7200',
+  lifespan: '3600',
+};
+
+/**
+ * Raw API response for a REVEALED receipt (new terminology)
+ * Revealed = secret content was shown to the recipient
+ */
+export const mockRevealedReceiptRecordRaw = {
+  key: 'revealedkey',
+  shortid: 'rev123',
+  secret_identifier: 'secret-revealed-key-123',
+  secret_shortid: 'secret-revealed-abc123',
+  state: 'revealed', // New state value
+  natural_expiration: '24 hours',
+  expiration: 1735171614,
+  expiration_in_seconds: '86400',
+  share_path: '/share/rev123',
+  burn_path: '/burn/rev123',
+  receipt_path: '/receipt/rev123',
+  share_url: 'https://example.com/share/rev123',
+  receipt_url: 'https://example.com/receipt/rev123',
+  burn_url: 'https://example.com/burn/rev123',
+  identifier: 'revealed-identifier',
+  // New boolean fields
+  is_previewed: 'true',
+  is_revealed: 'true',
+  // Backward compat boolean fields
+  is_viewed: 'true',
+  is_received: 'true',
+  is_burned: 'false',
+  is_destroyed: 'false',
+  is_expired: 'false',
+  is_orphaned: 'false',
+  burned: null,
+  // New timestamp fields
+  previewed: '2024-12-25T14:00:00Z',
+  revealed: '2024-12-25T16:06:54Z',
+  // Backward compat timestamp fields
+  viewed: '2024-12-25T14:00:00Z',
+  received: '2024-12-25T16:06:54Z',
+  created: 1735142814,
+  updated: 1735204014,
+  secret_ttl: '3600',
+  receipt_ttl: '7200',
+  lifespan: '3600',
+};
+
+// =============================================================================
+// ORIGINAL FIXTURES (maintained for backward compatibility)
+// =============================================================================
+
 /**
  * Receipt fixtures for testing and merriment
  *
