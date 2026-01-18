@@ -86,9 +86,11 @@ RUN set -eux && \
         libpq-dev \
         pkg-config \
         git \
-        curl && \
+        curl \
+        python3 && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
+    ln -sf /usr/bin/python3 /usr/bin/python
 
 # Install yq (optimized for multi-arch)
 # We use this for migrating config from v0.22 to v0.23.
@@ -163,6 +165,7 @@ WORKDIR ${APP_DIR}
 # Copy application source
 COPY public ./public
 COPY src ./src
+COPY locales ./locales
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
      tailwind.config.ts eslint.config.ts ./
 
