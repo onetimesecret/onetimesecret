@@ -91,6 +91,8 @@ const customDomainClusterSchema = z
 
 export const customDomainDetailsSchema = z.object({
   cluster: customDomainClusterSchema,
+  /** Domain scope returned by AddDomain - indicates which domain should be active in session */
+  domain_scope: z.string().optional().nullable(),
 });
 
 export type CustomDomainCluster = z.infer<typeof customDomainClusterSchema>;

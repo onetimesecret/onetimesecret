@@ -17,7 +17,6 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { AxiosInstance } from 'axios';
-import { storeToRefs } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
 
 export interface DomainScope {
@@ -39,27 +38,31 @@ const isLoadingDomains = ref(false);
 // Request ID to handle race conditions during rapid org switches
 let currentFetchRequestId = 0;
 
-// Bootstrap config refs - lazily initialized on first composable use
-let domainsEnabled: boolean = false;
-let canonicalDomain: string = '';
-let displayDomain: string = '';
-let serverDomainScope: string | null = null;
-let configInitialized = false;
+// Bootstrap store reference - initialized on first composable use
+let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
 
-/** Initialize config from bootstrap store (called on first composable use) */
-function initConfig(): void {
-  if (configInitialized) return;
-  const bootstrapStore = useBootstrapStore();
-  const refs = storeToRefs(bootstrapStore);
-  domainsEnabled = refs.domains_enabled.value;
-  canonicalDomain = refs.site_host.value;
-  displayDomain = refs.display_domain.value;
-  serverDomainScope = refs.domain_scope.value;
-  configInitialized = true;
+/** Get bootstrap store instance (lazy singleton) */
+function getBootstrapStore(): ReturnType<typeof useBootstrapStore> {
+  if (!bootstrapStoreInstance) {
+    bootstrapStoreInstance = useBootstrapStore();
+  }
+  return bootstrapStoreInstance;
+}
+
+/** Get config values from bootstrap store (reads current values) */
+function getConfig() {
+  const store = getBootstrapStore();
+  return {
+    domainsEnabled: store.domains_enabled,
+    canonicalDomain: store.site_host,
+    displayDomain: store.display_domain,
+    serverDomainScope: store.domain_scope,
+  };
 }
 
 /** Get display name for a given domain */
 function getDomainDisplayName(domain: string): string {
+  const { canonicalDomain, displayDomain } = getConfig();
   const isCanonical = domain === canonicalDomain;
   const defaultDisplay = displayDomain || canonicalDomain || 'onetimesecret.com';
   return isCanonical ? defaultDisplay : domain;
@@ -67,6 +70,7 @@ function getDomainDisplayName(domain: string): string {
 
 /** Build available domains list from store */
 function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>): string[] {
+  const { canonicalDomain } = getConfig();
   const domainNames = storeDomains.map((d) => d.display_domain);
   if (canonicalDomain && !domainNames.includes(canonicalDomain)) {
     domainNames.push(canonicalDomain);
@@ -76,6 +80,7 @@ function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>):
 
 /** Get the preferred default domain (custom domain preferred over canonical) */
 function getPreferredDomain(available: string[]): string {
+  const { canonicalDomain } = getConfig();
   // Prefer first custom domain (non-canonical) if available
   const customDomain = available.find((d) => d !== canonicalDomain);
   return customDomain || available[0] || canonicalDomain || '';
@@ -108,6 +113,7 @@ function createDomainFetcher(
   domainsStore: ReturnType<typeof useDomainsStore>
 ) {
   return async (): Promise<boolean> => {
+    const { domainsEnabled } = getConfig();
     if (!domainsEnabled) return true;
     const orgId = organizationStore.currentOrganization?.id;
     if (!orgId) {
@@ -136,6 +142,8 @@ async function initializeDomainScope(
   getAvailable: () => string[]
 ): Promise<void> {
   if (isInitialized.value) return;
+
+  const { domainsEnabled, canonicalDomain, serverDomainScope } = getConfig();
 
   try {
     if (domainsEnabled) {
@@ -170,8 +178,6 @@ async function initializeDomainScope(
  * Domains are scoped to the current organization.
  */
 export function useDomainScope() {
-  initConfig();
-
   const $api = inject('api') as AxiosInstance | undefined;
   const domainsStore = useDomainsStore();
   const organizationStore = useOrganizationStore();
@@ -195,6 +201,7 @@ export function useDomainScope() {
   const initPromise = initializeDomainScope(fetchDomainsForOrganization, () => availableDomains.value);
 
   const currentScope = computed<DomainScope>(() => {
+    const { canonicalDomain } = getConfig();
     const domain = currentDomain.value || canonicalDomain || '';
     const isCanonical = domain === canonicalDomain;
     return {
@@ -205,21 +212,32 @@ export function useDomainScope() {
     };
   });
 
-  const setScope = async (domain: string): Promise<void> => {
+  /**
+   * Set the current domain scope
+   * @param domain - The domain to set as active scope
+   * @param skipBackendSync - If true, skips the backend sync (use when server already set the scope)
+   */
+  const setScope = async (domain: string, skipBackendSync = false): Promise<void> => {
     if (!availableDomains.value.includes(domain)) return;
     currentDomain.value = domain;
     localStorage.setItem('domainScope', domain);
-    await syncDomainScopeToServer($api, domain);
+    if (!skipBackendSync) {
+      await syncDomainScopeToServer($api, domain);
+    }
   };
 
   return {
     currentScope,
-    isScopeActive: computed<boolean>(() => domainsEnabled),
+    isScopeActive: computed<boolean>(() => getConfig().domainsEnabled),
     hasMultipleScopes: computed<boolean>(() => availableDomains.value.length > 1),
     availableDomains,
     isLoadingDomains: computed(() => isLoadingDomains.value),
     setScope,
-    resetScope: () => { currentDomain.value = canonicalDomain || ''; localStorage.removeItem('domainScope'); },
+    resetScope: () => {
+      const { canonicalDomain } = getConfig();
+      currentDomain.value = canonicalDomain || '';
+      localStorage.removeItem('domainScope');
+    },
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
     getExtidByDomain: (domain: string) => findExtidByDomain(domainsStore.domains || [], domain),

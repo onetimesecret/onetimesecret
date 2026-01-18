@@ -2,55 +2,87 @@
 #
 # frozen_string_literal: true
 
-require 'spec_helper'
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../../../../apps/api/domains/application'
 
 RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
-  # Skip these tests - they require full integration environment
-  # Tests need proper Onetime boot sequence, Redis, and model initialization
-  # TODO: Set up integration test environment or convert to unit tests with better mocking
-
-  before(:all) do
-    skip 'Requires integration environment setup'
-  end
-
   let(:customer) do
-    double('Customer',
+    instance_double(
+      Onetime::Customer,
       custid: 'cust123',
       objid: 'cust123',
+      extid: 'ext-cust123',
+      anonymous?: false,
     )
   end
 
   let(:organization) do
-    double('Organization',
+    instance_double(
+      Onetime::Organization,
       objid: 'org123',
       display_name: 'Test Org',
+      safe_dump: { objid: 'org123', display_name: 'Test Org' },
     )
   end
 
   let(:custom_domain) do
-    double('CustomDomain',
+    instance_double(
+      Onetime::CustomDomain,
       identifier: 'domain123',
       display_domain: 'example.com',
       domainid: 'domain123',
       vhost: nil,
-      'vhost=' => nil,
       updated: nil,
-      'updated=' => nil,
       save: true,
       safe_dump: { display_domain: 'example.com' },
     )
   end
 
+  let(:session) do
+    {
+      'csrf' => 'test-csrf-token',
+      'domain_scope' => nil,
+    }
+  end
+
+  let(:strategy_result) do
+    double('StrategyResult',
+      session: session,
+      user: customer,
+      authenticated?: true,
+      metadata: {},
+    )
+  end
+
   let(:params) { { 'domain' => 'example.com' } }
-  let(:logic) { described_class.new(customer, params) }
+  let(:logic) { described_class.new(strategy_result, params) }
 
   before do
+    allow(OT).to receive(:info)
+    allow(OT).to receive(:ld)
+    allow(OT).to receive(:li)
+    allow(OT).to receive(:le)
+    allow(OT).to receive(:now).and_return(Time.now.to_i)
+    allow(OT).to receive(:conf).and_return({
+      'site' => {},
+      'features' => { 'domains' => { 'enabled' => true } },
+    })
+
     allow(logic).to receive(:organization).and_return(organization)
+    allow(logic).to receive(:target_organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
-    allow(Onetime::CustomDomain).to receive_messages(valid?: true, parse: custom_domain, load_by_display_domain: nil, create!: custom_domain)
+
+    # Allow vhost= and updated= setters on the custom_domain mock
+    allow(custom_domain).to receive(:vhost=)
+    allow(custom_domain).to receive(:updated=)
+
+    allow(Onetime::CustomDomain).to receive_messages(
+      valid?: true,
+      parse: custom_domain,
+      load_by_display_domain: nil,
+      create!: custom_domain,
+    )
     allow(Onetime::Cluster::Features).to receive(:cluster_safe_dump).and_return({})
-    allow(OT.conf).to receive(:dig).and_return(nil)
   end
 
   describe '#request_certificate' do
@@ -59,6 +91,9 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     before do
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
         .and_return(strategy)
+      # Set instance variables that would normally be set by raise_concerns/process
+      logic.instance_variable_set(:@custom_domain, custom_domain)
+      logic.instance_variable_set(:@display_domain, 'example.com')
     end
 
     context 'with successful certificate request' do
@@ -183,7 +218,8 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
         .and_return(strategy)
       allow(strategy).to receive(:request_certificate).and_return(result)
-      allow(logic).to receive(:success_data).and_return({})
+      # Set @display_domain as raise_concerns would do
+      logic.instance_variable_set(:@display_domain, 'example.com')
     end
 
     it 'creates custom domain' do
@@ -217,6 +253,32 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       logic.send(:process)
       expect(logic.greenlighted).to be true
     end
+
+    it 'sets domain_scope in session after creating domain' do
+      expect(session['domain_scope']).to be_nil
+      logic.send(:process)
+      expect(session['domain_scope']).to eq('example.com')
+    end
+
+    it 'sets domain_scope to match the display_domain' do
+      logic.send(:process)
+      expect(session['domain_scope']).to eq(custom_domain.display_domain)
+    end
+
+    context 'when session already has a domain_scope' do
+      let(:session) do
+        {
+          'csrf' => 'test-csrf-token',
+          'domain_scope' => 'old-domain.com',
+        }
+      end
+
+      it 'overwrites existing domain_scope with new domain' do
+        expect(session['domain_scope']).to eq('old-domain.com')
+        logic.send(:process)
+        expect(session['domain_scope']).to eq('example.com')
+      end
+    end
   end
 
   describe '#create_vhost (deprecated)' do
@@ -238,6 +300,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
   describe '#success_data' do
     before do
       logic.instance_variable_set(:@custom_domain, custom_domain)
+      logic.instance_variable_set(:@display_domain, 'example.com')
     end
 
     it 'includes user_id' do
@@ -253,6 +316,53 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     it 'includes cluster details' do
       data = logic.send(:success_data)
       expect(data[:details]).to have_key(:cluster)
+    end
+
+    it 'includes domain_scope in response' do
+      data = logic.send(:success_data)
+      expect(data).to have_key(:domain_scope)
+    end
+
+    it 'returns domain_scope matching display_domain' do
+      data = logic.send(:success_data)
+      expect(data[:domain_scope]).to eq('example.com')
+    end
+
+    context 'with subdomain' do
+      before do
+        logic.instance_variable_set(:@display_domain, 'secrets.example.com')
+        allow(custom_domain).to receive(:display_domain).and_return('secrets.example.com')
+      end
+
+      it 'returns domain_scope for subdomain' do
+        data = logic.send(:success_data)
+        expect(data[:domain_scope]).to eq('secrets.example.com')
+      end
+    end
+  end
+
+  describe 'domain_scope integration' do
+    let(:strategy) { instance_double(Onetime::DomainValidation::PassthroughStrategy) }
+    let(:result) { { status: 'external' } }
+
+    before do
+      allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)
+      allow(strategy).to receive(:request_certificate).and_return(result)
+      # Set @display_domain as raise_concerns would do
+      logic.instance_variable_set(:@display_domain, 'example.com')
+    end
+
+    it 'session domain_scope matches success_data domain_scope after process' do
+      result_data = logic.send(:process)
+
+      expect(session['domain_scope']).to eq(result_data[:domain_scope])
+    end
+
+    it 'both session and response contain the same display_domain' do
+      logic.send(:process)
+
+      expect(session['domain_scope']).to eq('example.com')
+      expect(logic.send(:success_data)[:domain_scope]).to eq('example.com')
     end
   end
 end

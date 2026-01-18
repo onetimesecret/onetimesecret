@@ -34,7 +34,7 @@ export type DomainsStore = {
   initialized: boolean;
 
   // Actions
-  addDomain: (domain: string, orgId?: string) => Promise<CustomDomain>;
+  addDomain: (domain: string, orgId?: string) => Promise<{ record: CustomDomain; details?: CustomDomainDetails }>;
   fetchList: () => Promise<void>;
   getDomain: (extid: string) => Promise<CustomDomain>;
   verifyDomain: (extid: string) => Promise<CustomDomain>;
@@ -87,6 +87,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * @param domain - The domain name to add
    * @param orgId - Optional organization ID. If provided, adds domain for that org.
    *                If not provided, uses the organization from session context.
+   * @returns Object containing the domain record and details (including domain_scope if set by server)
    */
   async function addDomain(domain: string, orgId?: string) {
     const payload: { domain: string; org_id?: string } = { domain };
@@ -95,7 +96,7 @@ export const useDomainsStore = defineStore('domains', () => {
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) records.value = [];
     records.value.push(validated.record);
-    return validated.record;
+    return { record: validated.record, details: validated.details };
   }
 
   /**

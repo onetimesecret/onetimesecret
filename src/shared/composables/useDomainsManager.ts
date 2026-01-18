@@ -3,6 +3,7 @@
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useDomainScope } from '@/shared/composables/useDomainScope';
 import { ApplicationError } from '@/schemas/errors';
+import type { CustomDomain } from '@/schemas/models';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
@@ -118,32 +119,46 @@ export function useDomainsManager() {
     return undefined; // Signal to re-throw
   };
 
+  /** Update domain scope after adding a domain */
+  const updateDomainScopeAfterAdd = (
+    record: CustomDomain,
+    details: { domain_scope?: string | null } | undefined
+  ) => {
+    const { setScope } = useDomainScope();
+    const scopeFromServer = details?.domain_scope;
+    // Skip backend sync when server already set the scope
+    if (scopeFromServer) {
+      setScope(scopeFromServer, true);
+    } else {
+      setScope(record.display_domain);
+    }
+  };
+
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
       try {
         // Pass org_id from route params to ensure correct org context
         const result = await store.addDomain(domain, orgid.value);
-        if (!result) {
+        if (!result?.record) {
           error.value = createError(t('web.domains.failed_to_add_domain'), 'human', 'error');
           return null;
         }
 
-        const isReclaimed = result.updated.getTime() > result.created.getTime();
+        const { record, details } = result;
+        const isReclaimed = record.updated.getTime() > record.created.getTime();
         const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success');
 
-        // Auto-switch domain scope to the newly added domain
-        const { setScope } = useDomainScope();
-        setScope(result.display_domain);
+        updateDomainScopeAfterAdd(record, details);
 
         if (orgid.value) {
           router.push({
             name: 'DomainVerify',
-            params: { orgid: orgid.value, extid: result.extid },
+            params: { orgid: orgid.value, extid: record.extid },
           });
         }
-        setTimeout(() => verifyDomain(result.extid), 2000);
-        return result;
+        setTimeout(() => verifyDomain(record.extid), 2000);
+        return record;
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || '';
         const handled = await handleDomainExistsError(domain, errorMessage);

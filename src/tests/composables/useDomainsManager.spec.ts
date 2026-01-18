@@ -11,6 +11,7 @@ import { mount } from '@vue/test-utils';
 import type { MockDependencies } from '../types.d';
 
 // Mock Setup
+const mockDomainsArray = Object.values(mockDomains);
 const mockDependencies: MockDependencies = {
   router: {
     back: vi.fn(),
@@ -28,12 +29,12 @@ const mockDependencies: MockDependencies = {
   },
   domainsStore: {
     init: vi.fn(),
-    records: ref(mockDomains),
+    records: ref(mockDomainsArray),
     details: ref({}),
-    count: ref(mockDomains.length),
-    domains: computed(() => mockDomains),
+    count: ref(mockDomainsArray.length),
+    domains: computed(() => mockDomainsArray),
     initialized: false,
-    recordCount: vi.fn(() => mockDomains.length),
+    recordCount: vi.fn(() => mockDomainsArray.length),
     addDomain: vi.fn(),
     deleteDomain: vi.fn(),
     getDomain: vi.fn(),
@@ -48,6 +49,8 @@ const mockDependencies: MockDependencies = {
     fetchList: vi.fn(),
     refreshRecords: vi.fn(),
     $reset: vi.fn(),
+    isLoading: ref(false),
+    error: ref(null),
   },
   notificationsStore: {
     show: vi.fn(),
@@ -142,7 +145,7 @@ describe('useDomainsManager', () => {
 
     vi.clearAllMocks();
     // Reset reactive refs
-    mockDependencies.domainsStore.records.value = mockDomains;
+    mockDependencies.domainsStore.records.value = mockDomainsArray;
     mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => await fn());
     // Reset domain scope mock
     mockDomainScope.setScope.mockClear();
@@ -151,11 +154,16 @@ describe('useDomainsManager', () => {
   describe('domain addition', () => {
     describe('handleAddDomain', () => {
       it('successfully adds a new domain and navigates to verification', async () => {
-        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
+        // Store's addDomain now returns { record, details }
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+          record: newDomainData,
+          details: { domain_scope: newDomainData.display_domain },
+        });
 
         const { handleAddDomain } = mountComposable(() => useDomainsManager());
         const result = await handleAddDomain(newDomainData.domainid);
 
+        // handleAddDomain returns just the record
         expect(result).toEqual(newDomainData);
         expect(mockDependencies.domainsStore.addDomain).toHaveBeenCalledWith(
           newDomainData.domainid,
@@ -171,19 +179,39 @@ describe('useDomainsManager', () => {
         );
       });
 
-      it('auto-switches domain scope to newly added domain', async () => {
-        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
+      it('auto-switches domain scope to newly added domain using server-provided scope', async () => {
+        // Store's addDomain now returns { record, details }
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+          record: newDomainData,
+          details: { domain_scope: newDomainData.display_domain },
+        });
 
         const { handleAddDomain } = mountComposable(() => useDomainsManager());
         await handleAddDomain(newDomainData.domainid);
 
-        // Verify setScope was called with the new domain's display_domain
+        // Verify setScope was called with domain_scope from server and skipBackendSync=true
+        expect(mockDomainScope.setScope).toHaveBeenCalledWith(newDomainData.display_domain, true);
+        expect(mockDomainScope.setScope).toHaveBeenCalledTimes(1);
+      });
+
+      it('falls back to display_domain when domain_scope not in response', async () => {
+        // Store's addDomain returns { record, details } without domain_scope
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+          record: newDomainData,
+          details: {},
+        });
+
+        const { handleAddDomain } = mountComposable(() => useDomainsManager());
+        await handleAddDomain(newDomainData.domainid);
+
+        // Verify setScope was called with display_domain and without skipBackendSync
         expect(mockDomainScope.setScope).toHaveBeenCalledWith(newDomainData.display_domain);
         expect(mockDomainScope.setScope).toHaveBeenCalledTimes(1);
       });
 
       it('does not switch domain scope when domain addition fails', async () => {
-        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(null);
+        // Store returns null (no record)
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({ record: null, details: {} });
         mockDependencies.errorHandler.createError.mockImplementation((message, type, severity) => ({
           message,
           type,
@@ -290,7 +318,7 @@ describe('useDomainsManager', () => {
     it('exposes store reactive properties', () => {
       const { records, isLoading } = mountComposable(() => useDomainsManager());
 
-      expect(records.value).toEqual(mockDomains);
+      expect(records.value).toEqual(mockDomainsArray);
       expect(isLoading.value).toBe(false);
     });
 
@@ -300,7 +328,8 @@ describe('useDomainsManager', () => {
   });
   describe('error handling', () => {
     it('sets human-readable error when domain addition fails', async () => {
-      mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(null);
+      // Store returns { record: null } to simulate failure
+      mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({ record: null, details: {} });
       mockDependencies.errorHandler.createError.mockImplementation((message, type, severity) => ({
         message,
         type,
@@ -319,7 +348,11 @@ describe('useDomainsManager', () => {
     });
 
     it('clears error state on successful domain addition', async () => {
-      mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
+      // Store returns { record, details } on success
+      mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+        record: newDomainData,
+        details: { domain_scope: newDomainData.display_domain },
+      });
       const { handleAddDomain, error } = mountComposable(() => useDomainsManager());
 
       await handleAddDomain('test-domain.com');
