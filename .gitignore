@@ -76,6 +76,10 @@ src/auto-imports.d.ts
 src/.eslintrc-auto-import.json
 *.pyc
 
+# Generated files (locales and types) - produced by sync/type-gen scripts
+generated/locales/*.json
+generated/types/*.d.ts
+
 # Environment files
 .env*
 !.env.example

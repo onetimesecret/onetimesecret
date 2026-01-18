@@ -8,128 +8,32 @@ import { createI18n, type Composer } from 'vue-i18n';
  * Internationalization configuration and utilities.
  * Sets up Vue i18n instance with locale management and message loading.
  *
- * Locale files are split into 17 categorized JSON files per locale directory
- * (e.g., src/locales/en/*.json). We manually import and merge them to avoid
- * infinite recursion in the Vite i18n plugin's auto-merge.
+ * Locale files are pre-merged by the Python sync script into single files
+ * at generated/locales/{locale}.json. This simplifies the frontend loading
+ * by eliminating the need for runtime merging of split locale files.
  */
 
 /**
- * Manually import and merge all locale files for each locale.
- * Files have two possible structures:
- * 1. Structured: {"web": {...}, "email": {...}} - most files
- * 2. Flat: {"key": "value", ...} - uncategorized.json
+ * Import pre-merged locale files directly from generated directory.
+ * The Python sync script (locales/scripts/sync_to_src.py --merged) produces
+ * these files during development and build.
  */
 // Using type assertion for Vite's import.meta.glob (types from vite/client reference)
-const localeModules = (import.meta as any).glob('@/locales/*/*.json', {
+// Note: Since vite.config.ts sets root: './src', paths starting with / are relative to src/
+// We use /../generated to go up one level to the project root where generated/ lives
+const localeModules = (import.meta as any).glob('/../generated/locales/*.json', {
   eager: true,
 }) as Record<string, { default: Record<string, any> }>;
 
 const messages: Record<string, any> = {};
 
-/** Keys that must be rejected to prevent prototype pollution attacks (CWE-1321) */
-export const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
-
-/**
- * Deep merge helper function to recursively merge nested objects.
- * Prevents namespace collisions when multiple locale files share the same top-level keys.
- *
- * Includes prototype pollution guards per OWASP recommendations.
- * @see https://owasp.org/www-community/attacks/Prototype_Pollution
- *
- * @param target - The target object to merge into
- * @param source - The source object to merge from
- * @returns The merged target object
- */
-export function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
-  for (const key in source) {
-    // Skip inherited properties to prevent iterating over polluted prototype
-    if (!Object.prototype.hasOwnProperty.call(source, key)) {
-      continue;
-    }
-    // Guard against prototype pollution (CWE-1321)
-    if (DANGEROUS_KEYS.has(key)) {
-      continue;
-    }
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      if (!target[key]) {
-        target[key] = {};
-      }
-      deepMerge(target[key], source[key]);
-    } else {
-      target[key] = source[key];
-    }
-  }
-  return target;
-}
-
-/**
- * Merges a structured locale file content (has "web" or "email" keys) into messages.
- * Exported for testing purposes - allows direct testing of production merge logic.
- *
- * @param messages - Target messages object for a specific locale
- * @param content - Structured content with "web" or "email" keys
- */
-export function mergeStructuredContent(
-  messages: Record<string, any>,
-  content: Record<string, any>
-): void {
-  Object.keys(content).forEach((topKey) => {
-    // Guard against prototype pollution (CWE-1321)
-    if (DANGEROUS_KEYS.has(topKey)) {
-      return;
-    }
-    if (typeof content[topKey] === 'object' && content[topKey] !== null) {
-      if (!messages[topKey]) {
-        messages[topKey] = {};
-      }
-      deepMerge(messages[topKey], content[topKey]);
-    }
-  });
-}
-
-/**
- * Merges a flat locale file content (no "web" or "email" keys) into messages.
- * Exported for testing purposes - allows direct testing of production merge logic.
- *
- * @param messages - Target messages object for a specific locale
- * @param content - Flat content with direct key-value pairs
- */
-export function mergeFlatContent(
-  messages: Record<string, any>,
-  content: Record<string, any>
-): void {
-  Object.keys(content).forEach((key) => {
-    if (!DANGEROUS_KEYS.has(key)) {
-      messages[key] = content[key];
-    }
-  });
-}
-
-// Process each imported module
+// Simple extraction - files are already merged by the Python sync script
 for (const path in localeModules) {
-  // Extract locale code from path: /src/locales/en/file.json -> en
-  const match = path.match(/\/locales\/([^\/]+)\//);
+  // Extract locale code from path: /generated/locales/en.json -> en
+  const match = path.match(/\/locales\/([^/]+)\.json$/);
   if (match) {
     const locale = match[1];
-    const content = localeModules[path].default;
-
-    // Initialize locale if not exists
-    if (!messages[locale]) {
-      messages[locale] = {};
-    }
-
-    // Check if this is a structured file (has "web" or "email" keys)
-    // or a flat file (uncategorized)
-    const hasStructuredKeys = 'web' in content || 'email' in content;
-
-    if (hasStructuredKeys) {
-      // Structured file: merge under "web" or "email" keys using deep merge
-      // to prevent namespace collisions (e.g., auth.json and auth-full.json both use web.auth)
-      mergeStructuredContent(messages[locale], content);
-    } else {
-      // Flat file (uncategorized): merge keys directly at root level
-      mergeFlatContent(messages[locale], content);
-    }
+    messages[locale] = localeModules[path].default;
   }
 }
 
@@ -223,37 +127,3 @@ const {
 } = createI18nInstance(displayLocale);
 export default i18n;
 export { globalComposer, setGlobalLocale };
-
-/**
- * Flattens nested message structure while maintaining backwards compatibility.
- * Supports both flat and dot-notation key access.
- * @param messages - Nested message object
- * @returns Flattened messages with preserved key paths
- */
-export function createCompatibilityLayer(messages: Record<string, any>): Record<string, string> {
-  const flat: Record<string, string> = {};
-
-  /**
-   * Recursively flattens object into dot notation paths.
-   * Includes prototype pollution guards per OWASP recommendations.
-   * @param obj - Source object
-   * @param prefix - Current key path
-   */
-  function flattenKeys(obj: Record<string, unknown>, prefix = ''): void {
-    Object.entries(obj).forEach(([key, value]) => {
-      // Guard against prototype pollution (CWE-1321)
-      if (DANGEROUS_KEYS.has(key)) {
-        return;
-      }
-      if (value && typeof value === 'object') {
-        flattenKeys(value as Record<string, unknown>, `${prefix}${key}.`);
-      } else {
-        flat[key] = value as string; // Maintain old keys
-        flat[`${prefix}${key}`] = value as string; // Add new nested keys
-      }
-    });
-  }
-
-  flattenKeys(messages);
-  return flat;
-}

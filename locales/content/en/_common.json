@@ -969,5 +969,17 @@
   },
   "web.pricing.recommended_for_you": {
     "text": "Recommended for You"
+  },
+  "web.COMMON.received": {
+    "text": "Received"
+  },
+  "web.LABELS.add_note": {
+    "text": "Add note..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Edit note"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Create and share secrets with basic features. No credit card required."
   }
 }

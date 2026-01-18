@@ -198,9 +198,6 @@ mail:
 internationalization:
   enabled: true
   default_locale: en
-  # Disable locale caching in tests to avoid stale cache issues
-  # and ensure consistent behavior across CI and local development
-  precompile_cache: false
   fallback_locale:
     fr-CA: [fr_CA, fr_FR, en]
     fr: [fr_FR, fr_CA, en]

@@ -95,19 +95,13 @@ export default defineConfig({
     /**
      * Vue I18n Plugin - Handles internationalization
      * ------------------------------------------------
-     * Automatically discovers and merges split locale files:
-     * - src/locales/en/*.json → messages.en
-     * - src/locales/fr_FR/*.json → messages.fr_FR
-     * - etc. for all 34+ locales
-     *
-     * Each locale directory contains 17 categorized JSON files
-     * that are automatically merged at build time into a single
-     * locale object while maintaining the nested structure.
+     * Locales are pre-merged by Python script (locales/scripts/sync_to_src.py)
+     * into single JSON files per locale in generated/locales/{locale}.json.
+     * The src/i18n.ts module loads these pre-merged files directly.
      */
     VueI18nPlugin({
-      // We disable the automatic locale file discovery to avoid modifying the
-      // message object structure using the basenames of the JSON files.
-      // Instead, we manually load and merge files in src/i18n.ts
+      // Disable automatic locale file discovery - we load pre-merged files
+      // from generated/locales/ in src/i18n.ts
       include: [],
 
       // compositionOnly: true
@@ -182,6 +176,7 @@ export default defineConfig({
     alias: {
       '@': resolve(process.cwd(), './src'),
       '@tests': resolve(process.cwd(), './tests'),
+      '@generated': resolve(process.cwd(), './generated'),
       // vue: 'vue/dist/vue.runtime.esm-bundler.js',
     },
   },

@@ -16,6 +16,7 @@ with empty text are excluded from app files.
 Usage:
     python sync_to_src.py LOCALE [OPTIONS]
     python sync_to_src.py --all [OPTIONS]
+    python sync_to_src.py --all --merged [OPTIONS]
 
 Examples:
     python sync_to_src.py eo --dry-run
@@ -23,6 +24,8 @@ Examples:
     python sync_to_src.py eo
     python sync_to_src.py --all
     python sync_to_src.py eo --clobber  # Replace files instead of merging
+    python sync_to_src.py --all --merged  # Output single merged JSON per locale
+    python sync_to_src.py --all --merged --output-dir generated/locales
 """
 
 import argparse
@@ -40,8 +43,10 @@ from utils import (
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
+PROJECT_ROOT = LOCALES_DIR.parent
 CONTENT_DIR = LOCALES_DIR / "content"
-SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
+SRC_LOCALES_DIR = PROJECT_ROOT / "src" / "locales"
+GENERATED_LOCALES_DIR = PROJECT_ROOT / "generated" / "locales"
 
 
 def get_translations_from_content(content: dict[str, Any]) -> dict[str, str]:
@@ -164,6 +169,94 @@ def sync_locale(
     return stats
 
 
+def sync_locale_merged(
+    locale: str,
+    output_dir: Path,
+    dry_run: bool = False,
+    verbose: bool = False,
+) -> int:
+    """Sync all translations for a locale into a single merged JSON file.
+
+    Reads all content files for the locale, extracts translations,
+    converts flat keys to nested structure, and outputs a single
+    {locale}.json file to the output directory.
+
+    Args:
+        locale: Target locale code.
+        output_dir: Directory to write merged output file.
+        dry_run: If True, only report what would be done.
+        verbose: If True, show detailed output.
+
+    Returns:
+        Number of keys synced.
+    """
+    content_dir = CONTENT_DIR / locale
+
+    if not content_dir.exists():
+        if verbose:
+            print(f"No content found for '{locale}'")
+            print(f"  Expected: {content_dir}")
+        return 0
+
+    # Get all content JSON files
+    content_files = sorted(content_dir.glob("*.json"))
+
+    if not content_files:
+        if verbose:
+            print(f"No content files found in {content_dir}")
+        return 0
+
+    # Collect all translations from all files
+    all_translations: dict[str, str] = {}
+
+    for content_file in content_files:
+        content = load_json_file(content_file)
+        if not content:
+            continue
+
+        translations = get_translations_from_content(content)
+        all_translations.update(translations)
+
+        if verbose:
+            print(f"  {content_file.name}: {len(translations)} keys")
+
+    if not all_translations:
+        if verbose:
+            print(f"No translations found for '{locale}'")
+        return 0
+
+    if dry_run:
+        print(f"\n[DRY-RUN] Would write {output_dir / f'{locale}.json'} ({len(all_translations)} keys)")
+        if verbose:
+            sample = list(all_translations.items())[:5]
+            for key, value in sample:
+                print(f"  {key}: {value[:50]}...")
+            if len(all_translations) > 5:
+                print(f"  ... and {len(all_translations) - 5} more")
+        return len(all_translations)
+
+    # Build nested structure from flat keys
+    merged_data: dict[str, Any] = {}
+
+    for key, translation in all_translations.items():
+        try:
+            set_nested_value(merged_data, key, translation, strict=True)
+        except KeyPathConflictError as e:
+            print(f"Error in {locale}: {e}", file=sys.stderr)
+            print("  This indicates conflicting key structures.", file=sys.stderr)
+            print("  Fix the source data before syncing.", file=sys.stderr)
+            sys.exit(1)
+
+    # Write merged output file
+    output_file = output_dir / f"{locale}.json"
+    save_json_file(output_file, merged_data)
+
+    if verbose:
+        print(f"Updated {output_file}: {len(all_translations)} keys")
+
+    return len(all_translations)
+
+
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -177,6 +270,8 @@ Examples:
     python sync_to_src.py --all
     python sync_to_src.py --all --dry-run
     python sync_to_src.py eo --clobber       # Replace files instead of merging
+    python sync_to_src.py --all --merged     # Output single merged file per locale
+    python sync_to_src.py --all --merged --output-dir generated/locales
         """,
     )
 
@@ -210,6 +305,18 @@ Examples:
         action="store_true",
         help="Verbose output",
     )
+    parser.add_argument(
+        "--merged",
+        action="store_true",
+        help="Output single merged JSON file per locale (for backend consumption)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        dest="output_dir",
+        type=Path,
+        default=GENERATED_LOCALES_DIR,
+        help=f"Output directory for merged files (default: {GENERATED_LOCALES_DIR})",
+    )
 
     args = parser.parse_args()
 
@@ -218,6 +325,10 @@ Examples:
         parser.error("Either LOCALE or --all must be specified")
     if args.locale and args.all:
         parser.error("Cannot specify both LOCALE and --all")
+    if args.merged and args.file_filter:
+        parser.error("Cannot use --file with --merged mode")
+    if args.merged and args.clobber:
+        parser.error("--clobber is not applicable in --merged mode")
 
     # Determine which locales to sync
     if args.all:
@@ -230,6 +341,65 @@ Examples:
     else:
         locale_dirs = [args.locale]
 
+    # Handle merged mode separately
+    if args.merged:
+        output_dir = args.output_dir
+        if args.verbose:
+            print(f"Output directory: {output_dir}")
+
+        all_key_counts: dict[str, int] = {}
+        default_locale = "en"  # Will be used for percentage calculation
+
+        for locale in locale_dirs:
+            if args.verbose:
+                if args.all:
+                    print(f"\n{'='*60}")
+                    print(f"Locale: {locale}")
+                    print(f"{'='*60}")
+
+                print(f"Syncing translations for '{locale}' (merged mode)")
+                print(f"  From: {CONTENT_DIR / locale}")
+                print(f"  To:   {output_dir / f'{locale}.json'}")
+                print()
+
+            key_count = sync_locale_merged(
+                locale=locale,
+                output_dir=output_dir,
+                dry_run=args.dry_run,
+                verbose=args.verbose,
+            )
+
+            if key_count > 0:
+                all_key_counts[locale] = key_count
+
+        # Summary for merged mode
+        if args.all and all_key_counts and not args.dry_run:
+            # Get default locale key count for percentage calculation
+            default_keys = all_key_counts.get(default_locale, 0)
+
+            # Sort by key count descending
+            sorted_locales = sorted(all_key_counts.items(), key=lambda x: x[1], reverse=True)
+
+            print(f"\n{'='*60}")
+            print(f"Locale sync complete ({len(all_key_counts)} locales)")
+            print(f"{'='*60}")
+
+            grand_total = sum(all_key_counts.values())
+            for locale, count in sorted_locales:
+                if default_keys > 0:
+                    pct = (count / default_keys) * 100
+                    pct_str = f"{pct:5.1f}%"
+                else:
+                    pct_str = "  N/A"
+                marker = " *" if locale == default_locale else ""
+                print(f"  {locale:8} {count:5} keys ({pct_str}){marker}")
+
+            print(f"{'='*60}")
+            print(f"Total: {grand_total} keys  (* = default locale)")
+
+        return 0
+
+    # Standard (non-merged) mode
     all_stats: dict[str, dict[str, int]] = {}
 
     for locale in locale_dirs:

@@ -11,7 +11,7 @@ module Onetime
     # SetupI18n initializer
     #
     # Configures the ruby-i18n gem for backend localization. Loads locale
-    # files from src/locales/ (JSON). All translations including email
+    # files from generated/locales/ (JSON). All translations including email
     # templates are unified in the JSON locale files.
     # Provides thread-safe translation lookup with fallback behavior.
     #
@@ -39,7 +39,7 @@ module Onetime
         # Clear any existing load paths (for test isolation)
         I18n.load_path.clear
 
-        # Load JSON files from src/locales (includes email translations)
+        # Load JSON files from generated/locales
         load_json_locales
 
         OT.ld "[init] I18n configured: default=#{I18n.default_locale}, " \
@@ -50,10 +50,10 @@ module Onetime
       private
 
       def load_json_locales
-        locale_files = Dir[File.join(Onetime::HOME, 'src/locales/*/*.json')]
+        locale_files = Dir[File.join(Onetime::HOME, 'generated/locales/*.json')]
 
         if locale_files.empty?
-          OT.le '[init] No JSON locale files found in src/locales/*/*.json'
+          OT.le '[init] No JSON locale files found in generated/locales/*.json'
           return
         end
 
@@ -70,14 +70,15 @@ module Onetime
       # While JSON is valid YAML, I18n's Simple backend dispatches by file
       # extension and doesn't have a .json handler. More importantly, our
       # locale files don't include the locale key at the top level - we
-      # infer it from the directory path (e.g., src/locales/en/file.json).
+      # infer it from the filename (e.g., generated/locales/en.json).
       #
       module JsonBackend
         # Load JSON file and convert to I18n data structure
         #
-        # The JSON files in src/locales/ don't include the locale key at the
+        # The JSON files in generated/locales/ don't include the locale key at the
         # top level (e.g., they have {web: {...}} instead of {en: {web: {...}}}).
-        # We detect this and wrap the data with the locale key.
+        # We detect this and wrap the data with the locale key inferred from
+        # the filename.
         #
         # I18n expects loader methods to return a tuple: [data, keys_symbolized]
         # where data is a Hash with locale keys at the top level.
@@ -88,15 +89,11 @@ module Onetime
         def load_json(filename)
           data = JSON.parse(File.read(filename))
 
-          # Infer locale from path: src/locales/en/file.json -> "en"
-          if (match = filename.match(%r{/locales/([^/]+)/}))
-            locale = match[1]
+          # Infer locale from filename: generated/locales/en.json -> "en"
+          locale = File.basename(filename, '.json')
 
-            # If data doesn't have locale key at top level, wrap it
-            unless data.key?(locale)
-              data = { locale => data }
-            end
-          end
+          # If data doesn't have locale key at top level, wrap it
+          data = { locale => data } unless data.key?(locale)
 
           # Return tuple: [data, keys_symbolized]
           # keys_symbolized=false because we're using string keys like YAML

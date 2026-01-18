@@ -33,9 +33,9 @@ RSpec.describe 'Email Template Rendering', type: :integration do
     I18n.available_locales = [:en]
     I18n.default_locale = :en
 
-    # Clear and reload locale files
+    # Clear and reload locale files (merged single-file format)
     I18n.load_path.clear
-    locale_files = Dir[File.join(ENV['ONETIME_HOME'] || Onetime::HOME, 'src/locales/*/*.json')]
+    locale_files = Dir[File.join(ENV['ONETIME_HOME'] || Onetime::HOME, 'generated/locales/*.json')]
     locale_files.each { |file| I18n.load_path << file }
     I18n.backend.reload!
   end

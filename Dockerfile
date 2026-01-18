@@ -86,7 +86,8 @@ RUN set -eux && \
         libpq-dev \
         pkg-config \
         git \
-        curl && \
+        curl \
+        python3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
@@ -163,6 +164,7 @@ WORKDIR ${APP_DIR}
 # Copy application source
 COPY public ./public
 COPY src ./src
+COPY locales ./locales
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
      tailwind.config.ts eslint.config.ts ./
 

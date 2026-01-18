@@ -576,11 +576,6 @@ jobs:
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
-  # Cache precompiled locale definitions to disk for faster startup.
-  # When true, locale definitions are cached to .all-locales-*.cache files
-  # and reused on subsequent boots if source files haven't changed.
-  # Set to false for development/testing to always reload from source.
-  precompile_cache: <%= ENV['I18N_PRECOMPILE_CACHE'] != 'false' %>
   fallback_locale:
     fr-CA: [fr_CA, fr_FR, en]
     fr: [fr_FR, fr_CA, en]

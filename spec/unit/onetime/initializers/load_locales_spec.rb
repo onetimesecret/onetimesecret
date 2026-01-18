@@ -6,7 +6,7 @@ require 'onetime/initializers/load_locales'
 RSpec.describe Onetime::Initializers::LoadLocales do
   let(:instance) { described_class.new }
   let(:context) { double('context') }
-  let(:locales_path) { File.join(Onetime::HOME, 'src', 'locales') }
+  let(:locales_path) { File.join(Onetime::HOME, 'generated', 'locales') }
 
   before do
     # Reset runtime state before each test
@@ -37,15 +37,10 @@ RSpec.describe Onetime::Initializers::LoadLocales do
       let(:config) { { 'locales' => ['en', 'de'], 'internationalization' => { 'enabled' => true } } }
 
       before do
-        allow(Dir).to receive(:exist?).and_return(false)
-        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
         allow(File).to receive(:exist?).with(include('de.json')).and_return(true)
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
         allow(File).to receive(:read).and_return('{}')
-        allow(File).to receive(:mtime).and_return(Time.now)
-        allow(File).to receive(:write).and_return(true)
       end
 
       it 'uses the top-level locales list' do
@@ -55,7 +50,7 @@ RSpec.describe Onetime::Initializers::LoadLocales do
       end
     end
 
-    context 'when i18n is enabled with monolithic files' do
+    context 'when i18n is enabled' do
       let(:config) do
         {
           'internationalization' => {
@@ -67,19 +62,14 @@ RSpec.describe Onetime::Initializers::LoadLocales do
       end
 
       before do
-        allow(Dir).to receive(:exist?).and_return(false)
-        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
         allow(File).to receive(:exist?).with(include('es.json')).and_return(true)
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
         allow(File).to receive(:read).with(include('en.json')).and_return('{"web":{"test":"English"}}')
         allow(File).to receive(:read).with(include('es.json')).and_return('{"web":{"test":"Spanish"}}')
-        allow(File).to receive(:mtime).and_return(Time.now)
-        allow(File).to receive(:write).and_return(true)
       end
 
-      it 'loads locales from monolithic files' do
+      it 'loads locales from generated/locales files' do
         instance.execute(context)
         state = Onetime::Runtime.internationalization
 
@@ -88,50 +78,12 @@ RSpec.describe Onetime::Initializers::LoadLocales do
         expect(state.locales['en']).to eq({ 'web' => { 'test' => 'English' } })
         expect(state.locales['es']).to eq({ 'web' => { 'test' => 'Spanish' } })
       end
-    end
 
-    context 'when i18n is enabled with split directory structure' do
-      let(:config) do
-        {
-          'internationalization' => {
-            'enabled' => true,
-            'locales' => ['en'],
-            'default_locale' => 'en'
-          }
-        }
-      end
-      let(:en_dir) { File.join(locales_path, 'en') }
-
-      before do
-        allow(Dir).to receive(:exist?).with(include('locales/en')).and_return(true)
-        allow(Dir).to receive(:glob).with(include('locales/en/*.json')).and_return(
-          ['/mock/web.json', '/mock/api.json']
-        )
-        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
-        allow(File).to receive(:read).with('/mock/web.json').and_return('{"web":{"key1":"val1"}}')
-        allow(File).to receive(:read).with('/mock/api.json').and_return('{"web":{"key2":"val2"},"api":{"key3":"val3"}}')
-        # Mock unified cache logic
-        allow(File).to receive(:mtime).and_return(Time.now)
-        allow(File).to receive(:exist?).and_call_original
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
-        allow(File).to receive(:write).and_return(true)
-      end
-
-      it 'merges multiple files for a single locale correctly' do
+      it 'logs loading of each locale' do
         instance.execute(context)
-        state = Onetime::Runtime.internationalization
 
-        expect(state.locales['en']['web']).to eq({ 'key1' => 'val1', 'key2' => 'val2' })
-        expect(state.locales['en']['api']).to eq({ 'key3' => 'val3' })
-      end
-
-      it 'loads from unified cache if available' do
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(true)
-        allow(File).to receive(:read).with(include('.all-locales-')).and_return('{"en":{"web":{"cached":"value"}}}')
-
-        instance.execute(context)
-        state = Onetime::Runtime.internationalization
-        expect(state.locales['en']).to eq({ 'web' => { 'cached' => 'value' } })
+        expect(OT).to have_received(:ld).with(/Loading en:/)
+        expect(OT).to have_received(:ld).with(/Loading es:/)
       end
     end
 
@@ -147,18 +99,13 @@ RSpec.describe Onetime::Initializers::LoadLocales do
       end
 
       before do
-        allow(Dir).to receive(:exist?).and_return(false)
-        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
         allow(File).to receive(:exist?).with(include('fr.json')).and_return(true)
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
         # Default locale (en) has all keys
         allow(File).to receive(:read).with(include('en.json')).and_return('{"common":{"save":"Save","cancel":"Cancel"}}')
         # French (fr) is missing "cancel"
         allow(File).to receive(:read).with(include('fr.json')).and_return('{"common":{"save":"Enregistrer"}}')
-        allow(File).to receive(:mtime).and_return(Time.now)
-        allow(File).to receive(:write).and_return(true)
       end
 
       it 'applies default locale fallback via deep_merge' do
@@ -200,14 +147,9 @@ RSpec.describe Onetime::Initializers::LoadLocales do
           }
         }
         allow(OT).to receive(:conf).and_return(config_valid)
-        allow(Dir).to receive(:exist?).and_return(false)
-        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
         allow(File).to receive(:read).and_return('INVALID JSON {')
-        allow(File).to receive(:mtime).and_return(Time.now)
-        allow(File).to receive(:write).and_return(true)
         # Mocking JSON::ParserError ensures the implementation's rescue block is triggered
         allow(Familia::JsonSerializer).to receive(:parse).and_raise(JSON::ParserError.new('Mock error'))
 
@@ -228,121 +170,24 @@ RSpec.describe Onetime::Initializers::LoadLocales do
           }
         }
         allow(OT).to receive(:conf).and_return(config_valid)
-        allow(Dir).to receive(:exist?).and_return(false)
-        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
         allow(File).to receive(:exist?).and_call_original
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
+        allow(File).to receive(:exist?).with(include('de.json')).and_return(false)
 
         instance.execute(context)
         state = Onetime::Runtime.internationalization
 
         # When loading fails, locale is not added to the hash
         expect(state.locales).to eq({})
-        expect(OT).to have_received(:le).with(/Missing locale: de/)
-      end
-    end
-
-    context 'when precompile_cache is disabled' do
-      let(:config) do
-        {
-          'internationalization' => {
-            'enabled' => true,
-            'locales' => ['en'],
-            'default_locale' => 'en',
-            'precompile_cache' => false
-          }
-        }
-      end
-
-      before do
-        allow(Dir).to receive(:exist?).with(include('locales/en')).and_return(false)
-        allow(File).to receive(:exist?).and_call_original
-        allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
-        allow(File).to receive(:read).with(include('en.json')).and_return('{"web":{"test":"value"}}')
-      end
-
-      it 'loads from source without attempting cache operations' do
-        # Should NOT attempt to read or write cache files
-        expect(File).not_to receive(:exist?).with(include('.all-locales-'))
-        expect(File).not_to receive(:write).with(include('.all-locales-'), anything)
-        expect(File).not_to receive(:mtime)
-
-        instance.execute(context)
-        state = Onetime::Runtime.internationalization
-
-        expect(state.locales['en']).to eq({ 'web' => { 'test' => 'value' } })
-        expect(OT).to have_received(:ld).with('[i18n] Cache disabled by precompile_cache config')
-      end
-
-      it 'defaults to true when precompile_cache is not set' do
-        config_without_toggle = {
-          'internationalization' => {
-            'enabled' => true,
-            'locales' => ['en'],
-            'default_locale' => 'en'
-            # precompile_cache not set, should default to true
-          }
-        }
-        allow(OT).to receive(:conf).and_return(config_without_toggle)
-        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
-        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
-        allow(File).to receive(:mtime).and_return(Time.now)
-        allow(File).to receive(:write).and_return(true)
-
-        # Should attempt cache operations when not explicitly disabled
-        expect(File).to receive(:mtime).at_least(:once)
-
-        instance.execute(context)
+        expect(OT).to have_received(:le).with(/Missing locale file:/)
       end
     end
   end
 
-  describe '.precompile' do
-    let(:config) do
-      {
-        'internationalization' => {
-          'enabled' => true,
-          'locales' => ['en', 'es'],
-          'default_locale' => 'en'
-        }
-      }
-    end
+  describe 'LOCALES_ROOT' do
+    let(:config) { { 'internationalization' => { 'enabled' => false } } }
 
-    before do
-      allow(OT).to receive(:conf).and_return(config)
-      allow(Dir).to receive(:exist?).and_return(false)
-      allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
-      allow(File).to receive(:exist?).with(include('es.json')).and_return(true)
-      allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
-      allow(File).to receive(:read).with(include('en.json')).and_return('{"web":{"test":"English"}}')
-      allow(File).to receive(:read).with(include('es.json')).and_return('{"web":{"test":"Spanish"}}')
-      allow(File).to receive(:mtime).and_return(Time.now)
-      allow(File).to receive(:write).and_return(true)
-      allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
-    end
-
-    it 'uses the same code path as runtime to create cache' do
-      expect(File).to receive(:write).with(include('.all-locales-'), anything)
-
-      described_class.precompile
-    end
-
-    it 'creates a unified cache file that can be loaded at runtime' do
-      # Precompile creates the cache
-      described_class.precompile
-
-      # Runtime should load from that cache
-      allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(true)
-      allow(File).to receive(:read).with(include('.all-locales-')).and_return(
-        '{"en":{"web":{"test":"English"}},"es":{"web":{"test":"Spanish"}}}'
-      )
-
-      instance = described_class.new
-      instance.execute(context)
-      state = Onetime::Runtime.internationalization
-
-      expect(state.locales['en']).to eq({ 'web' => { 'test' => 'English' } })
-      expect(state.locales['es']).to eq({ 'web' => { 'test' => 'Spanish' } })
+    it 'points to generated/locales directory' do
+      expect(described_class::LOCALES_ROOT).to eq(File.join(Onetime::HOME, 'generated', 'locales'))
     end
   end
 end

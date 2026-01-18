@@ -15,10 +15,14 @@
  * @see docs/i18n-security-messages.md for complete guidelines
  */
 
-import authFullMessages from '@/locales/en/auth-full.json';
+// Pre-merged generated locale file (contains all translations)
+import enLocale from '../../../generated/locales/en.json';
 // Source content file contains the security metadata (with skip: true)
 // Generated files don't include metadata keys
-import authFullSource from '@locales/content/en/auth-full.json';
+import authFullSource from '../../../locales/content/en/auth-full.json';
+
+// Extract auth-full messages from the merged locale
+const authFullMessages = enLocale;
 
 describe('Security Message Compliance', () => {
   // Extract security messages from the generated i18n file (for actual messages)
