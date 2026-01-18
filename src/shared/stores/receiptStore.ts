@@ -16,12 +16,24 @@ import { computed, inject, ref } from 'vue';
  */
 export type ApiMode = 'authenticated' | 'public';
 
+/**
+ * Receipt status constants
+ *
+ * STATE TERMINOLOGY MIGRATION:
+ *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *   'received' -> 'revealed'   (secret content decrypted/consumed)
+ *
+ * Legacy values retained for backward compatibility.
+ * @deprecated VIEWED, RECEIVED - use PREVIEWED, REVEALED instead
+ */
 export const RECEIPT_STATUS = {
   NEW: 'new',
   SHARED: 'shared',
-  RECEIVED: 'received',
+  RECEIVED: 'received',     // @deprecated - use REVEALED
+  REVEALED: 'revealed',     // NEW: secret content was revealed
   BURNED: 'burned',
-  VIEWED: 'viewed',
+  VIEWED: 'viewed',         // @deprecated - use PREVIEWED
+  PREVIEWED: 'previewed',   // NEW: link was accessed
   ORPHANED: 'orphaned',
 } as const;
 
@@ -98,10 +110,12 @@ export const useReceiptStore = defineStore('receipt', () => {
   const canBurn = computed((): boolean => {
     if (!record.value) return false;
 
+    // States where secret can still be burned (not yet revealed/consumed)
     const validStates = [
       RECEIPT_STATUS.NEW,
       RECEIPT_STATUS.SHARED,
-      RECEIPT_STATUS.VIEWED,
+      RECEIPT_STATUS.VIEWED,     // @deprecated - use PREVIEWED
+      RECEIPT_STATUS.PREVIEWED,  // NEW canonical state
     ] as const;
 
     if (

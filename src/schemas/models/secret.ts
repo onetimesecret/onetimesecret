@@ -13,11 +13,24 @@ import { z } from 'zod';
  * 3. Clear type boundaries
  */
 
+/**
+ * STATE TERMINOLOGY MIGRATION REFERENCE (Secret)
+ * ==============================================
+ * Legacy -> New field mappings:
+ *   State values:
+ *     'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *     'received' -> 'revealed'   (secret content decrypted/consumed)
+ *
+ * API sends BOTH old and new values for backward compatibility.
+ * @deprecated VIEWED and RECEIVED - use PREVIEWED and REVEALED instead
+ */
 export const SecretState = {
   NEW: 'new',
-  RECEIVED: 'received',
+  RECEIVED: 'received',     // @deprecated - use REVEALED
+  REVEALED: 'revealed',     // NEW: secret content was decrypted/consumed
   BURNED: 'burned',
-  VIEWED: 'viewed',
+  VIEWED: 'viewed',         // @deprecated - use PREVIEWED
+  PREVIEWED: 'previewed',   // NEW: secret link accessed, confirmation shown
 } as const;
 
 export type SecretState = (typeof SecretState)[keyof typeof SecretState];

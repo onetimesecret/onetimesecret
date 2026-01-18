@@ -28,13 +28,34 @@ import { z } from 'zod';
  * 3. Works naturally with Zod's z.enum() which expects string literals
  * 4. More flexible for runtime operations (Object.keys(), etc.)
  * 5. Matches idiomatic TypeScript patterns for string-based enums
+ *
+ * STATE TERMINOLOGY MIGRATION REFERENCE (Receipt)
+ * ===============================================
+ * Legacy -> New field mappings:
+ *   State values:
+ *     'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *     'received' -> 'revealed'   (secret content decrypted/consumed)
+ *
+ *   Timestamp fields:
+ *     viewed    -> previewed
+ *     received  -> revealed
+ *
+ *   Boolean fields:
+ *     is_viewed   -> is_previewed
+ *     is_received -> is_revealed
+ *
+ * API sends BOTH old and new fields for backward compatibility.
+ * @deprecated VIEWED, RECEIVED, is_viewed, is_received, viewed, received
+ *             Use PREVIEWED, REVEALED, is_previewed, is_revealed, previewed, revealed
  */
 export const ReceiptState = {
   NEW: 'new',
   SHARED: 'shared',
-  RECEIVED: 'received',
+  RECEIVED: 'received',     // @deprecated - use REVEALED
+  REVEALED: 'revealed',     // NEW: secret content was revealed
   BURNED: 'burned',
-  VIEWED: 'viewed',
+  VIEWED: 'viewed',         // @deprecated - use PREVIEWED
+  PREVIEWED: 'previewed',   // NEW: link was accessed
   EXPIRED: 'expired',
   ORPHANED: 'orphaned',
 } as const;
@@ -59,9 +80,13 @@ export const receiptBaseSchema = createModelSchema({
   updated: transforms.fromNumber.secondsToDate,
   has_passphrase: z.boolean().optional(),
   shared: transforms.fromString.dateNullable.optional(),
+  // Legacy timestamp fields (deprecated - use previewed/revealed)
   received: transforms.fromString.dateNullable.optional(),
-  burned: transforms.fromString.dateNullable.optional(),
   viewed: transforms.fromString.dateNullable.optional(),
+  // New canonical timestamp fields
+  previewed: transforms.fromString.dateNullable.optional(),
+  revealed: transforms.fromString.dateNullable.optional(),
+  burned: transforms.fromString.dateNullable.optional(),
   // There is no "expired" time field as a time stamp that is set when the
   // receipt expires. We calculate expiration based on the lifespan (TTL).
   // of the secret.
@@ -70,8 +95,12 @@ export const receiptBaseSchema = createModelSchema({
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are linked to user actions, we don't know
   // when the receipt got into an orphaned state; only when we flagged it.
+  // Legacy boolean fields (deprecated - use is_previewed/is_revealed)
   is_viewed: transforms.fromString.boolean,
   is_received: transforms.fromString.boolean,
+  // New canonical boolean fields (optional during migration, will become required)
+  is_previewed: transforms.fromString.boolean.optional(),
+  is_revealed: transforms.fromString.boolean.optional(),
   is_burned: transforms.fromString.boolean,
   is_destroyed: transforms.fromString.boolean,
   is_expired: transforms.fromString.boolean,

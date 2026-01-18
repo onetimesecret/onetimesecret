@@ -3,15 +3,43 @@
 import { ReceiptState, isValidReceiptState } from '@/schemas/models';
 import type { Composer } from 'vue-i18n';
 
+/**
+ * DisplayStatus type for UI rendering
+ *
+ * STATE TERMINOLOGY MIGRATION:
+ *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *   'received' -> 'revealed'   (secret content decrypted/consumed)
+ *
+ * Legacy values (viewed, received) retained for backward compatibility
+ * during transition period. Prefer new canonical values (previewed, revealed).
+ */
 export type DisplayStatus =
   | 'new'
   | 'unread'
-  | 'viewed'
+  | 'viewed'      // @deprecated - use 'previewed'
+  | 'previewed'   // NEW: link accessed, confirmation shown
   | 'burned'
-  | 'received'
+  | 'received'    // @deprecated - use 'revealed'
+  | 'revealed'    // NEW: secret content decrypted/consumed
   | 'expiring_soon'
   | 'orphaned'
   | 'expired';
+
+/**
+ * State to display status mapping.
+ * Maps both new canonical states and legacy aliases to display values.
+ */
+const STATE_TO_DISPLAY: Record<string, DisplayStatus> = {
+  [ReceiptState.NEW]: 'new',
+  [ReceiptState.SHARED]: 'new',
+  [ReceiptState.PREVIEWED]: 'previewed',
+  [ReceiptState.VIEWED]: 'previewed',      // legacy alias
+  [ReceiptState.REVEALED]: 'revealed',
+  [ReceiptState.RECEIVED]: 'revealed',     // legacy alias
+  [ReceiptState.BURNED]: 'burned',
+  [ReceiptState.ORPHANED]: 'orphaned',
+  [ReceiptState.EXPIRED]: 'expired',
+};
 
 /**
  * Maps the given state to UI display status.
@@ -39,26 +67,7 @@ export function getDisplayStatus(
     return 'expiring_soon';
   }
 
-  switch (state) {
-    case ReceiptState.NEW:
-    case ReceiptState.SHARED:
-      return 'new'; // Secret created/shared but not accessed
-
-    case ReceiptState.VIEWED:
-      return 'viewed'; // Secret accessed but not revealed
-
-    case ReceiptState.RECEIVED:
-      return 'received'; // Secret revealed/decrypted
-
-    case ReceiptState.BURNED:
-      return 'burned';
-
-    // case ReceiptState.ORPHANED:
-    //   return 'orphaned'; // Secret in invalid state
-
-    default:
-      return 'expired';
-  }
+  return STATE_TO_DISPLAY[state] ?? 'expired';
 }
 
 /**
