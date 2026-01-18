@@ -739,7 +739,8 @@ watch(activeTab, async (newTab) => {
           </div>
         </section>
 
-        <!-- LAUNCH: Identity-only - Members Tab hidden until team features enabled
+        <!-- LAUNCH: Identity-only - Members Tab hidden until team features enabled -->
+        <!--
         <section
           v-if="activeTab === 'members'"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
@@ -948,7 +949,8 @@ watch(activeTab, async (newTab) => {
             </div>
           </div>
         </section>
-        End LAUNCH: Identity-only - Members Tab -->
+        -->
+        <!-- End LAUNCH: Identity-only - Members Tab -->
 
         <!-- Domains Tab -->
         <section
