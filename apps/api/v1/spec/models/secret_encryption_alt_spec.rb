@@ -130,8 +130,9 @@ RSpec.describe Onetime::Secret do
 
     before do
       lifecycle_secret.encrypt_value(secret_value)
-      # Fix: Use proper Time.now.utc mocking
-      allow(Time).to receive_message_chain(:now, :utc).and_return(mock_time)
+      # Stub Time.now to return a real Time object (not a Double) so that
+      # SemanticLogger can call strftime on it without errors
+      allow(Time).to receive(:now).and_return(mock_time)
       # Make load_receipt return the related receipt object
       allow(lifecycle_secret).to receive(:load_receipt).and_return(lifecycle_receipt)
     end
