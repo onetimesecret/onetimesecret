@@ -101,14 +101,6 @@ const menuItems = computed<MenuItem[]>(() => [
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
     condition: () => !props.awaitingMfa,
   },
-  // Account Settings
-  {
-    id: 'account',
-    to: '/account',
-    label: t('web.TITLES.account'),
-    icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
-    condition: () => !props.awaitingMfa,
-  },
   // Billing (conditional - only show if billing enabled)
   {
     id: 'billing',
@@ -116,6 +108,14 @@ const menuItems = computed<MenuItem[]>(() => [
     label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
     condition: () => !props.awaitingMfa && !!billing_enabled.value,
+  },
+  // Account Settings
+  {
+    id: 'account',
+    to: '/account',
+    label: t('web.TITLES.account'),
+    icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
+    condition: () => !props.awaitingMfa,
   },
   // Colonel (conditional)
   {
