@@ -151,7 +151,6 @@ const canDowngrade = (plan: BillingPlan): boolean => {
 
 const getButtonLabel = (plan: BillingPlan): string => {
   if (isPlanCurrent(plan)) return t('web.billing.plans.current');
-  if (plan.tier === 'free') return t('web.billing.plans.current');
   if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
   if (canDowngrade(plan)) return t('web.billing.plans.downgrade');
   return t('web.billing.plans.select_plan');

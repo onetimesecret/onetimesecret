@@ -7,7 +7,7 @@ import { RouteRecordRaw } from 'vue-router';
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
-// Mock stores used by useDomainScope
+// Mock stores used by useDomainContext
 vi.mock('@/shared/stores/domainsStore', () => ({
   useDomainsStore: () => ({
     domains: [],

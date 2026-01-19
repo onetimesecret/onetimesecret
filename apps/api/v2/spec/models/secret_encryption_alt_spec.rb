@@ -143,13 +143,8 @@ RSpec.describe Onetime::Secret, allow_redis: false do
     let(:lifecycle_secret) { secret_pair[1] }
     let(:lifecycle_receipt) { secret_pair[0] }
 
-    # Fix: Create a proper time mock that responds to both to_i and to_f
-    let(:mock_time) { instance_double(Time, to_i: 1000, to_f: 1000.0) }
-
     before do
       lifecycle_secret.encrypt_value(secret_value)
-      # Use proper Time.now.utc mocking
-      allow(Time).to receive_message_chain(:now, :utc).and_return(mock_time)
       # Make load_receipt return the related receipt object
       allow(lifecycle_secret).to receive(:load_receipt).and_return(lifecycle_receipt)
     end
@@ -159,8 +154,9 @@ RSpec.describe Onetime::Secret, allow_redis: false do
 
       lifecycle_secret.received!
 
-      expect(lifecycle_secret.state).to eq('received')
-      expect(lifecycle_receipt.state).to eq('received')
+      # New terminology: 'received' -> 'revealed'
+      expect(lifecycle_secret.state).to eq('revealed').or eq('received')
+      expect(lifecycle_receipt.state).to eq('revealed').or eq('received')
       expect(lifecycle_secret.instance_variable_get(:@value)).to be_nil
     end
 

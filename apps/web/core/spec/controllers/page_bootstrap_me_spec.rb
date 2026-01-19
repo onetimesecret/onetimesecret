@@ -256,17 +256,17 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       expect(data).to have_key('display_domain')
     end
 
-    it 'returns domain_scope key' do
+    it 'returns domain_context key' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      expect(data).to have_key('domain_scope')
+      expect(data).to have_key('domain_context')
     end
 
-    it 'returns nil domain_scope for anonymous user' do
+    it 'returns nil domain_context for anonymous user' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      # Anonymous users don't have domain_scope set
-      expect(data['domain_scope']).to be_nil
+      # Anonymous users don't have domain_context set
+      expect(data['domain_context']).to be_nil
     end
   end
 
@@ -311,7 +311,7 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
     end
 
     let(:domain_keys) do
-      %w[domain_strategy canonical_domain display_domain domain_scope]
+      %w[domain_strategy canonical_domain display_domain domain_context]
     end
 
     let(:i18n_keys) do

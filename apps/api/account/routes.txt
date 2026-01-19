@@ -9,11 +9,11 @@
 # Domain operations live in Domains API at /api/domains/*.
 
 # Account Management
-POST   /account/destroy                           AccountAPI::Logic::Account::DestroyAccount response=json auth=sessionauth,basicauth
-POST   /account/change-password                   AccountAPI::Logic::Account::UpdatePassword response=json auth=sessionauth,basicauth
-POST   /account/update-domain-scope               AccountAPI::Logic::Account::UpdateDomainScope response=json auth=sessionauth,basicauth
-POST   /account/update-locale                     AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
-POST   /account/update-notification-preference   AccountAPI::Logic::Account::UpdateNotificationPreference response=json auth=sessionauth,basicauth
-POST   /account/apitoken                          AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth,basicauth csrf=exempt
-GET    /account                                   AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
-GET    /entitlements                              AccountAPI::Logic::Account::GetEntitlements response=json auth=sessionauth,basicauth
+POST   /destroy                             AccountAPI::Logic::Account::DestroyAccount response=json auth=sessionauth,basicauth
+POST   /change-password                     AccountAPI::Logic::Account::UpdatePassword response=json auth=sessionauth,basicauth
+POST   /update-domain-context               AccountAPI::Logic::Account::UpdateDomainContext response=json auth=sessionauth,basicauth
+POST   /update-locale                       AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
+POST   /update-notification-preference      AccountAPI::Logic::Account::UpdateNotificationPreference response=json auth=sessionauth,basicauth
+POST   /apitoken                            AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth,basicauth csrf=exempt
+GET    /                                    AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
+GET    /entitlements                        AccountAPI::Logic::Account::GetEntitlements response=json auth=sessionauth,basicauth

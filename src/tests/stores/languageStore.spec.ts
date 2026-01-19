@@ -1,12 +1,12 @@
 // src/tests/stores/languageStore.spec.ts
 
 import { ApplicationError } from '@/schemas';
-import { SESSION_STORAGE_KEY, useLanguageStore } from '@/shared/stores/languageStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { setupTestPinia } from '../setup';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type AxiosMockAdapter from 'axios-mock-adapter';
+import { SESSION_STORAGE_KEY, useLanguageStore } from '@/shared/stores/languageStore';
 import type { AxiosInstance } from 'axios';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { setupTestPinia } from '../setup';
 
 describe('Language Store', () => {
   let axiosMock: AxiosMockAdapter | null;
@@ -152,7 +152,7 @@ describe('Language Store', () => {
     });
 
     it('should handle updateLanguage correctly', async () => {
-      axiosMock.onPost('/api/account/account/update-locale').reply(200, {});
+      axiosMock.onPost('/api/account/update-locale').reply(200, {});
 
       await store.updateLanguage('fr');
       expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'fr' }));
@@ -163,7 +163,7 @@ describe('Language Store', () => {
         const locale = 'en-US';
 
         // Setup axiosMock with 404 response
-        axiosMock.onPost('/api/account/account/update-locale', { locale }).reply(400); // TODO: Not correct
+        axiosMock.onPost('/api/account/update-locale', { locale }).reply(400); // TODO: Not correct
 
         let caughtError: ApplicationError;
         try {
@@ -180,7 +180,7 @@ describe('Language Store', () => {
 
         // Verify API was called with correct parameters
         expect(axiosMock.history.post).toHaveLength(1);
-        expect(axiosMock.history.post[0].url).toBe('/api/account/account/update-locale');
+        expect(axiosMock.history.post[0].url).toBe('/api/account/update-locale');
         expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
       });
 
@@ -188,14 +188,14 @@ describe('Language Store', () => {
         const locale = 'fr';
 
         // Setup axiosMock
-        axiosMock.onPost('/api/account/account/update-locale', { locale }).networkError();
+        axiosMock.onPost('/api/account/update-locale', { locale }).networkError();
 
         // Expect raw AxiosError, not ApplicationError
         await expect(store.updateLanguage(locale)).rejects.toThrow();
 
         // Verify API was called with correct parameters
         expect(axiosMock.history.post).toHaveLength(1);
-        expect(axiosMock.history.post[0].url).toBe('/api/account/account/update-locale');
+        expect(axiosMock.history.post[0].url).toBe('/api/account/update-locale');
         expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
       });
 
@@ -204,7 +204,7 @@ describe('Language Store', () => {
 
         // Setup axiosMock with 500 response
         axiosMock
-          .onPost('/api/account/account/update-locale', { locale })
+          .onPost('/api/account/update-locale', { locale })
           .reply(500, { message: 'Internal Server Error' });
 
         // Expect raw AxiosError, not ApplicationError
@@ -212,7 +212,7 @@ describe('Language Store', () => {
 
         // Verify API was called correctly
         expect(axiosMock.history.post).toHaveLength(1);
-        expect(axiosMock.history.post[0].url).toBe('/api/account/account/update-locale');
+        expect(axiosMock.history.post[0].url).toBe('/api/account/update-locale');
         expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
       });
 
@@ -279,14 +279,14 @@ describe('Language Store', () => {
     });
 
     it('should handle updateLanguage with region locales', async () => {
-      axiosMock.onPost('/api/account/account/update-locale').reply(200, {});
+      axiosMock.onPost('/api/account/update-locale').reply(200, {});
 
       await store.updateLanguage('it_IT');
       expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'it_IT' }));
     });
 
     it('should handle updateLanguage with hyphenated input (it-IT -> it_IT)', async () => {
-      axiosMock.onPost('/api/account/account/update-locale').reply(200, {});
+      axiosMock.onPost('/api/account/update-locale').reply(200, {});
 
       await store.updateLanguage('it-IT');
       // Should normalize to it_IT before sending to server

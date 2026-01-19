@@ -5,11 +5,11 @@
   import PrivacyOptionsBar from '@/apps/workspace/components/forms/PrivacyOptionsBar.vue';
   import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
-  import { useDomainScope } from '@/shared/composables/useDomainScope';
+  import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { computed, ref } from 'vue';
 
-  // Domain scope management
-  const { isScopeActive } = useDomainScope();
+  // Domain context management
+  const { isContextActive } = useDomainContext();
 
   // Form ref for accessing exposed state
   const secretFormRef = ref<InstanceType<typeof WorkspaceSecretForm> | null>(null);
@@ -44,7 +44,7 @@
 
     <!-- Privacy Options Bar (interactive chips for TTL and passphrase) -->
     <PrivacyOptionsBar
-      v-if="isScopeActive"
+      v-if="isContextActive"
       :current-ttl="currentTtl"
       :current-passphrase="currentPassphrase"
       :is-submitting="isSubmitting"

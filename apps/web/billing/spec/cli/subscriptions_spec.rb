@@ -600,7 +600,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
             command.call(subscription_id: test_data[:subscription].id)
           end
 
-          expect(output).to match(/Must specify --price or --quantity/)
+          expect(output).to match(/Must specify --price, --quantity, or --reactivate/)
 
           # Cleanup
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)

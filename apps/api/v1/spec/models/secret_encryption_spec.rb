@@ -241,33 +241,33 @@ RSpec.describe Onetime::Secret do
         secret.encrypt_value(secret_value)
       end
 
-      it 'clears sensitive data when secret is received' do
-        secret.received!
+      it 'clears sensitive data when secret is revealed' do
+        secret.revealed!
 
         # Check that sensitive data is cleared
         expect(secret.instance_variable_get(:@value)).to be_nil
         expect(secret.instance_variable_get(:@passphrase_temp)).to be_nil
-        expect(secret.state).to eq("received")
-        expect(receipt.state).to eq("received")
+        expect(secret.state).to eq("revealed")
+        expect(receipt.state).to eq("revealed")
         expect(secret).to have_received(:destroy!)
       end
 
-      it 'only transitions from new or viewed state to received' do
+      it 'only transitions from new or previewed state to revealed' do
         secret.state = "burned"
         # Should not change state
-        secret.received!
+        secret.revealed!
         expect(secret.state).to eq("burned")
 
         # Reset and try from valid state
-        secret.state = "viewed"
-        secret.received!
-        expect(secret.state).to eq("received")
+        secret.state = "previewed"
+        secret.revealed!
+        expect(secret.state).to eq("revealed")
       end
 
-      it 'marks secret as viewed without destroying it' do
-        secret.viewed!
+      it 'marks secret as previewed without destroying it' do
+        secret.previewed!
 
-        expect(secret.state).to eq("viewed")
+        expect(secret.state).to eq("previewed")
         expect(secret).not_to have_received(:destroy!)
       end
 

@@ -1,10 +1,10 @@
 // src/shared/stores/customerStore.ts
 
-import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { Customer } from '@/schemas/models/customer';
 import { loggingService } from '@/services/logging.service';
+import { createError } from '@/shared/composables/useAsyncHandler';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, handleError, inject, ref } from 'vue';
@@ -77,7 +77,7 @@ export const useCustomerStore = defineStore('customer', () => {
     abort();
 
     abortController.value = new AbortController();
-    const response = await $api.get('/api/account/account/customer', {
+    const response = await $api.get('/api/account/customer', {
       signal: abortController.value.signal,
     });
     const validated = responseSchemas.customer.parse(response.data);

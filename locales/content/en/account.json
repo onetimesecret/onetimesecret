@@ -116,6 +116,9 @@
   "web.account.deleting_cust_custid": {
     "text": "Deleting {0}"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Deleting..."
+  },
   "web.account.permanently_delete_account": {
     "text": "Permanently Delete Account"
   },

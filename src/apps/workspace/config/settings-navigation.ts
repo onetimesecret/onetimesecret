@@ -168,6 +168,8 @@ export function getSettingsNavigationSections(t: ComposerTranslation): SettingsN
           icon: { collection: 'heroicons', name: 'code-bracket' },
           label: t('web.account.api_key'),
           description: t('web.settings.api.manage_api_keys'),
+          // Hidden until API key functionality is complete for launch
+          visible: () => false,
         },
       ],
     },
@@ -179,7 +181,8 @@ export function getSettingsNavigationSections(t: ComposerTranslation): SettingsN
         {
           id: 'caution',
           to: '/account/settings/caution',
-          icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
+          // no-symbol: Reserved exclusively for destructive/irreversible actions
+          icon: { collection: 'heroicons', name: 'no-symbol-solid' },
           label: t('web.settings.caution.title'),
           description: t('web.settings.caution.description'),
         },

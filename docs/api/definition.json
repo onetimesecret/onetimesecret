@@ -979,7 +979,7 @@
         "tags": ["v2", "accounts", "danger"]
       }
     },
-    "/v2/account/destroy": {
+    "/v2/destroy": {
       "post": {
         "summary": "Destroy Account",
         "requestBody": {

@@ -73,6 +73,28 @@
       </symbol>
       <symbol
         viewBox="0 0 24 24"
+        id="heroicons-no-symbol">
+        <!-- Prohibition/ban sign - reserved for destructive actions only -->
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-no-symbol-solid">
+        <!-- Prohibition/ban sign (solid) - reserved for destructive actions only -->
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75s9.75-4.365 9.75-9.75S17.385 2.25 12 2.25m4.28 5.47a.75.75 0 0 1 0 1.06l-9.5 9.5a.75.75 0 1 1-1.06-1.06l9.5-9.5a.75.75 0 0 1 1.06 0"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
         id="heroicons-user-circle">
         <path
           fill="none"

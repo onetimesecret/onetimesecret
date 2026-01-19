@@ -5,7 +5,7 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
-  import { useDomainScope } from '@/shared/composables/useDomainScope';
+  import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -117,7 +117,7 @@
     togglePassphraseVisibility,
   } = usePrivacyOptions(operations);
 
-  const { currentScope, isScopeActive } = useDomainScope();
+  const { currentContext, isContextActive } = useDomainContext();
 
   // Compute whether the form has content or not
   const hasContent = computed(() => !!form.secret && (form.secret as string).trim().length > 0);
@@ -140,10 +140,10 @@
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
-  // Watch for domain scope changes and update form
+  // Watch for domain context changes and update form
   // Use immediate: true to ensure the initial value is captured
   watch(
-    () => currentScope.value.domain,
+    () => currentContext.value.domain,
     (domain) => {
       if (domain) {
         operations.updateField('share_domain', domain);
@@ -465,9 +465,9 @@
           <!-- Actions Container -->
           <div class="p-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <!-- Domain Scope Indicator -->
+              <!-- Domain Context Indicator -->
               <div
-                v-if="isScopeActive"
+                v-if="isContextActive"
                 class="order-1 flex items-center gap-2 text-sm sm:order-1">
                 <span class="text-gray-600 dark:text-gray-400">
                   {{ t('web.LABELS.creating_links_for') }}
@@ -475,20 +475,20 @@
                 <div
                   class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150"
                   :class="
-                    currentScope.isCanonical
+                    currentContext.isCanonical
                       ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                       : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                   "
                   role="status"
                   :aria-label="
-                    t('web.LABELS.scope_indicator', { domain: currentScope.displayName })
+                    t('web.LABELS.scope_indicator', { domain: currentContext.displayName })
                   ">
                   <OIcon
                     collection="heroicons"
-                    :name="currentScope.isCanonical ? 'user-circle' : 'building-office'"
+                    :name="currentContext.isCanonical ? 'user-circle' : 'building-office'"
                     class="size-4"
                     aria-hidden="true" />
-                  <span class="max-w-[180px] truncate">{{ currentScope.displayName }}</span>
+                  <span class="max-w-[180px] truncate">{{ currentContext.displayName }}</span>
                 </div>
               </div>
 

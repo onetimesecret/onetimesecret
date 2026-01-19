@@ -1,16 +1,16 @@
-# apps/api/account/spec/logic/account/update_domain_scope_spec.rb
+# apps/api/account/spec/logic/account/update_domain_context_spec.rb
 #
 # frozen_string_literal: true
 
-# Unit tests for domain scope persistence in user sessions
+# Unit tests for domain context persistence in user sessions
 #
 # Run with:
-#   source .env.test && bundle exec rspec apps/api/account/spec/logic/account/update_domain_scope_spec.rb
+#   source .env.test && bundle exec rspec apps/api/account/spec/logic/account/update_domain_context_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'account/logic'
 
-RSpec.describe AccountAPI::Logic::Account::UpdateDomainScope do
+RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
   let(:canonical_domain) { 'onetimesecret.com' }
   let(:custom_domain) { 'secrets.example.com' }
 
@@ -37,7 +37,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainScope do
   let(:session) do
     {
       'csrf' => 'test-csrf-token',
-      'domain_scope' => nil,
+      'domain_context' => nil,
     }
   end
 
@@ -69,25 +69,25 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainScope do
 
   describe '#process_params' do
     it 'extracts domain from params' do
-      expect(logic.new_domain_scope).to eq(custom_domain)
+      expect(logic.new_domain_context).to eq(custom_domain)
     end
 
     it 'normalizes domain to lowercase' do
       params['domain'] = 'SECRETS.EXAMPLE.COM'
       logic = described_class.new(strategy_result, params)
-      expect(logic.new_domain_scope).to eq('secrets.example.com')
+      expect(logic.new_domain_context).to eq('secrets.example.com')
     end
 
     it 'strips whitespace from domain' do
       params['domain'] = '  secrets.example.com  '
       logic = described_class.new(strategy_result, params)
-      expect(logic.new_domain_scope).to eq('secrets.example.com')
+      expect(logic.new_domain_context).to eq('secrets.example.com')
     end
 
-    it 'stores old domain scope from session' do
-      session['domain_scope'] = 'old.example.com'
+    it 'stores old domain context from session' do
+      session['domain_context'] = 'old.example.com'
       logic = described_class.new(strategy_result, params)
-      expect(logic.old_domain_scope).to eq('old.example.com')
+      expect(logic.old_domain_context).to eq('old.example.com')
     end
   end
 
@@ -150,26 +150,26 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainScope do
 
   describe '#process' do
     context 'with valid custom domain' do
-      it 'updates session with new domain scope' do
+      it 'updates session with new domain context' do
         logic.process
-        expect(session['domain_scope']).to eq(custom_domain)
+        expect(session['domain_context']).to eq(custom_domain)
       end
 
-      it 'returns success data with new domain scope' do
+      it 'returns success data with new domain context' do
         result = logic.process
-        expect(result[:domain_scope]).to eq(custom_domain)
+        expect(result[:domain_context]).to eq(custom_domain)
       end
 
-      it 'returns previous domain scope in response' do
-        session['domain_scope'] = 'old.example.com'
+      it 'returns previous domain context in response' do
+        session['domain_context'] = 'old.example.com'
         new_logic = described_class.new(strategy_result, params)
         result = new_logic.process
-        expect(result[:previous_domain_scope]).to eq('old.example.com')
+        expect(result[:previous_domain_context]).to eq('old.example.com')
       end
 
       it 'marks field as modified' do
         logic.process
-        expect(logic.modified?(:domain_scope)).to be true
+        expect(logic.modified?(:domain_context)).to be true
       end
 
       it 'sets greenlighted to true' do
@@ -183,12 +183,12 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainScope do
 
       it 'updates session with canonical domain' do
         logic.process
-        expect(session['domain_scope']).to eq(canonical_domain)
+        expect(session['domain_context']).to eq(canonical_domain)
       end
 
       it 'returns success data' do
         result = logic.process
-        expect(result[:domain_scope]).to eq(canonical_domain)
+        expect(result[:domain_context]).to eq(canonical_domain)
       end
     end
 
@@ -209,16 +209,16 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainScope do
   end
 
   describe '#success_data' do
-    it 'returns domain_scope' do
+    it 'returns domain_context' do
       data = logic.success_data
-      expect(data[:domain_scope]).to eq(custom_domain)
+      expect(data[:domain_context]).to eq(custom_domain)
     end
 
-    it 'returns previous_domain_scope' do
-      session['domain_scope'] = 'old.example.com'
+    it 'returns previous_domain_context' do
+      session['domain_context'] = 'old.example.com'
       new_logic = described_class.new(strategy_result, params)
       data = new_logic.success_data
-      expect(data[:previous_domain_scope]).to eq('old.example.com')
+      expect(data[:previous_domain_context]).to eq('old.example.com')
     end
   end
 

@@ -1,6 +1,8 @@
-# apps/api/account/logic/account/destroy_account.rb
+# apps/api/account/logic/destroy_account.rb
 #
 # frozen_string_literal: true
+
+require 'argon2'
 
 module AccountAPI::Logic
   module Account
@@ -22,7 +24,7 @@ module AccountAPI::Logic
         else
           OT.info "[destroy-account] Passphrase check attempt cid/#{cust.objid} r/#{cust.role} ipa/#{session_sid}"
 
-          raise_form_error 'Please check the password.', field: 'confirmation', error_type: 'incorrect' unless cust.passphrase?(@confirmation)
+          raise_form_error 'Please check the password.', field: 'confirmation', error_type: 'incorrect' unless verify_password(@confirmation)
         end
       end
 
@@ -31,7 +33,7 @@ module AccountAPI::Logic
         # destroying things though, let's pull out all the stops.
         raise_form_error 'We have concerns about that request.' unless raised_concerns_was_called
 
-        return unless cust.passphrase?(@confirmation)
+        return unless verify_password(@confirmation)
 
         # All criteria to destroy the account have been met.
         @greenlighted = true
@@ -55,14 +57,23 @@ module AccountAPI::Logic
           set_info_message('Account deleted')
 
         else
+          # In full auth mode, delete from auth database FIRST.
+          # This ensures that if the PostgreSQL deletion fails, we don't leave
+          # the system in an inconsistent state with a "deleted" Redis record
+          # but an active auth account.
+          if Onetime.auth_config.full_enabled?
+            result = delete_auth_account(cust)
+            unless result[:success]
+              raise_form_error "Unable to delete account: #{result[:error]}", error_type: 'system_error'
+            end
+          end
+
+          # Now mark the customer record as deleted in Redis
           cust.destroy_requested!
 
           # Log the event immediately after saving the change to
           # to minimize the chance of the event not being logged.
           OT.info "[destroy-account] Account destroyed. #{cust.objid} #{cust.role} #{session_sid}"
-
-          # If in full mode, also delete from auth database
-          delete_auth_account(cust) if Onetime.auth_config.full_enabled?
         end
 
         # We replace the session and session ID and then add a message
@@ -84,27 +95,63 @@ module AccountAPI::Logic
 
       private
 
-      # Delete account from auth database in full mode
-      # @param customer [Onetime::Customer]
-      def delete_auth_account(customer)
-        return unless customer&.extid
+      # Verify password using the appropriate mechanism based on auth mode.
+      # In full mode, password is stored in Rodauth's auth database.
+      # In simple mode, password is stored in the Customer Redis model.
+      #
+      # @param password [String] The plaintext password to verify
+      # @return [Boolean] true if the password matches
+      def verify_password(password)
+        return false if password.to_s.empty?
 
-        db = Auth::Database.connection
-        return unless db
-
-        deleted = db[:accounts]
-          .where(external_id: customer.extid)
-          .delete
-
-        if deleted > 0
-          OT.info "[destroy-account] Deleted auth account for extid: #{customer.extid}"
+        if Onetime.auth_config.full_enabled?
+          verify_password_full_mode(password)
         else
-          OT.le "[destroy-account] WARNING: No auth account found for extid: #{customer.extid}"
+          cust.passphrase?(password)
         end
+      end
+
+      # Verify password against Rodauth's auth database (full mode).
+      # Looks up the account by extid and verifies against the password hash.
+      #
+      # @param password [String] The plaintext password to verify
+      # @return [Boolean] true if the password matches
+      def verify_password_full_mode(password)
+        db = Auth::Database.connection
+        return false unless db
+
+        # Find the account by external_id (which maps to Customer#extid)
+        account = db[:accounts].where(external_id: cust.extid).first
+        return false unless account
+
+        # Get the password hash for this account
+        password_hash_row = db[:account_password_hashes].where(id: account[:id]).first
+        return false unless password_hash_row
+
+        stored_hash = password_hash_row[:password_hash]
+        return false if stored_hash.to_s.empty?
+
+        # Verify using Argon2 (same as Rodauth uses)
+        ::Argon2::Password.verify_password(password, stored_hash)
+      rescue ::Argon2::ArgonHashFail => ex
+        OT.le "[destroy-account] Argon2 verification failed: #{ex.message}"
+        false
       rescue StandardError => ex
-        OT.le "[destroy-account] Error deleting auth account: #{ex.message}"
+        OT.le "[destroy-account] Password verification error: #{ex.message}"
         OT.ld ex.backtrace.first(5).join("\n")
-        # Don't raise - customer is already deleted, this is cleanup
+        false
+      end
+
+      # Delete account and all related data from auth database in full mode.
+      # Uses Auth::Operations::CloseAccount which handles all dependent tables
+      # within a transaction.
+      #
+      # @param customer [Onetime::Customer]
+      # @return [Hash] Result with :success and optionally :error
+      def delete_auth_account(customer)
+        return { success: false, error: 'Customer extid is required' } unless customer&.extid
+
+        Auth::Operations::CloseAccount.call(extid: customer.extid)
       end
     end
   end

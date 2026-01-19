@@ -35,7 +35,7 @@ export function createSharedApiInstance(): AxiosInstance {
  * @example
  * ```ts
  * const mock = getGlobalAxiosMock();
- * mock.onGet('/api/account/account').reply(200, { custid: 'test' });
+ * mock.onGet('/api/account').reply(200, { custid: 'test' });
  * ```
  */
 export function getGlobalAxiosMock(): AxiosMockAdapter {

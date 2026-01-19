@@ -72,7 +72,7 @@ const DEFAULTS: BootstrapPayload = {
   display_domain: '',
   domain_branding: {} as BrandSettings,
   domain_logo: null,
-  domain_scope: null,
+  domain_context: null,
   custom_domains: [],
 
   // Regions configuration
@@ -252,7 +252,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const display_domain = ref<string>(DEFAULTS.display_domain);
   const domain_branding = ref<BrandSettings>(DEFAULTS.domain_branding);
   const domain_logo = ref<string | null>(DEFAULTS.domain_logo);
-  const domain_scope = ref<string | null>(DEFAULTS.domain_scope ?? null as string | null);
+  const domain_context = ref<string | null>(DEFAULTS.domain_context ?? null as string | null);
   const custom_domains = ref<string[] | undefined>(DEFAULTS.custom_domains);
 
   // Regions configuration
@@ -371,7 +371,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(display_domain, data.display_domain);
     updateIfDefined(domain_branding, data.domain_branding);
     updateIfDefined(domain_logo, data.domain_logo);
-    updateIfDefined(domain_scope, data.domain_scope);
+    updateIfDefined(domain_context, data.domain_context);
     updateIfDefined(custom_domains, data.custom_domains);
   }
 
@@ -463,7 +463,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     display_domain.value = DEFAULTS.display_domain;
     domain_branding.value = DEFAULTS.domain_branding;
     domain_logo.value = DEFAULTS.domain_logo;
-    domain_scope.value = (DEFAULTS.domain_scope ?? null) as string | null;
+    domain_context.value = (DEFAULTS.domain_context ?? null) as string | null;
     custom_domains.value = DEFAULTS.custom_domains;
   }
 
@@ -634,7 +634,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     display_domain,
     domain_branding,
     domain_logo,
-    domain_scope,
+    domain_context,
     custom_domains,
 
     // State - Regions

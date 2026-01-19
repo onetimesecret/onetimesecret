@@ -42,12 +42,12 @@ const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_US
  *   - data-testid="org-scope-manage-link"       - "Manage Organizations" link
  *
  * Domain Scope Switcher:
- *   - data-testid="domain-scope-switcher"         - Main switcher container
- *   - data-testid="domain-scope-switcher-trigger" - Dropdown trigger button
- *   - data-testid="domain-scope-switcher-dropdown"- Dropdown menu
- *   - data-testid="domain-scope-item-{domain}"    - Individual domain menu item
- *   - data-testid="domain-scope-settings-{domain}"- Gear icon for domain settings
- *   - data-testid="domain-scope-add-link"         - "Add Domain" link
+ *   - data-testid="domain-context-switcher"         - Main switcher container
+ *   - data-testid="domain-context-switcher-trigger" - Dropdown trigger button
+ *   - data-testid="domain-context-switcher-dropdown"- Dropdown menu
+ *   - data-testid="domain-context-item-{domain}"    - Individual domain menu item
+ *   - data-testid="domain-context-settings-{domain}"- Gear icon for domain settings
+ *   - data-testid="domain-context-add-link"         - "Add Domain" link
  */
 
 // -----------------------------------------------------------------------------
@@ -106,23 +106,23 @@ const orgSwitcher = {
  * Locators for Domain Scope Switcher
  */
 const domainSwitcher = {
-  container: (page: Page) => page.locator('[data-testid="domain-scope-switcher"]'),
+  container: (page: Page) => page.locator('[data-testid="domain-context-switcher"]'),
   // Fallback to component structure if data-testid not yet implemented
   containerFallback: (page: Page) =>
     page.locator('.relative.inline-flex').filter({
       has: page.locator('button[aria-label*="domain" i], button[aria-label*="scope" i]'),
     }),
   trigger: (page: Page) =>
-    page.locator('[data-testid="domain-scope-switcher-trigger"], button[aria-label*="scope" i]'),
+    page.locator('[data-testid="domain-context-switcher-trigger"], button[aria-label*="scope" i]'),
   dropdown: (page: Page) =>
-    page.locator('[data-testid="domain-scope-switcher-dropdown"], [role="menu"]').filter({
+    page.locator('[data-testid="domain-context-switcher-dropdown"], [role="menu"]').filter({
       has: page.locator('text=/domain/i'),
     }),
   menuItems: (page: Page) => page.locator('[role="menuitem"]'),
   gearIcon: (page: Page) =>
-    page.locator('[data-testid^="domain-scope-settings"], button[aria-label*="domain settings" i]'),
+    page.locator('[data-testid^="domain-context-settings"], button[aria-label*="domain settings" i]'),
   addLink: (page: Page) =>
-    page.locator('[data-testid="domain-scope-add-link"], button:has-text("Add Domain")'),
+    page.locator('[data-testid="domain-context-add-link"], button:has-text("Add Domain")'),
 };
 
 /**
@@ -682,7 +682,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       await firstItem.click();
 
       // Check localStorage
-      const storedDomain = await page.evaluate(() => localStorage.getItem('domainScope'));
+      const storedDomain = await page.evaluate(() => localStorage.getItem('domainContext'));
       expect(storedDomain).toBeTruthy();
     });
 
@@ -983,7 +983,7 @@ test.describe('Scope Switcher - State Persistence', () => {
     const menuItem = page.locator('[role="menuitem"]').first();
     await menuItem.click();
 
-    const storedValue = await page.evaluate(() => localStorage.getItem('domainScope'));
+    const storedValue = await page.evaluate(() => localStorage.getItem('domainContext'));
     expect(storedValue).toBeTruthy();
   });
 });

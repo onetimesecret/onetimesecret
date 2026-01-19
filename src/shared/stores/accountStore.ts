@@ -25,7 +25,7 @@ export const useAccountStore = defineStore('account', () => {
     abort();
     abortController.value = new AbortController();
 
-    const response = await $api.get('/api/account/account', {
+    const response = await $api.get('/api/account', {
       signal: abortController.value.signal,
     });
     const validated = responseSchemas.account.parse(response.data);
@@ -34,13 +34,13 @@ export const useAccountStore = defineStore('account', () => {
   }
 
   async function updateLocale(locale: string) {
-    const response = await $api.post('/api/account/account/update-locale', { locale });
+    const response = await $api.post('/api/account/update-locale', { locale });
     await fetch();
     return response.data;
   }
 
   async function changePassword(password: string, newpassword: string, passwordconfirm: string) {
-    const response = await $api.post('/api/account/account/change-password', {
+    const response = await $api.post('/api/account/change-password', {
       password,
       newpassword,
       passwordconfirm,
@@ -49,14 +49,14 @@ export const useAccountStore = defineStore('account', () => {
   }
 
   async function generateApiToken() {
-    const response = await $api.post('/api/account/account/apitoken');
+    const response = await $api.post('/api/account/apitoken');
     const validated = responseSchemas.apiToken.parse(response.data);
     await fetch();
     return validated;
   }
 
   async function updateNotificationPreference(field: string, value: boolean) {
-    const response = await $api.post('/api/account/account/update-notification-preference', {
+    const response = await $api.post('/api/account/update-notification-preference', {
       field,
       value,
     });

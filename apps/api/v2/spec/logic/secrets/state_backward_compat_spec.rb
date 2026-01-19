@@ -155,7 +155,8 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       it 'sets state and timestamp' do
         receipt.previewed!
         expect(receipt.state).to eq('previewed').or eq('viewed')
-        expect(receipt.viewed.to_i).to be > 0
+        # Check the new canonical field (safe_dump provides backward compat for :viewed)
+        expect(receipt.previewed.to_i).to be > 0
       end
 
       it 'only transitions from :new state' do
@@ -171,7 +172,8 @@ RSpec.describe 'V2 API State Backward Compatibility' do
       it 'sets state and timestamp' do
         receipt.revealed!
         expect(receipt.state).to eq('revealed').or eq('received')
-        expect(receipt.received.to_i).to be > 0
+        # Check the new canonical field (safe_dump provides backward compat for :received)
+        expect(receipt.revealed.to_i).to be > 0
       end
 
       it 'clears secret_identifier' do

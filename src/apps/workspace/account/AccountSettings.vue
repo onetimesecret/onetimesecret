@@ -20,12 +20,12 @@
   const baseTabs = [
     {
       name: 'password',
-      label: 'web.auth.change-password.title',
+      label: 'web.auth.change_password.title',
       path: '/account/settings/password',
     },
     {
       name: 'close',
-      label: 'web.auth.close-account.title',
+      label: 'web.auth.close_account.title',
       path: '/account/settings/close',
     },
   ];

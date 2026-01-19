@@ -1,7 +1,7 @@
 // src/shared/composables/useDomainsManager.ts
 
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-import { useDomainScope } from '@/shared/composables/useDomainScope';
+import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { ApplicationError } from '@/schemas/errors';
 import type { CustomDomain } from '@/schemas/models';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
@@ -119,18 +119,18 @@ export function useDomainsManager() {
     return undefined; // Signal to re-throw
   };
 
-  /** Update domain scope after adding a domain */
-  const updateDomainScopeAfterAdd = (
+  /** Update domain context after adding a domain */
+  const updateDomainContextAfterAdd = (
     record: CustomDomain,
-    details: { domain_scope?: string | null } | undefined
+    details: { domain_context?: string | null } | undefined
   ) => {
-    const { setScope } = useDomainScope();
-    const scopeFromServer = details?.domain_scope;
-    // Skip backend sync when server already set the scope
-    if (scopeFromServer) {
-      setScope(scopeFromServer, true);
+    const { setContext } = useDomainContext();
+    const contextFromServer = details?.domain_context;
+    // Skip backend sync when server already set the context
+    if (contextFromServer) {
+      setContext(contextFromServer, true);
     } else {
-      setScope(record.display_domain);
+      setContext(record.display_domain);
     }
   };
 
@@ -149,7 +149,7 @@ export function useDomainsManager() {
         const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success');
 
-        updateDomainScopeAfterAdd(record, details);
+        updateDomainContextAfterAdd(record, details);
 
         if (orgid.value) {
           router.push({

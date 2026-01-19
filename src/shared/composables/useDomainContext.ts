@@ -1,16 +1,16 @@
-// src/shared/composables/useDomainScope.ts
+// src/shared/composables/useDomainContext.ts
 
 /**
- * Domain Scope Composable
+ * Domain Context Composable
  *
- * Provides workspace-level domain scope context for managing secrets
- * across multiple custom domains. Domain scope is a session-level filter
+ * Provides workspace-level domain context for managing secrets
+ * across multiple custom domains. Domain context is a session-level filter
  * that determines which domain context is active for the current workspace.
  *
  * Domains are scoped to the currently active organization - when the user
  * switches organizations, the available domains list updates accordingly.
  *
- * @see docs/product/interaction-modes.md - Domain Scope concept
+ * @see docs/product/interaction-modes.md - Domain Context concept
  */
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -19,24 +19,24 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { AxiosInstance } from 'axios';
 import { computed, inject, ref, watch } from 'vue';
 
-export interface DomainScope {
+export interface DomainContext {
   /** The domain hostname (e.g., "acme.example.com" or "onetimesecret.com") */
   domain: string;
   /** The external ID for API calls (e.g., "cd1234abcdef") - undefined for canonical domain */
   extid: string | undefined;
-  /** Display-friendly name for the scope */
+  /** Display-friendly name for the context */
   displayName: string;
   /** Whether this is the canonical (default) domain */
   isCanonical: boolean;
 }
 
-// Shared state for domain scope across components
+// Shared state for domain context across components
 const currentDomain = ref('');
 const isInitialized = ref(false);
 const isLoadingDomains = ref(false);
 
-// Request ID to handle race conditions during rapid org switches
-let currentFetchRequestId = 0;
+// AbortController for cancelling in-flight domain fetches during rapid org switches
+let currentFetchController: AbortController | null = null;
 
 // Bootstrap store reference - initialized on first composable use
 let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
@@ -56,7 +56,7 @@ function getConfig() {
     domainsEnabled: store.domains_enabled,
     canonicalDomain: store.site_host,
     displayDomain: store.display_domain,
-    serverDomainScope: store.domain_scope,
+    serverDomainContext: store.domain_context,
   };
 }
 
@@ -94,16 +94,16 @@ function findExtidByDomain(
   return storeDomains.find((d) => d.display_domain === domain)?.extid;
 }
 
-/** Sync domain scope to backend (fire-and-forget) */
-async function syncDomainScopeToServer(
+/** Sync domain context to backend (fire-and-forget) */
+async function syncDomainContextToServer(
   $api: AxiosInstance | undefined,
   domain: string
 ): Promise<void> {
   if (!$api) return;
   try {
-    await $api.post('/api/account/update-domain-scope', { domain });
+    await $api.post('/api/account/update-domain-context', { domain });
   } catch (error) {
-    console.warn('[useDomainScope] Failed to sync to server:', error);
+    console.warn('[useDomainContext] Failed to sync to server:', error);
   }
 }
 
@@ -117,33 +117,46 @@ function createDomainFetcher(
     if (!domainsEnabled) return true;
     const orgId = organizationStore.currentOrganization?.id;
     if (!orgId) {
-      console.debug('[useDomainScope] Skipping fetch: no currentOrganization set yet');
+      console.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
       return false;
     }
-    const requestId = ++currentFetchRequestId;
+
+    // Cancel any in-flight fetch before starting a new one
+    if (currentFetchController) {
+      currentFetchController.abort();
+    }
+    const controller = new AbortController();
+    currentFetchController = controller;
+
     isLoadingDomains.value = true;
     try {
       await domainsStore.fetchList(orgId);
-      return requestId === currentFetchRequestId;
+      // Return true only if this fetch wasn't aborted
+      return !controller.signal.aborted;
     } catch (error) {
-      console.warn('[useDomainScope] Failed to fetch domains:', error);
+      // Ignore abort errors, log others
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.warn('[useDomainContext] Failed to fetch domains:', error);
+      }
       return false;
     } finally {
-      if (requestId === currentFetchRequestId) {
+      // Only clear loading state if this is still the current controller
+      if (currentFetchController === controller) {
         isLoadingDomains.value = false;
+        currentFetchController = null;
       }
     }
   };
 }
 
-/** Initialize domain scope on module load (runs once). Returns promise for awaiting. */
-async function initializeDomainScope(
+/** Initialize domain context on module load (runs once). Returns promise for awaiting. */
+async function initializeDomainContext(
   fetchFn: () => Promise<boolean | void>,
   getAvailable: () => string[]
 ): Promise<void> {
   if (isInitialized.value) return;
 
-  const { domainsEnabled, canonicalDomain, serverDomainScope } = getConfig();
+  const { domainsEnabled, canonicalDomain, serverDomainContext } = getConfig();
 
   try {
     if (domainsEnabled) {
@@ -151,15 +164,15 @@ async function initializeDomainScope(
       const available = getAvailable();
 
       // Priority: server preference > localStorage > preferred domain
-      const localScope = localStorage.getItem('domainScope');
+      const localContext = localStorage.getItem('domainContext');
 
-      if (serverDomainScope && available.includes(serverDomainScope)) {
+      if (serverDomainContext && available.includes(serverDomainContext)) {
         // Server-side preference takes priority
-        currentDomain.value = serverDomainScope;
-        localStorage.setItem('domainScope', serverDomainScope); // Sync localStorage
-      } else if (localScope && available.includes(localScope)) {
+        currentDomain.value = serverDomainContext;
+        localStorage.setItem('domainContext', serverDomainContext); // Sync localStorage
+      } else if (localContext && available.includes(localContext)) {
         // Fall back to localStorage if valid
-        currentDomain.value = localScope;
+        currentDomain.value = localContext;
       } else {
         // Fall back to preferred domain (first custom domain or canonical)
         currentDomain.value = getPreferredDomain(available);
@@ -174,10 +187,10 @@ async function initializeDomainScope(
 }
 
 /**
- * Composable for managing domain scope in the workspace.
+ * Composable for managing domain context in the workspace.
  * Domains are scoped to the current organization.
  */
-export function useDomainScope() {
+export function useDomainContext() {
   const $api = inject('api') as AxiosInstance | undefined;
   const domainsStore = useDomainsStore();
   const organizationStore = useOrganizationStore();
@@ -189,18 +202,28 @@ export function useDomainScope() {
   const fetchDomainsForOrganization = createDomainFetcher(organizationStore, domainsStore);
 
   // Watch for organization changes (including initial load from null -> org)
-  watch(() => organizationStore.currentOrganization?.id, async (newOrgId, oldOrgId) => {
-    if (newOrgId && newOrgId !== oldOrgId) {
-      const isCurrentRequest = await fetchDomainsForOrganization();
-      if (isCurrentRequest && currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-        currentDomain.value = getPreferredDomain(availableDomains.value);
+  watch(
+    () => organizationStore.currentOrganization?.id,
+    async (newOrgId, oldOrgId) => {
+      if (newOrgId && newOrgId !== oldOrgId) {
+        const isCurrentRequest = await fetchDomainsForOrganization();
+        if (
+          isCurrentRequest &&
+          currentDomain.value &&
+          !availableDomains.value.includes(currentDomain.value)
+        ) {
+          currentDomain.value = getPreferredDomain(availableDomains.value);
+        }
       }
     }
-  }, { immediate: true });
+  );
 
-  const initPromise = initializeDomainScope(fetchDomainsForOrganization, () => availableDomains.value);
+  const initPromise = initializeDomainContext(
+    fetchDomainsForOrganization,
+    () => availableDomains.value
+  );
 
-  const currentScope = computed<DomainScope>(() => {
+  const currentContext = computed<DomainContext>(() => {
     const { canonicalDomain } = getConfig();
     const domain = currentDomain.value || canonicalDomain || '';
     const isCanonical = domain === canonicalDomain;
@@ -213,30 +236,30 @@ export function useDomainScope() {
   });
 
   /**
-   * Set the current domain scope
-   * @param domain - The domain to set as active scope
-   * @param skipBackendSync - If true, skips the backend sync (use when server already set the scope)
+   * Set the current domain context
+   * @param domain - The domain to set as active context
+   * @param skipBackendSync - If true, skips the backend sync (use when server already set the context)
    */
-  const setScope = async (domain: string, skipBackendSync = false): Promise<void> => {
+  const setContext = async (domain: string, skipBackendSync = false): Promise<void> => {
     if (!availableDomains.value.includes(domain)) return;
     currentDomain.value = domain;
-    localStorage.setItem('domainScope', domain);
+    localStorage.setItem('domainContext', domain);
     if (!skipBackendSync) {
-      await syncDomainScopeToServer($api, domain);
+      await syncDomainContextToServer($api, domain);
     }
   };
 
   return {
-    currentScope,
-    isScopeActive: computed<boolean>(() => getConfig().domainsEnabled),
-    hasMultipleScopes: computed<boolean>(() => availableDomains.value.length > 1),
+    currentContext,
+    isContextActive: computed<boolean>(() => getConfig().domainsEnabled),
+    hasMultipleContexts: computed<boolean>(() => availableDomains.value.length > 1),
     availableDomains,
     isLoadingDomains: computed(() => isLoadingDomains.value),
-    setScope,
-    resetScope: () => {
+    setContext,
+    resetContext: () => {
       const { canonicalDomain } = getConfig();
       currentDomain.value = canonicalDomain || '';
-      localStorage.removeItem('domainScope');
+      localStorage.removeItem('domainContext');
     },
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,

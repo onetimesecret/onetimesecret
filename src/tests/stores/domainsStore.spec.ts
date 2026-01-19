@@ -61,7 +61,7 @@ describe('domainsStore', () => {
       // Setup mock response with valid data
       axiosMock.onPost('/api/domains/add').reply(200, {
         record: mockNewDomain,
-        details: { domain_scope: 'example.com' },
+        details: { domain_context: 'example.com' },
       });
 
       // Call store action with just the domain name
@@ -69,7 +69,7 @@ describe('domainsStore', () => {
 
       // Verify response matches expected structure (now returns { record, details })
       expect(result.record).toEqual(mockNewDomain);
-      expect(result.details?.domain_scope).toBe('example.com');
+      expect(result.details?.domain_context).toBe('example.com');
 
       // Verify domain was added to store
       expect(store.domains).toContainEqual(mockNewDomain);
@@ -85,12 +85,12 @@ describe('domainsStore', () => {
     it('should add a new domain (schema validation issues)', async () => {
       axiosMock.onPost('/api/domains/add').reply(200, {
         record: newDomainData,
-        details: { domain_scope: newDomainData.display_domain },
+        details: { domain_context: newDomainData.display_domain },
       });
 
       const result = await store.addDomain(newDomainData.name);
       expect(result.record).toMatchObject(newDomainData);
-      expect(result.details?.domain_scope).toBe(newDomainData.display_domain);
+      expect(result.details?.domain_context).toBe(newDomainData.display_domain);
       expect(store.records).toContainEqual(expect.objectContaining(newDomainData));
     });
 

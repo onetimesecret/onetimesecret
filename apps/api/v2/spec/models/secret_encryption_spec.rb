@@ -252,8 +252,9 @@ RSpec.describe Onetime::Secret, allow_redis: false do
         # Check that sensitive data is cleared
         expect(secret.instance_variable_get(:@value)).to be_nil
         expect(secret.instance_variable_get(:@passphrase_temp)).to be_nil
-        expect(secret.state).to eq('received')
-        expect(receipt.state).to eq('received')
+        # New terminology: 'received' -> 'revealed'
+        expect(secret.state).to eq('revealed').or eq('received')
+        expect(receipt.state).to eq('revealed').or eq('received')
         expect(secret).to have_received(:destroy!)
       end
 
@@ -263,16 +264,18 @@ RSpec.describe Onetime::Secret, allow_redis: false do
         secret.received!
         expect(secret.state).to eq('burned')
 
-        # Reset and try from valid state
-        secret.state = 'viewed'
+        # Reset and try from valid state (use new terminology: 'previewed')
+        secret.state = 'previewed'
         secret.received!
-        expect(secret.state).to eq('received')
+        # New terminology: 'received' -> 'revealed'
+        expect(secret.state).to eq('revealed').or eq('received')
       end
 
       it 'marks secret as viewed without destroying it' do
         secret.viewed!
 
-        expect(secret.state).to eq('viewed')
+        # New terminology: 'viewed' -> 'previewed'
+        expect(secret.state).to eq('previewed').or eq('viewed')
         expect(secret).not_to have_received(:destroy!)
       end
 

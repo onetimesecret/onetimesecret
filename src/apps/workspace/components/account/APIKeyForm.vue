@@ -33,7 +33,7 @@
     success: apiKeySuccess,
     submitForm: generateAPIKey,
   } = useFormSubmission({
-    url: '/api/account/account/apitoken',
+    url: '/api/account/apitoken',
     successMessage: t('web.account.token_generated'),
     schema: responseSchemas.apiToken,
     onSuccess: async (data) => {
