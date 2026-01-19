@@ -59,7 +59,7 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
   end
 
   it 'Organization has default name' do
-    expect(@org.display_name).to eq("Personal Workspace")
+    expect(@org.display_name).to eq("Default Workspace")
   end
 
   it 'Organization contact email matches customer email' do
