@@ -112,9 +112,6 @@
     "skip": true,
     "note": "empty"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Fakturering og abonnementshåndtering håndteres via dit primære arbejdsområde. Besøg indstillingerne for dit primære arbejdsområde for at administrere betalingsmetoder og fakturaer."
-  },
   "web.organizations.select_organization": {
     "text": "",
     "skip": true,

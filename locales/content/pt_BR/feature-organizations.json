@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Contato principal para notificações administrativas e de faturamento"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "O gerenciamento de faturamento e assinatura é feito através do seu espaço de trabalho principal. Visite as configurações do seu espaço de trabalho principal para gerenciar métodos de pagamento e faturas."
-  },
   "web.organizations.select_organization": {
     "text": "Selecione uma organização"
   },

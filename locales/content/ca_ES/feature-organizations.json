@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Contacte principal per a notificacions de facturació i administratives"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "La gestió de facturació i subscripció es fa a través del teu espai de treball principal. Visita la configuració del teu espai de treball principal per gestionar els mètodes de pagament i les factures."
-  },
   "web.organizations.select_organization": {
     "text": "Selecciona una organització"
   },

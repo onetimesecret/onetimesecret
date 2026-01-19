@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "جهة الاتصال الأساسية للفوترة والإشعارات الإدارية"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "يتم التعامل مع إدارة الفوترة والاشتراك من خلال مساحة العمل الرئيسية الخاصة بك. قم بزيارة إعدادات مساحة العمل الرئيسية لإدارة طرق الدفع والفواتير."
-  },
   "web.organizations.select_organization": {
     "text": "اختر منظمة"
   },

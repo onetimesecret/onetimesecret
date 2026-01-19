@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Ĉefa kontakto por fakturaj kaj administraj sciigoj"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Fakturado kaj abonadministrado estas faritaj tra via ĉefa laborspaco. Vizitu viajn ĉefajn laborspacajn agordojn por administri pagmetodojn kaj fakturojn."
-  },
   "web.organizations.select_organization": {
     "text": "Elektu organizon"
   },

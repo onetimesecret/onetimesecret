@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Primair contact voor facturering en administratieve meldingen"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Facturering en abonnementsbeheer worden via je primaire werkruimte afgehandeld. Bezoek je hoofdwerkruimte-instellingen om betaalmethoden en facturen te beheren."
-  },
   "web.organizations.select_organization": {
     "text": "Selecteer een organisatie"
   },

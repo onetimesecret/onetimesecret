@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Liên hệ chính cho thông báo thanh toán và quản trị"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Quản lý thanh toán và đăng ký được xử lý thông qua không gian làm việc chính của bạn. Truy cập cài đặt không gian làm việc chính để quản lý phương thức thanh toán và hóa đơn."
-  },
   "web.organizations.select_organization": {
     "text": "Chọn một tổ chức"
   },

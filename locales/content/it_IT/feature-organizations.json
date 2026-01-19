@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Contatto principale per notifiche di fatturazione e amministrative"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "La gestione della fatturazione e degli abbonamenti avviene tramite il tuo spazio di lavoro principale. Visita le impostazioni del tuo spazio di lavoro principale per gestire i metodi di pagamento e le fatture."
-  },
   "web.organizations.select_organization": {
     "text": "Seleziona un'organizzazione"
   },
