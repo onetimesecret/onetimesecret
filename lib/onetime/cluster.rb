@@ -337,6 +337,30 @@ module Onetime
 
         response
       end
+
+      # Retrieves a DNS widget token for client-side DNS management.
+      #
+      # The token expires in 10 minutes but the widget will automatically
+      # renew it before expiration if the page remains open.
+      #
+      # @param api_key [String] The API key for authenticating with the API.
+      # @return [HTTParty::Response] The response containing the token.
+      #
+      # @example
+      #   api_key = 'your_api_key_here'
+      #   response = Approximated.get_dns_widget_token(api_key)
+      #   token = response.parsed_response['token']
+      #
+      def self.get_dns_widget_token(api_key)
+        response = get('/dns/token', headers: { 'api-key' => api_key })
+
+        case response.code
+        when 401
+          raise HTTParty::ResponseError, 'Invalid API key'
+        end
+
+        response
+      end
     end
   end
 end

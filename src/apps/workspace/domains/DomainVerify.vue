@@ -2,13 +2,14 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import DnsWidget from '@/apps/workspace/components/domains/DnsWidget.vue';
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import MoreInfoText from '@/shared/components/ui/MoreInfoText.vue';
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
   import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
-  import { onMounted, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
@@ -37,6 +38,25 @@
 
   const handleDomainVerify = async (data: CustomDomainResponse) => {
     console.debug('Domain verified: refreshing domain info', data);
+    await fetchDomain();
+  };
+
+  // DNS Widget configuration
+  // Show widget only when domain is not yet verified (no vhost data)
+  const showDnsWidget = computed(() => domain.value && !domain.value.vhost?.last_monitored_unix && cluster.value);
+
+  // Target address for DNS records (IP for apex domains, hostname otherwise)
+  const dnsTargetAddress = computed(() => {
+    // For apex domains, use the cluster IP; otherwise use cluster_host for CNAME
+    if (domain.value?.is_apex) {
+      return cluster.value?.cluster_ip ?? '';
+    }
+    return cluster.value?.cluster_host ?? '';
+  });
+
+  const handleDnsRecordsVerified = async () => {
+    console.debug('DNS records verified via widget');
+    // Refresh domain data to pick up verification status
     await fetchDomain();
   };
 
@@ -99,6 +119,25 @@
         </div>
       </div>
     </MoreInfoText>
+
+    <!-- DNS Widget for automated DNS configuration -->
+    <div
+      v-if="showDnsWidget"
+      class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+        {{ t('web.domains.configure_dns_records') }}
+      </h2>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        {{ t('web.domains.dns_widget_description') }}
+      </p>
+      <DnsWidget
+        :domain="domain!.display_domain"
+        :target-address="dnsTargetAddress"
+        :is-apex="domain?.is_apex"
+        :txt-validation-host="domain?.txt_validation_host"
+        :txt-validation-value="domain?.txt_validation_value"
+        @records-verified="handleDnsRecordsVerified" />
+    </div>
 
     <VerifyDomainDetails
       v-if="domain"
