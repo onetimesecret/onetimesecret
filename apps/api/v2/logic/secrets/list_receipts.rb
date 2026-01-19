@@ -115,10 +115,14 @@ module V2::Logic
       end
 
       # Domain scope: receipts created with a specific custom domain
+      # Access allowed for domain owner or any member of the domain's organization
       def query_domain_receipts
         domain = Onetime::CustomDomain.find_by_extid(domain_extid)
         raise_form_error('Invalid domain') unless domain
-        raise_form_error('Access denied to domain') unless domain.owner?(cust)
+
+        domain_org = domain.organization
+        has_access = domain.owner?(cust) || domain_org&.member?(cust)
+        raise_form_error('Access denied to domain') unless has_access
 
         @scope_label = domain.display_domain
         domain.receipts.rangebyscore(since, @now)
