@@ -1,18 +1,40 @@
-<!-- src/apps/secret/components/SecretLinksTableRow.vue -->
+<!-- src/apps/secret/components/SecretLinksTableRowConsole.vue -->
 <!--
   Console-style feed item for recent secrets.
   Monospace precision design embracing the security/technical nature.
   Uses tree-style metadata display with ASCII characters.
+
+  ENCRYPTION SIGNAL SYSTEM (Three-Layer):
+  All secrets are encrypted (EO). Some also have passphrase protection (EAP).
+  The UI distinguishes these with redundant visual cues:
+
+  Layer 1 - Persistent iconography:
+    - EO:  Single padlock icon (mid-gray)
+    - EAP: Padlock + keyhole badge (outline, 1/4 size, lower-right)
+
+  Layer 2 - Visual hierarchy:
+    - Same saturation for both (no downgrading EO)
+    - EAP: Subtle pulse animation on keyhole badge (opacity 0.6→1.0→0.6, 1.5s)
+
+  Layer 3 - On-demand info:
+    - Hover/tap shows tooltip with explanation
+    - EO:  "Encrypted"
+    - EAP: "Encrypted + passphrase protected"
 -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
   import { formatTTL } from '@/utils/formatters';
   import { formatDistanceToNow } from 'date-fns';
   import { storeToRefs } from 'pinia';
-  import { ref, computed, nextTick } from 'vue';
+  import { ref, computed, nextTick, onMounted } from 'vue';
+
+  // Layer 2: Track viewport entry for EAP pulse animation
+  const rowRef = ref<HTMLElement | null>(null);
+  const hasEnteredViewport = ref(false);
 
   const { t } = useI18n();
 
@@ -32,6 +54,26 @@
 
   // Track if this row's content was copied
   const isCopied = ref(false);
+
+  // Layer 3: Encryption tooltip visibility
+  const showEncryptionTooltip = ref(false);
+
+  // Layer 2: Observe viewport entry for EAP pulse animation
+  onMounted(() => {
+    if (!rowRef.value) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !hasEnteredViewport.value) {
+          hasEnteredViewport.value = true;
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(rowRef.value);
+  });
 
   // Memo editing state
   const isEditingMemo = ref(false);
@@ -198,18 +240,67 @@
 </script>
 
 <template>
-  <li :class="rowClasses">
-    <!-- Header line: #N  SYMBOL STATUS  Memo/ID -->
+  <li ref="rowRef" :class="rowClasses">
+    <!-- Header line: #N  🔒  SYMBOL STATUS  Memo/ID -->
     <div class="flex items-start gap-2">
       <!-- Index prefix -->
       <span class="select-none text-gray-400 dark:text-gray-500">
         #{{ index }}
       </span>
 
-      <!-- Status symbol -->
-      <span :class="['font-bold', statusConfig.colorClass]">
-        {{ statusConfig.symbol }}
-      </span>
+      <!--
+        LAYER 1 & 2: Encryption iconography
+        - All items show padlock (EO baseline)
+        - EAP items add keyhole badge with pulse animation
+      -->
+      <div
+        class="group/encrypt relative flex-shrink-0"
+        @mouseenter="showEncryptionTooltip = true"
+        @mouseleave="showEncryptionTooltip = false"
+        @focus="showEncryptionTooltip = true"
+        @blur="showEncryptionTooltip = false"
+        tabindex="0"
+        role="img"
+        :aria-label="hasPassphrase ? `${t('web.LABELS.encrypted')} + ${t('web.LABELS.passphrase_protected')}` : t('web.LABELS.encrypted')">
+        <!-- Padlock icon (always shown, mid-gray, same saturation for EO and EAP) -->
+        <OIcon
+            v-if="hasPassphrase"
+            collection="tabler"
+            name="lock-check"
+            size="5"
+        />
+        <OIcon
+            v-else
+            collection="tabler"
+            name="lock"
+            size="5"
+        />
+
+        <!-- LAYER 3: Tooltip on hover/focus -->
+        <Transition
+          enter-active-class="transition duration-150 ease-out"
+          enter-from-class="opacity-0 translate-y-1"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition duration-100 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 translate-y-1">
+          <div
+            v-if="showEncryptionTooltip"
+            class="absolute -top-8 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-gray-700">
+            <template v-if="hasPassphrase">
+              {{ t('web.LABELS.encrypted') }}
+              <span class="text-teal-300"> + {{ t('web.LABELS.passphrase_protected') }}</span>
+            </template>
+            <template v-else>
+              {{ t('web.LABELS.encrypted') }}
+            </template>
+            <!-- Tooltip arrow -->
+            <div
+              class="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 bg-gray-800 dark:bg-gray-700"
+              aria-hidden="true"></div>
+          </div>
+        </Transition>
+      </div>
 
       <!-- Status label -->
       <span :class="['font-semibold tracking-wide', statusConfig.colorClass]">
@@ -257,83 +348,62 @@
           </button>
         </template>
       </div>
+
+      <!-- Actions (header line, right side) -->
+      <div v-if="isActive" class="flex flex-shrink-0 items-center gap-2">
+        <!-- Copy button -->
+        <button
+          type="button"
+          @click="handleCopy"
+          :class="[
+            'rounded border px-2 py-0.5 text-xs font-medium transition-colors',
+            isCopied
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
+          ]"
+          :title="t('web.LABELS.copy_to_clipboard')">
+          {{ isCopied ? '[ COPIED ]' : '[ COPY ]' }}
+        </button>
+
+        <!-- Open link button -->
+        <a
+          :href="shareLink"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          :title="t('web.COMMON.view_secret')">
+          [ OPEN &#8599; ]
+        </a>
+      </div>
     </div>
 
     <!-- Metadata tree (full tree for active/previewed, minimal for terminal) -->
     <div class="ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
       <template v-if="isActive">
-        <!-- Expires line -->
-        <div class="flex items-center">
-          <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">├─</span>
-          <span>expires:</span>
-          <span
-            :class="[
-              'ml-1',
-              isUrgent
-                ? 'font-semibold text-amber-600 dark:text-amber-400'
-                : 'text-gray-700 dark:text-gray-300',
-            ]">
-            {{ timeRemaining }}
-          </span>
-        </div>
-
-        <!-- Passphrase line (if protected) -->
-        <div v-if="hasPassphrase" class="flex items-center">
-          <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">├─</span>
-          <span class="text-emerald-600 dark:text-emerald-400">
-            <span aria-hidden="true">&#128273;</span>
-            passphrase protected
-          </span>
-        </div>
-
-        <!-- Link accessed line (only for previewed) -->
-        <div v-if="itemState === 'previewed'" class="flex items-center">
-          <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">├─</span>
-          <span class="text-amber-600 dark:text-amber-400">
-            link accessed
-          </span>
-        </div>
-
-        <!-- Created line (last item, use └─) -->
+        <!-- Expires line with timestamp on right -->
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">└─</span>
-            <span>created:</span>
-            <router-link
-              :to="`/receipt/${record.extid}`"
-              class="ml-1 text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
-              <time :datetime="record.createdAt.toISOString()">
-                {{ formattedDate }}
-              </time>
-            </router-link>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center gap-2">
-            <!-- Copy button -->
-            <button
-              type="button"
-              @click="handleCopy"
+            <span>expires:</span>
+            <span
               :class="[
-                'rounded border px-2 py-0.5 text-xs font-medium transition-colors',
-                isCopied
-                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
-              ]"
-              :title="t('web.LABELS.copy_to_clipboard')">
-              {{ isCopied ? '[ COPIED ]' : '[ COPY ]' }}
-            </button>
-
-            <!-- Open link button -->
-            <a
-              :href="shareLink"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              :title="t('web.COMMON.view_secret')">
-              [ OPEN &#8599; ]
-            </a>
+                'ml-1',
+                isUrgent
+                  ? 'font-semibold text-amber-600 dark:text-amber-400'
+                  : 'text-gray-700 dark:text-gray-300',
+              ]">
+              {{ timeRemaining }}
+            </span>
           </div>
+
+          <!-- Created timestamp -->
+          <router-link
+            :to="`/receipt/${record.extid}`"
+            class="text-xs text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+            <time :datetime="record.createdAt.toISOString()">
+              {{ formattedDate }}
+            </time>
+          </router-link>
         </div>
       </template>
 
@@ -362,3 +432,25 @@
       aria-hidden="true"></div>
   </li>
 </template>
+
+<style scoped>
+  /*
+   * Layer 2: EAP pulse animation
+   * Subtle opacity pulse (0.6 → 1.0 → 0.6) over 1.5s
+   * Only triggers once when row enters viewport
+   * Motion is unique to EAP, teaching users "motion = needs passphrase"
+   */
+  @keyframes eap-pulse {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .animate-eap-pulse {
+    animation: eap-pulse 1.5s ease-in-out 1;
+  }
+</style>
