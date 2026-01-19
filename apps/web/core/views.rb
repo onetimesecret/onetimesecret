@@ -22,6 +22,7 @@ module Core
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
+        OrganizationSerializer,
         SystemSerializer,
       )
 
@@ -35,6 +36,7 @@ module Core
         DomainSerializer,
         I18nSerializer,
         MessagesSerializer,
+        OrganizationSerializer,
         SystemSerializer,
       )
 

@@ -25,7 +25,12 @@ require 'core/views'
 OT.boot! :test, false
 
 # Data class for mocking strategy results (immutable, Ruby 3.2+)
-MockStrategyResult = Data.define(:session, :user, :authenticated?)
+# Includes metadata for organization context (used by OrganizationSerializer)
+MockStrategyResult = Data.define(:session, :user, :authenticated?, :metadata) do
+  def initialize(session:, user:, authenticated:, metadata: nil)
+    super(session: session, user: user, authenticated?: authenticated, metadata: metadata || {})
+  end
+end
 
 @email = "tryouts+42+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
@@ -41,7 +46,7 @@ def create_mock_request(locale: 'en', user: nil, authenticated: true)
   strategy_result = MockStrategyResult.new(
     session: session,
     user: user || Onetime::Customer.anonymous,
-    authenticated?: authenticated
+    authenticated: authenticated
   )
 
   env = Rack::MockRequest.env_for('http://example.com/')
