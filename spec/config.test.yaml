@@ -15,7 +15,7 @@ site:
     key: 'onetime.session' # Unified cookie name
     secure: false # Must be false for Rack::Test (uses HTTP, not HTTPS)
     httponly: true
-    same_site: strict
+    same_site: lax
   interface:
     # Controls whether the web user interface is available. When disabled, the
     # homepage becomes a basic, readonly page with the logo and a brief
