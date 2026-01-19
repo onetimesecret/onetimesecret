@@ -31,6 +31,16 @@ module Onetime
     field :share_domain
     field :passphrase
 
+    # Organization and domain tracking for scoped receipt queries
+    field :org_id      # Organization objid (current context when created)
+    field :domain_id   # CustomDomain objid (when using registered custom domain)
+
+    # Familia v2 relationships - enables org.receipts and custom_domain.receipts queries
+    # These auto-generate sorted_set collections on the target models
+    # NOTE: Uses full class names (Onetime::X) to ensure Familia can resolve the target class
+    participates_in Onetime::Organization, :receipts, score: :created
+    participates_in Onetime::CustomDomain, :receipts, score: :created
+
     # NOTE: There is no `expired` timestamp field since we can calculate
     # that based on the `secret_ttl` and the `created` timestamp. See
     # the secret_expired? and expiration methods.
@@ -51,6 +61,19 @@ module Onetime
     # Familia's base destroy! handles the main key and related fields,
     # but class-level sorted sets and sets need explicit cleanup.
     def destroy!
+      # Remove from organization participations before Familia cleanup
+      organization_instances.each do |o|
+        remove_from_organization_receipts(o)
+      end
+
+      # Remove from custom domain participations before Familia cleanup
+      # NOTE: custom_domain_instances doesn't work due to prefix/class name mismatch
+      # Use share_domain field to look up the CustomDomain for cleanup
+      if share_domain && !share_domain.to_s.empty?
+        domain = Onetime::CustomDomain.from_display_domain(share_domain)
+        remove_from_custom_domain_receipts(domain) if domain
+      end
+
       # Call Familia's built-in destroy first. If it fails, we won't proceed
       # with cleaning up the class-level collections, leaving the system in
       # a more consistent state. Handles: main object key deletion, related
