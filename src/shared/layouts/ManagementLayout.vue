@@ -68,7 +68,8 @@
     </template>
 
     <template #main>
-      <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <!-- pb-20 md:pb-0 accounts for mobile nav bar -->
+      <div class="min-h-screen bg-gray-50 pb-20 dark:bg-gray-900 md:pb-0">
         <div class="container mx-auto min-w-[320px] max-w-4xl px-4 py-8">
           <div class="flex items-start gap-8">
             <!-- Sidebar (Left position) -->
