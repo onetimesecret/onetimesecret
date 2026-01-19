@@ -31,15 +31,17 @@
 
   // Compute the description based on current scope
   const scopeDescription = computed(() => {
-    if (!isAuthenticated.value) return '';
-    if (!currentScope.value) return '';
-    if (currentScope.value === 'org' && scopeLabel.value) {
-      return t('web.secrets.scope_org', { name: scopeLabel.value });
+    if (!isAuthenticated.value || !currentScope.value || !scopeLabel.value) {
+      return '';
     }
-    if (currentScope.value === 'domain' && scopeLabel.value) {
-      return t('web.secrets.scope_domain', { name: scopeLabel.value });
-    }
-    return '';
+
+    const keyMap: Record<string, string> = {
+      org: 'web.secrets.scope_org',
+      domain: 'web.secrets.scope_domain',
+    };
+
+    const key = keyMap[currentScope.value];
+    return key ? t(key, { name: scopeLabel.value }) : '';
   });
 
   const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
