@@ -21,10 +21,8 @@ interface StoreOptions extends PiniaPluginOptions {
 export const useLanguageStore = defineStore('language', () => {
   const $api = inject('api') as AxiosInstance;
   const bootstrapStore = useBootstrapStore();
-  const {
-    cust: bootstrapCust,
-    supported_locales: bootstrapSupportedLocales,
-  } = storeToRefs(bootstrapStore);
+  const { cust: bootstrapCust, supported_locales: bootstrapSupportedLocales } =
+    storeToRefs(bootstrapStore);
 
   // State
   const deviceLocale = ref<string | null>(null);
@@ -157,7 +155,7 @@ export const useLanguageStore = defineStore('language', () => {
 
     await setGlobalLocale(validatedLocale); // via i18n
     setCurrentLocale(validatedLocale); // save to session storage
-    await $api.post('/api/account/account/update-locale', { locale: validatedLocale });
+    await $api.post('/api/account/update-locale', { locale: validatedLocale });
     return validatedLocale;
   }
 

@@ -10,13 +10,13 @@
  * 4. Generating the complete OpenAPI document
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
 import { z } from '@/schemas/openapi-setup';
+import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
+import { mkdirSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import {
-  parseApiRoutes,
   getAuthRequirements,
+  parseApiRoutes,
   toOpenAPIPath,
   type OttoRoute,
 } from './otto-routes-parser';
@@ -28,8 +28,8 @@ import {
   colonelInfoDetailsSchema,
   colonelStatsDetailsSchema,
 } from '@/schemas/api/account/endpoints/colonel';
-import { customerSchema } from '@/schemas/models/customer';
 import { stripeCustomerSchema, stripeSubscriptionSchema } from '@/schemas/api/account/stripe-types';
+import { customerSchema } from '@/schemas/models/customer';
 
 // Create OpenAPI-compatible account schema with proper Stripe types
 const accountSchemaForOpenAPI = z
@@ -133,7 +133,7 @@ const updateLocaleRequestSchema = z
  */
 const routeMappings: RouteMapping[] = [
   {
-    matcher: { method: 'POST', path: '/account/destroy' },
+    matcher: { method: 'POST', path: '/destroy' },
     openapi: {
       summary: 'Destroy account',
       description:
@@ -289,11 +289,8 @@ for (const route of accountRoutes.routes) {
         }
       : undefined;
 
-  // Construct full path - strip /account prefix from route path since it's in the base URL
-  // Routes like "/account/destroy" should become "/api/account/destroy", not "/api/account/account/destroy"
-  const routePath = openApiPath.startsWith('/account')
-    ? openApiPath.slice('/account'.length) || ''
-    : openApiPath;
+  // Construct full path
+  const routePath = openApiPath;
   const fullPath = routePath ? '/api/account' + routePath : '/api/account';
 
   // Build request object

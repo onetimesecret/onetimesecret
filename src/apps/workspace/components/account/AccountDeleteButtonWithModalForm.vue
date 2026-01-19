@@ -28,7 +28,7 @@ const {
   success: deleteSuccess,
   submitForm: submitDeleteAccount
 } = useFormSubmission({
-  url: '/api/account/account/destroy',
+  url: '/api/account/destroy',
   successMessage: t('web.account.account_deleted_successfully'),
   onSuccess: () => {
     emit('delete:account');

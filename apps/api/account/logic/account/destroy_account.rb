@@ -1,4 +1,4 @@
-# apps/api/account/logic/account/destroy_account.rb
+# apps/api/account/logic/destroy_account.rb
 #
 # frozen_string_literal: true
 
