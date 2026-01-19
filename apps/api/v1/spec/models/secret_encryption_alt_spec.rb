@@ -125,8 +125,8 @@ RSpec.describe Onetime::Secret do
     let(:lifecycle_secret) { secret_pair[1] }
     let(:lifecycle_receipt) { secret_pair[0] }
 
-    # Fix: Create a proper time mock that responds to to_i, to_f, and strftime (for SemanticLogger)
-    let(:mock_time) { instance_double(Time, to_i: 1000, to_f: 1000.0, strftime: '2026-01-01 00:00:00.000000') }
+    # Use a real Time object to avoid issues with SemanticLogger's strftime calls
+    let(:mock_time) { Time.utc(2026, 1, 1, 0, 0, 0) }
 
     before do
       lifecycle_secret.encrypt_value(secret_value)
