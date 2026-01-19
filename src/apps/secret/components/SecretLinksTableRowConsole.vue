@@ -156,7 +156,7 @@
 
   /**
    * Determine item state based on receipt state.
-   * Priority: expired > burned > revealed > previewed > active (new)
+   * Priority: expired > burned > revealed > previewed > new
    *
    * STATE TERMINOLOGY MIGRATION:
    *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
@@ -164,13 +164,13 @@
    *
    * Internal state uses new terminology; locale keys support both.
    */
-  const itemState = computed((): 'active' | 'previewed' | 'revealed' | 'burned' | 'expired' => {
+  const itemState = computed((): 'new' | 'previewed' | 'revealed' | 'burned' | 'expired' => {
     if (isExpired.value) return 'expired';
     if (isBurned.value) return 'burned';
     // isReceived/isViewed check both new and legacy API fields
     if (isReceived.value) return 'revealed';
     if (isViewed.value) return 'previewed';
-    return 'active';
+    return 'new';
   });
 
   // Console-style status configuration
@@ -179,35 +179,35 @@
       case 'expired':
         return {
           symbol: '\u25CB', // ○
-          label: 'EXPIRED',
+          label: t('web.STATUS.expired').toUpperCase(),
           colorClass: 'text-gray-500 dark:text-gray-500',
           bgClass: '',
         };
       case 'burned':
         return {
           symbol: '\u2715', // ✕
-          label: 'BURNED',
+          label: t('web.STATUS.burned').toUpperCase(),
           colorClass: 'text-red-600 dark:text-red-400',
           bgClass: '',
         };
       case 'revealed':
         return {
           symbol: '\u2713', // ✓
-          label: 'REVEALED',
+          label: t('web.STATUS.revealed').toUpperCase(),
           colorClass: 'text-gray-500 dark:text-gray-400',
           bgClass: '',
         };
       case 'previewed':
         return {
           symbol: '\u25D0', // ◐
-          label: 'PREVIEWED',
+          label: t('web.STATUS.previewed').toUpperCase(),
           colorClass: 'text-amber-600 dark:text-amber-400',
           bgClass: '',
         };
-      default: // active
+      default: // new
         return {
           symbol: '\u25CF', // ●
-          label: 'ACTIVE',
+          label: t('web.STATUS.new').toUpperCase(),
           colorClass: 'text-emerald-600 dark:text-emerald-400',
           bgClass: '',
         };
@@ -222,9 +222,9 @@
     return shortid.slice(0, 4);
   });
 
-  // Check if secret is still active (shareable/actionable)
+  // Check if secret is still new (shareable/actionable)
   // Both 'active' (new) and 'previewed' (link opened) states are actionable
-  const isActive = computed(() => itemState.value === 'active' || itemState.value === 'previewed');
+  const isActive = computed(() => itemState.value === 'new' || itemState.value === 'previewed');
 
   // Check if this is a terminal state (no actions available)
   const isTerminal = computed(() => !isActive.value);
