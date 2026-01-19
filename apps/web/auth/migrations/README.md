@@ -28,7 +28,7 @@ export AUTHENTICATION_MODE=full
 export AUTH_DATABASE_URL=postgresql://onetime_user:pass@localhost/onetime_auth
 
 # Migration-time connection (elevated privileges for CREATE EXTENSION, etc.)
-export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres@localhost/onetime_auth_test
+export AUTH_DATABASE_URL_MIGRATIONS=postgresql://onetime_migrator:@authdb/onetime_auth
 ```
 
 **Why two URLs?** Rodauth security pattern: migrations run with elevated privileges (extensions, grants), application runs with restricted privileges (select, insert, update, delete).
