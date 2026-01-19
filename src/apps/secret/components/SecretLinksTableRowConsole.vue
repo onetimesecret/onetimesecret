@@ -357,11 +357,11 @@ class="relative">
             </span>
             <span
               v-else
-              class="text-gray-400 dark:text-gray-500">
+              class="text-gray-400 group-hover/memo:text-gray-300 dark:text-gray-500 dark:group-hover/memo:text-gray-300">
               {{ displayKey }}
             </span>
             <span
-              class="text-xs text-gray-300 opacity-0 transition-opacity group-hover/memo:opacity-100 dark:text-gray-600">
+              class="text-xs text-gray-300 group-hover/memo:text-gray-200 transition-opacity dark:text-gray-600 dark:group-hover/memo:text-gray-300">
               <OIcon
                 collection="heroicons"
                 name="pencil-square"
@@ -421,6 +421,7 @@ class="relative">
           <!-- Created timestamp -->
           <router-link
             :to="`/receipt/${record.extid}`"
+            data-test-id="created-timestamp"
             class="text-xs text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
             <time :datetime="record.createdAt.toISOString()">
               {{ formattedDate }}
