@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/domain_validation/features'
+require_relative '../domain_validation/features'
 
 module Onetime
   module Initializers
