@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
   import { useRecentSecrets } from '@/shared/composables/useRecentSecrets';
-  import { ref, onMounted, onUnmounted } from 'vue';
+  import { ref, onMounted, onUnmounted, computed } from 'vue';
 
   export interface Props {
     /** Whether to show the workspace mode toggle checkbox. Default true. */
@@ -25,7 +25,22 @@
     clear,
     updateMemo,
     isAuthenticated,
+    currentScope,
+    scopeLabel,
   } = useRecentSecrets();
+
+  // Compute the description based on current scope
+  const scopeDescription = computed(() => {
+    if (!isAuthenticated.value) return '';
+    if (!currentScope.value) return '';
+    if (currentScope.value === 'org' && scopeLabel.value) {
+      return t('web.secrets.scope_org', { name: scopeLabel.value });
+    }
+    if (currentScope.value === 'domain' && scopeLabel.value) {
+      return t('web.secrets.scope_domain', { name: scopeLabel.value });
+    }
+    return '';
+  });
 
   const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
@@ -74,14 +89,16 @@
           class="text-xl font-medium text-gray-700 dark:text-gray-200">
           {{ t('web.COMMON.recent') }}
         </h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          {{}}
+        <p
+          v-if="scopeDescription"
+          class="text-sm text-gray-500 dark:text-gray-400">
+          {{ scopeDescription }}
         </p>
       </div>
 
       <div class="flex items-center gap-3">
         <!-- Workspace mode toggle (hideable via prop for dashboard chip control) -->
-        <template v-if="props.showWorkspaceModeToggle">5
+        <template v-if="props.showWorkspaceModeToggle">
           <label
             class="flex cursor-pointer items-center gap-2"
             :title="t('web.secrets.workspace_mode_description')">

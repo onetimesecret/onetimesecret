@@ -5,7 +5,7 @@ import type { ApplicationError } from '@/schemas/errors';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
-import { useReceiptListStore } from '@/shared/stores/receiptListStore';
+import { useReceiptListStore, type FetchListOptions } from '@/shared/stores/receiptListStore';
 import type { ConcealedMessage } from '@/types/ui/concealed-message';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
@@ -64,7 +64,7 @@ export interface UseRecentSecretsReturn {
   /** Whether any records exist */
   hasRecords: ComputedRef<boolean>;
   /** Fetch/refresh records from source */
-  fetch: () => Promise<void>;
+  fetch: (options?: FetchListOptions) => Promise<void>;
   /** Clear all records */
   clear: () => void;
   /** Update memo for a record (local mode only for now) */
@@ -75,6 +75,10 @@ export interface UseRecentSecretsReturn {
   toggleWorkspaceMode: () => void;
   /** Whether using authenticated API source */
   isAuthenticated: ComputedRef<boolean>;
+  /** Current scope being displayed (org, domain, or undefined for customer) */
+  currentScope: ComputedRef<FetchListOptions['scope']>;
+  /** Label for the current scope (org name or domain name) */
+  scopeLabel: ComputedRef<string | null>;
 }
 
 /**
@@ -194,7 +198,7 @@ function useLocalRecentSecrets() {
  */
 function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T | undefined>) {
   const store = useReceiptListStore();
-  const { records: storeRecords } = storeToRefs(store);
+  const { records: storeRecords, currentScope, scopeLabel } = storeToRefs(store);
 
   // Transform API records to unified format
   // Filter out records with missing secret_shortid to prevent broken share links
@@ -208,9 +212,9 @@ function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T
   // Workspace mode is not applicable for API source
   const workspaceMode = computed(() => false);
 
-  const fetch = async () => {
+  const fetch = async (options: FetchListOptions = {}) => {
     await wrap(async () => {
-      await store.fetchList();
+      await store.fetchList(options);
     });
   };
 
@@ -236,6 +240,8 @@ function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T
     clear,
     toggleWorkspaceMode,
     updateMemo,
+    currentScope,
+    scopeLabel,
   };
 }
 
@@ -320,10 +326,10 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     isAuthenticated.value ? api.workspaceMode.value : local.workspaceMode.value
   );
 
-  const fetch = async () => {
+  const fetch = async (options: FetchListOptions = {}) => {
     error.value = null;
     if (isAuthenticated.value) {
-      await api.fetch();
+      await api.fetch(options);
     } else {
       await local.fetch();
     }
@@ -353,6 +359,15 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     }
   };
 
+  // Scope properties (only relevant for authenticated users)
+  const currentScope = computed(() =>
+    isAuthenticated.value ? api.currentScope.value : undefined
+  );
+
+  const scopeLabel = computed(() =>
+    isAuthenticated.value ? api.scopeLabel.value : null
+  );
+
   return {
     records,
     isLoading,
@@ -364,5 +379,7 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     workspaceMode,
     toggleWorkspaceMode,
     isAuthenticated,
+    currentScope,
+    scopeLabel,
   };
 }
