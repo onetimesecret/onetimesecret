@@ -10,6 +10,10 @@
                             badge-based status, icon actions
     - "console":            Monospace precision design with tree-style metadata,
                             ASCII characters, text-button actions
+    - "ledger":             Medallion-based index with state-colored backgrounds,
+                            prominent visual anchor for row identity
+    - "slotmachine":        Card-based rows where entire row atmosphere reflects
+                            state through borders, backgrounds, and fills
 
   Usage:
     <SecretLinksTableRow
@@ -30,7 +34,7 @@
   /**
    * Available A/B test variants for the row design.
    */
-  export type RowVariant = 'timeline' | 'console';
+  export type RowVariant = 'timeline' | 'console' | 'ledger' | 'slotmachine';
 
   const props = withDefaults(
     defineProps<{
@@ -61,6 +65,12 @@
     ),
     console: defineAsyncComponent(
       () => import('./SecretLinksTableRowConsole.vue')
+    ),
+    ledger: defineAsyncComponent(
+      () => import('./SecretLinksTableRowLedger.vue')
+    ),
+    slotmachine: defineAsyncComponent(
+      () => import('./SecretLinksTableRowSlotMachine.vue')
     ),
   };
 
