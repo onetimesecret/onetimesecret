@@ -201,6 +201,12 @@ module Onetime
           end
         end
 
+        # Sort by name for deterministic TSort ordering.
+        # ObjectSpace.each_object returns classes in non-deterministic order
+        # (depends on memory layout). Without sorting, initializers with no
+        # dependency relationship could run in different orders across processes.
+        @initializers.sort_by!(&:name)
+
         validate_fork_sensitive_initializers!
         @execution_order = nil
       end
