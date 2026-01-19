@@ -227,10 +227,12 @@ module Onetime
     #   custom_domain.vhost = '{"ssl": true, "redirect": "https"}'
     #   custom_domain.parse_vhost #=> {"ssl"=>true, "redirect"=>"https"}
     def parse_vhost
+      return {} if vhost.nil?
+      return vhost if vhost.is_a?(Hash)
       return {} if vhost.to_s.empty?
 
       JSON.parse(vhost)
-    rescue JSON::ParserError => ex
+    rescue JSON::ParserError, TypeError => ex
       OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{ex}"
       {}
     end
