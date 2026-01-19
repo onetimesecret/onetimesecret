@@ -23,7 +23,7 @@ Pull requests target `develop` branch, unless otherwise specified.
 **Backend**: Ruby 3.4, Rack 3, Redis 7
 **Frontend**: Vue 3.5, Pinia 3, Vue Router 4.4, TypeScript 5.6
 **Build**: Vite 5.4., Vitest 2.1.8, Tailwind 3.4
-**Validation**: Zod 4, i18n 11
+**Validation**: Zod 4 (import from `'zod'`, NOT `'zod/v4'`), i18n 11
 
 ## Architecture Overview
 

@@ -6,7 +6,7 @@
  * Maps to the `site:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 import { nullableString } from '../shared/primitives';
 
 /**
@@ -40,7 +40,7 @@ const sessionConfigSchema = z.object({
   expire_after: z.number().int().positive().default(86400), // 24 hours
   key: z.string().default('onetime.session'),
   secure: z.boolean().default(true),
-  same_site: z.enum(['strict', 'lax', 'none']).default('strict'),
+  same_site: z.enum(['strict', 'lax', 'none']).default('lax'),
   httponly: z.boolean().default(true),
 });
 

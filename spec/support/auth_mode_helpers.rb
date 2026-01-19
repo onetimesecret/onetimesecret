@@ -108,7 +108,7 @@ module AuthModeHelpers
         'expire_after' => 86400,
         'secure' => false,
         'httponly' => true,
-        'same_site' => 'strict'
+        'same_site' => 'lax'
       }
     end
 

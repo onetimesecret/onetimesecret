@@ -80,7 +80,7 @@ module Onetime
     SESSION_DEFAULTS = {
       'expire_after' => 86_400,      # 24 hours
       'key' => 'onetime.session',
-      'same_site' => 'strict',
+      'same_site' => 'lax',
       'httponly' => true,
     }.freeze
 
