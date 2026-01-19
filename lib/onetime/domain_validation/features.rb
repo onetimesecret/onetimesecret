@@ -22,7 +22,7 @@ module Onetime
     #   Onetime::DomainValidation::Features.configure(
     #     strategy_name: 'approximated',
     #     api_key: 'xxx',
-    #     cluster_ip: '1.2.3.4',
+    #     proxy_ip: '1.2.3.4',
     #     ...
     #   )
     #
@@ -35,17 +35,17 @@ module Onetime
       # Class-level state - set once at boot, read many times
       @strategy_name = nil
       @api_key       = nil
-      @cluster_ip    = nil
-      @cluster_host  = nil
-      @cluster_name  = nil
+      @proxy_ip      = nil
+      @proxy_host    = nil
+      @proxy_name    = nil
       @vhost_target  = nil
 
       class << self
         attr_accessor :strategy_name,
           :api_key,
-          :cluster_ip,
-          :cluster_host,
-          :cluster_name,
+          :proxy_ip,
+          :proxy_host,
+          :proxy_name,
           :vhost_target
 
         # Atomic configuration - sets all values at once.
@@ -53,18 +53,18 @@ module Onetime
         #
         # @param strategy_name [String, nil] Validation strategy (approximated, passthrough, caddy_on_demand)
         # @param api_key [String, nil] Approximated API key
-        # @param cluster_ip [String, nil] IP address of the cluster
-        # @param cluster_host [String, nil] Hostname of the cluster
-        # @param cluster_name [String, nil] Human-readable cluster name
+        # @param proxy_ip [String, nil] IP address of the Approximated proxy
+        # @param proxy_host [String, nil] Hostname of the Approximated proxy
+        # @param proxy_name [String, nil] Human-readable proxy name
         # @param vhost_target [String, nil] Target address for vhost creation
         #
-        def configure(strategy_name: nil, api_key: nil, cluster_ip: nil,
-                      cluster_host: nil, cluster_name: nil, vhost_target: nil)
+        def configure(strategy_name: nil, api_key: nil, proxy_ip: nil,
+                      proxy_host: nil, proxy_name: nil, vhost_target: nil)
           @strategy_name = strategy_name
           @api_key       = api_key
-          @cluster_ip    = cluster_ip
-          @cluster_host  = cluster_host
-          @cluster_name  = cluster_name
+          @proxy_ip      = proxy_ip
+          @proxy_host    = proxy_host
+          @proxy_name    = proxy_name
           @vhost_target  = vhost_target
         end
 
@@ -75,9 +75,9 @@ module Onetime
           configure(
             strategy_name: nil,
             api_key: nil,
-            cluster_ip: nil,
-            cluster_host: nil,
-            cluster_name: nil,
+            proxy_ip: nil,
+            proxy_host: nil,
+            proxy_name: nil,
             vhost_target: nil,
           )
         end
@@ -89,15 +89,15 @@ module Onetime
         #
         def load_from_config(config)
           domains_config = config.dig('features', 'domains') || {}
-          cluster_config = domains_config['cluster'] || {}
+          approx_config  = domains_config['approximated'] || {}
 
           configure(
             strategy_name: domains_config['validation_strategy'] || 'passthrough',
-            api_key: cluster_config['api_key'],
-            cluster_ip: cluster_config['cluster_ip'],
-            cluster_host: cluster_config['cluster_host'],
-            cluster_name: cluster_config['cluster_name'],
-            vhost_target: cluster_config['vhost_target'],
+            api_key: approx_config['api_key'],
+            proxy_ip: approx_config['proxy_ip'],
+            proxy_host: approx_config['proxy_host'],
+            proxy_name: approx_config['proxy_name'],
+            vhost_target: approx_config['vhost_target'],
           )
         end
 
@@ -125,9 +125,9 @@ module Onetime
         def safe_dump
           {
             type: strategy_name,          # Legacy field name for compatibility
-            cluster_ip: cluster_ip,
-            cluster_name: cluster_name,
-            cluster_host: cluster_host,
+            proxy_ip: proxy_ip,
+            proxy_name: proxy_name,
+            proxy_host: proxy_host,
             vhost_target: vhost_target,
             validation_strategy: strategy_name || 'passthrough',
           }
@@ -141,9 +141,9 @@ module Onetime
           settings = {
             strategy_name: strategy_name,
             api_key: api_key,
-            cluster_ip: cluster_ip,
-            cluster_host: cluster_host,
-            cluster_name: cluster_name,
+            proxy_ip: proxy_ip,
+            proxy_host: proxy_host,
+            proxy_name: proxy_name,
             vhost_target: vhost_target,
           }
 

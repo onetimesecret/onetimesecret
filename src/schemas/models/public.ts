@@ -169,15 +169,15 @@ const regionsSchema = z.object({
 });
 
 /**
- * Schema for the :cluster section within :domains
+ * Schema for the :cluster section within :domains (proxy configuration)
  */
 const clusterSchema = z
   .object({
     type: z.string().optional(),
     //  api_key: z.string().optional(),
-    cluster_ip: z.string().optional(),
-    cluster_host: z.string().optional(),
-    cluster_name: z.string(),
+    proxy_ip: z.string().optional(),
+    proxy_host: z.string().optional(),
+    proxy_name: z.string(),
     vhost_target: z.string(),
   })
   .strip();

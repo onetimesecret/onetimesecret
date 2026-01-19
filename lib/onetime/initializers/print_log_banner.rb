@@ -14,7 +14,7 @@ module Onetime
     #
     # rubocop:disable Metrics/ClassLength
     class PrintLogBanner < Onetime::Boot::Initializer
-      @depends_on = [:logging, :familia_config]
+      @depends_on = [:logging, :familia_config, :domains]
 
       using Familia::Refinements::TimeLiterals
 
@@ -301,10 +301,10 @@ module Onetime
             domains_config_rows << ['API Configured', features.api_configured?]
           end
 
-          # Cluster settings (only show if present)
-          domains_config_rows << ['Cluster Host', features.cluster_host] if features.cluster_host
-          domains_config_rows << ['Cluster IP', features.cluster_ip] if features.cluster_ip
-          domains_config_rows << ['Cluster Name', features.cluster_name] if features.cluster_name
+          # Proxy settings (only show if present)
+          domains_config_rows << ['Proxy Host', features.proxy_host] if features.proxy_host
+          domains_config_rows << ['Proxy IP', features.proxy_ip] if features.proxy_ip
+          domains_config_rows << ['Proxy Name', features.proxy_name] if features.proxy_name
           domains_config_rows << ['Vhost Target', features.vhost_target] if features.vhost_target
         rescue StandardError => ex
           domains_config_rows << ['Error', "Error rendering domains config: #{ex.message}"]

@@ -15,16 +15,18 @@ Configure in `config.yaml`:
 ```yaml
 features:
   domains:
-    strategy: approximated  # or passthrough, caddy_on_demand
-    cluster:
+    validation_strategy: approximated  # or passthrough, caddy_on_demand
+    approximated:
       api_key: xxx
-      cluster_ip: 1.2.3.4
-      cluster_host: cluster.example.com
+      proxy_ip: 1.2.3.4
+      proxy_host: proxy.example.com
+      proxy_name: Production Proxy
+      vhost_target: target.example.com
 ```
 
 ## Files
 
-- `features.rb` - Config accessor (strategy, API keys, cluster settings)
+- `features.rb` - Config accessor (strategy, API keys, proxy settings)
 - `strategy.rb` - Factory for creating strategy instances
 - `base_strategy.rb` - Interface definition
 - `approximated_strategy.rb` - Approximated.app implementation

@@ -83,11 +83,11 @@ features:
     default: str(required=False)
     validation_strategy: str(required=False)
     strict_strategy: bool(required=False)
-    cluster:
+    approximated:
       api_key: str(required=False)
-      cluster_ip: str(required=False)
-      cluster_host: str(required=False)
-      cluster_name: str(required=False)
+      proxy_ip: str(required=False)
+      proxy_host: str(required=False)
+      proxy_name: str(required=False)
       vhost_target: str(required=False)
     acme:
       enabled: any(str(), bool(), required=False)

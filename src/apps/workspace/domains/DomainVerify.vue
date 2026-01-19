@@ -8,7 +8,7 @@
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
-  import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
+  import { CustomDomain, CustomDomainProxy } from '@/schemas/models';
   import { computed, onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
 
@@ -17,7 +17,7 @@
   const { getDomain } = useDomainsManager();
 
   const domain = ref<CustomDomain | null>(null);
-  const cluster = ref<CustomDomainCluster | null>(null);
+  const cluster = ref<CustomDomainProxy | null>(null);
   const allowVerifyCTA = ref(true);
 
   const fetchDomain = async (): Promise<void> => {
@@ -60,11 +60,11 @@
 
   // Target address for DNS records (IP for apex domains, hostname otherwise)
   const dnsTargetAddress = computed(() => {
-    // For apex domains, use the cluster IP; otherwise use cluster_host for CNAME
+    // For apex domains, use the proxy IP; otherwise use proxy_host for CNAME
     if (domain.value?.is_apex) {
-      return cluster.value?.cluster_ip ?? '';
+      return cluster.value?.proxy_ip ?? '';
     }
-    return cluster.value?.cluster_host ?? '';
+    return cluster.value?.proxy_host ?? '';
   });
 
   const handleDnsRecordsVerified = async () => {
@@ -108,11 +108,11 @@
               class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at
             <span
-              :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ t('web.domains.if_you_already_have_a_cname_record_for_that_addr') }}
+              :title="cluster?.proxy_name ?? ''"
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.proxy_host }}</span>{{ t('web.domains.if_you_already_have_a_cname_record_for_that_addr') }}
             <span
-              :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
+              :title="cluster?.proxy_name ?? ''"
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.proxy_host }}</span>
             {{ t('web.domains.and_remove_any_other_a_aaaa_or_cname_records_for') }}
           </p>
           <p
