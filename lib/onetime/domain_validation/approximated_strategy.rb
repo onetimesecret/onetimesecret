@@ -9,6 +9,17 @@ module Onetime
     # This is the original implementation that delegates to an external service
     # for SSL certificate provisioning and DNS validation.
     #
+    # The #check_status method returns a vhost Hash stored on CustomDomain:
+    #
+    #   {
+    #     "ready": true,
+    #     "has_ssl": true,
+    #     "is_resolving": true,
+    #     "status": "ACTIVE_SSL",
+    #     "status_message": "Human-readable status",
+    #     "data": {}
+    #   }
+    #
     class ApproximatedStrategy < BaseStrategy
       def initialize(config)
         @config = config
