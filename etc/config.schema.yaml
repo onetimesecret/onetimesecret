@@ -81,7 +81,7 @@ features:
   domains:
     enabled: any()
     default: str(required=False)
-    strategy: str(required=False)
+    validation_strategy: str(required=False)
     strict_strategy: bool(required=False)
     cluster:
       api_key: str(required=False)

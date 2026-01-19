@@ -6,7 +6,7 @@ require 'spec_helper'
 require 'onetime/domain_validation/strategy'
 
 RSpec.describe Onetime::DomainValidation::Strategy do
-  let(:config) { { 'features' => { 'domains' => { 'strategy' => strategy_name } } } }
+  let(:config) { { 'features' => { 'domains' => { 'validation_strategy' => strategy_name } } } }
   let(:custom_domain) do
     double('CustomDomain',
            display_domain: 'example.com',
@@ -77,7 +77,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
           {
             'features' => {
               'domains' => {
-                'strategy' => strategy_name,
+                'validation_strategy' => strategy_name,
                 'strict_strategy' => true
               }
             }

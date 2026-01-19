@@ -92,7 +92,7 @@ module Onetime
           cluster_config = domains_config['cluster'] || {}
 
           configure(
-            strategy_name: domains_config['strategy'] || 'passthrough',
+            strategy_name: domains_config['validation_strategy'] || 'passthrough',
             api_key: cluster_config['api_key'],
             cluster_ip: cluster_config['cluster_ip'],
             cluster_host: cluster_config['cluster_host'],

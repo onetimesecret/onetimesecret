@@ -294,7 +294,7 @@ module Onetime
           strategy = features.strategy_name
           return domains_config_rows if strategy.nil? || strategy.empty?
 
-          domains_config_rows << ['Strategy', strategy]
+          domains_config_rows << ['Validation Strategy', strategy]
 
           # API configured (for approximated)
           if strategy == 'approximated'
