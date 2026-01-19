@@ -84,6 +84,7 @@ const customDomainClusterSchema = z
     cluster_name: z.string().nullable().optional(),
     cluster_host: z.string().nullable().optional(),
     vhost_target: z.string().nullable().optional(),
+    validation_strategy: z.string().nullable().optional(),
   })
   .strip()
   .optional()

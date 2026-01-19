@@ -42,8 +42,21 @@
   };
 
   // DNS Widget configuration
-  // Show widget only when domain is not yet verified (no vhost data)
-  const showDnsWidget = computed(() => domain.value && !domain.value.vhost?.last_monitored_unix && cluster.value);
+  // Show widget only for approximated strategy when domain is not yet verified
+  const showDnsWidget = computed(
+    () =>
+      domain.value &&
+      !domain.value.vhost?.last_monitored_unix &&
+      cluster.value?.validation_strategy === 'approximated'
+  );
+
+  // Show manual DNS instructions for non-approximated strategies
+  const showManualInstructions = computed(
+    () =>
+      domain.value &&
+      !domain.value.vhost?.last_monitored_unix &&
+      cluster.value?.validation_strategy !== 'approximated'
+  );
 
   // Target address for DNS records (IP for apex domains, hostname otherwise)
   const dnsTargetAddress = computed(() => {
@@ -84,6 +97,7 @@
     </p>
 
     <MoreInfoText
+      v-if="showManualInstructions"
       text-color="text-brandcomp-800 dark:text-gray-100"
       bg-color="bg-white dark:bg-gray-800">
       <div class="prose max-w-none">

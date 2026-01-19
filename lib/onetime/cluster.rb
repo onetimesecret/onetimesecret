@@ -34,6 +34,7 @@ module Onetime
             cluster_name: Features.cluster_name,
             cluster_host: Features.cluster_host,
             vhost_target: Features.vhost_target,
+            validation_strategy: OT.conf.dig('features', 'domains', 'strategy') || 'passthrough',
           }
         end
       end

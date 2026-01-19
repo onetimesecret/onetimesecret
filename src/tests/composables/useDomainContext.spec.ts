@@ -89,7 +89,10 @@ describe('useDomainContext', () => {
 
     // Reset mock stores
     mockDomainsStoreState.domains = [];
-    mockDomainsStoreState.fetchList.mockClear();
+    // Use mockReset() to clear both call history AND reset the implementation
+    // back to the default (mockResolvedValue). mockClear() only clears history.
+    mockDomainsStoreState.fetchList.mockReset();
+    mockDomainsStoreState.fetchList.mockResolvedValue(undefined);
     // Set a default organization - required for domain context initialization
     // when domains_enabled is true (domain context depends on org being set)
     mockOrganizationStoreState.currentOrganization = { id: 'org-test-123' };
