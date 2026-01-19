@@ -130,14 +130,7 @@ module Onetime
         url_path += '/force-check' if force
 
         response = get(url_path, headers: { 'api-key' => api_key })
-
-        case response.code
-        when 404
-          raise HTTParty::ResponseError, "Could not find Virtual Host: #{incoming_address}"
-        when 401
-          raise HTTParty::ResponseError, 'Invalid API key'
-        end
-
+        handle_error_response(response, incoming_address)
         response
       end
 
@@ -178,14 +171,7 @@ module Onetime
           }.to_json,
         )
 
-        case response.code
-        when 404
-          raise HTTParty::ResponseError,
-            "Could not find an existing Virtual Host: #{current_incoming_address}"
-        when 401
-          raise HTTParty::ResponseError, 'Invalid API key'
-        end
-
+        handle_error_response(response, current_incoming_address)
         response
       end
 
@@ -203,13 +189,7 @@ module Onetime
           headers: { 'api-key' => api_key },
         )
 
-        case response.code
-        when 404
-          raise HTTParty::ResponseError, "Could not find Virtual Host: #{incoming_address}"
-        when 401
-          raise HTTParty::ResponseError, 'Invalid API key'
-        end
-
+        handle_error_response(response, incoming_address)
         response
       end
 
@@ -224,26 +204,25 @@ module Onetime
       #
       def self.get_dns_widget_token(api_key)
         response = get('/dns/token', headers: { 'api-key' => api_key })
-
-        if response.code == 401
-          raise HTTParty::ResponseError, 'Invalid API key'
-        end
-
+        handle_error_response(response)
         response
       end
 
       # Handle common error responses from the API.
       #
       # @param response [HTTParty::Response]
-      # @param context [String] Context for error message
+      # @param context [String] Context for error message (e.g., domain name)
       # @raise [HTTParty::ResponseError]
       #
-      private_class_method def self.handle_error_response(response, _context = nil)
+      private_class_method def self.handle_error_response(response, context = nil)
         case response.code
-        when 422
-          raise HTTParty::ResponseError, response.parsed_response['errors']
         when 401
           raise HTTParty::ResponseError, 'Invalid API key'
+        when 404
+          msg = context ? "Could not find Virtual Host: #{context}" : 'Resource not found'
+          raise HTTParty::ResponseError, msg
+        when 422
+          raise HTTParty::ResponseError, response.parsed_response['errors']
         end
       end
     end

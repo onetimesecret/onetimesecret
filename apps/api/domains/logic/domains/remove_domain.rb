@@ -56,7 +56,7 @@ module DomainsAPI::Logic
         result   = strategy.delete_vhost(@custom_domain)
 
         OT.info "[RemoveDomain.delete_vhost] #{@display_domain} -> #{result[:message]}"
-      rescue StandardError => ex
+      rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
         OT.le "[RemoveDomain.delete_vhost error] #{@cust.extid} #{@display_domain} #{ex}"
         # Continue with domain removal even if vhost deletion fails
       end

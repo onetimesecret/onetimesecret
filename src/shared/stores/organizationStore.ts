@@ -278,7 +278,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           limits: response.data.limits,
         };
       } else {
-        console.debug('[OrganizationStore] Organization not in cache, skipping list update:', extid);
+        loggingService.debug('[OrganizationStore] Organization not in cache, skipping list update:', extid);
       }
 
       // Update current organization if it matches
@@ -480,7 +480,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           updated_at: new Date(),
         } as Organization;
 
-        console.debug('[organizationStore] Initialized from bootstrap:', bootstrapOrg.id);
+        loggingService.debug('[organizationStore] Initialized from bootstrap:', bootstrapOrg.id);
       }
     },
     { immediate: true }
