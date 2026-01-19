@@ -75,6 +75,10 @@ describe('useDomainContext', () => {
   }
 
   beforeEach(async () => {
+    // Reset all modules first to ensure fresh imports
+    vi.resetModules();
+    vi.clearAllMocks();
+
     // Reset localStorage mock
     mockLocalStorage.clear();
     Object.defineProperty(window, 'localStorage', {
@@ -86,11 +90,16 @@ describe('useDomainContext', () => {
     // Reset mock stores
     mockDomainsStoreState.domains = [];
     mockDomainsStoreState.fetchList.mockClear();
-    mockOrganizationStoreState.currentOrganization = null;
+    // Set a default organization - required for domain context initialization
+    // when domains_enabled is true (domain context depends on org being set)
+    mockOrganizationStoreState.currentOrganization = { id: 'org-test-123' };
 
-    // Reset all modules to clear the shared state
-    vi.resetModules();
-    vi.clearAllMocks();
+    // Reset module-level singleton state in the composable
+    // This must happen AFTER vi.resetModules() so we reset the fresh module instance
+    const { __resetDomainContextForTesting } = await import(
+      '@/shared/composables/useDomainContext'
+    );
+    __resetDomainContextForTesting();
   });
 
   afterEach(() => {

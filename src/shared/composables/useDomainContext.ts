@@ -38,6 +38,9 @@ const isLoadingDomains = ref(false);
 // AbortController for cancelling in-flight domain fetches during rapid org switches
 let currentFetchController: AbortController | null = null;
 
+// Track whether module-level watcher has been set up (only do once)
+let watcherInitialized = false;
+
 // Bootstrap store reference - initialized on first composable use
 let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
 
@@ -149,6 +152,27 @@ function createDomainFetcher(
   };
 }
 
+/**
+ * Select the best domain from available options.
+ * Priority: server preference > localStorage > preferred domain (first custom or canonical)
+ */
+function selectBestDomain(available: string[]): string {
+  const { serverDomainContext } = getConfig();
+  const localContext = localStorage.getItem('domainContext');
+
+  if (serverDomainContext && available.includes(serverDomainContext)) {
+    // Server-side preference takes priority
+    localStorage.setItem('domainContext', serverDomainContext); // Sync localStorage
+    return serverDomainContext;
+  } else if (localContext && available.includes(localContext)) {
+    // Fall back to localStorage if valid
+    return localContext;
+  } else {
+    // Fall back to preferred domain (first custom domain or canonical)
+    return getPreferredDomain(available);
+  }
+}
+
 /** Initialize domain context on module load (runs once). Returns promise for awaiting. */
 async function initializeDomainContext(
   fetchFn: () => Promise<boolean | void>,
@@ -156,33 +180,24 @@ async function initializeDomainContext(
 ): Promise<void> {
   if (isInitialized.value) return;
 
-  const { domainsEnabled, canonicalDomain, serverDomainContext } = getConfig();
+  const { domainsEnabled, canonicalDomain } = getConfig();
 
   try {
     if (domainsEnabled) {
-      await fetchFn();
-      const available = getAvailable();
-
-      // Priority: server preference > localStorage > preferred domain
-      const localContext = localStorage.getItem('domainContext');
-
-      if (serverDomainContext && available.includes(serverDomainContext)) {
-        // Server-side preference takes priority
-        currentDomain.value = serverDomainContext;
-        localStorage.setItem('domainContext', serverDomainContext); // Sync localStorage
-      } else if (localContext && available.includes(localContext)) {
-        // Fall back to localStorage if valid
-        currentDomain.value = localContext;
-      } else {
-        // Fall back to preferred domain (first custom domain or canonical)
-        currentDomain.value = getPreferredDomain(available);
+      const fetchSucceeded = await fetchFn();
+      if (fetchSucceeded) {
+        // Only select domain if fetch succeeded (org was available)
+        currentDomain.value = selectBestDomain(getAvailable());
+        isInitialized.value = true;
       }
+      // If fetch failed (no org yet), don't mark initialized - let watcher handle it
     } else {
       currentDomain.value = canonicalDomain || '';
+      isInitialized.value = true;
     }
-  } finally {
-    // Set initialized flag after completion to prevent race conditions
-    isInitialized.value = true;
+  } catch {
+    // On error, don't mark initialized - allow retry via watcher
+    console.warn('[useDomainContext] Initialization failed, will retry when org is available');
   }
 }
 
@@ -201,22 +216,33 @@ export function useDomainContext() {
 
   const fetchDomainsForOrganization = createDomainFetcher(organizationStore, domainsStore);
 
-  // Watch for organization changes (including initial load from null -> org)
-  watch(
-    () => organizationStore.currentOrganization?.id,
-    async (newOrgId, oldOrgId) => {
-      if (newOrgId && newOrgId !== oldOrgId) {
-        const isCurrentRequest = await fetchDomainsForOrganization();
-        if (
-          isCurrentRequest &&
-          currentDomain.value &&
-          !availableDomains.value.includes(currentDomain.value)
-        ) {
-          currentDomain.value = getPreferredDomain(availableDomains.value);
+  // Set up module-level watcher ONCE (not per-composable-call)
+  // This prevents multiple watchers racing when org becomes available
+  if (!watcherInitialized) {
+    watcherInitialized = true;
+
+    // Watch for organization changes (including initial load from null -> org)
+    // This handles the case where org isn't available during initial composable setup
+    // Using immediate: true ensures we catch the case where org is already set
+    watch(
+      () => organizationStore.currentOrganization?.id,
+      async (newOrgId, oldOrgId) => {
+        if (newOrgId && newOrgId !== oldOrgId) {
+          const isCurrentRequest = await fetchDomainsForOrganization();
+          if (!isCurrentRequest) return;
+
+          // First-time org load (initialization was deferred): run full domain selection
+          if (!isInitialized.value) {
+            currentDomain.value = selectBestDomain(availableDomains.value);
+            isInitialized.value = true;
+          } else if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
+            // Org switch: only update if current domain is no longer available
+            currentDomain.value = getPreferredDomain(availableDomains.value);
+          }
         }
       }
-    }
-  );
+    );
+  }
 
   const initPromise = initializeDomainContext(
     fetchDomainsForOrganization,
@@ -266,4 +292,18 @@ export function useDomainContext() {
     getExtidByDomain: (domain: string) => findExtidByDomain(domainsStore.domains || [], domain),
     initialized: initPromise,
   };
+}
+
+/**
+ * Reset module-level state for testing purposes.
+ * This is necessary because the composable uses singleton state.
+ * @internal - Test use only
+ */
+export function __resetDomainContextForTesting(): void {
+  currentDomain.value = '';
+  isInitialized.value = false;
+  isLoadingDomains.value = false;
+  watcherInitialized = false;
+  currentFetchController = null;
+  bootstrapStoreInstance = null;
 }
