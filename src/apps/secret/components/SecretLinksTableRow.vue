@@ -75,5 +75,5 @@
     :is-last="isLast"
     @copy="$emit('copy')"
     @delete="$emit('delete', $event)"
-    @update:memo="$emit('update:memo', $event[0], $event[1])" />
+    @update:memo="(id: string, memo: string) => $emit('update:memo', id, memo)" />
 </template>
