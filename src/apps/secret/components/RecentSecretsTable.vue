@@ -67,9 +67,7 @@ defineExpose({
   <section
     aria-labelledby="recent-secrets-heading"
     class="pb-24">
-    <div
-      v-if="hasRecords"
-      class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex items-center justify-between">
       <div>
         <h2
           id="recent-secrets-heading"
@@ -98,7 +96,9 @@ defineExpose({
             </span>
           </label>
 
-          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span
+            v-if="hasRecords"
+            class="text-gray-300 dark:text-gray-600">|</span>
         </template>
 
         <span
@@ -107,6 +107,7 @@ defineExpose({
           {{ t('web.LABELS.items_count', { count: records.length }) }}
         </span>
         <button
+          v-if="hasRecords"
           @click="dismissAllRecents"
           class="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700
             dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"

@@ -7,13 +7,11 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
   import { storeToRefs } from 'pinia';
-  import { computed } from 'vue';
 
   const bootstrapStore = useBootstrapStore();
   const { authenticated, ui } = storeToRefs(bootstrapStore);
 
   const concealedReceiptStore = useConcealedReceiptStore();
-  const hasRecentSecrets = computed(() => concealedReceiptStore.hasMessages);
 </script>
 
 <template>
@@ -33,7 +31,6 @@
     <!-- Space divider -->
     <div class="mb-6 "></div>
 
-    <RecentSecretsTable
-      v-if="hasRecentSecrets" />
+    <RecentSecretsTable />
   </div>
 </template>
