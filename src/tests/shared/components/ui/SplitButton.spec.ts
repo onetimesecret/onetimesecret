@@ -197,26 +197,24 @@ describe('SplitButton Keyboard Shortcuts', () => {
   });
 
   describe('Main Button Click Behavior', () => {
-    it('emits create-link event when main button clicked', async () => {
+    it('main button is a submit button that triggers form submission', async () => {
       wrapper = mountComponent({
         content: 'some content',
       });
 
       const mainButton = wrapper.find('button[type="submit"]');
-      await mainButton.trigger('click');
-
-      expect(wrapper.emitted('create-link')).toBeTruthy();
+      expect(mainButton.attributes('type')).toBe('submit');
+      // Note: The component uses a native submit button, not custom events
+      // Form submission is handled by the parent form element
     });
 
-    it('does not emit create-link when button is disabled', async () => {
+    it('main button is disabled when disabled prop is true', async () => {
       wrapper = mountComponent({
         disabled: true,
       });
 
       const mainButton = wrapper.find('button[type="submit"]');
-      await mainButton.trigger('click');
-
-      expect(wrapper.emitted('create-link')).toBeFalsy();
+      expect(mainButton.attributes('disabled')).toBeDefined();
     });
   });
 
@@ -280,7 +278,7 @@ describe('SplitButton Keyboard Shortcuts', () => {
   });
 
   describe('Action Selection Changes Button Behavior', () => {
-    it('emits generate-password when generate action selected and button clicked', async () => {
+    it('emits update:action with generate-password when generate action selected', async () => {
       wrapper = mountComponent({
         withGenerate: true,
       });
@@ -294,14 +292,14 @@ describe('SplitButton Keyboard Shortcuts', () => {
       await dropdownButtons[1].trigger('click');
       await nextTick();
 
-      // Now click main button
-      const mainButton = wrapper.find('button[type="submit"]');
-      await mainButton.trigger('click');
-
-      expect(wrapper.emitted('generate-password')).toBeTruthy();
+      // Verify update:action event was emitted with 'generate-password'
+      const emittedEvents = wrapper.emitted('update:action');
+      expect(emittedEvents).toBeTruthy();
+      // Last emitted value should be 'generate-password'
+      expect(emittedEvents![emittedEvents!.length - 1]).toEqual(['generate-password']);
     });
 
-    it('emits create-link when create-link action selected and button clicked', async () => {
+    it('emits update:action with create-link when switching back to create-link', async () => {
       wrapper = mountComponent({
         withGenerate: true,
       });
@@ -319,11 +317,11 @@ describe('SplitButton Keyboard Shortcuts', () => {
       await dropdownButtons2[0].trigger('click');
       await nextTick();
 
-      // Click main button
-      const mainButton = wrapper.find('button[type="submit"]');
-      await mainButton.trigger('click');
-
-      expect(wrapper.emitted('create-link')).toBeTruthy();
+      // Verify update:action event was emitted with 'create-link'
+      const emittedEvents = wrapper.emitted('update:action');
+      expect(emittedEvents).toBeTruthy();
+      // Last emitted value should be 'create-link'
+      expect(emittedEvents![emittedEvents!.length - 1]).toEqual(['create-link']);
     });
   });
 

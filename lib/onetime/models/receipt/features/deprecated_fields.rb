@@ -241,6 +241,10 @@ module Onetime::Receipt::Features
         state.to_s == guess.to_s
       end
 
+      # Backward compatibility aliases for legacy method names
+      alias viewed! previewed!
+      alias received! revealed!
+
       def truncated?
         truncate.to_s == 'true'
       end

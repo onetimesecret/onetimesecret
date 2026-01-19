@@ -286,7 +286,7 @@ describe('SecretForm - Domain Context Integration', () => {
       const ariaLabel = indicator.attributes('aria-label');
       // The aria-label should reference the i18n key with domain parameter
       expect(ariaLabel).toBeTruthy();
-      expect(ariaLabel).toContain('context_indicator');
+      expect(ariaLabel).toContain('scope_indicator');
     });
   });
 

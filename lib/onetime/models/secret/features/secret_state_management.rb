@@ -91,6 +91,10 @@ module Onetime::Secret::Features
         @passphrase_temp = nil
         destroy!
       end
+
+      # Backward compatibility aliases for legacy method names
+      alias viewed! previewed!
+      alias received! revealed!
     end
   end
 end

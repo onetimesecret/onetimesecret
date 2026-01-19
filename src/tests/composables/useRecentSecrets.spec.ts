@@ -334,7 +334,7 @@ describe('useRecentSecrets', () => {
       expect(record.isExpired).toBe(true);
     });
 
-    it('handles is_destroyed as burned state', async () => {
+    it('keeps isBurned and isDestroyed as separate states', async () => {
       vi.mocked(useAuthStore).mockReturnValue({
         isFullyAuthenticated: true,
       } as any);
@@ -349,8 +349,10 @@ describe('useRecentSecrets', () => {
       const { records } = useRecentSecrets();
       await nextTick();
 
-      // isBurned should be true when is_destroyed is true
-      expect(records.value[0].isBurned).toBe(true);
+      // isBurned should only reflect is_burned, not is_destroyed
+      // is_destroyed can be true for received, burned, expired, or orphaned states
+      expect(records.value[0].isBurned).toBe(false);
+      expect(records.value[0].isDestroyed).toBe(true);
     });
 
     it('filters out records with missing secret_shortid', async () => {
