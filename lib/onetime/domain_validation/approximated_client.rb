@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'httparty'
+require 'uri'
 
 module Onetime
   module DomainValidation
@@ -126,8 +127,9 @@ module Onetime
       # @raise [HTTParty::ResponseError] On 404 (not found) or 401 (invalid key)
       #
       def self.get_vhost_by_incoming_address(api_key, incoming_address, force = false)
-        url_path  = "/vhosts/by/incoming/#{incoming_address}"
-        url_path += '/force-check' if force
+        encoded_address = URI.encode_www_form_component(incoming_address)
+        url_path        = "/vhosts/by/incoming/#{encoded_address}"
+        url_path       += '/force-check' if force
 
         response = get(url_path, headers: { 'api-key' => api_key })
         handle_error_response(response, incoming_address)
@@ -184,8 +186,9 @@ module Onetime
       # @raise [HTTParty::ResponseError] On 404 or 401
       #
       def self.delete_vhost(api_key, incoming_address)
-        response = delete(
-          "/vhosts/by/incoming/#{incoming_address}",
+        encoded_address = URI.encode_www_form_component(incoming_address)
+        response        = delete(
+          "/vhosts/by/incoming/#{encoded_address}",
           headers: { 'api-key' => api_key },
         )
 

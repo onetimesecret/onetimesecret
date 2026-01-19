@@ -176,16 +176,20 @@ module Onetime
           return { deleted: false, message: 'Approximated API key not configured' }
         end
 
-        res     = client.delete_vhost(api_key, custom_domain.display_domain)
-        payload = res.parsed_response
+        res = client.delete_vhost(api_key, custom_domain.display_domain)
 
-        OT.info "[ApproximatedStrategy.delete_vhost] Deleted #{custom_domain.display_domain}"
-
-        {
-          deleted: true,
-          message: "Deleted vhost: #{custom_domain.display_domain}",
-          data: payload,
-        }
+        if res.success?
+          payload = res.parsed_response
+          OT.info "[ApproximatedStrategy.delete_vhost] Deleted #{custom_domain.display_domain}"
+          {
+            deleted: true,
+            message: "Deleted vhost: #{custom_domain.display_domain}",
+            data: payload,
+          }
+        else
+          OT.le "[ApproximatedStrategy.delete_vhost] Failed: #{res.code} for #{custom_domain.display_domain}"
+          { deleted: false, message: "Failed to delete vhost: status #{res.code}" }
+        end
       rescue HTTParty::ResponseError => ex
         OT.le "[ApproximatedStrategy.delete_vhost] Error: #{custom_domain.display_domain} - #{ex.message}"
         { deleted: false, message: "Error: #{ex.message}" }

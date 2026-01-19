@@ -173,13 +173,17 @@ function selectBestDomain(available: string[]): string {
   }
 }
 
+// Guard flag to prevent concurrent initialization attempts
+let isInitializing = false;
+
 /** Initialize domain context on module load (runs once). Returns promise for awaiting. */
 async function initializeDomainContext(
   fetchFn: () => Promise<boolean | void>,
   getAvailable: () => string[]
 ): Promise<void> {
-  if (isInitialized.value) return;
+  if (isInitialized.value || isInitializing) return;
 
+  isInitializing = true;
   const { domainsEnabled, canonicalDomain } = getConfig();
 
   try {
@@ -198,6 +202,11 @@ async function initializeDomainContext(
   } catch {
     // On error, don't mark initialized - allow retry via watcher
     console.warn('[useDomainContext] Initialization failed, will retry when org is available');
+  } finally {
+    // Only release the lock if initialization didn't complete (allow watcher retry)
+    if (!isInitialized.value) {
+      isInitializing = false;
+    }
   }
 }
 
