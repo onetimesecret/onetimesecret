@@ -153,14 +153,15 @@
         @records-verified="handleDnsRecordsVerified" />
     </div>
 
+    <!-- Manual verification steps for non-approximated strategies -->
     <VerifyDomainDetails
-      v-if="domain"
+      v-if="domain && !showDnsWidget"
       :domain="domain"
       :cluster="cluster"
       :with-verify-c-t-a="allowVerifyCTA"
       @domain-verify="handleDomainVerify" />
     <p
-      v-else
+      v-if="!domain"
       class="text-gray-600 dark:text-gray-400">
       {{ t('web.domains.loading_domain_information') }}
     </p>
