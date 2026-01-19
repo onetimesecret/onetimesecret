@@ -41,8 +41,8 @@ module V2::Logic
       end
 
       def process
-        # Debug logging for receipt list investigation
-        OT.info '[DEBUG:ListReceipts] Starting query',
+        # Debug logging for receipt list investigation (only in debug mode)
+        OT.ld '[DEBUG:ListReceipts] Starting query',
           {
             cust_id: cust&.custid,
             cust_objid: cust&.objid,
@@ -62,7 +62,7 @@ module V2::Logic
                            query_customer_receipts
                          end
 
-        OT.info '[DEBUG:ListReceipts] Query results',
+        OT.ld '[DEBUG:ListReceipts] Query results',
           {
             query_count: query_results.size,
             first_3_results: query_results.first(3),
