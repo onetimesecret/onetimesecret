@@ -18,6 +18,8 @@
 #   cert_status = strategy.request_certificate(custom_domain)
 #
 
+require_relative 'features'
+require_relative 'approximated_client'
 require_relative 'base_strategy'
 require_relative 'approximated_strategy'
 require_relative 'passthrough_strategy'
@@ -33,7 +35,7 @@ module Onetime
       # @return [BaseStrategy] Appropriate strategy instance
       # @raise [ArgumentError] If strategy is unknown and strict mode is enabled
       def self.for_config(config)
-        strategy_name = config.dig('features', 'domains', 'strategy') || 'passthrough'
+        strategy_name = config.dig('features', 'domains', 'validation_strategy') || 'passthrough'
         strict_mode   = config.dig('features', 'domains', 'strict_strategy') == true
 
         strategy = case strategy_name.downcase

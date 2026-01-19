@@ -112,9 +112,6 @@
     "skip": true,
     "note": "empty"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Faturalama ve abonelik yönetimi birincil çalışma alanınız üzerinden yapılır. Ödeme yöntemlerini ve faturaları yönetmek için ana çalışma alanı ayarlarınızı ziyaret edin."
-  },
   "web.organizations.select_organization": {
     "text": "",
     "skip": true,

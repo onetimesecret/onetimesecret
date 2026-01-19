@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Primary contact for billing and administrative notifications"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices."
-  },
   "web.organizations.select_organization": {
     "text": "Select an organization"
   },

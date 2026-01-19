@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "账单和管理通知的主要联系方式"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "账单和订阅管理通过您的主要工作区处理。访问主要工作区设置来管理付款方式和发票。"
-  },
   "web.organizations.select_organization": {
     "text": "选择组织"
   },

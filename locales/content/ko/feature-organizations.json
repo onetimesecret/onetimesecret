@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "결제 및 관리 알림을 위한 기본 연락처"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "결제 및 구독 관리는 기본 워크스페이스를 통해 처리됩니다. 결제 수단 및 송장을 관리하려면 메인 워크스페이스 설정을 방문하세요."
-  },
   "web.organizations.select_organization": {
     "text": "조직 선택"
   },

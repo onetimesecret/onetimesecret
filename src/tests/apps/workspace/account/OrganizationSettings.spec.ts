@@ -159,7 +159,6 @@ const i18n = createI18n({
           description: 'Description',
           contact_email: 'Billing Email',
           contact_email_help: 'This email will receive billing notifications',
-          billing_managed_by_default: 'Billing is managed by the default organization',
           billing_coming_soon: 'Billing Coming Soon',
           billing_coming_soon_description: 'Billing features will be available soon',
           tabs: {
@@ -678,16 +677,17 @@ describe('OrganizationSettings', () => {
         expect(section!.text()).toContain('Billing Email');
       });
 
-      it('shows info notice for non-default organization', async () => {
+      it('shows billing email field for non-default organization', async () => {
         const nonDefaultOrg = { ...mockOrganization, is_default: false };
         mockFetchOrganization.mockResolvedValue(nonDefaultOrg);
 
         wrapper = await mountComponent();
         await switchToSettingsTab(wrapper);
 
-        // Should show the info notice instead of billing email field
+        // Non-default orgs now have their own billing - should show email field
         const section = findBillingEmailSection(wrapper);
-        expect(section!.text()).toContain('Billing is managed by the default organization');
+        expect(section!.text()).toContain('Billing Email');
+        expect(section!.text()).toContain(nonDefaultOrg.contact_email);
       });
     });
   });

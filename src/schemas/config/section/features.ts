@@ -53,13 +53,13 @@ const featuresRegionsSchema = z.object({
 });
 
 /**
- * Domain cluster configuration (for approximated strategy)
+ * Domain proxy configuration (for approximated strategy)
  */
-const featuresDomainsClusterSchema = z.object({
+const featuresDomainsProxySchema = z.object({
   api_key: nullableString,
-  cluster_ip: nullableString,
-  cluster_host: nullableString,
-  cluster_name: nullableString,
+  proxy_ip: nullableString,
+  proxy_host: nullableString,
+  proxy_name: nullableString,
   vhost_target: nullableString,
 });
 
@@ -79,7 +79,7 @@ const featuresDomainsSchema = z.object({
   enabled: z.boolean().default(false),
   default: nullableString,
   strategy: z.enum(['passthrough', 'approximated', 'caddy_on_demand']).default('passthrough'),
-  cluster: featuresDomainsClusterSchema.optional(),
+  cluster: featuresDomainsProxySchema.optional(),
   acme: featuresDomainsAcmeSchema.optional(),
 });
 
@@ -97,6 +97,6 @@ export {
   featuresRegionsSchema,
   featuresIncomingSchema,
   featuresDomainsSchema,
-  featuresDomainsClusterSchema,
+  featuresDomainsProxySchema,
   featuresDomainsAcmeSchema,
 };

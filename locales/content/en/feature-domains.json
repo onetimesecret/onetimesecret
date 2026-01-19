@@ -292,5 +292,11 @@
   },
   "web.domains.edit_notify": {
     "text": "Edit notification setting"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Configure DNS Records"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Use the tool below to automatically detect your DNS provider and get step-by-step instructions for configuring your domain."
   }
 }

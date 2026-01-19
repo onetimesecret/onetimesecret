@@ -2,15 +2,18 @@
 #
 # frozen_string_literal: true
 
+require_relative '../domain_validation/features'
+
 module Onetime
   module Initializers
     # ConfigureDomains initializer
     #
-    # Configures custom domains feature if enabled. Sets up cluster configuration
-    # for domain management via OT::Cluster::Features class variables.
+    # Configures custom domains feature if enabled. Populates
+    # DomainValidation::Features with configuration values from config file.
     #
     # Runtime state set:
     # - Onetime::Runtime.features.domains_enabled
+    # - Onetime::DomainValidation::Features.* (all config values)
     #
     class ConfigureDomains < Onetime::Boot::Initializer
       @provides = [:domains]
@@ -25,21 +28,16 @@ module Onetime
 
         return app_logger.debug '[init] Domains feature disabled' unless is_enabled
 
-        cluster            = domains_config['cluster']
-        non_empty_settings = cluster.reject { _2.to_s.empty? }.keys
+        # Configure DomainValidation::Features from config
+        # This is the canonical source of domain validation configuration
+        klass = Onetime::DomainValidation::Features
+        klass.load_from_config(OT.conf)
 
-        app_logger.debug "[init] ConfigureDomains #{non_empty_settings}"
+        configured_settings = klass.configured_settings
+        app_logger.debug "[init] ConfigureDomains #{configured_settings}"
 
-        # Configure OT::Cluster::Features class variables
-        klass              = OT::Cluster::Features
-        klass.api_key      = cluster['api_key']
-        klass.cluster_ip   = cluster['cluster_ip']
-        klass.cluster_name = cluster['cluster_name']
-        klass.cluster_host = cluster['cluster_host']
-        klass.vhost_target = cluster['vhost_target']
-
-        unless klass.api_key
-          app_logger.debug "No `site.domains.cluster` api key (#{klass.api_key})"
+        unless klass.api_configured?
+          app_logger.debug "No domain cluster api key configured (strategy: #{klass.strategy_name})"
         end
       end
     end

@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "請求および管理通知の主要連絡先"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "請求とサブスクリプション管理はプライマリワークスペースを通じて行われます。支払い方法と請求書を管理するには、メインのワークスペース設定にアクセスしてください。"
-  },
   "web.organizations.select_organization": {
     "text": "組織を選択"
   },

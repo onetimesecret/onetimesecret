@@ -203,10 +203,22 @@ export interface BootstrapPayload {
 
   /**
    * Current user's organization (when authenticated)
+   * Populated by OrganizationSerializer from OrganizationLoader context
    */
   organization?: {
-    planid?: string;
-  };
+    /** Internal organization ID (use for store lookups, Vue :key) */
+    id: string;
+    /** External organization ID (use for API paths, URLs) */
+    extid: string;
+    /** Display name for the organization */
+    display_name: string;
+    /** Whether this is the user's default workspace */
+    is_default: boolean;
+    /** Plan identifier for entitlement checks */
+    planid?: string | null;
+    /** Current user's role in this organization */
+    current_user_role?: 'owner' | 'admin' | 'member' | null;
+  } | null;
 }
 
 /**

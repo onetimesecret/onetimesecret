@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Whakapā matua mō te utu me ngā whakamōhio whakahaere"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Ka whakahaerehia te utu me te whakahaere ohaurunga mā tō wāhi mahi matua. Torohia ngā tautuhinga wāhi mahi matua hei whakahaere i ngā tikanga utu me ngā nama."
-  },
   "web.organizations.select_organization": {
     "text": "Kōwhiri tētahi whakahaere"
   },

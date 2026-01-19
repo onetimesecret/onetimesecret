@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "איש קשר ראשי להודעות חיוב וניהוליות"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "ניהול החיוב והמנוי מתבצע דרך סביבת העבודה הראשית שלכם. בקרו בהגדרות סביבת העבודה הראשית לניהול אמצעי תשלום וחשבוניות."
-  },
   "web.organizations.select_organization": {
     "text": "בחרו ארגון"
   },

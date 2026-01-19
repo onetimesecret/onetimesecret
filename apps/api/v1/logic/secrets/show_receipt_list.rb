@@ -14,8 +14,9 @@ module V1::Logic
 
       def process_params
         # Calculate the timestamp for 30 days ago
-        @now = Time.now
-        @since = (Time.now - 30*24*60*60).to_i
+        # Use Familia.now for consistency with receipt scores (float timestamps)
+        @now = Familia.now
+        @since = (Familia.now - 30*24*60*60).to_i
       end
 
       def raise_concerns
@@ -24,7 +25,9 @@ module V1::Logic
 
       def process
         # Fetch entries from the sorted set within the past 30 days
-        @query_results = cust.receipts.rangebyscore(since, @now.to_i)
+        # NOTE: Use @now (float) not @now.to_i - receipts are added with float scores
+        # and truncating to int excludes receipts added in the same second
+        @query_results = cust.receipts.rangebyscore(since, @now)
 
         # Get the safe fields for each record
         @receipts = query_results.filter_map do |identifier|

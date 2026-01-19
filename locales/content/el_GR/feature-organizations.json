@@ -112,9 +112,6 @@
     "skip": true,
     "note": "empty"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Η διαχείριση χρεώσεων και συνδρομών γίνεται μέσω του κύριου χώρου εργασίας σας. Επισκεφθείτε τις ρυθμίσεις του κύριου χώρου εργασίας σας για να διαχειριστείτε τρόπους πληρωμής και τιμολόγια."
-  },
   "web.organizations.select_organization": {
     "text": "",
     "skip": true,

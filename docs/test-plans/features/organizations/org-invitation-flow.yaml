@@ -585,7 +585,7 @@ tests:
       - User is redirected to organization page
       - Organization switcher/dropdown shows the new organization (Acme Corporation)
       - User can navigate to organization dashboard
-      - Organization appears alongside user's Personal Workspace
+      - Organization appears alongside user's Default Workspace
       - selector: "[data-testid='org-switcher']"
         assertion: contains
         value: Acme Corporation
@@ -599,7 +599,7 @@ tests:
           2. User's organization context includes the invited org
           The bootstrap payload contains organization membership data
     postconditions:
-      - User has access to both Personal Workspace and invited org (verified via API)
+      - User has access to both Default Workspace and invited org (verified via API)
       - User can switch between organizations
     priority: high
     type: functional

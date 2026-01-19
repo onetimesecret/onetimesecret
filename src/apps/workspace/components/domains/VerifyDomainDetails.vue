@@ -5,7 +5,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { CustomDomainResponse } from '@/schemas/api/v3/responses';
-import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
+import { CustomDomain, CustomDomainProxy } from '@/schemas/models/domain';
 import { computed, ref } from 'vue';
 
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
@@ -13,7 +13,7 @@ import DetailField from '@/shared/components/ui/DetailField.vue';
 
 interface Props {
   domain: CustomDomain;
-  cluster?: CustomDomainCluster | null;
+  cluster?: CustomDomainProxy | null;
   withVerifyCTA?: boolean;
 }
 
@@ -129,7 +129,7 @@ const verify = async () => {
             :appendix="domain?.base_domain" />
           <DetailField
             :label="t('web.COMMON.value')"
-            :value="cluster?.cluster_ip ?? ''" />
+            :value="cluster?.proxy_ip ?? ''" />
         </div>
       </li>
       <li
@@ -155,11 +155,11 @@ const verify = async () => {
           <DetailField
             v-if="domain?.is_apex"
             :label="t('web.COMMON.value')"
-            :value="cluster?.cluster_ip ?? ''" />
+            :value="cluster?.proxy_ip ?? ''" />
           <DetailField
             v-else
             :label="t('web.COMMON.value')"
-            :value="cluster?.cluster_host ?? ''" />
+            :value="cluster?.proxy_host ?? ''" />
         </div>
       </li>
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">

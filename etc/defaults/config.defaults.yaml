@@ -340,15 +340,15 @@ features:
     #   - passthrough: No validation or cert management
     #   - approximated: Use approximated.app API for SSL certs and validation (requires cluster config)
     #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint)
-    strategy: <%= ENV['DOMAIN_STRATEGY'] || 'passthrough' %>
+    validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>
 
-    # Cluster configuration (required for 'approximated' strategy)
-    cluster:
+    # Approximated proxy configuration (required for 'approximated' strategy)
+    approximated:
       api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
-      cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
-      cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
-      cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
-      vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
+      proxy_ip: <%= ENV['APPROXIMATED_PROXY_IP'] || nil %>
+      proxy_host: <%= ENV['APPROXIMATED_PROXY_HOST'] || nil %>
+      proxy_name: <%= ENV['APPROXIMATED_PROXY_NAME'] || nil %>
+      vhost_target: <%= ENV['APPROXIMATED_VHOST_TARGET'] || nil %>
 
     # Internal ACME endpoint configuration (for 'caddy_on_demand' strategy)
     # This endpoint allows Caddy to verify domains before issuing certificates

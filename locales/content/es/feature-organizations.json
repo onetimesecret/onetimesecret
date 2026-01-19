@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Contacto principal para notificaciones de facturación y administrativas"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "La facturación y gestión de suscripciones se maneja a través de tu espacio de trabajo principal. Visita la configuración de tu espacio de trabajo principal para gestionar métodos de pago y facturas."
-  },
   "web.organizations.select_organization": {
     "text": "Seleccionar una organización"
   },

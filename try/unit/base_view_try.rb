@@ -22,8 +22,21 @@ require_relative '../../apps/web/core/views'
 
 OT.boot! :test, false
 
-# Data class for mocking strategy results (immutable, Ruby 3.2+)
-MockStrategyResult = Data.define(:session, :user, :authenticated?)
+# Mock class for strategy results with metadata support
+class MockStrategyResult
+  attr_reader :session, :user, :metadata
+
+  def initialize(session:, user:, authenticated: false, metadata: {})
+    @session = session
+    @user = user
+    @authenticated = authenticated
+    @metadata = metadata || {}
+  end
+
+  def authenticated?
+    @authenticated
+  end
+end
 
 # Setup for normal flow tests (using instance variables to persist across test cases)
 @mock_session = { 'test_key' => 'test_value' }
@@ -31,7 +44,7 @@ MockStrategyResult = Data.define(:session, :user, :authenticated?)
 @strategy_result = MockStrategyResult.new(
   session: @mock_session,
   user: @mock_user,
-  authenticated?: true
+  authenticated: true
 )
 
 env = Rack::MockRequest.env_for('http://example.com/')

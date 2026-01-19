@@ -278,7 +278,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           limits: response.data.limits,
         };
       } else {
-        console.debug('[OrganizationStore] Organization not in cache, skipping list update:', extid);
+        loggingService.debug('[OrganizationStore] Organization not in cache, skipping list update', { extid });
       }
 
       // Update current organization if it matches
@@ -454,6 +454,36 @@ export const useOrganizationStore = defineStore('organization', () => {
         $reset();
       }
     }
+  );
+
+  // Initialize currentOrganization from bootstrap payload
+  // This eliminates the race condition where domain context needs organization
+  // before fetchOrganizations completes. Bootstrap provides organization from
+  // server-side OrganizationLoader, ensuring it's available immediately.
+  watch(
+    () => bootstrap.organization,
+    (bootstrapOrg) => {
+      // Only seed if we don't already have a currentOrganization
+      // This prevents overwriting user-selected organization with bootstrap default
+      if (bootstrapOrg && !currentOrganization.value) {
+        // Convert bootstrap org format to Organization type
+        // Bootstrap provides minimal fields; full data comes from fetchOrganization
+        currentOrganization.value = {
+          id: bootstrapOrg.id,
+          extid: bootstrapOrg.extid,
+          display_name: bootstrapOrg.display_name,
+          is_default: bootstrapOrg.is_default,
+          planid: bootstrapOrg.planid ?? null,
+          current_user_role: bootstrapOrg.current_user_role ?? null,
+          // These fields will be populated when full org is fetched
+          created_at: new Date(),
+          updated_at: new Date(),
+        } as Organization;
+
+        loggingService.debug('[organizationStore] Initialized from bootstrap', { id: bootstrapOrg.id });
+      }
+    },
+    { immediate: true }
   );
 
   return {

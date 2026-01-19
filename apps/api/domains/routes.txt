@@ -8,6 +8,7 @@
 # All endpoints require authentication and organization context.
 
 # Domain Management
+GET    /dns-widget/token                  DomainsAPI::Logic::Domains::GetDnsWidgetToken response=json auth=sessionauth,basicauth
 POST   /add                               DomainsAPI::Logic::Domains::AddDomain response=json auth=sessionauth,basicauth
 POST   /:extid/remove                     DomainsAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth,basicauth
 GET    /:extid                            DomainsAPI::Logic::Domains::GetDomain response=json auth=sessionauth,basicauth

@@ -121,6 +121,14 @@ module Core
         # message. Possible values are nil, 'protected'.
         homepage_mode = req.env.fetch('onetime.homepage_mode', nil)
 
+        # Extract organization from strategy result metadata
+        # This is populated by OrganizationLoader in the auth strategy
+        organization = nil
+        if strategy_result&.metadata
+          org_context  = strategy_result.metadata[:organization_context]
+          organization = org_context[:organization] if org_context
+        end
+
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
@@ -161,6 +169,7 @@ module Core
           'messages' => nil,
           'no_cache' => no_cache,
           'nonce' => nonce,
+          'organization' => organization,
           'page_title' => page_title,
           'script_element_id' => script_element_id,
           'sess' => sess,

@@ -143,17 +143,15 @@
     </div>
   </nav>
 
-  <!-- Main Footer - Natural flow on mobile, fixed on desktop -->
+  <!-- Main Footer - Natural document flow -->
   <!-- prettier-ignore-attribute class -->
   <footer
     class="
       z-10 w-full
       min-w-[320px]
-      bg-gray-100 py-16
+      bg-gray-100 py-8
       pb-20 dark:bg-gray-800
-      md:fixed
-      md:bottom-0
-      md:py-6"
+      md:pb-8"
     :aria-label="t('web.layout.site_footer')">
     <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->

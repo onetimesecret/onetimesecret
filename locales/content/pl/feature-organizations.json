@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Główny kontakt dla powiadomień rozliczeniowych i administracyjnych"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Rozliczenia i zarządzanie subskrypcją są obsługiwane przez główny obszar roboczy. Odwiedź ustawienia głównego obszaru roboczego, aby zarządzać metodami płatności i fakturami."
-  },
   "web.organizations.select_organization": {
     "text": "Wybierz organizację"
   },

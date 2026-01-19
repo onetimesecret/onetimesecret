@@ -2,13 +2,14 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import DnsWidget from '@/apps/workspace/components/domains/DnsWidget.vue';
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import MoreInfoText from '@/shared/components/ui/MoreInfoText.vue';
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
-  import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
-  import { onMounted, ref } from 'vue';
+  import { CustomDomain, CustomDomainProxy } from '@/schemas/models';
+  import { computed, onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
@@ -16,7 +17,7 @@
   const { getDomain } = useDomainsManager();
 
   const domain = ref<CustomDomain | null>(null);
-  const cluster = ref<CustomDomainCluster | null>(null);
+  const cluster = ref<CustomDomainProxy | null>(null);
   const allowVerifyCTA = ref(true);
 
   const fetchDomain = async (): Promise<void> => {
@@ -37,6 +38,38 @@
 
   const handleDomainVerify = async (data: CustomDomainResponse) => {
     console.debug('Domain verified: refreshing domain info', data);
+    await fetchDomain();
+  };
+
+  // DNS Widget configuration
+  // Show widget only for approximated strategy when domain is not yet verified
+  const showDnsWidget = computed(
+    () =>
+      domain.value &&
+      !domain.value.vhost?.last_monitored_unix &&
+      cluster.value?.validation_strategy === 'approximated'
+  );
+
+  // Show manual DNS instructions for non-approximated strategies
+  const showManualInstructions = computed(
+    () =>
+      domain.value &&
+      !domain.value.vhost?.last_monitored_unix &&
+      cluster.value?.validation_strategy !== 'approximated'
+  );
+
+  // Target address for DNS records (IP for apex domains, hostname otherwise)
+  const dnsTargetAddress = computed(() => {
+    // For apex domains, use the proxy IP; otherwise use proxy_host for CNAME
+    if (domain.value?.is_apex) {
+      return cluster.value?.proxy_ip ?? '';
+    }
+    return cluster.value?.proxy_host ?? '';
+  });
+
+  const handleDnsRecordsVerified = async () => {
+    console.debug('DNS records verified via widget');
+    // Refresh domain data to pick up verification status
     await fetchDomain();
   };
 
@@ -64,6 +97,7 @@
     </p>
 
     <MoreInfoText
+      v-if="showManualInstructions"
       text-color="text-brandcomp-800 dark:text-gray-100"
       bg-color="bg-white dark:bg-gray-800">
       <div class="prose max-w-none">
@@ -74,11 +108,11 @@
               class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at
             <span
-              :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ t('web.domains.if_you_already_have_a_cname_record_for_that_addr') }}
+              :title="cluster?.proxy_name ?? ''"
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.proxy_host }}</span>{{ t('web.domains.if_you_already_have_a_cname_record_for_that_addr') }}
             <span
-              :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
+              :title="cluster?.proxy_name ?? ''"
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.proxy_host }}</span>
             {{ t('web.domains.and_remove_any_other_a_aaaa_or_cname_records_for') }}
           </p>
           <p
@@ -100,14 +134,34 @@
       </div>
     </MoreInfoText>
 
+    <!-- DNS Widget for automated DNS configuration -->
+    <div
+      v-if="showDnsWidget"
+      class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+        {{ t('web.domains.configure_dns_records') }}
+      </h2>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        {{ t('web.domains.dns_widget_description') }}
+      </p>
+      <DnsWidget
+        :domain="domain!.display_domain"
+        :target-address="dnsTargetAddress"
+        :is-apex="domain?.is_apex"
+        :txt-validation-host="domain?.txt_validation_host"
+        :txt-validation-value="domain?.txt_validation_value"
+        @records-verified="handleDnsRecordsVerified" />
+    </div>
+
+    <!-- Manual verification steps for non-approximated strategies -->
     <VerifyDomainDetails
-      v-if="domain"
+      v-if="domain && !showDnsWidget"
       :domain="domain"
       :cluster="cluster"
       :with-verify-c-t-a="allowVerifyCTA"
       @domain-verify="handleDomainVerify" />
     <p
-      v-else
+      v-if="!domain"
       class="text-gray-600 dark:text-gray-400">
       {{ t('web.domains.loading_domain_information') }}
     </p>

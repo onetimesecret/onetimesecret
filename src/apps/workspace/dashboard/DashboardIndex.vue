@@ -5,6 +5,7 @@
   import PrivacyOptionsBar from '@/apps/workspace/components/forms/PrivacyOptionsBar.vue';
   import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
+  import { loggingService } from '@/services/logging.service';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { computed, ref } from 'vue';
 
@@ -33,7 +34,15 @@
 
   // Refresh recent secrets table after a secret is created
   const handleSecretCreated = () => {
+    const timestamp = Date.now();
+    loggingService.debug('[DEBUG:DashboardIndex] handleSecretCreated called', {
+      timestamp,
+      hasTableRef: !!recentSecretsTableRef.value,
+    });
     recentSecretsTableRef.value?.fetch();
+    loggingService.debug('[DEBUG:DashboardIndex] fetch() called on table ref', {
+      timestamp,
+    });
   };
 </script>
 

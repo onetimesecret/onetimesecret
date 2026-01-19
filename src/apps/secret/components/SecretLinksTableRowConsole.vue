@@ -240,9 +240,28 @@
 </script>
 
 <template>
-  <li ref="rowRef" :class="rowClasses">
-    <!-- Header line: #N  🔒  SYMBOL STATUS  Memo/ID -->
-    <div class="flex items-start gap-2">
+  <li ref="rowRef"
+:class="rowClasses"
+class="group/row relative transition-all duration-150 hover:shadow-md">
+    <!-- Content wrapper: contains everything except separator, for watermark positioning -->
+    <div class="relative">
+      <!-- Background watermark: oversized shortid, centered -->
+      <div
+        class="pointer-events-none absolute inset-0 flex select-none items-center justify-center"
+        aria-hidden="true">
+        <span
+          :class="[
+            'font-mono text-[clamp(3.5rem,8vw,4.5rem)] font-light uppercase leading-none tracking-[0.3em] transition-colors duration-150',
+            isTerminal
+              ? 'text-gray-400/15 group-hover/row:text-gray-400/30 dark:text-gray-500/12 dark:group-hover/row:text-gray-500/25'
+              : 'text-gray-400/20 group-hover/row:text-gray-400/40 dark:text-gray-500/18 dark:group-hover/row:text-gray-500/35',
+          ]">
+          {{ displayKey }}
+        </span>
+      </div>
+
+      <!-- Header line: #N  🔒  SYMBOL STATUS  Memo/ID -->
+      <div class="relative flex items-start gap-2">
       <!-- Index prefix -->
       <span class="select-none text-gray-400 dark:text-gray-500">
         #{{ index }}
@@ -338,12 +357,15 @@
             </span>
             <span
               v-else
-              class="text-gray-400 dark:text-gray-500">
+              class="text-gray-400 group-hover/memo:text-gray-300 dark:text-gray-500 dark:group-hover/memo:text-gray-300">
               {{ displayKey }}
             </span>
             <span
-              class="text-xs text-gray-300 opacity-0 transition-opacity group-hover/memo:opacity-100 dark:text-gray-600">
-              [edit]
+              class="text-xs text-gray-300 group-hover/memo:text-gray-200 transition-opacity dark:text-gray-600 dark:group-hover/memo:text-gray-300">
+              <OIcon
+                collection="heroicons"
+                name="pencil-square"
+                class="size-3" />
             </span>
           </button>
         </template>
@@ -378,7 +400,7 @@
     </div>
 
     <!-- Metadata tree (full tree for active/previewed, minimal for terminal) -->
-    <div class="ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
+    <div class="relative ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
       <template v-if="isActive">
         <!-- Expires line with timestamp on right -->
         <div class="flex items-center justify-between">
@@ -399,6 +421,7 @@
           <!-- Created timestamp -->
           <router-link
             :to="`/receipt/${record.extid}`"
+            data-test-id="created-timestamp"
             class="text-xs text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
             <time :datetime="record.createdAt.toISOString()">
               {{ formattedDate }}
@@ -424,33 +447,12 @@
         </div>
       </template>
     </div>
+    </div><!-- /Content wrapper -->
 
     <!-- Separator line (if not last item) -->
     <div
       v-if="!isLast"
-      class="my-4 border-t border-dashed border-gray-200 dark:border-gray-700"
+      class="my-4 border-t border-dashed border-gray-300 transition-colors duration-150 group-hover/row:border-gray-400 dark:border-gray-600 dark:group-hover/row:border-gray-500"
       aria-hidden="true"></div>
   </li>
 </template>
-
-<style scoped>
-  /*
-   * Layer 2: EAP pulse animation
-   * Subtle opacity pulse (0.6 → 1.0 → 0.6) over 1.5s
-   * Only triggers once when row enters viewport
-   * Motion is unique to EAP, teaching users "motion = needs passphrase"
-   */
-  @keyframes eap-pulse {
-    0%,
-    100% {
-      opacity: 0.6;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-
-  .animate-eap-pulse {
-    animation: eap-pulse 1.5s ease-in-out 1;
-  }
-</style>

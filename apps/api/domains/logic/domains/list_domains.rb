@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/domain_validation/features'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -55,7 +56,7 @@ module DomainsAPI::Logic
           records: @custom_domains,
           count: @custom_domains.length,
           details: {
-            cluster: Onetime::Cluster::Features.cluster_safe_dump,
+            cluster: Onetime::DomainValidation::Features.safe_dump,
           },
         }
       end

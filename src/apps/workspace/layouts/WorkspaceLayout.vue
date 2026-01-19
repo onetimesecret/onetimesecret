@@ -67,7 +67,7 @@
   onMounted(() => {
     receiptListStore.refreshRecords(true);
     if (domains_enabled.value) {
-      domainsStore.refreshRecords(true);
+      domainsStore.refreshRecords({ force: true });
     }
   });
 

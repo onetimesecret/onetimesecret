@@ -24,7 +24,9 @@ module V2::Logic
 
       def process
         # Fetch entries from the sorted set within the past 30 days
-        @query_results = cust.receipts.rangebyscore(since, @now.to_i)
+        # NOTE: Use @now (float) not @now.to_i - receipts are added with float scores
+        # and truncating to int excludes receipts added in the same second
+        @query_results = cust.receipts.rangebyscore(since, @now)
 
         # Get the safe fields for each record using optimized bulk loading
         receipt_objects = Onetime::Receipt.load_multi(query_results).compact

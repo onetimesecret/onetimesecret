@@ -29,6 +29,7 @@
 import FancyIcon from '@/shared/components/ctas/FancyIcon.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
+import { useTheme } from '@/shared/composables/useTheme';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { Customer } from '@/schemas/models';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -46,6 +47,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { logout } = useAuth();
+const { isDarkMode, toggleDarkMode } = useTheme();
 
 const isPlanTestModalOpen = ref(false);
 
@@ -344,11 +346,28 @@ onUnmounted(() => {
         <div
           class="border-b border-gray-200 px-4 py-3
             dark:border-gray-700">
-          <p
-            class="text-sm font-medium text-gray-900 dark:text-white"
-            :title="cust?.email">
-            {{ cust?.email }}
-          </p>
+          <div class="flex items-center justify-between gap-2">
+            <p
+              class="truncate text-sm font-medium text-gray-900 dark:text-white"
+              :title="cust?.email">
+              {{ cust?.email }}
+            </p>
+            <!-- Theme Toggle -->
+            <button
+              @click="toggleDarkMode"
+              :aria-label="t('web.layout.toggle_dark_mode')"
+              :aria-pressed="isDarkMode"
+              :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
+              class="flex size-7 shrink-0 items-center justify-center rounded-md
+                text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700
+                dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+              <OIcon
+                :collection="isDarkMode ? 'ph' : 'ph'"
+                :name="isDarkMode ? 'moon' : 'sun'"
+                class="size-4"
+                aria-hidden="true" />
+            </button>
+          </div>
           <p
             v-if="!awaitingMfa && cust?.objid"
             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">

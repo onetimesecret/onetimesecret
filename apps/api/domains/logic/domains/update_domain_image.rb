@@ -5,7 +5,7 @@
 require 'base64'
 require 'fastimage'
 
-require 'onetime/cluster'
+require 'onetime/domain_validation/strategy'
 require_relative '../base'
 
 module DomainsAPI::Logic

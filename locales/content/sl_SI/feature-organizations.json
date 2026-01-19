@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Glavni kontakt za obvestila o plačilih in administraciji"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Plačila in naročnina se upravljajo preko vašega primarnega delovnega prostora. Obiščite nastavitve glavnega delovnega prostora za upravljanje načinov plačila in računov."
-  },
   "web.organizations.select_organization": {
     "text": "Izberite organizacijo"
   },

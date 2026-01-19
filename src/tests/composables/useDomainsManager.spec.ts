@@ -72,10 +72,13 @@ const mockDomainContext = {
 };
 
 // Mock imports
+// Track current route params for dynamic mocking
+let currentRouteParams: Record<string, string> = { orgid: 'test-org-id' };
+
 vi.mock('vue-router', () => ({
   useRouter: () => mockDependencies.router,
   useRoute: () => ({
-    params: { orgid: 'test-org-id' },
+    params: currentRouteParams,
   }),
 }));
 
@@ -158,6 +161,8 @@ describe('useDomainsManager', () => {
     mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => await fn());
     // Reset domain context mock
     mockDomainContext.setContext.mockClear();
+    // Reset route params to default
+    currentRouteParams = { orgid: 'test-org-id' };
   });
 
   describe('domain addition', () => {
@@ -335,6 +340,80 @@ describe('useDomainsManager', () => {
       // Composable uses its own local isLoading ref, not store's loading state
     });
   });
+  describe('refreshRecords org-scoped behavior', () => {
+    it('passes orgIdentifier from route.params.orgid to store.refreshRecords', async () => {
+      currentRouteParams = { orgid: 'org-from-route-123' };
+
+      const { refreshRecords } = mountComposable(() => useDomainsManager());
+      await refreshRecords();
+
+      expect(mockDependencies.domainsStore.refreshRecords).toHaveBeenCalledWith({
+        orgId: 'org-from-route-123',
+        force: false,
+      });
+    });
+
+    it('passes orgIdentifier from route.params.extid when orgid is not present', async () => {
+      currentRouteParams = { extid: 'ext-from-route-456' };
+
+      const { refreshRecords } = mountComposable(() => useDomainsManager());
+      await refreshRecords();
+
+      expect(mockDependencies.domainsStore.refreshRecords).toHaveBeenCalledWith({
+        orgId: 'ext-from-route-456',
+        force: false,
+      });
+    });
+
+    it('prefers orgid over extid when both are present in route params', async () => {
+      currentRouteParams = { orgid: 'primary-org', extid: 'secondary-ext' };
+
+      const { refreshRecords } = mountComposable(() => useDomainsManager());
+      await refreshRecords();
+
+      expect(mockDependencies.domainsStore.refreshRecords).toHaveBeenCalledWith({
+        orgId: 'primary-org',
+        force: false,
+      });
+    });
+
+    it('passes undefined orgId when no org params in route', async () => {
+      currentRouteParams = {};
+
+      const { refreshRecords } = mountComposable(() => useDomainsManager());
+      await refreshRecords();
+
+      expect(mockDependencies.domainsStore.refreshRecords).toHaveBeenCalledWith({
+        orgId: undefined,
+        force: false,
+      });
+    });
+
+    it('passes force: true when called with force argument', async () => {
+      currentRouteParams = { orgid: 'org-force-test' };
+
+      const { refreshRecords } = mountComposable(() => useDomainsManager());
+      await refreshRecords(true);
+
+      expect(mockDependencies.domainsStore.refreshRecords).toHaveBeenCalledWith({
+        orgId: 'org-force-test',
+        force: true,
+      });
+    });
+
+    it('passes force: false by default', async () => {
+      currentRouteParams = { orgid: 'org-default-force' };
+
+      const { refreshRecords } = mountComposable(() => useDomainsManager());
+      await refreshRecords();
+
+      expect(mockDependencies.domainsStore.refreshRecords).toHaveBeenCalledWith({
+        orgId: 'org-default-force',
+        force: false,
+      });
+    });
+  });
+
   describe('error handling', () => {
     it('sets human-readable error when domain addition fails', async () => {
       // Store returns { record: null } to simulate failure

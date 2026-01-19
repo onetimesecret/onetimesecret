@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "E-post för faktureringsaviseringar"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Fakturering och prenumerationshantering hanteras via din primära arbetsyta. Besök inställningarna för din huvudarbetsyta för att hantera betalningsmetoder och fakturor."
-  },
   "web.organizations.select_organization": {
     "text": "Välj organisation"
   },

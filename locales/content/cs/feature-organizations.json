@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Primární kontakt pro fakturaci a administrativní oznámení"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Fakturace a správa předplatného je řízena přes tvůj primární pracovní prostor. Navštiv nastavení svého hlavního pracovního prostoru pro správu platebních metod a faktur."
-  },
   "web.organizations.select_organization": {
     "text": "Vyber organizaci"
   },

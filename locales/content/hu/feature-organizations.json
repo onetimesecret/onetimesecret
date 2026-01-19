@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Elsődleges kapcsolattartó a számlázási és adminisztratív értesítésekhez"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "A számlázás és előfizetés kezelése az elsődleges munkaterületén keresztül történik. Látogasson el a fő munkaterület beállításaihoz a fizetési módok és számlák kezeléséhez."
-  },
   "web.organizations.select_organization": {
     "text": "Szervezet kiválasztása"
   },

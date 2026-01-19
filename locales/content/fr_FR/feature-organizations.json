@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Contact principal pour les notifications de facturation et administratives"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "La gestion de la facturation et des abonnements s'effectue via votre espace de travail principal. Rendez-vous dans les paramètres de votre espace de travail principal pour gérer les moyens de paiement et les factures."
-  },
   "web.organizations.select_organization": {
     "text": "Sélectionner une organisation"
   },

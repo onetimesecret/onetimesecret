@@ -4,7 +4,7 @@
 
 require 'public_suffix'
 
-require 'onetime/cluster'
+require 'onetime/domain_validation/features'
 require 'onetime/domain_validation/strategy'
 require_relative '../base'
 
@@ -132,7 +132,7 @@ module DomainsAPI::Logic
           record: @custom_domain.safe_dump,
           domain_context: @display_domain,
           details: {
-            cluster: Onetime::Cluster::Features.cluster_safe_dump,
+            cluster: Onetime::DomainValidation::Features.safe_dump,
           },
         }
       end

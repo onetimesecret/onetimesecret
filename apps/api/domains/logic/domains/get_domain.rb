@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/cluster'
+require 'onetime/domain_validation/features'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -47,7 +47,7 @@ module DomainsAPI::Logic
           user_id: @cust.objid,
           record: custom_domain.safe_dump,
           details: {
-            cluster: Onetime::Cluster::Features.cluster_safe_dump,
+            cluster: Onetime::DomainValidation::Features.safe_dump,
           },
         }
       end

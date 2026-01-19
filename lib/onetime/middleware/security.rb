@@ -51,7 +51,6 @@ module Onetime
       # @param env [Hash] Rack environment hash containing request information
       # @return [Array] Standard Rack response array [status, headers, body]
       def call(env)
-        http_logger.info '[Security] Processing request through security middleware'
         @rack_app.call(env)
       end
 

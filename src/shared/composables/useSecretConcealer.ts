@@ -7,6 +7,7 @@ import {
 } from '@/shared/composables/useAsyncHandler';
 import { ConcealDataResponse } from '@/schemas/api/v3';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/payloads';
+import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
@@ -39,6 +40,7 @@ type SubmitType = 'conceal' | 'generate';
  * - Error management
  */
 
+// eslint-disable-next-line max-lines-per-function -- temporary debug logging
 export function useSecretConcealer(options?: SecretConcealerOptions) {
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
@@ -100,7 +102,14 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
    * Handles form submission for both conceal and generate operations
    */
   const submit = async (type: SubmitType = 'conceal') =>
+    // eslint-disable-next-line complexity -- temporary debug logging
     wrap(async () => {
+      const timestamp = Date.now();
+      loggingService.debug('[DEBUG:useSecretConcealer] Submit started', {
+        timestamp,
+        type,
+      });
+
       // Skip validation for generate operations
       if (type === 'conceal' && !validation.validate()) {
         throw createError('Please check the form for errors', 'human');
@@ -112,8 +121,20 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
         ? secretStore.conceal(payload as ConcealPayload)
         : secretStore.generate(payload as GeneratePayload));
 
+      loggingService.debug('[DEBUG:useSecretConcealer] API response received', {
+        timestamp,
+        receiptId: response?.record?.receipt?.identifier,
+        receiptShortid: response?.record?.receipt?.shortid,
+      });
+
       if (response && typeof response === 'object' && options?.onSuccess) {
+        loggingService.debug('[DEBUG:useSecretConcealer] Calling onSuccess callback', {
+          timestamp,
+        });
         await options.onSuccess(response);
+        loggingService.debug('[DEBUG:useSecretConcealer] onSuccess callback completed', {
+          timestamp,
+        });
       }
 
       return response;

@@ -68,9 +68,6 @@
   "web.organizations.contact_email_help": {
     "text": "Hauptkontakt für Abrechnungs- und Verwaltungsbenachrichtigungen"
   },
-  "web.organizations.billing_managed_by_default": {
-    "text": "Abrechnung und Abonnementverwaltung erfolgen über Ihren primären Arbeitsbereich. Besuchen Sie Ihre Hauptarbeitsbereich-Einstellungen, um Zahlungsmethoden und Rechnungen zu verwalten."
-  },
   "web.organizations.select_organization": {
     "text": "Organisation auswählen"
   },

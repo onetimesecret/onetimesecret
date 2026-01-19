@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/cluster'
+require 'onetime/domain_validation/strategy'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -35,6 +35,9 @@ module DomainsAPI::Logic
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
 
+        # Delete from external SSL provider via strategy
+        delete_vhost
+
         # Destroy method operates inside a multi block that deletes the domain
         # record, removes it from customer's domain list, and global list so
         # it's all or nothing. It does not delete the external approximated
@@ -44,15 +47,18 @@ module DomainsAPI::Logic
         success_data
       end
 
+      # Deletes vhost from external provider using the configured strategy.
+      # For Approximated strategy, this calls the API. For other strategies,
+      # this is a no-op.
+      #
       def delete_vhost
-        api_key = Onetime::Cluster::Features.api_key
-        return OT.info '[RemoveDomain.delete_vhost] Approximated API key not set' if api_key.to_s.empty?
+        strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+        result   = strategy.delete_vhost(@custom_domain)
 
-        res     = Onetime::Cluster::Approximated.delete_vhost(api_key, @display_domain)
-        payload = res.parsed_response
-        OT.info format('[RemoveDomain.delete_vhost] %s', payload)
-      rescue HTTParty::ResponseError => ex
-        OT.le format('[RemoveDomain.delete_vhost error] %s %s %s', @cust.extid, @display_domain, ex)
+        OT.info "[RemoveDomain.delete_vhost] #{@display_domain} -> #{result[:message]}"
+      rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
+        OT.le "[RemoveDomain.delete_vhost error] #{@cust.extid} #{@display_domain} #{ex}"
+        # Continue with domain removal even if vhost deletion fails
       end
 
       def success_data
