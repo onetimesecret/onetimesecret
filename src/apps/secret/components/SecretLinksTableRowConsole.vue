@@ -242,7 +242,7 @@
 <template>
   <li ref="rowRef"
 :class="rowClasses"
-class="relative">
+class="group/row relative transition-all duration-150 hover:shadow-md">
     <!-- Content wrapper: contains everything except separator, for watermark positioning -->
     <div class="relative">
       <!-- Background watermark: oversized shortid, centered -->
@@ -251,10 +251,10 @@ class="relative">
         aria-hidden="true">
         <span
           :class="[
-            'font-mono text-[clamp(3.5rem,8vw,4.5rem)] font-light uppercase leading-none tracking-[0.3em]',
+            'font-mono text-[clamp(3.5rem,8vw,4.5rem)] font-light uppercase leading-none tracking-[0.3em] transition-colors duration-150',
             isTerminal
-              ? 'text-gray-400/15 dark:text-gray-500/12'
-              : 'text-gray-400/20 dark:text-gray-500/18',
+              ? 'text-gray-400/15 group-hover/row:text-gray-400/30 dark:text-gray-500/12 dark:group-hover/row:text-gray-500/25'
+              : 'text-gray-400/20 group-hover/row:text-gray-400/40 dark:text-gray-500/18 dark:group-hover/row:text-gray-500/35',
           ]">
           {{ displayKey }}
         </span>
@@ -452,7 +452,7 @@ class="relative">
     <!-- Separator line (if not last item) -->
     <div
       v-if="!isLast"
-      class="my-4 border-t border-dashed border-gray-200 dark:border-gray-700"
+      class="my-4 border-t border-dashed border-gray-300 transition-colors duration-150 group-hover/row:border-gray-400 dark:border-gray-600 dark:group-hover/row:border-gray-500"
       aria-hidden="true"></div>
   </li>
 </template>
