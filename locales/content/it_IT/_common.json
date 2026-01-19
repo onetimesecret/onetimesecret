@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Verifica sempre di essere sul sito ufficiale di Onetime Secret. I truffatori a volte creano siti falsi che sembrano esattamente come Onetime Secret per rubare i tuoi segreti. Per evitare attacchi di phishing, controlla il dominio della regione prima di creare nuovi link"
+  },
+  "web.STATUS.previewed": {
+    "text": "Link aperto"
+  },
+  "web.STATUS.revealed": {
+    "text": "Rivelato"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Il link segreto è stato aperto ed è pronto per essere rivelato"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Il contenuto segreto è stato rivelato al destinatario"
   }
 }

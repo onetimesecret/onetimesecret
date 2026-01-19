@@ -424,9 +424,7 @@
                   :disable-generate="selectedAction === 'create-link' && hasContent"
                   :keyboard-shortcut-enabled="true"
                   :show-keyboard-hint="false"
-                  @update:action="selectedAction = $event"
-                  @create-link="handleSubmit"
-                  @generate-password="handleSubmit" />
+                  @update:action="selectedAction = $event" />
               </div>
             </div>
 

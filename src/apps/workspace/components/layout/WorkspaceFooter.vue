@@ -4,12 +4,10 @@
   Simplified footer for authenticated workspace users.
   Based on ManagementFooter with:
   - Removed: Region selector, color mode toggle, language toggle
-  - Added: Standard SaaS footer links (API Docs, Branding Guide, Plans)
-  - Kept: FeedbackToggle for authenticated users
+  - Added: Standard SaaS footer links (API Docs, Branding Guide, Feedback)
 -->
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
@@ -18,8 +16,7 @@
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
 
-  const props = withDefaults(defineProps<LayoutProps>(), {
-    displayFeedback: true,
+  withDefaults(defineProps<LayoutProps>(), {
     displayFooterLinks: true,
     displayVersion: true,
     displayToggles: false,
@@ -99,8 +96,8 @@
       external: false,
     },
     {
-      label: t('web.footer.plans'),
-      href: '/billing/plans',
+      label: t('web.TITLES.feedback'),
+      href: '/feedback',
       external: false,
     },
   ]);
@@ -189,20 +186,6 @@
             >
           </a>
         </template>
-
-        <!-- Feedback Toggle - icon only on narrow screens, with text on wider -->
-        <FeedbackToggle
-          v-if="props.displayFeedback"
-          :aria-label="t('web.layout.provide_feedback')" />
-      </div>
-
-      <!-- Feedback Toggle (standalone for mobile when links are hidden) -->
-      <div
-        v-if="props.displayFeedback && !displayFooterLinks"
-        class="mb-6 flex items-center justify-center">
-        <FeedbackToggle
-          :icon-only="true"
-          :aria-label="t('web.layout.provide_feedback')" />
       </div>
 
       <!-- Version and Powered By -->

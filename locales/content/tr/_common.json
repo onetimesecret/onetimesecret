@@ -1060,5 +1060,17 @@
     "text": "",
     "skip": true,
     "note": "empty"
+  },
+  "web.STATUS.previewed": {
+    "text": "Bağlantı açıldı"
+  },
+  "web.STATUS.revealed": {
+    "text": "Açığa çıkarıldı"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Gizli bağlantı açıldı ve açığa çıkarılmaya hazır"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Gizli içerik alıcıya açığa çıkarıldı"
   }
 }

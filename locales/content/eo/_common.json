@@ -958,5 +958,17 @@
   },
   "web.pricing.recommended_for_you": {
     "text": "Rekomendata por Vi"
+  },
+  "web.STATUS.previewed": {
+    "text": "Ligilo malfermita"
+  },
+  "web.STATUS.revealed": {
+    "text": "Malkaŝita"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Sekreta ligilo estas malfermita kaj preta por malkaŝado"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Sekreta enhavo estis malkaŝita al la ricevanto"
   }
 }

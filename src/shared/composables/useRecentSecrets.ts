@@ -1,12 +1,12 @@
 // src/shared/composables/useRecentSecrets.ts
 
-import type { ApplicationError } from '@/schemas/errors';
 import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
-import type { ConcealedMessage } from '@/types/ui/concealed-message';
+import type { ApplicationError } from '@/schemas/errors';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
-import { useReceiptListStore } from '@/shared/stores/receiptListStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+import { useReceiptListStore } from '@/shared/stores/receiptListStore';
+import type { ConcealedMessage } from '@/types/ui/concealed-message';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
 
@@ -37,10 +37,12 @@ export interface RecentSecretRecord {
   isViewed: boolean;
   /** Whether the secret has been received */
   isReceived: boolean;
-  /** Whether the secret has been burned/destroyed */
+  /** Whether the secret has been burned */
   isBurned: boolean;
   /** Whether the secret has expired */
   isExpired: boolean;
+  /** Whether any of the burned, expired etc are true */
+  isDestroyed: boolean;
   /** Original source data for advanced usage */
   source: 'local' | 'api';
   /** Original record for type-specific operations */
@@ -92,6 +94,7 @@ function transformLocalRecord(message: ConcealedMessage): RecentSecretRecord {
     isReceived: false, // Local records are never marked received
     isBurned: false, // Local records track this separately if needed
     isExpired: message.createdAt + message.ttl * 1000 < Date.now(),
+    isDestroyed: false, // Local records track this separately if needed
     source: 'local',
     originalRecord: message,
     memo: message.memo,
@@ -116,7 +119,10 @@ function extractApiRecordIds(record: ReceiptRecords) {
 function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
   const { id, secretId, extid, shortid } = extractApiRecordIds(record);
   const createdAt = record.created instanceof Date ? record.created : new Date();
-  const isBurned = Boolean(record.is_burned || record.is_destroyed);
+  // NOTE: is_destroyed is true for received, burned, expired, or orphaned states.
+  // Use is_burned specifically for the burned state - don't combine with is_destroyed.
+  const isBurned = Boolean(record.is_burned);
+  const isDestroyed = Boolean(record.is_destroyed);
 
   return {
     id,
@@ -131,8 +137,10 @@ function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
     isReceived: record.is_received ?? false,
     isBurned,
     isExpired: record.is_expired ?? false,
+    isDestroyed,
     source: 'api',
     originalRecord: record,
+    memo: record.memo ?? undefined,
   };
 }
 
@@ -184,9 +192,7 @@ function useLocalRecentSecrets() {
 /**
  * Internal composable for API source (authenticated users)
  */
-function useApiRecentSecrets(
-  wrap: <T>(operation: () => Promise<T>) => Promise<T | undefined>
-) {
+function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T | undefined>) {
   const store = useReceiptListStore();
   const { records: storeRecords } = storeToRefs(store);
 
@@ -194,9 +200,7 @@ function useApiRecentSecrets(
   // Filter out records with missing secret_shortid to prevent broken share links
   const records = computed<RecentSecretRecord[]>(() => {
     if (!storeRecords.value) return [];
-    return storeRecords.value
-      .filter((record) => !!record.secret_shortid)
-      .map(transformApiRecord);
+    return storeRecords.value.filter((record) => !!record.secret_shortid).map(transformApiRecord);
   });
 
   const hasRecords = computed(() => records.value.length > 0);

@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Vždy ověř, že jsi na oficiální webové stránce Onetime Secret. Podvodníci někdy vytvářejí falešné webové stránky, které vypadají přesně jako Onetime Secret, aby ukradli tvá tajemství. Abys se vyhnul phishingovým útokům, zkontroluj doménu oblasti před vytvořením nových odkazů."
+  },
+  "web.STATUS.previewed": {
+    "text": "Odkaz otevřen"
+  },
+  "web.STATUS.revealed": {
+    "text": "Odhaleno"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Tajný odkaz byl otevřen a je připraven k odhalení"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Obsah tajemství byl odhalen příjemci"
   }
 }

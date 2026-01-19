@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "תמיד ודאו שאתם באתר הרשמי של Onetime Secret. רמאים לעיתים יוצרים אתרים מזויפים שנראים בדיוק כמו Onetime Secret כדי לגנוב את הסודות שלכם. כדי להימנע מהתקפות פישינג, בדקו את דומיין האזור לפני יצירת קישורים חדשים."
+  },
+  "web.STATUS.previewed": {
+    "text": "הקישור נפתח"
+  },
+  "web.STATUS.revealed": {
+    "text": "נחשף"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "קישור סודי נפתח ומוכן לחשיפה"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "תוכן הסוד נחשף לנמען"
   }
 }

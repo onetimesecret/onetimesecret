@@ -461,7 +461,7 @@ tests:
         assertion: visible
       - api: GET /bootstrap/me
         assert:
-          organization.extid: "{{invitation.organization_extid}}"
+          organization.extid: '{{invitation.organization_extid}}'
         notes: Verify user's current organization context includes the invited org
     postconditions:
       - Invitation is accepted successfully
@@ -585,21 +585,21 @@ tests:
       - User is redirected to organization page
       - Organization switcher/dropdown shows the new organization (Acme Corporation)
       - User can navigate to organization dashboard
-      - Organization appears alongside user's Default Organization
+      - Organization appears alongside user's Personal Workspace
       - selector: "[data-testid='org-switcher']"
         assertion: contains
         value: Acme Corporation
       - api: GET /bootstrap/me
         assert:
           authenticated: true
-          organization.extid: "{{org.extid}}"
+          organization.extid: '{{org.extid}}'
         notes: |
           Verify via bootstrap API that:
           1. User is authenticated
           2. User's organization context includes the invited org
           The bootstrap payload contains organization membership data
     postconditions:
-      - User has access to both Default Organization and invited org (verified via API)
+      - User has access to both Personal Workspace and invited org (verified via API)
       - User can switch between organizations
     priority: high
     type: functional

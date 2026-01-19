@@ -6,7 +6,7 @@ require_relative 'helpers'
 
 module Onetime
   module CLI
-    # Update subscription price or quantity
+    # Update subscription price, quantity, or reactivate cancelled subscriptions
     class BillingSubscriptionsUpdateCommand < Command
       include BillingHelpers
 
@@ -17,13 +17,23 @@ module Onetime
       option :price, type: :string, desc: 'New price ID (price_xxx)'
       option :quantity, type: :integer, desc: 'New quantity'
       option :prorate, type: :boolean, default: true, desc: 'Prorate charges'
+      option :reactivate,
+        type: :boolean,
+        default: false,
+        desc: 'Clear cancel_at_period_end flag to reactivate subscription'
 
-      def call(subscription_id:, price: nil, quantity: nil, prorate: true, **)
+      def call(subscription_id:, price: nil, quantity: nil, prorate: true, reactivate: false, **)
         boot_application!
         return unless stripe_configured?
 
+        # Reactivate mode - just clear the cancellation flag
+        if reactivate
+          reactivate_subscription(subscription_id)
+          return
+        end
+
         if price.nil? && quantity.nil?
-          puts 'Error: Must specify --price or --quantity'
+          puts 'Error: Must specify --price, --quantity, or --reactivate'
           return
         end
 
@@ -60,6 +70,38 @@ module Onetime
         puts "Status: #{updated.status}"
       rescue Stripe::StripeError => ex
         puts "Error updating subscription: #{ex.message}"
+      end
+
+      private
+
+      def reactivate_subscription(subscription_id)
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+
+        puts 'Current subscription:'
+        puts "  Subscription: #{subscription.id}"
+        puts "  Status: #{subscription.status}"
+        puts "  Cancel at period end: #{subscription.cancel_at_period_end}"
+
+        if subscription.cancel_at
+          cancel_date = Time.at(subscription.cancel_at).strftime('%Y-%m-%d')
+          puts "  Scheduled cancellation: #{cancel_date}"
+        end
+
+        unless subscription.cancel_at_period_end
+          puts "\nSubscription is not scheduled for cancellation. Nothing to do."
+          return
+        end
+
+        print "\nReactivate this subscription? (y/n): "
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        updated = Stripe::Subscription.update(subscription_id, { cancel_at_period_end: false })
+
+        puts "\nSubscription reactivated successfully"
+        puts "  Status: #{updated.status}"
+        puts "  Cancel at period end: #{updated.cancel_at_period_end}"
+      rescue Stripe::StripeError => ex
+        puts "Error reactivating subscription: #{ex.message}"
       end
     end
   end

@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "请始终验证您在官方 Onetime Secret 网站上。欺诈者有时会创建看起来与 Onetime Secret 完全相同的虚假网站来窃取您的内容。为避免网络钓鱼攻击，请在创建新链接之前检查区域域名。"
+  },
+  "web.STATUS.previewed": {
+    "text": "链接已打开"
+  },
+  "web.STATUS.revealed": {
+    "text": "已揭示"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "一次性链接已打开并准备揭示"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "秘密内容已揭示给接收者"
   }
 }

@@ -101,22 +101,24 @@ onBeforeUnmount(() => {
       </p>
     </div>
 
-    <!-- Card list with secrets -->
+    <!-- Timeline list with secrets -->
     <div
       v-else
-      class="space-y-3"
-      role="list"
+      class="flow-root"
       :aria-labelledby="ariaLabelledBy">
       <span class="sr-only">{{ t('web.LABELS.caption_recent_secrets') }}</span>
 
-      <SecretLinksTableRow
-        v-for="(record, idx) in sortedSecrets"
-        :key="record.id"
-        :record="record"
-        :index="sortedSecrets.length - idx"
-        @copy="handleCopy"
-        @delete="handleBurn"
-        @update:memo="handleUpdateMemo" />
+      <ul role="list" class="-mb-6">
+        <SecretLinksTableRow
+          v-for="(record, idx) in sortedSecrets"
+          :key="record.id"
+          :record="record"
+          :index="sortedSecrets.length - idx"
+          :is-last="idx === sortedSecrets.length - 1"
+          @copy="handleCopy"
+          @delete="handleBurn"
+          @update:memo="handleUpdateMemo" />
+      </ul>
     </div>
 
     <ToastNotification

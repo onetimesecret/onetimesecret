@@ -1060,5 +1060,17 @@
     "text": "",
     "skip": true,
     "note": "empty"
+  },
+  "web.STATUS.previewed": {
+    "text": "Link åbnet"
+  },
+  "web.STATUS.revealed": {
+    "text": "Afsløret"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Hemmeligt link er blevet åbnet og klar til at blive afsløret"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Hemmelighedens indhold er blevet afsløret for modtageren"
   }
 }

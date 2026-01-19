@@ -73,7 +73,7 @@ module V2::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            secret.received!
+            secret.revealed!
 
           end
 
@@ -94,7 +94,7 @@ module V2::Logic
         @is_owner       = secret.owner?(cust)
         @one_liner      = one_liner
 
-        secret.viewed! if secret.state?(:new)
+        secret.previewed! if secret.state?(:new)
 
         success_data
       end

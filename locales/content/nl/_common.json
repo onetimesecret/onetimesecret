@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Controleer altijd of je op de officiële Onetime Secret website bent. Oplichters maken soms nep-websites die er precies uitzien als Onetime Secret om je berichten te stelen. Om phishing-aanvallen te voorkomen, controleer het regiodomein voordat je nieuwe links aanmaakt"
+  },
+  "web.STATUS.previewed": {
+    "text": "Link geopend"
+  },
+  "web.STATUS.revealed": {
+    "text": "Onthuld"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Geheime link is geopend en klaar om onthuld te worden"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Geheime inhoud is onthuld aan de ontvanger"
   }
 }

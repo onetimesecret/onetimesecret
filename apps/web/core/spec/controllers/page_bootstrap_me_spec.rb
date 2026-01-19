@@ -255,6 +255,19 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       data = JSON.parse(last_response.body)
       expect(data).to have_key('display_domain')
     end
+
+    it 'returns domain_scope key' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+      expect(data).to have_key('domain_scope')
+    end
+
+    it 'returns nil domain_scope for anonymous user' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+      # Anonymous users don't have domain_scope set
+      expect(data['domain_scope']).to be_nil
+    end
   end
 
   describe 'messages serializer' do
@@ -298,7 +311,7 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
     end
 
     let(:domain_keys) do
-      %w[domain_strategy canonical_domain display_domain]
+      %w[domain_strategy canonical_domain display_domain domain_scope]
     end
 
     let(:i18n_keys) do

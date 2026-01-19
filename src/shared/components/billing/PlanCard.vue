@@ -61,7 +61,7 @@
     }
 
     return [
-      'relative flex flex-col rounded-2xl border bg-white transition-all hover:shadow-lg dark:bg-gray-800',
+      'relative flex w-full flex-col rounded-2xl border bg-white transition-all hover:shadow-lg dark:bg-gray-800',
       variantClasses,
       props.isSuggested && !props.isHighlighted ? 'ring-2 ring-yellow-500' : '',
     ];
@@ -136,20 +136,15 @@
       <!-- Price -->
       <div class="mb-6">
         <div class="flex items-baseline gap-2">
-          <!-- Free tier displays "Free" text instead of $0.00 -->
-          <span
-            v-if="plan.tier === 'free'"
-            class="text-4xl font-bold text-gray-900 dark:text-white">
-            {{ t('web.billing.plans.free_plan') }}
+          <!-- All tiers display formatted currency for consistency -->
+          <span class="font-brand text-4xl font-bold text-gray-900 dark:text-white">
+            {{ formatCurrency(pricePerMonth, plan.currency) }}
           </span>
-          <template v-else>
-            <span class="text-4xl font-bold text-gray-900 dark:text-white">
-              {{ formatCurrency(pricePerMonth, plan.currency) }}
-            </span>
-            <span class="text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.billing.plans.per_month') }}
-            </span>
-          </template>
+          <span
+            v-if="plan.tier !== 'free'"
+            class="text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.billing.plans.per_month') }}
+          </span>
         </div>
         <p
           v-if="plan.interval === 'year' && plan.amount > 0"

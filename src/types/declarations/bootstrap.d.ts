@@ -166,6 +166,8 @@ export interface BootstrapPayload {
   domain_branding: BrandSettings;
   /** URL to custom domain logo image, or null if no logo uploaded */
   domain_logo: string | null;
+  /** User's preferred domain scope from session (server-side preference) */
+  domain_scope?: string | null;
 
   messages: Message[];
 

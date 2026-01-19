@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Var försiktig med oväntade meddelanden. Dela aldrig personlig information om du inte är säker på avsändarens identitet."
+  },
+  "web.STATUS.previewed": {
+    "text": "Länk öppnad"
+  },
+  "web.STATUS.revealed": {
+    "text": "Avslöjad"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Hemlig länk har öppnats och är redo att avslöjas"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Hemligt innehåll har avslöjats för mottagaren"
   }
 }

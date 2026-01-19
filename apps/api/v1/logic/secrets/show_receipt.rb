@@ -57,19 +57,20 @@ module V1::Logic
 
         if secret.nil?
 
-          burned_or_received = receipt.state?(:burned) || receipt.state?(:received)
+          burned_or_revealed = receipt.state?(:burned) || receipt.state?(:revealed) || receipt.state?(:received)
 
-          if !burned_or_received && receipt.secret_expired?
+          if !burned_or_revealed && receipt.secret_expired?
             OT.le("[show_receipt] Receipt has expired secret. #{receipt.shortid}")
             receipt.secret_key = nil
             receipt.expired!
-          elsif !burned_or_received
+          elsif !burned_or_revealed
             OT.le("[show_receipt] Receipt is an orphan. #{receipt.shortid}")
             receipt.secret_key = nil
             receipt.orphaned!
           end
 
-          @is_received = receipt.state?(:received)
+          # Check for both new 'revealed' state and legacy 'received' state
+          @is_received = receipt.state?(:revealed) || receipt.state?(:received)
           @is_burned = receipt.state?(:burned)
           @is_expired = receipt.state?(:expired)
           @is_orphaned = receipt.state?(:orphaned)
@@ -100,20 +101,21 @@ module V1::Logic
         #
         # It will be true if:
         #   1. The secret is not nil (i.e., a secret exists), AND
-        #   2. The receipt state is NOT in any of these states: viewed,
-        #      received, or burned
+        #   2. The receipt state is NOT in any of these states: previewed/viewed,
+        #      revealed/received, or burned
         #
-        @show_secret = !secret.nil? && !has_passphrase && !(receipt.state?(:viewed) || receipt.state?(:received) || receipt.state?(:burned) || receipt.state?(:orphaned))
+        # Note: Check both new states (previewed, revealed) and legacy states (viewed, received)
+        @show_secret = !secret.nil? && !has_passphrase && !(receipt.state?(:previewed) || receipt.state?(:viewed) || receipt.state?(:revealed) || receipt.state?(:received) || receipt.state?(:burned) || receipt.state?(:orphaned))
 
         # The secret link is shown only when appropriate, considering the
         # state, ownership, and recipient information.
         #
         # It will be true if ALL of these conditions are met:
-        #   1. The receipt state is NOT received or burned, AND
+        #   1. The receipt state is NOT revealed/received or burned, AND
         #   2. The secret is showable (@show_secret is true), AND
         #   3. There are no recipients specified (@recipients is nil)
         #
-        @show_secret_link = !(receipt.state?(:received) || receipt.state?(:burned) || receipt.state?(:orphaned)) &&
+        @show_secret_link = !(receipt.state?(:revealed) || receipt.state?(:received) || receipt.state?(:burned) || receipt.state?(:orphaned)) &&
                             @show_secret &&
                             @recipients.empty?
 
@@ -122,14 +124,14 @@ module V1::Logic
         #
         @show_metadata_link = receipt.state?(:new)
 
-        # Allow the receipt to be shown if it hasn't been viewed yet OR
-        # if the current user owns it (regardless of its viewed state).
+        # Allow the receipt to be shown if it hasn't been previewed/viewed yet OR
+        # if the current user owns it (regardless of its previewed/viewed state).
         #
         # It will be true if EITHER of these conditions are met:
-        #   1. The receipt state is NOT 'viewed', OR
+        #   1. The receipt state is NOT 'previewed' or 'viewed', OR
         #   2. The current customer is the owner of the receipt
         #
-        @show_metadata = !receipt.state?(:viewed) || receipt.owner?(cust)
+        @show_metadata = !(receipt.state?(:previewed) || receipt.state?(:viewed)) || receipt.owner?(cust)
 
         # Recipient information is only displayed when the metadata is
         # visible and there are actually recipients to show.
@@ -154,12 +156,12 @@ module V1::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        # Dump the receipt attributes before marking as viewed
+        # Dump the receipt attributes before marking as previewed
         @metadata_attributes = self._metadata_attributes
 
-        # We mark the receipt record viewed so that we can support showing the
+        # We mark the receipt record previewed so that we can support showing the
         # secret link on the receipt page, just the one time.
-        receipt.viewed! if receipt.state?(:new)
+        receipt.previewed! if receipt.state?(:new)
       end
 
       def one_liner

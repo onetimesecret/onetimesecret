@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Verifica sempre que estàs al lloc web oficial d'Onetime Secret. Els estafadors de vegades creen llocs web falsos que semblen exactament Onetime Secret per robar els teus secrets. Per evitar atacs de pesca electrònica, comprova el domini de la regió abans de crear nous enllaços."
+  },
+  "web.STATUS.previewed": {
+    "text": "Enllaç obert"
+  },
+  "web.STATUS.revealed": {
+    "text": "Revelat"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "L'enllaç secret s'ha obert i està llest per revelar-se"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "El contingut secret s'ha revelat al destinatari"
   }
 }

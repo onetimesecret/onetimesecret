@@ -930,5 +930,17 @@
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "تحقق دائماً من أنك على موقع Onetime Secret الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو تماماً مثل Onetime Secret لسرقة أسرارك. لتجنب هجمات التصيد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة."
+  },
+  "web.STATUS.previewed": {
+    "text": "تم فتح الرابط"
+  },
+  "web.STATUS.revealed": {
+    "text": "تم الكشف"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "تم فتح رابط السر وهو جاهز للكشف عنه"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "تم الكشف عن محتوى السر للمستلم"
   }
 }

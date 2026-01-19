@@ -48,10 +48,8 @@ module DomainsAPI::Logic
           @target_organization = organization
         end
 
-        # Check custom domains entitlement
-        unless target_organization.can?('custom_domains')
-          raise_form_error 'Upgrade required for custom domains', field: :domain, error_type: :upgrade_required
-        end
+        # Custom domains are now available to all plans (free included)
+        # Entitlement check removed - this feature is universally available
 
         # Only store a valid, parsed input value to @domain
         @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, target_organization.objid)
@@ -82,19 +80,13 @@ module DomainsAPI::Logic
       end
 
       def process
-        # Check custom domains entitlement before creation
-        # Only enforce when billing is enabled and entitlements are configured
-        # (can?() returns true in standalone mode, false when plan has no entitlements)
-        if target_organization.respond_to?(:can?) &&
-           target_organization.entitlements.any? &&
-           !target_organization.can?('custom_domains')
-          raise_form_error('Upgrade required for custom domains', field: :domain, error_type: :upgrade_required)
-        end
-
         @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain} for org #{target_organization.objid}"
 
         @custom_domain = Onetime::CustomDomain.create!(@display_domain, target_organization.objid)
+
+        # After creating the domain, make it the active scope in the session
+        sess['domain_scope'] = @display_domain
 
         begin
           # Request certificate using the configured strategy
@@ -138,6 +130,7 @@ module DomainsAPI::Logic
           user_id: @cust.objid,
           organization: target_organization.safe_dump,
           record: @custom_domain.safe_dump,
+          domain_scope: @display_domain,
           details: {
             cluster: Onetime::Cluster::Features.cluster_safe_dump,
           },

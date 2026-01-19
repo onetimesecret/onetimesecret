@@ -552,6 +552,8 @@ module Billing
         new_plan = ::Billing::Plan.find_by_stripe_price_id(new_price_id)
 
         # Execute the plan change with synchronized metadata
+        # If subscription was scheduled for cancellation, reactivate it by clearing
+        # cancel_at_period_end. A plan change implies the user wants to continue.
         updated_subscription = Stripe::Subscription.update(
           org.stripe_subscription_id,
           {
@@ -560,6 +562,9 @@ module Billing
               price: new_price_id,
             }],
             proration_behavior: 'create_prorations',
+            # Clear cancellation flag if subscription was scheduled for cancellation.
+            # Changing plans indicates intent to continue - reactivate the subscription.
+            cancel_at_period_end: false,
             # Metadata stored for debugging/drift detection (catalog is authoritative)
             metadata: {
               plan_id: new_plan&.plan_id,
