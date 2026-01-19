@@ -12,6 +12,7 @@ module Onetime
     # This initializer performs side-effect operations (logging) and doesn't set
     # runtime state that needs to be tracked.
     #
+    # rubocop:disable Metrics/ClassLength
     class PrintLogBanner < Onetime::Boot::Initializer
       @depends_on = [:logging, :familia_config]
 
@@ -87,6 +88,11 @@ module Onetime
       billing_config_rows = build_billing_config_section
       unless billing_config_rows.empty?
         output << render_section('Billing Config', 'Value', billing_config_rows)
+      end
+
+      domains_config_rows = build_domains_config_section
+      unless domains_config_rows.empty?
+        output << render_section('Domains Config', 'Value', domains_config_rows)
       end
 
       customization_rows = build_customization_section(site_config)
@@ -272,6 +278,39 @@ module Onetime
         end
 
         billing_config_rows
+      end
+
+      # Builds Onetime::DomainValidation::Features section rows
+      def build_domains_config_section
+        domains_config_rows = []
+
+        begin
+          # Check if DomainValidation::Features is loaded and configured
+          return domains_config_rows unless defined?(Onetime::DomainValidation::Features)
+
+          features = Onetime::DomainValidation::Features
+
+          # Strategy name
+          strategy = features.strategy_name
+          return domains_config_rows if strategy.nil? || strategy.empty?
+
+          domains_config_rows << ['Strategy', strategy]
+
+          # API configured (for approximated)
+          if strategy == 'approximated'
+            domains_config_rows << ['API Configured', features.api_configured?]
+          end
+
+          # Cluster settings (only show if present)
+          domains_config_rows << ['Cluster Host', features.cluster_host] if features.cluster_host
+          domains_config_rows << ['Cluster IP', features.cluster_ip] if features.cluster_ip
+          domains_config_rows << ['Cluster Name', features.cluster_name] if features.cluster_name
+          domains_config_rows << ['Vhost Target', features.vhost_target] if features.vhost_target
+        rescue StandardError => ex
+          domains_config_rows << ['Error', "Error rendering domains config: #{ex.message}"]
+        end
+
+        domains_config_rows
       end
 
       # Masks sensitive values for display
@@ -516,5 +555,6 @@ module Onetime
         lines.empty? ? [''] : lines
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end
