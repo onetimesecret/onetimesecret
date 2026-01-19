@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/cluster'
+require 'onetime/domain_validation/strategy'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -14,6 +14,9 @@ module DomainsAPI::Logic
     # provider-specific instructions.
     #
     # Tokens expire after 10 minutes but the widget auto-renews them.
+    #
+    # This endpoint only returns tokens when using the Approximated strategy.
+    # Other strategies (passthrough, caddy_on_demand) return unavailable.
     #
     class GetDnsWidgetToken < DomainsAPI::Logic::Base
       def process_params
@@ -27,32 +30,25 @@ module DomainsAPI::Logic
         # Require organization context for domain management
         require_organization!
 
-        # Verify Approximated API is configured
-        api_key = Onetime::Cluster::Features.api_key
-        if api_key.to_s.empty?
+        # Check if strategy supports DNS widget
+        @strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+        unless @strategy.supports_dns_widget?
           raise_form_error 'DNS widget not available'
         end
       end
 
       def process
-        api_key = Onetime::Cluster::Features.api_key
+        result = @strategy.get_dns_widget_token
 
-        begin
-          response = Onetime::Cluster::Approximated.get_dns_widget_token(api_key)
-
-          if response.code == 200
-            {
-              success: true,
-              token: response.parsed_response['token'],
-              api_url: 'https://cloud.approximated.app/api/dns',
-              expires_in: 600, # 10 minutes
-            }
-          else
-            raise_form_error 'Failed to generate DNS widget token'
-          end
-        rescue HTTParty::ResponseError => ex
-          OT.le "[GetDnsWidgetToken] API error: #{ex.message}"
-          raise_form_error 'DNS widget temporarily unavailable'
+        if result[:available]
+          {
+            success: true,
+            token: result[:token],
+            api_url: result[:api_url],
+            expires_in: result[:expires_in],
+          }
+        else
+          raise_form_error result[:message] || 'Failed to generate DNS widget token'
         end
       end
     end

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/cluster'
+require 'onetime/domain_validation/features'
 require 'onetime/domain_validation/strategy'
 require_relative 'get_domain'
 
