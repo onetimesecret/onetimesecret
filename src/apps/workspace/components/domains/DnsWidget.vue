@@ -128,15 +128,30 @@
     --border-color: #374151;
   }
 
-  /* Ensure widget inputs match dark mode */
-  .dark .apxdnswidget input {
-    background-color: #1f2937;
-    border-color: #374151;
-    color: #e5e7eb;
+  /* Ensure all widget inputs match dark mode */
+  .dark .apxdnswidget input,
+  .dark .apxdnswidget textarea {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f3f4f6;
   }
 
-  .dark .apxdnswidget input:focus {
+  .dark .apxdnswidget input:focus,
+  .dark .apxdnswidget textarea:focus {
     border-color: #3b82f6;
+  }
+
+  /* Read-only copy fields (the instruction values) */
+  .dark .apxdnswidget .apxdns-input-copy-container input {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f3f4f6;
+  }
+
+  /* Copy button styling */
+  .dark .apxdnswidget .apxdns-copy-button {
+    background-color: #3b82f6;
+    color: #ffffff;
   }
 
   .dark .apxdnswidget .apxdns-button {
@@ -147,6 +162,14 @@
   .dark .apxdnswidget .apxdns-button:hover {
     background-color: #2563eb;
     border-color: #2563eb;
+  }
+
+  /* Record display values */
+  .dark .apxdnswidget .apxdns-domainconnect-record-display-host-value,
+  .dark .apxdnswidget .apxdns-domainconnect-record-display-value-value,
+  .dark .apxdnswidget .apxdns-domainconnect-record-display-ttl-value {
+    background-color: #1f2937;
+    color: #f3f4f6;
   }
 
   /* Widget container styling */
