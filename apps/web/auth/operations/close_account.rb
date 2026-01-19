@@ -42,6 +42,9 @@
 # since they have a foreign key constraint. For compliance requirements,
 # consider exporting audit logs before account deletion.
 #
+# Additionally, this operation deletes all Redis sessions associated with
+# the customer's external ID to ensure complete session cleanup.
+#
 # Usage:
 #   result = Auth::Operations::CloseAccount.new(extid: customer.extid).call
 #   if result[:success]
@@ -99,9 +102,14 @@ module Auth
         account_id = account[:id]
         email      = account[:email]
 
+        # Delete all Redis sessions for this user first
+        deleted_sessions = delete_redis_sessions(@extid)
+
+        # Delete from auth database
         delete_account_data(account_id)
 
         OT.info '[close-account] Successfully deleted auth account',
+          sessions_deleted: deleted_sessions,
           account_id: account_id,
           extid: @extid,
           email: OT::Utils.obscure_email(email)
@@ -163,6 +171,49 @@ module Auth
           :account_previous_password_hashes,
           :account_authentication_audit_logs,
         ].include?(table)
+      end
+
+      # Deletes all Redis sessions associated with the given external_id.
+      # Sessions are stored in Redis with keys like "session:<session_id>"
+      # and contain external_id in their JSON data.
+      #
+      # @param extid [String] The customer's external ID
+      # @return [Integer] Number of sessions deleted
+      def delete_redis_sessions(extid)
+        return 0 if extid.to_s.empty?
+
+        dbclient      = Familia.dbclient
+        deleted_count = 0
+
+        # Scan for all session keys
+        dbclient.scan_each(match: 'session:*') do |key|
+            raw_value = dbclient.get(key)
+            next unless raw_value
+
+            # Session data format: "base64(json)--hmac"
+            # We need to decode the base64 part to check external_id
+            data_part = raw_value.split('--').first
+            next unless data_part
+
+            json_data    = Base64.decode64(data_part)
+            session_data = JSON.parse(json_data)
+
+            # Check if this session belongs to the user being deleted
+            session_extid = session_data['external_id'] || session_data['account_external_id']
+            if session_extid == extid
+              dbclient.del(key)
+              deleted_count += 1
+              OT.ld "[close-account] Deleted Redis session: #{key[0..30]}..."
+            end
+        rescue JSON::ParserError, ArgumentError => ex
+            # Skip malformed sessions
+            OT.ld "[close-account] Skipping malformed session #{key}: #{ex.message}"
+        end
+
+        deleted_count
+      rescue StandardError => ex
+        OT.le "[close-account] Error deleting Redis sessions: #{ex.message}"
+        0
       end
 
       # Builds an error result hash
