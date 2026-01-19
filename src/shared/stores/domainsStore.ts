@@ -35,6 +35,7 @@ export interface RefreshRecordsOptions {
 export type DomainsStore = {
   // State
   _initialized: boolean;
+  _currentOrgId: string | null;
   records: CustomDomain[];
   details: CustomDomainDetails | null;
   count: number | null;
@@ -71,6 +72,7 @@ export const useDomainsStore = defineStore('domains', () => {
 
   // State
   const _initialized = ref(false);
+  const _currentOrgId = ref<string | null>(null);
   const records: Ref<CustomDomain[] | null> = ref(null);
   const details: Ref<CustomDomainDetails | null> = ref(null);
   const count = ref<number | null>(null);
@@ -173,12 +175,25 @@ export const useDomainsStore = defineStore('domains', () => {
 
   /**
    * Refresh domain records
+   *
+   * SECURITY: This function tracks which organization the cached data belongs to.
+   * When the orgId changes (user navigates to a different org), we MUST re-fetch
+   * to prevent cross-organization data leakage.
    */
   async function refreshRecords(options: RefreshRecordsOptions = {}) {
     const { orgId, force = false } = options;
-    if (!force && _initialized.value) return;
+
+    // SECURITY FIX: Detect org context change to prevent cross-org data leakage.
+    // Previously, this only checked _initialized which caused domains from org A
+    // to be displayed when viewing org B's page.
+    // NOTE: Normalize undefined to null for consistent comparison since we store null
+    const normalizedOrgId = orgId ?? null;
+    const orgChanged = normalizedOrgId !== _currentOrgId.value;
+
+    if (!force && _initialized.value && !orgChanged) return;
 
     await fetchList(orgId);
+    _currentOrgId.value = normalizedOrgId;
     _initialized.value = true;
   }
 
@@ -231,10 +246,13 @@ export const useDomainsStore = defineStore('domains', () => {
 
   /**
    * Reset store state to initial values
+   *
+   * SECURITY: Also clears the org context to ensure fresh fetch on next access.
    */
   function $reset() {
     records.value = [];
     _initialized.value = false;
+    _currentOrgId.value = null;
   }
 
   return {
@@ -244,6 +262,7 @@ export const useDomainsStore = defineStore('domains', () => {
     records,
     details,
     count,
+    _currentOrgId,
 
     // Getters
     recordCount,
