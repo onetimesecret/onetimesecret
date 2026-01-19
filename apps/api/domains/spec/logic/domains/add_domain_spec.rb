@@ -82,7 +82,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       load_by_display_domain: nil,
       create!: custom_domain,
     )
-    allow(Onetime::Cluster::Features).to receive(:cluster_safe_dump).and_return({})
+    allow(Onetime::DomainValidation::Features).to receive(:safe_dump).and_return({})
   end
 
   describe '#request_certificate' do

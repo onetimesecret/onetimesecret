@@ -4,7 +4,7 @@
 
 require 'public_suffix'
 
-require 'onetime/cluster'
+require 'onetime/domain_validation/strategy'
 
 require_relative 'base'
 

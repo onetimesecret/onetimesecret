@@ -8,7 +8,7 @@ module Onetime
     #
     # Design Decision: Class with class-level state (mutable accessors).
     #
-    # This mirrors the existing Cluster::Features pattern for compatibility
+    # Centralized configuration accessor for domain validation features.
     # but centralizes all domain-related config in one place. The class-level
     # state is set once at boot by the ConfigureDomains initializer.
     #

@@ -10,7 +10,7 @@ module Onetime
     #
     # Design Decision: Module with class methods using HTTParty.
     #
-    # This is extracted from Onetime::Cluster::Approximated. The module pattern
+    # The module pattern
     # with HTTParty is idiomatic Ruby for HTTP clients. Each method is stateless
     # and receives the api_key explicitly, making it easy to test and reason about.
     #

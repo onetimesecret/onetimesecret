@@ -159,14 +159,14 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   end
 
   before do
-    allow(Onetime::Cluster::Features).to receive(:api_key).and_return('test_api_key')
-    allow(Onetime::Cluster::Features).to receive(:vhost_target).and_return('app.example.com')
+    allow(Onetime::DomainValidation::Features).to receive(:api_key).and_return('test_api_key')
+    allow(Onetime::DomainValidation::Features).to receive(:vhost_target).and_return('app.example.com')
   end
 
   describe '#validate_ownership' do
     context 'when API key is not configured' do
       before do
-        allow(Onetime::Cluster::Features).to receive(:api_key).and_return(nil)
+        allow(Onetime::DomainValidation::Features).to receive(:api_key).and_return(nil)
       end
 
       it 'returns not validated with error message' do
@@ -188,7 +188,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:check_records_match_exactly)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
           .and_return(api_response)
       end
 
@@ -220,7 +220,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:check_records_match_exactly)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
           .and_return(api_response)
       end
 
@@ -243,7 +243,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:check_records_match_exactly)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
           .and_return(api_response)
       end
 
@@ -260,7 +260,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
 
     context 'when exception occurs' do
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:check_records_match_exactly)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
           .and_raise(StandardError, 'Network error')
       end
 
@@ -280,7 +280,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   describe '#request_certificate' do
     context 'when API key is not configured' do
       before do
-        allow(Onetime::Cluster::Features).to receive(:api_key).and_return(nil)
+        allow(Onetime::DomainValidation::Features).to receive(:api_key).and_return(nil)
       end
 
       it 'returns error status' do
@@ -302,7 +302,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:create_vhost)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:create_vhost)
           .and_return(api_response)
       end
 
@@ -326,7 +326,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:create_vhost)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:create_vhost)
           .and_return(api_response)
       end
 
@@ -340,7 +340,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   describe '#check_status' do
     context 'when API key is not configured' do
       before do
-        allow(Onetime::Cluster::Features).to receive(:api_key).and_return(nil)
+        allow(Onetime::DomainValidation::Features).to receive(:api_key).and_return(nil)
       end
 
       it 'returns not ready' do
@@ -364,7 +364,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:get_vhost_by_incoming_address)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:get_vhost_by_incoming_address)
           .and_return(api_response)
       end
 
@@ -398,7 +398,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       before do
-        allow(Onetime::Cluster::Approximated).to receive(:get_vhost_by_incoming_address)
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:get_vhost_by_incoming_address)
           .and_return(api_response)
       end
 

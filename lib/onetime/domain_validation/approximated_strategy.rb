@@ -17,7 +17,7 @@ module Onetime
     # - Easy swapping of HTTP implementations
     # - Clear separation between strategy logic and HTTP transport
     #
-    # Configuration is read from DomainValidation::Features (not Cluster::Features).
+    # Configuration is read from DomainValidation::Features.
     #
     # The #check_status method returns a vhost Hash stored on CustomDomain:
     #
