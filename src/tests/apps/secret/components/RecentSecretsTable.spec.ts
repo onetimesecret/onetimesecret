@@ -322,14 +322,15 @@ describe('RecentSecretsTable', () => {
   });
 
   describe('empty state', () => {
-    it('hides header controls when no records exist', async () => {
+    it('still shows section heading when no records exist', async () => {
       mockRecords.value = [];
 
       const wrapper = await mountComponent();
       await flushPromises();
 
+      // The heading is always visible regardless of record count
       const heading = wrapper.find('h2');
-      expect(heading.exists()).toBe(false);
+      expect(heading.exists()).toBe(true);
     });
 
     it('still renders the table container when empty', async () => {
