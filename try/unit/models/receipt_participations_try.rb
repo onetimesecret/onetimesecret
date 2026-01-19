@@ -123,9 +123,6 @@ OT.info 'Cleaned Redis for fresh test run'
 #=> true
 
 ## Receipt has reverse relationship to custom domain
-# NOTE: custom_domain_instances method exists but returns empty due to prefix mismatch
-# (CustomDomain uses prefix 'customdomain' but Familia normalizes class name to 'custom_domain')
-# This is a known limitation - use domain_id field for lookups instead
 @receipt.respond_to?(:custom_domain_instances)
 #=> true
 
@@ -138,9 +135,17 @@ OT.info 'Cleaned Redis for fresh test run'
 @receipt_orgs.first.objid
 #=> @org.objid
 
-## Receipt domain_id matches the domain objid
-# The custom_domain_instances method doesn't work due to prefix/class name mismatch
-# but we can verify the domain_id field stores the correct reference
+## Receipt can find its custom domain via reverse lookup
+# Fixed in Familia 2.0.0.pre26 - prefix/class name mismatch resolved
+@receipt_domains = @receipt.custom_domain_instances
+@receipt_domains.size
+#=> 1
+
+## Receipt custom domain is correct
+@receipt_domains.first.objid
+#=> @domain.objid
+
+## Receipt domain_id field also stores the reference
 @receipt.domain_id
 #=> @domain.objid
 

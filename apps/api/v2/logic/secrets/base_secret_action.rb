@@ -310,7 +310,6 @@ module V2::Logic
 
       # Index receipt to the custom domain used for sharing
       # Enables domain-scoped receipt queries via custom_domain.receipts
-      # NOTE: Familia generates method names with underscores for CamelCase class names
       def index_receipt_to_domain
         return unless share_domain
 

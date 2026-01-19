@@ -67,11 +67,8 @@ module Onetime
       end
 
       # Remove from custom domain participations before Familia cleanup
-      # NOTE: custom_domain_instances doesn't work due to prefix/class name mismatch
-      # Use share_domain field to look up the CustomDomain for cleanup
-      if share_domain && !share_domain.to_s.empty?
-        domain = Onetime::CustomDomain.from_display_domain(share_domain)
-        remove_from_custom_domain_receipts(domain) if domain
+      custom_domain_instances.each do |domain|
+        remove_from_custom_domain_receipts(domain)
       end
 
       # Call Familia's built-in destroy first. If it fails, we won't proceed
