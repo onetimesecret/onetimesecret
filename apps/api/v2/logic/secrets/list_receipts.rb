@@ -35,9 +35,15 @@ module V2::Logic
         require_entitlement!('api_access')
 
         # Validate domain access if domain scope requested
-        if (scope == :domain) && !domain_extid
-          raise_form_error('Domain extid required for domain scope')
-        end
+        return unless (scope == :domain) && !domain_extid
+
+        raise_form_error(
+          I18n.t(
+            'web.secrets.errors.domain_extid_required',
+            locale: locale,
+            default: 'Domain extid required for domain scope',
+          ),
+        )
       end
 
       def process
@@ -108,7 +114,15 @@ module V2::Logic
 
       # Organization scope: all receipts created by org members
       def query_organization_receipts
-        raise_form_error('No organization context') unless org
+        unless org
+          raise_form_error(
+            I18n.t(
+              'web.secrets.errors.no_organization_context',
+              locale: locale,
+              default: 'No organization context',
+            ),
+          )
+        end
 
         @scope_label = org.display_name
         org.receipts.rangebyscore(since, @now)
@@ -118,11 +132,27 @@ module V2::Logic
       # Access allowed for domain owner or any member of the domain's organization
       def query_domain_receipts
         domain = Onetime::CustomDomain.find_by_extid(domain_extid)
-        raise_form_error('Invalid domain') unless domain
+        unless domain
+          raise_form_error(
+            I18n.t(
+              'web.secrets.errors.invalid_domain',
+              locale: locale,
+              default: 'Invalid domain',
+            ),
+          )
+        end
 
         domain_org = domain.organization
         has_access = domain.owner?(cust) || domain_org&.member?(cust)
-        raise_form_error('Access denied to domain') unless has_access
+        unless has_access
+          raise_form_error(
+            I18n.t(
+              'web.secrets.errors.access_denied_to_domain',
+              locale: locale,
+              default: 'Access denied to domain',
+            ),
+          )
+        end
 
         @scope_label = domain.display_domain
         domain.receipts.rangebyscore(since, @now)
