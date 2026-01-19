@@ -20,6 +20,16 @@ import { computed, inject, ref, Ref } from 'vue';
  */
 
 /**
+ * Options for refreshing domain records
+ */
+export interface RefreshRecordsOptions {
+  /** Organization ID to fetch domains for. If not provided, uses session context. */
+  orgId?: string;
+  /** Force refresh even if already initialized (default: false) */
+  force?: boolean;
+}
+
+/**
  * Custom type for the DomainsStore, including plugin-injected properties.
  */
 export type DomainsStore = {
@@ -44,7 +54,7 @@ export type DomainsStore = {
   fetchLogo: (extid: string) => Promise<ImageProps>;
   removeLogo: (extid: string) => Promise<void>;
 
-  refreshRecords: () => Promise<CustomDomain[]>;
+  refreshRecords: (options?: RefreshRecordsOptions) => Promise<void>;
   getBrandSettings: (extid: string) => Promise<BrandSettings>;
   updateDomainBrand: (
     extid: string,
@@ -161,10 +171,14 @@ export const useDomainsStore = defineStore('domains', () => {
     await $api.delete(`/api/domains/${extid}/logo`);
   }
 
-  async function refreshRecords(force = false) {
+  /**
+   * Refresh domain records
+   */
+  async function refreshRecords(options: RefreshRecordsOptions = {}) {
+    const { orgId, force = false } = options;
     if (!force && _initialized.value) return;
 
-    await fetchList();
+    await fetchList(orgId);
     _initialized.value = true;
   }
 

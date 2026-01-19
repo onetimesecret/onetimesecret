@@ -28,10 +28,14 @@ export function useDomainsManager() {
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
 
-  // Get orgid from route params for org-qualified navigation
-  const orgid = computed(() => route.params.orgid as string | undefined);
+  // Get org identifier from route params for org-qualified operations
+  // Routes use either :orgid (domain routes) or :extid (org settings routes)
+  const orgIdentifier = computed(() =>
+    (route.params.orgid || route.params.extid) as string | undefined
+  );
 
-  const { refreshRecords } = store;
+  // Legacy alias for backward compatibility with navigation code
+  const orgid = orgIdentifier;
   const { t } = useI18n();
 
   const recordCount = computed(() => store.recordCount());
@@ -171,6 +175,13 @@ export function useDomainsManager() {
     await store.deleteDomain(domainId);
     notifications.show(t('web.domains.domain_removed_successfully'), 'success');
   };
+
+  /**
+   * Refresh domain records for the current organization context.
+   * Uses org identifier from route params (:orgid or :extid) to ensure
+   * correct org-scoped fetch, especially after org creation/switch.
+   */
+  const refreshRecords = async (force = false) => store.refreshRecords({ orgId: orgIdentifier.value, force });
 
   return {
     // State

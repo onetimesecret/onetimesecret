@@ -41,7 +41,7 @@
     if (authenticated.value) {
       receiptListStore.refreshRecords(true);
       if (domainsEnabled) {
-        domainsStore.refreshRecords(true);
+        domainsStore.refreshRecords({ force: true });
       }
     }
   });
