@@ -19,6 +19,7 @@
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
+  import { loggingService } from '@/services/logging.service';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
   import { storeToRefs } from 'pinia';
@@ -102,6 +103,14 @@
   const { form, validation, operations, isSubmitting, submit } =
     useSecretConcealer({
       onSuccess: async (response) => {
+        const timestamp = Date.now();
+        loggingService.debug('[DEBUG:WorkspaceSecretForm] onSuccess started', {
+          timestamp,
+          receiptId: response?.record?.receipt?.identifier,
+          receiptShortid: response?.record?.receipt?.shortid,
+          workspaceMode: concealedReceiptStore.workspaceMode,
+        });
+
         if (!response) throw 'Response is missing';
         const newMessage: ConcealedMessage = {
           id: nanoid(),
@@ -127,12 +136,20 @@
         operations.updateField('ttl', preservedTtl as number);
 
         // Emit event for parent components
+        loggingService.debug('[DEBUG:WorkspaceSecretForm] Emitting created event', {
+          timestamp,
+          receiptShortid: newMessage.receiptShortid,
+        });
         emit('created', newMessage);
 
         // Navigate to receipt page if workspace mode is off OR if generating password
         // (generated passwords must be viewed on receipt page since they're only shown once)
         if (!concealedReceiptStore.workspaceMode || selectedAction.value === 'generate-password') {
           router.push(`/receipt/${newMessage.receiptExtid}`);
+        } else {
+          loggingService.debug('[DEBUG:WorkspaceSecretForm] Staying on page (workspace mode)', {
+            timestamp,
+          });
         }
       },
     });

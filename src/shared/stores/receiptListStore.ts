@@ -34,6 +34,7 @@ export type ReceiptListStore = {
  * Handles fetching, caching, and state management of receipt listings.
  */
 
+// eslint-disable-next-line max-lines-per-function -- temporary debug logging
 export const useReceiptListStore = defineStore('receiptList', () => {
   const $api = inject('api') as AxiosInstance;
 
@@ -58,13 +59,35 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     return { initialized };
   }
 
+  // eslint-disable-next-line complexity -- temporary debug logging
   async function fetchList() {
+    const timestamp = Date.now();
+    loggingService.debug('[DEBUG:receiptListStore] fetchList called', {
+      timestamp,
+      currentCount: count.value,
+      currentRecordsLength: records.value?.length ?? 0,
+    });
+
     const response = await $api.get('/api/v3/receipt/recent');
+
+    loggingService.debug('[DEBUG:receiptListStore] API response received', {
+      timestamp,
+      responseCount: response.data?.count,
+      responseRecordsLength: response.data?.records?.length ?? 0,
+      firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptRecords) => r.shortid),
+    });
+
     const validated = responseSchemas.receiptList.parse(response.data);
 
     records.value = validated.records ?? [];
     details.value = (validated.details ?? {}) as any;
     count.value = validated.count ?? 0;
+
+    loggingService.debug('[DEBUG:receiptListStore] Store updated', {
+      timestamp,
+      newCount: count.value,
+      newRecordsLength: records.value?.length ?? 0,
+    });
 
     return validated;
   }
