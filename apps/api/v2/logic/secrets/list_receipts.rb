@@ -9,24 +9,64 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ListReceipts < V2::Logic::Base
-      attr_reader :records, :since, :now, :query_results, :received, :notreceived, :has_items
+      attr_reader :records,
+        :since,
+        :now,
+        :query_results,
+        :received,
+        :notreceived,
+        :has_items,
+        :scope,
+        :domain_extid,
+        :scope_label
 
       def process_params
         # Calculate the timestamp for 30 days ago
         @now   = Familia.now
         @since = (Familia.now - 30.days).to_i
+
+        # Scope parameter: nil (default customer), 'org', or 'domain'
+        @scope        = params['scope']&.to_sym
+        @domain_extid = params['domain_extid']
       end
 
       def raise_concerns
         # API access entitlement required for metadata listing
         require_entitlement!('api_access')
+
+        # Validate domain access if domain scope requested
+        if (scope == :domain) && !domain_extid
+          raise_form_error('Domain extid required for domain scope')
+        end
       end
 
       def process
-        # Fetch entries from the sorted set within the past 30 days
-        # NOTE: Use @now (float) not @now.to_i - receipts are added with float scores
-        # and truncating to int excludes receipts added in the same second
-        @query_results = cust.receipts.rangebyscore(since, @now)
+        # Debug logging for receipt list investigation
+        OT.info '[DEBUG:ListReceipts] Starting query',
+          {
+            cust_id: cust&.custid,
+            cust_objid: cust&.objid,
+            scope: scope,
+            domain_extid: domain_extid,
+            since: since,
+            now: @now,
+          }
+
+        # Query based on scope
+        @query_results = case scope
+                         when :org
+                           query_organization_receipts
+                         when :domain
+                           query_domain_receipts
+                         else
+                           query_customer_receipts
+                         end
+
+        OT.info '[DEBUG:ListReceipts] Query results',
+          {
+            query_count: query_results.size,
+            first_3_results: query_results.first(3),
+          }
 
         # Get the safe fields for each record using optimized bulk loading
         receipt_objects = Onetime::Receipt.load_multi(query_results).compact
@@ -46,7 +86,9 @@ module V2::Logic
           'count' => records.count,
           'records' => records,
           'details' => {
-            'type' => 'list', # Add the type discriminator
+            'type' => 'list',
+            'scope' => scope&.to_s,
+            'scope_label' => scope_label,
             'since' => since,
             'now' => now,
             'has_items' => has_items,
@@ -54,6 +96,32 @@ module V2::Logic
             'notreceived' => notreceived,
           },
         }
+      end
+
+      private
+
+      # Default scope: receipts owned by the current customer
+      def query_customer_receipts
+        @scope_label = nil # No label needed for default
+        cust.receipts.rangebyscore(since, @now)
+      end
+
+      # Organization scope: all receipts created by org members
+      def query_organization_receipts
+        raise_form_error('No organization context') unless org
+
+        @scope_label = org.display_name
+        org.receipts.rangebyscore(since, @now)
+      end
+
+      # Domain scope: receipts created with a specific custom domain
+      def query_domain_receipts
+        domain = Onetime::CustomDomain.find_by_extid(domain_extid)
+        raise_form_error('Invalid domain') unless domain
+        raise_form_error('Access denied to domain') unless domain.owner?(cust)
+
+        @scope_label = domain.display_domain
+        domain.receipts.rangebyscore(since, @now)
       end
     end
   end
