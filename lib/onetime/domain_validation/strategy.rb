@@ -18,6 +18,8 @@
 #   cert_status = strategy.request_certificate(custom_domain)
 #
 
+require_relative 'features'
+require_relative 'approximated_client'
 require_relative 'base_strategy'
 require_relative 'approximated_strategy'
 require_relative 'passthrough_strategy'

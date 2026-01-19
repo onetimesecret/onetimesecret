@@ -2,12 +2,22 @@
 #
 # frozen_string_literal: true
 
+require_relative 'features'
+require_relative 'approximated_client'
+
 module Onetime
   module DomainValidation
-    # Approximated Strategy - Uses approximated.app API for validation and certs
+    # ApproximatedStrategy - Uses approximated.app API for validation and certs.
     #
-    # This is the original implementation that delegates to an external service
-    # for SSL certificate provisioning and DNS validation.
+    # Design Decision: Dependency injection for the API client.
+    #
+    # The client is injected at construction, defaulting to ApproximatedClient.
+    # This enables:
+    # - Unit testing with mock clients
+    # - Easy swapping of HTTP implementations
+    # - Clear separation between strategy logic and HTTP transport
+    #
+    # Configuration is read from DomainValidation::Features (not Cluster::Features).
     #
     # The #check_status method returns a vhost Hash stored on CustomDomain:
     #
@@ -21,13 +31,23 @@ module Onetime
     #   }
     #
     class ApproximatedStrategy < BaseStrategy
-      def initialize(config)
+      attr_reader :client, :config
+
+      # @param config [Hash] Application configuration (typically OT.conf)
+      # @param client [Module] HTTP client module (default: ApproximatedClient)
+      #
+      def initialize(config, client: ApproximatedClient)
         @config = config
-        require 'onetime/cluster'
+        @client = client
       end
 
+      # Validates domain ownership via TXT record.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
       def validate_ownership(custom_domain)
-        api_key = Onetime::Cluster::Features.api_key
+        api_key = Features.api_key
 
         if api_key.to_s.empty?
           return { validated: false, message: 'Approximated API key not configured' }
@@ -39,7 +59,7 @@ module Onetime
           match_against: custom_domain.txt_validation_value,
         }]
 
-        res = Onetime::Cluster::Approximated.check_records_match_exactly(api_key, records)
+        res = client.check_records_match_exactly(api_key, records)
 
         if res.code == 200
           payload       = res.parsed_response
@@ -63,15 +83,20 @@ module Onetime
         { validated: false, message: "Error: #{ex.message}" }
       end
 
+      # Requests SSL certificate by creating a vhost.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#request_certificate
+      #
       def request_certificate(custom_domain)
-        api_key      = Onetime::Cluster::Features.api_key
-        vhost_target = Onetime::Cluster::Features.vhost_target
+        api_key      = Features.api_key
+        vhost_target = Features.vhost_target
 
         if api_key.to_s.empty?
           return { status: 'error', message: 'Approximated API key not configured' }
         end
 
-        res = Onetime::Cluster::Approximated.create_vhost(
+        res = client.create_vhost(
           api_key,
           custom_domain.display_domain,
           vhost_target,
@@ -97,14 +122,19 @@ module Onetime
         { status: 'error', message: "Error: #{ex.message}" }
       end
 
+      # Checks current domain status from Approximated.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#check_status
+      #
       def check_status(custom_domain)
-        api_key = Onetime::Cluster::Features.api_key
+        api_key = Features.api_key
 
         if api_key.to_s.empty?
           return { ready: false, message: 'Approximated API key not configured' }
         end
 
-        res = Onetime::Cluster::Approximated.get_vhost_by_incoming_address(
+        res = client.get_vhost_by_incoming_address(
           api_key,
           custom_domain.display_domain,
         )
@@ -131,6 +161,75 @@ module Onetime
       rescue HTTParty::ResponseError => ex
         OT.le "[ApproximatedStrategy] Error checking status for #{custom_domain.display_domain}: #{ex.message}"
         { ready: false, message: "Error: #{ex.message}" }
+      end
+
+      # Deletes the vhost from Approximated.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#delete_vhost
+      #
+      def delete_vhost(custom_domain)
+        api_key = Features.api_key
+
+        if api_key.to_s.empty?
+          OT.info '[ApproximatedStrategy.delete_vhost] API key not configured'
+          return { deleted: false, message: 'Approximated API key not configured' }
+        end
+
+        res     = client.delete_vhost(api_key, custom_domain.display_domain)
+        payload = res.parsed_response
+
+        OT.info "[ApproximatedStrategy.delete_vhost] Deleted #{custom_domain.display_domain}"
+
+        {
+          deleted: true,
+          message: "Deleted vhost: #{custom_domain.display_domain}",
+          data: payload,
+        }
+      rescue HTTParty::ResponseError => ex
+        OT.le "[ApproximatedStrategy.delete_vhost] Error: #{custom_domain.display_domain} - #{ex.message}"
+        { deleted: false, message: "Error: #{ex.message}" }
+      end
+
+      # Retrieves DNS widget token from Approximated.
+      #
+      # @return [Hash] See BaseStrategy#get_dns_widget_token
+      #
+      def get_dns_widget_token
+        api_key = Features.api_key
+
+        if api_key.to_s.empty?
+          return { available: false, message: 'Approximated API key not configured' }
+        end
+
+        res = client.get_dns_widget_token(api_key)
+
+        if res.code == 200
+          {
+            available: true,
+            token: res.parsed_response['token'],
+            api_url: 'https://cloud.approximated.app/api/dns',
+            expires_in: 600, # 10 minutes
+          }
+        else
+          {
+            available: false,
+            message: "Failed to get token: #{res.code}",
+          }
+        end
+      rescue HTTParty::ResponseError => ex
+        OT.le "[ApproximatedStrategy.get_dns_widget_token] Error: #{ex.message}"
+        { available: false, message: "Error: #{ex.message}" }
+      end
+
+      # @return [Boolean] true - Approximated supports the DNS widget
+      def supports_dns_widget?
+        true
+      end
+
+      # @return [Boolean] true - Approximated actively manages certificates
+      def manages_certificates?
+        true
       end
     end
   end
