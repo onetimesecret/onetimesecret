@@ -1,66 +1,66 @@
 <!-- src/apps/secret/components/RecentSecretsTable.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
-import { useRecentSecrets } from '@/shared/composables/useRecentSecrets';
-import { ref, onMounted, onUnmounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
+  import { useRecentSecrets } from '@/shared/composables/useRecentSecrets';
+  import { ref, onMounted, onUnmounted } from 'vue';
 
-export interface Props {
-  /** Whether to show the workspace mode toggle checkbox. Default true. */
-  showWorkspaceModeToggle?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  showWorkspaceModeToggle: true,
-});
-
-const { t } = useI18n();
-const {
-  records,
-  hasRecords,
-  workspaceMode,
-  toggleWorkspaceMode,
-  fetch,
-  clear,
-  updateMemo,
-  isAuthenticated,
-} = useRecentSecrets();
-
-const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
-
-// Refresh data when tab becomes visible (user returns from another tab)
-// Only for authenticated users since guest data is local storage
-const handleVisibilityChange = () => {
-  if (document.visibilityState === 'visible' && isAuthenticated.value) {
-    fetch();
+  export interface Props {
+    /** Whether to show the workspace mode toggle checkbox. Default true. */
+    showWorkspaceModeToggle?: boolean;
   }
-};
 
-// Fetch records on mount and set up visibility listener
-onMounted(() => {
-  fetch();
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-});
+  const props = withDefaults(defineProps<Props>(), {
+    showWorkspaceModeToggle: true,
+  });
 
-onUnmounted(() => {
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
-});
+  const { t } = useI18n();
+  const {
+    records,
+    hasRecords,
+    workspaceMode,
+    toggleWorkspaceMode,
+    fetch,
+    clear,
+    updateMemo,
+    isAuthenticated,
+  } = useRecentSecrets();
 
-// Method to dismiss/clear all recent secrets
-const dismissAllRecents = () => {
-  clear();
-};
+  const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
-// Method to update memo for a record
-const handleUpdateMemo = (id: string, memo: string) => {
-  updateMemo(id, memo);
-};
+  // Refresh data when tab becomes visible (user returns from another tab)
+  // Only for authenticated users since guest data is local storage
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && isAuthenticated.value) {
+      fetch();
+    }
+  };
 
-// Expose fetch for parent components to trigger refresh
-defineExpose({
-  fetch,
-});
+  // Fetch records on mount and set up visibility listener
+  onMounted(() => {
+    fetch();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  });
+
+  onUnmounted(() => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+  });
+
+  // Method to dismiss/clear all recent secrets
+  const dismissAllRecents = () => {
+    clear();
+  };
+
+  // Method to update memo for a record
+  const handleUpdateMemo = (id: string, memo: string) => {
+    updateMemo(id, memo);
+  };
+
+  // Expose fetch for parent components to trigger refresh
+  defineExpose({
+    fetch,
+  });
 </script>
 
 <template>
@@ -75,13 +75,13 @@ defineExpose({
           {{ t('web.COMMON.recent') }}
         </h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Secrets created in this session.
+          {{}}
         </p>
       </div>
 
       <div class="flex items-center gap-3">
         <!-- Workspace mode toggle (hideable via prop for dashboard chip control) -->
-        <template v-if="props.showWorkspaceModeToggle">
+        <template v-if="props.showWorkspaceModeToggle">5
           <label
             class="flex cursor-pointer items-center gap-2"
             :title="t('web.secrets.workspace_mode_description')">
@@ -89,8 +89,7 @@ defineExpose({
               type="checkbox"
               :checked="workspaceMode"
               @change="toggleWorkspaceMode()"
-              class="size-4 rounded border-gray-300 text-brand-600
-                focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700" />
+              class="size-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700" />
             <span class="text-sm text-gray-600 dark:text-gray-300">
               {{ t('web.secrets.workspace_mode') }}
             </span>
@@ -98,7 +97,9 @@ defineExpose({
 
           <span
             v-if="hasRecords"
-            class="text-gray-300 dark:text-gray-600">|</span>
+            class="text-gray-300 dark:text-gray-600"
+            >|</span
+          >
         </template>
 
         <span
@@ -109,8 +110,7 @@ defineExpose({
         <button
           v-if="hasRecords"
           @click="dismissAllRecents"
-          class="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700
-            dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+          class="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
           :aria-label="t('web.LABELS.dismiss')"
           type="button">
           <svg
