@@ -283,4 +283,98 @@ describe('domainsStore', () => {
       expect(axiosMock.history.get).toHaveLength(1); // Still 1, not 2
     });
   });
+
+  describe('refreshRecords options object pattern', () => {
+    it('should accept no options (default behavior)', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      await store.refreshRecords();
+
+      expect(axiosMock.history.get).toHaveLength(1);
+      // When no orgId provided, params is empty object (no org_id key)
+      expect(axiosMock.history.get[0].params).toEqual({});
+      expect(store.records).toHaveLength(Object.keys(mockDomains).length);
+    });
+
+    it('should accept empty options object', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      await store.refreshRecords({});
+
+      expect(axiosMock.history.get).toHaveLength(1);
+      expect(axiosMock.history.get[0].params).toEqual({});
+    });
+
+    it('should force refresh when force: true even if initialized', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      // First call initializes
+      await store.refreshRecords();
+      expect(axiosMock.history.get).toHaveLength(1);
+
+      // Second call without force should skip
+      await store.refreshRecords();
+      expect(axiosMock.history.get).toHaveLength(1);
+
+      // Third call with force: true should fetch again
+      await store.refreshRecords({ force: true });
+      expect(axiosMock.history.get).toHaveLength(2);
+    });
+
+    it('should pass orgId to fetchList when provided', async () => {
+      const testOrgId = 'org-test-123';
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      await store.refreshRecords({ orgId: testOrgId });
+
+      expect(axiosMock.history.get).toHaveLength(1);
+      expect(axiosMock.history.get[0].params).toEqual({ org_id: testOrgId });
+    });
+
+    it('should pass both orgId and force options together', async () => {
+      const testOrgId = 'org-combined-456';
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      // First call to initialize
+      await store.refreshRecords({ orgId: testOrgId });
+      expect(axiosMock.history.get).toHaveLength(1);
+
+      // Second call with same orgId but no force - should skip
+      await store.refreshRecords({ orgId: testOrgId });
+      expect(axiosMock.history.get).toHaveLength(1);
+
+      // Third call with orgId and force: true - should fetch again
+      await store.refreshRecords({ orgId: testOrgId, force: true });
+      expect(axiosMock.history.get).toHaveLength(2);
+      expect(axiosMock.history.get[1].params).toEqual({ org_id: testOrgId });
+    });
+
+    it('should not include org_id param when orgId is undefined', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      await store.refreshRecords({ orgId: undefined, force: true });
+
+      expect(axiosMock.history.get).toHaveLength(1);
+      // params should be empty object when orgId is undefined
+      expect(axiosMock.history.get[0].params).toEqual({});
+    });
+  });
 });
