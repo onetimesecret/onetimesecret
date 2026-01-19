@@ -202,16 +202,26 @@ export function useDomainContext() {
   const fetchDomainsForOrganization = createDomainFetcher(organizationStore, domainsStore);
 
   // Watch for organization changes (including initial load from null -> org)
-  watch(() => organizationStore.currentOrganization?.id, async (newOrgId, oldOrgId) => {
-    if (newOrgId && newOrgId !== oldOrgId) {
-      const isCurrentRequest = await fetchDomainsForOrganization();
-      if (isCurrentRequest && currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-        currentDomain.value = getPreferredDomain(availableDomains.value);
+  watch(
+    () => organizationStore.currentOrganization?.id,
+    async (newOrgId, oldOrgId) => {
+      if (newOrgId && newOrgId !== oldOrgId) {
+        const isCurrentRequest = await fetchDomainsForOrganization();
+        if (
+          isCurrentRequest &&
+          currentDomain.value &&
+          !availableDomains.value.includes(currentDomain.value)
+        ) {
+          currentDomain.value = getPreferredDomain(availableDomains.value);
+        }
       }
     }
-  }, { immediate: true });
+  );
 
-  const initPromise = initializeDomainContext(fetchDomainsForOrganization, () => availableDomains.value);
+  const initPromise = initializeDomainContext(
+    fetchDomainsForOrganization,
+    () => availableDomains.value
+  );
 
   const currentContext = computed<DomainContext>(() => {
     const { canonicalDomain } = getConfig();
