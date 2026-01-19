@@ -681,9 +681,10 @@ export function useAuth() {
         });
       }
 
-      // Success - logout and redirect to home
+      // Success - logout and redirect to home with full page reload
+      // Use window.location.href instead of router.push to ensure all state is cleared
       await authStore.logout();
-      await router.push('/');
+      window.location.href = '/';
       return true;
     });
 

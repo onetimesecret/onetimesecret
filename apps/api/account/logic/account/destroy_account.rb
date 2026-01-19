@@ -57,14 +57,23 @@ module AccountAPI::Logic
           set_info_message('Account deleted')
 
         else
+          # In full auth mode, delete from auth database FIRST.
+          # This ensures that if the PostgreSQL deletion fails, we don't leave
+          # the system in an inconsistent state with a "deleted" Redis record
+          # but an active auth account.
+          if Onetime.auth_config.full_enabled?
+            result = delete_auth_account(cust)
+            unless result[:success]
+              raise_form_error "Unable to delete account: #{result[:error]}", error_type: 'system_error'
+            end
+          end
+
+          # Now mark the customer record as deleted in Redis
           cust.destroy_requested!
 
           # Log the event immediately after saving the change to
           # to minimize the chance of the event not being logged.
           OT.info "[destroy-account] Account destroyed. #{cust.objid} #{cust.role} #{session_sid}"
-
-          # If in full mode, also delete from auth database
-          delete_auth_account(cust) if Onetime.auth_config.full_enabled?
         end
 
         # We replace the session and session ID and then add a message
@@ -133,27 +142,16 @@ module AccountAPI::Logic
         false
       end
 
-      # Delete account from auth database in full mode
+      # Delete account and all related data from auth database in full mode.
+      # Uses Auth::Operations::CloseAccount which handles all dependent tables
+      # within a transaction.
+      #
       # @param customer [Onetime::Customer]
+      # @return [Hash] Result with :success and optionally :error
       def delete_auth_account(customer)
-        return unless customer&.extid
+        return { success: false, error: 'Customer extid is required' } unless customer&.extid
 
-        db = Auth::Database.connection
-        return unless db
-
-        deleted = db[:accounts]
-          .where(external_id: customer.extid)
-          .delete
-
-        if deleted > 0
-          OT.info "[destroy-account] Deleted auth account for extid: #{customer.extid}"
-        else
-          OT.le "[destroy-account] WARNING: No auth account found for extid: #{customer.extid}"
-        end
-      rescue StandardError => ex
-        OT.le "[destroy-account] Error deleting auth account: #{ex.message}"
-        OT.ld ex.backtrace.first(5).join("\n")
-        # Don't raise - customer is already deleted, this is cleanup
+        Auth::Operations::CloseAccount.call(extid: customer.extid)
       end
     end
   end
