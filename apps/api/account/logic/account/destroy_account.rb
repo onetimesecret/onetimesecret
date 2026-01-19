@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'argon2'
+
 module AccountAPI::Logic
   module Account
     class DestroyAccount < AccountAPI::Logic::Base
@@ -22,7 +24,7 @@ module AccountAPI::Logic
         else
           OT.info "[destroy-account] Passphrase check attempt cid/#{cust.objid} r/#{cust.role} ipa/#{session_sid}"
 
-          raise_form_error 'Please check the password.', field: 'confirmation', error_type: 'incorrect' unless cust.passphrase?(@confirmation)
+          raise_form_error 'Please check the password.', field: 'confirmation', error_type: 'incorrect' unless verify_password(@confirmation)
         end
       end
 
@@ -31,7 +33,7 @@ module AccountAPI::Logic
         # destroying things though, let's pull out all the stops.
         raise_form_error 'We have concerns about that request.' unless raised_concerns_was_called
 
-        return unless cust.passphrase?(@confirmation)
+        return unless verify_password(@confirmation)
 
         # All criteria to destroy the account have been met.
         @greenlighted = true
@@ -83,6 +85,51 @@ module AccountAPI::Logic
       end
 
       private
+
+      # Verify password using the appropriate mechanism based on auth mode.
+      # In full mode, password is stored in Rodauth's auth database.
+      # In simple mode, password is stored in the Customer Redis model.
+      #
+      # @param password [String] The plaintext password to verify
+      # @return [Boolean] true if the password matches
+      def verify_password(password)
+        if Onetime.auth_config.full_enabled?
+          verify_password_full_mode(password)
+        else
+          cust.passphrase?(password)
+        end
+      end
+
+      # Verify password against Rodauth's auth database (full mode).
+      # Looks up the account by extid and verifies against the password hash.
+      #
+      # @param password [String] The plaintext password to verify
+      # @return [Boolean] true if the password matches
+      def verify_password_full_mode(password)
+        db = Auth::Database.connection
+        return false unless db
+
+        # Find the account by external_id (which maps to Customer#extid)
+        account = db[:accounts].where(external_id: cust.extid).first
+        return false unless account
+
+        # Get the password hash for this account
+        password_hash_row = db[:account_password_hashes].where(id: account[:id]).first
+        return false unless password_hash_row
+
+        stored_hash = password_hash_row[:password_hash]
+        return false if stored_hash.to_s.empty?
+
+        # Verify using Argon2 (same as Rodauth uses)
+        ::Argon2::Password.verify_password(password, stored_hash)
+      rescue ::Argon2::ArgonHashFail => ex
+        OT.le "[destroy-account] Argon2 verification failed: #{ex.message}"
+        false
+      rescue StandardError => ex
+        OT.le "[destroy-account] Password verification error: #{ex.message}"
+        OT.ld ex.backtrace.first(5).join("\n")
+        false
+      end
 
       # Delete account from auth database in full mode
       # @param customer [Onetime::Customer]
