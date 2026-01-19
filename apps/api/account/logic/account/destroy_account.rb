@@ -93,6 +93,8 @@ module AccountAPI::Logic
       # @param password [String] The plaintext password to verify
       # @return [Boolean] true if the password matches
       def verify_password(password)
+        return false if password.to_s.empty?
+
         if Onetime.auth_config.full_enabled?
           verify_password_full_mode(password)
         else
