@@ -21,10 +21,11 @@
         class="rounded-lg border-2 border-red-200 bg-white dark:border-red-800 dark:bg-gray-800">
         <div class="border-b-2 border-red-200 px-6 py-4 dark:border-red-800">
           <div class="flex items-center gap-3">
+            <!-- no-symbol: Reserved exclusively for destructive/irreversible actions -->
             <OIcon
               collection="heroicons"
-              name="exclamation-triangle-solid"
-              class="size-5 text-red-600 dark:text-red-400"
+              name="no-symbol-solid"
+              class="size-6 text-red-600 dark:text-red-400"
               aria-hidden="true" />
             <h2 class="text-lg font-semibold text-red-600 dark:text-red-400">
               {{ t('web.COMMON.caution_zone') }}
@@ -46,17 +47,7 @@
               </div>
             </div>
 
-            <div class="mb-6 space-y-2 text-sm text-red-700 dark:text-red-400">
-              <p class="font-medium">
-                {{ t('web.settings.caution.deletion_warning_title') }}
-              </p>
-              <ul class="list-inside list-disc space-y-1 pl-4">
-                <li>{{ t('web.settings.caution.deletion_warning_secrets') }}</li>
-                <li>{{ t('web.settings.caution.deletion_warning_metadata') }}</li>
-                <li>{{ t('web.settings.caution.deletion_warning_api_keys') }}</li>
-                <li>{{ t('web.settings.caution.deletion_warning_irreversible') }}</li>
-              </ul>
-            </div>
+
 
             <AccountDeleteButtonWithModalForm
               v-if="cust"
