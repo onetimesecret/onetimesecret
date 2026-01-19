@@ -240,9 +240,28 @@
 </script>
 
 <template>
-  <li ref="rowRef" :class="rowClasses">
-    <!-- Header line: #N  🔒  SYMBOL STATUS  Memo/ID -->
-    <div class="flex items-start gap-2">
+  <li ref="rowRef"
+:class="rowClasses"
+class="relative">
+    <!-- Content wrapper: contains everything except separator, for watermark positioning -->
+    <div class="relative">
+      <!-- Background watermark: oversized shortid, centered -->
+      <div
+        class="pointer-events-none absolute inset-0 flex select-none items-center justify-center"
+        aria-hidden="true">
+        <span
+          :class="[
+            'font-mono text-[clamp(3.5rem,8vw,4.5rem)] font-light uppercase leading-none tracking-[0.3em]',
+            isTerminal
+              ? 'text-gray-400/15 dark:text-gray-500/12'
+              : 'text-gray-400/20 dark:text-gray-500/18',
+          ]">
+          {{ displayKey }}
+        </span>
+      </div>
+
+      <!-- Header line: #N  🔒  SYMBOL STATUS  Memo/ID -->
+      <div class="relative flex items-start gap-2">
       <!-- Index prefix -->
       <span class="select-none text-gray-400 dark:text-gray-500">
         #{{ index }}
@@ -343,7 +362,10 @@
             </span>
             <span
               class="text-xs text-gray-300 opacity-0 transition-opacity group-hover/memo:opacity-100 dark:text-gray-600">
-              [edit]
+              <OIcon
+                collection="heroicons"
+                name="pencil-square"
+                class="size-3" />
             </span>
           </button>
         </template>
@@ -378,7 +400,7 @@
     </div>
 
     <!-- Metadata tree (full tree for active/previewed, minimal for terminal) -->
-    <div class="ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
+    <div class="relative ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
       <template v-if="isActive">
         <!-- Expires line with timestamp on right -->
         <div class="flex items-center justify-between">
@@ -424,6 +446,7 @@
         </div>
       </template>
     </div>
+    </div><!-- /Content wrapper -->
 
     <!-- Separator line (if not last item) -->
     <div
@@ -432,25 +455,3 @@
       aria-hidden="true"></div>
   </li>
 </template>
-
-<style scoped>
-  /*
-   * Layer 2: EAP pulse animation
-   * Subtle opacity pulse (0.6 → 1.0 → 0.6) over 1.5s
-   * Only triggers once when row enters viewport
-   * Motion is unique to EAP, teaching users "motion = needs passphrase"
-   */
-  @keyframes eap-pulse {
-    0%,
-    100% {
-      opacity: 0.6;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-
-  .animate-eap-pulse {
-    animation: eap-pulse 1.5s ease-in-out 1;
-  }
-</style>
