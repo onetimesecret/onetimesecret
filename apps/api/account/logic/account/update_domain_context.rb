@@ -26,10 +26,23 @@ module AccountAPI::Logic
         @old_domain_context  = sess&.[]('domain_context')
       end
 
+      # Maximum domain length per RFC 1035 (253 chars total, 63 per label)
+      MAX_DOMAIN_LENGTH   = 253
+      # Allowed characters in domain names per RFC 1123
+      DOMAIN_CHAR_PATTERN = /\A[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\z/
+
       def normalize_domain(value)
         return nil if value.nil?
 
-        value.to_s.strip.downcase
+        normalized = value.to_s.strip.downcase
+
+        # Basic length validation to prevent malformed session data
+        return nil if normalized.empty? || normalized.length > MAX_DOMAIN_LENGTH
+
+        # Character validation: only allow valid domain characters
+        return nil unless normalized.match?(DOMAIN_CHAR_PATTERN)
+
+        normalized
       end
 
       def raise_concerns

@@ -35,8 +35,8 @@ const currentDomain = ref('');
 const isInitialized = ref(false);
 const isLoadingDomains = ref(false);
 
-// Request ID to handle race conditions during rapid org switches
-let currentFetchRequestId = 0;
+// AbortController for cancelling in-flight domain fetches during rapid org switches
+let currentFetchController: AbortController | null = null;
 
 // Bootstrap store reference - initialized on first composable use
 let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
@@ -120,17 +120,30 @@ function createDomainFetcher(
       console.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
       return false;
     }
-    const requestId = ++currentFetchRequestId;
+
+    // Cancel any in-flight fetch before starting a new one
+    if (currentFetchController) {
+      currentFetchController.abort();
+    }
+    const controller = new AbortController();
+    currentFetchController = controller;
+
     isLoadingDomains.value = true;
     try {
       await domainsStore.fetchList(orgId);
-      return requestId === currentFetchRequestId;
+      // Return true only if this fetch wasn't aborted
+      return !controller.signal.aborted;
     } catch (error) {
-      console.warn('[useDomainContext] Failed to fetch domains:', error);
+      // Ignore abort errors, log others
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.warn('[useDomainContext] Failed to fetch domains:', error);
+      }
       return false;
     } finally {
-      if (requestId === currentFetchRequestId) {
+      // Only clear loading state if this is still the current controller
+      if (currentFetchController === controller) {
         isLoadingDomains.value = false;
+        currentFetchController = null;
       }
     }
   };
