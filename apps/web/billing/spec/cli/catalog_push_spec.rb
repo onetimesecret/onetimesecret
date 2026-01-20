@@ -207,14 +207,14 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
   describe '#build_metadata (private)' do
     let(:app_identifier) { 'onetimesecret' }
 
-    it 'includes required fields: app, plan_id, tier, tenancy' do
+    it 'includes required fields: app, plan_id, tier, tenancy, region' do
       result = command.send(:build_metadata, 'identity_plus_v1', plan_def, app_identifier)
 
       expect(result['app']).to eq('onetimesecret')
       expect(result['plan_id']).to eq('identity_plus_v1')
       expect(result['tier']).to eq('plus')
       expect(result['tenancy']).to eq('shared')
-      expect(result).not_to have_key('region')
+      expect(result['region']).to eq('global')
     end
 
     it 'joins entitlements array with comma' do
@@ -261,12 +261,15 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
   end
 
   describe '#analyze_changes (private)' do
+    # Default match fields for most tests - single field matching by plan_id
+    let(:match_fields) { ['plan_id'] }
+
     it 'identifies products to create when not in Stripe' do
       plans = { 'new_plan_v1' => plan_def }
       existing_products = {} # Empty - no products in Stripe
       existing_prices = {}
 
-      result = command.send(:analyze_changes, plans, existing_products, existing_prices, false)
+      result = command.send(:analyze_changes, plans, existing_products, existing_prices, false, match_fields)
 
       expect(result[:products_to_create].length).to eq(1)
       expect(result[:products_to_create].first[:plan_id]).to eq('new_plan_v1')
@@ -279,7 +282,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
       existing_products = { 'identity_plus_v1' => outdated_product }
       existing_prices = {}
 
-      result = command.send(:analyze_changes, plans, existing_products, existing_prices, false)
+      result = command.send(:analyze_changes, plans, existing_products, existing_prices, false, match_fields)
 
       expect(result[:products_to_create]).to be_empty
       expect(result[:products_to_update].length).to eq(1)
@@ -291,7 +294,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
       existing_products = { 'identity_plus_v1' => mock_product }
       existing_prices = {} # No prices - would normally trigger creation
 
-      result = command.send(:analyze_changes, plans, existing_products, existing_prices, true)
+      result = command.send(:analyze_changes, plans, existing_products, existing_prices, true, match_fields)
 
       expect(result[:prices_to_create]).to be_empty
     end
@@ -301,7 +304,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
       existing_products = { 'identity_plus_v1' => mock_product }
       existing_prices = {} # No prices exist
 
-      result = command.send(:analyze_changes, plans, existing_products, existing_prices, false)
+      result = command.send(:analyze_changes, plans, existing_products, existing_prices, false, match_fields)
 
       expect(result[:prices_to_create].length).to eq(2) # monthly + yearly
     end
