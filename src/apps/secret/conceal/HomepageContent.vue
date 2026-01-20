@@ -5,13 +5,13 @@
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
+  import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
   import { storeToRefs } from 'pinia';
 
   const bootstrapStore = useBootstrapStore();
   const { authenticated, ui } = storeToRefs(bootstrapStore);
 
-  const concealedReceiptStore = useConcealedReceiptStore();
+  const localReceiptStore = useLocalReceiptStore();
 </script>
 
 <template>
@@ -22,11 +22,11 @@
 
     <SecretForm
       v-if="ui?.enabled !== false"
-      class="mb-12"
+      class="mb-10"
       :with-recipient="false"
       :with-asterisk="true"
       :with-generate="true"
-      :workspace-mode="concealedReceiptStore.workspaceMode" />
+      :workspace-mode="localReceiptStore.workspaceMode" />
 
     <!-- Space divider -->
     <div class="mb-6 "></div>

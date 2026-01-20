@@ -1,16 +1,16 @@
-// src/tests/stores/concealedReceiptStore.spec.ts
+// src/tests/stores/localReceiptStore.spec.ts
 
-import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
-import type { ConcealedMessage } from '@/types/ui/concealed-message';
+import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
+import type { LocalReceipt } from '@/types/ui/local-receipt';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp, nextTick } from 'vue';
 
 /**
- * Creates a mock ConcealedMessage with required minimal fields.
+ * Creates a mock LocalReceipt with required minimal fields.
  * Follows the data minimization pattern - only essential fields for guest users.
  */
-function createMockMessage(overrides: Partial<ConcealedMessage> = {}): ConcealedMessage {
+function createMockMessage(overrides: Partial<LocalReceipt> = {}): LocalReceipt {
   const id = overrides.id ?? `msg-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return {
     id,
@@ -25,8 +25,8 @@ function createMockMessage(overrides: Partial<ConcealedMessage> = {}): Concealed
   };
 }
 
-describe('concealedReceiptStore', () => {
-  let store: ReturnType<typeof useConcealedReceiptStore>;
+describe('localReceiptStore', () => {
+  let store: ReturnType<typeof useLocalReceiptStore>;
   let mockSessionStorage: Record<string, string>;
 
   beforeEach(() => {
@@ -56,7 +56,7 @@ describe('concealedReceiptStore', () => {
     const app = createApp({});
     const pinia = createTestingPinia({ stubActions: false });
     app.use(pinia);
-    store = useConcealedReceiptStore();
+    store = useLocalReceiptStore();
   });
 
   afterEach(() => {
@@ -67,8 +67,8 @@ describe('concealedReceiptStore', () => {
 
   describe('initialization', () => {
     it('initializes with empty messages when sessionStorage is empty', () => {
-      expect(store.concealedMessages).toEqual([]);
-      expect(store.hasMessages).toBe(false);
+      expect(store.localReceipts).toEqual([]);
+      expect(store.hasReceipts).toBe(false);
       expect(store.isInitialized).toBe(false);
     });
 
@@ -85,47 +85,47 @@ describe('concealedReceiptStore', () => {
     });
   });
 
-  describe('storage limits (MAX_STORED_RECEIPTS = 20)', () => {
-    it('enforces maximum of 20 stored messages', async () => {
-      // Add 25 messages
-      for (let i = 0; i < 25; i++) {
-        store.addMessage(createMockMessage({ id: `msg-${i}` }));
+  describe('storage limits (MAX_STORED_RECEIPTS = 25)', () => {
+    it('enforces maximum of 25 stored messages', async () => {
+      // Add 30 messages
+      for (let i = 0; i < 30; i++) {
+        store.addReceipt(createMockMessage({ id: `msg-${i}` }));
       }
 
       await nextTick();
 
-      // Should only keep 20 messages
-      expect(store.concealedMessages.length).toBe(20);
+      // Should only keep 25 messages
+      expect(store.localReceipts.length).toBe(25);
     });
 
     it('keeps most recent messages when limit is exceeded', async () => {
-      // Add 25 messages with sequential IDs
-      for (let i = 0; i < 25; i++) {
-        store.addMessage(createMockMessage({ id: `msg-${i}` }));
+      // Add 30 messages with sequential IDs
+      for (let i = 0; i < 30; i++) {
+        store.addReceipt(createMockMessage({ id: `msg-${i}` }));
       }
 
       await nextTick();
 
-      // Most recent message (msg-24) should be first
-      expect(store.concealedMessages[0].id).toBe('msg-24');
-      // Oldest retained message should be msg-5 (25 - 20 = 5)
-      expect(store.concealedMessages[19].id).toBe('msg-5');
+      // Most recent message (msg-29) should be first
+      expect(store.localReceipts[0].id).toBe('msg-29');
+      // Oldest retained message should be msg-5 (30 - 25 = 5)
+      expect(store.localReceipts[24].id).toBe('msg-5');
       // msg-0 through msg-4 should have been dropped
-      const ids = store.concealedMessages.map((m) => m.id);
+      const ids = store.localReceipts.map((m) => m.id);
       expect(ids).not.toContain('msg-0');
       expect(ids).not.toContain('msg-4');
     });
 
     it('new messages are added to the beginning of the list', async () => {
-      store.addMessage(createMockMessage({ id: 'first' }));
-      store.addMessage(createMockMessage({ id: 'second' }));
-      store.addMessage(createMockMessage({ id: 'third' }));
+      store.addReceipt(createMockMessage({ id: 'first' }));
+      store.addReceipt(createMockMessage({ id: 'second' }));
+      store.addReceipt(createMockMessage({ id: 'third' }));
 
       await nextTick();
 
-      expect(store.concealedMessages[0].id).toBe('third');
-      expect(store.concealedMessages[1].id).toBe('second');
-      expect(store.concealedMessages[2].id).toBe('first');
+      expect(store.localReceipts[0].id).toBe('third');
+      expect(store.localReceipts[1].id).toBe('second');
+      expect(store.localReceipts[2].id).toBe('first');
     });
   });
 
@@ -136,7 +136,7 @@ describe('concealedReceiptStore', () => {
       const twoHoursAgo = now - 7200 * 1000;
 
       // Pre-populate sessionStorage with mixed expired/valid entries
-      const storedMessages: ConcealedMessage[] = [
+      const storedMessages: LocalReceipt[] = [
         // Valid: created 1 hour ago, TTL 2 hours (1 hour remaining)
         createMockMessage({
           id: 'valid-1',
@@ -169,11 +169,11 @@ describe('concealedReceiptStore', () => {
       const app = createApp({});
       const pinia = createTestingPinia({ stubActions: false });
       app.use(pinia);
-      const freshStore = useConcealedReceiptStore();
+      const freshStore = useLocalReceiptStore();
 
       // Should only have the 2 valid entries
-      expect(freshStore.concealedMessages.length).toBe(2);
-      const ids = freshStore.concealedMessages.map((m) => m.id);
+      expect(freshStore.localReceipts.length).toBe(2);
+      const ids = freshStore.localReceipts.map((m) => m.id);
       expect(ids).toContain('valid-1');
       expect(ids).toContain('valid-2');
       expect(ids).not.toContain('expired-1');
@@ -186,9 +186,9 @@ describe('concealedReceiptStore', () => {
       const app = createApp({});
       const pinia = createTestingPinia({ stubActions: false });
       app.use(pinia);
-      const freshStore = useConcealedReceiptStore();
+      const freshStore = useLocalReceiptStore();
 
-      expect(freshStore.concealedMessages).toEqual([]);
+      expect(freshStore.localReceipts).toEqual([]);
     });
 
     it('handles malformed JSON in sessionStorage gracefully', () => {
@@ -197,10 +197,10 @@ describe('concealedReceiptStore', () => {
       const app = createApp({});
       const pinia = createTestingPinia({ stubActions: false });
       app.use(pinia);
-      const freshStore = useConcealedReceiptStore();
+      const freshStore = useLocalReceiptStore();
 
       // Should fallback to empty array
-      expect(freshStore.concealedMessages).toEqual([]);
+      expect(freshStore.localReceipts).toEqual([]);
     });
   });
 
@@ -218,60 +218,60 @@ describe('concealedReceiptStore', () => {
         ttl: 7200,
       });
 
-      store.addMessage(originalMessage);
+      store.addReceipt(originalMessage);
       await nextTick();
-      expect(store.concealedMessages.length).toBe(1);
-      expect(store.concealedMessages[0].hasPassphrase).toBe(false);
+      expect(store.localReceipts.length).toBe(1);
+      expect(store.localReceipts[0].hasPassphrase).toBe(false);
 
-      store.addMessage(updatedMessage);
+      store.addReceipt(updatedMessage);
       await nextTick();
 
       // Should still only have 1 message
-      expect(store.concealedMessages.length).toBe(1);
+      expect(store.localReceipts.length).toBe(1);
       // Should be the updated version
-      expect(store.concealedMessages[0].hasPassphrase).toBe(true);
-      expect(store.concealedMessages[0].ttl).toBe(7200);
+      expect(store.localReceipts[0].hasPassphrase).toBe(true);
+      expect(store.localReceipts[0].ttl).toBe(7200);
     });
 
     it('moves updated message to front of list', async () => {
-      store.addMessage(createMockMessage({ id: 'first' }));
-      store.addMessage(createMockMessage({ id: 'second' }));
-      store.addMessage(createMockMessage({ id: 'third' }));
+      store.addReceipt(createMockMessage({ id: 'first' }));
+      store.addReceipt(createMockMessage({ id: 'second' }));
+      store.addReceipt(createMockMessage({ id: 'third' }));
 
       await nextTick();
-      expect(store.concealedMessages[0].id).toBe('third');
+      expect(store.localReceipts[0].id).toBe('third');
 
       // Update 'first' message - it should move to front
-      store.addMessage(createMockMessage({ id: 'first', hasPassphrase: true }));
+      store.addReceipt(createMockMessage({ id: 'first', hasPassphrase: true }));
 
       await nextTick();
-      expect(store.concealedMessages[0].id).toBe('first');
-      expect(store.concealedMessages[0].hasPassphrase).toBe(true);
-      expect(store.concealedMessages.length).toBe(3);
+      expect(store.localReceipts[0].id).toBe('first');
+      expect(store.localReceipts[0].hasPassphrase).toBe(true);
+      expect(store.localReceipts.length).toBe(3);
     });
   });
 
   describe('clear functionality', () => {
-    it('clearMessages() empties the store', async () => {
-      store.addMessage(createMockMessage({ id: 'msg-1' }));
-      store.addMessage(createMockMessage({ id: 'msg-2' }));
+    it('clearReceipts() empties the store', async () => {
+      store.addReceipt(createMockMessage({ id: 'msg-1' }));
+      store.addReceipt(createMockMessage({ id: 'msg-2' }));
 
       await nextTick();
-      expect(store.concealedMessages.length).toBe(2);
-      expect(store.hasMessages).toBe(true);
+      expect(store.localReceipts.length).toBe(2);
+      expect(store.hasReceipts).toBe(true);
 
-      store.clearMessages();
+      store.clearReceipts();
 
       await nextTick();
-      expect(store.concealedMessages.length).toBe(0);
-      expect(store.hasMessages).toBe(false);
+      expect(store.localReceipts.length).toBe(0);
+      expect(store.hasReceipts).toBe(false);
     });
 
-    it('clearMessages() removes data from sessionStorage', async () => {
-      store.addMessage(createMockMessage({ id: 'msg-1' }));
+    it('clearReceipts() removes data from sessionStorage', async () => {
+      store.addReceipt(createMockMessage({ id: 'msg-1' }));
       await nextTick();
 
-      store.clearMessages();
+      store.clearReceipts();
       await nextTick();
 
       expect(sessionStorage.removeItem).toHaveBeenCalledWith('onetimeReceiptCache');
@@ -279,27 +279,27 @@ describe('concealedReceiptStore', () => {
 
     it('$reset() clears messages and resets initialization state', async () => {
       store.init();
-      store.addMessage(createMockMessage({ id: 'msg-1' }));
+      store.addReceipt(createMockMessage({ id: 'msg-1' }));
       store.setWorkspaceMode(true);
 
       await nextTick();
       expect(store.isInitialized).toBe(true);
       expect(store.workspaceMode).toBe(true);
-      expect(store.hasMessages).toBe(true);
+      expect(store.hasReceipts).toBe(true);
 
       store.$reset();
 
       await nextTick();
       expect(store.isInitialized).toBe(false);
       expect(store.workspaceMode).toBe(false);
-      expect(store.hasMessages).toBe(false);
+      expect(store.hasReceipts).toBe(false);
     });
   });
 
   describe('sessionStorage persistence', () => {
     it('persists messages to sessionStorage when added', async () => {
       const message = createMockMessage({ id: 'persist-test' });
-      store.addMessage(message);
+      store.addReceipt(message);
 
       await nextTick();
 
@@ -322,7 +322,7 @@ describe('concealedReceiptStore', () => {
         createdAt: 1704067200000, // Fixed timestamp for testing
       });
 
-      store.addMessage(message);
+      store.addReceipt(message);
       await nextTick();
 
       const setItemCall = vi.mocked(sessionStorage.setItem).mock.calls.find(
@@ -377,7 +377,7 @@ describe('concealedReceiptStore', () => {
     });
   });
 
-  describe('ConcealedMessage minimal data structure', () => {
+  describe('LocalReceipt minimal data structure', () => {
     it('only stores essential fields as defined in the interface', async () => {
       const message = createMockMessage({
         id: 'minimal-test',
@@ -391,10 +391,10 @@ describe('concealedReceiptStore', () => {
         createdAt: Date.now(),
       });
 
-      store.addMessage(message);
+      store.addReceipt(message);
       await nextTick();
 
-      const storedMessage = store.concealedMessages[0];
+      const storedMessage = store.localReceipts[0];
 
       // Verify only the expected fields exist
       const allowedKeys = [
@@ -420,9 +420,9 @@ describe('concealedReceiptStore', () => {
         secretValue: 'THIS SHOULD NOT BE STORED',
         passphrase: 'SENSITIVE DATA',
         apiKey: 'secret-api-key',
-      } as ConcealedMessage;
+      } as LocalReceipt;
 
-      store.addMessage(messageWithExtra);
+      store.addReceipt(messageWithExtra);
       await nextTick();
 
       const setItemCall = vi.mocked(sessionStorage.setItem).mock.calls.find(
@@ -448,13 +448,13 @@ describe('concealedReceiptStore', () => {
 
       // Should not throw
       expect(() => {
-        store.addMessage(createMockMessage({ id: 'error-test' }));
+        store.addReceipt(createMockMessage({ id: 'error-test' }));
       }).not.toThrow();
 
       await nextTick();
 
       // Message should still be added to memory
-      expect(store.concealedMessages.length).toBe(1);
+      expect(store.localReceipts.length).toBe(1);
     });
 
     it('handles null shareDomain correctly', async () => {
@@ -463,10 +463,10 @@ describe('concealedReceiptStore', () => {
         shareDomain: null,
       });
 
-      store.addMessage(message);
+      store.addReceipt(message);
       await nextTick();
 
-      expect(store.concealedMessages[0].shareDomain).toBeNull();
+      expect(store.localReceipts[0].shareDomain).toBeNull();
     });
 
     it('handles custom shareDomain correctly', async () => {
@@ -475,15 +475,15 @@ describe('concealedReceiptStore', () => {
         shareDomain: 'secrets.example.com',
       });
 
-      store.addMessage(message);
+      store.addReceipt(message);
       await nextTick();
 
-      expect(store.concealedMessages[0].shareDomain).toBe('secrets.example.com');
+      expect(store.localReceipts[0].shareDomain).toBe('secrets.example.com');
     });
 
     it('handles zero TTL (immediate expiration)', () => {
       const now = Date.now();
-      const storedMessages: ConcealedMessage[] = [
+      const storedMessages: LocalReceipt[] = [
         createMockMessage({
           id: 'zero-ttl',
           createdAt: now - 1000, // 1 second ago
@@ -496,10 +496,98 @@ describe('concealedReceiptStore', () => {
       const app = createApp({});
       const pinia = createTestingPinia({ stubActions: false });
       app.use(pinia);
-      const freshStore = useConcealedReceiptStore();
+      const freshStore = useLocalReceiptStore();
 
       // Zero TTL message created in the past should be filtered out
-      expect(freshStore.concealedMessages.length).toBe(0);
+      expect(freshStore.localReceipts.length).toBe(0);
+    });
+  });
+
+  describe('status tracking (markAsPreviewed/markAsRevealed/markAsBurned)', () => {
+    it('markAsPreviewed sets isPreviewed=true on matching message', async () => {
+      const message = createMockMessage({
+        id: 'previewed-test',
+        secretExtid: 'secret-abc123',
+      });
+
+      store.addReceipt(message);
+      await nextTick();
+
+      expect(store.localReceipts[0].isPreviewed).toBeUndefined();
+
+      store.markAsPreviewed('secret-abc123');
+      await nextTick();
+
+      expect(store.localReceipts[0].isPreviewed).toBe(true);
+    });
+
+    it('markAsRevealed sets isRevealed=true on matching message', async () => {
+      const message = createMockMessage({
+        id: 'revealed-test',
+        secretExtid: 'secret-def456',
+      });
+
+      store.addReceipt(message);
+      await nextTick();
+
+      expect(store.localReceipts[0].isRevealed).toBeUndefined();
+
+      store.markAsRevealed('secret-def456');
+      await nextTick();
+
+      expect(store.localReceipts[0].isRevealed).toBe(true);
+    });
+
+    it('markAsRevealed does nothing when secretExtid not found', async () => {
+      const message = createMockMessage({
+        id: 'no-match-test',
+        secretExtid: 'secret-xyz789',
+      });
+
+      store.addReceipt(message);
+      await nextTick();
+
+      store.markAsRevealed('nonexistent-secret');
+      await nextTick();
+
+      expect(store.localReceipts[0].isRevealed).toBeUndefined();
+    });
+
+    it('markAsBurned sets isBurned=true on matching message', async () => {
+      const message = createMockMessage({
+        id: 'burn-test',
+        secretExtid: 'secret-burn123',
+      });
+
+      store.addReceipt(message);
+      await nextTick();
+
+      expect(store.localReceipts[0].isBurned).toBeUndefined();
+
+      store.markAsBurned('secret-burn123');
+      await nextTick();
+
+      expect(store.localReceipts[0].isBurned).toBe(true);
+    });
+
+    it('status changes are persisted to sessionStorage', async () => {
+      const message = createMockMessage({
+        id: 'persist-status',
+        secretExtid: 'secret-persist',
+      });
+
+      store.addReceipt(message);
+      await nextTick();
+
+      store.markAsRevealed('secret-persist');
+      await nextTick();
+
+      const setItemCalls = vi.mocked(sessionStorage.setItem).mock.calls;
+      const lastCall = setItemCalls[setItemCalls.length - 1];
+      expect(lastCall[0]).toBe('onetimeReceiptCache');
+
+      const savedData = JSON.parse(lastCall[1]);
+      expect(savedData[0].isRevealed).toBe(true);
     });
   });
 });

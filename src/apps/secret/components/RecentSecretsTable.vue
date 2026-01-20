@@ -22,6 +22,7 @@
     workspaceMode,
     toggleWorkspaceMode,
     fetch,
+    refreshStatuses,
     clear,
     updateMemo,
     isAuthenticated,
@@ -46,17 +47,35 @@
 
   const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
+  // Throttle refresh to prevent excessive API calls on rapid tab switches
+  const REFRESH_THROTTLE_MS = 5000;
+  let lastRefreshTime = 0;
+
   // Refresh data when tab becomes visible (user returns from another tab)
-  // Only for authenticated users since guest data is local storage
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === 'visible' && isAuthenticated.value) {
-      fetch();
+  // Authenticated users: fetch fresh data from API
+  // Guest users: refresh statuses from server to sync local storage
+  // Throttled to prevent excessive requests on rapid tab switching
+  const handleVisibilityChange = async () => {
+    if (document.visibilityState === 'visible') {
+      const now = Date.now();
+      if (now - lastRefreshTime < REFRESH_THROTTLE_MS) return;
+      lastRefreshTime = now;
+
+      if (isAuthenticated.value) {
+        await fetch();
+      } else {
+        await refreshStatuses();
+      }
     }
   };
 
   // Fetch records on mount and set up visibility listener
-  onMounted(() => {
-    fetch();
+  // For guest users, also refresh statuses from server to sync with actual state
+  onMounted(async () => {
+    await fetch();
+    if (!isAuthenticated.value) {
+      await refreshStatuses();
+    }
     document.addEventListener('visibilitychange', handleVisibilityChange);
   });
 
@@ -83,12 +102,12 @@
 <template>
   <section
     aria-labelledby="recent-secrets-heading"
-    class="pb-24">
+    class="pb-8">
     <div class="mb-4 flex items-center justify-between">
       <div>
         <h2
           id="recent-secrets-heading"
-          class="text-xl font-medium text-gray-700 dark:text-gray-200">
+          class="text-lg font-medium text-gray-600 dark:text-gray-300">
           {{ t('web.COMMON.recent') }}
         </h2>
         <p

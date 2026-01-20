@@ -96,7 +96,7 @@
           <div>
             <h2
               id="dashboard-recent-heading"
-              class="text-xl font-medium text-gray-700 dark:text-gray-200">
+              class="text-lg font-medium text-gray-600 dark:text-gray-300">
               {{ t('web.LABELS.title_recent_secrets') }}
             </h2>
           </div>

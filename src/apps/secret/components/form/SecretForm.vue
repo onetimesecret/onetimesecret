@@ -9,13 +9,13 @@
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
+  import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
     DEFAULT_PRIMARY_COLOR,
   } from '@/shared/stores/identityStore';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { storeToRefs } from 'pinia';
   import { computed, ref, watch } from 'vue';
@@ -53,11 +53,11 @@
 
   const emit = defineEmits<{
     /** Emitted after successful secret creation with the response data */
-    (e: 'created', response: ConcealedMessage): void;
+    (e: 'created', response: LocalReceipt): void;
   }>();
 
   const router = useRouter();
-  const concealedReceiptStore = useConcealedReceiptStore();
+  const localReceiptStore = useLocalReceiptStore();
   const showProTip = ref(props.withAsterisk);
 
   // Get passphrase configuration for UI hints
@@ -82,7 +82,7 @@
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
       if (!response) throw 'Response is missing';
-      const newMessage: ConcealedMessage = {
+      const newMessage: LocalReceipt = {
         id: nanoid(),
         receiptExtid: response.record.receipt.identifier,
         receiptShortid: response.record.receipt.shortid,
@@ -94,7 +94,7 @@
         createdAt: Date.now(),
       };
       // Add the message to the store
-      concealedReceiptStore.addMessage(newMessage);
+      localReceiptStore.addReceipt(newMessage);
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
 

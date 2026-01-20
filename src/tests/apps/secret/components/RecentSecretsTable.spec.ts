@@ -6,45 +6,24 @@ import { ref, computed } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 
 import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
-import type { ConcealedMessage } from '@/types/ui/concealed-message';
+import type { LocalReceipt } from '@/types/ui/local-receipt';
 
-// Create mock ConcealedMessage for testing
-const createMockConcealedMessage = (id: string): ConcealedMessage => ({
+// Create mock LocalReceipt for testing
+const createMockLocalReceipt = (id: string): LocalReceipt => ({
   id,
-  receipt_identifier: `metadata-${id}`,
-  secret_identifier: `secret-${id}`,
-  secretLink: `https://example.com/secret/${id}`,
-  metadataLink: `https://example.com/private/${id}`,
-  clientInfo: {
-    createdAt: new Date(),
-    ttl: 604800,
-    hasPassphrase: false,
-  },
-  response: {
-    success: true,
-    record: {
-      key: `key-${id}`,
-      shortid: `short-${id}`,
-      state: 'new',
-      identifier: `id-${id}`,
-      created: new Date(),
-      updated: new Date(),
-      metadata: {
-        secret_ttl: 604800,
-        share_domain: 'example.com',
-        identifier: `metadata-${id}`,
-      },
-      secret: {
-        secret_ttl: 604800,
-        identifier: `secret-${id}`,
-      },
-    },
-  },
+  receiptExtid: `receipt-${id}`,
+  receiptShortid: `rcpt-${id.slice(0, 4)}`,
+  secretExtid: `secret-${id}`,
+  secretShortid: `sec-${id.slice(0, 4)}`,
+  shareDomain: 'example.com',
+  hasPassphrase: false,
+  ttl: 604800,
+  createdAt: Date.now(),
 });
 
-// Create mock RecentSecretRecord from ConcealedMessage
+// Create mock RecentSecretRecord from LocalReceipt
 const createMockRecord = (id: string): RecentSecretRecord => {
-  const message = createMockConcealedMessage(id);
+  const message = createMockLocalReceipt(id);
   return {
     id,
     extid: `metadata-${id}`,
@@ -54,10 +33,11 @@ const createMockRecord = (id: string): RecentSecretRecord => {
     ttl: 604800,
     createdAt: new Date(),
     shareDomain: 'example.com',
-    isViewed: false,
-    isReceived: false,
+    isPreviewed: false,
+    isRevealed: false,
     isBurned: false,
     isExpired: false,
+    isDestroyed: false,
     source: 'local',
     originalRecord: message,
   };
@@ -80,6 +60,10 @@ const mockClear = vi.fn(() => {
 });
 
 const mockFetch = vi.fn();
+const mockRefreshStatuses = vi.fn();
+const mockUpdateMemo = vi.fn();
+const mockCurrentScope = computed(() => undefined);
+const mockScopeLabel = computed(() => null);
 
 // Mock useRecentSecrets composable
 vi.mock('@/shared/composables/useRecentSecrets', () => ({
@@ -93,6 +77,10 @@ vi.mock('@/shared/composables/useRecentSecrets', () => ({
     toggleWorkspaceMode: mockToggleWorkspaceMode,
     clear: mockClear,
     fetch: mockFetch,
+    refreshStatuses: mockRefreshStatuses,
+    updateMemo: mockUpdateMemo,
+    currentScope: mockCurrentScope,
+    scopeLabel: mockScopeLabel,
   })),
 }));
 
@@ -125,6 +113,8 @@ describe('RecentSecretsTable', () => {
     mockToggleWorkspaceMode.mockClear();
     mockClear.mockClear();
     mockFetch.mockClear();
+    mockRefreshStatuses.mockClear();
+    mockUpdateMemo.mockClear();
   });
 
   afterEach(() => {
@@ -146,6 +136,10 @@ describe('RecentSecretsTable', () => {
         toggleWorkspaceMode: mockToggleWorkspaceMode,
         clear: mockClear,
         fetch: mockFetch,
+        refreshStatuses: mockRefreshStatuses,
+        updateMemo: mockUpdateMemo,
+        currentScope: mockCurrentScope,
+        scopeLabel: mockScopeLabel,
       })),
     }));
 
@@ -356,12 +350,13 @@ describe('RecentSecretsTable', () => {
         ttl: 3600,
         createdAt: new Date(),
         shareDomain: 'api.example.com',
-        isViewed: true,
-        isReceived: false,
+        isPreviewed: true,
+        isRevealed: false,
         isBurned: false,
         isExpired: false,
+        isDestroyed: false,
         source: 'api',
-        originalRecord: {} as ConcealedMessage, // API records have MetadataRecords
+        originalRecord: {} as LocalReceipt, // API records have MetadataRecords
       };
 
       mockRecords.value = [createMockRecord('local-1'), apiRecord];

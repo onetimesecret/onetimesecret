@@ -184,8 +184,8 @@
           </div>
         </div>
 
-        <!-- Context Switchers slot (rendered inline for authenticated users) -->
-        <div v-if="isUserPresent" class="hidden min-w-0 items-center gap-3 sm:flex">
+        <!-- Context Switchers slot (rendered inline for authenticated users, all screen sizes) -->
+        <div v-if="isUserPresent" class="flex min-w-0 items-center gap-2 sm:gap-3">
           <slot name="context-switchers"></slot>
         </div>
       </div>
@@ -239,9 +239,5 @@
       </nav>
     </div>
 
-    <!-- Mobile context switchers (below header row) -->
-    <div v-if="isUserPresent" class="mt-2 flex items-center gap-3 sm:hidden">
-      <slot name="context-switchers"></slot>
-    </div>
   </div>
 </template>

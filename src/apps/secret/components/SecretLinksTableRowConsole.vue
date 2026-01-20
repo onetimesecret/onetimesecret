@@ -143,10 +143,10 @@
   // Secret state computations
   const isExpired = computed(() => props.record.isExpired || props.record.ttl <= 0);
   const isBurned = computed(() => props.record.isBurned);
-  // isViewed means the secret link page was opened (but not yet revealed)
-  const isViewed = computed(() => props.record.isViewed);
-  // isReceived means the secret was actually revealed to the recipient
-  const isReceived = computed(() => props.record.isReceived);
+  // isPreviewed means the secret link page was opened (confirmation shown)
+  const isPreviewed = computed(() => props.record.isPreviewed);
+  // isRevealed means the secret was actually decrypted/consumed
+  const isRevealed = computed(() => props.record.isRevealed);
 
   // Calculate TTL percentage for urgency
   const getTtlPercentage = computed(() => {
@@ -157,19 +157,12 @@
   /**
    * Determine item state based on receipt state.
    * Priority: expired > burned > revealed > previewed > new
-   *
-   * STATE TERMINOLOGY MIGRATION:
-   *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
-   *   'received' -> 'revealed'   (secret content decrypted/consumed)
-   *
-   * Internal state uses new terminology; locale keys support both.
    */
   const itemState = computed((): 'new' | 'previewed' | 'revealed' | 'burned' | 'expired' => {
     if (isExpired.value) return 'expired';
     if (isBurned.value) return 'burned';
-    // isReceived/isViewed check both new and legacy API fields
-    if (isReceived.value) return 'revealed';
-    if (isViewed.value) return 'previewed';
+    if (isRevealed.value) return 'revealed';
+    if (isPreviewed.value) return 'previewed';
     return 'new';
   });
 
@@ -245,9 +238,9 @@
 class="group/row relative transition-all duration-150 hover:shadow-md">
     <!-- Content wrapper: contains everything except separator, for watermark positioning -->
     <div class="relative">
-      <!-- Background watermark: oversized shortid, centered -->
+      <!-- Background watermark: oversized shortid, centered (hidden on mobile) -->
       <div
-        class="pointer-events-none absolute inset-0 flex select-none items-center justify-center"
+        class="pointer-events-none absolute inset-0 hidden select-none items-center justify-center sm:flex"
         aria-hidden="true">
         <span
           :class="[
@@ -372,29 +365,50 @@ class="group/row relative transition-all duration-150 hover:shadow-md">
       </div>
 
       <!-- Actions (header line, right side) -->
-      <div v-if="isActive" class="flex flex-shrink-0 items-center gap-2">
-        <!-- Copy button -->
+      <div v-if="isActive" class="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+        <!-- Copy button: icon-only on mobile, text on sm+ -->
         <button
           type="button"
           @click="handleCopy"
           :class="[
-            'rounded border px-2 py-0.5 text-xs font-medium transition-colors',
+            'rounded border transition-colors',
+            'p-1.5 sm:px-2 sm:py-0.5',
             isCopied
               ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
               : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
           ]"
           :title="t('web.LABELS.copy_to_clipboard')">
-          {{ isCopied ? '[ COPIED ]' : '[ COPY ]' }}
+          <!-- Mobile: icon only -->
+          <OIcon
+            v-if="isCopied"
+            collection="heroicons"
+            name="check"
+            class="size-4 sm:hidden" />
+          <OIcon
+            v-else
+            collection="heroicons"
+            name="clipboard"
+            class="size-4 sm:hidden" />
+          <!-- Desktop: text label -->
+          <span class="hidden text-xs font-medium sm:inline">
+            {{ isCopied ? '[ COPIED ]' : '[ COPY ]' }}
+          </span>
         </button>
 
-        <!-- Open link button -->
+        <!-- Open link button: icon-only on mobile, text on sm+ -->
         <a
           :href="shareLink"
           target="_blank"
           rel="noopener noreferrer"
-          class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 transition-colors hover:bg-gray-50 sm:px-2 sm:py-0.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           :title="t('web.COMMON.view_secret')">
-          [ OPEN &#8599; ]
+          <!-- Mobile: icon only -->
+          <OIcon
+            collection="heroicons"
+            name="arrow-top-right-on-square"
+            class="size-4 sm:hidden" />
+          <!-- Desktop: text label -->
+          <span class="hidden text-xs font-medium sm:inline">[ OPEN &#8599; ]</span>
         </a>
       </div>
     </div>

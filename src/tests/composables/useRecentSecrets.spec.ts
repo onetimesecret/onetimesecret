@@ -1,7 +1,7 @@
 // src/tests/composables/useRecentSecrets.spec.ts
 
 import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
-import type { ConcealedMessage } from '@/types/ui/concealed-message';
+import type { LocalReceipt } from '@/types/ui/local-receipt';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp, nextTick, ref } from 'vue';
@@ -27,27 +27,28 @@ vi.mock('@/shared/stores/notificationsStore', () => ({
 }));
 
 // Create mock store states that we can control
-const mockConcealedMessages = ref<ConcealedMessage[]>([]);
+const mockConcealedMessages = ref<LocalReceipt[]>([]);
 const mockWorkspaceMode = ref(false);
 const mockHasMessages = ref(false);
 const mockIsInitialized = ref(false);
 
-vi.mock('@/shared/stores/concealedReceiptStore', () => ({
-  useConcealedReceiptStore: vi.fn(() => ({
-    concealedMessages: mockConcealedMessages,
+vi.mock('@/shared/stores/localReceiptStore', () => ({
+  useLocalReceiptStore: vi.fn(() => ({
+    localReceipts: mockConcealedMessages,
     workspaceMode: mockWorkspaceMode,
-    hasMessages: mockHasMessages,
+    hasReceipts: mockHasMessages,
     isInitialized: mockIsInitialized.value,
     init: vi.fn(() => {
       mockIsInitialized.value = true;
     }),
-    clearMessages: vi.fn(() => {
+    clearReceipts: vi.fn(() => {
       mockConcealedMessages.value = [];
       mockHasMessages.value = false;
     }),
     toggleWorkspaceMode: vi.fn(() => {
       mockWorkspaceMode.value = !mockWorkspaceMode.value;
     }),
+    refreshReceiptStatuses: vi.fn(),
   })),
 }));
 
@@ -68,11 +69,11 @@ import { useRecentSecrets, type RecentSecretRecord } from '@/shared/composables/
 import { useAuthStore } from '@/shared/stores/authStore';
 
 /**
- * Creates a mock ConcealedMessage for local (guest) mode testing.
+ * Creates a mock LocalReceipt for local (guest) mode testing.
  */
-function createMockConcealedMessage(
-  overrides: Partial<ConcealedMessage> = {}
-): ConcealedMessage {
+function createMockLocalReceipt(
+  overrides: Partial<LocalReceipt> = {}
+): LocalReceipt {
   const id = overrides.id ?? `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return {
     id,
@@ -101,8 +102,8 @@ function createMockApiRecord(overrides: Partial<ReceiptRecords> = {}): ReceiptRe
     state: overrides.state ?? 'new',
     created: overrides.created ?? now,
     updated: overrides.updated ?? now,
-    is_viewed: overrides.is_viewed ?? false,
-    is_received: overrides.is_received ?? false,
+    is_previewed: overrides.is_previewed ?? false,
+    is_revealed: overrides.is_revealed ?? false,
     is_burned: overrides.is_burned ?? false,
     is_destroyed: overrides.is_destroyed ?? false,
     is_expired: overrides.is_expired ?? false,
@@ -142,9 +143,9 @@ describe('useRecentSecrets', () => {
   });
 
   describe('transformLocalRecord', () => {
-    it('correctly transforms ConcealedMessage to RecentSecretRecord', async () => {
+    it('correctly transforms LocalReceipt to RecentSecretRecord', async () => {
       const now = Date.now();
-      const localMessage = createMockConcealedMessage({
+      const localMessage = createMockLocalReceipt({
         id: 'local-123',
         receiptExtid: 'receipt-extid-abc',
         receiptShortid: 'rcpt1234',
@@ -167,7 +168,7 @@ describe('useRecentSecrets', () => {
       expect(record).toBeDefined();
       expect(record.id).toBe('local-123');
       expect(record.extid).toBe('receipt-extid-abc');
-      expect(record.shortid).toBe('rcpt1234');
+      expect(record.shortid).toBe('sec12345'); // Uses secretShortid for display, not receiptShortid
       expect(record.secretExtid).toBe('secret-extid-xyz');
       expect(record.hasPassphrase).toBe(true);
       expect(record.ttl).toBe(7200);
@@ -177,7 +178,7 @@ describe('useRecentSecrets', () => {
     });
 
     it('handles null shareDomain correctly', async () => {
-      const localMessage = createMockConcealedMessage({
+      const localMessage = createMockLocalReceipt({
         id: 'null-domain-test',
         shareDomain: null,
       });
@@ -191,21 +192,21 @@ describe('useRecentSecrets', () => {
       expect(records.value[0].shareDomain).toBeUndefined();
     });
 
-    it('local records default to isViewed=false, isReceived=false, isBurned=false', async () => {
-      mockConcealedMessages.value = [createMockConcealedMessage()];
+    it('local records default to isPreviewed=false, isRevealed=false, isBurned=false', async () => {
+      mockConcealedMessages.value = [createMockLocalReceipt()];
       mockHasMessages.value = true;
 
       const { records } = useRecentSecrets();
       await nextTick();
 
       const record = records.value[0];
-      expect(record.isViewed).toBe(false);
-      expect(record.isReceived).toBe(false);
+      expect(record.isPreviewed).toBe(false);
+      expect(record.isRevealed).toBe(false);
       expect(record.isBurned).toBe(false);
     });
 
-    it('preserves original ConcealedMessage in originalRecord field', async () => {
-      const localMessage = createMockConcealedMessage({ id: 'original-test' });
+    it('preserves original LocalReceipt in originalRecord field', async () => {
+      const localMessage = createMockLocalReceipt({ id: 'original-test' });
       mockConcealedMessages.value = [localMessage];
       mockHasMessages.value = true;
 
@@ -220,7 +221,7 @@ describe('useRecentSecrets', () => {
   describe('expired detection for local records', () => {
     it('calculates isExpired=true when createdAt + ttl < now', async () => {
       const twoHoursAgo = Date.now() - 7200 * 1000;
-      const expiredMessage = createMockConcealedMessage({
+      const expiredMessage = createMockLocalReceipt({
         id: 'expired-test',
         createdAt: twoHoursAgo,
         ttl: 3600, // 1 hour TTL, but created 2 hours ago
@@ -237,7 +238,7 @@ describe('useRecentSecrets', () => {
 
     it('calculates isExpired=false when createdAt + ttl > now', async () => {
       const now = Date.now();
-      const validMessage = createMockConcealedMessage({
+      const validMessage = createMockLocalReceipt({
         id: 'valid-test',
         createdAt: now,
         ttl: 3600, // 1 hour TTL
@@ -254,7 +255,7 @@ describe('useRecentSecrets', () => {
 
     it('handles edge case where TTL just expired', async () => {
       const justExpired = Date.now() - 1000; // 1 second ago
-      const message = createMockConcealedMessage({
+      const message = createMockLocalReceipt({
         id: 'just-expired',
         createdAt: justExpired - 3600 * 1000, // Created 1 hour + 1 second ago
         ttl: 3600, // 1 hour TTL
@@ -316,8 +317,8 @@ describe('useRecentSecrets', () => {
       } as any);
 
       const apiRecord = createMockApiRecord({
-        is_viewed: true,
-        is_received: true,
+        is_previewed: true,
+        is_revealed: true,
         is_burned: false,
         is_expired: true,
       });
@@ -328,8 +329,8 @@ describe('useRecentSecrets', () => {
       await nextTick();
 
       const record = records.value[0];
-      expect(record.isViewed).toBe(true);
-      expect(record.isReceived).toBe(true);
+      expect(record.isPreviewed).toBe(true);
+      expect(record.isRevealed).toBe(true);
       expect(record.isBurned).toBe(false);
       expect(record.isExpired).toBe(true);
     });
@@ -387,7 +388,7 @@ describe('useRecentSecrets', () => {
         isFullyAuthenticated: false,
       } as any);
 
-      mockConcealedMessages.value = [createMockConcealedMessage({ id: 'local-1' })];
+      mockConcealedMessages.value = [createMockLocalReceipt({ id: 'local-1' })];
       mockHasMessages.value = true;
       mockApiRecords.value = [createMockApiRecord({ identifier: 'api-1' })];
 
@@ -405,7 +406,7 @@ describe('useRecentSecrets', () => {
         isFullyAuthenticated: true,
       } as any);
 
-      mockConcealedMessages.value = [createMockConcealedMessage({ id: 'local-1' })];
+      mockConcealedMessages.value = [createMockLocalReceipt({ id: 'local-1' })];
       mockHasMessages.value = true;
       mockApiRecords.value = [
         createMockApiRecord({
@@ -455,7 +456,7 @@ describe('useRecentSecrets', () => {
         isFullyAuthenticated: false,
       } as any);
 
-      mockConcealedMessages.value = [createMockConcealedMessage()];
+      mockConcealedMessages.value = [createMockLocalReceipt()];
       mockHasMessages.value = true;
 
       const { hasRecords } = useRecentSecrets();
@@ -516,7 +517,7 @@ describe('useRecentSecrets', () => {
 
   describe('RecentSecretRecord structure', () => {
     it('has all required fields for display', async () => {
-      mockConcealedMessages.value = [createMockConcealedMessage()];
+      mockConcealedMessages.value = [createMockLocalReceipt()];
       mockHasMessages.value = true;
 
       const { records } = useRecentSecrets();
@@ -533,8 +534,8 @@ describe('useRecentSecrets', () => {
       expect(record).toHaveProperty('ttl');
       expect(record).toHaveProperty('createdAt');
       expect(record).toHaveProperty('shareDomain');
-      expect(record).toHaveProperty('isViewed');
-      expect(record).toHaveProperty('isReceived');
+      expect(record).toHaveProperty('isPreviewed');
+      expect(record).toHaveProperty('isRevealed');
       expect(record).toHaveProperty('isBurned');
       expect(record).toHaveProperty('isExpired');
       expect(record).toHaveProperty('source');
@@ -544,7 +545,7 @@ describe('useRecentSecrets', () => {
     it('createdAt is always a Date object', async () => {
       const timestamp = Date.now();
       mockConcealedMessages.value = [
-        createMockConcealedMessage({ createdAt: timestamp }),
+        createMockLocalReceipt({ createdAt: timestamp }),
       ];
       mockHasMessages.value = true;
 

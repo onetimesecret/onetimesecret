@@ -104,11 +104,12 @@ onBeforeUnmount(() => {
     <!-- Timeline list with secrets -->
     <div
       v-else
-      class="flow-root"
+      class="flow-root rounded-lg border border-gray-200/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm
+        dark:border-gray-700/60 dark:bg-gray-800/60 sm:p-6"
       :aria-labelledby="ariaLabelledBy">
       <span class="sr-only">{{ t('web.LABELS.caption_recent_secrets') }}</span>
 
-      <ul role="list" class="-mb-6">
+      <ul role="list" class="-mb-2">
         <SecretLinksTableRow
           v-for="(record, idx) in sortedSecrets"
           :key="record.id"

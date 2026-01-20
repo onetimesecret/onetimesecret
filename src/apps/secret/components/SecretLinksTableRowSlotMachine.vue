@@ -111,10 +111,10 @@
   // Secret state computations
   const isExpired = computed(() => props.record.isExpired || props.record.ttl <= 0);
   const isBurned = computed(() => props.record.isBurned);
-  // isViewed means the secret link page was opened (but not yet revealed)
-  const isViewed = computed(() => props.record.isViewed);
-  // isReceived means the secret was actually revealed to the recipient
-  const isReceived = computed(() => props.record.isReceived);
+  // isPreviewed means the secret link page was opened (confirmation shown)
+  const isPreviewed = computed(() => props.record.isPreviewed);
+  // isRevealed means the secret was actually decrypted/consumed
+  const isRevealed = computed(() => props.record.isRevealed);
 
   // Calculate TTL percentage for urgency
   const getTtlPercentage = computed(() => {
@@ -125,19 +125,12 @@
   /**
    * Determine item state based on receipt state.
    * Priority: expired > burned > revealed > previewed > active (new)
-   *
-   * STATE TERMINOLOGY MIGRATION:
-   *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
-   *   'received' -> 'revealed'   (secret content decrypted/consumed)
-   *
-   * Internal state uses new terminology; locale keys support both.
    */
   const itemState = computed((): 'active' | 'previewed' | 'revealed' | 'burned' | 'expired' => {
     if (isExpired.value) return 'expired';
     if (isBurned.value) return 'burned';
-    // isReceived/isViewed check both new and legacy API fields
-    if (isReceived.value) return 'revealed';
-    if (isViewed.value) return 'previewed';
+    if (isRevealed.value) return 'revealed';
+    if (isPreviewed.value) return 'previewed';
     return 'active';
   });
 

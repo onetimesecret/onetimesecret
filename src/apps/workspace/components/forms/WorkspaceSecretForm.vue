@@ -21,14 +21,14 @@
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { loggingService } from '@/services/logging.service';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
+  import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
   import { storeToRefs } from 'pinia';
   import {
     DEFAULT_CORNER_CLASS,
     DEFAULT_PRIMARY_COLOR,
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
@@ -57,10 +57,10 @@
 
   const emit = defineEmits<{
     /** Emitted after successful secret creation with the response data */
-    (e: 'created', response: ConcealedMessage): void;
+    (e: 'created', response: LocalReceipt): void;
   }>();
 
-  const concealedReceiptStore = useConcealedReceiptStore();
+  const localReceiptStore = useLocalReceiptStore();
 
   // Get global defaults
   const bootstrapStore = useBootstrapStore();
@@ -108,11 +108,11 @@
           timestamp,
           receiptId: response?.record?.receipt?.identifier,
           receiptShortid: response?.record?.receipt?.shortid,
-          workspaceMode: concealedReceiptStore.workspaceMode,
+          workspaceMode: localReceiptStore.workspaceMode,
         });
 
         if (!response) throw 'Response is missing';
-        const newMessage: ConcealedMessage = {
+        const newMessage: LocalReceipt = {
           id: nanoid(),
           receiptExtid: response.record.receipt.identifier,
           receiptShortid: response.record.receipt.shortid,
@@ -124,7 +124,7 @@
           createdAt: Date.now(),
         };
         // Add the message to the store
-        concealedReceiptStore.addMessage(newMessage);
+        localReceiptStore.addReceipt(newMessage);
 
         // Preserve TTL before reset (sticky setting)
         const preservedTtl = form.ttl;
@@ -144,7 +144,7 @@
 
         // Navigate to receipt page if workspace mode is off OR if generating password
         // (generated passwords must be viewed on receipt page since they're only shown once)
-        if (!concealedReceiptStore.workspaceMode || selectedAction.value === 'generate-password') {
+        if (!localReceiptStore.workspaceMode || selectedAction.value === 'generate-password') {
           router.push(`/receipt/${newMessage.receiptExtid}`);
         } else {
           loggingService.debug('[DEBUG:WorkspaceSecretForm] Staying on page (workspace mode)', {
@@ -232,12 +232,12 @@
       <!-- Main Content Card -->
       <div
         :class="[cornerClass]"
-        class="overflow-visible border border-gray-200/50
+        class="overflow-visible border border-gray-200/60
           bg-gradient-to-br from-white to-gray-50/30
-          shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)]
+          shadow-[0_4px_16px_rgb(0,0,0,0.08),0_1px_4px_rgb(0,0,0,0.06)]
           backdrop-blur-sm
-          dark:border-gray-700/50 dark:from-slate-900 dark:to-slate-800/30
-          dark:shadow-[0_8px_30px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
+          dark:border-gray-700/60 dark:from-slate-900 dark:to-slate-800/30
+          dark:shadow-[0_4px_16px_rgb(0,0,0,0.3),0_1px_4px_rgb(0,0,0,0.2)]">
         <!-- Content Section -->
         <div class="p-6">
           <!-- Textarea for Create Link mode -->
@@ -258,7 +258,7 @@
                 :class="[cornerClass]"
                 style="min-height: 280px; max-height: 500px"
                 class="block w-full resize-none
-                  rounded-lg border border-gray-200/60 p-5
+                  rounded-lg border border-gray-200/60 p-4
                   font-mono text-base leading-relaxed
                   text-gray-900 transition-all
                   duration-300 placeholder:text-gray-400
@@ -362,15 +362,14 @@
 
         <!-- Actions Footer -->
         <div class="border-t border-gray-200/50 dark:border-gray-700/50">
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <!-- Main action row -->
             <div
-              class="flex flex-col gap-4 sm:flex-row sm:items-center
-                sm:justify-between">
-              <!-- Domain Context Indicator -->
+              class="flex items-center justify-between gap-4">
+              <!-- Domain Context Indicator (hidden on mobile - redundant with header) -->
               <div
                 v-if="isContextActive"
-                class="flex items-center gap-2 text-base font-brand">
+                class="hidden items-center gap-2 text-base font-brand sm:flex">
                 <span class="text-gray-600 dark:text-gray-400">
                   {{ t('web.LABELS.creating_links_for') }}
                 </span>
@@ -403,14 +402,14 @@
                 </div>
               </div>
 
-              <!-- Submit Area with Stay on Page toggle -->
-              <div class="flex items-center gap-2.5">
+              <!-- Submit Area with Stay on Page toggle (always right-aligned) -->
+              <div class="ml-auto flex items-center gap-2.5">
                 <!-- Stay on Page Toggle (refined, compact) -->
                 <!-- Disabled when generating password since user must see the receipt to view the generated password -->
                 <button
                   type="button"
                   :disabled="isSubmitting || selectedAction === 'generate-password'"
-                  @click="concealedReceiptStore.toggleWorkspaceMode()"
+                  @click="localReceiptStore.toggleWorkspaceMode()"
                   :title="selectedAction === 'generate-password'
                     ? t('web.secrets.workspace_mode_disabled_for_generate')
                     : t('web.secrets.workspace_mode_description')"
@@ -419,13 +418,13 @@
                     focus:outline-none focus:ring-2 focus:ring-brand-500/50
                     disabled:opacity-50 disabled:cursor-not-allowed"
                   :class="
-                    concealedReceiptStore.workspaceMode && selectedAction !== 'generate-password'
+                    localReceiptStore.workspaceMode && selectedAction !== 'generate-password'
                       ? 'bg-brand-50/80 text-brand-600 ring-brand-500/25 hover:bg-brand-100/80 dark:bg-brand-900/20 dark:text-brand-400 dark:ring-brand-400/20 dark:hover:bg-brand-900/30'
                       : 'bg-gray-50/80 text-gray-500 ring-gray-400/20 hover:bg-gray-100/80 hover:text-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:ring-gray-600/20 dark:hover:bg-gray-700/50'
                   ">
                   <OIcon
                     collection="mdi"
-                    :name="concealedReceiptStore.workspaceMode && selectedAction !== 'generate-password' ? 'pin' : 'pin-off'"
+                    :name="localReceiptStore.workspaceMode && selectedAction !== 'generate-password' ? 'pin' : 'pin-off'"
                     class="size-3.5"
                     aria-hidden="true" />
                   <span>{{ t('web.secrets.workspace_mode') }}</span>

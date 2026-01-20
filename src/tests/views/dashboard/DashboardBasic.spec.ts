@@ -133,7 +133,7 @@ describe('DashboardBasic', () => {
       const wrapper = mountComponent();
 
       const secretForm = wrapper.findComponent({ name: 'SecretForm' });
-      expect(secretForm.classes()).toContain('mb-12');
+      expect(secretForm.classes()).toContain('mb-10');
     });
   });
 

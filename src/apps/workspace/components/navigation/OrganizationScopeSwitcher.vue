@@ -197,7 +197,7 @@ const navigateToManageOrganizations = (): void => {
         :class="
           isCurrentOrgDefault
             ? 'bg-gray-200 dark:bg-gray-700'
-            : 'bg-brand-600 text-white dark:bg-brand-500'
+            : 'bg-brand-500 text-white dark:bg-brand-500'
         "
         aria-hidden="true">
         <OIcon
@@ -208,9 +208,9 @@ const navigateToManageOrganizations = (): void => {
         <template v-else>{{ getOrganizationInitial(currentOrganization) }}</template>
       </span>
 
-      <!-- Current Organization Display -->
+      <!-- Current Organization Display (hidden on xs, truncated on sm+) -->
       <span
-        class="max-w-[120px] truncate md:max-w-[160px] lg:max-w-[200px]"
+        class="hidden max-w-[80px] truncate sm:inline md:max-w-[120px] lg:max-w-[160px]"
         :title="currentOrganization ? getOrganizationDisplayName(currentOrganization) : undefined">
         {{
           currentOrganization
@@ -273,7 +273,7 @@ const navigateToManageOrganizations = (): void => {
                   isDefaultOrg(org)
                     ? 'bg-gray-200 dark:bg-gray-700'
                     : isCurrentOrganization(org)
-                      ? 'bg-brand-600 text-white dark:bg-brand-500'
+                      ? 'bg-gray-600 text-white dark:bg-brand-500'
                       : 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-200',
                 ]"
                 aria-hidden="true">

@@ -523,6 +523,9 @@
   "web.LABELS.expiration_time": {
     "text": "Expiration Time"
   },
+  "web.LABELS.secret_ttl": {
+    "text": "Expires in"
+  },
   "web.LABELS.close": {
     "text": "Close"
   },
