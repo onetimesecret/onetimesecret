@@ -163,7 +163,7 @@ module Onetime
       # @param match_fields [Array<String>] Fields to include in key
       # @return [String, nil] Composite key or nil if required fields missing
       def build_match_key_from_metadata(metadata, match_fields)
-        values = match_fields.map { |f| metadata[f] }
+        values = match_fields.map { |f| metadata[f]&.to_s }
         return nil if values.any?(&:nil?)
 
         values.join('|')
@@ -544,7 +544,7 @@ module Onetime
           # Special handling for certain field types
           serialized = case field_name
                        when Billing::Metadata::FIELD_ENTITLEMENTS
-                         (value || []).join(',')
+                         value.join(',')
                        when Billing::Metadata::FIELD_IS_POPULAR
                          value == true ? 'true' : nil
                        else
