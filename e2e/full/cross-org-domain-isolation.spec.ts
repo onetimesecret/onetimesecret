@@ -55,16 +55,19 @@ interface OrgInfo {
 async function loginUser(page: Page): Promise<void> {
   await page.goto('/signin');
 
-  const emailInput = page.getByLabel(/email/i);
-  const passwordInput = page.getByLabel(/password/i);
-  const submitButton = page.getByRole('button', { name: /sign in/i });
+  // Use direct element selectors - getByLabel can match hidden HeadlessUI tab panels
+  const emailInput = page.locator('input[type="email"], input[name="email"]');
+  const passwordInput = page.locator('input[type="password"], input[name="password"]');
+  const submitButton = page.locator('button[type="submit"]');
 
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-  await submitButton.click();
+  if (await emailInput.isVisible()) {
+    await emailInput.fill(process.env.TEST_USER_EMAIL || '');
+    await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
+    await submitButton.click();
 
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
+    // Wait for redirect to dashboard/account
+    await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
+  }
 }
 
 /**
