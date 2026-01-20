@@ -88,7 +88,7 @@
       <div>
         <h2
           id="recent-secrets-heading"
-          class="text-xl font-medium text-gray-700 dark:text-gray-200">
+          class="text-lg font-medium text-gray-600 dark:text-gray-300">
           {{ t('web.COMMON.recent') }}
         </h2>
         <p

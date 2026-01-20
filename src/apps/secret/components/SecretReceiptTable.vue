@@ -243,7 +243,7 @@
         aria-labelledby="received-heading">
         <h3
           id="received-heading"
-          class="mb-4 text-xl font-medium text-gray-700 dark:text-gray-200">
+          class="mb-4 text-lg font-medium text-gray-600 dark:text-gray-300">
           {{ t('web.dashboard.title_received') }}
         </h3>
 
