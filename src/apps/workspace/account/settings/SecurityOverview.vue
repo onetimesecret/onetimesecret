@@ -5,9 +5,12 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
-  import { computed, onMounted } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
+
+  // Feature toggles
+  const showSessionsCard = ref(false);
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   interface SecurityCard {
@@ -45,7 +48,7 @@
   const securityCards = computed<SecurityCard[]>(() => {
     if (!accountInfo.value) return [];
 
-    return [
+    const cards: SecurityCard[] = [
       {
         id: 'password',
         icon: { collection: 'heroicons', name: 'lock-closed-solid' },
@@ -89,7 +92,10 @@
           to: '/account/settings/security/recovery-codes',
         },
       },
-      {
+    ];
+
+    if (showSessionsCard.value) {
+      cards.push({
         id: 'sessions',
         icon: { collection: 'heroicons', name: 'computer-desktop-solid' },
         title: t('web.auth.sessions.title'),
@@ -102,8 +108,10 @@
           label: t('web.settings.security.manage'),
           to: '/account/settings/security/sessions',
         },
-      },
-    ];
+      });
+    }
+
+    return cards;
   });
 
   const statusColorClasses = {
@@ -249,53 +257,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Security Best Practices -->
-      <div
-        class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-        <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-          <OIcon
-            collection="heroicons"
-            name="light-bulb"
-            class="size-5 text-yellow-500"
-            aria-hidden="true" />
-          {{ t('web.settings.security.best_practices') }}
-        </h2>
-        <ul class="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
-          <li class="flex gap-3">
-            <OIcon
-              collection="heroicons"
-              name="check-circle-solid"
-              class="size-5 shrink-0 text-green-600 dark:text-green-400"
-              aria-hidden="true" />
-            {{ t('web.settings.security.use_strong_unique_password') }}
-          </li>
-          <li class="flex gap-3">
-            <OIcon
-              collection="heroicons"
-              name="check-circle-solid"
-              class="size-5 shrink-0 text-green-600 dark:text-green-400"
-              aria-hidden="true" />
-            {{ t('web.settings.security.enable_mfa_for_protection') }}
-          </li>
-          <li class="flex gap-3">
-            <OIcon
-              collection="heroicons"
-              name="check-circle-solid"
-              class="size-5 shrink-0 text-green-600 dark:text-green-400"
-              aria-hidden="true" />
-            {{ t('web.settings.security.save_recovery_codes_safely') }}
-          </li>
-          <li class="flex gap-3">
-            <OIcon
-              collection="heroicons"
-              name="check-circle-solid"
-              class="size-5 shrink-0 text-green-600 dark:text-green-400"
-              aria-hidden="true" />
-            {{ t('web.settings.security.review_sessions_regularly') }}
-          </li>
-        </ul>
       </div>
     </div>
   </SettingsLayout>
