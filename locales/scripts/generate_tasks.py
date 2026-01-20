@@ -41,8 +41,8 @@ from utils import load_json_file, walk_keys
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
-SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
-EN_DIR = SRC_LOCALES_DIR / "en"
+CONTENT_DIR = LOCALES_DIR / "content"
+EN_DIR = CONTENT_DIR / "en"
 DB_DIR = LOCALES_DIR / "db"
 TASKS_FILE = DB_DIR / "tasks.sql"
 DB_FILE = DB_DIR / "tasks.db"
@@ -147,7 +147,7 @@ def compare_locale(
     Returns:
         Tuple of (list of TaskData records, stats dict).
     """
-    locale_dir = SRC_LOCALES_DIR / locale
+    locale_dir = CONTENT_DIR / locale
 
     if not locale_dir.exists():
         print(f"Error: Locale directory not found: {locale_dir}", file=sys.stderr)

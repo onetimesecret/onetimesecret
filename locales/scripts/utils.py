@@ -12,14 +12,19 @@ from typing import Any, Iterator
 
 
 def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]]:
-    """Recursively walk a nested dict, yielding (key_path, value) tuples.
+    """Walk a dict, yielding (key_path, text_value) tuples.
 
-    Skips metadata keys (prefixed with '_').
-    Only yields leaf string values.
+    Supports two formats:
+    1. Flat format (locales/content/): Keys are dot-notation paths, values are
+       objects with a 'text' field: {"web.COMMON.tagline": {"text": "...", ...}}
+    2. Nested format (legacy): Keys are nested dicts with string leaf values:
+       {"web": {"COMMON": {"tagline": "..."}}}
+
+    Skips entries with skip=True or empty text values.
 
     Args:
         obj: Dictionary to walk.
-        prefix: Current key path prefix.
+        prefix: Current key path prefix (used for nested format recursion).
 
     Yields:
         Tuples of (full_key_path, string_value).
@@ -29,11 +34,21 @@ def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]
         if key.startswith("_"):
             continue
 
-        full_key = f"{prefix}.{key}" if prefix else key
-
-        if isinstance(value, dict):
+        # Flat format: key is already dot-notation, value is {"text": "...", ...}
+        if isinstance(value, dict) and "text" in value:
+            # Skip if marked to skip
+            if value.get("skip", False):
+                continue
+            text = value["text"]
+            if isinstance(text, str):
+                yield (key, text)
+        # Nested format: recurse into nested dicts
+        elif isinstance(value, dict):
+            full_key = f"{prefix}.{key}" if prefix else key
             yield from walk_keys(value, full_key)
+        # Nested format: leaf string value
         elif isinstance(value, str):
+            full_key = f"{prefix}.{key}" if prefix else key
             yield (full_key, value)
         # Skip non-string, non-dict values (arrays, numbers, etc.)
 
