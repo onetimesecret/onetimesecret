@@ -252,9 +252,11 @@ module Onetime
 
       # Resolve existing Stripe product for a plan.
       #
-      # Priority:
-      # 1. stripe_product_id override (direct Stripe product ID binding)
-      # 2. Composite match key lookup (plan_id + region, etc.)
+      # Matching modes (mutually exclusive):
+      # 1. stripe_product_id override: Direct 1-to-1 binding to a specific Stripe product.
+      #    If specified, this is the ONLY product that can match - no fallback.
+      # 2. Composite match key lookup: Match by plan_id + region (or other configured fields).
+      #    Only used when NO stripe_product_id is specified.
       #
       # @param plan_id [String] The plan identifier
       # @param plan_def [Hash] Plan definition from catalog
@@ -262,19 +264,23 @@ module Onetime
       # @param match_fields [Array<String>] Fields used for matching
       # @return [Stripe::Product, nil] Matched product or nil
       def resolve_existing_product(plan_id, plan_def, existing_products, match_fields)
-        # Override: direct Stripe product ID binding
+        # Override: direct Stripe product ID binding (explicit 1-to-1 match)
         if (override_id = plan_def['stripe_product_id'])
           product = existing_products.values.find { |p| p.id == override_id }
           if product
             puts "  ℹ #{plan_id}: using stripe_product_id override (#{override_id})"
             return product
           else
-            puts "  ⚠ #{plan_id}: stripe_product_id '#{override_id}' not found in Stripe"
-            # Fall through to normal matching
+            # stripe_product_id is an explicit binding - do NOT fall through to composite matching.
+            # The product may exist in Stripe but be filtered out by region, or may not exist at all.
+            # Either way, treat this plan as having no existing product (will create new).
+            puts "  ⚠ #{plan_id}: stripe_product_id '#{override_id}' not found in fetched products"
+            puts '    (product may be filtered by region or not exist - will create new product)'
+            return nil
           end
         end
 
-        # Normal matching via composite key
+        # Normal matching via composite key (only when no explicit override)
         match_key = build_match_key_from_plan(plan_id, plan_def, match_fields)
         existing_products[match_key]
       end
