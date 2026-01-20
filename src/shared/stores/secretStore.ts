@@ -10,6 +10,7 @@ import {
 } from '@/schemas/api/v3';
 import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
+import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
@@ -165,6 +166,11 @@ export const useSecretStore = defineStore('secrets', () => {
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
     details.value = validated.details as any;
+
+    // Update local storage status for non-authenticated users
+    // The secretIdentifier is the secretExtid we stored when creating the secret
+    const concealedReceiptStore = useConcealedReceiptStore();
+    concealedReceiptStore.markAsReceived(secretIdentifier);
 
     return validated;
   }

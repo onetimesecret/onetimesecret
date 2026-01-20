@@ -2,11 +2,24 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
-import { type ConcealedMessage } from '@/types/ui/concealed-message';
+import { type LocalReceipt } from '@/types/ui/local-receipt';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 
 interface StoreOptions extends PiniaPluginOptions {}
+
+/**
+ * Response from the batch receipts status API
+ */
+export interface GuestReceiptsResponse {
+  records: Array<{
+    secret_shortid: string;
+    is_received?: boolean;
+    is_burned?: boolean;
+  }>;
+  count: number;
+}
 
 /**
  * Type definition for ConcealedReceiptStore.
@@ -14,7 +27,7 @@ interface StoreOptions extends PiniaPluginOptions {}
 export type ConcealedReceiptStore = {
   // State
   _initialized: boolean;
-  concealedMessages: ConcealedMessage[];
+  concealedMessages: LocalReceipt[];
   workspaceMode: boolean;
 
   // Getters
@@ -23,8 +36,11 @@ export type ConcealedReceiptStore = {
 
   // Actions
   init: (options?: StoreOptions) => { isInitialized: boolean };
-  addMessage: (message: ConcealedMessage) => void;
+  addMessage: (message: LocalReceipt) => void;
   updateMemo: (id: string, memo: string) => void;
+  markAsReceived: (secretExtid: string) => void;
+  markAsBurned: (secretExtid: string) => void;
+  refreshReceiptStatuses: () => Promise<void>;
   clearMessages: () => void;
   setWorkspaceMode: (enabled: boolean) => void;
   toggleWorkspaceMode: () => void;
@@ -36,17 +52,17 @@ export type ConcealedReceiptStore = {
 // which use dot notation).
 const STORAGE_KEY = 'onetimeReceiptCache';
 const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
-const MAX_STORED_RECEIPTS = 20;
+const MAX_STORED_RECEIPTS = 25;
 
 /**
  * Loads concealed messages from sessionStorage
  */
-function loadFromStorage(): ConcealedMessage[] {
+function loadFromStorage(): LocalReceipt[] {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
       const now = Date.now();
-      const parsed = JSON.parse(stored) as ConcealedMessage[];
+      const parsed = JSON.parse(stored) as LocalReceipt[];
       // Filter out expired entries (createdAt + ttl has passed)
       return parsed.filter((m) => m.createdAt + m.ttl * 1000 > now);
     }
@@ -77,9 +93,11 @@ function loadWorkspaceModePreference(): boolean {
  */
 // eslint-disable-next-line max-lines-per-function
 export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
+  const $api = inject('api') as AxiosInstance;
+
   // State
   const _initialized = ref(false);
-  const concealedMessages = ref<ConcealedMessage[]>(loadFromStorage());
+  const concealedMessages = ref<LocalReceipt[]>(loadFromStorage());
   const workspaceMode = ref(loadWorkspaceModePreference());
 
   // Getters
@@ -131,7 +149,7 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
    *
    * @param message The concealed message to add
    */
-  function addMessage(message: ConcealedMessage) {
+  function addMessage(message: LocalReceipt) {
     // Remove any existing message with same ID
     const filtered = concealedMessages.value.filter((m) => m.id !== message.id);
     // Add new message at beginning, enforce max limit
@@ -156,6 +174,82 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
       }
       // Trigger reactivity by replacing the array
       concealedMessages.value = [...concealedMessages.value];
+    }
+  }
+
+  /**
+   * Marks a secret as received (viewed).
+   * Called when the secret creator or recipient views the secret content.
+   *
+   * @param secretExtid The secret external ID to mark as received
+   */
+  function markAsReceived(secretExtid: string) {
+    const index = concealedMessages.value.findIndex((m) => m.secretExtid === secretExtid);
+    if (index !== -1) {
+      concealedMessages.value[index].isReceived = true;
+      // Trigger reactivity by replacing the array
+      concealedMessages.value = [...concealedMessages.value];
+    }
+  }
+
+  /**
+   * Marks a secret as burned (manually destroyed before viewing).
+   * Called when the creator burns the secret from the receipt page.
+   *
+   * @param secretExtid The secret external ID to mark as burned
+   */
+  function markAsBurned(secretExtid: string) {
+    const index = concealedMessages.value.findIndex((m) => m.secretExtid === secretExtid);
+    if (index !== -1) {
+      concealedMessages.value[index].isBurned = true;
+      // Trigger reactivity by replacing the array
+      concealedMessages.value = [...concealedMessages.value];
+    }
+  }
+
+  /**
+   * Refreshes the status of all stored receipts from the server.
+   * Calls POST /api/v3/guest/receipts with the secret shortids to get current status.
+   * Updates local storage with server state (isReceived, isBurned).
+   */
+  async function refreshReceiptStatuses(): Promise<void> {
+    if (concealedMessages.value.length === 0) return;
+
+    const identifiers = concealedMessages.value.map((m) => m.secretShortid);
+
+    try {
+      const response = await $api.post<GuestReceiptsResponse>('/api/v3/guest/receipts', {
+        identifiers,
+      });
+
+      const { records } = response.data;
+      let hasUpdates = false;
+
+      // Update local receipts with server status
+      for (const serverRecord of records) {
+        const localIndex = concealedMessages.value.findIndex(
+          (m) => m.secretShortid === serverRecord.secret_shortid
+        );
+        if (localIndex === -1) continue;
+
+        const local = concealedMessages.value[localIndex];
+        // Only update if status changed
+        if (serverRecord.is_received && !local.isReceived) {
+          concealedMessages.value[localIndex].isReceived = true;
+          hasUpdates = true;
+        }
+        if (serverRecord.is_burned && !local.isBurned) {
+          concealedMessages.value[localIndex].isBurned = true;
+          hasUpdates = true;
+        }
+      }
+
+      // Trigger reactivity if any updates occurred
+      if (hasUpdates) {
+        concealedMessages.value = [...concealedMessages.value];
+      }
+    } catch (error) {
+      loggingService.error(new Error(`Failed to refresh receipt statuses: ${error}`));
     }
   }
 
@@ -213,6 +307,9 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
     init,
     addMessage,
     updateMemo,
+    markAsReceived,
+    markAsBurned,
+    refreshReceiptStatuses,
     clearMessages,
     setWorkspaceMode,
     toggleWorkspaceMode,

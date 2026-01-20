@@ -6,7 +6,7 @@ import { useAuthStore } from '@/shared/stores/authStore';
 import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useReceiptListStore, type FetchListOptions } from '@/shared/stores/receiptListStore';
-import type { ConcealedMessage } from '@/types/ui/concealed-message';
+import type { LocalReceipt } from '@/types/ui/local-receipt';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
 
@@ -14,7 +14,7 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
  * Unified record type for recent secrets display.
- * Abstracts differences between local (ConcealedMessage) and API (ReceiptRecords) sources.
+ * Abstracts differences between local (LocalReceipt) and API (ReceiptRecords) sources.
  */
 export interface RecentSecretRecord {
   /** Unique identifier for the record */
@@ -46,7 +46,7 @@ export interface RecentSecretRecord {
   /** Original source data for advanced usage */
   source: 'local' | 'api';
   /** Original record for type-specific operations */
-  originalRecord: ConcealedMessage | ReceiptRecords;
+  originalRecord: LocalReceipt | ReceiptRecords;
   /** Optional user-defined memo for identifying the secret */
   memo?: string;
 }
@@ -65,6 +65,8 @@ export interface UseRecentSecretsReturn {
   hasRecords: ComputedRef<boolean>;
   /** Fetch/refresh records from source */
   fetch: (options?: FetchListOptions) => Promise<void>;
+  /** Refresh receipt statuses from server (local mode only, updates isReceived/isBurned) */
+  refreshStatuses: () => Promise<void>;
   /** Clear all records */
   clear: () => void;
   /** Update memo for a record (local mode only for now) */
@@ -82,23 +84,29 @@ export interface UseRecentSecretsReturn {
 }
 
 /**
- * Transform a ConcealedMessage (local storage) to unified RecentSecretRecord
+ * Transform a LocalReceipt (local storage) to unified RecentSecretRecord
  */
-function transformLocalRecord(message: ConcealedMessage): RecentSecretRecord {
+function transformLocalRecord(message: LocalReceipt): RecentSecretRecord {
+  const isReceived = message.isReceived ?? false;
+  const isBurned = message.isBurned ?? false;
+  const isExpired = message.createdAt + message.ttl * 1000 < Date.now();
+  // isDestroyed means the secret is no longer accessible (received, burned, or expired)
+  const isDestroyed = isReceived || isBurned || isExpired;
+
   return {
     id: message.id,
     extid: message.receiptExtid,
-    shortid: message.receiptShortid,
+    shortid: message.secretShortid, // Use secret shortid for display, not receipt
     secretExtid: message.secretExtid,
     hasPassphrase: message.hasPassphrase,
     ttl: message.ttl,
     createdAt: new Date(message.createdAt),
     shareDomain: message.shareDomain ?? undefined,
-    isViewed: false, // Local records start as not viewed
-    isReceived: false, // Local records are never marked received
-    isBurned: false, // Local records track this separately if needed
-    isExpired: message.createdAt + message.ttl * 1000 < Date.now(),
-    isDestroyed: false, // Local records track this separately if needed
+    isViewed: isReceived, // For local records, viewed === received
+    isReceived,
+    isBurned,
+    isExpired,
+    isDestroyed,
     source: 'local',
     originalRecord: message,
     memo: message.memo,
@@ -182,11 +190,16 @@ function useLocalRecentSecrets() {
     store.updateMemo(id, memo);
   };
 
+  const refreshStatuses = async () => {
+    await store.refreshReceiptStatuses();
+  };
+
   return {
     records,
     hasRecords,
     workspaceMode,
     fetch,
+    refreshStatuses,
     clear,
     toggleWorkspaceMode,
     updateMemo,
@@ -232,11 +245,17 @@ function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T
     });
   };
 
+  const refreshStatuses = async () => {
+    // For API mode, fetch already returns fresh data from the server
+    // No separate refresh needed
+  };
+
   return {
     records,
     hasRecords,
     workspaceMode,
     fetch,
+    refreshStatuses,
     clear,
     toggleWorkspaceMode,
     updateMemo,
@@ -359,6 +378,14 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     }
   };
 
+  const refreshStatuses = async () => {
+    if (isAuthenticated.value) {
+      await api.refreshStatuses();
+    } else {
+      await local.refreshStatuses();
+    }
+  };
+
   // Scope properties (only relevant for authenticated users)
   const currentScope = computed(() =>
     isAuthenticated.value ? api.currentScope.value : undefined
@@ -374,6 +401,7 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     error,
     hasRecords,
     fetch,
+    refreshStatuses,
     clear,
     updateMemo,
     workspaceMode,
