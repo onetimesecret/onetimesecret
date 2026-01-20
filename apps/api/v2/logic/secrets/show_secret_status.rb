@@ -21,7 +21,12 @@ module V2::Logic
       def process
         @current_expiration = secret.current_expiration unless secret.nil?
 
-        success_data
+        response_data = success_data
+
+        # Otherwise it'll be flagged previewed before we've even sent the response.
+        secret.previewed!
+
+        response_data
       end
 
       def success_data
