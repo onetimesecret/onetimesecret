@@ -174,11 +174,14 @@ module Onetime
       # @param plan_id [String] The plan identifier (YAML key)
       # @param plan_def [Hash] Plan definition from catalog
       # @param match_fields [Array<String>] Fields to include in key
-      # @return [String] Composite key
+      # @return [String, nil] Composite key, or nil if any required field is missing
       def build_match_key_from_plan(plan_id, plan_def, match_fields)
-        match_fields.map do |field|
-          field == 'plan_id' ? plan_id : plan_def[field]
-        end.join('|')
+        values = match_fields.map do |field|
+          field == 'plan_id' ? plan_id : plan_def[field]&.to_s
+        end
+        return nil if values.any?(&:nil?)
+
+        values.join('|')
       end
 
       def fetch_existing_prices(products)

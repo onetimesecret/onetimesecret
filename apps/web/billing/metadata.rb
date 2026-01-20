@@ -46,10 +46,10 @@ module Billing
     FIELD_LIMIT_SECRET_LIFETIME  = 'limit_secret_lifetime'
     FIELD_LIMIT_SECRETS_PER_DAY  = 'limit_secrets_per_day'
 
-    # Metadata fields that should be synced to Stripe (non-limit fields)
-    # Maps metadata field name to yaml_key
+    # Non-limit metadata fields that should be synced to Stripe.
+    # Maps metadata field name to yaml_key.
     #
-    # All fields are always compared during update detection.
+    # During update detection, both SYNCABLE_FIELDS and LIMIT_FIELDS are compared.
     # During creation, only fields with values are included.
     SYNCABLE_FIELDS = {
       FIELD_TIER => 'tier',

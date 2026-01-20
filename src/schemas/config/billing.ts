@@ -229,6 +229,7 @@ export const BillingConfigSchema = z.object({
 
   match_fields: z
     .array(z.string().min(1))
+    .min(1)
     .default(['plan_id'])
     .describe('Fields used to build composite match key for Stripe product identification'),
   region: z
