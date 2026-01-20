@@ -28,7 +28,7 @@ defineSlots<{
 </script>
 
 <template>
-  <section class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+  <section class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
     <!-- Header -->
     <div
       v-if="showHeader !== false && (title || $slots.actions)"

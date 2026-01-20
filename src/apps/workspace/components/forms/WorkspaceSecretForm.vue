@@ -258,7 +258,7 @@
                 :class="[cornerClass]"
                 style="min-height: 280px; max-height: 500px"
                 class="block w-full resize-none
-                  rounded-lg border border-gray-200/60 p-5
+                  rounded-lg border border-gray-200/60 p-4
                   font-mono text-base leading-relaxed
                   text-gray-900 transition-all
                   duration-300 placeholder:text-gray-400
