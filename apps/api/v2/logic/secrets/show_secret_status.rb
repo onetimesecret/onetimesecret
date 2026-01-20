@@ -24,7 +24,7 @@ module V2::Logic
         response_data = success_data
 
         # Otherwise it'll be flagged previewed before we've even sent the response.
-        secret.previewed!
+        secret.previewed! unless secret.nil?
 
         response_data
       end

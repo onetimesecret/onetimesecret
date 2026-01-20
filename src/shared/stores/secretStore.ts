@@ -10,6 +10,7 @@ import {
 } from '@/schemas/api/v3';
 import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -167,10 +168,13 @@ export const useSecretStore = defineStore('secrets', () => {
     record.value = validated.record;
     details.value = validated.details as any;
 
-    // Update local storage status for non-authenticated users
+    // Update local storage status for non-authenticated users only
     // The secretIdentifier is the secretExtid we stored when creating the secret
-    const localReceiptStore = useLocalReceiptStore();
-    localReceiptStore.markAsRevealed(secretIdentifier);
+    const authStore = useAuthStore();
+    if (!authStore.isAuthenticated) {
+      const localReceiptStore = useLocalReceiptStore();
+      localReceiptStore.markAsRevealed(secretIdentifier);
+    }
 
     return validated;
   }

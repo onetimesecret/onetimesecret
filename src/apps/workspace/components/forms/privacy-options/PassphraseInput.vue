@@ -8,7 +8,7 @@
    * Provides password entry with show/hide toggle, validation,
    * and visual feedback for passphrase state.
    */
-  import { computed, ref } from 'vue';
+  import { computed, nextTick, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -123,11 +123,9 @@
   };
 
   // Focus input when panel opens
-  const focusInput = () => {
-    // Use setTimeout to ensure panel is rendered
-    setTimeout(() => {
-      inputRef.value?.focus();
-    }, 0);
+  const focusInput = async () => {
+    await nextTick();
+    inputRef.value?.focus();
   };
 </script>
 
@@ -190,7 +188,7 @@
             :disabled="disabled"
             :aria-invalid="!!validationError"
             :aria-describedby="errorId"
-            autocomplete="one-time-code"
+            autocomplete="new-password"
             class="w-full rounded-md border bg-white py-2 pl-3 pr-16
               text-sm text-gray-900 placeholder:text-gray-400
               focus:outline-none focus:ring-2

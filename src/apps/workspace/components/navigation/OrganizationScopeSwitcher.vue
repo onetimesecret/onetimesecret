@@ -197,7 +197,7 @@ const navigateToManageOrganizations = (): void => {
         :class="
           isCurrentOrgDefault
             ? 'bg-gray-200 dark:bg-gray-700'
-            : 'bg-gray-200 text-white dark:bg-brand-500'
+            : 'bg-brand-500 text-white dark:bg-brand-500'
         "
         aria-hidden="true">
         <OIcon

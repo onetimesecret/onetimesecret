@@ -197,7 +197,7 @@
                   :type="passphraseVisible ? 'text' : 'password'"
                   :value="currentPassphrase"
                   :disabled="disabled"
-                  autocomplete="one-time-code"
+                  autocomplete="new-password"
                   :placeholder="t('web.secrets.enterPassphrase')"
                   @input="handlePassphraseInput"
                   class="w-full rounded-lg border bg-white px-4 py-3 pr-20 text-base
