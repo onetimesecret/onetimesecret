@@ -51,18 +51,26 @@ const TABS = {
 async function loginUser(page: Page): Promise<void> {
   await page.goto('/signin');
 
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
+  // Click Password tab - Magic Link is the default, password input is hidden
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
+  await passwordTab.click();
+
+  // Wait for password input to be visible after tab switch
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Now fill the form (email input is in the password tab panel)
+  const emailInput = page.locator('#signin-email-password');
+  await emailInput.fill(process.env.TEST_USER_EMAIL || 'domaincontext@onetime.dev');
+  await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
+
+  // Submit
   const submitButton = page.locator('button[type="submit"]');
+  await submitButton.click();
 
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(process.env.TEST_USER_EMAIL || 'domaincontext@onetime.dev');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || 'testpassword');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account
-    await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
-  }
+  // Wait for redirect to dashboard/account
+  await page.waitForURL(/\/(account|dashboard)/, { timeout: 30000 });
 }
 
 /**
@@ -75,19 +83,14 @@ function extractOrgExtidFromUrl(url: string): string | null {
 
 /**
  * Locators for Organization Scope Switcher
+ * Uses data-testid attributes for reliability
  */
 const orgSwitcher = {
-  trigger: (page: Page) =>
-    page.locator(
-      '[data-testid="org-scope-switcher-trigger"], button[aria-label*="organization" i]'
-    ),
-  dropdown: (page: Page) =>
-    page.locator('[data-testid="org-scope-switcher-dropdown"], [role="menu"]').filter({
-      has: page.locator('text=/my organizations/i'),
-    }),
-  menuItems: (page: Page) => page.locator('[role="menuitem"]'),
+  trigger: (page: Page) => page.getByTestId('org-scope-switcher-trigger'),
+  dropdown: (page: Page) => page.getByTestId('org-scope-switcher-dropdown'),
+  menuItems: (page: Page) => page.locator('[data-testid^="org-menu-item-"]'),
   getOrgMenuItem: (page: Page, orgName: string) =>
-    page.locator('[role="menuitem"]').filter({ hasText: orgName }),
+    page.locator('[data-testid^="org-menu-item-"]').filter({ hasText: orgName }),
 };
 
 /**
@@ -109,26 +112,35 @@ async function navigateToOrgTab(
 ): Promise<string> {
   // First go to orgs list to find the org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
 
-  // Find and click the org link
-  const orgLink = page.locator(`a[href*="/org/"]`).filter({ hasText: orgName }).first();
-  const hasOrgLink = await orgLink.isVisible().catch(() => false);
+  // Wait for organizations list to load
+  const orgsList = page.getByTestId('organizations-list');
+  await orgsList.waitFor({ state: 'visible', timeout: 10000 });
 
-  if (!hasOrgLink) {
-    throw new Error(`Organization "${orgName}" not found in orgs list`);
+  // Find the org card by looking for org-name element with matching text
+  const orgCard = orgsList.locator('[data-testid^="org-card-"]').filter({
+    has: page.getByTestId('org-name').filter({ hasText: orgName }),
+  });
+
+  const hasOrgCard = await orgCard.isVisible().catch(() => false);
+
+  if (!hasOrgCard) {
+    // Debug: list available orgs
+    const orgNames = await orgsList.locator('[data-testid="org-name"]').allTextContents();
+    throw new Error(
+      `Organization "${orgName}" not found in orgs list. Available: ${orgNames.join(', ')}`
+    );
   }
 
-  await orgLink.click();
-  await page.waitForLoadState('networkidle');
+  // Get extid from the card's data-testid attribute
+  const cardTestId = await orgCard.getAttribute('data-testid');
+  const extid = cardTestId?.replace('org-card-', '') || null;
 
-  // Extract extid from URL
-  const extid = extractOrgExtidFromUrl(page.url());
   if (!extid) {
-    throw new Error(`Could not extract extid from URL: ${page.url()}`);
+    throw new Error(`Could not extract extid from org card for "${orgName}"`);
   }
 
-  // Navigate to the specific tab
+  // Navigate directly to the specific tab (more reliable than clicking through)
   await page.goto(`/org/${extid}/${tab}`);
   await page.waitForLoadState('networkidle');
 
@@ -145,12 +157,12 @@ async function switchOrgViaSwitcher(page: Page, targetOrgName: string): Promise<
   await trigger.click();
 
   // Wait for dropdown to be visible
-  const dropdown = page.locator('[role="menu"]');
-  await expect(dropdown).toBeVisible();
+  const dropdown = orgSwitcher.dropdown(page);
+  await expect(dropdown).toBeVisible({ timeout: 5000 });
 
   // Find and click the target org
   const targetOrgItem = orgSwitcher.getOrgMenuItem(page, targetOrgName);
-  await expect(targetOrgItem).toBeVisible();
+  await expect(targetOrgItem).toBeVisible({ timeout: 5000 });
   await targetOrgItem.click();
 
   // Wait for navigation to complete
@@ -407,8 +419,8 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     // Switch to Second Organization
     await switchOrgViaSwitcher(page, ORG_SECOND);
 
-    // Wait for any pending updates
-    await page.waitForTimeout(500);
+    // Wait for trigger text to change (instead of arbitrary timeout)
+    await expect(orgTrigger).not.toHaveText(initialTriggerText!, { timeout: 5000 });
 
     // Verify header updated
     const newTriggerText = await orgTrigger.textContent();
@@ -457,15 +469,15 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
 
     // Open dropdown and select the same org
     await orgTrigger.click();
-    const dropdown = page.locator('[role="menu"]');
-    await expect(dropdown).toBeVisible();
+    const dropdown = orgSwitcher.dropdown(page);
+    await expect(dropdown).toBeVisible({ timeout: 5000 });
 
     // Click the current org (should be highlighted/checked)
     const currentOrgItem = orgSwitcher.getOrgMenuItem(page, ORG_DEFAULT);
     await currentOrgItem.click();
 
-    // Wait briefly
-    await page.waitForTimeout(300);
+    // Wait for dropdown to close (indicates click was processed)
+    await expect(dropdown).not.toBeVisible({ timeout: 5000 });
 
     // URL should remain the same
     expect(page.url()).toBe(initialUrl);

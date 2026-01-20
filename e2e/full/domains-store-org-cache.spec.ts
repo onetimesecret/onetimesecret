@@ -60,19 +60,26 @@ interface ApiCallInfo {
 async function loginUser(page: Page): Promise<void> {
   await page.goto('/signin');
 
-  // Use direct element selectors - getByLabel can match hidden HeadlessUI tab panels
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
+  // Click Password tab - Magic Link is the default, password input is hidden
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
+  await passwordTab.click();
+
+  // Wait for password input to be visible after tab switch
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Now fill the form (email input is in the password tab panel)
+  const emailInput = page.locator('#signin-email-password');
+  await emailInput.fill(TEST_USER_EMAIL);
+  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
+
+  // Submit
   const submitButton = page.locator('button[type="submit"]');
+  await submitButton.click();
 
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(TEST_USER_EMAIL);
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account
-    await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-  }
+  // Wait for redirect to dashboard/account
+  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
 }
 
 /**
@@ -82,23 +89,25 @@ async function loginUser(page: Page): Promise<void> {
 async function getUserOrganizations(page: Page): Promise<OrgInfo[]> {
   // Navigate to orgs list
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
 
-  // Find all organization cards/links
-  const orgLinks = page.locator('a[href*="/org/"]');
-  const count = await orgLinks.count();
+  // Wait for organizations list to load using test ID
+  const orgsList = page.getByTestId('organizations-list');
+  await orgsList.waitFor({ state: 'visible', timeout: 10000 });
+
+  // Find all organization cards using test ID pattern
+  const orgCards = orgsList.locator('[data-testid^="org-card-"]');
+  const count = await orgCards.count();
 
   const orgs: OrgInfo[] = [];
 
   for (let i = 0; i < count; i++) {
-    const link = orgLinks.nth(i);
-    const href = await link.getAttribute('href');
-    const match = href?.match(/\/org\/([^/]+)/);
+    const card = orgCards.nth(i);
+    const testId = await card.getAttribute('data-testid');
+    const extid = testId?.replace('org-card-', '') || '';
 
-    if (match) {
-      const extid = match[1];
-      // Get org name from the link text or nearby element
-      const nameElement = link.locator('span.truncate, .font-medium, h3, h4').first();
+    if (extid) {
+      // Get org name from the org-name test ID element
+      const nameElement = card.getByTestId('org-name');
       const name = (await nameElement.textContent())?.trim() || extid;
 
       orgs.push({
@@ -125,11 +134,9 @@ function findOrgByName(orgs: OrgInfo[], namePattern: string): OrgInfo | undefine
  * Returns true if custom domains are visible in the switcher
  * @internal Helper function available for future test expansion
  */
-async function _domainSwitcherHasCustomDomains(page: Page): Promise<boolean> {
-  // Look for domain switcher trigger
-  const domainTrigger = page.locator(
-    '[data-testid="domain-context-switcher-trigger"], button[aria-label*="scope" i]'
-  );
+async function domainSwitcherHasCustomDomains(page: Page): Promise<boolean> {
+  // Look for domain switcher trigger using test ID
+  const domainTrigger = page.getByTestId('domain-context-switcher-trigger');
 
   const isVisible = await domainTrigger.isVisible().catch(() => false);
   if (!isVisible) {
@@ -139,8 +146,8 @@ async function _domainSwitcherHasCustomDomains(page: Page): Promise<boolean> {
   // Open the dropdown
   await domainTrigger.click();
 
-  // Wait for dropdown to appear
-  const dropdown = page.locator('[role="menu"]');
+  // Wait for dropdown to appear using test ID
+  const dropdown = page.getByTestId('domain-context-switcher-dropdown');
   await dropdown.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
   // Check if there are domain menu items beyond just the canonical domain
@@ -165,13 +172,14 @@ async function _domainSwitcherHasCustomDomains(page: Page): Promise<boolean> {
   return hasCustom;
 }
 
+// Expose helper for potential future use (suppresses unused warning)
+void domainSwitcherHasCustomDomains;
+
 /**
  * Get all domain names visible in the domain switcher dropdown
  */
 async function getDomainSwitcherDomains(page: Page): Promise<string[]> {
-  const domainTrigger = page.locator(
-    '[data-testid="domain-context-switcher-trigger"], button[aria-label*="scope" i]'
-  );
+  const domainTrigger = page.getByTestId('domain-context-switcher-trigger');
 
   const isVisible = await domainTrigger.isVisible().catch(() => false);
   if (!isVisible) {
@@ -180,7 +188,7 @@ async function getDomainSwitcherDomains(page: Page): Promise<string[]> {
 
   await domainTrigger.click();
 
-  const dropdown = page.locator('[role="menu"]');
+  const dropdown = page.getByTestId('domain-context-switcher-dropdown');
   await dropdown.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
   const menuItems = dropdown.locator('[role="menuitem"]');
@@ -288,18 +296,25 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       await page.waitForLoadState('networkidle');
 
       // Wait for domain switcher to be ready
-      await page.waitForTimeout(1000);
+      const domainSwitcherTrigger = page.locator(
+        '[data-testid="domain-context-switcher-trigger"], button[aria-label*="scope" i]'
+      );
+      await domainSwitcherTrigger.or(page.locator('body')).first().waitFor({ state: 'visible' });
 
       // Record domains visible in switcher for Default Workspace
       const defaultDomains = await getDomainSwitcherDomains(page);
       const hasCustomInDefault = defaultDomains.some((d) => d !== 'dev.onetime.dev');
 
       // Step 2: Navigate to A Second Organization's page via URL
+      // Wait for domains API response to ensure store has re-fetched
+      const domainsResponsePromise = page.waitForResponse(
+        (resp) => resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
+        { timeout: 10000 }
+      ).catch(() => null); // Don't fail if no domains API call (empty org)
+
       await page.goto(`/org/${secondOrg.extid}`);
       await page.waitForLoadState('networkidle');
-
-      // Wait for store to re-fetch
-      await page.waitForTimeout(1000);
+      await domainsResponsePromise;
 
       // Verify domain switcher now shows only canonical domain (no custom domains)
       const secondOrgDomains = await getDomainSwitcherDomains(page);
@@ -322,9 +337,15 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       }
 
       // Step 3: Navigate back to Default Workspace dashboard
+      // Wait for domains API response on return navigation
+      const returnDomainsPromise = page.waitForResponse(
+        (resp) => resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
+        { timeout: 10000 }
+      ).catch(() => null);
+
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await returnDomainsPromise;
 
       // Verify domain switcher shows custom domains again
       const returnedDomains = await getDomainSwitcherDomains(page);
@@ -439,18 +460,32 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       // Step 1: Navigate to Default Workspace dashboard
       apiCalls.length = 0; // Clear previous calls
+
+      // Set up response listener before navigation
+      const dashboardDomainsPromise = page.waitForResponse(
+        (resp) => resp.url().includes('/api/') && resp.url().includes('domains'),
+        { timeout: 10000 }
+      ).catch(() => null);
+
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await dashboardDomainsPromise;
 
-      // Record calls made for Default Workspace
-      const _callsForDefault = [...apiCalls]; // Stored for potential debugging
+      // Log calls made for Default Workspace for debugging
+      console.log(`API calls for Default Workspace: ${apiCalls.length}`);
 
       // Step 2: Navigate to A Second Organization
       apiCalls.length = 0; // Clear to track new calls
+
+      // Set up response listener before navigation to second org
+      const secondOrgDomainsPromise = page.waitForResponse(
+        (resp) => resp.url().includes('/api/') && resp.url().includes('domains'),
+        { timeout: 10000 }
+      ).catch(() => null);
+
       await page.goto(`/org/${secondOrg.extid}`);
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await secondOrgDomainsPromise;
 
       // Verify a NEW API call was made (not returning cached data)
       const callsForSecond = [...apiCalls];
