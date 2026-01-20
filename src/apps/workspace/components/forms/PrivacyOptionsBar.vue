@@ -67,7 +67,7 @@
 <template>
   <div
     v-bind="$attrs"
-    class="rounded-lg border border-gray-200/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm
+    class="relative z-10 rounded-lg border border-gray-200/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm
       dark:border-gray-700/60 dark:bg-gray-800/80 sm:px-6">
     <div class="flex flex-wrap items-center gap-4">
       <!-- Privacy Options Label -->
