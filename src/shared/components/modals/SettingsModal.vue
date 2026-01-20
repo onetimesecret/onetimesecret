@@ -165,7 +165,7 @@
     <FocusTrap
       :active="isOpen">
       <div
-        class="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out dark:bg-gray-800 sm:max-w-md md:max-w-lg"
+        class="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-lg motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out dark:bg-gray-800 sm:max-w-md md:max-w-lg"
         :class="{ 'scale-95 opacity-0': !isOpen, 'scale-100 opacity-100': isOpen }">
         <div class="flex h-[90vh] flex-col sm:h-[80vh]">
           <!-- Modal Header -->

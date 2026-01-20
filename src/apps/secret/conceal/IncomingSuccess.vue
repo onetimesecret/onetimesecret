@@ -147,7 +147,7 @@
 
         <!-- Information Box -->
         <div class="mb-8 overflow-hidden rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:border-purple-900/50 dark:from-purple-950/30 dark:to-blue-950/30">
-          <div class="flex gap-4 p-5">
+          <div class="flex gap-4 p-4">
             <div class="flex-shrink-0">
               <div class="flex size-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
                 <svg

@@ -25,7 +25,7 @@ defineEmits<{
     <!-- prettier-ignore-attribute class -->
     <div
       class="relative mx-auto max-w-full overflow-hidden rounded-xl
-        border border-gray-200 shadow-2xl
+        border border-gray-200 shadow-lg
         dark:border-gray-700">
       <!-- Browser Top Bar -->
       <!-- prettier-ignore-attribute class -->
