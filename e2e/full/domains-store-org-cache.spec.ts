@@ -604,14 +604,24 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
 
     const hasDomainsInitially = await hasDomainsInTable(page);
 
-    // Navigate to Second Org (domains tab is default)
-    await page.goto(`/org/${secondOrg.extid}`);
+    // Click through to orgs list, then to second org (builds proper history stack)
+    const backToOrgsLink = page.locator('a[href="/orgs"]').first();
+    await backToOrgsLink.click();
     await page.waitForLoadState('networkidle');
 
+    // Click on the second org card to navigate
+    const secondOrgCard = page.getByTestId(`org-card-${secondOrg.extid}`);
+    await secondOrgCard.click();
+    await page.waitForLoadState('networkidle');
+
+    // Verify we're on second org with empty state
+    expect(page.url()).toContain(secondOrg.extid);
     const isEmptyAfterNav = await isEmptyDomainsState(page);
     expect(isEmptyAfterNav, 'Second org should show empty state').toBe(true);
 
-    // Go back using browser back button
+    // Go back twice: second org -> orgs list -> default workspace
+    await page.goBack();
+    await page.waitForLoadState('networkidle');
     await page.goBack();
     await page.waitForLoadState('networkidle');
 
@@ -624,7 +634,9 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
       'Default Workspace should still show domains after browser back'
     ).toBe(hasDomainsInitially);
 
-    // Go forward
+    // Go forward twice to get back to Second Org
+    await page.goForward();
+    await page.waitForLoadState('networkidle');
     await page.goForward();
     await page.waitForLoadState('networkidle');
 
