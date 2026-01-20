@@ -251,6 +251,7 @@ COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 # Copy application files
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/generated ./generated
 COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
 # Copy runtime files
@@ -352,6 +353,7 @@ COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 # Copy application files (using --chown to avoid extra layer)
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/generated ./generated
 COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
 # Copy runtime files
