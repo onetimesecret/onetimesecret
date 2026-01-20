@@ -167,7 +167,7 @@ describe('useRecentSecrets', () => {
       expect(record).toBeDefined();
       expect(record.id).toBe('local-123');
       expect(record.extid).toBe('receipt-extid-abc');
-      expect(record.shortid).toBe('rcpt1234');
+      expect(record.shortid).toBe('sec12345'); // Uses secretShortid for display, not receiptShortid
       expect(record.secretExtid).toBe('secret-extid-xyz');
       expect(record.hasPassphrase).toBe(true);
       expect(record.ttl).toBe(7200);
