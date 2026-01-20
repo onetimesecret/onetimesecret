@@ -194,7 +194,7 @@ module V2::Logic
 
         # We mark the receipt record previewed so that we can support showing the
         # secret link on the receipt page, just the one time.
-        # receipt.previewed! if receipt.state?(:new)
+        receipt.previewed! if receipt.state?(:new)
 
         success_data
       end
