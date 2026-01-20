@@ -15,7 +15,7 @@
     DEFAULT_CORNER_CLASS,
     DEFAULT_PRIMARY_COLOR,
   } from '@/shared/stores/identityStore';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { storeToRefs } from 'pinia';
   import { computed, ref, watch } from 'vue';
@@ -53,7 +53,7 @@
 
   const emit = defineEmits<{
     /** Emitted after successful secret creation with the response data */
-    (e: 'created', response: ConcealedMessage): void;
+    (e: 'created', response: LocalReceipt): void;
   }>();
 
   const router = useRouter();
@@ -82,7 +82,7 @@
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
       if (!response) throw 'Response is missing';
-      const newMessage: ConcealedMessage = {
+      const newMessage: LocalReceipt = {
         id: nanoid(),
         receiptExtid: response.record.receipt.identifier,
         receiptShortid: response.record.receipt.shortid,

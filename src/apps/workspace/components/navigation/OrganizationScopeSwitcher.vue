@@ -197,7 +197,7 @@ const navigateToManageOrganizations = (): void => {
         :class="
           isCurrentOrgDefault
             ? 'bg-gray-200 dark:bg-gray-700'
-            : 'bg-brand-600 text-white dark:bg-brand-500'
+            : 'bg-gray-200 text-white dark:bg-brand-500'
         "
         aria-hidden="true">
         <OIcon
@@ -273,7 +273,7 @@ const navigateToManageOrganizations = (): void => {
                   isDefaultOrg(org)
                     ? 'bg-gray-200 dark:bg-gray-700'
                     : isCurrentOrganization(org)
-                      ? 'bg-brand-600 text-white dark:bg-brand-500'
+                      ? 'bg-gray-600 text-white dark:bg-brand-500'
                       : 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-200',
                 ]"
                 aria-hidden="true">

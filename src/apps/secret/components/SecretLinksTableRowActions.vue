@@ -4,13 +4,13 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import MinimalDropdownMenu from '@/shared/components/ui/MinimalDropdownMenu.vue';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { MenuItem } from '@headlessui/vue';
 
   const { t } = useI18n();
 
   interface Props {
-    concealedMessage: ConcealedMessage;
+    concealedMessage: LocalReceipt;
   }
 
   defineProps<Props>();

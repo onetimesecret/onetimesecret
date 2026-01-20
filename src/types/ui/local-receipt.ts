@@ -1,10 +1,10 @@
-// src/types/ui/concealed-message.ts
+// src/types/ui/local-receipt.ts
 
 /**
  * Minimal data stored in sessionStorage for guest users' recent secrets.
  * Intentionally minimal to reduce attack surface and storage footprint.
  */
-export interface ConcealedMessage {
+export interface LocalReceipt {
   /** Client-generated unique ID for deduplication */
   id: string;
   /** Full receipt identifier for URL routing (/receipt/{receiptExtid}) */
@@ -25,4 +25,8 @@ export interface ConcealedMessage {
   createdAt: number;
   /** Optional user-defined memo for identifying the secret */
   memo?: string;
+  /** Whether the secret has been viewed/received (burned by recipient or creator) */
+  isReceived?: boolean;
+  /** Whether the secret was burned manually (before being viewed) */
+  isBurned?: boolean;
 }

@@ -28,7 +28,7 @@
     DEFAULT_PRIMARY_COLOR,
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
@@ -57,7 +57,7 @@
 
   const emit = defineEmits<{
     /** Emitted after successful secret creation with the response data */
-    (e: 'created', response: ConcealedMessage): void;
+    (e: 'created', response: LocalReceipt): void;
   }>();
 
   const concealedReceiptStore = useConcealedReceiptStore();
@@ -112,7 +112,7 @@
         });
 
         if (!response) throw 'Response is missing';
-        const newMessage: ConcealedMessage = {
+        const newMessage: LocalReceipt = {
           id: nanoid(),
           receiptExtid: response.record.receipt.identifier,
           receiptShortid: response.record.receipt.shortid,
