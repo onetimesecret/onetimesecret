@@ -26,6 +26,7 @@ module Onetime
 
       def execute(_context)
         # Add JSON backend support to I18n
+        OT.ld '[init] Including JsonBackend module in I18n::Backend::Simple'
         I18n::Backend::Simple.include(JsonBackend)
         I18n::Backend::Simple.include(I18n::Backend::Fallbacks)
 
@@ -41,6 +42,13 @@ module Onetime
 
         # Load JSON files from generated/locales
         load_json_locales
+
+        # Force reload to ensure translations are loaded with our custom JsonBackend.
+        # Without this, I18n may have already loaded files with the default load_json
+        # method (which doesn't wrap data with locale key from filename).
+        OT.ld '[init] Forcing I18n backend reload to apply JsonBackend'
+        I18n.backend.reload!
+        OT.ld "[init] I18n backend reloaded, translations initialized: #{I18n.backend.initialized?}"
 
         OT.ld "[init] I18n configured: default=#{I18n.default_locale}, " \
               "available=#{I18n.available_locales}, " \
@@ -93,7 +101,10 @@ module Onetime
           locale = File.basename(filename, '.json')
 
           # If data doesn't have locale key at top level, wrap it
-          data = { locale => data } unless data.key?(locale)
+          wrapped = !data.key?(locale)
+          data    = { locale => data } if wrapped
+
+          OT.ld "[i18n] Loaded #{filename} (locale=#{locale}, wrapped=#{wrapped}, keys=#{data[locale]&.keys&.size || 0})"
 
           # Return tuple: [data, keys_symbolized]
           # keys_symbolized=false because we're using string keys like YAML
