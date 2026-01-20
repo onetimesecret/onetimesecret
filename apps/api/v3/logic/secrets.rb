@@ -154,7 +154,8 @@ module V3
       class ShowMultipleReceipts < V2::Logic::Base
         include Onetime::Logic::GuestRouteGating
 
-        MAX_IDENTIFIERS = 25
+        # Maximum receipt identifiers per batch request
+        MAX_RECEIPT_IDENTIFIERS_PER_BATCH = 25
 
         attr_reader :identifiers, :records
 
@@ -173,9 +174,9 @@ module V3
 
         def raise_concerns
           require_guest_route_enabled!(:receipt)
-          return if identifiers.length <= MAX_IDENTIFIERS
+          return if identifiers.length <= MAX_RECEIPT_IDENTIFIERS_PER_BATCH
 
-          raise_form_error("Too many identifiers (max #{MAX_IDENTIFIERS})")
+          raise_form_error("Too many identifiers (max #{MAX_RECEIPT_IDENTIFIERS_PER_BATCH})")
         end
 
         def process

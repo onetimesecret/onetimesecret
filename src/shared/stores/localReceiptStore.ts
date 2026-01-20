@@ -50,7 +50,7 @@ export type LocalReceiptStore = {
   markAsPreviewed: (secretExtid: string) => void;
   markAsRevealed: (secretExtid: string) => void;
   markAsBurned: (secretExtid: string) => void;
-  refreshReceiptStatuses: () => Promise<void>;
+  refreshReceiptStatuses: () => Promise<boolean>;
   clearReceipts: () => void;
   setWorkspaceMode: (enabled: boolean) => void;
   toggleWorkspaceMode: () => void;
@@ -236,9 +236,11 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
    * Refreshes the status of all stored receipts from the server.
    * Calls POST /api/v3/guest/receipts with receipt identifiers to get current status.
    * Updates local storage with server state (isPreviewed, isRevealed, isBurned).
+   *
+   * @returns true if refresh succeeded, false if it failed (stale data shown)
    */
-  async function refreshReceiptStatuses(): Promise<void> {
-    if (localReceipts.value.length === 0) return;
+  async function refreshReceiptStatuses(): Promise<boolean> {
+    if (localReceipts.value.length === 0) return true;
 
     // Send full receipt identifiers (receiptExtid) - backend uses Receipt.load_multi
     const identifiers = localReceipts.value.map((r) => r.receiptExtid);
@@ -279,8 +281,10 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
       if (hasUpdates) {
         localReceipts.value = [...localReceipts.value];
       }
+      return true;
     } catch (error) {
       loggingService.error(new Error(`Failed to refresh receipt statuses: ${error}`));
+      return false;
     }
   }
 

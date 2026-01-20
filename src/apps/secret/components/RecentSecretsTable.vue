@@ -47,11 +47,20 @@
 
   const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
+  // Throttle refresh to prevent excessive API calls on rapid tab switches
+  const REFRESH_THROTTLE_MS = 5000;
+  let lastRefreshTime = 0;
+
   // Refresh data when tab becomes visible (user returns from another tab)
   // Authenticated users: fetch fresh data from API
   // Guest users: refresh statuses from server to sync local storage
+  // Throttled to prevent excessive requests on rapid tab switching
   const handleVisibilityChange = async () => {
     if (document.visibilityState === 'visible') {
+      const now = Date.now();
+      if (now - lastRefreshTime < REFRESH_THROTTLE_MS) return;
+      lastRefreshTime = now;
+
       if (isAuthenticated.value) {
         await fetch();
       } else {

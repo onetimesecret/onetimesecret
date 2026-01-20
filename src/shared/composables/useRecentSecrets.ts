@@ -102,7 +102,10 @@ function transformLocalRecord(receipt: LocalReceipt): RecentSecretRecord {
   return {
     id: receipt.id,
     extid: receipt.receiptExtid,
-    shortid: receipt.secretShortid, // Use secret shortid for display, not receipt
+    // Display uses secretShortid (the secret's ID) for user-facing links,
+    // while receiptExtid (the receipt's ID) is used for API lookups.
+    // This intentional mismatch allows showing the secret link while tracking via receipt.
+    shortid: receipt.secretShortid,
     secretExtid: receipt.secretExtid,
     hasPassphrase: receipt.hasPassphrase,
     ttl: receipt.ttl,
