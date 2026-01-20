@@ -5,6 +5,7 @@
 
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount } from '@vue/test-utils';
+import { computed, ref } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Mock usePrivacyOptions composable
@@ -16,11 +17,17 @@ vi.mock('@/shared/composables/usePrivacyOptions', () => ({
       if (seconds === 604800) return '7 days';
       return `${seconds}s`;
     }),
-    lifetimeOptions: [
+    // Must be a computed/ref since TtlSelector accesses .value
+    lifetimeOptions: computed(() => [
       { value: 3600, label: '1 hour' },
       { value: 86400, label: '1 day' },
       { value: 604800, label: '7 days' },
-    ],
+    ]),
+    state: ref({
+      passphraseVisibility: false,
+      lifetimeOptions: [],
+    }),
+    togglePassphraseVisibility: vi.fn(),
   })),
 }));
 
@@ -95,17 +102,17 @@ describe('PrivacyOptionsBar', () => {
       const wrapper = await mountComponent();
       await flushPromises();
 
-      // Initially dropdown should not be visible
-      expect(wrapper.find('.absolute.left-0.top-full').exists()).toBe(false);
-
-      // Click to open dropdown
+      // Click to open dropdown (first button is TTL ListboxButton)
       const buttons = wrapper.findAll('button');
       const ttlButton = buttons[0];
       await ttlButton.trigger('click');
       await flushPromises();
 
-      // Dropdown should now be visible (the v-if renders it)
-      const dropdown = wrapper.find('.origin-top-left.rounded-md');
+      // Headless UI Listbox adds aria-expanded="true" when open
+      expect(ttlButton.attributes('aria-expanded')).toBe('true');
+
+      // ListboxOptions should now be visible (has .absolute.bottom-full classes)
+      const dropdown = wrapper.find('[role="listbox"]');
       expect(dropdown.exists()).toBe(true);
     });
 
@@ -122,7 +129,7 @@ describe('PrivacyOptionsBar', () => {
       // Open TTL dropdown
       await ttlButton.trigger('click');
       await flushPromises();
-      expect(wrapper.find('.origin-top-left.rounded-md').exists()).toBe(true);
+      expect(ttlButton.attributes('aria-expanded')).toBe('true');
 
       // Click passphrase to close TTL and open passphrase
       await passphraseButton?.trigger('click');
