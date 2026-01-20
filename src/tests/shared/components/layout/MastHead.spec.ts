@@ -228,7 +228,7 @@ describe('MastHead', () => {
   });
 
   describe('Context Switchers Slot', () => {
-    it('renders context-switchers slot inline for authenticated users on desktop', async () => {
+    it('renders context-switchers slot for authenticated users', async () => {
       wrapper = mountComponent({}, {
         authenticated: true,
         cust: mockCustomer,
@@ -237,13 +237,13 @@ describe('MastHead', () => {
 
       await nextTick();
 
-      // Desktop inline container (hidden sm:flex)
-      const desktopSwitchers = wrapper.find('.hidden.min-w-0.items-center.gap-3.sm\\:flex');
-      expect(desktopSwitchers.exists()).toBe(true);
-      expect(desktopSwitchers.html()).toContain('test-context-switchers');
+      // Context switchers container (unified for all screen sizes)
+      const contextSwitchers = wrapper.find('.flex.min-w-0.items-center.gap-2');
+      expect(contextSwitchers.exists()).toBe(true);
+      expect(contextSwitchers.html()).toContain('test-context-switchers');
     });
 
-    it('renders context-switchers slot below header for mobile (authenticated)', async () => {
+    it('renders context-switchers slot with responsive gap', async () => {
       wrapper = mountComponent({}, {
         authenticated: true,
         cust: mockCustomer,
@@ -252,10 +252,10 @@ describe('MastHead', () => {
 
       await nextTick();
 
-      // Mobile container (mt-2 sm:hidden)
-      const mobileSwitchers = wrapper.find('.mt-2.flex.items-center.gap-3.sm\\:hidden');
-      expect(mobileSwitchers.exists()).toBe(true);
-      expect(mobileSwitchers.html()).toContain('test-context-switchers');
+      // Verify responsive gap classes are present
+      const contextSwitchers = wrapper.find('.flex.min-w-0.items-center.gap-2');
+      expect(contextSwitchers.exists()).toBe(true);
+      expect(contextSwitchers.classes()).toContain('sm:gap-3');
     });
 
     it('does not render context-switchers for unauthenticated users', async () => {
@@ -267,11 +267,9 @@ describe('MastHead', () => {
 
       await nextTick();
 
-      // Should not have either context switcher container
-      const desktopSwitchers = wrapper.find('.hidden.min-w-0.items-center.gap-3.sm\\:flex');
-      const mobileSwitchers = wrapper.find('.mt-2.flex.items-center.gap-3.sm\\:hidden');
-      expect(desktopSwitchers.exists()).toBe(false);
-      expect(mobileSwitchers.exists()).toBe(false);
+      // Should not have context switcher container when not authenticated
+      const html = wrapper.html();
+      expect(html).not.toContain('test-context-switchers');
     });
   });
 

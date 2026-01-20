@@ -102,8 +102,8 @@ function createMockApiRecord(overrides: Partial<ReceiptRecords> = {}): ReceiptRe
     state: overrides.state ?? 'new',
     created: overrides.created ?? now,
     updated: overrides.updated ?? now,
-    is_viewed: overrides.is_viewed ?? false,
-    is_received: overrides.is_received ?? false,
+    is_previewed: overrides.is_previewed ?? false,
+    is_revealed: overrides.is_revealed ?? false,
     is_burned: overrides.is_burned ?? false,
     is_destroyed: overrides.is_destroyed ?? false,
     is_expired: overrides.is_expired ?? false,
@@ -192,7 +192,7 @@ describe('useRecentSecrets', () => {
       expect(records.value[0].shareDomain).toBeUndefined();
     });
 
-    it('local records default to isViewed=false, isReceived=false, isBurned=false', async () => {
+    it('local records default to isPreviewed=false, isRevealed=false, isBurned=false', async () => {
       mockConcealedMessages.value = [createMockLocalReceipt()];
       mockHasMessages.value = true;
 
@@ -200,8 +200,8 @@ describe('useRecentSecrets', () => {
       await nextTick();
 
       const record = records.value[0];
-      expect(record.isViewed).toBe(false);
-      expect(record.isReceived).toBe(false);
+      expect(record.isPreviewed).toBe(false);
+      expect(record.isRevealed).toBe(false);
       expect(record.isBurned).toBe(false);
     });
 
@@ -317,8 +317,8 @@ describe('useRecentSecrets', () => {
       } as any);
 
       const apiRecord = createMockApiRecord({
-        is_viewed: true,
-        is_received: true,
+        is_previewed: true,
+        is_revealed: true,
         is_burned: false,
         is_expired: true,
       });
@@ -329,8 +329,8 @@ describe('useRecentSecrets', () => {
       await nextTick();
 
       const record = records.value[0];
-      expect(record.isViewed).toBe(true);
-      expect(record.isReceived).toBe(true);
+      expect(record.isPreviewed).toBe(true);
+      expect(record.isRevealed).toBe(true);
       expect(record.isBurned).toBe(false);
       expect(record.isExpired).toBe(true);
     });
@@ -534,8 +534,8 @@ describe('useRecentSecrets', () => {
       expect(record).toHaveProperty('ttl');
       expect(record).toHaveProperty('createdAt');
       expect(record).toHaveProperty('shareDomain');
-      expect(record).toHaveProperty('isViewed');
-      expect(record).toHaveProperty('isReceived');
+      expect(record).toHaveProperty('isPreviewed');
+      expect(record).toHaveProperty('isRevealed');
       expect(record).toHaveProperty('isBurned');
       expect(record).toHaveProperty('isExpired');
       expect(record).toHaveProperty('source');

@@ -33,8 +33,8 @@ const createMockRecord = (id: string): RecentSecretRecord => {
     ttl: 604800,
     createdAt: new Date(),
     shareDomain: 'example.com',
-    isViewed: false,
-    isReceived: false,
+    isPreviewed: false,
+    isRevealed: false,
     isBurned: false,
     isExpired: false,
     isDestroyed: false,
@@ -60,6 +60,10 @@ const mockClear = vi.fn(() => {
 });
 
 const mockFetch = vi.fn();
+const mockRefreshStatuses = vi.fn();
+const mockUpdateMemo = vi.fn();
+const mockCurrentScope = computed(() => undefined);
+const mockScopeLabel = computed(() => null);
 
 // Mock useRecentSecrets composable
 vi.mock('@/shared/composables/useRecentSecrets', () => ({
@@ -73,6 +77,10 @@ vi.mock('@/shared/composables/useRecentSecrets', () => ({
     toggleWorkspaceMode: mockToggleWorkspaceMode,
     clear: mockClear,
     fetch: mockFetch,
+    refreshStatuses: mockRefreshStatuses,
+    updateMemo: mockUpdateMemo,
+    currentScope: mockCurrentScope,
+    scopeLabel: mockScopeLabel,
   })),
 }));
 
@@ -105,6 +113,8 @@ describe('RecentSecretsTable', () => {
     mockToggleWorkspaceMode.mockClear();
     mockClear.mockClear();
     mockFetch.mockClear();
+    mockRefreshStatuses.mockClear();
+    mockUpdateMemo.mockClear();
   });
 
   afterEach(() => {
@@ -126,6 +136,10 @@ describe('RecentSecretsTable', () => {
         toggleWorkspaceMode: mockToggleWorkspaceMode,
         clear: mockClear,
         fetch: mockFetch,
+        refreshStatuses: mockRefreshStatuses,
+        updateMemo: mockUpdateMemo,
+        currentScope: mockCurrentScope,
+        scopeLabel: mockScopeLabel,
       })),
     }));
 
@@ -336,8 +350,8 @@ describe('RecentSecretsTable', () => {
         ttl: 3600,
         createdAt: new Date(),
         shareDomain: 'api.example.com',
-        isViewed: true,
-        isReceived: false,
+        isPreviewed: true,
+        isRevealed: false,
         isBurned: false,
         isExpired: false,
         isDestroyed: false,
