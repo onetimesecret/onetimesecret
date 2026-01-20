@@ -9,7 +9,7 @@
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
+  import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
@@ -57,7 +57,7 @@
   }>();
 
   const router = useRouter();
-  const concealedReceiptStore = useConcealedReceiptStore();
+  const localReceiptStore = useLocalReceiptStore();
   const showProTip = ref(props.withAsterisk);
 
   // Get passphrase configuration for UI hints
@@ -94,7 +94,7 @@
         createdAt: Date.now(),
       };
       // Add the message to the store
-      concealedReceiptStore.addMessage(newMessage);
+      localReceiptStore.addReceipt(newMessage);
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
