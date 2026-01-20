@@ -55,19 +55,26 @@ interface OrgInfo {
 async function loginUser(page: Page): Promise<void> {
   await page.goto('/signin');
 
-  // Use direct element selectors - getByLabel can match hidden HeadlessUI tab panels
-  const emailInput = page.locator('input[type="email"], input[name="email"]');
-  const passwordInput = page.locator('input[type="password"], input[name="password"]');
+  // Click Password tab - Magic Link is the default, password input is hidden
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
+  await passwordTab.click();
+
+  // Wait for password input to be visible after tab switch
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Now fill the form (email input is in the password tab panel)
+  const emailInput = page.locator('#signin-email-password');
+  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
+  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
+
+  // Submit
   const submitButton = page.locator('button[type="submit"]');
+  await submitButton.click();
 
-  if (await emailInput.isVisible()) {
-    await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-    await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-    await submitButton.click();
-
-    // Wait for redirect to dashboard/account
-    await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-  }
+  // Wait for redirect to dashboard/account
+  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
 }
 
 /**
