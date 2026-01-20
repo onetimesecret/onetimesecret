@@ -259,7 +259,6 @@ COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
-COPY --chown=appuser:appuser templates ./templates
 COPY --chown=appuser:appuser scripts/entrypoint*.sh ./bin/
 COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
