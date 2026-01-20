@@ -43,7 +43,12 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher - org name shown in page header
+      scopesAvailable: {
+        ...SCOPE_PRESETS.hideBoth,
+        // SECURITY: Navigate to same tab on new org when switching.
+        // Prevents stale data display if switcher visibility overridden.
+        onOrgSwitch: 'same',
+      },
     },
     props: true,
   },
