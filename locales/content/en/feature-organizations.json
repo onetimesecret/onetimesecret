@@ -158,6 +158,9 @@
   "web.organizations.tabs.billing": {
     "text": "Billing"
   },
+  "web.organizations.tabs.subscription": {
+    "text": "Subscription"
+  },
   "web.organizations.danger_zone": {
     "text": "Danger Zone"
   },
