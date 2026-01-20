@@ -19,8 +19,9 @@ frontend:
           - 'public/**/*'
           - 'index.html'
           - 'vite.config.ts'
-          - 'tailwind.config.js'
-          - 'postcss.config.js'
+          - 'vitest.config.ts'
+          - 'tailwind.config.ts'
+          - '**/*.vue'
 
 typescript:
   - changed-files:
@@ -61,6 +62,7 @@ containers:
       - any-glob-to-any-file:
           - 'Dockerfile*'
           - 'Containerfile*'
+          - 'docker/**/*'
           - 'docker-compose*.yml'
           - 'compose*.yml'
           - '.dockerignore'
@@ -88,7 +90,8 @@ documentation:
 i18n:
   - changed-files:
       - any-glob-to-any-file:
-          - 'src/locales/**/*'
+          - 'locales/**/*'
+          - 'generated/locales/**/*'
           - '**/*.i18n.*'
 
 # Quality labels
@@ -103,3 +106,15 @@ testing:
           - 'spec/**/*'
           - 'try/**/*'
           - 'tests/**/*'
+          - 'e2e/**/*'
+
+# Operations labels
+migrations:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'migrations/**/*'
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'scripts/**/*'
