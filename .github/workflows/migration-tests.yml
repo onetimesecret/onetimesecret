@@ -100,7 +100,7 @@ jobs:
         env:
           RACK_ENV: test
           AUTHENTICATION_MODE: full
-          AUTH_DATABASE_URL: sqlite::memory:
+          AUTH_DATABASE_URL: 'sqlite::memory:'
           REDIS_URL: redis://127.0.0.1:2121/0
           RSPEC_OUTPUT_FILE: tmp/sqlite_migration_results.json
         run: |
