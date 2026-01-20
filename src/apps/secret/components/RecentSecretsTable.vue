@@ -22,6 +22,7 @@
     workspaceMode,
     toggleWorkspaceMode,
     fetch,
+    refreshStatuses,
     clear,
     updateMemo,
     isAuthenticated,
@@ -47,16 +48,25 @@
   const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
   // Refresh data when tab becomes visible (user returns from another tab)
-  // Only for authenticated users since guest data is local storage
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === 'visible' && isAuthenticated.value) {
-      fetch();
+  // Authenticated users: fetch fresh data from API
+  // Guest users: refresh statuses from server to sync local storage
+  const handleVisibilityChange = async () => {
+    if (document.visibilityState === 'visible') {
+      if (isAuthenticated.value) {
+        await fetch();
+      } else {
+        await refreshStatuses();
+      }
     }
   };
 
   // Fetch records on mount and set up visibility listener
-  onMounted(() => {
-    fetch();
+  // For guest users, also refresh statuses from server to sync with actual state
+  onMounted(async () => {
+    await fetch();
+    if (!isAuthenticated.value) {
+      await refreshStatuses();
+    }
     document.addEventListener('visibilitychange', handleVisibilityChange);
   });
 

@@ -15,6 +15,11 @@ interface StoreOptions extends PiniaPluginOptions {}
  */
 export interface GuestReceiptsResponse {
   records: Array<{
+    /** Full receipt identifier for matching */
+    identifier: string;
+    /** Receipt shortid (first 8 chars) */
+    shortid: string;
+    /** Secret shortid for cross-reference if needed */
     secret_shortid: string;
     is_previewed?: boolean;
     is_revealed?: boolean;
@@ -229,13 +234,14 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
 
   /**
    * Refreshes the status of all stored receipts from the server.
-   * Calls POST /api/v3/guest/receipts with the secret shortids to get current status.
+   * Calls POST /api/v3/guest/receipts with receipt identifiers to get current status.
    * Updates local storage with server state (isPreviewed, isRevealed, isBurned).
    */
   async function refreshReceiptStatuses(): Promise<void> {
     if (localReceipts.value.length === 0) return;
 
-    const identifiers = localReceipts.value.map((r) => r.secretShortid);
+    // Send full receipt identifiers (receiptExtid) - backend uses Receipt.load_multi
+    const identifiers = localReceipts.value.map((r) => r.receiptExtid);
 
     try {
       const response = await $api.post<GuestReceiptsResponse>('/api/v3/guest/receipts', {
@@ -246,9 +252,10 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
       let hasUpdates = false;
 
       // Update local receipts with server status
+      // Match on full receipt identifier (returned as 'identifier' in safe_dump)
       for (const serverRecord of records) {
         const localIndex = localReceipts.value.findIndex(
-          (r) => r.secretShortid === serverRecord.secret_shortid
+          (r) => r.receiptExtid === serverRecord.identifier
         );
         if (localIndex === -1) continue;
 
