@@ -30,8 +30,37 @@ module Billing
     FIELD_INCLUDES_PLAN      = 'ots_includes_plan'       # Plan ID this plan includes (for "Includes everything in X" display)
 
     # Limit fields (prefixed with 'limit_')
+    # Maps metadata field name to YAML catalog key
+    LIMIT_FIELDS = {
+      'limit_teams' => 'teams',
+      'limit_members_per_team' => 'members_per_team',
+      'limit_custom_domains' => 'custom_domains',
+      'limit_secret_lifetime' => 'secret_lifetime',
+      'limit_secrets_per_day' => 'secrets_per_day',
+    }.freeze
+
+    # Legacy constants for backward compatibility
     FIELD_LIMIT_TEAMS            = 'limit_teams'
     FIELD_LIMIT_MEMBERS_PER_TEAM = 'limit_members_per_team'
+    FIELD_LIMIT_CUSTOM_DOMAINS   = 'limit_custom_domains'
+    FIELD_LIMIT_SECRET_LIFETIME  = 'limit_secret_lifetime'
+    FIELD_LIMIT_SECRETS_PER_DAY  = 'limit_secrets_per_day'
+
+    # Metadata fields that should be synced to Stripe (non-limit fields)
+    # Maps metadata field name to yaml_key
+    #
+    # All fields are always compared during update detection.
+    # During creation, only fields with values are included.
+    SYNCABLE_FIELDS = {
+      FIELD_TIER => 'tier',
+      FIELD_TENANCY => 'tenancy',
+      FIELD_REGION => 'region',
+      FIELD_DISPLAY_ORDER => 'display_order',
+      FIELD_SHOW_ON_PLANS_PAGE => 'show_on_plans_page',
+      FIELD_ENTITLEMENTS => 'entitlements',      # Special handling: array join
+      FIELD_INCLUDES_PLAN => 'includes_plan',
+      FIELD_IS_POPULAR => 'is_popular',        # Special handling: boolean
+    }.freeze
 
     # All required metadata fields
     REQUIRED_FIELDS = [

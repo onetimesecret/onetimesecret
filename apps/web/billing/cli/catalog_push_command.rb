@@ -53,6 +53,8 @@ module Onetime
 
         app_identifier = catalog['app_identifier'] || Billing::Metadata::APP_NAME
         plans          = catalog['plans'] || {}
+        match_fields   = catalog['match_fields'] || ['plan_id']
+        region_filter  = catalog['region']
 
         if plans.empty?
           puts 'No plans found in catalog'
@@ -72,15 +74,17 @@ module Onetime
         puts "Billing Catalog Push#{' (DRY RUN)' if dry_run}"
         puts '=' * 50
         puts "App identifier: #{app_identifier}"
+        puts "Match fields: #{match_fields.join(', ')}"
+        puts "Region filter: #{region_filter || '(none)'}"
         puts "Plans to process: #{plans.keys.join(', ')}"
         puts
 
         # Fetch existing products from Stripe
-        existing_products = fetch_existing_products(app_identifier)
+        existing_products = fetch_existing_products(app_identifier, match_fields, region_filter)
         existing_prices   = fetch_existing_prices(existing_products)
 
         # Analyze changes
-        changes = analyze_changes(plans, existing_products, existing_prices, skip_prices)
+        changes = analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields)
 
         if changes[:products_to_create].empty? &&
            changes[:products_to_update].empty? &&
@@ -126,19 +130,55 @@ module Onetime
         catalog
       end
 
-      def fetch_existing_products(app_identifier)
+      # Fetch existing products from Stripe, indexed by composite match key.
+      #
+      # @param app_identifier [String] Filter to products with this app metadata
+      # @param match_fields [Array<String>] Fields to build composite match key (e.g., ['plan_id', 'region'])
+      # @param region_filter [String, nil] If set, only return products matching this region
+      # @return [Hash<String, Stripe::Product>] Products indexed by composite match key
+      def fetch_existing_products(app_identifier, match_fields, region_filter)
         products = {}
 
         with_stripe_retry do
           Stripe::Product.list(active: true, limit: 100).auto_paging_each do |product|
             next unless product.metadata['app'] == app_identifier
 
-            plan_id           = product.metadata['plan_id']
-            products[plan_id] = product if plan_id
+            # Region filtering: skip products not matching our region context
+            if region_filter && product.metadata['region'] != region_filter
+              next
+            end
+
+            # Build composite match key from metadata fields
+            key           = build_match_key_from_metadata(product.metadata, match_fields)
+            products[key] = product if key
           end
         end
 
         products
+      end
+
+      # Build composite match key from product metadata.
+      #
+      # @param metadata [Hash] Stripe product metadata
+      # @param match_fields [Array<String>] Fields to include in key
+      # @return [String, nil] Composite key or nil if required fields missing
+      def build_match_key_from_metadata(metadata, match_fields)
+        values = match_fields.map { |f| metadata[f] }
+        return nil if values.any?(&:nil?)
+
+        values.join('|')
+      end
+
+      # Build composite match key from local plan definition.
+      #
+      # @param plan_id [String] The plan identifier (YAML key)
+      # @param plan_def [Hash] Plan definition from catalog
+      # @param match_fields [Array<String>] Fields to include in key
+      # @return [String] Composite key
+      def build_match_key_from_plan(plan_id, plan_def, match_fields)
+        match_fields.map do |field|
+          field == 'plan_id' ? plan_id : plan_def[field]
+        end.join('|')
       end
 
       def fetch_existing_prices(products)
@@ -151,19 +191,19 @@ module Onetime
           Stripe::Price.list(active: true, limit: 100).auto_paging_each do |price|
             next unless product_ids.include?(price.product)
 
-            # Find plan_id for this product
-            plan_id = products.find { |_k, p| p.id == price.product }&.first
-            next unless plan_id
+            # Find match key for this product (composite key like "plan_id|region")
+            match_key = products.find { |_k, p| p.id == price.product }&.first
+            next unless match_key
 
-            prices[plan_id] ||= []
-            prices[plan_id] << price
+            prices[match_key] ||= []
+            prices[match_key] << price
           end
         end
 
         prices
       end
 
-      def analyze_changes(plans, existing_products, existing_prices, skip_prices)
+      def analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields)
         changes = {
           products_to_create: [],
           products_to_update: [],
@@ -171,7 +211,13 @@ module Onetime
         }
 
         plans.each do |plan_id, plan_def|
-          existing = existing_products[plan_id]
+          # Resolve existing product: stripe_product_id override takes precedence
+          existing = resolve_existing_product(
+            plan_id, plan_def, existing_products, match_fields
+          )
+
+          # Build the match key for price lookups (composite key, not Stripe ID)
+          match_key = build_match_key_from_plan(plan_id, plan_def, match_fields)
 
           if existing
             # Check if product needs update
@@ -196,12 +242,41 @@ module Onetime
           next if skip_prices
 
           price_changes = analyze_price_changes(
-            plan_id, plan_def, existing, existing_prices[plan_id] || []
+            plan_id, plan_def, existing, existing_prices[match_key] || []
           )
           changes[:prices_to_create].concat(price_changes)
         end
 
         changes
+      end
+
+      # Resolve existing Stripe product for a plan.
+      #
+      # Priority:
+      # 1. stripe_product_id override (direct Stripe product ID binding)
+      # 2. Composite match key lookup (plan_id + region, etc.)
+      #
+      # @param plan_id [String] The plan identifier
+      # @param plan_def [Hash] Plan definition from catalog
+      # @param existing_products [Hash] Products indexed by composite key
+      # @param match_fields [Array<String>] Fields used for matching
+      # @return [Stripe::Product, nil] Matched product or nil
+      def resolve_existing_product(plan_id, plan_def, existing_products, match_fields)
+        # Override: direct Stripe product ID binding
+        if (override_id = plan_def['stripe_product_id'])
+          product = existing_products.values.find { |p| p.id == override_id }
+          if product
+            puts "  ℹ #{plan_id}: using stripe_product_id override (#{override_id})"
+            return product
+          else
+            puts "  ⚠ #{plan_id}: stripe_product_id '#{override_id}' not found in Stripe"
+            # Fall through to normal matching
+          end
+        end
+
+        # Normal matching via composite key
+        match_key = build_match_key_from_plan(plan_id, plan_def, match_fields)
+        existing_products[match_key]
       end
 
       def detect_product_updates(existing, plan_def)
@@ -219,24 +294,8 @@ module Onetime
           updates[:marketing_features] = { from: existing_features, to: config_features }
         end
 
-        # Check metadata fields
-        metadata_fields = {
-          'tier' => plan_def['tier'],
-          'tenancy' => plan_def['tenancy'],
-          'display_order' => plan_def['display_order'].to_s,
-          'show_on_plans_page' => plan_def['show_on_plans_page'].to_s,
-          'entitlements' => (plan_def['entitlements'] || []).join(','),
-          Billing::Metadata::FIELD_INCLUDES_PLAN => plan_def['includes_plan'].to_s,
-          Billing::Metadata::FIELD_IS_POPULAR => (plan_def['is_popular'] == true).to_s,
-        }
-
-        # Add limit fields (always include so removed limits sync as empty strings)
-        limits                                    = plan_def['limits'] || {}
-        metadata_fields['limit_teams']            = limits['teams'].to_s
-        metadata_fields['limit_members_per_team'] = limits['members_per_team'].to_s
-        metadata_fields['limit_custom_domains']   = limits['custom_domains'].to_s
-        metadata_fields['limit_secret_lifetime']  = limits['secret_lifetime'].to_s
-        metadata_fields['limit_secrets_per_day']  = limits['secrets_per_day'].to_s
+        # Check metadata fields using registry from Billing::Metadata
+        metadata_fields = build_syncable_metadata(plan_def)
 
         metadata_fields.each do |field, expected|
           current = existing.metadata[field]
@@ -246,6 +305,42 @@ module Onetime
         end
 
         updates
+      end
+
+      # Build metadata fields for update detection from plan definition.
+      # Uses Billing::Metadata::SYNCABLE_FIELDS and LIMIT_FIELDS registries.
+      #
+      # All fields are always included (even if empty) so that:
+      # - Adding a field value is detected as a change
+      # - Removing a field value is detected as a change
+      #
+      # @param plan_def [Hash] Plan definition from catalog
+      # @return [Hash<String, String>] Metadata fields for comparison
+      def build_syncable_metadata(plan_def)
+        metadata_fields = {}
+        limits          = plan_def['limits'] || {}
+
+        # Add all syncable fields from registry (always include for update detection)
+        Billing::Metadata::SYNCABLE_FIELDS.each do |field_name, yaml_key|
+          value = plan_def[yaml_key]
+
+          # Special handling for certain field types
+          metadata_fields[field_name] = case field_name
+                                        when Billing::Metadata::FIELD_ENTITLEMENTS
+                                          (value || []).join(',')
+                                        when Billing::Metadata::FIELD_IS_POPULAR
+                                          (value == true).to_s
+                                        else
+                                          value.to_s
+                                        end
+        end
+
+        # Add all limit fields from registry (always include for update detection)
+        Billing::Metadata::LIMIT_FIELDS.each do |field_name, yaml_key|
+          metadata_fields[field_name] = limits[yaml_key].to_s
+        end
+
+        metadata_fields
       end
 
       def analyze_price_changes(plan_id, plan_def, existing_product, existing_prices)
@@ -422,30 +517,48 @@ module Onetime
         puts "  ERROR creating price: #{ex.message}"
       end
 
+      # Build metadata for creating a new Stripe product.
+      # Uses Billing::Metadata registries for field definitions.
+      #
+      # Only includes fields with values (don't create empty metadata keys).
+      #
+      # @param plan_id [String] Plan identifier (YAML key)
+      # @param plan_def [Hash] Plan definition from catalog
+      # @param app_identifier [String] Application identifier
+      # @return [Hash<String, String>] Metadata for Stripe product
       def build_metadata(plan_id, plan_def, app_identifier)
         limits = plan_def['limits'] || {}
 
+        # Required fields (always present)
         metadata = {
-          'app' => app_identifier,
-          'plan_id' => plan_id,
-          'tier' => plan_def['tier'].to_s,
-          'tenancy' => plan_def['tenancy'].to_s,
-          'entitlements' => (plan_def['entitlements'] || []).join(','),
-          'display_order' => plan_def['display_order'].to_s,
-          'show_on_plans_page' => plan_def['show_on_plans_page'].to_s,
-          'created' => Time.now.utc.iso8601,
+          Billing::Metadata::FIELD_APP => app_identifier,
+          Billing::Metadata::FIELD_PLAN_ID => plan_id,
+          Billing::Metadata::FIELD_CREATED => Time.now.utc.iso8601,
         }
 
-        # Add optional fields
-        metadata[Billing::Metadata::FIELD_INCLUDES_PLAN] = plan_def['includes_plan'] if plan_def['includes_plan']
-        metadata[Billing::Metadata::FIELD_IS_POPULAR]    = 'true' if plan_def['is_popular'] == true
+        # Add syncable fields from registry (only if value present for creation)
+        Billing::Metadata::SYNCABLE_FIELDS.each do |field_name, yaml_key|
+          value = plan_def[yaml_key]
+          next unless value
 
-        # Add limit fields
-        metadata['limit_teams']            = limits['teams'].to_s if limits['teams']
-        metadata['limit_members_per_team'] = limits['members_per_team'].to_s if limits['members_per_team']
-        metadata['limit_custom_domains']   = limits['custom_domains'].to_s if limits['custom_domains']
-        metadata['limit_secret_lifetime']  = limits['secret_lifetime'].to_s if limits['secret_lifetime']
-        metadata['limit_secrets_per_day']  = limits['secrets_per_day'].to_s if limits['secrets_per_day']
+          # Special handling for certain field types
+          serialized = case field_name
+                       when Billing::Metadata::FIELD_ENTITLEMENTS
+                         (value || []).join(',')
+                       when Billing::Metadata::FIELD_IS_POPULAR
+                         value == true ? 'true' : nil
+                       else
+                         value.to_s
+                       end
+
+          metadata[field_name] = serialized if serialized
+        end
+
+        # Add limit fields from registry (only if value present)
+        Billing::Metadata::LIMIT_FIELDS.each do |field_name, yaml_key|
+          value                = limits[yaml_key]
+          metadata[field_name] = value.to_s if value
+        end
 
         metadata
       end

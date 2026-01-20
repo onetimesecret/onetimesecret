@@ -30,6 +30,9 @@ module Onetime
         type: :boolean,
         default: true,
         desc: 'Show on plans page (default: true)'
+      # Limit options - dynamically generated from Billing::Metadata::LIMIT_FIELDS
+      # Available: limit_teams, limit_members_per_team, limit_custom_domains,
+      #            limit_secret_lifetime, limit_secrets_per_day
       option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
       option :limit_members_per_team, type: :string, desc: 'Limit members per team (-1 for unlimited)'
       option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
@@ -82,12 +85,11 @@ module Onetime
             'show_on_plans_page' => options[:show_on_plans_page].to_s,
           }
 
-          # Add limit fields if provided
-          base_metadata['limit_teams']            = options[:limit_teams] if options[:limit_teams]
-          base_metadata['limit_members_per_team'] = options[:limit_members_per_team] if options[:limit_members_per_team]
-          base_metadata['limit_custom_domains']   = options[:limit_custom_domains] if options[:limit_custom_domains]
-          base_metadata['limit_secret_lifetime']  = options[:limit_secret_lifetime] if options[:limit_secret_lifetime]
-          base_metadata['limit_secrets_per_day']  = options[:limit_secrets_per_day] if options[:limit_secrets_per_day]
+          # Add limit fields from registry if provided via CLI options
+          Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
+            option_key                = field_name.to_sym
+            base_metadata[field_name] = options[option_key] if options[option_key]
+          end
 
           base_metadata
         end

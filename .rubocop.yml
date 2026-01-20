@@ -329,6 +329,8 @@ Layout/EmptyLinesAroundModuleBody:
 Metrics/ClassLength:
   Enabled: true
   Max: 350
+  Exclude:
+    - 'apps/web/billing/cli/catalog_push_command.rb'  # CLI command with self-contained sync logic
 
 # Offense count: non-0
 Metrics/MethodLength:
