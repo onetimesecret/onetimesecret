@@ -67,7 +67,7 @@
 </script>
 
 <template>
-  <div class="container mx-auto mt-16 max-w-3xl px-4 pb-20 sm:mt-20 sm:pb-24">
+  <div class="container mx-auto mt-16 max-w-3xl px-4 pb-16 sm:mt-20 sm:pb-16">
     <!-- Feature Disabled (no header) -->
     <EmptyState v-if="showFeatureDisabled" :show-action="false">
       <template #title>
@@ -170,7 +170,7 @@
               :disabled="isSubmitting || !isFormValid"
               class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-300 sm:order-2"
               :class="isFormValid && !isSubmitting
-                ? 'bg-brand-500 hover:bg-brand-600 hover:shadow-xl text-white hover:scale-105 active:scale-100'
+                ? 'bg-brand-500 hover:bg-brand-600 hover:shadow-lg text-white hover:scale-105 active:scale-100'
                 : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60'">
               <svg
                 class="size-5 text-white"

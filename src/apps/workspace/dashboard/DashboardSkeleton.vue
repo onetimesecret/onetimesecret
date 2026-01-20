@@ -8,7 +8,7 @@
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl animate-pulse">
     <!-- Secret Form Skeleton -->
-    <div class="mb-12 space-y-4">
+    <div class="mb-10 space-y-4">
       <!-- Textarea placeholder -->
       <div class="h-32 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Teams Section Skeleton (optional, appears for team-capable users) -->
-    <div class="mb-12 space-y-4">
+    <div class="mb-10 space-y-4">
       <!-- Section header -->
       <div class="flex items-center justify-between">
         <div class="h-6 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>

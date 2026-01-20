@@ -27,12 +27,12 @@
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl">
     <SecretForm
-      class="mb-12"
+      class="mb-10"
       :with-generate="true"
       :with-recipient="true" />
 
     <!-- Create Your First Team CTA -->
-    <div class="mb-12 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-gray-600 dark:bg-gray-800/50">
+    <div class="mb-10 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-gray-600 dark:bg-gray-800/50">
       <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
         <OIcon
           collection="heroicons"

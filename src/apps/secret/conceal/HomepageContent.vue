@@ -22,7 +22,7 @@
 
     <SecretForm
       v-if="ui?.enabled !== false"
-      class="mb-12"
+      class="mb-10"
       :with-recipient="false"
       :with-asterisk="true"
       :with-generate="true"
