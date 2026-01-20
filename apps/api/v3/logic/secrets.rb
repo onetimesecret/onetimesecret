@@ -150,6 +150,45 @@ module V3
         end
       end
 
+      # Show multiple receipts for guest users (batch status check)
+      class ShowMultipleReceipts < V2::Logic::Base
+        include Onetime::Logic::GuestRouteGating
+
+        MAX_IDENTIFIERS = 25
+
+        attr_reader :identifiers, :records
+
+        def process_params
+          # Accept JSON array of identifiers
+          raw          = params['identifiers']
+          @identifiers = case raw
+                         when Array
+                           raw.map { |id| id.to_s.strip.downcase.gsub(/[^a-z0-9]/, '') }
+                         when String
+                           raw.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',')
+                         else
+                           []
+                         end.compact.reject(&:empty?)
+        end
+
+        def raise_concerns
+          require_guest_route_enabled!(:receipt)
+          return if identifiers.length <= MAX_IDENTIFIERS
+
+          raise_form_error("Too many identifiers (max #{MAX_IDENTIFIERS})")
+        end
+
+        def process
+          receipt_objects = Onetime::Receipt.load_multi(identifiers).compact
+          @records        = receipt_objects.map(&:safe_dump)
+          success_data
+        end
+
+        def success_data
+          { records: records, count: records.length }
+        end
+      end
+
       # Update receipt (memo field)
       class UpdateReceipt < V2::Logic::Secrets::UpdateReceipt
         # include ::V3::Logic::Base

@@ -24,6 +24,7 @@ GET    /guest/secret/:identifier                  V3::Logic::Secrets::ShowSecret
 POST   /guest/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=noauth
 GET    /guest/receipt/:identifier                 V3::Logic::Secrets::ShowReceipt response=json auth=noauth
 POST   /guest/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=noauth
+POST   /guest/receipts                            V3::Logic::Secrets::ShowMultipleReceipts response=json auth=noauth
 
 # Meta/Public endpoints (static information, no auth required)
 GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth
