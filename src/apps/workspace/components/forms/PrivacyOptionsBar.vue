@@ -289,7 +289,7 @@
                     :aria-label="passphraseVisible ? 'Hide passphrase' : 'Show passphrase'">
                     <OIcon
                       collection="heroicons"
-                      :name="passphraseVisible ? 'eye-slash' : 'eye'"
+                      :name="passphraseVisible ? 'outline-eye-off' : 'solid-eye'"
                       class="size-4" />
                   </button>
                 </div>
