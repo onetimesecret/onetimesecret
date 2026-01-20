@@ -252,8 +252,8 @@ function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T
   };
 
   const refreshStatuses = async () => {
-    // For API mode, fetch already returns fresh data from the server
-    // No separate refresh needed
+    // For API mode, re-fetch fresh data from the server
+    await fetch();
   };
 
   return {
