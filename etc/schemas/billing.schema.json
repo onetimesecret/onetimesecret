@@ -16,6 +16,19 @@
       "description": "Application identifier for Stripe metadata matching",
       "minLength": 1
     },
+    "match_fields": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": ["plan_id"],
+      "description": "Fields used to build composite match key for Stripe product identification (e.g., ['plan_id', 'region'])"
+    },
+    "region": {
+      "type": "string",
+      "description": "Region filter for this catalog instance. When set, only Stripe products with matching region metadata are visible"
+    },
     "entitlements": {
       "type": "object",
       "description": "System-wide entitlement definitions",
@@ -156,6 +169,15 @@
         "tenancy": {
           "$ref": "#/definitions/TenancyType",
           "description": "Tenancy type (optional for draft plans)"
+        },
+        "region": {
+          "type": "string",
+          "description": "Region identifier for composite matching (e.g., 'EU', 'US')"
+        },
+        "stripe_product_id": {
+          "type": "string",
+          "pattern": "^prod_",
+          "description": "Direct Stripe product ID binding (escape hatch for matching issues)"
         },
         "plan_name_label": {
           "type": "string",

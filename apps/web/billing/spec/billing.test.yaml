@@ -20,6 +20,17 @@ stripe_key: 'sk_test_mock'
 webhook_signing_secret: 'whsec_test_mock'
 stripe_api_version: '2025-11-17.clover'
 
+# Match fields for product identification in Stripe
+# Default: ['plan_id'] - matches by plan_id metadata only
+# With region: ['plan_id', 'region'] - composite matching for regional isolation
+match_fields:
+  - plan_id
+  - region
+
+# Region filter for this catalog instance
+# When set, only Stripe products with matching region metadata are visible
+region: EU
+
 # Test entitlements (minimal set)
 entitlements:
   create_secrets:
@@ -94,6 +105,8 @@ plans:
     display_order: 10
     show_on_plans_page: true
     description: 'Test subscription tier'
+    # Optional: Direct Stripe product ID binding (escape hatch for matching issues)
+    # stripe_product_id: prod_xxx  # Uncomment to override composite matching
 
     entitlements:
       - create_secrets

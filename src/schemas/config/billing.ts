@@ -154,6 +154,12 @@ export const PlanDefinitionSchema = z.object({
   name: z.string().min(1).describe('Display name for the plan'),
   tier: BillingTierSchema.optional().describe('Billing tier (optional for draft plans)'),
   tenancy: TenancyTypeSchema.optional().describe('Tenancy type (optional for draft plans)'),
+  region: z.string().optional().describe('Region identifier for composite matching (e.g., EU, US)'),
+  stripe_product_id: z
+    .string()
+    .regex(/^prod_/)
+    .optional()
+    .describe('Direct Stripe product ID binding (escape hatch for matching issues)'),
   plan_name_label: z.string().optional().describe('i18n key for plan category label'),
   display_order: z
     .number()
@@ -220,6 +226,15 @@ export const BillingConfigSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
     .describe('Stripe API version (e.g., 2025-11-17.clover)'),
+
+  match_fields: z
+    .array(z.string().min(1))
+    .default(['plan_id'])
+    .describe('Fields used to build composite match key for Stripe product identification'),
+  region: z
+    .string()
+    .optional()
+    .describe('Region filter for this catalog instance'),
 
   entitlements: z
     .record(z.string(), EntitlementDefinitionSchema)
