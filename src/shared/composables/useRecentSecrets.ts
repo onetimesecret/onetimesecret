@@ -3,7 +3,7 @@
 import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
 import type { ApplicationError } from '@/schemas/errors';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
+import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useReceiptListStore, type FetchListOptions } from '@/shared/stores/receiptListStore';
 import type { LocalReceipt } from '@/types/ui/local-receipt';
@@ -15,6 +15,11 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 /**
  * Unified record type for recent secrets display.
  * Abstracts differences between local (LocalReceipt) and API (ReceiptRecords) sources.
+ *
+ * Uses canonical terminology matching backend Receipt model:
+ * - isPreviewed: secret link was accessed (confirmation page shown)
+ * - isRevealed: secret content was decrypted/consumed
+ * - isBurned: secret was manually destroyed before being revealed
  */
 export interface RecentSecretRecord {
   /** Unique identifier for the record */
@@ -33,15 +38,15 @@ export interface RecentSecretRecord {
   createdAt: Date;
   /** Domain for share URL construction */
   shareDomain?: string;
-  /** Whether the secret has been viewed */
-  isViewed: boolean;
-  /** Whether the secret has been received */
-  isReceived: boolean;
-  /** Whether the secret has been burned */
+  /** Whether the secret link has been accessed (confirmation page shown) */
+  isPreviewed: boolean;
+  /** Whether the secret content has been revealed (decrypted/consumed) */
+  isRevealed: boolean;
+  /** Whether the secret has been burned (manually destroyed) */
   isBurned: boolean;
   /** Whether the secret has expired */
   isExpired: boolean;
-  /** Whether any of the burned, expired etc are true */
+  /** Whether any of revealed, burned, expired are true (no longer accessible) */
   isDestroyed: boolean;
   /** Original source data for advanced usage */
   source: 'local' | 'api';
@@ -86,30 +91,31 @@ export interface UseRecentSecretsReturn {
 /**
  * Transform a LocalReceipt (local storage) to unified RecentSecretRecord
  */
-function transformLocalRecord(message: LocalReceipt): RecentSecretRecord {
-  const isReceived = message.isReceived ?? false;
-  const isBurned = message.isBurned ?? false;
-  const isExpired = message.createdAt + message.ttl * 1000 < Date.now();
-  // isDestroyed means the secret is no longer accessible (received, burned, or expired)
-  const isDestroyed = isReceived || isBurned || isExpired;
+function transformLocalRecord(receipt: LocalReceipt): RecentSecretRecord {
+  const isPreviewed = receipt.isPreviewed ?? false;
+  const isRevealed = receipt.isRevealed ?? false;
+  const isBurned = receipt.isBurned ?? false;
+  const isExpired = receipt.createdAt + receipt.ttl * 1000 < Date.now();
+  // isDestroyed means the secret is no longer accessible (revealed, burned, or expired)
+  const isDestroyed = isRevealed || isBurned || isExpired;
 
   return {
-    id: message.id,
-    extid: message.receiptExtid,
-    shortid: message.secretShortid, // Use secret shortid for display, not receipt
-    secretExtid: message.secretExtid,
-    hasPassphrase: message.hasPassphrase,
-    ttl: message.ttl,
-    createdAt: new Date(message.createdAt),
-    shareDomain: message.shareDomain ?? undefined,
-    isViewed: isReceived, // For local records, viewed === received
-    isReceived,
+    id: receipt.id,
+    extid: receipt.receiptExtid,
+    shortid: receipt.secretShortid, // Use secret shortid for display, not receipt
+    secretExtid: receipt.secretExtid,
+    hasPassphrase: receipt.hasPassphrase,
+    ttl: receipt.ttl,
+    createdAt: new Date(receipt.createdAt),
+    shareDomain: receipt.shareDomain ?? undefined,
+    isPreviewed,
+    isRevealed,
     isBurned,
     isExpired,
     isDestroyed,
     source: 'local',
-    originalRecord: message,
-    memo: message.memo,
+    originalRecord: receipt,
+    memo: receipt.memo,
   };
 }
 
@@ -131,7 +137,7 @@ function extractApiRecordIds(record: ReceiptRecords) {
 function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
   const { id, secretId, extid, shortid } = extractApiRecordIds(record);
   const createdAt = record.created instanceof Date ? record.created : new Date();
-  // NOTE: is_destroyed is true for received, burned, expired, or orphaned states.
+  // NOTE: is_destroyed is true for revealed, burned, expired, or orphaned states.
   // Use is_burned specifically for the burned state - don't combine with is_destroyed.
   const isBurned = Boolean(record.is_burned);
   const isDestroyed = Boolean(record.is_destroyed);
@@ -145,8 +151,8 @@ function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
     ttl: record.secret_ttl ?? 0,
     createdAt,
     shareDomain: record.share_domain ?? undefined,
-    isViewed: record.is_viewed ?? false,
-    isReceived: record.is_received ?? false,
+    isPreviewed: record.is_previewed ?? false,
+    isRevealed: record.is_revealed ?? false,
     isBurned,
     isExpired: record.is_expired ?? false,
     isDestroyed,
@@ -160,15 +166,15 @@ function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
  * Internal composable for local storage source (guests/unauthenticated users)
  */
 function useLocalRecentSecrets() {
-  const store = useConcealedReceiptStore();
-  const { concealedMessages, workspaceMode, hasMessages } = storeToRefs(store);
+  const store = useLocalReceiptStore();
+  const { localReceipts, workspaceMode, hasReceipts } = storeToRefs(store);
 
   // Transform local messages to unified format
   const records = computed<RecentSecretRecord[]>(() =>
-    concealedMessages.value.map(transformLocalRecord)
+    localReceipts.value.map(transformLocalRecord)
   );
 
-  const hasRecords = computed(() => hasMessages.value);
+  const hasRecords = computed(() => hasReceipts.value);
 
   const fetch = async () => {
     // Local storage is synchronous, no fetch needed
@@ -179,7 +185,7 @@ function useLocalRecentSecrets() {
   };
 
   const clear = () => {
-    store.clearMessages();
+    store.clearReceipts();
   };
 
   const toggleWorkspaceMode = () => {
@@ -268,7 +274,7 @@ function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T
  * Composable for managing recent secrets display.
  *
  * Abstracts the data source based on authentication state:
- * - Guest users: Uses sessionStorage via concealedReceiptStore
+ * - Guest users: Uses sessionStorage via localReceiptStore
  * - Authenticated users: Uses API via receiptListStore
  *
  * Security: When authenticated, data is always fetched from the API.

@@ -32,16 +32,16 @@ const mockWorkspaceMode = ref(false);
 const mockHasMessages = ref(false);
 const mockIsInitialized = ref(false);
 
-vi.mock('@/shared/stores/concealedReceiptStore', () => ({
-  useConcealedReceiptStore: vi.fn(() => ({
-    concealedMessages: mockConcealedMessages,
+vi.mock('@/shared/stores/localReceiptStore', () => ({
+  useLocalReceiptStore: vi.fn(() => ({
+    localReceipts: mockConcealedMessages,
     workspaceMode: mockWorkspaceMode,
-    hasMessages: mockHasMessages,
+    hasReceipts: mockHasMessages,
     isInitialized: mockIsInitialized.value,
     init: vi.fn(() => {
       mockIsInitialized.value = true;
     }),
-    clearMessages: vi.fn(() => {
+    clearReceipts: vi.fn(() => {
       mockConcealedMessages.value = [];
       mockHasMessages.value = false;
     }),
