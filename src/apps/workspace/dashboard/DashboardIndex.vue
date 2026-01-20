@@ -57,13 +57,13 @@
       :current-ttl="currentTtl"
       :current-passphrase="currentPassphrase"
       :is-submitting="isSubmitting"
-      class="mb-6 rounded-lg"
+      class="mb-4"
       @update:ttl="handleTtlUpdate"
       @update:passphrase="handlePassphraseUpdate" />
 
     <WorkspaceSecretForm
       ref="secretFormRef"
-      class="mb-12"
+      class="mb-10"
       @created="handleSecretCreated" />
 
     <RecentSecretsTable

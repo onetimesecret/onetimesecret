@@ -232,12 +232,12 @@
       <!-- Main Content Card -->
       <div
         :class="[cornerClass]"
-        class="overflow-visible border border-gray-200/50
+        class="overflow-visible border border-gray-200/60
           bg-gradient-to-br from-white to-gray-50/30
-          shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)]
+          shadow-[0_4px_16px_rgb(0,0,0,0.08),0_1px_4px_rgb(0,0,0,0.06)]
           backdrop-blur-sm
-          dark:border-gray-700/50 dark:from-slate-900 dark:to-slate-800/30
-          dark:shadow-[0_8px_30px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
+          dark:border-gray-700/60 dark:from-slate-900 dark:to-slate-800/30
+          dark:shadow-[0_4px_16px_rgb(0,0,0,0.3),0_1px_4px_rgb(0,0,0,0.2)]">
         <!-- Content Section -->
         <div class="p-6">
           <!-- Textarea for Create Link mode -->
