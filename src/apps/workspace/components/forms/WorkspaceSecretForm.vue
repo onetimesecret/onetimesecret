@@ -362,15 +362,14 @@
 
         <!-- Actions Footer -->
         <div class="border-t border-gray-200/50 dark:border-gray-700/50">
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <!-- Main action row -->
             <div
-              class="flex flex-col gap-4 sm:flex-row sm:items-center
-                sm:justify-between">
-              <!-- Domain Context Indicator -->
+              class="flex items-center justify-between gap-4">
+              <!-- Domain Context Indicator (hidden on mobile - redundant with header) -->
               <div
                 v-if="isContextActive"
-                class="flex items-center gap-2 text-base font-brand">
+                class="hidden items-center gap-2 text-base font-brand sm:flex">
                 <span class="text-gray-600 dark:text-gray-400">
                   {{ t('web.LABELS.creating_links_for') }}
                 </span>
@@ -403,8 +402,8 @@
                 </div>
               </div>
 
-              <!-- Submit Area with Stay on Page toggle -->
-              <div class="flex items-center gap-2.5">
+              <!-- Submit Area with Stay on Page toggle (always right-aligned) -->
+              <div class="ml-auto flex items-center gap-2.5">
                 <!-- Stay on Page Toggle (refined, compact) -->
                 <!-- Disabled when generating password since user must see the receipt to view the generated password -->
                 <button

@@ -182,9 +182,9 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
         class="size-4 text-gray-500 group-hover:text-brand-500 dark:text-gray-400 dark:group-hover:text-brand-400"
         aria-hidden="true" />
 
-      <!-- Current Domain Display -->
+      <!-- Current Domain Display (hidden on xs, truncated on sm+) -->
       <span
-        class="max-w-[120px] truncate md:max-w-[160px] lg:max-w-[200px]"
+        class="hidden max-w-[80px] truncate sm:inline md:max-w-[120px] lg:max-w-[160px]"
         :title="currentContext.domain">
         {{ currentContext.displayName }}
       </span>

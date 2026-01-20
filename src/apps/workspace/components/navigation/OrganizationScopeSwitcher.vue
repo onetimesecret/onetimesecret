@@ -208,9 +208,9 @@ const navigateToManageOrganizations = (): void => {
         <template v-else>{{ getOrganizationInitial(currentOrganization) }}</template>
       </span>
 
-      <!-- Current Organization Display -->
+      <!-- Current Organization Display (hidden on xs, truncated on sm+) -->
       <span
-        class="max-w-[120px] truncate md:max-w-[160px] lg:max-w-[200px]"
+        class="hidden max-w-[80px] truncate sm:inline md:max-w-[120px] lg:max-w-[160px]"
         :title="currentOrganization ? getOrganizationDisplayName(currentOrganization) : undefined">
         {{
           currentOrganization
