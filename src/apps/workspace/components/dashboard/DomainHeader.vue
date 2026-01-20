@@ -16,7 +16,7 @@ const { t } = useI18n();
   }>();
 
   // Build org-qualified routes
-  const domainsListRoute = computed(() => `/org/${props.orgid}/domains`);
+  const domainsListRoute = computed(() => `/org/${props.orgid}`);
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
   const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(

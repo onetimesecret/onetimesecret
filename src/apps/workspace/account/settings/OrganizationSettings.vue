@@ -458,6 +458,23 @@ watch(activeTab, async (newTab) => {
     await loadBilling();
   }
 });
+
+// Watch for org changes via URL navigation (e.g., /org/A/domains -> /org/B/domains)
+// Vue Router reuses the component, so onMounted doesn't run again.
+// This ensures currentOrganization in the store is updated to match the URL.
+watch(orgId, async (newOrgId, oldOrgId) => {
+  if (newOrgId && newOrgId !== oldOrgId) {
+    await loadOrganization();
+    // Reload tab-specific data for the new org
+    if (activeTab.value === 'members') {
+      await Promise.all([loadMembers(), loadInvitations()]);
+    } else if (activeTab.value === 'domains') {
+      await refreshDomains();
+    } else if (activeTab.value === 'subscription' && billingEnabled.value) {
+      await loadBilling();
+    }
+  }
+});
 </script>
 
 <template>

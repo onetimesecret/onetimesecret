@@ -48,22 +48,6 @@ const routes: Array<RouteRecordRaw> = [
   },
   // Org-qualified domain routes
   {
-    path: '/org/:orgid/domains',
-    name: 'DashboardDomains',
-    component: () => import('@/apps/workspace/domains/DomainsList.vue'),
-    meta: {
-      title: 'web.TITLES.domains',
-      requiresAuth: true,
-      layout: WorkspaceLayout,
-      layoutProps: {
-        displayFeedback: false,
-        displayPoweredBy: false,
-      },
-      scopesAvailable: SCOPE_PRESETS.showBoth,
-    },
-    props: true,
-  },
-  {
     path: '/org/:orgid/domains/add',
     name: 'DomainAdd',
     component: () => import('@/apps/workspace/domains/DomainAdd.vue'),

@@ -256,10 +256,10 @@ data-testid="organizations-list">
                 </router-link>
                 -->
 
-                <!-- Domains (links to org-scoped domains page) -->
+                <!-- Domains (links to org settings page, domains tab is default) -->
                 <router-link
                   v-if="org.extid"
-                  :to="`/org/${org.extid}/domains`"
+                  :to="`/org/${org.extid}`"
                   class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
                   @click.stop>
                   <OIcon

@@ -136,7 +136,7 @@ const shouldShow = computed(() => isContextActive.value);
  */
 const navigateToManageDomains = (): void => {
   if (currentOrgExtid.value) {
-    router.push(`/org/${currentOrgExtid.value}/domains`);
+    router.push(`/org/${currentOrgExtid.value}`);
   } else {
     router.push('/dashboard');
   }
