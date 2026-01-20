@@ -83,7 +83,7 @@
 <template>
   <section
     aria-labelledby="recent-secrets-heading"
-    class="pb-24">
+    class="pb-8">
     <div class="mb-4 flex items-center justify-between">
       <div>
         <h2
