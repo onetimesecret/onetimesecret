@@ -42,7 +42,7 @@ module DomainsAPI::Logic
         # record, removes it from customer's domain list, and global list so
         # it's all or nothing. It does not delete the external approximated
         # vhost record.
-        @custom_domain.destroy!(@cust)
+        @custom_domain.destroy!
 
         success_data
       end
