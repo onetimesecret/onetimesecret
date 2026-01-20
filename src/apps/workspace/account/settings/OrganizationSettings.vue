@@ -32,22 +32,24 @@ import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
 // import { z } from 'zod';
 
-type TabType = 'general' | 'members' | 'domains' | 'billing';
+type TabType = 'general' | 'members' | 'domains' | 'subscription';
 
 // URL tab names map to internal tab names
 // URL: team -> internal: members
 // URL: settings -> internal: general
+// URL: subscription -> internal: subscription (renamed from billing for clarity)
 const URL_TO_TAB: Record<string, TabType> = {
   team: 'members',
   domains: 'domains',
-  billing: 'billing',
+  subscription: 'subscription',
+  billing: 'subscription', // backwards compatibility for old URLs
   settings: 'general',
 };
 
 const TAB_TO_URL: Record<TabType, string> = {
   members: 'team',
   domains: 'domains',
-  billing: 'billing',
+  subscription: 'subscription',
   general: 'settings',
 };
 
@@ -131,8 +133,7 @@ const {
 const isLoading = ref(false);
 const isSaving = ref(false);
 const isLoadingBilling = ref(false);
-const isSavingBillingEmail = ref(false);
-const isEditingBillingEmail = ref(false);
+// Billing email editing has been moved to BillingOverview.vue
 const error = ref('');
 const success = ref('');
 
@@ -179,11 +180,6 @@ const formData = ref({
   contact_email: '',
 });
 
-// Billing email form state (separate from main form for inline editing)
-const billingEmailForm = ref({
-  email: '',
-});
-
 const isDirty = computed(() => {
   if (!organization.value) return false;
   return (
@@ -192,6 +188,9 @@ const isDirty = computed(() => {
     formData.value.contact_email !== (organization.value.contact_email || '')
   );
 });
+
+// Billing email is only shown for paid plans (organizations with a planid set)
+const hasPaidPlan = computed(() => !!organization.value?.planid);
 
 const loadOrganization = async () => {
   isLoading.value = true;
@@ -205,8 +204,6 @@ const loadOrganization = async () => {
         description: org.description || '',
         contact_email: org.contact_email || '',
       };
-      // Initialize billing email form
-      billingEmailForm.value.email = org.contact_email || '';
     } else {
       error.value = t('web.organizations.not_found');
     }
@@ -309,47 +306,6 @@ const handleCancel = () => {
       description: organization.value.description || '',
       contact_email: organization.value.contact_email || '',
     };
-  }
-};
-
-// Billing email inline edit handlers
-const handleEditBillingEmail = () => {
-  billingEmailForm.value.email = organization.value?.contact_email || '';
-  isEditingBillingEmail.value = true;
-};
-
-const handleCancelBillingEmailEdit = () => {
-  billingEmailForm.value.email = organization.value?.contact_email || '';
-  isEditingBillingEmail.value = false;
-};
-
-const handleSaveBillingEmail = async () => {
-  if (!organization.value) return;
-
-  const newEmail = billingEmailForm.value.email.trim();
-  if (newEmail === (organization.value.contact_email || '')) {
-    isEditingBillingEmail.value = false;
-    return;
-  }
-
-  isSavingBillingEmail.value = true;
-  error.value = '';
-  success.value = '';
-
-  try {
-    await organizationStore.updateOrganization(orgId.value, {
-      billing_email: newEmail,
-    });
-
-    success.value = t('web.organizations.billing_email_updated');
-    isEditingBillingEmail.value = false;
-    await loadOrganization(); // Reload to get latest data
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.update_error');
-    console.error('[OrganizationSettings] Error updating billing email:', err);
-  } finally {
-    isSavingBillingEmail.value = false;
   }
 };
 
@@ -477,7 +433,7 @@ onMounted(async () => {
     await Promise.all([loadMembers(), loadInvitations()]);
   } else if (activeTab.value === 'domains') {
     await refreshDomains();
-  } else if (activeTab.value === 'billing' && billingEnabled.value) {
+  } else if (activeTab.value === 'subscription' && billingEnabled.value) {
     await loadBilling();
   }
 });
@@ -498,8 +454,25 @@ watch(activeTab, async (newTab) => {
   } else if (newTab === 'domains') {
     // Load domains when switching to domains tab
     await refreshDomains();
-  } else if (newTab === 'billing' && !subscription.value && billingEnabled.value) {
+  } else if (newTab === 'subscription' && !subscription.value && billingEnabled.value) {
     await loadBilling();
+  }
+});
+
+// Watch for org changes via URL navigation (e.g., /org/A/domains -> /org/B/domains)
+// Vue Router reuses the component, so onMounted doesn't run again.
+// This ensures currentOrganization in the store is updated to match the URL.
+watch(orgId, async (newOrgId, oldOrgId) => {
+  if (newOrgId && newOrgId !== oldOrgId) {
+    await loadOrganization();
+    // Reload tab-specific data for the new org
+    if (activeTab.value === 'members') {
+      await Promise.all([loadMembers(), loadInvitations()]);
+    } else if (activeTab.value === 'domains') {
+      await refreshDomains();
+    } else if (activeTab.value === 'subscription' && billingEnabled.value) {
+      await loadBilling();
+    }
   }
 });
 </script>
@@ -544,6 +517,7 @@ watch(activeTab, async (newTab) => {
           -->
           <!-- Domains tab -->
           <button
+            data-testid="org-tab-domains"
             @click="setActiveTab('domains')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -553,19 +527,21 @@ watch(activeTab, async (newTab) => {
             ]">
             {{ t('web.organizations.tabs.domains') }}
           </button>
-          <!-- Billing tab - shown for all organizations -->
+          <!-- Subscription tab - shown for all organizations -->
           <button
-            @click="setActiveTab('billing')"
+            data-testid="org-tab-subscription"
+            @click="setActiveTab('subscription')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'billing'
+              activeTab === 'subscription'
                 ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
-            {{ t('web.organizations.tabs.billing') }}
+            {{ t('web.organizations.tabs.subscription') }}
           </button>
           <!-- Settings tab - infrequently changed fields -->
           <button
+            data-testid="org-tab-settings"
             @click="setActiveTab('general')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -597,6 +573,7 @@ watch(activeTab, async (newTab) => {
         <!-- General Tab -->
         <section
           v-if="activeTab === 'general'"
+          data-testid="org-section-settings"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <h3 class="text-base font-semibold text-gray-900 dark:text-white">
@@ -648,61 +625,24 @@ watch(activeTab, async (newTab) => {
                 </p>
               </div>
 
-              <!-- Billing Email -->
-              <div>
+              <!-- Billing Email - read-only display for paid plans, editable on Billing Overview -->
+              <div v-if="hasPaidPlan" data-testid="org-billing-email-field">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {{ t('web.organizations.contact_email') }}
                 </label>
-                <!-- Display Mode: Show email as text with Edit link -->
-                <div v-if="!isEditingBillingEmail" class="mt-1 flex items-center gap-3">
+                <div class="mt-1 flex items-center gap-3">
                   <span class="text-sm text-gray-900 dark:text-white">
                     {{ organization?.contact_email || t('web.COMMON.not_set') }}
                   </span>
-                  <button
-                    type="button"
-                    @click="handleEditBillingEmail"
+                  <router-link
+                    :to="`/billing/${orgId}/overview`"
+                    data-testid="org-billing-email-edit-link"
                     class="text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
                     {{ t('web.COMMON.word_edit') }}
-                  </button>
+                  </router-link>
                 </div>
-
-                <!-- Edit Mode: Inline form -->
-                <div v-else class="mt-1 space-y-2">
-                  <div class="flex items-center gap-2">
-                    <input
-                      id="billing-email"
-                      v-model="billingEmailForm.email"
-                      type="email"
-                      required
-                      :placeholder="t('web.organizations.contact_email')"
-                      class="block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-                      @keyup.enter="handleSaveBillingEmail"
-                      @keyup.escape="handleCancelBillingEmailEdit" />
-                    <button
-                      type="button"
-                      @click="handleSaveBillingEmail"
-                      :disabled="isSavingBillingEmail"
-                      class="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-                      <span v-if="!isSavingBillingEmail">{{ t('web.COMMON.word_save') }}</span>
-                      <OIcon
-                        v-else
-                        collection="heroicons"
-                        name="arrow-path"
-                        class="size-4 animate-spin"
-                        aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      @click="handleCancelBillingEmailEdit"
-                      :disabled="isSavingBillingEmail"
-                      class="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-                      {{ t('web.COMMON.word_cancel') }}
-                    </button>
-                  </div>
-                </div>
-
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {{ t('web.organizations.contact_email_help') }}
+                  {{ t('web.organizations.billing_email_managed_on_billing') }}
                 </p>
               </div>
 
@@ -944,6 +884,7 @@ watch(activeTab, async (newTab) => {
         <!-- Domains Tab -->
         <section
           v-if="activeTab === 'domains'"
+          data-testid="org-section-domains"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <div class="flex items-center justify-between">
@@ -1007,9 +948,10 @@ watch(activeTab, async (newTab) => {
           </div>
         </section>
 
-        <!-- Billing Tab -->
+        <!-- Subscription Tab -->
         <section
-          v-if="activeTab === 'billing'"
+          v-if="activeTab === 'subscription'"
+          data-testid="org-section-subscription"
           class="space-y-6">
           <!-- Billing Disabled Notice -->
           <div v-if="!billingEnabled" class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">

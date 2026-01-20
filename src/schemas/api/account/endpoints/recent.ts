@@ -23,6 +23,8 @@ export const receiptRecordsSchema = receiptBaseSchema.extend({
 // The details for each record in list view
 export const receiptRecordsDetailsSchema = z.object({
   type: z.string(), // literally the word "list"
+  scope: z.string().nullish(), // 'org', 'domain', or null for default (customer)
+  scope_label: z.string().nullish(), // Display name for the scope (org name or domain)
   since: z.number(),
   now: transforms.fromString.date,
   has_items: transforms.fromString.boolean,

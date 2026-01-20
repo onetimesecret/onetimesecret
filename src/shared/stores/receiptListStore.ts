@@ -9,6 +9,16 @@ import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref, type Ref } from 'vue';
 
 /**
+ * Options for filtering receipt list queries.
+ */
+export interface FetchListOptions {
+  /** Scope of the query: 'org' for organization, 'domain' for custom domain, or undefined for customer */
+  scope?: 'org' | 'domain';
+  /** Required when scope is 'domain' - the external ID of the custom domain */
+  domainExtid?: string;
+}
+
+/**
  * Type definition for ReceiptListStore.
  */
 export type ReceiptListStore = {
@@ -17,14 +27,16 @@ export type ReceiptListStore = {
   records: ReceiptRecords[];
   details: ReceiptRecordsDetails | null;
   count: number | null;
+  currentScope: FetchListOptions['scope'];
+  scopeLabel: string | null;
 
   // Getters
   recordCount: number;
   initialized: boolean;
 
   // Actions
-  fetchList: () => Promise<void>;
-  refreshRecords: (force?: boolean) => Promise<void>;
+  fetchList: (options?: FetchListOptions) => Promise<void>;
+  refreshRecords: (force?: boolean, options?: FetchListOptions) => Promise<void>;
   updateMemo: (id: string, memo: string) => Promise<void>;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -43,6 +55,8 @@ export const useReceiptListStore = defineStore('receiptList', () => {
   const records: Ref<ReceiptRecords[] | null> = ref(null);
   const details: Ref<ReceiptRecordsDetails | null> = ref(null);
   const count = ref<number | null>(null);
+  const currentScope = ref<FetchListOptions['scope']>(undefined);
+  const scopeLabel = ref<string | null>(null);
 
   // Getters
   const initialized = () => _initialized.value;
@@ -60,15 +74,22 @@ export const useReceiptListStore = defineStore('receiptList', () => {
   }
 
   // eslint-disable-next-line complexity -- temporary debug logging
-  async function fetchList() {
+  async function fetchList(options: FetchListOptions = {}) {
     const timestamp = Date.now();
     loggingService.debug('[DEBUG:receiptListStore] fetchList called', {
       timestamp,
+      scope: options.scope,
+      domainExtid: options.domainExtid,
       currentCount: count.value,
       currentRecordsLength: records.value?.length ?? 0,
     });
 
-    const response = await $api.get('/api/v3/receipt/recent');
+    // Build query params based on options
+    const params: Record<string, string> = {};
+    if (options.scope) params.scope = options.scope;
+    if (options.domainExtid) params.domain_extid = options.domainExtid;
+
+    const response = await $api.get('/api/v3/receipt/recent', { params });
 
     loggingService.debug('[DEBUG:receiptListStore] API response received', {
       timestamp,
@@ -80,22 +101,26 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     const validated = responseSchemas.receiptList.parse(response.data);
 
     records.value = validated.records ?? [];
-    details.value = (validated.details ?? {}) as any;
+    details.value = (validated.details ?? {}) as ReceiptRecordsDetails;
     count.value = validated.count ?? 0;
+    currentScope.value = options.scope;
+    scopeLabel.value = validated.details?.scope_label ?? null;
 
     loggingService.debug('[DEBUG:receiptListStore] Store updated', {
       timestamp,
       newCount: count.value,
       newRecordsLength: records.value?.length ?? 0,
+      scope: currentScope.value,
+      scopeLabel: scopeLabel.value,
     });
 
     return validated;
   }
 
-  async function refreshRecords(force = false) {
+  async function refreshRecords(force = false, options: FetchListOptions = {}) {
     if (!force && _initialized.value) return;
 
-    await fetchList();
+    await fetchList(options);
     _initialized.value = true;
   }
 
@@ -127,6 +152,8 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     records.value = null;
     details.value = null;
     count.value = null;
+    currentScope.value = undefined;
+    scopeLabel.value = null;
     _initialized.value = false;
   }
 
@@ -137,6 +164,8 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     records,
     details,
     count,
+    currentScope,
+    scopeLabel,
 
     // Getters
     recordCount,

@@ -89,7 +89,7 @@
     </template>
 
     <template #main>
-      <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 mb-24">
         <div class="container mx-auto min-w-[320px] max-w-4xl px-4 py-8">
           <div class="flex items-start gap-8">
             <!-- Sidebar (Left position) -->
@@ -219,7 +219,8 @@
     </template>
 
     <template #footer>
-      <WorkspaceFooter v-bind="layoutProps" />
+
+      <WorkspaceFooter class="pb-32 mb-16" v-bind="layoutProps" />
     </template>
   </BaseLayout>
 </template>

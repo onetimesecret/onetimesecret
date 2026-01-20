@@ -119,6 +119,9 @@
   "web.organizations.billing_email_updated": {
     "text": "Billing email updated successfully"
   },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Billing email can be changed on the Billing Overview page"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Billing Integration Coming Soon"
   },
@@ -157,6 +160,9 @@
   },
   "web.organizations.tabs.billing": {
     "text": "Billing"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Subscription"
   },
   "web.organizations.danger_zone": {
     "text": "Danger Zone"

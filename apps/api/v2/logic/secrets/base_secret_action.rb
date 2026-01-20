@@ -283,11 +283,50 @@ module V2::Logic
       end
 
       def update_stats
+        # Track which scope fields were set for targeted persistence
+        scope_fields = []
+
+        # Index by domain first (applies to both authenticated and anonymous)
+        # This enables domain owners to see activity on their branded links
+        scope_fields << :domain_id if index_receipt_to_domain
+
         unless cust.anonymous?
           cust.add_receipt receipt
           cust.increment_field :secrets_created
+
+          # Index by organization (current context from session)
+          scope_fields << :org_id if index_receipt_to_organization
         end
+
+        # Persist only the scope fields that were set
+        receipt.save_fields(*scope_fields) if scope_fields.any?
+
         Onetime::Customer.secrets_created.increment
+      end
+
+      # Index receipt to the current organization context
+      # Enables org-scoped receipt queries via org.receipts
+      # @return [Boolean] true if indexed, false otherwise
+      def index_receipt_to_organization
+        return false unless org # org comes from OrganizationContext module
+
+        receipt.org_id = org.objid
+        receipt.add_to_organization_receipts(org)
+        true
+      end
+
+      # Index receipt to the custom domain used for sharing
+      # Enables domain-scoped receipt queries via custom_domain.receipts
+      # @return [Boolean] true if indexed, false otherwise
+      def index_receipt_to_domain
+        return false unless share_domain
+
+        domain_record = Onetime::CustomDomain.from_display_domain(share_domain)
+        return false unless domain_record
+
+        receipt.domain_id = domain_record.objid
+        receipt.add_to_custom_domain_receipts(domain_record)
+        true
       end
 
       def send_email_to_recipient

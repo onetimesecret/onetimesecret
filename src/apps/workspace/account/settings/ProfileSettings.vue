@@ -112,11 +112,13 @@
                   </p>
                   <p class="text-sm text-blue-700 dark:text-blue-300">
                     {{ t('web.translations.were_grateful_to_the') }}
-                    <router-link
-                      to="/translations"
+                    <a
+                      href="https://docs.onetimesecret.com/en/translations/"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       class="font-medium underline hover:no-underline">
                       {{ t('web.translations.25_contributors') }}
-                    </router-link>
+                    </a>
                     {{ t('web.translations.whove_helped_with_translations_as_we_continue_to') }}
                   </p>
                   <p class="text-sm text-blue-700 dark:text-blue-300">

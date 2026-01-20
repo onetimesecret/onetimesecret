@@ -159,7 +159,7 @@
       z-10 w-full
       min-w-[320px]
       bg-gray-100 py-16
-      pb-20 dark:bg-gray-800
+      dark:bg-gray-800
       md:fixed
       md:bottom-0
       md:py-6"

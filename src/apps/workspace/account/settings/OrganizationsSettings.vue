@@ -168,10 +168,13 @@ const handleManageOrganization = (org: Organization) => {
           </div>
 
           <!-- Organizations List -->
-          <div v-else-if="hasOrganizations" class="space-y-4">
+          <div v-else-if="hasOrganizations"
+class="space-y-4"
+data-testid="organizations-list">
             <div
               v-for="org in visibleOrganizations"
               :key="org.id"
+              :data-testid="`org-card-${org.extid}`"
               class="rounded-lg border border-gray-200 p-4 transition-colors hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600">
               <!-- Header row: Name + badges -->
               <div class="flex items-start justify-between">
@@ -179,8 +182,11 @@ const handleManageOrganization = (org: Organization) => {
                   <button
                     type="button"
                     @click="handleManageOrganization(org)"
-                    class="group flex items-center gap-2 text-left">
-                    <h3 class="text-base font-medium text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
+                    class="group flex items-center gap-2 text-left"
+                    :data-testid="`org-link-${org.extid}`">
+                    <h3
+                      class="text-base font-medium text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400"
+                      data-testid="org-name">
                       {{ org.display_name }}
                     </h3>
                     <OIcon
@@ -250,10 +256,10 @@ const handleManageOrganization = (org: Organization) => {
                 </router-link>
                 -->
 
-                <!-- Domains (links to org-scoped domains page) -->
+                <!-- Domains (links to org settings page, domains tab is default) -->
                 <router-link
                   v-if="org.extid"
-                  :to="`/org/${org.extid}/domains`"
+                  :to="`/org/${org.extid}`"
                   class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
                   @click.stop>
                   <OIcon

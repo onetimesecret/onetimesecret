@@ -98,6 +98,9 @@
   "web.billing.overview.upgrade_success_description": {
     "text": "Your new plan is now active. Thank you for your purchase."
   },
+  "web.billing.overview.billing_contact": {
+    "text": "Billing Contact"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Create Secrets"
   },

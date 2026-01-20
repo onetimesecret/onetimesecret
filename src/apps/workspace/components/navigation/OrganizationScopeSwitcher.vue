@@ -259,6 +259,7 @@ const navigateToManageOrganizations = (): void => {
           @click="selectOrganization(org)">
           <button
             type="button"
+            :data-testid="`org-menu-item-${org.extid}`"
             class="group/row relative w-full cursor-pointer select-none py-2 pl-3 pr-9 text-left text-gray-700 transition-colors duration-150 dark:text-gray-200"
             :class="[
               active ? 'bg-gray-100 dark:bg-gray-700' : '',

@@ -1,219 +1,92 @@
-# E2E Testing Guide
+# E2E Testing
 
-This directory contains end-to-end integration tests that validate the complete application stack from build to deployment.
+Playwright-based end-to-end tests. See `playwright.config.ts` for configuration.
 
 ## Directory Structure
 
-Tests are organized by authentication mode, mirroring the RSpec integration test structure:
+| Directory | Requires | Description |
+|-----------|----------|-------------|
+| `all/` | Nothing | Public pages, anonymous flows |
+| `full/` | Auth session | Requires `TEST_USER_EMAIL` and `TEST_USER_PASSWORD` |
+| `full-billing/` | Auth + billing | Requires billing.yaml config |
 
-```
-e2e/
-├── README.md              # This file
-├── playwright.config.ts   # Playwright configuration
-├── all/                   # Tests that work without authentication
-│   ├── integration.spec.ts    # Homepage, secret creation flows
-│   └── secret-context.spec.ts # Public secret viewing
-├── full/                  # Tests requiring full auth mode (user sessions)
-│   ├── settings-layout.spec.ts        # Account settings pages
-│   ├── scope-switcher.spec.ts         # Organization/domain switching
-│   ├── identifier-url-patterns.spec.ts # URL routing with auth
-│   └── domain-scope-consultant.spec.ts # Domain context flows
-└── full-billing/          # Tests requiring full auth + billing enabled
-    ├── pricing-flow.spec.ts    # Pricing page deep links
-    ├── billing-blockers.spec.ts # Billing page functionality
-    └── plan-switching.spec.ts   # Plan upgrade/downgrade flows
-```
-
-### Auth Mode Requirements
-
-| Directory | Auth Mode | Billing | CI Container | Notes |
-|-----------|-----------|---------|--------------|-------|
-| `all/` | None | No | Yes | Run in basic CI container |
-| `full/` | Full (Rodauth) | No | Manual only | Requires user session |
-| `full-billing/` | Full + Billing | Yes | Manual only | Requires billing.yaml config |
-
-## Quick Setup
+## Running Tests
 
 ```bash
-# One-time setup
-pnpm install
-
-# Run all E2E tests against dev server
-
-# In both terminals, one of the following depending on whether you are running a reverse proxy:
-FRONTEND_HOST=http://localhost:5173
-PLAYWRIGHT_BASE_URL=https://dev.onetime.dev
-
-pnpm run dev  # In terminal 1
-
-PLAYWRIGHT_BASE_URL=$HOST pnpm test:playwright e2e/  # In terminal 2
-```
-
-## Test Environments
-
-### 1. Development Server (Fastest)
-```bash
-# Start dev server
+# Dev server (terminal 1)
 pnpm run dev
 
-# Run tests
+# Run tests (terminal 2)
 PLAYWRIGHT_BASE_URL=http://localhost:5173 pnpm test:playwright e2e/
-```
-**Use for:** Rapid iteration, UI development, selector debugging
 
-### 2. Production Build (Recommended)
-```bash
-# Build production assets
-pnpm run build
+# Or against production build
+PLAYWRIGHT_BASE_URL=https://dev.onetime.dev pnpm test:playwright e2e/
 
-# Start production server
-RACK_ENV=production SECRET=test123 REDIS_URL=redis://localhost:6379/0 \
-  bundle exec thin -R config.ru -p 3000 start
+# Specific test file
+pnpm test:playwright e2e/full/scope-switcher.spec.ts
 
-# Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright e2e/
-```
-**Use for:** Asset bundling validation, performance testing, pre-deployment verification
+# With headed browser for debugging
+pnpm test:playwright e2e/ --headed --project=chromium
 
-### 3. Containerized (Most Accurate)
-```bash
-# Build and run container
-docker build -t onetimesecret-test .
-docker run -d --name ots-test -p 3000:3000 \
-  -e SECRET=test123 \
-  -e REDIS_URL=redis://host.docker.internal:6379/0 \
-  onetimesecret-test
-
-# Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright e2e/
-
-# Cleanup
-docker stop ots-test && docker rm ots-test
-```
-**Use for:** Final validation, CI/CD pipeline testing, deployment environment simulation
-
-## Debugging Workflows
-
-### Visual Debugging
-```bash
 # Interactive UI mode
 pnpm test:playwright e2e/ --ui
-
-# Watch mode (headed browser)
-pnpm test:playwright e2e/ --headed --project=chromium
 ```
 
-### Trace Generation
+## Debugging
+
 ```bash
-# Generate detailed traces
+# Generate traces on failure
 pnpm test:playwright e2e/ --trace=on --reporter=html
-
-# View traces
 pnpm playwright show-trace test-results/*/trace.zip
-```
 
-### Targeted Testing
-```bash
-# Run specific test
-pnpm test:playwright e2e/integration.spec.ts -g "homepage loads"
+# Pause test for inspection
+await page.pause();  # Add to test code
 
-# Run against specific browser
-pnpm test:playwright e2e/ --project=firefox
-
-# Debug specific test
-pnpm test:playwright e2e/integration.spec.ts --debug
-```
-
-## Working with Claude Code/Desktop
-
-### When Tests Fail
-
-1. **Gather Context:**
-   - Copy the complete error output
-   - Note which environment you're testing against
-   - Include relevant application logs
-   - Capture any browser console errors
-
-2. **Share with Claude:**
-   ```
-   My E2E test is failing. Here's the context:
-
-   **Environment:** [dev server / production build / container]
-   **Test Command:** PLAYWRIGHT_BASE_URL=... pnpm playwright ...
-   **Error Output:**
-   [paste complete error]
-
-   **Application Logs:** (if relevant)
-   [paste server/container logs]
-
-   **Test File:** e2e/integration.spec.ts
-   [share the specific failing test]
-
-   Can you help debug this issue?
-   ```
-
-3. **Claude Code Workflow:**
-   - Open the test file in Claude Code
-   - Run `@workspace /explain` to get context about the test setup
-   - Use `/fix` command with the error details
-   - Apply suggested changes iteratively
-
-### Common Debugging Patterns
-
-#### Asset Loading Issues
-```bash
-# Check network requests
-pnpm test:playwright e2e/ --headed
-# Open browser DevTools → Network tab
-
-# Test specific asset loading
-curl -I http://localhost:3000/assets/application.css
-```
-
-#### Element Selector Issues
-```bash
 # Generate selectors interactively
 pnpm playwright codegen http://localhost:3000
-
-# Test selectors in browser console
-document.querySelector('your-selector')
 ```
 
-#### Timing Issues
-```bash
-# Add debugging to test
-await page.pause(); // Pauses execution for manual inspection
+## Locator Strategy
+
+Prefer user-facing locators first, fall back to `data-testid` when no stable text or role is available:
+
+1. **`getByRole()`** - Accessible, semantic (buttons, links, headings)
+2. **`getByText()`** - User-visible, but may break with i18n
+3. **`getByTestId()`** - Stable, immune to styling changes
+4. **CSS selectors** - Last resort, fragile
+
+### Test ID Convention
+
+Use `data-testid` attributes on elements tests interact with:
+
+```vue
+<button data-testid="save-button">Save</button>
+<div :data-testid="`org-card-${org.extid}`">...</div>
 ```
 
-## Best Practices
+```typescript
+// In tests
+page.getByTestId('save-button')
+page.locator('[data-testid^="org-card-"]')  // Prefix match
+```
 
-### Test Organization
-- Keep tests focused on integration scenarios
-- Separate unit tests from E2E tests
-- Use descriptive test names that explain the scenario
-- Group related tests in `describe` blocks
-
-### Selector Strategy
-- Prefer `data-testid` attributes for test-specific selectors
-- Use semantic selectors (`role`, `text`) when possible
-- Avoid brittle CSS selectors that change with styling
-
-### Performance
-- Run tests in parallel when possible
-- Use `page.waitForLoadState('networkidle')` for dynamic content
-- Set appropriate timeouts for different environments
-
-### CI/CD Integration
-- Tests run automatically in GitHub Actions
-- Check `test-results/` and `playwright-report/` artifacts on failure
-- Use environment-specific configurations for different deployment stages
+**Conventions:**
+- Place on the semantic element the test cares about, not wrapper divs
+- Keep values short and hierarchical: `checkout/form/submit`
+- Never reuse the same value for elements that can coexist
+- Never use `data-testid` for styling or behavior—only tests
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PLAYWRIGHT_BASE_URL` | Target application URL | `http://localhost:3000` |
-| `PLAYWRIGHT_HEADLESS` | Run in headless mode | `false` (for debugging) |
-| `PLAYWRIGHT_BROWSER` | Specific browser to use | `chromium` |
-| `FRONTEND_BASE_URL` | Target vue frontend URL | `http://localhost:5173` |
-| `CI` | CI environment flag | Auto-set in GitHub Actions |
+| Variable | Description |
+|----------|-------------|
+| `PLAYWRIGHT_BASE_URL` | Target URL (e.g., `http://localhost:3000`) |
+| `TEST_USER_EMAIL` | Auth user for `full/` tests |
+| `TEST_USER_PASSWORD` | Auth password for `full/` tests |
+| `PLAYWRIGHT_HEADLESS` | Set `false` for headed debugging |
+
+## CI
+
+Tests run in GitHub Actions. On failure, check:
+- `test-results/` for screenshots and traces
+- `playwright-report/` for HTML report

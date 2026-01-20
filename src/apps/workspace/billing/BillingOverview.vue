@@ -13,7 +13,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
 import { getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -28,6 +28,14 @@ const nextBillingDate = ref<Date | null>(null);
 const planFeatures = ref<string[]>([]);
 const isLoading = ref(false);
 const error = ref('');
+const success = ref('');
+
+// Billing email editing state
+const isSavingBillingEmail = ref(false);
+const isEditingBillingEmail = ref(false);
+const billingEmailForm = ref({
+  email: '',
+});
 
 // Check for upgrade success from checkout redirect
 const showUpgradeSuccess = computed(() => route.query.upgraded === 'true');
@@ -49,6 +57,9 @@ const planName = computed(() => {
 });
 
 const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');
+
+// Billing email is only editable for paid plans
+const hasPaidPlan = computed(() => planStatus.value === 'active');
 
 const loadOrganizationData = async (extid: string) => {
   isLoading.value = true;
@@ -107,6 +118,55 @@ const daysUntilBilling = computed(() => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 });
 
+// Billing email inline edit handlers
+const handleEditBillingEmail = () => {
+  billingEmailForm.value.email = selectedOrg.value?.contact_email || '';
+  isEditingBillingEmail.value = true;
+};
+
+const handleCancelBillingEmailEdit = () => {
+  billingEmailForm.value.email = selectedOrg.value?.contact_email || '';
+  isEditingBillingEmail.value = false;
+};
+
+const handleSaveBillingEmail = async () => {
+  if (!selectedOrg.value) return;
+
+  const newEmail = billingEmailForm.value.email.trim();
+  if (newEmail === (selectedOrg.value.contact_email || '')) {
+    isEditingBillingEmail.value = false;
+    return;
+  }
+
+  isSavingBillingEmail.value = true;
+  error.value = '';
+  success.value = '';
+
+  try {
+    await organizationStore.updateOrganization(orgExtid.value, {
+      billing_email: newEmail,
+    });
+
+    success.value = t('web.organizations.billing_email_updated');
+    isEditingBillingEmail.value = false;
+    // Reload organization data to get the updated email
+    await loadOrganizationData(orgExtid.value);
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.organizations.update_error');
+    console.error('[BillingOverview] Error updating billing email:', err);
+  } finally {
+    isSavingBillingEmail.value = false;
+  }
+};
+
+// Watch for org changes to update billing email form
+watch(selectedOrg, (org) => {
+  if (org) {
+    billingEmailForm.value.email = org.contact_email || '';
+  }
+});
+
 onMounted(async () => {
   try {
     // Initialize entitlement definitions for formatting
@@ -150,6 +210,9 @@ onMounted(async () => {
 
       <!-- Error Alert -->
       <BasicFormAlerts v-if="error" :error="error" />
+
+      <!-- Success Alert -->
+      <BasicFormAlerts v-if="success" :success="success" />
 
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center py-12">
@@ -291,6 +354,81 @@ onMounted(async () => {
               <div v-else class="text-sm text-gray-500 dark:text-gray-400">
                 {{ t('web.billing.overview.no_entitlements') }}
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing Contact Card - only for paid plans -->
+        <div
+          v-if="hasPaidPlan"
+          class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+          data-testid="billing-contact-card">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ t('web.billing.overview.billing_contact') }}
+            </h2>
+          </div>
+          <div class="p-6">
+            <div data-testid="billing-email-field">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ t('web.organizations.contact_email') }}
+              </label>
+
+              <!-- Display Mode: Show email as text with Edit button -->
+              <div v-if="!isEditingBillingEmail" class="mt-2 flex items-center gap-3">
+                <span class="text-sm text-gray-900 dark:text-white">
+                  {{ selectedOrg?.contact_email || t('web.COMMON.not_set') }}
+                </span>
+                <button
+                  type="button"
+                  data-testid="billing-email-edit-btn"
+                  @click="handleEditBillingEmail"
+                  class="text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+                  {{ t('web.COMMON.word_edit') }}
+                </button>
+              </div>
+
+              <!-- Edit Mode: Inline form -->
+              <div v-else class="mt-2 space-y-2">
+                <div class="flex items-center gap-2">
+                  <input
+                    id="billing-email"
+                    data-testid="billing-email-input"
+                    v-model="billingEmailForm.email"
+                    type="email"
+                    required
+                    :placeholder="t('web.organizations.contact_email')"
+                    class="block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+                    @keyup.enter="handleSaveBillingEmail"
+                    @keyup.escape="handleCancelBillingEmailEdit" />
+                  <button
+                    type="button"
+                    data-testid="billing-email-save-btn"
+                    @click="handleSaveBillingEmail"
+                    :disabled="isSavingBillingEmail"
+                    class="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                    <span v-if="!isSavingBillingEmail">{{ t('web.COMMON.word_save') }}</span>
+                    <OIcon
+                      v-else
+                      collection="heroicons"
+                      name="arrow-path"
+                      class="size-4 animate-spin"
+                      aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="billing-email-cancel-btn"
+                    @click="handleCancelBillingEmailEdit"
+                    :disabled="isSavingBillingEmail"
+                    class="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                    {{ t('web.COMMON.word_cancel') }}
+                  </button>
+                </div>
+              </div>
+
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.organizations.contact_email_help') }}
+              </p>
             </div>
           </div>
         </div>

@@ -45,7 +45,7 @@ OT.info "Cleaned Redis for fresh test run"
 #=> true
 
 ## Through model created for owner
-@owner_key = "organization:#{@org.objid}:customer:#{@owner.objid}:organization_membership"
+@owner_key = "organization:#{@org.objid}:customer:#{@owner.objid}:org_membership"
 @owner_membership = Onetime::OrganizationMembership.load(@owner_key)
 @owner_membership.nil? || !@owner_membership.exists? ? false : true
 #=> true
@@ -80,7 +80,7 @@ OT.info "Cleaned Redis for fresh test run"
 #=> true
 
 ## Through model for member created with role
-@member_key = "organization:#{@org.objid}:customer:#{@member.objid}:organization_membership"
+@member_key = "organization:#{@org.objid}:customer:#{@member.objid}:org_membership"
 @member_membership = Onetime::OrganizationMembership.load(@member_key)
 @member_membership.role
 #=> 'admin'

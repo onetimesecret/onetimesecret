@@ -284,6 +284,115 @@ describe('domainsStore', () => {
     });
   });
 
+  describe('Organization Context Tracking', () => {
+    it('should trigger refetch when orgId changes', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      // Initialize with org1
+      await store.refreshRecords({ orgId: 'on_org1' });
+      expect(axiosMock.history.get).toHaveLength(1);
+      expect(store._currentOrgId).toBe('on_org1');
+
+      // Call with different org (no force) - should trigger new fetch
+      await store.refreshRecords({ orgId: 'on_org2' });
+      expect(axiosMock.history.get).toHaveLength(2);
+      expect(store._currentOrgId).toBe('on_org2');
+    });
+
+    it('should skip fetch when same orgId and initialized', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      // Initialize with org1
+      await store.refreshRecords({ orgId: 'on_org1' });
+      expect(axiosMock.history.get).toHaveLength(1);
+
+      // Call again with same orgId (no force) - should NOT fetch
+      await store.refreshRecords({ orgId: 'on_org1' });
+      expect(axiosMock.history.get).toHaveLength(1); // Still 1
+    });
+
+    it('should force fetch even with same orgId when force=true', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      // Initialize with org1
+      await store.refreshRecords({ orgId: 'on_org1' });
+      expect(axiosMock.history.get).toHaveLength(1);
+
+      // Call with same orgId but force=true - should fetch again
+      await store.refreshRecords({ orgId: 'on_org1', force: true });
+      expect(axiosMock.history.get).toHaveLength(2);
+    });
+
+    it('should clear org tracking on $reset', async () => {
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
+      // Initialize with org1
+      await store.refreshRecords({ orgId: 'on_org1' });
+      expect(store._currentOrgId).toBe('on_org1');
+
+      // Reset the store
+      store.$reset();
+
+      // Verify state is cleared
+      expect(store._currentOrgId).toBeNull();
+      expect(store.records).toEqual([]);
+
+      // Next refreshRecords should fetch fresh data
+      await store.refreshRecords({ orgId: 'on_org1' });
+      expect(axiosMock.history.get).toHaveLength(2); // New fetch after reset
+    });
+
+    /**
+     * Security regression test: Prevents cross-organization data leakage
+     *
+     * Bug scenario: User loads domains for Org A (which has domains),
+     * then navigates to Org B (which has no domains). Without proper
+     * org tracking, the store would return cached Org A data.
+     */
+    it('should prevent cross-org data leakage when navigating between orgs', async () => {
+      const orgADomains = Object.values(mockDomains);
+      const orgBDomains: typeof orgADomains = []; // Org B has no domains
+
+      // First request: Org A with domains
+      axiosMock.onGet('/api/domains').replyOnce(200, {
+        records: orgADomains,
+        count: orgADomains.length,
+      });
+
+      await store.refreshRecords({ orgId: 'on_orgA' });
+      expect(axiosMock.history.get).toHaveLength(1);
+      expect(store._currentOrgId).toBe('on_orgA');
+      expect(store.records).toHaveLength(orgADomains.length);
+
+      // Second request: Navigate to Org B (no domains)
+      axiosMock.onGet('/api/domains').replyOnce(200, {
+        records: orgBDomains,
+        count: 0,
+      });
+
+      await store.refreshRecords({ orgId: 'on_orgB' });
+
+      // CRITICAL: Must have made a NEW API call
+      expect(axiosMock.history.get).toHaveLength(2);
+      // CRITICAL: Org context must be updated
+      expect(store._currentOrgId).toBe('on_orgB');
+      // CRITICAL: Store should now show Org B's empty domain list
+      expect(store.records).toHaveLength(0);
+    });
+  });
+
   describe('refreshRecords options object pattern', () => {
     it('should accept no options (default behavior)', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
