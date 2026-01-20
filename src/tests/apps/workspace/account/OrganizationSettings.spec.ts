@@ -86,6 +86,7 @@ const mockOrganization = {
   updated_at: new Date('2024-01-01'),
   entitlements: ['manage_members'],
   limits: { teams: 1 },
+  planid: 'plan_starter', // Required for billing email field to be visible
 };
 
 const mockFetchOrganization = vi.fn();
@@ -154,6 +155,7 @@ const i18n = createI18n({
           update_success: 'Organization updated',
           update_error: 'Failed to update organization',
           billing_email_updated: 'Billing email updated successfully',
+          billing_email_managed_on_billing: 'Billing email can be changed on the Billing Overview page',
           general_settings: 'General Settings',
           display_name: 'Display Name',
           description: 'Description',
@@ -235,7 +237,7 @@ const i18n = createI18n({
 
 // Router stubs
 const routerLinkStub = {
-  template: '<a class="router-link"><slot /></a>',
+  template: '<a class="router-link" :href="to"><slot /></a>',
   props: ['to'],
 };
 
@@ -296,67 +298,70 @@ describe('OrganizationSettings', () => {
    * Helper to find the billing email section within the Settings tab
    */
   const findBillingEmailSection = (w: VueWrapper) => {
-    // The billing email section is within the general tab section
-    const sections = w.findAll('section');
-    const generalSection = sections.find((s) =>
-      s.text().includes('General Settings')
-    );
-    return generalSection;
+    // The billing email field has data-testid="org-billing-email-field"
+    return w.find('[data-testid="org-billing-email-field"]');
   };
 
   /**
-   * Helper to find the Edit button for billing email
+   * Helper to find the Edit link for billing email (navigates to billing overview)
    */
-  const findEditButton = (w: VueWrapper) => {
-    const section = findBillingEmailSection(w);
-    if (!section) return null;
-    // Find the button with text "Edit" that's styled with brand color
-    const buttons = section.findAll('button');
-    return buttons.find((b) => b.text() === 'Edit');
+  const findEditLink = (w: VueWrapper) => {
+    return w.find('[data-testid="org-billing-email-edit-link"]');
   };
 
   /**
-   * Helper to enter billing email edit mode
+   * Billing Email Display Tests
+   *
+   * The billing email field is now read-only on the Settings tab.
+   * Editing is done via the Billing Overview page (linked via Edit link).
+   * The field is only visible for organizations with a paid plan (planid set).
    */
-  const enterEditMode = async (w: VueWrapper) => {
-    const editButton = findEditButton(w);
-    if (!editButton) {
-      throw new Error('Edit button not found');
-    }
-    await editButton.trigger('click');
-    await nextTick();
-  };
+  describe('Billing Email Display', () => {
+    describe('Visibility', () => {
+      it('shows billing email field for organizations with a paid plan', async () => {
+        wrapper = await mountComponent();
+        await switchToSettingsTab(wrapper);
 
-  /**
-   * Helper to find Save/Cancel buttons in edit mode
-   */
-  const findEditModeButtons = (w: VueWrapper) => {
-    const section = findBillingEmailSection(w);
-    if (!section) return { saveButton: null, cancelButton: null };
-    const buttons = section.findAll('button[type="button"]');
-    const saveButton = buttons.find((b) => b.text() === 'Save' || b.find('[data-icon-name="arrow-path"]').exists());
-    const cancelButton = buttons.find((b) => b.text() === 'Cancel');
-    return { saveButton, cancelButton };
-  };
+        const section = findBillingEmailSection(wrapper);
+        expect(section.exists()).toBe(true);
+        expect(section.text()).toContain('Billing Email');
+      });
 
-  describe('Billing Email Edit Flow', () => {
-    describe('Display Mode', () => {
+      it('hides billing email field for organizations without a paid plan', async () => {
+        const orgWithoutPlan = { ...mockOrganization, planid: undefined };
+        mockFetchOrganization.mockResolvedValue(orgWithoutPlan);
+
+        wrapper = await mountComponent();
+        await switchToSettingsTab(wrapper);
+
+        const section = findBillingEmailSection(wrapper);
+        expect(section.exists()).toBe(false);
+      });
+
       it('shows current billing email as text', async () => {
         wrapper = await mountComponent();
         await switchToSettingsTab(wrapper);
 
         const section = findBillingEmailSection(wrapper);
-        expect(section).toBeTruthy();
-        expect(section!.text()).toContain('billing@example.com');
+        expect(section.exists()).toBe(true);
+        expect(section.text()).toContain('billing@example.com');
       });
 
       it('shows Edit link next to email', async () => {
         wrapper = await mountComponent();
         await switchToSettingsTab(wrapper);
 
-        const editButton = findEditButton(wrapper);
-        expect(editButton).toBeTruthy();
-        expect(editButton!.text()).toBe('Edit');
+        const editLink = findEditLink(wrapper);
+        expect(editLink.exists()).toBe(true);
+        expect(editLink.text()).toBe('Edit');
+      });
+
+      it('Edit link points to billing overview page', async () => {
+        wrapper = await mountComponent();
+        await switchToSettingsTab(wrapper);
+
+        const editLink = findEditLink(wrapper);
+        expect(editLink.attributes('href')).toBe('/billing/on1abc123/overview');
       });
 
       it('shows "Not set" when contact_email is empty', async () => {
@@ -367,7 +372,7 @@ describe('OrganizationSettings', () => {
         await switchToSettingsTab(wrapper);
 
         const section = findBillingEmailSection(wrapper);
-        expect(section!.text()).toContain('Not set');
+        expect(section.text()).toContain('Not set');
       });
 
       it('shows "Not set" when contact_email is null', async () => {
@@ -378,316 +383,50 @@ describe('OrganizationSettings', () => {
         await switchToSettingsTab(wrapper);
 
         const section = findBillingEmailSection(wrapper);
-        expect(section!.text()).toContain('Not set');
+        expect(section.text()).toContain('Not set');
       });
     });
 
-    describe('Edit Mode', () => {
-      it('clicking Edit shows input field', async () => {
+    describe('Read-only behavior', () => {
+      it('does not have an input field for billing email', async () => {
         wrapper = await mountComponent();
         await switchToSettingsTab(wrapper);
 
-        // Verify edit mode is not active
-        expect(wrapper.find('#billing-email').exists()).toBe(false);
-
-        // Click edit button
-        await enterEditMode(wrapper);
-
-        // Input should now be visible
-        const input = wrapper.find('#billing-email');
-        expect(input.exists()).toBe(true);
-      });
-
-      it('input is pre-populated with current email', async () => {
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        const input = wrapper.find('#billing-email');
-        expect((input.element as HTMLInputElement).value).toBe('billing@example.com');
-      });
-
-      it('shows Save and Cancel buttons', async () => {
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        const { saveButton, cancelButton } = findEditModeButtons(wrapper);
-
-        expect(saveButton).toBeTruthy();
-        expect(cancelButton).toBeTruthy();
-      });
-    });
-
-    describe('Save Behavior', () => {
-      it('calls updateOrganization with billing_email', async () => {
-        const updatedOrg = { ...mockOrganization, contact_email: 'new-billing@example.com' };
-        mockUpdateOrganization.mockResolvedValue(updatedOrg);
-
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        // Update input value
-        const input = wrapper.find('#billing-email');
-        await input.setValue('new-billing@example.com');
-
-        // Click save
-        const { saveButton } = findEditModeButtons(wrapper);
-        await saveButton?.trigger('click');
-        await flushPromises();
-
-        expect(mockUpdateOrganization).toHaveBeenCalledWith('on1abc123', {
-          billing_email: 'new-billing@example.com',
-        });
-      });
-
-      it('exits edit mode on success', async () => {
-        const updatedOrg = { ...mockOrganization, contact_email: 'new-billing@example.com' };
-        mockUpdateOrganization.mockResolvedValue(updatedOrg);
-
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        // Update and save
-        const input = wrapper.find('#billing-email');
-        await input.setValue('new-billing@example.com');
-
-        const { saveButton } = findEditModeButtons(wrapper);
-        await saveButton?.trigger('click');
-        await flushPromises();
-
-        // Should exit edit mode - input should no longer exist
+        // Billing email is read-only - no input field should exist
         expect(wrapper.find('#billing-email').exists()).toBe(false);
       });
 
-      it('shows success message on save', async () => {
-        const updatedOrg = { ...mockOrganization, contact_email: 'new-billing@example.com' };
-        mockUpdateOrganization.mockResolvedValue(updatedOrg);
-
+      it('shows helper text explaining where to edit billing email', async () => {
         wrapper = await mountComponent();
         await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
 
-        // Update and save
-        const input = wrapper.find('#billing-email');
-        await input.setValue('new-billing@example.com');
-
-        const { saveButton } = findEditModeButtons(wrapper);
-        await saveButton?.trigger('click');
-        await flushPromises();
-
-        // Check for success alert
         const section = findBillingEmailSection(wrapper);
-        expect(section!.text()).toContain('Billing email updated successfully');
-      });
-
-      it('does not call API if email unchanged', async () => {
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        // Click save without changing value
-        const { saveButton } = findEditModeButtons(wrapper);
-        await saveButton?.trigger('click');
-        await flushPromises();
-
-        // Should NOT call updateOrganization
-        expect(mockUpdateOrganization).not.toHaveBeenCalled();
-      });
-
-      it('shows error message on save failure', async () => {
-        mockUpdateOrganization.mockRejectedValue(new Error('Update failed'));
-
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        // Update and save
-        const input = wrapper.find('#billing-email');
-        await input.setValue('new-billing@example.com');
-
-        const { saveButton } = findEditModeButtons(wrapper);
-        await saveButton?.trigger('click');
-        await flushPromises();
-
-        // Check for error alert
-        const section = findBillingEmailSection(wrapper);
-        expect(section!.text()).toContain('Update failed');
+        // The helper text explains billing email is managed on the billing page
+        expect(section.text()).toContain('Billing Overview');
       });
     });
 
-    describe('Cancel Behavior', () => {
-      it('reverts input to original value', async () => {
+    describe('Organization type visibility', () => {
+      it('shows billing email field for default organization with paid plan', async () => {
         wrapper = await mountComponent();
         await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
 
-        // Change input value
-        const input = wrapper.find('#billing-email');
-        await input.setValue('changed@example.com');
-        expect((input.element as HTMLInputElement).value).toBe('changed@example.com');
-
-        // Click cancel
-        const { cancelButton } = findEditModeButtons(wrapper);
-        await cancelButton?.trigger('click');
-        await nextTick();
-
-        // Re-enter edit mode to check value was reverted
-        await enterEditMode(wrapper);
-
-        const input2 = wrapper.find('#billing-email');
-        expect((input2.element as HTMLInputElement).value).toBe('billing@example.com');
-      });
-
-      it('exits edit mode', async () => {
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        expect(wrapper.find('#billing-email').exists()).toBe(true);
-
-        // Click cancel
-        const { cancelButton } = findEditModeButtons(wrapper);
-        await cancelButton?.trigger('click');
-        await nextTick();
-
-        // Input should no longer exist
-        expect(wrapper.find('#billing-email').exists()).toBe(false);
-      });
-    });
-
-    describe('Keyboard Shortcuts', () => {
-      it('Enter key triggers save', async () => {
-        const updatedOrg = { ...mockOrganization, contact_email: 'enter-test@example.com' };
-        mockUpdateOrganization.mockResolvedValue(updatedOrg);
-
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        // Update input and press Enter
-        const input = wrapper.find('#billing-email');
-        await input.setValue('enter-test@example.com');
-        await input.trigger('keyup.enter');
-        await flushPromises();
-
-        expect(mockUpdateOrganization).toHaveBeenCalledWith('on1abc123', {
-          billing_email: 'enter-test@example.com',
-        });
-      });
-
-      it('Escape key triggers cancel', async () => {
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        expect(wrapper.find('#billing-email').exists()).toBe(true);
-
-        // Change value and press Escape
-        const input = wrapper.find('#billing-email');
-        await input.setValue('should-be-reverted@example.com');
-        await input.trigger('keyup.escape');
-        await nextTick();
-
-        // Should exit edit mode
-        expect(wrapper.find('#billing-email').exists()).toBe(false);
-        // updateOrganization should NOT be called
-        expect(mockUpdateOrganization).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('Loading State', () => {
-      it('shows spinner during save', async () => {
-        // Create a pending promise to hold the save in progress
-        let resolveUpdate: (value: unknown) => void;
-        const pendingPromise = new Promise((resolve) => {
-          resolveUpdate = resolve;
-        });
-        mockUpdateOrganization.mockReturnValue(pendingPromise);
-
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        // Update input and start save
-        const input = wrapper.find('#billing-email');
-        await input.setValue('new@example.com');
-
-        const { saveButton } = findEditModeButtons(wrapper);
-        saveButton?.trigger('click');
-
-        await nextTick();
-
-        // Check for spinner icon (arrow-path with animate-spin)
-        const spinner = wrapper.find('[data-icon-name="arrow-path"]');
-        expect(spinner.exists()).toBe(true);
-
-        // Resolve the promise
-        resolveUpdate!(mockOrganization);
-        await flushPromises();
-      });
-
-      it('disables buttons during save', async () => {
-        let resolveUpdate: (value: unknown) => void;
-        const pendingPromise = new Promise((resolve) => {
-          resolveUpdate = resolve;
-        });
-        mockUpdateOrganization.mockReturnValue(pendingPromise);
-
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-        await enterEditMode(wrapper);
-
-        // Update input and start save
-        const input = wrapper.find('#billing-email');
-        await input.setValue('new@example.com');
-
-        const { saveButton } = findEditModeButtons(wrapper);
-        saveButton?.trigger('click');
-
-        await nextTick();
-
-        // Find buttons in edit mode and check disabled state
         const section = findBillingEmailSection(wrapper);
-        const editModeButtons = section!.findAll('button[type="button"]');
-        const saveBtnInProgress = editModeButtons.find(
-          (b) => b.find('[data-icon-name="arrow-path"]').exists() || b.attributes('disabled') !== undefined
-        );
-        const cancelBtn = editModeButtons.find((b) => b.text() === 'Cancel');
-
-        // Save and Cancel should be disabled
-        expect(saveBtnInProgress?.attributes('disabled')).toBeDefined();
-        expect(cancelBtn?.attributes('disabled')).toBeDefined();
-
-        // Resolve the promise
-        resolveUpdate!(mockOrganization);
-        await flushPromises();
-      });
-    });
-
-    describe('Billing Email Visibility', () => {
-      it('only shows billing email field for default organization', async () => {
-        wrapper = await mountComponent();
-        await switchToSettingsTab(wrapper);
-
-        // Should show billing email label
-        const section = findBillingEmailSection(wrapper);
-        expect(section!.text()).toContain('Billing Email');
+        expect(section.exists()).toBe(true);
+        expect(section.text()).toContain('Billing Email');
       });
 
-      it('shows billing email field for non-default organization', async () => {
+      it('shows billing email field for non-default organization with paid plan', async () => {
         const nonDefaultOrg = { ...mockOrganization, is_default: false };
         mockFetchOrganization.mockResolvedValue(nonDefaultOrg);
 
         wrapper = await mountComponent();
         await switchToSettingsTab(wrapper);
 
-        // Non-default orgs now have their own billing - should show email field
         const section = findBillingEmailSection(wrapper);
-        expect(section!.text()).toContain('Billing Email');
-        expect(section!.text()).toContain(nonDefaultOrg.contact_email);
+        expect(section.exists()).toBe(true);
+        expect(section.text()).toContain('Billing Email');
+        expect(section.text()).toContain(nonDefaultOrg.contact_email);
       });
     });
   });
