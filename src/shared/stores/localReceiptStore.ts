@@ -1,4 +1,4 @@
-// src/shared/stores/concealedReceiptStore.ts
+// src/shared/stores/localReceiptStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
@@ -11,37 +11,42 @@ interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Response from the batch receipts status API
+ * Fields match Receipt safe_dump output from backend
  */
 export interface GuestReceiptsResponse {
   records: Array<{
     secret_shortid: string;
-    is_received?: boolean;
+    is_previewed?: boolean;
+    is_revealed?: boolean;
     is_burned?: boolean;
+    is_expired?: boolean;
+    is_destroyed?: boolean;
   }>;
   count: number;
 }
 
 /**
- * Type definition for ConcealedReceiptStore.
+ * Type definition for LocalReceiptStore.
  */
-export type ConcealedReceiptStore = {
+export type LocalReceiptStore = {
   // State
   _initialized: boolean;
-  concealedMessages: LocalReceipt[];
+  localReceipts: LocalReceipt[];
   workspaceMode: boolean;
 
   // Getters
   isInitialized: boolean;
-  hasMessages: boolean;
+  hasReceipts: boolean;
 
   // Actions
   init: (options?: StoreOptions) => { isInitialized: boolean };
-  addMessage: (message: LocalReceipt) => void;
+  addReceipt: (receipt: LocalReceipt) => void;
   updateMemo: (id: string, memo: string) => void;
-  markAsReceived: (secretExtid: string) => void;
+  markAsPreviewed: (secretExtid: string) => void;
+  markAsRevealed: (secretExtid: string) => void;
   markAsBurned: (secretExtid: string) => void;
   refreshReceiptStatuses: () => Promise<void>;
-  clearMessages: () => void;
+  clearReceipts: () => void;
   setWorkspaceMode: (enabled: boolean) => void;
   toggleWorkspaceMode: () => void;
   $reset: () => void;
@@ -55,7 +60,7 @@ const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
 const MAX_STORED_RECEIPTS = 25;
 
 /**
- * Loads concealed messages from sessionStorage
+ * Loads local receipts from sessionStorage
  */
 function loadFromStorage(): LocalReceipt[] {
   try {
@@ -64,10 +69,10 @@ function loadFromStorage(): LocalReceipt[] {
       const now = Date.now();
       const parsed = JSON.parse(stored) as LocalReceipt[];
       // Filter out expired entries (createdAt + ttl has passed)
-      return parsed.filter((m) => m.createdAt + m.ttl * 1000 > now);
+      return parsed.filter((r) => r.createdAt + r.ttl * 1000 > now);
     }
   } catch (error) {
-    loggingService.error(new Error(`Failed to load concealed messages from storage: ${error}`));
+    loggingService.error(new Error(`Failed to load local receipts from storage: ${error}`));
   }
   return [];
 }
@@ -87,31 +92,31 @@ function loadWorkspaceModePreference(): boolean {
 }
 
 /**
- * Store for managing concealed receipt records during a user session.
+ * Store for managing local receipt records during a user session.
  * This store persists links created during the current session so they
  * remain available when navigating between pages and browser refreshes.
  */
 // eslint-disable-next-line max-lines-per-function
-export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
+export const useLocalReceiptStore = defineStore('localReceipt', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
   const _initialized = ref(false);
-  const concealedMessages = ref<LocalReceipt[]>(loadFromStorage());
+  const localReceipts = ref<LocalReceipt[]>(loadFromStorage());
   const workspaceMode = ref(loadWorkspaceModePreference());
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
-  const hasMessages = computed(() => concealedMessages.value.length > 0);
+  const hasReceipts = computed(() => localReceipts.value.length > 0);
 
-  // Watch for changes to messages and save to sessionStorage
+  // Watch for changes to receipts and save to sessionStorage
   watch(
-    concealedMessages,
-    (messages) => {
+    localReceipts,
+    (receipts) => {
       try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(receipts));
       } catch (error) {
-        loggingService.error(new Error(`Failed to save concealed messages to storage: ${error}`));
+        loggingService.error(new Error(`Failed to save local receipts to storage: ${error}`));
       }
     },
     { deep: true }
@@ -127,7 +132,7 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   });
 
   /**
-   * Initializes the concealed receipt store.
+   * Initializes the local receipt store.
    * Idempotent - subsequent calls have no effect if already initialized.
    *
    * @param options Optional store options
@@ -143,79 +148,94 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   }
 
   /**
-   * Adds a new concealed message to the store.
-   * New messages are added to the beginning of the list.
+   * Adds a new local receipt to the store.
+   * New receipts are added to the beginning of the list.
    * Enforces maximum storage limit.
    *
-   * @param message The concealed message to add
+   * @param receipt The local receipt to add
    */
-  function addMessage(message: LocalReceipt) {
-    // Remove any existing message with same ID
-    const filtered = concealedMessages.value.filter((m) => m.id !== message.id);
-    // Add new message at beginning, enforce max limit
-    concealedMessages.value = [message, ...filtered].slice(0, MAX_STORED_RECEIPTS);
+  function addReceipt(receipt: LocalReceipt) {
+    // Remove any existing receipt with same ID
+    const filtered = localReceipts.value.filter((r) => r.id !== receipt.id);
+    // Add new receipt at beginning, enforce max limit
+    localReceipts.value = [receipt, ...filtered].slice(0, MAX_STORED_RECEIPTS);
   }
 
   /**
-   * Updates the memo for a specific message.
+   * Updates the memo for a specific receipt.
    * Empty string removes the memo.
    *
-   * @param id The message ID to update
+   * @param id The receipt ID to update
    * @param memo The new memo value
    */
   function updateMemo(id: string, memo: string) {
-    const index = concealedMessages.value.findIndex((m) => m.id === id);
+    const index = localReceipts.value.findIndex((r) => r.id === id);
     if (index !== -1) {
       const trimmed = memo.trim();
       if (trimmed) {
-        concealedMessages.value[index].memo = trimmed;
+        localReceipts.value[index].memo = trimmed;
       } else {
-        delete concealedMessages.value[index].memo;
+        delete localReceipts.value[index].memo;
       }
       // Trigger reactivity by replacing the array
-      concealedMessages.value = [...concealedMessages.value];
+      localReceipts.value = [...localReceipts.value];
     }
   }
 
   /**
-   * Marks a secret as received (viewed).
-   * Called when the secret creator or recipient views the secret content.
+   * Marks a secret as previewed (link accessed, confirmation shown).
+   * Called when the recipient accesses the secret link.
    *
-   * @param secretExtid The secret external ID to mark as received
+   * @param secretExtid The secret external ID to mark as previewed
    */
-  function markAsReceived(secretExtid: string) {
-    const index = concealedMessages.value.findIndex((m) => m.secretExtid === secretExtid);
+  function markAsPreviewed(secretExtid: string) {
+    const index = localReceipts.value.findIndex((r) => r.secretExtid === secretExtid);
     if (index !== -1) {
-      concealedMessages.value[index].isReceived = true;
+      localReceipts.value[index].isPreviewed = true;
       // Trigger reactivity by replacing the array
-      concealedMessages.value = [...concealedMessages.value];
+      localReceipts.value = [...localReceipts.value];
     }
   }
 
   /**
-   * Marks a secret as burned (manually destroyed before viewing).
+   * Marks a secret as revealed (content decrypted/consumed).
+   * Called when the secret content is actually revealed to the recipient.
+   *
+   * @param secretExtid The secret external ID to mark as revealed
+   */
+  function markAsRevealed(secretExtid: string) {
+    const index = localReceipts.value.findIndex((r) => r.secretExtid === secretExtid);
+    if (index !== -1) {
+      localReceipts.value[index].isRevealed = true;
+      // Trigger reactivity by replacing the array
+      localReceipts.value = [...localReceipts.value];
+    }
+  }
+
+  /**
+   * Marks a secret as burned (manually destroyed before being revealed).
    * Called when the creator burns the secret from the receipt page.
    *
    * @param secretExtid The secret external ID to mark as burned
    */
   function markAsBurned(secretExtid: string) {
-    const index = concealedMessages.value.findIndex((m) => m.secretExtid === secretExtid);
+    const index = localReceipts.value.findIndex((r) => r.secretExtid === secretExtid);
     if (index !== -1) {
-      concealedMessages.value[index].isBurned = true;
+      localReceipts.value[index].isBurned = true;
       // Trigger reactivity by replacing the array
-      concealedMessages.value = [...concealedMessages.value];
+      localReceipts.value = [...localReceipts.value];
     }
   }
 
   /**
    * Refreshes the status of all stored receipts from the server.
    * Calls POST /api/v3/guest/receipts with the secret shortids to get current status.
-   * Updates local storage with server state (isReceived, isBurned).
+   * Updates local storage with server state (isPreviewed, isRevealed, isBurned).
    */
   async function refreshReceiptStatuses(): Promise<void> {
-    if (concealedMessages.value.length === 0) return;
+    if (localReceipts.value.length === 0) return;
 
-    const identifiers = concealedMessages.value.map((m) => m.secretShortid);
+    const identifiers = localReceipts.value.map((r) => r.secretShortid);
 
     try {
       const response = await $api.post<GuestReceiptsResponse>('/api/v3/guest/receipts', {
@@ -227,26 +247,30 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
 
       // Update local receipts with server status
       for (const serverRecord of records) {
-        const localIndex = concealedMessages.value.findIndex(
-          (m) => m.secretShortid === serverRecord.secret_shortid
+        const localIndex = localReceipts.value.findIndex(
+          (r) => r.secretShortid === serverRecord.secret_shortid
         );
         if (localIndex === -1) continue;
 
-        const local = concealedMessages.value[localIndex];
+        const local = localReceipts.value[localIndex];
         // Only update if status changed
-        if (serverRecord.is_received && !local.isReceived) {
-          concealedMessages.value[localIndex].isReceived = true;
+        if (serverRecord.is_previewed && !local.isPreviewed) {
+          localReceipts.value[localIndex].isPreviewed = true;
+          hasUpdates = true;
+        }
+        if (serverRecord.is_revealed && !local.isRevealed) {
+          localReceipts.value[localIndex].isRevealed = true;
           hasUpdates = true;
         }
         if (serverRecord.is_burned && !local.isBurned) {
-          concealedMessages.value[localIndex].isBurned = true;
+          localReceipts.value[localIndex].isBurned = true;
           hasUpdates = true;
         }
       }
 
       // Trigger reactivity if any updates occurred
       if (hasUpdates) {
-        concealedMessages.value = [...concealedMessages.value];
+        localReceipts.value = [...localReceipts.value];
       }
     } catch (error) {
       loggingService.error(new Error(`Failed to refresh receipt statuses: ${error}`));
@@ -254,14 +278,14 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   }
 
   /**
-   * Clears all concealed messages from the store and sessionStorage.
+   * Clears all local receipts from the store and sessionStorage.
    */
-  function clearMessages() {
-    concealedMessages.value = [];
+  function clearReceipts() {
+    localReceipts.value = [];
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch (error) {
-      loggingService.error(new Error(`Failed to clear concealed messages from storage: ${error}`));
+      loggingService.error(new Error(`Failed to clear local receipts from storage: ${error}`));
     }
   }
 
@@ -288,7 +312,7 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
    * Also clears sessionStorage.
    */
   function $reset() {
-    clearMessages();
+    clearReceipts();
     workspaceMode.value = false;
     _initialized.value = false;
   }
@@ -296,21 +320,22 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   return {
     // State
     _initialized,
-    concealedMessages,
+    localReceipts,
     workspaceMode,
 
     // Getters
     isInitialized,
-    hasMessages,
+    hasReceipts,
 
     // Actions
     init,
-    addMessage,
+    addReceipt,
     updateMemo,
-    markAsReceived,
+    markAsPreviewed,
+    markAsRevealed,
     markAsBurned,
     refreshReceiptStatuses,
-    clearMessages,
+    clearReceipts,
     setWorkspaceMode,
     toggleWorkspaceMode,
     $reset,

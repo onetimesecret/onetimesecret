@@ -7,7 +7,7 @@ export { useAuthStore } from './authStore';
 export { useBrandStore } from './brandStore';
 export { useSystemSettingsStore } from './systemSettingsStore';
 export { useColonelInfoStore } from './colonelInfoStore';
-export { useConcealedReceiptStore } from './concealedReceiptStore';
+export { useLocalReceiptStore } from './localReceiptStore';
 export { useCsrfStore } from './csrfStore';
 export { useCustomerStore } from './customerStore';
 export { useDomainsStore } from './domainsStore';

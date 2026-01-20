@@ -3,6 +3,11 @@
 /**
  * Minimal data stored in sessionStorage for guest users' recent secrets.
  * Intentionally minimal to reduce attack surface and storage footprint.
+ *
+ * State terminology follows the Receipt model:
+ * - isPreviewed: secret link was accessed (confirmation page shown)
+ * - isRevealed: secret content was decrypted/consumed
+ * - isBurned: secret was manually destroyed before being revealed
  */
 export interface LocalReceipt {
   /** Client-generated unique ID for deduplication */
@@ -25,8 +30,10 @@ export interface LocalReceipt {
   createdAt: number;
   /** Optional user-defined memo for identifying the secret */
   memo?: string;
-  /** Whether the secret has been viewed/received (burned by recipient or creator) */
-  isReceived?: boolean;
-  /** Whether the secret was burned manually (before being viewed) */
+  /** Whether the secret link has been accessed (confirmation page shown) */
+  isPreviewed?: boolean;
+  /** Whether the secret content has been revealed (decrypted/consumed) */
+  isRevealed?: boolean;
+  /** Whether the secret was burned manually (before being revealed) */
   isBurned?: boolean;
 }
