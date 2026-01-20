@@ -150,6 +150,7 @@
         :is-apex="domain?.is_apex"
         :txt-validation-host="domain?.txt_validation_host"
         :txt-validation-value="domain?.txt_validation_value"
+        :trd="domain?.trd"
         @records-verified="handleDnsRecordsVerified" />
     </div>
 
