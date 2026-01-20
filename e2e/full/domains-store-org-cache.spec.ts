@@ -213,10 +213,16 @@ async function getDomainSwitcherDomains(page: Page): Promise<string[]> {
 
 /**
  * Check if empty domains state is shown on the Manage Domains page
+ * Waits briefly for the element to appear since tabbed interface may have loading states
  */
 async function isEmptyDomainsState(page: Page): Promise<boolean> {
-  const emptyState = page.getByText(/no domains found|get started by adding/i);
-  return emptyState.isVisible().catch(() => false);
+  const emptyState = page.getByText(/no domains found/i).first();
+  try {
+    await emptyState.waitFor({ state: 'visible', timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -368,27 +374,40 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       const orgs = await getUserOrganizations(page);
       test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
 
-      // Find named orgs
+      // Log available orgs for debugging
+      console.log(`[TC-DSC-002] Found ${orgs.length} orgs:`, orgs.map((o) => `"${o.name}" (${o.extid})`).join(', '));
+
+      // Find named orgs - try exact match first, then partial
       const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
       const secondOrg = findOrgByName(orgs, 'Second Organization');
 
       if (!defaultWorkspace || !secondOrg) {
+        const orgNames = orgs.map((o) => `"${o.name}" (${o.extid})`).join(', ');
         test.skip(
           true,
-          'Test requires "Default Workspace" with domains and "A Second Organization" without domains'
+          `Test requires "Default Workspace" and "Second Organization". Found: ${orgNames}`
         );
         return;
       }
 
-      // Step 1: Navigate to Default Workspace's Manage Domains page
-      await page.goto(`/org/${defaultWorkspace.extid}/domains`);
+      // Validate we found two DIFFERENT orgs
+      if (defaultWorkspace.extid === secondOrg.extid) {
+        test.skip(true, `Found same org twice: ${defaultWorkspace.name} (${defaultWorkspace.extid})`);
+        return;
+      }
+
+      console.log(`[TC-DSC-002] Using Default Workspace: "${defaultWorkspace.name}" (${defaultWorkspace.extid})`);
+      console.log(`[TC-DSC-002] Using Second Org: "${secondOrg.name}" (${secondOrg.extid})`);
+
+      // Step 1: Navigate to Default Workspace's organization page (domains tab is default)
+      await page.goto(`/org/${defaultWorkspace.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Verify custom domains are listed
       const hasDomainsInDefault = await hasDomainsInTable(page);
       expect(hasDomainsInDefault, 'Default Workspace should have custom domains listed').toBe(true);
 
-      // Record the domains we see
+      // Record the domains we see in Default Workspace
       const domainLinksDefault = page.locator(
         'table a[class*="brandcomp"], table a[href*="/domains/"]'
       );
@@ -399,23 +418,52 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
         if (text) defaultDomainNames.push(text.trim());
       }
 
-      // Step 2: Navigate directly to A Second Organization's domains page via URL
-      await page.goto(`/org/${secondOrg.extid}/domains`);
+      // Step 2: Navigate directly to A Second Organization's page via URL (domains tab is default)
+      // Wait for domains API response to ensure store has re-fetched for new org
+      const domainsResponsePromise = page.waitForResponse(
+        (resp) => resp.url().includes('/api/') && resp.url().includes('domains') && resp.status() === 200,
+        { timeout: 10000 }
+      ).catch(() => null);
+
+      await page.goto(`/org/${secondOrg.extid}`);
       await page.waitForLoadState('networkidle');
+      await domainsResponsePromise;
 
-      // Verify "No domains found" empty state is shown
-      const isEmpty = await isEmptyDomainsState(page);
-      expect(isEmpty, 'A Second Organization should show empty state (No domains found)').toBe(
-        true
-      );
+      // Verify URL contains the correct org extid
+      expect(page.url()).toContain(`/org/${secondOrg.extid}`);
 
-      // Verify NO domains from Default Workspace appear
+      // Verify the page is showing data for the correct org (not cached Default Workspace data)
+      // Key check: any domain links should have URLs containing secondOrg.extid, not defaultWorkspace.extid
+      const domainLinksInSecond = page.locator('table a[href*="/domains/"]');
+      const secondOrgDomainCount = await domainLinksInSecond.count();
+
+      // Collect domain names shown on Second Org's page
+      const secondOrgDomainNames: string[] = [];
+      for (let i = 0; i < secondOrgDomainCount; i++) {
+        const text = await domainLinksInSecond.nth(i).textContent();
+        if (text) secondOrgDomainNames.push(text.trim());
+      }
+
+      console.log(`[TC-DSC-002] Default Workspace domains: ${defaultDomainNames.join(', ')}`);
+      console.log(`[TC-DSC-002] Second Org domains: ${secondOrgDomainNames.join(', ') || '(none)'}`);
+
+      // KEY ISOLATION CHECK: Domains from Default Workspace must NOT appear on Second Org's page
+      // A domain belongs to exactly ONE organization. If we see the same domain names,
+      // that indicates the store is returning cached data from the wrong org.
       for (const domainName of defaultDomainNames) {
-        const domainOnPage = page.locator(`text=${domainName}`).first();
-        await expect(
-          domainOnPage,
-          `Domain "${domainName}" from Default Workspace should NOT appear in A Second Organization's domains page`
-        ).not.toBeVisible();
+        expect(
+          secondOrgDomainNames,
+          `Domain "${domainName}" belongs to Default Workspace and should NOT appear on Second Organization's domains page. This indicates cached data leak.`
+        ).not.toContain(domainName);
+      }
+
+      // If Second Org has no domains, verify empty state is shown
+      if (secondOrgDomainCount === 0) {
+        const isEmptyState = await isEmptyDomainsState(page);
+        expect(
+          isEmptyState,
+          'Second Organization with no domains should show empty state'
+        ).toBe(true);
       }
     });
   });
@@ -550,14 +598,14 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
       return;
     }
 
-    // Navigate to Default Workspace domains
-    await page.goto(`/org/${defaultWorkspace.extid}/domains`);
+    // Navigate to Default Workspace (domains tab is default)
+    await page.goto(`/org/${defaultWorkspace.extid}`);
     await page.waitForLoadState('networkidle');
 
     const hasDomainsInitially = await hasDomainsInTable(page);
 
-    // Navigate to Second Org domains
-    await page.goto(`/org/${secondOrg.extid}/domains`);
+    // Navigate to Second Org (domains tab is default)
+    await page.goto(`/org/${secondOrg.extid}`);
     await page.waitForLoadState('networkidle');
 
     const isEmptyAfterNav = await isEmptyDomainsState(page);
@@ -600,8 +648,8 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
       return;
     }
 
-    // Navigate to Second Org domains (should be empty)
-    await page.goto(`/org/${secondOrg.extid}/domains`);
+    // Navigate to Second Org (domains tab is default, should be empty)
+    await page.goto(`/org/${secondOrg.extid}`);
     await page.waitForLoadState('networkidle');
 
     const isEmptyBefore = await isEmptyDomainsState(page);

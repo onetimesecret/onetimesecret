@@ -116,10 +116,11 @@ async function getUserOrganizations(page: Page): Promise<OrgInfo[]> {
 }
 
 /**
- * Get domains for a specific organization by navigating to its domains page
+ * Get domains for a specific organization by navigating to its organization page
+ * (domains tab is the default view)
  */
 async function getOrgDomains(page: Page, orgExtid: string): Promise<string[]> {
-  await page.goto(`/org/${orgExtid}/domains`);
+  await page.goto(`/org/${orgExtid}`);
   await page.waitForLoadState('networkidle');
 
   // Wait for either domains table or empty state
@@ -236,9 +237,9 @@ test.describe('Cross-Organization Domain Isolation', () => {
         return;
       }
 
-      // Test each org's domains page
+      // Test each org's page (domains tab is default)
       for (const currentOrg of orgs) {
-        await page.goto(`/org/${currentOrg.extid}/domains`);
+        await page.goto(`/org/${currentOrg.extid}`);
         await page.waitForLoadState('networkidle');
 
         // Verify URL contains correct org
@@ -299,15 +300,15 @@ test.describe('Cross-Organization Domain Isolation', () => {
       }
 
       // First visit org WITH domains to establish it as "active" context
-      await page.goto(`/org/${orgWithDomains.extid}/domains`);
+      await page.goto(`/org/${orgWithDomains.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Verify we see domains
       await expect(page.locator('table')).toBeVisible();
       await verifyDisplayedDomains(page, orgWithDomains.domains);
 
-      // Now navigate to org WITHOUT domains
-      await page.goto(`/org/${orgWithoutDomains.extid}/domains`);
+      // Now navigate to org WITHOUT domains (domains tab is default)
+      await page.goto(`/org/${orgWithoutDomains.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Should see empty state, NOT the previous org's domains
@@ -348,12 +349,12 @@ test.describe('Cross-Organization Domain Isolation', () => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 
-      // Directly navigate to orgB's domains URL
-      await page.goto(`/org/${orgB.extid}/domains`);
+      // Directly navigate to orgB's page (domains tab is default)
+      await page.goto(`/org/${orgB.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Verify URL is correct
-      expect(page.url()).toContain(`/org/${orgB.extid}/domains`);
+      expect(page.url()).toContain(`/org/${orgB.extid}`);
 
       // Verify correct domains are shown
       if (orgB.domains.length > 0) {
@@ -366,12 +367,12 @@ test.describe('Cross-Organization Domain Isolation', () => {
         }
       }
 
-      // Now directly navigate to orgA's domains URL
-      await page.goto(`/org/${orgA.extid}/domains`);
+      // Now directly navigate to orgA's page (domains tab is default)
+      await page.goto(`/org/${orgA.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Verify URL is correct
-      expect(page.url()).toContain(`/org/${orgA.extid}/domains`);
+      expect(page.url()).toContain(`/org/${orgA.extid}`);
 
       // Verify correct domains are shown
       if (orgA.domains.length > 0) {
@@ -401,8 +402,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
       const orgA = orgs[0];
       const orgB = orgs[1];
 
-      // Step 1: Navigate to OrgA domains
-      await page.goto(`/org/${orgA.extid}/domains`);
+      // Step 1: Navigate to OrgA (domains tab is default)
+      await page.goto(`/org/${orgA.extid}`);
       await page.waitForLoadState('networkidle');
 
       if (orgA.domains.length > 0) {
@@ -411,8 +412,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
         await verifyEmptyDomainsState(page);
       }
 
-      // Step 2: Navigate to OrgB domains via URL
-      await page.goto(`/org/${orgB.extid}/domains`);
+      // Step 2: Navigate to OrgB via URL (domains tab is default)
+      await page.goto(`/org/${orgB.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Verify domain list updated to OrgB
@@ -429,8 +430,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
         }
       }
 
-      // Step 3: Navigate back to OrgA domains
-      await page.goto(`/org/${orgA.extid}/domains`);
+      // Step 3: Navigate back to OrgA (domains tab is default)
+      await page.goto(`/org/${orgA.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Verify domain list shows OrgA domains again
@@ -454,8 +455,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
       const orgA = orgs[0];
       const orgB = orgs[1];
 
-      // Start on OrgA domains page
-      await page.goto(`/org/${orgA.extid}/domains`);
+      // Start on OrgA page (domains tab is default)
+      await page.goto(`/org/${orgA.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Try to use org switcher if visible
@@ -520,15 +521,15 @@ test.describe('Cross-Organization Domain Isolation', () => {
       const orgA = orgs[0];
       const orgB = orgs[1];
 
-      // Navigate to OrgA domains
-      await page.goto(`/org/${orgA.extid}/domains`);
+      // Navigate to OrgA (domains tab is default)
+      await page.goto(`/org/${orgA.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Verify OrgA domains
       const initialOrgADomains = orgA.domains.slice();
 
-      // Navigate to OrgB domains
-      await page.goto(`/org/${orgB.extid}/domains`);
+      // Navigate to OrgB (domains tab is default)
+      await page.goto(`/org/${orgB.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Go back using browser back button
@@ -536,7 +537,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
       await page.waitForLoadState('networkidle');
 
       // Verify we're back on OrgA and seeing correct domains
-      expect(page.url()).toContain(`/org/${orgA.extid}/domains`);
+      expect(page.url()).toContain(`/org/${orgA.extid}`);
 
       if (initialOrgADomains.length > 0) {
         await verifyDisplayedDomains(page, initialOrgADomains, orgB.domains);
@@ -549,7 +550,7 @@ test.describe('Cross-Organization Domain Isolation', () => {
       await page.waitForLoadState('networkidle');
 
       // Verify we're on OrgB with correct domains
-      expect(page.url()).toContain(`/org/${orgB.extid}/domains`);
+      expect(page.url()).toContain(`/org/${orgB.extid}`);
 
       if (orgB.domains.length > 0) {
         await verifyDisplayedDomains(page, orgB.domains, orgA.domains);
@@ -570,8 +571,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
       const org = orgs[0];
       org.domains = await getOrgDomains(page, org.extid);
 
-      // Navigate to org domains page
-      await page.goto(`/org/${org.extid}/domains`);
+      // Navigate to org page (domains tab is default)
+      await page.goto(`/org/${org.extid}`);
       await page.waitForLoadState('networkidle');
 
       // Record current state
@@ -627,8 +628,8 @@ test.describe('API-Level Domain Isolation', () => {
       }
     });
 
-    // Navigate to OrgA domains
-    await page.goto(`/org/${orgA.extid}/domains`);
+    // Navigate to OrgA (domains tab is default)
+    await page.goto(`/org/${orgA.extid}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000); // Allow API calls to complete
 
@@ -638,8 +639,8 @@ test.describe('API-Level Domain Isolation', () => {
     // Clear tracking for next org
     apiCalls.length = 0;
 
-    // Navigate to OrgB domains
-    await page.goto(`/org/${orgB.extid}/domains`);
+    // Navigate to OrgB (domains tab is default)
+    await page.goto(`/org/${orgB.extid}`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
