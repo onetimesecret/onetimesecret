@@ -206,6 +206,8 @@ module Onetime
         # @param subclass [Class] The class inheriting from Onetime::Application::Base
         # @return [void]
         def inherited(subclass)
+          require_relative 'registry'
+
           # Keep track subclasses without immediate registration
           Registry.register_application_class(subclass)
           Onetime.app_logger.debug 'Application registered',
