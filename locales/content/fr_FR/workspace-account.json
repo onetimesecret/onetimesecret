@@ -15,22 +15,22 @@
     "text": "Abonnement"
   },
   "web.account.manage_subscription": {
-    "text": "Gérer mon abonnement"
+    "text": "Gérer l'abonnement"
   },
   "web.account.customer_information": {
     "text": "Informations client"
   },
   "web.account.customer_since": {
-    "text": "Date d'inscription :"
+    "text": "Client depuis :"
   },
   "web.account.email": {
-    "text": "Adresse e-mail :"
+    "text": "E-mail :"
   },
   "web.account.region": {
     "text": "Région"
   },
   "web.account.account_balance": {
-    "text": "Solde actuel :"
+    "text": "Solde :"
   },
   "web.account.default_payment_method": {
     "text": "Moyen de paiement par défaut"
@@ -45,10 +45,10 @@
     "text": "Quantité :"
   },
   "web.account.next_billing_date": {
-    "text": "Prochaine échéance :"
+    "text": "Prochaine date de facturation :"
   },
   "web.account.changePassword.username": {
-    "text": "Identifiant"
+    "text": "Nom d'utilisateur"
   },
   "web.account.changePassword.currentPassword": {
     "text": "Mot de passe actuel"
@@ -57,22 +57,22 @@
     "text": "Nouveau mot de passe"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Confirmation"
+    "text": "Confirmer"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Modifier le mot de passe"
+    "text": "Mettre à jour le mot de passe"
   },
   "web.account.changePassword.updating": {
-    "text": "Modification en cours..."
+    "text": "Mise à jour..."
   },
   "web.account.timezone": {
     "text": "Fuseau horaire"
   },
   "web.account.customer_id": {
-    "text": "Numéro client"
+    "text": "ID client"
   },
   "web.account.account_id_customerid": {
-    "text": "ID du compte"
+    "text": "ID de compte"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
     "text": "Créé {0} secrets depuis {1}."
@@ -90,13 +90,13 @@
     "text": "Votre compte"
   },
   "web.account.support_details": {
-    "text": "Détails du soutien"
+    "text": "Détails du support"
   },
   "web.account.back_to_details": {
     "text": "Retour aux détails"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "Identifiant du client : {0}"
+    "text": "ID client : {0}"
   },
   "web.account.token_generated": {
     "text": "Jeton généré."
@@ -114,31 +114,31 @@
     "text": "Confirmer la suppression du compte"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Suppression {0}"
+    "text": "Suppression de {0}"
   },
   "web.account.permanently_delete_account": {
-    "text": "Supprimer définitivement un compte"
+    "text": "Supprimer définitivement le compte"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "permanente et non réversible."
+    "text": "définitive et irréversible."
   },
   "web.account.deleting_your_account_is": {
     "text": "La suppression de votre compte est"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "supprimez-les avant de poursuivre"
+    "text": "brûlez-les avant de continuer"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Pour tout message à supprimer,"
+    "text": "Tous les secrets que vous souhaitez supprimer,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "Les messages sécurisés restent accessibles jusqu'à expiration."
   },
   "web.account.please_be_advised": {
-    "text": "Important"
+    "text": "Veuillez noter :"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Compte supprimé"
+    "text": "Compte supprimé avec succès."
   },
   "web.account.deactivate": {
     "text": "Désactiver"
@@ -153,7 +153,7 @@
     "text": "Paramètres"
   },
   "web.settings.description": {
-    "text": "Gérer les paramètres et préférences de votre compte"
+    "text": "Gérez les paramètres et préférences de votre compte"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Gérer les paramètres et préférences de votre compte"
@@ -180,31 +180,31 @@
     "text": "Langue"
   },
   "web.settings.language.description": {
-    "text": "Sélectionner votre langue préférée"
+    "text": "Sélectionnez votre langue préférée"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Sélectionner votre langue préférée"
+    "text": "Sélectionnez votre langue préférée"
   },
   "web.settings.security_settings_description": {
-    "text": "Gérer l'authentification et la sécurité du compte"
+    "text": "Gérez l'authentification et la sécurité du compte"
   },
   "web.settings.profile_settings_description": {
-    "text": "Gérer les informations de votre compte"
+    "text": "Gérez les informations de votre compte"
   },
   "web.settings.profile.title": {
     "text": "Profil"
   },
   "web.settings.profile.change_email": {
-    "text": "Modifier l'adresse e-mail"
+    "text": "Modifier l'e-mail"
   },
   "web.settings.profile.current_email": {
-    "text": "Adresse e-mail actuelle"
+    "text": "E-mail actuel"
   },
   "web.settings.profile.current_password": {
     "text": "Mot de passe actuel"
   },
   "web.settings.profile.new_email": {
-    "text": "Nouvelle adresse e-mail"
+    "text": "Nouvel e-mail"
   },
   "web.settings.profile.enter_password_to_confirm": {
     "text": "Saisissez votre mot de passe actuel"
@@ -216,43 +216,43 @@
     "text": "Un e-mail de vérification sera envoyé à la nouvelle adresse"
   },
   "web.settings.profile.update_email": {
-    "text": "Mettre à jour l'adresse e-mail"
+    "text": "Mettre à jour l'e-mail"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Modifier l'adresse e-mail associée à votre compte"
+    "text": "Mettez à jour l'adresse e-mail associée à votre compte"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Tous les champs sont requis"
+    "text": "Tous les champs sont obligatoires"
   },
   "web.settings.profile.invalid_email": {
     "text": "Veuillez saisir une adresse e-mail valide"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "La nouvelle adresse e-mail doit être différente de l'adresse actuelle"
+    "text": "Le nouvel e-mail doit être différent de l'e-mail actuel"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Adresse e-mail mise à jour avec succès. Veuillez consulter votre boîte de réception pour vérifier votre nouvelle adresse e-mail."
+    "text": "E-mail mis à jour avec succès. Veuillez vérifier votre boîte de réception pour confirmer votre nouvelle adresse e-mail."
   },
   "web.settings.profile.email_change_error": {
-    "text": "Échec de la mise à jour de l'adresse e-mail. Veuillez réessayer."
+    "text": "Échec de la mise à jour de l'e-mail. Veuillez réessayer."
   },
   "web.settings.sessions.title": {
     "text": "Sessions actives"
   },
   "web.settings.sessions.description": {
-    "text": "Gérer vos sessions actives"
+    "text": "Gérez vos sessions actives"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Gérer vos sessions actives"
+    "text": "Gérez vos sessions actives"
   },
   "web.settings.password.title": {
     "text": "Mot de passe"
   },
   "web.settings.password.description": {
-    "text": "Modifier le mot de passe de votre compte"
+    "text": "Mettre à jour le mot de passe de votre compte"
   },
   "web.settings.password.update_account_password": {
-    "text": "Modifier le mot de passe de votre compte"
+    "text": "Mettre à jour le mot de passe de votre compte"
   },
   "web.settings.delete_account.title": {
     "text": "Supprimer le compte"
@@ -267,16 +267,16 @@
     "text": "Score de sécurité"
   },
   "web.settings.security.score_description": {
-    "text": "État général de la sécurité de votre compte"
+    "text": "L'état de santé global de la sécurité de votre compte"
   },
   "web.settings.security.excellent": {
     "text": "Excellent"
   },
   "web.settings.security.good": {
-    "text": "Bon"
+    "text": "Bien"
   },
   "web.settings.security.fair": {
-    "text": "Acceptable"
+    "text": "Correct"
   },
   "web.settings.security.weak": {
     "text": "Faible"
@@ -285,7 +285,7 @@
     "text": "Améliorer votre sécurité"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Activez l'authentification à deux facteurs pour une protection renforcée"
+    "text": "Activez l'authentification à deux facteurs pour une meilleure protection"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Générez des codes de récupération comme sauvegarde"
@@ -303,7 +303,7 @@
     "text": "Activer"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} code disponible | {0} codes disponibles"
+    "text": "{0} codes disponibles"
   },
   "web.settings.security.no_codes": {
     "text": "Aucun code généré"
@@ -315,37 +315,37 @@
     "text": "Bonnes pratiques de sécurité"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Utilisez un mot de passe fort et unique pour votre compte"
+    "text": "Utilisez un mot de passe robuste et unique pour votre compte"
   },
   "web.settings.security.enable_mfa_for_protection": {
     "text": "Activez l'authentification à deux facteurs pour une protection supplémentaire"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Conservez vos codes de récupération dans un endroit sécurisé"
+    "text": "Conservez vos codes de récupération dans un endroit sûr"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Examinez et révoquez régulièrement les sessions inutilisées"
+    "text": "Vérifiez et révoquez régulièrement les sessions inutilisées"
   },
   "web.settings.security.view_details": {
-    "text": "Afficher les détails"
+    "text": "Voir les détails"
   },
   "web.settings.api.title": {
     "text": "API et intégrations"
   },
   "web.settings.api.description": {
-    "text": "Gérer les clés API et les intégrations"
+    "text": "Gérez les clés API et les intégrations"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Gérer les clés API et les intégrations"
+    "text": "Gérez les clés API et les intégrations"
   },
   "web.settings.api.documentation": {
     "text": "Documentation API"
   },
   "web.settings.api.documentation_description": {
-    "text": "Découvrez comment intégrer Onetime Secret dans vos applications"
+    "text": "Apprenez à intégrer Onetime Secret dans vos applications"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "Référence API REST"
+    "text": "Référence de l'API REST"
   },
   "web.settings.api.complete_api_documentation": {
     "text": "Documentation complète de l'API et des points de terminaison"
@@ -354,19 +354,19 @@
     "text": "Exemples de code"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Exemples de code et bibliothèques clientes"
+    "text": "Exemples de code et bibliothèques client"
   },
   "web.settings.api.security_best_practices": {
     "text": "Bonnes pratiques de sécurité"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Ne commitez jamais les clés API dans le contrôle de version"
+    "text": "Ne jamais commiter de clés API dans le contrôle de version"
   },
   "web.settings.api.use_environment_variables": {
     "text": "Utilisez des variables d'environnement pour stocker les clés API"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Renouvelez régulièrement les clés API pour la sécurité"
+    "text": "Changez régulièrement vos clés API pour la sécurité"
   },
   "web.settings.api.use_https_only": {
     "text": "Utilisez toujours HTTPS lors des requêtes API"
@@ -378,49 +378,49 @@
     "text": "Avis important"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Régénérer votre clé API invalidera la clé actuelle. Mettez à jour toutes les applications utilisant l'ancienne clé."
+    "text": "La régénération de votre clé API invalidera la clé actuelle. Mettez à jour toutes les applications utilisant l'ancienne clé."
   },
   "web.settings.privacy.title": {
     "text": "Paramètres de confidentialité"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Gérer vos préférences de confidentialité"
+    "text": "Gérez vos préférences de confidentialité"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Votre confidentialité"
+    "text": "Votre vie privée"
   },
   "web.settings.privacy.non_negotiable": {
     "text": "Non négociable"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "Pas un paramètre"
+    "text": "Ce n'est pas un paramètre"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Aucune analyse. Aucun suivi. Point final."
+    "text": "Pas d'analyse. Pas de suivi. Point final."
   },
   "web.settings.privacy.explanation": {
-    "text": "Ce n'est pas un paramètre car il n'y a rien à activer ou désactiver. Votre confidentialité est intégrée dans notre fonctionnement."
+    "text": "Ce n'est pas un paramètre car il n'y a rien à activer ou désactiver. Votre vie privée est intégrée dans notre façon de fonctionner."
   },
   "web.settings.notifications.title": {
     "text": "Paramètres de notification"
   },
   "web.settings.notifications.description": {
-    "text": "Gérer la façon dont vous recevez les notifications"
+    "text": "Gérez comment vous recevez les notifications"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Échec de la mise à jour de la préférence de notification. Veuillez réessayer."
+    "text": "Échec de la mise à jour des préférences de notification. Veuillez réessayer."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Notifications de consultation de secrets"
+    "text": "Notifications de révélation de secret"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Recevoir un e-mail lorsque quelqu'un consulte votre secret"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Vous serez notifié chaque fois qu'un destinataire consulte l'un de vos secrets"
+    "text": "Vous serez notifié chaque fois qu'un destinataire révèle l'un de vos secrets"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Les e-mails de notification ne contiennent que l'horodatage et l'identifiant du secret. Les informations sur le visiteur ne sont jamais incluses."
+    "text": "Les e-mails de notification incluent uniquement l'horodatage et l'ID du secret. Les informations sur le lecteur ne sont jamais incluses."
   },
   "web.settings.caution.title": {
     "text": "Zone de prudence"
@@ -438,10 +438,10 @@
     "text": "Demander une copie complète des données de votre compte dans un format lisible par machine"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Demander l'export de données"
+    "text": "Demander un export de données"
   },
   "web.settings.caution.export_info": {
-    "text": "Délai de traitement de l'export"
+    "text": "Temps de traitement de l'export"
   },
   "web.settings.caution.export_info_description": {
     "text": "Les exports sont traités sous 24 heures et envoyés à votre adresse e-mail"
@@ -450,15 +450,30 @@
     "text": "La suppression de votre compte entraînera :"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Suppression définitive de tous vos secrets"
+    "text": "Supprimer définitivement tous vos secrets"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Suppression de toutes les métadonnées et de l'historique des secrets"
+    "text": "Supprimer toutes les métadonnées et l'historique des secrets"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Invalidation de toutes les clés API"
+    "text": "Invalider toutes les clés API"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Cette action est irréversible"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Suppression..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Retour au tableau de bord"
+  },
+  "web.settings.sections.account": {
+    "text": "Compte"
+  },
+  "web.settings.sections.billing": {
+    "text": "Facturation"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avancé"
   }
 }

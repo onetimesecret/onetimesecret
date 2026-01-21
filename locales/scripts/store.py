@@ -50,7 +50,7 @@ def get_connection() -> Iterator[sqlite3.Connection]:
 # Schema versions - add new entries when schema changes
 SCHEMA_VERSIONS = [
     ("001", "initial_tables"),
-    ("002", "level_tasks"),
+    ("002", "translation_tasks"),
     ("003", "glossary"),
     ("004", "session_log"),
     ("005", "source_status"),
@@ -81,9 +81,7 @@ def migrate_schema() -> None:
 
         # Check which versions are already recorded
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT version FROM schema_migrations"
-        )
+        cursor.execute("SELECT version FROM schema_migrations")
         applied = {row[0] for row in cursor.fetchall()}
 
         # Record any missing versions
@@ -192,7 +190,8 @@ def hydrate_from_json(force: bool = False) -> None:
         # Second pass: walk all content directories
         inserted = 0
         locale_dirs = sorted(
-            d for d in CONTENT_DIR.iterdir()
+            d
+            for d in CONTENT_DIR.iterdir()
             if d.is_dir() and not d.name.startswith(".")
         )
 
@@ -206,8 +205,10 @@ def hydrate_from_json(force: bool = False) -> None:
                     with open(json_file, encoding="utf-8") as f:
                         data = json.load(f)
                 except json.JSONDecodeError as e:
-                    print(f"Warning: Invalid JSON in {json_file}: {e}",
-                          file=sys.stderr)
+                    print(
+                        f"Warning: Invalid JSON in {json_file}: {e}",
+                        file=sys.stderr,
+                    )
                     continue
 
                 for key, entry in data.items():
@@ -241,7 +242,9 @@ def hydrate_from_json(force: bool = False) -> None:
                         notes_parts.append(note)
                     if context and locale != "en":
                         notes_parts.append(f"context: {context}")
-                    combined_notes = "; ".join(notes_parts) if notes_parts else None
+                    combined_notes = (
+                        "; ".join(notes_parts) if notes_parts else None
+                    )
 
                     # For source language: source=NULL, text=content
                     # For translations: source=english, text=translation
@@ -399,12 +402,16 @@ Examples:
         "hydrate", help="Create database from JSON files"
     )
     hydrate_parser.add_argument(
-        "--from-json", action="store_true", default=True,
-        help="Hydrate from locales/content/*.json (default, only option)"
+        "--from-json",
+        action="store_true",
+        default=True,
+        help="Hydrate from locales/content/*.json (default, only option)",
     )
     hydrate_parser.add_argument(
-        "--force", "-f", action="store_true",
-        help="Delete existing database and recreate"
+        "--force",
+        "-f",
+        action="store_true",
+        help="Delete existing database and recreate",
     )
 
     # migrate subcommand
@@ -413,19 +420,15 @@ Examples:
     )
 
     # query subcommand
-    query_parser = subparsers.add_parser(
-        "query", help="Run a SQL query"
+    query_parser = subparsers.add_parser("query", help="Run a SQL query")
+    query_parser.add_argument("sql", help="SQL query to execute")
+    query_parser.add_argument(
+        "--hydrate",
+        action="store_true",
+        help="Hydrate database from JSON if it doesn't exist",
     )
     query_parser.add_argument(
-        "sql", help="SQL query to execute"
-    )
-    query_parser.add_argument(
-        "--hydrate", action="store_true",
-        help="Hydrate database from JSON if it doesn't exist"
-    )
-    query_parser.add_argument(
-        "--json", "-j", action="store_true",
-        help="Output results as JSON"
+        "--json", "-j", action="store_true", help="Output results as JSON"
     )
 
     args = parser.parse_args()

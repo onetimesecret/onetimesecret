@@ -1,6 +1,6 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Vos commentaires"
+    "text": "Votre commentaire"
   },
   "web.feedback.all_feedback_welcome": {
     "text": "Tous les commentaires sont les bienvenus !"
@@ -9,10 +9,10 @@
     "text": "Aidez-nous à nous améliorer"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Fermer la modalité de retour d'information"
+    "text": "Fermer la fenêtre de commentaire"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Faites-nous part de vos commentaires"
+    "text": "Partagez votre commentaire"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Le contenu de l'aide se trouve ici."
+    "text": "Le contenu d'aide apparaît ici."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Merci d'aider Onetime Secret à s'améliorer. Cela représente beaucoup."
@@ -36,12 +36,18 @@
     "text": "Un mot de Delano, fondateur de Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Formulaire de retour d'information ouvert"
+    "text": "Ouvrir le formulaire de commentaire"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Saisissez votre avis"
+    "text": "Saisissez votre commentaire"
   },
   "web.feedback.send_feedback": {
     "text": "Envoyer un commentaire"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Je lis chaque commentaire qui arrive ici. C'est comme cela que je détermine sur quoi consacrer mon temps."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Si quelque chose ne va pas, ou si vous avez des idées sur la façon dont cela devrait fonctionner, c'est le bon endroit."
   }
 }

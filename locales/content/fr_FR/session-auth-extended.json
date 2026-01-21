@@ -6,7 +6,7 @@
     "text": "Vérification MFA requise pour accéder à votre compte"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Compléter la vérification MFA"
+    "text": "Terminer la vérification MFA"
   },
   "web.auth.security.authentication_failed": {
     "text": "Échec de l'authentification. Veuillez vérifier vos identifiants et réessayer."
@@ -27,7 +27,7 @@
     "text": "Erreur réseau. Veuillez vérifier votre connexion et réessayer."
   },
   "web.auth.security.internal_error": {
-    "text": "Une erreur s'est produite. Veuillez réessayer."
+    "text": "Une erreur est survenue. Veuillez réessayer."
   },
   "web.auth.methods.password": {
     "text": "Mot de passe"
@@ -39,19 +39,19 @@
     "text": "Biométrique"
   },
   "web.auth.magicLink.title": {
-    "text": "Connexion par e-mail"
+    "text": "Se connecter avec l'e-mail"
   },
   "web.auth.magicLink.description": {
     "text": "Nous vous enverrons un lien de connexion sécurisé"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Saisissez votre adresse e-mail"
+    "text": "Saisissez votre e-mail"
   },
   "web.auth.magicLink.sendLink": {
     "text": "Envoyer le lien de connexion"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Consultez votre messagerie"
+    "text": "Vérifiez vos e-mails"
   },
   "web.auth.magicLink.sentTo": {
     "text": "Nous avons envoyé un lien de connexion à {email}"
@@ -60,10 +60,10 @@
     "text": "Ce lien expirera dans 15 minutes"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Essayer une autre adresse e-mail"
+    "text": "Essayer un autre e-mail"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Aucun mot de passe requis : cliquez simplement sur le lien dans votre e-mail"
+    "text": "Aucun mot de passe nécessaire — cliquez simplement sur le lien dans votre e-mail"
   },
   "web.auth.magicLink.networkError": {
     "text": "Erreur réseau. Veuillez réessayer."
@@ -90,7 +90,7 @@
     "text": "Retour à la connexion"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Connexion avec Face ID / Touch ID"
+    "text": "Se connecter avec Face ID / Touch ID"
   },
   "web.auth.webauthn.setup": {
     "text": "Configurer la connexion biométrique"
@@ -99,7 +99,7 @@
     "text": "L'authentification biométrique n'est pas prise en charge dans ce navigateur"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Veuillez utiliser un navigateur moderne prenant en charge WebAuthn (Chrome, Safari, Firefox ou Edge)"
+    "text": "Veuillez utiliser un navigateur moderne qui prend en charge WebAuthn (Chrome, Safari, Firefox ou Edge)"
   },
   "web.auth.webauthn.setupSuccess": {
     "text": "La connexion biométrique a été activée"
@@ -123,10 +123,10 @@
     "text": "Prend en charge Face ID, Touch ID, Windows Hello et les clés de sécurité"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Attention : {count} tentative(s) de connexion restante(s)"
+    "text": "Avertissement : {count} tentative(s) de connexion restante(s)"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Compte verrouillé en raison d'un trop grand nombre de tentatives de connexion échouées"
+    "text": "Compte verrouillé en raison de trop nombreuses tentatives de connexion échouées"
   },
   "web.auth.lockout.locked_until": {
     "text": "Votre compte est verrouillé jusqu'à {time}"
@@ -159,7 +159,7 @@
     "text": "Dernière activité"
   },
   "web.auth.sessions.created": {
-    "text": "Créée"
+    "text": "Créé"
   },
   "web.auth.sessions.remove": {
     "text": "Supprimer"
@@ -171,7 +171,7 @@
     "text": "Êtes-vous sûr de vouloir supprimer cette session ?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Ceci vous déconnectera de tous les autres appareils. Êtes-vous sûr ?"
+    "text": "Cela vous déconnectera de tous les autres appareils. Êtes-vous sûr ?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Aucune autre session active"
@@ -219,10 +219,10 @@
     "text": "Ou saisissez ce code manuellement"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Saisissez le code à 6 chiffres depuis votre application"
+    "text": "Saisissez le code à 6 chiffres de votre application"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Saisissez le code d'authentification"
+    "text": "Saisir le code d'authentification"
   },
   "web.auth.mfa.verify": {
     "text": "Vérifier et activer"
@@ -240,7 +240,7 @@
     "text": "L'authentification à deux facteurs a été désactivée"
   },
   "web.auth.mfa.require_password": {
-    "text": "Saisissez votre mot de passe pour désactiver l'authentification à deux facteurs"
+    "text": "Saisissez votre mot de passe pour désactiver la 2FA"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "Mot de passe"
@@ -264,7 +264,7 @@
     "text": "Annuler et retourner à la connexion"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Chargement de l'état MFA..."
+    "text": "Chargement du statut MFA..."
   },
   "web.auth.mfa.protected_description": {
     "text": "Votre compte est protégé par l'authentification à deux facteurs"
@@ -273,13 +273,13 @@
     "text": "Protégez votre compte avec une couche de sécurité supplémentaire"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Empêchez l'accès non autorisé même si votre mot de passe est compromis"
+    "text": "Empêchez les accès non autorisés même si votre mot de passe est compromis"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Fonctionne avec Google Authenticator, Authy et autres applications TOTP"
+    "text": "Fonctionne avec Google Authenticator, Authy et d'autres applications TOTP"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Codes de récupération de sauvegarde pour accès d'urgence"
+    "text": "Codes de récupération de secours pour un accès d'urgence"
   },
   "web.auth.mfa.password_placeholder": {
     "text": "Saisissez votre mot de passe"
@@ -288,7 +288,7 @@
     "text": "Désactivation..."
   },
   "web.auth.mfa.disable_button": {
-    "text": "Désactiver l'authentification à deux facteurs"
+    "text": "Désactiver la 2FA"
   },
   "web.auth.mfa.generating_qr": {
     "text": "Génération du code QR..."
@@ -300,10 +300,10 @@
     "text": "Continuer vers la vérification"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Saisissez le code à 6 chiffres depuis votre application d'authentification"
+    "text": "Saisissez le code à 6 chiffres de votre application d'authentification"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Activer MFA"
+    "text": "Activer la MFA"
   },
   "web.auth.mfa.complete_setup": {
     "text": "Terminer la configuration"
@@ -354,7 +354,7 @@
     "text": "Régénérer les codes"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Ceci invalidera tous les codes de récupération existants"
+    "text": "Cela invalidera tous les codes de récupération existants"
   },
   "web.auth.recovery_codes.download": {
     "text": "Télécharger les codes"
@@ -381,10 +381,10 @@
     "text": "Non utilisé"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} code(s) de récupération restant(s)"
+    "text": "{count} sur {limit} codes de récupération restants"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Chaque code ne peut être utilisé qu'une seule fois. Régénérez les codes si vous êtes à court."
+    "text": "Chaque code ne peut être utilisé qu'une seule fois. Régénérez les codes si vous en manquez."
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "Aucun code de récupération restant"
@@ -394,5 +394,20 @@
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Codes de récupération"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Vérifier"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Utiliser un code de récupération"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Annuler la connexion"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ CRITIQUE POUR LA SÉCURITÉ : Ces messages empêchent la divulgation d'informations. Voir src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Page de gestion des appareils/navigateurs connectés de l'utilisateur"
   }
 }

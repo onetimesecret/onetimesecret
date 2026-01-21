@@ -1,36 +1,36 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Pourquoi ce secret n'est-il pas disponible ?"
+    "text": "Pourquoi ce secret est-il indisponible ?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Les secrets sont conçus pour n'être consultés qu'une seule fois. Ce lien a peut-être déjà été consulté, a expiré, ou a été supprimé manuellement par l'expéditeur."
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Que dois-je faire à présent ?"
+    "text": "Que dois-je faire maintenant ?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
     "text": "Veuillez contacter la personne qui vous a envoyé ce lien et demandez-lui de créer un nouveau secret. Informez-la que vous n'avez pas pu accéder aux informations originales."
   },
   "web.errors.warning_dismissed": {
-    "text": "Avertissement rejeté"
+    "text": "Avertissement ignoré"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Rejeter l'avertissement de troncature"
+    "text": "Ignorer l'avertissement de troncature"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Oups ! La page que vous recherchez n'existe pas ou a été déplacée."
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Page non trouvée"
+    "text": "404 - Page introuvable"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Page non trouvée"
+    "text": "404 - Page introuvable"
   },
   "web.errors.dismiss_warning": {
-    "text": "Rejeter l'avertissement"
+    "text": "Ignorer l'avertissement"
   },
   "web.errors.dismiss_notification": {
-    "text": "Rejeter la notification"
+    "text": "Ignorer la notification"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Si vous n'êtes pas sûr de la marche à suivre, veuillez contacter la personne qui vous a envoyé ce lien pour plus d'informations."
