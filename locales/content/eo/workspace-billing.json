@@ -1,60 +1,60 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Ĝisdatigo Bezonata"
+    "text": "Ĝisdatigo bezonata"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Vidi Planojn"
+    "text": "Rigardu planojn"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Teamadministrado postulas Identity Plus aŭ pli altan"
+    "text": "Team-administrado bezonas Identity Plus aŭ pli altan"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Propraj domajnoj postulas Identity Plus aŭ pli altan"
+    "text": "Propraj domajnoj bezonas Identity Plus aŭ pli altan"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API-aliro postulas Identity Plus aŭ pli altan"
+    "text": "API-aliro bezonas Identity Plus aŭ pli altan"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Revizi-protokoloj postulas Multi-Team planon aŭ pli altan"
+    "text": "Kontrolaj protokoloj bezonas Multi-Team planon aŭ pli altan"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Administru vian abonon, organizojn, kaj fakturajn agordojn"
+    "text": "Administri vian abonon, organizojn, kaj fakturadajn agordojn"
   },
   "web.billing.overview.title": {
-    "text": "Faktura Superrigardo"
+    "text": "Fakturada superrigardo"
   },
   "web.billing.overview.description": {
-    "text": "Vidu kaj administru viajn abonajn kaj pagajn detalojn"
+    "text": "Rigardu kaj administru vian abonon kaj pagajn detalojn"
   },
   "web.billing.overview.billing_for_organization": {
     "text": "Fakturado por ĉi tiu organizo"
   },
   "web.billing.overview.current_plan": {
-    "text": "Nuna Plano"
+    "text": "Nuna plano"
   },
   "web.billing.overview.plan_features": {
-    "text": "Planaj Funkcioj"
+    "text": "Plan-funkcioj"
   },
   "web.billing.overview.payment_method": {
     "text": "Pagmetodo"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Sekva Fakturdato"
+    "text": "Sekva fakturada dato"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Rapidaj Agoj"
+    "text": "Rapidaj agoj"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Administri Fakturon"
+    "text": "Administru fakturado"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Vidi Fakturojn"
+    "text": "Rigardu fakturojn"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Ĝisdatigi Planon"
+    "text": "Ĝisdatigu planon"
   },
   "web.billing.overview.change_plan": {
-    "text": "Ŝanĝi Planon"
+    "text": "Ŝanĝu planon"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Neniu pagmetodo registrita"
@@ -69,28 +69,28 @@
     "text": "Fakturado je {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Vidi Planojn"
+    "text": "Rigardu planojn"
   },
   "web.billing.overview.view_plans_description": {
     "text": "Komparu kaj ĝisdatigu"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Vidi Fakturojn"
+    "text": "Rigardu fakturojn"
   },
   "web.billing.overview.view_invoices_description": {
     "text": "Elŝutu historion"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Administri Fakturon"
+    "text": "Administru fakturado"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Ĝisdatigi paginformojn"
+    "text": "Ĝisdatigu paginformojn"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Neniuj Organizoj"
+    "text": "Neniuj organizoj"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Kreu organizon por administri vian fakturon kaj abonon"
+    "text": "Kreu organizon por administri vian fakturado kaj abonon"
   },
   "web.billing.overview.upgrade_success": {
     "text": "Via plano estis sukcese ĝisdatigita"
@@ -99,97 +99,97 @@
     "text": "Via nova plano nun estas aktiva. Dankon pro via aĉeto."
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Krei Sekretojn"
+    "text": "Kreu sekretojn"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Vidi Kvitancojn"
+    "text": "Rigardu kvitancojn"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "API-Aliro"
+    "text": "API-aliro"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Propraj Domajnoj"
+    "text": "Propraj domajnoj"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Propraj Privatecaj Defaŭltoj"
+    "text": "Propraj privatecaj defaŭltoj"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Etendita Defaŭlta Eksvalidiĝo"
+    "text": "Plilongigita defaŭlta senvalidiĝo"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Propraj Retpoŝtaj Defaŭltoj"
+    "text": "Propraj retpoŝtaj defaŭltoj"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Propra Markado"
+    "text": "Propra marko"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Markita Ĉefpaĝo"
+    "text": "Markita hejmpaĝo"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Envenantaj Sekretoj"
+    "text": "Envenantaj sekretoj"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Administri Organizojn"
+    "text": "Administru organizojn"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Administri Teamojn"
+    "text": "Administru teamojn"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Administri Membrojn"
+    "text": "Administru membrojn"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Revizi-Protokoloj"
+    "text": "Kontrolaj protokoloj"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Ununura Ensaluto"
+    "text": "Unuopa ensaluto"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Prioritata Subteno"
+    "text": "Prioritata subteno"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Serva Nivela Interkonsento"
+    "text": "Servonivela interkonsento"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Ne povis ŝargi funkciajn detalojn"
+    "text": "Ne povis ŝargi funkcio-detalojn"
   },
   "web.billing.overview.no_entitlements": {
     "text": "Neniuj funkcioj disponeblaj"
   },
   "web.billing.features.create_secrets": {
-    "text": "Krei kaj Kunhavigi Sekretojn"
+    "text": "Krei kaj kunhavigi sekretojn"
   },
   "web.billing.features.api_access": {
-    "text": "API-Aliro"
+    "text": "API-aliro"
   },
   "web.billing.features.custom_domains": {
-    "text": "Propraj Domajnoj"
+    "text": "Propraj domajnoj"
   },
   "web.billing.features.custom_branding": {
-    "text": "Propra Markado"
+    "text": "Propra marko"
   },
   "web.billing.features.branded_homepage": {
-    "text": "Markita Ĉefpaĝo"
+    "text": "Markita hejmpaĝo"
   },
   "web.billing.features.manage_teams": {
-    "text": "Teamadministrado"
+    "text": "Team-administrado"
   },
   "web.billing.features.manage_members": {
-    "text": "Membradministrado"
+    "text": "Membro-administrado"
   },
   "web.billing.features.audit_logs": {
-    "text": "Revizi-Protokoloj"
+    "text": "Kontrolaj protokoloj"
   },
   "web.billing.features.sso": {
-    "text": "Ununura Ensaluto (SSO)"
+    "text": "Unuopa ensaluto (SSO)"
   },
   "web.billing.features.priority_support": {
-    "text": "Prioritata Subteno"
+    "text": "Prioritata subteno"
   },
   "web.billing.features.sla": {
-    "text": "Serva Nivela Interkonsento"
+    "text": "Servonivela interkonsento"
   },
   "web.billing.plans.title": {
-    "text": "Elektu Planon"
+    "text": "Elektu planon"
   },
   "web.billing.plans.choose_plan": {
     "text": "Elektu la planon kiu konvenas al viaj bezonoj"
@@ -198,7 +198,7 @@
     "text": "Elektu la perfektan planon por via organizo"
   },
   "web.billing.plans.current": {
-    "text": "Nuna Plano"
+    "text": "Nuna plano"
   },
   "web.billing.plans.current_badge": {
     "text": "Nuna"
@@ -207,13 +207,13 @@
     "text": "Ĝisdatigi"
   },
   "web.billing.plans.downgrade": {
-    "text": "Malaltniveli"
+    "text": "Malplialtigi"
   },
   "web.billing.plans.monthly": {
-    "text": "Monata"
+    "text": "Monate"
   },
   "web.billing.plans.yearly": {
-    "text": "Jara"
+    "text": "Jare"
   },
   "web.billing.plans.per_month": {
     "text": "/monato"
@@ -225,19 +225,19 @@
     "text": "Senpaga"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Ununura Teamo"
+    "text": "Unu teamo"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Pluraj Teamoj"
+    "text": "Pluraj teamoj"
   },
   "web.billing.plans.individual_account": {
-    "text": "Individua Konto"
+    "text": "Individua konto"
   },
   "web.billing.plans.team_account": {
-    "text": "Teama Konto"
+    "text": "Teama konto"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Organiza Konto"
+    "text": "Organiza konto"
   },
   "web.billing.plans.features": {
     "text": "Funkcioj"
@@ -252,16 +252,16 @@
     "text": "Prioritata subteno"
   },
   "web.billing.plans.select_plan": {
-    "text": "Elekti Planon"
+    "text": "Elektu planon"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Kontakti Vendadon"
+    "text": "Kontaktu vendon"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Ĉu vi havas demandojn aŭ bezonas ion personecigitan?"
+    "text": "Ĉu vi havas demandojn aŭ bezonas ion propran?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Ni ĝojus aŭdi de vi. Diru al ni, kion vi serĉas."
+    "text": "Ni ĝojas aŭdi de vi. Sciigu al ni kion vi serĉas."
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} teamo | {count} teamoj"
@@ -276,16 +276,16 @@
     "text": "Senlimaj membroj por teamo"
   },
   "web.billing.plans.most_popular": {
-    "text": "Plej Populara"
+    "text": "Plej populara"
   },
   "web.billing.plans.suggested": {
-    "text": "Rekomendita"
+    "text": "Sugestita"
   },
   "web.billing.plans.everything_in": {
-    "text": "Ĉio en {plan}, plus:"
+    "text": "Inkluzivas ĉion en {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Neniuj {interval} planoj disponeblas nuntempe."
+    "text": "Neniuj {interval} planoj disponeblaj nuntempe."
   },
   "web.billing.plans.change_immediate": {
     "text": "Via plano ŝanĝiĝos tuj."
@@ -303,28 +303,28 @@
     "text": "Pagenda hodiaŭ:"
   },
   "web.billing.plans.next_billing": {
-    "text": "Sekva fakturo ({date}):"
+    "text": "Sekva fakturado ({date}):"
   },
   "web.billing.plans.next_invoice": {
     "text": "Sekva fakturo"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Viaj funkciaj limoj ĝisdatiĝos tuj post la planoŝanĝo."
+    "text": "Viaj funkcio-limigoj ĝisdatiĝos tuj post la plan-ŝanĝo."
   },
   "web.billing.plans.change_failed": {
-    "text": "Planoŝanĝo malsukcesis. Bonvolu reprovi."
+    "text": "Plan-ŝanĝo malsukcesis. Bonvolu reprovi."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Konfirmi Plibonigon"
+    "text": "Konfirmu ĝisdatigon"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Konfirmi Malaltigon"
+    "text": "Konfirmu malplialtigon"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Plibonigi al {plan}?"
+    "text": "Ĝisdatigi al {plan}?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Malaltigi al {plan}?"
+    "text": "Malplialtigi al {plan}?"
   },
   "web.billing.plans.credit_applies_heading": {
     "text": "Kiel via kredito aplikiĝas:"
@@ -333,22 +333,22 @@
     "text": "Sekva faktura sumo:"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Aplikita kredito:"
+    "text": "Kredito aplikita:"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Pagenda sumo ĉe sekva fakturado:"
+    "text": "Sumo pagenda je sekva fakturado:"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Restanta kontkredito:"
+    "text": "Restanta konto-kredito:"
   },
   "web.billing.plans.credit_future_note": {
     "text": "Aplikita al estontaj fakturoj"
   },
   "web.billing.invoices.title": {
-    "text": "Faktura Historio"
+    "text": "Fakturada historio"
   },
   "web.billing.invoices.view_history": {
-    "text": "Vidi vian fakturan historion kaj elŝuti fakturojn"
+    "text": "Rigardu vian fakturadan historion kaj elŝutu fakturojn"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Dato"
@@ -381,19 +381,19 @@
     "text": "Fakturado estas administrata de {orgName}"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Vidi organizan fakturadon"
+    "text": "Rigardu organizo-fakturado"
   },
   "web.billing.limits.members_reached": {
-    "text": "Vi atingis la membrolimojn por ĉi tiu teamo"
+    "text": "Vi atingis la membrolimigon por ĉi tiu teamo"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Plibonigu por aldoni pliajn membrojn"
+    "text": "Ĝisdatigu por aldoni pli da membroj"
   },
   "web.billing.subscription.title": {
     "text": "Abono"
   },
   "web.billing.subscription.status": {
-    "text": "Abona Stato"
+    "text": "Abona stato"
   },
   "web.billing.subscription.active": {
     "text": "Aktiva"
@@ -402,7 +402,7 @@
     "text": "Neaktiva"
   },
   "web.billing.subscription.past_due": {
-    "text": "Postdata"
+    "text": "Postlimdato"
   },
   "web.billing.subscription.canceled": {
     "text": "Nuligita"
@@ -411,28 +411,28 @@
     "text": "Plano"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Teamuzado"
+    "text": "Teama uzado"
   },
   "web.billing.subscription.teams_used": {
     "text": "{used} el {limit} teamoj"
   },
   "web.billing.portal.title": {
-    "text": "Faktura Portalo"
+    "text": "Fakturada portalo"
   },
   "web.billing.portal.description": {
-    "text": "Administri vian abonon, pagmetodojn, kaj fakturan historion"
+    "text": "Administru vian abonon, pagmetodojn kaj fakturadan historion"
   },
   "web.billing.portal.open_portal": {
-    "text": "Malfermi Fakturan Portalon"
+    "text": "Malfermu fakturadan portalon"
   },
   "web.billing.portal.redirecting": {
-    "text": "Alidirektante al faktura portalo..."
+    "text": "Alidirektante al fakturada portalo..."
   },
   "web.billing.start_today": {
     "text": "Komenci hodiaŭ"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Komenci hodiaŭ kun Identity Plus"
+    "text": "Komenci hodiaŭ kun Identeco Plus"
   },
   "web.billing.per_month": {
     "text": "monate"
@@ -441,43 +441,43 @@
     "text": "Plena API-aliro"
   },
   "web.billing.privacy_first_design": {
-    "text": "Privatec-unua dezajno"
+    "text": "Privateco-unua dezajno"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identeco Plus"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Klaku ĉi tiun fulmon por plibonigi al propraj domajnoj"
+    "text": "Alklaku ĉi tiun fulmon por ĝisdatigi por propraj domajnoj"
   },
   "web.billing.maybe_later": {
     "text": "Eble Poste"
   },
   "web.billing.upgrade_account": {
-    "text": "Plibonigi konton"
+    "text": "Ĝisdatigi konton"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Plibonigi al Identity Plus"
+    "text": "Ĝisdatigi al Identeco Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Plibonigi por Teamoj"
+    "text": "Ĝisdatigi por Teamoj"
   },
   "web.billing.benefits_of": {
     "text": "Avantaĝoj de"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identeco Plus"
   },
   "web.billing.upgrade_to": {
-    "text": "Plibonigi al"
+    "text": "Ĝisdatigi al"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Plibonigi por sekretoj.viadomajno.com"
+    "text": "Ĝisdatigi por secrets.viadomajno.com"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Ĉiuj planoj inkluzivas privatecajn funkciojn kaj senliman dividan kapaciton"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Ĉiuj planoj inkluzivas elekton de datloko: {0} regionoj"
+    "text": "Ĉiuj planoj inkluzivas elekton de datuma lokeco: {0} regionoj"
   },
   "web.billing.get_started": {
     "text": "Komenci"
@@ -489,15 +489,132 @@
     "text": "Plialtigu vian sekuran dividadon kun propraj domajnoj, senlima kapacito, kaj entrepren-nivela funkciaro."
   },
   "web.billing.payment_frequency": {
-    "text": "Pagofrekvenco"
+    "text": "Pagfrekveco"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
     "text": "Sekurigu vian markon kaj konstruu klientfidon per ligiloj de via domajno. Perfekta por entreprenoj, kiuj valoras privatecon kaj profesiismon."
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Sekuraj Ligiloj, Pli Fortaj Konektoj"
+    "text": "Sekuraj Ligoj, Pli Fortaj Konektoj"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Identec-nivelo ne trovita en produktaj niveloj"
+    "text": "Identeco-nivelo ne trovita en produktniveloj"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Nuligi abonon"
+  },
+  "web.billing.cancel.title": {
+    "text": "Nuligi Abonon"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Ĉu vi certas ke vi volas nuligi vian {plan} abonon?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Kio okazas kiam vi nuligas:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Vi konservos aliron al ĉiuj funkcioj ĝis {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Vi konservos aliron ĝis via nuna faktura periodo finiĝos"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Vi ne estos fakturita denove"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Via konto revenos al la senpaga plano"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Konservi Abonon"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Nuligi Abonon"
+  },
+  "web.billing.cancel.success": {
+    "text": "Via abono estis nuligita. Vi konservos aliron ĝis la fino de via faktura periodo."
+  },
+  "web.billing.cancel.error": {
+    "text": "Malsukcesis nuligi abonon. Bonvolu reprovi."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Abonnuligo Planita"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Via abono restos aktiva ĝis {date}. Vi daŭre havos plenan aliron al ĉiuj funkcioj ĝis tiam."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Ĉu vi ŝanĝis la opinion? Vi povas reaktivigi vian abonon iam ajn antaŭ la nuliga dato."
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 propra domajno"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Senlimaj propraj domajnoj"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Centralizita fakturado"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Kontrola spuro"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Aktiveca fluo"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Transdono-laborfluoj"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30-taga sekreto-konservado"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Hejmpaĝaj sekretoj"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Envenantaj sekretoj"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Ĝis 5 teamanoj"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Ĝis 10 teamanoj"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Ĝis 25 teamanoj"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Ĝis 50 teamanoj"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Senlimaj teamanoj"
+  },
+  "web.billing.features.notifications": {
+    "text": "Retpoŝtaj sciigoj"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP-aliraj reguloj"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Laborspaco-marko"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dediĉita infrastrukturo"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Kunhavitaj laborfluoj"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Fakturada kontakto"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Hejmpaĝaj sekretoj"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Retpoŝtaj sciigoj"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP-aliraj reguloj"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Laborspaco-marko"
   }
 }

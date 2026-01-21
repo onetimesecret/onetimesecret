@@ -1,6 +1,6 @@
 {
   "web.COMMON.tagline": {
-    "text": "Sekuraj ligiloj kiuj funkcias nur unufoje"
+    "text": "Sekuraj ligiloj, kiuj funkcias nur unufoje"
   },
   "web.COMMON.powered_by": {
     "text": "Funkciigita de"
@@ -9,19 +9,19 @@
     "text": "https://onetimesecret.com/eo"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Generi Pasvorton"
+    "text": "Generi pasvorton"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Generi Pasvorton estas malŝaltita kiam la formularo estas valida"
+    "text": "Pasvorta generilo estas malŝaltita kiam la formularo validas"
   },
   "web.COMMON.email_placeholder": {
-    "text": "ekz. tomo{'@'}myspace.com"
+    "text": "ekz. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
     "text": "Enigu vian pasvorton"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Propraj Domajnoj"
+    "text": "Propraj domajnoj"
   },
   "web.COMMON.custom_domains_description": {
     "text": "Fortigu konektojn kaj konstruu fidon per viaj propraj markitaj sekretaj ligiloj."
@@ -45,13 +45,13 @@
     "text": "Prilaborante..."
   },
   "web.COMMON.description": {
-    "text": "Tenu sentemajn informojn ekster viaj babilaj protokoloj kaj retpoŝto. Kunhavigu sekretan ligilon kiu estas havebla nur unufoje."
+    "text": "Tenu sentemajn informojn ekster viaj babilprotokoloj kaj retpoŝto. Kunhavigu sekretan ligilon, kiu disponeblas nur unufoje."
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Malĝusta pasfrazo"
+    "text": "Malĝusta sekreta frazo"
   },
   "web.COMMON.keywords": {
-    "text": "sekreto,pasvortgenerilo,kunhavigi sekreton,unufoja"
+    "text": "sekreto,pasvorta generilo,kunhavigi sekreton,unufoja"
   },
   "web.COMMON.button_create_secret": {
     "text": "Krei sekretan ligilon"
@@ -60,22 +60,22 @@
     "text": "Aŭ generi hazardan pasvorton"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Privatecaj Opcioj"
+    "text": "Privatecaj opcioj"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Pasfrazo"
+    "text": "Sekreta frazo"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Vorto aŭ frazo malfacile divenebla"
+    "text": "Vorto aŭ frazo, kiu estas malfacile diveni"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Adreso de Ricevanto"
+    "text": "Adreso de ricevanto"
   },
   "web.COMMON.secret_placeholder": {
     "text": "Sekreta enhavo iras ĉi tien..."
   },
   "web.COMMON.header_create_account": {
-    "text": "Krei Konton"
+    "text": "Krei konton"
   },
   "web.COMMON.header_about": {
     "text": "Pri"
@@ -99,43 +99,43 @@
     "text": "Ricevita"
   },
   "web.COMMON.burn": {
-    "text": "Bruligi"
+    "text": "Forbruligi"
   },
   "web.COMMON.burned": {
-    "text": "Bruligita"
+    "text": "Forbruligita"
   },
   "web.COMMON.expires_in": {
     "text": "Eksvalidiĝas post"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Bruligi ĉi tiun sekreton"
+    "text": "Forbruligi ĉi tiun sekreton"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Bruligi sekreton forigos ĝin antaŭ ol ĝi estas legita (klaku por konfirmi)"
+    "text": "Forbruligo de sekreto forigos ĝin antaŭ ol ĝi estas legita (alklaku por konfirmi)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Bruligi sekreton estas permanenta kaj ne povas esti malfarita"
+    "text": "Forbruligo de sekreto estas porĉiama kaj ne eblas malfari"
   },
   "web.COMMON.msg_check_email": {
     "text": "Kontrolu vian retpoŝton"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klaku por malkaŝi →"
+    "text": "Alklaku por malkaŝi →"
   },
   "web.COMMON.click_to_verify": {
     "text": "Daŭrigu por konfirmi vian konton:"
   },
   "web.COMMON.error_secret": {
-    "text": "Vi provizis nenion por kunhavigi"
+    "text": "Vi ne provizis ion por kunhavigi"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Duoble kontrolu tiun pasfrazon"
+    "text": "Rekontolu tiun sekretan frazon"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Enigu la pasfrazon ĉi tie"
+    "text": "Enigu la sekretan frazon ĉi tie"
   },
   "web.COMMON.view_secret": {
-    "text": "Vidi Sekreton"
+    "text": "Vidi sekreton"
   },
   "web.COMMON.careful_only_see_once": {
     "text": "Atentu: ni montros ĝin nur unufoje."
@@ -150,10 +150,10 @@
     "text": "Eraro"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Neatendita eraro okazis. Bonvolu reprovi."
+    "text": "Okazis neatendita eraro. Bonvolu reprovi."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "La mesaĝo estis trunkita"
+    "text": "La mesaĝo estis mallongigita"
   },
   "web.COMMON.signup_for_more": {
     "text": "Registriĝu por pli"
@@ -162,7 +162,7 @@
     "text": "Ensalutu al via konto"
   },
   "web.COMMON.sent_to": {
-    "text": "Sendita al: "
+    "text": "Sendita al:"
   },
   "web.COMMON.field_email": {
     "text": "Retpoŝto"
@@ -171,10 +171,10 @@
     "text": "Pasvorto"
   },
   "web.COMMON.field_password2": {
-    "text": "Konfirmi Pasvorton"
+    "text": "Konfirmi pasvorton"
   },
   "web.COMMON.button_create_account": {
-    "text": "Krei Konton"
+    "text": "Krei konton"
   },
   "web.COMMON.share_a_secret": {
     "text": "Kunhavigi sekreton"
@@ -186,7 +186,7 @@
     "text": "Neniu"
   },
   "web.COMMON.word_burned": {
-    "text": "bruligita"
+    "text": "forbruligita"
   },
   "web.COMMON.word_received": {
     "text": "ricevita"
@@ -207,10 +207,10 @@
     "text": "Reen"
   },
   "web.COMMON.feedback_text": {
-    "text": "Kunhavigu viajn pensojn, ideojn, aŭ spertojn..."
+    "text": "Kunhavigu viajn pensojn, ideojn aŭ spertojn..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Sendi Rimarkojn"
+    "text": "Sendi rimarkojn"
   },
   "web.COMMON.verification_sent_to": {
     "text": "Konfirmo estis sendita al"
@@ -219,22 +219,22 @@
     "text": "Konto kreita. Bonvolu ensaluti."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Se konto kun ĉi tiu retpoŝto ekzistas, vi ricevos konfirman retmesaĝon."
+    "text": "Se konto kun ĉi tiu retpoŝtadreso ekzistas, vi ricevos konfirman retmesaĝon."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Bruligi ĉi tiun sekreton permanente"
+    "text": "Forbruligi ĉi tiun sekreton porĉiame"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Bonvolu Konfirmi"
+    "text": "Bonvolu konfirmi"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Ĉu vi certas ke vi volas bruligi ĉi tiun sekreton? Ĉi tiu ago ne povas esti malfarita."
+    "text": "Ĉu vi certas, ke vi volas forbruligi ĉi tiun sekreton? Ĉi tiu ago ne eblas malfari."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Jes, bruligi ĉi tiun sekreton"
+    "text": "Jes, forbruligi ĉi tiun sekreton"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Bruligi sekreton forigos ĝin antaŭ ol ĝi estas ricevita."
+    "text": "Forbruligo de sekreto forigos ĝin antaŭ ol ĝi estas ricevita."
   },
   "web.COMMON.share_link_securely": {
     "text": "Por sekureco, kunhavigu ĉi tiun ligilon aparte de aliaj detaloj."
@@ -243,13 +243,13 @@
     "text": "Kopiita al tondujo"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Krei Envenantan"
+    "text": "Krei envenantan"
   },
   "web.COMMON.faq_title": {
     "text": "Oftaj Demandoj"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Konfirmo ne estas valida"
+    "text": "Konfirmo ne validas"
   },
   "web.COMMON.verification_already_logged_in": {
     "text": "Ne eblas konfirmi konton kiam vi jam estas ensalutinta"
@@ -264,7 +264,7 @@
     "text": "Pasvorto devas havi almenaŭ 8 signojn"
   },
   "web.COMMON.password_requirements": {
-    "text": "Pasvorto devas esti almenaŭ 8 signojn longa"
+    "text": "Pasvorto devas havi almenaŭ 8 signojn"
   },
   "web.COMMON.passwords_do_not_match": {
     "text": "Pasvortoj ne kongruas"
@@ -276,7 +276,7 @@
     "text": "Prilaborante vian peton"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Tenu min ensalutinta dum 30 tagoj"
+    "text": "Teni min ensalutinta dum 30 tagoj"
   },
   "web.COMMON.redirecting": {
     "text": "Alidirektante..."
@@ -288,10 +288,10 @@
     "text": "Ĉu vi certas?"
   },
   "web.COMMON.danger_zone": {
-    "text": "Danĝera Zono"
+    "text": "Danĝera zono"
   },
   "web.COMMON.caution_zone": {
-    "text": "Zono de Zorga Konsidero"
+    "text": "Zono de zorga konsidero"
   },
   "web.COMMON.user_menu": {
     "text": "Uzantmenuo"
@@ -306,7 +306,7 @@
     "text": "Ŝargante..."
   },
   "web.COMMON.save_changes": {
-    "text": "Konservi Ŝanĝojn"
+    "text": "Konservi ŝanĝojn"
   },
   "web.COMMON.saving": {
     "text": "Konservante..."
@@ -348,13 +348,13 @@
     "text": "Lingvo"
   },
   "web.COMMON.theme": {
-    "text": "Etoso"
+    "text": "Temo"
   },
   "web.COMMON.appearance": {
     "text": "Aspekto"
   },
   "web.COMMON.done": {
-    "text": "Farite"
+    "text": "Farita"
   },
   "web.COMMON.end": {
     "text": "Fino"
@@ -372,7 +372,7 @@
     "text": "Jare"
   },
   "web.COMMON.go_on_then": {
-    "text": "Daŭrigu do."
+    "text": "Bone, daŭrigu."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Ŝargante..."
@@ -381,7 +381,7 @@
     "text": "NE RICEVITA"
   },
   "web.COMMON.confirm_password": {
-    "text": "Konfirmu pasvorton"
+    "text": "Konfirmi pasvorton"
   },
   "web.COMMON.new_password": {
     "text": "Nova pasvorto"
@@ -390,13 +390,13 @@
     "text": "Retpoŝtadreso"
   },
   "web.COMMON.switch": {
-    "text": "ŝalti"
+    "text": "ŝanĝi"
   },
   "web.COMMON.features": {
     "text": "Funkcioj"
   },
   "web.COMMON.not_found": {
-    "text": "Ne Trovita"
+    "text": "Ne trovita"
   },
   "web.COMMON.emoji_x": {
     "text": "❌"
@@ -444,7 +444,7 @@
     "text": "Sekva"
   },
   "web.COMMON.password_strength": {
-    "text": "Pasvorta Forteco:"
+    "text": "Forteco de pasvorto:"
   },
   "web.COMMON.great": {
     "text": "Bonega"
@@ -456,10 +456,10 @@
     "text": "Akceptebla"
   },
   "web.COMMON.meh": {
-    "text": "Nu ja"
+    "text": "Nu"
   },
   "web.COMMON.not_great": {
-    "text": "Ne bona"
+    "text": "Ne tre bona"
   },
   "web.COMMON.open_options": {
     "text": "Malfermi opciojn"
@@ -468,7 +468,7 @@
     "text": "Neaktiva"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Eraro okazis"
+    "text": "Okazis eraro"
   },
   "web.COMMON.copy_secret_to_clipboard": {
     "text": "Kopii sekreton al tondujo"
@@ -477,7 +477,7 @@
     "text": "Sekreto kopiita al tondujo"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Rekontrolegu tiun pasfrazon"
+    "text": "Rekontolu tiun sekretan frazon"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "Premu la kopian butonon sube."
@@ -489,10 +489,10 @@
     "text": "Kaŝi"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Montri Pli"
+    "text": "Montri pli"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Montri Malpli"
+    "text": "Montri malpli"
   },
   "web.LABELS.enable": {
     "text": "Ŝalti"
@@ -510,7 +510,7 @@
     "text": "Vivdaŭro"
   },
   "web.LABELS.expiration_time": {
-    "text": "Eksvalidiĝa Tempo"
+    "text": "Tempo de eksvalidiĝo"
   },
   "web.LABELS.close": {
     "text": "Fermi"
@@ -531,7 +531,7 @@
     "text": "Konservi"
   },
   "web.LABELS.save_all": {
-    "text": "Konservi Ĉion"
+    "text": "Konservi ĉion"
   },
   "web.LABELS.details": {
     "text": "Detaloj"
@@ -540,19 +540,19 @@
     "text": "Ĉifrita"
   },
   "web.LABELS.secret_status": {
-    "text": "Sekreta Stato"
+    "text": "Stato de sekreto"
   },
   "web.LABELS.need_help": {
     "text": "Ĉu vi bezonas helpon?"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Krei Novan Sekreton"
+    "text": "Krei novan sekreton"
   },
   "web.LABELS.actions": {
     "text": "Agoj"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Neniu Pasfrazo Bezonata"
+    "text": "Neniu sekreta frazo necesa"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Kopii al tondujo"
@@ -564,13 +564,13 @@
     "text": "Kunhavigi"
   },
   "web.LABELS.secret_link": {
-    "text": "Sekreta Ligilo"
+    "text": "Sekreta ligilo"
   },
   "web.LABELS.dismiss": {
-    "text": "Forĵeti"
+    "text": "Ignori"
   },
   "web.LABELS.security_details": {
-    "text": "Sekurecaj Detaloj"
+    "text": "Sekurecaj detaloj"
   },
   "web.LABELS.items_count": {
     "text": "{count} Eroj"
@@ -585,28 +585,28 @@
     "text": "Vidoj"
   },
   "web.LABELS.times_viewed": {
-    "text": "foje vidata"
+    "text": "fojoj vidita"
   },
   "web.LABELS.view_progress": {
-    "text": "Vidi Progreson"
+    "text": "Vidi progreson"
   },
   "web.LABELS.help_section": {
-    "text": "Helpa Sekcio"
+    "text": "Helpa sekcio"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Protektita per pasfrazo"
+    "text": "Protektita per sekreta frazo"
   },
   "web.LABELS.feedback_received": {
-    "text": "Reago ricevita."
+    "text": "Rimarkojn ricevitaj."
   },
   "web.LABELS.sending_ellipses": {
     "text": "Sendante..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Lastaj Sekretoj"
+    "text": "Lastaj sekretoj"
   },
   "web.LABELS.pricing": {
-    "text": "Prezaro"
+    "text": "Prezoj"
   },
   "web.LABELS.refresh": {
     "text": "Refreŝigi"
@@ -618,25 +618,25 @@
     "text": "Filtri"
   },
   "web.LABELS.clear": {
-    "text": "Forviŝi"
+    "text": "Viŝi"
   },
   "web.LABELS.caption_recent_secrets": {
     "text": "Sekretaj ligiloj kreitaj en ĉi tiu seanco"
   },
   "web.LABELS.create_link_short": {
-    "text": "Krei Ligilon"
+    "text": "Krei ligilon"
   },
   "web.LABELS.create_link": {
-    "text": "Krei Sekretan Ligilon"
+    "text": "Krei sekretan ligilon"
   },
   "web.LABELS.create_request_short": {
-    "text": "Krei Peton"
+    "text": "Krei peton"
   },
   "web.LABELS.create_request": {
-    "text": "Krei Petan Ligilon"
+    "text": "Krei petan ligilon"
   },
   "web.LABELS.related_settings": {
-    "text": "Rilataj Agordoj"
+    "text": "Rilataj agordoj"
   },
   "web.LABELS.creating_links_for": {
     "text": "Kreante ligilojn por"
@@ -663,7 +663,7 @@
     "text": "Detruita"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Baldaŭ Eksvalidiĝonta"
+    "text": "Baldaŭ eksvalidiĝos"
   },
   "web.STATUS.created": {
     "text": "Kreita"
@@ -687,34 +687,34 @@
     "text": "Kopiita"
   },
   "web.STATUS.time_remaining": {
-    "text": "Restanta Tempo"
+    "text": "Restanta tempo"
   },
   "web.STATUS.new_description": {
-    "text": "Sekreta ligilo estas kreita kaj ankoraŭ ne vidata"
+    "text": "Sekreta ligilo estis kreita kaj ankoraŭ ne vidita"
   },
   "web.STATUS.unread_description": {
-    "text": "Sekreta ligilo estas kreita kaj ne estas vidata"
+    "text": "Sekreta ligilo estis kreita kaj ne estis vidita"
   },
   "web.STATUS.viewed_description": {
-    "text": "Sekreta ligilo estas malfermita kaj preta por vidado"
+    "text": "Sekreta ligilo estis malfermita kaj preta por esti vidita"
   },
   "web.STATUS.received_description": {
-    "text": "Sekreto estas malkaŝita al la ricevanto"
+    "text": "Sekreto estis malkaŝita al la ricevanto"
   },
   "web.STATUS.burned_description": {
-    "text": "Sekreto estis permane forbruligita antaŭ vidado"
+    "text": "Sekreto estis mane forbruligita antaŭ ol esti vidita"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Sekreto estas permanente detruita"
+    "text": "Sekreto estis porĉiame detruita"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "Sekreto baldaŭ eksvalidiĝos"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Sekreto estas orfigita kaj baldaŭ estos detruita"
+    "text": "Sekreto estis orfigita kaj baldaŭ estos detruita"
   },
   "web.STATUS.expired_description": {
-    "text": "Sekreto eksvalidiĝis antaŭ ol esti vidata"
+    "text": "Sekreto eksvalidiĝis antaŭ ol esti vidita"
   },
   "web.STATUS.success": {
     "text": "Sukceso"
@@ -723,7 +723,7 @@
     "text": "Liverita"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS Malĝusta"
+    "text": "DNS malĝusta"
   },
   "web.STATUS.active": {
     "text": "Aktiva"
@@ -732,13 +732,13 @@
     "text": "Neaktiva"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Senlimaj Vidoj"
+    "text": "Senlimaj vidoj"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Fidinda domajno-markado"
+    "text": "Fidata domajnmarka"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Ĉifrita dumvojaĝe kaj en ripozo"
+    "text": "Ĉifrita dum transiro kaj dum ripozo"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -759,7 +759,7 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} restanta"
+    "text": "{count} {unit} restantaj"
   },
   "web.UNITS.ttl_remaining.time.day": {
     "text": "tago restanta | tagoj restantaj"
@@ -777,22 +777,22 @@
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} vidlimo"
+    "text": "limo de {count} vidoj"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} Tagoj Restantaj"
+    "text": "{count} tagoj restantaj"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} Horoj Restantaj"
+    "text": "{count} horoj restantaj"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} Minutoj Restantaj"
+    "text": "{count} minutoj restantaj"
   },
   "web.TITLES.incoming": {
-    "text": "Alvenantaj Sekretoj"
+    "text": "Envenantaj sekretoj"
   },
   "web.TITLES.feedback": {
-    "text": "Reago"
+    "text": "Rimarkoj"
   },
   "web.TITLES.help": {
     "text": "Helpo"
@@ -801,76 +801,76 @@
     "text": "Ensaluti"
   },
   "web.TITLES.signup": {
-    "text": "Krei Konton"
+    "text": "Krei konton"
   },
   "web.TITLES.forgot_password": {
-    "text": "Forgesita Pasvorto"
+    "text": "Forgesita pasvorto"
   },
   "web.TITLES.reset_password": {
-    "text": "Restarigi Pasvorton"
+    "text": "Restarigi pasvorton"
   },
   "web.TITLES.logout": {
     "text": "Elsalutante"
   },
   "web.TITLES.verify_account": {
-    "text": "Kontroli Konton"
+    "text": "Konfirmi konton"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Dufaktora Aŭtentigo"
+    "text": "Dufaktora aŭtentigo"
   },
   "web.TITLES.email_login": {
-    "text": "Retpoŝta Ensaluto"
+    "text": "Retpoŝta ensaluto"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Akcepti Inviton"
+    "text": "Akcepti inviton"
   },
   "web.TITLES.secret": {
     "text": "Sekreto"
   },
   "web.TITLES.metadata": {
-    "text": "Sekretaj Detaloj"
+    "text": "Sekretaj detaloj"
   },
   "web.TITLES.receipt": {
-    "text": "Sekreta Kvitanco"
+    "text": "Sekreta kvitanco"
   },
   "web.TITLES.burn_secret": {
-    "text": "Forbruligi Sekreton"
+    "text": "Forbruligi sekreton"
   },
   "web.TITLES.dashboard": {
     "text": "Panelo"
   },
   "web.TITLES.recent": {
-    "text": "Lastaj Sekretoj"
+    "text": "Lastaj sekretoj"
   },
   "web.TITLES.domains": {
-    "text": "Propraj Domajnoj"
+    "text": "Propraj domajnoj"
   },
   "web.TITLES.domain_add": {
-    "text": "Aldoni Domajnon"
+    "text": "Aldoni domajnon"
   },
   "web.TITLES.domain_verify": {
-    "text": "Kontroli Domajnon"
+    "text": "Konfirmi domajnon"
   },
   "web.TITLES.domain_brand": {
-    "text": "Markigi Domajnon"
+    "text": "Marka domajno"
   },
   "web.TITLES.account": {
     "text": "Konto"
   },
   "web.TITLES.data_region": {
-    "text": "Datuma Regiono"
+    "text": "Datuma regiono"
   },
   "web.TITLES.current_region": {
-    "text": "Nuna Regiono"
+    "text": "Nuna regiono"
   },
   "web.TITLES.available_regions": {
-    "text": "Disponeblaj Regionoj"
+    "text": "Disponeblaj regionoj"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Kial Datuma Suvereneco Gravas"
+    "text": "Kial datuma suvereneco gravas"
   },
   "web.TITLES.profile_settings": {
-    "text": "Profilaj Agordoj"
+    "text": "Profilaj agordoj"
   },
   "web.TITLES.preferences_settings": {
     "text": "Preferoj"
@@ -882,93 +882,120 @@
     "text": "Sciigoj"
   },
   "web.TITLES.change_email": {
-    "text": "Ŝanĝi Retpoŝtadreson"
+    "text": "Ŝanĝi retpoŝton"
   },
   "web.TITLES.security_overview": {
     "text": "Sekureco"
   },
   "web.TITLES.change_password": {
-    "text": "Ŝanĝi Pasvorton"
+    "text": "Ŝanĝi pasvorton"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Dufaktora Aŭtentigo"
+    "text": "Dufaktora aŭtentigo"
   },
   "web.TITLES.active_sessions": {
-    "text": "Aktivaj Seancoj"
+    "text": "Aktivaj seancoj"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Reakirkodoj"
+    "text": "Restarigaj kodoj"
   },
   "web.TITLES.api_settings": {
-    "text": "API-Agordoj"
+    "text": "API-agordoj"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Altnivelaj Agordoj"
+    "text": "Altnivela agordoj"
   },
   "web.TITLES.system_settings": {
-    "text": "Sistemaj Agordoj"
+    "text": "Sistemaj agordoj"
   },
   "web.TITLES.not_found": {
-    "text": "Paĝo Ne Trovita"
+    "text": "Paĝo ne trovita"
   },
   "web.TITLES.organizations_settings": {
     "text": "Organizoj"
   },
   "web.TITLES.organization_settings": {
-    "text": "Organizaj Agordoj"
+    "text": "Organizaj agordoj"
   },
   "web.TITLES.pricing": {
     "text": "Prezoj"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Fokuso nun estas en la ĉefa teksta areo"
+    "text": "Fokuso nun estas en la ĉefa tekstoaroo"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Kunhavigaj Instrukcioj"
+    "text": "Instrukcioj por kunhavigo"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Kunhavigu la ligilon kun la celata ricevanto"
+    "text": "Kunhavigu la ligilon kun la celita ricevanto"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Kunhavigu la pasfrazon aparte per sekura kanalo"
+    "text": "Kunhavigu la sekretan frazon aparte per sekura kanalo"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Uzu malsaman sekuran kanalon por kunhavigi sentivajn informojn"
+    "text": "Uzu malsaman sekuran kanalon por kunhavigi sentemajn informojn"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Ĉiam kontrolu ke vi estas sur la oficiala retejo de Onetime Secret. Fraŭduloj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la region-domajnon antaŭ krei novajn ligilojn."
+    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de Onetime Secret. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn."
   },
   "web.pricing.title": {
-    "text": "Simpla, Travidebla Prezaro"
+    "text": "Simplaj, travideblaj prezoj"
   },
   "web.pricing.subtitle": {
-    "text": "Elektu la planon kiu konvenas al viaj bezonoj. Ĉiuj planoj inkluzivas senliman kunhavigon de sekretoj kaj privatec-prioritatan dezajnon."
+    "text": "Elektu la planon kiu konvenas al viaj bezonoj. Ĉiuj planoj inkluzivas senliman kunhavigon de sekretoj kaj privateco-unuan dezajnon."
   },
   "web.pricing.get_started_free": {
-    "text": "Komencu Senpage"
+    "text": "Komenci senpage"
   },
   "web.pricing.start_trial": {
-    "text": "Komencu"
+    "text": "Komenci"
   },
   "web.pricing.already_have_account": {
-    "text": "Jam havas konton?"
+    "text": "Ĉu vi jam havas konton?"
   },
   "web.pricing.sign_in": {
     "text": "Ensaluti"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Rekomendata por Vi"
+    "text": "Rekomendita por vi"
   },
   "web.STATUS.previewed": {
-    "text": "Ligilo malfermita"
+    "text": "Antaŭvidita"
   },
   "web.STATUS.revealed": {
     "text": "Malkaŝita"
   },
   "web.STATUS.previewed_description": {
-    "text": "Sekreta ligilo estas malfermita kaj preta por malkaŝado"
+    "text": "Sekreta ligilo estis malfermita kaj preta por esti malkaŝita"
   },
   "web.STATUS.revealed_description": {
     "text": "Sekreta enhavo estis malkaŝita al la ricevanto"
+  },
+  "web.COMMON.not_set": {
+    "text": "Ne agordita"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Redakti"
+  },
+  "web.COMMON.word_save": {
+    "text": "Konservi"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Eksvalidiĝas post"
+  },
+  "web.LABELS.add_note": {
+    "text": "Aldoni noton..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Redakti noton"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Aldoni memorandon..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Redakti memorandon"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Kreu kaj kunhavigu sekretojn kun bazaj funkcioj. Neniu kreditkarto necesa."
   }
 }

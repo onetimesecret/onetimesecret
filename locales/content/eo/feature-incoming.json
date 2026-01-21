@@ -3,25 +3,25 @@
     "text": "Sendi Sekreton"
   },
   "incoming.page_description": {
-    "text": "Sekure kunhavigi konfidencajn informojn kun nia helpa teamo"
+    "text": "Kunhavigu sentemajn informojn sekure kun nia subtena teamo"
   },
   "incoming.loading_config": {
     "text": "Ŝargante..."
   },
   "incoming.config_error_title": {
-    "text": "Malsukcesis ŝargi agordon"
+    "text": "Malsukcesis ŝargi agordojn"
   },
   "incoming.feature_disabled_title": {
     "text": "Funkcio Ne Disponebla"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ĉi tiu funkcio estas nuntempe malaktivigita. Bonvolu kontakti helpon por asisto."
+    "text": "Ĉi tiu funkcio estas nune malŝaltita. Bonvolu kontakti subtenon por helpo."
   },
   "incoming.memo_label": {
     "text": "Noto"
   },
   "incoming.memo_placeholder": {
-    "text": "Mallonga priskribo (ekz., Peto pri restarigo de pasvorto)"
+    "text": "Mallonga priskribo (ekz., Peto pri pasvorta restarigo)"
   },
   "incoming.memo_hint": {
     "text": "Helpu nin direkti vian mesaĝon al la ĝusta persono"
@@ -45,10 +45,10 @@
     "text": "Sekreta Informo"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Algluu konfidencajn informojn ĉi tie (pasvortoj, ŝlosiloj, ktp.)"
+    "text": "Algluu sentemajn informojn ĉi tie (pasvortoj, ŝlosiloj, ktp.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Ĉi tiu informo estos ĉifrita kaj videbla nur unufoje"
+    "text": "Ĉi tiu informo estos ĉifrita kaj rigardata nur unufoje"
   },
   "incoming.submit_button": {
     "text": "Sendi Sekreton"
@@ -63,10 +63,10 @@
     "text": "Sendante..."
   },
   "incoming.reset_button": {
-    "text": "Malplenigi Formularon"
+    "text": "Vakigi Formularon"
   },
   "incoming.reset_form": {
-    "text": "Malplenigi Formularon"
+    "text": "Vakigi Formularon"
   },
   "incoming.success_title": {
     "text": "Sendita Sukcese"
@@ -81,21 +81,21 @@
     "text": "Kio okazos poste?"
   },
   "incoming.success_info_description": {
-    "text": "La ricevonto povos vidi ĉi tiun sekreton nur unufoje. Post kiam ili vidos ĝin, la sekreto estos porĉiam forigita."
+    "text": "La ricevonto povos rigardi ĉi tiun sekreton nur unufoje. Post kiam ili rigardos ĝin, la sekreto estos porĉiam forigita."
   },
   "incoming.create_another": {
     "text": "Sendi Alian Sekreton"
   },
   "incoming.tagline1": {
-    "text": "Sekure kunhavigi konfidencajn informojn"
+    "text": "Kunhavigu sentemajn informojn sekure"
   },
   "incoming.tagline2": {
-    "text": "Tenu pasvortojn kaj privatajn datumojn ekster retpoŝto kaj babilprotokolo"
+    "text": "Tenu pasvortojn kaj privatajn datumojn ekster retpoŝto kaj babilaj protokoloj"
   },
   "incoming.end_of_experience_suggestion": {
     "text": "Konservu vian {receipt} por viaj registroj."
   },
   "incoming.receipt_link_text": {
-    "text": "kvitancon"
+    "text": "kvitanco"
   }
 }

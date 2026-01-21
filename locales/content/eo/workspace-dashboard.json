@@ -3,18 +3,18 @@
     "text": "Ricevita"
   },
   "web.dashboard.title_not_received": {
-    "text": "Ne Ricevita"
+    "text": "Ne ricevita"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Neniuj lastatempaj sekretoj"
+    "text": "Neniuj lastaj sekretoj"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "Komencu kreante vian unuan sekreton."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Ne eblas enlegi datumojn"
+    "text": "Ne eblas ŝargi datumojn"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Okazis problemo dum enlego de viaj datumoj. Bonvolu reprovi."
+    "text": "Estis problemo ŝargante viajn datumojn. Bonvolu reprovi."
   }
 }

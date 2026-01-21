@@ -18,67 +18,67 @@
     "text": "Sekretoj ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(aktivaj en la lastaj 5 minutoj)"
+    "text": "(aktiva en la lastaj 5 minutoj)"
   },
   "web.colonel.configEditorTitle": {
     "text": "Agordoj"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Redakti sistemajn agordojn. Ŝanĝoj aplikatas tuj post konservado."
+    "text": "Redakti sistemajn konfigurajn agordojn. Ŝanĝoj aplikiĝas tuj post konservado."
   },
   "web.colonel.invalidJson": {
-    "text": "Nevalida JSON en sekcio {section}"
+    "text": "Nevalida JSON en {section} sekcio"
   },
   "web.colonel.validationError": {
-    "text": "Validiga eraro"
+    "text": "Valida eraro"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Eraro dum ŝargado de agordo"
+    "text": "Eraro ŝargante konfiguradon"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Eraro dum konservado de agordo"
+    "text": "Eraro konservante konfiguradon"
   },
   "web.colonel.configSaved": {
-    "text": "Agordo sukcese konservita"
+    "text": "Konfiguro konservita sukcese"
   },
   "web.colonel.mustBeObject": {
-    "text": "Agordo devas esti JSON-objekto"
+    "text": "Konfiguro devas esti JSON-objekto"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Pluraj sekcioj havas validigajn erarojn: {sections}"
+    "text": "Pluraj sekcioj havas validajn erarojn: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} havas validigajn erarojn: {error}"
+    "text": "{section} havas validajn erarojn: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} sukcese konservita"
+    "text": "{section} konservita sukcese"
   },
   "web.colonel.saveSection": {
     "text": "Konservi {section}"
   },
   "web.colonel.saveAll": {
-    "text": "Konservi Ĉion"
+    "text": "Konservi ĉion"
   },
   "web.colonel.unsavedChanges": {
     "text": "Nekonservitaj ŝanĝoj"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Skema validiga eraro: {message} ({path})"
+    "text": "Skema valida eraro: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Nekonata validiga eraro: {error}"
+    "text": "Nekonata valida eraro: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "Sekcio {section} havas neniujn agorditajn valorojn"
+    "text": "{section} sekcio havas neniujn konfiguritajn valorojn"
   },
   "web.colonel.dashboard": {
     "text": "Panelo"
   },
   "web.colonel.admin": {
-    "text": "Administranto"
+    "text": "Administrado"
   },
   "web.colonel.activity": {
-    "text": "Aktiveco"
+    "text": "Agado"
   },
   "web.colonel.accounts": {
     "text": "Kontoj"
@@ -99,82 +99,82 @@
     "text": "Sistemo"
   },
   "web.colonel.welcome": {
-    "text": "Bonvenon al Kolonelo"
+    "text": "Bonvenon al Colonel"
   },
   "web.colonel.welcomeDesc": {
     "text": "Administra kontrolpanelo por OneTimeSecret"
   },
   "web.colonel.quickActions": {
-    "text": "Rapidaj Agoj"
+    "text": "Rapidaj agoj"
   },
   "web.colonel.recentActivity": {
-    "text": "Lastatempa Aktiveco"
+    "text": "Lastatempa agado"
   },
   "web.colonel.viewAll": {
-    "text": "Vidi Ĉiujn"
+    "text": "Vidi ĉion"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Aktivecdatumoj estos montrataj ĉi tie"
+    "text": "Agaj datumoj estos montrataj ĉi tie"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Totalaj Sekretoj"
+    "text": "Totalaj sekretoj"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Aktivaj Uzantoj"
+    "text": "Aktivaj uzantoj"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Sekretoj Hodiaŭ"
+    "text": "Hodiaŭaj sekretoj"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Sekretoj Kreitaj"
+    "text": "Kreitaj sekretoj"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Sekretoj Dividitaj"
+    "text": "Kunhavigitaj sekretoj"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Totalaj Uzantoj"
+    "text": "Totalaj uzantoj"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Retpoŝtoj Senditaj"
+    "text": "Senditaj retpoŝtoj"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Sistema Sanstato"
+    "text": "Sistema sano"
   },
   "web.colonel.stats.healthy": {
     "text": "Sana"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Vidi Aktivecon"
+    "text": "Vidi agadon"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Monitori sisteman aktivecon kaj uzadon"
+    "text": "Monitori sisteman agadon kaj uzadon"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "Administri Kontojn"
+    "text": "Administri kontojn"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Administrado de uzantkontoj"
+    "text": "Uzantkonta administrado"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Agordi Domajnojn"
+    "text": "Agordi domajnojn"
   },
   "web.colonel.actions.configureDomainsDesc": {
     "text": "Domajnaj kaj DNS-agordoj"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "Sistemaj Agordoj"
+    "text": "Sistemaj agordoj"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "Aplika agordo"
+    "text": "Aplikaĵa konfiguro"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Fonaj Taskoj"
+    "text": "Fonaj taskoj"
   },
   "web.colonel.queueStatus": {
-    "text": "Vica Stato"
+    "text": "Stato de atendovico"
   },
   "web.colonel.queueName": {
-    "text": "Vico"
+    "text": "Atendovico"
   },
   "web.colonel.pendingMessages": {
     "text": "Atendantaj"
@@ -183,25 +183,25 @@
     "text": "Konsumantoj"
   },
   "web.colonel.processingRate": {
-    "text": "Rapido/sek"
+    "text": "Proporcio/sek"
   },
   "web.colonel.connectionStatus": {
-    "text": "Konekta Stato"
+    "text": "Konekta stato"
   },
   "web.colonel.workerHealth": {
-    "text": "Laborista Sanstato"
+    "text": "Sanstato de laboranto"
   },
   "web.colonel.activeWorkers": {
-    "text": "aktivaj laboristoj"
+    "text": "aktivaj laborantoj"
   },
   "web.colonel.noQueueData": {
-    "text": "Neniuj vicdatumoj disponeblaj"
+    "text": "Neniu atendovica datumo disponebla"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Ŝarĝante vicdatumojn..."
+    "text": "Ŝargas atendovicajn datumojn..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Testa Planreĝimo"
+    "text": "Testa plana reĝimo"
   },
   "web.colonel.testingAsPlan": {
     "text": "Testante kiel {planName}"
@@ -222,13 +222,13 @@
     "text": "Disponeblaj planoj"
   },
   "web.colonel.activateTestMode": {
-    "text": "Aktivigi testreĝimon"
+    "text": "Aktivigi testan reĝimon"
   },
   "web.colonel.testModeActive": {
-    "text": "Testreĝimo aktiva"
+    "text": "Testa reĝimo aktiva"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testu vian aplikaĵon kun malsamaj planrajtoj. Ŝanĝoj estas provizoraj kaj influas nur vian seancon."
+    "text": "Testu vian aplikaĵon kun malsamaj planaj rajtoj. Ŝanĝoj estas provizoraj kaj influas nur vian seancon."
   },
   "web.colonel.warningTestMode": {
     "text": "Vi testas kun {planName} rajtoj (provizora seanca anstataŭigo)."
@@ -237,10 +237,10 @@
     "text": "Organizoj"
   },
   "web.colonel.organizations.description": {
-    "text": "Monitori sanstaton de organiza faktura sinkronigo"
+    "text": "Monitori organizan fakturadan sinkan sanstaton"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Faktura Sanstata Monitoro"
+    "text": "Fakturada sanstata monitoro"
   },
   "web.colonel.organizations.organizationsCount": {
     "text": "{count} organizoj"
@@ -255,7 +255,7 @@
     "text": "Neniuj organizoj trovitaj"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "Sinkroniga Stato"
+    "text": "Sinkrona stato"
   },
   "web.colonel.organizations.filters.subscription": {
     "text": "Abono"
@@ -264,7 +264,7 @@
     "text": "Ĉiuj"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Eble Malfreŝa"
+    "text": "Eble malfreŝa"
   },
   "web.colonel.organizations.filters.unknown": {
     "text": "Nekonata"
@@ -276,10 +276,10 @@
     "text": "Aktiva"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "Provperioda"
+    "text": "Prova"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "Postlimtempa"
+    "text": "Transpagdata"
   },
   "web.colonel.organizations.filters.canceled": {
     "text": "Nuligita"
@@ -318,19 +318,19 @@
     "text": "Abono"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "Defaŭlta Laborspaco"
+    "text": "Defaŭlta laborspaco"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "Havas Fakturadon"
+    "text": "Havas fakturadon"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Organiza Faktura Administrado"
+    "text": "Administrado de organizaĵa fakturado"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Administri organizojn kaj monitori sanstaton de faktura sinkronigo ({total} totale)"
+    "text": "Administri organizaĵojn kaj kontroli sanon de fakturada sinkronigo ({total} entute)"
   },
   "web.colonel.organizations.legacy.empty": {
-    "text": "Neniuj organizoj trovitaj"
+    "text": "Neniuj organizaĵoj trovitaj"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
     "text": "eble malfreŝa"
@@ -363,19 +363,19 @@
     "text": "Esploro malsukcesis"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "Esplora Rezulto"
+    "text": "Esplora rezulto"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Kontrolite Sinkronigita"
+    "text": "Kontrolite sinkronigita"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "Malkongruo Trovita"
+    "text": "Malkongruo trovita"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "Ne Eblas Kompari"
+    "text": "Ne eblas kompari"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Stripe-Abonaj Detaloj"
+    "text": "Detalaĵoj de Stripe-abono"
   },
   "web.colonel.organizations.investigation.statusLabel": {
     "text": "Stato"
@@ -384,7 +384,7 @@
     "text": "Produkto"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Solvita Plano"
+    "text": "Solvita plano"
   },
   "web.colonel.organizations.investigation.priceId": {
     "text": "Preza ID"
@@ -408,34 +408,34 @@
     "text": "Vidi kaj administri ĉiujn sekretojn"
   },
   "web.colonel.bannedIps.title": {
-    "text": "Malpermesitaj IP-oj"
+    "text": "Malpermesitaj IP-adresoj"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Administri liston de malpermesitaj IP-oj"
+    "text": "Administri IP-malpermesan liston"
   },
   "web.colonel.usageExport.title": {
-    "text": "Eksporto de Uzado"
+    "text": "Uzada eksporto"
   },
   "web.colonel.usageExport.description": {
-    "text": "Eksporti uzaddatumojn kaj statistikojn"
+    "text": "Eksporti uzadajn datumojn kaj statistikojn"
   },
   "web.colonel.systemSettings.title": {
     "text": "Sistemo"
   },
   "web.colonel.systemSettings.description": {
-    "text": "Sistemaj agordoj, datumbazoj kaj konfiguro"
+    "text": "Sistemaj agordoj, datumbazoj, kaj agordo"
   },
   "web.colonel.customDomains.title": {
-    "text": "Propraj Domajnoj"
+    "text": "Propraj domajnoj"
   },
   "web.colonel.customDomains.description": {
     "text": "Administri proprajn domajnojn kaj markadon"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Kiam vi sendos komentojn, ni vidos:"
+    "text": "Kiam vi sendos retrosciigon, ni vidos:"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "Sendi komentojn"
+    "text": "Sendi retrosciigon"
   },
   "web.colonel.feedback.sending_ellipses": {
     "text": "Sendante..."
@@ -444,34 +444,34 @@
     "text": "Administrado"
   },
   "web.colonel.titles.users": {
-    "text": "Administrado de Uzantoj"
+    "text": "Uzanta administrado"
   },
   "web.colonel.titles.secrets": {
-    "text": "Administrado de Sekretoj"
+    "text": "Administrado de sekretoj"
   },
   "web.colonel.titles.domains": {
-    "text": "Propraj Domajnoj"
+    "text": "Propraj domajnoj"
   },
   "web.colonel.titles.system": {
     "text": "Sistemo"
   },
   "web.colonel.titles.maindb": {
-    "text": "Ĉefa Datumbazo"
+    "text": "Ĉefa datumbazo"
   },
   "web.colonel.titles.authdb": {
-    "text": "Aŭtentikiga Datumbazo"
+    "text": "Aŭtentikiga datumbazo"
   },
   "web.colonel.titles.bannedIps": {
     "text": "Malpermesitaj IP-oj"
   },
   "web.colonel.titles.usage": {
-    "text": "Eksporto de Uzado"
+    "text": "Uzada eksporto"
   },
   "web.colonel.titles.info": {
-    "text": "Sistemaj Informoj"
+    "text": "Sistema informo"
   },
   "web.colonel.titles.organizations": {
-    "text": "Organizoj"
+    "text": "Organizaĵoj"
   },
   "web.colonel.titles.redis": {
     "text": "Redis"

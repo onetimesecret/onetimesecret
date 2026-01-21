@@ -15,16 +15,16 @@
     "text": "Organizoj"
   },
   "web.organizations.manage_organizations": {
-    "text": "Administri Organizojn"
+    "text": "Administru organizojn"
   },
   "web.organizations.new_organization": {
-    "text": "Nova Organizo"
+    "text": "Nova organizo"
   },
   "web.organizations.no_organizations": {
     "text": "Ankoraŭ neniuj organizoj"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizoj provizas unuigitan fakturon kaj administradon. Komencu kreante vian unuan organizon."
+    "text": "Organizoj provizas unuigitan fakturado kaj administradon. Komencu kreante vian unuan organizon."
   },
   "web.organizations.no_description": {
     "text": "Neniu priskribo provizita"
@@ -33,13 +33,13 @@
     "text": "Defaŭlta"
   },
   "web.organizations.create_organization": {
-    "text": "Krei Organizon"
+    "text": "Kreu organizon"
   },
   "web.organizations.create_first_organization": {
-    "text": "Krei Unuan Organizon"
+    "text": "Kreu unuan organizon"
   },
   "web.organizations.create_organization_description": {
-    "text": "Krei novan organizon"
+    "text": "Kreu novan organizon"
   },
   "web.organizations.create": {
     "text": "Krei"
@@ -48,13 +48,13 @@
     "text": "Malsukcesis krei organizon"
   },
   "web.organizations.organization_name": {
-    "text": "Organiza Nomo"
+    "text": "Organioznomo"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "ekz. Akme Korporacio"
+    "text": "ekz. Acme Korporacio"
   },
   "web.organizations.display_name": {
-    "text": "Organiza Nomo"
+    "text": "Organioznomo"
   },
   "web.organizations.description": {
     "text": "Priskribo"
@@ -63,16 +63,16 @@
     "text": "Por kio estas ĉi tiu organizo?"
   },
   "web.organizations.contact_email": {
-    "text": "Faktura Retpoŝtadreso"
+    "text": "Fakturada retpoŝto"
   },
   "web.organizations.contact_email_help": {
-    "text": "Ĉefa kontakto por fakturaj kaj administraj sciigoj"
+    "text": "Ĉefa kontakto por fakturadaj kaj administraj sciigoj"
   },
   "web.organizations.select_organization": {
     "text": "Elektu organizon"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organiza ŝanĝado ne disponebla sur ĉi tiu paĝo"
+    "text": "Organizoŝanĝado ne disponebla sur ĉi tiu paĝo"
   },
   "web.organizations.not_found": {
     "text": "Organizo ne trovita"
@@ -87,28 +87,28 @@
     "text": "Malsukcesis ŝargi organizojn"
   },
   "web.organizations.organization_information": {
-    "text": "Organiza Informo"
+    "text": "Organiza informo"
   },
   "web.organizations.created": {
     "text": "Kreita"
   },
   "web.organizations.last_updated": {
-    "text": "Laste Ĝisdatigita"
+    "text": "Laste ĝisdatigita"
   },
   "web.organizations.organization_settings": {
-    "text": "Organizaj Agordoj"
+    "text": "Organizaj agordoj"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Ĝisdatigu vian organizan nomon kaj priskribon"
+    "text": "Ĝisdatigu vian organiznomon kaj priskribon"
   },
   "web.organizations.general_settings": {
-    "text": "Ĝeneralaj Agordoj"
+    "text": "Ĝeneralaj agordoj"
   },
   "web.organizations.billing_settings": {
-    "text": "Fakturado kaj Abono"
+    "text": "Fakturado kaj abono"
   },
   "web.organizations.save_changes": {
-    "text": "Konservi Ŝanĝojn"
+    "text": "Konservu ŝanĝojn"
   },
   "web.organizations.update_success": {
     "text": "Organizo sukcese ĝisdatigita"
@@ -117,31 +117,31 @@
     "text": "Malsukcesis ĝisdatigi organizon"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Faktura retpoŝtadreso sukcese ĝisdatigita"
+    "text": "Fakturada retpoŝto sukcese ĝisdatigita"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Faktura Integriĝo Baldaŭ Venos"
+    "text": "Fakturada integriĝo baldaŭ venonta"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Unuigita fakturado kaj abonadministrado disponeblos en estonta eldono."
+    "text": "Unuigita fakturado kaj abono-administrado estos disponebla en estonta eldono."
   },
   "web.organizations.about_title": {
-    "text": "Pri Organizoj"
+    "text": "Pri organizoj"
   },
   "web.organizations.about_description": {
-    "text": "Organizoj provizas unuigitan fakturon kaj administradon por centralizita administrado."
+    "text": "Organizoj provizas unuigitan fakturado kaj administradon por centralizita administrado."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Administru Vian Organizon"
+    "text": "Administru vian organizon"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Ĝisdatigu vian firman nomon kaj organizajn detalojn ĉi tie. Ĉi tiu informo helpas personecigi vian konton kaj povas esti uzata por markaj funkcioj estonte."
+    "text": "Ĝisdatigu vian kompanionnomon kaj organizajn detalojn ĉi tie. Ĉi tiu informo helpas personecigi vian konton kaj povas esti uzata por markaj funkcioj en la estonteco."
   },
   "web.organizations.getting_started_title": {
-    "text": "Komenci kun Organizoj"
+    "text": "Komenci kun organizoj"
   },
   "web.organizations.getting_started_description": {
-    "text": "Kreu vian unuan organizon por administri vian firman informon kaj prepariĝi por estontaj markaj funkcioj."
+    "text": "Kreu vian unuan organizon por administri viajn kompaniajn informojn kaj prepariĝi por estontaj markaj funkcioj."
   },
   "web.organizations.page_description": {
     "text": "Administru viajn organizojn kaj teamanojn"
@@ -150,7 +150,7 @@
     "text": "Agordoj"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Firma Markado"
+    "text": "Kompania markado"
   },
   "web.organizations.tabs.members": {
     "text": "Teamo"
@@ -159,22 +159,22 @@
     "text": "Fakturado"
   },
   "web.organizations.danger_zone": {
-    "text": "Danĝera Zono"
+    "text": "Danĝera zono"
   },
   "web.organizations.delete_organization": {
-    "text": "Forigi Organizon"
+    "text": "Forigu organizon"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Ĉi tio porĉiam forigos la organizon. Ĉi tiu ago ne povas esti malfari."
+    "text": "Ĉi tio porĉiame forigos la organizon. Ĉi tiu ago ne povas esti malfarita."
   },
   "web.organizations.delete": {
     "text": "Forigi"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Forigi Organizon"
+    "text": "Forigu organizon"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Ĉu vi certas, ke vi volas forigi {name}? Ĉi tiu ago ne povas esti malfari."
+    "text": "Ĉu vi certas ke vi volas forigi {name}? Ĉi tiu ago ne povas esti malfarita."
   },
   "web.organizations.delete_error": {
     "text": "Malsukcesis forigi organizon"
@@ -186,7 +186,7 @@
     "text": "Administru organizajn membrojn kaj iliajn rolojn"
   },
   "web.organizations.members.current_members": {
-    "text": "Nunaj Membroj"
+    "text": "Nunaj membroj"
   },
   "web.organizations.members.member": {
     "text": "Membro"
@@ -219,31 +219,31 @@
     "text": "Ĉi tiu organizo ankoraŭ ne havas membrojn."
   },
   "web.organizations.members.role_updated": {
-    "text": "Membro-rolo sukcese ĝisdatigita"
+    "text": "Membrorolon sukcese ĝisdatigita"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Malsukcesis ĝisdatigi membro-rolon"
+    "text": "Malsukcesis ĝisdatigi membrorolon"
   },
   "web.organizations.members.member_removed": {
-    "text": "Membro forigita el organizo"
+    "text": "Membro forigita de organizo"
   },
   "web.organizations.members.member_remove_error": {
     "text": "Malsukcesis forigi membron"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Forigi Membron"
+    "text": "Forigu membron"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Ĉu vi certas, ke vi volas forigi {name} el ĉi tiu organizo?"
+    "text": "Ĉu vi certas ke vi volas forigi {name} de ĉi tiu organizo?"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "Vi ne povas ŝanĝi vian propran rolon"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Vi ne povas forigi vin mem el la organizo"
+    "text": "Vi ne povas forigi vin mem de la organizo"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Vi ne povas forigi la posedanton de la organizo"
+    "text": "Vi ne povas forigi la organizoposedanton"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "Vi ne havas permeson administri membrojn"
@@ -267,31 +267,31 @@
     "text": "Baza aliro al organizaj rimedoj"
   },
   "web.organizations.invitations.title": {
-    "text": "Organizaj Invitoj"
+    "text": "Organizaj invitoj"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Inviti Membron"
+    "text": "Invitu membron"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Inviti Novan Membron"
+    "text": "Invitu novan membron"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Atendantaj Invitoj"
+    "text": "Atendantaj invitoj"
   },
   "web.organizations.invitations.no_pending_invitations": {
     "text": "Neniuj atendantaj invitoj"
   },
   "web.organizations.invitations.email_address": {
-    "text": "Retpoŝta Adreso"
+    "text": "Retpoŝtadreso"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "membro{'@'}ekzemplo.com"
+    "text": "member{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rolo"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Sendi Inviton"
+    "text": "Sendu inviton"
   },
   "web.organizations.invitations.invite_sent": {
     "text": "Invito sukcese sendita"
@@ -324,7 +324,7 @@
     "text": "Invitita"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Eksvalidiĝas"
+    "text": "Senvalidiĝas"
   },
   "web.organizations.invitations.resent_count": {
     "text": "Resendita {count} fojon"
@@ -339,10 +339,10 @@
     "text": "Akceptita"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Malakceptita"
+    "text": "Rifuzita"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Eksvalidiĝinta"
+    "text": "Senvalidiĝinta"
   },
   "web.organizations.invitations.roles.member": {
     "text": "Membro"
@@ -351,19 +351,19 @@
     "text": "Administranto"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Akcepti Inviton"
+    "text": "Akceptu inviton"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Malakcepti Inviton"
+    "text": "Rifuzu inviton"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Invit-Detaloj"
+    "text": "Invitaj detaloj"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Vi estas invitita aliĝi al"
+    "text": "Vi estis invitita aliĝi al"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Vi estas invitita kiel"
+    "text": "Vi estis invitita kiel"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Invito sukcese akceptita"
@@ -372,27 +372,63 @@
     "text": "Malsukcesis akcepti inviton"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Invito malakceptita"
+    "text": "Invito rifuzita"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Malsukcesis malakcepti inviton"
+    "text": "Malsukcesis rifuzi inviton"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Ĉi tiu invito eksvalidiĝis"
+    "text": "Ĉi tiu invito senvalidiĝis"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Nevalida aŭ eksvalidiĝinta invito"
+    "text": "Nevalida aŭ senvalidiĝinta invito"
   },
   "web.organizations.invitations.must_sign_in": {
     "text": "Bonvolu ensaluti por akcepti ĉi tiun inviton"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Ŝargante invit-detalojn"
+    "text": "Ŝargante invitajn detalojn"
   },
   "web.organizations.invitations.upgrade_to_invite": {
     "text": "Ĝisdatigu vian planon por inviti teamanojn"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teamanaj invitoj postulas planon kun teamadministrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo."
+    "text": "Teamanaj invitoj bezonas planon kun team-administrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo."
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Fakturada retpoŝto povas esti ŝanĝita sur la Fakturada Superrigardopaĝo"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} membro | {count} membroj"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domajno | {count} domajnoj"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Malĝusta konto"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Ĉi tiu invito estis sendita al {invitedEmail}, sed vi estas ensalutinta kiel {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Ensalutu per alia konto"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}t restantaj"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h restantaj"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Baldaŭ senvalidiĝas"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abono"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domajnoj"
   }
 }

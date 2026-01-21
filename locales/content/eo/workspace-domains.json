@@ -1,57 +1,57 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Lernu pli pri DNS-agordo"
+    "text": "Lernu pli pri DNS-agordoj"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Vidi domajnan kontrolstaton"
+    "text": "Rigardu domajnan kontrolostaton"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Ĉi tiu domajno jam estas registrita en via organizo"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Ĉi tiu domajno jam estas registrita al alia organizo. Bonvolu kontakti subtenon se vi kredas ke tio estas eraro."
+    "text": "Ĉi tiu domajno jam estas registrita al alia organizo. Bonvolu kontakti subtenon se vi kredas ke ĉi tio estas eraro."
   },
   "web.domains.domain_claimed_successfully": {
     "text": "Domajno sukcese postulita kaj aldonita al via organizo"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Privatecaj Defaŭltoj"
+    "text": "Privatecaj defaŭltoj"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Agordi defaŭltajn privatecajn opciojn por sekretoj kreitaj sub ĉi tiu domajno. Ĉi tiuj agordoj estos antaŭplenigitaj kiam kreante novajn sekretojn."
+    "text": "Agordu defaŭltajn privatecajn opciojn por sekretoj kreitaj sub ĉi tiu domajno. Ĉi tiuj agordoj estos antaŭplenumitaj kiam oni kreas novajn sekretojn."
   },
   "web.domains.privacy_defaults": {
-    "text": "Privatecaj Defaŭltoj"
+    "text": "Privatecaj defaŭltoj"
   },
   "web.domains.privacy_defaults_icon": {
     "text": "Privatecaj defaŭltoj ikono"
   },
   "web.domains.default_ttl_label": {
-    "text": "Defaŭlta Vivdaŭro"
+    "text": "Defaŭlta vivdaŭro"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Kiom longe sekretoj devus resti alireblaj defaŭlte"
+    "text": "Kiel longe sekretoj devus resti alireblaj defaŭlte"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Postuli pasfrazon"
+    "text": "Postulu sekretan frazon"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Igi pasfrazon deviga por ĉiuj sekretoj en ĉi tiu domajno"
+    "text": "Faru sekretan frazon deviga por ĉiuj sekretoj en ĉi tiu domajno"
   },
   "web.domains.notify_enabled_label": {
-    "text": "Ebligi sciigojn"
+    "text": "Ebligu sciigojn"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Defaŭlte ebligi retpoŝtajn sciigojn kiam sekretoj estas viditaj"
+    "text": "Ebligu retpoŝtajn sciigojn defaŭlte kiam sekretoj estas viditaj"
   },
   "web.domains.use_global_default": {
-    "text": "Uzi ĝeneralan defaŭlton"
+    "text": "Uzu tutmondan defaŭlton"
   },
   "web.domains.global_default": {
-    "text": "Ĝenerala"
+    "text": "Tutmonda"
   },
   "web.domains.required": {
-    "text": "Deviga"
+    "text": "Bezonata"
   },
   "web.domains.optional": {
     "text": "Nedeviga"
@@ -66,22 +66,22 @@
     "text": "Propra"
   },
   "web.domains.edit_defaults": {
-    "text": "Redakti Defaŭltojn"
+    "text": "Redaktu defaŭltojn"
   },
   "web.domains.ttl_short": {
-    "text": "VD"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
-    "text": "Pasfrazo"
+    "text": "Sekreta frazo"
   },
   "web.domains.notify_short": {
     "text": "Sciigoj"
   },
   "web.domains.scope_switch_label": {
-    "text": "Ŝanĝi domajnan amplekson"
+    "text": "Ŝanĝu domajnan sferon"
   },
   "web.domains.switcher_locked": {
-    "text": "Domajnoŝanĝado ne disponeblas sur ĉi tiu paĝo"
+    "text": "Domajnoŝanĝado ne disponebla sur ĉi tiu paĝo"
   },
   "web.domains.scope_list_label": {
     "text": "Disponeblaj domajnoj"
@@ -90,91 +90,91 @@
     "text": "Domajnoj"
   },
   "web.domains.add_domain": {
-    "text": "Aldoni domajnon"
+    "text": "Aldonu domajnon"
   },
   "web.domains.domain_settings": {
     "text": "Domajnaj agordoj"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Defaŭlta domajno ne havas agordpaĝon"
+    "text": "Defaŭlta domajno ne havas agordopaĝon"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "Bonvolu enigi {0} domajnnomon"
   },
   "web.domains.domain_name": {
-    "text": "Domajnnomo"
+    "text": "Domajnomo"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
     "text": "Kontroli ĉu uzantoj povas krei sekretligilojn de la hejmpaĝo de via domajno"
   },
   "web.domains.homepage_access": {
-    "text": "Hejmpaĝa Aliro"
+    "text": "Hejmpaĝa aliro"
   },
   "web.domains.and_status": {
-    "text": "& Stato"
+    "text": "kaj stato"
   },
   "web.domains.domain": {
     "text": "Domajno"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Administri kaj agordi viajn kontrolitajn proprajn domajnojn"
+    "text": "Administru kaj agordu viajn kontrolitajn proprajn domajnojn"
   },
   "web.domains.domains": {
     "text": "Domajnoj"
   },
   "web.domains.last_monitored": {
-    "text": "Laste Monitorita"
+    "text": "Laste monitoritaj"
   },
   "web.domains.ssl_status": {
-    "text": "SSL-Stato"
+    "text": "SSL-stato"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL-Renovigo"
+    "text": "SSL renoviĝas"
   },
   "web.domains.dns_record": {
-    "text": "DNS-Registro"
+    "text": "DNS-registraĵo"
   },
   "web.domains.target_address": {
-    "text": "Cela Adreso"
+    "text": "Celadreso"
   },
   "web.domains.domain_status": {
     "text": "Domajnostato"
   },
   "web.domains.custom_domains_count": {
-    "text": "Nombro de propraj domajnoj"
+    "text": "Kvanto de propraj domajnoj"
   },
   "web.domains.custom_domain": {
-    "text": "Propra Domajno"
+    "text": "Propra domajno"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Malfermi domajnon en nova langeto"
+    "text": "Malfermu domajnon en nova langeto"
   },
   "web.domains.back_to_domains": {
-    "text": "Reen al Domajnoj"
+    "text": "Reen al domajnoj"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Reveni al domajnlisto"
+    "text": "Revenu al domajnolisto"
   },
   "web.domains.verify_domain": {
-    "text": "Kontroli Domajnon"
+    "text": "Kontrolu domajnon"
   },
   "web.domains.manage_brand": {
-    "text": "Administri Markon"
+    "text": "Administru markon"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
     "text": "Aldonita {0}"
   },
   "web.domains.add_your_domain": {
-    "text": "Aldoni vian domajnon"
+    "text": "Aldonu vian domajnon"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Komencu per aldono de propra domajno."
+    "text": "Komencu aldonante propran domajnon."
   },
   "web.domains.no_domains_found": {
     "text": "Neniuj domajnoj trovitaj."
   },
   "web.domains.loading_domain_information": {
-    "text": "Ŝargante domajnan informon..."
+    "text": "Ŝargante domajnajn informojn..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Por konekti vian domajnon, vi bezonos havi CNAME-registron en via DNS kiu indikas"
@@ -189,22 +189,22 @@
     "text": "kaj forigi ajnajn aliajn A, AAAA, aŭ CNAME-registrojn por tiu preciza adreso."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", vi bezonos kompletigi ĉi tiujn paŝojn."
+    "text": ", vi devos kompletigi ĉi tiujn paŝojn."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Antaŭ ol ni povas aktivigi ligilojn por"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Bonvolu noti ke por apeksaj domajnoj (ekz.,"
+    "text": "Bonvolu noti ke por ĉefaj domajnoj (ekz.,"
   },
   "web.domains.verify_your_domain": {
     "text": "Kontrolu vian domajnon"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "sekretoj.ekzemplo.com"
+    "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Personecigi vian domajnan markadon"
+    "text": "Personecigu vian domajnan markon"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Povas daŭri kelkajn minutojn ĝis via SSL-atestilo efektiviĝos."
@@ -231,7 +231,7 @@
     "text": "Tipo"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Kreu la CNAME-registron"
+    "text": "2. Kreu la CNAME-registraĵon"
   },
   "web.domains.value_0": {
     "text": "Valoro"
@@ -243,28 +243,28 @@
     "text": "Tipo"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Kreu la A-registron"
+    "text": "2. Kreu la A-registraĵon"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Aldonu ĉi tiun gastigantnomon al via DNS-agordo:"
+    "text": "Aldonu ĉi tiun gastigan nomon al via DNS-agordoj:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Kreu TXT-registron"
+    "text": "1. Kreu TXT-registraĵon"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Sekvu ĉi tiujn paŝojn por kontroli domajnan posedon kaj plibonigi vian interretan ĉeeston:"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Domajnaj Kontrolpaŝoj"
+    "text": "Domajn-kontrolaj paŝoj"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Domajnkontrolo sukcese komenciĝis."
+    "text": "Domajnkontrolo sukcese komencita."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Ĉu vi certas ke vi volas forigi ĉi tiun domajnon? Ĉi tiu ago ne povas esti malfarita."
   },
   "web.domains.remove_domain": {
-    "text": "Forigi Domajnon"
+    "text": "Forigu domajnon"
   },
   "web.domains.domain_removed_successfully": {
     "text": "Domajno sukcese forigita"
@@ -279,18 +279,24 @@
     "text": "Protektita"
   },
   "web.domains.manage_domains": {
-    "text": "Administri Domajnojn"
+    "text": "Administru domajnojn"
   },
   "web.domains.global_defaults": {
-    "text": "Ĝeneralaj Defaŭltoj"
+    "text": "Tutmondaj defaŭltoj"
   },
   "web.domains.edit_ttl": {
-    "text": "Redakti vivdaŭran agordon"
+    "text": "Redaktu vivdaŭran agordon"
   },
   "web.domains.edit_passphrase": {
-    "text": "Redakti pasfrazan postulon"
+    "text": "Redaktu sekretan frazan postulon"
   },
   "web.domains.edit_notify": {
-    "text": "Redakti sciigan agordon"
+    "text": "Redaktu sciigan agordon"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Agordu DNS-registraĵojn"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Uzu la ilon sube por aŭtomate detekti vian DNS-provizanton kaj akiri paŝ-post-paŝajn instrukciojn por agordi vian domajnon."
   }
 }
