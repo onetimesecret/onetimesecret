@@ -12,10 +12,10 @@
     "text": "Entre em contato com a pessoa que lhe enviou este link e peça para criar uma nova mensagem confidencial. Informe que você não conseguiu acessar a informação original."
   },
   "web.errors.warning_dismissed": {
-    "text": "Aviso dispensado"
+    "text": "Aviso ignorado"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Dispensar aviso de truncamento"
+    "text": "Ignorar aviso de truncamento"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Oops! A página que você está procurando não existe ou foi movida."
@@ -27,10 +27,10 @@
     "text": "404 - Página Não Encontrada"
   },
   "web.errors.dismiss_warning": {
-    "text": "Dispensar aviso"
+    "text": "Ignorar aviso"
   },
   "web.errors.dismiss_notification": {
-    "text": "Dispensar notificação"
+    "text": "Ignorar notificação"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Se você não tiver certeza do que fazer a seguir, entre em contato com a pessoa que lhe enviou este link para mais informações."

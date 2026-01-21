@@ -6,15 +6,15 @@
     "text": "Não Recebido"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Nenhum segredo recente"
+    "text": "Nenhuma mensagem confidencial recente"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Comece criando seu primeiro segredo."
+    "text": "Comece criando sua primeira mensagem confidencial."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Não foi possível carregar as equipes"
+    "text": "Não foi possível carregar os dados"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Ocorreu um problema ao carregar suas equipes. Tente novamente."
+    "text": "Houve um problema ao carregar seus dados. Por favor, tente novamente."
   }
 }

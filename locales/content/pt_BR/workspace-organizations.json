@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Organização"
+    "text": "Organizações"
   },
   "web.organizations.organization": {
     "text": "Organização"
@@ -9,10 +9,10 @@
     "text": "Organizações"
   },
   "web.organizations.organizations_description": {
-    "text": "Gerenciar suas organizações"
+    "text": "Gerencie suas organizações"
   },
   "web.organizations.my_organizations": {
-    "text": "Minhas Organizações"
+    "text": "Organizações"
   },
   "web.organizations.manage_organizations": {
     "text": "Gerenciar Organizações"
@@ -21,10 +21,10 @@
     "text": "Nova Organização"
   },
   "web.organizations.no_organizations": {
-    "text": "Ainda sem organizações"
+    "text": "Nenhuma organização ainda"
   },
   "web.organizations.no_organizations_description": {
-    "text": "As organizações permitem gerenciar várias equipes com faturamento e administração unificados. Comece criando sua primeira organização."
+    "text": "Organizações fornecem cobrança unificada e administração. Comece criando sua primeira organização."
   },
   "web.organizations.no_description": {
     "text": "Nenhuma descrição fornecida"
@@ -39,7 +39,7 @@
     "text": "Criar Primeira Organização"
   },
   "web.organizations.create_organization_description": {
-    "text": "Criar uma nova organização para agrupar suas equipes"
+    "text": "Criar uma nova organização"
   },
   "web.organizations.create": {
     "text": "Criar"
@@ -63,16 +63,16 @@
     "text": "Para que serve esta organização?"
   },
   "web.organizations.contact_email": {
-    "text": "E-mail de Faturamento"
+    "text": "E-mail de Cobrança"
   },
   "web.organizations.contact_email_help": {
-    "text": "Contato principal para notificações administrativas e de faturamento"
+    "text": "Contato principal para notificações de cobrança e administrativas"
   },
   "web.organizations.select_organization": {
     "text": "Selecione uma organização"
   },
   "web.organizations.switcher_locked": {
-    "text": "Troca de organização não disponível nesta página"
+    "text": "Alternância de organização não disponível nesta página"
   },
   "web.organizations.not_found": {
     "text": "Organização não encontrada"
@@ -99,13 +99,13 @@
     "text": "Configurações da Organização"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Atualizar o nome e a descrição da sua organização"
+    "text": "Atualize o nome e a descrição da sua organização"
   },
   "web.organizations.general_settings": {
     "text": "Configurações Gerais"
   },
   "web.organizations.billing_settings": {
-    "text": "Faturamento e Assinatura"
+    "text": "Cobrança e Assinatura"
   },
   "web.organizations.save_changes": {
     "text": "Salvar Alterações"
@@ -117,34 +117,34 @@
     "text": "Falha ao atualizar organização"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Integração de Faturamento em Breve"
+    "text": "Integração de Cobrança Em Breve"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "O gerenciamento unificado de faturamento e assinatura para todas as equipes desta organização estará disponível em uma versão futura."
+    "text": "O gerenciamento unificado de cobrança e assinatura estará disponível em uma versão futura."
   },
   "web.organizations.about_title": {
     "text": "Sobre Organizações"
   },
   "web.organizations.about_description": {
-    "text": "As organizações fornecem faturamento e administração unificados para várias equipes. Elas são opcionais - as equipes podem existir independentemente ou serem agrupadas em uma organização para gerenciamento centralizado."
+    "text": "Organizações fornecem cobrança unificada e administração para gerenciamento centralizado."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Gerenciar Sua Organização"
+    "text": "Gerencie Sua Organização"
   },
   "web.organizations.single_user_info_description": {
     "text": "Atualize o nome da sua empresa e detalhes da organização aqui. Essas informações ajudam a personalizar sua conta e podem ser usadas para recursos de marca no futuro."
   },
   "web.organizations.getting_started_title": {
-    "text": "Primeiros Passos com Organizações"
+    "text": "Começando com Organizações"
   },
   "web.organizations.getting_started_description": {
-    "text": "Crie sua primeira organização para gerenciar as informações da sua empresa e se preparar para futuros recursos de colaboração em equipe e marca."
+    "text": "Crie sua primeira organização para gerenciar as informações da sua empresa e se preparar para futuros recursos de marca."
   },
   "web.organizations.page_description": {
     "text": "Gerencie suas organizações e membros da equipe"
   },
   "web.organizations.tabs.general": {
-    "text": "Geral"
+    "text": "Configurações"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Marca da Empresa"
@@ -153,7 +153,7 @@
     "text": "Equipe"
   },
   "web.organizations.tabs.billing": {
-    "text": "Faturamento"
+    "text": "Cobrança"
   },
   "web.organizations.danger_zone": {
     "text": "Zona de Perigo"
@@ -162,7 +162,7 @@
     "text": "Excluir Organização"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Isso excluirá permanentemente a organização e todas as equipes associadas. Esta ação não pode ser desfeita."
+    "text": "Isso excluirá permanentemente a organização. Esta ação não pode ser desfeita."
   },
   "web.organizations.delete": {
     "text": "Excluir"
@@ -180,7 +180,7 @@
     "text": "Membros"
   },
   "web.organizations.members.description": {
-    "text": "Gerenciar membros da organização e seus papéis"
+    "text": "Gerencie membros da organização e suas funções"
   },
   "web.organizations.members.current_members": {
     "text": "Membros Atuais"
@@ -189,10 +189,10 @@
     "text": "Membro"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "membro"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "membros"
   },
   "web.organizations.members.name": {
     "text": "Nome"
@@ -201,7 +201,7 @@
     "text": "E-mail"
   },
   "web.organizations.members.role": {
-    "text": "Papel"
+    "text": "Função"
   },
   "web.organizations.members.joined": {
     "text": "Entrou"
@@ -210,16 +210,16 @@
     "text": "Ações"
   },
   "web.organizations.members.no_members": {
-    "text": "Nenhum membro encontrado"
+    "text": "Nenhum membro ainda. Convide membros da equipe para começar."
   },
   "web.organizations.members.no_members_description": {
-    "text": "Esta organização ainda não possui membros."
+    "text": "Esta organização ainda não tem membros."
   },
   "web.organizations.members.role_updated": {
-    "text": "Papel do membro atualizado com sucesso"
+    "text": "Função do membro atualizada com sucesso"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Falha ao atualizar papel do membro"
+    "text": "Falha ao atualizar função do membro"
   },
   "web.organizations.members.member_removed": {
     "text": "Membro removido da organização"
@@ -234,10 +234,10 @@
     "text": "Tem certeza de que deseja remover {name} desta organização?"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Você não pode alterar seu próprio papel"
+    "text": "Você não pode alterar sua própria função"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Você não pode remover a si mesmo da organização"
+    "text": "Você não pode se remover da organização"
   },
   "web.organizations.members.cannot_remove_owner": {
     "text": "Você não pode remover o proprietário da organização"
@@ -249,7 +249,7 @@
     "text": "Proprietário"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Administrador"
+    "text": "Admin"
   },
   "web.organizations.members.roles.member": {
     "text": "Membro"
@@ -276,7 +276,7 @@
     "text": "Convites Pendentes"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Sem convites pendentes"
+    "text": "Nenhum convite pendente"
   },
   "web.organizations.invitations.email_address": {
     "text": "Endereço de E-mail"
@@ -285,7 +285,7 @@
     "text": "membro{'@'}exemplo.com"
   },
   "web.organizations.invitations.role": {
-    "text": "Papel"
+    "text": "Função"
   },
   "web.organizations.invitations.send_invite": {
     "text": "Enviar Convite"
@@ -345,7 +345,7 @@
     "text": "Membro"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Administrador"
+    "text": "Admin"
   },
   "web.organizations.invitations.accept_invitation": {
     "text": "Aceitar Convite"
@@ -385,5 +385,50 @@
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Carregando detalhes do convite"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "E-mail de cobrança atualizado com sucesso"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "O e-mail de cobrança pode ser alterado na página Visão Geral de Cobrança"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} membro | {count} membros"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domínio | {count} domínios"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Faça upgrade do seu plano para convidar membros da equipe"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Convites para membros da equipe requerem um plano com gerenciamento de equipes. Faça upgrade para adicionar colaboradores à sua organização."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Conta Incorreta"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Este convite foi enviado para {invitedEmail}, mas você está conectado como {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Entrar com Conta Diferente"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}d restantes"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h restantes"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Expira em breve"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Assinatura"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domínios"
   }
 }

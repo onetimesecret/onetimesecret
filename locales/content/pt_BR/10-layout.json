@@ -15,10 +15,10 @@
     "text": "Segurança"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Saiba mais sobre nossas medidas de segurança"
+    "text": "Conheça nossas medidas de segurança"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Ver nossos Termos e Condições"
+    "text": "Consulte nossos Termos e Condições"
   },
   "web.footer.terms": {
     "text": "Termos"
@@ -33,25 +33,25 @@
     "text": "Suporte"
   },
   "web.footer.legals": {
-    "text": "Jurídico"
+    "text": "Informações Legais"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Ler nossa Política de Privacidade"
+    "text": "Leia nossa Política de Privacidade"
   },
   "web.footer.check_our_service_status": {
-    "text": "Verificar o status do nosso serviço"
+    "text": "Verifique o status do nosso serviço"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Explorar nossa documentação da API"
+    "text": "Explore nossa documentação de API"
   },
   "web.footer.docs": {
     "text": "Documentação"
   },
   "web.footer.access_our_documentation": {
-    "text": "Acessar nossa documentação"
+    "text": "Acesse nossa documentação"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Ver nosso código-fonte no GitHub"
+    "text": "Veja nosso código-fonte no GitHub"
   },
   "web.footer.resources": {
     "text": "Recursos"
@@ -60,13 +60,13 @@
     "text": "Blog"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Ler nossas últimas postagens do blog"
+    "text": "Leia nossas últimas publicações no blog"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Ver os preços das nossas assinaturas"
+    "text": "Veja nossos preços de assinatura"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Saiba mais sobre nossa empresa"
+    "text": "Conheça nossa empresa"
   },
   "web.footer.company": {
     "text": "Empresa"
@@ -102,28 +102,28 @@
     "text": "O que estou vendo?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Você está visualizando uma mensagem segura que foi compartilhada com você através do Onetime Secret. Este conteúdo é exibido apenas uma vez e depois é excluído permanentemente de nossos servidores."
+    "text": "Você está visualizando uma mensagem segura que foi compartilhada com você através do Onetime Secret. Este conteúdo é exibido apenas uma vez e depois é permanentemente excluído dos nossos servidores."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Posso ver este segredo novamente mais tarde?"
+    "text": "Posso ver esta mensagem confidencial novamente depois?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Não. Por motivos de segurança, este segredo só pode ser visualizado uma vez. Depois de fechar esta página, o conteúdo será excluído permanentemente e não poderá ser recuperado por ninguém, nem mesmo por nós."
+    "text": "Não. Por razões de segurança, esta mensagem confidencial só pode ser visualizada uma vez. Após fechar esta página, o conteúdo será permanentemente excluído e não poderá ser recuperado por ninguém, incluindo nós."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
     "text": "Como salvo esta informação?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Use o botão 'Copiar para a Área de Transferência' para copiar todo o segredo. Para segredos mais longos, certifique-se de verificar se copiou o conteúdo completo antes de sair desta página."
+    "text": "Use o botão 'Copiar para Área de Transferência' para copiar toda a mensagem confidencial. Para mensagens mais longas, verifique se você copiou o conteúdo completo antes de sair desta página."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "A minha visualização deste segredo é rastreada?"
+    "text": "Minha visualização desta mensagem confidencial é rastreada?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "O remetente será notificado que seu segredo foi visualizado, mas não rastreamos quem o visualizou ou de qual local. Sua privacidade está protegida."
+    "text": "O remetente será notificado de que sua mensagem confidencial foi visualizada, mas não rastreamos quem a visualizou nem de qual localização. Sua privacidade está protegida."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Quando você sair ou atualizar esta página, este segredo será excluído permanentemente e não poderá ser recuperado por ninguém."
+    "text": "Quando você sair ou atualizar esta página, esta mensagem confidencial será permanentemente excluída e não poderá ser recuperada por ninguém."
   },
   "web.layout.go_back_to_previous_page": {
     "text": "Voltar para a página anterior"
@@ -135,7 +135,7 @@
     "text": "Alternar modo escuro"
   },
   "web.layout.provide_feedback": {
-    "text": "Fornecer feedback"
+    "text": "Enviar feedback"
   },
   "web.layout.company_logo": {
     "text": "Logo da empresa"
@@ -147,16 +147,16 @@
     "text": "Navegação do Painel"
   },
   "web.layout.mobile_navigation": {
-    "text": "Navegação móvel"
+    "text": "Navegação Mobile"
   },
   "web.layout.main_navigation": {
-    "text": "Navegação principal"
+    "text": "Navegação Principal"
   },
   "web.layout.mobile_nav_item_count": {
     "text": "{count} itens"
   },
   "web.layout.release_notes": {
-    "text": "Notas de versão"
+    "text": "Notas de Versão"
   },
   "web.layout.loading_settings_content": {
     "text": "Carregando conteúdo das configurações..."
@@ -174,13 +174,13 @@
     "text": "Personalize suas preferências e configurações do aplicativo"
   },
   "web.layout.return_home": {
-    "text": "Retornar à página inicial"
+    "text": "Voltar para início"
   },
   "web.layout.return_to_home_page": {
-    "text": "Retornar à página inicial"
+    "text": "Voltar para a página inicial"
   },
   "web.layout.return_to_home": {
-    "text": "Retornar à Página Inicial"
+    "text": "Voltar para Início"
   },
   "web.layout.view_privacy_policy": {
     "text": "Ver Política de Privacidade"
@@ -189,7 +189,7 @@
     "text": "Ver Termos de Serviço"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visitar a página inicial do Onetime Secret"
+    "text": "Visitar página inicial do Onetime Secret"
   },
   "web.layout.footer_navigation": {
     "text": "Navegação do rodapé"
@@ -225,21 +225,27 @@
     "text": "Versão do Site: v{0}"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Mudar idioma. Idioma atual é {0}"
+    "text": "Alterar idioma. Idioma atual é {0}"
   },
   "web.layout.language_changed_to_newlocale": {
     "text": "Idioma alterado para {0}"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Alternar para modo {0}"
+    "text": "Mudar para modo {0}"
   },
   "web.layout.blank_mode_enabled": {
     "text": "Modo {0} ativado"
   },
   "web.layout.workspace": {
-    "text": "Espaço de Trabalho"
+    "text": "Área de Trabalho"
   },
   "web.layout.workspace_context": {
-    "text": "Contexto do espaço de trabalho"
+    "text": "Contexto da área de trabalho"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quando você enviar feedback, veremos:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Redefinir para {0}"
   }
 }
