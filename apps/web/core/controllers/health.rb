@@ -34,7 +34,7 @@ module Core
         res['content-type'] = 'application/json'
         res.body            = JSON.generate(
           status: overall_status,
-          timestamp: Familia.now.to_i,
+          timestamp: Familia.now,
           version: Onetime::VERSION,
           checks: checks,
         )
