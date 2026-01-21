@@ -285,6 +285,27 @@ def hydrate_from_json(force: bool = False) -> None:
         print(f"\nCreated database: {DB_FILE}")
         print(f"Loaded {inserted} translation records from JSON files.")
 
+        # Restore metadata tables from SQL exports
+        metadata_tables = ["session_log", "glossary", "schema_migrations"]
+        for table_name in metadata_tables:
+            sql_file = DB_DIR / f"{table_name}.sql"
+            if sql_file.exists():
+                try:
+                    sql_content = sql_file.read_text(encoding="utf-8")
+                    if sql_content.strip():  # Only if file has content
+                        cursor.executescript(sql_content)
+                        conn.commit()
+
+                        # Count restored rows
+                        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                        count = cursor.fetchone()[0]
+                        print(f"Restored {count} rows from {table_name}.sql")
+                except sqlite3.Error as e:
+                    print(
+                        f"Warning: Could not restore {table_name}: {e}",
+                        file=sys.stderr,
+                    )
+
 
 def query(
     sql: str,

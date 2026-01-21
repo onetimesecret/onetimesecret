@@ -1,0 +1,2 @@
+-- Glossary metadata export
+-- Restored during database hydration
