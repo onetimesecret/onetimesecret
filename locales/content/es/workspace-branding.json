@@ -1,30 +1,30 @@
 {
   "web.branding.color_picker": {
-    "text": "Selector de Color"
+    "text": "Selector de color"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "{0} actual: {1}. Haz clic para ciclar entre opciones."
+    "text": "{0} actual: {1}. Haz clic para alternar entre opciones."
   },
   "web.branding.use_setting": {
     "text": "Usar configuración"
   },
   "web.branding.font_family": {
-    "text": "Familia de Fuentes"
+    "text": "Familia de fuente"
   },
   "web.branding.corner_style": {
-    "text": "Estilo de Esquina"
+    "text": "Estilo de esquinas"
   },
   "web.branding.brand_color": {
-    "text": "Color de Marca"
+    "text": "Color de marca"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Vista previa de la vista del destinatario al acceder a tu enlace seguro"
   },
   "web.branding.preview_and_customize": {
-    "text": "Vista Previa y Personalización"
+    "text": "Vista previa y personalizar"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Cambiar a vista de navegador Safari"
+    "text": "Cambiar a vista del navegador Safari"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge"
@@ -36,7 +36,7 @@
     "text": "Minimizar ventana"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Cambiar a vista de navegador Edge"
+    "text": "Cambiar a vista del navegador Edge"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 caracteres"
@@ -45,7 +45,7 @@
     "text": "Usa tu teléfono para escanear el código QR"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contacta a onboarding{'@'}example.com con cualquier pregunta"
+    "text": "Contacta a onboarding{'@'}example.com si tienes preguntas"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Estas instrucciones se mostrarán a los destinatarios antes de que revelen el contenido secreto"
@@ -54,22 +54,22 @@
     "text": "Estas instrucciones se mostrarán a los destinatarios después de que revelen el secreto"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instrucciones Previas a la Revelación"
+    "text": "Instrucciones previas a revelar"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instrucciones Posteriores a la Revelación"
+    "text": "Instrucciones posteriores a revelar"
   },
   "web.branding.instructions": {
     "text": "Instrucciones"
   },
   "web.branding.logo_controls": {
-    "text": "Controles del logotipo"
+    "text": "Controles de logo"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "Haz clic para subir un logotipo. Tamaño recomendado: 128x128 píxeles. Tamaño máximo de archivo: 1MB. Formatos admitidos: PNG, JPG, SVG"
   },
   "web.branding.upload_logo": {
-    "text": "Subir logotipo"
+    "text": "Subir logo"
   },
   "web.branding.loading_preview": {
     "text": "Cargando vista previa..."
@@ -96,22 +96,22 @@
     "text": "Tienes cambios sin guardar. ¿Estás seguro?"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Error al cargar la configuración de la marca"
+    "text": "Error al cargar la configuración de marca"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Esta es una vista previa interactiva de cómo los destinatarios verán tus mensajes seguros. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logotipo (mínimo 128x128 píxeles recomendado, 1MB máx) - Probar la vista previa usando el botón \"Ver Secreto\""
+    "text": "Esta es una vista previa interactiva de cómo los destinatarios verán tus mensajes seguros. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logo (se recomiendan mínimo 128x128 píxeles, máximo 1MB) - Probar la vista previa usando el botón \"Ver secreto\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Esta es una vista previa interactiva de cómo los destinatarios verán tus mensajes seguros. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logotipo (mínimo 128x128 píxeles recomendado, 1MB máx) - Probar la vista previa usando el botón \"Ver Secreto\""
   },
   "web.branding.default_logo_icon": {
-    "text": "Icono de logotipo predeterminado"
+    "text": "Kanji japonés '秘' (himitsu) que significa 'secreto' o 'confidencial'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Impulsado por Onetime Secret"
   },
   "web.branding.heading_logo": {
-    "text": "Logotipo {0}"
+    "text": "Logo de {0}"
   },
   "web.branding.edge": {
     "text": "Edge"

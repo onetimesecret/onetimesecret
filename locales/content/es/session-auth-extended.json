@@ -1,54 +1,54 @@
 {
   "web.auth.mfa_required": {
-    "text": "Verificación de MFA requerida"
+    "text": "Se requiere verificación MFA"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Se requiere verificación de MFA para acceder a tu cuenta"
+    "text": "Se requiere verificación MFA para acceder a tu cuenta"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Completar Verificación de MFA"
+    "text": "Completar verificación MFA"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Autenticación fallida. Por favor, verifica tus credenciales e inténtalo de nuevo."
+    "text": "Error de autenticación. Por favor, verifica tus credenciales e intenta de nuevo."
   },
   "web.auth.security.rate_limited": {
-    "text": "Demasiados intentos. Por favor, inténtalo de nuevo más tarde."
+    "text": "Demasiados intentos. Por favor, intenta más tarde."
   },
   "web.auth.security.session_expired": {
     "text": "Sesión expirada. Por favor, inicia sesión de nuevo."
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Código de recuperación no encontrado. Por favor, verifica que lo hayas ingresado correctamente."
+    "text": "Código de recuperación no encontrado. Por favor, verifica que lo ingresaste correctamente."
   },
   "web.auth.security.recovery_code_used": {
     "text": "Este código de recuperación ya ha sido usado. Cada código solo se puede usar una vez."
   },
   "web.auth.security.network_error": {
-    "text": "Error de red. Por favor, verifica tu conexión e inténtalo de nuevo."
+    "text": "Error de red. Por favor, verifica tu conexión e intenta de nuevo."
   },
   "web.auth.security.internal_error": {
-    "text": "Ocurrió un error. Por favor, inténtalo de nuevo."
+    "text": "Ocurrió un error. Por favor, intenta de nuevo."
   },
   "web.auth.methods.password": {
     "text": "Contraseña"
   },
   "web.auth.methods.magicLink": {
-    "text": "Enlace por Correo"
+    "text": "Enlace por correo"
   },
   "web.auth.methods.webauthn": {
     "text": "Biométrico"
   },
   "web.auth.magicLink.title": {
-    "text": "Iniciar sesión con Correo"
+    "text": "Iniciar sesión con correo electrónico"
   },
   "web.auth.magicLink.description": {
     "text": "Te enviaremos un enlace de inicio de sesión seguro"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Introduce tu correo electrónico"
+    "text": "Ingresa tu correo electrónico"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Enviar Enlace de Inicio de Sesión"
+    "text": "Enviar enlace de inicio de sesión"
   },
   "web.auth.magicLink.checkEmail": {
     "text": "Revisa tu correo electrónico"
@@ -60,34 +60,34 @@
     "text": "Este enlace expirará en 15 minutos"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Probar con un correo diferente"
+    "text": "Probar con otro correo electrónico"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "No se necesita contraseña — solo haz clic en el enlace en tu correo"
+    "text": "No necesitas contraseña — solo haz clic en el enlace en tu correo electrónico"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Error de red. Por favor, inténtalo de nuevo."
+    "text": "Error de red. Por favor, intenta de nuevo."
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Error al enviar el enlace de inicio de sesión. Por favor, inténtalo de nuevo."
+    "text": "Error al enviar el enlace de inicio de sesión. Por favor, intenta de nuevo."
   },
   "web.auth.magicLink.invalidLink": {
     "text": "Enlace de inicio de sesión inválido o faltante"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Inicio de sesión fallido. Por favor, inténtalo de nuevo."
+    "text": "El inicio de sesión falló. Por favor, intenta de nuevo."
   },
   "web.auth.magicLink.signingYouIn": {
     "text": "Iniciando sesión..."
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Por favor, espera mientras verificamos tu enlace"
+    "text": "Por favor espera mientras verificamos tu enlace"
   },
   "web.auth.magicLink.error": {
-    "text": "Error de Autenticación"
+    "text": "Error de autenticación"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Volver a Iniciar Sesión"
+    "text": "Volver a iniciar sesión"
   },
   "web.auth.webauthn.signIn": {
     "text": "Iniciar sesión con Face ID / Touch ID"
@@ -96,7 +96,7 @@
     "text": "Configurar inicio de sesión biométrico"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "La autenticación biométrica no es compatible con este navegador"
+    "text": "La autenticación biométrica no está soportada en este navegador"
   },
   "web.auth.webauthn.requiresModernBrowser": {
     "text": "Por favor, usa un navegador moderno que soporte WebAuthn (Chrome, Safari, Firefox o Edge)"
@@ -108,7 +108,7 @@
     "text": "Error al configurar el inicio de sesión biométrico"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Autenticación biométrica fallida. Por favor, inténtalo de nuevo."
+    "text": "La autenticación biométrica falló. Por favor, inténtalo de nuevo."
   },
   "web.auth.webauthn.cancelled": {
     "text": "La autenticación fue cancelada"
@@ -117,13 +117,13 @@
     "text": "Autenticando..."
   },
   "web.auth.webauthn.description": {
-    "text": "Usa tu huella digital, rostro o llave de seguridad para iniciar sesión"
+    "text": "Usa tu huella dactilar, rostro o llave de seguridad para iniciar sesión"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Soporta Face ID, Touch ID, Windows Hello y llaves de seguridad"
+    "text": "Compatible con Face ID, Touch ID, Windows Hello y llaves de seguridad"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Advertencia: {count} intento(s) de inicio de sesión restantes"
+    "text": "Advertencia: {count} intento(s) de inicio de sesión restante(s)"
   },
   "web.auth.lockout.account_locked": {
     "text": "Cuenta bloqueada debido a demasiados intentos fallidos de inicio de sesión"
@@ -138,13 +138,13 @@
     "text": "Puedes restablecer tu contraseña en su lugar"
   },
   "web.auth.sessions.title": {
-    "text": "Sesiones Activas"
+    "text": "Sesiones activas"
   },
   "web.auth.sessions.current": {
-    "text": "Sesión Actual"
+    "text": "Sesión actual"
   },
   "web.auth.sessions.other": {
-    "text": "Otras Sesiones"
+    "text": "Otras sesiones"
   },
   "web.auth.sessions.device": {
     "text": "Dispositivo"
@@ -156,91 +156,91 @@
     "text": "Dirección IP"
   },
   "web.auth.sessions.last_active": {
-    "text": "Última Actividad"
+    "text": "Última actividad"
   },
   "web.auth.sessions.created": {
-    "text": "Creada"
+    "text": "Creado"
   },
   "web.auth.sessions.remove": {
     "text": "Eliminar"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Cerrar Todas las Demás Sesiones"
+    "text": "Cerrar todas las otras sesiones"
   },
   "web.auth.sessions.confirm_remove": {
     "text": "¿Estás seguro de que quieres eliminar esta sesión?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Esto cerrará tu sesión en todos los demás dispositivos. ¿Estás seguro?"
+    "text": "Esto cerrará tu sesión en todos los otros dispositivos. ¿Estás seguro?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "No hay otras sesiones activas"
   },
   "web.auth.sessions.removed_success": {
-    "text": "Sesión eliminada con éxito"
+    "text": "Sesión eliminada correctamente"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Todas las demás sesiones han sido cerradas"
+    "text": "Se han cerrado todas las otras sesiones"
   },
   "web.auth.sessions.link_title": {
-    "text": "Sesiones Activas"
+    "text": "Sesiones activas"
   },
   "web.auth.mfa.title": {
-    "text": "Autenticación de Dos Factores"
+    "text": "Autenticación de dos factores"
   },
   "web.auth.mfa.enabled": {
     "text": "La autenticación de dos factores está habilitada"
   },
   "web.auth.mfa.disabled": {
-    "text": "La autenticación de dos factores está deshabilitada"
+    "text": "La autenticación de dos factores está desactivada"
   },
   "web.auth.mfa.enable": {
-    "text": "Activar Autenticación de Dos Factores"
+    "text": "Habilitar autenticación de dos factores"
   },
   "web.auth.mfa.disable": {
-    "text": "Desactivar Autenticación de Dos Factores"
+    "text": "Desactivar autenticación de dos factores"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Configurar Autenticación de Dos Factores"
+    "text": "Configurar autenticación de dos factores"
   },
   "web.auth.mfa.setup_description": {
     "text": "Añade una capa adicional de seguridad a tu cuenta"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Escanear Código QR"
+    "text": "1. Escanear código QR"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Verificar Configuración"
+    "text": "2. Verificar configuración"
   },
   "web.auth.mfa.scan_qr": {
     "text": "Escanea este código QR con tu aplicación de autenticación"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "O introduce este código manualmente"
+    "text": "O ingresa este código manualmente"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Introduce el código de 6 dígitos de tu aplicación"
+    "text": "Ingresa el código de 6 dígitos de tu aplicación"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Introduce el código de autenticación"
+    "text": "Ingresa el código de autenticación"
   },
   "web.auth.mfa.verify": {
-    "text": "Verificar y Activar"
+    "text": "Verificar y habilitar"
   },
   "web.auth.mfa.code_required": {
-    "text": "Se requiere el código de autenticación"
+    "text": "Se requiere código de autenticación"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Código inválido. Los códigos expiran cada 30 segundos. Intenta con el código más reciente de tu aplicación de autenticación."
+    "text": "Código inválido. Los códigos expiran cada 30 segundos. Prueba el código más reciente de tu aplicación de autenticación."
   },
   "web.auth.mfa.success_enabled": {
     "text": "La autenticación de dos factores ha sido habilitada"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "La autenticación de dos factores ha sido deshabilitada"
+    "text": "La autenticación de dos factores ha sido desactivada"
   },
   "web.auth.mfa.require_password": {
-    "text": "Introduce tu contraseña para desactivar 2FA"
+    "text": "Ingresa tu contraseña para desactivar 2FA"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "Contraseña"
@@ -264,7 +264,7 @@
     "text": "Cancelar y volver a iniciar sesión"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Cargando estado de MFA..."
+    "text": "Cargando estado MFA..."
   },
   "web.auth.mfa.protected_description": {
     "text": "Tu cuenta está protegida con autenticación de dos factores"
@@ -273,7 +273,7 @@
     "text": "Protege tu cuenta con una capa adicional de seguridad"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Previene el acceso no autorizado incluso si tu contraseña está comprometida"
+    "text": "Evita el acceso no autorizado incluso si tu contraseña está comprometida"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "Funciona con Google Authenticator, Authy y otras aplicaciones TOTP"
@@ -282,10 +282,10 @@
     "text": "Códigos de recuperación de respaldo para acceso de emergencia"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "Introduce tu contraseña"
+    "text": "Ingresa tu contraseña"
   },
   "web.auth.mfa.disabling": {
-    "text": "Deshabilitando..."
+    "text": "Desactivando..."
   },
   "web.auth.mfa.disable_button": {
     "text": "Desactivar 2FA"
@@ -297,31 +297,31 @@
     "text": "Usa Google Authenticator, Authy o cualquier aplicación TOTP"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Continuar a Verificación"
+    "text": "Continuar a verificación"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Introduce el código de 6 dígitos de tu aplicación de autenticación"
+    "text": "Ingresa el código de 6 dígitos de tu aplicación de autenticación"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Activar MFA"
+    "text": "Habilitar MFA"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Completar Configuración"
+    "text": "Completar configuración"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Introduce uno de tus códigos de recuperación"
+    "text": "Ingresa uno de tus códigos de recuperación"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "Código de Recuperación"
+    "text": "Código de recuperación"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Introduce el código de recuperación"
+    "text": "Ingresa el código de recuperación"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Verificar Código de Recuperación"
+    "text": "Verificar código de recuperación"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Introduce el código de autenticación de 6 dígitos"
+    "text": "Ingresa el código de autenticación de 6 dígitos"
   },
   "web.auth.mfa.recovery_code_mode_active": {
     "text": "Modo de código de recuperación activo"
@@ -330,16 +330,16 @@
     "text": "Modo de código de autenticación activo"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Por favor, introduce todos los 6 dígitos para continuar"
+    "text": "Por favor ingresa los 6 dígitos para continuar"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "Dígito {current} de {total}"
   },
   "web.auth.recovery_codes.title": {
-    "text": "Códigos de Recuperación"
+    "text": "Códigos de recuperación"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Guarda estos códigos en un lugar seguro. Cada uno se puede usar una vez si pierdes el acceso a tu autenticador."
+    "text": "Guarda estos códigos en un lugar seguro. Cada uno se puede usar una vez si pierdes acceso a tu autenticador."
   },
   "web.auth.recovery_codes.warning": {
     "text": "Estos códigos solo se mostrarán una vez"
@@ -348,25 +348,25 @@
     "text": "Debes descargar o copiar tus códigos de recuperación antes de completar la configuración."
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "Generar Nuevos Códigos"
+    "text": "Generar nuevos códigos"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Regenerar Códigos"
+    "text": "Regenerar códigos"
   },
   "web.auth.recovery_codes.generate_new_warning": {
     "text": "Esto invalidará todos los códigos de recuperación existentes"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Descargar Códigos"
+    "text": "Descargar códigos"
   },
   "web.auth.recovery_codes.downloaded": {
     "text": "Códigos de recuperación descargados"
   },
   "web.auth.recovery_codes.print": {
-    "text": "Imprimir Códigos"
+    "text": "Imprimir códigos"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Copiar Todos los Códigos"
+    "text": "Copiar todos los códigos"
   },
   "web.auth.recovery_codes.copied": {
     "text": "Códigos copiados al portapapeles"
@@ -381,7 +381,7 @@
     "text": "Sin usar"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} código(s) de recuperación restantes"
+    "text": "{count} de {limit} códigos de recuperación restantes"
   },
   "web.auth.recovery_codes.usage_hint": {
     "text": "Cada código solo se puede usar una vez. Regenera los códigos si te quedan pocos."
@@ -393,6 +393,21 @@
     "text": "Se han generado nuevos códigos de recuperación"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "Códigos de Recuperación"
+    "text": "Códigos de recuperación"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Verificar"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Usar código de recuperación"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Cancelar inicio de sesión"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SEGURIDAD CRÍTICA: Los mensajes previenen la divulgación de información. Ver src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Página de gestión de dispositivos/navegadores con sesión iniciada"
   }
 }

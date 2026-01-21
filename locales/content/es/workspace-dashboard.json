@@ -6,15 +6,15 @@
     "text": "No recibido"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "No hay secretos recientes"
+    "text": "Sin secretos recientes"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Empieza creando tu primer secreto."
+    "text": "Comienza creando tu primer secreto."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "No se pudieron cargar los equipos"
+    "text": "No se pudieron cargar los datos"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Hubo un problema al cargar tus equipos. Por favor, inténtalo de nuevo."
+    "text": "Hubo un problema al cargar tus datos. Por favor, inténtalo de nuevo."
   }
 }

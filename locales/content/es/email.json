@@ -15,19 +15,19 @@
     "text": "Importante:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Este enlace solo funcionará una vez. Después de verlo, el secreto se eliminará permanentemente."
+    "text": "Este enlace solo funcionará una vez. Después de verlo, el secreto será eliminado permanentemente."
   },
   "email.secret_link.sent_via": {
-    "text": "Enviado mediante"
+    "text": "Enviado a través de"
   },
   "email.welcome.subject": {
-    "text": "Verifica tu cuenta de Onetime Secret"
+    "text": "Bienvenido a %{product_name} - Por favor verifica tu correo"
   },
   "email.welcome.title": {
-    "text": "¡Has sido invitado a unirte a %{product_name}!"
+    "text": "Bienvenido a %{product_name}"
   },
   "email.welcome.verify_prompt": {
-    "text": "Verifica tu dirección de correo electrónico haciendo clic en el enlace a continuación:"
+    "text": "Por favor verifica tu correo electrónico haciendo clic en el enlace de abajo:"
   },
   "email.welcome.verify_button": {
     "text": "Verificar correo electrónico"
@@ -39,13 +39,13 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.D. Este correo fue enviado a %{email_address}. Si no esperabas esta invitación, puedes ignorar este mensaje sin problema."
+    "text": "P.D. Este correo fue enviado a %{email_address}. Si no creaste una cuenta, puedes ignorar este mensaje."
   },
   "email.password_request.subject": {
-    "text": "Restablecer tu contraseña (%{display_domain})"
+    "text": "Restablece tu contraseña (%{display_domain})"
   },
   "email.password_request.title": {
-    "text": "Restablecer tu contraseña"
+    "text": "Restablece tu contraseña"
   },
   "email.password_request.request_notice": {
     "text": "Recibimos una solicitud para restablecer tu contraseña de %{product_name}."
@@ -57,7 +57,7 @@
     "text": "O copia y pega este enlace:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Si no solicitaste restablecer tu contraseña, puedes ignorar este correo sin problema."
+    "text": "Si no solicitaste restablecer tu contraseña, puedes ignorar este correo."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -66,10 +66,10 @@
     "text": "P.D. Este correo fue enviado a %{email_address}."
   },
   "email.magic_link.subject": {
-    "text": "Iniciar sesión en %{display_domain}"
+    "text": "Inicia sesión en %{display_domain}"
   },
   "email.magic_link.title": {
-    "text": "Iniciar sesión con enlace mágico"
+    "text": "Inicia sesión con enlace mágico"
   },
   "email.magic_link.request_notice": {
     "text": "Solicitaste un enlace de inicio de sesión para tu cuenta de %{product_name}."
@@ -84,13 +84,13 @@
     "text": "Este enlace expirará en 15 minutos."
   },
   "email.magic_link.ignore_notice": {
-    "text": "Si no solicitaste este enlace, puedes ignorar este correo electrónico."
+    "text": "Si no solicitaste este enlace, puedes ignorar este correo de forma segura."
   },
   "email.magic_link.signature": {
     "text": "Delano"
   },
   "email.magic_link.postscript": {
-    "text": "P.D. Este correo electrónico fue enviado a %{email_address}."
+    "text": "P.D. Este correo fue enviado a %{email_address}."
   },
   "email.incoming_secret.subject": {
     "text": "Has recibido un mensaje secreto"
@@ -102,7 +102,7 @@
     "text": "Nota:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Alguien te ha enviado un mensaje seguro mediante %{display_domain}."
+    "text": "Alguien te ha enviado un mensaje seguro a través de %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
     "text": "Para ver este secreto, haz clic en el enlace a continuación:"
@@ -111,10 +111,10 @@
     "text": "Importante:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Este enlace solo funcionará una vez. Después de verlo, el secreto se eliminará permanentemente."
+    "text": "Este enlace solo funcionará una vez. Después de verlo, el secreto será eliminado permanentemente."
   },
   "email.incoming_secret.sent_via": {
-    "text": "Enviado mediante"
+    "text": "Enviado vía"
   },
   "email.secret_revealed.subject": {
     "text": "Tu secreto fue visto"
@@ -135,16 +135,16 @@
     "text": "Delano"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Gestionar preferencias de notificación"
+    "text": "Administrar preferencias de notificación"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Para gestionar tus preferencias de notificación:"
+    "text": "Para administrar tus preferencias de notificación:"
   },
   "email.expiration_warning.subject": {
-    "text": "Tu enlace de secreto expirará pronto"
+    "text": "Tu enlace secreto expirará pronto"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Tu enlace de secreto expirará en %{time_remaining}"
+    "text": "Tu enlace secreto expirará en %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
     "text": "Ver tu secreto antes de que expire"
@@ -153,19 +153,19 @@
     "text": "Recordatorio:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Después de la expiración, el secreto se eliminará permanentemente y no se podrá recuperar."
+    "text": "Después de expirar, el secreto será eliminado permanentemente y no podrá ser recuperado."
   },
   "email.expiration_warning.sent_via": {
-    "text": "Enviado mediante"
+    "text": "Enviado vía"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Velo antes de que desaparezca:"
+    "text": "Míralo antes de que desaparezca:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Después de la expiración, el secreto se eliminará permanentemente."
+    "text": "Después de expirar, el secreto será eliminado permanentemente."
   },
   "email.feedback_email.subject": {
-    "text": "Comentarios del %{date} mediante %{display_domain} (%{strategy})"
+    "text": "Comentarios del %{date} vía %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
     "text": "Comentarios del usuario"
@@ -183,7 +183,7 @@
     "text": "Mensaje:"
   },
   "email.feedback_email.signature": {
-    "text": "Soporte de Secretos"
+    "text": "Soporte Secreto"
   },
   "email.organization_invitation.subject": {
     "text": "Has sido invitado a unirte a %{organization_name}"
@@ -195,7 +195,7 @@
     "text": "%{inviter_email} te ha invitado a unirte a \"%{organization_name}\" como %{role_description}."
   },
   "email.organization_invitation.accept_button": {
-    "text": "Aceptar Invitación"
+    "text": "Aceptar invitación"
   },
   "email.organization_invitation.link_instruction": {
     "text": "O copia y pega este enlace:"
@@ -204,13 +204,13 @@
     "text": "Esta invitación expirará en %{days} días."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Si no deseas unirte, puedes simplemente ignorar este correo o rechazar la invitación."
+    "text": "Si no quieres unirte, simplemente puedes ignorar este correo o rechazar la invitación."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.D. Este correo fue enviado a %{invited_email}. Si no esperabas esta invitación, puedes ignorar este mensaje sin problema."
+    "text": "P.D. Este correo fue enviado a %{invited_email}. Si no esperabas esta invitación, puedes ignorar este mensaje de forma segura."
   },
   "email.organization_invitation.roles.member": {
     "text": "miembro"
@@ -225,40 +225,40 @@
     "text": "Tu contraseña fue cambiada"
   },
   "email.password_changed.body": {
-    "text": "Tu contraseña de %{product_name} fue cambiada el %{date} a las %{time}."
+    "text": "Tu contraseña para %{product_name} fue cambiada el %{date} a las %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Si no hiciste este cambio, asegura tu cuenta de inmediato restableciendo tu contraseña y contactando al soporte."
+    "text": "Si no realizaste este cambio, asegura tu cuenta inmediatamente restableciendo tu contraseña y contactando a soporte."
   },
   "email.password_changed.signature": {
     "text": "Delano"
   },
   "email.email_changed.subject": {
-    "text": "Tu dirección de correo electrónico fue cambiada (%{display_domain})"
+    "text": "Tu dirección de correo fue cambiada (%{display_domain})"
   },
   "email.email_changed.title": {
-    "text": "Tu dirección de correo electrónico fue cambiada"
+    "text": "Tu dirección de correo fue cambiada"
   },
   "email.email_changed.body": {
-    "text": "La dirección de correo electrónico de tu cuenta de %{product_name} fue cambiada a %{new_email_masked} el %{date}."
+    "text": "La dirección de correo de tu cuenta de %{product_name} fue cambiada a %{new_email_masked} el %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Si no hiciste este cambio, contacta al soporte de inmediato, ya que tu cuenta puede estar comprometida."
+    "text": "Si no realizaste este cambio, contacta con soporte inmediatamente ya que tu cuenta puede estar comprometida."
   },
   "email.email_changed.signature": {
     "text": "Delano"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Verifica tu nueva dirección de correo electrónico (%{display_domain})"
+    "text": "Verifica tu nueva dirección de correo (%{display_domain})"
   },
   "email.email_change_confirmation.title": {
-    "text": "Verifica tu nueva dirección de correo electrónico"
+    "text": "Verifica tu nueva dirección de correo"
   },
   "email.email_change_confirmation.body": {
-    "text": "Verifica esta dirección de correo electrónico para completar el cambio de tu cuenta de %{product_name}."
+    "text": "Por favor, verifica esta dirección de correo para completar el cambio de tu cuenta de %{product_name}."
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Verificar correo electrónico"
+    "text": "Verificar dirección de correo"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "O copia y pega este enlace:"
@@ -276,7 +276,7 @@
     "text": "La autenticación de dos factores fue activada para tu cuenta de %{product_name} el %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Tu cuenta ahora es más segura. Deberás ingresar un código de verificación de tu aplicación de autenticación al iniciar sesión."
+    "text": "Tu cuenta ahora es más segura. Necesitarás introducir un código de verificación de tu aplicación de autenticación al iniciar sesión."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
@@ -291,7 +291,7 @@
     "text": "La autenticación de dos factores fue desactivada para tu cuenta de %{product_name} el %{date}."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Tu cuenta ahora es menos segura. Si no hiciste este cambio, asegura tu cuenta de inmediato."
+    "text": "Tu cuenta ahora es menos segura. Si no realizaste este cambio, asegura tu cuenta inmediatamente."
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
@@ -360,7 +360,7 @@
     "text": "Delano"
   },
   "email.payment_receipt.subject": {
-    "text": "Recibo de pago de %{product_name}"
+    "text": "Recibo de pago para %{product_name}"
   },
   "email.payment_receipt.title": {
     "text": "Recibo de pago"
@@ -390,7 +390,7 @@
     "text": "Pago fallido"
   },
   "email.payment_failed.body": {
-    "text": "No pudimos procesar tu pago de %{product_name}. Actualiza tu método de pago para evitar interrupciones del servicio."
+    "text": "No pudimos procesar tu pago para %{product_name}. Por favor, actualiza tu método de pago para evitar la interrupción del servicio."
   },
   "email.payment_failed.update_payment_button": {
     "text": "Actualizar método de pago"
@@ -402,7 +402,7 @@
     "text": "Tu prueba de %{product_name} expira en %{days_remaining} días"
   },
   "email.trial_expiring.title": {
-    "text": "Tu prueba está por terminar"
+    "text": "Tu prueba termina pronto"
   },
   "email.trial_expiring.body": {
     "text": "Tu prueba gratuita de %{product_name} expirará en %{days_remaining} días. Actualiza ahora para mantener acceso a todas las funciones."
@@ -414,13 +414,13 @@
     "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "Tu suscripción de %{product_name} fue cambiada"
+    "text": "Tu suscripción a %{product_name} fue cambiada"
   },
   "email.subscription_changed.title": {
     "text": "Suscripción cambiada"
   },
   "email.subscription_changed.body": {
-    "text": "Tu suscripción de %{product_name} fue cambiada de %{old_plan} a %{new_plan}."
+    "text": "Tu suscripción a %{product_name} ha sido cambiada de %{old_plan} a %{new_plan}."
   },
   "email.subscription_changed.effective_date": {
     "text": "Este cambio es efectivo el %{date}."
@@ -435,7 +435,7 @@
     "text": "Gracias,"
   },
   "email.common.unsubscribe": {
-    "text": "Darse de baja"
+    "text": "Cancelar suscripción"
   },
   "email.common.view_in_browser": {
     "text": "Ver en el navegador"

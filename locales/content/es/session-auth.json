@@ -3,19 +3,19 @@
     "text": "¿Necesitas una cuenta?"
   },
   "web.login.need_an_account": {
-    "text": "¿Necesitas una cuenta?"
+    "text": "Regístrate."
   },
   "web.login.forgot_your_password": {
     "text": "¿Olvidaste tu contraseña?"
   },
   "web.login.button_sign_in": {
-    "text": "Ingresar"
+    "text": "Iniciar sesión"
   },
   "web.login.enter_your_credentials": {
     "text": "Introduce tus credenciales"
   },
   "web.login.remember_me": {
-    "text": "Recuérdame"
+    "text": "Recordarme"
   },
   "web.signup.create_your_account": {
     "text": "Crea tu cuenta"
@@ -24,22 +24,22 @@
     "text": "¿Ya tienes una cuenta?"
   },
   "web.signup.have_an_account": {
-    "text": "O, ingresa a tu cuenta"
+    "text": "Iniciar sesión."
   },
   "web.signup.error_title": {
-    "text": "Error al Crear Cuenta"
+    "text": "Error al crear la cuenta"
   },
   "web.signup.password_error": {
     "text": "Contraseña"
   },
   "web.signup.email_error": {
-    "text": "Correo Electrónico"
+    "text": "Correo electrónico"
   },
   "web.auth.verify.title": {
-    "text": "Verifica Tu Cuenta"
+    "text": "Verifica tu cuenta"
   },
   "web.auth.verify.success": {
-    "text": "Tu cuenta ha sido verificada con éxito"
+    "text": "Tu cuenta ha sido verificada correctamente"
   },
   "web.auth.verify.invalid_key": {
     "text": "Clave de verificación inválida o expirada"
@@ -51,58 +51,58 @@
     "text": "Esta cuenta ya ha sido verificada. Puedes iniciar sesión ahora."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "No se puede verificar la cuenta. Por favor, inténtalo de nuevo o contacta a soporte."
+    "text": "No se pudo verificar la cuenta. Por favor, inténtalo de nuevo o contacta con soporte."
   },
   "web.auth.verify.check_email": {
-    "text": "Por favor, revisa tu correo electrónico para obtener un enlace de verificación"
+    "text": "Por favor, revisa tu correo electrónico para encontrar el enlace de verificación"
   },
   "web.auth.verify.error": {
-    "text": "La verificación de cuenta falló. Por favor, verifica tu enlace de verificación o solicita uno nuevo."
+    "text": "La verificación de la cuenta falló. Por favor, comprueba tu enlace de verificación o solicita uno nuevo."
   },
   "web.auth.verify.error_title": {
-    "text": "Verificación Fallida"
+    "text": "Verificación fallida"
   },
   "web.auth.verify.what_to_do": {
     "text": "¿Qué debo hacer?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Revisa tu correo electrónico para obtener el enlace de verificación más reciente"
+    "text": "Revisa tu correo electrónico para encontrar el enlace de verificación más reciente"
   },
   "web.auth.verify.check_spam": {
-    "text": "Revisa tu carpeta de spam/correo no deseado si no puedes encontrar el correo"
+    "text": "Revisa tu carpeta de spam/correo no deseado si no encuentras el correo"
   },
   "web.auth.verify.contact_support": {
-    "text": "Contacta a soporte si continúas teniendo problemas"
+    "text": "Contacta con soporte si continúas teniendo problemas"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Se Requiere Enlace de Verificación"
+    "text": "Se requiere enlace de verificación"
   },
   "web.auth.verify.missing_key_message": {
     "text": "Por favor, usa el enlace de verificación enviado a tu dirección de correo electrónico para verificar tu cuenta."
   },
   "web.auth.verify.create_new_account": {
-    "text": "Crear Nueva Cuenta"
+    "text": "Crear nueva cuenta"
   },
   "web.auth.change_password.title": {
-    "text": "Cambiar Contraseña"
+    "text": "Cambiar contraseña"
   },
   "web.auth.change_password.current_password": {
-    "text": "Contraseña Actual"
+    "text": "Contraseña actual"
   },
   "web.auth.change_password.new_password": {
-    "text": "Nueva Contraseña"
+    "text": "Nueva contraseña"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Confirmar Nueva Contraseña"
+    "text": "Confirmar nueva contraseña"
   },
   "web.auth.change_password.success": {
-    "text": "Tu contraseña ha sido cambiada con éxito"
+    "text": "Tu contraseña ha sido cambiada correctamente"
   },
   "web.auth.change_password.error": {
-    "text": "El cambio de contraseña falló. Por favor, verifica tu contraseña actual e inténtalo de nuevo."
+    "text": "Error al cambiar la contraseña. Por favor, verifica tu contraseña actual e inténtalo de nuevo."
   },
   "web.auth.close_account.title": {
-    "text": "Cerrar Cuenta"
+    "text": "Cerrar cuenta"
   },
   "web.auth.close_account.warning": {
     "text": "Esta acción no se puede deshacer. Todos tus secretos serán eliminados permanentemente."
@@ -114,22 +114,22 @@
     "text": "Introduce tu contraseña para confirmar"
   },
   "web.auth.close_account.button": {
-    "text": "Cerrar Cuenta Permanentemente"
+    "text": "Cerrar cuenta permanentemente"
   },
   "web.auth.close_account.cancel": {
     "text": "Cancelar"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Solicitar Restablecimiento de Contraseña"
+    "text": "Solicitar restablecimiento de contraseña"
   },
   "web.auth.password_reset_request.description": {
     "text": "Introduce tu dirección de correo electrónico a continuación y te enviaremos un enlace para restablecer tu contraseña"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Enviar Enlace de Restablecimiento"
+    "text": "Enviar enlace de restablecimiento"
   },
   "web.auth.password_reset.title": {
-    "text": "Elige una Nueva Contraseña"
+    "text": "Elige una nueva contraseña"
   },
   "web.auth.password_reset.description": {
     "text": "Por favor, introduce tu nueva contraseña a continuación. Asegúrate de que sea fuerte y única para proteger tu cuenta."
@@ -141,54 +141,129 @@
     "text": "Acepto los"
   },
   "web.auth.account.title": {
-    "text": "Información de Cuenta"
+    "text": "Información de la cuenta"
   },
   "web.auth.account.email": {
-    "text": "Dirección de Correo Electrónico"
+    "text": "Dirección de correo electrónico"
   },
   "web.auth.account.created": {
-    "text": "Cuenta Creada"
+    "text": "Cuenta creada"
   },
   "web.auth.account.verified": {
-    "text": "Correo Electrónico Verificado"
+    "text": "Correo electrónico verificado"
   },
   "web.auth.account.region": {
     "text": "Región"
   },
   "web.auth.account.not_verified": {
-    "text": "Correo Electrónico No Verificado"
+    "text": "Correo electrónico no verificado"
   },
   "web.auth.account.verify_email": {
-    "text": "Verificar Dirección de Correo Electrónico"
+    "text": "Verificar dirección de correo electrónico"
   },
   "web.auth.account.mfa_status": {
-    "text": "Autenticación de Dos Factores"
+    "text": "Autenticación de dos factores"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Habilitada"
+    "text": "Habilitado"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Deshabilitada"
+    "text": "Deshabilitado"
   },
   "web.auth.account.active_sessions": {
-    "text": "Sesiones Activas"
+    "text": "Sesiones activas"
   },
   "web.auth.account.session_count": {
     "text": "{count} sesión(es) activa(s)"
   },
   "web.auth.account.quick_actions": {
-    "text": "Acciones Rápidas"
+    "text": "Acciones rápidas"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Gestionar Autenticación de Dos Factores"
+    "text": "Gestionar autenticación de dos factores"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Gestionar Sesiones Activas"
+    "text": "Gestionar sesiones activas"
   },
   "web.auth.account.change_password": {
-    "text": "Cambiar Contraseña"
+    "text": "Cambiar contraseña"
   },
   "web.auth.account.close_account": {
-    "text": "Cerrar Cuenta"
+    "text": "Cerrar cuenta"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Flujo de verificación de correo electrónico después del registro"
+  },
+  "web.help.title": {
+    "text": "Ayuda y soporte"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Solución de problemas de inicio de sesión"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "¿El enlace mágico no llega?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Revisa tu carpeta de spam o correo no deseado"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Verifica que hayas escrito correctamente tu dirección de correo electrónico"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Espera unos minutos - los correos a veces pueden retrasarse"
+  },
+  "web.help.try_again": {
+    "text": "Intenta solicitar un nuevo enlace si han pasado más de 10 minutos"
+  },
+  "web.help.forgot_password": {
+    "text": "¿Olvidaste tu contraseña?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Usa la opción de Enlace Mágico para iniciar sesión sin contraseña. Una vez que hayas iniciado sesión, puedes cambiar tu contraseña en Configuración de la cuenta."
+  },
+  "web.help.account_locked": {
+    "text": "¿Cuenta bloqueada temporalmente?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Después de varios intentos fallidos de inicio de sesión, las cuentas se bloquean temporalmente por seguridad. Espera 15 minutos e inténtalo de nuevo, o usa el Enlace Mágico para iniciar sesión."
+  },
+  "web.help.still_need_help": {
+    "text": "¿Aún necesitas ayuda?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Si sigues teniendo problemas, estamos aquí para ayudarte. Envíanos un mensaje y te responderemos lo antes posible."
+  },
+  "web.help.contact_support": {
+    "text": "Contactar con soporte"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Enviar enlace de inicio de sesión"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Se enviará un enlace seguro a tu bandeja de entrada."
+  },
+  "web.login.or_divider": {
+    "text": "o"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Iniciar sesión con contraseña"
+  },
+  "web.login.use_passwordless": {
+    "text": "Usar inicio de sesión sin contraseña"
+  },
+  "web.login.create_account": {
+    "text": "Crear cuenta"
+  },
+  "web.login.return_home": {
+    "text": "Volver al inicio"
+  },
+  "web.login.tab_password": {
+    "text": "Contraseña"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Enlace mágico"
+  },
+  "web.login.need_help": {
+    "text": "¿Necesitas ayuda?"
   }
 }
