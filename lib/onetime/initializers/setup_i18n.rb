@@ -96,7 +96,7 @@ module Onetime
         #
         def load_json(filename)
           # Defense in depth: validate path before reading to prevent traversal
-          locales_dir   = Onetime::HOME.join('generated', 'locales').to_s
+          locales_dir   = File.join(Onetime::HOME, 'generated', 'locales')
           expanded_path = File.expand_path(filename)
           unless expanded_path.start_with?(locales_dir + File::SEPARATOR)
             raise I18n::InvalidLocaleData.new(filename, 'path outside allowed locales directory')
