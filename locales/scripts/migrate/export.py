@@ -188,9 +188,9 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python export_to_historical.py eo --dry-run
-    python export_to_historical.py eo
-    python export_to_historical.py eo --file _common.json
+    python export.py eo --dry-run
+    python export.py eo
+    python export.py eo --file 00-common.json
         """,
     )
 
