@@ -23,10 +23,13 @@ module Core
       def advanced
         checks = {
           redis: check_redis,
+          rabbitmq: check_rabbitmq,
           database: check_database,
         }
 
-        overall_status = checks.values.all? { |c| c[:status] == 'ok' } ? 'ok' : 'degraded'
+        # RabbitMQ and database are optional - only count configured services
+        required_checks = checks.reject { |_, v| v[:status] == 'not_configured' }
+        overall_status  = required_checks.values.all? { |c| c[:status] == 'ok' } ? 'ok' : 'degraded'
 
         res['content-type'] = 'application/json'
         res.body            = JSON.generate(
@@ -52,6 +55,30 @@ module Core
           status: 'error',
           error: ex.message,
         }
+      end
+
+      def check_rabbitmq
+        # RabbitMQ is optional - check if configured
+        amqp_url = ENV.fetch('RABBITMQ_URL', nil)
+        return { status: 'not_configured' } if amqp_url.nil? || amqp_url.empty?
+
+        require 'bunny'
+        conn = Bunny.new(amqp_url)
+        conn.start
+
+        {
+          status: conn.open? ? 'ok' : 'error',
+          vhost: conn.vhost,
+        }
+      rescue LoadError
+        { status: 'not_configured' }
+      rescue StandardError => ex
+        {
+          status: 'error',
+          error: ex.message,
+        }
+      ensure
+        conn&.close if defined?(conn) && conn
       end
 
       def check_database
