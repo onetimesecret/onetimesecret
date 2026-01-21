@@ -10,6 +10,7 @@ require 'rack/utf8_sanitizer'
 
 require_relative '../session'
 require_relative '../middleware/ip_ban'
+require_relative '../middleware/health_access_control'
 require 'otto'
 
 module Onetime
@@ -119,6 +120,10 @@ module Onetime
           # IP Ban middleware - blocks banned IPs (after IP privacy)
           logger.debug 'Setting up IP Ban middleware'
           builder.use Onetime::Middleware::IPBan
+
+          # Health endpoint access control - restrict to localhost/private networks
+          logger.debug 'Setting up Health Access Control middleware'
+          builder.use Onetime::Middleware::HealthAccessControl
 
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
