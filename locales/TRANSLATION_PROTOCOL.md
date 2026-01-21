@@ -86,12 +86,13 @@ python locales/scripts/store.py query "INSERT INTO glossary (locale, term, trans
 ### 6. End session - export to content
 ```bash
 python locales/scripts/migrate/export.py eo
+bash locales/scripts/export-metadata.sh
 ```
 The frontend auto-generates `generated/locales/` on startup from `locales/content/`.
 
 ### 7. Commit
 ```bash
-git add locales/content/eo/
+git add locales/content/eo/ locales/db/*.sql
 git commit -m "[#2319] Add eo translations from session"
 ```
 
