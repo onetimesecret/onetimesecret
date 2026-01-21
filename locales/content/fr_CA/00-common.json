@@ -11,25 +11,25 @@
     "text": "Propulsé par"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/fr-ca"
+    "text": "https://onetimesecret.com/fr"
   },
   "web.COMMON.button_generate_secret_short": {
     "text": "Générer un mot de passe"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "La génération de mot de passe est désactivée lorsque le formulaire est valide"
+    "text": "Générer un mot de passe est désactivé lorsque le formulaire est valide"
   },
   "web.COMMON.email_placeholder": {
     "text": "p. ex. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Saisissez votre mot de passe"
+    "text": "Entrez votre mot de passe"
   },
   "web.COMMON.custom_domains_title": {
     "text": "Domaines personnalisés"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Renforcez vos connexions et établissez la confiance avec vos liens secrets personnalisés."
+    "text": "Renforcez vos liens et bâtissez la confiance avec vos propres liens secrets personnalisés."
   },
   "web.COMMON.get_started_button": {
     "text": "Commencer"
@@ -44,19 +44,19 @@
     "text": "Soumettre"
   },
   "web.COMMON.submitting": {
-    "text": "Soumission en cours"
+    "text": "Envoi en cours..."
   },
   "web.COMMON.processing": {
-    "text": "Traitement en cours"
+    "text": "Traitement en cours..."
   },
   "web.COMMON.description": {
-    "text": "Ne stockez aucune information confidentielle dans vos emails ou fils de discussion. Partagez un lien secret, disponible qu'une seule fois."
+    "text": "Gardez les informations sensibles hors de vos journaux de clavardage et courriels. Partagez un lien secret disponible une seule fois."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Phrase secrète incorrecte"
   },
   "web.COMMON.keywords": {
-    "text": "secret, générateur de mot de passe, usage unique"
+    "text": "secret,générateur de mot de passe,partager un secret,usage unique"
   },
   "web.COMMON.button_create_secret": {
     "text": "Créer un lien secret"
@@ -65,25 +65,25 @@
     "text": "Ou générer un mot de passe aléatoire"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Paramètres de confidentialité"
+    "text": "Options de confidentialité"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Mot de passe"
+    "text": "Phrase secrète"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Un mot ou une phrase qui est difficile à deviner"
+    "text": "Un mot ou une phrase difficile à deviner"
   },
   "web.COMMON.secret_recipient_address": {
     "text": "Adresse du destinataire"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Collez votre contenu secret"
+    "text": "Le contenu secret va ici..."
   },
   "web.COMMON.header_create_account": {
     "text": "Créer un compte"
   },
   "web.COMMON.header_about": {
-    "text": "A propos"
+    "text": "À propos"
   },
   "web.COMMON.header_sign_in": {
     "text": "Se connecter"
@@ -95,7 +95,7 @@
     "text": "Déconnexion"
   },
   "web.COMMON.secret": {
-    "text": "Secret"
+    "text": "Secret | Secrets"
   },
   "web.COMMON.recent": {
     "text": "Récent"
@@ -104,70 +104,70 @@
     "text": "Reçu"
   },
   "web.COMMON.burn": {
-    "text": "Supprimer"
+    "text": "Brûler"
   },
   "web.COMMON.burned": {
-    "text": "Supprimé"
+    "text": "Brûlé"
   },
   "web.COMMON.expires_in": {
     "text": "Expire dans"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Supprimer ce secret"
+    "text": "Brûler ce secret"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Supprimer ce secret le fera disparaître avant qu'il soit lu (cliquez pour confirmer)"
+    "text": "Brûler un secret le supprimera avant qu'il ne soit lu (cliquez pour confirmer)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "La suppression du secret est définitive et ne peut pas être annulée"
+    "text": "Brûler un secret est permanent et ne peut pas être annulé"
   },
   "web.COMMON.msg_check_email": {
     "text": "Vérifiez votre courriel"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Cliquez pour continuer →"
+    "text": "Cliquer pour révéler →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Continuez pour vérifier votre compte:"
+    "text": "Continuez pour vérifier votre compte : "
   },
   "web.COMMON.error_secret": {
-    "text": "Il n'y a rien à partager"
+    "text": "Vous n'avez rien fourni à partager"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Confirmer ce mot de passe"
+    "text": "Vérifiez la phrase secrète"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Saisissez le mot de passe ici"
+    "text": "Entrez la phrase secrète ici"
   },
   "web.COMMON.view_secret": {
-    "text": "Consulter le secret"
+    "text": "Voir le secret"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "attention : ne sera affiché qu'une seule fois"
+    "text": "Attention : nous ne l'afficherons qu'une seule fois."
   },
   "web.COMMON.warning": {
     "text": "Attention"
   },
   "web.COMMON.oops": {
-    "text": "Oups !"
+    "text": "Oups !"
   },
   "web.COMMON.error": {
-    "text": "Bug "
+    "text": "Erreur"
   },
   "web.COMMON.unexpected_error": {
     "text": "Une erreur inattendue s'est produite. Veuillez réessayer."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Le message a été tronqué parce qu’il était trop grand"
+    "text": "Le message a été tronqué"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Créer un compte pour en savoir plus"
+    "text": "Inscrivez-vous pour plus"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Se connecter à votre compte"
+    "text": "Connectez-vous à votre compte"
   },
   "web.COMMON.sent_to": {
-    "text": "Envoyé à"
+    "text": "Envoyé à : "
   },
   "web.COMMON.field_email": {
     "text": "Courriel"
@@ -191,7 +191,7 @@
     "text": "Aucun"
   },
   "web.COMMON.word_burned": {
-    "text": "supprimé"
+    "text": "brûlé"
   },
   "web.COMMON.word_received": {
     "text": "reçu"
@@ -212,43 +212,43 @@
     "text": "Retour"
   },
   "web.COMMON.feedback_text": {
-    "text": "Une question ou un commentaire ?"
+    "text": "Partagez vos réflexions, idées ou expériences..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Envoyer une réaction"
+    "text": "Envoyer un retour"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Une vérification a été envoyée à -"
+    "text": "Une vérification a été envoyée à"
   },
   "web.COMMON.autoverified_success": {
     "text": "Compte créé. Veuillez vous connecter."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Si un compte associé à ce courriel existe, vous recevrez un courriel de vérification."
+    "text": "Si un compte avec ce courriel existe, vous recevrez un courriel de vérification."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Supprimer ce secret définitivement"
+    "text": "Brûler ce secret de façon permanente"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Veuillez confirmer"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Voulez-vous vraiment supprimer ce secret? Cette action est irréversible."
+    "text": "Voulez-vous vraiment brûler ce secret ? Cette action est irréversible."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Oui, supprimer ce secret"
+    "text": "Oui, brûler ce secret"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "La suppression d'un secret l'effacera avant qu'il n'ait été reçu."
+    "text": "Brûler un secret le supprimera avant qu'il ne soit reçu."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Pour la sécurité, partagez ce lien séparément des autres détails."
+    "text": "Par sécurité, partagez ce lien séparément des autres détails."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Copié dans le presse-papiers"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Envoyer un message"
+    "text": "Créer un lien entrant"
   },
   "web.COMMON.faq_title": {
     "text": "F.A.Q."
@@ -275,25 +275,25 @@
     "text": "Les mots de passe ne correspondent pas"
   },
   "web.COMMON.form_field_required": {
-    "text": "Ce champ est obligatoire"
+    "text": "Ce champ est requis"
   },
   "web.COMMON.form_processing": {
     "text": "Traitement de votre demande"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Garder ma session active pendant 30 jours"
+    "text": "Me garder connecté pendant 30 jours"
   },
   "web.COMMON.redirecting": {
-    "text": "Redirection en cours..."
+    "text": "Redirection..."
   },
   "web.COMMON.continue": {
     "text": "Continuer"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Êtes-vous certain?"
+    "text": "Êtes-vous certain ?"
   },
   "web.COMMON.danger_zone": {
-    "text": "Zone dangereuse"
+    "text": "Zone de danger"
   },
   "web.COMMON.caution_zone": {
     "text": "Zone de prudence"
@@ -314,10 +314,10 @@
     "text": "Enregistrer les modifications"
   },
   "web.COMMON.saving": {
-    "text": "Enregistrement en cours..."
+    "text": "Enregistrement..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Ajout en cours..."
+    "text": "Ajout en cours"
   },
   "web.COMMON.e_g_example": {
     "text": "p. ex."
@@ -326,25 +326,25 @@
     "text": "p. ex. {example}"
   },
   "web.COMMON.status": {
-    "text": "État"
+    "text": "Statut"
   },
   "web.COMMON.escape": {
-    "text": "Quitter"
+    "text": "Échap"
   },
   "web.COMMON.active": {
     "text": "Actif"
   },
   "web.COMMON.preview": {
-    "text": "Avant-première"
+    "text": "Aperçu"
   },
   "web.COMMON.remove": {
-    "text": "Retirer"
+    "text": "Supprimer"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Appuyez sur ESC pour fermer"
+    "text": "Appuyez sur ÉCHAP pour fermer"
   },
   "web.COMMON.enter": {
-    "text": "Entrer"
+    "text": "Entrée"
   },
   "web.COMMON.important": {
     "text": "Important"
@@ -377,7 +377,7 @@
     "text": "Annuel"
   },
   "web.COMMON.go_on_then": {
-    "text": "Continuez donc."
+    "text": "Allez-y."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Chargement..."
@@ -392,13 +392,13 @@
     "text": "Nouveau mot de passe"
   },
   "web.COMMON.email_address": {
-    "text": "Adresse email"
+    "text": "Adresse courriel"
   },
   "web.COMMON.switch": {
-    "text": "interrupteur"
+    "text": "basculer"
   },
   "web.COMMON.features": {
-    "text": "Caractéristiques"
+    "text": "Fonctionnalités"
   },
   "web.COMMON.not_found": {
     "text": "Non trouvé"
@@ -410,16 +410,16 @@
     "text": "✅"
   },
   "web.COMMON.supported": {
-    "text": "Soutenu"
+    "text": "Pris en charge"
   },
   "web.COMMON.version": {
     "text": "Version"
   },
   "web.COMMON.other": {
-    "text": "Autres"
+    "text": "Autre"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(largeur minimale : 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Entrée"
@@ -431,7 +431,7 @@
     "text": "Mac"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Adresse électronique copiée dans le presse-papiers !"
+    "text": "Adresse courriel copiée dans le presse-papiers !"
   },
   "web.COMMON.value": {
     "text": "Valeur"
@@ -449,25 +449,25 @@
     "text": "Suivant"
   },
   "web.COMMON.password_strength": {
-    "text": "Force du mot de passe :"
+    "text": "Force du mot de passe : "
   },
   "web.COMMON.great": {
-    "text": "Superbe"
+    "text": "Excellent"
   },
   "web.COMMON.pretty_good": {
-    "text": "Assez bien"
+    "text": "Plutôt bien"
   },
   "web.COMMON.fair": {
-    "text": "Juste"
+    "text": "Acceptable"
   },
   "web.COMMON.meh": {
-    "text": "Mezzanine"
+    "text": "Bof"
   },
   "web.COMMON.not_great": {
-    "text": "Pas terrible"
+    "text": "Pas génial"
   },
   "web.COMMON.open_options": {
-    "text": "Options ouvertes"
+    "text": "Ouvrir les options"
   },
   "web.COMMON.inactive": {
     "text": "Inactif"
@@ -482,10 +482,10 @@
     "text": "Secret copié dans le presse-papiers"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Vérifier à nouveau la phrase secrète"
+    "text": "Vérifiez la phrase secrète"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Appuyez sur le bouton de copie ci-dessous."
+    "text": "Appuyez sur le bouton copier ci-dessous."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Afficher"
@@ -515,7 +515,7 @@
     "text": "Durée de vie"
   },
   "web.LABELS.expiration_time": {
-    "text": "Délai d'expiration"
+    "text": "Date d'expiration"
   },
   "web.LABELS.close": {
     "text": "Fermer"
@@ -527,7 +527,7 @@
     "text": "Annuler"
   },
   "web.LABELS.saving": {
-    "text": "Enregistrement en cours"
+    "text": "Enregistrement..."
   },
   "web.LABELS.saved": {
     "text": "Enregistré"
@@ -548,7 +548,7 @@
     "text": "État du secret"
   },
   "web.LABELS.need_help": {
-    "text": "Besoin d'aide?"
+    "text": "Besoin d'aide ?"
   },
   "web.LABELS.create_new_secret": {
     "text": "Créer un nouveau secret"
@@ -557,7 +557,7 @@
     "text": "Actions"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Aucune phrase de passe requise"
+    "text": "Aucune phrase secrète requise"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Copier dans le presse-papiers"
@@ -572,7 +572,7 @@
     "text": "Lien secret"
   },
   "web.LABELS.dismiss": {
-    "text": "Rejeter"
+    "text": "Fermer"
   },
   "web.LABELS.security_details": {
     "text": "Détails de sécurité"
@@ -593,16 +593,16 @@
     "text": "fois consulté"
   },
   "web.LABELS.view_progress": {
-    "text": "Progression des consultations"
+    "text": "Voir la progression"
   },
   "web.LABELS.help_section": {
     "text": "Section d'aide"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Protégé par phrase de passe"
+    "text": "Protégé par phrase secrète"
   },
   "web.LABELS.feedback_received": {
-    "text": "Retour d'information reçu"
+    "text": "Commentaire reçu."
   },
   "web.LABELS.sending_ellipses": {
     "text": "Envoi..."
@@ -620,7 +620,7 @@
     "text": "Recharger"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Liens secrets créés durant cette session"
+    "text": "Liens secrets créés dans cette session"
   },
   "web.LABELS.create_link_short": {
     "text": "Créer un lien"
@@ -635,7 +635,7 @@
     "text": "Créer un lien de demande"
   },
   "web.LABELS.related_settings": {
-    "text": "Paramètres associés"
+    "text": "Paramètres connexes"
   },
   "web.LABELS.creating_links_for": {
     "text": "Création de liens pour"
@@ -650,19 +650,19 @@
     "text": "Non lu"
   },
   "web.STATUS.viewed": {
-    "text": "Lien consulté"
+    "text": "Lien ouvert"
   },
   "web.STATUS.received": {
     "text": "Reçu"
   },
   "web.STATUS.burned": {
-    "text": "Supprimé"
+    "text": "Brûlé"
   },
   "web.STATUS.destroyed": {
     "text": "Détruit"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Expiration imminente"
+    "text": "Expire bientôt"
   },
   "web.STATUS.created": {
     "text": "Créé"
@@ -701,16 +701,16 @@
     "text": "Le secret a été révélé au destinataire"
   },
   "web.STATUS.burned_description": {
-    "text": "Le secret a été supprimé manuellement avant d'être consulté"
+    "text": "Le secret a été brûlé manuellement avant d'être consulté"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Le secret a été détruit définitivement"
+    "text": "Le secret a été définitivement détruit"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "Le secret expirera bientôt"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Le secret est orphelin et sera bientôt détruit"
+    "text": "Le secret est devenu orphelin et sera bientôt détruit"
   },
   "web.STATUS.expired_description": {
     "text": "Le secret a expiré avant d'être consulté"
@@ -722,7 +722,7 @@
     "text": "Livré"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Système DNS incorrect"
+    "text": "DNS incorrect"
   },
   "web.STATUS.active": {
     "text": "Actif"
@@ -731,10 +731,10 @@
     "text": "Inactif"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Vues illimitées"
+    "text": "Consultations illimitées"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Image de marque du domaine sécurisé"
+    "text": "Image de marque de domaine fiable"
   },
   "web.FEATURES.encrypted_in_transit": {
     "text": "Chiffré en transit et au repos"
@@ -758,7 +758,7 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} restant"
+    "text": "{count} {unit} restant(s)"
   },
   "web.UNITS.ttl_remaining.time.day": {
     "text": "jour restant | jours restants"
@@ -779,19 +779,19 @@
     "text": "Limite de {count} consultation(s)"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} jour(s) restant(s)"
+    "text": "{count} jours restants"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} heure(s) restante(s)"
+    "text": "{count} heures restantes"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} minute(s) restante(s)"
+    "text": "{count} minutes restantes"
   },
   "web.TITLES.incoming": {
     "text": "Secrets entrants"
   },
   "web.TITLES.feedback": {
-    "text": "Retour d'information"
+    "text": "Commentaires"
   },
   "web.TITLES.signin": {
     "text": "Connexion"
@@ -830,7 +830,7 @@
     "text": "Reçu du secret"
   },
   "web.TITLES.burn_secret": {
-    "text": "Supprimer le secret"
+    "text": "Brûler le secret"
   },
   "web.TITLES.dashboard": {
     "text": "Tableau de bord"
@@ -848,10 +848,10 @@
     "text": "Vérifier le domaine"
   },
   "web.TITLES.domain_brand": {
-    "text": "Image de marque du domaine"
+    "text": "Domaine de marque"
   },
   "web.TITLES.account": {
-    "text": "Paramètres du compte"
+    "text": "Compte"
   },
   "web.TITLES.data_region": {
     "text": "Région des données"
@@ -920,19 +920,19 @@
     "text": "Instructions de partage"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Partagez le lien avec le destinataire visé"
+    "text": "Partagez le lien avec le destinataire prévu"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Partagez la phrase de passe séparément via un canal sécurisé"
+    "text": "Partagez la phrase secrète séparément par un canal sécurisé"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Utilisez un canal sécurisé différent pour partager les informations sensibles"
+    "text": "Utilisez un canal sécurisé différent pour partager des informations sensibles"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vérifiez toujours que vous êtes sur le site officiel d'Onetime Secret. Les fraudeurs créent parfois de faux sites qui ressemblent exactement à Onetime Secret pour voler vos secrets. Pour éviter les attaques d'hameçonnage, vérifiez le domaine régional avant de créer de nouveaux liens."
+    "text": "Vérifiez toujours que vous êtes sur le site officiel de Onetime Secret. Les fraudeurs créent parfois de faux sites Web qui ressemblent exactement à Onetime Secret pour voler vos secrets. Pour éviter les attaques d'hameçonnage, vérifiez le domaine régional avant de créer de nouveaux liens."
   },
   "web.STATUS.previewed": {
-    "text": "Lien consulté"
+    "text": "Prévisualisé"
   },
   "web.STATUS.revealed": {
     "text": "Révélé"
@@ -941,6 +941,66 @@
     "text": "Le lien secret a été ouvert et est prêt à être révélé"
   },
   "web.STATUS.revealed_description": {
-    "text": "Le contenu secret a été révélé au destinataire"
+    "text": "Le contenu du secret a été révélé au destinataire"
+  },
+  "web.COMMON.not_set": {
+    "text": "Non défini"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Modifier"
+  },
+  "web.COMMON.word_save": {
+    "text": "Enregistrer"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Expire dans"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtrer"
+  },
+  "web.LABELS.clear": {
+    "text": "Effacer"
+  },
+  "web.LABELS.add_note": {
+    "text": "Ajouter une note..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Modifier la note"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Ajouter un mémo..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Modifier le mémo"
+  },
+  "web.TITLES.help": {
+    "text": "Aide"
+  },
+  "web.TITLES.pricing": {
+    "text": "Tarification"
+  },
+  "web.pricing.title": {
+    "text": "Tarification simple et transparente"
+  },
+  "web.pricing.subtitle": {
+    "text": "Choisissez le forfait qui correspond à vos besoins. Tous les forfaits incluent le partage de secrets illimité et une conception axée sur la confidentialité."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Commencer gratuitement"
+  },
+  "web.pricing.start_trial": {
+    "text": "Commencer"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Vous avez déjà un compte ?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Se connecter"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Recommandé pour vous"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Créez et partagez des secrets avec les fonctionnalités de base. Aucune carte de crédit requise."
   }
 }

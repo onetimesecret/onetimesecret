@@ -1,42 +1,42 @@
 {
   "web.branding.color_picker": {
-    "text": "Sélecteur de couleurs"
+    "text": "Sélecteur de couleur"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Courant {0}: {1}. Cliquez pour faire défiler les options."
+    "text": "{0} actuel : {1}. Cliquez pour parcourir les options."
   },
   "web.branding.use_setting": {
-    "text": "Utiliser le réglage"
+    "text": "Utiliser le paramètre"
   },
   "web.branding.font_family": {
     "text": "Famille de polices"
   },
   "web.branding.corner_style": {
-    "text": "Style d'angle"
+    "text": "Style de coins"
   },
   "web.branding.brand_color": {
-    "text": "Couleur de la marque"
+    "text": "Couleur de marque"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Aperçu de la page du lien secret pour les destinataires"
+    "text": "Aperçu de la vue du destinataire lors de l'accès à votre lien sécurisé"
   },
   "web.branding.preview_and_customize": {
-    "text": "Avant-première & Personnaliser"
+    "text": "Aperçu et personnalisation"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Passer à l'affichage du navigateur Safari"
+    "text": "Passer à la vue du navigateur Safari"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge"
   },
   "web.branding.maximize_window": {
-    "text": "Agrandir la fenêtre"
+    "text": "Maximiser la fenêtre"
   },
   "web.branding.minimize_window": {
-    "text": "Réduire la fenêtre"
+    "text": "Minimiser la fenêtre"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Passer à l'affichage du navigateur Edge"
+    "text": "Passer à la vue du navigateur Edge"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 caractères"
@@ -54,10 +54,10 @@
     "text": "Ces instructions seront affichées aux destinataires après qu'ils auront révélé le secret"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instructions préalables au dévoilement"
+    "text": "Instructions avant révélation"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instructions post-révélation"
+    "text": "Instructions après révélation"
   },
   "web.branding.instructions": {
     "text": "Instructions"
@@ -69,7 +69,7 @@
     "text": "Cliquez pour importer un logo. Dimensions recommandées : 128x128 pixels. Taille maximale : 1 Mo. Formats acceptés : PNG, JPG, SVG"
   },
   "web.branding.upload_logo": {
-    "text": "Télécharger le logo"
+    "text": "Téléverser un logo"
   },
   "web.branding.loading_preview": {
     "text": "Chargement de l'aperçu..."
@@ -93,36 +93,36 @@
     "text": "Icône de personnalisation"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Vous avez des modifications non sauvegardées. En êtes-vous sûr ?"
+    "text": "Vous avez des modifications non enregistrées. Êtes-vous sûr ?"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Échec du chargement des paramètres de la marque"
+    "text": "Échec du chargement des paramètres de marque"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Il s'agit d'un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - télécharger un logo (128x128 pixels minimum recommandés, 1MB maximum) - tester l'aperçu à l'aide du bouton \"Voir le secret\""
+    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et polices à l'aide des contrôles ci-dessus - Téléverser un logo (minimum 128x128 pixels recommandé, 1 Mo maximum) - Tester l'aperçu en utilisant le bouton « Voir le secret »"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Il s'agit d'un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - télécharger un logo (128x128 pixels minimum recommandés, 1MB maximum) - tester l'aperçu à l'aide du bouton \"Voir le secret\""
   },
   "web.branding.default_logo_icon": {
-    "text": "Icône du logo par défaut"
+    "text": "Kanji japonais '秘' (himitsu) signifiant 'secret' ou 'confidentiel'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Propulsé par Onetime Secret"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Logo"
+    "text": "Logo {0}"
   },
   "web.branding.edge": {
-    "text": "Bord"
+    "text": "Edge"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Passer à l'aperçu des bords"
+    "text": "Passer à l'aperçu Edge"
   },
   "web.branding.safari": {
     "text": "Safari"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Passer à l'aperçu de Safari"
+    "text": "Passer à l'aperçu Safari"
   }
 }

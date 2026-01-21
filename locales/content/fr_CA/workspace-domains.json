@@ -3,22 +3,22 @@
     "text": "En savoir plus sur la configuration DNS"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Consulter le statut de vérification du domaine"
+    "text": "Voir le statut de vérification du domaine"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Ce domaine est déjà enregistré dans votre organisation"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Ce domaine est déjà enregistré auprès d'une autre organisation. Veuillez contacter le support si vous pensez qu'il s'agit d'une erreur."
+    "text": "Ce domaine est déjà enregistré auprès d'une autre organisation. Veuillez contacter le soutien si vous pensez qu'il s'agit d'une erreur."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domaine réclamé avec succès et ajouté à votre organisation"
+    "text": "Domaine revendiqué et ajouté à votre organisation avec succès"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Paramètres de confidentialité par défaut"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Définissez les options de confidentialité par défaut pour les secrets créés sous ce domaine. Ces paramètres seront pré-remplis lors de la création de nouveaux secrets."
+    "text": "Définir les options de confidentialité par défaut pour les secrets créés sous ce domaine. Ces paramètres seront pré-remplis lors de la création de nouveaux secrets."
   },
   "web.domains.privacy_defaults": {
     "text": "Paramètres de confidentialité par défaut"
@@ -30,10 +30,10 @@
     "text": "Durée de vie par défaut"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Durée pendant laquelle les secrets restent accessibles par défaut"
+    "text": "Durée pendant laquelle les secrets doivent rester accessibles par défaut"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Phrase secrète requise"
+    "text": "Exiger une phrase secrète"
   },
   "web.domains.passphrase_required_hint": {
     "text": "Rendre la phrase secrète obligatoire pour tous les secrets de ce domaine"
@@ -45,7 +45,7 @@
     "text": "Activer les notifications par courriel par défaut lorsque les secrets sont consultés"
   },
   "web.domains.use_global_default": {
-    "text": "Utiliser le paramètre global par défaut"
+    "text": "Utiliser la valeur globale par défaut"
   },
   "web.domains.global_default": {
     "text": "Global"
@@ -69,7 +69,7 @@
     "text": "Modifier les paramètres par défaut"
   },
   "web.domains.ttl_short": {
-    "text": "Durée de vie"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
     "text": "Phrase secrète"
@@ -99,7 +99,7 @@
     "text": "Le domaine par défaut n'a pas de page de paramètres"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Veuillez saisir un nom de domaine {0}"
+    "text": "Veuillez entrer un nom de domaine {0}"
   },
   "web.domains.domain_name": {
     "text": "Nom de domaine"
@@ -126,7 +126,7 @@
     "text": "Dernière vérification"
   },
   "web.domains.ssl_status": {
-    "text": "État du SSL"
+    "text": "Statut SSL"
   },
   "web.domains.ssl_renews": {
     "text": "Renouvellement SSL"
@@ -138,7 +138,7 @@
     "text": "Adresse cible"
   },
   "web.domains.domain_status": {
-    "text": "État du domaine"
+    "text": "Statut du domaine"
   },
   "web.domains.custom_domains_count": {
     "text": "Nombre de domaines personnalisés"
@@ -150,10 +150,10 @@
     "text": "Ouvrir le domaine dans un nouvel onglet"
   },
   "web.domains.back_to_domains": {
-    "text": "Retour à Domaines"
+    "text": "Retour aux domaines"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Retour à la liste des domaines"
+    "text": "Retourner à la liste des domaines"
   },
   "web.domains.verify_domain": {
     "text": "Vérifier le domaine"
@@ -171,10 +171,10 @@
     "text": "Commencez par ajouter un domaine personnalisé."
   },
   "web.domains.no_domains_found": {
-    "text": "Aucun domaine n'a été trouvé."
+    "text": "Aucun domaine trouvé."
   },
   "web.domains.loading_domain_information": {
-    "text": "Chargement des informations sur le domaine..."
+    "text": "Chargement des informations du domaine..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Pour connecter votre domaine, vous devez disposer d'un enregistrement CNAME dans votre DNS qui pointe vers"
@@ -189,22 +189,22 @@
     "text": "et supprimez tous les autres enregistrements A, AAAA ou CNAME pour cette adresse exacte."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": "vous devrez suivre les étapes suivantes."
+    "text": ", vous devrez compléter ces étapes."
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "Avant d'activer les liens pour les"
+    "text": "Avant de pouvoir activer les liens pour"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Veuillez noter que pour les domaines apex (par ex,"
+    "text": "Veuillez noter que pour les domaines apex (par exemple,"
   },
   "web.domains.verify_your_domain": {
     "text": "Vérifier votre domaine"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.exemple.com"
+    "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Personnalisez la marque de votre domaine"
+    "text": "Personnaliser l'image de marque de votre domaine"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Quelques minutes peuvent s'écouler avant que votre certificat SSL ne prenne effet."
@@ -258,7 +258,7 @@
     "text": "Étapes de vérification du domaine"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "La vérification du domaine a été lancée avec succès."
+    "text": "Vérification du domaine initiée avec succès."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Êtes-vous sûr de vouloir supprimer ce domaine ? Cette action ne peut pas être annulée."
@@ -270,9 +270,33 @@
     "text": "Domaine supprimé avec succès"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "Échec de l'ajout d'un domaine"
+    "text": "Échec de l'ajout du domaine"
   },
   "web.domains.domain_added_successfully": {
     "text": "Domaine ajouté avec succès"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Protégé"
+  },
+  "web.domains.manage_domains": {
+    "text": "Gérer les domaines"
+  },
+  "web.domains.global_defaults": {
+    "text": "Paramètres globaux par défaut"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Modifier le paramètre de durée de vie"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Modifier l'exigence de phrase secrète"
+  },
+  "web.domains.edit_notify": {
+    "text": "Modifier le paramètre de notification"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Configurer les enregistrements DNS"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Utilisez l'outil ci-dessous pour détecter automatiquement votre fournisseur DNS et obtenir des instructions étape par étape pour configurer votre domaine."
   }
 }

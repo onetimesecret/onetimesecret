@@ -1,18 +1,18 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Besoin d'un compte?"
+    "text": "Besoin d'un compte ?"
   },
   "web.login.need_an_account": {
-    "text": "Besoin d'un compte ?"
+    "text": "S'inscrire."
   },
   "web.login.forgot_your_password": {
-    "text": "Mot de passe oublié ?"
+    "text": "Mot de passe oublié ?"
   },
   "web.login.button_sign_in": {
     "text": "Se connecter"
   },
   "web.login.enter_your_credentials": {
-    "text": "Saisissez vos identifiants"
+    "text": "Entrez vos identifiants"
   },
   "web.login.remember_me": {
     "text": "Se souvenir de moi"
@@ -21,10 +21,10 @@
     "text": "Créer votre compte"
   },
   "web.signup.alternate_prefix": {
-    "text": "Vous avez déjà un compte?"
+    "text": "Vous avez déjà un compte ?"
   },
   "web.signup.have_an_account": {
-    "text": "Déjà inscrit ? Connectez-vous"
+    "text": "Se connecter."
   },
   "web.signup.error_title": {
     "text": "Erreur de création de compte"
@@ -48,31 +48,31 @@
     "text": "Ce lien de vérification a expiré. Veuillez en demander un nouveau."
   },
   "web.auth.verify.already_verified": {
-    "text": "Ce compte a déjà été vérifié. Vous pouvez vous connecter maintenant."
+    "text": "Ce compte a déjà été vérifié. Vous pouvez maintenant vous connecter."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Impossible de vérifier le compte. Veuillez réessayer ou contacter le support."
+    "text": "Impossible de vérifier le compte. Veuillez réessayer ou contacter le soutien."
   },
   "web.auth.verify.check_email": {
     "text": "Veuillez vérifier votre courriel pour obtenir un lien de vérification"
   },
   "web.auth.verify.error": {
-    "text": "Échec de la vérification du compte. Veuillez vérifier votre lien de vérification ou en demander un nouveau."
+    "text": "La vérification du compte a échoué. Veuillez vérifier votre lien de vérification ou en demander un nouveau."
   },
   "web.auth.verify.error_title": {
     "text": "Échec de la vérification"
   },
   "web.auth.verify.what_to_do": {
-    "text": "Que dois-je faire?"
+    "text": "Que dois-je faire ?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Vérifiez votre courriel pour le lien de vérification le plus récent"
+    "text": "Vérifiez votre courriel pour obtenir le lien de vérification le plus récent"
   },
   "web.auth.verify.check_spam": {
     "text": "Vérifiez votre dossier de courrier indésirable si vous ne trouvez pas le courriel"
   },
   "web.auth.verify.contact_support": {
-    "text": "Contacter le support si vous continuez à rencontrer des problèmes"
+    "text": "Contactez le soutien si vous continuez à éprouver des difficultés"
   },
   "web.auth.verify.missing_key_title": {
     "text": "Lien de vérification requis"
@@ -99,19 +99,19 @@
     "text": "Votre mot de passe a été modifié avec succès"
   },
   "web.auth.change_password.error": {
-    "text": "Échec de la modification du mot de passe. Veuillez vérifier votre mot de passe actuel et réessayer."
+    "text": "La modification du mot de passe a échoué. Veuillez vérifier votre mot de passe actuel et réessayer."
   },
   "web.auth.close_account.title": {
     "text": "Fermer le compte"
   },
   "web.auth.close_account.warning": {
-    "text": "Cette action ne peut pas être annulée. Tous vos secrets seront supprimés définitivement."
+    "text": "Cette action est irréversible. Tous vos secrets seront définitivement supprimés."
   },
   "web.auth.close_account.confirm": {
-    "text": "Je comprends que cette action est définitive"
+    "text": "Je comprends que cette action est permanente"
   },
   "web.auth.close_account.password": {
-    "text": "Saisissez votre mot de passe pour confirmer"
+    "text": "Entrez votre mot de passe pour confirmer"
   },
   "web.auth.close_account.button": {
     "text": "Fermer définitivement le compte"
@@ -123,7 +123,7 @@
     "text": "Demander la réinitialisation du mot de passe"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Saisissez votre adresse courriel ci-dessous et nous vous enverrons un lien pour réinitialiser votre mot de passe"
+    "text": "Entrez votre adresse courriel ci-dessous et nous vous enverrons un lien pour réinitialiser votre mot de passe"
   },
   "web.auth.password_reset_request.button": {
     "text": "Envoyer le lien de réinitialisation"
@@ -132,7 +132,7 @@
     "text": "Choisir un nouveau mot de passe"
   },
   "web.auth.password_reset.description": {
-    "text": "Veuillez saisir votre nouveau mot de passe ci-dessous. Assurez-vous qu'il est robuste et unique pour protéger votre compte."
+    "text": "Veuillez entrer votre nouveau mot de passe ci-dessous. Assurez-vous qu'il est fort et unique pour protéger votre compte."
   },
   "web.auth.passwordReset.emailSent": {
     "text": "Un courriel vous a été envoyé avec un lien pour réinitialiser le mot de passe de votre compte"
@@ -186,9 +186,84 @@
     "text": "Gérer les sessions actives"
   },
   "web.auth.account.change_password": {
-    "text": "Modifier le mot de passe"
+    "text": "Changer le mot de passe"
   },
   "web.auth.account.close_account": {
     "text": "Fermer le compte"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Processus de vérification par courriel après l'inscription"
+  },
+  "web.help.title": {
+    "text": "Aide et soutien"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Dépannage de la connexion"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Le lien magique n'arrive pas ?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Vérifiez votre dossier de courrier indésirable"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Vérifiez que vous avez entré votre adresse courriel correctement"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Attendez quelques minutes – les courriels peuvent parfois être retardés"
+  },
+  "web.help.try_again": {
+    "text": "Essayez de demander un nouveau lien si cela fait plus de 10 minutes"
+  },
+  "web.help.forgot_password": {
+    "text": "Mot de passe oublié ?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Utilisez l'option Lien magique pour vous connecter sans mot de passe. Une fois connecté, vous pourrez modifier votre mot de passe dans les Paramètres du compte."
+  },
+  "web.help.account_locked": {
+    "text": "Compte temporairement verrouillé ?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Après plusieurs tentatives de connexion échouées, les comptes sont temporairement verrouillés pour des raisons de sécurité. Attendez 15 minutes et réessayez, ou utilisez le Lien magique pour vous connecter."
+  },
+  "web.help.still_need_help": {
+    "text": "Besoin d'aide supplémentaire ?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Si vous éprouvez toujours des difficultés, nous sommes là pour vous aider. Envoyez-nous un message et nous vous répondrons dès que possible."
+  },
+  "web.help.contact_support": {
+    "text": "Contacter le soutien"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Envoyer le lien de connexion"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Un lien sécurisé sera envoyé à votre boîte de courriel."
+  },
+  "web.login.or_divider": {
+    "text": "ou"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Se connecter avec un mot de passe"
+  },
+  "web.login.use_passwordless": {
+    "text": "Utiliser la connexion sans mot de passe"
+  },
+  "web.login.create_account": {
+    "text": "Créer un compte"
+  },
+  "web.login.return_home": {
+    "text": "Retour à l'accueil"
+  },
+  "web.login.tab_password": {
+    "text": "Mot de passe"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Lien magique"
+  },
+  "web.login.need_help": {
+    "text": "Besoin d'aide ?"
   }
 }

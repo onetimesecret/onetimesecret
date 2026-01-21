@@ -1,15 +1,15 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Souveraineté des données et isolement régional"
+    "text": "Souveraineté des données et isolation régionale"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Vos données résident exclusivement dans la région que vous avez choisie et ne sont jamais transférées entre les régions"
+    "text": "Vos données résident exclusivement dans la région choisie et ne sont jamais transférées entre régions"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, ses clés de chiffrement et son stockage de données"
+    "text": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, clés de chiffrement et stockage de données"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Nous maintenons une politique stricte : les données des clients ne sont jamais transférées entre les régions en aucune circonstance"
+    "text": "Nous maintenons une politique stricte : les données clients ne sont jamais transférées entre régions en aucune circonstance"
   },
   "web.regions.switching_creates_new_account": {
     "text": "Important : Passer à une région différente crée un nouveau compte. Vos données restent dans votre région d'origine."
@@ -33,34 +33,34 @@
     "text": "Transparence et contrôle"
   },
   "web.regions.trust_description": {
-    "text": "Sachez exactement où vos données résident et quelles lois régissent leur protection."
+    "text": "Sachez exactement où résident vos données et quelles lois régissent leur protection."
   },
   "web.regions.privacy_title": {
     "text": "Droits à la vie privée"
   },
   "web.regions.privacy_description": {
-    "text": "Assurez-vous que vos renseignements personnels sont traités conformément aux lois et règlements sur la protection de la vie privée de votre pays, empêchant tout accès ou utilisation non autorisés."
+    "text": "Assurez-vous que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de vie privée, empêchant tout accès ou utilisation non autorisé."
   },
   "web.regions.compliance_title": {
     "text": "Conformité réglementaire"
   },
   "web.regions.compliance_description": {
-    "text": "Respecter les exigences du RGPD, de la HIPAA, de la CCPA et d'autres réglementations régionales en matière de protection des données"
+    "text": "Respectez les exigences du RGPD, de la HIPAA, du CCPA et d'autres réglementations régionales de protection des données"
   },
   "web.regions.performance_title": {
     "text": "Accès plus rapide"
   },
   "web.regions.performance_description": {
-    "text": "Les données stockées plus près de vous signifient une latence plus faible et de meilleures performances."
+    "text": "Des données stockées plus près de vous signifient une latence plus faible et de meilleures performances."
   },
   "web.regions.regions": {
     "text": "Régions"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "contactez notre équipe de conformité"
+    "text": "contacter notre équipe de conformité"
   },
   "web.regions.review_our_documentation": {
-    "text": "examiner notre documentation"
+    "text": "consulter notre documentation"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Votre compte et vos données sont protégés par les lois et règlements des pays suivants"
@@ -75,7 +75,7 @@
     "text": "Pour comprendre les réglementations et protections spécifiques qui s'appliquent à votre compte, veuillez"
   },
   "web.regions.current": {
-    "text": "Actuel"
+    "text": "Actuelle"
   },
   "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
     "text": "{0} {1}"
@@ -84,7 +84,7 @@
     "text": "Régions disponibles"
   },
   "web.regions.jurisdiction": {
-    "text": "Compétence"
+    "text": "Juridiction"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
     "text": "Emplacement du centre de données : {0}"
@@ -96,10 +96,10 @@
     "text": "Juridiction inconnue"
   },
   "web.regions.serving_you_from_the": {
-    "text": "A votre service depuis"
+    "text": "Vous servir depuis"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "Continuer à {0}"
+    "text": "Continuer vers {0}"
   },
   "web.regions.current_jurisdiction": {
     "text": "Juridiction actuelle :"
