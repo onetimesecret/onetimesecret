@@ -6,14 +6,14 @@ Takes a task ID and translations JSON, updates the task in the database,
 and marks it as completed.
 
 Usage:
-    python update_task.py TASK_ID TRANSLATIONS_JSON [OPTIONS]
-    python update_task.py TASK_ID --file translations.json [OPTIONS]
+    python update.py TASK_ID TRANSLATIONS_JSON [OPTIONS]
+    python update.py TASK_ID --file translations.json [OPTIONS]
 
 Examples:
-    python update_task.py 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
-    python update_task.py 42 --file translations.json
-    python update_task.py 42 --skip --note "Not applicable"
-    python update_task.py 42 --status pending  # Reset to pending
+    python update.py 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
+    python update.py 42 --file translations.json
+    python update.py 42 --skip --note "Not applicable"
+    python update.py 42 --status pending  # Reset to pending
 """
 
 import argparse
@@ -59,7 +59,7 @@ def update_task(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python db.py hydrate' to create it first."
+            "Run 'python store.py migrate' to create it first."
         )
 
     if status and status not in VALID_STATUSES:
@@ -72,7 +72,7 @@ def update_task(
         cursor = conn.cursor()
 
         # Verify task exists
-        cursor.execute("SELECT * FROM level_tasks WHERE id = ?", (task_id,))
+        cursor.execute("SELECT * FROM translation_tasks WHERE id = ?", (task_id,))
         row = cursor.fetchone()
         if not row:
             raise ValueError(f"Task {task_id} not found")
@@ -105,7 +105,7 @@ def update_task(
 
         params.append(task_id)
 
-        query = f"UPDATE level_tasks SET {', '.join(updates)} WHERE id = ?"
+        query = f"UPDATE translation_tasks SET {', '.join(updates)} WHERE id = ?"
         cursor.execute(query, params)
         conn.commit()
 
@@ -114,7 +114,7 @@ def update_task(
             """
             SELECT id, file, level_path, locale, status, keys_json,
                    translations_json, notes, created_at, updated_at
-            FROM level_tasks
+            FROM translation_tasks
             WHERE id = ?
             """,
             (task_id,),
@@ -173,11 +173,11 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python update_task.py 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
-    python update_task.py 42 --file translations.json
-    python update_task.py 42 --skip --note "Not applicable"
-    python update_task.py 42 --status pending  # Reset to pending
-    python update_task.py 42 --status in_progress  # Mark as in progress
+    python update.py 42 '{"submit": "Sendi", "cancel": "Nuligi"}'
+    python update.py 42 --file translations.json
+    python update.py 42 --skip --note "Not applicable"
+    python update.py 42 --status pending  # Reset to pending
+    python update.py 42 --status in_progress  # Mark as in progress
         """,
     )
 

@@ -2,17 +2,17 @@
 """
 Get the next pending translation task for a locale.
 
-Queries the level_tasks table for the next pending task and optionally
+Queries the translation_tasks table for the next pending task and optionally
 marks it as in_progress. Outputs task details for translation workflow.
 
 Usage:
-    python get_next_task.py LOCALE [OPTIONS]
+    python next.py LOCALE [OPTIONS]
 
 Examples:
-    python get_next_task.py eo                    # Show next pending task
-    python get_next_task.py eo --claim            # Claim task (mark in_progress)
-    python get_next_task.py eo --json             # Output as JSON
-    python get_next_task.py eo --file auth.json   # Filter by file
+    python next.py eo                    # Show next pending task
+    python next.py eo --claim            # Claim task (mark in_progress)
+    python next.py eo --json             # Output as JSON
+    python next.py eo --file auth.json   # Filter by file
 """
 
 import argparse
@@ -53,7 +53,7 @@ def get_next_task(
     if not DB_FILE.exists():
         raise FileNotFoundError(
             f"Database not found: {DB_FILE}\n"
-            "Run 'python db.py hydrate' to create it first."
+            "Run 'python store.py migrate' to create it first."
         )
 
     conn = sqlite3.connect(DB_FILE)
@@ -66,7 +66,7 @@ def get_next_task(
         query = """
             SELECT id, file, level_path, locale, status, keys_json,
                    translations_json, notes, created_at, updated_at
-            FROM level_tasks
+            FROM translation_tasks
             WHERE locale = ? AND status = 'pending'
         """
         params: list = [locale]
@@ -103,7 +103,7 @@ def get_next_task(
         if claim:
             cursor.execute(
                 """
-                UPDATE level_tasks
+                UPDATE translation_tasks
                 SET status = 'in_progress', updated_at = datetime('now')
                 WHERE id = ?
                 """,
@@ -139,7 +139,7 @@ def get_task_by_id(task_id: int) -> Optional[dict]:
             """
             SELECT id, file, level_path, locale, status, keys_json,
                    translations_json, notes, created_at, updated_at
-            FROM level_tasks
+            FROM translation_tasks
             WHERE id = ?
             """,
             (task_id,),
@@ -181,7 +181,7 @@ def get_task_stats(locale: str) -> dict:
         cursor.execute(
             """
             SELECT status, COUNT(*) as count
-            FROM level_tasks
+            FROM translation_tasks
             WHERE locale = ?
             GROUP BY status
             """,
@@ -244,13 +244,13 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python get_next_task.py eo                    # Show next pending task
-    python get_next_task.py eo --claim            # Claim task (mark in_progress)
-    python get_next_task.py eo --json             # Output as JSON
-    python get_next_task.py eo --file auth.json   # Filter by file
-    python get_next_task.py eo --filter web.COMMON  # Filter by key path prefix
-    python get_next_task.py eo --stats            # Show task statistics
-    python get_next_task.py eo --id 42            # Get specific task by ID
+    python next.py eo                    # Show next pending task
+    python next.py eo --claim            # Claim task (mark in_progress)
+    python next.py eo --json             # Output as JSON
+    python next.py eo --file auth.json   # Filter by file
+    python next.py eo --filter web.COMMON  # Filter by key path prefix
+    python next.py eo --stats            # Show task statistics
+    python next.py eo --id 42            # Get specific task by ID
         """,
     )
 

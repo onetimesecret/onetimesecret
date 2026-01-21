@@ -2,7 +2,7 @@
 """
 Export completed translations from SQLite to content JSON files.
 
-Reads completed level_tasks from the database and writes translations
+Reads completed translation_tasks from the database and writes translations
 back to locales/content/{locale}/*.json.
 
 Content format example:
@@ -13,12 +13,12 @@ Content format example:
 }
 
 Usage:
-    python export_to_historical.py LOCALE [OPTIONS]
+    python export.py LOCALE [OPTIONS]
 
 Examples:
-    python export_to_historical.py eo --dry-run
-    python export_to_historical.py eo
-    python export_to_historical.py eo --file _common.json
+    python export.py eo --dry-run
+    python export.py eo
+    python export.py eo --file 00-common.json
 """
 
 import argparse
@@ -44,7 +44,7 @@ def get_completed_tasks(
     locale: str,
     file_filter: str | None = None,
 ) -> list[dict]:
-    """Get all completed level_tasks for a locale.
+    """Get all completed translation_tasks for a locale.
 
     Args:
         locale: Target locale code.
@@ -64,7 +64,7 @@ def get_completed_tasks(
 
         query = """
             SELECT file, level_path, keys_json, translations_json
-            FROM level_tasks
+            FROM translation_tasks
             WHERE locale = ? AND status = 'completed' AND translations_json IS NOT NULL
         """
         params: list = [locale]
