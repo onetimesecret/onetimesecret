@@ -21,7 +21,7 @@ A task is all sibling keys sharing a parent path. For example, `web.COMMON.butto
 Captures terminology decisions as we translate. When we decide "secret" → "sekreto" in Esperanto, that goes in the glossary so future sessions stay consistent.
 
 ### Export Guides
-Locale-specific translation guidance in `locales/guides/exports/{locale}.md`. Read once per session to establish context. Mature locales (de, fr) have detailed guides; new locales (eo) build them as we go.
+Locale-specific translation guidance in `locales/guides/for-translators/{locale}.md`. Read once per session to establish context. Mature locales (de, fr) have detailed guides; new locales (eo) build them as we go.
 
 ### Handoff
 To continue work in a new session, generate a handoff document that preserves key decisions and context. Use `/handoff` or write one manually.
