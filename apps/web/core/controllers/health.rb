@@ -46,20 +46,22 @@ module Core
         # Familia uses Redis - test connection with PING
         redis  = Familia.redis
         result = redis.ping
+
         {
           status: result == 'PONG' ? 'ok' : 'error',
-          latency_ms: nil, # Could add timing if needed
+          url: mask_url(Familia.uri.to_s),
         }
       rescue StandardError => ex
         {
           status: 'error',
+          url: mask_url(Familia.uri.to_s),
           error: ex.message,
         }
       end
 
       def check_rabbitmq
-        # RabbitMQ is optional - check if configured
-        amqp_url = ENV.fetch('RABBITMQ_URL', nil)
+        # RabbitMQ is optional - get URL from config first, then env
+        amqp_url = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', nil)
         return { status: 'not_configured' } if amqp_url.nil? || amqp_url.empty?
 
         require 'bunny'
@@ -68,6 +70,7 @@ module Core
 
         {
           status: conn.open? ? 'ok' : 'error',
+          url: mask_url(amqp_url),
           vhost: conn.vhost,
         }
       rescue LoadError
@@ -75,6 +78,7 @@ module Core
       rescue StandardError => ex
         {
           status: 'error',
+          url: mask_url(amqp_url),
           error: ex.message,
         }
       ensure
@@ -88,8 +92,11 @@ module Core
         connection = Auth::Database.connection
         return { status: 'not_configured' } unless connection
 
+        db_url = Onetime.auth_config.database_url
+
         {
           status: connection.test_connection ? 'ok' : 'error',
+          url: mask_url(db_url),
           mode: Onetime.auth_config.mode,
         }
       rescue StandardError => ex
@@ -97,6 +104,23 @@ module Core
           status: 'error',
           error: ex.message,
         }
+      end
+
+      # Mask password in connection URLs for safe display
+      # Format: scheme://user:password@host:port/path -> scheme://user:****@host:port/path
+      def mask_url(url)
+        return nil if url.nil? || url.empty?
+
+        uri = URI.parse(url)
+        return url unless uri.password
+
+        # Replace password with asterisks
+        masked_uri          = uri.dup
+        masked_uri.password = '****'
+        masked_uri.to_s
+      rescue URI::InvalidURIError
+        # Fallback: try regex-based masking for non-standard URLs
+        url.gsub(%r{://([^:]+):([^@]+)@}, '://\1:****@')
       end
     end
   end

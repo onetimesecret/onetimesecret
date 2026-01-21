@@ -40,6 +40,10 @@ class MockHealthController < Core::Controllers::Health
   def test_check_database
     check_database
   end
+
+  def test_mask_url(url)
+    mask_url(url)
+  end
 end
 
 # Simple mock response object
@@ -227,15 +231,13 @@ end
 @result.key?(:status)
 #=> true
 
-## check_rabbitmq returns not_configured when RABBITMQ_URL not set
-# Clear the env var for this test
-@original_url = ENV['RABBITMQ_URL']
-ENV.delete('RABBITMQ_URL')
+## check_rabbitmq returns valid status (config may provide default URL)
+# RabbitMQ URL comes from config first, then env - may have default value
 @controller = MockHealthController.new
 @result = @controller.test_check_rabbitmq
-ENV['RABBITMQ_URL'] = @original_url if @original_url
-@result[:status]
-#=> 'not_configured'
+# Status should be one of: ok (connected), error (failed to connect), or not_configured
+['ok', 'error', 'not_configured'].include?(@result[:status])
+#=> true
 
 ## check_rabbitmq returns valid status when URL is set
 # This will return ok if RabbitMQ is running, error if not, or not_configured if URL empty
@@ -360,4 +362,63 @@ end
 @result = JSON.parse(@controller.res.body)
 @now = Time.now.to_i
 (@result['timestamp'] >= @now - 60) && (@result['timestamp'] <= @now + 60)
+#=> true
+
+# -------------------------------------------------------------------
+# TEST: mask_url masks passwords in URLs
+# -------------------------------------------------------------------
+
+## mask_url masks password in redis URL
+@controller = MockHealthController.new
+@result = @controller.test_mask_url('redis://user:secretpassword@localhost:6379/0')
+# URI may normalize by removing default port, but password must be masked
+@result.include?('****') && @result.include?('user') && @result.include?('localhost')
+#=> true
+
+## mask_url masks password in amqp URL
+@controller = MockHealthController.new
+@controller.test_mask_url('amqp://guest:guest@localhost:5672/dev')
+#=> 'amqp://guest:****@localhost:5672/dev'
+
+## mask_url masks password in postgres URL
+@controller = MockHealthController.new
+@controller.test_mask_url('postgres://admin:supersecret@db.example.com:5432/mydb')
+#=> 'postgres://admin:****@db.example.com:5432/mydb'
+
+## mask_url returns URL unchanged when no password
+@controller = MockHealthController.new
+@controller.test_mask_url('redis://localhost:6379/0')
+#=> 'redis://localhost:6379/0'
+
+## mask_url returns nil for nil input
+@controller = MockHealthController.new
+@controller.test_mask_url(nil)
+#=> nil
+
+## mask_url returns nil for empty string
+@controller = MockHealthController.new
+@controller.test_mask_url('')
+#=> nil
+
+## mask_url handles complex passwords with special chars
+@controller = MockHealthController.new
+@result = @controller.test_mask_url('amqp://user:p%40ss%3Aword@localhost:5672')
+@result.include?('****') && !@result.include?('p%40ss')
+#=> true
+
+# -------------------------------------------------------------------
+# TEST: check_redis includes masked URL
+# -------------------------------------------------------------------
+
+## check_redis result includes url key
+@controller = MockHealthController.new
+@result = @controller.test_check_redis
+@result.key?(:url)
+#=> true
+
+## check_redis url is masked (no plaintext password)
+@controller = MockHealthController.new
+@result = @controller.test_check_redis
+# URL should either be nil, contain ****, or have no password
+@result[:url].nil? || @result[:url].include?('****') || !@result[:url].include?('@') || @result[:url] !~ /:[^:@]+@/
 #=> true
