@@ -22,12 +22,12 @@ module Core
       # Only accessible from localhost/private networks (via middleware)
       def advanced
         checks = {
-          redis: check_redis,
-          rabbitmq: check_rabbitmq,
-          database: check_database,
+          keydb: check_keydb,
+          jobqueue: check_jobqueue,
+          authdb: check_authdb,
         }
 
-        # RabbitMQ and database are optional - only count configured services
+        # Job queue and auth database are optional - only count configured services
         required_checks = checks.reject { |_, v| v[:status] == 'not_configured' }
         overall_status  = required_checks.values.all? { |c| c[:status] == 'ok' } ? 'ok' : 'degraded'
 
@@ -42,8 +42,8 @@ module Core
 
       private
 
-      def check_redis
-        # Familia uses Redis/Valkey - test connection with PING
+      def check_keydb
+        # Key-value database (Redis/Valkey) - test connection with PING
         result = Familia.dbclient.ping
 
         {
@@ -58,8 +58,8 @@ module Core
         }
       end
 
-      def check_rabbitmq
-        # RabbitMQ is optional - get URL from config first, then env
+      def check_jobqueue
+        # Job queue (RabbitMQ) is optional - get URL from config first, then env
         amqp_url = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', nil)
         return { status: 'not_configured' } if amqp_url.nil? || amqp_url.empty?
 
@@ -84,7 +84,7 @@ module Core
         conn&.close if defined?(conn) && conn
       end
 
-      def check_database
+      def check_authdb
         # Auth database is optional (only in advanced auth mode)
         return { status: 'not_configured' } unless defined?(Auth::Database)
 

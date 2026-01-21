@@ -5,7 +5,7 @@
 # Tests for the Health controller endpoints
 #
 # Tests Health#index (basic health check) and Health#advanced (detailed checks)
-# along with the private check_redis and check_database methods.
+# along with the private check_keydb, check_jobqueue, and check_authdb methods.
 
 require_relative '../../support/test_helpers'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../..')).freeze
@@ -29,16 +29,16 @@ class MockHealthController < Core::Controllers::Health
   end
 
   # Expose private methods for testing
-  def test_check_redis
-    check_redis
+  def test_check_keydb
+    check_keydb
   end
 
-  def test_check_rabbitmq
-    check_rabbitmq
+  def test_check_jobqueue
+    check_jobqueue
   end
 
-  def test_check_database
-    check_database
+  def test_check_authdb
+    check_authdb
   end
 
   def test_mask_url(url)
@@ -64,12 +64,12 @@ class MockResponse
   end
 end
 
-# Controller subclass that simulates Redis failure for error testing
-class MockHealthControllerWithRedisError < MockHealthController
+# Controller subclass that simulates keydb failure for error testing
+class MockHealthControllerWithKeydbError < MockHealthController
   private
 
-  def check_redis
-    # Simulate what happens when Redis.ping raises an error
+  def check_keydb
+    # Simulate what happens when keydb ping raises an error
     raise StandardError, 'Connection refused'
   rescue StandardError => ex
     {
@@ -79,11 +79,11 @@ class MockHealthControllerWithRedisError < MockHealthController
   end
 end
 
-# Controller subclass that simulates RabbitMQ error
-class MockHealthControllerWithRabbitMQError < MockHealthController
+# Controller subclass that simulates job queue error
+class MockHealthControllerWithJobqueueError < MockHealthController
   private
 
-  def check_rabbitmq
+  def check_jobqueue
     {
       status: 'error',
       error: 'Connection refused - connect(2) for "localhost" port 5672',
@@ -91,11 +91,11 @@ class MockHealthControllerWithRabbitMQError < MockHealthController
   end
 end
 
-# Controller subclass that simulates database error
-class MockHealthControllerWithDatabaseError < MockHealthController
+# Controller subclass that simulates auth database error
+class MockHealthControllerWithAuthdbError < MockHealthController
   private
 
-  def check_database
+  def check_authdb
     raise StandardError, 'Database connection failed'
   rescue StandardError => ex
     {
@@ -147,25 +147,25 @@ end
 @result['checks'].is_a?(Hash)
 #=> true
 
-## Health#advanced includes redis check
+## Health#advanced includes keydb check
 @controller = MockHealthController.new
 @controller.advanced
 @result = JSON.parse(@controller.res.body)
-@result['checks'].key?('redis')
+@result['checks'].key?('keydb')
 #=> true
 
-## Health#advanced includes rabbitmq check
+## Health#advanced includes jobqueue check
 @controller = MockHealthController.new
 @controller.advanced
 @result = JSON.parse(@controller.res.body)
-@result['checks'].key?('rabbitmq')
+@result['checks'].key?('jobqueue')
 #=> true
 
-## Health#advanced includes database check
+## Health#advanced includes authdb check
 @controller = MockHealthController.new
 @controller.advanced
 @result = JSON.parse(@controller.res.body)
-@result['checks'].key?('database')
+@result['checks'].key?('authdb')
 #=> true
 
 ## Health#advanced includes timestamp
@@ -189,84 +189,84 @@ end
 #=> 'application/json'
 
 # -------------------------------------------------------------------
-# TEST: check_redis handles success case
+# TEST: check_keydb handles success case
 # -------------------------------------------------------------------
 
-## check_redis returns ok status when Redis responds with PONG
+## check_keydb returns ok status when keydb responds with PONG
 @controller = MockHealthController.new
-@result = @controller.test_check_redis
-# In test environment with running Redis, this should succeed
+@result = @controller.test_check_keydb
+# In test environment with running keydb, this should succeed
 @result[:status] == 'ok' || @result[:status] == 'error'
 #=> true
 
-## check_redis returns hash with status key
+## check_keydb returns hash with status key
 @controller = MockHealthController.new
-@result = @controller.test_check_redis
+@result = @controller.test_check_keydb
 @result.key?(:status)
 #=> true
 
 # -------------------------------------------------------------------
-# TEST: check_redis handles error case
+# TEST: check_keydb handles error case
 # -------------------------------------------------------------------
 
-## check_redis returns error status when Redis fails
-@controller = MockHealthControllerWithRedisError.new
-@result = @controller.test_check_redis
+## check_keydb returns error status when keydb fails
+@controller = MockHealthControllerWithKeydbError.new
+@result = @controller.test_check_keydb
 [@result[:status], @result[:error]]
 #=> ['error', 'Connection refused']
 
-## check_redis error includes error message
-@controller = MockHealthControllerWithRedisError.new
-@result = @controller.test_check_redis
+## check_keydb error includes error message
+@controller = MockHealthControllerWithKeydbError.new
+@result = @controller.test_check_keydb
 @result[:error].is_a?(String) && !@result[:error].empty?
 #=> true
 
 # -------------------------------------------------------------------
-# TEST: check_rabbitmq handles various cases
+# TEST: check_jobqueue handles various cases
 # -------------------------------------------------------------------
 
-## check_rabbitmq returns hash with status key
+## check_jobqueue returns hash with status key
 @controller = MockHealthController.new
-@result = @controller.test_check_rabbitmq
+@result = @controller.test_check_jobqueue
 @result.key?(:status)
 #=> true
 
-## check_rabbitmq returns valid status (config may provide default URL)
-# RabbitMQ URL comes from config first, then env - may have default value
+## check_jobqueue returns valid status (config may provide default URL)
+# Job queue URL comes from config first, then env - may have default value
 @controller = MockHealthController.new
-@result = @controller.test_check_rabbitmq
+@result = @controller.test_check_jobqueue
 # Status should be one of: ok (connected), error (failed to connect), or not_configured
 ['ok', 'error', 'not_configured'].include?(@result[:status])
 #=> true
 
-## check_rabbitmq returns valid status when URL is set
-# This will return ok if RabbitMQ is running, error if not, or not_configured if URL empty
+## check_jobqueue returns valid status when URL is set
+# This will return ok if job queue is running, error if not, or not_configured if URL empty
 @controller = MockHealthController.new
-@result = @controller.test_check_rabbitmq
+@result = @controller.test_check_jobqueue
 ['ok', 'error', 'not_configured'].include?(@result[:status])
 #=> true
 
-## check_rabbitmq error includes error message
-@controller = MockHealthControllerWithRabbitMQError.new
-@result = @controller.test_check_rabbitmq
+## check_jobqueue error includes error message
+@controller = MockHealthControllerWithJobqueueError.new
+@result = @controller.test_check_jobqueue
 @result[:error].is_a?(String) && !@result[:error].empty?
 #=> true
 
 # -------------------------------------------------------------------
-# TEST: check_database handles not_configured case
+# TEST: check_authdb handles not_configured case
 # -------------------------------------------------------------------
 
-## check_database returns not_configured when Auth::Database is not defined
+## check_authdb returns not_configured when Auth::Database is not defined
 # In test mode without database, should return not_configured
 @controller = MockHealthController.new
-@result = @controller.test_check_database
+@result = @controller.test_check_authdb
 # Either not_configured (no database) or ok/error (database present)
 ['not_configured', 'ok', 'error'].include?(@result[:status])
 #=> true
 
-## check_database returns hash with status key
+## check_authdb returns hash with status key
 @controller = MockHealthController.new
-@result = @controller.test_check_database
+@result = @controller.test_check_authdb
 @result.key?(:status)
 #=> true
 
@@ -275,8 +275,8 @@ end
 # -------------------------------------------------------------------
 
 ## Health#advanced returns ok when all configured checks pass
-# This test depends on actual Redis being available in test environment
-# RabbitMQ and database are optional and don't affect overall status if not_configured
+# This test depends on actual keydb being available in test environment
+# Job queue and authdb are optional and don't affect overall status if not_configured
 @controller = MockHealthController.new
 @controller.advanced
 @result = JSON.parse(@controller.res.body)
@@ -285,18 +285,18 @@ end
 #=> true
 
 ## Health#advanced returns degraded when a check fails
-# Use the subclass that simulates Redis failure
-@controller = MockHealthControllerWithRedisError.new
+# Use the subclass that simulates keydb failure
+@controller = MockHealthControllerWithKeydbError.new
 @controller.advanced
 @result = JSON.parse(@controller.res.body)
 @result['status']
 #=> 'degraded'
 
 ## Health#advanced includes error details in checks when failing
-@controller = MockHealthControllerWithRedisError.new
+@controller = MockHealthControllerWithKeydbError.new
 @controller.advanced
 @result = JSON.parse(@controller.res.body)
-@result['checks']['redis']['status']
+@result['checks']['keydb']['status']
 #=> 'error'
 
 # -------------------------------------------------------------------
@@ -326,18 +326,18 @@ end
 #=> true
 
 # -------------------------------------------------------------------
-# TEST: check_database handles error case
+# TEST: check_authdb handles error case
 # -------------------------------------------------------------------
 
-## check_database returns error status when database fails
-@controller = MockHealthControllerWithDatabaseError.new
-@result = @controller.test_check_database
+## check_authdb returns error status when database fails
+@controller = MockHealthControllerWithAuthdbError.new
+@result = @controller.test_check_authdb
 @result[:status]
 #=> 'error'
 
-## check_database error includes error message
-@controller = MockHealthControllerWithDatabaseError.new
-@result = @controller.test_check_database
+## check_authdb error includes error message
+@controller = MockHealthControllerWithAuthdbError.new
+@result = @controller.test_check_authdb
 @result[:error]
 #=> 'Database connection failed'
 
@@ -368,7 +368,7 @@ end
 # TEST: mask_url masks passwords in URLs
 # -------------------------------------------------------------------
 
-## mask_url masks password in redis URL
+## mask_url masks password in valkey/redis URL
 @controller = MockHealthController.new
 @result = @controller.test_mask_url('redis://user:secretpassword@localhost:6379/0')
 # URI may normalize by removing default port, but password must be masked
@@ -407,18 +407,18 @@ end
 #=> true
 
 # -------------------------------------------------------------------
-# TEST: check_redis includes masked URL
+# TEST: check_keydb includes masked URL
 # -------------------------------------------------------------------
 
-## check_redis result includes url key
+## check_keydb result includes url key
 @controller = MockHealthController.new
-@result = @controller.test_check_redis
+@result = @controller.test_check_keydb
 @result.key?(:url)
 #=> true
 
-## check_redis url is masked (no plaintext password)
+## check_keydb url is masked (no plaintext password)
 @controller = MockHealthController.new
-@result = @controller.test_check_redis
+@result = @controller.test_check_keydb
 # URL should either be nil, contain ****, or have no password
 @result[:url].nil? || @result[:url].include?('****') || !@result[:url].include?('@') || @result[:url] !~ /:[^:@]+@/
 #=> true
