@@ -3,340 +3,347 @@ title: Керівництво з перекладу українською
 description: Вичерпний посібник з перекладу Onetime Secret українською мовою, що поєднує глосарій та мовні примітки
 ---
 
-# Translation Guidance for Ukrainian (Українська)
+# Translation Guidance for Ukrainian
 
-This document combines the glossary of standardized terms and language-specific translation notes for Ukrainian translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Ukrainian locale to ensure consistency, accuracy, and natural phrasing.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
 
-## Overview
+## Universal Translation Resources
 
-The Ukrainian translation aims to:
-- Maintain consistency across all application interfaces
-- Use clear, natural phrasing for Ukrainian-speaking audiences
-- Follow technical accuracy for security-related terminology
-- Apply appropriate voice and tone for different contexts
-- Ensure proper gender and case agreement throughout
+Before translating, review these cross-language guidelines that apply to all locales:
 
----
-
-## Core Terminology
-
-### Basic Terms
-
-| English | Українська | Context | Notes |
-|---------|-----------|---------|-------|
-| secret (noun) | таємниця | Central application concept | Avoid "секрет" - overly personal connotation |
-| secret (adj) | таємний/таємна/таємне | Descriptive use | Adapt to gender; avoid "секретний" |
-| secret message | таємне повідомлення | Product feature | Always "таємне", never "секретне" |
-| secret content | таємний вміст | Security feature | Masculine gender agreement |
-| secret link(s) | таємне посилання/таємні посилання | URL feature | ALWAYS "таємні", never "секретні" |
-| passphrase | парольна фраза, ключова фраза | Authentication method for secrets | Distinguishes from account password |
-| password | пароль | Account login credential | For account access only |
-| burn | знищити, спалити | Action to delete a secret before viewing | Emphasizes permanence |
-| view/reveal | переглянути/показати | Action to access a secret | |
-| link | посилання | URL providing access to a secret | |
-| encrypt/encrypted | зашифрувати/зашифрований | Security method | |
-| secure | безпечний | Protection state | |
-| colonel | адміністратор | Administrator role | Translate to common term; do not use "полковник" |
-| one-time | одноразовий/одноразова/одноразове | Single-use descriptor | Adjective, adapt to gender |
-| Onetime | Onetime | Part of brand name | DO NOT translate |
-
-### User Interface Elements
-
-| English | Українська | Context | Notes |
-|---------|-----------|---------|-------|
-| Share a secret | Поділитися таємницею | Primary action | |
-| Create Account | Створити обліковий запис | Registration | |
-| Sign In | Увійти | Authentication | Common term for login |
-| Dashboard | Панель керування | User's main page | |
-| Settings | Налаштування | Configuration page | |
-| Privacy Options | Параметри конфіденційності | Secret configuration | |
-| Feedback | Зворотний зв'язок | User feedback | |
-
-### Status Terms
-
-| English | Українська | Context | Notes |
-|---------|-----------|---------|-------|
-| received | отримано | Secret has been viewed | Passive voice |
-| burned | знищено | Secret was deleted before viewing | Passive voice |
-| expired | закінчився термін дії | Secret no longer available due to time | Full phrase preferred |
-| created | створено | Secret has been generated | Passive voice |
-| active | активна | Secret is available | Feminine gender (таємниця) |
-| inactive | неактивна | Secret is not available | Feminine gender (таємниця) |
-
-### Time-Related Terms
-
-| English | Українська | Context |
-|---------|-----------|---------|
-| expires in | закінчується через | Time until secret becomes unavailable |
-| day/days | день/дні/днів | Time unit (singular/2-4/5+) |
-| hour/hours | година/години/годин | Time unit (singular/2-4/5+) |
-| minute/minutes | хвилина/хвилини/хвилин | Time unit (singular/2-4/5+) |
-| second/seconds | секунда/секунди/секунд | Time unit (singular/2-4/5+) |
-
-### Security Features
-
-| English | Українська | Context |
-|---------|-----------|---------|
-| one-time access | одноразовий доступ | Core security feature |
-| passphrase protection | захист парольною фразою | Additional security |
-| encrypted in transit | зашифровано під час передачі | Data protection method |
-| encrypted at rest | зашифровано в стані спокою | Storage protection |
-
-### Account-Related Terms
-
-| English | Українська | Context |
-|---------|-----------|---------|
-| email | електронна пошта, e-mail | User identifier |
-| password | пароль | Account authentication |
-| account | обліковий запис | User profile |
-| subscription | підписка | Paid service |
-| customer | клієнт | Paying user |
-
-### Domain-Related Terms
-
-| English | Українська | Context |
-|---------|-----------|---------|
-| custom domain | користувацький домен | Premium feature |
-| domain verification | перевірка домену | Setup process |
-| DNS record | DNS-запис | Configuration |
-| CNAME record | CNAME-запис | DNS configuration |
-
-### Error Messages
-
-| English | Українська | Context |
-|---------|-----------|---------|
-| error | помилка | Problem notification |
-| warning | попередження | Caution notification |
-| oops | ой | Friendly error introduction |
-
-### Buttons and Actions
-
-| English | Українська | Context | Notes |
-|---------|-----------|---------|-------|
-| submit | надіслати | Form action | |
-| cancel | скасувати | Negative action | |
-| confirm | підтвердити | Positive action | |
-| copy to clipboard | скопіювати в буфер обміну | Utility action | Standard Ukrainian phrase |
-| continue | продовжити | Navigation | |
-| back | назад | Navigation | |
-
-### Marketing Terms
-
-| English | Українська | Context |
-|---------|-----------|---------|
-| secure links | безпечні посилання | Product feature |
-| privacy-first design | дизайн з пріоритетом конфіденційності | Design philosophy |
-| custom branding | користувацький брендинг | Premium feature |
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
 
 ---
 
-## Translation Guidelines
+## Глосарій
 
-### 1. Consistency
+# Глосарій перекладів Onetime Secret
 
-- Use the same translation for a term throughout the application
-- Maintain standardized terminology from the glossary above
-- Key distinctions to preserve:
-  - `пароль` for account passwords
-  - `парольна фраза` or `ключова фраза` for secret protection
-  - `таємниця` (noun) vs `таємний/таємна/таємне` (adjective)
+Цей глосарій містить стандартизовані переклади ключових термінів для забезпечення узгодженості в українській версії Onetime Secret.
 
-### 2. Context Awareness
+## Основна термінологія
 
-- Consider how the term is used in the application
-- Account for surrounding UI elements and user flow
-- Ensure translations make sense in their specific context
-- Pay attention to grammatical context requiring specific cases
+| Англійська | Українська | Примітки |
+|---------|-------------|-------|
+| secret (noun) | таємниця | Центральне поняття застосунку; уникайте "секрет" |
+| secret (adj) | таємний/таємна/таємне | Адаптувати до роду; уникайте "секретний" |
+| secret message | таємне повідомлення | Для функцій продукту |
+| secret content | таємний вміст | Для функцій безпеки (чоловічий рід) |
+| secret link(s) | таємне посилання/таємні посилання | Завжди "таємні", ніколи "секретні" |
+| passphrase | парольна фраза, ключова фраза | Метод аутентифікації для таємниць; відрізняється від пароля облікового запису |
+| password | пароль | Для входу в обліковий запис |
+| burn | знищити, спалити | Дія для видалення таємниці перед переглядом; підкреслює постійність |
+| view/reveal | переглянути/показати | Дія для доступу до таємниці |
+| link | посилання | URL-адреса, яка надає доступ до таємниці |
+| encrypt/encrypted | зашифрувати/зашифрований | Метод безпеки |
+| secure | безпечний | Стан захищеності |
+| colonel | адміністратор | Перекладати на загальний термін; не використовувати "полковник" |
+| one-time | одноразовий/одноразова/одноразове | Прикметник, адаптувати до роду |
+| Onetime | Onetime | Частина назви бренду; НЕ перекладати |
 
-### 3. Cultural Adaptation
+## Елементи інтерфейсу користувача
 
-- Adapt terms to Ukrainian conventions when necessary
-- Use standard technical terms familiar to Ukrainian-speaking users
-- Avoid Russian loanwords when Ukrainian equivalents exist
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| Share a secret | Поділитися таємницею | Основна дія |
+| Create Account | Створити обліковий запис | Реєстрація |
+| Sign In | Увійти | Аутентифікація |
+| Dashboard | Панель керування | Головна сторінка користувача |
+| Settings | Налаштування | Сторінка конфігурації |
+| Privacy Options | Параметри конфіденційності | Налаштування таємниці |
+| Feedback | Зворотний зв'язок | Коментарі користувачів |
 
-### 4. Technical Accuracy
+## Терміни статусу
 
-- Security-related terms must be translated accurately
-- Prioritize precision over casual localization
-- Use established Ukrainian technical vocabulary
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| received | отримано | Таємницю переглянуто |
+| burned | знищено | Таємницю видалено перед переглядом |
+| expired | закінчився термін дії | Таємниця більше не доступна через час |
+| created | створено | Таємницю згенеровано |
+| active | активна | Таємниця доступна |
+| inactive | неактивна | Таємниця недоступна |
 
-### 5. Voice and Tone
+## Терміни, пов'язані з часом
 
-#### Imperative Voice (for Actions)
-Use infinitive or imperative forms for buttons, links, and user actions:
-- `Зберегти зміни` (Save changes)
-- `Видалити файл` (Delete file)
-- `Створити таємницю` (Create secret)
-- `Скопіювати в буфер обміну` (Copy to clipboard)
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| expires in | закінчується через | Час до недоступності таємниці |
+| day/days | день/дні/днів | Одиниця часу |
+| hour/hours | година/години/годин | Одиниця часу |
+| minute/minutes | хвилина/хвилини/хвилин | Одиниця часу |
+| second/seconds | секунда/секунди/секунд | Одиниця часу |
 
-#### Passive/Declarative Voice (for Information)
-Use passive voice or past participles for informational text and status messages:
-- `Зміни збережено` (Changes saved)
-- `Файл видалено` (File deleted)
-- `Таємницю створено` (Secret created)
-- `Посилання скопійовано` (Link copied)
+## Функції безпеки
 
-### 6. Direct Address
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| one-time access | одноразовий доступ | Основна функція безпеки |
+| passphrase protection | захист парольною фразою | Додатковий захист |
+| encrypted in transit | зашифровано під час передачі | Метод захисту даних |
+| encrypted at rest | зашифровано в стані спокою | Захист при зберіганні |
 
-- Use polite second person "ви" (not informal "ти") when addressing users
-- Examples:
-  - `Введіть ваш пароль` (Enter your password)
-  - `Ваше таємне повідомлення` (Your secret message)
-  - `Ви створюєте таємницю` (You are creating a secret)
+## Терміни, пов'язані з обліковим записом
 
-### 7. Clarity and Natural Phrasing
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| email | електронна пошта, e-mail | Ідентифікатор користувача |
+| password | пароль | Аутентифікація |
+| account | обліковий запис | Профіль користувача |
+| subscription | підписка | Платна послуга |
+| customer | клієнт | Користувач, який платить |
 
-- Prioritize natural Ukrainian expressions over literal translations
-- Avoid calques from English
-- Use standard phrases familiar to Ukrainian speakers
-- Read translations aloud to ensure natural flow
+## Терміни, пов'язані з доменом
 
-### 8. Completeness
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| custom domain | користувацький домен | Преміум-функція |
+| domain verification | перевірка домену | Процес налаштування |
+| DNS record | DNS-запис | Конфігурація |
+| CNAME record | CNAME-запис | Налаштування DNS |
 
-- Ensure all user-facing strings are translated
-- Avoid leaving English text in the interface
-- Translate help text, descriptions, and metadata
+## Повідомлення про помилки
+
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| error | помилка | Повідомлення про проблему |
+| warning | попередження | Повідомлення про застереження |
+| oops | ой | Дружнє повідомлення про помилку |
+
+## Кнопки та дії
+
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| submit | надіслати | Дія форми |
+| cancel | скасувати | Негативна дія |
+| confirm | підтвердити | Позитивна дія |
+| copy to clipboard | скопіювати в буфер обміну | Дія утиліти |
+| continue | продовжити | Навігація |
+| back | назад | Навігація |
+
+## Маркетингові терміни
+
+| Англійська | Українська | Контекст |
+|---------|-------------|-------|
+| secure links | безпечні посилання | Функція продукту |
+| privacy-first design | дизайн з пріоритетом конфіденційності | Філософія дизайну |
+| custom branding | користувацький брендинг | Преміум-функція |
+
+## Вказівки щодо перекладу
+
+1. **Узгодженість**: Використовуйте однаковий переклад терміна в усьому застосунку
+2. **Контекст**: Враховуйте, як термін використовується в застосунку
+3. **Культурна адаптація**: Адаптуйте терміни до місцевих умов, коли це необхідно
+4. **Технічна точність**: Забезпечте точний переклад термінів безпеки
+5. **Тон**: Підтримуйте професійний, але прямий тон
+
+## Особливі міркування
+
+- Термін "таємниця" є центральним у застосунку і повинен перекладатися послідовно
+- Технічні терміни, пов'язані з безпекою, повинні мати пріоритет точності над локалізацією
+- Елементи інтерфейсу повинні відповідати конвенціям платформи для української мови
+- Узгодження за родом та відмінком є критично важливим для природності мови
+- Назви брендів (Onetime Secret, Identity Plus, Global Elite, Custom Install) не перекладаються
 
 ---
 
-## Ukrainian Grammar Specifics
+## Специфічні для мови примітки щодо перекладу
 
-### Gender Agreement
+# Примітки щодо перекладу українською мовою
 
-Ukrainian has three genders (masculine, feminine, neuter). Ensure adjectives agree with nouns:
+Цей документ містить правила та рекомендації, специфічні для української мови, для підвищення якості перекладів Onetime Secret.
 
-| Noun | Gender | Example with "таємний" |
-|------|--------|----------------------|
-| повідомлення | neuter | таємне повідомлення |
-| посилання | neuter | таємне посилання |
-| таємниця | feminine | нова таємниця |
-| вміст | masculine | таємний вміст |
-| доступ | masculine | одноразовий доступ |
+## Критичні проблеми якості
 
-### Case System
+| Правило | Правильно | Неправильно | Приклад |
+|------|---------|-----------|---------|
+| **Назва бренду: Onetime Secret** | Onetime Secret (не перекладати) | ~~Одноразова таємна~~, ~~Одноразовий секрет~~ | ✓ "Ласкаво просимо до Onetime Secret"; ✗ "Ласкаво просимо до Одноразової таємної документації" |
+| **Назви продуктів** | Identity Plus, Global Elite, Custom Install (не перекладати) | ~~Ідентичність Плюс~~, ~~Глобальна Еліта~~ | ✓ "Upgrade to Identity Plus"; ✗ "Перейти на Ідентичність Плюс" |
+| **Переклад "secret" (загальний)** | таємний/таємна/таємне (прикметник); таємниця (іменник) | ~~секретний/секрет~~ (надто особиста конотація) | ✓ "таємне повідомлення"; ✗ "секретне повідомлення" |
+| **Secret Links** | таємні посилання (послідовно) | ~~секретні посилання~~ (непослідовно з іншими перекладами) | ✓ "Що таке таємні посилання?"; ✗ "Що таке секретні посилання?" потім "Як працюють таємні посилання?" |
+| **Secret message** | таємне повідомлення | ~~секретне повідомлення~~, ~~секрет~~ | ✓ "Створити таємне повідомлення"; ✗ "Створити секрет" |
+| **Password vs Passphrase** | пароль (для входу в обліковий запис), парольна фраза або ключова фраза (для захисту таємниць) | ~~пароль~~ для обох випадків | ✓ "Введіть ваш пароль для входу" та "Захистити парольною фразою"; ✗ "Захистити паролем" |
 
-Use correct case forms depending on grammatical context:
+## Послідовність термінології
 
-| Case | Name | Example with "таємне посилання" |
+| Англійська | Українська | Примітки |
+|---------|-----------|--------|
+| secret (noun) | таємниця | Центральне поняття додатку; уникайте "секрет" |
+| secret (adj) | таємний/таємна/таємне | Адаптувати до роду; уникайте "секретний" |
+| secret message | таємне повідомлення | Для функцій продукту |
+| secret content | таємний вміст | Для функцій безпеки |
+| secret link(s) | таємне посилання/таємні посилання | ЗАВЖДИ "таємні", ніколи "секретні" |
+| passphrase | парольна фраза, ключова фраза | Для захисту окремих таємниць |
+| password | пароль | Для входу в обліковий запис |
+| burn | знищити, спалити | Дія видалення таємниці перед переглядом |
+| colonel | адміністратор | Перекласти на звичайний термін; не використовувати "полковник" |
+| one-time | одноразовий/одноразова/одноразове | Прикметник, адаптувати до роду |
+| Onetime | Onetime | Частина назви бренду; НЕ перекладати |
+
+## Проблеми з Посібником та Глосарієм
+
+### Проблеми з Посібником зі стилю (/uk/translations/guide.md)
+
+| Проблема | Місце | Що виправити |
+|------|---------|-----------|
+| Неправильний опис цільової мови | Рядок 6, 10 | Змінити "перекладу на канадський варіант англійської мови" на "перекладу з англійської на українську мову" |
+| Назва бренду перекладена | Рядок 174-178 | Видалити переклади назв продуктів; вони мають залишатися англійською |
+| Рекомендації щодо англійської мови для України | Рядок 74, 250-279 | Адаптувати для українських форматів дати/часу, чисел, адрес |
+
+### Проблеми з Глосарієм (/uk/translations/glossary.md)
+
+| Проблема | Місце | Що виправити |
+|------|---------|-----------|
+| Назва перекладена | Рядок 6 | Змінити "Одноразовий секретний глосарій" на "Onetime Secret Glossary перекладів" |
+| Неправильні заголовки таблиці | Рядок 12+ | Змінити "Німецька (AT)" на "Українська"; видалити непотрібні стовпці |
+| Шаблон, орієнтований на німецьку/французьку мову | Всюди | Створити власну таблицю для української з відповідними перекладами |
+| Використання "секрет" замість "таємниця" | Рядок 14-15 | Оновити до "таємниця/таємний" послідовно |
+
+## Контекстні правила перекладу
+
+| Контекст | Форма | Приклад |
+|---------|------|---------|
+| Кнопки і дії (наказовий спосіб) | Дієслово в інфінітиві або наказовій формі | ✓ "Зберегти зміни", "Видалити файл", "Створити таємницю" |
+| Статус повідомлення (пасив) | Дієслово в минулому часі, пасивний стан | ✓ "Зміни збережено", "Файл видалено", "Таємницю створено" |
+| Заголовки | Регістр речення (перша літера велика) | ✓ "Як працюють таємні посилання"; ✗ "Як Працюють Таємні Посилання" |
+| Звернення до користувача | Друга особа однини "ви" (неформальне "ти" уникати в документації) | ✓ "Ви створюєте таємне повідомлення"; ✗ "Ти створюєш секретне повідомлення" |
+
+## Граматичні особливості
+
+### Узгодження за родом
+
+Українська мова має три роди (чоловічий, жіночий, середній). Забезпечте узгодження прикметників:
+
+| Іменник | Рід | Приклад з "таємний" |
+|------|------|-------------------|
+| повідомлення | середній | таємне повідомлення |
+| посилання | середній | таємне посилання |
+| таємниця | жіночий | нова таємниця |
+| вміст | чоловічий | таємний вміст |
+
+### Відмінки
+
+Використовуйте правильні відмінкові форми залежно від контексту:
+
+- Називний: "таємне посилання існує"
+- Родовий: "створення таємного посилання"
+- Давальний: "доступ до таємного посилання"
+- Знахідний: "створити таємне посилання"
+- Орудний: "поділитися таємним посиланням"
+- Місцевий: "в таємному посиланні"
+
+## Пріоритетні виправлення
+
+Наступні файли потребують негайного виправлення:
+
+1. **src/content/docs/uk/docs-overview.md (рядок 6):** "Одноразова таємна документація" → "Документація Onetime Secret"
+2. **src/content/docs/uk/secret-links/index.md (рядок 8):** "Що таке таємні посилання?" (перевірити послідовність з рядком 12)
+3. **src/content/docs/uk/translations/guide.md (рядки 6, 10, 174-178):** Виправити мета-описи та видалити переклади назв брендів
+4. **src/content/docs/uk/translations/glossary.md (весь файл):** Переробити з українськими перекладами замість німецько-французького шаблону
+
+## Рекомендації щодо якості
+
+1. **Послідовність понад усе:** Використовуйте один і той самий переклад терміна в усьому додатку
+2. **Контекст має значення:** "Таємниця" для іменника, "таємний/а/е" для прикметника
+3. **Природність мови:** Переклади мають звучати природно українською, не як калька з англійської
+4. **Технічна точність:** Терміни безпеки потребують точного перекладу
+5. **Не перекладайте бренди:** Onetime Secret, Identity Plus, Global Elite, Custom Install залишаються англійською
+
+## Процес перегляду
+
+Перед затвердженням перекладу:
+
+1. ✓ Перевірте, чи не перекладені назви брендів
+2. ✓ Переконайтеся, що "secret" перекладається як "таємний/таємниця", а не "секретний/секрет"
+3. ✓ Перевірте узгодження за родом та відмінком
+4. ✓ Переконайтеся, що "password" та "passphrase" розрізняються
+5. ✓ Перевірте послідовність з глосарієм
+6. ✓ Прочитайте вголос, щоб переконатися в природності мови
+
+## Граматичні особливості
+
+### Узгодження за родом
+
+Українська мова має три роди (чоловічий, жіночий, середній). Забезпечте узгодження прикметників:
+
+| Іменник | Рід | Приклад з "таємний" |
+|------|------|-------------------|
+| повідомлення | середній | таємне повідомлення |
+| посилання | середній | таємне посилання |
+| таємниця | жіночий | нова таємниця |
+| вміст | чоловічий | таємний вміст |
+| доступ | чоловічий | одноразовий доступ |
+
+### Система відмінків
+
+Використовуйте правильні відмінкові форми залежно від граматичного контексту:
+
+| Відмінок | Назва | Приклад з "таємне посилання" |
 |------|------|-------------------------------|
-| Nominative | Називний | таємне посилання існує |
-| Genitive | Родовий | створення таємного посилання |
-| Dative | Давальний | доступ до таємного посилання |
-| Accusative | Знахідний | створити таємне посилання |
-| Instrumental | Орудний | поділитися таємним посиланням |
-| Locative | Місцевий | у таємному посиланні |
+| Називний | Називний | таємне посилання існує |
+| Родовий | Родовий | створення таємного посилання |
+| Давальний | Давальний | доступ до таємного посилання |
+| Знахідний | Знахідний | створити таємне посилання |
+| Орудний | Орудний | поділитися таємним посиланням |
+| Місцевий | Місцевий | у таємному посиланні |
 
-### Number Agreement
+### Узгодження за числом
 
-Ukrainian has special rules for number agreement:
+Українська мова має особливі правила узгодження чисел:
 
-| Quantity | Form | Example |
+| Кількість | Форма | Приклад |
 |----------|------|---------|
-| 1 | Singular | 1 день, 1 година, 1 хвилина |
-| 2-4 | Plural genitive singular | 2/3/4 дні, години, хвилини |
-| 5+ | Plural genitive plural | 5+ днів, годин, хвилин |
+| 1 | Однина | 1 день, 1 година, 1 хвилина |
+| 2-4 | Множина родовий однина | 2/3/4 дні, години, хвилини |
+| 5+ | Множина родовий множина | 5+ днів, годин, хвилин |
 
----
+## Типові шаблони перекладу
 
-## Common Translation Patterns
-
-### User Instructions
-Use infinitive or imperative forms:
+### Інструкції для користувача
+Використовуйте інфінітив або наказовий спосіб:
 - `Введіть ваш пароль` (Enter your password)
 - `Скопіювати в буфер обміну` (Copy to clipboard)
 
-### Status Descriptions
-Use passive voice or past participles:
+### Описи статусу
+Використовуйте пасивний стан або минулий час:
 - `Скопійовано в буфер обміну` (Copied to clipboard)
 - `Таємницю створено` (The secret has been created)
 
-### Help Text and Descriptions
-Use declarative sentences in 2nd person formal:
+### Текст довідки та описи
+Використовуйте декларативні речення у 2-й особі ввічливої форми:
 - `Ви переглядаєте таємний вміст` (You are viewing the secret content)
 - `Цей вміст показується лише один раз` (This content is shown only once)
 
-### Error Messages
-Use clear, direct language:
+### Повідомлення про помилки
+Використовуйте чітку, пряму мову:
 - `Неправильна парольна фраза` (Incorrect passphrase)
 - `Сталася помилка` (An error has occurred)
 
----
+## Контрольний список якості
 
-## Special Considerations
+Перед затвердженням перекладу перевірте:
 
-### The Term "Таємниця"
-- Fundamental to the application - translate consistently as `таємниця`
-- Use `таємний/таємна/таємне` as adjective with proper gender agreement
-- Avoid `секрет/секретний` - these carry overly personal connotations
-- Examples of correct usage:
-  - ✓ "Створити таємне повідомлення"
-  - ✓ "Поділитися таємницею"
-  - ✓ "Таємні посилання"
-  - ✗ "Створити секрет"
-  - ✗ "Секретні посилання"
-
-### Password vs. Passphrase
-Critical distinction:
-- **`пароль`** - for user account login credentials
-- **`парольна фраза`** or **`ключова фраза`** - for protecting individual secrets
-
-This distinction must be maintained throughout the application to avoid confusion.
-
-Examples:
-- ✓ "Введіть ваш пароль для входу" (Enter your password to log in)
-- ✓ "Захистити парольною фразою" (Protect with passphrase)
-- ✗ "Захистити паролем" (Protect with password)
-
-### Brand Names
-Never translate brand or product names:
-- **Onetime Secret** - DO NOT translate to "Одноразова Таємниця"
-- **Identity Plus** - DO NOT translate to "Ідентичність Плюс"
-- **Global Elite** - DO NOT translate to "Глобальна Еліта"
-- **Custom Install** - DO NOT translate
-
-### UI Element Conventions
-- Follow platform conventions for Ukrainian language
-- Use standard Ukrainian terminology for common UI elements
-- Maintain consistency with other Ukrainian applications
-
-### Technical Security Terms
-- Prioritize accuracy over casual localization
-- Use established Ukrainian technical vocabulary
-- Examples:
-  - `зашифрований` (encrypted)
-  - `зашифрувати` (to encrypt)
-  - `перевірка` (verification)
-  - `автентифікація` (authentication)
+1. ✓ **Назви брендів не перекладені** (Onetime Secret, Identity Plus тощо)
+2. ✓ **"Secret" перекладається як "таємний/таємниця"**, а не "секретний/секрет"
+3. ✓ **Узгодження за родом та відмінком правильне** для всіх прикметників та іменників
+4. ✓ **"Password" та "passphrase" розрізняються** (`пароль` vs `парольна фраза`)
+5. ✓ **Дотримано послідовності з глосарієм**
+6. ✓ **Природна українська мова** при читанні вголос
+7. ✓ **Правильне узгодження чисел** для одиниць часу (день/дні/днів)
+8. ✓ **Використовується ввічлива форма "ви"** для звернення до користувача (не неформальне "ти")
 
 ---
 
-## Critical Quality Checklist
+## Document Information
 
-Before approving a translation, verify:
+This guide was generated from the following source files:
 
-1. ✓ **Brand names are not translated** (Onetime Secret, Identity Plus, etc.)
-2. ✓ **"Secret" translates to "таємний/таємниця"**, not "секретний/секрет"
-3. ✓ **Gender and case agreement is correct** for all adjectives and nouns
-4. ✓ **"Password" and "passphrase" are distinguished** (`пароль` vs `парольна фраза`)
-5. ✓ **Consistency with glossary** is maintained throughout
-6. ✓ **Natural-sounding Ukrainian** when read aloud
-7. ✓ **Proper number agreement** for time units (день/дні/днів)
-8. ✓ **Formal "ви" is used** for user address (not informal "ти")
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/uk/translations/glossary.md`
+- Language notes: `/uk/translations/language-notes.md`
 
----
-
-## Summary of Translation Principles
-
-The Ukrainian translation maintains:
-
-1. **Terminology Consistency** - Standardized key terms throughout the application
-2. **Appropriate Voice** - Imperative for actions, passive/declarative for information
-3. **Natural Phrasing** - Standard Ukrainian expressions avoiding English calques
-4. **Formal Address** - Polite "ви" form when addressing users
-5. **Complete Coverage** - All user-facing strings translated
-6. **Technical Accuracy** - Precise terminology for security concepts
-7. **Clear Distinctions** - Especially between account passwords and secret passphrases
-8. **Grammatical Correctness** - Proper gender, case, and number agreement
-9. **Brand Preservation** - Product and brand names remain in English
-
-By following these guidelines, translators can ensure that the Ukrainian version of Onetime Secret is accurate, consistent, and provides a natural user experience for Ukrainian-speaking audiences.
+Generated: 2026-01-20

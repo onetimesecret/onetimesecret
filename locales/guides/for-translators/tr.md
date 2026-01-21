@@ -3,326 +3,279 @@ title: Türkçe çeviri rehberi
 description: Onetime Secret'ı Türkçe'ye çevirmek için kapsamlı rehber, sözlük ve dil notlarını birleştirir
 ---
 
-# Translation Guidance for Turkish (Türkçe)
+# Translation Guidance for Turkish
 
-This document combines the glossary of standardized terms and language-specific translation notes for Turkish translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Turkish locale to ensure consistency, accuracy, and natural phrasing.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
 
-## Overview
+## Universal Translation Resources
 
-The Turkish translation aims to:
-- Maintain consistency across all application interfaces
-- Use clear, natural phrasing for Turkish-speaking audiences
-- Follow technical accuracy for security-related terminology
-- Apply appropriate voice and tone for different contexts
-- Use formal "siz" form to maintain professional tone
+Before translating, review these cross-language guidelines that apply to all locales:
 
----
-
-## Core Terminology
-
-### Basic Terms
-
-| English | Türkçe (TR) | Context | Notes |
-|---------|-------------|---------|-------|
-| secret (noun) | gizli mesaj | Central application concept | Use "gizli mesaj" instead of "sır" to avoid personal/intimate connotations |
-| secret (adj) | gizli | Descriptive use | |
-| passphrase | güvenlik ifadesi | Authentication method for secrets | Distinct term for secret protection |
-| password | parola / şifre | Account login credential | Standard term for account passwords only |
-| burn | yakmak | Action to delete a secret before viewing | Strong metaphor for permanent deletion |
-| view/reveal | görüntüle/göster | Action to access a secret | Display/show content |
-| link | bağlantı | URL providing access to a secret | |
-| encrypt/encrypted | şifrele/şifrelenmiş | Security method | |
-| secure | güvenli | Protection state | |
-
-### User Interface Elements
-
-| English | Türkçe (TR) | Context | Notes |
-|---------|-------------|---------|-------|
-| Share a secret | Gizli mesaj paylaş | Primary action | |
-| Create Account | Hesap oluştur | Registration | |
-| Sign In | Giriş yap | Authentication | |
-| Dashboard | Kontrol paneli | User's main page | |
-| Settings | Ayarlar | Configuration page | |
-| Privacy Options | Gizlilik seçenekleri | Secret configuration | |
-| Feedback | Geri bildirim | User feedback | |
-
-### Status Terms
-
-| English | Türkçe (TR) | Context | Notes |
-|---------|-------------|---------|-------|
-| received | alındı | Secret has been viewed | Past tense passive |
-| burned | yakıldı | Secret was deleted before viewing | Past tense passive |
-| expired | süresi doldu | Secret no longer available due to time | Past tense passive |
-| created | oluşturuldu | Secret has been generated | Past tense passive |
-| active | aktif | Secret is available | |
-| inactive | pasif | Secret is not available | |
-| expiring soon | yakında sona erecek | Approaching expiration | |
-| orphaned | sahipsiz | Without an owner | |
-| securing | güvenli hale getiriliyor | Being made secure | Present continuous passive |
-
-### Time-Related Terms
-
-| English | Türkçe (TR) | Context |
-|---------|-------------|---------|
-| expires in | ... içinde sona erer | Time until secret becomes unavailable |
-| day/days | gün | Time unit |
-| hour/hours | saat | Time unit |
-| minute/minutes | dakika | Time unit |
-| second/seconds | saniye | Time unit |
-
-### Security Features
-
-| English | Türkçe (TR) | Context |
-|---------|-------------|---------|
-| one-time access | tek kullanımlık erişim | Core security feature |
-| passphrase protection | güvenlik ifadesi koruması | Additional security |
-| encrypted in transit | aktarım sırasında şifrelenmiş | Data protection method |
-| encrypted at rest | beklemede şifrelenmiş | Storage protection |
-
-### Account-Related Terms
-
-| English | Türkçe (TR) | Context |
-|---------|-------------|---------|
-| email | e-posta | User identifier |
-| password | parola / şifre | Account authentication |
-| account | hesap | User profile |
-| subscription | abonelik | Paid service |
-| customer | müşteri | Paying user |
-| plan | plan | Service tier |
-| colonel | yönetici | Administrator role (highest privileges) |
-
-### Domain-Related Terms
-
-| English | Türkçe (TR) | Context |
-|---------|-------------|---------|
-| custom domain | özel alan adı | Premium feature |
-| domain verification | alan adı doğrulaması | Setup process |
-| DNS record | DNS kaydı | Configuration |
-| CNAME record | CNAME kaydı | DNS configuration |
-
-### Error Messages
-
-| English | Türkçe (TR) | Context |
-|---------|-------------|---------|
-| error | hata | Problem notification |
-| warning | uyarı | Caution notification |
-| oops | Hata! | Friendly error introduction |
-
-### Buttons and Actions
-
-| English | Türkçe (TR) | Context | Notes |
-|---------|-------------|---------|-------|
-| submit | gönder | Form action | Imperative form |
-| cancel | iptal et | Negative action | Imperative form |
-| confirm | onayla | Positive action | Imperative form |
-| copy to clipboard | panoya kopyala | Utility action | Imperative form |
-| continue | devam et | Navigation | Imperative form |
-| back | geri | Navigation | |
-| create | oluştur | Imperative form for buttons | |
-| save | kaydet | Imperative form for buttons | |
-| delete | sil | Remove item | Imperative form |
-| share | paylaş | Share/distribute | Imperative form |
-
-### Marketing Terms
-
-| English | Türkçe (TR) | Context |
-|---------|-------------|---------|
-| secure links | güvenli bağlantılar | Product feature |
-| privacy-first design | gizlilik odaklı tasarım | Design philosophy |
-| custom branding | özel markalama | Premium feature |
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
 
 ---
 
-## Translation Guidelines
+## Sözlük
 
-### 1. Consistency
+# Onetime Secret Çeviri Sözlüğü
 
-- Use the same translation for a term throughout the application
-- Maintain standardized terminology from the glossary above
-- Key distinctions to preserve:
-  - `parola/şifre` for account passwords
-  - `güvenlik ifadesi` for secret protection
-  - `gizli mesaj` as the core concept (not "sır")
+Onetime Secret uygulamasında tutarlılığı sağlamak için temel terimlerin standartlaştırılmış çevirilerini sağlayan referans kılavuzu.
 
-### 2. Context Awareness
+## Temel Terminoloji
 
-- Consider how the term is used in the application
-- Account for surrounding UI elements and user flow
-- Ensure translations make sense in their specific context
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| secret (noun) | gizli mesaj | Geheimnis | secret | secreto | Uygulamanın merkezi kavramı |
+| secret (adj) | gizli | geheim | secret/sécurisé | secreto | |
+| passphrase | güvenlik ifadesi | Passphrase | phrase secrète | frase de seguridad | Gizli mesajlar için kimlik doğrulama |
+| password | parola / şifre | Passwort | mot de passe | contraseña | Hesap girişi için |
+| burn | yakmak | zerstören | supprimer | eliminar | Görüntülenmeden önce silme eylemi |
+| view/reveal | görüntüle/göster | ansehen/anzeigen | consulter/afficher | ver/revelar | Gizli mesaja erişim eylemi |
+| link | bağlantı | Link | lien | enlace | Gizli mesaja erişim sağlayan URL |
+| encrypt/encrypted | şifrele/şifrelenmiş | verschlüsseln/verschlüsselt | chiffrer/chiffré | cifrar/cifrado | Güvenlik yöntemi |
+| secure | güvenli | sicher | sécurisé | seguro | Koruma durumu |
 
-### 3. Cultural Adaptation
+## Kullanıcı Arayüzü Öğeleri
 
-- Adapt terms to local conventions when necessary
-- Use standard Turkish that works across regions
-- Use standard technical terms familiar to Turkish-speaking users
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| Share a secret | Gizli mesaj paylaş | Geheimen Link erstellen | Partager un secret | Compartir un secreto | Ana eylem |
+| Create Account | Hesap oluştur | Konto erstellen | Créer un compte | Crear cuenta | Kayıt |
+| Sign In | Giriş yap | Anmelden | Se connecter | Iniciar sesión | Kimlik doğrulama |
+| Dashboard | Kontrol paneli | Konto | Tableau de bord | Panel de control | Kullanıcının ana sayfası |
+| Settings | Ayarlar | Einstellungen | Paramètres | Configuración | Yapılandırma sayfası |
+| Privacy Options | Gizlilik seçenekleri | Datenschutzeinstellungen | Options de confidentialité | Opciones de privacidad | Gizli mesaj ayarları |
+| Feedback | Geri bildirim | Feedback | Retour d'information | Comentarios | Kullanıcı yorumları |
 
-### 4. Technical Accuracy
+## Durum Terimleri
 
-- Security-related terms must be translated accurately
-- Prioritize precision over localization for technical terminology
-- Use established Turkish technical vocabulary
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| received | alındı | empfangen | reçu | recibido | Gizli mesaj görüntülendi |
+| burned | yakıldı | zerstört | supprimé | eliminado | Görüntülenmeden silindi |
+| expired | süresi doldu | abgelaufen | expiré | expirado | Zaman nedeniyle artık mevcut değil |
+| created | oluşturuldu | erstellt | créé | creado | Gizli mesaj oluşturuldu |
+| active | aktif | aktiv | actif | activo | Gizli mesaj mevcut |
+| inactive | pasif | inaktiv | inactif | inactivo | Gizli mesaj mevcut değil |
+| expiring soon | yakında sona erecek | läuft bald ab | expire bientôt | expirando pronto | Yaklaşan süre sonu |
+| orphaned | sahipsiz | verwaist | orphelin | huérfano | Sahibi olmayan |
+| securing | güvenli hale getiriliyor | wird gesichert | sécurisation | asegurando | Güvenli hale getiriliyor |
 
-### 5. Voice and Tone
+## Zamanla İlgili Terimler
 
-#### Active, Imperative Voice (for Actions)
-Use imperative voice for buttons, links, and user actions:
-- `Gizli mesaj oluştur` (Create secret)
-- `Panoya kopyala` (Copy to clipboard)
-- `Hesap oluştur` (Create account)
-- `Kaydet` (Save)
-- `Paylaş` (Share)
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| expires in | ... içinde sona erer | läuft ab in | expire dans | expira en | Kullanılamaz hale gelene kadar geçen süre |
+| day/days | gün | Tag/Tage | jour/jours | día/días | Zaman birimi |
+| hour/hours | saat | Stunde/Stunden | heure/heures | hora/horas | Zaman birimi |
+| minute/minutes | dakika | Minute/Minuten | minute/minutes | minuto/minutos | Zaman birimi |
+| second/seconds | saniye | Sekunde/Sekunden | seconde/secondes | segundo/segundos | Zaman birimi |
 
-#### Passive or Declarative Voice (for Information)
-Use passive voice or past tense for informational text, status messages, and descriptions:
-- `Gizli mesaj oluşturuldu` (Secret created - status)
-- `Güvenli mesajınız aşağıda gösterilmektedir.` (Your secure message is shown below.)
-- `Gizli mesaj manuel olarak yakıldı...` (The secret was manually burned...)
-- `Kaydedildi` (Saved - status message)
+## Güvenlik Özellikleri
 
-### 6. Formal Address
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| one-time access | tek kullanımlık erişim | einmaliger Zugang | accès unique | acceso único | Temel güvenlik özelliği |
+| passphrase protection | güvenlik ifadesi koruması | Schutz durch Passphrase | protection par phrase secrète | protección por frase | Ek güvenlik |
+| encrypted in transit | aktarım sırasında şifrelenmiş | verschlüsselt bei der Übertragung | chiffré en transit | cifrado en tránsito | Veri koruma yöntemi |
+| encrypted at rest | beklemede şifrelenmiş | verschlüsselt im Ruhezustand | chiffré au repos | cifrado en reposo | Depolama koruması |
 
-- **Use formal "siz" form** consistently when addressing users (not informal "sen")
-- Examples:
-  - `Parolanızı girin` (Enter your password)
-  - `Güvenli mesajınız` (Your secure message)
-- Turkish professional context requires respectful "siz" form
+## Hesapla İlgili Terimler
 
-### 7. Clarity and Natural Phrasing
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| email | e-posta | E-Mail | courriel/e-mail | correo electrónico | Kullanıcı tanımlayıcısı |
+| password | parola / şifre | Passwort | mot de passe | contraseña | Kimlik doğrulama |
+| account | hesap | Konto | compte | cuenta | Kullanıcı profili |
+| subscription | abonelik | Abonnement | abonnement | suscripción | Ücretli hizmet |
+| customer | müşteri | Kunde | client | cliente | Ödeme yapan kullanıcı |
+| plan | plan | Plan | plan | plan | Hizmet katmanı |
+| colonel | yönetici | Administrator | administrateur | administrador | Yönetici rolü (en yüksek yetkiler) |
 
-- Prioritize natural Turkish expressions over literal translations
-- Use standard phrases familiar to Turkish speakers
-- **Avoid verbose sentences** - Turkish can become wordy; resist this tendency
-- Use clear, direct language that respects users' time
+## Alan Adıyla İlgili Terimler
 
-### 8. Completeness
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| custom domain | özel alan adı | benutzerdefinierter Bereich | domaine personnalisé | dominio personalizado | Premium özellik |
+| domain verification | alan adı doğrulaması | Domänenüberprüfung | vérification du domaine | verificación del dominio | Kurulum süreci |
+| DNS record | DNS kaydı | Namensserver-Eintrag | enregistrement DNS | registro DNS | Yapılandırma |
+| CNAME record | CNAME kaydı | CNAME-Eintrag | enregistrement CNAME | registro CNAME | DNS kurulumu |
 
-- Ensure all user-facing strings are translated
-- Avoid leaving English text in the interface
-- Translate help text, descriptions, and metadata
+## Hata Mesajları
+
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| error | hata | Fehler | erreur | error | Sorun bildirimi |
+| warning | uyarı | Warnung | avertissement | advertencia | Dikkat bildirimi |
+| oops | Hata! | Ups | oups | ¡Vaya! | Samimi hata girişi |
+
+## Düğmeler ve Eylemler
+
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| submit | gönder | senden | soumettre | enviar | Form eylemi |
+| cancel | iptal et | abbrechen | annuler | cancelar | Olumsuz eylem |
+| confirm | onayla | bestätigen | confirmer | confirmar | Olumlu eylem |
+| copy to clipboard | panoya kopyala | in die Zwischenablage kopieren | copier dans le presse-papiers | copiar al portapapeles | Yardımcı eylem |
+| continue | devam et | weiter | continuer | continuar | Navigasyon |
+| back | geri | zurück | retour | atrás | Navigasyon |
+| save | kaydet | speichern | enregistrer | guardar | Değişiklikleri sakla |
+| delete | sil | löschen | supprimer | eliminar | Öğeyi kaldır |
+
+## Pazarlama Terimleri
+
+| English | Turkish (TR) | German (DE) | French (FR) | Spanish (ES) | Notlar |
+|---------|--------------|-------------|-------------|--------------|--------|
+| secure links | güvenli bağlantılar | sichere Links | liens sécurisés | enlaces seguros | Ürün özelliği |
+| privacy-first design | gizlilik odaklı tasarım | Datenschutz als oberstes Gebot | conception privilégiant la vie privée | diseño centrado en la privacidad | Tasarım felsefesi |
+| custom branding | özel markalama | benutzerdefiniertes Branding | image de marque personnalisée | marca personalizada | Premium özellik |
+
+## Çeviri Kuralları
+
+1. **Tutarlılık**: Uygulama genelinde bir terim için aynı çeviriyi kullanın
+2. **Bağlam**: Terimin uygulamada nasıl kullanıldığını göz önünde bulundurun
+3. **Kültürel Uyarlama**: Gerektiğinde terimleri yerel geleneklere uyarlayın
+4. **Teknik Doğruluk**: Güvenlik terimlerinin doğru çevrildiğinden emin olun
+5. **Ton**: Profesyonel ama doğrudan bir ton koruyun
+
+## Özel Hususlar
+
+### Password vs Passphrase - KRİTİK AYRIM
+
+Bu ayrım güvenlik netliği için **kritik** öneme sahiptir:
+
+- **Password (Parola/Şifre)**: Onetime Secret hesabına giriş için kullanılan kimlik bilgileri
+- **Passphrase (Güvenlik İfadesi)**: Bireysel gizli mesajları korumak için kullanılan (hesap erişimi için DEĞİL)
+
+**Doğru kullanım:**
+- ✅ Hesap bölümü: "Giriş yapmak için **parolanızı** girin"
+- ✅ Gizli mesaj bölümü: "Bu gizli mesaj bir **güvenlik ifadesi** ile korunmaktadır"
+
+**Yanlış yaklaşım:**
+- ❌ Her iki kavram için aynı terimi kullanmak
+- ❌ Terimler arasında tutarsızca geçiş yapmak
+
+### "Secret" Kelimesinin Çevirisi
+
+"Secret" kelimesi uygulama için merkezi öneme sahiptir ve tutarlı bir şekilde çevrilmelidir:
+
+- **Türkçe seçimi**: "gizli mesaj" (sır değil)
+- **Neden**: "Sır" kelimesi Türkçe'de kişisel, mahrem veya gizlenmiş bilgi çağrışımları taşır
+- **Precedent**: Danca çeviride benzer karar ("beskeder" tercih edilir, "hemmeligheder" değil)
+
+### Diğer Hususlar
+
+- "Secret" terimi uygulama için merkezi öneme sahiptir ve tutarlı bir şekilde çevrilmelidir
+- Güvenlikle ilgili teknik terimlerde doğruluk yerelleştirmeden önce gelmelidir
+- Arayüz öğeleri hedef dilin platform geleneklerini takip etmelidir
+- Resmi "siz" hitabını kullanın (gayri resmi "sen" değil)
+- Türk dili ayrıntılı olabilir - açık ve özlü cümleler kullanın
 
 ---
 
-## Common Translation Patterns
+## Turkish Translation Notes
 
-### User Instructions
-Use imperative forms:
-- `Parolanızı girin` (Enter your password)
-- `Panoya kopyala` (Copy to clipboard)
-- `Güvenlik ifadesini buraya girin` (Enter the passphrase here)
+# Turkish (tr) Translation Notes
 
-### Status Descriptions
-Use passive voice or past tense:
-- `Panoya kopyalandı` (Copied to clipboard)
-- `Gizli mesaj oluşturuldu` (Secret created)
-- `Kaydedildi` (Saved)
-- `Oluşturuldu` (Created)
+## Translation Choices and Adjustments
 
-### Help Text and Descriptions
-Use declarative sentences in formal address:
-- `Gizli içeriği görüntülüyorsunuz` (You are viewing the secret content)
-- `Bu içerik yalnızca bir kez gösterilir` (This content is shown only once)
+During the translation process, several conscientious choices were made to ensure the Turkish text appropriately conveys the intended meaning while being natural to native speakers.
 
-### Error Messages
-Use clear, direct language:
-- `Yanlış güvenlik ifadesi` (Incorrect passphrase)
-- `Bir hata oluştu` (An error occurred)
+## Important Translation Choices
 
----
+### 1. "Secret" Translation
 
-## Special Considerations
+**Choice:** Consistently translated as **"gizli mesaj"** (secret/private message) rather than just "sır" (secret).
 
-### The Term "Secret" - Critical Choice
-
-**ALWAYS use "gizli mesaj" (secret/confidential message), NOT "sır" (personal secret)**
-
-The Turkish word "sır" carries inappropriate connotations:
-- Personal, intimate secrets
-- Private or hidden information
-- Connotations too personal for business/security context
-
-This parallels the Danish translation decision documented in the English style guide, where "hemmeligheder" was rejected in favor of "beskeder" (messages) for the same reasons.
+**Reasoning:** While "sır" is the literal Turkish translation of "secret", it carries strong connotations of personal, intimate, or hidden information in everyday Turkish usage. This doesn't align with the technical, neutral meaning intended by Onetime Secret.
 
 **Precedent from Translation Guide:**
-The English translation guide provides this Danish example that directly applies to Turkish:
+The English translation guide provides a Danish example that directly parallels our Turkish decision:
 
 > **Danish Translation:**
-> - CORRECT: "Beskeder" (messages)
+> - CORRECT: **"Beskeder"** (messages)
 > - INCORRECT: "Hemmeligheder" (secrets)
 >
-> Reasoning: While "Hemmeligheder" is a literal translation, it carries connotations of personal or hidden information in everyday Danish usage that don't match the intended meaning.
+> Reasoning: While "Hemmeligheder" is a literal translation of "Secrets", it carries connotations of personal or hidden information in everyday Danish usage that don't match the intended meaning.
 
 **Turkish follows the same pattern:**
-- ✓ CORRECT: `gizli mesaj` (secret/confidential message) - neutral, technical
-- ✗ INCORRECT: `sır` (personal secret) - too personal/intimate
+- CORRECT: **"gizli mesaj"** (secret/confidential message)
+- INCORRECT: "sır" (personal secret)
 
-Examples:
-- ✓ `3 yeni gizli mesajınız var` (You have 3 new secret messages)
-- ✗ `3 yeni sırrınız var` (You have 3 new secrets)
-- ✓ `Gizli mesaj oluştur` (Create a secret)
-- ✗ `Sır oluştur` (Create a secret)
+**Usage Examples:**
+- ✅ "3 yeni gizli mesajınız var" (You have 3 new secret messages) - neutral, technical
+- ❌ "3 yeni sırrınız var" (You have 3 new secrets) - sounds too personal/intimate
 
-### Password vs. Passphrase - CRITICAL DISTINCTION
+This choice emphasizes that the content is a message with confidential information rather than a deeply personal secret.
 
-**This distinction is critical for security clarity and must be maintained throughout:**
+### 2. "Burn" Translation
 
-- **`parola` or `şifre`** - for user account login credentials ONLY
-- **`güvenlik ifadesi`** - for protecting individual secrets (NOT account login)
+**Choice:** Translated as **"yak"** (to burn) maintaining the metaphor from English.
 
-Users must understand that:
-1. **Password (parola/şifre)** = credentials to access their Onetime Secret account
-2. **Passphrase (güvenlik ifadesi)** = optional extra layer of protection for individual secrets
+**Reasoning:** Creates a strong mental image of permanent deletion rather than using more generic terms like "sil" (delete).
+
+### 3. "Passphrase" vs "Password" (CRITICAL DISTINCTION)
+
+Onetime Secret makes an important distinction between two security concepts that must be consistently maintained across all translations.
+
+**Password (Account Authentication):**
+- **Turkish:** "parola" or "şifre"
+- **Context:** Used exclusively for logging into user accounts
+- **Examples:** "Hesap parolası", "Giriş şifresi", "Parolayı sıfırla"
+
+**Passphrase (Secret Protection):**
+- **Turkish:** "güvenlik ifadesi" or "erişim ifadesi"
+- **Context:** Used when creating or accessing protected secrets (not for account access)
+- **Examples:** "Güvenlik ifadesi ile koru", "Görüntülemek için güvenlik ifadesini girin"
+
+**Why This Matters:**
+This distinction is critical for security clarity. Users need to understand that:
+1. **Password** = credentials to access their Onetime Secret account
+2. **Passphrase** = an optional extra layer of protection for individual secrets
 
 **Precedent from Other Languages:**
 - Bulgarian: "парола" (password) vs "ключова фраза" (key phrase)
-- Danish: "adgangskode" vs "adgangssætning"
-- Spanish: "contraseña" vs "frase de seguridad"
+- Danish: "adgangskode" (access code) vs "adgangssætning" (access sentence)
+- Spanish: "contraseña" vs "frase de seguridad" (security phrase)
 
-Examples:
-- ✓ `Giriş yapmak için parolanızı girin` (Enter your password - account login)
-- ✗ `Giriş yapmak için güvenlik ifadenizi girin` (Enter your passphrase - account login)
-- ✓ `Bu gizli mesaj bir güvenlik ifadesi ile korunmaktadır` (This secret is protected with a passphrase)
-- ✗ `Bu gizli mesaj bir parola ile korunmaktadır` (This secret is protected with a password)
+**Updated Choice:**
+- **password** → **"parola"** or **"şifre"** (account login)
+- **passphrase** → **"güvenlik ifadesi"** (secret protection)
 
-### The Term "Burn"
-Consistently translated as **`yakmak`** (to burn):
-- Creates strong mental image of permanent deletion
-- More impactful than generic `sil` (delete)
-- Examples:
-  - `Bu gizli mesajı yak` (Burn this secret - button)
-  - `Gizli mesaj yakıldı` (The secret was burned - status)
+### 4. Status Terms
 
-### The Term "Colonel"
-Translated as **`yönetici`** (administrator):
-- Project-specific term that rhymes with "kernel" in English
-- No direct Turkish equivalent for this playful technical term
-- Use common term for "administrator" - the account with highest privileges
-- Example: `Yalnızca yöneticiler bu özelliğe erişebilir` (Only admins can access this feature)
+Terms in the STATUS section were carefully translated to maintain their technical meaning while being natural in Turkish:
 
-### UI Element Conventions
-- Follow platform conventions for the target language
-- Use standard Turkish terminology for common UI elements
-- Maintain consistency with other Turkish applications
+- "Expiring soon" → **"Yakında sona erecek"** (approaching its end soon)
+- "Orphaned" → **"Sahipsiz"** (without an owner)
+- "Securing" → **"Güvenli hale getiriliyor"** (being made secure)
 
-### Technical Security Terms
-- Prioritize accuracy over casual localization
-- Use established Turkish technical vocabulary
-- Examples:
-  - `şifrelenmiş` (encrypted)
-  - `şifrele` (to encrypt)
-  - `doğrulama` (verification)
-  - `kimlik doğrulama` (authentication)
+### 5. Formal Address
 
----
+**Choice:** Use formal "siz" form rather than informal "sen".
+
+**Reasoning:** Maintains professional tone appropriate for a security-focused application. While some modern Turkish software uses "sen" to be friendly, Onetime Secret's brand values (authentic, professional yet approachable) are better served by the respectful "siz" form.
+
+**Application Context:**
+- Professional users (IT teams, corporate support teams)
+- Diverse age range of recipients (18-80)
+- Security-focused context requires trust and professionalism
 
 ## Brand Voice in Turkish
 
-### Core Values
-- **Özgün ve şeffaf** (Authentic and transparent) - Use clear, honest language
-- **Sabırlı ve odaklı** (Patient and focused) - Provide helpful explanations
-- **Kaliteden ödün vermeden verimli** (Efficient without sacrificing quality) - Be concise but complete
-- **Profesyonel ama ulaşılabilir** (Professional yet approachable) - Balance formality with warmth
+The Onetime Secret brand voice must be consistently maintained across the Turkish translation:
 
-### Communication Principles
+### Core Values
+- **Authentic and transparent** (Özgün ve şeffaf) - Use clear, honest language
+- **Patient and focused** (Sabırlı ve odaklı) - Provide helpful explanations without overwhelming users
+- **Efficient without sacrificing quality** (Kaliteden ödün vermeden verimli) - Be concise but complete
+- **Professional yet approachable** (Profesyonel ama ulaşılabilir) - Balance formality with warmth
+
+### Communication Principles in Turkish
 - Adapt technical detail based on user context
 - Balance friendliness with reliability
 - Prioritize clarity over casual language
@@ -334,36 +287,34 @@ Translated as **`yönetici`** (administrator):
 - Technical terms should remain consistent and clear
 - Maintain warmth through respectful language, not informality
 
----
-
 ## UI Text: Active vs Passive Voice in Turkish
 
 ### Active, Imperative Voice ("Bir şey yap" - Do something)
 
-**Buttons:**
+**Buttons (Düğmeler):**
 - ✓ Değişiklikleri kaydet (Save changes)
 - ✓ Dosyayı sil (Delete file)
 - ✓ Mesajı gönder (Send message)
 - ✓ Gizli mesaj oluştur (Create secret)
 
-**Menu items:**
+**Menu items (Menü öğeleri):**
 - ✓ Ayarları görüntüle (View settings)
 - ✓ Yeni klasör oluştur (Create new folder)
 
 ### Passive or Declarative Voice ("Bir şey oldu" - Something happened)
 
-**Status messages:**
+**Status messages (Durum mesajları):**
 - ✓ Değişiklikler kaydedildi (Changes saved)
 - ✓ Dosya silindi (File deleted)
 - ✓ Ödeme reddedildi (Payment declined)
 - ✓ Gizli mesaj yakıldı (Secret burned)
 
-**Notifications:**
+**Notifications (Bildirimler):**
 - ✓ 3 yeni mesaj (3 new messages)
 - ✓ İndirme tamamlandı (Download complete)
 - ✓ Sunucu kullanılamıyor (Server unavailable)
 
-**System states:**
+**System states (Sistem durumları):**
 - ✓ Yükleme devam ediyor (Upload in progress)
 - ✓ Bağlantı kesildi (Connection lost)
 - ✓ E-posta adresi bulunamadı (Email address not found)
@@ -371,50 +322,160 @@ Translated as **`yönetici`** (administrator):
 ### Examples in Context
 
 **Form submission:**
-- Button (active): `Değişiklikleri kaydet`
-- Status (passive): `Değişiklikler başarıyla kaydedildi`
+- Button (active): "Değişiklikleri kaydet"
+- Status (passive): "Değişiklikler başarıyla kaydedildi"
 
 **File upload:**
-- Button: `Dosya yükle`
-- Status: `Yükleme tamamlandı`
+- Button: "Dosya yükle"
+- Status: "Yükleme tamamlandı"
 
 **Secret creation:**
-- Button: `Gizli mesaj oluştur`
-- Status: `Gizli mesaj oluşturuldu`
-
----
+- Button: "Gizli mesaj oluştur"
+- Status: "Gizli mesaj oluşturuldu"
 
 ## Encoding Considerations
 
-### Turkish Character Encoding
+### Turkish Character Issues
 
-Ensure proper UTF-8 encoding for Turkish-specific characters:
-- `ı` (dotless i)
-- `ğ` (g with breve)
-- `ü` (u with diaeresis)
-- `ş` (s with cedilla)
-- `ç` (c with cedilla)
-- `ö` (o with diaeresis)
-- `İ` (capital I with dot)
+The Turkish translation file had numerous encoding issues where Turkish characters were represented as Unicode escape sequences:
 
-Avoid Unicode escape sequences (`\u0131`, etc.) - use proper UTF-8 encoding for better readability and maintenance.
+**Turkish characters and their Unicode sequences:**
+- `ı` (dotless i) → `\u0131`
+- `ğ` (g with breve) → `\u011f`
+- `ü` (u with diaeresis) → `\u00fc`
+- `ş` (s with cedilla) → `\u015f`
+- `ç` (c with cedilla) → `\u00e7`
+- `ö` (o with diaeresis) → `\u00f6`
+- `İ` (capital I with dot) → `\u0130`
+
+**Resolution:** These encoding issues should be fixed to use proper UTF-8 encoding for better readability and maintenance.
+
+## Summary of Changes to the Turkish Translation
+
+### 1. Encoding Fixes
+Corrected numerous encoding issues where Turkish characters (ı, ğ, ü, ş, ç, ö) were represented as Unicode escape sequences.
+
+### 2. Semantic Improvements
+- Improved consistency in terminology throughout the interface
+- Ensured technical terms maintained their specific meaning in translation
+- Enhanced natural flow of Turkish sentences
+
+### 3. Section Completions
+- Completed translation of previously untranslated sections including STATUS, FEATURES, and account management areas
+- Ensured interface components have appropriate Turkish equivalents
+
+### 4. Contextual Adaptations
+- Adapted certain phrases to better fit Turkish language patterns
+- Maintained the security-focused terminology in ways that would be familiar to Turkish users
+
+## Key Terminology Reference
+
+### Core Concepts
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| secret (noun) | gizli mesaj | The confidential content being shared; emphasizes message vs personal secret |
+| one-time | tek kullanımlık | Single-use nature of the service |
+| burn (verb) | yakmak / yak | Strong metaphor for permanent deletion |
+| link | bağlantı / link | URL that provides access to a secret |
+
+### Security & Authentication
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| password | parola / şifre | **Account login credential only** |
+| passphrase | güvenlik ifadesi | **Secret protection only** (NOT account login) |
+| encryption | şifreleme | Process of encoding secrets |
+| encrypted | şifrelenmiş | State of being encoded |
+| secure | güvenli | State of protection |
+| private | özel / gizli | Confidential |
+| confidential | gizli | Private/secret information |
+
+### User Interface Elements
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| share a secret | gizli mesaj paylaş | Main action |
+| create account | hesap oluştur | Registration |
+| sign in | giriş yap | Authentication |
+| dashboard | kontrol paneli | User's main page |
+| settings | ayarlar | Configuration page |
+| feedback | geri bildirim | User comments |
+
+### Status Terms
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| received | alındı | Secret has been viewed |
+| burned | yakıldı | Secret was deleted before viewing |
+| expired | süresi doldu | Secret no longer available due to time |
+| created | oluşturuldu | Secret has been generated |
+| active | aktif | Secret is available |
+| inactive | pasif / etkin değil | Secret is not available |
+| expiring soon | yakında sona erecek | Approaching expiration |
+| orphaned | sahipsiz | Without an owner |
+| securing | güvenli hale getiriliyor | Being made secure |
+
+### Time-Related Terms
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| expires in | ... içinde sona erer | Time until unavailable |
+| day/days | gün | Time unit |
+| hour/hours | saat | Time unit |
+| minute/minutes | dakika | Time unit |
+| second/seconds | saniye | Time unit |
+
+### Actions & Buttons
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| submit | gönder | Form submission (active voice) |
+| cancel | iptal et | Negative action (active voice) |
+| confirm | onayla | Positive action (active voice) |
+| copy to clipboard | panoya kopyala | Utility action |
+| continue | devam et | Navigation |
+| back | geri | Navigation |
+| save | kaydet | Preserve changes |
+| delete | sil | Remove item |
+
+### Account & Plans
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| account | hesap | User profile |
+| email | e-posta | User identifier |
+| subscription | abonelik | Paid service |
+| plan | plan | Service tier |
+| customer | müşteri | Paying user |
+| colonel | yönetici / admin | Administrator role (highest privileges) |
+
+### Error Messages
+
+| English | Turkish | Context/Notes |
+|---------|---------|---------------|
+| error | hata | Problem notification |
+| warning | uyarı | Caution notification |
+| oops | Hata! / Hay aksi! | Friendly error intro |
+
+## Translation Goals
+
+The primary goal was to create a translation that:
+- Feels natural to Turkish speakers
+- Precisely conveys technical concepts
+- Maintains security focus of the Onetime Secret application
+- Uses consistent terminology for key concepts like "secret messages," "burning," and "security features" throughout the interface
+
+Special attention was given to maintaining the security-focused terminology in ways that would be familiar to Turkish users while ensuring the interface remains accessible and professional.
 
 ---
 
-## Summary of Translation Principles
+## Document Information
 
-The Turkish translation maintains:
+This guide was generated from the following source files:
 
-1. **Terminology Consistency** - Standardized key terms throughout the application
-2. **Appropriate Voice** - Imperative for actions, passive/past tense for information
-3. **Natural Phrasing** - Standard Turkish expressions avoiding verbosity
-4. **Formal Address** - Respectful "siz" form throughout
-5. **Complete Coverage** - All user-facing strings translated
-6. **Technical Accuracy** - Precise terminology for security concepts
-7. **Clear Distinctions** - Especially:
-   - Account passwords (`parola/şifre`) and secret passphrases (`güvenlik ifadesi`)
-   - Using `gizli mesaj` (secret message) instead of `sır` (personal secret)
-   - Action verbs (imperative) and status messages (passive/past tense)
-8. **Professional Tone** - Balancing formality with approachability
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/tr/translations/glossary.md`
+- Language notes: `/tr/translations/language-notes.md`
 
-By following these guidelines, translators can ensure that the Turkish version of Onetime Secret is accurate, consistent, professional, and provides a natural user experience for Turkish-speaking audiences.
+Generated: 2026-01-20

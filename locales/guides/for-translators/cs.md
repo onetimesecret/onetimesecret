@@ -3,165 +3,198 @@ title: Průvodce překladem pro češtinu
 description: Komplexní průvodce pro překlad Onetime Secret do češtiny, který kombinuje glosář termínů a jazykové poznámky
 ---
 
-# Translation Guidance for Czech (Čeština)
+# Translation Guidance for Czech
 
-This document combines the glossary of standardized terms and language-specific translation notes for Czech translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Czech locale to ensure consistency, accuracy, and natural phrasing.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
 
-## Overview
+## Universal Translation Resources
 
-The Czech translation aims to:
-- Maintain consistency across all application interfaces
-- Use clear, natural phrasing for Czech-speaking audiences
-- Follow technical accuracy for security-related terminology
-- Apply appropriate voice and tone for different contexts
-- Properly handle Czech grammatical cases, plural forms, and diacritics
+Before translating, review these cross-language guidelines that apply to all locales:
+
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
 
 ---
+
+## Glosář
+
+# Glosář překladu Onetime Secret
+
+Tento glosář poskytuje standardizované překlady klíčových termínů pro zajištění konzistence v aplikaci Onetime Secret. Byl vytvořen podle pokynů pro překlad a potřeb českého jazyka.
+
+## Základní terminologie
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| secret (noun) | tajemství | Základní koncept aplikace |
+| secret (adj) | tajný/bezpečný | |
+| passphrase | přístupová fráze | Metoda autentizace pro tajemství |
+| burn | trvale smazat | Akce smazání tajemství před zobrazením |
+| view/reveal | zobrazit/odhalit | Akce přístupu k tajemství |
+| link | odkaz | URL umožňující přístup k tajemství |
+| encrypt/encrypted | šifrovat/šifrovaný | Metoda zabezpečení |
+| secure | bezpečný | Stav ochrany |
+
+## Prvky uživatelského rozhraní
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| Share a secret | Sdílet tajemství | Hlavní akce |
+| Create Account | Vytvořit účet | Registrace |
+| Sign In | Přihlásit se | Autentizace |
+| Dashboard | Přehled | Hlavní stránka uživatele |
+| Settings | Nastavení | Konfigurační stránka |
+| Privacy Options | Možnosti soukromí | Nastavení tajemství |
+| Feedback | Zpětná vazba | Komentáře uživatelů |
+
+## Stavové termíny
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| received | přijato | Tajemství bylo zobrazeno |
+| burned | trvale smazáno | Tajemství smazáno před zobrazením |
+| expired | vypršelo | Tajemství již není dostupné kvůli času |
+| created | vytvořeno | Tajemství bylo vytvořeno |
+| active | aktivní | Tajemství je dostupné |
+| inactive | neaktivní | Tajemství není dostupné |
+
+## Časové termíny
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| expires in | vyprší za | Čas do nedostupnosti tajemství |
+| day/days | den/dny/dnů | Časová jednotka |
+| hour/hours | hodina/hodiny/hodin | Časová jednotka |
+| minute/minutes | minuta/minuty/minut | Časová jednotka |
+| second/seconds | sekunda/sekundy/sekund | Časová jednotka |
+
+## Bezpečnostní funkce
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| one-time access | jednorázový přístup | Hlavní bezpečnostní funkce |
+| passphrase protection | ochrana přístupovou frází | Dodatečné zabezpečení |
+| encrypted in transit | šifrováno při přenosu | Metoda ochrany dat |
+| encrypted at rest | šifrováno při uložení | Ochrana uložení |
+
+## Termíny týkající se účtu
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| email | e-mail | Identifikátor uživatele |
+| password | heslo | Autentizace účtu |
+| account | účet | Uživatelský profil |
+| subscription | předplatné | Placená služba |
+| customer | zákazník | Platící uživatel |
+
+## Termíny týkající se domény
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| custom domain | vlastní doména | Prémiová funkce |
+| domain verification | ověření domény | Proces nastavení |
+| DNS record | DNS záznam | Konfigurace |
+| CNAME record | CNAME záznam | Konfigurace DNS |
+
+## Chybové zprávy
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| error | chyba | Oznámení o problémech |
+| warning | varování | Výstražné oznámení |
+| oops | jejda | Přátelský úvod k chybě |
+
+## Tlačítka a akce
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| submit | odeslat | Akce formuláře |
+| cancel | zrušit | Negativní akce |
+| confirm | potvrdit | Pozitivní akce |
+| copy to clipboard | zkopírovat do schránky | Pomocná akce |
+| continue | pokračovat | Navigace |
+| back | zpět | Navigace |
+
+## Marketingové termíny
+
+| English | Čeština (CS) | Context |
+|---------|--------------|---------|
+| secure links | bezpečné odkazy | Funkce produktu |
+| privacy-first design | design zaměřený na soukromí | Designová filozofie |
+| custom branding | vlastní branding | Prémiová funkce |
+
+## Pokyny pro překlad
+
+1. **Konzistence**: Používat stejný překlad pro termín v celé aplikaci
+2. **Kontext**: Zvážit, jak je termín použit v aplikaci
+3. **Kulturní adaptace**: Přizpůsobit termíny místním konvencím, když je to nutné
+4. **Technická přesnost**: Zajistit přesný překlad bezpečnostních termínů
+5. **Tón**: Udržovat profesionální, ale přímý tón
+
+## Zvláštní úvahy
+
+- Čeština má sedm pádů (nominativ, genitiv, dativ, akuzativ, vokativ, lokál, instrumentál)
+- Diakritika je nezbytná a mění význam: á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž
+- Tři formy množného čísla: 1 (den), 2-4 (dny), 5+ (dnů)
+- Důležité rozlišení: "heslo" pro účty vs "přístupová fráze" pro ochranu jednotlivých tajemství
+- Rod je důležitý: tajemství (střední), heslo (střední), fráze (ženský), odkaz (mužský)
+- Používat spřežky pro hladší čtení: "ve věci", "ke dni", "ze souboru"
+
+---
+
+## Czech Translation Notes
+
+# Czech (cs) Translation Notes
 
 ## Core Terminology
 
-### Basic Terms
+**Secret:** tajemství (neuter) - Appropriate for professional contexts
 
-| English | Čeština (CS) | Context | Notes |
-|---------|-------------|---------|-------|
-| secret (noun) | tajemství | Central application concept | Neuter gender; appropriate for professional contexts |
-| secret (adj) | tajný/bezpečný | Descriptive use | |
-| passphrase | přístupová fráze | Authentication method for secrets | Compound term distinguishing from account password |
-| password | heslo | Account login credential | Standard term for account passwords |
-| burn | trvale smazat | Action to delete a secret before viewing | Permanently delete |
-| view/reveal | zobrazit/odhalit | Action to access a secret | |
-| link | odkaz | URL providing access to a secret | Masculine gender |
-| encrypt/encrypted | šifrovat/šifrovaný | Security method | |
-| secure | bezpečný | Protection state | |
+**Password vs Passphrase:**
+- Password: heslo - for account authentication
+- Passphrase: přístupová fráze - for secret protection
 
-### User Interface Elements
+**Burn:** trvale smazat (permanently delete)
 
-| English | Čeština (CS) | Context | Notes |
-|---------|-------------|---------|-------|
-| Share a secret | Sdílet tajemství | Primary action | |
-| Create Account | Vytvořit účet | Registration | |
-| Sign In | Přihlásit se | Authentication | |
-| Dashboard | Přehled | User's main page | |
-| Settings | Nastavení | Configuration page | |
-| Privacy Options | Možnosti soukromí | Secret configuration | |
-| Feedback | Zpětná vazba | User feedback | |
+## Key Points
 
-### Status Terms
-
-| English | Čeština (CS) | Context | Notes |
-|---------|-------------|---------|-------|
-| received | přijato | Secret has been viewed | |
-| burned | trvale smazáno | Secret was deleted before viewing | |
-| expired | vypršelo | Secret no longer available due to time | |
-| created | vytvořeno | Secret has been generated | |
-| active | aktivní | Secret is available | |
-| inactive | neaktivní | Secret is not available | |
-
-### Time-Related Terms
-
-| English | Čeština (CS) | Context | Notes |
-|---------|-------------|---------|-------|
-| expires in | vyprší za | Time until secret becomes unavailable | |
-| day/days | den/dny/dnů | Time unit | 1 den, 2-4 dny, 5+ dnů |
-| hour/hours | hodina/hodiny/hodin | Time unit | 1 hodina, 2-4 hodiny, 5+ hodin |
-| minute/minutes | minuta/minuty/minut | Time unit | 1 minuta, 2-4 minuty, 5+ minut |
-| second/seconds | sekunda/sekundy/sekund | Time unit | 1 sekunda, 2-4 sekundy, 5+ sekund |
-
-### Security Features
-
-| English | Čeština (CS) | Context |
-|---------|-------------|---------|
-| one-time access | jednorázový přístup | Core security feature |
-| passphrase protection | ochrana přístupovou frází | Additional security |
-| encrypted in transit | šifrováno při přenosu | Data protection method |
-| encrypted at rest | šifrováno při uložení | Storage protection |
-
-### Account-Related Terms
-
-| English | Čeština (CS) | Context |
-|---------|-------------|---------|
-| email | e-mail | User identifier |
-| password | heslo | Account authentication |
-| account | účet | User profile |
-| subscription | předplatné | Paid service |
-| customer | zákazník | Paying user |
-
-### Domain-Related Terms
-
-| English | Čeština (CS) | Context |
-|---------|-------------|---------|
-| custom domain | vlastní doména | Premium feature |
-| domain verification | ověření domény | Setup process |
-| DNS record | DNS záznam | Configuration |
-| CNAME record | CNAME záznam | DNS configuration |
-
-### Error Messages
-
-| English | Čeština (CS) | Context |
-|---------|-------------|---------|
-| error | chyba | Problem notification |
-| warning | varování | Caution notification |
-| oops | jejda | Friendly error introduction |
-
-### Buttons and Actions
-
-| English | Čeština (CS) | Context | Notes |
-|---------|-------------|---------|-------|
-| submit | odeslat | Form action | |
-| cancel | zrušit | Negative action | |
-| confirm | potvrdit | Positive action | |
-| copy to clipboard | zkopírovat do schránky | Utility action | |
-| continue | pokračovat | Navigation | |
-| back | zpět | Navigation | |
-
-### Marketing Terms
-
-| English | Čeština (CS) | Context |
-|---------|-------------|---------|
-| secure links | bezpečné odkazy | Product feature |
-| privacy-first design | design zaměřený na soukromí | Design philosophy |
-| custom branding | vlastní branding | Premium feature |
-
----
+- 7 grammatical cases requiring careful attention
+- Plural forms: 1/2-4/5+ (den/dny/dnů)
+- Diacritics essential: á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž
+- Informal "ty" for modern UX
+- Verb aspects: perfective for completed actions
 
 ## Translation Guidelines
 
-### 1. Consistency
-
+### Consistency
 - Use the same translation for a term throughout the application
-- Maintain standardized terminology from the glossary above
+- Maintain standardized terminology from the glossary
 - Key distinctions to preserve:
   - `heslo` for account passwords
   - `přístupová fráze` for secret protection
   - `tajemství` as the core concept
 
-### 2. Context Awareness
-
+### Context Awareness
 - Consider how the term is used in the application
 - Account for surrounding UI elements and user flow
 - Ensure translations make sense in their specific context
 
-### 3. Cultural Adaptation
-
-- Adapt terms to local conventions when necessary
-- Use modern Czech suitable for digital interfaces
-- Use standard technical terms familiar to Czech-speaking users
-
-### 4. Technical Accuracy
-
+### Technical Accuracy
 - Security-related terms must be translated accurately
 - Prioritize precision over localization for technical terminology
 - Use established Czech technical vocabulary
 
-### 5. Voice and Tone
-
+### Voice and Tone
 - Use informal "ty" form for modern UX experience
 - Maintain professional but approachable language
 - Ensure consistency in formality level across all interfaces
 
-### 6. Czech Language Specifics
+## Czech Language Specifics
 
-#### Grammatical Cases
+### Grammatical Cases
 - Czech has 7 cases (nominativ, genitiv, dativ, akuzativ, vokativ, lokál, instrumentál)
 - Apply correct case declension based on context
 - Examples of important gender assignments:
@@ -170,40 +203,27 @@ The Czech translation aims to:
   - fráze (feminine)
   - odkaz (masculine)
 
-#### Plural Forms
+### Plural Forms
 Czech requires three plural forms based on quantity:
 - 1: singular (den, hodina, minuta, sekunda)
 - 2-4: first plural form (dny, hodiny, minuty, sekundy)
 - 5+: second plural form (dnů, hodin, minut, sekund)
 
-#### Diacritics
+### Diacritics
 - Essential and change meaning completely
 - Must be used correctly: á, č, ď, é, ě, í, ň, ó, ř, š, ť, ú, ů, ý, ž
 - Never omit or substitute
+- Examples where diacritics matter:
+  - být (to be) vs byt (apartment)
 
-#### Contractions (Spřežky)
+### Contractions (Spřežky)
 - Use for smoother reading: "ve věci", "ke dni", "ze souboru"
 - Common in natural Czech text
 
-### 7. Verb Aspects
-
+### Verb Aspects
 - Use perfective aspect for completed actions
 - Use imperfective aspect for ongoing or repeated actions
 - Choose appropriate aspect based on context
-
-### 8. Clarity and Natural Phrasing
-
-- Prioritize natural Czech expressions over literal translations
-- Use standard phrases familiar to Czech speakers
-- Ensure terminology is accessible and professional
-
-### 9. Completeness
-
-- Ensure all user-facing strings are translated
-- Avoid leaving English text in the interface
-- Translate help text, descriptions, and metadata
-
----
 
 ## Common Translation Patterns
 
@@ -218,8 +238,6 @@ Use declarative sentences with informal second person (ty)
 
 ### Error Messages
 Use clear, direct language with friendly tone
-
----
 
 ## Special Considerations
 
@@ -245,9 +263,6 @@ This distinction must be maintained throughout the application to avoid confusio
 - Never omit Czech diacritical marks
 - They are not optional decorations but essential characters
 - Incorrect diacritics completely change meaning
-- Examples where diacritics matter:
-  - být (to be) vs byt (apartment)
-  - heslo (password) vs héslo (with wrong diacritic - invalid)
 
 ### Gender Agreement
 - Ensure adjectives, past participles, and pronouns agree with noun gender
@@ -273,17 +288,12 @@ This distinction must be maintained throughout the application to avoid confusio
 
 ---
 
-## Summary of Translation Principles
+## Document Information
 
-The Czech translation maintains:
+This guide was generated from the following source files:
 
-1. **Terminology Consistency** - Standardized key terms throughout the application
-2. **Grammatical Accuracy** - Proper use of 7 cases, plural forms, and gender agreement
-3. **Natural Phrasing** - Standard Czech expressions and idioms
-4. **Essential Diacritics** - Complete and correct use of Czech diacritical marks
-5. **Complete Coverage** - All user-facing strings translated
-6. **Technical Accuracy** - Precise terminology for security concepts
-7. **Clear Distinctions** - Especially between account passwords and secret passphrases
-8. **Modern Tone** - Informal "ty" form for friendly, approachable communication
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/cs/translations/glossary.md`
+- Language notes: `/cs/translations/language-notes.md`
 
-By following these guidelines, translators can ensure that the Czech version of Onetime Secret is accurate, consistent, and provides a natural user experience for Czech-speaking audiences.
+Generated: 2026-01-20

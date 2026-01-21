@@ -3,30 +3,29 @@ title: Übersetzungsanleitung für Deutsch
 description: Umfassende Anleitung zur Übersetzung von Onetime Secret ins Deutsche mit Glossar und Sprachhinweisen
 ---
 
-# Translation Guidance for German (Deutsch)
+# Translation Guidance for German
 
-This document combines the translation glossary and language-specific notes to provide comprehensive guidance for translating Onetime Secret content into German. It serves as a reference for maintaining consistency, accuracy, and appropriate tone across all German translations.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
 
-## Table of Contents
+## Universal Translation Resources
 
-1. [Core Terminology](#core-terminology)
-2. [Critical Translation Rules](#critical-translation-rules)
-3. [Key Translation Decisions](#key-translation-decisions)
-4. [Regional Formality Considerations](#regional-formality-considerations)
-5. [UI Elements](#ui-elements)
-6. [Status Terms](#status-terms)
-7. [Time-Related Terms](#time-related-terms)
-8. [Security Features](#security-features)
-9. [Account-Related Terms](#account-related-terms)
-10. [Domain-Related Terms](#domain-related-terms)
-11. [Error Messages](#error-messages)
-12. [Buttons and Actions](#buttons-and-actions)
-13. [Marketing Terms](#marketing-terms)
-14. [Translation Guidelines](#translation-guidelines)
+Before translating, review these cross-language guidelines that apply to all locales:
+
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
 
 ---
 
-## Core Terminology
+## Glossar
+
+# Onetime Secret Übersetzungsglossar
+
+Ein Referenzleitfaden für die Übersetzung der Schlüsselbegriffe, Oberflächenelemente und des technischen Vokabulars von Onetime Secret in mehreren Sprachen zur Wahrung der Konsistenz.
+
+## Kernterminologie
 
 | English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
 |---------|-------------|-------------|-------------|-------------|-------|
@@ -39,29 +38,149 @@ This document combines the translation glossary and language-specific notes to p
 | encrypt/encrypted | verschlüsseln/verschlüsselt | verschlüsseln/verschlüsselt | chiffrer/chiffré | chiffrer/chiffré | Security method |
 | secure | sicher | sicher | sécurisé | sécurisé | State of protection |
 
+## Benutzeroberflächenelemente
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| Share a secret | Ein Geheimnis teilen | Geheimnis teilen | Partager un secret | Partager un secret | Main action |
+| Create Account | Konto erstellen | Konto erstellen | Créer un compte | Créer un compte | Registration |
+| Sign In | Eintragen | Anmelden | Se connecter | Se connecter | Authentication |
+| Dashboard | Konto | Dashboard | Tableau de bord | Compte | User's main page |
+| Settings | Einstellungen | Einstellungen | Paramètres | Paramètres | Configuration page |
+| Privacy Options | Datenschutz-Optionen | Datenschutzoptionen | Options de confidentialité | Options de confidentialité | Secret settings |
+| Feedback | Rückmeldung | Feedback | Retour d'information | Retour d'information | User comments |
+
+## Statusbegriffe
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| received | empfangen | empfangen | reçu | reçu | Secret has been viewed |
+| burned | verbrannt | gelöscht | supprimé | supprimé | Secret was deleted before viewing |
+| expired | abgelaufen | abgelaufen | expiré | expiré | Secret is no longer available due to time |
+| created | erstellt | erstellt | créé | créé | Secret has been generated |
+| active | aktiv | aktiv | actif | actif | Secret is available |
+| inactive | inaktiv | inaktiv | inactif | inactif | Secret is not available |
+
+## Zeitbezogene Begriffe
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| expires in | läuft ab in | läuft ab in | expire dans | expire dans | Time until secret is no longer available |
+| day/days | Tag/Tage | Tag/Tage | jour/jours | jour/jours | Time unit |
+| hour/hours | Stunde/Stunden | Stunde/Stunden | heure/heures | heure/heures | Time unit |
+| minute/minutes | Minute/Minuten | Minute/Minuten | minute/minutes | minute/minutes | Time unit |
+| second/seconds | Sekunde/Sekunden | Sekunde/Sekunden | seconde/secondes | seconde/secondes | Time unit |
+
+## Sicherheitsfunktionen
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| one-time access | einmaliger Zugang | einmaliger Zugriff | accès unique | accès unique | Core security feature |
+| passphrase protection | Schutz durch Sicherheitsphrase | Passphrasenschutz | protection par phrase secrète | protection par phrase d'authentification | Additional security |
+| encrypted in transit | verschlüsselt bei der Übertragung | während der Übertragung verschlüsselt | chiffré en transit | chiffré en transit | Data protection method |
+| encrypted at rest | verschlüsselt im Ruhezustand | im Ruhezustand verschlüsselt | chiffré au repos | chiffré au repos | Storage protection |
+
+## Kontobezogene Begriffe
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| email | E-Mail | E-Mail | courriel/e-mail | courriel | User identifier |
+| password | Passwort | Passwort | mot de passe | mot de passe | Authentication |
+| account | Konto | Konto | compte | compte | User profile |
+| subscription | Abonnement | Abonnement | abonnement | abonnement | Paid service |
+| customer | Kunde | Kunde | client | client | Paying user |
+
+## Domainbezogene Begriffe
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| custom domain | benutzerdefinierter Bereich | benutzerdefinierte Domain | domaine personnalisé | domaine personnalisé | Premium feature |
+| domain verification | Domänenüberprüfung | Domain-Verifizierung | vérification du domaine | vérification du domaine | Setup process |
+| DNS record | Namensserver-Eintrag | DNS-Eintrag | enregistrement DNS | enregistrement DNS | Configuration |
+| CNAME record | CNAME-Eintrag | CNAME-Eintrag | enregistrement CNAME | enregistrement CNAME | DNS setup |
+
+## Fehlermeldungen
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| error | Fehler | Fehler | erreur | bug | Problem notification |
+| warning | Warnung | Warnung | avertissement | attention | Caution notification |
+| oops | Huch | Hoppla | oups | oups | Friendly error intro |
+
+## Schaltflächen und Aktionen
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| submit | einreichen | absenden | soumettre | soumettre | Form action |
+| cancel | abbrechen | abbrechen | annuler | annuler | Negative action |
+| confirm | bestätigen | bestätigen | confirmer | confirmer | Positive action |
+| copy to clipboard | in die Zwischenablage kopieren | in die Zwischenablage kopieren | copier dans le presse-papiers | copier dans le presse-papiers | Utility action |
+| continue | weiter | fortfahren | continuer | continuer | Navigation |
+| back | zurück | zurück | retour | retour | Navigation |
+
+## Marketingbegriffe
+
+| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
+|---------|-------------|-------------|-------------|-------------|-------|
+| secure links | sichere Links | sichere Links | liens sécurisés | liens sécurisés | Product feature |
+| privacy-first design | Datenschutz als oberstes Gebot | Datenschutz-First-Design | conception privilégiant la protection de la vie privée | conception privilégiant la protection de la vie privée | Design philosophy |
+| custom branding | benutzerdefiniertes Branding | individuelles Branding | image de marque personnalisée | image de marque personnalisée | Premium feature |
+
+## Übersetzungsrichtlinien
+
+1. **Konsistenz**: Verwenden Sie die gleiche Übersetzung für einen Begriff in der gesamten Anwendung
+2. **Kontext**: Berücksichtigen Sie, wie der Begriff in der Anwendung verwendet wird
+3. **Kulturelle Anpassung**: Passen Sie Begriffe bei Bedarf an lokale Konventionen an
+4. **Technische Genauigkeit**: Stellen Sie sicher, dass Sicherheitsbegriffe korrekt übersetzt werden
+5. **Tonfall**: Bewahren Sie einen professionellen, aber direkten Tonfall
+
+## Besondere Überlegungen
+
+- Der Begriff "secret" ist für die Anwendung zentral und sollte einheitlich als `Geheimnis` übersetzt werden
+- Regionale Variationen zwischen Deutsch (DE) und österreichischem Deutsch (AT) sollten respektiert werden, insbesondere hinsichtlich der Formalität
+- Bei technischen Begriffen zur Sicherheit sollte die Genauigkeit Vorrang vor der Lokalisierung haben
+- UI-Elemente sollten den Plattformkonventionen für die Zielsprache folgen
+- Halten Sie eine klare Unterscheidung zwischen `Passwort` (Kontopasswort) und `Passphrase` (Schutz einzelner Geheimnisse) aufrecht
+- Die Zahlenformatierung muss immer den deutschen Konventionen folgen (Komma für Dezimalstellen, Punkt für Tausender)
+- Rollennamen wie "Colonel" sollten in ihr funktionales Äquivalent (`Administrator`) übersetzt werden, nicht wörtlich
+
 ---
 
-## Critical Translation Rules
+## Deutsch
 
-| Regel | Korrekt | Inkorrekt | Beispiel |
-|-------|---------|-----------|---------|
-| Secret Übersetzung | Nachricht (UI-Elemente), Geheimnis (technische Dokumentation) | Mixed usage | ✓ Sie haben 3 neue Nachrichten (UI); ✗ Sie haben 3 neue Geheimnisse (UI) |
-| Aktiv vs. Passiv | Aktiv (Schaltflächen/Aktionen), Passiv (Status/Benachrichtigungen) | Mixed forms | ✓ Änderungen speichern (button); ✗ Änderungen speichern (status) |
-| Förmliche Anrede | du (informal - DE), Sie (formal - AT) | Mixing forms | ✓ Du kannst dein Geheimnis erstellen (DE); ✓ Sie können Ihr Geheimnis erstellen (AT) |
-| Zahlenformat | Komma (Dezimal), Punkt (Tausender) | Englisches Format | ✓ 1.234,56; ✗ 1,234.56 |
-| Colonel Rolle | Administrator | Wörtliche Übersetzung | ✓ Nur Administratoren haben Zugriff; ✗ Nur Colonels haben Zugriff |
+# Deutsch
 
----
+## Translation Choices for German Locale
 
-## Key Translation Decisions
+### Key Terminology
 
-### 1. `secret` → `Geheimnis`
+### 1. `secret` → `Nachricht` (UI) / `Geheimnis` (technical documentation)
 
-**Choice:** The term `secret` was consistently translated as `Geheimnis`.
+**Choice:** Context-specific translation:
+- **UI elements and direct user communication:** `Nachricht` (message)
+- **Technical documentation and security descriptions:** `Geheimnis` (secret)
 
-**Rationale:** `Geheimnis` is the direct German equivalent of `secret`. While the guidelines suggest emphasizing "confidential information or message" (like the Danish "besked"), `Geheimnis` is commonly understood in German technical contexts to refer to sensitive data or credentials. Using `Nachricht` (message) might lose the implication of confidentiality, and longer phrases like `vertrauliche Information` are unsuitable for UI elements.
+**Rationale:**
 
-**Distinction from `de_AT`:** Usage is expected to be identical in Austrian German. `Geheimnis` is standard German and used similarly in Austria.
+The word "secret" can be translated to German as either "Geheimnis" or "Nachricht", with important nuances:
+
+**Prefer "Nachricht" for UI contexts:**
+- **"Nachricht"** (neutral meaning) should be preferred when referring to Onetime Secret generated content in the user interface
+- While "Geheimnis" is the literal translation of "Secret", it carries strong connotations of something personal or intimate in German, which doesn't match the intended neutral, technical meaning
+- **Examples:**
+  - ✅ "Sie haben 3 neue Nachrichten" (neutral, technical - You have 3 new secrets)
+  - ❌ "Sie haben 3 neue Geheimnisse" (sounds too personal/intimate)
+
+**"Geheimnis" acceptable in technical contexts:**
+- In technical descriptions and documentation, "Geheimnis" can be used (e.g., "Ende-zu-Ende-Verschlüsselung schützt Ihre Geheimnisse" - End-to-end encryption protects your secrets)
+- For UI and direct user address, "Nachricht" is often the more natural choice
+
+**Regional Differences:**
+- **Deutschland (de_DE)**: "Nachricht" preferred as neutral term for UI
+- **Österreich (de_AT)**: Same usage as Germany
+- **Schweiz (de_CH)**: Identical in written German; dialectal variations exist only in spoken language
+
+**Distinction from `de_AT`:** Usage is expected to be identical in Austrian German.
 
 ### 2. `password` → `Passwort`
 
@@ -79,7 +198,83 @@ This document combines the translation glossary and language-specific notes to p
 
 **Distinction from `de_AT`:** Usage is expected to be very similar in Austrian German. `Passphrase` is understood and used in technical contexts across German-speaking areas, including Austria.
 
----
+## Thinking Behind Changes & Important Examples
+
+### 1. Consistency of Core Terms
+
+**Rationale:** The initial file sometimes used English terms or less precise German words. The guidelines emphasize consistent terminology.
+
+**Examples:**
+- `web.COMMON.secret`: Changed from `Geheim` (adjective) to `Geheimnis` (noun)
+- `web.COMMON.header_dashboard`: Changed from `Account` to `Konto`
+- `web.COMMON.header_sign_in`: Changed from `Einloggen` to `Anmelden`
+- `web.COMMON.burn`: Standardized to `Zerstören` (verb) / `Zerstört` (past participle/status)
+- `web.COMMON.received`: Changed from `Erhalten` to `Empfangen`
+
+### 2. Appropriate Voice (Imperative vs. Declarative/Passive)
+
+**Rationale:** Guidelines specify imperative for user actions (buttons, links) and passive/declarative for informational text.
+
+**Examples:**
+- `web.help.learn_more`: `Mehr erfahren` (Imperative/infinitive for links)
+- `web.COMMON.button_generate_secret_short`: `Passwort generieren` (Imperative action)
+- `web.COMMON.share_link_securely`: `Teile diesen Link aus Sicherheitsgründen...` (Clear imperative)
+- `web.help.secret_view_faq.*.description`: Declarative sentences (e.g., "Du siehst...", "Dieser Inhalt wird...")
+- `web.STATUS.*_description`: Declarative/passive voice (e.g., "Geheimer Link wurde erstellt...")
+- `web.shared.post_reveal_default`: `Deine sichere Nachricht wird unten angezeigt.` (Passive voice)
+
+### 3. Clarity and Natural Phrasing
+
+**Rationale:** Some existing translations were literal or slightly awkward. The aim was for natural-sounding German.
+
+**Examples:**
+- `web.COMMON.copied_to_clipboard`: `In die Zwischenablage kopiert`
+- `web.COMMON.faq_title`: Changed from `F.A.Q.` to `Häufig gestellte Fragen`
+- `web.LABELS.loading`: Changed from `Loading...` to `Lädt...`
+- `web.login.remember_me`: `Angemeldet bleiben` (Standard phrase)
+- `web.shared.viewed_own_secret`: Changed `angeschaut` to `angesehen`
+
+### Voice Usage for Status Messages
+
+**Rationale:** Guidelines specify imperative for user actions (buttons, links) and passive/declarative for informational text.
+
+**Examples:**
+- `web.STATUS.*_description`: Declarative/passive voice (e.g., "Geheimer Link wurde erstellt...")
+- `web.shared.post_reveal_default`: `Deine sichere Nachricht wird unten angezeigt.` (Passive voice)
+
+### Voice Usage for Actions
+
+**Rationale:** Imperative for user actions (buttons, links).
+
+**Examples:**
+- `web.help.learn_more`: `Mehr erfahren` (Imperative/infinitive for links)
+- `web.COMMON.button_generate_secret_short`: `Passwort generieren` (Imperative action)
+- `web.COMMON.share_link_securely`: `Teile diesen Link aus Sicherheitsgründen...` (Clear imperative)
+- `web.help.secret_view_faq.*.description`: Declarative sentences (e.g., "Du siehst...", "Dieser Inhalt wird...")
+
+### 4. Direct Address (Du vs. Sie)
+
+**Rationale:** The existing partial translations predominantly used the informal "Du". This was made consistent across user-facing instructions and questions.
+
+**Examples:**
+- `web.COMMON.careful_only_see_once`: Changed "Wir werden es..." to `Du wirst es...`
+- `web.LABELS.need_help`: `Brauchst du Hilfe?`
+- `web.homepage.cta_title`: Changed from formal "Verwenden Sie..." to informal `Verwende...`
+- `web.login.login_to_your_account`: `Melde dich bei deinem Konto an`
+
+### 5. Completeness
+
+Many keys contained only English source text and were translated according to the guidelines (e.g., `web.help.*`, `web.FEATURES.*`, `web.UNITS.*`, `web.INSTRUCTION.*`, `web.meta.*`, `email.*`).
+
+## Critical Translation Rules
+
+| Regel | Korrekt | Inkorrekt | Beispiel |
+|-------|---------|-----------|---------|
+| Secret Übersetzung | Nachricht (UI-Elemente), Geheimnis (technische Dokumentation) | Mixed usage | ✓ Sie haben 3 neue Nachrichten (UI); ✗ Sie haben 3 neue Geheimnisse (UI) |
+| Aktiv vs. Passiv | Aktiv (Schaltflächen/Aktionen), Passiv (Status/Benachrichtigungen) | Mixed forms | ✓ Änderungen speichern (button); ✗ Änderungen speichern (status) |
+| Förmliche Anrede | du (informal - DE), Sie (formal - AT) | Mixing forms | ✓ Du kannst dein Geheimnis erstellen (DE); ✓ Sie können Ihr Geheimnis erstellen (AT) |
+| Zahlenformat | Komma (Dezimal), Punkt (Tausender) | Englisches Format | ✓ 1.234,56; ✗ 1,234.56 |
+| Colonel Rolle | Administrator | Wörtliche Übersetzung | ✓ Nur Administratoren haben Zugriff; ✗ Nur Colonels haben Zugriff |
 
 ## Regional Formality Considerations
 
@@ -171,214 +366,52 @@ Beyond formality, note these additional regional differences:
 | Submit | senden | einreichen | Informal vs formal term |
 | Domain | Domain | Bereich | Technical vs general |
 
----
+### Testing Formality Choices
 
-## UI Elements
+Before finalizing translations:
 
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| Share a secret | Ein Geheimnis teilen | Geheimnis teilen | Partager un secret | Partager un secret | Main action |
-| Create Account | Konto erstellen | Konto erstellen | Créer un compte | Créer un compte | Registration |
-| Sign In | Eintragen | Anmelden | Se connecter | Se connecter | Authentication |
-| Dashboard | Konto | Dashboard | Tableau de bord | Compte | User's main page |
-| Settings | Einstellungen | Einstellungen | Paramètres | Paramètres | Configuration page |
-| Privacy Options | Datenschutz-Optionen | Datenschutzoptionen | Options de confidentialité | Options de confidentialité | Secret settings |
-| Feedback | Rückmeldung | Feedback | Retour d'information | Retour d'information | User comments |
-
-### Important Examples
-
-**Consistency of Core Terms:**
-- `web.COMMON.secret`: Changed from `Geheim` (adjective) to `Geheimnis` (noun)
-- `web.COMMON.header_dashboard`: Changed from `Account` to `Konto`
-- `web.COMMON.header_sign_in`: Changed from `Einloggen` to `Anmelden`
-- `web.COMMON.burn`: Standardized to `Zerstören` (verb) / `Zerstört` (past participle/status)
-- `web.COMMON.received`: Changed from `Erhalten` to `Empfangen`
-
-**Clarity and Natural Phrasing:**
-- `web.COMMON.copied_to_clipboard`: `In die Zwischenablage kopiert`
-- `web.COMMON.faq_title`: Changed from `F.A.Q.` to `Häufig gestellte Fragen`
-- `web.LABELS.loading`: Changed from `Loading...` to `Lädt...`
-- `web.login.remember_me`: `Angemeldet bleiben` (Standard phrase)
-- `web.shared.viewed_own_secret`: Changed `angeschaut` to `angesehen`
-
----
-
-## Status Terms
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| received | empfangen | empfangen | reçu | reçu | Secret has been viewed |
-| burned | verbrannt | gelöscht | supprimé | supprimé | Secret was deleted before viewing |
-| expired | abgelaufen | abgelaufen | expiré | expiré | Secret is no longer available due to time |
-| created | erstellt | erstellt | créé | créé | Secret has been generated |
-| active | aktiv | aktiv | actif | actif | Secret is available |
-| inactive | inaktiv | inaktiv | inactif | inactif | Secret is not available |
-
-### Voice Usage for Status
-
-**Rationale:** Guidelines specify imperative for user actions (buttons, links) and passive/declarative for informational text.
-
-**Examples:**
-- `web.STATUS.*_description`: Declarative/passive voice (e.g., "Geheimer Link wurde erstellt...")
-- `web.shared.post_reveal_default`: `Deine sichere Nachricht wird unten angezeigt.` (Passive voice)
-
----
-
-## Time-Related Terms
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| expires in | läuft ab in | läuft ab in | expire dans | expire dans | Time until secret is no longer available |
-| day/days | Tag/Tage | Tag/Tage | jour/jours | jour/jours | Time unit |
-| hour/hours | Stunde/Stunden | Stunde/Stunden | heure/heures | heure/heures | Time unit |
-| minute/minutes | Minute/Minuten | Minute/Minuten | minute/minutes | minute/minutes | Time unit |
-| second/seconds | Sekunde/Sekunden | Sekunde/Sekunden | seconde/secondes | seconde/secondes | Time unit |
-
----
-
-## Security Features
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| one-time access | einmaliger Zugang | einmaliger Zugriff | accès unique | accès unique | Core security feature |
-| passphrase protection | Schutz durch Sicherheitsphrase | Passphrasenschutz | protection par phrase secrète | protection par phrase d'authentification | Additional security |
-| encrypted in transit | verschlüsselt bei der Übertragung | während der Übertragung verschlüsselt | chiffré en transit | chiffré en transit | Data protection method |
-| encrypted at rest | verschlüsselt im Ruhezustand | im Ruhezustand verschlüsselt | chiffré au repos | chiffré au repos | Storage protection |
-
----
-
-## Account-Related Terms
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| email | E-Mail | E-Mail | courriel/e-mail | courriel | User identifier |
-| password | Passwort | Passwort | mot de passe | mot de passe | Authentication |
-| account | Konto | Konto | compte | compte | User profile |
-| subscription | Abonnement | Abonnement | abonnement | abonnement | Paid service |
-| customer | Kunde | Kunde | client | client | Paying user |
-
-**Direct Address Examples (Du vs. Sie):**
-- `web.COMMON.careful_only_see_once`: Changed "Wir werden es..." to `Du wirst es...`
-- `web.LABELS.need_help`: `Brauchst du Hilfe?`
-- `web.homepage.cta_title`: Changed from formal "Verwenden Sie..." to informal `Verwende...`
-- `web.login.login_to_your_account`: `Melde dich bei deinem Konto an`
-
----
-
-## Domain-Related Terms
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| custom domain | benutzerdefinierter Bereich | benutzerdefinierte Domain | domaine personnalisé | domaine personnalisé | Premium feature |
-| domain verification | Domänenüberprüfung | Domain-Verifizierung | vérification du domaine | vérification du domaine | Setup process |
-| DNS record | Namensserver-Eintrag | DNS-Eintrag | enregistrement DNS | enregistrement DNS | Configuration |
-| CNAME record | CNAME-Eintrag | CNAME-Eintrag | enregistrement CNAME | enregistrement CNAME | DNS setup |
-
----
-
-## Error Messages
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| error | Fehler | Fehler | erreur | bug | Problem notification |
-| warning | Warnung | Warnung | avertissement | attention | Caution notification |
-| oops | Huch | Hoppla | oups | oups | Friendly error intro |
-
----
-
-## Buttons and Actions
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| submit | einreichen | absenden | soumettre | soumettre | Form action |
-| cancel | abbrechen | abbrechen | annuler | annuler | Negative action |
-| confirm | bestätigen | bestätigen | confirmer | confirmer | Positive action |
-| copy to clipboard | in die Zwischenablage kopieren | in die Zwischenablage kopieren | copier dans le presse-papiers | copier dans le presse-papiers | Utility action |
-| continue | weiter | fortfahren | continuer | continuer | Navigation |
-| back | zurück | zurück | retour | retour | Navigation |
-
-### Voice Usage for Actions
-
-**Rationale:** Imperative for user actions (buttons, links).
-
-**Examples:**
-- `web.help.learn_more`: `Mehr erfahren` (Imperative/infinitive for links)
-- `web.COMMON.button_generate_secret_short`: `Passwort generieren` (Imperative action)
-- `web.COMMON.share_link_securely`: `Teile diesen Link aus Sicherheitsgründen...` (Clear imperative)
-- `web.help.secret_view_faq.*.description`: Declarative sentences (e.g., "Du siehst...", "Dieser Inhalt wird...")
-
----
-
-## Marketing Terms
-
-| English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
-|---------|-------------|-------------|-------------|-------------|-------|
-| secure links | sichere Links | sichere Links | liens sécurisés | liens sécurisés | Product feature |
-| privacy-first design | Datenschutz als oberstes Gebot | Datenschutz-First-Design | conception privilégiant la protection de la vie privée | conception privilégiant la protection de la vie privée | Design philosophy |
-| custom branding | benutzerdefiniertes Branding | individuelles Branding | image de marque personnalisée | image de marque personnalisée | Premium feature |
-
----
+1. **Native Speaker Review:** Have native speakers from target region review
+2. **Context Check:** Ensure formality matches brand positioning
+3. **Consistency Audit:** Verify no formality mixing within locale
+4. **Competitor Benchmark:** Check how similar products address users in target market
 
 ## Translation Guidelines
 
-### Core Principles
-
-1. **Consistency**: Use the same translation for a term throughout the application
-2. **Context**: Consider how the term is used in the application
-3. **Cultural Adaptation**: Adapt terms to local conventions when needed
-4. **Technical Accuracy**: Ensure security terms are correctly translated
-5. **Tone**: Maintain a professional but direct tone
-
-### Specific Guidelines
-
-#### Voice and Formality
+### Voice and Formality
 - **Imperative for Actions**: Use imperative voice for buttons and user actions
 - **Passive for Status**: Use passive/declarative voice for informational text and status messages
 - **Consistent Address Form**: Never mix "du" and "Sie" within the same locale
 - **Regional Consistency**: Maintain formality appropriate to the target region (DE vs AT)
 
-#### Number Formatting
+### Number Formatting
 - Use comma for decimal separator: `1.234,56`
 - Use period for thousands separator
 - Never use English number formatting
 
-#### Technical Terms
+### Technical Terms
 - Prioritize accuracy over localization for security terms
 - Use established German technical terminology
 - Maintain clear distinction between `Passwort` (account password) and `Passphrase` (secret protection)
 
-#### UI and Platform Conventions
+### UI and Platform Conventions
 - Follow platform conventions for the target language
 - Ensure UI elements are clear and actionable
 - Keep button text concise and in imperative form
 
-### Testing Formality Choices
+### Related Guide Sections
 
-Before finalizing translations:
-
-1. **Native Speaker Review**: Have native speakers from target region review
-2. **Context Check**: Ensure formality matches brand positioning
-3. **Consistency Audit**: Verify no formality mixing within locale
-4. **Competitor Benchmark**: Check how similar products address users in target market
+- See "Brand Voice" for tone guidance
+- See "Grammar and style guidelines" for voice usage
+- See Glossary for specific term variations between DE and AT
 
 ---
 
-## Special Considerations
+## Document Information
 
-- The term "secret" is central to the application and should be translated consistently as `Geheimnis`
-- Regional variations between German (DE) and Austrian German (AT) should be respected, particularly regarding formality
-- For security-related technical terms, accuracy should take precedence over localization
-- UI elements should follow platform conventions for the target language
-- Maintain clear distinction between `Passwort` (account password) and `Passphrase` (individual secret protection)
-- Number formatting must always use German conventions (comma for decimals, period for thousands)
-- Role names like "Colonel" should be translated to their functional equivalent (`Administrator`) rather than literally
+This export guide was generated from the following source files:
 
----
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/de/translations/glossary.md`
+- Language notes: `/de/translations/language-notes.md`
 
-## Document History
-
-This document combines content from:
-- `glossary.md` - Translation glossary reference
-- `language-notes.md` - German-specific translation decisions and rules
-
-Last updated: 2025-11-16
+Generated: 2026-01-20

@@ -3,170 +3,206 @@ title: Οδηγός μετάφρασης για τα ελληνικά
 description: Πλήρης οδηγός για τη μετάφραση του Onetime Secret στα ελληνικά που συνδυάζει το γλωσσάριο όρων και τις γλωσσικές σημειώσεις
 ---
 
-# Translation Guidance for Greek (Ελληνικά)
+# Translation Guidance for Greek
 
-This document combines the glossary of standardized terms and language-specific translation notes for Greek translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Greek locale to ensure consistency, accuracy, and natural phrasing.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
 
-## Overview
+## Universal Translation Resources
 
-The Greek translation aims to:
-- Maintain consistency across all application interfaces
-- Use clear, natural phrasing for Greek-speaking audiences
-- Follow technical accuracy for security-related terminology
-- Apply appropriate voice and tone for different contexts
-- Use modern monotonic Greek system properly
+Before translating, review these cross-language guidelines that apply to all locales:
+
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
 
 ---
+
+## Γλωσσάριο
+
+# Γλωσσάριο μετάφρασης Onetime Secret
+
+Αυτό το γλωσσάριο παρέχει τυποποιημένες μεταφράσεις βασικών όρων για τη διασφάλιση συνέπειας στην εφαρμογή Onetime Secret. Αναπτύχθηκε σύμφωνα με τις οδηγίες μετάφρασης και τις ανάγκες της ελληνικής γλώσσας.
+
+## Βασική ορολογία
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| secret (noun) | μυστικό | Κεντρική έννοια της εφαρμογής |
+| secret (adj) | μυστικός/ασφαλής | |
+| passphrase | φράση πρόσβασης | Μέθοδος επαλήθευσης για μυστικά |
+| burn | οριστική διαγραφή | Ενέργεια διαγραφής μυστικού πριν την προβολή |
+| view/reveal | προβολή/αποκάλυψη | Ενέργεια πρόσβασης σε μυστικό |
+| link | σύνδεσμος | URL που επιτρέπει πρόσβαση σε μυστικό |
+| encrypt/encrypted | κρυπτογράφηση/κρυπτογραφημένο | Μέθοδος ασφάλειας |
+| secure | ασφαλής | Κατάσταση προστασίας |
+
+## Στοιχεία διεπαφής χρήστη
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| Share a secret | Κοινοποίηση μυστικού | Κύρια ενέργεια |
+| Create Account | Δημιουργία λογαριασμού | Εγγραφή |
+| Sign In | Σύνδεση | Επαλήθευση |
+| Dashboard | Πίνακας ελέγχου | Κύρια σελίδα χρήστη |
+| Settings | Ρυθμίσεις | Σελίδα διαμόρφωσης |
+| Privacy Options | Επιλογές απορρήτου | Ρυθμίσεις μυστικών |
+| Feedback | Σχόλια | Σχόλια χρηστών |
+
+## Όροι κατάστασης
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| received | παραλήφθηκε | Το μυστικό προβλήθηκε |
+| burned | διαγράφηκε οριστικά | Μυστικό διαγράφηκε πριν την προβολή |
+| expired | έληξε | Το μυστικό δεν είναι πλέον διαθέσιμο λόγω χρόνου |
+| created | δημιουργήθηκε | Το μυστικό δημιουργήθηκε |
+| active | ενεργό | Το μυστικό είναι διαθέσιμο |
+| inactive | ανενεργό | Το μυστικό δεν είναι διαθέσιμο |
+
+## Όροι σχετικοί με χρόνο
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| expires in | λήγει σε | Χρόνος μέχρι το μυστικό να μην είναι διαθέσιμο |
+| day/days | ημέρα/ημέρες | Μονάδα χρόνου |
+| hour/hours | ώρα/ώρες | Μονάδα χρόνου |
+| minute/minutes | λεπτό/λεπτά | Μονάδα χρόνου |
+| second/seconds | δευτερόλεπτο/δευτερόλεπτα | Μονάδα χρόνου |
+
+## Χαρακτηριστικά ασφάλειας
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| one-time access | πρόσβαση μίας χρήσης | Κύριο χαρακτηριστικό ασφάλειας |
+| passphrase protection | προστασία με φράση πρόσβασης | Πρόσθετη ασφάλεια |
+| encrypted in transit | κρυπτογραφημένο κατά τη μεταφορά | Μέθοδος προστασίας δεδομένων |
+| encrypted at rest | κρυπτογραφημένο σε ηρεμία | Προστασία αποθήκευσης |
+
+## Όροι σχετικοί με λογαριασμό
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| email | ηλεκτρονικό ταχυδρομείο | Αναγνωριστικό χρήστη |
+| password | κωδικός πρόσβασης | Επαλήθευση λογαριασμού |
+| account | λογαριασμός | Προφίλ χρήστη |
+| subscription | συνδρομή | Υπηρεσία επί πληρωμή |
+| customer | πελάτης | Χρήστης επί πληρωμή |
+
+## Όροι σχετικοί με τομέα
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| custom domain | προσαρμοσμένος τομέας | Χαρακτηριστικό premium |
+| domain verification | επαλήθευση τομέα | Διαδικασία ρύθμισης |
+| DNS record | εγγραφή DNS | Διαμόρφωση |
+| CNAME record | εγγραφή CNAME | Διαμόρφωση DNS |
+
+## Μηνύματα σφάλματος
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| error | σφάλμα | Ειδοποίηση προβλημάτων |
+| warning | προειδοποίηση | Ειδοποίηση ειδοποίησης |
+| oops | ουπς | Φιλική εισαγωγή σε σφάλμα |
+
+## Κουμπιά και ενέργειες
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| submit | υποβολή | Ενέργεια φόρμας |
+| cancel | ακύρωση | Αρνητική ενέργεια |
+| confirm | επιβεβαίωση | Θετική ενέργεια |
+| copy to clipboard | αντιγραφή στο πρόχειρο | Βοηθητική ενέργεια |
+| continue | συνέχεια | Πλοήγηση |
+| back | πίσω | Πλοήγηση |
+
+## Όροι μάρκετινγκ
+
+| English | Ελληνικά (EL) | Context |
+|---------|---------------|---------|
+| secure links | ασφαλείς σύνδεσμοι | Χαρακτηριστικό προϊόντος |
+| privacy-first design | σχεδιασμός με προτεραιότητα στο απόρρητο | Φιλοσοφία σχεδιασμού |
+| custom branding | προσαρμοσμένη επωνυμία | Χαρακτηριστικό premium |
+
+## Οδηγίες μετάφρασης
+
+1. **Συνέπεια**: Χρήση της ίδιας μετάφρασης για τον όρο σε ολόκληρη την εφαρμογή
+2. **Πλαίσιο**: Εξέταση του τρόπου χρήσης του όρου στην εφαρμογή
+3. **Πολιτισμική προσαρμογή**: Προσαρμογή όρων σε τοπικές συμβάσεις όταν απαιτείται
+4. **Τεχνική ακρίβεια**: Διασφάλιση ακριβούς μετάφρασης όρων ασφάλειας
+5. **Τόνος**: Διατήρηση επαγγελματικού αλλά άμεσου τόνου
+
+## Ειδικές παρατηρήσεις
+
+- Χρήση μονοτονικού συστήματος (μόνο οξεία από το 1982)
+- Ελληνικό ερωτηματικό είναι το ημικόλονο (;)
+- Τρία γένη: αρσενικό, θηλυκό, ουδέτερο με σωστή συμφωνία
+- Σημαντική διάκριση: "κωδικός πρόσβασης" για λογαριασμούς vs "φράση πρόσβασης" για προστασία μεμονωμένων μυστικών
+- Το μυστικό (ουδέτερο), η φράση (θηλυκό), ο σύνδεσμος (αρσενικό)
+- Χρήση άρθρων σύμφωνα με το γένος: το μυστικό, η πρόσβαση, ο κωδικός
+
+---
+
+## Greek Translation Notes
+
+# Greek (el_GR) Translation Notes
 
 ## Core Terminology
 
-### Basic Terms
+**Secret:** μυστικό (neuter) - Appropriate for professional contexts
 
-| English | Ελληνικά (EL) | Context | Notes |
-|---------|-------------|---------|-------|
-| secret (noun) | μυστικό | Central application concept | Neuter gender; appropriate for professional contexts |
-| secret (adj) | μυστικός/ασφαλής | Descriptive use | |
-| passphrase | φράση πρόσβασης | Authentication method for secrets | Compound term distinguishing from account password |
-| password | κωδικός πρόσβασης | Account login credential | Standard term for account passwords |
-| burn | οριστική διαγραφή | Action to delete a secret before viewing | Permanent deletion |
-| view/reveal | προβολή/αποκάλυψη | Action to access a secret | |
-| link | σύνδεσμος | URL providing access to a secret | Masculine gender |
-| encrypt/encrypted | κρυπτογράφηση/κρυπτογραφημένο | Security method | |
-| secure | ασφαλής | Protection state | |
+**Password vs Passphrase:**
+- Password: κωδικός πρόσβασης - for account authentication
+- Passphrase: φράση πρόσβασης - for secret protection
 
-### User Interface Elements
+**Burn:** οριστική διαγραφή (permanent deletion)
 
-| English | Ελληνικά (EL) | Context | Notes |
-|---------|-------------|---------|-------|
-| Share a secret | Κοινοποίηση μυστικού | Primary action | |
-| Create Account | Δημιουργία λογαριασμού | Registration | |
-| Sign In | Σύνδεση | Authentication | |
-| Dashboard | Πίνακας ελέγχου | User's main page | |
-| Settings | Ρυθμίσεις | Configuration page | |
-| Privacy Options | Επιλογές απορρήτου | Secret configuration | |
-| Feedback | Σχόλια | User feedback | |
+## Key Points
 
-### Status Terms
-
-| English | Ελληνικά (EL) | Context | Notes |
-|---------|-------------|---------|-------|
-| received | παραλήφθηκε | Secret has been viewed | |
-| burned | διαγράφηκε οριστικά | Secret was deleted before viewing | |
-| expired | έληξε | Secret no longer available due to time | |
-| created | δημιουργήθηκε | Secret has been generated | |
-| active | ενεργό | Secret is available | |
-| inactive | ανενεργό | Secret is not available | |
-
-### Time-Related Terms
-
-| English | Ελληνικά (EL) | Context |
-|---------|-------------|---------|
-| expires in | λήγει σε | Time until secret becomes unavailable |
-| day/days | ημέρα/ημέρες | Time unit |
-| hour/hours | ώρα/ώρες | Time unit |
-| minute/minutes | λεπτό/λεπτά | Time unit |
-| second/seconds | δευτερόλεπτο/δευτερόλεπτα | Time unit |
-
-### Security Features
-
-| English | Ελληνικά (EL) | Context |
-|---------|-------------|---------|
-| one-time access | πρόσβαση μίας χρήσης | Core security feature |
-| passphrase protection | προστασία με φράση πρόσβασης | Additional security |
-| encrypted in transit | κρυπτογραφημένο κατά τη μεταφορά | Data protection method |
-| encrypted at rest | κρυπτογραφημένο σε ηρεμία | Storage protection |
-
-### Account-Related Terms
-
-| English | Ελληνικά (EL) | Context |
-|---------|-------------|---------|
-| email | ηλεκτρονικό ταχυδρομείο | User identifier |
-| password | κωδικός πρόσβασης | Account authentication |
-| account | λογαριασμός | User profile |
-| subscription | συνδρομή | Paid service |
-| customer | πελάτης | Paying user |
-
-### Domain-Related Terms
-
-| English | Ελληνικά (EL) | Context |
-|---------|-------------|---------|
-| custom domain | προσαρμοσμένος τομέας | Premium feature |
-| domain verification | επαλήθευση τομέα | Setup process |
-| DNS record | εγγραφή DNS | Configuration |
-| CNAME record | εγγραφή CNAME | DNS configuration |
-
-### Error Messages
-
-| English | Ελληνικά (EL) | Context |
-|---------|-------------|---------|
-| error | σφάλμα | Problem notification |
-| warning | προειδοποίηση | Caution notification |
-| oops | ουπς | Friendly error introduction |
-
-### Buttons and Actions
-
-| English | Ελληνικά (EL) | Context | Notes |
-|---------|-------------|---------|-------|
-| submit | υποβολή | Form action | |
-| cancel | ακύρωση | Negative action | |
-| confirm | επιβεβαίωση | Positive action | |
-| copy to clipboard | αντιγραφή στο πρόχειρο | Utility action | |
-| continue | συνέχεια | Navigation | |
-| back | πίσω | Navigation | |
-
-### Marketing Terms
-
-| English | Ελληνικά (EL) | Context |
-|---------|-------------|---------|
-| secure links | ασφαλείς σύνδεσμοι | Product feature |
-| privacy-first design | σχεδιασμός με προτεραιότητα στο απόρρητο | Design philosophy |
-| custom branding | προσαρμοσμένη επωνυμία | Premium feature |
-
----
+- Monotonic system (single accent mark) since 1982
+- 4 cases, 3 genders (masculine, feminine, neuter)
+- Greek question mark is semicolon (;)
+- Final sigma: use ς at end of words, σ elsewhere
+- Polite εσείς forms for professional tone
+- Greek-derived technical vocabulary where available
 
 ## Translation Guidelines
 
-### 1. Consistency
-
+### Consistency
 - Use the same translation for a term throughout the application
-- Maintain standardized terminology from the glossary above
+- Maintain standardized terminology from the glossary
 - Key distinctions to preserve:
   - `κωδικός πρόσβασης` for account passwords
   - `φράση πρόσβασης` for secret protection
   - `μυστικό` as the core concept
 
-### 2. Context Awareness
-
+### Context Awareness
 - Consider how the term is used in the application
 - Account for surrounding UI elements and user flow
 - Ensure translations make sense in their specific context
 
-### 3. Cultural Adaptation
-
-- Adapt terms to local conventions when necessary
-- Use modern Greek suitable for digital interfaces
-- Use Greek-derived technical vocabulary where available
-
-### 4. Technical Accuracy
-
+### Technical Accuracy
 - Security-related terms must be translated accurately
 - Prioritize precision over localization for technical terminology
 - Use established Greek technical vocabulary
 - Prefer Greek-derived terms for technical concepts where natural
 
-### 5. Voice and Tone
-
+### Voice and Tone
 - Use polite εσείς forms for professional tone
 - Maintain professional and respectful language
 - Ensure consistency in formality level across all interfaces
 
-### 6. Greek Language Specifics
+## Greek Language Specifics
 
-#### Monotonic System
+### Monotonic System
 - Modern Greek uses the monotonic system (single accent mark) since 1982
 - Use only the acute accent (΄) - no grave or circumflex accents
+- Always use only the acute accent (΄)
+- Never use polytonic accents (grave, circumflex, breathings)
 
-#### Grammatical Cases
+### Grammatical Cases
 - Greek has 4 cases (nominative, genitive, accusative, vocative)
 - Apply correct case declension based on context
 - Examples of important gender assignments:
@@ -175,33 +211,20 @@ The Greek translation aims to:
   - σύνδεσμος (masculine)
   - κωδικός (masculine)
 
-#### Three Genders
+### Three Genders
 - Masculine, feminine, and neuter
 - Ensure proper gender agreement with adjectives and articles
 - Use correct definite and indefinite articles: το μυστικό, η πρόσβαση, ο κωδικός
 
-#### Final Sigma
+### Final Sigma
 - Use ς at the end of words
 - Use σ elsewhere in words
 - Example: σύνδεσμος (with final ς)
+- Critical for proper Greek orthography
 
-#### Greek Question Mark
+### Greek Question Mark
 - Greek question mark is the semicolon (;)
 - Not the same as Latin question mark (?)
-
-### 7. Clarity and Natural Phrasing
-
-- Prioritize natural Greek expressions over literal translations
-- Use standard phrases familiar to Greek speakers
-- Ensure terminology is accessible and professional
-
-### 8. Completeness
-
-- Ensure all user-facing strings are translated
-- Avoid leaving English text in the interface
-- Translate help text, descriptions, and metadata
-
----
 
 ## Common Translation Patterns
 
@@ -216,8 +239,6 @@ Use declarative sentences with polite second person (εσείς)
 
 ### Error Messages
 Use clear, direct language with professional tone
-
----
 
 ## Special Considerations
 
@@ -239,11 +260,6 @@ This distinction must be maintained throughout the application to avoid confusio
 - More natural in digital Greek context than literal translation
 - Clearly conveys permanent deletion concept
 
-### Monotonic System Compliance
-- Always use only the acute accent (΄)
-- Never use polytonic accents (grave, circumflex, breathings)
-- Example: σύνδεσμος (correct) not σύνδεσμος with additional marks
-
 ### Gender Agreement
 - Ensure adjectives, past participles, and pronouns agree with noun gender
 - Important genders to remember:
@@ -251,11 +267,6 @@ This distinction must be maintained throughout the application to avoid confusio
   - ο κωδικός πρόσβασης (masculine)
   - η φράση πρόσβασης (feminine)
   - ο σύνδεσμος (masculine)
-
-### Final Sigma Usage
-- Critical for proper Greek orthography
-- Always use ς at word end: σύνδεσμος, κωδικός
-- Always use σ elsewhere: σύνδεσμος (middle σ)
 
 ### UI Element Conventions
 - Follow platform conventions for Greek interfaces
@@ -273,18 +284,12 @@ This distinction must be maintained throughout the application to avoid confusio
 
 ---
 
-## Summary of Translation Principles
+## Document Information
 
-The Greek translation maintains:
+This guide was generated from the following source files:
 
-1. **Terminology Consistency** - Standardized key terms throughout the application
-2. **Grammatical Accuracy** - Proper use of 4 cases, 3 genders, and article agreement
-3. **Natural Phrasing** - Standard Greek expressions and idioms
-4. **Monotonic System** - Correct use of modern Greek single-accent system
-5. **Complete Coverage** - All user-facing strings translated
-6. **Technical Accuracy** - Precise terminology for security concepts
-7. **Clear Distinctions** - Especially between account passwords and secret passphrases
-8. **Professional Tone** - Polite εσείς form for respectful communication
-9. **Proper Orthography** - Correct use of final sigma (ς) and accent marks
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/el_GR/translations/glossary.md`
+- Language notes: `/el_GR/translations/language-notes.md`
 
-By following these guidelines, translators can ensure that the Greek version of Onetime Secret is accurate, consistent, and provides a natural user experience for Greek-speaking audiences.
+Generated: 2026-01-20

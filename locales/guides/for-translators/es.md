@@ -3,9 +3,150 @@ title: Guía de traducción al español
 description: Guía completa para traducir Onetime Secret al español, que combina glosario y notas lingüísticas
 ---
 
-# Translation Guidance for Spanish (Español)
+# Translation Guidance for Spanish
 
-This document combines the glossary of standardized terms and language-specific translation notes for Spanish translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Spanish locale to ensure consistency, accuracy, and natural phrasing.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
+
+## Universal Translation Resources
+
+Before translating, review these cross-language guidelines that apply to all locales:
+
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
+
+---
+
+## Glosario
+
+# Glosario de traducción de Onetime Secret
+
+Este glosario proporciona traducciones estandarizadas de términos clave en todos los idiomas para garantizar la coherencia en la aplicación Onetime Secret. Se basa en el análisis de las traducciones existentes en alemán (Alemania y Austria), francés (Francia) y francés (Canadá).
+
+## Terminología básica
+
+| Inglés | Español (ES) | Contexto | Notas |
+|---------|-------------|---------|-------|
+| secret (sustantivo) | secreto | Concepto central de la aplicación | Enfatiza el elemento confidencial que se comparte |
+| secret (adj) | secreto/seguro | Uso descriptivo | |
+| passphrase | frase de contraseña | Método de autenticación para secretos | Término compuesto que lo distingue de la contraseña de cuenta |
+| password | contraseña | Credencial de inicio de sesión de cuenta | Término estándar para contraseñas de cuenta |
+| burn | destruir | Acción para borrar un secreto antes de verlo | Usar formas de verbo/participio pasado de manera consistente |
+| view/reveal | ver/mostrar | Acción para acceder a un secreto | |
+| link | enlace | La URL que da acceso a un secreto | |
+| encrypt/encrypted | cifrar/cifrado | Método de seguridad | |
+| secure | seguro | Estado de protección | |
+
+## Elementos de la interfaz de usuario
+
+| Inglés | Español (ES) | Contexto | Notas |
+|---------|-------------|---------|-------|
+| Share a secret | Compartir un secreto | Acción principal | |
+| Create Account | Crear una cuenta | Registro | |
+| Sign In | Iniciar sesión | Autenticación | Término muy común para iniciar sesión |
+| Dashboard | Panel | Página principal del usuario | Más preciso que "Cuenta" para este contexto |
+| Settings | Configuración | Página de configuración | |
+| Privacy Options | Opciones de privacidad | Configuración de secretos | |
+| Feedback | Comentarios | Comentarios de usuarios | |
+
+## Términos de estado
+
+| Inglés | Español (ES) | Contexto | Notas |
+|---------|-------------|---------|-------|
+| received | recibido | El secreto ha sido visto | |
+| burned | destruido | El secreto fue borrado antes de ser visto | Forma estandarizada |
+| expired | expirado | El secreto ya no está disponible debido al tiempo | |
+| created | creado | Se ha generado el secreto | |
+| active | activo | El secreto está disponible | |
+| inactive | inactivo | El secreto no está disponible | |
+
+## Términos relacionados con el tiempo
+
+| Inglés | Español (ES) | Contexto |
+|---------|-------------|---------|
+| expires in | expira en | Tiempo hasta que el secreto deje de estar disponible |
+| day/days | día/días | Unidad de tiempo |
+| hour/hours | hora/horas | Unidad de tiempo |
+| minute/minutes | minuto/minutos | Unidad de tiempo |
+| second/seconds | segundo/segundos | Unidad de tiempo |
+
+## Características de seguridad
+
+| Inglés | Español (ES) | Contexto |
+|---------|-------------|---------|
+| one-time access | acceso único | Característica de seguridad central |
+| passphrase protection | protección mediante frase de contraseña | Seguridad adicional |
+| encrypted in transit | cifrado en tránsito | Método de protección de datos |
+| encrypted at rest | cifrado en reposo | Protección de almacenamiento |
+
+## Términos relacionados con la cuenta
+
+| Inglés | Español (ES) | Contexto |
+|---------|-------------|---------|
+| email | correo electrónico | Identificador de usuario |
+| password | contraseña | Autenticación de cuenta |
+| account | cuenta | Perfil de usuario |
+| subscription | suscripción | Servicio de pago |
+| customer | cliente | Usuario de pago |
+
+## Términos relacionados con el dominio
+
+| Inglés | Español (ES) | Contexto |
+|---------|-------------|---------|
+| custom domain | dominio personalizado | Característica Premium |
+| domain verification | verificación del dominio | Proceso de configuración |
+| DNS record | registro DNS | Configuración |
+| CNAME record | registro CNAME | Configuración DNS |
+
+## Mensajes de error
+
+| Inglés | Español (ES) | Contexto |
+|---------|-------------|---------|
+| error | error | Notificación de problemas |
+| warning | advertencia | Notificación de precaución |
+| oops | ups | Introducción amistosa de error |
+
+## Botones y acciones
+
+| Inglés | Español (ES) | Contexto | Notas |
+|---------|-------------|---------|-------|
+| submit | enviar | Acción de formulario | |
+| cancel | cancelar | Acción negativa | |
+| confirm | confirmar | Acción positiva | |
+| copy to clipboard | copiar al portapapeles | Acción de utilidad | Frase estándar en español |
+| continue | continuar | Navegación | |
+| back | atrás | Navegación | |
+
+## Términos de marketing
+
+| Inglés | Español (ES) | Contexto |
+|---------|-------------|---------|
+| secure links | enlaces seguros | Característica del producto |
+| privacy-first design | diseño que prioriza la privacidad | Filosofía de diseño |
+| custom branding | marca personalizada | Característica Premium |
+
+## Directrices de traducción
+
+1. **Coherencia**: Utilizar la misma traducción para un término en toda la aplicación
+2. **Contexto**: Tener en cuenta cómo se utiliza el término en la aplicación
+3. **Adaptación cultural**: Adaptar los términos a las convenciones locales cuando sea necesario
+4. **Precisión técnica**: Garantizar que los términos de seguridad se traducen con precisión
+5. **Tono**: Mantener un tono profesional pero directo
+
+## Consideraciones especiales
+
+- El término "secreto" es fundamental para la aplicación y debe traducirse de forma coherente
+- Los términos técnicos relacionados con la seguridad deben priorizar la precisión sobre la localización
+- Los elementos de la interfaz de usuario deben seguir las convenciones de la plataforma para el idioma de destino
+- Distinción importante: "contraseña" para cuentas vs "frase de contraseña" para protección de secretos individuales
+
+---
+
+## Spanish Translation Notes
+
+# Spanish (es) Translation Notes
 
 ## Overview
 
@@ -16,183 +157,80 @@ The Spanish translation aims to:
 - Apply appropriate voice and tone for different contexts
 - Distinguish between neutral Spanish where possible while remaining accessible
 
----
+## Thinking Behind Translation Adjustments
 
-## Core Terminology
+The goal was to ensure accuracy, consistency, natural phrasing for Spanish spoken broadly (aiming for neutrality where possible), and adherence to the provided translation guidelines.
 
-### Basic Terms
+### 1. Consistency of Core Terms
 
-| English | Español (ES) | Context | Notes |
-|---------|-------------|---------|-------|
-| secret (noun) | secreto | Central application concept | Emphasizes the confidential item being shared |
-| secret (adj) | secreto/seguro | Descriptive use | |
-| passphrase | frase de contraseña | Authentication method for secrets | Compound term distinguishing from account password |
-| password | contraseña | Account login credential | Standard term for account passwords |
-| burn | destruir | Action to delete a secret before viewing | Consistently use verb/past participle forms |
-| view/reveal | ver/mostrar | Action to access a secret | |
-| link | enlace | URL providing access to a secret | |
-| encrypt/encrypted | cifrar/cifrado | Security method | |
-| secure | seguro | Protection state | |
+**Rationale:** The initial file had some inconsistencies or used terms that could be refined based on the guidelines, especially regarding `secret`, `password`, and `passphrase`.
 
-### User Interface Elements
+**Examples:**
+- **`secret`**: Consistently translated as `secreto` when referring to the confidential item being shared (e.g., `web.COMMON.secret`, `web.COMMON.button_create_secret`, `web.private.created_success`). This aligns with the guideline to emphasize the confidential *item*, distinguishing it from personal secrets. While `mensaje` (message) could be used, `secreto` retains the core concept of confidentiality inherent in the platform's name and function.
 
-| English | Español (ES) | Context | Notes |
-|---------|-------------|---------|-------|
-| Share a secret | Compartir un secreto | Primary action | |
-| Create Account | Crear una cuenta | Registration | |
-| Sign In | Iniciar sesión | Authentication | Very common term for logging in |
-| Dashboard | Panel | User's main page | More accurate than "Cuenta" for this context |
-| Settings | Configuración | Configuration page | |
-| Privacy Options | Opciones de privacidad | Secret configuration | |
-| Feedback | Comentarios | User feedback | |
+- **`password`**: Consistently translated as `contraseña` when referring to the *account login* credential (e.g., `web.COMMON.password_placeholder`, `web.login.button_sign_in`, `web.account.changePassword.currentPassword`). This is the standard term in Spanish for account passwords.
 
-### Status Terms
+- **`passphrase`**: Consistently translated as `frase de contraseña` when referring to the protection for an *individual secret* (e.g., `web.COMMON.secret_passphrase`, `web.COMMON.incorrect_passphrase`, `web.secrets.enterPassphrase`). This compound term clearly distinguishes it from the account `contraseña` and follows the guideline to use a term implying a phrase-based security measure.
 
-| English | Español (ES) | Context | Notes |
-|---------|-------------|---------|-------|
-| received | recibido | Secret has been viewed | |
-| burned | destruido | Secret was deleted before viewing | Standardized form |
-| expired | expirado | Secret no longer available due to time | |
-| created | creado | Secret has been generated | |
-| active | activo | Secret is available | |
-| inactive | inactivo | Secret is not available | |
+- `web.COMMON.header_dashboard`: Changed from `Cuenta` (Account) to `Panel` (Dashboard) for better accuracy, although `Cuenta` was retained elsewhere when referring to the user account itself.
 
-### Time-Related Terms
+- `web.COMMON.header_sign_in`: Changed from `Ingresar` to `Iniciar sesión` (a very common term for logging in).
 
-| English | Español (ES) | Context |
-|---------|-------------|---------|
-| expires in | expira en | Time until secret becomes unavailable |
-| day/days | día/días | Time unit |
-| hour/hours | hora/horas | Time unit |
-| minute/minutes | minuto/minutos | Time unit |
-| second/seconds | segundo/segundos | Time unit |
+- `web.COMMON.burn`, `web.COMMON.burned`, `web.STATUS.burned`, `web.STATUS.destroyed`: Standardized to `Destruir` (verb) / `Destruido` (past participle/status) as per the guideline for "burn".
 
-### Security Features
+### 2. Appropriate Voice (Imperative vs. Declarative/Passive)
 
-| English | Español (ES) | Context |
-|---------|-------------|---------|
-| one-time access | acceso único | Core security feature |
-| passphrase protection | protección mediante frase de contraseña | Additional security |
-| encrypted in transit | cifrado en tránsito | Data protection method |
-| encrypted at rest | cifrado en reposo | Storage protection |
+**Rationale:** Guidelines specify imperative for user actions (buttons, links) and passive/declarative for informational text (status, descriptions, help).
 
-### Account-Related Terms
+**Examples:**
+- `web.help.learn_more`: Translated as `Más información` (Common infinitive/noun phrase for links)
+- `web.COMMON.button_generate_secret_short`: Translated as `Generar Contraseña` (Imperative/Infinitive action)
+- `web.help.secret_view_faq.*.description`: Descriptions translated using declarative sentences (e.g., "Estás viendo...", "Este contenido se muestra...")
+- `web.STATUS.*_description`: Status descriptions translated using declarative/passive voice (e.g., "El enlace secreto ha sido creado...", "El secreto fue destruido manualmente...")
+- `web.shared.post_reveal_default`: Translated as `Tu mensaje seguro se muestra a continuación.` (Passive voice)
 
-| English | Español (ES) | Context |
-|---------|-------------|---------|
-| email | correo electrónico | User identifier |
-| password | contraseña | Account authentication |
-| account | cuenta | User profile |
-| subscription | suscripción | Paid service |
-| customer | cliente | Paying user |
+### 3. Clarity and Natural Phrasing
 
-### Domain-Related Terms
+**Rationale:** Some existing translations were literal or could be improved for natural flow in Spanish.
 
-| English | Español (ES) | Context |
-|---------|-------------|---------|
-| custom domain | dominio personalizado | Premium feature |
-| domain verification | verificación del dominio | Setup process |
-| DNS record | registro DNS | Configuration |
-| CNAME record | registro CNAME | DNS configuration |
+**Examples:**
+- `web.COMMON.copied_to_clipboard`, `web.LABELS.copy_to_clipboard`: Changed to the standard Spanish phrase `Copiado al portapapeles` / `Copiar al portapapeles`
+- `web.COMMON.faq_title`: Changed from `F.A.Q.` to `Preguntas Frecuentes` (Clearer, full phrase)
+- `web.LABELS.loading`: Changed from `Loading...` to `Cargando...` (Standard)
+- `web.login.remember_me`: Changed from "Remember me" to `Recuérdame` (Standard phrase for this function)
+- `web.private.requires_passphrase`: Corrected from "Requiere una frase de contraseña." to "Requiere una frase de contraseña:" for consistency in context (often followed by an input field)
 
-### Error Messages
+### 4. Direct Address (Tú vs. Usted)
 
-| English | Español (ES) | Context |
-|---------|-------------|---------|
-| error | error | Problem notification |
-| warning | advertencia | Caution notification |
-| oops | ups | Friendly error introduction |
+**Rationale:** Spanish requires choosing between the informal "tú" and the formal "usted". The translations aimed for consistency, generally using the informal "tú" form (e.g., "Introduce tu contraseña", "Tu mensaje seguro"), which was used more consistently than initially thought, likely matching a pre-existing informal tone. The goal was consistency with the chosen form.
 
-### Buttons and Actions
+**Examples:**
+Most user-facing instructions and descriptions use forms implying "tú":
+- `web.help.secret_view_faq.*.description` uses "Estás viendo..." (2nd person singular informal 'tú')
+- Many other descriptions use 3rd person passive like "Se notificará..." which avoids direct address choice
+- Imperatives like "Introduce..." can map to either form but were used consistently
 
-| English | Español (ES) | Context | Notes |
-|---------|-------------|---------|-------|
-| submit | enviar | Form action | |
-| cancel | cancelar | Negative action | |
-| confirm | confirmar | Positive action | |
-| copy to clipboard | copiar al portapapeles | Utility action | Standard Spanish phrase |
-| continue | continuar | Navigation | |
-| back | atrás | Navigation | |
+### 5. Completeness
 
-### Marketing Terms
+**Rationale:** Many keys contained only the English source text. These were translated according to the guidelines.
 
-| English | Español (ES) | Context |
-|---------|-------------|---------|
-| secure links | enlaces seguros | Product feature |
-| privacy-first design | diseño que prioriza la privacidad | Design philosophy |
-| custom branding | marca personalizada | Premium feature |
+**Examples:** `web.help.*`, `web.FEATURES.*`, `web.UNITS.*`, `web.INSTRUCTION.*`, `web.meta.*`, `email.*`, and many others throughout the file.
 
----
+## Summary of Changes to the Spanish (`es`) Translation
 
-## Translation Guidelines
+- **Terminology:** Standardized key terms like `secreto`, `contraseña`, `frase de contraseña`, `Panel`, `Iniciar sesión`, `Destruir` for consistency and guideline adherence
 
-### 1. Consistency
+- **Voice:** Consistently applied imperative voice for actions and passive/declarative voice for informational text and descriptions
 
-- Use the same translation for a term throughout the application
-- Maintain standardized terminology from the glossary above
-- Key distinctions to preserve:
-  - `contraseña` for account passwords
-  - `frase de contraseña` for secret protection
-  - `secreto` as the core concept
+- **Phrasing:** Improved clarity and naturalness using standard Spanish expressions (e.g., `Copiar al portapapeles`, `Preguntas Frecuentes`, `Recuérdame`)
 
-### 2. Context Awareness
+- **Direct Address:** Ensured consistent use of the chosen direct address form (primarily informal "tú") when addressing the user
 
-- Consider how the term is used in the application
-- Account for surrounding UI elements and user flow
-- Ensure translations make sense in their specific context
+- **Completeness:** Translated numerous previously untranslated English strings across the entire file
 
-### 3. Cultural Adaptation
+- **Corrections:** Addressed minor grammatical issues, inconsistencies (e.g., trailing punctuation), and suboptimal word choices from the initial file
 
-- Adapt terms to local conventions when necessary
-- Aim for neutral Spanish that works across regions
-- Use standard technical terms familiar to Spanish-speaking users
-
-### 4. Technical Accuracy
-
-- Security-related terms must be translated accurately
-- Prioritize precision over localization for technical terminology
-- Use established Spanish technical vocabulary
-
-### 5. Voice and Tone
-
-#### Imperative Voice (for Actions)
-Use imperative voice for buttons, links, and user actions:
-- `Generar Contraseña` (Generate Password)
-- `Copiar al portapapeles` (Copy to clipboard)
-- `Crear una cuenta` (Create Account)
-
-#### Passive/Declarative Voice (for Information)
-Use passive or declarative voice for informational text, status messages, and descriptions:
-- `Tu mensaje seguro se muestra a continuación.` (Your secure message is shown below.)
-- `El enlace secreto ha sido creado...` (The secret link has been created...)
-- `El secreto fue destruido manualmente...` (The secret was manually destroyed...)
-- `Estás viendo...` (You are viewing...)
-
-### 6. Direct Address
-
-- Use informal "tú" form consistently when addressing users
-- Examples:
-  - `Introduce tu contraseña` (Enter your password)
-  - `Tu mensaje seguro` (Your secure message)
-  - `Estás viendo...` (You are viewing...)
-- When direct address can be avoided, use 3rd person passive:
-  - `Se notificará...` (Will be notified...)
-
-### 7. Clarity and Natural Phrasing
-
-- Prioritize natural Spanish expressions over literal translations
-- Use standard phrases familiar to Spanish speakers:
-  - `Preguntas Frecuentes` instead of `F.A.Q.`
-  - `Cargando...` for loading states
-  - `Recuérdame` for "Remember me" checkboxes
-
-### 8. Completeness
-
-- Ensure all user-facing strings are translated
-- Avoid leaving English text in the interface
-- Translate help text, descriptions, and metadata
-
----
+The translations aim for clarity and adherence to standard Spanish usage in technical contexts, while respecting the specific distinctions required by the translation guidelines, particularly between `contraseña` (for accounts) and `frase de contraseña` (for secrets).
 
 ## Common Translation Patterns
 
@@ -215,8 +253,6 @@ Use declarative sentences in 2nd person informal:
 Use clear, direct language:
 - `Frase de contraseña incorrecta` (Incorrect passphrase)
 - `Ha ocurrido un error` (An error has occurred)
-
----
 
 ## Special Considerations
 
@@ -246,8 +282,6 @@ This distinction must be maintained throughout the application to avoid confusio
   - `verificación` (verification)
   - `autenticación` (authentication)
 
----
-
 ## Summary of Translation Principles
 
 The Spanish translation maintains:
@@ -260,4 +294,14 @@ The Spanish translation maintains:
 6. **Technical Accuracy** - Precise terminology for security concepts
 7. **Clear Distinctions** - Especially between account passwords and secret passphrases
 
-By following these guidelines, translators can ensure that the Spanish version of Onetime Secret is accurate, consistent, and provides a natural user experience for Spanish-speaking audiences.
+---
+
+## Document Information
+
+This guide was generated from the following source files:
+
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/es/translations/glossary.md`
+- Language notes: `/es/translations/language-notes.md`
+
+Generated: 2026-01-20

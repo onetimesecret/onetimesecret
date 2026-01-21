@@ -3,177 +3,214 @@ title: מדריך תרגום לעברית
 description: מדריך מקיף לתרגום Onetime Secret לעברית המשלב את מילון המונחים והערות לשוניות
 ---
 
-# Translation Guidance for Hebrew (עברית)
+# Translation Guidance for Hebrew
 
-This document combines the glossary of standardized terms and language-specific translation notes for Hebrew translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Hebrew locale to ensure consistency, accuracy, and natural phrasing.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
 
-## Overview
+## Universal Translation Resources
 
-The Hebrew translation aims to:
-- Maintain consistency across all application interfaces
-- Use clear, natural phrasing for Hebrew-speaking audiences
-- Follow technical accuracy for security-related terminology
-- Apply appropriate voice and tone for different contexts
-- Properly implement Right-to-Left (RTL) layout requirements
-- Use Modern Hebrew without vowel points (niqqud)
+Before translating, review these cross-language guidelines that apply to all locales:
+
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
 
 ---
+
+## מילון מונחים
+
+# מילון מונחים לתרגום Onetime Secret
+
+מילון זה מספק תרגומים מתוקננים של מונחי מפתח כדי להבטיח עקביות באפליקציית Onetime Secret. פותח על פי הנחיות התרגום והצרכים של השפה העברית.
+
+## מינוח בסיסי
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| secret (noun) | סוד | המושג המרכזי של האפליקציה |
+| secret (adj) | סודי/מאובטח | |
+| passphrase | ביטוי סיסמה | שיטת אימות לסודות |
+| burn | מחיקה סופית | פעולת מחיקת סוד לפני צפייה |
+| view/reveal | צפייה/חשיפה | פעולת גישה לסוד |
+| link | קישור | כתובת URL המאפשרת גישה לסוד |
+| encrypt/encrypted | הצפנה/מוצפן | שיטת אבטחה |
+| secure | מאובטח | מצב הגנה |
+
+## אלמנטי ממשק משתמש
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| Share a secret | שיתוף סוד | הפעולה העיקרית |
+| Create Account | יצירת חשבון | הרשמה |
+| Sign In | התחברות | אימות |
+| Dashboard | לוח בקרה | דף הבית של המשתמש |
+| Settings | הגדרות | דף תצורה |
+| Privacy Options | אפשרויות פרטיות | הגדרות סודות |
+| Feedback | משוב | הערות משתמשים |
+
+## מונחי מצב
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| received | התקבל | הסוד נצפה |
+| burned | נמחק סופית | סוד נמחק לפני צפייה |
+| expired | פג תוקף | הסוד כבר לא זמין בגלל הזמן |
+| created | נוצר | הסוד נוצר |
+| active | פעיל | הסוד זמין |
+| inactive | לא פעיל | הסוד אינו זמין |
+
+## מונחים הקשורים לזמן
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| expires in | פג תוקף בעוד | זמן עד שהסוד לא יהיה זמין |
+| day/days | יום/ימים | יחידת זמן |
+| hour/hours | שעה/שעות | יחידת זמן |
+| minute/minutes | דקה/דקות | יחידת זמן |
+| second/seconds | שנייה/שניות | יחידת זמן |
+
+## תכונות אבטחה
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| one-time access | גישה חד-פעמית | תכונת האבטחה העיקרית |
+| passphrase protection | הגנה בביטוי סיסמה | אבטחה נוספת |
+| encrypted in transit | מוצפן בהעברה | שיטת הגנת נתונים |
+| encrypted at rest | מוצפן במנוחה | הגנת אחסון |
+
+## מונחים הקשורים לחשבון
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| email | דואר אלקטרוני | מזהה משתמש |
+| password | סיסמה | אימות חשבון |
+| account | חשבון | פרופיל משתמש |
+| subscription | מנוי | שירות בתשלום |
+| customer | לקוח | משתמש בתשלום |
+
+## מונחים הקשורים לדומיין
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| custom domain | דומיין מותאם אישית | תכונת פרימיום |
+| domain verification | אימות דומיין | תהליך הגדרה |
+| DNS record | רשומת DNS | תצורה |
+| CNAME record | רשומת CNAME | תצורת DNS |
+
+## הודעות שגיאה
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| error | שגיאה | הודעת בעיות |
+| warning | אזהרה | הודעת התראה |
+| oops | אופס | הקדמה ידידותית לשגיאה |
+
+## כפתורים ופעולות
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| submit | שליחה | פעולת טופס |
+| cancel | ביטול | פעולה שלילית |
+| confirm | אישור | פעולה חיובית |
+| copy to clipboard | העתקה ללוח | פעולת עזר |
+| continue | המשך | ניווט |
+| back | חזרה | ניווט |
+
+## מונחי שיווק
+
+| English | עברית (HE) | Context |
+|---------|------------|---------|
+| secure links | קישורים מאובטחים | תכונת מוצר |
+| privacy-first design | עיצוב בעדיפות פרטיות | פילוסופיית עיצוב |
+| custom branding | מיתוג מותאם אישית | תכונת פרימיום |
+
+## הנחיות תרגום
+
+1. **עקביות**: שימוש באותו תרגום למונח בכל האפליקציה
+2. **הקשר**: התחשבות באופן שבו המונח משמש באפליקציה
+3. **התאמה תרבותית**: התאמת מונחים למוסכמות מקומיות בעת הצורך
+4. **דיוק טכני**: הבטחת תרגום מדויק של מונחי אבטחה
+5. **טון**: שמירה על טון מקצועי אך ישיר
+
+## שיקולים מיוחדים
+
+- העברית נכתבת מימין לשמאל (RTL), מה שמצריך תשומת לב מיוחדת לפריסת הממשק
+- אין להשתמש בניקוד בעברית מודרנית למעט במקרים מיוחדים
+- הבחנה חשובה: "סיסמה" לחשבונות לעומת "ביטוי סיסמה" להגנה על סודות בודדים
+- שימוש בגרשיים (״) וגרש (׳) לראשי תיבות ומרכאות: מ״ד, צה״ל
+- העברית היא שפה סמיטית עם דקדוק עשיר וצורות מילים רבות
+- זכר ונקבה צריכים להתאים: הסוד (זכר), הסיסמה (נקבה), ההצפנה (נקבה)
+- שימוש בצורות רבים מתאימות: סוד/סודות, קישור/קישורים, שעה/שעות
+
+---
+
+## Hebrew Translation Notes
+
+# Hebrew (he) Translation Notes
 
 ## Core Terminology
 
-### Basic Terms
+**Secret:** סוד (masculine) - Appropriate for professional contexts
 
-| English | עברית (HE) | Context | Notes |
-|---------|------------|---------|-------|
-| secret (noun) | סוד | Central application concept | Masculine gender; appropriate for professional contexts |
-| secret (adj) | סודי/מאובטח | Descriptive use | |
-| passphrase | ביטוי סיסמה | Authentication method for secrets | Compound term distinguishing from account password |
-| password | סיסמה | Account login credential | Standard term for account passwords |
-| burn | מחיקה סופית | Action to delete a secret before viewing | Permanent deletion |
-| view/reveal | צפייה/חשיפה | Action to access a secret | |
-| link | קישור | URL providing access to a secret | |
-| encrypt/encrypted | הצפנה/מוצפן | Security method | |
-| secure | מאובטח | Protection state | |
+**Password vs Passphrase:**
+- Password: סיסמה - for account authentication (feminine)
+- Passphrase: ביטוי סיסמה - for secret protection
 
-### User Interface Elements
+**Burn:** מחיקה סופית (permanent deletion)
 
-| English | עברית (HE) | Context | Notes |
-|---------|------------|---------|-------|
-| Share a secret | שיתוף סוד | Primary action | |
-| Create Account | יצירת חשבון | Registration | |
-| Sign In | התחברות | Authentication | |
-| Dashboard | לוח בקרה | User's main page | |
-| Settings | הגדרות | Configuration page | |
-| Privacy Options | אפשרויות פרטיות | Secret configuration | |
-| Feedback | משוב | User feedback | |
+## Key Points
 
-### Status Terms
-
-| English | עברית (HE) | Context | Notes |
-|---------|------------|---------|-------|
-| received | התקבל | Secret has been viewed | |
-| burned | נמחק סופית | Secret was deleted before viewing | |
-| expired | פג תוקף | Secret no longer available due to time | |
-| created | נוצר | Secret has been generated | |
-| active | פעיל | Secret is available | |
-| inactive | לא פעיל | Secret is not available | |
-
-### Time-Related Terms
-
-| English | עברית (HE) | Context |
-|---------|------------|---------|
-| expires in | פג תוקף בעוד | Time until secret becomes unavailable |
-| day/days | יום/ימים | Time unit |
-| hour/hours | שעה/שעות | Time unit |
-| minute/minutes | דקה/דקות | Time unit |
-| second/seconds | שנייה/שניות | Time unit |
-
-### Security Features
-
-| English | עברית (HE) | Context |
-|---------|------------|---------|
-| one-time access | גישה חד-פעמית | Core security feature |
-| passphrase protection | הגנה בביטוי סיסמה | Additional security |
-| encrypted in transit | מוצפן בהעברה | Data protection method |
-| encrypted at rest | מוצפן במנוחה | Storage protection |
-
-### Account-Related Terms
-
-| English | עברית (HE) | Context | Notes |
-|---------|------------|---------|-------|
-| email | דואר אלקטרוני | User identifier | Can also use דוא״ל with gershayim |
-| password | סיסמה | Account authentication | Feminine gender |
-| account | חשבון | User profile | |
-| subscription | מנוי | Paid service | |
-| customer | לקוח | Paying user | |
-
-### Domain-Related Terms
-
-| English | עברית (HE) | Context |
-|---------|------------|---------|
-| custom domain | דומיין מותאם אישית | Premium feature |
-| domain verification | אימות דומיין | Setup process |
-| DNS record | רשומת DNS | Configuration |
-| CNAME record | רשומת CNAME | DNS configuration |
-
-### Error Messages
-
-| English | עברית (HE) | Context |
-|---------|------------|---------|
-| error | שגיאה | Problem notification |
-| warning | אזהרה | Caution notification |
-| oops | אופס | Friendly error introduction |
-
-### Buttons and Actions
-
-| English | עברית (HE) | Context | Notes |
-|---------|------------|---------|-------|
-| submit | שליחה | Form action | |
-| cancel | ביטול | Negative action | |
-| confirm | אישור | Positive action | |
-| copy to clipboard | העתקה ללוח | Utility action | |
-| continue | המשך | Navigation | |
-| back | חזרה | Navigation | |
-
-### Marketing Terms
-
-| English | עברית (HE) | Context |
-|---------|------------|---------|
-| secure links | קישורים מאובטחים | Product feature |
-| privacy-first design | עיצוב בעדיפות פרטיות | Design philosophy |
-| custom branding | מיתוג מותאם אישית | Premium feature |
-
----
+- Right-to-left (RTL) layout essential
+- Modern Hebrew without vowel points (niqqud)
+- Gender agreement (masculine/feminine)
+- Gershayim (״) for Hebrew acronyms
+- Masculine singular imperative for buttons (standard in Hebrew UI)
+- דוא״ל for email (with gershayim)
 
 ## Translation Guidelines
 
-### 1. Consistency
-
+### Consistency
 - Use the same translation for a term throughout the application
-- Maintain standardized terminology from the glossary above
+- Maintain standardized terminology from the glossary
 - Key distinctions to preserve:
   - `סיסמה` for account passwords
   - `ביטוי סיסמה` for secret protection
   - `סוד` as the core concept
 
-### 2. Context Awareness
-
+### Context Awareness
 - Consider how the term is used in the application
 - Account for surrounding UI elements and user flow
 - Ensure translations make sense in their specific context
 
-### 3. Cultural Adaptation
-
-- Adapt terms to local conventions when necessary
-- Use Modern Hebrew suitable for digital interfaces
-- Use standard technical terms familiar to Hebrew-speaking users
-
-### 4. Technical Accuracy
-
+### Technical Accuracy
 - Security-related terms must be translated accurately
 - Prioritize precision over localization for technical terminology
 - Use established Hebrew technical vocabulary
 
-### 5. Voice and Tone
-
+### Voice and Tone
 - Use masculine singular imperative for buttons (standard in Hebrew UI)
 - Maintain professional but approachable language
 - Ensure consistency in formality level across all interfaces
 
-### 6. Hebrew Language Specifics
+## Hebrew Language Specifics
 
-#### Right-to-Left (RTL) Layout
+### Right-to-Left (RTL) Layout
 - Hebrew is written from right to left
 - UI elements should be mirrored appropriately
 - Numbers and Latin script remain LTR within RTL text
 - Pay special attention to interface layout requirements
+- Mixed content (Hebrew + numbers/Latin) requires careful handling
 
-#### Modern Hebrew Without Niqqud
+### Modern Hebrew Without Niqqud
 - Do not use vowel points (niqqud) except in very special cases
 - Modern Hebrew text is written without diacritical marks
 - Example: סוד (correct), not סוֹד (with niqqud - avoid)
+- Vowel points are only for religious texts, poetry, or children's books
+- Always write unvocalized text: סוד, סיסמה, הצפנה
 
-#### Gender Agreement
+### Gender Agreement
 - Hebrew has masculine and feminine genders
 - Ensure adjectives and verbs agree with noun gender
 - Important gender assignments:
@@ -181,32 +218,23 @@ The Hebrew translation aims to:
   - סיסמה (feminine)
   - הצפנה (feminine)
   - קישור (masculine)
+- Examples:
+  - הסוד נוצר (masculine - the secret was created)
+  - הסיסמה נוצרה (feminine - the password was created)
 
-#### Plural Forms
+### Plural Forms
 - Use appropriate plural forms
 - Examples:
   - סוד/סודות (secret/secrets)
   - קישור/קישורים (link/links)
   - שעה/שעות (hour/hours)
 
-#### Gershayim and Geresh
+### Gershayim and Geresh
 - Use gershayim (״) for Hebrew acronyms: דוא״ל, צה״ל
 - Use geresh (׳) for single-letter abbreviations
 - These are proper Hebrew punctuation marks
-
-### 7. Clarity and Natural Phrasing
-
-- Prioritize natural Hebrew expressions over literal translations
-- Use standard phrases familiar to Hebrew speakers
-- Ensure terminology is accessible and professional
-
-### 8. Completeness
-
-- Ensure all user-facing strings are translated
-- Avoid leaving English text in the interface
-- Translate help text, descriptions, and metadata
-
----
+- Never use regular quotation marks for this purpose
+- Example: דוא״ל (email) - short for דואר אלקטרוני
 
 ## Common Translation Patterns
 
@@ -221,8 +249,6 @@ Use declarative sentences with appropriate formality
 
 ### Error Messages
 Use clear, direct language with professional tone
-
----
 
 ## Special Considerations
 
@@ -244,30 +270,6 @@ This distinction must be maintained throughout the application to avoid confusio
 - More natural in digital Hebrew context than literal translation
 - Clearly conveys permanent deletion concept
 
-### RTL Layout Implementation
-- Hebrew requires complete right-to-left layout
-- All text flows from right to left
-- UI elements mirror horizontally
-- Mixed content (Hebrew + numbers/Latin) requires careful handling
-- Numbers and Latin text remain LTR within RTL flow
-
-### No Vowel Points (Niqqud)
-- Modern Hebrew interfaces never use niqqud
-- Vowel points are only for religious texts, poetry, or children's books
-- Always write unvocalized text: סוד, סיסמה, הצפנה
-
-### Gender Agreement is Critical
-- Hebrew verbs and adjectives must agree with noun gender
-- Incorrect gender sounds unnatural to native speakers
-- Examples:
-  - הסוד נוצר (masculine - the secret was created)
-  - הסיסמה נוצרה (feminine - the password was created)
-
-### Hebrew Acronyms
-- Use proper gershayim (״) for acronyms
-- Example: דוא״ל (email) - short for דואר אלקטרוני
-- Never use regular quotation marks for this purpose
-
 ### UI Element Conventions
 - Follow platform conventions for Hebrew interfaces
 - Use standard Hebrew terminology for common UI elements
@@ -285,18 +287,12 @@ This distinction must be maintained throughout the application to avoid confusio
 
 ---
 
-## Summary of Translation Principles
+## Document Information
 
-The Hebrew translation maintains:
+This guide was generated from the following source files:
 
-1. **Terminology Consistency** - Standardized key terms throughout the application
-2. **Grammatical Accuracy** - Proper use of gender agreement and plural forms
-3. **Natural Phrasing** - Standard Hebrew expressions and idioms
-4. **RTL Awareness** - Proper implementation of right-to-left layout
-5. **Complete Coverage** - All user-facing strings translated
-6. **Technical Accuracy** - Precise terminology for security concepts
-7. **Clear Distinctions** - Especially between account passwords and secret passphrases
-8. **Modern Hebrew** - No vowel points (niqqud) in standard text
-9. **Proper Punctuation** - Correct use of gershayim (״) for acronyms
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/he/translations/glossary.md`
+- Language notes: `/he/translations/language-notes.md`
 
-By following these guidelines, translators can ensure that the Hebrew version of Onetime Secret is accurate, consistent, and provides a natural user experience for Hebrew-speaking audiences.
+Generated: 2026-01-20

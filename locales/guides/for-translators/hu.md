@@ -3,170 +3,205 @@ title: Fordítási útmutató a magyar nyelvhez
 description: Átfogó útmutató az Onetime Secret magyar fordításához, amely egyesíti a szójegyzéket és a nyelvi megjegyzéseket
 ---
 
-# Translation Guidance for Hungarian (Magyar)
+# Translation Guidance for Hungarian
 
-This document combines the glossary of standardized terms and language-specific translation notes for Hungarian translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Hungarian locale to ensure consistency, accuracy, and natural phrasing.
+This document provides comprehensive guidance for translating Onetime Secret content. It combines universal translation resources with locale-specific terminology and rules.
 
-## Overview
+## Universal Translation Resources
 
-The Hungarian translation aims to:
-- Maintain consistency across all application interfaces
-- Use clear, natural phrasing for Hungarian-speaking audiences
-- Follow technical accuracy for security-related terminology
-- Apply appropriate voice and tone for different contexts
-- Properly handle Hungarian agglutinative grammar and vowel harmony
+Before translating, review these cross-language guidelines that apply to all locales:
+
+- **[Translating "Secret"](/en/translations/universal/secret-concept)** - How to handle the word "secret" across different language contexts
+- **[Password vs. Passphrase](/en/translations/universal/password-passphrase)** - Maintaining the critical distinction between account passwords and secret passphrases
+- **[Voice and Tone](/en/translations/universal/voice-and-tone)** - Patterns for active vs. passive voice, formality levels, and cultural adaptations
+- **[Brand Terms](/en/translations/universal/brand-terms)** - Terms that should not be translated (product names, tier names)
+- **[Quality Checklist](/en/translations/universal/quality-checklist)** - Comprehensive checklist for pre-submission review
 
 ---
+
+## Szójegyzék
+
+# Onetime Secret fordítási szójegyzék
+
+Ez a szójegyzék szabványosított fordításokat biztosít a kulcsfontosságú kifejezésekhez, hogy biztosítsa a konzisztenciát az Onetime Secret alkalmazásban. A fordítási irányelvek és a magyar nyelv igényei alapján készült.
+
+## Alapvető terminológia
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| secret (noun) | titok | Az alkalmazás központi fogalma |
+| secret (adj) | titkos/biztonságos | |
+| passphrase | hozzáférési mondat | Hitelesítési módszer titkokhoz |
+| burn | végleges törlés | Titok törlése megtekintés előtt |
+| view/reveal | megtekintés/felfedés | Titokhoz való hozzáférés művelete |
+| link | hivatkozás | URL, amely hozzáférést biztosít egy titokhoz |
+| encrypt/encrypted | titkosítás/titkosított | Biztonsági módszer |
+| secure | biztonságos | Védelem állapota |
+
+## Felhasználói felület elemei
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| Share a secret | Titok megosztása | Fő művelet |
+| Create Account | Fiók létrehozása | Regisztráció |
+| Sign In | Bejelentkezés | Hitelesítés |
+| Dashboard | Vezérlőpult | Felhasználó főoldala |
+| Settings | Beállítások | Konfigurációs oldal |
+| Privacy Options | Adatvédelmi beállítások | Titkok beállításai |
+| Feedback | Visszajelzés | Felhasználói megjegyzések |
+
+## Állapot kifejezések
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| received | megkapva | A titok megtekintésre került |
+| burned | véglegesen törölve | Titok törölve megtekintés előtt |
+| expired | lejárt | A titok már nem érhető el az idő miatt |
+| created | létrehozva | A titok létrejött |
+| active | aktív | A titok elérhető |
+| inactive | inaktív | A titok nem érhető el |
+
+## Idővel kapcsolatos kifejezések
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| expires in | lejár | Idő, amíg a titok elérhetetlenné válik |
+| day/days | nap/nap | Időegység |
+| hour/hours | óra/óra | Időegység |
+| minute/minutes | perc/perc | Időegység |
+| second/seconds | másodperc/másodperc | Időegység |
+
+## Biztonsági funkciók
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| one-time access | egyszeri hozzáférés | Fő biztonsági funkció |
+| passphrase protection | hozzáférési mondattal való védelem | További biztonság |
+| encrypted in transit | átvitel közben titkosítva | Adatvédelmi módszer |
+| encrypted at rest | tároláskor titkosítva | Tárolási védelem |
+
+## Fiókkal kapcsolatos kifejezések
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| email | e-mail | Felhasználói azonosító |
+| password | jelszó | Fiók hitelesítés |
+| account | fiók | Felhasználói profil |
+| subscription | előfizetés | Fizetős szolgáltatás |
+| customer | ügyfél | Fizető felhasználó |
+
+## Doménnel kapcsolatos kifejezések
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| custom domain | egyéni domén | Prémium funkció |
+| domain verification | domén ellenőrzés | Beállítási folyamat |
+| DNS record | DNS rekord | Konfiguráció |
+| CNAME record | CNAME rekord | DNS konfiguráció |
+
+## Hibaüzenetek
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| error | hiba | Problémaértesítés |
+| warning | figyelmeztetés | Figyelmeztető értesítés |
+| oops | hoppá | Barátságos bevezetés hibához |
+
+## Gombok és műveletek
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| submit | küldés | Űrlap művelet |
+| cancel | mégse | Negatív művelet |
+| confirm | megerősítés | Pozitív művelet |
+| copy to clipboard | másolás vágólapra | Segítő művelet |
+| continue | folytatás | Navigáció |
+| back | vissza | Navigáció |
+
+## Marketing kifejezések
+
+| English | Magyar (HU) | Context |
+|---------|-------------|---------|
+| secure links | biztonságos hivatkozások | Termék funkció |
+| privacy-first design | adatvédelem-központú tervezés | Tervezési filozófia |
+| custom branding | egyéni márkajelzés | Prémium funkció |
+
+## Fordítási irányelvek
+
+1. **Konzisztencia**: Ugyanazon fordítás használata a kifejezéshez az egész alkalmazásban
+2. **Kontextus**: Figyelembe venni, hogyan használják a kifejezést az alkalmazásban
+3. **Kulturális adaptáció**: Kifejezések helyi konvenciókhoz igazítása szükség esetén
+4. **Műszaki pontosság**: Biztosítani a biztonsági kifejezések pontos fordítását
+5. **Hangnem**: Professzionális, de közvetlen hangnem fenntartása
+
+## Különleges megfontolások
+
+- A magyar agglutináló nyelv 18+ esetet használ (eset ragokkal kifejezve)
+- Magánhangzó-harmónia kötelező: házban, kertben (nem "házben")
+- Ékezetek nélkülözhetetlenek és megváltoztatják a jelentést: á, é, í, ó, ö, ő, ú, ü, ű
+- Nincs nyelvtani nem a magyarban (ellentétben sok más nyelvvel)
+- Fontos különbség: "jelszó" fiókokhoz vs "hozzáférési mondat" egyedi titkok védelméhez
+- Határozott (a, az) és határozatlan (egy) névelők használata: a titok, az e-mail, egy hivatkozás
+- Tárgyragozás: látom a titkot, látok egy titkot (különböző igealak)
+
+---
+
+## Hungarian Translation Notes
+
+# Hungarian (hu) Translation Notes
 
 ## Core Terminology
 
-### Basic Terms
+**Secret:** titok - Appropriate for professional contexts
 
-| English | Magyar (HU) | Context | Notes |
-|---------|-------------|---------|-------|
-| secret (noun) | titok | Central application concept | Appropriate for professional contexts |
-| secret (adj) | titkos/biztonságos | Descriptive use | |
-| passphrase | hozzáférési mondat | Authentication method for secrets | Compound term distinguishing from account password |
-| password | jelszó | Account login credential | Standard term for account passwords |
-| burn | végleges törlés | Action to delete a secret before viewing | Permanent deletion |
-| view/reveal | megtekintés/felfedés | Action to access a secret | |
-| link | hivatkozás | URL providing access to a secret | |
-| encrypt/encrypted | titkosítás/titkosított | Security method | |
-| secure | biztonságos | Protection state | |
+**Password vs Passphrase:**
+- Password: jelszó - for account authentication
+- Passphrase: hozzáférési mondat - for secret protection
 
-### User Interface Elements
+**Burn:** végleges törlés (permanent deletion)
 
-| English | Magyar (HU) | Context | Notes |
-|---------|-------------|---------|-------|
-| Share a secret | Titok megosztása | Primary action | |
-| Create Account | Fiók létrehozása | Registration | |
-| Sign In | Bejelentkezés | Authentication | |
-| Dashboard | Vezérlőpult | User's main page | |
-| Settings | Beállítások | Configuration page | |
-| Privacy Options | Adatvédelmi beállítások | Secret configuration | |
-| Feedback | Visszajelzés | User feedback | |
+## Key Points
 
-### Status Terms
-
-| English | Magyar (HU) | Context | Notes |
-|---------|-------------|---------|-------|
-| received | megkapva | Secret has been viewed | |
-| burned | véglegesen törölve | Secret was deleted before viewing | |
-| expired | lejárt | Secret no longer available due to time | |
-| created | létrehozva | Secret has been generated | |
-| active | aktív | Secret is available | |
-| inactive | inaktív | Secret is not available | |
-
-### Time-Related Terms
-
-| English | Magyar (HU) | Context | Notes |
-|---------|-------------|---------|-------|
-| expires in | lejár | Time until secret becomes unavailable | |
-| day/days | nap/nap | Time unit | Same form for singular and plural |
-| hour/hours | óra/óra | Time unit | Same form for singular and plural |
-| minute/minutes | perc/perc | Time unit | Same form for singular and plural |
-| second/seconds | másodperc/másodperc | Time unit | Same form for singular and plural |
-
-### Security Features
-
-| English | Magyar (HU) | Context |
-|---------|-------------|---------|
-| one-time access | egyszeri hozzáférés | Core security feature |
-| passphrase protection | hozzáférési mondattal való védelem | Additional security |
-| encrypted in transit | átvitel közben titkosítva | Data protection method |
-| encrypted at rest | tároláskor titkosítva | Storage protection |
-
-### Account-Related Terms
-
-| English | Magyar (HU) | Context |
-|---------|-------------|---------|
-| email | e-mail | User identifier |
-| password | jelszó | Account authentication |
-| account | fiók | User profile |
-| subscription | előfizetés | Paid service |
-| customer | ügyfél | Paying user |
-
-### Domain-Related Terms
-
-| English | Magyar (HU) | Context |
-|---------|-------------|---------|
-| custom domain | egyéni domén | Premium feature |
-| domain verification | domén ellenőrzés | Setup process |
-| DNS record | DNS rekord | Configuration |
-| CNAME record | CNAME rekord | DNS configuration |
-
-### Error Messages
-
-| English | Magyar (HU) | Context |
-|---------|-------------|---------|
-| error | hiba | Problem notification |
-| warning | figyelmeztetés | Caution notification |
-| oops | hoppá | Friendly error introduction |
-
-### Buttons and Actions
-
-| English | Magyar (HU) | Context | Notes |
-|---------|-------------|---------|-------|
-| submit | küldés | Form action | |
-| cancel | mégse | Negative action | |
-| confirm | megerősítés | Positive action | |
-| copy to clipboard | másolás vágólapra | Utility action | |
-| continue | folytatás | Navigation | |
-| back | vissza | Navigation | |
-
-### Marketing Terms
-
-| English | Magyar (HU) | Context |
-|---------|-------------|---------|
-| secure links | biztonságos hivatkozások | Product feature |
-| privacy-first design | adatvédelem-központú tervezés | Design philosophy |
-| custom branding | egyéni márkajelzés | Premium feature |
-
----
+- Agglutinative language with 18+ cases
+- Vowel harmony essential for suffixes
+- No grammatical gender (simplification)
+- Diacritics essential: á, é, í, ó, ö, ő, ú, ü, ű
+- Formal address (maga/ön forms) for professional tone
+- Definite vs indefinite verb conjugation
 
 ## Translation Guidelines
 
-### 1. Consistency
-
+### Consistency
 - Use the same translation for a term throughout the application
-- Maintain standardized terminology from the glossary above
+- Maintain standardized terminology from the glossary
 - Key distinctions to preserve:
   - `jelszó` for account passwords
   - `hozzáférési mondat` for secret protection
   - `titok` as the core concept
 
-### 2. Context Awareness
-
+### Context Awareness
 - Consider how the term is used in the application
 - Account for surrounding UI elements and user flow
 - Ensure translations make sense in their specific context
 
-### 3. Cultural Adaptation
-
-- Adapt terms to local conventions when necessary
-- Use modern Hungarian suitable for digital interfaces
-- Use standard technical terms familiar to Hungarian-speaking users
-
-### 4. Technical Accuracy
-
+### Technical Accuracy
 - Security-related terms must be translated accurately
 - Prioritize precision over localization for technical terminology
 - Use established Hungarian technical vocabulary
 
-### 5. Voice and Tone
-
+### Voice and Tone
 - Use formal address (maga/ön forms) for professional tone
 - Maintain professional but approachable language
 - Ensure consistency in formality level across all interfaces
 
-### 6. Hungarian Language Specifics
+## Hungarian Language Specifics
 
-#### Agglutinative Grammar
+### Agglutinative Grammar
 - Hungarian uses 18+ grammatical cases expressed through suffixes
 - Cases are formed by adding suffixes to word stems
 - Each suffix must follow vowel harmony rules
 
-#### Vowel Harmony
+### Vowel Harmony
 - Essential for correct suffix attachment
 - Front vowels (e, é, i, í, ö, ő, ü, ű) take front-vowel suffixes
 - Back vowels (a, á, o, ó, u, ú) take back-vowel suffixes
@@ -174,49 +209,44 @@ The Hungarian translation aims to:
   - házban (in the house - back vowel)
   - kertben (in the garden - front vowel)
   - NOT "házben" (incorrect)
+- Never violate vowel harmony rules
+- Incorrect vowel harmony sounds very unnatural to native speakers
 
-#### Diacritics (Ékezetek)
+### Diacritics (Ékezetek)
 - Essential and change meaning completely
 - Must be used correctly: á, é, í, ó, ö, ő, ú, ü, ű
 - Never omit or substitute
 - Examples where diacritics change meaning:
   - kor (age) vs kór (disease)
   - tuz (imperative: endure) vs tűz (fire)
+- Hungarian diacritics are not optional decorations
+- They represent entirely different sounds
 
-#### No Grammatical Gender
+### No Grammatical Gender
 - Unlike many European languages, Hungarian has no grammatical gender
 - This simplifies some aspects of translation
 - No need to worry about masculine/feminine agreement
+- Same adjective/verb form regardless of noun
+- Focus on case suffixes and vowel harmony instead
 
-#### Definite vs Indefinite Conjugation
+### Definite vs Indefinite Conjugation
 - Verbs have two different conjugation patterns
 - Definite conjugation used when object is definite
 - Indefinite conjugation used when object is indefinite
 - Examples:
   - látom a titkot (I see the secret - definite)
   - látok egy titkot (I see a secret - indefinite)
+- Pay attention to whether objects are definite or indefinite
+- Use correct verb conjugation pattern
+- This affects how natural the translation sounds
 
-#### Articles
+### Articles
 - Definite articles: a (before consonants), az (before vowels)
 - Indefinite article: egy
 - Examples:
   - a titok (the secret)
   - az e-mail (the email)
   - egy hivatkozás (a link)
-
-### 7. Clarity and Natural Phrasing
-
-- Prioritize natural Hungarian expressions over literal translations
-- Use standard phrases familiar to Hungarian speakers
-- Ensure terminology is accessible and professional
-
-### 8. Completeness
-
-- Ensure all user-facing strings are translated
-- Avoid leaving English text in the interface
-- Translate help text, descriptions, and metadata
-
----
 
 ## Common Translation Patterns
 
@@ -231,8 +261,6 @@ Use declarative sentences with formal address (maga/ön)
 
 ### Error Messages
 Use clear, direct language with professional tone
-
----
 
 ## Special Considerations
 
@@ -253,30 +281,6 @@ This distinction must be maintained throughout the application to avoid confusio
 - More natural in digital Hungarian context than literal translation
 - Clearly conveys permanent deletion concept
 
-### Vowel Harmony is Mandatory
-- Never violate vowel harmony rules
-- Incorrect vowel harmony sounds very unnatural to native speakers
-- Always check that suffixes match the stem's vowel type
-- Examples:
-  - titokban (in the secret - back vowels: o, a)
-  - linkben (in the link - front vowels: e)
-
-### Diacritics Cannot Be Omitted
-- Hungarian diacritics are not optional decorations
-- They represent entirely different sounds
-- Omitting them creates spelling errors and can change meaning
-- All diacritical marks must be preserved: á, é, í, ó, ö, ő, ú, ü, ű
-
-### No Gender Agreement Needed
-- Simplifies translation compared to gendered languages
-- Same adjective/verb form regardless of noun
-- Focus on case suffixes and vowel harmony instead
-
-### Definite Conjugation Awareness
-- Pay attention to whether objects are definite or indefinite
-- Use correct verb conjugation pattern
-- This affects how natural the translation sounds
-
 ### UI Element Conventions
 - Follow platform conventions for Hungarian interfaces
 - Use standard Hungarian terminology for common UI elements
@@ -293,18 +297,12 @@ This distinction must be maintained throughout the application to avoid confusio
 
 ---
 
-## Summary of Translation Principles
+## Document Information
 
-The Hungarian translation maintains:
+This guide was generated from the following source files:
 
-1. **Terminology Consistency** - Standardized key terms throughout the application
-2. **Grammatical Accuracy** - Proper use of cases, vowel harmony, and conjugation patterns
-3. **Natural Phrasing** - Standard Hungarian expressions and idioms
-4. **Essential Diacritics** - Complete and correct use of Hungarian diacritical marks
-5. **Complete Coverage** - All user-facing strings translated
-6. **Technical Accuracy** - Precise terminology for security concepts
-7. **Clear Distinctions** - Especially between account passwords and secret passphrases
-8. **Professional Tone** - Formal address (maga/ön) for respectful communication
-9. **Vowel Harmony** - Mandatory compliance with vowel harmony rules
+- Universal resources: `/en/translations/universal/`
+- Glossary: `/hu/translations/glossary.md`
+- Language notes: `/hu/translations/language-notes.md`
 
-By following these guidelines, translators can ensure that the Hungarian version of Onetime Secret is accurate, consistent, and provides a natural user experience for Hungarian-speaking audiences.
+Generated: 2026-01-20
