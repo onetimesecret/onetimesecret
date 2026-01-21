@@ -5,12 +5,14 @@
 # Tests for Onetime::Middleware::HealthAccessControl
 #
 # This middleware restricts health check endpoints (/health, /health/*, /auth/health)
-# to requests from localhost and private network IPs (RFC 1918, link-local, loopback).
+# to requests from localhost and private network IPs.
 # Public IPs receive a 403 JSON error response.
+#
+# IP classification is delegated to Otto::Privacy::IPPrivacy.private_or_localhost?
 #
 # Test categories:
 #   1. health_endpoint? - Path matching for health endpoints
-#   2. private_network? - IP classification (private vs public)
+#   2. Otto::Privacy::IPPrivacy.private_or_localhost? - IP classification
 #   3. call - Request flow (allow/deny based on IP and path)
 
 require_relative '../../support/test_helpers'
@@ -24,7 +26,6 @@ require_relative '../../../lib/onetime/middleware/health_access_control'
 # Test subclass to expose private methods
 class TestHealthAccessControl < Onetime::Middleware::HealthAccessControl
   public :health_endpoint?
-  public :private_network?
 end
 
 # Mock app that returns 200 OK
@@ -83,175 +84,83 @@ end
 #=> false
 
 # =================================================================
-# private_network? - IPv4 loopback addresses
+# Otto::Privacy::IPPrivacy.private_or_localhost? - IPv4 loopback
 # =================================================================
 
-## private_network? - IPv4 localhost 127.0.0.1
-@middleware.private_network?('127.0.0.1')
+## Otto IP check - IPv4 localhost 127.0.0.1
+Otto::Privacy::IPPrivacy.private_or_localhost?('127.0.0.1')
 #=> true
 
-## private_network? - IPv4 localhost 127.0.0.2
-@middleware.private_network?('127.0.0.2')
+## Otto IP check - IPv4 localhost 127.0.0.2
+Otto::Privacy::IPPrivacy.private_or_localhost?('127.0.0.2')
 #=> true
 
-## private_network? - IPv4 localhost 127.255.255.255
-@middleware.private_network?('127.255.255.255')
-#=> true
-
-# =================================================================
-# private_network? - IPv6 loopback
-# =================================================================
-
-## private_network? - IPv6 localhost ::1
-@middleware.private_network?('::1')
+## Otto IP check - IPv6 localhost ::1
+Otto::Privacy::IPPrivacy.private_or_localhost?('::1')
 #=> true
 
 # =================================================================
-# private_network? - RFC 1918 private ranges (10.0.0.0/8)
+# Otto::Privacy::IPPrivacy.private_or_localhost? - RFC 1918 private ranges
 # =================================================================
 
-## private_network? - 10.0.0.1 is private
-@middleware.private_network?('10.0.0.1')
+## Otto IP check - 10.0.0.1 is private
+Otto::Privacy::IPPrivacy.private_or_localhost?('10.0.0.1')
 #=> true
 
-## private_network? - 10.255.255.255 is private
-@middleware.private_network?('10.255.255.255')
+## Otto IP check - 10.255.255.255 is private
+Otto::Privacy::IPPrivacy.private_or_localhost?('10.255.255.255')
 #=> true
 
-## private_network? - 10.100.50.25 is private
-@middleware.private_network?('10.100.50.25')
+## Otto IP check - 172.16.0.1 is private
+Otto::Privacy::IPPrivacy.private_or_localhost?('172.16.0.1')
+#=> true
+
+## Otto IP check - 172.31.255.255 is private
+Otto::Privacy::IPPrivacy.private_or_localhost?('172.31.255.255')
+#=> true
+
+## Otto IP check - 192.168.0.1 is private
+Otto::Privacy::IPPrivacy.private_or_localhost?('192.168.0.1')
+#=> true
+
+## Otto IP check - 192.168.255.255 is private
+Otto::Privacy::IPPrivacy.private_or_localhost?('192.168.255.255')
 #=> true
 
 # =================================================================
-# private_network? - RFC 1918 private ranges (172.16.0.0/12)
+# Otto::Privacy::IPPrivacy.private_or_localhost? - Public IPs (false)
 # =================================================================
 
-## private_network? - 172.16.0.1 is private
-@middleware.private_network?('172.16.0.1')
-#=> true
-
-## private_network? - 172.31.255.255 is private
-@middleware.private_network?('172.31.255.255')
-#=> true
-
-## private_network? - 172.20.10.5 is private
-@middleware.private_network?('172.20.10.5')
-#=> true
-
-## private_network? - 172.15.0.1 is NOT private (outside range)
-@middleware.private_network?('172.15.0.1')
+## Otto IP check - Google DNS 8.8.8.8 is public
+Otto::Privacy::IPPrivacy.private_or_localhost?('8.8.8.8')
 #=> false
 
-## private_network? - 172.32.0.1 is NOT private (outside range)
-@middleware.private_network?('172.32.0.1')
+## Otto IP check - Cloudflare DNS 1.1.1.1 is public
+Otto::Privacy::IPPrivacy.private_or_localhost?('1.1.1.1')
 #=> false
 
-# =================================================================
-# private_network? - RFC 1918 private ranges (192.168.0.0/16)
-# =================================================================
+## Otto IP check - Random public IP 203.0.113.50
+Otto::Privacy::IPPrivacy.private_or_localhost?('203.0.113.50')
+#=> false
 
-## private_network? - 192.168.0.1 is private
-@middleware.private_network?('192.168.0.1')
-#=> true
-
-## private_network? - 192.168.255.255 is private
-@middleware.private_network?('192.168.255.255')
-#=> true
-
-## private_network? - 192.168.1.100 is private
-@middleware.private_network?('192.168.1.100')
-#=> true
-
-## private_network? - 192.167.0.1 is NOT private (outside range)
-@middleware.private_network?('192.167.0.1')
+## Otto IP check - IPv6 public 2001:db8::1
+Otto::Privacy::IPPrivacy.private_or_localhost?('2001:db8::1')
 #=> false
 
 # =================================================================
-# private_network? - Link-local addresses
+# Otto::Privacy::IPPrivacy.private_or_localhost? - Edge cases
 # =================================================================
 
-## private_network? - IPv4 link-local 169.254.0.1
-@middleware.private_network?('169.254.0.1')
-#=> true
-
-## private_network? - IPv4 link-local 169.254.255.255
-@middleware.private_network?('169.254.255.255')
-#=> true
-
-## private_network? - IPv6 link-local fe80::1
-@middleware.private_network?('fe80::1')
-#=> true
-
-## private_network? - IPv6 link-local fe80::abc:def:123:456
-@middleware.private_network?('fe80::abc:def:123:456')
-#=> true
-
-# =================================================================
-# private_network? - IPv6 unique local (fc00::/7)
-# =================================================================
-
-## private_network? - IPv6 unique local fc00::1
-@middleware.private_network?('fc00::1')
-#=> true
-
-## private_network? - IPv6 unique local fd00::1
-@middleware.private_network?('fd00::1')
-#=> true
-
-# =================================================================
-# private_network? - Public IPs (should return false)
-# =================================================================
-
-## private_network? - Google DNS 8.8.8.8 is public
-@middleware.private_network?('8.8.8.8')
+## Otto IP check - Nil IP returns false (fail closed)
+Otto::Privacy::IPPrivacy.private_or_localhost?(nil)
 #=> false
 
-## private_network? - Cloudflare DNS 1.1.1.1 is public
-@middleware.private_network?('1.1.1.1')
+## Otto IP check - Empty string returns false (fail closed)
+Otto::Privacy::IPPrivacy.private_or_localhost?('')
 #=> false
 
-## private_network? - Random public IP 203.0.113.50
-@middleware.private_network?('203.0.113.50')
-#=> false
-
-## private_network? - Random public IP 45.67.89.123
-@middleware.private_network?('45.67.89.123')
-#=> false
-
-## private_network? - IPv6 public 2001:db8::1
-@middleware.private_network?('2001:db8::1')
-#=> false
-
-## private_network? - IPv6 public 2607:f8b0:4004:800::200e (Google)
-@middleware.private_network?('2607:f8b0:4004:800::200e')
-#=> false
-
-# =================================================================
-# private_network? - Edge cases
-# =================================================================
-
-## private_network? - Nil IP returns true (safe default)
-@middleware.private_network?(nil)
-#=> true
-
-## private_network? - Empty string returns true (safe default)
-@middleware.private_network?('')
-#=> true
-
-## private_network? - Invalid IP string returns false (deny access)
-@middleware.private_network?('not_an_ip')
-#=> false
-
-## private_network? - Malformed IP returns false
-@middleware.private_network?('256.256.256.256')
-#=> false
-
-## private_network? - Partial IP returns false
-@middleware.private_network?('192.168')
-#=> false
-
-## private_network? - IP with port returns false (invalid format)
-@middleware.private_network?('192.168.1.1:8080')
+## Otto IP check - Invalid IP string returns false
+Otto::Privacy::IPPrivacy.private_or_localhost?('not_an_ip')
 #=> false
 
 # =================================================================
