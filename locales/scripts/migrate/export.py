@@ -87,6 +87,7 @@ def export_locale(
     file_filter: str | None = None,
     dry_run: bool = False,
     verbose: bool = False,
+    quiet: bool = False,
 ) -> dict[str, int]:
     """Export completed translations to content JSON files.
 
@@ -102,7 +103,8 @@ def export_locale(
     tasks = get_completed_tasks(locale, file_filter)
 
     if not tasks:
-        print(f"No completed tasks to export for '{locale}'")
+        if not quiet:
+            print(f"No completed tasks to export for '{locale}'")
         return {}
 
     # Group tasks by file
@@ -120,7 +122,8 @@ def export_locale(
         content_file = content_dir / file_name
 
         if not content_file.exists():
-            print(f"Warning: Content file not found: {content_file}")
+            if not quiet:
+                print(f"Warning: Content file not found: {content_file}")
             continue
 
         # Load existing content data
@@ -160,23 +163,25 @@ def export_locale(
         stats[file_name] = key_count
 
         if dry_run:
-            print(f"[DRY-RUN] Would update {file_name}: {key_count} keys")
-            if verbose:
-                for task in file_tasks[:2]:
-                    translations = json.loads(task["translations_json"])
-                    sample = list(translations.items())[:2]
-                    for k, v in sample:
-                        print(f"  {task['level_path']}.{k}: {v[:40]}...")
+            if not quiet:
+                print(f"[DRY-RUN] Would update {file_name}: {key_count} keys")
+                if verbose:
+                    for task in file_tasks[:2]:
+                        translations = json.loads(task["translations_json"])
+                        sample = list(translations.items())[:2]
+                        for k, v in sample:
+                            print(f"  {task['level_path']}.{k}: {v[:40]}...")
         else:
             save_json_file(content_file, content)
-            print(f"Updated {file_name}: {key_count} keys")
+            if not quiet:
+                print(f"Updated {file_name}: {key_count} keys")
 
-            if verbose:
-                for task in file_tasks[:2]:
-                    translations = json.loads(task["translations_json"])
-                    sample = list(translations.items())[:2]
-                    for k, v in sample:
-                        print(f"  {task['level_path']}.{k}: {v[:40]}...")
+                if verbose:
+                    for task in file_tasks[:2]:
+                        translations = json.loads(task["translations_json"])
+                        sample = list(translations.items())[:2]
+                        for k, v in sample:
+                            print(f"  {task['level_path']}.{k}: {v[:40]}...")
 
     return stats
 
@@ -213,27 +218,37 @@ Examples:
         action="store_true",
         help="Verbose output",
     )
+    parser.add_argument(
+        "-q", "--quiet",
+        action="store_true",
+        help="Quiet output (only errors)",
+    )
 
     args = parser.parse_args()
 
     try:
-        print(f"Exporting completed translations for '{args.locale}'")
-        print(f"  From: {DB_FILE}")
-        print(f"  To:   {CONTENT_DIR / args.locale}")
-        print()
+        if not args.quiet:
+            print(f"Exporting completed translations for '{args.locale}'")
+            print(f"  From: {DB_FILE}")
+            print(f"  To:   {CONTENT_DIR / args.locale}")
+            print()
 
         stats = export_locale(
             locale=args.locale,
             file_filter=args.file_filter,
             dry_run=args.dry_run,
             verbose=args.verbose,
+            quiet=args.quiet,
         )
 
-        if stats and not args.dry_run:
+        if stats:
             total = sum(stats.values())
-            print(f"\nExported {total} translations across {len(stats)} files")
-
-        return 0
+            if not args.dry_run and not args.quiet:
+                print(f"\nExported {total} translations across {len(stats)} files")
+            return 0
+        else:
+            # No tasks exported - return non-zero for scripting
+            return 2
 
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
