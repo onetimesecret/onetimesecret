@@ -43,9 +43,8 @@ module Core
       private
 
       def check_redis
-        # Familia uses Redis - test connection with PING
-        redis  = Familia.redis
-        result = redis.ping
+        # Familia uses Redis/Valkey - test connection with PING
+        result = Familia.dbclient.ping
 
         {
           status: result == 'PONG' ? 'ok' : 'error',
