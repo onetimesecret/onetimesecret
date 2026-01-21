@@ -19,7 +19,7 @@
 import enLocale from '../../../generated/locales/en.json';
 // Source content file contains the security metadata (with skip: true)
 // Generated files don't include metadata keys
-import authFullSource from '../../../locales/content/en/auth-full.json';
+import authFullSource from '../../../locales/content/en/session-auth-extended.json';
 
 // Extract auth-full messages from the merged locale
 const authFullMessages = enLocale;
@@ -220,7 +220,7 @@ describe('Security Message Compliance', () => {
   });
 
   describe('Metadata Presence (Source Content File)', () => {
-    // These tests validate the source content file (locales/content/en/auth-full.json)
+    // These tests validate the source content file (locales/content/en/session-auth-extended.json)
     // which contains security guidance metadata that is excluded from generated files
 
     it('should have security guidance with skip flag', () => {

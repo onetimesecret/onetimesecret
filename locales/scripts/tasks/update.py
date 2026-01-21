@@ -23,9 +23,12 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+# Add parent scripts directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
-LOCALES_DIR = SCRIPT_DIR.parent
+LOCALES_DIR = SCRIPT_DIR.parent.parent  # tasks/ -> scripts/ -> locales/
 DB_DIR = LOCALES_DIR / "db"
 DB_FILE = DB_DIR / "tasks.db"
 
@@ -250,7 +253,7 @@ Examples:
         # Validation if requested
         if args.validate and translations_json:
             # Need to fetch the task first to get keys_json
-            from get_next_task import get_task_by_id
+            from next import get_task_by_id
 
             task = get_task_by_id(args.task_id)
             if not task:

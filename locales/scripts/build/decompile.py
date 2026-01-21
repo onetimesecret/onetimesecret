@@ -35,7 +35,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from utils import (
+# Add parent scripts directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from keys import (
     load_json_file,
     save_json_file,
     walk_keys,
@@ -43,7 +46,7 @@ from utils import (
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
-LOCALES_DIR = SCRIPT_DIR.parent
+LOCALES_DIR = SCRIPT_DIR.parent.parent  # build/ -> scripts/ -> locales/
 CONTENT_DIR = LOCALES_DIR / "content"
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
 

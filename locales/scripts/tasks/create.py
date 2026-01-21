@@ -36,11 +36,14 @@ from datetime import date
 from pathlib import Path
 from typing import Iterator
 
-from utils import load_json_file, walk_keys
+# Add parent scripts directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from keys import load_json_file, walk_keys
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
-LOCALES_DIR = SCRIPT_DIR.parent
+LOCALES_DIR = SCRIPT_DIR.parent.parent  # tasks/ -> scripts/ -> locales/
 CONTENT_DIR = LOCALES_DIR / "content"
 EN_DIR = CONTENT_DIR / "en"
 DB_DIR = LOCALES_DIR / "db"

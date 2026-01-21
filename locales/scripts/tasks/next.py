@@ -28,7 +28,7 @@ from rich.table import Table
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
-LOCALES_DIR = SCRIPT_DIR.parent
+LOCALES_DIR = SCRIPT_DIR.parent.parent  # tasks/ -> scripts/ -> locales/
 DB_DIR = LOCALES_DIR / "db"
 DB_FILE = DB_DIR / "tasks.db"
 
