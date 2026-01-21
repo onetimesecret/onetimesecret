@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Organisation"
+    "text": "Organisationen"
   },
   "web.organizations.organization": {
     "text": "Organisation"
@@ -12,7 +12,7 @@
     "text": "Verwalte deine Organisationen"
   },
   "web.organizations.my_organizations": {
-    "text": "Meine Organisationen"
+    "text": "Organisationen"
   },
   "web.organizations.manage_organizations": {
     "text": "Organisationen verwalten"
@@ -24,7 +24,7 @@
     "text": "Noch keine Organisationen"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisationen ermöglichen es dir, mehrere Teams mit einheitlicher Abrechnung und Verwaltung zu verwalten. Lege los, indem du deine erste Organisation erstellst."
+    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung. Beginne, indem du deine erste Organisation erstellst."
   },
   "web.organizations.no_description": {
     "text": "Keine Beschreibung angegeben"
@@ -39,7 +39,7 @@
     "text": "Erste Organisation erstellen"
   },
   "web.organizations.create_organization_description": {
-    "text": "Erstelle eine neue Organisation, um deine Teams zu gruppieren"
+    "text": "Eine neue Organisation erstellen"
   },
   "web.organizations.create": {
     "text": "Erstellen"
@@ -63,13 +63,13 @@
     "text": "Wofür ist diese Organisation?"
   },
   "web.organizations.contact_email": {
-    "text": "Abrechnungs-E-Mail"
+    "text": "Rechnungs-E-Mail"
   },
   "web.organizations.contact_email_help": {
-    "text": "Hauptkontakt für Abrechnungs- und Verwaltungsbenachrichtigungen"
+    "text": "Hauptkontakt für Abrechnungs- und Administrationsbenachrichtigungen"
   },
   "web.organizations.select_organization": {
-    "text": "Wähle eine Organisation"
+    "text": "Eine Organisation auswählen"
   },
   "web.organizations.switcher_locked": {
     "text": "Organisationswechsel auf dieser Seite nicht verfügbar"
@@ -99,7 +99,7 @@
     "text": "Organisationseinstellungen"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aktualisiere deinen Organisationsnamen und die Beschreibung"
+    "text": "Aktualisiere deinen Organisationsnamen und deine Beschreibung"
   },
   "web.organizations.general_settings": {
     "text": "Allgemeine Einstellungen"
@@ -117,37 +117,37 @@
     "text": "Organisation konnte nicht aktualisiert werden"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Abrechnungsintegration kommt bald"
+    "text": "Abrechnungsintegration bald verfügbar"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Einheitliche Abrechnung und Abonnementverwaltung für alle Teams in dieser Organisation wird in einer zukünftigen Version verfügbar sein."
+    "text": "Vereinheitlichte Abrechnungs- und Abonnementverwaltung wird in einer zukünftigen Version verfügbar sein."
   },
   "web.organizations.about_title": {
     "text": "Über Organisationen"
   },
   "web.organizations.about_description": {
-    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung für mehrere Teams. Sie sind optional - Teams können unabhängig existieren oder unter einer Organisation für zentralisierte Verwaltung gruppiert werden."
+    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung für eine zentralisierte Steuerung."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Verwalte deine Organisation"
+    "text": "Deine Organisation verwalten"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Aktualisiere hier deinen Firmennamen und Organisationsdetails. Diese Informationen helfen, dein Konto zu personalisieren und können in Zukunft für Branding-Funktionen verwendet werden."
+    "text": "Aktualisiere hier deinen Firmennamen und deine Organisationsdetails. Diese Informationen helfen dabei, dein Konto zu personalisieren und können für zukünftige Branding-Funktionen verwendet werden."
   },
   "web.organizations.getting_started_title": {
     "text": "Erste Schritte mit Organisationen"
   },
   "web.organizations.getting_started_description": {
-    "text": "Erstelle deine erste Organisation, um deine Unternehmensinformationen zu verwalten und dich auf zukünftige Team-Zusammenarbeit und Branding-Funktionen vorzubereiten."
+    "text": "Erstelle deine erste Organisation, um deine Unternehmensinformationen zu verwalten und dich auf zukünftige Branding-Funktionen vorzubereiten."
   },
   "web.organizations.page_description": {
-    "text": "Verwalten Sie Ihre Organisationen und Teammitglieder"
+    "text": "Verwalte deine Organisationen und Teammitglieder"
   },
   "web.organizations.tabs.general": {
-    "text": "Allgemein"
+    "text": "Einstellungen"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Unternehmensbranding"
+    "text": "Firmen-Branding"
   },
   "web.organizations.tabs.members": {
     "text": "Team"
@@ -162,7 +162,7 @@
     "text": "Organisation löschen"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Dies löscht die Organisation und alle zugehörigen Teams dauerhaft. Diese Aktion kann nicht rückgängig gemacht werden."
+    "text": "Dies wird die Organisation dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "web.organizations.delete": {
     "text": "Löschen"
@@ -180,7 +180,7 @@
     "text": "Mitglieder"
   },
   "web.organizations.members.description": {
-    "text": "Organisationsmitglieder und deren Rollen verwalten"
+    "text": "Verwalte Organisationsmitglieder und ihre Rollen"
   },
   "web.organizations.members.current_members": {
     "text": "Aktuelle Mitglieder"
@@ -189,10 +189,10 @@
     "text": "Mitglied"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "Mitglied"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "Mitglieder"
   },
   "web.organizations.members.name": {
     "text": "Name"
@@ -210,7 +210,7 @@
     "text": "Aktionen"
   },
   "web.organizations.members.no_members": {
-    "text": "Keine Mitglieder gefunden"
+    "text": "Noch keine Mitglieder. Lade Teammitglieder ein, um loszulegen."
   },
   "web.organizations.members.no_members_description": {
     "text": "Diese Organisation hat noch keine Mitglieder."
@@ -240,13 +240,13 @@
     "text": "Du kannst dich nicht selbst aus der Organisation entfernen"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Du kannst den Organisationseigentümer nicht entfernen"
+    "text": "Du kannst den Organisationsinhaber nicht entfernen"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "Du hast keine Berechtigung, Mitglieder zu verwalten"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Eigentümer"
+    "text": "Inhaber"
   },
   "web.organizations.members.roles.admin": {
     "text": "Admin"
@@ -255,13 +255,13 @@
     "text": "Mitglied"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Vollzugriff auf alle Organisationseinstellungen und Mitglieder"
+    "text": "Vollständiger Zugang zu allen Organisationseinstellungen und Mitgliedern"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "Kann Mitglieder und die meisten Organisationseinstellungen verwalten"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Basiszugriff auf Organisationsressourcen"
+    "text": "Grundlegender Zugang zu Organisationsressourcen"
   },
   "web.organizations.invitations.title": {
     "text": "Organisationseinladungen"
@@ -282,7 +282,7 @@
     "text": "E-Mail-Adresse"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "mitglied{'@'}beispiel.de"
+    "text": "mitglied{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rolle"
@@ -385,5 +385,50 @@
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Einladungsdetails werden geladen"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Rechnungs-E-Mail erfolgreich aktualisiert"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Die Rechnungs-E-Mail kann auf der Abrechnungsübersicht-Seite geändert werden"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} Mitglied | {count} Mitglieder"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} Domain | {count} Domains"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Upgrade deinen Tarif, um Teammitglieder einzuladen"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Teammitglieder-Einladungen erfordern einen Tarif mit Team-Verwaltung. Upgrade, um Mitarbeiter zu deiner Organisation hinzuzufügen."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Falsches Konto"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Diese Einladung wurde an {invitedEmail} gesendet, aber du bist als {currentEmail} angemeldet."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Mit anderem Konto anmelden"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}T verbleibend"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h verbleibend"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Läuft bald ab"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abonnement"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domains"
   }
 }

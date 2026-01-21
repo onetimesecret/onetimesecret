@@ -1,12 +1,12 @@
 {
   "incoming.page_title": {
-    "text": "Geheimnis senden"
+    "text": "Eine Nachricht senden"
   },
   "incoming.page_description": {
-    "text": "Teilen Sie vertrauliche Informationen sicher mit unserem Support-Team"
+    "text": "Teile vertrauliche Informationen sicher mit unserem Support-Team"
   },
   "incoming.loading_config": {
-    "text": "Lädt..."
+    "text": "Laden..."
   },
   "incoming.config_error_title": {
     "text": "Konfiguration konnte nicht geladen werden"
@@ -15,16 +15,16 @@
     "text": "Funktion nicht verfügbar"
   },
   "incoming.feature_disabled_description": {
-    "text": "Diese Funktion ist derzeit deaktiviert. Bitte wenden Sie sich für Unterstützung an den Support."
+    "text": "Diese Funktion ist derzeit deaktiviert. Bitte kontaktiere den Support für Hilfe."
   },
   "incoming.memo_label": {
     "text": "Notiz"
   },
   "incoming.memo_placeholder": {
-    "text": "Kurze Beschreibung (z.B. Anfrage zum Passwort-Zurücksetzen)"
+    "text": "Kurze Beschreibung (z. B. Anfrage zur Passwortzurücksetzung)"
   },
   "incoming.memo_hint": {
-    "text": "Helfen Sie uns, Ihre Nachricht an die richtige Person weiterzuleiten"
+    "text": "Hilf uns, deine Nachricht an die richtige Person weiterzuleiten"
   },
   "incoming.recipient_label": {
     "text": "Senden an"
@@ -33,10 +33,10 @@
     "text": "Empfänger auswählen"
   },
   "incoming.recipient_aria_label": {
-    "text": "Wählen Sie einen Empfänger für dieses Geheimnis"
+    "text": "Empfänger für diese Nachricht auswählen"
   },
   "incoming.recipient_hint": {
-    "text": "Wählen Sie aus, wer diese sichere Nachricht erhalten soll"
+    "text": "Wähle aus, wer diese sichere Nachricht erhalten soll"
   },
   "incoming.no_recipients_available": {
     "text": "Keine Empfänger verfügbar"
@@ -45,55 +45,55 @@
     "text": "Vertrauliche Informationen"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Vertrauliche Informationen hier einfügen (Passwörter, Schlüssel, etc.)"
+    "text": "Füge vertrauliche Informationen hier ein (Passwörter, Schlüssel usw.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Diese Informationen werden verschlüsselt und sind nur einmal einsehbar"
+    "text": "Diese Informationen werden verschlüsselt und können nur einmal angesehen werden"
   },
   "incoming.submit_button": {
-    "text": "Geheimnis senden"
+    "text": "Nachricht senden"
   },
   "incoming.submit_secret": {
-    "text": "Geheimnis senden"
+    "text": "Nachricht senden"
   },
   "incoming.submitting_button": {
-    "text": "Wird gesendet..."
+    "text": "Senden..."
   },
   "incoming.submitting": {
-    "text": "Wird gesendet..."
+    "text": "Senden..."
   },
   "incoming.reset_button": {
-    "text": "Formular löschen"
+    "text": "Formular leeren"
   },
   "incoming.reset_form": {
-    "text": "Formular löschen"
+    "text": "Formular leeren"
   },
   "incoming.success_title": {
     "text": "Erfolgreich gesendet"
   },
   "incoming.success_description": {
-    "text": "Ihre sichere Nachricht wurde zugestellt."
+    "text": "Deine sichere Nachricht wurde zugestellt."
   },
   "incoming.reference_id": {
     "text": "Referenz-ID"
   },
   "incoming.success_info_title": {
-    "text": "Wie geht es weiter?"
+    "text": "Was passiert als Nächstes?"
   },
   "incoming.success_info_description": {
-    "text": "Der Empfänger kann dieses Geheimnis nur einmal einsehen. Nachdem es angesehen wurde, wird das Geheimnis dauerhaft gelöscht."
+    "text": "Der Empfänger kann diese Nachricht nur einmal ansehen. Nachdem sie angesehen wurde, wird die Nachricht dauerhaft gelöscht."
   },
   "incoming.create_another": {
-    "text": "Weiteres Geheimnis senden"
+    "text": "Weitere Nachricht senden"
   },
   "incoming.tagline1": {
     "text": "Vertrauliche Informationen sicher teilen"
   },
   "incoming.tagline2": {
-    "text": "Halten Sie Passwörter und private Daten aus E-Mails und Chat-Protokollen fern"
+    "text": "Halte Passwörter und private Daten aus E-Mails und Chat-Protokollen heraus"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Speichern Sie Ihre <a href='{receiptUrl}'>Quittung</a> für Ihre Unterlagen."
+    "text": "Speichere deine {receipt} für deine Unterlagen."
   },
   "incoming.receipt_link_text": {
     "text": "Quittung"

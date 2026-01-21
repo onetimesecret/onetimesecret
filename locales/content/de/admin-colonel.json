@@ -15,16 +15,16 @@
     "text": "Metadaten / Geheimnisse: {0}/{1} ({2}/{3}/{4} gesamt)"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
-    "text": "Geheimnisse ({0})"
+    "text": "Nachrichten ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(aktiv in den letzten 5 Minuten)"
+    "text": "(in den letzten 5 Minuten aktiv)"
   },
   "web.colonel.configEditorTitle": {
     "text": "Einstellungen"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Bearbeite Systemkonfigurationseinstellungen. Änderungen werden sofort nach dem Speichern angewendet."
+    "text": "Systemkonfigurationseinstellungen bearbeiten. Änderungen werden nach dem Speichern sofort wirksam."
   },
   "web.colonel.invalidJson": {
     "text": "Ungültiges JSON im Bereich {section}"
@@ -60,7 +60,7 @@
     "text": "Alle speichern"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Ungespeicherte Änderungen"
+    "text": "Nicht gespeicherte Änderungen"
   },
   "web.colonel.schemaValidationError": {
     "text": "Schema-Validierungsfehler: {message} ({path})"
@@ -69,7 +69,7 @@
     "text": "Unbekannter Validierungsfehler: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section}-Bereich hat keine konfigurierten Werte"
+    "text": "Bereich {section} hat keine konfigurierten Werte"
   },
   "web.colonel.dashboard": {
     "text": "Dashboard"
@@ -102,58 +102,58 @@
     "text": "Willkommen bei Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Administratives Kontrollpanel für OneTimeSecret"
+    "text": "Administratives Kontrollzentrum für OneTimeSecret"
   },
   "web.colonel.quickActions": {
     "text": "Schnellaktionen"
   },
   "web.colonel.recentActivity": {
-    "text": "Kürzliche Aktivität"
+    "text": "Letzte Aktivität"
   },
   "web.colonel.viewAll": {
-    "text": "Alle ansehen"
+    "text": "Alle anzeigen"
   },
   "web.colonel.activityPlaceholder": {
     "text": "Aktivitätsdaten werden hier angezeigt"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Geheimnisse gesamt"
+    "text": "Nachrichten gesamt"
   },
   "web.colonel.stats.activeUsers": {
     "text": "Aktive Benutzer"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Geheimnisse heute"
+    "text": "Nachrichten heute"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Erstellte Geheimnisse"
+    "text": "Erstellte Nachrichten"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Geteilte Geheimnisse"
+    "text": "Geteilte Nachrichten"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Kunden gesamt"
+    "text": "Benutzer gesamt"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Gesendete E-Mails"
+    "text": "E-Mails gesendet"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Systemzustand"
   },
   "web.colonel.stats.healthy": {
-    "text": "Gesund"
+    "text": "Fehlerfrei"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Aktivität ansehen"
+    "text": "Aktivität anzeigen"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Systemaktivität und -nutzung überwachen"
+    "text": "Systemaktivität und Nutzung überwachen"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Konten verwalten"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Benutzerkontoverwaltung"
+    "text": "Benutzerkontenverwaltung"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Domains konfigurieren"
@@ -183,13 +183,13 @@
     "text": "Verbraucher"
   },
   "web.colonel.processingRate": {
-    "text": "Rate/Sek"
+    "text": "Rate/Sek."
   },
   "web.colonel.connectionStatus": {
     "text": "Verbindungsstatus"
   },
   "web.colonel.workerHealth": {
-    "text": "Worker-Zustand"
+    "text": "Worker-Status"
   },
   "web.colonel.activeWorkers": {
     "text": "aktive Worker"
@@ -198,28 +198,28 @@
     "text": "Keine Warteschlangendaten verfügbar"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Warteschlangendaten werden geladen..."
+    "text": "Lade Warteschlangendaten..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Testplan-Modus"
+    "text": "Tarif-Testmodus"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Testen als {planName}"
+    "text": "Test als {planName}"
   },
   "web.colonel.clickToReset": {
-    "text": "Klicken zum Zurücksetzen"
+    "text": "Zum Zurücksetzen klicken"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Wähle einen Plan zum Testen"
+    "text": "Tarif zum Testen auswählen"
   },
   "web.colonel.resetToActual": {
-    "text": "Auf tatsächlichen Plan zurücksetzen"
+    "text": "Auf aktuellen Tarif zurücksetzen"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Aktueller Plan"
+    "text": "Aktueller Tarif"
   },
   "web.colonel.availablePlans": {
-    "text": "Verfügbare Pläne"
+    "text": "Verfügbare Tarife"
   },
   "web.colonel.activateTestMode": {
     "text": "Testmodus aktivieren"
@@ -228,7 +228,7 @@
     "text": "Testmodus aktiv"
   },
   "web.colonel.testModeDescription": {
-    "text": "Teste deine Anwendung mit verschiedenen Plan-Berechtigungen. Änderungen sind temporär und betreffen nur deine Sitzung."
+    "text": "Teste deine Anwendung mit verschiedenen Tarifberechtigungen. Änderungen sind temporär und betreffen nur deine Sitzung."
   },
   "web.colonel.warningTestMode": {
     "text": "Du testest mit {planName}-Berechtigungen (temporäre Sitzungsüberschreibung)."
@@ -237,10 +237,10 @@
     "text": "Organisationen"
   },
   "web.colonel.organizations.description": {
-    "text": "Synchronisationsstatus der Organisationsabrechnung überwachen"
+    "text": "Synchronisierungszustand der Organisationsabrechnung überwachen"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Abrechnungs-Statusmonitor"
+    "text": "Abrechnungszustand-Monitor"
   },
   "web.colonel.organizations.organizationsCount": {
     "text": "{count} Organisationen"
@@ -255,7 +255,7 @@
     "text": "Keine Organisationen gefunden"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "Synchronisationsstatus"
+    "text": "Synchronisierungsstatus"
   },
   "web.colonel.organizations.filters.subscription": {
     "text": "Abonnement"
@@ -324,10 +324,10 @@
     "text": "Hat Abrechnung"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Organizations Billing Admin"
+    "text": "Organisationen Abrechnungsverwaltung"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Manage organizations and monitor billing sync health ({total} total)"
+    "text": "Organisationen verwalten und Abrechnungssynchronisierung überwachen ({total} gesamt)"
   },
   "web.colonel.organizations.legacy.empty": {
     "text": "Keine Organisationen gefunden"
@@ -342,13 +342,13 @@
     "text": "Unbekannt"
   },
   "web.colonel.organizations.status.active": {
-    "text": "active"
+    "text": "Aktiv"
   },
   "web.colonel.organizations.actions.investigate": {
     "text": "Untersuchen"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "Prüfen..."
+    "text": "Wird überprüft..."
   },
   "web.colonel.organizations.expanded.customer": {
     "text": "Kunde"
@@ -366,7 +366,7 @@
     "text": "Untersuchungsergebnis"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Synchronisation bestätigt"
+    "text": "Synchronisierung bestätigt"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
     "text": "Abweichung gefunden"
@@ -402,10 +402,10 @@
     "text": "{count} Domains"
   },
   "web.colonel.secrets.title": {
-    "text": "Geheimnisse"
+    "text": "Nachrichten"
   },
   "web.colonel.secrets.description": {
-    "text": "Alle Geheimnisse anzeigen und verwalten"
+    "text": "Alle Nachrichten anzeigen und verwalten"
   },
   "web.colonel.bannedIps.title": {
     "text": "Gesperrte IPs"
@@ -426,10 +426,10 @@
     "text": "Systemeinstellungen, Datenbanken und Konfiguration"
   },
   "web.colonel.customDomains.title": {
-    "text": "Benutzerdefinierte Domains"
+    "text": "Eigene Domains"
   },
   "web.colonel.customDomains.description": {
-    "text": "Benutzerdefinierte Domains und Branding verwalten"
+    "text": "Eigene Domains und Branding verwalten"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Wenn du Feedback sendest, sehen wir:"
@@ -438,7 +438,7 @@
     "text": "Feedback senden"
   },
   "web.colonel.feedback.sending_ellipses": {
-    "text": "Sendet..."
+    "text": "Wird gesendet..."
   },
   "web.colonel.titles.index": {
     "text": "Administration"
@@ -447,7 +447,7 @@
     "text": "Benutzerverwaltung"
   },
   "web.colonel.titles.secrets": {
-    "text": "Geheimnisverwaltung"
+    "text": "Nachrichtenverwaltung"
   },
   "web.colonel.titles.domains": {
     "text": "Benutzerdefinierte Domains"
@@ -459,7 +459,7 @@
     "text": "Hauptdatenbank"
   },
   "web.colonel.titles.authdb": {
-    "text": "Authentifizierungsdatenbank"
+    "text": "Auth-Datenbank"
   },
   "web.colonel.titles.bannedIps": {
     "text": "Gesperrte IPs"

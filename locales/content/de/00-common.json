@@ -8,7 +8,7 @@
     "text": "Sichere Links, die nur einmal funktionieren"
   },
   "web.COMMON.powered_by": {
-    "text": "Angetrieben von"
+    "text": "Powered by"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/de"
@@ -17,7 +17,7 @@
     "text": "Passwort generieren"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Passwortgenerierung ist deaktiviert, wenn das Formular gültig ist"
+    "text": "Passwort generieren ist deaktiviert, wenn das Formular gültig ist"
   },
   "web.COMMON.email_placeholder": {
     "text": "z.B. tom{'@'}myspace.com"
@@ -26,13 +26,13 @@
     "text": "Gib dein Passwort ein"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Benutzerdefinierte Domains"
+    "text": "Eigene Domains"
   },
   "web.COMMON.custom_domains_description": {
     "text": "Stärke Verbindungen und baue Vertrauen auf mit deinen eigenen gebrandeten geheimen Links."
   },
   "web.COMMON.get_started_button": {
-    "text": "Loslegen"
+    "text": "Jetzt starten"
   },
   "web.COMMON.confirm_password_placeholder": {
     "text": "Bestätige dein Passwort"
@@ -41,31 +41,31 @@
     "text": "Einstellungen"
   },
   "web.COMMON.submit_with": {
-    "text": "Senden"
+    "text": "Absenden"
   },
   "web.COMMON.submitting": {
-    "text": "Wird verarbeitet"
+    "text": "Wird gesendet..."
   },
   "web.COMMON.processing": {
     "text": "Wird verarbeitet..."
   },
   "web.COMMON.description": {
-    "text": "Halte sensible Informationen aus deinen Chat-Protokollen und E-Mails heraus. Teile einen Link, der nur einmal verfügbar ist."
+    "text": "Halte sensible Informationen aus deinen Chat-Protokollen und E-Mails fern. Teile einen geheimen Link, der nur einmal verfügbar ist."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Falsche Passphrase"
   },
   "web.COMMON.keywords": {
-    "text": "geheim, Passwort-Generator, Geheimnis teilen, einmalig"
+    "text": "geheimnis,passwortgenerator,nachricht teilen,einmalig"
   },
   "web.COMMON.button_create_secret": {
     "text": "Geheimen Link erstellen"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Oder lass ein zufälliges Passwort generieren"
+    "text": "Oder ein zufälliges Passwort generieren"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Datenschutzeinstellungen"
+    "text": "Datenschutzoptionen"
   },
   "web.COMMON.secret_passphrase": {
     "text": "Passphrase"
@@ -77,7 +77,7 @@
     "text": "Empfängeradresse"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Der geheime Inhalt kommt hier hin..."
+    "text": "Geheimer Inhalt kommt hier hin..."
   },
   "web.COMMON.header_create_account": {
     "text": "Konto erstellen"
@@ -95,7 +95,7 @@
     "text": "Abmelden"
   },
   "web.COMMON.secret": {
-    "text": "Geheimnis"
+    "text": "Nachricht | Nachrichten"
   },
   "web.COMMON.recent": {
     "text": "Kürzlich"
@@ -104,52 +104,52 @@
     "text": "Empfangen"
   },
   "web.COMMON.burn": {
-    "text": "Zerstören"
+    "text": "Löschen"
   },
   "web.COMMON.burned": {
-    "text": "Zerstört"
+    "text": "Gelöscht"
   },
   "web.COMMON.expires_in": {
     "text": "Läuft ab in"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Dieses Geheimnis zerstören"
+    "text": "Diese Nachricht löschen"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Das Zerstören eines Geheimnisses löscht es, bevor es gelesen wurde (Zum Bestätigen klicken)"
+    "text": "Das Löschen einer Nachricht entfernt sie, bevor sie gelesen wurde (klicke zum Bestätigen)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Das Zerstören eines Geheimnisses ist dauerhaft und kann nicht rückgängig gemacht werden"
+    "text": "Das Löschen einer Nachricht ist dauerhaft und kann nicht rückgängig gemacht werden"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Überprüfe dein E-Mail-Postfach"
+    "text": "Überprüfe deine E-Mails"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klicken zum Fortfahren →"
+    "text": "Klicke zum Anzeigen →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Klicke, um dein Konto zu verifizieren:"
+    "text": "Weiter zur Verifizierung deines Kontos:"
   },
   "web.COMMON.error_secret": {
     "text": "Du hast nichts zum Teilen angegeben"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Überprüfe diese Passphrase nochmals"
+    "text": "Überprüfe die Passphrase noch einmal"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Gib die Passphrase hier ein"
+    "text": "Gib hier die Passphrase ein"
   },
   "web.COMMON.view_secret": {
-    "text": "Geheimnis anzeigen"
+    "text": "Nachricht ansehen"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Vorsicht: Du wirst es nur einmal sehen."
+    "text": "Achtung: Wir zeigen es nur einmal."
   },
   "web.COMMON.warning": {
     "text": "Warnung"
   },
   "web.COMMON.oops": {
-    "text": "Ups!"
+    "text": "Hoppla!"
   },
   "web.COMMON.error": {
     "text": "Fehler"
@@ -158,7 +158,7 @@
     "text": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Die Nachricht wurde gekürzt, da sie zu lang war."
+    "text": "Die Nachricht wurde gekürzt"
   },
   "web.COMMON.signup_for_more": {
     "text": "Registrieren für mehr"
@@ -167,7 +167,7 @@
     "text": "Melde dich bei deinem Konto an"
   },
   "web.COMMON.sent_to": {
-    "text": "Gesendet an: "
+    "text": "Gesendet an:"
   },
   "web.COMMON.field_email": {
     "text": "E-Mail"
@@ -182,7 +182,7 @@
     "text": "Konto erstellen"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Ein Geheimnis teilen"
+    "text": "Nachricht teilen"
   },
   "web.COMMON.title_home": {
     "text": "Startseite"
@@ -191,7 +191,7 @@
     "text": "Keine"
   },
   "web.COMMON.word_burned": {
-    "text": "zerstört"
+    "text": "gelöscht"
   },
   "web.COMMON.word_received": {
     "text": "empfangen"
@@ -212,52 +212,52 @@
     "text": "Zurück"
   },
   "web.COMMON.feedback_text": {
-    "text": "Hast du eine Frage oder einen Kommentar?"
+    "text": "Teile deine Gedanken, Ideen oder Erfahrungen..."
   },
   "web.COMMON.button_send_feedback": {
     "text": "Feedback senden"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Eine Bestätigung wurde gesendet an"
+    "text": "Eine Verifizierung wurde gesendet an"
   },
   "web.COMMON.autoverified_success": {
     "text": "Konto erstellt. Bitte melde dich an."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Falls ein Konto mit dieser E-Mail existiert, erhältst du eine Bestätigungsemail."
+    "text": "Falls ein Konto mit dieser E-Mail existiert, erhältst du eine Verifizierungs-E-Mail."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Dieses Geheimnis dauerhaft zerstören"
+    "text": "Diese Nachricht dauerhaft löschen"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Bitte bestätigen"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Bist du sicher, dass du dieses Geheimnis zerstören möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
+    "text": "Bist du sicher, dass du diese Nachricht löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ja, dieses Geheimnis zerstören"
+    "text": "Ja, diese Nachricht löschen"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Das Zerstören eines Geheimnisses löscht es, bevor es empfangen wurde."
+    "text": "Das Löschen einer Nachricht entfernt sie, bevor sie empfangen wurde."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Teile diesen Link aus Sicherheitsgründen getrennt von anderen Details."
+    "text": "Aus Sicherheitsgründen teile diesen Link getrennt von anderen Details."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "In die Zwischenablage kopiert"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Eingehend erstellen"
+    "text": "Eingang erstellen"
   },
   "web.COMMON.faq_title": {
     "text": "Häufig gestellte Fragen"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Verifizierung ist ungültig"
+    "text": "Verifizierung ist nicht gültig"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Ein Konto kann nicht verifiziert werden, wenn du bereits angemeldet bist"
+    "text": "Du kannst kein Konto verifizieren, während du bereits angemeldet bist"
   },
   "web.COMMON.show_password": {
     "text": "Passwort anzeigen"
@@ -281,13 +281,13 @@
     "text": "Deine Anfrage wird verarbeitet"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Bleibe 30 Tage angemeldet"
+    "text": "30 Tage angemeldet bleiben"
   },
   "web.COMMON.redirecting": {
-    "text": "Wird weitergeleitet..."
+    "text": "Weiterleitung..."
   },
   "web.COMMON.continue": {
-    "text": "Weiter"
+    "text": "Fortfahren"
   },
   "web.COMMON.are_you_sure": {
     "text": "Bist du sicher?"
@@ -296,7 +296,7 @@
     "text": "Gefahrenzone"
   },
   "web.COMMON.caution_zone": {
-    "text": "Vorsichtsbereich"
+    "text": "Vorsichtszone"
   },
   "web.COMMON.user_menu": {
     "text": "Benutzermenü"
@@ -314,10 +314,10 @@
     "text": "Änderungen speichern"
   },
   "web.COMMON.saving": {
-    "text": "Speichert..."
+    "text": "Speichern..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Wird hinzugefügt..."
+    "text": "Wird hinzugefügt"
   },
   "web.COMMON.e_g_example": {
     "text": "z.B."
@@ -341,7 +341,7 @@
     "text": "Entfernen"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "ESC drücken zum Schließen"
+    "text": "ESC zum Schließen drücken"
   },
   "web.COMMON.enter": {
     "text": "Eingabe"
@@ -353,10 +353,10 @@
     "text": "Sprache"
   },
   "web.COMMON.theme": {
-    "text": "Thema"
+    "text": "Design"
   },
   "web.COMMON.appearance": {
-    "text": "Erscheinungsbild"
+    "text": "Darstellung"
   },
   "web.COMMON.done": {
     "text": "Fertig"
@@ -416,22 +416,22 @@
     "text": "Version"
   },
   "web.COMMON.other": {
-    "text": "Andere"
+    "text": "Sonstige"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Strg + Enter"
+    "text": "Strg + Eingabe"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Enter"
+    "text": "⌘ + Eingabe"
   },
   "web.COMMON.mac": {
     "text": "Mac"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "E-Mail-Adresse in die Zwischenablage kopiert!"
+    "text": "E-Mail-Adresse in Zwischenablage kopiert!"
   },
   "web.COMMON.value": {
     "text": "Wert"
@@ -440,7 +440,7 @@
     "text": "Host"
   },
   "web.COMMON.type": {
-    "text": "Type"
+    "text": "Typ"
   },
   "web.COMMON.previous": {
     "text": "Zurück"
@@ -476,16 +476,16 @@
     "text": "Ein Fehler ist aufgetreten"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Geheimnis in die Zwischenablage kopieren"
+    "text": "Nachricht in Zwischenablage kopieren"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Geheimnis in die Zwischenablage kopiert"
+    "text": "Nachricht in Zwischenablage kopiert"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Überprüfe diese Passphrase nochmals"
+    "text": "Überprüfe die Passphrase noch einmal"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Drücke unten die Kopieren-Schaltfläche."
+    "text": "Klicke unten auf die Kopieren-Schaltfläche."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Anzeigen"
@@ -509,10 +509,10 @@
     "text": "Statistiken"
   },
   "web.LABELS.timeline": {
-    "text": "Zeitachse"
+    "text": "Zeitverlauf"
   },
   "web.LABELS.lifespan": {
-    "text": "Lebensdauer"
+    "text": "Gültigkeitsdauer"
   },
   "web.LABELS.expiration_time": {
     "text": "Ablaufzeit"
@@ -527,7 +527,7 @@
     "text": "Abbrechen"
   },
   "web.LABELS.saving": {
-    "text": "Speichert..."
+    "text": "Speichern..."
   },
   "web.LABELS.saved": {
     "text": "Gespeichert"
@@ -545,13 +545,13 @@
     "text": "Verschlüsselt"
   },
   "web.LABELS.secret_status": {
-    "text": "Geheimnisstatus"
+    "text": "Nachrichtenstatus"
   },
   "web.LABELS.need_help": {
     "text": "Brauchst du Hilfe?"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Neues Geheimnis erstellen"
+    "text": "Neue Nachricht erstellen"
   },
   "web.LABELS.actions": {
     "text": "Aktionen"
@@ -560,10 +560,10 @@
     "text": "Keine Passphrase erforderlich"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "In die Zwischenablage kopieren"
+    "text": "In Zwischenablage kopieren"
   },
   "web.LABELS.receipts": {
-    "text": "Belege"
+    "text": "Empfangsbestätigungen"
   },
   "web.LABELS.share": {
     "text": "Teilen"
@@ -572,28 +572,28 @@
     "text": "Geheimer Link"
   },
   "web.LABELS.dismiss": {
-    "text": "Ausblenden"
+    "text": "Schließen"
   },
   "web.LABELS.security_details": {
     "text": "Sicherheitsdetails"
   },
   "web.LABELS.items_count": {
-    "text": "{count} Elemente"
+    "text": "{count} Einträge"
   },
   "web.LABELS.recipients_count": {
     "text": "{count} Empfänger"
   },
   "web.LABELS.view": {
-    "text": "Ansicht"
+    "text": "Ansehen"
   },
   "web.LABELS.views": {
-    "text": "Ansichten"
+    "text": "Aufrufe"
   },
   "web.LABELS.times_viewed": {
-    "text": "mal angesehen"
+    "text": "Mal angesehen"
   },
   "web.LABELS.view_progress": {
-    "text": "Fortschritt anzeigen"
+    "text": "Fortschritt ansehen"
   },
   "web.LABELS.help_section": {
     "text": "Hilfebereich"
@@ -605,10 +605,10 @@
     "text": "Feedback erhalten."
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Sendet..."
+    "text": "Wird gesendet..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Kürzliche Geheimnisse"
+    "text": "Aktuelle Nachrichten"
   },
   "web.LABELS.pricing": {
     "text": "Preise"
@@ -632,16 +632,16 @@
     "text": "Anfrage erstellen"
   },
   "web.LABELS.create_request": {
-    "text": "Anfrage-Link erstellen"
+    "text": "Anfragelink erstellen"
   },
   "web.LABELS.related_settings": {
     "text": "Verwandte Einstellungen"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Links erstellen für"
+    "text": "Links werden erstellt für"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Geheimnisse erstellen in {domain}"
+    "text": "Nachrichten werden erstellt in {domain}"
   },
   "web.STATUS.new": {
     "text": "Neu"
@@ -656,7 +656,7 @@
     "text": "Empfangen"
   },
   "web.STATUS.burned": {
-    "text": "Zerstört"
+    "text": "Gelöscht"
   },
   "web.STATUS.destroyed": {
     "text": "Zerstört"
@@ -689,31 +689,31 @@
     "text": "Verbleibende Zeit"
   },
   "web.STATUS.new_description": {
-    "text": "Geheimer Link wurde erstellt und noch nicht angesehen"
+    "text": "Der geheime Link wurde erstellt und noch nicht angesehen"
   },
   "web.STATUS.unread_description": {
-    "text": "Geheimer Link wurde erstellt und noch nicht angesehen"
+    "text": "Der geheime Link wurde erstellt und noch nicht angesehen"
   },
   "web.STATUS.viewed_description": {
-    "text": "Geheimer Link wurde geöffnet und ist bereit zum Ansehen"
+    "text": "Der geheime Link wurde geöffnet und kann angesehen werden"
   },
   "web.STATUS.received_description": {
-    "text": "Geheimnis wurde dem Empfänger enthüllt"
+    "text": "Die Nachricht wurde dem Empfänger enthüllt"
   },
   "web.STATUS.burned_description": {
-    "text": "Geheimnis wurde manuell zerstört, bevor es angesehen wurde"
+    "text": "Die Nachricht wurde manuell gelöscht, bevor sie angesehen wurde"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Geheimnis wurde dauerhaft zerstört"
+    "text": "Die Nachricht wurde dauerhaft zerstört"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Geheimnis läuft bald ab"
+    "text": "Die Nachricht läuft bald ab"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Geheimnis ist verwaist und wird bald zerstört"
+    "text": "Die Nachricht ist verwaist und wird bald zerstört"
   },
   "web.STATUS.expired_description": {
-    "text": "Geheimnis ist abgelaufen, bevor es angesehen wurde"
+    "text": "Die Nachricht ist abgelaufen, bevor sie angesehen wurde"
   },
   "web.STATUS.success": {
     "text": "Erfolg"
@@ -722,7 +722,7 @@
     "text": "Zugestellt"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS inkorrekt"
+    "text": "DNS fehlerhaft"
   },
   "web.STATUS.active": {
     "text": "Aktiv"
@@ -731,13 +731,13 @@
     "text": "Inaktiv"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Unbegrenzte Ansichten"
+    "text": "Unbegrenzte Aufrufe"
   },
   "web.FEATURES.custom_domain_protected": {
     "text": "Vertrauenswürdiges Domain-Branding"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Verschlüsselt während der Übertragung und im Ruhezustand"
+    "text": "Verschlüsselt bei Übertragung und Speicherung"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -758,7 +758,7 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} verbleibend"
+    "text": "Noch {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
     "text": "Tag verbleibend | Tage verbleibend"
@@ -776,19 +776,19 @@
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} Ansichten-Limit"
+    "text": "{count} Aufruf-Limit"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} Tage übrig"
+    "text": "Noch {count} Tage"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} Stunden übrig"
+    "text": "Noch {count} Stunden"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} Minuten übrig"
+    "text": "Noch {count} Minuten"
   },
   "web.TITLES.incoming": {
-    "text": "Eingehende Geheimnisse"
+    "text": "Eingehende Nachrichten"
   },
   "web.TITLES.feedback": {
     "text": "Feedback"
@@ -806,7 +806,7 @@
     "text": "Passwort zurücksetzen"
   },
   "web.TITLES.logout": {
-    "text": "Wird abgemeldet"
+    "text": "Abmelden"
   },
   "web.TITLES.verify_account": {
     "text": "Konto verifizieren"
@@ -821,25 +821,25 @@
     "text": "Einladung annehmen"
   },
   "web.TITLES.secret": {
-    "text": "Geheimnis"
+    "text": "Nachricht"
   },
   "web.TITLES.metadata": {
-    "text": "Geheimnisdetails"
+    "text": "Nachrichtendetails"
   },
   "web.TITLES.receipt": {
-    "text": "Geheimnisbeleg"
+    "text": "Empfangsbestätigung"
   },
   "web.TITLES.burn_secret": {
-    "text": "Geheimnis zerstören"
+    "text": "Nachricht löschen"
   },
   "web.TITLES.dashboard": {
     "text": "Dashboard"
   },
   "web.TITLES.recent": {
-    "text": "Kürzlich"
+    "text": "Aktuelle Nachrichten"
   },
   "web.TITLES.domains": {
-    "text": "Benutzerdefinierte Domains"
+    "text": "Eigene Domains"
   },
   "web.TITLES.domain_add": {
     "text": "Domain hinzufügen"
@@ -848,10 +848,10 @@
     "text": "Domain verifizieren"
   },
   "web.TITLES.domain_brand": {
-    "text": "Domain branden"
+    "text": "Domain-Branding"
   },
   "web.TITLES.account": {
-    "text": "Kontoeinstellungen"
+    "text": "Konto"
   },
   "web.TITLES.data_region": {
     "text": "Datenregion"
@@ -869,7 +869,7 @@
     "text": "Profileinstellungen"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Präferenzen"
+    "text": "Einstellungen"
   },
   "web.TITLES.privacy_settings": {
     "text": "Datenschutz"
@@ -914,10 +914,10 @@
     "text": "Organisationseinstellungen"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Fokus ist jetzt im Haupttextbereich"
+    "text": "Der Fokus liegt jetzt im Haupttextbereich"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Anweisungen zum Teilen"
+    "text": "Freigabeanweisungen"
   },
   "web.INSTRUCTION.share_link_instruction": {
     "text": "Teile den Link mit dem vorgesehenen Empfänger"
@@ -929,18 +929,78 @@
     "text": "Verwende einen anderen sicheren Kanal, um sensible Informationen zu teilen"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Überprüfe immer, dass du auf der offiziellen Onetime Secret Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Regional-Domain, bevor du neue Links erstellst."
+    "text": "Überprüfe immer, ob du auf der offiziellen Onetime Secret-Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst."
   },
   "web.STATUS.previewed": {
-    "text": "Link geöffnet"
+    "text": "Vorschau angezeigt"
   },
   "web.STATUS.revealed": {
     "text": "Enthüllt"
   },
   "web.STATUS.previewed_description": {
-    "text": "Geheimer Link wurde geöffnet und ist bereit zur Enthüllung"
+    "text": "Der geheime Link wurde geöffnet und kann enthüllt werden"
   },
   "web.STATUS.revealed_description": {
-    "text": "Der geheime Inhalt wurde dem Empfänger enthüllt"
+    "text": "Der Nachrichteninhalt wurde dem Empfänger enthüllt"
+  },
+  "web.COMMON.not_set": {
+    "text": "Nicht festgelegt"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Bearbeiten"
+  },
+  "web.COMMON.word_save": {
+    "text": "Speichern"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Läuft ab in"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtern"
+  },
+  "web.LABELS.clear": {
+    "text": "Leeren"
+  },
+  "web.LABELS.add_note": {
+    "text": "Notiz hinzufügen..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Notiz bearbeiten"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Memo hinzufügen..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Memo bearbeiten"
+  },
+  "web.TITLES.help": {
+    "text": "Hilfe"
+  },
+  "web.TITLES.pricing": {
+    "text": "Preise"
+  },
+  "web.pricing.title": {
+    "text": "Einfache, transparente Preise"
+  },
+  "web.pricing.subtitle": {
+    "text": "Wähle den Plan, der zu deinen Bedürfnissen passt. Alle Pläne beinhalten unbegrenztes Teilen von Nachrichten und datenschutzorientiertes Design."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Kostenlos starten"
+  },
+  "web.pricing.start_trial": {
+    "text": "Jetzt starten"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Hast du bereits ein Konto?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Anmelden"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Empfohlen für dich"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Erstelle und teile Nachrichten mit Basisfunktionen. Keine Kreditkarte erforderlich."
   }
 }

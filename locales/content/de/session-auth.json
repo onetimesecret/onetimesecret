@@ -1,9 +1,9 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Benötigst du ein Konto?"
+    "text": "Noch kein Konto?"
   },
   "web.login.need_an_account": {
-    "text": "Benötigst du ein Konto?"
+    "text": "Registrieren."
   },
   "web.login.forgot_your_password": {
     "text": "Passwort vergessen?"
@@ -21,13 +21,13 @@
     "text": "Erstelle dein Konto"
   },
   "web.signup.alternate_prefix": {
-    "text": "Hast du bereits ein Konto?"
+    "text": "Bereits ein Konto?"
   },
   "web.signup.have_an_account": {
-    "text": "Oder melde dich bei deinem Konto an"
+    "text": "Anmelden."
   },
   "web.signup.error_title": {
-    "text": "Fehler bei Kontoerstellung"
+    "text": "Fehler bei der Kontoerstellung"
   },
   "web.signup.password_error": {
     "text": "Passwort"
@@ -36,7 +36,7 @@
     "text": "E-Mail"
   },
   "web.auth.verify.title": {
-    "text": "Verifiziere dein Konto"
+    "text": "Konto verifizieren"
   },
   "web.auth.verify.success": {
     "text": "Dein Konto wurde erfolgreich verifiziert"
@@ -69,7 +69,7 @@
     "text": "Überprüfe deine E-Mails auf den neuesten Verifizierungslink"
   },
   "web.auth.verify.check_spam": {
-    "text": "Überprüfe deinen Spam-/Junk-Ordner, wenn du die E-Mail nicht finden kannst"
+    "text": "Überprüfe deinen Spam-/Junk-Ordner, falls du die E-Mail nicht findest"
   },
   "web.auth.verify.contact_support": {
     "text": "Kontaktiere den Support, wenn du weiterhin Probleme hast"
@@ -105,7 +105,7 @@
     "text": "Konto schließen"
   },
   "web.auth.close_account.warning": {
-    "text": "Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Geheimnisse werden dauerhaft gelöscht."
+    "text": "Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Nachrichten werden dauerhaft gelöscht."
   },
   "web.auth.close_account.confirm": {
     "text": "Ich verstehe, dass diese Aktion dauerhaft ist"
@@ -120,22 +120,22 @@
     "text": "Abbrechen"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Passwortzurücksetzung anfordern"
+    "text": "Passwort zurücksetzen"
   },
   "web.auth.password_reset_request.description": {
     "text": "Gib unten deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Zurücksetzungslink senden"
+    "text": "Link senden"
   },
   "web.auth.password_reset.title": {
     "text": "Neues Passwort wählen"
   },
   "web.auth.password_reset.description": {
-    "text": "Bitte gib unten dein neues Passwort ein. Stelle sicher, dass es stark und einzigartig ist, um dein Konto zu schützen."
+    "text": "Bitte gib unten dein neues Passwort ein. Achte darauf, dass es stark und einzigartig ist, um dein Konto zu schützen."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Eine E-Mail mit einem Link zum Zurücksetzen des Passworts für dein Konto wurde an dich gesendet"
+    "text": "Wir haben dir eine E-Mail mit einem Link zum Zurücksetzen deines Passworts gesendet"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Ich stimme den"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "Konto schließen"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-Mail-Verifizierungsablauf nach der Registrierung"
+  },
+  "web.help.title": {
+    "text": "Hilfe & Support"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Probleme beim Anmelden"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Magic-Link kommt nicht an?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Überprüfe deinen Spam- oder Junk-Ordner"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Überprüfe, ob du deine E-Mail-Adresse korrekt eingegeben hast"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Warte ein paar Minuten - E-Mails können manchmal verzögert sein"
+  },
+  "web.help.try_again": {
+    "text": "Fordere einen neuen Link an, wenn mehr als 10 Minuten vergangen sind"
+  },
+  "web.help.forgot_password": {
+    "text": "Passwort vergessen?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Verwende die Magic-Link-Option, um dich ohne Passwort anzumelden. Nach der Anmeldung kannst du dein Passwort in den Kontoeinstellungen ändern."
+  },
+  "web.help.account_locked": {
+    "text": "Konto vorübergehend gesperrt?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Nach mehreren fehlgeschlagenen Anmeldeversuchen werden Konten aus Sicherheitsgründen vorübergehend gesperrt. Warte 15 Minuten und versuche es erneut, oder verwende Magic-Link zur Anmeldung."
+  },
+  "web.help.still_need_help": {
+    "text": "Brauchst du noch Hilfe?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Wenn du immer noch Probleme hast, sind wir für dich da. Schreib uns eine Nachricht und wir melden uns so schnell wie möglich bei dir."
+  },
+  "web.help.contact_support": {
+    "text": "Support kontaktieren"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Anmeldelink senden"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Ein sicherer Link wird an deine E-Mail-Adresse gesendet."
+  },
+  "web.login.or_divider": {
+    "text": "oder"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Mit Passwort anmelden"
+  },
+  "web.login.use_passwordless": {
+    "text": "Passwortlose Anmeldung verwenden"
+  },
+  "web.login.create_account": {
+    "text": "Konto erstellen"
+  },
+  "web.login.return_home": {
+    "text": "Zur Startseite"
+  },
+  "web.login.tab_password": {
+    "text": "Passwort"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magic-Link"
+  },
+  "web.login.need_help": {
+    "text": "Brauchst du Hilfe?"
   }
 }

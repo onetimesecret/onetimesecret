@@ -3,7 +3,7 @@
     "text": "Farbauswahl"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Aktuell {0}: {1}. Klicken, um durch Optionen zu wechseln."
+    "text": "Aktuell {0}: {1}. Klicke, um durch die Optionen zu wechseln."
   },
   "web.branding.use_setting": {
     "text": "Einstellung verwenden"
@@ -42,10 +42,10 @@
     "text": "{0}/500 Zeichen"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Verwende dein Telefon, um den QR-Code zu scannen"
+    "text": "Scanne den QR-Code mit deinem Handy"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontaktiere onboarding{'@'}example.com bei Fragen"
+    "text": "Bei Fragen kontaktiere onboarding{'@'}example.com"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Diese Anweisungen werden Empfängern angezeigt, bevor sie den geheimen Inhalt enthüllen"
@@ -54,16 +54,16 @@
     "text": "Diese Anweisungen werden Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Anweisungen vor Enthüllung"
+    "text": "Anleitung vor dem Anzeigen"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Anweisungen nach Enthüllung"
+    "text": "Anleitung nach dem Anzeigen"
   },
   "web.branding.instructions": {
-    "text": "Anweisungen"
+    "text": "Anleitungen"
   },
   "web.branding.logo_controls": {
-    "text": "Logo-Steuerelemente"
+    "text": "Logo-Steuerung"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "Klicken, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG"
@@ -72,10 +72,10 @@
     "text": "Logo hochladen"
   },
   "web.branding.loading_preview": {
-    "text": "Vorschau lädt..."
+    "text": "Vorschau wird geladen..."
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Vorschau, wie Empfänger deine Geheimnisse sehen werden, indem du die Schaltfläche \"Geheimnis anzeigen\" testest"
+    "text": "Vorschau, wie Empfänger deine Nachrichten sehen, indem du den \"Nachricht anzeigen\"-Button testest"
   },
   "web.branding.eye_icon": {
     "text": "Augen-Symbol"
@@ -99,19 +99,19 @@
     "text": "Markeneinstellungen konnten nicht geladen werden"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, max. 1MB) - Die Vorschau mit der Schaltfläche \"Geheimnis anzeigen\" testen"
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1MB) - Die Vorschau mit dem \"Nachricht anzeigen\"-Button testen"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, max. 1MB) - Die Vorschau mit der Schaltfläche \"Geheimnis anzeigen\" testen"
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1MB) - Die Vorschau mit dem \"Nachricht anzeigen\"-Button testen"
   },
   "web.branding.default_logo_icon": {
-    "text": "Standard-Logo-Symbol"
+    "text": "Japanisches Kanji '秘' (himitsu), bedeutet 'geheim' oder 'vertraulich'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Powered by Onetime Secret"
   },
   "web.branding.heading_logo": {
-    "text": "{0}-Logo"
+    "text": "{0} Logo"
   },
   "web.branding.edge": {
     "text": "Edge"

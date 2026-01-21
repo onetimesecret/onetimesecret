@@ -15,13 +15,13 @@
     "text": "Sicherheit"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Erfahre mehr über unsere Sicherheitsmaßnahmen"
+    "text": "Mehr über unsere Sicherheitsmaßnahmen erfahren"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Siehe unsere Allgemeinen Geschäftsbedingungen"
+    "text": "Unsere AGB ansehen"
   },
   "web.footer.terms": {
-    "text": "Bedingungen"
+    "text": "AGB"
   },
   "web.footer.privacy": {
     "text": "Datenschutz"
@@ -36,22 +36,22 @@
     "text": "Rechtliches"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Lies unsere Datenschutzrichtlinie"
+    "text": "Unsere Datenschutzerklärung lesen"
   },
   "web.footer.check_our_service_status": {
-    "text": "Überprüfe unseren Service-Status"
+    "text": "Service-Status prüfen"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Erkunde unsere API-Dokumentation"
+    "text": "Unsere API-Dokumentation erkunden"
   },
   "web.footer.docs": {
     "text": "Dokumentation"
   },
   "web.footer.access_our_documentation": {
-    "text": "Greife auf unsere Dokumentation zu"
+    "text": "Unsere Dokumentation aufrufen"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Sieh dir unseren Quellcode auf GitHub an"
+    "text": "Unseren Quellcode auf GitHub ansehen"
   },
   "web.footer.resources": {
     "text": "Ressourcen"
@@ -60,13 +60,13 @@
     "text": "Blog"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Lies unsere neuesten Blog-Beiträge"
+    "text": "Unsere neuesten Blog-Beiträge lesen"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Sieh dir unsere Abonnementpreise an"
+    "text": "Unsere Abo-Preise ansehen"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Erfahre mehr über unser Unternehmen"
+    "text": "Mehr über unser Unternehmen erfahren"
   },
   "web.footer.company": {
     "text": "Unternehmen"
@@ -90,7 +90,7 @@
     "text": "Übersetzungen sind neu. Fehler entdeckt? {send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}"
+    "text": "Wir haben kürzlich Übersetzungen hinzugefügt. Einen Fehler entdeckt? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, könntest du auf Übersetzungsfehler oder unklare Anweisungen stoßen. Um uns zu helfen, die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn du Probleme entdeckst"
@@ -105,28 +105,28 @@
     "text": "Du siehst eine sichere Nachricht, die über Onetime Secret mit dir geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Kann ich dieses Geheimnis später noch einmal ansehen?"
+    "text": "Kann ich diese Nachricht später noch einmal ansehen?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nein. Aus Sicherheitsgründen kann dieses Geheimnis nur einmal angesehen werden. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem wiederhergestellt werden, auch nicht von uns."
+    "text": "Nein. Aus Sicherheitsgründen kann diese Nachricht nur einmal angesehen werden. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem wiederhergestellt werden, auch nicht von uns."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Wie speichere ich diese Information?"
+    "text": "Wie speichere ich diese Informationen?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Verwende die Schaltfläche 'In die Zwischenablage kopieren', um das gesamte Geheimnis zu kopieren. Stelle bei längeren Geheimnissen sicher, dass du den vollständigen Inhalt kopiert hast, bevor du diese Seite verlässt."
+    "text": "Verwende die Schaltfläche 'In Zwischenablage kopieren', um die gesamte Nachricht zu kopieren. Bei längeren Nachrichten stelle sicher, dass du den vollständigen Inhalt kopiert hast, bevor du diese Seite verlässt."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Wird mein Ansehen dieses Geheimnisses verfolgt?"
+    "text": "Wird mein Ansehen dieser Nachricht verfolgt?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Der Absender wird benachrichtigt, dass sein Geheimnis angesehen wurde, aber wir verfolgen nicht, wer es angesehen hat oder von welchem Ort aus. Deine Privatsphäre ist geschützt."
+    "text": "Der Absender wird benachrichtigt, dass seine Nachricht angesehen wurde, aber wir verfolgen nicht, wer sie angesehen hat oder von welchem Standort aus. Deine Privatsphäre ist geschützt."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Sobald du diese Seite verlässt oder aktualisierst, wird dieses Geheimnis dauerhaft gelöscht und kann von niemandem wiederhergestellt werden."
+    "text": "Sobald du diese Seite verlässt oder aktualisierst, wird diese Nachricht dauerhaft gelöscht und kann von niemandem wiederhergestellt werden."
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Zurück zur vorherigen Seite"
+    "text": "Zur vorherigen Seite zurückkehren"
   },
   "web.layout.site_footer": {
     "text": "Seitenfußzeile"
@@ -153,13 +153,13 @@
     "text": "Hauptnavigation"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} Elemente"
+    "text": "{count} Einträge"
   },
   "web.layout.release_notes": {
     "text": "Versionshinweise"
   },
   "web.layout.loading_settings_content": {
-    "text": "Einstellungsinhalt wird geladen..."
+    "text": "Einstellungen werden geladen..."
   },
   "web.layout.settings_sections_0": {
     "text": "Einstellungsbereiche"
@@ -174,22 +174,22 @@
     "text": "Passe deine App-Präferenzen und Einstellungen an"
   },
   "web.layout.return_home": {
-    "text": "Zur Startseite zurückkehren"
+    "text": "Zur Startseite"
   },
   "web.layout.return_to_home_page": {
     "text": "Zur Startseite zurückkehren"
   },
   "web.layout.return_to_home": {
-    "text": "Zurück zur Startseite"
+    "text": "Zur Startseite zurückkehren"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Datenschutzrichtlinie ansehen"
+    "text": "Datenschutzerklärung ansehen"
   },
   "web.layout.view_terms_of_service": {
     "text": "Nutzungsbedingungen ansehen"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secret Startseite besuchen"
+    "text": "Onetime Secret-Startseite besuchen"
   },
   "web.layout.footer_navigation": {
     "text": "Fußzeilennavigation"
@@ -198,10 +198,10 @@
     "text": "Nutzungsbedingungen"
   },
   "web.layout.privacy_policy": {
-    "text": "Datenschutzrichtlinie"
+    "text": "Datenschutzerklärung"
   },
   "web.layout.icon_library": {
-    "text": "Symbolbibliothek"
+    "text": "Icon-Bibliothek"
   },
   "web.layout.google_material": {
     "text": "Google Material"
@@ -240,6 +240,12 @@
     "text": "Arbeitsbereich"
   },
   "web.layout.workspace_context": {
-    "text": "Arbeitsbereich-Kontext"
+    "text": "Arbeitsbereichskontext"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Wenn du Feedback sendest, sehen wir:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Auf {0} zurücksetzen"
   }
 }

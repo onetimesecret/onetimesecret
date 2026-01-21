@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Warum ist dieses Geheimnis nicht verfügbar?"
+    "text": "Warum ist diese Nachricht nicht verfügbar?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht."
@@ -45,7 +45,7 @@
     "text": "{0} Etwas ist schiefgelaufen"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Geh ein Geheimnis teilen!"
+    "text": "Teile jetzt eine Nachricht!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "Die gesuchte Seite existiert nicht oder wurde verschoben. Keine Sorge, das passiert den Besten!"

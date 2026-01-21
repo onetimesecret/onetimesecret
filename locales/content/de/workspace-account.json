@@ -30,7 +30,7 @@
     "text": "Region"
   },
   "web.account.account_balance": {
-    "text": "Kontostand:"
+    "text": "Guthaben:"
   },
   "web.account.default_payment_method": {
     "text": "Standard-Zahlungsmethode"
@@ -42,7 +42,7 @@
     "text": "Abonnements"
   },
   "web.account.quantity": {
-    "text": "Menge:"
+    "text": "Anzahl:"
   },
   "web.account.next_billing_date": {
     "text": "Nächstes Abrechnungsdatum:"
@@ -63,7 +63,7 @@
     "text": "Passwort aktualisieren"
   },
   "web.account.changePassword.updating": {
-    "text": "Aktualisiert..."
+    "text": "Wird aktualisiert..."
   },
   "web.account.timezone": {
     "text": "Zeitzone"
@@ -72,7 +72,7 @@
     "text": "Kunden-ID"
   },
   "web.account.account_id_customerid": {
-    "text": "Konto-ID: {0}"
+    "text": "Konto-ID"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
     "text": "{0} Geheimnisse seit {1} erstellt."
@@ -90,7 +90,7 @@
     "text": "Dein Konto"
   },
   "web.account.support_details": {
-    "text": "Support-Details"
+    "text": "Supportdetails"
   },
   "web.account.back_to_details": {
     "text": "Zurück zu Details"
@@ -105,7 +105,7 @@
     "text": "🔐 Bewahre diesen Token sicher auf! Er gewährt vollen Zugriff auf dein Konto."
   },
   "web.account.confirm_with_your_password": {
-    "text": "Mit deinem Passwort bestätigen"
+    "text": "Bestätige mit deinem Passwort"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Bist du sicher, dass du dein Konto dauerhaft löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
@@ -117,22 +117,22 @@
     "text": "Lösche {0}"
   },
   "web.account.permanently_delete_account": {
-    "text": "Konto dauerhaft löschen"
+    "text": "Konto endgültig löschen"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "dauerhaft und nicht umkehrbar."
+    "text": "endgültig und nicht rückgängig zu machen."
   },
   "web.account.deleting_your_account_is": {
     "text": "Das Löschen deines Kontos ist"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "zerstöre sie, bevor du fortfährst"
+    "text": "lösche sie, bevor du fortfährst"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Alle Geheimnisse, die du entfernen möchtest,"
+    "text": "Alle Nachrichten, die du entfernen möchtest,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Geheimnisse bleiben aktiv, bis sie ablaufen."
+    "text": "Nachrichten bleiben aktiv, bis sie ablaufen."
   },
   "web.account.please_be_advised": {
     "text": "Bitte beachte:"
@@ -165,7 +165,7 @@
     "text": "Präferenzen"
   },
   "web.settings.appearance": {
-    "text": "Erscheinungsbild"
+    "text": "Darstellung"
   },
   "web.settings.theme.title": {
     "text": "Design"
@@ -213,13 +213,13 @@
     "text": "Dein Passwort wird aus Sicherheitsgründen benötigt"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Eine Bestätigungsemail wird an die neue Adresse gesendet"
+    "text": "Eine Bestätigungs-E-Mail wird an die neue Adresse gesendet"
   },
   "web.settings.profile.update_email": {
     "text": "E-Mail aktualisieren"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Aktualisiere die E-Mail-Adresse deines Kontos"
+    "text": "Aktualisiere die E-Mail-Adresse, die mit deinem Konto verknüpft ist"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Alle Felder sind erforderlich"
@@ -228,13 +228,13 @@
     "text": "Bitte gib eine gültige E-Mail-Adresse ein"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Neue E-Mail muss sich von der aktuellen E-Mail unterscheiden"
+    "text": "Die neue E-Mail muss sich von der aktuellen unterscheiden"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-Mail erfolgreich aktualisiert. Bitte überprüfe deinen Posteingang, um deine neue E-Mail-Adresse zu verifizieren."
+    "text": "E-Mail erfolgreich aktualisiert. Bitte überprüfe deinen Posteingang, um deine neue E-Mail-Adresse zu bestätigen."
   },
   "web.settings.profile.email_change_error": {
-    "text": "E-Mail-Aktualisierung fehlgeschlagen. Bitte versuche es erneut."
+    "text": "E-Mail konnte nicht aktualisiert werden. Bitte versuche es erneut."
   },
   "web.settings.sessions.title": {
     "text": "Aktive Sitzungen"
@@ -249,25 +249,25 @@
     "text": "Passwort"
   },
   "web.settings.password.description": {
-    "text": "Aktualisiere dein Kontopasswort"
+    "text": "Dein Kontopasswort aktualisieren"
   },
   "web.settings.password.update_account_password": {
-    "text": "Aktualisiere dein Kontopasswort"
+    "text": "Dein Kontopasswort aktualisieren"
   },
   "web.settings.delete_account.title": {
     "text": "Konto löschen"
   },
   "web.settings.delete_account.description": {
-    "text": "Lösche dein Konto und alle Daten dauerhaft"
+    "text": "Dein Konto und alle Daten dauerhaft löschen"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Lösche dein Konto und alle Daten dauerhaft"
+    "text": "Dein Konto und alle Daten dauerhaft löschen"
   },
   "web.settings.security.security_score": {
-    "text": "Sicherheitswert"
+    "text": "Sicherheitsbewertung"
   },
   "web.settings.security.score_description": {
-    "text": "Deine gesamte Kontosicherheit"
+    "text": "Der Gesamtzustand deiner Kontosicherheit"
   },
   "web.settings.security.excellent": {
     "text": "Ausgezeichnet"
@@ -276,7 +276,7 @@
     "text": "Gut"
   },
   "web.settings.security.fair": {
-    "text": "Ordentlich"
+    "text": "Ausreichend"
   },
   "web.settings.security.weak": {
     "text": "Schwach"
@@ -285,7 +285,7 @@
     "text": "Verbessere deine Sicherheit"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Aktiviere Zwei-Faktor-Authentifizierung für stärkeren Schutz"
+    "text": "Aktiviere die Zwei-Faktor-Authentifizierung für stärkeren Schutz"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Generiere Wiederherstellungscodes als Backup"
@@ -318,16 +318,16 @@
     "text": "Verwende ein starkes, einzigartiges Passwort für dein Konto"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Aktiviere Zwei-Faktor-Authentifizierung für zusätzlichen Schutz"
+    "text": "Aktiviere die Zwei-Faktor-Authentifizierung für zusätzlichen Schutz"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Speichere deine Wiederherstellungscodes an einem sicheren Ort"
+    "text": "Bewahre deine Wiederherstellungscodes an einem sicheren Ort auf"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Überprüfe und widerrufe regelmäßig ungenutzte Sitzungen"
+    "text": "Überprüfe und widerrufe ungenutzte Sitzungen regelmäßig"
   },
   "web.settings.security.view_details": {
-    "text": "Details ansehen"
+    "text": "Details anzeigen"
   },
   "web.settings.api.title": {
     "text": "API & Integrationen"
@@ -345,28 +345,28 @@
     "text": "Erfahre, wie du Onetime Secret in deine Anwendungen integrierst"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "REST API-Referenz"
+    "text": "REST-API-Referenz"
   },
   "web.settings.api.complete_api_documentation": {
     "text": "Vollständige API-Dokumentation und Endpunkte"
   },
   "web.settings.api.code_examples": {
-    "text": "Code-Beispiele"
+    "text": "Codebeispiele"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Beispiel-Code und Client-Bibliotheken"
+    "text": "Beispielcode und Client-Bibliotheken"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Bewährte Sicherheitspraktiken"
+    "text": "Sicherheits-Best-Practices"
   },
   "web.settings.api.never_commit_api_keys": {
     "text": "Committe niemals API-Schlüssel in die Versionskontrolle"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Verwende Umgebungsvariablen, um API-Schlüssel zu speichern"
+    "text": "Verwende Umgebungsvariablen zur Speicherung von API-Schlüsseln"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rotiere API-Schlüssel regelmäßig aus Sicherheitsgründen"
+    "text": "Wechsle API-Schlüssel regelmäßig aus Sicherheitsgründen"
   },
   "web.settings.api.use_https_only": {
     "text": "Verwende immer HTTPS bei API-Anfragen"
@@ -378,16 +378,16 @@
     "text": "Wichtiger Hinweis"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Die Neugenerierung deines API-Schlüssels macht den aktuellen Schlüssel ungültig. Aktualisiere alle Anwendungen, die den alten Schlüssel verwenden."
+    "text": "Das Neugenerieren deines API-Schlüssels macht den aktuellen Schlüssel ungültig. Aktualisiere alle Anwendungen, die den alten Schlüssel verwenden."
   },
   "web.settings.privacy.title": {
     "text": "Datenschutzeinstellungen"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Verwalte deine Datenschutzpräferenzen"
+    "text": "Verwalte deine Datenschutzeinstellungen"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Dein Datenschutz"
+    "text": "Deine Privatsphäre"
   },
   "web.settings.privacy.non_negotiable": {
     "text": "Nicht verhandelbar"
@@ -399,7 +399,7 @@
     "text": "Keine Analysen. Kein Tracking. Punkt."
   },
   "web.settings.privacy.explanation": {
-    "text": "Dies ist keine Einstellung, weil es nichts zum Ein- oder Ausschalten gibt. Dein Datenschutz ist in unsere Arbeitsweise eingebaut."
+    "text": "Das ist keine Einstellung, weil es nichts zum Ein- oder Ausschalten gibt. Deine Privatsphäre ist fest in unsere Arbeitsweise integriert."
   },
   "web.settings.notifications.title": {
     "text": "Benachrichtigungseinstellungen"
@@ -411,19 +411,19 @@
     "text": "Benachrichtigungseinstellung konnte nicht aktualisiert werden. Bitte versuche es erneut."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Benachrichtigungen bei Geheimnis-Anzeige"
+    "text": "Benachrichtigungen bei Ansicht"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Erhalte eine E-Mail, wenn jemand dein Geheimnis ansieht"
+    "text": "Erhalte eine E-Mail, wenn jemand deine Nachricht ansieht"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Du wirst jedes Mal benachrichtigt, wenn ein Empfänger eines deiner Geheimnisse öffnet"
+    "text": "Du wirst jedes Mal benachrichtigt, wenn ein Empfänger eine deiner Nachrichten aufdeckt"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Benachrichtigungs-E-Mails enthalten nur den Zeitstempel und die Geheimnis-ID. Informationen über den Betrachter werden niemals einbezogen."
+    "text": "Benachrichtigungs-E-Mails enthalten nur den Zeitstempel und die Nachrichten-ID. Informationen über den Betrachter werden niemals einbezogen."
   },
   "web.settings.caution.title": {
-    "text": "Vorsichtsbereich"
+    "text": "Bereich für sorgfältige Überlegung"
   },
   "web.settings.caution.description": {
     "text": "Erweiterte Einstellungen und Datenverwaltung"
@@ -441,7 +441,7 @@
     "text": "Datenexport anfordern"
   },
   "web.settings.caution.export_info": {
-    "text": "Export-Verarbeitungszeit"
+    "text": "Exportverarbeitungszeit"
   },
   "web.settings.caution.export_info_description": {
     "text": "Exporte werden innerhalb von 24 Stunden verarbeitet und an deine E-Mail-Adresse gesendet"
@@ -450,15 +450,30 @@
     "text": "Das Löschen deines Kontos wird:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Alle deine Geheimnisse dauerhaft löschen"
+    "text": "Alle deine Nachrichten dauerhaft löschen"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Alle Geheimnismetadaten und -historie entfernen"
+    "text": "Alle Nachrichtenmetadaten und den Verlauf entfernen"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "Alle API-Schlüssel ungültig machen"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Diese Aktion kann nicht rückgängig gemacht werden"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Wird gelöscht..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Zurück zum Dashboard"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto"
+  },
+  "web.settings.sections.billing": {
+    "text": "Abrechnung"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Erweitert"
   }
 }

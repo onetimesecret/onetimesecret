@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "KI-generiertes Testimonial"
+    "text": "KI-generierte Referenz"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "KI-generierte Inhalte zur Demonstration. \nNicht von einer tatsächlichen Person oder Firma."
+    "text": "KI-generierter Inhalt zur Demonstration. Stammt nicht von einer echten Person oder Firma."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -21,7 +21,7 @@
     "text": "Was führende KI über uns sagt"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "KI-generierte Testimonials"
+    "text": "KI-generierte Referenzen"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "Dieses Zitat wurde generiert von"

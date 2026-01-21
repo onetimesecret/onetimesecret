@@ -3,46 +3,46 @@
     "text": "Mehr über DNS-Konfiguration erfahren"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Domain-Verifizierungsstatus anzeigen"
+    "text": "Domain-Verifizierungsstatus ansehen"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Diese Domain ist bereits in deiner Organisation registriert"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Diese Domain ist bereits für eine andere Organisation registriert. Bitte kontaktiere den Support, wenn du glaubst, dass dies ein Fehler ist."
+    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktiere den Support, wenn du glaubst, dass dies ein Fehler ist."
   },
   "web.domains.domain_claimed_successfully": {
     "text": "Domain erfolgreich beansprucht und zu deiner Organisation hinzugefügt"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Datenschutzstandards"
+    "text": "Datenschutz-Standardwerte"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Lege Standard-Datenschutzoptionen für Geheimnisse fest, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Geheimnisse vorausgefüllt."
+    "text": "Lege Standard-Datenschutzoptionen für Nachrichten fest, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Nachrichten vorausgefüllt."
   },
   "web.domains.privacy_defaults": {
-    "text": "Datenschutzstandards"
+    "text": "Datenschutz-Standardwerte"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Datenschutzstandards-Symbol"
+    "text": "Datenschutz-Standardwerte-Symbol"
   },
   "web.domains.default_ttl_label": {
-    "text": "Standard-Lebensdauer"
+    "text": "Standard-Gültigkeitsdauer"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Wie lange Geheimnisse standardmäßig zugänglich bleiben sollen"
+    "text": "Wie lange Nachrichten standardmäßig zugänglich bleiben sollen"
   },
   "web.domains.passphrase_required_label": {
     "text": "Passphrase erforderlich"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Passphrase für alle Geheimnisse in dieser Domain obligatorisch machen"
+    "text": "Mache Passphrase für alle Nachrichten in dieser Domain verpflichtend"
   },
   "web.domains.notify_enabled_label": {
     "text": "Benachrichtigungen aktivieren"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Geheimnisse angesehen werden"
+    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Nachrichten angezeigt werden"
   },
   "web.domains.use_global_default": {
     "text": "Globalen Standard verwenden"
@@ -66,7 +66,7 @@
     "text": "Benutzerdefiniert"
   },
   "web.domains.edit_defaults": {
-    "text": "Standards bearbeiten"
+    "text": "Standardwerte bearbeiten"
   },
   "web.domains.ttl_short": {
     "text": "TTL"
@@ -108,7 +108,7 @@
     "text": "Steuere, ob Benutzer geheime Links von der Startseite deiner Domain erstellen können"
   },
   "web.domains.homepage_access": {
-    "text": "Startseitenzugriff"
+    "text": "Startseiten-Zugang"
   },
   "web.domains.and_status": {
     "text": "& Status"
@@ -117,7 +117,7 @@
     "text": "Domain"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Verwalte und konfiguriere deine verifizierten benutzerdefinierten Domains"
+    "text": "Verwalte und konfiguriere deine verifizierten eigenen Domains"
   },
   "web.domains.domains": {
     "text": "Domains"
@@ -129,7 +129,7 @@
     "text": "SSL-Status"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL erneuert sich"
+    "text": "SSL-Verlängerung"
   },
   "web.domains.dns_record": {
     "text": "DNS-Eintrag"
@@ -141,10 +141,10 @@
     "text": "Domain-Status"
   },
   "web.domains.custom_domains_count": {
-    "text": "Anzahl benutzerdefinierter Domains"
+    "text": "Anzahl eigener Domains"
   },
   "web.domains.custom_domain": {
-    "text": "Benutzerdefinierte Domain"
+    "text": "Eigene Domain"
   },
   "web.domains.open_domain_in_new_tab": {
     "text": "Domain in neuem Tab öffnen"
@@ -153,7 +153,7 @@
     "text": "Zurück zu Domains"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Zurück zur Domainliste"
+    "text": "Zur Domainliste zurückkehren"
   },
   "web.domains.verify_domain": {
     "text": "Domain verifizieren"
@@ -165,16 +165,16 @@
     "text": "Hinzugefügt {0}"
   },
   "web.domains.add_your_domain": {
-    "text": "Füge deine Domain hinzu"
+    "text": "Deine Domain hinzufügen"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Lege los, indem du eine benutzerdefinierte Domain hinzufügst."
+    "text": "Beginne, indem du eine eigene Domain hinzufügst."
   },
   "web.domains.no_domains_found": {
     "text": "Keine Domains gefunden."
   },
   "web.domains.loading_domain_information": {
-    "text": "Domaininformationen werden geladen..."
+    "text": "Domain-Informationen werden geladen..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Um deine Domain zu verbinden, musst du einen CNAME-Eintrag in deinem DNS haben, der zeigt auf"
@@ -189,16 +189,16 @@
     "text": "und entferne alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", musst du diese Schritte ausführen."
+    "text": ", musst du diese Schritte abschließen."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Bevor wir Links aktivieren können für"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Bitte beachte, dass für Apex-Domains (z.B."
+    "text": "Bitte beachte, dass bei Apex-Domains (z.B."
   },
   "web.domains.verify_your_domain": {
-    "text": "Verifiziere deine Domain"
+    "text": "Deine Domain verifizieren"
   },
   "web.domains.secrets_example_dot_com": {
     "text": "secrets.example.com"
@@ -213,7 +213,7 @@
     "text": "DNS-Änderungen können nur 60 Sekunden dauern -- oder bis zu 24 Stunden -- um wirksam zu werden."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Auf Verbreitung warten"
+    "text": "3. Auf Propagierung warten"
   },
   "web.domains.value_2": {
     "text": "Wert"
@@ -231,7 +231,7 @@
     "text": "Typ"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. CNAME-Eintrag erstellen"
+    "text": "2. Den CNAME-Eintrag erstellen"
   },
   "web.domains.value_0": {
     "text": "Wert"
@@ -243,13 +243,13 @@
     "text": "Typ"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. A-Eintrag erstellen"
+    "text": "2. Den A-Eintrag erstellen"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
     "text": "Füge diesen Hostnamen zu deiner DNS-Konfiguration hinzu:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. TXT-Eintrag erstellen"
+    "text": "1. Einen TXT-Eintrag erstellen"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Befolge diese Schritte, um den Domainbesitz zu verifizieren und deine Online-Präsenz zu verbessern:"
@@ -258,7 +258,7 @@
     "text": "Domain-Verifizierungsschritte"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Domain-Verifizierung erfolgreich eingeleitet."
+    "text": "Domain-Verifizierung erfolgreich gestartet."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Bist du sicher, dass du diese Domain entfernen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
@@ -274,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "Domain erfolgreich hinzugefügt"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Geschützt"
+  },
+  "web.domains.manage_domains": {
+    "text": "Domains verwalten"
+  },
+  "web.domains.global_defaults": {
+    "text": "Globale Standardwerte"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Gültigkeitsdauer-Einstellung bearbeiten"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Passphrase-Anforderung bearbeiten"
+  },
+  "web.domains.edit_notify": {
+    "text": "Benachrichtigungs-Einstellung bearbeiten"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "DNS-Einträge konfigurieren"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Verwende das Tool unten, um deinen DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration deiner Domain zu erhalten."
   }
 }
