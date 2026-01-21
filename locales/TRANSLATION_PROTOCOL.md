@@ -68,7 +68,7 @@ Outputs formatted table with Key, English, Esperanto columns.
 
 ### 3. Review proposed translations
 Assistant proposes translations. Respond with:
-- **A** - Accept (runs update_task.py)
+- **A** - Accept (runs tasks/update.py)
 - **S** - Skip (marks skipped, moves to next)
 - **R** - Revisit (marks pending, moves to next)
 - **Q** - Quit session
