@@ -3,7 +3,7 @@
     "text": "Cài đặt"
   },
   "web.account.change_password": {
-    "text": "Thay đổi mật khẩu"
+    "text": "Đổi mật khẩu"
   },
   "web.account.close_account": {
     "text": "Đóng tài khoản"
@@ -27,7 +27,7 @@
     "text": "Email:"
   },
   "web.account.region": {
-    "text": "Khu vực"
+    "text": "Vùng"
   },
   "web.account.account_balance": {
     "text": "Số dư:"
@@ -48,7 +48,7 @@
     "text": "Ngày thanh toán tiếp theo:"
   },
   "web.account.changePassword.username": {
-    "text": "Tên người dùng"
+    "text": "Tên đăng nhập"
   },
   "web.account.changePassword.currentPassword": {
     "text": "Mật khẩu hiện tại"
@@ -105,7 +105,7 @@
     "text": "🔐 Giữ token này an toàn! Nó cung cấp quyền truy cập đầy đủ vào tài khoản của bạn."
   },
   "web.account.confirm_with_your_password": {
-    "text": "Xác nhận bằng mật khẩu của bạn"
+    "text": "Xác nhận bằng mật khẩu"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của mình không? Hành động này không thể hoàn tác."
@@ -135,7 +135,7 @@
     "text": "Bí mật sẽ vẫn hoạt động cho đến khi hết hạn."
   },
   "web.account.please_be_advised": {
-    "text": "Vui lòng lưu ý:"
+    "text": "Xin lưu ý:"
   },
   "web.account.account_deleted_successfully": {
     "text": "Đã xóa tài khoản thành công."
@@ -153,7 +153,7 @@
     "text": "Cài đặt"
   },
   "web.settings.description": {
-    "text": "Quản lý cài đặt và tùy chọn tài khoản của bạn"
+    "text": "Quản lý cài đặt và tùy chọn tài khoản"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Quản lý cài đặt và tùy chọn tài khoản của bạn"
@@ -168,34 +168,34 @@
     "text": "Giao diện"
   },
   "web.settings.theme.title": {
-    "text": "Chủ đề"
+    "text": "Giao diện"
   },
   "web.settings.theme.description": {
-    "text": "Chọn chủ đề sáng hoặc tối"
+    "text": "Chọn giao diện sáng hoặc tối"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Chọn chủ đề sáng hoặc tối"
+    "text": "Chọn giao diện sáng hoặc tối"
   },
   "web.settings.language.title": {
     "text": "Ngôn ngữ"
   },
   "web.settings.language.description": {
-    "text": "Chọn ngôn ngữ ưa thích của bạn"
+    "text": "Chọn ngôn ngữ ưa thích"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Chọn ngôn ngữ ưa thích của bạn"
+    "text": "Chọn ngôn ngữ ưa thích"
   },
   "web.settings.security_settings_description": {
     "text": "Quản lý xác thực và bảo mật tài khoản"
   },
   "web.settings.profile_settings_description": {
-    "text": "Quản lý thông tin tài khoản của bạn"
+    "text": "Quản lý thông tin tài khoản"
   },
   "web.settings.profile.title": {
     "text": "Hồ sơ"
   },
   "web.settings.profile.change_email": {
-    "text": "Thay đổi email"
+    "text": "Đổi email"
   },
   "web.settings.profile.current_email": {
     "text": "Email hiện tại"
@@ -207,10 +207,10 @@
     "text": "Email mới"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Nhập mật khẩu hiện tại của bạn"
+    "text": "Nhập mật khẩu hiện tại"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Mật khẩu của bạn là bắt buộc cho mục đích bảo mật"
+    "text": "Mật khẩu của bạn được yêu cầu vì lý do bảo mật"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "Email xác minh sẽ được gửi đến địa chỉ mới"
@@ -219,7 +219,7 @@
     "text": "Cập nhật email"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Cập nhật địa chỉ email liên kết với tài khoản của bạn"
+    "text": "Cập nhật địa chỉ email liên kết với tài khoản"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Tất cả các trường là bắt buộc"
@@ -231,7 +231,7 @@
     "text": "Email mới phải khác với email hiện tại"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Email đã được cập nhật thành công. Vui lòng kiểm tra hộp thư để xác minh địa chỉ email mới của bạn."
+    "text": "Đã cập nhật email thành công. Vui lòng kiểm tra hộp thư để xác minh địa chỉ email mới."
   },
   "web.settings.profile.email_change_error": {
     "text": "Không thể cập nhật email. Vui lòng thử lại."
@@ -240,34 +240,34 @@
     "text": "Phiên hoạt động"
   },
   "web.settings.sessions.description": {
-    "text": "Quản lý các phiên hoạt động của bạn"
+    "text": "Quản lý các phiên hoạt động"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Quản lý các phiên hoạt động của bạn"
+    "text": "Quản lý các phiên hoạt động"
   },
   "web.settings.password.title": {
     "text": "Mật khẩu"
   },
   "web.settings.password.description": {
-    "text": "Cập nhật mật khẩu tài khoản của bạn"
+    "text": "Cập nhật mật khẩu tài khoản"
   },
   "web.settings.password.update_account_password": {
-    "text": "Cập nhật mật khẩu tài khoản của bạn"
+    "text": "Cập nhật mật khẩu tài khoản"
   },
   "web.settings.delete_account.title": {
     "text": "Xóa tài khoản"
   },
   "web.settings.delete_account.description": {
-    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn"
+    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn"
+    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu"
   },
   "web.settings.security.security_score": {
     "text": "Điểm bảo mật"
   },
   "web.settings.security.score_description": {
-    "text": "Tình trạng bảo mật tài khoản tổng thể của bạn"
+    "text": "Sức khỏe bảo mật tổng thể của tài khoản"
   },
   "web.settings.security.excellent": {
     "text": "Xuất sắc"
@@ -276,16 +276,16 @@
     "text": "Tốt"
   },
   "web.settings.security.fair": {
-    "text": "Khá"
+    "text": "Tạm được"
   },
   "web.settings.security.weak": {
     "text": "Yếu"
   },
   "web.settings.security.improve_security": {
-    "text": "Cải thiện bảo mật của bạn"
+    "text": "Cải thiện bảo mật"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Bật xác thực hai yếu tố để bảo vệ mạnh mẽ hơn"
+    "text": "Bật xác thực hai yếu tố để bảo vệ mạnh hơn"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Tạo mã khôi phục làm bản sao lưu"
@@ -294,7 +294,7 @@
     "text": "Đã cấu hình"
   },
   "web.settings.security.change": {
-    "text": "Thay đổi"
+    "text": "Đổi"
   },
   "web.settings.security.manage": {
     "text": "Quản lý"
@@ -309,19 +309,19 @@
     "text": "Chưa tạo mã"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} phiên hoạt động"
+    "text": "{0} phiên hoạt động | {0} phiên hoạt động"
   },
   "web.settings.security.best_practices": {
     "text": "Thực hành bảo mật tốt nhất"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Sử dụng mật khẩu mạnh và duy nhất cho tài khoản của bạn"
+    "text": "Sử dụng mật khẩu mạnh, độc nhất cho tài khoản"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Bật xác thực hai yếu tố để bảo vệ bổ sung"
+    "text": "Bật xác thực hai yếu tố để bảo vệ thêm"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Lưu mã khôi phục của bạn ở vị trí an toàn"
+    "text": "Lưu mã khôi phục ở vị trí an toàn"
   },
   "web.settings.security.review_sessions_regularly": {
     "text": "Xem xét và thu hồi các phiên không sử dụng thường xuyên"
@@ -345,7 +345,7 @@
     "text": "Tìm hiểu cách tích hợp Onetime Secret vào ứng dụng của bạn"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "Tài liệu tham khảo REST API"
+    "text": "Tham khảo REST API"
   },
   "web.settings.api.complete_api_documentation": {
     "text": "Tài liệu API đầy đủ và các endpoint"
@@ -360,31 +360,31 @@
     "text": "Thực hành bảo mật tốt nhất"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Không bao giờ commit khóa API vào quản lý phiên bản"
+    "text": "Không bao giờ commit khóa API vào version control"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Sử dụng biến môi trường để lưu trữ khóa API"
+    "text": "Sử dụng biến môi trường để lưu khóa API"
   },
   "web.settings.api.rotate_keys_regularly": {
     "text": "Xoay khóa API thường xuyên để bảo mật"
   },
   "web.settings.api.use_https_only": {
-    "text": "Luôn sử dụng HTTPS khi thực hiện yêu cầu API"
+    "text": "Luôn sử dụng HTTPS khi gọi API"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Giám sát việc sử dụng API của bạn và thiết lập cảnh báo"
+    "text": "Giám sát mức sử dụng API và thiết lập cảnh báo"
   },
   "web.settings.api.important_notice": {
     "text": "Thông báo quan trọng"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Tạo lại khóa API của bạn sẽ làm vô hiệu khóa hiện tại. Cập nhật tất cả ứng dụng sử dụng khóa cũ."
+    "text": "Tạo lại khóa API sẽ vô hiệu hóa khóa hiện tại. Cập nhật tất cả ứng dụng đang sử dụng khóa cũ."
   },
   "web.settings.privacy.title": {
     "text": "Cài đặt quyền riêng tư"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Quản lý tùy chọn quyền riêng tư của bạn"
+    "text": "Quản lý tùy chọn quyền riêng tư"
   },
   "web.settings.privacy.your_privacy": {
     "text": "Quyền riêng tư của bạn"
@@ -393,13 +393,13 @@
     "text": "Không thể thương lượng"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "Không phải là cài đặt"
+    "text": "Không phải cài đặt"
   },
   "web.settings.privacy.no_analytics_statement": {
     "text": "Không phân tích. Không theo dõi. Chấm hết."
   },
   "web.settings.privacy.explanation": {
-    "text": "Đây không phải là cài đặt vì không có gì để bật hoặc tắt. Quyền riêng tư của bạn được tích hợp vào cách chúng tôi hoạt động."
+    "text": "Đây không phải cài đặt vì không có gì để bật hoặc tắt. Quyền riêng tư của bạn được tích hợp vào cách chúng tôi hoạt động."
   },
   "web.settings.notifications.title": {
     "text": "Cài đặt thông báo"
@@ -411,19 +411,19 @@
     "text": "Không thể cập nhật tùy chọn thông báo. Vui lòng thử lại."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Thông báo khi bí mật được xem"
+    "text": "Thông báo hiển thị bí mật"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Nhận email khi ai đó xem bí mật của bạn"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Bạn sẽ nhận thông báo mỗi khi người nhận xem một trong các bí mật của bạn"
+    "text": "Bạn sẽ được thông báo mỗi khi người nhận hiển thị một trong các bí mật của bạn"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Email thông báo chỉ bao gồm dấu thời gian và ID bí mật. Thông tin về người xem không bao giờ được bao gồm."
+    "text": "Email thông báo chỉ bao gồm thời gian và ID bí mật. Thông tin người xem không bao giờ được bao gồm."
   },
   "web.settings.caution.title": {
-    "text": "Vùng cân nhắc cẩn thận"
+    "text": "Vùng cần cân nhắc kỹ"
   },
   "web.settings.caution.description": {
     "text": "Cài đặt nâng cao và quản lý dữ liệu"
@@ -432,10 +432,10 @@
     "text": "Xuất dữ liệu"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Xuất dữ liệu tài khoản của bạn"
+    "text": "Xuất dữ liệu tài khoản"
   },
   "web.settings.caution.export_description": {
-    "text": "Yêu cầu bản sao đầy đủ dữ liệu tài khoản của bạn ở định dạng máy có thể đọc"
+    "text": "Yêu cầu bản sao đầy đủ dữ liệu tài khoản ở định dạng máy đọc được"
   },
   "web.settings.caution.request_data_export": {
     "text": "Yêu cầu xuất dữ liệu"
@@ -447,18 +447,33 @@
     "text": "Xuất được xử lý trong vòng 24 giờ và gửi đến địa chỉ email của bạn"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Xóa tài khoản của bạn sẽ:"
+    "text": "Xóa tài khoản sẽ:"
   },
   "web.settings.caution.deletion_warning_secrets": {
     "text": "Xóa vĩnh viễn tất cả bí mật của bạn"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Xóa tất cả siêu dữ liệu và lịch sử bí mật"
+    "text": "Xóa tất cả metadata và lịch sử bí mật"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "Vô hiệu hóa tất cả khóa API"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Hành động này không thể hoàn tác"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Đang xóa..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Quay lại bảng điều khiển"
+  },
+  "web.settings.sections.account": {
+    "text": "Tài khoản"
+  },
+  "web.settings.sections.billing": {
+    "text": "Thanh toán"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Nâng cao"
   }
 }

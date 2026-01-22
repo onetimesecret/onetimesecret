@@ -9,7 +9,7 @@
     "text": "Sử dụng cài đặt"
   },
   "web.branding.font_family": {
-    "text": "Phông chữ"
+    "text": "Họ phông chữ"
   },
   "web.branding.corner_style": {
     "text": "Kiểu góc"
@@ -42,7 +42,7 @@
     "text": "{0}/500 ký tự"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Sử dụng điện thoại của bạn để quét mã QR"
+    "text": "Sử dụng điện thoại để quét mã QR"
   },
   "web.branding.example_post_reveal_instructions": {
     "text": "Liên hệ onboarding{'@'}example.com nếu có câu hỏi"
@@ -54,10 +54,10 @@
     "text": "Hướng dẫn này sẽ được hiển thị cho người nhận sau khi họ xem bí mật"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Hướng dẫn trước khi xem"
+    "text": "Hướng dẫn trước khi hiển thị"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Hướng dẫn sau khi xem"
+    "text": "Hướng dẫn sau khi hiển thị"
   },
   "web.branding.instructions": {
     "text": "Hướng dẫn"
@@ -99,16 +99,16 @@
     "text": "Không thể tải cài đặt thương hiệu"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\""
+    "text": "Đây là bản xem trước tương tác cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (khuyến nghị tối thiểu 128x128 pixel, tối đa 1MB) - Thử xem trước bằng nút \"Xem bí mật\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\""
   },
   "web.branding.default_logo_icon": {
-    "text": "Chữ Hán Nhật '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'"
+    "text": "Chữ Hán '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Được hỗ trợ bởi Onetime Secret"
+    "text": "Cung cấp bởi Onetime Secret"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}"

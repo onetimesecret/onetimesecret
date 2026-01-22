@@ -24,7 +24,7 @@
     "text": "Cài đặt"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Chỉnh sửa cài đặt cấu hình hệ thống. Thay đổi sẽ có hiệu lực ngay sau khi lưu."
+    "text": "Chỉnh sửa cài đặt cấu hình hệ thống. Thay đổi có hiệu lực ngay sau khi lưu."
   },
   "web.colonel.invalidJson": {
     "text": "JSON không hợp lệ trong phần {section}"
@@ -33,16 +33,16 @@
     "text": "Lỗi xác thực"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Lỗi tải cấu hình"
+    "text": "Lỗi khi tải cấu hình"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Lỗi lưu cấu hình"
+    "text": "Lỗi khi lưu cấu hình"
   },
   "web.colonel.configSaved": {
     "text": "Đã lưu cấu hình thành công"
   },
   "web.colonel.mustBeObject": {
-    "text": "Cấu hình phải là một đối tượng JSON"
+    "text": "Cấu hình phải là đối tượng JSON"
   },
   "web.colonel.multipleSectionsInvalid": {
     "text": "Nhiều phần có lỗi xác thực: {sections}"
@@ -60,7 +60,7 @@
     "text": "Lưu tất cả"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Có thay đổi chưa lưu"
+    "text": "Thay đổi chưa lưu"
   },
   "web.colonel.schemaValidationError": {
     "text": "Lỗi xác thực schema: {message} ({path})"
@@ -75,7 +75,7 @@
     "text": "Bảng điều khiển"
   },
   "web.colonel.admin": {
-    "text": "Admin"
+    "text": "Quản trị"
   },
   "web.colonel.activity": {
     "text": "Hoạt động"
@@ -87,7 +87,7 @@
     "text": "Người dùng"
   },
   "web.colonel.usersDescription": {
-    "text": "Quản lý tài khoản người dùng và quyền hạn"
+    "text": "Quản lý tài khoản và quyền người dùng"
   },
   "web.colonel.domains": {
     "text": "Tên miền"
@@ -99,13 +99,13 @@
     "text": "Hệ thống"
   },
   "web.colonel.welcome": {
-    "text": "Chào mừng đến với Colonel"
+    "text": "Chào mừng đến Colonel"
   },
   "web.colonel.welcomeDesc": {
     "text": "Bảng điều khiển quản trị cho OneTimeSecret"
   },
   "web.colonel.quickActions": {
-    "text": "Thao tác nhanh"
+    "text": "Hành động nhanh"
   },
   "web.colonel.recentActivity": {
     "text": "Hoạt động gần đây"
@@ -114,10 +114,10 @@
     "text": "Xem tất cả"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Dữ liệu hoạt động sẽ được hiển thị tại đây"
+    "text": "Dữ liệu hoạt động sẽ hiển thị ở đây"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Tổng số bí mật"
+    "text": "Tổng bí mật"
   },
   "web.colonel.stats.activeUsers": {
     "text": "Người dùng hoạt động"
@@ -132,22 +132,22 @@
     "text": "Bí mật đã chia sẻ"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Tổng số khách hàng"
+    "text": "Tổng người dùng"
   },
   "web.colonel.stats.emailsSent": {
     "text": "Email đã gửi"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Tình trạng hệ thống"
+    "text": "Sức khỏe hệ thống"
   },
   "web.colonel.stats.healthy": {
-    "text": "Tốt"
+    "text": "Khỏe mạnh"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Xem hoạt động"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Giám sát hoạt động và sử dụng hệ thống"
+    "text": "Giám sát hoạt động và mức sử dụng hệ thống"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Quản lý tài khoản"
@@ -180,7 +180,7 @@
     "text": "Đang chờ"
   },
   "web.colonel.consumers": {
-    "text": "Người tiêu thụ"
+    "text": "Người tiêu dùng"
   },
   "web.colonel.processingRate": {
     "text": "Tốc độ/giây"
@@ -189,7 +189,7 @@
     "text": "Trạng thái kết nối"
   },
   "web.colonel.workerHealth": {
-    "text": "Tình trạng worker"
+    "text": "Trạng thái worker"
   },
   "web.colonel.activeWorkers": {
     "text": "worker đang hoạt động"
@@ -201,19 +201,19 @@
     "text": "Đang tải dữ liệu hàng đợi..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Chế độ thử nghiệm gói"
+    "text": "Chế độ gói thử nghiệm"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Đang thử nghiệm với gói {planName}"
+    "text": "Đang thử nghiệm như {planName}"
   },
   "web.colonel.clickToReset": {
-    "text": "Nhấp để đặt lại"
+    "text": "Nhấn để đặt lại"
   },
   "web.colonel.selectTestPlan": {
     "text": "Chọn gói để thử nghiệm"
   },
   "web.colonel.resetToActual": {
-    "text": "Đặt lại về gói thực"
+    "text": "Đặt lại về gói thực tế"
   },
   "web.colonel.currentActualPlan": {
     "text": "Gói hiện tại"
@@ -222,16 +222,16 @@
     "text": "Gói khả dụng"
   },
   "web.colonel.activateTestMode": {
-    "text": "Kích hoạt chế độ thử nghiệm"
+    "text": "Bật chế độ thử nghiệm"
   },
   "web.colonel.testModeActive": {
-    "text": "Chế độ thử nghiệm đang hoạt động"
+    "text": "Chế độ thử nghiệm đang bật"
   },
   "web.colonel.testModeDescription": {
-    "text": "Thử nghiệm ứng dụng của bạn với các quyền lợi gói khác nhau. Thay đổi là tạm thời và chỉ ảnh hưởng đến phiên của bạn."
+    "text": "Thử nghiệm ứng dụng với các quyền gói khác nhau. Thay đổi là tạm thời và chỉ ảnh hưởng đến phiên của bạn."
   },
   "web.colonel.warningTestMode": {
-    "text": "Bạn đang thử nghiệm với quyền lợi gói {planName} (ghi đè phiên tạm thời)."
+    "text": "Bạn đang thử nghiệm với quyền {planName} (ghi đè phiên tạm thời)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Đang gửi..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "IP bị cấm"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Quản lý danh sách cấm IP"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Tên miền tùy chỉnh"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Quản lý tên miền tùy chỉnh và thương hiệu"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Gửi phản hồi"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Đang gửi..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Tổ chức"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Giám sát sức khỏe đồng bộ thanh toán tổ chức"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Giám sát sức khỏe thanh toán"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} tổ chức"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} cần chú ý"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} không xác định"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Không tìm thấy tổ chức"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Điều tra"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Đang kiểm tra..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Tài khoản"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Thanh toán"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Trạng thái"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Sử dụng"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Đã tạo"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Chi tiết"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Chủ sở hữu"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Gói"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Thành viên"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Tên miền"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Đăng ký"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Không gian làm việc mặc định"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Có thanh toán"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Khách hàng"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Đăng ký"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID tổ chức"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Trạng thái đồng bộ"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Đăng ký"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Tất cả"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Có thể đã cũ"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Không xác định"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Đã đồng bộ"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Hoạt động"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Dùng thử"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Quá hạn"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Đã hủy"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Điều tra thất bại"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Kết quả điều tra"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Đã xác minh đồng bộ"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Phát hiện không khớp"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Không thể so sánh"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Chi tiết đăng ký Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Trạng thái"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Sản phẩm"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Gói đã xác định"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID giá"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Cục bộ"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Quản trị thanh toán tổ chức"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Quản lý tổ chức và giám sát sức khỏe đồng bộ thanh toán ({total} tổng)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Không tìm thấy tổ chức"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "có thể đã cũ"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Đã cũ"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Không xác định"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "hoạt động"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} thành viên"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} tên miền"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Bí mật"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Xem và quản lý tất cả bí mật"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Hệ thống"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Cài đặt hệ thống, cơ sở dữ liệu và cấu hình"
+  },
+  "web.colonel.titles.index": {
+    "text": "Quản trị"
+  },
+  "web.colonel.titles.users": {
+    "text": "Quản lý người dùng"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Quản lý bí mật"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Tên miền tùy chỉnh"
+  },
+  "web.colonel.titles.system": {
+    "text": "Hệ thống"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Cơ sở dữ liệu chính"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Cơ sở dữ liệu xác thực"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "IP bị cấm"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Xuất sử dụng"
+  },
+  "web.colonel.titles.info": {
+    "text": "Thông tin hệ thống"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Tổ chức"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Xuất sử dụng"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Xuất dữ liệu sử dụng và thống kê"
   }
 }

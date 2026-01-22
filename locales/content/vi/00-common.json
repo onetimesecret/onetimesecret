@@ -8,7 +8,7 @@
     "text": "Liên kết an toàn chỉ hoạt động một lần"
   },
   "web.COMMON.powered_by": {
-    "text": "Được hỗ trợ bởi"
+    "text": "Cung cấp bởi"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/vi"
@@ -29,7 +29,7 @@
     "text": "Tên miền tùy chỉnh"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Tăng cường kết nối và xây dựng lòng tin với liên kết bí mật mang thương hiệu của bạn."
+    "text": "Tăng cường kết nối và xây dựng lòng tin với liên kết bí mật mang thương hiệu riêng của bạn."
   },
   "web.COMMON.get_started_button": {
     "text": "Bắt đầu"
@@ -50,7 +50,7 @@
     "text": "Đang xử lý..."
   },
   "web.COMMON.description": {
-    "text": "Giữ thông tin nhạy cảm ra khỏi nhật ký trò chuyện và email của bạn. Chia sẻ liên kết bí mật chỉ khả dụng một lần."
+    "text": "Giữ thông tin nhạy cảm khỏi nhật ký chat và email. Chia sẻ liên kết bí mật chỉ khả dụng một lần."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Cụm mật khẩu không đúng"
@@ -95,7 +95,7 @@
     "text": "Đăng xuất"
   },
   "web.COMMON.secret": {
-    "text": "Bí mật"
+    "text": "Bí mật | Bí mật"
   },
   "web.COMMON.recent": {
     "text": "Gần đây"
@@ -116,28 +116,28 @@
     "text": "Xóa vĩnh viễn bí mật này"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được đọc (nhấp để xác nhận)"
+    "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được đọc (nhấn để xác nhận)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Xóa vĩnh viễn bí mật là không thể hoàn tác"
+    "text": "Xóa vĩnh viễn bí mật là hành động không thể hoàn tác"
   },
   "web.COMMON.msg_check_email": {
     "text": "Kiểm tra email của bạn"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Nhấp để hiển thị →"
+    "text": "Nhấn để hiển thị →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Tiếp tục để xác minh tài khoản của bạn:"
+    "text": "Tiếp tục để xác minh tài khoản:"
   },
   "web.COMMON.error_secret": {
-    "text": "Bạn chưa cung cấp gì để chia sẻ"
+    "text": "Bạn chưa cung cấp nội dung để chia sẻ"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Kiểm tra lại cụm mật khẩu đó"
+    "text": "Kiểm tra lại cụm mật khẩu"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Nhập cụm mật khẩu ở đây"
+    "text": "Nhập cụm mật khẩu tại đây"
   },
   "web.COMMON.view_secret": {
     "text": "Xem bí mật"
@@ -158,16 +158,16 @@
     "text": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Tin nhắn đã được cắt ngắn"
+    "text": "Nội dung đã bị cắt ngắn"
   },
   "web.COMMON.signup_for_more": {
     "text": "Đăng ký để có thêm"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Đăng nhập vào tài khoản của bạn"
+    "text": "Đăng nhập vào tài khoản"
   },
   "web.COMMON.sent_to": {
-    "text": "Đã gửi tới: "
+    "text": "Gửi đến:"
   },
   "web.COMMON.field_email": {
     "text": "Email"
@@ -218,13 +218,13 @@
     "text": "Gửi phản hồi"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Xác minh đã được gửi tới"
+    "text": "Đã gửi xác minh đến"
   },
   "web.COMMON.autoverified_success": {
     "text": "Tài khoản đã được tạo. Vui lòng đăng nhập."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Nếu tài khoản với email này tồn tại, bạn sẽ nhận được email xác minh."
+    "text": "Nếu tồn tại tài khoản với email này, bạn sẽ nhận được email xác minh."
   },
   "web.COMMON.burn_this_secret_aria": {
     "text": "Xóa vĩnh viễn bí mật này"
@@ -233,7 +233,7 @@
     "text": "Vui lòng xác nhận"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Bạn có chắc chắn muốn xóa vĩnh viễn bí mật này? Hành động này không thể hoàn tác."
+    "text": "Bạn có chắc muốn xóa vĩnh viễn bí mật này không? Hành động này không thể hoàn tác."
   },
   "web.COMMON.confirm_burn": {
     "text": "Có, xóa vĩnh viễn bí mật này"
@@ -242,13 +242,13 @@
     "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được nhận."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Để bảo mật, chia sẻ liên kết này riêng biệt với các chi tiết khác."
+    "text": "Để bảo mật, hãy chia sẻ liên kết này riêng biệt với các thông tin khác."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Đã sao chép vào clipboard"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Tạo yêu cầu nhận"
+    "text": "Tạo liên kết nhận"
   },
   "web.COMMON.faq_title": {
     "text": "Câu hỏi thường gặp"
@@ -260,7 +260,7 @@
     "text": "Không thể xác minh tài khoản khi bạn đã đăng nhập"
   },
   "web.COMMON.show_password": {
-    "text": "Hiện mật khẩu"
+    "text": "Hiển thị mật khẩu"
   },
   "web.COMMON.hide_password": {
     "text": "Ẩn mật khẩu"
@@ -269,7 +269,7 @@
     "text": "Mật khẩu phải có ít nhất 8 ký tự"
   },
   "web.COMMON.password_requirements": {
-    "text": "Mật khẩu phải dài ít nhất 8 ký tự"
+    "text": "Mật khẩu phải có ít nhất 8 ký tự"
   },
   "web.COMMON.passwords_do_not_match": {
     "text": "Mật khẩu không khớp"
@@ -281,7 +281,7 @@
     "text": "Đang xử lý yêu cầu của bạn"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Giữ tôi đăng nhập trong 30 ngày"
+    "text": "Giữ đăng nhập trong 30 ngày"
   },
   "web.COMMON.redirecting": {
     "text": "Đang chuyển hướng..."
@@ -290,13 +290,13 @@
     "text": "Tiếp tục"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Bạn có chắc chắn?"
+    "text": "Bạn có chắc không?"
   },
   "web.COMMON.danger_zone": {
     "text": "Vùng nguy hiểm"
   },
   "web.COMMON.caution_zone": {
-    "text": "Vùng cân nhắc cẩn thận"
+    "text": "Vùng cần cân nhắc kỹ"
   },
   "web.COMMON.user_menu": {
     "text": "Menu người dùng"
@@ -317,13 +317,13 @@
     "text": "Đang lưu..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Đang thêm..."
+    "text": "Đang thêm"
   },
   "web.COMMON.e_g_example": {
-    "text": "ví dụ:"
+    "text": "ví dụ"
   },
   "web.COMMON.example_placeholder": {
-    "text": "ví dụ: {example}"
+    "text": "ví dụ {example}"
   },
   "web.COMMON.status": {
     "text": "Trạng thái"
@@ -368,7 +368,7 @@
     "text": "Chung"
   },
   "web.COMMON.note": {
-    "text": "Lưu ý"
+    "text": "Ghi chú"
   },
   "web.COMMON.monthly": {
     "text": "Hàng tháng"
@@ -395,7 +395,7 @@
     "text": "Địa chỉ email"
   },
   "web.COMMON.switch": {
-    "text": "chuyển"
+    "text": "chuyển đổi"
   },
   "web.COMMON.features": {
     "text": "Tính năng"
@@ -419,7 +419,7 @@
     "text": "Khác"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(chiều rộng tối thiểu: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -458,13 +458,13 @@
     "text": "Khá tốt"
   },
   "web.COMMON.fair": {
-    "text": "Khá"
+    "text": "Tạm được"
   },
   "web.COMMON.meh": {
     "text": "Tạm được"
   },
   "web.COMMON.not_great": {
-    "text": "Chưa tốt"
+    "text": "Không tốt lắm"
   },
   "web.COMMON.open_options": {
     "text": "Mở tùy chọn"
@@ -482,7 +482,7 @@
     "text": "Đã sao chép bí mật vào clipboard"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Kiểm tra lại cụm mật khẩu đó"
+    "text": "Kiểm tra lại cụm mật khẩu"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "Nhấn nút sao chép bên dưới."
@@ -497,7 +497,7 @@
     "text": "Hiển thị thêm"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Ẩn bớt"
+    "text": "Thu gọn"
   },
   "web.LABELS.enable": {
     "text": "Bật"
@@ -512,7 +512,7 @@
     "text": "Dòng thời gian"
   },
   "web.LABELS.lifespan": {
-    "text": "Thời gian tồn tại"
+    "text": "Thời hạn"
   },
   "web.LABELS.expiration_time": {
     "text": "Thời gian hết hạn"
@@ -563,7 +563,7 @@
     "text": "Sao chép vào clipboard"
   },
   "web.LABELS.receipts": {
-    "text": "Biên nhận"
+    "text": "Biên lai"
   },
   "web.LABELS.share": {
     "text": "Chia sẻ"
@@ -593,7 +593,7 @@
     "text": "lần xem"
   },
   "web.LABELS.view_progress": {
-    "text": "Tiến độ xem"
+    "text": "Xem tiến trình"
   },
   "web.LABELS.help_section": {
     "text": "Phần trợ giúp"
@@ -620,7 +620,7 @@
     "text": "Tải lại"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Liên kết bí mật được tạo trong phiên này"
+    "text": "Liên kết bí mật đã tạo trong phiên này"
   },
   "web.LABELS.create_link_short": {
     "text": "Tạo liên kết"
@@ -650,7 +650,7 @@
     "text": "Chưa đọc"
   },
   "web.STATUS.viewed": {
-    "text": "Đã mở liên kết"
+    "text": "Liên kết đã mở"
   },
   "web.STATUS.received": {
     "text": "Đã nhận"
@@ -674,7 +674,7 @@
     "text": "Đã hết hạn"
   },
   "web.STATUS.orphaned": {
-    "text": "Đã mồ côi"
+    "text": "Bị bỏ rơi"
   },
   "web.STATUS.secured": {
     "text": "Đã bảo mật"
@@ -695,22 +695,22 @@
     "text": "Liên kết bí mật đã được tạo và chưa được xem"
   },
   "web.STATUS.viewed_description": {
-    "text": "Liên kết bí mật đã được mở và sẵn sàng xem"
+    "text": "Liên kết bí mật đã được mở và sẵn sàng để xem"
   },
   "web.STATUS.received_description": {
-    "text": "Bí mật đã được tiết lộ cho người nhận"
+    "text": "Bí mật đã được hiển thị cho người nhận"
   },
   "web.STATUS.burned_description": {
     "text": "Bí mật đã được xóa vĩnh viễn thủ công trước khi được xem"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Bí mật đã được hủy vĩnh viễn"
+    "text": "Bí mật đã bị hủy vĩnh viễn"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "Bí mật sẽ sớm hết hạn"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Bí mật đã bị mồ côi và sẽ sớm bị hủy"
+    "text": "Bí mật đã bị bỏ rơi và sẽ sớm bị hủy"
   },
   "web.STATUS.expired_description": {
     "text": "Bí mật đã hết hạn trước khi được xem"
@@ -722,7 +722,7 @@
     "text": "Đã gửi"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS không chính xác"
+    "text": "DNS không đúng"
   },
   "web.STATUS.active": {
     "text": "Hoạt động"
@@ -743,40 +743,40 @@
     "text": "{count} {unit}"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "ngày"
+    "text": "ngày | ngày"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "giờ"
+    "text": "giờ | giờ"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "phút"
+    "text": "phút | phút"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "giây"
+    "text": "giây | giây"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "còn {count} {unit}"
+    "text": "Còn {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "ngày"
+    "text": "còn ngày | còn ngày"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "giờ"
+    "text": "còn giờ | còn giờ"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "phút"
+    "text": "còn phút | còn phút"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "giây"
+    "text": "còn giây | còn giây"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "giới hạn {count} lượt xem"
+    "text": "Giới hạn {count} lượt xem"
   },
   "web.UNITS.days_remaining": {
     "text": "Còn {count} ngày"
@@ -827,7 +827,7 @@
     "text": "Chi tiết bí mật"
   },
   "web.TITLES.receipt": {
-    "text": "Biên nhận bí mật"
+    "text": "Biên lai bí mật"
   },
   "web.TITLES.burn_secret": {
     "text": "Xóa vĩnh viễn bí mật"
@@ -848,19 +848,19 @@
     "text": "Xác minh tên miền"
   },
   "web.TITLES.domain_brand": {
-    "text": "Thương hiệu tên miền"
+    "text": "Tên miền thương hiệu"
   },
   "web.TITLES.account": {
-    "text": "Cài đặt tài khoản"
+    "text": "Tài khoản"
   },
   "web.TITLES.data_region": {
-    "text": "Khu vực dữ liệu"
+    "text": "Vùng dữ liệu"
   },
   "web.TITLES.current_region": {
-    "text": "Khu vực hiện tại"
+    "text": "Vùng hiện tại"
   },
   "web.TITLES.available_regions": {
-    "text": "Khu vực khả dụng"
+    "text": "Vùng khả dụng"
   },
   "web.TITLES.why_data_sovereignty": {
     "text": "Tại sao chủ quyền dữ liệu quan trọng"
@@ -878,13 +878,13 @@
     "text": "Thông báo"
   },
   "web.TITLES.change_email": {
-    "text": "Thay đổi email"
+    "text": "Đổi email"
   },
   "web.TITLES.security_overview": {
     "text": "Bảo mật"
   },
   "web.TITLES.change_password": {
-    "text": "Thay đổi mật khẩu"
+    "text": "Đổi mật khẩu"
   },
   "web.TITLES.mfa_settings": {
     "text": "Xác thực hai yếu tố"
@@ -914,7 +914,7 @@
     "text": "Cài đặt tổ chức"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Con trỏ hiện đang ở vùng văn bản chính"
+    "text": "Tiêu điểm hiện đang ở vùng văn bản chính"
   },
   "web.INSTRUCTION.sharing_instructions": {
     "text": "Hướng dẫn chia sẻ"
@@ -929,18 +929,78 @@
     "text": "Sử dụng kênh an toàn khác để chia sẻ thông tin nhạy cảm"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Luôn xác minh bạn đang ở trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, kiểm tra tên miền khu vực trước khi tạo liên kết mới."
+    "text": "Luôn xác minh bạn đang ở trên trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới."
   },
   "web.STATUS.previewed": {
-    "text": "Đã mở liên kết"
+    "text": "Đã xem trước"
   },
   "web.STATUS.revealed": {
-    "text": "Đã tiết lộ"
+    "text": "Đã hiển thị"
   },
   "web.STATUS.previewed_description": {
-    "text": "Liên kết bí mật đã được mở và sẵn sàng tiết lộ"
+    "text": "Liên kết bí mật đã được mở và sẵn sàng để hiển thị"
   },
   "web.STATUS.revealed_description": {
-    "text": "Nội dung bí mật đã được tiết lộ cho người nhận"
+    "text": "Nội dung bí mật đã được hiển thị cho người nhận"
+  },
+  "web.COMMON.not_set": {
+    "text": "Chưa đặt"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Chỉnh sửa"
+  },
+  "web.COMMON.word_save": {
+    "text": "Lưu"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Hết hạn sau"
+  },
+  "web.LABELS.filter": {
+    "text": "Lọc"
+  },
+  "web.LABELS.clear": {
+    "text": "Xóa"
+  },
+  "web.LABELS.add_note": {
+    "text": "Thêm ghi chú..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Sửa ghi chú"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Thêm ghi nhớ..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Sửa ghi nhớ"
+  },
+  "web.TITLES.help": {
+    "text": "Trợ giúp"
+  },
+  "web.TITLES.pricing": {
+    "text": "Bảng giá"
+  },
+  "web.pricing.title": {
+    "text": "Bảng giá đơn giản, minh bạch"
+  },
+  "web.pricing.subtitle": {
+    "text": "Chọn gói phù hợp với nhu cầu của bạn. Tất cả các gói đều bao gồm chia sẻ bí mật không giới hạn và thiết kế ưu tiên quyền riêng tư."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Bắt đầu miễn phí"
+  },
+  "web.pricing.start_trial": {
+    "text": "Bắt đầu"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Đã có tài khoản?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Đăng nhập"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Đề xuất cho bạn"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Tạo và chia sẻ bí mật với các tính năng cơ bản. Không cần thẻ tín dụng."
   }
 }

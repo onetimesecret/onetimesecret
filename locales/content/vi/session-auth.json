@@ -12,13 +12,13 @@
     "text": "Đăng nhập"
   },
   "web.login.enter_your_credentials": {
-    "text": "Nhập thông tin đăng nhập của bạn"
+    "text": "Nhập thông tin đăng nhập"
   },
   "web.login.remember_me": {
-    "text": "Ghi nhớ đăng nhập"
+    "text": "Ghi nhớ tôi"
   },
   "web.signup.create_your_account": {
-    "text": "Tạo tài khoản của bạn"
+    "text": "Tạo tài khoản"
   },
   "web.signup.alternate_prefix": {
     "text": "Đã có tài khoản?"
@@ -36,7 +36,7 @@
     "text": "Email"
   },
   "web.auth.verify.title": {
-    "text": "Xác minh tài khoản của bạn"
+    "text": "Xác minh tài khoản"
   },
   "web.auth.verify.success": {
     "text": "Tài khoản của bạn đã được xác minh thành công"
@@ -54,7 +54,7 @@
     "text": "Không thể xác minh tài khoản. Vui lòng thử lại hoặc liên hệ hỗ trợ."
   },
   "web.auth.verify.check_email": {
-    "text": "Vui lòng kiểm tra email của bạn để lấy liên kết xác minh"
+    "text": "Vui lòng kiểm tra email để nhận liên kết xác minh"
   },
   "web.auth.verify.error": {
     "text": "Xác minh tài khoản thất bại. Vui lòng kiểm tra liên kết xác minh hoặc yêu cầu liên kết mới."
@@ -66,7 +66,7 @@
     "text": "Tôi nên làm gì?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Kiểm tra email của bạn để lấy liên kết xác minh gần đây nhất"
+    "text": "Kiểm tra email để nhận liên kết xác minh mới nhất"
   },
   "web.auth.verify.check_spam": {
     "text": "Kiểm tra thư mục spam/rác nếu bạn không tìm thấy email"
@@ -78,13 +78,13 @@
     "text": "Yêu cầu liên kết xác minh"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Vui lòng sử dụng liên kết xác minh được gửi đến địa chỉ email của bạn để xác minh tài khoản."
+    "text": "Vui lòng sử dụng liên kết xác minh đã gửi đến địa chỉ email của bạn để xác minh tài khoản."
   },
   "web.auth.verify.create_new_account": {
     "text": "Tạo tài khoản mới"
   },
   "web.auth.change_password.title": {
-    "text": "Thay đổi mật khẩu"
+    "text": "Đổi mật khẩu"
   },
   "web.auth.change_password.current_password": {
     "text": "Mật khẩu hiện tại"
@@ -99,7 +99,7 @@
     "text": "Mật khẩu của bạn đã được thay đổi thành công"
   },
   "web.auth.change_password.error": {
-    "text": "Thay đổi mật khẩu thất bại. Vui lòng xác minh mật khẩu hiện tại và thử lại."
+    "text": "Đổi mật khẩu thất bại. Vui lòng xác minh mật khẩu hiện tại và thử lại."
   },
   "web.auth.close_account.title": {
     "text": "Đóng tài khoản"
@@ -111,7 +111,7 @@
     "text": "Tôi hiểu hành động này là vĩnh viễn"
   },
   "web.auth.close_account.password": {
-    "text": "Nhập mật khẩu của bạn để xác nhận"
+    "text": "Nhập mật khẩu để xác nhận"
   },
   "web.auth.close_account.button": {
     "text": "Đóng tài khoản vĩnh viễn"
@@ -123,7 +123,7 @@
     "text": "Yêu cầu đặt lại mật khẩu"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Nhập địa chỉ email của bạn bên dưới và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu"
+    "text": "Nhập địa chỉ email bên dưới và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu"
   },
   "web.auth.password_reset_request.button": {
     "text": "Gửi liên kết đặt lại"
@@ -132,10 +132,10 @@
     "text": "Chọn mật khẩu mới"
   },
   "web.auth.password_reset.description": {
-    "text": "Vui lòng nhập mật khẩu mới của bạn bên dưới. Đảm bảo mật khẩu mạnh và duy nhất để bảo vệ tài khoản của bạn."
+    "text": "Vui lòng nhập mật khẩu mới bên dưới. Đảm bảo nó mạnh và độc nhất để bảo vệ tài khoản."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Email đã được gửi cho bạn với liên kết để đặt lại mật khẩu cho tài khoản của bạn"
+    "text": "Một email đã được gửi đến bạn với liên kết để đặt lại mật khẩu cho tài khoản"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Tôi đồng ý với"
@@ -153,7 +153,7 @@
     "text": "Email đã xác minh"
   },
   "web.auth.account.region": {
-    "text": "Khu vực"
+    "text": "Vùng"
   },
   "web.auth.account.not_verified": {
     "text": "Email chưa xác minh"
@@ -186,9 +186,84 @@
     "text": "Quản lý phiên hoạt động"
   },
   "web.auth.account.change_password": {
-    "text": "Thay đổi mật khẩu"
+    "text": "Đổi mật khẩu"
   },
   "web.auth.account.close_account": {
     "text": "Đóng tài khoản"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Luồng xác minh email sau khi đăng ký"
+  },
+  "web.help.title": {
+    "text": "Trợ giúp & Hỗ trợ"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Khắc phục sự cố đăng nhập"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Liên kết ma thuật không đến?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Kiểm tra thư mục spam hoặc rác"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Xác minh bạn đã nhập đúng địa chỉ email"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Đợi vài phút - email đôi khi có thể bị chậm"
+  },
+  "web.help.try_again": {
+    "text": "Thử yêu cầu liên kết mới nếu đã quá 10 phút"
+  },
+  "web.help.forgot_password": {
+    "text": "Quên mật khẩu?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Sử dụng tùy chọn Liên kết ma thuật để đăng nhập mà không cần mật khẩu. Sau khi đăng nhập, bạn có thể đổi mật khẩu trong Cài đặt tài khoản."
+  },
+  "web.help.account_locked": {
+    "text": "Tài khoản bị khóa tạm thời?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Sau nhiều lần đăng nhập thất bại, tài khoản bị khóa tạm thời vì lý do bảo mật. Đợi 15 phút và thử lại, hoặc sử dụng Liên kết ma thuật để đăng nhập."
+  },
+  "web.help.still_need_help": {
+    "text": "Vẫn cần trợ giúp?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Nếu bạn vẫn gặp khó khăn, chúng tôi sẵn sàng giúp đỡ. Gửi tin nhắn cho chúng tôi và chúng tôi sẽ phản hồi sớm nhất có thể."
+  },
+  "web.help.contact_support": {
+    "text": "Liên hệ hỗ trợ"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Gửi liên kết đăng nhập"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Một liên kết an toàn sẽ được gửi đến hộp thư email của bạn."
+  },
+  "web.login.or_divider": {
+    "text": "hoặc"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Đăng nhập bằng mật khẩu"
+  },
+  "web.login.use_passwordless": {
+    "text": "Sử dụng đăng nhập không cần mật khẩu"
+  },
+  "web.login.create_account": {
+    "text": "Tạo tài khoản"
+  },
+  "web.login.return_home": {
+    "text": "Về trang chủ"
+  },
+  "web.login.tab_password": {
+    "text": "Mật khẩu"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Liên kết ma thuật"
+  },
+  "web.login.need_help": {
+    "text": "Cần trợ giúp?"
   }
 }

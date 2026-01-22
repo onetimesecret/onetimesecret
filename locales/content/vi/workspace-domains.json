@@ -9,16 +9,16 @@
     "text": "Tên miền này đã được đăng ký trong tổ chức của bạn"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Tên miền này đã được đăng ký cho một tổ chức khác. Vui lòng liên hệ bộ phận hỗ trợ nếu bạn cho rằng đây là lỗi."
+    "text": "Tên miền này đã được đăng ký cho tổ chức khác. Vui lòng liên hệ hỗ trợ nếu bạn cho rằng đây là lỗi."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Đã nhận quyền sở hữu tên miền và thêm vào tổ chức của bạn thành công"
+    "text": "Đã xác nhận tên miền thành công và thêm vào tổ chức của bạn"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Mặc định quyền riêng tư"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Đặt tùy chọn quyền riêng tư mặc định cho bí mật được tạo trong tên miền này. Các cài đặt này sẽ được điền sẵn khi tạo bí mật mới."
+    "text": "Đặt tùy chọn quyền riêng tư mặc định cho bí mật được tạo dưới tên miền này. Các cài đặt này sẽ được điền sẵn khi tạo bí mật mới."
   },
   "web.domains.privacy_defaults": {
     "text": "Mặc định quyền riêng tư"
@@ -27,10 +27,10 @@
     "text": "Biểu tượng mặc định quyền riêng tư"
   },
   "web.domains.default_ttl_label": {
-    "text": "Thời gian tồn tại mặc định"
+    "text": "Thời gian sống mặc định"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Bí mật sẽ có thể truy cập trong bao lâu theo mặc định"
+    "text": "Thời gian bí mật nên khả dụng theo mặc định"
   },
   "web.domains.passphrase_required_label": {
     "text": "Yêu cầu cụm mật khẩu"
@@ -66,7 +66,7 @@
     "text": "Tùy chỉnh"
   },
   "web.domains.edit_defaults": {
-    "text": "Chỉnh sửa mặc định"
+    "text": "Sửa mặc định"
   },
   "web.domains.ttl_short": {
     "text": "TTL"
@@ -141,7 +141,7 @@
     "text": "Trạng thái tên miền"
   },
   "web.domains.custom_domains_count": {
-    "text": "Số lượng tên miền tùy chỉnh"
+    "text": "Số tên miền tùy chỉnh"
   },
   "web.domains.custom_domain": {
     "text": "Tên miền tùy chỉnh"
@@ -171,7 +171,7 @@
     "text": "Bắt đầu bằng cách thêm tên miền tùy chỉnh."
   },
   "web.domains.no_domains_found": {
-    "text": "Không tìm thấy tên miền nào."
+    "text": "Không tìm thấy tên miền."
   },
   "web.domains.loading_domain_information": {
     "text": "Đang tải thông tin tên miền..."
@@ -195,7 +195,7 @@
     "text": "Trước khi chúng tôi có thể kích hoạt liên kết cho"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Lưu ý rằng đối với tên miền apex (ví dụ:"
+    "text": "Xin lưu ý rằng với tên miền gốc (ví dụ,"
   },
   "web.domains.verify_your_domain": {
     "text": "Xác minh tên miền của bạn"
@@ -204,7 +204,7 @@
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Tùy chỉnh thương hiệu tên miền của bạn"
+    "text": "Tùy chỉnh thương hiệu tên miền"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Có thể mất vài phút để chứng chỉ SSL của bạn có hiệu lực."
@@ -213,7 +213,7 @@
     "text": "Thay đổi DNS có thể mất ít nhất 60 giây -- hoặc tối đa 24 giờ -- để có hiệu lực."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Chờ lan truyền"
+    "text": "3. Đợi lan truyền"
   },
   "web.domains.value_2": {
     "text": "Giá trị"
@@ -222,7 +222,7 @@
     "text": "Giá trị"
   },
   "web.domains.host_1": {
-    "text": "Máy chủ"
+    "text": "Host"
   },
   "web.domains.type_2": {
     "text": "Loại"
@@ -237,7 +237,7 @@
     "text": "Giá trị"
   },
   "web.domains.host_0": {
-    "text": "Máy chủ"
+    "text": "Host"
   },
   "web.domains.type_0": {
     "text": "Loại"
@@ -274,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "Đã thêm tên miền thành công"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Được bảo vệ"
+  },
+  "web.domains.manage_domains": {
+    "text": "Quản lý tên miền"
+  },
+  "web.domains.global_defaults": {
+    "text": "Mặc định toàn cục"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Sửa cài đặt thời gian sống"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Sửa yêu cầu cụm mật khẩu"
+  },
+  "web.domains.edit_notify": {
+    "text": "Sửa cài đặt thông báo"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Cấu hình bản ghi DNS"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Sử dụng công cụ bên dưới để tự động phát hiện nhà cung cấp DNS và nhận hướng dẫn từng bước để cấu hình tên miền."
   }
 }

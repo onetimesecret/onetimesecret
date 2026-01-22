@@ -3,28 +3,28 @@
     "text": "Gửi bí mật"
   },
   "incoming.page_description": {
-    "text": "Chia sẻ thông tin nhạy cảm một cách an toàn với nhóm hỗ trợ của chúng tôi"
+    "text": "Chia sẻ thông tin nhạy cảm một cách an toàn với đội ngũ hỗ trợ của chúng tôi"
   },
   "incoming.loading_config": {
     "text": "Đang tải..."
   },
   "incoming.config_error_title": {
-    "text": "Không tải được cấu hình"
+    "text": "Không thể tải cấu hình"
   },
   "incoming.feature_disabled_title": {
     "text": "Tính năng không khả dụng"
   },
   "incoming.feature_disabled_description": {
-    "text": "Tính năng này hiện đang bị tắt. Vui lòng liên hệ bộ phận hỗ trợ để được trợ giúp."
+    "text": "Tính năng này hiện đang bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ để được trợ giúp."
   },
   "incoming.memo_label": {
-    "text": "Ghi chú"
+    "text": "Ghi nhớ"
   },
   "incoming.memo_placeholder": {
-    "text": "Mô tả ngắn gọn (ví dụ: Yêu cầu đặt lại mật khẩu)"
+    "text": "Mô tả ngắn (ví dụ: Yêu cầu đặt lại mật khẩu)"
   },
   "incoming.memo_hint": {
-    "text": "Giúp chúng tôi chuyển tin nhắn của bạn đến đúng người"
+    "text": "Giúp chúng tôi chuyển tin nhắn đến đúng người"
   },
   "incoming.recipient_label": {
     "text": "Gửi đến"
@@ -36,16 +36,16 @@
     "text": "Chọn người nhận cho bí mật này"
   },
   "incoming.recipient_hint": {
-    "text": "Chọn ai sẽ nhận tin nhắn bảo mật này"
+    "text": "Chọn ai sẽ nhận tin nhắn an toàn này"
   },
   "incoming.no_recipients_available": {
-    "text": "Không có người nhận nào"
+    "text": "Không có người nhận khả dụng"
   },
   "incoming.secret_content_label": {
     "text": "Thông tin bí mật"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Dán thông tin nhạy cảm vào đây (mật khẩu, khóa, v.v.)"
+    "text": "Dán thông tin nhạy cảm tại đây (mật khẩu, khóa, v.v.)"
   },
   "incoming.secret_content_hint": {
     "text": "Thông tin này sẽ được mã hóa và chỉ có thể xem một lần"
@@ -72,7 +72,7 @@
     "text": "Đã gửi thành công"
   },
   "incoming.success_description": {
-    "text": "Tin nhắn bảo mật của bạn đã được gửi."
+    "text": "Tin nhắn an toàn của bạn đã được gửi."
   },
   "incoming.reference_id": {
     "text": "ID tham chiếu"
@@ -81,7 +81,7 @@
     "text": "Điều gì xảy ra tiếp theo?"
   },
   "incoming.success_info_description": {
-    "text": "Người nhận sẽ chỉ có thể xem bí mật này một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
+    "text": "Người nhận sẽ chỉ có thể xem bí mật này một lần. Sau khi họ xem, bí mật sẽ bị xóa vĩnh viễn."
   },
   "incoming.create_another": {
     "text": "Gửi bí mật khác"
@@ -90,12 +90,12 @@
     "text": "Chia sẻ thông tin nhạy cảm một cách an toàn"
   },
   "incoming.tagline2": {
-    "text": "Giữ mật khẩu và dữ liệu cá nhân ra khỏi email và nhật ký trò chuyện"
+    "text": "Giữ mật khẩu và dữ liệu riêng tư khỏi email và nhật ký chat"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Lưu <a href='{receiptUrl}'>biên lai</a> của bạn để lưu trữ."
+    "text": "Lưu {receipt} của bạn để lưu trữ."
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "biên lai"
   }
 }

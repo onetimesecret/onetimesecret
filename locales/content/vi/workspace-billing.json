@@ -12,19 +12,19 @@
     "text": "Tên miền tùy chỉnh yêu cầu Identity Plus hoặc cao hơn"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Truy cập API yêu cầu gói Multi-Team hoặc cao hơn"
+    "text": "Truy cập API yêu cầu Identity Plus hoặc cao hơn"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Nhật ký kiểm toán yêu cầu gói Multi-Team hoặc cao hơn"
+    "text": "Nhật ký kiểm tra yêu cầu gói Đa nhóm hoặc cao hơn"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Quản lý đăng ký, tổ chức và cài đặt thanh toán của bạn"
+    "text": "Quản lý đăng ký, tổ chức và cài đặt thanh toán"
   },
   "web.billing.overview.title": {
     "text": "Tổng quan thanh toán"
   },
   "web.billing.overview.description": {
-    "text": "Xem và quản lý chi tiết đăng ký và thanh toán của bạn"
+    "text": "Xem và quản lý đăng ký và chi tiết thanh toán"
   },
   "web.billing.overview.organization_selector": {
     "text": "Chọn tổ chức"
@@ -54,10 +54,10 @@
     "text": "Nâng cấp gói"
   },
   "web.billing.overview.change_plan": {
-    "text": "Thay đổi gói"
+    "text": "Đổi gói"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Không có phương thức thanh toán trong hồ sơ"
+    "text": "Không có phương thức thanh toán được lưu"
   },
   "web.billing.overview.no_upcoming_billing": {
     "text": "Không có thanh toán sắp tới"
@@ -78,7 +78,7 @@
     "text": "Xem hóa đơn"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Tải lịch sử"
+    "text": "Tải xuống lịch sử"
   },
   "web.billing.overview.manage_billing_action": {
     "text": "Quản lý thanh toán"
@@ -90,13 +90,13 @@
     "text": "Không có tổ chức"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Tạo tổ chức để quản lý thanh toán và đăng ký của bạn"
+    "text": "Tạo tổ chức để quản lý thanh toán và đăng ký"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Tạo bí mật"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Xem Hóa đơn"
+    "text": "Xem biên lai"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "Truy cập API"
@@ -108,7 +108,7 @@
     "text": "Mặc định quyền riêng tư tùy chỉnh"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Thời hạn mặc định mở rộng"
+    "text": "Hết hạn mặc định mở rộng"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
     "text": "Mặc định email tùy chỉnh"
@@ -132,7 +132,7 @@
     "text": "Quản lý thành viên"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Nhật ký kiểm toán"
+    "text": "Nhật ký kiểm tra"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Đăng nhập một lần"
@@ -153,7 +153,7 @@
     "text": "Chọn gói"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Chọn gói phù hợp với nhu cầu của bạn"
+    "text": "Chọn gói phù hợp với nhu cầu"
   },
   "web.billing.plans.subtitle": {
     "text": "Chọn gói hoàn hảo cho tổ chức của bạn"
@@ -162,7 +162,7 @@
     "text": "Gói hiện tại"
   },
   "web.billing.plans.current_badge": {
-    "text": "Current"
+    "text": "Hiện tại"
   },
   "web.billing.plans.upgrade": {
     "text": "Nâng cấp"
@@ -177,7 +177,7 @@
     "text": "Hàng năm"
   },
   "web.billing.plans.per_month": {
-    "text": "mỗi tháng"
+    "text": "/tháng"
   },
   "web.billing.plans.save_yearly": {
     "text": "Tiết kiệm {percent}% với thanh toán hàng năm"
@@ -186,19 +186,19 @@
     "text": "Miễn phí"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Nhóm đơn"
+    "text": "Một nhóm"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Nhiều nhóm"
+    "text": "Đa nhóm"
   },
   "web.billing.plans.individual_account": {
-    "text": "Tài khoản Cá nhân"
+    "text": "Tài khoản cá nhân"
   },
   "web.billing.plans.team_account": {
-    "text": "Tài khoản Nhóm"
+    "text": "Tài khoản nhóm"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Tài khoản Tổ chức"
+    "text": "Tài khoản tổ chức"
   },
   "web.billing.plans.features": {
     "text": "Tính năng"
@@ -219,73 +219,73 @@
     "text": "Liên hệ bán hàng"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Có câu hỏi hoặc cần giải pháp tùy chỉnh?"
+    "text": "Có câu hỏi hoặc cần gì đó tùy chỉnh?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Chúng tôi rất muốn nghe từ bạn. Hãy cho chúng tôi biết bạn đang tìm kiếm gì."
+    "text": "Chúng tôi rất muốn nghe từ bạn. Cho chúng tôi biết bạn đang tìm kiếm gì."
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} nhóm"
+    "text": "{count} nhóm | {count} nhóm"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} thành viên mỗi nhóm"
+    "text": "{count} thành viên mỗi nhóm | {count} thành viên mỗi nhóm"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Số lượng nhóm không giới hạn"
+    "text": "Nhóm không giới hạn"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Số lượng thành viên mỗi nhóm không giới hạn"
+    "text": "Thành viên không giới hạn mỗi nhóm"
   },
   "web.billing.plans.most_popular": {
-    "text": "Most Popular"
+    "text": "Phổ biến nhất"
   },
   "web.billing.plans.suggested": {
-    "text": "Suggested"
+    "text": "Đề xuất"
   },
   "web.billing.plans.everything_in": {
-    "text": "Includes everything in {plan}"
+    "text": "Bao gồm mọi thứ trong {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "No {interval} plans available at this time."
+    "text": "Không có gói {interval} khả dụng lúc này."
   },
   "web.billing.plans.change_immediate": {
-    "text": "Your plan will change immediately."
+    "text": "Gói của bạn sẽ thay đổi ngay lập tức."
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Current plan:"
+    "text": "Gói hiện tại:"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "New plan:"
+    "text": "Gói mới:"
   },
   "web.billing.plans.credit_label": {
-    "text": "Credit for unused time:"
+    "text": "Tín dụng cho thời gian chưa sử dụng:"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Next invoice"
+    "text": "Hóa đơn tiếp theo"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Your feature limits will update immediately after the plan change."
+    "text": "Giới hạn tính năng của bạn sẽ cập nhật ngay sau khi đổi gói."
   },
   "web.billing.plans.change_failed": {
-    "text": "Plan change failed. Please try again."
+    "text": "Đổi gói thất bại. Vui lòng thử lại."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Confirm Upgrade"
+    "text": "Xác nhận nâng cấp"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Confirm Downgrade"
+    "text": "Xác nhận hạ cấp"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Nâng cấp lên"
+    "text": "Nâng cấp lên {plan}?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Downgrade to {plan}?"
+    "text": "Hạ cấp xuống {plan}?"
   },
   "web.billing.invoices.title": {
     "text": "Lịch sử thanh toán"
   },
   "web.billing.invoices.view_history": {
-    "text": "Xem lịch sử thanh toán và tải hóa đơn của bạn"
+    "text": "Xem lịch sử thanh toán và tải xuống hóa đơn"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Ngày"
@@ -315,7 +315,7 @@
     "text": "Không thể tải hóa đơn"
   },
   "web.billing.notices.org_managed": {
-    "text": "Thanh toán cho nhóm này được quản lý bởi {orgName}"
+    "text": "Thanh toán được quản lý bởi {orgName}"
   },
   "web.billing.notices.view_org_billing": {
     "text": "Xem thanh toán tổ chức"
@@ -351,7 +351,7 @@
     "text": "Cổng thanh toán"
   },
   "web.billing.portal.description": {
-    "text": "Quản lý đăng ký, phương thức thanh toán và lịch sử thanh toán của bạn"
+    "text": "Quản lý đăng ký, phương thức thanh toán và lịch sử thanh toán"
   },
   "web.billing.portal.open_portal": {
     "text": "Mở cổng thanh toán"
@@ -408,7 +408,7 @@
     "text": "Tất cả gói đều bao gồm tính năng quyền riêng tư và khả năng chia sẻ không giới hạn"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Tất cả gói đều bao gồm lựa chọn vị trí dữ liệu: {0} khu vực"
+    "text": "Tất cả các gói bao gồm lựa chọn vị trí dữ liệu: {0} vùng"
   },
   "web.billing.get_started": {
     "text": "Bắt đầu"
@@ -430,5 +430,194 @@
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "Không tìm thấy cấp độ Identity trong các cấp sản phẩm"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Hủy đăng ký"
+  },
+  "web.billing.cancel.title": {
+    "text": "Hủy đăng ký"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Bạn có chắc muốn hủy đăng ký {plan}?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Điều gì xảy ra khi bạn hủy:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Bạn sẽ giữ quyền truy cập tất cả tính năng đến {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Bạn sẽ giữ quyền truy cập đến cuối kỳ thanh toán hiện tại"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Bạn sẽ không bị tính phí nữa"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Tài khoản của bạn sẽ trở về gói miễn phí"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Giữ đăng ký"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Hủy đăng ký"
+  },
+  "web.billing.cancel.success": {
+    "text": "Đăng ký của bạn đã được hủy. Bạn sẽ giữ quyền truy cập đến cuối kỳ thanh toán."
+  },
+  "web.billing.cancel.error": {
+    "text": "Không thể hủy đăng ký. Vui lòng thử lại."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Đã lên lịch hủy đăng ký"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Đăng ký của bạn sẽ vẫn hoạt động đến {date}. Bạn sẽ tiếp tục có quyền truy cập đầy đủ tất cả tính năng đến lúc đó."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Đổi ý? Bạn có thể kích hoạt lại đăng ký bất cứ lúc nào trước ngày hủy."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Tạo & Chia sẻ bí mật"
+  },
+  "web.billing.features.api_access": {
+    "text": "Truy cập API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Tên miền tùy chỉnh"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 tên miền tùy chỉnh"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Tên miền tùy chỉnh không giới hạn"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Thương hiệu tùy chỉnh"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Trang chủ có thương hiệu"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Quản lý nhóm"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Quản lý thành viên"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Nhật ký kiểm tra"
+  },
+  "web.billing.features.sso": {
+    "text": "Đăng nhập một lần (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Hỗ trợ ưu tiên"
+  },
+  "web.billing.features.sla": {
+    "text": "Thỏa thuận mức dịch vụ"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Thanh toán tập trung"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Lịch sử kiểm tra"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Luồng hoạt động"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Quy trình chuyển giao"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "Lưu giữ bí mật 30 ngày"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Bí mật trang chủ"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Bí mật đến"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Tối đa 5 thành viên nhóm"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Tối đa 10 thành viên nhóm"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Tối đa 25 thành viên nhóm"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Tối đa 50 thành viên nhóm"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Thành viên nhóm không giới hạn"
+  },
+  "web.billing.features.notifications": {
+    "text": "Thông báo email"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "Quy tắc truy cập IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Thương hiệu không gian làm việc"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Cơ sở hạ tầng chuyên dụng"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Quy trình làm việc chia sẻ"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Thanh toán cho tổ chức này"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Gói của bạn đã được nâng cấp thành công"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Gói mới của bạn hiện đang hoạt động. Cảm ơn bạn đã mua."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Liên hệ thanh toán"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Bí mật trang chủ"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Thông báo email"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Quy tắc truy cập IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Thương hiệu không gian làm việc"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Đến hạn hôm nay:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Thanh toán tiếp theo ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Cách tín dụng của bạn được áp dụng:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Số tiền hóa đơn tiếp theo:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Tín dụng đã áp dụng:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Số tiền đến hạn khi thanh toán tiếp theo:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Tín dụng tài khoản còn lại:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Áp dụng cho hóa đơn trong tương lai"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Sử dụng nhóm"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} trong {limit} nhóm"
   }
 }

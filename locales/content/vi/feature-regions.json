@@ -1,30 +1,30 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Chủ quyền dữ liệu & Cô lập khu vực"
+    "text": "Chủ quyền dữ liệu & Cách ly vùng"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Dữ liệu của bạn chỉ lưu trữ trong khu vực bạn chọn và không bao giờ được chuyển qua các khu vực khác"
+    "text": "Dữ liệu của bạn chỉ nằm trong vùng bạn chọn và không bao giờ được chuyển qua các vùng"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Mỗi khu vực hoạt động như một môi trường hoàn toàn độc lập với cơ sở hạ tầng, khóa mã hóa và lưu trữ dữ liệu riêng"
+    "text": "Mỗi vùng hoạt động như một môi trường hoàn toàn độc lập với cơ sở hạ tầng, khóa mã hóa và lưu trữ dữ liệu riêng"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Chúng tôi duy trì chính sách nghiêm ngặt: dữ liệu khách hàng không bao giờ được chuyển giữa các khu vực trong bất kỳ trường hợp nào"
+    "text": "Chúng tôi duy trì chính sách nghiêm ngặt: dữ liệu khách hàng không bao giờ được chuyển giữa các vùng trong bất kỳ trường hợp nào"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Quan trọng: Chuyển sang khu vực khác sẽ tạo một tài khoản mới. Dữ liệu của bạn vẫn ở khu vực ban đầu."
+    "text": "Quan trọng: Chuyển sang vùng khác sẽ tạo tài khoản mới. Dữ liệu của bạn vẫn ở vùng gốc."
   },
   "web.regions.your_region": {
-    "text": "Khu vực của bạn"
+    "text": "Vùng của bạn"
   },
   "web.regions.your_current_region": {
-    "text": "Khu vực hiện tại của bạn"
+    "text": "Vùng hiện tại của bạn"
   },
   "web.regions.active": {
     "text": "Hoạt động"
   },
   "web.regions.explore_other_regions": {
-    "text": "Khám phá các khu vực khả dụng khác"
+    "text": "Khám phá các vùng khả dụng khác"
   },
   "web.regions.why_it_matters": {
     "text": "Tại sao chủ quyền dữ liệu quan trọng"
@@ -33,34 +33,34 @@
     "text": "Minh bạch & Kiểm soát"
   },
   "web.regions.trust_description": {
-    "text": "Biết chính xác nơi lưu trữ dữ liệu của bạn và luật pháp nào chi phối việc bảo vệ dữ liệu đó."
+    "text": "Biết chính xác dữ liệu của bạn nằm ở đâu và luật nào điều chỉnh việc bảo vệ nó."
   },
   "web.regions.privacy_title": {
     "text": "Quyền riêng tư"
   },
   "web.regions.privacy_description": {
-    "text": "Đảm bảo thông tin cá nhân của bạn được xử lý theo luật pháp và quy định về quyền riêng tư của quốc gia bạn, ngăn chặn truy cập trái phép hoặc lạm dụng."
+    "text": "Đảm bảo thông tin cá nhân của bạn được xử lý theo luật và quy định về quyền riêng tư của quốc gia bạn, ngăn chặn truy cập hoặc sử dụng trái phép."
   },
   "web.regions.compliance_title": {
     "text": "Tuân thủ quy định"
   },
   "web.regions.compliance_description": {
-    "text": "Đáp ứng GDPR, HIPAA, CCPA và các yêu cầu bảo vệ dữ liệu khu vực khác"
+    "text": "Đáp ứng GDPR, HIPAA, CCPA và các yêu cầu bảo vệ dữ liệu vùng khác"
   },
   "web.regions.performance_title": {
     "text": "Truy cập nhanh hơn"
   },
   "web.regions.performance_description": {
-    "text": "Dữ liệu lưu trữ gần bạn hơn có nghĩa là độ trễ thấp hơn và hiệu suất tốt hơn."
+    "text": "Dữ liệu được lưu trữ gần bạn hơn có nghĩa là độ trễ thấp hơn và hiệu suất tốt hơn."
   },
   "web.regions.regions": {
-    "text": "Khu vực"
+    "text": "Vùng"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "liên hệ nhóm tuân thủ của chúng tôi"
+    "text": "liên hệ đội ngũ tuân thủ của chúng tôi"
   },
   "web.regions.review_our_documentation": {
-    "text": "xem lại tài liệu của chúng tôi"
+    "text": "xem tài liệu của chúng tôi"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Tài khoản và dữ liệu của bạn được bảo vệ theo luật pháp của"
@@ -81,7 +81,7 @@
     "text": "{0} {1}"
   },
   "web.regions.available_regions": {
-    "text": "Khu vực khả dụng"
+    "text": "Vùng khả dụng"
   },
   "web.regions.jurisdiction": {
     "text": "Quyền tài phán"
@@ -90,7 +90,7 @@
     "text": "Vị trí trung tâm dữ liệu: {0}"
   },
   "web.regions.data_region": {
-    "text": "Khu vực dữ liệu"
+    "text": "Vùng dữ liệu"
   },
   "web.regions.unknown_jurisdiction": {
     "text": "Quyền tài phán không xác định"

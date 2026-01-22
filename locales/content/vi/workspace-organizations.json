@@ -9,25 +9,25 @@
     "text": "Tổ chức"
   },
   "web.organizations.organizations_description": {
-    "text": "Quản lý tổ chức của bạn"
+    "text": "Quản lý các tổ chức của bạn"
   },
   "web.organizations.my_organizations": {
-    "text": "Tổ chức của tôi"
+    "text": "Tổ chức"
   },
   "web.organizations.manage_organizations": {
-    "text": "Quản lý Tổ chức"
+    "text": "Quản lý tổ chức"
   },
   "web.organizations.new_organization": {
     "text": "Tổ chức mới"
   },
   "web.organizations.no_organizations": {
-    "text": "Chưa có tổ chức nào"
+    "text": "Chưa có tổ chức"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Tổ chức cho phép bạn quản lý nhiều nhóm với thanh toán và quản trị thống nhất. Bắt đầu bằng cách tạo tổ chức đầu tiên của bạn."
+    "text": "Tổ chức cung cấp thanh toán và quản trị tập trung. Bắt đầu bằng cách tạo tổ chức đầu tiên."
   },
   "web.organizations.no_description": {
-    "text": "Không có mô tả"
+    "text": "Chưa có mô tả"
   },
   "web.organizations.default": {
     "text": "Mặc định"
@@ -39,7 +39,7 @@
     "text": "Tạo tổ chức đầu tiên"
   },
   "web.organizations.create_organization_description": {
-    "text": "Tạo một tổ chức mới để nhóm các team của bạn"
+    "text": "Tạo một tổ chức mới"
   },
   "web.organizations.create": {
     "text": "Tạo"
@@ -51,7 +51,7 @@
     "text": "Tên tổ chức"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "ví dụ: Công ty TNHH ABC"
+    "text": "ví dụ Công ty Acme"
   },
   "web.organizations.display_name": {
     "text": "Tên tổ chức"
@@ -60,7 +60,7 @@
     "text": "Mô tả"
   },
   "web.organizations.description_placeholder": {
-    "text": "Tổ chức này dành cho mục đích gì?"
+    "text": "Tổ chức này dùng để làm gì?"
   },
   "web.organizations.contact_email": {
     "text": "Email thanh toán"
@@ -84,7 +84,7 @@
     "text": "Không thể tải tổ chức"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Không thể tải danh sách tổ chức"
+    "text": "Không thể tải các tổ chức"
   },
   "web.organizations.organization_information": {
     "text": "Thông tin tổ chức"
@@ -99,7 +99,7 @@
     "text": "Cài đặt tổ chức"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Cập nhật tên và mô tả tổ chức của bạn"
+    "text": "Cập nhật tên và mô tả tổ chức"
   },
   "web.organizations.general_settings": {
     "text": "Cài đặt chung"
@@ -120,31 +120,31 @@
     "text": "Tích hợp thanh toán sắp ra mắt"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Quản lý thanh toán và đăng ký thống nhất cho tất cả nhóm trong tổ chức này sẽ có trong bản phát hành tương lai."
+    "text": "Quản lý thanh toán và đăng ký tập trung sẽ có trong phiên bản tương lai."
   },
   "web.organizations.about_title": {
     "text": "Về tổ chức"
   },
   "web.organizations.about_description": {
-    "text": "Tổ chức cung cấp thanh toán và quản trị thống nhất cho nhiều nhóm. Chúng là tùy chọn - các nhóm có thể tồn tại độc lập hoặc được nhóm lại dưới một tổ chức để quản lý tập trung."
+    "text": "Tổ chức cung cấp thanh toán và quản trị tập trung để quản lý trung tâm."
   },
   "web.organizations.single_user_info_title": {
     "text": "Quản lý tổ chức của bạn"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Cập nhật tên công ty và thông tin tổ chức tại đây. Thông tin này giúp cá nhân hóa tài khoản của bạn và có thể được sử dụng cho các tính năng thương hiệu trong tương lai."
+    "text": "Cập nhật tên công ty và chi tiết tổ chức tại đây. Thông tin này giúp cá nhân hóa tài khoản và có thể được sử dụng cho các tính năng thương hiệu trong tương lai."
   },
   "web.organizations.getting_started_title": {
     "text": "Bắt đầu với tổ chức"
   },
   "web.organizations.getting_started_description": {
-    "text": "Tạo tổ chức đầu tiên của bạn để quản lý thông tin công ty và chuẩn bị cho các tính năng cộng tác nhóm và thương hiệu trong tương lai."
+    "text": "Tạo tổ chức đầu tiên để quản lý thông tin công ty và chuẩn bị cho các tính năng thương hiệu trong tương lai."
   },
   "web.organizations.page_description": {
-    "text": "Quản lý tổ chức và thành viên nhóm của bạn"
+    "text": "Quản lý các tổ chức và thành viên nhóm"
   },
   "web.organizations.tabs.general": {
-    "text": "Chung"
+    "text": "Cài đặt"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Thương hiệu công ty"
@@ -162,7 +162,7 @@
     "text": "Xóa tổ chức"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Thao tác này sẽ xóa vĩnh viễn tổ chức và tất cả các nhóm liên quan. Hành động này không thể hoàn tác."
+    "text": "Điều này sẽ xóa tổ chức vĩnh viễn. Hành động này không thể hoàn tác."
   },
   "web.organizations.delete": {
     "text": "Xóa"
@@ -171,7 +171,7 @@
     "text": "Xóa tổ chức"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Bạn có chắc chắn muốn xóa {name}? Hành động này không thể hoàn tác."
+    "text": "Bạn có chắc muốn xóa {name}? Hành động này không thể hoàn tác."
   },
   "web.organizations.delete_error": {
     "text": "Không thể xóa tổ chức"
@@ -183,16 +183,16 @@
     "text": "Quản lý thành viên tổ chức và vai trò của họ"
   },
   "web.organizations.members.current_members": {
-    "text": "Thành viên Hiện tại"
+    "text": "Thành viên hiện tại"
   },
   "web.organizations.members.member": {
     "text": "Thành viên"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "thành viên"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "thành viên"
   },
   "web.organizations.members.name": {
     "text": "Tên"
@@ -204,16 +204,16 @@
     "text": "Vai trò"
   },
   "web.organizations.members.joined": {
-    "text": "Đã tham gia"
+    "text": "Tham gia"
   },
   "web.organizations.members.actions": {
     "text": "Hành động"
   },
   "web.organizations.members.no_members": {
-    "text": "Không tìm thấy thành viên"
+    "text": "Chưa có thành viên. Mời thành viên nhóm để bắt đầu."
   },
   "web.organizations.members.no_members_description": {
-    "text": "Tổ chức này chưa có thành viên nào."
+    "text": "Tổ chức này chưa có thành viên."
   },
   "web.organizations.members.role_updated": {
     "text": "Đã cập nhật vai trò thành viên thành công"
@@ -231,7 +231,7 @@
     "text": "Xóa thành viên"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Bạn có chắc chắn muốn xóa {name} khỏi tổ chức này?"
+    "text": "Bạn có chắc muốn xóa {name} khỏi tổ chức này?"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "Bạn không thể thay đổi vai trò của chính mình"
@@ -255,13 +255,13 @@
     "text": "Thành viên"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Toàn quyền truy cập tất cả cài đặt tổ chức và thành viên"
+    "text": "Truy cập đầy đủ tất cả cài đặt tổ chức và thành viên"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "Có thể quản lý thành viên và hầu hết cài đặt tổ chức"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Quyền truy cập cơ bản vào tài nguyên tổ chức"
+    "text": "Truy cập cơ bản vào tài nguyên tổ chức"
   },
   "web.organizations.invitations.title": {
     "text": "Lời mời tổ chức"
@@ -282,7 +282,7 @@
     "text": "Địa chỉ email"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "thanhvien{'@'}example.com"
+    "text": "member{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Vai trò"
@@ -385,5 +385,50 @@
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Đang tải chi tiết lời mời"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Đã cập nhật email thanh toán thành công"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Email thanh toán có thể được thay đổi trên trang Tổng quan thanh toán"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} thành viên | {count} thành viên"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} tên miền | {count} tên miền"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Nâng cấp gói để mời thành viên nhóm"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Mời thành viên nhóm yêu cầu gói có quản lý nhóm. Nâng cấp để thêm cộng tác viên vào tổ chức."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Sai tài khoản"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Lời mời này được gửi đến {invitedEmail}, nhưng bạn đang đăng nhập với {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Đăng nhập bằng tài khoản khác"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "Còn {days} ngày"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "Còn {hours} giờ"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Sắp hết hạn"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Đăng ký"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Tên miền"
   }
 }

@@ -3,7 +3,7 @@
     "text": "Phản hồi của bạn"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Chào đón mọi phản hồi!"
+    "text": "Mọi phản hồi đều được hoan nghênh!"
   },
   "web.feedback.help_us_improve": {
     "text": "Giúp chúng tôi cải thiện"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Nội dung trợ giúp sẽ ở đây."
+    "text": "Nội dung trợ giúp ở đây."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Cảm ơn vì đã giúp Onetime Secret cải thiện. Điều đó rất có ý nghĩa."
@@ -43,5 +43,11 @@
   },
   "web.feedback.send_feedback": {
     "text": "Gửi phản hồi"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Tôi đọc mọi phản hồi gửi đến đây. Đó là cách tôi xác định nên dành thời gian cho điều gì."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Nếu có điều gì không ổn, hoặc bạn có ý tưởng về cách nó nên hoạt động, đây là nơi phù hợp."
   }
 }

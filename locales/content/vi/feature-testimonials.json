@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Đánh giá do AI tạo"
+    "text": "Lời chứng thực do AI tạo"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Nội dung do AI tạo ra để trình diễn. \nKhông phải từ một người hoặc công ty thực tế."
+    "text": "Nội dung do AI tạo để minh họa. Không phải từ người thật hoặc công ty thật."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -21,7 +21,7 @@
     "text": "AI hàng đầu nói gì về chúng tôi"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Đánh giá do AI tạo"
+    "text": "Lời chứng thực do AI tạo"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "Trích dẫn này được tạo bởi"

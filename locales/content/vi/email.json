@@ -1,15 +1,15 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Phiếu yêu cầu: %s]"
+    "text": "[Yêu cầu: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "Có một khách hàng đã gởi thông tin sau"
+    "text": "Khách hàng đã gửi thông tin sau"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} đã gửi cho bạn một bí mật"
+    "text": "%{sender_email} đã gửi cho bạn bí mật"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "đã gửi cho bạn một bí mật:"
+    "text": "đã gửi cho bạn bí mật:"
   },
   "email.secret_link.important_label": {
     "text": "Quan trọng:"
@@ -18,7 +18,7 @@
     "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
   },
   "email.secret_link.sent_via": {
-    "text": "Đã gửi qua"
+    "text": "Gửi qua"
   },
   "email.welcome.subject": {
     "text": "Chào mừng đến với %{product_name} - Vui lòng xác minh email của bạn"
@@ -39,7 +39,7 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "Tái bút: Email này đã được gửi đến %{email_address}."
+    "text": "P.S. Email này được gửi đến %{email_address}. Nếu bạn không tạo tài khoản, bạn có thể bỏ qua tin nhắn này một cách an toàn."
   },
   "email.password_request.subject": {
     "text": "Đặt lại mật khẩu của bạn (%{display_domain})"
@@ -48,7 +48,7 @@
     "text": "Đặt lại mật khẩu của bạn"
   },
   "email.password_request.request_notice": {
-    "text": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu của bạn cho %{product_name}."
+    "text": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho %{product_name} của bạn."
   },
   "email.password_request.reset_button": {
     "text": "Đặt lại mật khẩu"
@@ -63,7 +63,7 @@
     "text": "Delano"
   },
   "email.password_request.postscript": {
-    "text": "Tái bút: Email này đã được gửi đến %{email_address}."
+    "text": "P.S. Email này được gửi đến %{email_address}."
   },
   "email.magic_link.subject": {
     "text": "Đăng nhập vào %{display_domain}"
@@ -84,28 +84,28 @@
     "text": "Liên kết này sẽ hết hạn sau 15 phút."
   },
   "email.magic_link.ignore_notice": {
-    "text": "Nếu bạn không yêu cầu liên kết này, bạn có thể bỏ qua email này."
+    "text": "Nếu bạn không yêu cầu liên kết này, bạn có thể bỏ qua email này một cách an toàn."
   },
   "email.magic_link.signature": {
     "text": "Delano"
   },
   "email.magic_link.postscript": {
-    "text": "Tái bút: Email này đã được gửi đến %{email_address}."
+    "text": "P.S. Email này được gửi đến %{email_address}."
   },
   "email.incoming_secret.subject": {
-    "text": "Bạn đã nhận được một tin nhắn bí mật"
+    "text": "Bạn đã nhận được tin nhắn bí mật"
   },
   "email.incoming_secret.received_message": {
-    "text": "Bạn đã nhận được một tin nhắn bảo mật:"
+    "text": "Bạn đã nhận được tin nhắn an toàn:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Ghi chú:"
+    "text": "Ghi nhớ:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Ai đó đã gửi cho bạn một tin nhắn bảo mật qua %{display_domain}."
+    "text": "Ai đó đã gửi cho bạn tin nhắn an toàn qua %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Để xem bí mật này, hãy nhấp vào liên kết bên dưới:"
+    "text": "Để xem bí mật này, nhấp vào liên kết bên dưới:"
   },
   "email.incoming_secret.important_label": {
     "text": "Quan trọng:"
@@ -114,7 +114,7 @@
     "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
   },
   "email.incoming_secret.sent_via": {
-    "text": "Đã gửi qua"
+    "text": "Gửi qua"
   },
   "email.secret_revealed.subject": {
     "text": "Bí mật của bạn đã được xem"
@@ -123,7 +123,7 @@
     "text": "Bí mật của bạn đã được xem"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Bí mật của bạn đã được xem vào %{date}."
+    "text": "Bí mật của bạn đã được xem vào ngày %{date}."
   },
   "email.secret_revealed.secret_id_label": {
     "text": "ID bí mật:"
@@ -141,13 +141,13 @@
     "text": "Để quản lý tùy chọn thông báo của bạn:"
   },
   "email.expiration_warning.subject": {
-    "text": "Liên kết bí mật của bạn sẽ hết hạn sớm"
+    "text": "Liên kết bí mật của bạn sẽ sớm hết hạn"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Liên kết bí mật của bạn sẽ hết hạn trong %{time_remaining}"
+    "text": "Liên kết bí mật của bạn sẽ hết hạn sau %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
-    "text": "Xem bí mật của bạn trước khi hết hạn"
+    "text": "Xem bí mật trước khi hết hạn"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Nhắc nhở:"
@@ -156,16 +156,16 @@
     "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn và không thể khôi phục."
   },
   "email.expiration_warning.sent_via": {
-    "text": "Đã gửi qua"
+    "text": "Gửi qua"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Xem nó trước khi nó biến mất:"
+    "text": "Xem trước khi nó biến mất:"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn."
   },
   "email.feedback_email.subject": {
-    "text": "Phản hồi vào %{date} qua %{display_domain} (%{strategy})"
+    "text": "Phản hồi ngày %{date} qua %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
     "text": "Phản hồi người dùng"
@@ -183,7 +183,7 @@
     "text": "Tin nhắn:"
   },
   "email.feedback_email.signature": {
-    "text": "Delano"
+    "text": "Hỗ trợ bí mật"
   },
   "email.organization_invitation.subject": {
     "text": "Bạn đã được mời tham gia %{organization_name}"
@@ -210,7 +210,7 @@
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "Tái bút: Email này đã được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua email này một cách an toàn."
+    "text": "P.S. Email này được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn."
   },
   "email.organization_invitation.roles.member": {
     "text": "thành viên"
@@ -225,10 +225,10 @@
     "text": "Mật khẩu của bạn đã được thay đổi"
   },
   "email.password_changed.body": {
-    "text": "Mật khẩu cho tài khoản %{product_name} của bạn đã được thay đổi vào %{date} lúc %{time}."
+    "text": "Mật khẩu %{product_name} của bạn đã được thay đổi vào ngày %{date} lúc %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức bằng cách đặt lại mật khẩu và liên hệ với bộ phận hỗ trợ."
+    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản ngay lập tức bằng cách đặt lại mật khẩu và liên hệ hỗ trợ."
   },
   "email.password_changed.signature": {
     "text": "Delano"
@@ -240,10 +240,10 @@
     "text": "Địa chỉ email của bạn đã được thay đổi"
   },
   "email.email_changed.body": {
-    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào %{date}."
+    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào ngày %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ với bộ phận hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm."
+    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm."
   },
   "email.email_changed.signature": {
     "text": "Delano"
@@ -273,7 +273,7 @@
     "text": "Xác thực hai yếu tố đã được bật"
   },
   "email.mfa_enabled.body": {
-    "text": "Xác thực hai yếu tố đã được bật cho tài khoản %{product_name} của bạn vào %{date}."
+    "text": "Xác thực hai yếu tố đã được bật cho tài khoản %{product_name} của bạn vào ngày %{date}."
   },
   "email.mfa_enabled.security_notice": {
     "text": "Tài khoản của bạn hiện an toàn hơn. Bạn sẽ cần nhập mã xác minh từ ứng dụng xác thực khi đăng nhập."
@@ -282,13 +282,13 @@
     "text": "Delano"
   },
   "email.mfa_disabled.subject": {
-    "text": "Xác thực hai yếu tố đã bị tắt (%{display_domain})"
+    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa (%{display_domain})"
   },
   "email.mfa_disabled.title": {
-    "text": "Xác thực hai yếu tố đã bị tắt"
+    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa"
   },
   "email.mfa_disabled.body": {
-    "text": "Xác thực hai yếu tố đã bị tắt cho tài khoản %{product_name} của bạn vào %{date}."
+    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa cho tài khoản %{product_name} của bạn vào ngày %{date}."
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Tài khoản của bạn hiện kém an toàn hơn. Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức."
@@ -303,7 +303,7 @@
     "text": "Phát hiện đăng nhập mới"
   },
   "email.new_login_alert.body": {
-    "text": "Đã phát hiện một đăng nhập mới vào tài khoản %{product_name} của bạn vào %{date} lúc %{time}."
+    "text": "Đã phát hiện đăng nhập mới vào tài khoản %{product_name} của bạn vào ngày %{date} lúc %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "Thiết bị:"
@@ -315,10 +315,10 @@
     "text": "Địa chỉ IP:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Nếu không phải bạn, tài khoản của bạn có thể đã bị xâm phạm."
+    "text": "Nếu đây không phải bạn, tài khoản của bạn có thể đã bị xâm phạm."
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Bảo mật tài khoản của bạn"
+    "text": "Bảo mật tài khoản"
   },
   "email.new_login_alert.signature": {
     "text": "Delano"
@@ -354,7 +354,7 @@
     "text": "Tổ chức đã bị xóa"
   },
   "email.organization_deleted.body": {
-    "text": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã được xóa."
+    "text": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã bị xóa."
   },
   "email.organization_deleted.signature": {
     "text": "Delano"
@@ -366,7 +366,7 @@
     "text": "Biên lai thanh toán"
   },
   "email.payment_receipt.body": {
-    "text": "Cảm ơn bạn đã thanh toán. Dưới đây là chi tiết thanh toán của bạn:"
+    "text": "Cảm ơn bạn đã thanh toán. Đây là chi tiết thanh toán của bạn:"
   },
   "email.payment_receipt.amount_label": {
     "text": "Số tiền:"
@@ -390,7 +390,7 @@
     "text": "Thanh toán thất bại"
   },
   "email.payment_failed.body": {
-    "text": "Chúng tôi không thể xử lý thanh toán của bạn cho %{product_name}. Vui lòng cập nhật phương thức thanh toán để tránh gián đoạn dịch vụ."
+    "text": "Chúng tôi không thể xử lý thanh toán cho %{product_name} của bạn. Vui lòng cập nhật phương thức thanh toán để tránh gián đoạn dịch vụ."
   },
   "email.payment_failed.update_payment_button": {
     "text": "Cập nhật phương thức thanh toán"
@@ -399,13 +399,13 @@
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "Bản dùng thử %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày"
+    "text": "Thời gian dùng thử %{product_name} của bạn hết hạn sau %{days_remaining} ngày"
   },
   "email.trial_expiring.title": {
-    "text": "Bản dùng thử của bạn sắp kết thúc"
+    "text": "Thời gian dùng thử của bạn sắp kết thúc"
   },
   "email.trial_expiring.body": {
-    "text": "Bản dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Nâng cấp ngay để giữ quyền truy cập vào tất cả các tính năng."
+    "text": "Thời gian dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Nâng cấp ngay để tiếp tục truy cập tất cả tính năng."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Nâng cấp ngay"
@@ -414,13 +414,13 @@
     "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "Gói đăng ký %{product_name} của bạn đã được thay đổi"
+    "text": "Đăng ký %{product_name} của bạn đã được thay đổi"
   },
   "email.subscription_changed.title": {
-    "text": "Gói đăng ký đã được thay đổi"
+    "text": "Đăng ký đã thay đổi"
   },
   "email.subscription_changed.body": {
-    "text": "Gói đăng ký %{product_name} của bạn đã được thay đổi từ %{old_plan} sang %{new_plan}."
+    "text": "Đăng ký %{product_name} của bạn đã được thay đổi từ %{old_plan} sang %{new_plan}."
   },
   "email.subscription_changed.effective_date": {
     "text": "Thay đổi này có hiệu lực từ %{date}."
