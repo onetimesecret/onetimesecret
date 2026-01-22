@@ -22,6 +22,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import sqlite3
 import sys
@@ -147,6 +148,32 @@ def migrate_schema() -> None:
         print("Schema is up to date.")
 
 
+def _load_checksums() -> dict[str, str]:
+    """Load checksums from checksums.sha256 file.
+
+    Returns:
+        Dictionary mapping filename to expected SHA256 hash.
+        Empty dict if checksums file doesn't exist.
+    """
+    checksum_file = DB_DIR / "checksums.sha256"
+    checksums: dict[str, str] = {}
+
+    if not checksum_file.exists():
+        return checksums
+
+    for line in checksum_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # Format: "hash  filename" (two spaces, standard sha256sum format)
+        parts = line.split("  ", 1)
+        if len(parts) == 2:
+            hash_hex, filename = parts
+            checksums[filename] = hash_hex
+
+    return checksums
+
+
 def query(
     sql: str,
     params: Optional[tuple] = None,
@@ -267,14 +294,35 @@ def export_tables(table: Optional[str] = None) -> None:
             output_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
             print(f"{tbl}: exported {count} rows to {output_file.name}")
 
+    # Generate checksums for exported files
+    _generate_checksums()
 
-def import_tables(file_path: Optional[str] = None) -> None:
+
+def _generate_checksums() -> None:
+    """Generate checksums.sha256 for all committable table SQL files."""
+    checksum_file = DB_DIR / "checksums.sha256"
+    lines = []
+
+    for tbl in COMMITTABLE_TABLES:
+        sql_file = DB_DIR / f"{tbl}.sql"
+        if sql_file.exists():
+            content = sql_file.read_bytes()
+            hash_hex = hashlib.sha256(content).hexdigest()
+            lines.append(f"{hash_hex}  {tbl}.sql")
+
+    if lines:
+        checksum_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        print(f"checksums.sha256: updated")
+
+
+def import_tables(file_path: Optional[str] = None, verify: bool = True) -> None:
     """Import SQL files into database.
 
     Imports data from SQL files in locales/db/.
 
     Args:
         file_path: Specific file to import, or None for all committable table files.
+        verify: If True, verify checksums before importing.
     """
     if not DB_FILE.exists():
         raise FileNotFoundError(
@@ -295,13 +343,31 @@ def import_tables(file_path: Optional[str] = None) -> None:
         print("No SQL files found to import.")
         return
 
+    # Load checksums if verification enabled
+    checksums = _load_checksums() if verify else {}
+
     with get_connection() as conn:
         for sql_file in files_to_import:
             if not sql_file.exists():
                 print(f"Warning: {sql_file} not found. Skipping.")
                 continue
 
-            sql_content = sql_file.read_text(encoding="utf-8")
+            content = sql_file.read_bytes()
+
+            # Verify checksum if available
+            if verify and checksums:
+                expected = checksums.get(sql_file.name)
+                if expected:
+                    actual = hashlib.sha256(content).hexdigest()
+                    if actual != expected:
+                        print(
+                            f"Warning: Checksum mismatch for {sql_file.name}, "
+                            "skipping import",
+                            file=sys.stderr,
+                        )
+                        continue
+
+            sql_content = content.decode("utf-8")
 
             try:
                 conn.executescript(sql_content)
@@ -423,6 +489,11 @@ Examples:
         nargs="?",
         help="SQL file to import (default: all committable table files)",
     )
+    import_parser.add_argument(
+        "--no-verify",
+        action="store_true",
+        help="Skip checksum verification",
+    )
 
     args = parser.parse_args()
 
@@ -439,7 +510,7 @@ Examples:
         elif args.command == "export":
             export_tables(table=args.table)
         elif args.command == "import":
-            import_tables(file_path=args.file)
+            import_tables(file_path=args.file, verify=not args.no_verify)
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
