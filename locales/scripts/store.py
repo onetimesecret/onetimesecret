@@ -262,8 +262,8 @@ def export_tables(table: Optional[str] = None) -> None:
             cursor.execute(f"PRAGMA table_info({tbl})")  # noqa: S608
             columns = [row[1] for row in cursor.fetchall()]
 
-            # Build INSERT statements
-            cursor.execute(f"SELECT * FROM {tbl}")  # noqa: S608
+            # Build INSERT statements (ORDER BY id for stable diffs)
+            cursor.execute(f"SELECT * FROM {tbl} ORDER BY id")  # noqa: S608
             rows = cursor.fetchall()
 
             lines = [
