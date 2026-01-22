@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "Send a Secret"
+    "text": "Send a Secret",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Share sensitive information securely with our support team"
+    "text": "Share sensitive information securely with our support team",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Loading..."
+    "text": "Loading...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Failed to load configuration"
+    "text": "Failed to load configuration",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Feature Not Available"
+    "text": "Feature Not Available",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "This feature is currently disabled. Please contact support for assistance."
+    "text": "This feature is currently disabled. Please contact support for assistance.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Memo"
+    "text": "Memo",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Brief description (e.g., Password reset request)"
+    "text": "Brief description (e.g., Password reset request)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Help us route your message to the right person"
+    "text": "Help us route your message to the right person",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Send to"
+    "text": "Send to",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Select a recipient"
+    "text": "Select a recipient",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Select a recipient for this secret"
+    "text": "Select a recipient for this secret",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Choose who will receive this secure message"
+    "text": "Choose who will receive this secure message",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "No recipients are available"
+    "text": "No recipients are available",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Secret Information"
+    "text": "Secret Information",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Paste sensitive information here (passwords, keys, etc.)"
+    "text": "Paste sensitive information here (passwords, keys, etc.)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "This information will be encrypted and only viewable once"
+    "text": "This information will be encrypted and only viewable once",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Send Secret"
+    "text": "Send Secret",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Send Secret"
+    "text": "Send Secret",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Sending..."
+    "text": "Sending...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Sending..."
+    "text": "Sending...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Clear Form"
+    "text": "Clear Form",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Clear Form"
+    "text": "Clear Form",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Sent Successfully"
+    "text": "Sent Successfully",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Your secure message has been delivered."
+    "text": "Your secure message has been delivered.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Reference ID"
+    "text": "Reference ID",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "What happens next?"
+    "text": "What happens next?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted."
+    "text": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Send Another Secret"
+    "text": "Send Another Secret",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Share sensitive information securely"
+    "text": "Share sensitive information securely",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Keep passwords and private data out of email and chat logs"
+    "text": "Keep passwords and private data out of email and chat logs",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Save your {receipt} for your records."
+    "text": "Save your {receipt} for your records.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "receipt",
+    "sha256": "6f328609"
   }
 }

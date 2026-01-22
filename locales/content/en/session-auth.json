@@ -1,271 +1,359 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Need an Account?"
+    "text": "Need an Account?",
+    "sha256": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Sign up."
+    "text": "Sign up.",
+    "sha256": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Forgot your password?"
+    "text": "Forgot your password?",
+    "sha256": "afd25fdf"
   },
   "web.login.button_sign_in": {
-    "text": "Sign In"
+    "text": "Sign In",
+    "sha256": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Enter your credentials"
+    "text": "Enter your credentials",
+    "sha256": "07e1c44e"
   },
   "web.login.remember_me": {
-    "text": "Remember me"
+    "text": "Remember me",
+    "sha256": "f93267aa"
   },
   "web.login.send_sign_in_link": {
-    "text": "Send sign-in link"
+    "text": "Send sign-in link",
+    "sha256": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "A secure link will be sent to your email inbox."
+    "text": "A secure link will be sent to your email inbox.",
+    "sha256": "d31d20cf"
   },
   "web.login.or_divider": {
-    "text": "or"
+    "text": "or",
+    "sha256": "7175517a"
   },
   "web.login.sign_in_with_password": {
-    "text": "Sign in with password"
+    "text": "Sign in with password",
+    "sha256": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Use passwordless sign-in"
+    "text": "Use passwordless sign-in",
+    "sha256": "dddc0097"
   },
   "web.login.create_account": {
-    "text": "Create account"
+    "text": "Create account",
+    "sha256": "798ca2ce"
   },
   "web.login.return_home": {
-    "text": "Return home"
+    "text": "Return home",
+    "sha256": "bbcc935e"
   },
   "web.login.tab_password": {
-    "text": "Password"
+    "text": "Password",
+    "sha256": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "Magic Link"
+    "text": "Magic Link",
+    "sha256": "7a9ba11a"
   },
   "web.login.need_help": {
-    "text": "Need help?"
+    "text": "Need help?",
+    "sha256": "c225cdfb"
   },
   "web.signup.create_your_account": {
-    "text": "Create Your Account"
+    "text": "Create Your Account",
+    "sha256": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Already have an Account?"
+    "text": "Already have an Account?",
+    "sha256": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Sign in."
+    "text": "Sign in.",
+    "sha256": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "Account Creation Error"
+    "text": "Account Creation Error",
+    "sha256": "e380a0b6"
   },
   "web.signup.password_error": {
-    "text": "Password"
+    "text": "Password",
+    "sha256": "e7cf3ef4"
   },
   "web.signup.email_error": {
-    "text": "Email"
+    "text": "Email",
+    "sha256": "969ccbd3"
   },
   "web.auth.verify._guidance": {
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Verify Your Account"
+    "text": "Verify Your Account",
+    "sha256": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "Your account has been verified successfully"
+    "text": "Your account has been verified successfully",
+    "sha256": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "Invalid or expired verification key"
+    "text": "Invalid or expired verification key",
+    "sha256": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "This verification link has expired. Please request a new one."
+    "text": "This verification link has expired. Please request a new one.",
+    "sha256": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "This account has already been verified. You can sign in now."
+    "text": "This account has already been verified. You can sign in now.",
+    "sha256": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Unable to verify account. Please try again or contact support."
+    "text": "Unable to verify account. Please try again or contact support.",
+    "sha256": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Please check your email for a verification link"
+    "text": "Please check your email for a verification link",
+    "sha256": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Account verification failed. Please check your verification link or request a new one."
+    "text": "Account verification failed. Please check your verification link or request a new one.",
+    "sha256": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "Verification Failed"
+    "text": "Verification Failed",
+    "sha256": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
-    "text": "What should I do?"
+    "text": "What should I do?",
+    "sha256": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Check your email for the most recent verification link"
+    "text": "Check your email for the most recent verification link",
+    "sha256": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Check your spam/junk folder if you can't find the email"
+    "text": "Check your spam/junk folder if you can't find the email",
+    "sha256": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Contact support if you continue to have issues"
+    "text": "Contact support if you continue to have issues",
+    "sha256": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Verification Link Required"
+    "text": "Verification Link Required",
+    "sha256": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Please use the verification link sent to your email address to verify your account."
+    "text": "Please use the verification link sent to your email address to verify your account.",
+    "sha256": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "Create New Account"
+    "text": "Create New Account",
+    "sha256": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "Change Password"
+    "text": "Change Password",
+    "sha256": "a949f462"
   },
   "web.auth.change_password.current_password": {
-    "text": "Current Password"
+    "text": "Current Password",
+    "sha256": "8ac76099"
   },
   "web.auth.change_password.new_password": {
-    "text": "New Password"
+    "text": "New Password",
+    "sha256": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Confirm New Password"
+    "text": "Confirm New Password",
+    "sha256": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "Your password has been changed successfully"
+    "text": "Your password has been changed successfully",
+    "sha256": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Password change failed. Please verify your current password and try again."
+    "text": "Password change failed. Please verify your current password and try again.",
+    "sha256": "1aa11b3f"
   },
   "web.auth.close_account.title": {
-    "text": "Close Account"
+    "text": "Close Account",
+    "sha256": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "This action cannot be undone. All your secrets will be permanently deleted."
+    "text": "This action cannot be undone. All your secrets will be permanently deleted.",
+    "sha256": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "I understand this action is permanent"
+    "text": "I understand this action is permanent",
+    "sha256": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Enter your password to confirm"
+    "text": "Enter your password to confirm",
+    "sha256": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Permanently Close Account"
+    "text": "Permanently Close Account",
+    "sha256": "0713c012"
   },
   "web.auth.close_account.cancel": {
-    "text": "Cancel"
+    "text": "Cancel",
+    "sha256": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Request Password Reset"
+    "text": "Request Password Reset",
+    "sha256": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Enter your email address below and we'll send you a link to reset your password"
+    "text": "Enter your email address below and we'll send you a link to reset your password",
+    "sha256": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Send Reset Link"
+    "text": "Send Reset Link",
+    "sha256": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
     "text": "Choose a New Password",
-    "context": "Password reset request flow - user requests a reset link"
+    "context": "Password reset request flow - user requests a reset link",
+    "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Please enter your new password below. Make sure it's strong and unique to protect your account."
+    "text": "Please enter your new password below. Make sure it's strong and unique to protect your account.",
+    "sha256": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "An email has been sent to you with a link to reset the password for your account"
+    "text": "An email has been sent to you with a link to reset the password for your account",
+    "sha256": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "I agree to the"
+    "text": "I agree to the",
+    "sha256": "26a58d00"
   },
   "web.auth.account.title": {
     "text": "Account Information",
-    "context": "User account overview/dashboard section"
+    "context": "User account overview/dashboard section",
+    "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
-    "text": "Email Address"
+    "text": "Email Address",
+    "sha256": "09bf25ef"
   },
   "web.auth.account.created": {
-    "text": "Account Created"
+    "text": "Account Created",
+    "sha256": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "Email Verified"
+    "text": "Email Verified",
+    "sha256": "bc512ab0"
   },
   "web.auth.account.region": {
-    "text": "Region"
+    "text": "Region",
+    "sha256": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "Email Not Verified"
+    "text": "Email Not Verified",
+    "sha256": "53955e0e"
   },
   "web.auth.account.verify_email": {
-    "text": "Verify Email Address"
+    "text": "Verify Email Address",
+    "sha256": "d261b9df"
   },
   "web.auth.account.mfa_status": {
-    "text": "Two-Factor Authentication"
+    "text": "Two-Factor Authentication",
+    "sha256": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Enabled"
+    "text": "Enabled",
+    "sha256": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Disabled"
+    "text": "Disabled",
+    "sha256": "75081b59"
   },
   "web.auth.account.active_sessions": {
-    "text": "Active Sessions"
+    "text": "Active Sessions",
+    "sha256": "b58fa4e0"
   },
   "web.auth.account.session_count": {
-    "text": "{count} active session(s)"
+    "text": "{count} active session(s)",
+    "sha256": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
-    "text": "Quick Actions"
+    "text": "Quick Actions",
+    "sha256": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Manage Two-Factor Authentication"
+    "text": "Manage Two-Factor Authentication",
+    "sha256": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Manage Active Sessions"
+    "text": "Manage Active Sessions",
+    "sha256": "c5d54d87"
   },
   "web.auth.account.change_password": {
-    "text": "Change Password"
+    "text": "Change Password",
+    "sha256": "a949f462"
   },
   "web.auth.account.close_account": {
-    "text": "Close Account"
+    "text": "Close Account",
+    "sha256": "e1513814"
   },
   "web.help.title": {
-    "text": "Help & Support"
+    "text": "Help & Support",
+    "sha256": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Sign-in Troubleshooting"
+    "text": "Sign-in Troubleshooting",
+    "sha256": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Magic link not arriving?"
+    "text": "Magic link not arriving?",
+    "sha256": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Check your spam or junk folder"
+    "text": "Check your spam or junk folder",
+    "sha256": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Verify you entered your email address correctly"
+    "text": "Verify you entered your email address correctly",
+    "sha256": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Wait a few minutes - emails can sometimes be delayed"
+    "text": "Wait a few minutes - emails can sometimes be delayed",
+    "sha256": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Try requesting a new link if it's been more than 10 minutes"
+    "text": "Try requesting a new link if it's been more than 10 minutes",
+    "sha256": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "Forgot your password?"
+    "text": "Forgot your password?",
+    "sha256": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Use the Magic Link option to sign in without a password. Once signed in, you can change your password in Account Settings."
+    "text": "Use the Magic Link option to sign in without a password. Once signed in, you can change your password in Account Settings.",
+    "sha256": "2a058600"
   },
   "web.help.account_locked": {
-    "text": "Account temporarily locked?"
+    "text": "Account temporarily locked?",
+    "sha256": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "After multiple failed sign-in attempts, accounts are temporarily locked for security. Wait 15 minutes and try again, or use Magic Link to sign in."
+    "text": "After multiple failed sign-in attempts, accounts are temporarily locked for security. Wait 15 minutes and try again, or use Magic Link to sign in.",
+    "sha256": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Still need help?"
+    "text": "Still need help?",
+    "sha256": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "If you're still having trouble, we're here to help. Send us a message and we'll get back to you as soon as possible."
+    "text": "If you're still having trouble, we're here to help. Send us a message and we'll get back to you as soon as possible.",
+    "sha256": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "Contact Support"
+    "text": "Contact Support",
+    "sha256": "f8d47b82"
   }
 }

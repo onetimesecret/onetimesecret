@@ -5,1002 +5,1335 @@
     "note": "empty source"
   },
   "web.COMMON.tagline": {
-    "text": "Secure links that only work once"
+    "text": "Secure links that only work once",
+    "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Powered by"
+    "text": "Powered by",
+    "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/en"
+    "text": "https://onetimesecret.com/en",
+    "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Generate Password"
+    "text": "Generate Password",
+    "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Generate Password is disabled when the form is valid"
+    "text": "Generate Password is disabled when the form is valid",
+    "sha256": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "e.g. tom{'@'}myspace.com"
+    "text": "e.g. tom{'@'}myspace.com",
+    "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Enter your password"
+    "text": "Enter your password",
+    "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Custom Domains"
+    "text": "Custom Domains",
+    "sha256": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Strengthen connections and build trust with your own branded secret links."
+    "text": "Strengthen connections and build trust with your own branded secret links.",
+    "sha256": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Get Started"
+    "text": "Get Started",
+    "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Confirm your password"
+    "text": "Confirm your password",
+    "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
-    "text": "Settings"
+    "text": "Settings",
+    "sha256": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Submit"
+    "text": "Submit",
+    "sha256": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Submitting..."
+    "text": "Submitting...",
+    "sha256": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Processing..."
+    "text": "Processing...",
+    "sha256": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
+    "text": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+    "sha256": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Incorrect passphrase"
+    "text": "Incorrect passphrase",
+    "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "secret,password generator,share a secret,onetime"
+    "text": "secret,password generator,share a secret,onetime",
+    "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Create a secret link"
+    "text": "Create a secret link",
+    "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Or generate a random password"
+    "text": "Or generate a random password",
+    "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Privacy Options"
+    "text": "Privacy Options",
+    "sha256": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Passphrase"
+    "text": "Passphrase",
+    "sha256": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "A word or phrase that's difficult to guess"
+    "text": "A word or phrase that's difficult to guess",
+    "sha256": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Recipient Address"
+    "text": "Recipient Address",
+    "sha256": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Secret content goes here..."
+    "text": "Secret content goes here...",
+    "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Create Account"
+    "text": "Create Account",
+    "sha256": "0dffe234"
   },
   "web.COMMON.header_about": {
-    "text": "About"
+    "text": "About",
+    "sha256": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Sign In"
+    "text": "Sign In",
+    "sha256": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Account"
+    "text": "Account",
+    "sha256": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Logout"
+    "text": "Logout",
+    "sha256": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Secret | Secrets"
+    "text": "Secret | Secrets",
+    "sha256": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Recent"
+    "text": "Recent",
+    "sha256": "690dbe9d"
   },
   "web.COMMON.not_set": {
-    "text": "Not set"
+    "text": "Not set",
+    "sha256": "4895f731"
   },
   "web.COMMON.word_edit": {
-    "text": "Edit"
+    "text": "Edit",
+    "sha256": "464c4ffd"
   },
   "web.COMMON.word_save": {
-    "text": "Save"
+    "text": "Save",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Burn"
+    "text": "Burn",
+    "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Burned"
+    "text": "Burned",
+    "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "Expires in"
+    "text": "Expires in",
+    "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Burn this secret"
+    "text": "Burn this secret",
+    "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Burning a secret will delete it before it has been read (click to confirm)"
+    "text": "Burning a secret will delete it before it has been read (click to confirm)",
+    "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Burning a secret is permanent and cannot be undone"
+    "text": "Burning a secret is permanent and cannot be undone",
+    "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Check your email"
+    "text": "Check your email",
+    "sha256": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Click to reveal →"
+    "text": "Click to reveal →",
+    "sha256": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Continue to verify your account:"
+    "text": "Continue to verify your account:",
+    "sha256": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "You did not provide anything to share"
+    "text": "You did not provide anything to share",
+    "sha256": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Double check that passphrase"
+    "text": "Double check that passphrase",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Enter the passphrase here"
+    "text": "Enter the passphrase here",
+    "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "View Secret"
+    "text": "View Secret",
+    "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Careful: we will only show it once."
+    "text": "Careful: we will only show it once.",
+    "sha256": "d29e2820"
   },
   "web.COMMON.warning": {
-    "text": "Warning"
+    "text": "Warning",
+    "sha256": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Oops!"
+    "text": "Oops!",
+    "sha256": "8344947a"
   },
   "web.COMMON.error": {
-    "text": "Error"
+    "text": "Error",
+    "sha256": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "An unexpected error occurred. Please try again."
+    "text": "An unexpected error occurred. Please try again.",
+    "sha256": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "The message was truncated"
+    "text": "The message was truncated",
+    "sha256": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Signup for more"
+    "text": "Signup for more",
+    "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Log in to your account"
+    "text": "Log in to your account",
+    "sha256": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Sent to: "
+    "text": "Sent to: ",
+    "sha256": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "Email"
+    "text": "Email",
+    "sha256": "969ccbd3"
   },
   "web.COMMON.field_password": {
-    "text": "Password"
+    "text": "Password",
+    "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Confirm Password"
+    "text": "Confirm Password",
+    "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Create Account"
+    "text": "Create Account",
+    "sha256": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Share a secret"
+    "text": "Share a secret",
+    "sha256": "5384461b"
   },
   "web.COMMON.title_home": {
-    "text": "Home"
+    "text": "Home",
+    "sha256": "3a786953"
   },
   "web.COMMON.word_none": {
-    "text": "None"
+    "text": "None",
+    "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "burned"
+    "text": "burned",
+    "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "received"
+    "text": "received",
+    "sha256": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Confirm"
+    "text": "Confirm",
+    "sha256": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Cancel"
+    "text": "Cancel",
+    "sha256": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Continue"
+    "text": "Continue",
+    "sha256": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Done"
+    "text": "Done",
+    "sha256": "11a6767d"
   },
   "web.COMMON.back": {
-    "text": "Back"
+    "text": "Back",
+    "sha256": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Share your thoughts, ideas, or experiences..."
+    "text": "Share your thoughts, ideas, or experiences...",
+    "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Send Feedback"
+    "text": "Send Feedback",
+    "sha256": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "A verification was sent to"
+    "text": "A verification was sent to",
+    "sha256": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Account created. Please sign in."
+    "text": "Account created. Please sign in.",
+    "sha256": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "If an account with this email exists, you will receive a verification email."
+    "text": "If an account with this email exists, you will receive a verification email.",
+    "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Burn this secret permanently"
+    "text": "Burn this secret permanently",
+    "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Please Confirm"
+    "text": "Please Confirm",
+    "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Are you sure you want to burn this secret? This action cannot be undone."
+    "text": "Are you sure you want to burn this secret? This action cannot be undone.",
+    "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Yes, burn this secret"
+    "text": "Yes, burn this secret",
+    "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Burning a secret will delete it before it has been received."
+    "text": "Burning a secret will delete it before it has been received.",
+    "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "For security, share this link separately from other details."
+    "text": "For security, share this link separately from other details.",
+    "sha256": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Copied to clipboard"
+    "text": "Copied to clipboard",
+    "sha256": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Create Incoming"
+    "text": "Create Incoming",
+    "sha256": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "F.A.Q."
+    "text": "F.A.Q.",
+    "sha256": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Verification is not valid"
+    "text": "Verification is not valid",
+    "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Cannot verify an account when you're already logged in"
+    "text": "Cannot verify an account when you're already logged in",
+    "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Show password"
+    "text": "Show password",
+    "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Hide password"
+    "text": "Hide password",
+    "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Password must be at least 8 characters"
+    "text": "Password must be at least 8 characters",
+    "sha256": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "Password must be at least 8 characters long"
+    "text": "Password must be at least 8 characters long",
+    "sha256": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Passwords do not match"
+    "text": "Passwords do not match",
+    "sha256": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
-    "text": "This field is required"
+    "text": "This field is required",
+    "sha256": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Processing your request"
+    "text": "Processing your request",
+    "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Keep me logged in for 30 days"
+    "text": "Keep me logged in for 30 days",
+    "sha256": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Redirecting..."
+    "text": "Redirecting...",
+    "sha256": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Continue"
+    "text": "Continue",
+    "sha256": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Are you sure?"
+    "text": "Are you sure?",
+    "sha256": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "Danger Zone"
+    "text": "Danger Zone",
+    "sha256": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Careful Consideration Zone"
+    "text": "Careful Consideration Zone",
+    "sha256": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
-    "text": "User menu"
+    "text": "User menu",
+    "sha256": "6fa25be1"
   },
   "web.COMMON.security": {
-    "text": "Security"
+    "text": "Security",
+    "sha256": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Manage"
+    "text": "Manage",
+    "sha256": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "Loading..."
+    "text": "Loading...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Save Changes"
+    "text": "Save Changes",
+    "sha256": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Saving..."
+    "text": "Saving...",
+    "sha256": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Adding"
+    "text": "Adding",
+    "sha256": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "e.g."
+    "text": "e.g.",
+    "sha256": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "e.g. {example}"
+    "text": "e.g. {example}",
+    "sha256": "cc921aaa"
   },
   "web.COMMON.status": {
-    "text": "Status"
+    "text": "Status",
+    "sha256": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Escape"
+    "text": "Escape",
+    "sha256": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Active"
+    "text": "Active",
+    "sha256": "92340695"
   },
   "web.COMMON.preview": {
-    "text": "Preview"
+    "text": "Preview",
+    "sha256": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Remove"
+    "text": "Remove",
+    "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Press ESC to close"
+    "text": "Press ESC to close",
+    "sha256": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Enter"
+    "text": "Enter",
+    "sha256": "dc8659db"
   },
   "web.COMMON.important": {
-    "text": "Important"
+    "text": "Important",
+    "sha256": "ddca9a57"
   },
   "web.COMMON.language": {
-    "text": "Language"
+    "text": "Language",
+    "sha256": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Theme"
+    "text": "Theme",
+    "sha256": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Appearance"
+    "text": "Appearance",
+    "sha256": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Done"
+    "text": "Done",
+    "sha256": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "End"
+    "text": "End",
+    "sha256": "f4db1e48"
   },
   "web.COMMON.general": {
-    "text": "General"
+    "text": "General",
+    "sha256": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Note"
+    "text": "Note",
+    "sha256": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "Monthly"
+    "text": "Monthly",
+    "sha256": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "Yearly"
+    "text": "Yearly",
+    "sha256": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Go on then."
+    "text": "Go on then.",
+    "sha256": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Loading..."
+    "text": "Loading...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.not_received": {
-    "text": "NOT RECEIVED"
+    "text": "NOT RECEIVED",
+    "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Confirm password"
+    "text": "Confirm password",
+    "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "New password"
+    "text": "New password",
+    "sha256": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "Email address"
+    "text": "Email address",
+    "sha256": "f2488fd4"
   },
   "web.COMMON.switch": {
-    "text": "switch"
+    "text": "switch",
+    "sha256": "78b49fb2"
   },
   "web.COMMON.features": {
-    "text": "Features"
+    "text": "Features",
+    "sha256": "5697d03d"
   },
   "web.COMMON.not_found": {
-    "text": "Not Found"
+    "text": "Not Found",
+    "sha256": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
-    "text": "❌"
+    "text": "❌",
+    "sha256": "2b2966a5"
   },
   "web.COMMON.emoji_checkmark": {
-    "text": "✅"
+    "text": "✅",
+    "sha256": "1d456424"
   },
   "web.COMMON.supported": {
-    "text": "Supported"
+    "text": "Supported",
+    "sha256": "c1658000"
   },
   "web.COMMON.version": {
-    "text": "Version"
+    "text": "Version",
+    "sha256": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Other"
+    "text": "Other",
+    "sha256": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(min-width: 1024px)"
+    "text": "(min-width: 1024px)",
+    "sha256": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Ctrl + Enter"
+    "text": "Ctrl + Enter",
+    "sha256": "78192e6e"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Enter"
+    "text": "⌘ + Enter",
+    "sha256": "558acbab"
   },
   "web.COMMON.mac": {
-    "text": "Mac"
+    "text": "Mac",
+    "sha256": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Email address copied to clipboard!"
+    "text": "Email address copied to clipboard!",
+    "sha256": "23238b4e"
   },
   "web.COMMON.value": {
-    "text": "Value"
+    "text": "Value",
+    "sha256": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Host",
+    "sha256": "4a823118"
   },
   "web.COMMON.type": {
-    "text": "Type"
+    "text": "Type",
+    "sha256": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Previous"
+    "text": "Previous",
+    "sha256": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Next"
+    "text": "Next",
+    "sha256": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Password Strength:"
+    "text": "Password Strength:",
+    "sha256": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Great"
+    "text": "Great",
+    "sha256": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Pretty good"
+    "text": "Pretty good",
+    "sha256": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Fair"
+    "text": "Fair",
+    "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Meh"
+    "text": "Meh",
+    "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Not great"
+    "text": "Not great",
+    "sha256": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Open options"
+    "text": "Open options",
+    "sha256": "3dc08503"
   },
   "web.COMMON.inactive": {
-    "text": "Inactive"
+    "text": "Inactive",
+    "sha256": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "An error occurred"
+    "text": "An error occurred",
+    "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Copy secret to clipboard"
+    "text": "Copy secret to clipboard",
+    "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Secret copied to clipboard"
+    "text": "Secret copied to clipboard",
+    "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Double check that passphrase"
+    "text": "Double check that passphrase",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Press the copy button below."
+    "text": "Press the copy button below.",
+    "sha256": "77fcf6fb"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Show"
+    "text": "Show",
+    "sha256": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Hide"
+    "text": "Hide",
+    "sha256": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Show More"
+    "text": "Show More",
+    "sha256": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Show Less"
+    "text": "Show Less",
+    "sha256": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Enable"
+    "text": "Enable",
+    "sha256": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Disable"
+    "text": "Disable",
+    "sha256": "b7e3e4aa"
   },
   "web.LABELS.stats": {
-    "text": "Stats"
+    "text": "Stats",
+    "sha256": "b4a73657"
   },
   "web.LABELS.timeline": {
-    "text": "Timeline"
+    "text": "Timeline",
+    "sha256": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Lifespan"
+    "text": "Lifespan",
+    "sha256": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Expiration Time"
+    "text": "Expiration Time",
+    "sha256": "c5db84a8"
   },
   "web.LABELS.secret_ttl": {
-    "text": "Expires in"
+    "text": "Expires in",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
-    "text": "Close"
+    "text": "Close",
+    "sha256": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "Loading..."
+    "text": "Loading...",
+    "sha256": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Cancel"
+    "text": "Cancel",
+    "sha256": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Saving..."
+    "text": "Saving...",
+    "sha256": "dc85af8f"
   },
   "web.LABELS.saved": {
-    "text": "Saved"
+    "text": "Saved",
+    "sha256": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Save"
+    "text": "Save",
+    "sha256": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Save All"
+    "text": "Save All",
+    "sha256": "d3c54e39"
   },
   "web.LABELS.details": {
-    "text": "Details"
+    "text": "Details",
+    "sha256": "45989de4"
   },
   "web.LABELS.encrypted": {
-    "text": "Encrypted"
+    "text": "Encrypted",
+    "sha256": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Secret Status"
+    "text": "Secret Status",
+    "sha256": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Need help?"
+    "text": "Need help?",
+    "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Create New Secret"
+    "text": "Create New Secret",
+    "sha256": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "Actions"
+    "text": "Actions",
+    "sha256": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "No Passphrase Required"
+    "text": "No Passphrase Required",
+    "sha256": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Copy to clipboard"
+    "text": "Copy to clipboard",
+    "sha256": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Receipts"
+    "text": "Receipts",
+    "sha256": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Share"
+    "text": "Share",
+    "sha256": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Secret Link"
+    "text": "Secret Link",
+    "sha256": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Dismiss"
+    "text": "Dismiss",
+    "sha256": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Security Details"
+    "text": "Security Details",
+    "sha256": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} Items"
+    "text": "{count} Items",
+    "sha256": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} Recipients"
+    "text": "{count} Recipients",
+    "sha256": "48187543"
   },
   "web.LABELS.view": {
-    "text": "View"
+    "text": "View",
+    "sha256": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Views"
+    "text": "Views",
+    "sha256": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "times viewed"
+    "text": "times viewed",
+    "sha256": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "View Progress"
+    "text": "View Progress",
+    "sha256": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Help Section"
+    "text": "Help Section",
+    "sha256": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Protected with passphrase"
+    "text": "Protected with passphrase",
+    "sha256": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Feedback received."
+    "text": "Feedback received.",
+    "sha256": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Sending..."
+    "text": "Sending...",
+    "sha256": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Recent Secrets"
+    "text": "Recent Secrets",
+    "sha256": "0b907f8b"
   },
   "web.LABELS.pricing": {
-    "text": "Pricing"
+    "text": "Pricing",
+    "sha256": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Refresh"
+    "text": "Refresh",
+    "sha256": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Reload"
+    "text": "Reload",
+    "sha256": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "Filter"
+    "text": "Filter",
+    "sha256": "638e249f"
   },
   "web.LABELS.clear": {
-    "text": "Clear"
+    "text": "Clear",
+    "sha256": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Secrets links created in this session"
+    "text": "Secrets links created in this session",
+    "sha256": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Create Link"
+    "text": "Create Link",
+    "sha256": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Create Secret Link"
+    "text": "Create Secret Link",
+    "sha256": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Create Request"
+    "text": "Create Request",
+    "sha256": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Create Request Link"
+    "text": "Create Request Link",
+    "sha256": "190463dc"
   },
   "web.LABELS.related_settings": {
-    "text": "Related Settings"
+    "text": "Related Settings",
+    "sha256": "68574b20"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Creating links for"
+    "text": "Creating links for",
+    "sha256": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Creating secrets in {domain}"
+    "text": "Creating secrets in {domain}",
+    "sha256": "3bbed96b"
   },
   "web.STATUS.new": {
-    "text": "New"
+    "text": "New",
+    "sha256": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Unread"
+    "text": "Unread",
+    "sha256": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Link opened"
+    "text": "Link opened",
+    "sha256": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Received"
+    "text": "Received",
+    "sha256": "49f19bee"
   },
   "web.STATUS.previewed": {
-    "text": "Previewed"
+    "text": "Previewed",
+    "sha256": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Revealed"
+    "text": "Revealed",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "Burned"
+    "text": "Burned",
+    "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Destroyed"
+    "text": "Destroyed",
+    "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Expiring Soon"
+    "text": "Expiring Soon",
+    "sha256": "0259442c"
   },
   "web.STATUS.created": {
-    "text": "Created"
+    "text": "Created",
+    "sha256": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "Expires"
+    "text": "Expires",
+    "sha256": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Expired"
+    "text": "Expired",
+    "sha256": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Orphaned"
+    "text": "Orphaned",
+    "sha256": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Secured"
+    "text": "Secured",
+    "sha256": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Securing"
+    "text": "Securing",
+    "sha256": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "Copied"
+    "text": "Copied",
+    "sha256": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Time Remaining"
+    "text": "Time Remaining",
+    "sha256": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Secret link has been created and not yet viewed"
+    "text": "Secret link has been created and not yet viewed",
+    "sha256": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Secret link has been created and has not been viewed"
+    "text": "Secret link has been created and has not been viewed",
+    "sha256": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Secret link has been opened and ready to be viewed"
+    "text": "Secret link has been opened and ready to be viewed",
+    "sha256": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Secret has been revealed to the recipient"
+    "text": "Secret has been revealed to the recipient",
+    "sha256": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Secret link has been opened and is ready to be revealed"
+    "text": "Secret link has been opened and is ready to be revealed",
+    "sha256": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Secret content has been revealed to the recipient"
+    "text": "Secret content has been revealed to the recipient",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Secret was manually burned before being viewed"
+    "text": "Secret was manually burned before being viewed",
+    "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Secret has been permanently destroyed"
+    "text": "Secret has been permanently destroyed",
+    "sha256": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Secret will expire soon"
+    "text": "Secret will expire soon",
+    "sha256": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Secret has been orphaned and will be destroyed soon"
+    "text": "Secret has been orphaned and will be destroyed soon",
+    "sha256": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Secret has expired before being viewed"
+    "text": "Secret has expired before being viewed",
+    "sha256": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Success"
+    "text": "Success",
+    "sha256": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Delivered"
+    "text": "Delivered",
+    "sha256": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS Incorrect"
+    "text": "DNS Incorrect",
+    "sha256": "7848d601"
   },
   "web.STATUS.active": {
-    "text": "Active"
+    "text": "Active",
+    "sha256": "92340695"
   },
   "web.STATUS.inactive": {
-    "text": "Inactive"
+    "text": "Inactive",
+    "sha256": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Unlimited Views"
+    "text": "Unlimited Views",
+    "sha256": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Trusted domain branding"
+    "text": "Trusted domain branding",
+    "sha256": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Encrypted in transit and at rest"
+    "text": "Encrypted in transit and at rest",
+    "sha256": "314c7974"
   },
   "web.UNITS.ttl.duration": {
-    "text": "{count} {unit}"
+    "text": "{count} {unit}",
+    "sha256": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "day | days"
+    "text": "day | days",
+    "sha256": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "hour | hours"
+    "text": "hour | hours",
+    "sha256": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "minute | minutes"
+    "text": "minute | minutes",
+    "sha256": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "second | seconds"
+    "text": "second | seconds",
+    "sha256": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} remaining"
+    "text": "{count} {unit} remaining",
+    "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "day remaining | days remaining"
+    "text": "day remaining | days remaining",
+    "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "hour remaining | hours remaining"
+    "text": "hour remaining | hours remaining",
+    "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "minute remaining | minutes remaining"
+    "text": "minute remaining | minutes remaining",
+    "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "second remaining | seconds remaining"
+    "text": "second remaining | seconds remaining",
+    "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} view limit"
+    "text": "{count} view limit",
+    "sha256": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} Days Left"
+    "text": "{count} Days Left",
+    "sha256": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} Hours Left"
+    "text": "{count} Hours Left",
+    "sha256": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} Minutes Left"
+    "text": "{count} Minutes Left",
+    "sha256": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Incoming Secrets"
+    "text": "Incoming Secrets",
+    "sha256": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Feedback"
+    "text": "Feedback",
+    "sha256": "aac77df3"
   },
   "web.TITLES.help": {
-    "text": "Help"
+    "text": "Help",
+    "sha256": "b79cac92"
   },
   "web.TITLES.signin": {
-    "text": "Sign In"
+    "text": "Sign In",
+    "sha256": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Create Account"
+    "text": "Create Account",
+    "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Forgot Password"
+    "text": "Forgot Password",
+    "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Reset Password"
+    "text": "Reset Password",
+    "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Logging Out"
+    "text": "Logging Out",
+    "sha256": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Verify Account"
+    "text": "Verify Account",
+    "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Two-Factor Authentication"
+    "text": "Two-Factor Authentication",
+    "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Email Login"
+    "text": "Email Login",
+    "sha256": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Accept Invitation"
+    "text": "Accept Invitation",
+    "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
-    "text": "Secret"
+    "text": "Secret",
+    "sha256": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "Secret Details"
+    "text": "Secret Details",
+    "sha256": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Secret Receipt"
+    "text": "Secret Receipt",
+    "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Burn Secret"
+    "text": "Burn Secret",
+    "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
-    "text": "Dashboard"
+    "text": "Dashboard",
+    "sha256": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Recent Secrets"
+    "text": "Recent Secrets",
+    "sha256": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Custom Domains"
+    "text": "Custom Domains",
+    "sha256": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Add Domain"
+    "text": "Add Domain",
+    "sha256": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Verify Domain"
+    "text": "Verify Domain",
+    "sha256": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Brand Domain"
+    "text": "Brand Domain",
+    "sha256": "35e4dfbe"
   },
   "web.TITLES.account": {
-    "text": "Account"
+    "text": "Account",
+    "sha256": "7e1b0d56"
   },
   "web.TITLES.data_region": {
-    "text": "Data Region"
+    "text": "Data Region",
+    "sha256": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Current Region"
+    "text": "Current Region",
+    "sha256": "b92e254d"
   },
   "web.TITLES.available_regions": {
-    "text": "Available Regions"
+    "text": "Available Regions",
+    "sha256": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Why Data Sovereignty Matters"
+    "text": "Why Data Sovereignty Matters",
+    "sha256": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
-    "text": "Profile Settings"
+    "text": "Profile Settings",
+    "sha256": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Preferences"
+    "text": "Preferences",
+    "sha256": "66962f72"
   },
   "web.TITLES.privacy_settings": {
-    "text": "Privacy"
+    "text": "Privacy",
+    "sha256": "54a57c31"
   },
   "web.TITLES.notification_settings": {
-    "text": "Notifications"
+    "text": "Notifications",
+    "sha256": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Change Email"
+    "text": "Change Email",
+    "sha256": "18c3f2d5"
   },
   "web.TITLES.security_overview": {
-    "text": "Security"
+    "text": "Security",
+    "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Change Password"
+    "text": "Change Password",
+    "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Two-Factor Authentication"
+    "text": "Two-Factor Authentication",
+    "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "Active Sessions"
+    "text": "Active Sessions",
+    "sha256": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Recovery Codes"
+    "text": "Recovery Codes",
+    "sha256": "579c7f4e"
   },
   "web.TITLES.api_settings": {
-    "text": "API Settings"
+    "text": "API Settings",
+    "sha256": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Advanced Settings"
+    "text": "Advanced Settings",
+    "sha256": "22d4f608"
   },
   "web.TITLES.system_settings": {
-    "text": "System Settings"
+    "text": "System Settings",
+    "sha256": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Page Not Found"
+    "text": "Page Not Found",
+    "sha256": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organizations"
+    "text": "Organizations",
+    "sha256": "2730183d"
   },
   "web.TITLES.organization_settings": {
-    "text": "Organization Settings"
+    "text": "Organization Settings",
+    "sha256": "cc1d9e61"
   },
   "web.TITLES.pricing": {
-    "text": "Pricing"
+    "text": "Pricing",
+    "sha256": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Focus is now in the main text area"
+    "text": "Focus is now in the main text area",
+    "sha256": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Sharing Instructions"
+    "text": "Sharing Instructions",
+    "sha256": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Share the link with the intended recipient"
+    "text": "Share the link with the intended recipient",
+    "sha256": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Share the passphrase separately through a secure channel"
+    "text": "Share the passphrase separately through a secure channel",
+    "sha256": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Use a different secure channel to share sensitive information"
+    "text": "Use a different secure channel to share sensitive information",
+    "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links."
+    "text": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
+    "sha256": "b588f5b2"
   },
   "web.pricing.title": {
-    "text": "Simple, Transparent Pricing"
+    "text": "Simple, Transparent Pricing",
+    "sha256": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design."
+    "text": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design.",
+    "sha256": "9204dff4"
   },
   "web.pricing.get_started_free": {
-    "text": "Get Started Free"
+    "text": "Get Started Free",
+    "sha256": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
-    "text": "Get Started"
+    "text": "Get Started",
+    "sha256": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Already have an account?"
+    "text": "Already have an account?",
+    "sha256": "e77fea93"
   },
   "web.pricing.sign_in": {
-    "text": "Sign in"
+    "text": "Sign in",
+    "sha256": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Recommended for You"
+    "text": "Recommended for You",
+    "sha256": "00093fbd"
   },
   "web.COMMON.received": {
-    "text": "Received"
+    "text": "Received",
+    "sha256": "49f19bee"
   },
   "web.LABELS.add_note": {
-    "text": "Add note..."
+    "text": "Add note...",
+    "sha256": "32738894"
   },
   "web.LABELS.edit_note": {
-    "text": "Edit note"
+    "text": "Edit note",
+    "sha256": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "Add memo..."
+    "text": "Add memo...",
+    "sha256": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Edit memo"
+    "text": "Edit memo",
+    "sha256": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Create and share secrets with basic features. No credit card required."
+    "text": "Create and share secrets with basic features. No credit card required.",
+    "sha256": "3a4f2bc0"
   }
 }

@@ -1,59 +1,78 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Why is this secret unavailable?"
+    "text": "Why is this secret unavailable?",
+    "sha256": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender."
+    "text": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+    "sha256": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "What should I do now?"
+    "text": "What should I do now?",
+    "sha256": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information."
+    "text": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
+    "sha256": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Warning dismissed"
+    "text": "Warning dismissed",
+    "sha256": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Dismiss truncation warning"
+    "text": "Dismiss truncation warning",
+    "sha256": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Oops! The page you are looking for doesn't exist or has been moved."
+    "text": "Oops! The page you are looking for doesn't exist or has been moved.",
+    "sha256": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Page Not Found"
+    "text": "404 - Page Not Found",
+    "sha256": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Page Not Found"
+    "text": "404 - Page Not Found",
+    "sha256": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Dismiss warning"
+    "text": "Dismiss warning",
+    "sha256": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Dismiss notification"
+    "text": "Dismiss notification",
+    "sha256": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
-    "text": "If you're unsure what to do next, please follow up with the person who sent you this link for more information."
+    "text": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
+    "sha256": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
-    "text": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access."
+    "text": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
+    "sha256": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
-    "text": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it."
+    "text": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
+    "sha256": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} Something went wrong"
+    "text": "{0} Something went wrong",
+    "sha256": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Go share a secret!"
+    "text": "Go share a secret!",
+    "sha256": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
-    "text": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!"
+    "text": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
+    "sha256": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
-    "text": "{0} 404"
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
-    "text": "Unable to load data due to data format issues. Please try again later."
+    "text": "Unable to load data due to data format issues. Please try again later.",
+    "sha256": "a7b6f998"
   }
 }
