@@ -5,10 +5,10 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "단 한 번만 작동하는 안전한 링크"
+    "text": "한 번만 작동하는 안전한 링크"
   },
   "web.COMMON.powered_by": {
-    "text": "제공:"
+    "text": "제공"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/ko"
@@ -23,19 +23,19 @@
     "text": "예: tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "비밀번호 입력"
+    "text": "비밀번호를 입력하세요"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "맞춤 도메인"
+    "text": "사용자 지정 도메인"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "자체 브랜드의 비밀 링크로 연결을 강화하고 신뢰를 구축하세요."
+    "text": "나만의 브랜드 비밀 링크로 신뢰를 구축하고 연결을 강화하세요."
   },
   "web.COMMON.get_started_button": {
     "text": "시작하기"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "비밀번호 확인"
+    "text": "비밀번호를 다시 입력하세요"
   },
   "web.COMMON.header_settings": {
     "text": "설정"
@@ -50,22 +50,22 @@
     "text": "처리 중..."
   },
   "web.COMMON.description": {
-    "text": "민감한 정보를 채팅 로그와 이메일에서 제외하세요. 단 한 번만 사용 가능한 비밀 링크를 공유하세요."
+    "text": "채팅 기록과 이메일에서 민감한 정보를 보호하세요. 한 번만 사용할 수 있는 비밀 링크를 공유하세요."
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "잘못된 접근 문구"
+    "text": "접근 문구가 올바르지 않습니다"
   },
   "web.COMMON.keywords": {
-    "text": "비밀,비밀번호 생성기,비밀 공유,onetime"
+    "text": "비밀,비밀번호 생성기,비밀 공유,원타임"
   },
   "web.COMMON.button_create_secret": {
     "text": "비밀 링크 생성"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "또는 무작위 비밀번호 생성"
+    "text": "또는 임의의 비밀번호 생성"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "개인 정보 보호 옵션"
+    "text": "개인정보 보호 옵션"
   },
   "web.COMMON.secret_passphrase": {
     "text": "접근 문구"
@@ -80,7 +80,7 @@
     "text": "비밀 내용을 여기에 입력하세요..."
   },
   "web.COMMON.header_create_account": {
-    "text": "계정 생성"
+    "text": "계정 만들기"
   },
   "web.COMMON.header_about": {
     "text": "소개"
@@ -110,46 +110,46 @@
     "text": "소각됨"
   },
   "web.COMMON.expires_in": {
-    "text": "만료 시간"
+    "text": "만료까지"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "이 비밀 메시지 소각하기"
+    "text": "이 비밀 메시지 소각"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "비밀 메시지 소각은 열람되기 전에 삭제합니다 (확인하려면 클릭하세요)"
+    "text": "비밀 메시지를 소각하면 읽기 전에 삭제됩니다 (확인하려면 클릭)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
     "text": "비밀 메시지 소각은 영구적이며 취소할 수 없습니다"
   },
   "web.COMMON.msg_check_email": {
-    "text": "이메일을 확인하세요"
+    "text": "이메일을 확인해 주세요"
   },
   "web.COMMON.click_to_continue": {
-    "text": "계속하려면 클릭 →"
+    "text": "클릭하여 공개 →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "계정 인증을 계속하려면:"
+    "text": "계정 인증을 계속하세요:"
   },
   "web.COMMON.error_secret": {
     "text": "공유할 내용을 입력하지 않았습니다"
   },
   "web.COMMON.error_passphrase": {
-    "text": "접근 문구를 다시 확인하세요"
+    "text": "접근 문구를 다시 확인해 주세요"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "접근 문구를 여기에 입력하세요"
+    "text": "여기에 접근 문구를 입력하세요"
   },
   "web.COMMON.view_secret": {
     "text": "비밀 메시지 보기"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "주의: 단 한 번만 표시됩니다."
+    "text": "주의: 한 번만 표시됩니다."
   },
   "web.COMMON.warning": {
     "text": "경고"
   },
   "web.COMMON.oops": {
-    "text": "이런!"
+    "text": "앗!"
   },
   "web.COMMON.error": {
     "text": "오류"
@@ -164,10 +164,10 @@
     "text": "더 많은 기능을 위해 가입하세요"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "계정에 로그인하세요"
+    "text": "계정에 로그인"
   },
   "web.COMMON.sent_to": {
-    "text": "발신 대상: "
+    "text": "수신자:"
   },
   "web.COMMON.field_email": {
     "text": "이메일"
@@ -179,7 +179,7 @@
     "text": "비밀번호 확인"
   },
   "web.COMMON.button_create_account": {
-    "text": "계정 생성"
+    "text": "계정 만들기"
   },
   "web.COMMON.share_a_secret": {
     "text": "비밀 메시지 공유"
@@ -203,7 +203,7 @@
     "text": "취소"
   },
   "web.COMMON.word_continue": {
-    "text": "계속하기"
+    "text": "계속"
   },
   "web.COMMON.word_done": {
     "text": "완료"
@@ -212,19 +212,19 @@
     "text": "뒤로"
   },
   "web.COMMON.feedback_text": {
-    "text": "의견, 아이디어 또는 경험을 공유하세요..."
+    "text": "생각, 아이디어 또는 경험을 공유해 주세요..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "피드백 보내기"
+    "text": "의견 보내기"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "인증이 다음 주소로 전송되었습니다"
+    "text": "인증 이메일이 다음 주소로 발송되었습니다:"
   },
   "web.COMMON.autoverified_success": {
     "text": "계정이 생성되었습니다. 로그인해 주세요."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "이 이메일 주소로 계정이 존재하는 경우 인증 이메일을 받게 됩니다."
+    "text": "이 이메일로 등록된 계정이 있으면 인증 이메일을 받게 됩니다."
   },
   "web.COMMON.burn_this_secret_aria": {
     "text": "이 비밀 메시지를 영구적으로 소각"
@@ -233,22 +233,22 @@
     "text": "확인해 주세요"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "이 비밀 메시지를 소각하시겠습니까? 이 작업은 취소할 수 없습니다."
+    "text": "이 비밀 메시지를 정말 소각하시겠습니까? 이 작업은 취소할 수 없습니다."
   },
   "web.COMMON.confirm_burn": {
     "text": "예, 이 비밀 메시지를 소각합니다"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "비밀 메시지 소각은 수신되기 전에 메시지를 삭제합니다."
+    "text": "비밀 메시지를 소각하면 수신되기 전에 삭제됩니다."
   },
   "web.COMMON.share_link_securely": {
-    "text": "보안을 위해 이 링크를 다른 세부 정보와 별도로 공유하세요."
+    "text": "보안을 위해 이 링크를 다른 정보와 별도로 공유하세요."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "클립보드에 복사됨"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "수신 생성"
+    "text": "수신용 링크 생성"
   },
   "web.COMMON.faq_title": {
     "text": "자주 묻는 질문"
@@ -257,7 +257,7 @@
     "text": "인증이 유효하지 않습니다"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "이미 로그인되어 있을 때는 계정을 인증할 수 없습니다"
+    "text": "이미 로그인되어 있으면 계정을 인증할 수 없습니다"
   },
   "web.COMMON.show_password": {
     "text": "비밀번호 표시"
@@ -275,22 +275,22 @@
     "text": "비밀번호가 일치하지 않습니다"
   },
   "web.COMMON.form_field_required": {
-    "text": "이 항목은 필수입니다"
+    "text": "이 필드는 필수입니다"
   },
   "web.COMMON.form_processing": {
-    "text": "요청 처리 중"
+    "text": "요청을 처리 중입니다"
   },
   "web.COMMON.remember_me_description": {
-    "text": "30일 동안 로그인 유지"
+    "text": "30일간 로그인 상태 유지"
   },
   "web.COMMON.redirecting": {
-    "text": "리디렉션 중..."
+    "text": "이동 중..."
   },
   "web.COMMON.continue": {
-    "text": "계속하기"
+    "text": "계속"
   },
   "web.COMMON.are_you_sure": {
-    "text": "확실합니까?"
+    "text": "정말 진행하시겠습니까?"
   },
   "web.COMMON.danger_zone": {
     "text": "위험 구역"
@@ -320,7 +320,7 @@
     "text": "추가 중"
   },
   "web.COMMON.e_g_example": {
-    "text": "예시"
+    "text": "예:"
   },
   "web.COMMON.example_placeholder": {
     "text": "예: {example}"
@@ -329,7 +329,7 @@
     "text": "상태"
   },
   "web.COMMON.escape": {
-    "text": "취소"
+    "text": "Escape"
   },
   "web.COMMON.active": {
     "text": "활성"
@@ -344,7 +344,7 @@
     "text": "ESC를 눌러 닫기"
   },
   "web.COMMON.enter": {
-    "text": "입력"
+    "text": "Enter"
   },
   "web.COMMON.important": {
     "text": "중요"
@@ -356,13 +356,13 @@
     "text": "테마"
   },
   "web.COMMON.appearance": {
-    "text": "외관"
+    "text": "화면 설정"
   },
   "web.COMMON.done": {
     "text": "완료"
   },
   "web.COMMON.end": {
-    "text": "끝"
+    "text": "종료"
   },
   "web.COMMON.general": {
     "text": "일반"
@@ -377,7 +377,7 @@
     "text": "연간"
   },
   "web.COMMON.go_on_then": {
-    "text": "진행하세요."
+    "text": "그럼 진행하세요."
   },
   "web.COMMON.loading_ellipses": {
     "text": "로딩 중..."
@@ -419,7 +419,7 @@
     "text": "기타"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(최소 너비: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -452,19 +452,19 @@
     "text": "비밀번호 강도:"
   },
   "web.COMMON.great": {
-    "text": "매우 좋음"
+    "text": "훌륭해요"
   },
   "web.COMMON.pretty_good": {
-    "text": "상당히 좋음"
+    "text": "꽤 좋아요"
   },
   "web.COMMON.fair": {
     "text": "보통"
   },
   "web.COMMON.meh": {
-    "text": "약함"
+    "text": "그저 그래요"
   },
   "web.COMMON.not_great": {
-    "text": "좋지 않음"
+    "text": "별로예요"
   },
   "web.COMMON.open_options": {
     "text": "옵션 열기"
@@ -482,7 +482,7 @@
     "text": "비밀 메시지가 클립보드에 복사되었습니다"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "접근 문구를 다시 확인하세요"
+    "text": "접근 문구를 다시 확인해 주세요"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "아래 복사 버튼을 누르세요."
@@ -497,7 +497,7 @@
     "text": "더 보기"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "간략히 보기"
+    "text": "접기"
   },
   "web.LABELS.enable": {
     "text": "활성화"
@@ -512,7 +512,7 @@
     "text": "타임라인"
   },
   "web.LABELS.lifespan": {
-    "text": "수명"
+    "text": "유효기간"
   },
   "web.LABELS.expiration_time": {
     "text": "만료 시간"
@@ -557,13 +557,13 @@
     "text": "작업"
   },
   "web.LABELS.no_passphrase": {
-    "text": "접근 문구 불필요"
+    "text": "접근 문구 필요 없음"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "클립보드에 복사"
   },
   "web.LABELS.receipts": {
-    "text": "수신 확인"
+    "text": "수신확인"
   },
   "web.LABELS.share": {
     "text": "공유"
@@ -587,13 +587,13 @@
     "text": "보기"
   },
   "web.LABELS.views": {
-    "text": "조회수"
+    "text": "조회"
   },
   "web.LABELS.times_viewed": {
     "text": "회 조회됨"
   },
   "web.LABELS.view_progress": {
-    "text": "조회 진행 상황"
+    "text": "진행 상황 보기"
   },
   "web.LABELS.help_section": {
     "text": "도움말 섹션"
@@ -602,7 +602,7 @@
     "text": "접근 문구로 보호됨"
   },
   "web.LABELS.feedback_received": {
-    "text": "피드백이 접수되었습니다."
+    "text": "의견을 받았습니다."
   },
   "web.LABELS.sending_ellipses": {
     "text": "전송 중..."
@@ -611,13 +611,13 @@
     "text": "최근 비밀 메시지"
   },
   "web.LABELS.pricing": {
-    "text": "가격"
+    "text": "요금제"
   },
   "web.LABELS.refresh": {
     "text": "새로고침"
   },
   "web.LABELS.reload": {
-    "text": "다시 로드"
+    "text": "새로고침"
   },
   "web.LABELS.caption_recent_secrets": {
     "text": "이 세션에서 생성된 비밀 링크"
@@ -638,13 +638,13 @@
     "text": "관련 설정"
   },
   "web.LABELS.creating_links_for": {
-    "text": "링크 생성 대상"
+    "text": "링크 생성 중:"
   },
   "web.LABELS.scope_indicator": {
-    "text": "{domain}에서 비밀 메시지 생성 중"
+    "text": "{domain}에서 비밀 메시지 생성"
   },
   "web.STATUS.new": {
-    "text": "신규"
+    "text": "새 항목"
   },
   "web.STATUS.unread": {
     "text": "읽지 않음"
@@ -659,10 +659,10 @@
     "text": "소각됨"
   },
   "web.STATUS.destroyed": {
-    "text": "파기됨"
+    "text": "삭제됨"
   },
   "web.STATUS.expiring_soon": {
-    "text": "곧 만료됨"
+    "text": "곧 만료"
   },
   "web.STATUS.created": {
     "text": "생성됨"
@@ -674,13 +674,13 @@
     "text": "만료됨"
   },
   "web.STATUS.orphaned": {
-    "text": "고립됨"
+    "text": "고아 상태"
   },
   "web.STATUS.secured": {
-    "text": "보안됨"
+    "text": "보호됨"
   },
   "web.STATUS.securing": {
-    "text": "보안 중"
+    "text": "보호 중"
   },
   "web.STATUS.copied": {
     "text": "복사됨"
@@ -689,31 +689,31 @@
     "text": "남은 시간"
   },
   "web.STATUS.new_description": {
-    "text": "비밀 링크가 생성되었으며 아직 열람되지 않았습니다"
+    "text": "비밀 링크가 생성되었으며 아직 조회되지 않았습니다"
   },
   "web.STATUS.unread_description": {
-    "text": "비밀 링크가 생성되었으며 열람되지 않았습니다"
+    "text": "비밀 링크가 생성되었으며 조회되지 않았습니다"
   },
   "web.STATUS.viewed_description": {
-    "text": "비밀 링크가 열렸으며 열람 준비가 되었습니다"
+    "text": "비밀 링크가 열렸으며 조회할 준비가 되었습니다"
   },
   "web.STATUS.received_description": {
     "text": "비밀 메시지가 수신자에게 공개되었습니다"
   },
   "web.STATUS.burned_description": {
-    "text": "비밀 메시지가 열람되기 전에 수동으로 소각되었습니다"
+    "text": "비밀 메시지가 조회되기 전에 수동으로 소각되었습니다"
   },
   "web.STATUS.destroyed_description": {
-    "text": "비밀 메시지가 영구적으로 파기되었습니다"
+    "text": "비밀 메시지가 영구적으로 삭제되었습니다"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "비밀 메시지가 곧 만료됩니다"
   },
   "web.STATUS.orphaned_description": {
-    "text": "비밀 메시지가 고립되었으며 곧 파기될 예정입니다"
+    "text": "비밀 메시지가 고아 상태가 되었으며 곧 삭제됩니다"
   },
   "web.STATUS.expired_description": {
-    "text": "비밀 메시지가 열람되기 전에 만료되었습니다"
+    "text": "비밀 메시지가 조회되기 전에 만료되었습니다"
   },
   "web.STATUS.success": {
     "text": "성공"
@@ -731,13 +731,13 @@
     "text": "비활성"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "무제한 열람"
+    "text": "무제한 조회"
   },
   "web.FEATURES.custom_domain_protected": {
     "text": "신뢰할 수 있는 도메인 브랜딩"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "전송 및 저장 중 암호화"
+    "text": "전송 중 및 저장 시 암호화"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -791,13 +791,13 @@
     "text": "수신 비밀 메시지"
   },
   "web.TITLES.feedback": {
-    "text": "피드백"
+    "text": "의견"
   },
   "web.TITLES.signin": {
     "text": "로그인"
   },
   "web.TITLES.signup": {
-    "text": "계정 생성"
+    "text": "계정 만들기"
   },
   "web.TITLES.forgot_password": {
     "text": "비밀번호 찾기"
@@ -821,13 +821,13 @@
     "text": "초대 수락"
   },
   "web.TITLES.secret": {
-    "text": "비밀 메시지 | 비밀 메시지"
+    "text": "비밀 메시지"
   },
   "web.TITLES.metadata": {
     "text": "비밀 메시지 세부정보"
   },
   "web.TITLES.receipt": {
-    "text": "비밀 메시지 수신 확인"
+    "text": "비밀 메시지 수신확인"
   },
   "web.TITLES.burn_secret": {
     "text": "비밀 메시지 소각"
@@ -836,10 +836,10 @@
     "text": "대시보드"
   },
   "web.TITLES.recent": {
-    "text": "최근"
+    "text": "최근 비밀 메시지"
   },
   "web.TITLES.domains": {
-    "text": "맞춤 도메인"
+    "text": "사용자 지정 도메인"
   },
   "web.TITLES.domain_add": {
     "text": "도메인 추가"
@@ -848,10 +848,10 @@
     "text": "도메인 인증"
   },
   "web.TITLES.domain_brand": {
-    "text": "브랜드 도메인"
+    "text": "도메인 브랜딩"
   },
   "web.TITLES.account": {
-    "text": "계정 설정"
+    "text": "계정"
   },
   "web.TITLES.data_region": {
     "text": "데이터 지역"
@@ -860,7 +860,7 @@
     "text": "현재 지역"
   },
   "web.TITLES.available_regions": {
-    "text": "사용 가능한 지역"
+    "text": "이용 가능한 지역"
   },
   "web.TITLES.why_data_sovereignty": {
     "text": "데이터 주권이 중요한 이유"
@@ -914,33 +914,93 @@
     "text": "조직 설정"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "초점이 이제 메인 텍스트 영역에 있습니다"
+    "text": "포커스가 주요 텍스트 영역으로 이동했습니다"
   },
   "web.INSTRUCTION.sharing_instructions": {
     "text": "공유 지침"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "링크를 의도한 수신자와 공유하세요"
+    "text": "의도한 수신자에게 링크를 공유하세요"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "접근 문구는 별도의 안전한 채널을 통해 공유하세요"
+    "text": "접근 문구는 안전한 별도의 채널을 통해 공유하세요"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
     "text": "민감한 정보를 공유할 때는 다른 안전한 채널을 사용하세요"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "항상 공식 Onetime Secret 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 Onetime Secret과 똑같이 보이는 가짜 웹사이트를 만들어 귀하의 비밀 메시지를 훔치려고 합니다. 피싱 공격을 방지하려면 새 링크를 생성하기 전에 지역 도메인을 확인하세요."
+    "text": "항상 공식 Onetime Secret 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 Onetime Secret과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요."
   },
   "web.STATUS.previewed": {
-    "text": "링크 열림"
+    "text": "미리보기됨"
   },
   "web.STATUS.revealed": {
     "text": "공개됨"
   },
   "web.STATUS.previewed_description": {
-    "text": "비밀 링크가 열렸으며 공개 준비가 되었습니다"
+    "text": "비밀 링크가 열렸으며 공개할 준비가 되었습니다"
   },
   "web.STATUS.revealed_description": {
     "text": "비밀 내용이 수신자에게 공개되었습니다"
+  },
+  "web.COMMON.not_set": {
+    "text": "설정되지 않음"
+  },
+  "web.COMMON.word_edit": {
+    "text": "편집"
+  },
+  "web.COMMON.word_save": {
+    "text": "저장"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "만료까지"
+  },
+  "web.LABELS.filter": {
+    "text": "필터"
+  },
+  "web.LABELS.clear": {
+    "text": "지우기"
+  },
+  "web.LABELS.add_note": {
+    "text": "메모 추가..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "메모 편집"
+  },
+  "web.LABELS.add_memo": {
+    "text": "메모 추가..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "메모 편집"
+  },
+  "web.TITLES.help": {
+    "text": "도움말"
+  },
+  "web.TITLES.pricing": {
+    "text": "요금제"
+  },
+  "web.pricing.title": {
+    "text": "간단하고 투명한 요금제"
+  },
+  "web.pricing.subtitle": {
+    "text": "필요에 맞는 요금제를 선택하세요. 모든 요금제에는 무제한 비밀 공유와 개인정보 보호 우선 설계가 포함됩니다."
+  },
+  "web.pricing.get_started_free": {
+    "text": "무료로 시작하기"
+  },
+  "web.pricing.start_trial": {
+    "text": "시작하기"
+  },
+  "web.pricing.already_have_account": {
+    "text": "이미 계정이 있으신가요?"
+  },
+  "web.pricing.sign_in": {
+    "text": "로그인"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "추천"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "기본 기능으로 비밀 메시지를 생성하고 공유하세요. 신용카드가 필요하지 않습니다."
   }
 }

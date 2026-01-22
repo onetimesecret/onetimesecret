@@ -54,34 +54,34 @@
     "text": "이메일을 확인하세요"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "{email}로 로그인 링크를 보냈습니다"
+    "text": "{email}(으)로 로그인 링크를 보냈습니다"
   },
   "web.auth.magicLink.linkExpiresIn": {
     "text": "이 링크는 15분 후에 만료됩니다"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "다른 이메일 시도"
+    "text": "다른 이메일로 시도"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "비밀번호가 필요 없습니다 — 이메일의 링크를 클릭하기만 하면 됩니다"
+    "text": "비밀번호가 필요 없습니다 — 이메일의 링크를 클릭하세요"
   },
   "web.auth.magicLink.networkError": {
-    "text": "네트워크 오류입니다. 다시 시도해 주세요."
+    "text": "네트워크 오류. 다시 시도해 주세요."
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "로그인 링크 전송에 실패했습니다. 다시 시도해 주세요."
+    "text": "로그인 링크 전송 실패. 다시 시도해 주세요."
   },
   "web.auth.magicLink.invalidLink": {
     "text": "유효하지 않거나 누락된 로그인 링크"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "로그인에 실패했습니다. 다시 시도해 주세요."
+    "text": "로그인 실패. 다시 시도해 주세요."
   },
   "web.auth.magicLink.signingYouIn": {
     "text": "로그인 중..."
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "링크를 확인하는 동안 기다려 주세요"
+    "text": "링크를 확인하는 동안 잠시 기다려 주세요"
   },
   "web.auth.magicLink.error": {
     "text": "인증 오류"
@@ -99,16 +99,16 @@
     "text": "이 브라우저에서는 생체 인식 인증이 지원되지 않습니다"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "WebAuthn을 지원하는 최신 브라우저를 사용하세요 (Chrome, Safari, Firefox 또는 Edge)"
+    "text": "WebAuthn을 지원하는 최신 브라우저를 사용해 주세요 (Chrome, Safari, Firefox 또는 Edge)"
   },
   "web.auth.webauthn.setupSuccess": {
     "text": "생체 인식 로그인이 활성화되었습니다"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "생체 인식 로그인 설정에 실패했습니다"
+    "text": "생체 인식 로그인 설정 실패"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "생체 인식 인증에 실패했습니다. 다시 시도해 주세요."
+    "text": "생체 인식 인증 실패. 다시 시도해 주세요."
   },
   "web.auth.webauthn.cancelled": {
     "text": "인증이 취소되었습니다"
@@ -117,22 +117,22 @@
     "text": "인증 중..."
   },
   "web.auth.webauthn.description": {
-    "text": "지문, 얼굴 또는 보안 키를 사용하여 로그인합니다"
+    "text": "지문, 얼굴 또는 보안 키를 사용하여 로그인"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Face ID, Touch ID, Windows Hello 및 보안 키를 지원합니다"
+    "text": "Face ID, Touch ID, Windows Hello 및 보안 키 지원"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "경고: {count}번의 로그인 시도 남음"
+    "text": "경고: 로그인 시도가 {count}회 남았습니다"
   },
   "web.auth.lockout.account_locked": {
-    "text": "로그인 시도 실패가 너무 많아 계정이 잠겼습니다"
+    "text": "로그인 실패 횟수 초과로 계정이 잠겼습니다"
   },
   "web.auth.lockout.locked_until": {
-    "text": "계정이 {time}까지 잠겼습니다"
+    "text": "{time}까지 계정이 잠겨 있습니다"
   },
   "web.auth.lockout.contact_support": {
-    "text": "즉시 접근이 필요한 경우 지원팀에 문의하세요"
+    "text": "즉시 접근이 필요하시면 고객 지원에 문의해 주세요"
   },
   "web.auth.lockout.try_password_reset": {
     "text": "대신 비밀번호를 재설정할 수 있습니다"
@@ -144,10 +144,10 @@
     "text": "현재 세션"
   },
   "web.auth.sessions.other": {
-    "text": "기타 세션"
+    "text": "다른 세션"
   },
   "web.auth.sessions.device": {
-    "text": "장치"
+    "text": "기기"
   },
   "web.auth.sessions.location": {
     "text": "위치"
@@ -159,7 +159,7 @@
     "text": "마지막 활동"
   },
   "web.auth.sessions.created": {
-    "text": "생성됨"
+    "text": "생성일"
   },
   "web.auth.sessions.remove": {
     "text": "제거"
@@ -171,10 +171,10 @@
     "text": "이 세션을 제거하시겠습니까?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "다른 모든 장치에서 로그아웃됩니다. 확실합니까?"
+    "text": "다른 모든 기기에서 로그아웃됩니다. 확실합니까?"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "다른 활성 세션 없음"
+    "text": "다른 활성 세션이 없습니다"
   },
   "web.auth.sessions.removed_success": {
     "text": "세션이 성공적으로 제거되었습니다"
@@ -204,7 +204,7 @@
     "text": "2단계 인증 설정"
   },
   "web.auth.mfa.setup_description": {
-    "text": "계정에 추가 보안 계층을 추가합니다"
+    "text": "계정에 추가 보안 계층 추가"
   },
   "web.auth.mfa.step_scan": {
     "text": "1. QR 코드 스캔"
@@ -219,7 +219,7 @@
     "text": "또는 이 코드를 수동으로 입력하세요"
   },
   "web.auth.mfa.verify_code": {
-    "text": "앱의 6자리 코드를 입력하세요"
+    "text": "앱에서 6자리 코드를 입력하세요"
   },
   "web.auth.mfa.enter_code": {
     "text": "인증 코드 입력"
@@ -231,7 +231,7 @@
     "text": "인증 코드가 필요합니다"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "유효하지 않은 코드입니다. 코드는 30초마다 만료됩니다. 인증 앱의 최신 코드를 시도하세요."
+    "text": "유효하지 않은 코드입니다. 코드는 30초마다 만료됩니다. 인증 앱의 최신 코드를 시도해 주세요."
   },
   "web.auth.mfa.success_enabled": {
     "text": "2단계 인증이 활성화되었습니다"
@@ -246,13 +246,13 @@
     "text": "비밀번호"
   },
   "web.auth.mfa.password_reason": {
-    "text": "2단계 인증 설정을 수정하려면 신원을 확인하세요"
+    "text": "2단계 인증 설정을 변경하려면 본인 확인"
   },
   "web.auth.mfa.last_used": {
     "text": "마지막 사용: {time}"
   },
   "web.auth.mfa.never_used": {
-    "text": "사용 안 함"
+    "text": "사용한 적 없음"
   },
   "web.auth.mfa.use_recovery_code": {
     "text": "대신 복구 코드 사용"
@@ -270,13 +270,13 @@
     "text": "계정이 2단계 인증으로 보호되고 있습니다"
   },
   "web.auth.mfa.enable_description": {
-    "text": "추가 보안 계층으로 계정을 보호합니다"
+    "text": "추가 보안 계층으로 계정 보호"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "비밀번호가 유출되어도 무단 접근을 방지합니다"
+    "text": "비밀번호가 유출되더라도 무단 접근 방지"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Google Authenticator, Authy 및 기타 TOTP 앱과 함께 작동합니다"
+    "text": "Google Authenticator, Authy 및 기타 TOTP 앱과 호환"
   },
   "web.auth.mfa.benefit_recovery": {
     "text": "긴급 접근을 위한 백업 복구 코드"
@@ -294,10 +294,10 @@
     "text": "QR 코드 생성 중..."
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Google Authenticator, Authy 또는 모든 TOTP 앱을 사용하세요"
+    "text": "Google Authenticator, Authy 또는 TOTP 앱 사용"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "확인으로 계속"
+    "text": "인증 계속"
   },
   "web.auth.mfa.enter_code_description": {
     "text": "인증 앱의 6자리 코드를 입력하세요"
@@ -315,7 +315,7 @@
     "text": "복구 코드"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "복구 코드 입력"
+    "text": "복구 코드를 입력하세요"
   },
   "web.auth.mfa.verify_recovery_code": {
     "text": "복구 코드 확인"
@@ -324,22 +324,22 @@
     "text": "6자리 인증 코드 입력"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "복구 코드 모드 활성"
+    "text": "복구 코드 모드 활성화됨"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "인증 코드 모드 활성"
+    "text": "인증 코드 모드 활성화됨"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "계속하려면 6자리를 모두 입력하세요"
+    "text": "계속하려면 6자리를 모두 입력해 주세요"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "{total}자리 중 {current}자리"
+    "text": "{total}자리 중 {current}번째"
   },
   "web.auth.recovery_codes.title": {
     "text": "복구 코드"
   },
   "web.auth.recovery_codes.description": {
-    "text": "이 코드를 안전한 장소에 저장하세요. 인증 앱에 접근할 수 없는 경우 각 코드를 한 번씩 사용할 수 있습니다."
+    "text": "이 코드를 안전한 곳에 저장하세요. 인증 앱에 접근할 수 없을 때 각 코드를 한 번씩 사용할 수 있습니다."
   },
   "web.auth.recovery_codes.warning": {
     "text": "이 코드는 한 번만 표시됩니다"
@@ -354,7 +354,7 @@
     "text": "코드 재생성"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "기존의 모든 복구 코드가 무효화됩니다"
+    "text": "모든 기존 복구 코드가 무효화됩니다"
   },
   "web.auth.recovery_codes.download": {
     "text": "코드 다운로드"
@@ -378,21 +378,36 @@
     "text": "사용됨"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "사용 안 됨"
+    "text": "미사용"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count}개의 복구 코드 남음"
+    "text": "{limit}개 중 {count}개 복구 코드 남음"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "각 코드는 한 번만 사용할 수 있습니다. 코드가 부족해지면 재생성하세요."
+    "text": "각 코드는 한 번만 사용할 수 있습니다. 부족할 경우 코드를 재생성하세요."
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "남은 복구 코드 없음"
+    "text": "남은 복구 코드가 없습니다"
   },
   "web.auth.recovery_codes.generate_success": {
     "text": "새 복구 코드가 생성되었습니다"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "복구 코드"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "인증"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "복구 코드 사용"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "로그인 취소"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ 보안 중요: 정보 노출을 방지하는 메시지입니다. src/locales/SECURITY-TRANSLATION-GUIDE.md를 참조하세요"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "사용자의 로그인된 기기/브라우저 관리 페이지"
   }
 }

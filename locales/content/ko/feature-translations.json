@@ -3,7 +3,7 @@
     "text": "기존 및 새로운 언어 모두에 대한 기여자를 환영합니다."
   },
   "web.translations.our_github_project": {
-    "text": "저희 GitHub 프로젝트"
+    "text": "GitHub 프로젝트"
   },
   "web.translations.if_youre_interested_in_translation": {
     "text": "번역에 관심이 있으시다면,"
@@ -12,10 +12,10 @@
     "text": "새로운 기능을 계속 개발함에 따라 번역을 도와주신 분들에게 감사드립니다."
   },
   "web.translations.25_contributors": {
-    "text": "25명 이상의 기여자들"
+    "text": "25명 이상의 기여자"
   },
   "web.translations.were_grateful_to_the": {
-    "text": "저희는 다음에 감사드립니다"
+    "text": "감사드립니다:"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
     "text": "새로운 기능을 추가함에 따라 번역은 점차 업데이트가 필요합니다. 이는 onetimesecret.com과 전 세계 수천 개의 자체 호스팅 설치에 모두 영향을 미칩니다."
@@ -24,19 +24,19 @@
     "text": "- 로그인하지 않은 경우 이메일을 포함하는 것을 잊지 마세요. 모든 번역은 더 많은 사람들이 안전하게 소통하는 데 도움이 됩니다."
   },
   "web.translations.reach_out_to_us": {
-    "text": "문의하기"
+    "text": "연락해 주세요"
   },
   "web.translations.have_questions": {
     "text": "질문이 있으신가요?"
   },
   "web.translations.send_translations_by_email_to": {
-    "text": "번역을 이메일로 보내기"
+    "text": "번역을 이메일로 보내주세요:"
   },
   "web.translations.english_template": {
     "text": "영어 템플릿"
   },
   "web.translations.start_a_new_translation_from_our": {
-    "text": "다음에서 새 번역 시작하기"
+    "text": "새 번역을 시작하세요:"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {
     "text": "GitHub 프로젝트를 통해 직접 언어 업데이트"
@@ -66,6 +66,6 @@
     "text": "2012년부터 Onetime Secret은 전 세계적으로 민감한 정보를 안전하게 공유하는 방법을 제공해 왔습니다. 영어가 주요 언어가 아닌 지역의 사용자들이 있어, 정확한 번역은 모든 사람이 안전한 통신에 접근할 수 있도록 하는 데 필수적입니다."
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "안전한 통신이 글로벌하게 되도록 도와주세요"
+    "text": "안전한 소통을 전 세계로 확장하는 데 도움을 주세요"
   }
 }

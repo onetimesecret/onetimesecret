@@ -1,6 +1,6 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "DNS 구성에 대해 더 알아보기"
+    "text": "DNS 설정에 대해 자세히 알아보기"
   },
   "web.domains.view_domain_verification_status": {
     "text": "도메인 인증 상태 보기"
@@ -9,28 +9,28 @@
     "text": "이 도메인은 이미 조직에 등록되어 있습니다"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "이 도메인은 이미 다른 조직에 등록되어 있습니다. 오류라고 생각되면 지원팀에 문의하세요."
+    "text": "이 도메인은 이미 다른 조직에 등록되어 있습니다. 오류라고 생각되시면 고객 지원에 문의해 주세요."
   },
   "web.domains.domain_claimed_successfully": {
     "text": "도메인이 성공적으로 청구되어 조직에 추가되었습니다"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "개인정보 기본값"
+    "text": "개인정보 보호 기본값"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "이 도메인에서 생성되는 비밀 메시지의 기본 개인정보 옵션을 설정합니다. 새 비밀 메시지 생성 시 이 설정이 미리 적용됩니다."
+    "text": "이 도메인에서 생성된 비밀 메시지의 기본 개인정보 보호 옵션을 설정합니다. 이 설정은 새 비밀 메시지를 생성할 때 미리 채워집니다."
   },
   "web.domains.privacy_defaults": {
-    "text": "개인정보 기본값"
+    "text": "개인정보 보호 기본값"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "개인정보 기본값 아이콘"
+    "text": "개인정보 보호 기본값 아이콘"
   },
   "web.domains.default_ttl_label": {
-    "text": "기본 유효 시간"
+    "text": "기본 유효기간"
   },
   "web.domains.default_ttl_hint": {
-    "text": "기본적으로 비밀 메시지에 접근 가능한 시간"
+    "text": "비밀 메시지가 기본적으로 접근 가능한 기간"
   },
   "web.domains.passphrase_required_label": {
     "text": "접근 문구 필수"
@@ -42,7 +42,7 @@
     "text": "알림 활성화"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "비밀 메시지가 열람될 때 기본적으로 이메일 알림 활성화"
+    "text": "비밀 메시지가 조회될 때 기본적으로 이메일 알림 활성화"
   },
   "web.domains.use_global_default": {
     "text": "전역 기본값 사용"
@@ -63,7 +63,7 @@
     "text": "비활성화됨"
   },
   "web.domains.custom": {
-    "text": "맞춤"
+    "text": "사용자 지정"
   },
   "web.domains.edit_defaults": {
     "text": "기본값 편집"
@@ -99,7 +99,7 @@
     "text": "기본 도메인에는 설정 페이지가 없습니다"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "{0} 도메인 이름을 입력하세요"
+    "text": "{0} 도메인 이름을 입력해 주세요"
   },
   "web.domains.domain_name": {
     "text": "도메인 이름"
@@ -141,10 +141,10 @@
     "text": "도메인 상태"
   },
   "web.domains.custom_domains_count": {
-    "text": "맞춤 도메인 수"
+    "text": "사용자 지정 도메인 수"
   },
   "web.domains.custom_domain": {
-    "text": "맞춤 도메인"
+    "text": "사용자 지정 도메인"
   },
   "web.domains.open_domain_in_new_tab": {
     "text": "새 탭에서 도메인 열기"
@@ -189,13 +189,13 @@
     "text": "그리고 해당 정확한 주소에 대한 다른 A, AAAA 또는 CNAME 레코드를 제거하세요."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", 이러한 단계를 완료해야 합니다."
+    "text": ", 다음 단계를 완료해야 합니다."
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "다음에 대한 링크를 활성화하기 전에"
+    "text": "링크를 활성화하기 전에"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "최상위 도메인(예:"
+    "text": "apex 도메인의 경우(예:"
   },
   "web.domains.verify_your_domain": {
     "text": "도메인 인증"
@@ -204,7 +204,7 @@
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "도메인 브랜딩 맞춤설정"
+    "text": "도메인 브랜딩 사용자 지정"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "SSL 인증서가 적용되기까지 몇 분이 걸릴 수 있습니다."
@@ -274,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "도메인이 성공적으로 추가되었습니다"
+  },
+  "web.domains.passphrase_set": {
+    "text": "보호됨"
+  },
+  "web.domains.manage_domains": {
+    "text": "도메인 관리"
+  },
+  "web.domains.global_defaults": {
+    "text": "전역 기본값"
+  },
+  "web.domains.edit_ttl": {
+    "text": "유효기간 설정 편집"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "접근 문구 요구 사항 편집"
+  },
+  "web.domains.edit_notify": {
+    "text": "알림 설정 편집"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "DNS 레코드 설정"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "아래 도구를 사용하여 DNS 제공업체를 자동으로 감지하고 도메인 설정을 위한 단계별 지침을 받으세요."
   }
 }

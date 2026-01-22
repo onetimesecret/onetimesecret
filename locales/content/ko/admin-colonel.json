@@ -18,37 +18,37 @@
     "text": "비밀 메시지 ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(최근 5분간 활성화)"
+    "text": "(지난 5분 동안 활성)"
   },
   "web.colonel.configEditorTitle": {
     "text": "설정"
   },
   "web.colonel.configEditorDescription": {
-    "text": "시스템 구성 설정을 편집합니다. 변경사항은 저장 후 즉시 적용됩니다."
+    "text": "시스템 설정을 편집합니다. 변경사항은 저장 후 즉시 적용됩니다."
   },
   "web.colonel.invalidJson": {
-    "text": "{section} 섹션에 유효하지 않은 JSON"
+    "text": "{section} 섹션의 JSON이 올바르지 않습니다"
   },
   "web.colonel.validationError": {
-    "text": "검증 오류"
+    "text": "유효성 검사 오류"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "구성 로딩 오류"
+    "text": "설정 로딩 중 오류"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "구성 저장 오류"
+    "text": "설정 저장 중 오류"
   },
   "web.colonel.configSaved": {
-    "text": "구성이 성공적으로 저장되었습니다"
+    "text": "설정이 성공적으로 저장되었습니다"
   },
   "web.colonel.mustBeObject": {
-    "text": "구성은 JSON 객체여야 합니다"
+    "text": "설정은 JSON 객체여야 합니다"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "여러 섹션에 검증 오류가 있습니다: {sections}"
+    "text": "여러 섹션에 유효성 검사 오류가 있습니다: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section}에 검증 오류가 있습니다: {error}"
+    "text": "{section}에 유효성 검사 오류가 있습니다: {error}"
   },
   "web.colonel.sectionSaved": {
     "text": "{section}이(가) 성공적으로 저장되었습니다"
@@ -63,13 +63,13 @@
     "text": "저장되지 않은 변경사항"
   },
   "web.colonel.schemaValidationError": {
-    "text": "스키마 검증 오류: {message} ({path})"
+    "text": "스키마 유효성 검사 오류: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "알 수 없는 검증 오류: {error}"
+    "text": "알 수 없는 유효성 검사 오류: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section} 섹션에 구성된 값이 없습니다"
+    "text": "{section} 섹션에 설정된 값이 없습니다"
   },
   "web.colonel.dashboard": {
     "text": "대시보드"
@@ -117,7 +117,7 @@
     "text": "활동 데이터가 여기에 표시됩니다"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "전체 비밀 메시지"
+    "text": "총 비밀 메시지"
   },
   "web.colonel.stats.activeUsers": {
     "text": "활성 사용자"
@@ -132,10 +132,10 @@
     "text": "공유된 비밀 메시지"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "전체 고객"
+    "text": "총 사용자"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "전송된 이메일"
+    "text": "발송된 이메일"
   },
   "web.colonel.stats.systemHealth": {
     "text": "시스템 상태"
@@ -156,7 +156,7 @@
     "text": "사용자 계정 관리"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "도메인 구성"
+    "text": "도메인 설정"
   },
   "web.colonel.actions.configureDomainsDesc": {
     "text": "도메인 및 DNS 설정"
@@ -165,16 +165,16 @@
     "text": "시스템 설정"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "애플리케이션 구성"
+    "text": "애플리케이션 설정"
   },
   "web.colonel.backgroundJobs": {
     "text": "백그라운드 작업"
   },
   "web.colonel.queueStatus": {
-    "text": "큐 상태"
+    "text": "대기열 상태"
   },
   "web.colonel.queueName": {
-    "text": "큐"
+    "text": "대기열"
   },
   "web.colonel.pendingMessages": {
     "text": "대기 중"
@@ -195,43 +195,43 @@
     "text": "활성 워커"
   },
   "web.colonel.noQueueData": {
-    "text": "큐 데이터 없음"
+    "text": "대기열 데이터가 없습니다"
   },
   "web.colonel.loadingQueueData": {
-    "text": "큐 데이터 로딩 중..."
+    "text": "대기열 데이터 로딩 중..."
   },
   "web.colonel.testPlanMode": {
-    "text": "테스트 플랜 모드"
+    "text": "테스트 요금제 모드"
   },
   "web.colonel.testingAsPlan": {
-    "text": "{planName}으로 테스트 중"
+    "text": "{planName}(으)로 테스트 중"
   },
   "web.colonel.clickToReset": {
     "text": "클릭하여 재설정"
   },
   "web.colonel.selectTestPlan": {
-    "text": "테스트할 플랜 선택"
+    "text": "테스트할 요금제 선택"
   },
   "web.colonel.resetToActual": {
-    "text": "실제 플랜으로 재설정"
+    "text": "실제 요금제로 재설정"
   },
   "web.colonel.currentActualPlan": {
-    "text": "현재 플랜"
+    "text": "현재 요금제"
   },
   "web.colonel.availablePlans": {
-    "text": "사용 가능한 플랜"
+    "text": "이용 가능한 요금제"
   },
   "web.colonel.activateTestMode": {
     "text": "테스트 모드 활성화"
   },
   "web.colonel.testModeActive": {
-    "text": "테스트 모드 활성"
+    "text": "테스트 모드 활성화됨"
   },
   "web.colonel.testModeDescription": {
-    "text": "다른 플랜 권한으로 애플리케이션을 테스트합니다. 변경 사항은 임시이며 현재 세션에만 영향을 미칩니다."
+    "text": "다른 요금제 자격으로 애플리케이션을 테스트합니다. 변경사항은 임시적이며 현재 세션에만 적용됩니다."
   },
   "web.colonel.warningTestMode": {
-    "text": "{planName} 권한으로 테스트 중입니다 (임시 세션 오버라이드)."
+    "text": "{planName} 자격으로 테스트 중입니다 (임시 세션 재정의)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "피드백을 제출하면 저희가 확인할 수 있는 정보:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "전송 중..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "차단된 IP"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP 차단 목록 관리"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "사용자 지정 도메인"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "사용자 지정 도메인 및 브랜딩 관리"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "의견 보내기"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "전송 중..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "의견을 제출하시면 다음 정보를 확인할 수 있습니다:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "조직"
+  },
+  "web.colonel.organizations.description": {
+    "text": "조직 결제 동기화 상태 모니터링"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "결제 상태 모니터"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count}개 조직"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count}개 주의 필요"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count}개 알 수 없음"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "조직을 찾을 수 없습니다"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "조사"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "확인 중..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "계정"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "결제"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "상태"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "사용량"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "생성일"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "세부정보"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "소유자"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "요금제"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "멤버"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "도메인"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "구독"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "기본 작업 공간"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "결제 정보"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "고객"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "구독"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "조직 ID"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "동기화 상태"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "구독"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "전체"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "오래됨 가능성"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "알 수 없음"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "동기화됨"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "활성"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "체험 중"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "연체"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "취소됨"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "조사 실패"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "조사 결과"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "동기화 확인됨"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "불일치 발견"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "비교 불가"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe 구독 세부정보"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "상태"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "상품"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "해결된 요금제"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "가격 ID"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "로컬"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "조직 결제 관리"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "조직 관리 및 결제 동기화 상태 모니터링 (총 {total}개)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "조직을 찾을 수 없습니다"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "오래됨 가능성"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "오래됨"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "알 수 없음"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "활성"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count}명 멤버"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count}개 도메인"
+  },
+  "web.colonel.secrets.title": {
+    "text": "비밀 메시지"
+  },
+  "web.colonel.secrets.description": {
+    "text": "모든 비밀 메시지 보기 및 관리"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "시스템"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "시스템 설정, 데이터베이스 및 구성"
+  },
+  "web.colonel.titles.index": {
+    "text": "관리"
+  },
+  "web.colonel.titles.users": {
+    "text": "사용자 관리"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "비밀 메시지 관리"
+  },
+  "web.colonel.titles.domains": {
+    "text": "사용자 지정 도메인"
+  },
+  "web.colonel.titles.system": {
+    "text": "시스템"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "메인 데이터베이스"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "인증 데이터베이스"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "차단된 IP"
+  },
+  "web.colonel.titles.usage": {
+    "text": "사용량 내보내기"
+  },
+  "web.colonel.titles.info": {
+    "text": "시스템 정보"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "조직"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "사용량 내보내기"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "사용량 데이터 및 통계 내보내기"
   }
 }

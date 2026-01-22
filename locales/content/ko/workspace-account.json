@@ -30,10 +30,10 @@
     "text": "지역"
   },
   "web.account.account_balance": {
-    "text": "계정 잔액:"
+    "text": "잔액:"
   },
   "web.account.default_payment_method": {
-    "text": "기본 결제 수단"
+    "text": "기본 결제 방법"
   },
   "web.account.card_ending": {
     "text": "끝자리"
@@ -135,7 +135,7 @@
     "text": "비밀 메시지는 만료될 때까지 활성 상태로 유지됩니다."
   },
   "web.account.please_be_advised": {
-    "text": "참고하세요:"
+    "text": "주의사항:"
   },
   "web.account.account_deleted_successfully": {
     "text": "계정이 성공적으로 삭제되었습니다."
@@ -153,7 +153,7 @@
     "text": "설정"
   },
   "web.settings.description": {
-    "text": "계정 설정 및 환경설정을 관리합니다"
+    "text": "계정 설정 및 환경설정 관리"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "계정 설정 및 환경설정을 관리합니다"
@@ -165,31 +165,31 @@
     "text": "환경설정"
   },
   "web.settings.appearance": {
-    "text": "외관"
+    "text": "화면 설정"
   },
   "web.settings.theme.title": {
     "text": "테마"
   },
   "web.settings.theme.description": {
-    "text": "라이트 또는 다크 테마를 선택합니다"
+    "text": "라이트 또는 다크 테마 선택"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "라이트 또는 다크 테마를 선택합니다"
+    "text": "라이트 또는 다크 테마 선택"
   },
   "web.settings.language.title": {
     "text": "언어"
   },
   "web.settings.language.description": {
-    "text": "선호하는 언어를 선택합니다"
+    "text": "선호하는 언어 선택"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "선호하는 언어를 선택합니다"
+    "text": "선호하는 언어 선택"
   },
   "web.settings.security_settings_description": {
-    "text": "인증 및 계정 보안을 관리합니다"
+    "text": "인증 및 계정 보안 관리"
   },
   "web.settings.profile_settings_description": {
-    "text": "계정 정보를 관리합니다"
+    "text": "계정 정보 관리"
   },
   "web.settings.profile.title": {
     "text": "프로필"
@@ -210,67 +210,67 @@
     "text": "현재 비밀번호를 입력하세요"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "보안을 위해 비밀번호가 필요합니다"
+    "text": "보안상의 이유로 비밀번호가 필요합니다"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "새 주소로 인증 이메일이 전송됩니다"
+    "text": "새 주소로 인증 이메일이 발송됩니다"
   },
   "web.settings.profile.update_email": {
     "text": "이메일 업데이트"
   },
   "web.settings.profile.change_email_description": {
-    "text": "계정과 연결된 이메일 주소를 업데이트합니다"
+    "text": "계정에 연결된 이메일 주소 업데이트"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "모든 항목은 필수입니다"
+    "text": "모든 필드는 필수입니다"
   },
   "web.settings.profile.invalid_email": {
-    "text": "유효한 이메일 주소를 입력하세요"
+    "text": "유효한 이메일 주소를 입력해 주세요"
   },
   "web.settings.profile.email_same_as_current": {
     "text": "새 이메일은 현재 이메일과 달라야 합니다"
   },
   "web.settings.profile.email_change_success": {
-    "text": "이메일이 성공적으로 업데이트되었습니다. 받은 편지함을 확인하여 새 이메일 주소를 인증하세요."
+    "text": "이메일이 성공적으로 업데이트되었습니다. 새 이메일 주소를 인증하려면 받은 편지함을 확인해 주세요."
   },
   "web.settings.profile.email_change_error": {
-    "text": "이메일 업데이트에 실패했습니다. 다시 시도해 주세요."
+    "text": "이메일 업데이트 실패. 다시 시도해 주세요."
   },
   "web.settings.sessions.title": {
     "text": "활성 세션"
   },
   "web.settings.sessions.description": {
-    "text": "활성 세션을 관리합니다"
+    "text": "활성 세션 관리"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "활성 세션을 관리합니다"
+    "text": "활성 세션 관리"
   },
   "web.settings.password.title": {
     "text": "비밀번호"
   },
   "web.settings.password.description": {
-    "text": "계정 비밀번호를 업데이트합니다"
+    "text": "계정 비밀번호 업데이트"
   },
   "web.settings.password.update_account_password": {
-    "text": "계정 비밀번호를 업데이트합니다"
+    "text": "계정 비밀번호 업데이트"
   },
   "web.settings.delete_account.title": {
     "text": "계정 삭제"
   },
   "web.settings.delete_account.description": {
-    "text": "계정과 모든 데이터를 영구적으로 삭제합니다"
+    "text": "계정과 모든 데이터를 영구적으로 삭제"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "계정과 모든 데이터를 영구적으로 삭제합니다"
+    "text": "계정과 모든 데이터를 영구적으로 삭제"
   },
   "web.settings.security.security_score": {
     "text": "보안 점수"
   },
   "web.settings.security.score_description": {
-    "text": "전반적인 계정 보안 상태"
+    "text": "전체 계정 보안 상태"
   },
   "web.settings.security.excellent": {
-    "text": "탁월함"
+    "text": "우수"
   },
   "web.settings.security.good": {
     "text": "좋음"
@@ -285,13 +285,13 @@
     "text": "보안 향상"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "더 강력한 보호를 위해 2단계 인증을 활성화하세요"
+    "text": "더 강력한 보호를 위해 2단계 인증 활성화"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "백업으로 복구 코드를 생성하세요"
   },
   "web.settings.security.configured": {
-    "text": "구성됨"
+    "text": "설정됨"
   },
   "web.settings.security.change": {
     "text": "변경"
@@ -303,28 +303,28 @@
     "text": "활성화"
   },
   "web.settings.security.codes_available": {
-    "text": "{0}개의 코드 사용 가능"
+    "text": "{0}개 코드 사용 가능"
   },
   "web.settings.security.no_codes": {
     "text": "생성된 코드 없음"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0}개의 활성 세션 | {0}개의 활성 세션"
+    "text": "{0}개 활성 세션 | {0}개 활성 세션"
   },
   "web.settings.security.best_practices": {
     "text": "보안 모범 사례"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "계정에 강력하고 고유한 비밀번호를 사용하세요"
+    "text": "계정에 강력하고 고유한 비밀번호 사용"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "추가 보호를 위해 2단계 인증을 활성화하세요"
+    "text": "추가 보호를 위해 2단계 인증 활성화"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "복구 코드를 안전한 장소에 저장하세요"
+    "text": "복구 코드를 안전한 곳에 저장"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "사용하지 않는 세션을 정기적으로 검토하고 취소하세요"
+    "text": "정기적으로 세션을 검토하고 사용하지 않는 세션 해제"
   },
   "web.settings.security.view_details": {
     "text": "세부정보 보기"
@@ -333,22 +333,22 @@
     "text": "API 및 통합"
   },
   "web.settings.api.description": {
-    "text": "API 키 및 통합을 관리합니다"
+    "text": "API 키 및 통합 관리"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "API 키 및 통합을 관리합니다"
+    "text": "API 키 및 통합 관리"
   },
   "web.settings.api.documentation": {
     "text": "API 문서"
   },
   "web.settings.api.documentation_description": {
-    "text": "애플리케이션에 Onetime Secret을 통합하는 방법을 알아보세요"
+    "text": "Onetime Secret을 애플리케이션에 통합하는 방법 알아보기"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API 참조"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "완전한 API 문서 및 엔드포인트"
+    "text": "전체 API 문서 및 엔드포인트"
   },
   "web.settings.api.code_examples": {
     "text": "코드 예제"
@@ -366,7 +366,7 @@
     "text": "환경 변수를 사용하여 API 키를 저장하세요"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "보안을 위해 API 키를 정기적으로 교체하세요"
+    "text": "보안을 위해 정기적으로 API 키를 교체하세요"
   },
   "web.settings.api.use_https_only": {
     "text": "API 요청 시 항상 HTTPS를 사용하세요"
@@ -384,7 +384,7 @@
     "text": "개인정보 보호 설정"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "개인정보 보호 환경설정을 관리합니다"
+    "text": "개인정보 보호 설정 관리"
   },
   "web.settings.privacy.your_privacy": {
     "text": "귀하의 개인정보"
@@ -393,34 +393,34 @@
     "text": "타협 불가"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "설정이 아닙니다"
+    "text": "설정 아님"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "분석 없음. 추적 없음. 확실합니다."
+    "text": "분석 없음. 추적 없음. 끝."
   },
   "web.settings.privacy.explanation": {
-    "text": "켜거나 끌 것이 없기 때문에 설정이 아닙니다. 귀하의 개인정보 보호는 저희 운영 방식에 내재되어 있습니다."
+    "text": "켜거나 끌 것이 없기 때문에 이것은 설정이 아닙니다. 귀하의 개인정보 보호는 우리가 운영하는 방식에 내장되어 있습니다."
   },
   "web.settings.notifications.title": {
     "text": "알림 설정"
   },
   "web.settings.notifications.description": {
-    "text": "알림 수신 방법을 관리합니다"
+    "text": "알림 수신 방법 관리"
   },
   "web.settings.notifications.error_updating": {
-    "text": "알림 설정 업데이트에 실패했습니다. 다시 시도해 주세요."
+    "text": "알림 설정 업데이트 실패. 다시 시도해 주세요."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "비밀 열람 알림"
+    "text": "비밀 메시지 공개 알림"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "누군가 비밀을 열람하면 이메일을 받습니다"
+    "text": "누군가 비밀 메시지를 조회할 때 이메일 수신"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "수신자가 비밀을 열람할 때마다 알림을 받습니다"
+    "text": "수신자가 비밀 메시지 중 하나를 공개할 때마다 알림을 받습니다"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "알림 이메일에는 타임스탬프와 비밀 ID만 포함됩니다. 열람자 정보는 포함되지 않습니다."
+    "text": "알림 이메일에는 타임스탬프와 비밀 메시지 ID만 포함됩니다. 조회자 정보는 포함되지 않습니다."
   },
   "web.settings.caution.title": {
     "text": "신중한 고려 구역"
@@ -435,7 +435,7 @@
     "text": "계정 데이터 내보내기"
   },
   "web.settings.caution.export_description": {
-    "text": "기계 판독 가능한 형식으로 계정 데이터의 전체 사본을 요청합니다"
+    "text": "기계 판독 가능한 형식으로 계정 데이터의 전체 사본 요청"
   },
   "web.settings.caution.request_data_export": {
     "text": "데이터 내보내기 요청"
@@ -444,21 +444,36 @@
     "text": "내보내기 처리 시간"
   },
   "web.settings.caution.export_info_description": {
-    "text": "내보내기는 24시간 이내에 처리되어 이메일 주소로 전송됩니다"
+    "text": "내보내기는 24시간 이내에 처리되어 이메일 주소로 발송됩니다"
   },
   "web.settings.caution.deletion_warning_title": {
     "text": "계정을 삭제하면:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "모든 비밀 메시지가 영구적으로 삭제됩니다"
+    "text": "모든 비밀 메시지 영구 삭제"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "모든 비밀 메시지 메타데이터 및 기록이 제거됩니다"
+    "text": "모든 비밀 메시지 메타데이터 및 기록 제거"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "모든 API 키가 무효화됩니다"
+    "text": "모든 API 키 무효화"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "이 작업은 취소할 수 없습니다"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "삭제 중..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "대시보드로 돌아가기"
+  },
+  "web.settings.sections.account": {
+    "text": "계정"
+  },
+  "web.settings.sections.billing": {
+    "text": "결제"
+  },
+  "web.settings.sections.advanced": {
+    "text": "고급"
   }
 }
