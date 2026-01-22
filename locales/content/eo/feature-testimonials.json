@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "AI-Generita Atesto"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "AI-generita enhavo por demonstro. Ne de reala persono aŭ kompanio."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": ""
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Kion ĉefa AI diras pri ni"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "AI-Generitaj Atestoj"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Ĉi tiu citaĵo estis generita de"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": ""
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Artefarita Revoĵo"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": ""
+  }
+}

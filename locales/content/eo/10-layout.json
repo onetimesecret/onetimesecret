@@ -1,0 +1,251 @@
+{
+  "web.footer.api_docs": {
+    "text": "API-dokumentaro"
+  },
+  "web.footer.branding_guide": {
+    "text": "Marka gvidilo"
+  },
+  "web.footer.customize": {
+    "text": "Personecigi"
+  },
+  "web.footer.plans": {
+    "text": "Planoj"
+  },
+  "web.footer.security": {
+    "text": "Sekureco"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "Lernu pri niaj sekurecaj mezuroj"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "Vidu niajn kondiĉojn kaj terminojn"
+  },
+  "web.footer.terms": {
+    "text": "Kondiĉoj"
+  },
+  "web.footer.privacy": {
+    "text": "Privateco"
+  },
+  "web.footer.contact": {
+    "text": "Kontakti"
+  },
+  "web.footer.support": {
+    "text": "Subteno"
+  },
+  "web.footer.legals": {
+    "text": "Juraj"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Kiam vi sendos rimarkojn, ni vidos:"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "Legu nian privatec-politikon"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "Kontrolu la staton de nia servo"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "Esploru nian API-dokumentaron"
+  },
+  "web.footer.docs": {
+    "text": "Dokumentaro"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "Aliru nian dokumentaron"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "Vidu nian fontkodon ĉe GitHub"
+  },
+  "web.footer.resources": {
+    "text": "Rimedoj"
+  },
+  "web.footer.blog": {
+    "text": "Blogo"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "Legu niajn plej lastajn blogaĵojn"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "Vidu niajn abonajn prezojn"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "Lernu pri nia kompanio"
+  },
+  "web.footer.company": {
+    "text": "Kompanio"
+  },
+  "web.navigation.billing": {
+    "text": "Fakturado"
+  },
+  "web.navigation.billingOverview": {
+    "text": "Superrigardo"
+  },
+  "web.navigation.organizations": {
+    "text": "Organizoj"
+  },
+  "web.site.website_version": {
+    "text": "Reteja versio"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": ""
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": ""
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "Ni lastatempe aldonis tradukojn. Ĉu vi rimarkis eraron? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": ""
+  },
+  "web.help.learn_more": {
+    "text": "Lernu pli"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "Kion mi rigardas?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Vi rigardas sekuran mesaĝon kiu estis kunhavigita kun vi per Onetime Secret. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "Ĉu mi povas vidi ĉi tiun sekreton denove poste?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "Ne. Pro sekurecaj kialoj, ĉi tiu sekreto estas videbla nur unufoje. Post fermo de ĉi tiu paĝo, la enhavo estos porĉiame forigita kaj ne reakirigebla de iu ajn, inkluzive de ni."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "Kiel mi konservas ĉi tiun informon?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "Uzu la butonon 'Kopii al tondujo' por kopii la tutan sekreton. Por pli longaj sekretoj, certigu ke vi kopiis la kompletan enhavon antaŭ ol forlasi ĉi tiun paĝon."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "Ĉu mia vidado de ĉi tiu sekreto estas spurata?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "La sendinto estos sciigita ke ilia sekreto estis vidata, sed ni ne spuras kiu vidis ĝin aŭ de kiu loko. Via privateco estas protektata."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "Post kiam vi forlasos aŭ refreŝigos ĉi tiun paĝon, ĉi tiu sekreto estos porĉiame forigita kaj ne reakirigebla de iu ajn."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "Reveni al antaŭa paĝo"
+  },
+  "web.layout.site_footer": {
+    "text": "Reteja piedteksto"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "Baskuligi malhelan reĝimon"
+  },
+  "web.layout.provide_feedback": {
+    "text": "Doni retrosciigon"
+  },
+  "web.layout.company_logo": {
+    "text": "Kompania emblemo"
+  },
+  "web.layout.brand_logo": {
+    "text": "Marka emblemo"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "Panela navigado"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "Poŝtelefona navigado"
+  },
+  "web.layout.main_navigation": {
+    "text": "Ĉefa navigado"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "{count} eroj"
+  },
+  "web.layout.release_notes": {
+    "text": "Eldonnotoj"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "Ŝargas agordan enhavon..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "Agordaj sekcioj"
+  },
+  "web.layout.close_settings": {
+    "text": "Fermi agordojn"
+  },
+  "web.layout.settings_sections": {
+    "text": "Agordaj sekcioj"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": ""
+  },
+  "web.layout.return_home": {
+    "text": "Reveni hejmen"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "Reveni al hejmpaĝo"
+  },
+  "web.layout.return_to_home": {
+    "text": "Reveni al Hejmo"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "Vidi privatecan politikon"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "Vidi kondiĉojn de servo"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Viziti Onetime Secret hejmpaĝon"
+  },
+  "web.layout.footer_navigation": {
+    "text": "Piedteksta navigado"
+  },
+  "web.layout.terms_of_service": {
+    "text": "Kondiĉoj de servo"
+  },
+  "web.layout.privacy_policy": {
+    "text": "Privateca politiko"
+  },
+  "web.layout.icon_library": {
+    "text": "Piktograma biblioteko"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "Vidi fontkodon ĉe GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "Reteja versio: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "Ŝanĝi lingvon. Nuna lingvo estas {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "Lingvo ŝanĝita al {0}"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Restarigi al {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "Ŝanĝi al {0} reĝimo"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "{0} reĝimo ebligita"
+  },
+  "web.layout.workspace": {
+    "text": "Laborspaco"
+  },
+  "web.layout.workspace_context": {
+    "text": "Laborspaca kunteksto"
+  }
+}
