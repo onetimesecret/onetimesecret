@@ -1,308 +1,198 @@
 {
   "web.organizations.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar"
   },
   "web.organizations.organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş"
   },
   "web.organizations.organization_plural": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar"
   },
   "web.organizations.organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlarınızı yönetin"
   },
   "web.organizations.my_organizations": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar"
   },
   "web.organizations.manage_organizations": {
-    "text": "Manage Organizations"
+    "text": "Kuruluşları Yönet"
   },
   "web.organizations.new_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni Kuruluş"
   },
   "web.organizations.no_organizations": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Henüz kuruluş yok"
   },
   "web.organizations.no_organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar birleşik faturalandırma ve yönetim sağlar. İlk kuruluşunuzu oluşturarak başlayın."
   },
   "web.organizations.no_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Açıklama sağlanmadı"
   },
   "web.organizations.default": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Varsayılan"
   },
   "web.organizations.create_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş Oluştur"
   },
   "web.organizations.create_first_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İlk Kuruluşu Oluşturun"
   },
   "web.organizations.create_organization_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni bir kuruluş oluşturun"
   },
   "web.organizations.create": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oluştur"
   },
   "web.organizations.create_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş oluşturulamadı"
   },
   "web.organizations.organization_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş Adı"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "örn. ABC Şirketi"
   },
   "web.organizations.display_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş Adı"
   },
   "web.organizations.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Açıklama"
   },
   "web.organizations.description_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu kuruluş ne için?"
   },
   "web.organizations.contact_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma E-postası"
   },
   "web.organizations.contact_email_help": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma ve yönetim bildirimleri için birincil iletişim"
   },
   "web.organizations.select_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bir kuruluş seçin"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organization switching not available on this page"
+    "text": "Bu sayfada kuruluş değiştirme kullanılamıyor"
   },
   "web.organizations.not_found": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş bulunamadı"
   },
   "web.organizations.load_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş yüklenemedi"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş yüklenemedi"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar yüklenemedi"
   },
   "web.organizations.organization_information": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş Bilgileri"
   },
   "web.organizations.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oluşturuldu"
   },
   "web.organizations.last_updated": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Son Güncelleme"
   },
   "web.organizations.organization_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş Ayarları"
   },
   "web.organizations.organization_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş adınızı ve açıklamanızı güncelleyin"
   },
   "web.organizations.general_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Genel Ayarlar"
   },
   "web.organizations.billing_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma ve Abonelik"
   },
   "web.organizations.save_changes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Değişiklikleri Kaydet"
   },
   "web.organizations.update_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş başarıyla güncellendi"
   },
   "web.organizations.update_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş güncellenemedi"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma Entegrasyonu Yakında"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Birleşik faturalandırma ve abonelik yönetimi gelecekteki bir sürümde kullanılabilir olacaktır."
   },
   "web.organizations.about_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar Hakkında"
   },
   "web.organizations.about_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar, merkezi yönetim için birleşik faturalandırma ve yönetim sağlar."
   },
   "web.organizations.single_user_info_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşunuzu Yönetin"
   },
   "web.organizations.single_user_info_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Şirket adınızı ve kuruluş ayrıntılarınızı buradan güncelleyin. Bu bilgiler hesabınızı kişiselleştirmeye yardımcı olur ve gelecekte markalama özellikleri için kullanılabilir."
   },
   "web.organizations.getting_started_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlara Başlarken"
   },
   "web.organizations.getting_started_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Şirket bilgilerinizi yönetmek ve gelecekteki markalama özellikleri için hazırlanmak üzere ilk kuruluşunuzu oluşturun."
   },
   "web.organizations.page_description": {
-    "text": "Manage your organizations and team members"
+    "text": "Kuruluşlarınızı ve takım üyelerinizi yönetin"
   },
   "web.organizations.tabs.general": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ayarlar"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Şirket Markalaması"
   },
   "web.organizations.tabs.members": {
-    "text": "Team"
+    "text": "Takım"
   },
   "web.organizations.tabs.billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma"
   },
   "web.organizations.danger_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tehlikeli Bölge"
   },
   "web.organizations.delete_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşu Sil"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu, kuruluşu kalıcı olarak silecektir. Bu işlem geri alınamaz."
   },
   "web.organizations.delete": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sil"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşu Sil"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{name} kuruluşunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
   "web.organizations.delete_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş silinemedi"
   },
   "web.organizations.members.title": {
     "text": "Üyeler"
   },
   "web.organizations.members.description": {
-    "text": "Organizasyon üyelerini ve rollerini yönetin"
+    "text": "Kuruluş üyelerini ve rollerini yönetin"
   },
   "web.organizations.members.current_members": {
-    "text": "Current Members"
+    "text": "Mevcut Üyeler"
   },
   "web.organizations.members.member": {
     "text": "Üye"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "üye"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "üye"
   },
   "web.organizations.members.name": {
     "text": "Ad"
@@ -320,10 +210,10 @@
     "text": "İşlemler"
   },
   "web.organizations.members.no_members": {
-    "text": "Üye bulunamadı"
+    "text": "Henüz üye yok. Başlamak için takım üyelerini davet edin."
   },
   "web.organizations.members.no_members_description": {
-    "text": "Bu organizasyonun henüz üyesi yok."
+    "text": "Bu kuruluşun henüz üyesi yok."
   },
   "web.organizations.members.role_updated": {
     "text": "Üye rolü başarıyla güncellendi"
@@ -332,7 +222,7 @@
     "text": "Üye rolü güncellenemedi"
   },
   "web.organizations.members.member_removed": {
-    "text": "Üye organizasyondan kaldırıldı"
+    "text": "Üye kuruluştan kaldırıldı"
   },
   "web.organizations.members.member_remove_error": {
     "text": "Üye kaldırılamadı"
@@ -341,16 +231,16 @@
     "text": "Üyeyi Kaldır"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "{name} adlı üyeyi bu organizasyondan kaldırmak istediğinizden emin misiniz?"
+    "text": "{name} adlı üyeyi bu kuruluştan kaldırmak istediğinizden emin misiniz?"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "Kendi rolünüzü değiştiremezsiniz"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Kendinizi organizasyondan kaldıramazsınız"
+    "text": "Kendinizi kuruluştan kaldıramazsınız"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Organizasyon sahibini kaldıramazsınız"
+    "text": "Kuruluş sahibini kaldıramazsınız"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "Üyeleri yönetme izniniz yok"
@@ -365,16 +255,16 @@
     "text": "Üye"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Tüm organizasyon ayarlarına ve üyelere tam erişim"
+    "text": "Tüm kuruluş ayarlarına ve üyelere tam erişim"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Üyeleri ve çoğu organizasyon ayarını yönetebilir"
+    "text": "Üyeleri ve çoğu kuruluş ayarını yönetebilir"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Organizasyon kaynaklarına temel erişim"
+    "text": "Kuruluş kaynaklarına temel erişim"
   },
   "web.organizations.invitations.title": {
-    "text": "Organizasyon Davetleri"
+    "text": "Kuruluş Davetleri"
   },
   "web.organizations.invitations.invite_member": {
     "text": "Üye Davet Et"
@@ -392,7 +282,7 @@
     "text": "E-posta Adresi"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "uye{'@'}example.com"
+    "text": "uye{'@'}ornek.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rol"
@@ -413,25 +303,25 @@
     "text": "İptal Et"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Davet yeniden gönderildi"
+    "text": "Davet başarıyla yeniden gönderildi"
   },
   "web.organizations.invitations.resend_error": {
     "text": "Davet yeniden gönderilemedi"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Davet iptal edildi"
+    "text": "Davet başarıyla iptal edildi"
   },
   "web.organizations.invitations.revoke_error": {
     "text": "Davet iptal edilemedi"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Davet eden"
+    "text": "Davet Eden"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Davet tarihi"
+    "text": "Davet Tarihi"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Sona erme"
+    "text": "Sona Erme"
   },
   "web.organizations.invitations.resent_count": {
     "text": "{count} kez yeniden gönderildi"
@@ -440,16 +330,16 @@
     "text": "{count} kez yeniden gönderildi"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Bekliyor"
+    "text": "Beklemede"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Kabul edildi"
+    "text": "Kabul Edildi"
   },
   "web.organizations.invitations.status.declined": {
     "text": "Reddedildi"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Süresi doldu"
+    "text": "Süresi Dolmuş"
   },
   "web.organizations.invitations.roles.member": {
     "text": "Üye"
@@ -464,13 +354,13 @@
     "text": "Daveti Reddet"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Davet Detayları"
+    "text": "Davet Ayrıntıları"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Katılmaya davet edildiniz"
+    "text": "Katılmaya davet edildiniz:"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Şu rol ile davet edildiniz"
+    "text": "Şu rol ile davet edildiniz:"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Davet başarıyla kabul edildi"
@@ -485,7 +375,7 @@
     "text": "Davet reddedilemedi"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Bu davetin süresi doldu"
+    "text": "Bu davetin süresi dolmuş"
   },
   "web.organizations.invitations.invalid_token": {
     "text": "Geçersiz veya süresi dolmuş davet"
@@ -494,6 +384,51 @@
     "text": "Bu daveti kabul etmek için lütfen giriş yapın"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Davet detayları yükleniyor"
+    "text": "Davet ayrıntıları yükleniyor"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Faturalandırma e-postası başarıyla güncellendi"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Faturalandırma e-postası Faturalandırma Genel Bakış sayfasında değiştirilebilir"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} üye | {count} üye"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} alan adı | {count} alan adı"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Takım üyelerini davet etmek için planınızı yükseltin"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Takım üyesi davetleri, takım yönetimi içeren bir plan gerektirir. Kuruluşunuza işbirlikçiler eklemek için yükseltin."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Yanlış Hesap"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Bu davet {invitedEmail} adresine gönderildi, ancak şu anda {currentEmail} olarak giriş yapmış durumdasınız."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Farklı Hesapla Giriş Yap"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}g kaldı"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}s kaldı"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Yakında sona erecek"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abonelik"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Alan Adları"
   }
 }

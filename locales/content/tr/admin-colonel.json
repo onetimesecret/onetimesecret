@@ -21,84 +21,52 @@
     "text": "(son 5 dakika içinde aktif)"
   },
   "web.colonel.configEditorTitle": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ayarlar"
   },
   "web.colonel.configEditorDescription": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sistem yapılandırma ayarlarını düzenleyin. Değişiklikler kaydettikten sonra hemen uygulanır."
   },
   "web.colonel.invalidJson": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{section} bölümünde geçersiz JSON"
   },
   "web.colonel.validationError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulama hatası"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yapılandırma yüklenirken hata oluştu"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yapılandırma kaydedilirken hata oluştu"
   },
   "web.colonel.configSaved": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yapılandırma başarıyla kaydedildi"
   },
   "web.colonel.mustBeObject": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yapılandırma bir JSON nesnesi olmalıdır"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Birden fazla bölümde doğrulama hatası var: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{section} bölümünde doğrulama hataları var: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{section} başarıyla kaydedildi"
   },
   "web.colonel.saveSection": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{section} Kaydet"
   },
   "web.colonel.saveAll": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tümünü Kaydet"
   },
   "web.colonel.unsavedChanges": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kaydedilmemiş değişiklikler"
   },
   "web.colonel.schemaValidationError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Şema doğrulama hatası: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bilinmeyen doğrulama hatası: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
     "text": "{section} bölümünde yapılandırılmış değer yok"
@@ -107,22 +75,16 @@
     "text": "Kontrol Paneli"
   },
   "web.colonel.admin": {
-    "text": "Admin"
+    "text": "Yönetici"
   },
   "web.colonel.activity": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Etkinlik"
   },
   "web.colonel.accounts": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesaplar"
   },
   "web.colonel.users": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kullanıcılar"
   },
   "web.colonel.usersDescription": {
     "text": "Kullanıcı hesaplarını ve izinleri yönetin"
@@ -131,125 +93,79 @@
     "text": "Alan Adları"
   },
   "web.colonel.settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ayarlar"
   },
   "web.colonel.system": {
     "text": "Sistem"
   },
   "web.colonel.welcome": {
-    "text": "Yönetici Paneline Hoş Geldiniz"
+    "text": "Colonel'e Hoş Geldiniz"
   },
   "web.colonel.welcomeDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "OneTimeSecret için yönetim kontrol paneli"
   },
   "web.colonel.quickActions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hızlı İşlemler"
   },
   "web.colonel.recentActivity": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Son Etkinlik"
   },
   "web.colonel.viewAll": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tümünü Görüntüle"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Etkinlik verileri burada görüntülenecek"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Toplam Gizli Mesajlar"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif Kullanıcılar"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bugünkü Gizli Mesajlar"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oluşturulan Gizli Mesajlar"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Paylaşılan Gizli Mesajlar"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Toplam Kullanıcı"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gönderilen E-postalar"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sistem Durumu"
   },
   "web.colonel.stats.healthy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sağlıklı"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Etkinliği Görüntüle"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sistem etkinliğini ve kullanımı izleyin"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesapları Yönet"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kullanıcı hesabı yönetimi"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Alan Adlarını Yapılandır"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Alan adı ve DNS ayarları"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sistem Ayarları"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Uygulama yapılandırması"
   },
   "web.colonel.backgroundJobs": {
     "text": "Arka Plan İşleri"
@@ -273,7 +189,7 @@
     "text": "Bağlantı Durumu"
   },
   "web.colonel.workerHealth": {
-    "text": "İşçi Sağlığı"
+    "text": "İşçi Durumu"
   },
   "web.colonel.activeWorkers": {
     "text": "aktif işçiler"
@@ -294,7 +210,7 @@
     "text": "Sıfırlamak için tıklayın"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Test edilecek bir plan seçin"
+    "text": "Test etmek için bir plan seçin"
   },
   "web.colonel.resetToActual": {
     "text": "Gerçek plana sıfırla"
@@ -312,10 +228,10 @@
     "text": "Test modu aktif"
   },
   "web.colonel.testModeDescription": {
-    "text": "Uygulamanızı farklı plan yetkileriyle test edin. Değişiklikler geçicidir ve yalnızca oturumunuzu etkiler."
+    "text": "Uygulamanızı farklı plan yetkilendirmeleriyle test edin. Değişiklikler geçicidir ve yalnızca oturumunuzu etkiler."
   },
   "web.colonel.warningTestMode": {
-    "text": "{planName} yetkileriyle test ediyorsunuz (geçici oturum geçersiz kılma)."
+    "text": "{planName} yetkilendirmeleriyle test ediyorsunuz (geçici oturum geçersiz kılma)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Geribildirim gönderdiğinizde göreceğimiz bilgiler:"
@@ -325,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Gönderiliyor..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Yasaklı IP'ler"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP yasaklama listesini yönetin"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Özel Alan Adları"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Özel alan adlarını ve markalaşmayı yönetin"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Geri bildirim gönder"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Gönderiliyor..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Geri bildirim gönderdiğinizde şunları göreceğiz:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Kuruluşlar"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Kuruluş faturalandırma senkronizasyon durumunu izleyin"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Faturalandırma Durum İzleyicisi"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} kuruluş"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} dikkat gerektiriyor"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} bilinmiyor"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Kuruluş bulunamadı"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "İncele"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Kontrol ediliyor..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Hesap"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Faturalandırma"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Durum"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Kullanım"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Oluşturulma"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Ayrıntılar"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Sahip"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Plan"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Üyeler"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Alan Adları"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Abonelik"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Varsayılan Çalışma Alanı"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Faturalandırması Var"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Müşteri"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Abonelik"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "Kuruluş Kimliği"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Senkronizasyon Durumu"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Abonelik"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Tümü"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potansiyel Olarak Eski"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Bilinmiyor"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Senkronize"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktif"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Deneme"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Vadesi Geçmiş"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "İptal Edildi"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "İnceleme başarısız"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "İnceleme Sonucu"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Doğrulanmış Senkronize"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Uyumsuzluk Bulundu"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Karşılaştırılamadı"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe Abonelik Ayrıntıları"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Durum"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Ürün"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Çözümlenen Plan"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "Fiyat Kimliği"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Yerel"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Kuruluşlar Faturalandırma Yönetimi"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Kuruluşları yönetin ve faturalandırma senkronizasyon durumunu izleyin ({total} toplam)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Kuruluş bulunamadı"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potansiyel olarak eski"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Eski"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Bilinmiyor"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktif"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} üye"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} alan adı"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Gizli Mesajlar"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Tüm gizli mesajları görüntüleyin ve yönetin"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Sistem"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Sistem ayarları, veritabanları ve yapılandırma"
+  },
+  "web.colonel.titles.index": {
+    "text": "Yönetim"
+  },
+  "web.colonel.titles.users": {
+    "text": "Kullanıcı Yönetimi"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Gizli Mesaj Yönetimi"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Özel Alan Adları"
+  },
+  "web.colonel.titles.system": {
+    "text": "Sistem"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Ana Veritabanı"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Kimlik Doğrulama Veritabanı"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Yasaklı IP'ler"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Kullanım Dışa Aktarımı"
+  },
+  "web.colonel.titles.info": {
+    "text": "Sistem Bilgileri"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Kuruluşlar"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Kullanım Dışa Aktarımı"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Kullanım verilerini ve istatistikleri dışa aktarın"
   }
 }

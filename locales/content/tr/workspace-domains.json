@@ -6,25 +6,19 @@
     "text": "Alan adı doğrulama durumunu görüntüle"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu alan adı kuruluşunuzda zaten kayıtlı"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu alan adı başka bir kuruluşa zaten kayıtlı. Bunun bir hata olduğunu düşünüyorsanız lütfen destekle iletişime geçin."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Alan adı başarıyla talep edildi ve kuruluşunuza eklendi"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Gizlilik Varsayılanları"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Bu alan adı altında oluşturulan sırlar için varsayılan gizlilik seçeneklerini ayarlayın. Bu ayarlar yeni sırlar oluştururken önceden doldurulacaktır."
+    "text": "Bu alan adı altında oluşturulan gizli mesajlar için varsayılan gizlilik seçeneklerini ayarlayın. Bu ayarlar yeni gizli mesajlar oluştururken önceden doldurulacaktır."
   },
   "web.domains.privacy_defaults": {
     "text": "Gizlilik Varsayılanları"
@@ -36,37 +30,37 @@
     "text": "Varsayılan Yaşam Süresi"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Sırların varsayılan olarak ne kadar süre erişilebilir olacağı"
+    "text": "Gizli mesajların varsayılan olarak ne kadar süre erişilebilir kalacağı"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Parola gerektir"
+    "text": "Güvenlik ifadesi zorunlu"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Bu alan adındaki tüm sırlar için parolayı zorunlu kıl"
+    "text": "Bu alan adındaki tüm gizli mesajlar için güvenlik ifadesini zorunlu kıl"
   },
   "web.domains.notify_enabled_label": {
     "text": "Bildirimleri etkinleştir"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Sırlar görüntülendiğinde varsayılan olarak e-posta bildirimlerini etkinleştir"
+    "text": "Gizli mesajlar görüntülendiğinde varsayılan olarak e-posta bildirimlerini etkinleştir"
   },
   "web.domains.use_global_default": {
-    "text": "Global varsayılanı kullan"
+    "text": "Genel varsayılanı kullan"
   },
   "web.domains.global_default": {
-    "text": "Global"
+    "text": "Genel"
   },
   "web.domains.required": {
-    "text": "Gerekli"
+    "text": "Zorunlu"
   },
   "web.domains.optional": {
-    "text": "İsteğe bağlı"
+    "text": "İsteğe Bağlı"
   },
   "web.domains.enabled": {
-    "text": "Etkin"
+    "text": "Etkinleştirildi"
   },
   "web.domains.disabled": {
-    "text": "Devre dışı"
+    "text": "Devre Dışı"
   },
   "web.domains.custom": {
     "text": "Özel"
@@ -75,10 +69,10 @@
     "text": "Varsayılanları Düzenle"
   },
   "web.domains.ttl_short": {
-    "text": "Süre"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
-    "text": "Parola"
+    "text": "Güvenlik İfadesi"
   },
   "web.domains.notify_short": {
     "text": "Bildirimler"
@@ -87,10 +81,10 @@
     "text": "Alan adı kapsamını değiştir"
   },
   "web.domains.switcher_locked": {
-    "text": "Domain switching not available on this page"
+    "text": "Bu sayfada alan adı değiştirme kullanılamıyor"
   },
   "web.domains.scope_list_label": {
-    "text": "Mevcut alan adları"
+    "text": "Kullanılabilir alan adları"
   },
   "web.domains.scope_header": {
     "text": "Alan Adları"
@@ -99,10 +93,10 @@
     "text": "Alan adı ekle"
   },
   "web.domains.domain_settings": {
-    "text": "Domain settings"
+    "text": "Alan adı ayarları"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Default domain has no settings page"
+    "text": "Varsayılan alan adının ayarlar sayfası yok"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "Lütfen bir {0} alan adı girin"
@@ -117,7 +111,7 @@
     "text": "Ana Sayfa Erişimi"
   },
   "web.domains.and_status": {
-    "text": "& Durum"
+    "text": "ve Durum"
   },
   "web.domains.domain": {
     "text": "Alan Adı"
@@ -150,19 +144,19 @@
     "text": "Özel alan adı sayısı"
   },
   "web.domains.custom_domain": {
-    "text": "Özel alan adı"
+    "text": "Özel Alan Adı"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Alanı yeni sekmede aç"
+    "text": "Alan adını yeni sekmede aç"
   },
   "web.domains.back_to_domains": {
-    "text": "Alan Adlarına Geri Dön"
+    "text": "Alan Adlarına Dön"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Alan adı listesine geri dön"
+    "text": "Alan adları listesine dön"
   },
   "web.domains.verify_domain": {
-    "text": "Alanı Doğrula"
+    "text": "Alan Adını Doğrula"
   },
   "web.domains.manage_brand": {
     "text": "Markayı Yönet"
@@ -195,22 +189,22 @@
     "text": "ve bu tam adres için diğer tüm A, AAAA veya CNAME kayıtlarını kaldırın."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", bu adımları tamamlamanız gerekir."
+    "text": ", bu adımları tamamlamanız gerekecek."
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "İçin bağlantıları etkinleştirmeden önce"
+    "text": "Bağlantıları etkinleştirmeden önce"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Lütfen apex alan adları için (örn."
+    "text": "Lütfen kök alan adları için (örn.,"
   },
   "web.domains.verify_your_domain": {
     "text": "Alan adınızı doğrulayın"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.example.com"
+    "text": "gizli.ornek.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Alan adı markanızı özelleştirin"
+    "text": "Alan adı markalamanızı özelleştirin"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "SSL sertifikanızın etkili olması birkaç dakika sürebilir."
@@ -228,7 +222,7 @@
     "text": "Değer"
   },
   "web.domains.host_1": {
-    "text": "Ana Bilgisayar"
+    "text": "Sunucu"
   },
   "web.domains.type_2": {
     "text": "Tür"
@@ -243,7 +237,7 @@
     "text": "Değer"
   },
   "web.domains.host_0": {
-    "text": "Ana Bilgisayar"
+    "text": "Sunucu"
   },
   "web.domains.type_0": {
     "text": "Tür"
@@ -255,7 +249,7 @@
     "text": "Bu ana bilgisayar adını DNS yapılandırmanıza ekleyin:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Bir TXT kaydı oluşturun"
+    "text": "1. TXT kaydı oluşturun"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Alan adı sahipliğini doğrulamak ve çevrimiçi varlığınızı yükseltmek için şu adımları izleyin:"
@@ -270,7 +264,7 @@
     "text": "Bu alan adını kaldırmak istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
   "web.domains.remove_domain": {
-    "text": "Alanı Kaldır"
+    "text": "Alan Adını Kaldır"
   },
   "web.domains.domain_removed_successfully": {
     "text": "Alan adı başarıyla kaldırıldı"
@@ -280,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "Alan adı başarıyla eklendi"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Korumalı"
+  },
+  "web.domains.manage_domains": {
+    "text": "Alan Adlarını Yönet"
+  },
+  "web.domains.global_defaults": {
+    "text": "Genel Varsayılanlar"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Yaşam süresi ayarını düzenle"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Güvenlik ifadesi gereksinimini düzenle"
+  },
+  "web.domains.edit_notify": {
+    "text": "Bildirim ayarını düzenle"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "DNS Kayıtlarını Yapılandır"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "DNS sağlayıcınızı otomatik olarak algılamak ve alan adınızı yapılandırmak için adım adım talimatlar almak üzere aşağıdaki aracı kullanın."
   }
 }

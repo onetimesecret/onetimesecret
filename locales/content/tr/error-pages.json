@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Bu mesaj neden kullanılamıyor?"
+    "text": "Bu gizli mesaj neden kullanılamıyor?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Mesajlar yalnızca bir kez görüntülenecek şekilde tasarlanmıştır. Bu bağlantıya zaten erişilmiş, süresi dolmuş veya gönderen tarafından manuel olarak silinmiş olabilir."
@@ -15,7 +15,7 @@
     "text": "Uyarı kapatıldı"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Kısaltma uyarısını kapat"
+    "text": "Kesme uyarısını kapat"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Hay aksi! Aradığınız sayfa mevcut değil veya taşınmış."
@@ -45,7 +45,7 @@
     "text": "{0} Bir şeyler ters gitti"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Git bir mesaj paylaş!"
+    "text": "Gizli mesaj paylaşın!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "Aradığınız sayfa mevcut değil veya taşınmış. Endişelenmeyin, en iyilerimizin başına gelir!"

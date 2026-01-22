@@ -5,28 +5,22 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yalnızca bir kez çalışan güvenli bağlantılar"
   },
   "web.COMMON.powered_by": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tarafından desteklenmektedir"
   },
   "web.COMMON.website_url": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "https://onetimesecret.com/tr"
   },
   "web.COMMON.button_generate_secret_short": {
     "text": "Parola Oluştur"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Form geçerli olduğunda Parola Oluştur devre dışı bırakılır"
+    "text": "Form geçerli olduğunda Parola Oluştur devre dışıdır"
   },
   "web.COMMON.email_placeholder": {
-    "text": "örn. ali{'@'}ornek.com"
+    "text": "örn. ahmet{'@'}eposta.com"
   },
   "web.COMMON.password_placeholder": {
     "text": "Parolanızı girin"
@@ -38,10 +32,10 @@
     "text": "Kendi markalı gizli bağlantılarınızla bağlantıları güçlendirin ve güven oluşturun."
   },
   "web.COMMON.get_started_button": {
-    "text": "Başla"
+    "text": "Başlayın"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Parolanızı doğrulayın"
+    "text": "Parolanızı onaylayın"
   },
   "web.COMMON.header_settings": {
     "text": "Ayarlar"
@@ -56,34 +50,34 @@
     "text": "İşleniyor..."
   },
   "web.COMMON.description": {
-    "text": "Hassas bilgilerinizi sohbet geçmişinizde veya e-postalarınızda saklamayın. Sadece tek seferlik gizli bir link ile paylaşın."
+    "text": "Hassas bilgileri sohbet günlüklerinizden ve e-postalarınızdan uzak tutun. Yalnızca bir kez kullanılabilen gizli bir bağlantı paylaşın."
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Hatalı parola"
+    "text": "Yanlış güvenlik ifadesi"
   },
   "web.COMMON.keywords": {
-    "text": "gizli,parola oluşturucu,sır paylaş,tek seferlik"
+    "text": "gizli,parola oluşturucu,gizli mesaj paylaş,tek kullanımlık"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Gizli link yarat"
+    "text": "Gizli bağlantı oluştur"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Veya rastgele parola oluştur"
+    "text": "Veya rastgele bir parola oluşturun"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Gizlilik Ayarları"
+    "text": "Gizlilik Seçenekleri"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Parola"
+    "text": "Güvenlik ifadesi"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Tahmin edilmesi zor bir kelime veya cümle"
+    "text": "Tahmin edilmesi zor bir kelime veya ifade"
   },
   "web.COMMON.secret_recipient_address": {
     "text": "Alıcı Adresi"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Gizli içerik..."
+    "text": "Gizli içerik buraya yazılır..."
   },
   "web.COMMON.header_create_account": {
     "text": "Hesap Oluştur"
@@ -95,87 +89,85 @@
     "text": "Giriş Yap"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Hesabım"
+    "text": "Hesap"
   },
   "web.COMMON.header_logout": {
-    "text": "Çıkış"
+    "text": "Çıkış yap"
   },
   "web.COMMON.secret": {
-    "text": "Gizli Mesaj"
+    "text": "Gizli Mesaj | Gizli Mesajlar"
   },
   "web.COMMON.recent": {
     "text": "Son"
   },
   "web.COMMON.received": {
-    "text": "Alınan"
+    "text": "Alındı"
   },
   "web.COMMON.burn": {
     "text": "Yak"
   },
   "web.COMMON.burned": {
-    "text": "Yakılan"
+    "text": "Yakıldı"
   },
   "web.COMMON.expires_in": {
-    "text": "Kalan zaman"
+    "text": "Sona erme süresi"
   },
   "web.COMMON.burn_this_secret": {
     "text": "Bu gizli mesajı yak"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Gizli mesajı yakmak onu okunmadan önce siler (onaylamak için tıkla)"
+    "text": "Gizli mesajı yakmak, okunmadan önce silinmesine neden olur (onaylamak için tıklayın)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
     "text": "Gizli mesajı yakmak kalıcıdır ve geri alınamaz"
   },
   "web.COMMON.msg_check_email": {
-    "text": "E-postanı kontrol et"
+    "text": "E-postanızı kontrol edin"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Devam etmek için tıkla →"
+    "text": "Göstermek için tıklayın →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Hesabını doğrulamak için devam et:"
+    "text": "Hesabınızı doğrulamak için devam edin:"
   },
   "web.COMMON.error_secret": {
-    "text": "Paylaşılacak birşey yazmadın"
+    "text": "Paylaşılacak herhangi bir şey girmediniz"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Yanlış parola"
+    "text": "Güvenlik ifadesini tekrar kontrol edin"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Parolayı buraya yaz"
+    "text": "Güvenlik ifadesini buraya girin"
   },
   "web.COMMON.view_secret": {
     "text": "Gizli Mesajı Görüntüle"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "dikkat: sadece bir defa gösterilecek."
+    "text": "Dikkat: bunu yalnızca bir kez göstereceğiz."
   },
   "web.COMMON.warning": {
     "text": "Uyarı"
   },
   "web.COMMON.oops": {
-    "text": "Eyvah!"
+    "text": "Hata!"
   },
   "web.COMMON.error": {
     "text": "Hata"
   },
   "web.COMMON.unexpected_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Fazla uzun olduğu için mesaj kısaltıldı"
+    "text": "Mesaj kısaltıldı"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Daha fazlası için kaydol"
+    "text": "Daha fazlası için kayıt olun"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Hesabına giriş yap"
+    "text": "Hesabınıza giriş yapın"
   },
   "web.COMMON.sent_to": {
-    "text": "Alıcı(lar): "
+    "text": "Gönderildi:"
   },
   "web.COMMON.field_email": {
     "text": "E-posta"
@@ -184,25 +176,25 @@
     "text": "Parola"
   },
   "web.COMMON.field_password2": {
-    "text": "Parolayı Doğrula"
+    "text": "Parolayı Onayla"
   },
   "web.COMMON.button_create_account": {
     "text": "Hesap Oluştur"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Gizli Mesaj paylaş"
+    "text": "Gizli mesaj paylaş"
   },
   "web.COMMON.title_home": {
     "text": "Ana Sayfa"
   },
   "web.COMMON.word_none": {
-    "text": "Hiç"
+    "text": "Yok"
   },
   "web.COMMON.word_burned": {
-    "text": "yakılan"
+    "text": "yakıldı"
   },
   "web.COMMON.word_received": {
-    "text": "alınan"
+    "text": "alındı"
   },
   "web.COMMON.word_confirm": {
     "text": "Onayla"
@@ -211,9 +203,7 @@
     "text": "İptal"
   },
   "web.COMMON.word_continue": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Devam et"
   },
   "web.COMMON.word_done": {
     "text": "Tamamlandı"
@@ -222,23 +212,19 @@
     "text": "Geri"
   },
   "web.COMMON.feedback_text": {
-    "text": "Sorunuz veya yorumunuz mu var?"
+    "text": "Düşüncelerinizi, fikirlerinizi veya deneyimlerinizi paylaşın..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Geribildirim Yolla"
+    "text": "Geri Bildirim Gönder"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Doğrulama mesajı gönderilen adres"
+    "text": "Doğrulama e-postası gönderildi"
   },
   "web.COMMON.autoverified_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap oluşturuldu. Lütfen giriş yapın."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu e-posta ile bir hesap varsa, doğrulama e-postası alacaksınız."
   },
   "web.COMMON.burn_this_secret_aria": {
     "text": "Bu gizli mesajı kalıcı olarak yak"
@@ -253,18 +239,16 @@
     "text": "Evet, bu gizli mesajı yak"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Bir gizli mesajı yakmak, alınmadan önce onu silecektir."
+    "text": "Gizli mesajı yakmak, alınmadan önce silinmesine neden olur."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Güvenlik için, bu bağlantıyı diğer ayrıntılardan ayrı olarak paylaşın."
+    "text": "Güvenlik için bu bağlantıyı diğer bilgilerden ayrı paylaşın."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Panoya kopyalandı"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gelen Oluştur"
   },
   "web.COMMON.faq_title": {
     "text": "S.S.S."
@@ -273,91 +257,61 @@
     "text": "Doğrulama geçerli değil"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Zaten giriş yapmış durumdayken bir hesap doğrulanamaz"
+    "text": "Zaten giriş yapmışken hesap doğrulanamaz"
   },
   "web.COMMON.show_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolayı göster"
   },
   "web.COMMON.hide_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolayı gizle"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola en az 8 karakter olmalıdır"
   },
   "web.COMMON.password_requirements": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola en az 8 karakter uzunluğunda olmalıdır"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolalar eşleşmiyor"
   },
   "web.COMMON.form_field_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu alan zorunludur"
   },
   "web.COMMON.form_processing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İsteğiniz işleniyor"
   },
   "web.COMMON.remember_me_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "30 gün boyunca oturumumu açık tut"
   },
   "web.COMMON.redirecting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yönlendiriliyor..."
   },
   "web.COMMON.continue": {
-    "text": "Devam Et"
+    "text": "Devam et"
   },
   "web.COMMON.are_you_sure": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Emin misiniz?"
   },
   "web.COMMON.danger_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tehlikeli Bölge"
   },
   "web.COMMON.caution_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dikkatli Değerlendirme Alanı"
   },
   "web.COMMON.user_menu": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kullanıcı menüsü"
   },
   "web.COMMON.security": {
     "text": "Güvenlik"
   },
   "web.COMMON.manage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yönet"
   },
   "web.COMMON.loading": {
     "text": "Yükleniyor..."
   },
   "web.COMMON.save_changes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Değişiklikleri Kaydet"
   },
   "web.COMMON.saving": {
     "text": "Kaydediliyor..."
@@ -375,7 +329,7 @@
     "text": "Durum"
   },
   "web.COMMON.escape": {
-    "text": "Çıkış"
+    "text": "Escape"
   },
   "web.COMMON.active": {
     "text": "Aktif"
@@ -390,7 +344,7 @@
     "text": "Kapatmak için ESC tuşuna basın"
   },
   "web.COMMON.enter": {
-    "text": "Giriş"
+    "text": "Enter"
   },
   "web.COMMON.important": {
     "text": "Önemli"
@@ -405,7 +359,7 @@
     "text": "Görünüm"
   },
   "web.COMMON.done": {
-    "text": "Bitti"
+    "text": "Tamamlandı"
   },
   "web.COMMON.end": {
     "text": "Son"
@@ -423,7 +377,7 @@
     "text": "Yıllık"
   },
   "web.COMMON.go_on_then": {
-    "text": "Devam et o zaman."
+    "text": "Peki, devam edin."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Yükleniyor..."
@@ -432,10 +386,10 @@
     "text": "ALINMADI"
   },
   "web.COMMON.confirm_password": {
-    "text": "Şifreyi onayla"
+    "text": "Parolayı onayla"
   },
   "web.COMMON.new_password": {
-    "text": "Yeni Şifre"
+    "text": "Yeni parola"
   },
   "web.COMMON.email_address": {
     "text": "E-posta adresi"
@@ -456,7 +410,7 @@
     "text": "✅"
   },
   "web.COMMON.supported": {
-    "text": "Desteklenen"
+    "text": "Destekleniyor"
   },
   "web.COMMON.version": {
     "text": "Sürüm"
@@ -465,7 +419,7 @@
     "text": "Diğer"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(min-genişlik: 1024 piksel)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -483,7 +437,7 @@
     "text": "Değer"
   },
   "web.COMMON.host": {
-    "text": "Ana Bilgisayar"
+    "text": "Sunucu"
   },
   "web.COMMON.type": {
     "text": "Tür"
@@ -492,10 +446,10 @@
     "text": "Önceki"
   },
   "web.COMMON.next": {
-    "text": "Sonraki"
+    "text": "İleri"
   },
   "web.COMMON.password_strength": {
-    "text": "Şifre Gücü:"
+    "text": "Parola Gücü:"
   },
   "web.COMMON.great": {
     "text": "Harika"
@@ -504,10 +458,10 @@
     "text": "Oldukça iyi"
   },
   "web.COMMON.fair": {
-    "text": "Orta"
+    "text": "İdare eder"
   },
   "web.COMMON.meh": {
-    "text": "Eh"
+    "text": "İdare eder"
   },
   "web.COMMON.not_great": {
     "text": "Pek iyi değil"
@@ -516,19 +470,19 @@
     "text": "Seçenekleri aç"
   },
   "web.COMMON.inactive": {
-    "text": "Etkin değil"
+    "text": "Pasif"
   },
   "web.COMMON.an_error_occurred": {
     "text": "Bir hata oluştu"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Mesajı panoya kopyala"
+    "text": "Gizli mesajı panoya kopyala"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Mesaj panoya kopyalandı"
+    "text": "Gizli mesaj panoya kopyalandı"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Parolayı iki kez kontrol edin"
+    "text": "Güvenlik ifadesini tekrar kontrol edin"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "Aşağıdaki kopyala düğmesine basın."
@@ -558,10 +512,10 @@
     "text": "Zaman Çizelgesi"
   },
   "web.LABELS.lifespan": {
-    "text": "Yaşam Süresi"
+    "text": "Ömür"
   },
   "web.LABELS.expiration_time": {
-    "text": "Son Kullanma Tarihi"
+    "text": "Sona Erme Zamanı"
   },
   "web.LABELS.close": {
     "text": "Kapat"
@@ -594,16 +548,16 @@
     "text": "Gizli Mesaj Durumu"
   },
   "web.LABELS.need_help": {
-    "text": "Yardıma mı ihtiyacınız var?"
+    "text": "Yardım mı gerekiyor?"
   },
   "web.LABELS.create_new_secret": {
     "text": "Yeni Gizli Mesaj Oluştur"
   },
   "web.LABELS.actions": {
-    "text": "İşlemler"
+    "text": "Eylemler"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Parola Gerekmiyor"
+    "text": "Güvenlik İfadesi Gerekli Değil"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Panoya kopyala"
@@ -633,22 +587,22 @@
     "text": "Görüntüle"
   },
   "web.LABELS.views": {
-    "text": "Görüntülemeler"
+    "text": "Görüntüleme"
   },
   "web.LABELS.times_viewed": {
     "text": "kez görüntülendi"
   },
   "web.LABELS.view_progress": {
-    "text": "Görüntüleme İlerleme Durumu"
+    "text": "İlerlemeyi Görüntüle"
   },
   "web.LABELS.help_section": {
     "text": "Yardım Bölümü"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Parola ile korunuyor"
+    "text": "Güvenlik ifadesi ile korumalı"
   },
   "web.LABELS.feedback_received": {
-    "text": "Geribildirim alındı."
+    "text": "Geri bildirim alındı."
   },
   "web.LABELS.sending_ellipses": {
     "text": "Gönderiliyor..."
@@ -681,21 +635,19 @@
     "text": "İstek Bağlantısı Oluştur"
   },
   "web.LABELS.related_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İlgili Ayarlar"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Şunun için bağlantılar oluşturuluyor"
+    "text": "Bağlantılar oluşturuluyor:"
   },
   "web.LABELS.scope_indicator": {
-    "text": "{domain} içinde sırlar oluşturuluyor"
+    "text": "{domain} içinde gizli mesajlar oluşturuluyor"
   },
   "web.STATUS.new": {
     "text": "Yeni"
   },
   "web.STATUS.unread": {
-    "text": "Okunmadı"
+    "text": "Okunmamış"
   },
   "web.STATUS.viewed": {
     "text": "Bağlantı açıldı"
@@ -707,10 +659,10 @@
     "text": "Yakıldı"
   },
   "web.STATUS.destroyed": {
-    "text": "İmha edildi"
+    "text": "Silindi"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Yakında sona erecek"
+    "text": "Yakında Sona Erecek"
   },
   "web.STATUS.created": {
     "text": "Oluşturuldu"
@@ -725,7 +677,7 @@
     "text": "Sahipsiz"
   },
   "web.STATUS.secured": {
-    "text": "Güvenli"
+    "text": "Güvence altına alındı"
   },
   "web.STATUS.securing": {
     "text": "Güvenli hale getiriliyor"
@@ -734,13 +686,13 @@
     "text": "Kopyalandı"
   },
   "web.STATUS.time_remaining": {
-    "text": "Kalan süre"
+    "text": "Kalan Süre"
   },
   "web.STATUS.new_description": {
     "text": "Gizli bağlantı oluşturuldu ve henüz görüntülenmedi"
   },
   "web.STATUS.unread_description": {
-    "text": "Gizli bağlantı oluşturuldu ve görüntülenmedi"
+    "text": "Gizli bağlantı oluşturuldu ve henüz görüntülenmedi"
   },
   "web.STATUS.viewed_description": {
     "text": "Gizli bağlantı açıldı ve görüntülenmeye hazır"
@@ -752,13 +704,13 @@
     "text": "Gizli mesaj görüntülenmeden önce manuel olarak yakıldı"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Gizli mesaj kalıcı olarak imha edildi"
+    "text": "Gizli mesaj kalıcı olarak silindi"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Gizli mesaj yakında sona erecek"
+    "text": "Gizli mesajın süresi yakında dolacak"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Gizli mesaj sahipsiz kaldı ve yakında imha edilecek"
+    "text": "Gizli mesaj sahipsiz kaldı ve yakında silinecek"
   },
   "web.STATUS.expired_description": {
     "text": "Gizli mesajın süresi görüntülenmeden önce doldu"
@@ -770,7 +722,7 @@
     "text": "Teslim edildi"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS Yanlış"
+    "text": "DNS Hatalı"
   },
   "web.STATUS.active": {
     "text": "Aktif"
@@ -785,7 +737,7 @@
     "text": "Güvenilir alan adı markalaması"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Aktarım sırasında ve saklanırken şifrelenir"
+    "text": "Aktarım sırasında ve beklemede şifrelenmiş"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -806,7 +758,7 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Kalan {count} {unit}"
+    "text": "{count} {unit} kaldı"
   },
   "web.UNITS.ttl_remaining.time.day": {
     "text": "gün kaldı | gün kaldı"
@@ -824,7 +776,7 @@
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} görüntüleme sınırı"
+    "text": "{count} görüntüleme limiti"
   },
   "web.UNITS.days_remaining": {
     "text": "{count} Gün Kaldı"
@@ -836,241 +788,219 @@
     "text": "{count} Dakika Kaldı"
   },
   "web.TITLES.incoming": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gelen Gizli Mesajlar"
   },
   "web.TITLES.feedback": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Geri Bildirim"
   },
   "web.TITLES.signin": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Giriş Yap"
   },
   "web.TITLES.signup": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap Oluştur"
   },
   "web.TITLES.forgot_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolamı Unuttum"
   },
   "web.TITLES.reset_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolayı Sıfırla"
   },
   "web.TITLES.logout": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Çıkış Yapılıyor"
   },
   "web.TITLES.verify_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabı Doğrula"
   },
   "web.TITLES.mfa_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulama"
   },
   "web.TITLES.email_login": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta ile Giriş"
   },
   "web.TITLES.accept_invitation": {
     "text": "Daveti Kabul Et"
   },
   "web.TITLES.secret": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizli Mesaj"
   },
   "web.TITLES.metadata": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizli Mesaj Ayrıntıları"
   },
   "web.TITLES.receipt": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizli Mesaj Makbuzu"
   },
   "web.TITLES.burn_secret": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizli Mesajı Yak"
   },
   "web.TITLES.dashboard": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kontrol Paneli"
   },
   "web.TITLES.recent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Son Gizli Mesajlar"
   },
   "web.TITLES.domains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Özel Alan Adları"
   },
   "web.TITLES.domain_add": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Alan Adı Ekle"
   },
   "web.TITLES.domain_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Alan Adını Doğrula"
   },
   "web.TITLES.domain_brand": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Marka Alan Adı"
   },
   "web.TITLES.account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap"
   },
   "web.TITLES.data_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Veri Bölgesi"
   },
   "web.TITLES.current_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Bölge"
   },
   "web.TITLES.available_regions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Bölgeler"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Veri Egemenliği Neden Önemlidir"
   },
   "web.TITLES.profile_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Profil Ayarları"
   },
   "web.TITLES.preferences_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tercihler"
   },
   "web.TITLES.privacy_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizlilik"
   },
   "web.TITLES.notification_settings": {
     "text": "Bildirimler"
   },
   "web.TITLES.change_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta Değiştir"
   },
   "web.TITLES.security_overview": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Güvenlik"
   },
   "web.TITLES.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola Değiştir"
   },
   "web.TITLES.mfa_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulama"
   },
   "web.TITLES.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif Oturumlar"
   },
   "web.TITLES.recovery_codes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma Kodları"
   },
   "web.TITLES.api_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API Ayarları"
   },
   "web.TITLES.advanced_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gelişmiş Ayarlar"
   },
   "web.TITLES.system_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sistem Ayarları"
   },
   "web.TITLES.not_found": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sayfa Bulunamadı"
   },
   "web.TITLES.organizations_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluşlar"
   },
   "web.TITLES.organization_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş Ayarları"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Odak şimdi ana metin alanında"
+    "text": "Odak artık ana metin alanında"
   },
   "web.INSTRUCTION.sharing_instructions": {
     "text": "Paylaşım Talimatları"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Bağlantıyı hedeflenen alıcı ile paylaşın"
+    "text": "Bağlantıyı hedeflenen alıcıyla paylaşın"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Parolayı güvenli bir kanal üzerinden ayrıca paylaşın"
+    "text": "Güvenlik ifadesini güvenli bir kanal aracılığıyla ayrıca paylaşın"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
     "text": "Hassas bilgileri paylaşmak için farklı bir güvenli kanal kullanın"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Her zaman resmi Onetime Secret web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için Onetime Secret'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce alan adını kontrol edin."
   },
   "web.STATUS.previewed": {
-    "text": "Bağlantı açıldı"
+    "text": "Önizlendi"
   },
   "web.STATUS.revealed": {
-    "text": "Açığa çıkarıldı"
+    "text": "Gösterildi"
   },
   "web.STATUS.previewed_description": {
-    "text": "Gizli bağlantı açıldı ve açığa çıkarılmaya hazır"
+    "text": "Gizli bağlantı açıldı ve gösterilmeye hazır"
   },
   "web.STATUS.revealed_description": {
-    "text": "Gizli içerik alıcıya açığa çıkarıldı"
+    "text": "Gizli mesaj içeriği alıcıya gösterildi"
+  },
+  "web.COMMON.not_set": {
+    "text": "Ayarlanmadı"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Düzenle"
+  },
+  "web.COMMON.word_save": {
+    "text": "Kaydet"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Sona erme süresi"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtrele"
+  },
+  "web.LABELS.clear": {
+    "text": "Temizle"
+  },
+  "web.LABELS.add_note": {
+    "text": "Not ekle..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Notu düzenle"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Not ekle..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Notu düzenle"
+  },
+  "web.TITLES.help": {
+    "text": "Yardım"
+  },
+  "web.TITLES.pricing": {
+    "text": "Fiyatlandırma"
+  },
+  "web.pricing.title": {
+    "text": "Basit, Şeffaf Fiyatlandırma"
+  },
+  "web.pricing.subtitle": {
+    "text": "İhtiyaçlarınıza uygun planı seçin. Tüm planlar sınırsız gizli mesaj paylaşımı ve gizlilik odaklı tasarım içerir."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Ücretsiz Başlayın"
+  },
+  "web.pricing.start_trial": {
+    "text": "Başlayın"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Zaten bir hesabınız var mı?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Giriş yap"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Size Önerilen"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Temel özelliklerle gizli mesajlar oluşturun ve paylaşın. Kredi kartı gerekmez."
   }
 }

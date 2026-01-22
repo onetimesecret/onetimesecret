@@ -1,46 +1,36 @@
 {
   "web.account.settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ayarlar"
   },
   "web.account.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola Değiştir"
   },
   "web.account.close_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabı Kapat"
   },
   "web.account.verify_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabı Doğrula"
   },
   "web.account.subscription_title": {
     "text": "Abonelik"
   },
   "web.account.manage_subscription": {
-    "text": "Abonelik Yönetimi"
+    "text": "Aboneliği Yönet"
   },
   "web.account.customer_information": {
     "text": "Müşteri Bilgileri"
   },
   "web.account.customer_since": {
-    "text": "Müşteri olduğu tarih:"
+    "text": "Müşteri olma tarihi:"
   },
   "web.account.email": {
     "text": "E-posta:"
   },
   "web.account.region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bölge"
   },
   "web.account.account_balance": {
-    "text": "Hesap bakiyesi:"
+    "text": "Bakiye:"
   },
   "web.account.default_payment_method": {
     "text": "Varsayılan Ödeme Yöntemi"
@@ -76,7 +66,7 @@
     "text": "Güncelleniyor..."
   },
   "web.account.timezone": {
-    "text": "Zaman Dilimi"
+    "text": "Saat Dilimi"
   },
   "web.account.customer_id": {
     "text": "Müşteri Kimliği"
@@ -109,13 +99,13 @@
     "text": "Müşteri Kimliği: {0}"
   },
   "web.account.token_generated": {
-    "text": "Belirteç oluşturuldu."
+    "text": "Token oluşturuldu."
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
     "text": "🔐 Bu belirteci güvende tutun! Hesabınıza tam erişim sağlar."
   },
   "web.account.confirm_with_your_password": {
-    "text": "Şifrenizle onaylayın"
+    "text": "Parolanızla onaylayın"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
@@ -136,22 +126,22 @@
     "text": "Hesabınızı silmek"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "devam etmeden önce onları yak"
+    "text": "devam etmeden önce onları yakın"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Kaldırmak istediğiniz herhangi bir mesaj,"
+    "text": "Kaldırmak istediğiniz gizli mesajlar varsa,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "Mesajlar süresi dolana kadar aktif kalacaktır."
   },
   "web.account.please_be_advised": {
-    "text": "Lütfen dikkat:"
+    "text": "Lütfen dikkat edin:"
   },
   "web.account.account_deleted_successfully": {
     "text": "Hesap başarıyla silindi."
   },
   "web.account.deactivate": {
-    "text": "Devre dışı bırak"
+    "text": "Devre Dışı Bırak"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
     "text": "Hesabınızı devre dışı bırakmak istediğinizden emin misiniz? Tüm verileriniz sunucularımızdan sonsuza kadar kalıcı olarak kaldırılacaktır. Bu işlem geri alınamaz."
@@ -160,14 +150,10 @@
     "text": "Hesabı devre dışı bırak"
   },
   "web.settings.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ayarlar"
   },
   "web.settings.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap ayarlarınızı ve tercihlerinizi yönetin"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "",
@@ -175,219 +161,133 @@
     "note": "empty"
   },
   "web.settings.general": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Genel"
   },
   "web.settings.preferences": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tercihler"
   },
   "web.settings.appearance": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Görünüm"
   },
   "web.settings.theme.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tema"
   },
   "web.settings.theme.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Açık veya koyu tema seçin"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Açık veya koyu tema seçin"
   },
   "web.settings.language.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dil"
   },
   "web.settings.language.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tercih ettiğiniz dili seçin"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tercih ettiğiniz dili seçin"
   },
   "web.settings.security_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kimlik doğrulama ve hesap güvenliğini yönetin"
   },
   "web.settings.profile_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap bilgilerinizi yönetin"
   },
   "web.settings.profile.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Profil"
   },
   "web.settings.profile.change_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta Değiştir"
   },
   "web.settings.profile.current_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut E-posta"
   },
   "web.settings.profile.current_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Parola"
   },
   "web.settings.profile.new_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni E-posta"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut parolanızı girin"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Güvenlik amacıyla parolanız gereklidir"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni adrese bir doğrulama e-postası gönderilecektir"
   },
   "web.settings.profile.update_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-postayı Güncelle"
   },
   "web.settings.profile.change_email_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızla ilişkili e-posta adresini güncelleyin"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tüm alanlar zorunludur"
   },
   "web.settings.profile.invalid_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Lütfen geçerli bir e-posta adresi girin"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni e-posta mevcut e-postadan farklı olmalıdır"
   },
   "web.settings.profile.email_change_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta başarıyla güncellendi. Yeni e-posta adresinizi doğrulamak için lütfen gelen kutunuzu kontrol edin."
   },
   "web.settings.profile.email_change_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta güncellenemedi. Lütfen tekrar deneyin."
   },
   "web.settings.sessions.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif Oturumlar"
   },
   "web.settings.sessions.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif oturumlarınızı yönetin"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif oturumlarınızı yönetin"
   },
   "web.settings.password.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola"
   },
   "web.settings.password.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap parolanızı güncelleyin"
   },
   "web.settings.password.update_account_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap parolanızı güncelleyin"
   },
   "web.settings.delete_account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabı Sil"
   },
   "web.settings.delete_account.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin"
   },
   "web.settings.security.security_score": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Güvenlik Puanı"
   },
   "web.settings.security.score_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Genel hesap güvenlik durumunuz"
   },
   "web.settings.security.excellent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mükemmel"
   },
   "web.settings.security.good": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İyi"
   },
   "web.settings.security.fair": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Orta"
   },
   "web.settings.security.weak": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Zayıf"
   },
   "web.settings.security.improve_security": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Güvenliğinizi iyileştirin"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Daha güçlü koruma için iki faktörlü kimlik doğrulamayı etkinleştirin"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "",
@@ -395,195 +295,121 @@
     "note": "empty"
   },
   "web.settings.security.configured": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yapılandırıldı"
   },
   "web.settings.security.change": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Değiştir"
   },
   "web.settings.security.manage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yönet"
   },
   "web.settings.security.enable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Etkinleştir"
   },
   "web.settings.security.codes_available": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{0} kod mevcut"
   },
   "web.settings.security.no_codes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kod oluşturulmadı"
   },
   "web.settings.security.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{0} aktif oturum | {0} aktif oturum"
   },
   "web.settings.security.best_practices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Güvenlik En İyi Uygulamaları"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınız için güçlü, benzersiz bir parola kullanın"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ek koruma için iki faktörlü kimlik doğrulamayı etkinleştirin"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma kodlarınızı güvenli bir yerde saklayın"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kullanılmayan oturumları düzenli olarak inceleyin ve iptal edin"
   },
   "web.settings.security.view_details": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ayrıntıları görüntüle"
   },
   "web.settings.api.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API ve Entegrasyonlar"
   },
   "web.settings.api.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API anahtarlarını ve entegrasyonları yönetin"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API anahtarlarını ve entegrasyonları yönetin"
   },
   "web.settings.api.documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API Belgeleri"
   },
   "web.settings.api.documentation_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Onetime Secret'ı uygulamalarınıza nasıl entegre edeceğinizi öğrenin"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "REST API Referansı"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tam API belgeleri ve uç noktalar"
   },
   "web.settings.api.code_examples": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kod Örnekleri"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Örnek kod ve istemci kütüphaneleri"
   },
   "web.settings.api.security_best_practices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Güvenlik En İyi Uygulamaları"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API anahtarlarını asla sürüm kontrolüne işlemeyin"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API anahtarlarını saklamak için ortam değişkenleri kullanın"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Güvenlik için API anahtarlarını düzenli olarak yenileyin"
   },
   "web.settings.api.use_https_only": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API istekleri yaparken her zaman HTTPS kullanın"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API kullanımınızı izleyin ve uyarılar ayarlayın"
   },
   "web.settings.api.important_notice": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Önemli Uyarı"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API anahtarınızı yeniden oluşturmak mevcut anahtarı geçersiz kılacaktır. Eski anahtarı kullanan tüm uygulamaları güncelleyin."
   },
   "web.settings.privacy.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizlilik Ayarları"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizlilik tercihlerinizi yönetin"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizliliğiniz"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Pazarlık Edilemez"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bir ayar değil"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Analitik yok. İzleme yok. Nokta."
   },
   "web.settings.privacy.explanation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu bir ayar değil çünkü açılıp kapanacak bir şey yok. Gizliliğiniz çalışma şeklimizin bir parçası."
   },
   "web.settings.notifications.title": {
     "text": "Bildirim Ayarları"
   },
   "web.settings.notifications.description": {
-    "text": "Bildirimlerinizi nasıl alacağınızı yönetin"
+    "text": "Bildirimleri nasıl alacağınızı yönetin"
   },
   "web.settings.notifications.error_updating": {
     "text": "Bildirim tercihi güncellenemedi. Lütfen tekrar deneyin."
@@ -595,74 +421,63 @@
     "text": "Birisi gizli mesajınızı görüntülediğinde e-posta alın"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Bir alıcı gizli mesajlarınızdan birini her görüntülediğinde bildirim alırsınız"
+    "text": "Bir alıcı gizli mesajlarınızdan birini görüntülediğinde her seferinde bilgilendirileceksiniz"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Bildirim e-postaları yalnızca zaman damgası ve gizli mesaj kimliğini içerir. Görüntüleyen kişi hakkında bilgi asla dahil edilmez."
+    "text": "Bildirim e-postaları yalnızca zaman damgası ve gizli mesaj kimliğini içerir. Görüntüleyen bilgileri asla dahil edilmez."
   },
   "web.settings.caution.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dikkatli Değerlendirme Alanı"
   },
   "web.settings.caution.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gelişmiş ayarlar ve veri yönetimi"
   },
   "web.settings.caution.data_export": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Veri Dışa Aktarımı"
   },
   "web.settings.caution.export_your_data": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap verilerinizi dışa aktarın"
   },
   "web.settings.caution.export_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap verilerinizin makine tarafından okunabilir formatta tam bir kopyasını talep edin"
   },
   "web.settings.caution.request_data_export": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Veri Dışa Aktarımı Talep Et"
   },
   "web.settings.caution.export_info": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dışa Aktarma İşlem Süresi"
   },
   "web.settings.caution.export_info_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dışa aktarımlar 24 saat içinde işlenir ve e-posta adresinize gönderilir"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızı silmek şunlara neden olacaktır:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tüm gizli mesajlarınızı kalıcı olarak sil"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tüm gizli mesaj meta verilerini ve geçmişini kaldır"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tüm API anahtarlarını geçersiz kıl"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu işlem geri alınamaz"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Siliniyor..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Kontrol Paneline Dön"
+  },
+  "web.settings.sections.account": {
+    "text": "Hesap"
+  },
+  "web.settings.sections.billing": {
+    "text": "Faturalandırma"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Gelişmiş"
   }
 }

@@ -1,46 +1,30 @@
 {
   "web.billing.upgrade.required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yükseltme Gerekli"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Planları Görüntüle"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Takım yönetimi Identity Plus veya üzeri gerektirir"
+    "text": "Takım yönetimi Identity Plus veya üstü gerektirir"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Özel alan adları Identity Plus veya üstü gerektirir"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API erişimi Identity Plus veya üstü gerektirir"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Denetim günlükleri Çoklu Takım planı veya üstü gerektirir"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aboneliğinizi, kuruluşlarınızı ve faturalandırma ayarlarınızı yönetin"
   },
   "web.billing.overview.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma Genel Bakış"
   },
   "web.billing.overview.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aboneliğinizi ve ödeme ayrıntılarınızı görüntüleyin ve yönetin"
   },
   "web.billing.overview.organization_selector": {
     "text": "",
@@ -48,148 +32,100 @@
     "note": "empty"
   },
   "web.billing.overview.current_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Plan"
   },
   "web.billing.overview.plan_features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Plan Özellikleri"
   },
   "web.billing.overview.payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ödeme Yöntemi"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sonraki Fatura Tarihi"
   },
   "web.billing.overview.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hızlı İşlemler"
   },
   "web.billing.overview.manage_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırmayı Yönet"
   },
   "web.billing.overview.view_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturaları Görüntüle"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Plan Yükselt"
   },
   "web.billing.overview.change_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Plan Değiştir"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kayıtlı ödeme yöntemi yok"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yaklaşan fatura yok"
   },
   "web.billing.overview.days_remaining": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "gün kaldı"
   },
   "web.billing.overview.billing_on": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{date} tarihinde faturalandırma"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Planları Görüntüle"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Karşılaştır ve yükselt"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturaları Görüntüle"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Geçmişi indir"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırmayı Yönet"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ödeme bilgilerini güncelle"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş Yok"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırmanızı ve aboneliğinizi yönetmek için bir kuruluş oluşturun"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizli Mesaj Oluştur"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "View Receipts"
+    "text": "Makbuzları Görüntüle"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API Erişimi"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Özel Alan Adları"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
     "text": "Özel Gizlilik Varsayılanları"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Uzatılmış Varsayılan Süre Sonu"
+    "text": "Uzatılmış Varsayılan Sona Erme Süresi"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
     "text": "Özel E-posta Varsayılanları"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Özel Marka"
+    "text": "Özel Markalama"
   },
   "web.billing.overview.entitlements.branded_homepage": {
     "text": "Markalı Ana Sayfa"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Gelen Sırlar"
+    "text": "Gelen Gizli Mesajlar"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Organizasyonları Yönet"
+    "text": "Kuruluşları Yönet"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Takımları Yönet"
@@ -198,135 +134,97 @@
     "text": "Üyeleri Yönet"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Denetim Günlükleri"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Tek Oturum Açma"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Öncelikli Destek"
   },
   "web.billing.overview.entitlements.sla": {
     "text": "Hizmet Düzeyi Sözleşmesi"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Özellik detayları yüklenemedi"
+    "text": "Özellik ayrıntıları yüklenemedi"
   },
   "web.billing.overview.no_entitlements": {
     "text": "Kullanılabilir özellik yok"
   },
   "web.billing.plans.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Plan Seçin"
   },
   "web.billing.plans.choose_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İhtiyaçlarınıza uygun planı seçin"
   },
   "web.billing.plans.subtitle": {
-    "text": "Choose the perfect plan for your organization"
+    "text": "Kuruluşunuz için mükemmel planı seçin"
   },
   "web.billing.plans.current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Plan"
   },
   "web.billing.plans.current_badge": {
-    "text": "Current"
+    "text": "Mevcut"
   },
   "web.billing.plans.upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yükselt"
   },
   "web.billing.plans.downgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Düşür"
   },
   "web.billing.plans.monthly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aylık"
   },
   "web.billing.plans.yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yıllık"
   },
   "web.billing.plans.per_month": {
-    "text": "aylık"
+    "text": "/ay"
   },
   "web.billing.plans.save_yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yıllık faturalandırma ile %{percent} tasarruf edin"
   },
   "web.billing.plans.free_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ücretsiz"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tek Takım"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Çoklu Takım"
   },
   "web.billing.plans.individual_account": {
-    "text": "Individual Account"
+    "text": "Bireysel Hesap"
   },
   "web.billing.plans.team_account": {
-    "text": "Team Account"
+    "text": "Takım Hesabı"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Organization Account"
+    "text": "Kuruluş Hesabı"
   },
   "web.billing.plans.features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Özellikler"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sınırsız gizli mesaj"
   },
   "web.billing.plans.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API erişimi"
   },
   "web.billing.plans.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Öncelikli destek"
   },
   "web.billing.plans.select_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Plan Seç"
   },
   "web.billing.plans.contact_sales": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Satışla İletişime Geçin"
   },
   "web.billing.plans.custom_needs_title": {
     "text": "Sorularınız mı var veya özel bir şeye mi ihtiyacınız var?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Sizden haber almak isteriz. Ne aradığınızı bize bildirin."
+    "text": "Sizden haber almaktan mutluluk duyarız. Ne aradığınızı bize bildirin."
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} takım | {count} takım"
@@ -335,191 +233,139 @@
     "text": "Takım başına {count} üye | Takım başına {count} üye"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Unlimited teams"
+    "text": "Sınırsız takım"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Unlimited members per team"
+    "text": "Takım başına sınırsız üye"
   },
   "web.billing.plans.most_popular": {
-    "text": "Most Popular"
+    "text": "En Popüler"
   },
   "web.billing.plans.suggested": {
-    "text": "Suggested"
+    "text": "Önerilen"
   },
   "web.billing.plans.everything_in": {
-    "text": "Includes everything in {plan}"
+    "text": "{plan} planındaki her şeyi içerir"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "No {interval} plans available at this time."
+    "text": "Şu anda kullanılabilir {interval} planı yok."
   },
   "web.billing.plans.change_immediate": {
-    "text": "Your plan will change immediately."
+    "text": "Planınız hemen değişecektir."
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Current plan:"
+    "text": "Mevcut plan:"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "New plan:"
+    "text": "Yeni plan:"
   },
   "web.billing.plans.credit_label": {
-    "text": "Credit for unused time:"
+    "text": "Kullanılmayan süre kredisi:"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Next invoice"
+    "text": "Sonraki fatura"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Your feature limits will update immediately after the plan change."
+    "text": "Özellik limitleriniz plan değişikliğinden hemen sonra güncellenecektir."
   },
   "web.billing.plans.change_failed": {
-    "text": "Plan change failed. Please try again."
+    "text": "Plan değişikliği başarısız. Lütfen tekrar deneyin."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Confirm Upgrade"
+    "text": "Yükseltmeyi Onayla"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Confirm Downgrade"
+    "text": "Düşürmeyi Onayla"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Yükselt"
+    "text": "{plan} planına yükseltilsin mi?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Downgrade to {plan}?"
+    "text": "{plan} planına düşürülsün mü?"
   },
   "web.billing.invoices.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma Geçmişi"
   },
   "web.billing.invoices.view_history": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma geçmişinizi görüntüleyin ve faturaları indirin"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tarih"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tutar"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Durum"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İndir"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Henüz fatura yok"
   },
   "web.billing.invoices.paid": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ödendi"
   },
   "web.billing.invoices.pending": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Beklemede"
   },
   "web.billing.invoices.failed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Başarısız"
   },
   "web.billing.invoices.load_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalar yüklenemedi"
   },
   "web.billing.notices.org_managed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma {orgName} tarafından yönetiliyor"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kuruluş faturalandırmasını görüntüle"
   },
   "web.billing.limits.members_reached": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu takım için üye sınırına ulaştınız"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Daha fazla üye eklemek için yükseltin"
   },
   "web.billing.subscription.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonelik"
   },
   "web.billing.subscription.status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonelik Durumu"
   },
   "web.billing.subscription.active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif"
   },
   "web.billing.subscription.inactive": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Pasif"
   },
   "web.billing.subscription.past_due": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vadesi Geçmiş"
   },
   "web.billing.subscription.canceled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İptal Edildi"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Plan"
   },
   "web.billing.portal.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma Portalı"
   },
   "web.billing.portal.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aboneliğinizi, ödeme yöntemlerinizi ve faturalandırma geçmişinizi yönetin"
   },
   "web.billing.portal.open_portal": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma Portalını Aç"
   },
   "web.billing.portal.redirecting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faturalandırma portalına yönlendiriliyor..."
   },
   "web.billing.start_today": {
     "text": "Bugün başlayın"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Identity Plus ile bugün başlayın"
+    "text": "Bugün Identity Plus ile başlayın"
   },
   "web.billing.per_month": {
     "text": "aylık"
@@ -528,7 +374,7 @@
     "text": "Tam API erişimi"
   },
   "web.billing.privacy_first_design": {
-    "text": "Gizlilik öncelikli tasarım"
+    "text": "Gizlilik odaklı tasarım"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus"
@@ -543,24 +389,22 @@
     "text": "Hesabı yükselt"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Identity Plus'a Yükselt"
+    "text": "Identity Plus'a Yükseltin"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Takımlar İçin Yükselt"
   },
   "web.billing.benefits_of": {
-    "text": "Faydaları"
+    "text": "Faydaları:"
   },
   "web.billing.t_benefits_of_identity_plus": {
     "text": "{0}: Identity Plus"
   },
   "web.billing.upgrade_to": {
-    "text": "Yükselt"
+    "text": "Yükselt:"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "secrets.yourdomain.com için yükseltin"
+    "text": "secrets.sizinalanadi.com için yükseltin"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Tüm planlar gizlilik özelliklerini ve sınırsız paylaşım kapasitesini içerir"
@@ -584,9 +428,198 @@
     "text": "Alan adınızdan bağlantılarla markanızı güvence altına alın ve müşteri güveni oluşturun. Gizliliğe ve profesyonelliğe değer veren işletmeler için mükemmeldir."
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Güvenli Bağlantılar, Daha Güçlü Bağlantılar"
+    "text": "Güvenli Bağlantılar, Daha Güçlü Bağlar"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "Kimlik katmanı ürün katmanlarında bulunamadı"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Aboneliği iptal et"
+  },
+  "web.billing.cancel.title": {
+    "text": "Aboneliği İptal Et"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "{plan} aboneliğinizi iptal etmek istediğinizden emin misiniz?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "İptal ettiğinizde ne olur:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "{date} tarihine kadar tüm özelliklere erişiminiz devam edecek"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Mevcut fatura döneminiz sona erene kadar erişiminiz devam edecek"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Tekrar ücretlendirilmeyeceksiniz"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Hesabınız ücretsiz plana dönecektir"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Aboneliği Koru"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Aboneliği İptal Et"
+  },
+  "web.billing.cancel.success": {
+    "text": "Aboneliğiniz iptal edildi. Fatura döneminizin sonuna kadar erişiminiz devam edecek."
+  },
+  "web.billing.cancel.error": {
+    "text": "Abonelik iptal edilemedi. Lütfen tekrar deneyin."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Abonelik İptali Planlandı"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Aboneliğiniz {date} tarihine kadar aktif kalacaktır. O zamana kadar tüm özelliklere tam erişiminiz devam edecek."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Fikrinizi mi değiştirdiniz? İptal tarihinden önce istediğiniz zaman aboneliğinizi yeniden etkinleştirebilirsiniz."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Gizli Mesaj Oluştur ve Paylaş"
+  },
+  "web.billing.features.api_access": {
+    "text": "API Erişimi"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Özel Alan Adları"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 Özel Alan Adı"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Sınırsız Özel Alan Adı"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Özel Markalama"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Markalı Ana Sayfa"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Takım Yönetimi"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Üye Yönetimi"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Denetim Günlükleri"
+  },
+  "web.billing.features.sso": {
+    "text": "Tek Oturum Açma (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Öncelikli Destek"
+  },
+  "web.billing.features.sla": {
+    "text": "Hizmet Düzeyi Sözleşmesi"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Merkezi Faturalandırma"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Denetim İzi"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Etkinlik Akışı"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Devir İş Akışları"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30 Günlük Gizli Mesaj Saklama"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Ana Sayfa Gizli Mesajları"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Gelen Gizli Mesajlar"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "5 takım üyesine kadar"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "10 takım üyesine kadar"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "25 takım üyesine kadar"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "50 takım üyesine kadar"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Sınırsız takım üyesi"
+  },
+  "web.billing.features.notifications": {
+    "text": "E-posta Bildirimleri"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP Erişim Kuralları"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Çalışma Alanı Markalaması"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Özel Altyapı"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Paylaşılan İş Akışları"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Bu kuruluş için faturalandırma"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Planınız başarıyla yükseltildi"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Yeni planınız artık aktif. Satın aldığınız için teşekkür ederiz."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Faturalandırma İletişimi"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Ana Sayfa Gizli Mesajları"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-posta Bildirimleri"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP Erişim Kuralları"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Çalışma Alanı Markalaması"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Bugün ödenmesi gereken:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Sonraki fatura ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Krediniz nasıl uygulanır:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Sonraki fatura tutarı:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Uygulanan kredi:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Sonraki faturada ödenecek tutar:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Kalan hesap kredisi:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Gelecek faturalara uygulanır"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Takım Kullanımı"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{limit} takımdan {used} tanesi kullanıldı"
   }
 }

@@ -3,10 +3,10 @@
     "text": "Geri bildiriminiz"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Tüm geri bildirimlere açığız!"
+    "text": "Her türlü geri bildirime açığız!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Geliştirmemize yardımcı olun"
+    "text": "İyileştirmemize yardımcı olun"
   },
   "web.feedback.close_feedback_modal": {
     "text": "Geri bildirim penceresini kapat"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Yardım içeriği buraya gelir."
+    "text": "Yardım içeriği burada görüntülenir."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Onetime Secret'ı geliştirmeye yardımcı olduğunuz için teşekkürler. Bu çok şey ifade ediyor."
@@ -42,6 +42,12 @@
     "text": "Geri bildiriminizi girin"
   },
   "web.feedback.send_feedback": {
-    "text": "Geribildirim gönder"
+    "text": "Geri bildirim gönder"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Buraya gelen her geri bildirimi okurum. Zamanımı neye harcayacağımı bu şekilde belirliyorum."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Bir şeyler yolunda gitmiyorsa veya nasıl çalışması gerektiği hakkında fikirleriniz varsa, doğru yerdesiniz."
   }
 }

@@ -1,9 +1,9 @@
 {
   "incoming.page_title": {
-    "text": "Sır gönder"
+    "text": "Gizli Mesaj Gönder"
   },
   "incoming.page_description": {
-    "text": "Destek ekibimizle hassas bilgileri güvenli bir şekilde paylaşın"
+    "text": "Hassas bilgileri destek ekibimizle güvenli bir şekilde paylaşın"
   },
   "incoming.loading_config": {
     "text": "Yükleniyor..."
@@ -12,28 +12,28 @@
     "text": "Yapılandırma yüklenemedi"
   },
   "incoming.feature_disabled_title": {
-    "text": "Özellik kullanılamıyor"
+    "text": "Özellik Kullanılamıyor"
   },
   "incoming.feature_disabled_description": {
-    "text": "Bu özellik şu anda devre dışı. Yardım için lütfen destekle iletişime geçin."
+    "text": "Bu özellik şu anda devre dışıdır. Yardım için lütfen destekle iletişime geçin."
   },
   "incoming.memo_label": {
     "text": "Not"
   },
   "incoming.memo_placeholder": {
-    "text": "Kısa açıklama (örn. Şifre sıfırlama talebi)"
+    "text": "Kısa açıklama (örn., Parola sıfırlama isteği)"
   },
   "incoming.memo_hint": {
     "text": "Mesajınızı doğru kişiye yönlendirmemize yardımcı olun"
   },
   "incoming.recipient_label": {
-    "text": "Gönder"
+    "text": "Gönderilecek Kişi"
   },
   "incoming.recipient_placeholder": {
-    "text": "Alıcı seçin"
+    "text": "Bir alıcı seçin"
   },
   "incoming.recipient_aria_label": {
-    "text": "Bu sır için bir alıcı seçin"
+    "text": "Bu gizli mesaj için bir alıcı seçin"
   },
   "incoming.recipient_hint": {
     "text": "Bu güvenli mesajı kimin alacağını seçin"
@@ -42,19 +42,19 @@
     "text": "Kullanılabilir alıcı yok"
   },
   "incoming.secret_content_label": {
-    "text": "Gizli bilgi"
+    "text": "Gizli Bilgi"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Hassas bilgileri buraya yapıştırın (şifreler, anahtarlar vb.)"
+    "text": "Hassas bilgileri buraya yapıştırın (parolalar, anahtarlar, vb.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Bu bilgi şifrelenecek ve yalnızca bir kez görüntülenebilecek"
+    "text": "Bu bilgi şifrelenecek ve yalnızca bir kez görüntülenebilecektir"
   },
   "incoming.submit_button": {
-    "text": "Sır gönder"
+    "text": "Gizli Mesaj Gönder"
   },
   "incoming.submit_secret": {
-    "text": "Sır gönder"
+    "text": "Gizli Mesaj Gönder"
   },
   "incoming.submitting_button": {
     "text": "Gönderiliyor..."
@@ -63,37 +63,37 @@
     "text": "Gönderiliyor..."
   },
   "incoming.reset_button": {
-    "text": "Formu temizle"
+    "text": "Formu Temizle"
   },
   "incoming.reset_form": {
-    "text": "Formu temizle"
+    "text": "Formu Temizle"
   },
   "incoming.success_title": {
-    "text": "Başarıyla gönderildi"
+    "text": "Başarıyla Gönderildi"
   },
   "incoming.success_description": {
-    "text": "Güvenli mesajınız iletildi."
+    "text": "Güvenli mesajınız teslim edildi."
   },
   "incoming.reference_id": {
-    "text": "Referans kimliği"
+    "text": "Referans Kimliği"
   },
   "incoming.success_info_title": {
-    "text": "Sırada ne var?"
+    "text": "Bundan sonra ne olacak?"
   },
   "incoming.success_info_description": {
-    "text": "Alıcı bu sırrı yalnızca bir kez görüntüleyebilecek. Görüntülendikten sonra sır kalıcı olarak silinecek."
+    "text": "Alıcı bu gizli mesajı yalnızca bir kez görüntüleyebilecektir. Görüntüledikten sonra gizli mesaj kalıcı olarak silinecektir."
   },
   "incoming.create_another": {
-    "text": "Başka bir sır gönder"
+    "text": "Başka Bir Gizli Mesaj Gönder"
   },
   "incoming.tagline1": {
     "text": "Hassas bilgileri güvenli bir şekilde paylaşın"
   },
   "incoming.tagline2": {
-    "text": "Şifreleri ve özel verileri e-posta ve sohbet kayıtlarından uzak tutun"
+    "text": "Parolaları ve özel verileri e-posta ve sohbet günlüklerinden uzak tutun"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Kayıtlarınız için <a href='{receiptUrl}'>makbuzunuzu</a> saklayın."
+    "text": "Kayıtlarınız için {receipt} dosyanızı saklayın."
   },
   "incoming.receipt_link_text": {
     "text": "makbuz"

@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Yapay Zeka Tarafından Oluşturulan Görüş"
+    "text": "Yapay Zeka Tarafından Oluşturulan Referans"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Gösteri için AI tarafından oluşturulan içerik. \nGerçek bir kişiden veya şirketten değil."
+    "text": "Gösterim amaçlı yapay zeka tarafından oluşturulan içerik. Gerçek bir kişi veya şirketten değildir."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -21,10 +21,10 @@
     "text": "Önde gelen yapay zeka bizim hakkımızda ne diyor"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Yapay Zeka Tarafından Oluşturulan Görüşler"
+    "text": "Yapay Zeka Tarafından Oluşturulan Referanslar"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Bu alıntı tarafından oluşturuldu"
+    "text": "Bu alıntı şu tarafından oluşturuldu:"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "Sayfanın içeriğine dayanıyordu ve gerçek bir kişiyi veya şirketi temsil etmiyor."

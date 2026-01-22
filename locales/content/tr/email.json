@@ -1,30 +1,30 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Bilet: %s]"
+    "text": "[Talep: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "Bir müşteri şu bilgileri gönderdi"
+    "text": "Bir müşteri aşağıdaki bilgileri gönderdi"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} size bir gizli mesaj gönderdi"
+    "text": "%{sender_email} size gizli bir mesaj gönderdi"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "size bir gizli mesaj gönderdi:"
+    "text": "size gizli bir mesaj gönderdi:"
   },
   "email.secret_link.important_label": {
     "text": "Önemli:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir."
+    "text": "Bu bağlantı yalnızca bir kez çalışacaktır. Görüntüledikten sonra gizli mesaj kalıcı olarak silinecektir."
   },
   "email.secret_link.sent_via": {
-    "text": "Gönderen"
+    "text": "Gönderen:"
   },
   "email.welcome.subject": {
-    "text": "Onetime Secret hesabınızı doğrulayın"
+    "text": "%{product_name} hizmetine hoş geldiniz - Lütfen e-postanızı doğrulayın"
   },
   "email.welcome.title": {
-    "text": "%{product_name} organizasyonuna katılmaya davet edildiniz!"
+    "text": "%{product_name} hizmetine hoş geldiniz!"
   },
   "email.welcome.verify_prompt": {
     "text": "Lütfen aşağıdaki bağlantıya tıklayarak e-posta adresinizi doğrulayın:"
@@ -39,7 +39,7 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "Not: Bu e-posta %{email_address} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz."
+    "text": "Not: Bu e-posta %{email_address} adresine gönderildi. Bir hesap oluşturmadıysanız, bu mesajı güvenle görmezden gelebilirsiniz."
   },
   "email.password_request.subject": {
     "text": "Parolanızı sıfırlayın (%{display_domain})"
@@ -48,7 +48,7 @@
     "text": "Parolanızı Sıfırlayın"
   },
   "email.password_request.request_notice": {
-    "text": "%{product_name} için parolanızı sıfırlama talebi aldık."
+    "text": "%{product_name} parolanızı sıfırlamak için bir istek aldık."
   },
   "email.password_request.reset_button": {
     "text": "Parolayı Sıfırla"
@@ -57,7 +57,7 @@
     "text": "Veya bu bağlantıyı kopyalayıp yapıştırın:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Parola sıfırlama talebinde bulunmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz."
+    "text": "Parola sıfırlama isteğinde bulunmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -66,7 +66,7 @@
     "text": "Not: Bu e-posta %{email_address} adresine gönderildi."
   },
   "email.magic_link.subject": {
-    "text": "%{display_domain} için giriş yap"
+    "text": "%{display_domain} sitesine giriş yap"
   },
   "email.magic_link.title": {
     "text": "Sihirli Bağlantı ile Giriş Yap"
@@ -90,7 +90,7 @@
     "text": "Delano"
   },
   "email.magic_link.postscript": {
-    "text": "Not: Bu e-posta %{email_address} adresine gönderilmiştir."
+    "text": "Not: Bu e-posta %{email_address} adresine gönderildi."
   },
   "email.incoming_secret.subject": {
     "text": "Gizli bir mesaj aldınız"
@@ -102,7 +102,7 @@
     "text": "Not:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Biri size %{display_domain} üzerinden güvenli bir mesaj gönderdi."
+    "text": "Birisi size %{display_domain} aracılığıyla güvenli bir mesaj gönderdi."
   },
   "email.incoming_secret.view_instructions": {
     "text": "Bu gizli mesajı görüntülemek için aşağıdaki bağlantıya tıklayın:"
@@ -111,10 +111,10 @@
     "text": "Önemli:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir."
+    "text": "Bu bağlantı yalnızca bir kez çalışacaktır. Görüntüledikten sonra gizli mesaj kalıcı olarak silinecektir."
   },
   "email.incoming_secret.sent_via": {
-    "text": "Gönderen"
+    "text": "Gönderen:"
   },
   "email.secret_revealed.subject": {
     "text": "Gizli mesajınız görüntülendi"
@@ -126,7 +126,7 @@
     "text": "Gizli mesajınız %{date} tarihinde görüntülendi."
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Gizli Mesaj ID:"
+    "text": "Gizli Mesaj Kimliği:"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Bu otomatik bir bildirimdir. Herhangi bir işlem yapmanız gerekmemektedir."
@@ -141,10 +141,10 @@
     "text": "Bildirim tercihlerinizi yönetmek için:"
   },
   "email.expiration_warning.subject": {
-    "text": "Gizli mesaj bağlantınızın süresi yakında dolacak"
+    "text": "Gizli bağlantınızın süresi yakında dolacak"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Gizli mesaj bağlantınızın süresi %{time_remaining} içinde dolacak"
+    "text": "Gizli bağlantınızın süresi %{time_remaining} içinde dolacak"
   },
   "email.expiration_warning.view_button": {
     "text": "Süresi dolmadan önce gizli mesajınızı görüntüleyin"
@@ -156,10 +156,10 @@
     "text": "Süre dolduktan sonra gizli mesaj kalıcı olarak silinecek ve kurtarılamayacaktır."
   },
   "email.expiration_warning.sent_via": {
-    "text": "Gönderen"
+    "text": "Gönderen:"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Kaybetmeden önce görüntüleyin:"
+    "text": "Gitmeden önce görüntüleyin:"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "Süre dolduktan sonra gizli mesaj kalıcı olarak silinecektir."
@@ -171,7 +171,7 @@
     "text": "Kullanıcı Geri Bildirimi"
   },
   "email.feedback_email.from_label": {
-    "text": "Kimden:"
+    "text": "Gönderen:"
   },
   "email.feedback_email.domain_label": {
     "text": "Alan Adı:"
@@ -186,13 +186,13 @@
     "text": "Secret Destek"
   },
   "email.organization_invitation.subject": {
-    "text": "%{organization_name} organizasyonuna katılmaya davet edildiniz"
+    "text": "%{organization_name} kuruluşuna katılmaya davet edildiniz"
   },
   "email.organization_invitation.title": {
-    "text": "%{organization_name} organizasyonuna katılmaya davet edildiniz!"
+    "text": "%{organization_name} kuruluşuna katılmaya davet edildiniz!"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email}, sizi \"%{organization_name}\" organizasyonuna %{role_description} olarak katılmaya davet etti."
+    "text": "%{inviter_email}, sizi \"%{organization_name}\" kuruluşuna %{role_description} olarak katılmaya davet etti."
   },
   "email.organization_invitation.accept_button": {
     "text": "Daveti Kabul Et"
@@ -201,10 +201,10 @@
     "text": "Veya bu bağlantıyı kopyalayıp yapıştırın:"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Bu davet %{days} gün içinde sona erecektir."
+    "text": "Bu davetin süresi %{days} gün içinde dolacaktır."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Katılmak istemiyorsanız, bu e-postayı yok sayabilir veya daveti reddedebilirsiniz."
+    "text": "Katılmak istemiyorsanız, bu e-postayı görmezden gelebilir veya daveti reddedebilirsiniz."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
@@ -213,10 +213,10 @@
     "text": "Not: Bu e-posta %{invited_email} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz."
   },
   "email.organization_invitation.roles.member": {
-    "text": "bir üye"
+    "text": "üye"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "bir yönetici"
+    "text": "yönetici"
   },
   "email.password_changed.subject": {
     "text": "Parolanız değiştirildi (%{display_domain})"
@@ -225,10 +225,10 @@
     "text": "Parolanız Değiştirildi"
   },
   "email.password_changed.body": {
-    "text": "%{product_name} için parolanız %{date} tarihinde saat %{time}'de değiştirildi."
+    "text": "%{product_name} parolanız %{date} tarihinde saat %{time}'de değiştirildi."
   },
   "email.password_changed.security_notice": {
-    "text": "Bu değişikliği siz yapmadıysanız, lütfen hemen parolanızı sıfırlayarak ve destek ile iletişime geçerek hesabınızı güvenli hale getirin."
+    "text": "Bu değişikliği siz yapmadıysanız, lütfen parolanızı sıfırlayarak ve destekle iletişime geçerek hesabınızı derhal güvence altına alın."
   },
   "email.password_changed.signature": {
     "text": "Delano"
@@ -243,7 +243,7 @@
     "text": "%{product_name} hesabınızın e-posta adresi %{date} tarihinde %{new_email_masked} olarak değiştirildi."
   },
   "email.email_changed.security_notice": {
-    "text": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabilir, lütfen hemen destek ile iletişime geçin."
+    "text": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabileceğinden lütfen derhal destekle iletişime geçin."
   },
   "email.email_changed.signature": {
     "text": "Delano"
@@ -276,7 +276,7 @@
     "text": "%{product_name} hesabınız için iki faktörlü kimlik doğrulama %{date} tarihinde etkinleştirildi."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Hesabınız artık daha güvenli. Giriş yaparken kimlik doğrulama uygulamanızdan bir doğrulama kodu girmeniz gerekecek."
+    "text": "Hesabınız artık daha güvenli. Giriş yaparken kimlik doğrulama uygulamanızdan bir doğrulama kodu girmeniz gerekecektir."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
@@ -291,7 +291,7 @@
     "text": "%{product_name} hesabınız için iki faktörlü kimlik doğrulama %{date} tarihinde devre dışı bırakıldı."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Hesabınız artık daha az güvenli. Bu değişikliği siz yapmadıysanız, lütfen hesabınızı hemen güvenli hale getirin."
+    "text": "Hesabınız artık daha az güvenli. Bu değişikliği siz yapmadıysanız, lütfen hesabınızı derhal güvence altına alın."
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
@@ -318,43 +318,43 @@
     "text": "Bu siz değilseniz, hesabınız tehlikede olabilir."
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Hesabınızı Güvenli Hale Getirin"
+    "text": "Hesabınızı Güvence Altına Alın"
   },
   "email.new_login_alert.signature": {
     "text": "Delano"
   },
   "email.member_removed.subject": {
-    "text": "%{organization_name} organizasyonundan çıkarıldınız"
+    "text": "%{organization_name} kuruluşundan çıkarıldınız"
   },
   "email.member_removed.title": {
-    "text": "%{organization_name} Organizasyonundan Çıkarıldınız"
+    "text": "%{organization_name} Kuruluşundan Çıkarıldınız"
   },
   "email.member_removed.body": {
-    "text": "%{product_name} üzerindeki \"%{organization_name}\" organizasyonundan çıkarıldınız."
+    "text": "%{product_name} üzerindeki \"%{organization_name}\" kuruluşundan çıkarıldınız."
   },
   "email.member_removed.signature": {
     "text": "Delano"
   },
   "email.role_changed.subject": {
-    "text": "%{organization_name} organizasyonundaki rolünüz değiştirildi"
+    "text": "%{organization_name} kuruluşunda rolünüz değiştirildi"
   },
   "email.role_changed.title": {
     "text": "Rolünüz Değiştirildi"
   },
   "email.role_changed.body": {
-    "text": "\"%{organization_name}\" organizasyonundaki rolünüz %{old_role} yetkisinden %{new_role} yetkisine değiştirildi."
+    "text": "\"%{organization_name}\" kuruluşundaki rolünüz %{old_role} konumundan %{new_role} konumuna değiştirildi."
   },
   "email.role_changed.signature": {
     "text": "Delano"
   },
   "email.organization_deleted.subject": {
-    "text": "\"%{organization_name}\" organizasyonu silindi"
+    "text": "\"%{organization_name}\" kuruluşu silindi"
   },
   "email.organization_deleted.title": {
-    "text": "Organizasyon Silindi"
+    "text": "Kuruluş Silindi"
   },
   "email.organization_deleted.body": {
-    "text": "\"%{organization_name}\" organizasyonu %{product_name} üzerinden silindi. İlişkili tüm veriler kaldırıldı."
+    "text": "\"%{organization_name}\" kuruluşu %{product_name} üzerinden silindi. İlişkili tüm veriler kaldırıldı."
   },
   "email.organization_deleted.signature": {
     "text": "Delano"
@@ -366,7 +366,7 @@
     "text": "Ödeme Makbuzu"
   },
   "email.payment_receipt.body": {
-    "text": "Ödemeniz için teşekkür ederiz. Ödeme detaylarınız:"
+    "text": "Ödemeniz için teşekkür ederiz. İşte ödeme ayrıntılarınız:"
   },
   "email.payment_receipt.amount_label": {
     "text": "Tutar:"
@@ -387,10 +387,10 @@
     "text": "%{product_name} için ödeme başarısız oldu"
   },
   "email.payment_failed.title": {
-    "text": "Ödeme Başarısız Oldu"
+    "text": "Ödeme Başarısız"
   },
   "email.payment_failed.body": {
-    "text": "%{product_name} için ödemenizi işleyemedik. Hizmet kesintisini önlemek için lütfen ödeme yönteminizi güncelleyin."
+    "text": "%{product_name} için ödemenizi işleyemedik. Hizmet kesintisinden kaçınmak için lütfen ödeme yönteminizi güncelleyin."
   },
   "email.payment_failed.update_payment_button": {
     "text": "Ödeme Yöntemini Güncelle"
@@ -399,13 +399,13 @@
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "%{product_name} deneme süreniz %{days_remaining} gün içinde sona erecek"
+    "text": "%{product_name} deneme süreniz %{days_remaining} gün içinde sona eriyor"
   },
   "email.trial_expiring.title": {
-    "text": "Deneme Süreniz Yakında Sona Eriyor"
+    "text": "Deneme Süreniz Yakında Bitiyor"
   },
   "email.trial_expiring.body": {
-    "text": "%{product_name} ücretsiz deneme süreniz %{days_remaining} gün içinde sona erecek. Tüm özelliklere erişimi sürdürmek için şimdi yükseltin."
+    "text": "%{product_name} ücretsiz deneme süreniz %{days_remaining} gün içinde sona erecek. Tüm özelliklere erişiminizi sürdürmek için şimdi yükseltin."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Şimdi Yükselt"
@@ -423,7 +423,7 @@
     "text": "%{product_name} aboneliğiniz %{old_plan} planından %{new_plan} planına değiştirildi."
   },
   "email.subscription_changed.effective_date": {
-    "text": "Bu değişiklik %{date} tarihinde yürürlüğe girecek."
+    "text": "Bu değişiklik %{date} tarihinden itibaren geçerlidir."
   },
   "email.subscription_changed.signature": {
     "text": "Delano"

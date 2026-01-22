@@ -1,93 +1,57 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Veri Egemenliği ve Bölgesel İzolasyon"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Verileriniz yalnızca seçtiğiniz bölgede bulunur ve asla bölgeler arasında aktarılmaz"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Her bölge, kendi altyapısı, şifreleme anahtarları ve veri depolaması ile tamamen bağımsız bir ortam olarak çalışır"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Katı bir politikamız var: müşteri verileri hiçbir koşulda bölgeler arasında aktarılmaz"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Önemli: Farklı bir bölgeye geçmek yeni bir hesap oluşturur. Verileriniz orijinal bölgenizde kalır."
   },
   "web.regions.your_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bölgeniz"
   },
   "web.regions.your_current_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Bölgeniz"
   },
   "web.regions.active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif"
   },
   "web.regions.explore_other_regions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Diğer kullanılabilir bölgeleri keşfedin"
   },
   "web.regions.why_it_matters": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Veri Egemenliği Neden Önemlidir"
   },
   "web.regions.trust_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Şeffaflık ve Kontrol"
   },
   "web.regions.trust_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Verilerinizin tam olarak nerede bulunduğunu ve hangi yasaların korumasını düzenlediğini bilin."
   },
   "web.regions.privacy_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gizlilik Hakları"
   },
   "web.regions.privacy_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kişisel bilgilerinizin ülkenizin gizlilik yasalarına ve düzenlemelerine göre işlenmesini sağlayarak yetkisiz erişimi veya kötüye kullanımı önleyin."
   },
   "web.regions.compliance_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yasal Uyumluluk"
   },
   "web.regions.compliance_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "GDPR, HIPAA, CCPA ve diğer bölgesel veri koruma gereksinimlerini karşılayın"
   },
   "web.regions.performance_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Daha Hızlı Erişim"
   },
   "web.regions.performance_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Verilerinizin size daha yakın depolanması, daha düşük gecikme ve daha iyi performans anlamına gelir."
   },
   "web.regions.regions": {
     "text": "Bölgeler"
@@ -117,10 +81,10 @@
     "text": "{0} {1}"
   },
   "web.regions.available_regions": {
-    "text": "Mevcut Bölgeler"
+    "text": "Kullanılabilir Bölgeler"
   },
   "web.regions.jurisdiction": {
-    "text": "Yargı Bölgesi"
+    "text": "Yargı Alanı"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
     "text": "Veri merkezi konumu: {0}"
@@ -129,15 +93,15 @@
     "text": "Veri Bölgesi"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Bilinmeyen Yargı Bölgesi"
+    "text": "Bilinmeyen Yargı Alanı"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Size şuradan hizmet veriyoruz"
+    "text": "Hizmet sağlanan konum:"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "{0} adresine devam et"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Mevcut yargı bölgesi:"
+    "text": "Mevcut yargı alanı:"
   }
 }

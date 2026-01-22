@@ -1,20 +1,18 @@
 {
   "web.login.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınız yok mu?"
   },
   "web.login.need_an_account": {
-    "text": "Hesap mı lazım?"
+    "text": "Kayıt ol."
   },
   "web.login.forgot_your_password": {
-    "text": "Şifreni mi unuttun?"
+    "text": "Parolanızı mı unuttunuz?"
   },
   "web.login.button_sign_in": {
     "text": "Giriş Yap"
   },
   "web.login.enter_your_credentials": {
-    "text": "Giriş bilgilerini yaz"
+    "text": "Kimlik bilgilerinizi girin"
   },
   "web.login.remember_me": {
     "text": "Beni hatırla"
@@ -23,274 +21,249 @@
     "text": "Hesabınızı Oluşturun"
   },
   "web.signup.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Zaten bir hesabınız var mı?"
   },
   "web.signup.have_an_account": {
-    "text": "Veya, hesabınıza giriş yapın"
+    "text": "Giriş yap."
   },
   "web.signup.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap Oluşturma Hatası"
   },
   "web.signup.password_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola"
   },
   "web.signup.email_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta"
   },
   "web.auth.verify.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızı Doğrulayın"
   },
   "web.auth.verify.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınız başarıyla doğrulandı"
   },
   "web.auth.verify.invalid_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Geçersiz veya süresi dolmuş doğrulama anahtarı"
   },
   "web.auth.verify.expired_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu doğrulama bağlantısının süresi dolmuş. Lütfen yeni bir tane talep edin."
   },
   "web.auth.verify.already_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu hesap zaten doğrulanmış. Şimdi giriş yapabilirsiniz."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap doğrulanamadı. Lütfen tekrar deneyin veya destekle iletişime geçin."
   },
   "web.auth.verify.check_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Lütfen doğrulama bağlantısı için e-postanızı kontrol edin"
   },
   "web.auth.verify.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap doğrulama başarısız. Lütfen doğrulama bağlantınızı kontrol edin veya yeni bir tane talep edin."
   },
   "web.auth.verify.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulama Başarısız"
   },
   "web.auth.verify.what_to_do": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ne yapmalıyım?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "En son doğrulama bağlantısı için e-postanızı kontrol edin"
   },
   "web.auth.verify.check_spam": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-postayı bulamıyorsanız spam/gereksiz klasörünüzü kontrol edin"
   },
   "web.auth.verify.contact_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sorunlar devam ederse destekle iletişime geçin"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulama Bağlantısı Gerekli"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızı doğrulamak için lütfen e-posta adresinize gönderilen doğrulama bağlantısını kullanın."
   },
   "web.auth.verify.create_new_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni Hesap Oluştur"
   },
   "web.auth.change_password.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola Değiştir"
   },
   "web.auth.change_password.current_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Parola"
   },
   "web.auth.change_password.new_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni Parola"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni Parolayı Onayla"
   },
   "web.auth.change_password.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolanız başarıyla değiştirildi"
   },
   "web.auth.change_password.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola değiştirme başarısız. Lütfen mevcut parolanızı doğrulayıp tekrar deneyin."
   },
   "web.auth.close_account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabı Kapat"
   },
   "web.auth.close_account.warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu işlem geri alınamaz. Tüm gizli mesajlarınız kalıcı olarak silinecektir."
   },
   "web.auth.close_account.confirm": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu işlemin kalıcı olduğunu anlıyorum"
   },
   "web.auth.close_account.password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Onaylamak için parolanızı girin"
   },
   "web.auth.close_account.button": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabı Kalıcı Olarak Kapat"
   },
   "web.auth.close_account.cancel": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İptal"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Şifre Sıfırlama İste"
+    "text": "Parola Sıfırlama Talebi"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Aşağıya e-posta adresinizi girin, şifrenizi sıfırlamak için bir bağlantı göndereceğiz"
+    "text": "E-posta adresinizi aşağıya girin, size parolanızı sıfırlamak için bir bağlantı göndereceğiz"
   },
   "web.auth.password_reset_request.button": {
     "text": "Sıfırlama Bağlantısı Gönder"
   },
   "web.auth.password_reset.title": {
-    "text": "Yeni Bir Şifre Seçin"
+    "text": "Yeni Bir Parola Seçin"
   },
   "web.auth.password_reset.description": {
-    "text": "Lütfen yeni şifrenizi aşağıya girin. Hesabınızı korumak için güçlü ve benzersiz olduğundan emin olun."
+    "text": "Lütfen aşağıya yeni parolanızı girin. Hesabınızı korumak için güçlü ve benzersiz olduğundan emin olun."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızın parolasını sıfırlamak için bir bağlantı içeren e-posta gönderildi"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Kabul ediyorum"
+    "text": "Kabul ediyorum:"
   },
   "web.auth.account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap Bilgileri"
   },
   "web.auth.account.email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta Adresi"
   },
   "web.auth.account.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesap Oluşturuldu"
   },
   "web.auth.account.verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta Doğrulandı"
   },
   "web.auth.account.region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bölge"
   },
   "web.auth.account.not_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta Doğrulanmadı"
   },
   "web.auth.account.verify_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta Adresini Doğrula"
   },
   "web.auth.account.mfa_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulama"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Etkinleştirildi"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Devre dışı"
   },
   "web.auth.account.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif Oturumlar"
   },
   "web.auth.account.session_count": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{count} aktif oturum"
   },
   "web.auth.account.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hızlı İşlemler"
   },
   "web.auth.account.manage_mfa": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulamayı Yönet"
   },
   "web.auth.account.manage_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif Oturumları Yönet"
   },
   "web.auth.account.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola Değiştir"
   },
   "web.auth.account.close_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabı Kapat"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Kayıt sonrası e-posta doğrulama akışı"
+  },
+  "web.help.title": {
+    "text": "Yardım ve Destek"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Giriş Sorun Giderme"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Sihirli bağlantı gelmiyor mu?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Spam veya gereksiz klasörünüzü kontrol edin"
+  },
+  "web.help.check_email_spelling": {
+    "text": "E-posta adresinizi doğru girdiğinizi doğrulayın"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Birkaç dakika bekleyin - e-postalar bazen gecikebilir"
+  },
+  "web.help.try_again": {
+    "text": "10 dakikadan fazla geçtiyse yeni bir bağlantı talep etmeyi deneyin"
+  },
+  "web.help.forgot_password": {
+    "text": "Parolanızı mı unuttunuz?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Parola olmadan giriş yapmak için Sihirli Bağlantı seçeneğini kullanın. Giriş yaptıktan sonra Hesap Ayarlarında parolanızı değiştirebilirsiniz."
+  },
+  "web.help.account_locked": {
+    "text": "Hesap geçici olarak kilitlendi mi?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Birden fazla başarısız giriş denemesinden sonra, güvenlik için hesaplar geçici olarak kilitlenir. 15 dakika bekleyin ve tekrar deneyin veya giriş yapmak için Sihirli Bağlantı kullanın."
+  },
+  "web.help.still_need_help": {
+    "text": "Hala yardıma mı ihtiyacınız var?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Hala sorun yaşıyorsanız, yardım etmek için buradayız. Bize bir mesaj gönderin, en kısa sürede size geri döneceğiz."
+  },
+  "web.help.contact_support": {
+    "text": "Destekle İletişime Geç"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Giriş bağlantısı gönder"
+  },
+  "web.login.secure_link_helper": {
+    "text": "E-posta gelen kutunuza güvenli bir bağlantı gönderilecektir."
+  },
+  "web.login.or_divider": {
+    "text": "veya"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Parola ile giriş yap"
+  },
+  "web.login.use_passwordless": {
+    "text": "Parolasız giriş kullan"
+  },
+  "web.login.create_account": {
+    "text": "Hesap oluştur"
+  },
+  "web.login.return_home": {
+    "text": "Ana sayfaya dön"
+  },
+  "web.login.tab_password": {
+    "text": "Parola"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Sihirli Bağlantı"
+  },
+  "web.login.need_help": {
+    "text": "Yardım mı gerekiyor?"
   }
 }

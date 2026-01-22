@@ -1,20 +1,20 @@
 {
   "web.dashboard.title_received": {
-    "text": "Alınan"
+    "text": "Alındı"
   },
   "web.dashboard.title_not_received": {
-    "text": "Alınmayan"
+    "text": "Alınmadı"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Yeni gizli mesaj yok"
+    "text": "Son gizli mesaj yok"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "İlk gizli mesajınızı oluşturarak başlayın."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Ekipler yüklenemedi"
+    "text": "Veriler yüklenemedi"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Ekipleriniz yüklenirken bir sorun oluştu. Lütfen tekrar deneyin."
+    "text": "Verileriniz yüklenirken bir sorun oluştu. Lütfen tekrar deneyin."
   }
 }

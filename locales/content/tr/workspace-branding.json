@@ -42,10 +42,10 @@
     "text": "{0}/500 karakter"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "QR kodunu taramak için telefonunuzu kullanın"
+    "text": "QR kodu taramak için telefonunuzu kullanın"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Sorularınız için onboarding{'@'}example.com ile iletişime geçin"
+    "text": "Sorularınız için destek{'@'}ornek.com ile iletişime geçin"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Bu talimatlar, alıcılara mesaj içeriğini açmadan önce gösterilecektir"
@@ -54,10 +54,10 @@
     "text": "Bu talimatlar, alıcılara mesajı açtıktan sonra gösterilecektir"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Açma Öncesi Talimatlar"
+    "text": "Gösterilmeden Önce Talimatlar"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Açma Sonrası Talimatlar"
+    "text": "Gösterildikten Sonra Talimatlar"
   },
   "web.branding.instructions": {
     "text": "Talimatlar"
@@ -99,19 +99,19 @@
     "text": "Marka ayarları yüklenemedi"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Bir logo yükleyin (minimum 128x128 piksel önerilir, 1MB maks) - \"Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin"
+    "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Yapabilecekleriniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Logo yükleyin (önerilen minimum 128x128 piksel, maksimum 1MB) - \"Gizli Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Bir logo yükleyin (minimum 128x128 piksel önerilir, 1MB maks) - \"Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin"
   },
   "web.branding.default_logo_icon": {
-    "text": "Varsayılan logo simgesi"
+    "text": "Japonca kanji '秘' (himitsu) anlamı 'gizli' veya 'gizlilik'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Onetime Secret tarafından desteklenmektedir"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Logosu"
+    "text": "{0} Logo"
   },
   "web.branding.edge": {
     "text": "Edge"
