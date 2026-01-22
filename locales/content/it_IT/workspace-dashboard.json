@@ -12,9 +12,9 @@
     "text": "Inizia creando il tuo primo segreto"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Impossibile caricare i team"
+    "text": "Impossibile caricare i dati"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Si è verificato un problema durante il caricamento dei tuoi team. Riprova."
+    "text": "Si è verificato un problema nel caricamento dei dati. Riprova."
   }
 }

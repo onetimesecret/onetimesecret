@@ -1,6 +1,6 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Biglietto: %s]"
+    "text": "[Ticket: %s]"
   },
   "email.incomingsupport.body1": {
     "text": "Un cliente ha inviato le seguenti informazioni"
@@ -15,19 +15,19 @@
     "text": "Importante:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Questo link funzionerà una sola volta. Dopo la visualizzazione, il segreto sarà eliminato definitivamente."
+    "text": "Questo link funzionerà una sola volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente."
   },
   "email.secret_link.sent_via": {
     "text": "Inviato tramite"
   },
   "email.welcome.subject": {
-    "text": "Verifica il tuo account Onetime Secret"
+    "text": "Benvenuto su %{product_name} - Verifica la tua email"
   },
   "email.welcome.title": {
-    "text": "Sei stato invitato a unirti a %{product_name}!"
+    "text": "Benvenuto su %{product_name}"
   },
   "email.welcome.verify_prompt": {
-    "text": "Verifica il tuo indirizzo email cliccando sul link qui sotto:"
+    "text": "Verifica il tuo indirizzo email cliccando il link qui sotto:"
   },
   "email.welcome.verify_button": {
     "text": "Verifica indirizzo email"
@@ -39,7 +39,7 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Questa email è stata inviata a %{email_address}. Se non ti aspettavi questo invito, puoi tranquillamente ignorare questo messaggio."
+    "text": "P.S. Questa email è stata inviata a %{email_address}. Se non hai creato un account, puoi ignorare questo messaggio."
   },
   "email.password_request.subject": {
     "text": "Reimposta la tua password (%{display_domain})"
@@ -48,7 +48,7 @@
     "text": "Reimposta la tua password"
   },
   "email.password_request.request_notice": {
-    "text": "Abbiamo ricevuto una richiesta di reimpostazione della password per %{product_name}."
+    "text": "Abbiamo ricevuto una richiesta per reimpostare la tua password per %{product_name}."
   },
   "email.password_request.reset_button": {
     "text": "Reimposta password"
@@ -57,7 +57,7 @@
     "text": "Oppure copia e incolla questo link:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Se non hai richiesto una reimpostazione della password, puoi ignorare questa email."
+    "text": "Se non hai richiesto la reimpostazione della password, puoi ignorare questa email."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -69,7 +69,7 @@
     "text": "Accedi a %{display_domain}"
   },
   "email.magic_link.title": {
-    "text": "Accedi con Link Magico"
+    "text": "Accedi con Magic Link"
   },
   "email.magic_link.request_notice": {
     "text": "Hai richiesto un link di accesso per il tuo account %{product_name}."
@@ -99,19 +99,19 @@
     "text": "Hai ricevuto un messaggio sicuro:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memo:"
+    "text": "Promemoria:"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Qualcuno ti ha inviato un messaggio sicuro tramite %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Per visualizzare questo segreto, clicca sul link qui sotto:"
+    "text": "Per visualizzare questo segreto, clicca il link qui sotto:"
   },
   "email.incoming_secret.important_label": {
     "text": "Importante:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Questo link funzionerà una sola volta. Dopo la visualizzazione, il segreto sarà eliminato definitivamente."
+    "text": "Questo link funzionerà una sola volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente."
   },
   "email.incoming_secret.sent_via": {
     "text": "Inviato tramite"
@@ -153,7 +153,7 @@
     "text": "Promemoria:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Dopo la scadenza, il segreto sarà eliminato definitivamente e non potrà essere recuperato."
+    "text": "Dopo la scadenza, il segreto verrà eliminato permanentemente e non potrà essere recuperato."
   },
   "email.expiration_warning.sent_via": {
     "text": "Inviato tramite"
@@ -162,7 +162,7 @@
     "text": "Visualizzalo prima che scompaia:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Dopo la scadenza, il segreto sarà eliminato definitivamente."
+    "text": "Dopo la scadenza, il segreto verrà eliminato permanentemente."
   },
   "email.feedback_email.subject": {
     "text": "Feedback del %{date} tramite %{display_domain} (%{strategy})"
@@ -183,13 +183,13 @@
     "text": "Messaggio:"
   },
   "email.feedback_email.signature": {
-    "text": "Supporto Secret"
+    "text": "Secret Support"
   },
   "email.organization_invitation.subject": {
     "text": "Sei stato invitato a unirti a %{organization_name}"
   },
   "email.organization_invitation.title": {
-    "text": "Sei stato invitato a unirti a %{organization_name}!"
+    "text": "Sei stato invitato a unirti a %{organization_name}"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} ti ha invitato a unirti a \"%{organization_name}\" come %{role_description}."
@@ -210,13 +210,13 @@
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Questa email è stata inviata a %{invited_email}. Se non ti aspettavi questo invito, puoi tranquillamente ignorare questo messaggio."
+    "text": "P.S. Questa email è stata inviata a %{invited_email}. Se non aspettavi questo invito, puoi ignorare questo messaggio."
   },
   "email.organization_invitation.roles.member": {
-    "text": "un membro"
+    "text": "membro"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "un amministratore"
+    "text": "amministratore"
   },
   "email.password_changed.subject": {
     "text": "La tua password è stata modificata (%{display_domain})"
@@ -243,7 +243,7 @@
     "text": "L'indirizzo email del tuo account %{product_name} è stato modificato in %{new_email_masked} il %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Se non hai effettuato questa modifica, contatta immediatamente il supporto poiché il tuo account potrebbe essere compromesso."
+    "text": "Se non hai effettuato questa modifica, contatta immediatamente il supporto poiché il tuo account potrebbe essere stato compromesso."
   },
   "email.email_changed.signature": {
     "text": "Delano"
@@ -300,7 +300,7 @@
     "text": "Nuovo accesso al tuo account (%{display_domain})"
   },
   "email.new_login_alert.title": {
-    "text": "Rilevato nuovo accesso"
+    "text": "Nuovo accesso rilevato"
   },
   "email.new_login_alert.body": {
     "text": "È stato rilevato un nuovo accesso al tuo account %{product_name} il %{date} alle %{time}."
@@ -315,7 +315,7 @@
     "text": "Indirizzo IP:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Se non sei stato tu, il tuo account potrebbe essere compromesso."
+    "text": "Se non sei stato tu, il tuo account potrebbe essere stato compromesso."
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Proteggi il tuo account"
@@ -390,7 +390,7 @@
     "text": "Pagamento non riuscito"
   },
   "email.payment_failed.body": {
-    "text": "Non siamo riusciti a elaborare il tuo pagamento per %{product_name}. Aggiorna il tuo metodo di pagamento per evitare interruzioni del servizio."
+    "text": "Non siamo riusciti a elaborare il tuo pagamento per %{product_name}. Aggiorna il metodo di pagamento per evitare l'interruzione del servizio."
   },
   "email.payment_failed.update_payment_button": {
     "text": "Aggiorna metodo di pagamento"
@@ -399,16 +399,16 @@
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "La tua prova di %{product_name} scade tra %{days_remaining} giorni"
+    "text": "Il tuo periodo di prova %{product_name} scade tra %{days_remaining} giorni"
   },
   "email.trial_expiring.title": {
-    "text": "La tua prova sta per terminare"
+    "text": "Il tuo periodo di prova sta per scadere"
   },
   "email.trial_expiring.body": {
-    "text": "La tua prova gratuita di %{product_name} scadrà tra %{days_remaining} giorni. Aggiorna ora per mantenere l'accesso a tutte le funzionalità."
+    "text": "Il tuo periodo di prova gratuito di %{product_name} scadrà tra %{days_remaining} giorni. Effettua l'upgrade per mantenere l'accesso a tutte le funzionalità."
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Aggiorna ora"
+    "text": "Effettua l'upgrade"
   },
   "email.trial_expiring.signature": {
     "text": "Delano"
@@ -429,7 +429,7 @@
     "text": "Delano"
   },
   "email.common.greeting": {
-    "text": "Salve,"
+    "text": "Ciao,"
   },
   "email.common.thanks": {
     "text": "Grazie,"

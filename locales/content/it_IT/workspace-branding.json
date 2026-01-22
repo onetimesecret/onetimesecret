@@ -9,13 +9,13 @@
     "text": "Usa impostazione"
   },
   "web.branding.font_family": {
-    "text": "Famiglia di caratteri"
+    "text": "Famiglia font"
   },
   "web.branding.corner_style": {
-    "text": "Stile angolo"
+    "text": "Stile angoli"
   },
   "web.branding.brand_color": {
-    "text": "Colore del marchio"
+    "text": "Colore brand"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Anteprima della vista del destinatario quando accede al vostro link sicuro"
@@ -24,28 +24,28 @@
     "text": "Anteprima e personalizzazione"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Passa alla visualizzazione del browser Safari"
+    "text": "Passa alla visualizzazione browser Safari"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge"
   },
   "web.branding.maximize_window": {
-    "text": "massimizza finestra"
+    "text": "Massimizza finestra"
   },
   "web.branding.minimize_window": {
-    "text": "Riduci a icona la finestra"
+    "text": "Riduci finestra"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Passa alla visualizzazione del browser Edge"
+    "text": "Passa alla visualizzazione browser Edge"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 caratteri"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Usa il tuo telefono per scansionare il codice QR"
+    "text": "Usa il telefono per scansionare il codice QR"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contattare onboarding{'@'}example.com per qualsiasi domanda"
+    "text": "Contatta onboarding{'@'}example.com per qualsiasi domanda"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Queste istruzioni saranno mostrate ai destinatari prima che rivelino il contenuto segreto"
@@ -54,10 +54,10 @@
     "text": "Queste istruzioni saranno mostrate ai destinatari dopo la rivelazione del contenuto segreto"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Istruzioni pre-rivelazione"
+    "text": "Istruzioni pre-visualizzazione"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Istruzioni post-rivelazione"
+    "text": "Istruzioni post-visualizzazione"
   },
   "web.branding.instructions": {
     "text": "Istruzioni"
@@ -72,7 +72,7 @@
     "text": "Carica logo"
   },
   "web.branding.loading_preview": {
-    "text": "Caricamento dell'anteprima..."
+    "text": "Caricamento anteprima..."
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Anteprima di come i destinatari vedranno i vostri segreti testando il pulsante \"Visualizza segreti\""
@@ -90,22 +90,22 @@
     "text": "Utilizzare i controlli in alto per personalizzare il colore del marchio, gli stili e le istruzioni per i destinatari"
   },
   "web.branding.customization_icon": {
-    "text": "Icona di personalizzazione"
+    "text": "Icona personalizzazione"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
     "text": "Le modifiche non sono state salvate. Sei sicuro?"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Non è riuscito a caricare le impostazioni del marchio"
+    "text": "Impossibile caricare le impostazioni del brand"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i vostri messaggi protetti. È possibile: - Personalizzare i colori e i caratteri utilizzando i controlli in alto - Caricare un logo (si consiglia un minimo di 128x128 pixel, 1MB al massimo) - Testare l'anteprima utilizzando il pulsante \"Visualizza segreto\""
+    "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i tuoi messaggi sicuri. Puoi: - Personalizzare colori e font usando i controlli sopra - Caricare un logo (dimensione minima consigliata 128x128 pixel, max 1MB) - Testare l'anteprima usando il pulsante \"Visualizza segreto\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i vostri messaggi protetti. È possibile: - Personalizzare i colori e i caratteri utilizzando i controlli in alto - Caricare un logo (si consiglia un minimo di 128x128 pixel, 1MB al massimo) - Testare l'anteprima utilizzando il pulsante \"Visualizza segreto\""
   },
   "web.branding.default_logo_icon": {
-    "text": "Icona del logo predefinito"
+    "text": "Kanji giapponese '秘' (himitsu) che significa 'segreto' o 'confidenziale'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Powered by Onetime Secret"
@@ -114,15 +114,15 @@
     "text": "Logo {0}"
   },
   "web.branding.edge": {
-    "text": "Bordo"
+    "text": "Edge"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Passa all'anteprima di Edge"
+    "text": "Passa all'anteprima Edge"
   },
   "web.branding.safari": {
     "text": "Safari"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Passa all'anteprima di Safari"
+    "text": "Passa all'anteprima Safari"
   }
 }

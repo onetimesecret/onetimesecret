@@ -1,15 +1,15 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Per saperne di più sulla configurazione DNS"
+    "text": "Scopri di più sulla configurazione DNS"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Visualizza lo stato di verifica del dominio"
+    "text": "Visualizza stato verifica dominio"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Questo dominio è già registrato nella tua organizzazione"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Questo dominio è già registrato in un'altra organizzazione. Contatta il supporto se ritieni che si tratti di un errore"
+    "text": "Questo dominio è già registrato in un'altra organizzazione. Contatta il supporto se ritieni che sia un errore."
   },
   "web.domains.domain_claimed_successfully": {
     "text": "Dominio rivendicato con successo e aggiunto alla tua organizzazione"
@@ -18,7 +18,7 @@
     "text": "Impostazioni privacy predefinite"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Imposta le opzioni di privacy predefinite per i segreti creati sotto questo dominio. Queste impostazioni verranno precompilate durante la creazione di nuovi segreti."
+    "text": "Imposta le opzioni di privacy predefinite per i segreti creati sotto questo dominio. Queste impostazioni saranno precompilate durante la creazione di nuovi segreti."
   },
   "web.domains.privacy_defaults": {
     "text": "Impostazioni privacy predefinite"
@@ -45,13 +45,13 @@
     "text": "Abilita le notifiche email per impostazione predefinita quando i segreti vengono visualizzati"
   },
   "web.domains.use_global_default": {
-    "text": "Usa impostazione globale"
+    "text": "Usa impostazione predefinita globale"
   },
   "web.domains.global_default": {
     "text": "Globale"
   },
   "web.domains.required": {
-    "text": "Richiesto"
+    "text": "Obbligatorio"
   },
   "web.domains.optional": {
     "text": "Opzionale"
@@ -96,22 +96,22 @@
     "text": "Impostazioni dominio"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Il dominio predefinito non ha una pagina di impostazioni"
+    "text": "Il dominio predefinito non ha pagina impostazioni"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Inserisci un nome di dominio {0}"
+    "text": "Inserisci un nome dominio {0}"
   },
   "web.domains.domain_name": {
-    "text": "Nome del dominio"
+    "text": "Nome dominio"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
     "text": "Controlla se gli utenti possono creare link segreti dalla homepage del dominio"
   },
   "web.domains.homepage_access": {
-    "text": "Accesso alla homepage"
+    "text": "Accesso home page"
   },
   "web.domains.and_status": {
-    "text": "e Stato"
+    "text": "e stato"
   },
   "web.domains.domain": {
     "text": "Dominio"
@@ -129,7 +129,7 @@
     "text": "Stato SSL"
   },
   "web.domains.ssl_renews": {
-    "text": "Rinnovi SSL"
+    "text": "Rinnovo SSL"
   },
   "web.domains.dns_record": {
     "text": "Record DNS"
@@ -138,7 +138,7 @@
     "text": "Indirizzo di destinazione"
   },
   "web.domains.domain_status": {
-    "text": "Stato del dominio"
+    "text": "Stato dominio"
   },
   "web.domains.custom_domains_count": {
     "text": "Conteggio domini personalizzati"
@@ -147,19 +147,19 @@
     "text": "Dominio personalizzato"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Apri dominio in una nuova scheda"
+    "text": "Apri dominio in nuova scheda"
   },
   "web.domains.back_to_domains": {
     "text": "Torna ai domini"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Torna all'elenco dei domini"
+    "text": "Torna all'elenco domini"
   },
   "web.domains.verify_domain": {
     "text": "Verifica dominio"
   },
   "web.domains.manage_brand": {
-    "text": "Gestisci marchio"
+    "text": "Gestisci brand"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
     "text": "Aggiunto {0}"
@@ -171,10 +171,10 @@
     "text": "Inizia aggiungendo un dominio personalizzato"
   },
   "web.domains.no_domains_found": {
-    "text": "Nessun dominio trovato"
+    "text": "Nessun dominio trovato."
   },
   "web.domains.loading_domain_information": {
-    "text": "Caricamento delle informazioni sul dominio..."
+    "text": "Caricamento informazioni dominio..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Per collegare il vostro dominio, dovrete avere un record CNAME nel vostro DNS che punti"
@@ -189,13 +189,13 @@
     "text": "e rimuovere qualsiasi altro record A, AAAA o CNAME per quell'esatto indirizzo"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", è necessario completare questi passaggi."
+    "text": ", dovrai completare questi passaggi."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Prima di poter attivare i link per"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Si prega di notare che per i domini apex (ad es"
+    "text": "Si prega di notare che per i domini apex (es."
   },
   "web.domains.verify_your_domain": {
     "text": "Verifica il tuo dominio"
@@ -204,7 +204,7 @@
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Personalizza il marchio del tuo dominio"
+    "text": "Personalizza il branding del tuo dominio"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Potrebbero essere necessari alcuni minuti perché il vostro certificato SSL diventi effettivo"
@@ -213,7 +213,7 @@
     "text": "Le modifiche DNS possono richiedere anche solo 60 secondi, o fino a 24 ore, per avere effetto"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Attendere la propagazione"
+    "text": "3. Attendi la propagazione"
   },
   "web.domains.value_2": {
     "text": "Valore"
@@ -225,7 +225,7 @@
     "text": "Host"
   },
   "web.domains.type_2": {
-    "text": "Type"
+    "text": "Tipo"
   },
   "web.domains.type_1": {
     "text": "Tipo"
@@ -234,7 +234,7 @@
     "text": "2. Crea il record CNAME"
   },
   "web.domains.value_0": {
-    "text": "Value"
+    "text": "Valore"
   },
   "web.domains.host_0": {
     "text": "Host"
@@ -255,7 +255,7 @@
     "text": "Seguite questi passi per verificare la proprietà del dominio ed elevare la vostra presenza online:"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Passi di verifica del dominio"
+    "text": "Passaggi verifica dominio"
   },
   "web.domains.domain_verification_initiated_successfully": {
     "text": "Verifica del dominio avviata con successo"
@@ -270,9 +270,33 @@
     "text": "Dominio rimosso con successo"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "Fallita l'aggiunta di un dominio"
+    "text": "Impossibile aggiungere il dominio"
   },
   "web.domains.domain_added_successfully": {
     "text": "Dominio aggiunto con successo"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Protetto"
+  },
+  "web.domains.manage_domains": {
+    "text": "Gestisci domini"
+  },
+  "web.domains.global_defaults": {
+    "text": "Impostazioni predefinite globali"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Modifica impostazione durata"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Modifica requisito frase di sicurezza"
+  },
+  "web.domains.edit_notify": {
+    "text": "Modifica impostazione notifiche"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Configura record DNS"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Usa lo strumento qui sotto per rilevare automaticamente il tuo provider DNS e ottenere istruzioni passo passo per configurare il tuo dominio."
   }
 }

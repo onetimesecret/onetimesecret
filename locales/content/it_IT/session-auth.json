@@ -1,21 +1,21 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Hai bisogno di un account?"
+    "text": "Non hai un account?"
   },
   "web.login.need_an_account": {
-    "text": "Hai bisogno di un account?"
+    "text": "Registrati."
   },
   "web.login.forgot_your_password": {
-    "text": "Password dimenticata?"
+    "text": "Hai dimenticato la password?"
   },
   "web.login.button_sign_in": {
-    "text": "Entra"
+    "text": "Accedi"
   },
   "web.login.enter_your_credentials": {
     "text": "Inserisci le tue credenziali"
   },
   "web.login.remember_me": {
-    "text": "Ricordati di me"
+    "text": "Ricordami"
   },
   "web.signup.create_your_account": {
     "text": "Crea il tuo account"
@@ -24,7 +24,7 @@
     "text": "Hai già un account?"
   },
   "web.signup.have_an_account": {
-    "text": "Oppure, accedi al tuo account"
+    "text": "Accedi."
   },
   "web.signup.error_title": {
     "text": "Errore creazione account"
@@ -45,19 +45,19 @@
     "text": "Chiave di verifica non valida o scaduta"
   },
   "web.auth.verify.expired_key": {
-    "text": "Questo link di verifica è scaduto. Richiedine uno nuovo"
+    "text": "Questo link di verifica è scaduto. Richiedine uno nuovo."
   },
   "web.auth.verify.already_verified": {
-    "text": "Questo account è già stato verificato. Puoi accedere ora"
+    "text": "Questo account è già stato verificato. Puoi accedere adesso."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Impossibile verificare l'account. Riprova o contatta il supporto"
+    "text": "Impossibile verificare l'account. Riprova o contatta il supporto."
   },
   "web.auth.verify.check_email": {
     "text": "Controlla la tua email per un link di verifica"
   },
   "web.auth.verify.error": {
-    "text": "Verifica account fallita. Controlla il tuo link di verifica o richiedine uno nuovo"
+    "text": "Verifica account fallita. Controlla il link di verifica o richiedine uno nuovo."
   },
   "web.auth.verify.error_title": {
     "text": "Verifica fallita"
@@ -69,7 +69,7 @@
     "text": "Controlla la tua email per il link di verifica più recente"
   },
   "web.auth.verify.check_spam": {
-    "text": "Controlla la cartella spam/posta indesiderata se non riesci a trovare l'email"
+    "text": "Controlla la cartella spam se non riesci a trovare l'email"
   },
   "web.auth.verify.contact_support": {
     "text": "Contatta il supporto se continui ad avere problemi"
@@ -78,7 +78,7 @@
     "text": "Link di verifica richiesto"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Utilizza il link di verifica inviato al tuo indirizzo email per verificare il tuo account"
+    "text": "Usa il link di verifica inviato al tuo indirizzo email per verificare il tuo account."
   },
   "web.auth.verify.create_new_account": {
     "text": "Crea nuovo account"
@@ -99,22 +99,22 @@
     "text": "La tua password è stata cambiata con successo"
   },
   "web.auth.change_password.error": {
-    "text": "Cambio password fallito. Verifica la tua password attuale e riprova"
+    "text": "Cambio password fallito. Verifica la password attuale e riprova."
   },
   "web.auth.close_account.title": {
     "text": "Chiudi account"
   },
   "web.auth.close_account.warning": {
-    "text": "Questa azione non può essere annullata. Tutti i tuoi segreti verranno eliminati definitivamente"
+    "text": "Questa azione non può essere annullata. Tutti i tuoi segreti verranno eliminati permanentemente."
   },
   "web.auth.close_account.confirm": {
-    "text": "Comprendo che questa azione è permanente"
+    "text": "Capisco che questa azione è permanente"
   },
   "web.auth.close_account.password": {
-    "text": "Inserisci la tua password per confermare"
+    "text": "Inserisci la password per confermare"
   },
   "web.auth.close_account.button": {
-    "text": "Chiudi definitivamente l'account"
+    "text": "Chiudi account permanentemente"
   },
   "web.auth.close_account.cancel": {
     "text": "Annulla"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "Chiudi account"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Flusso di verifica email dopo la registrazione"
+  },
+  "web.help.title": {
+    "text": "Aiuto e supporto"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Risoluzione problemi di accesso"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Il magic link non arriva?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Controlla la cartella spam o posta indesiderata"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Verifica di aver inserito correttamente il tuo indirizzo email"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Attendi qualche minuto - le email a volte possono subire ritardi"
+  },
+  "web.help.try_again": {
+    "text": "Prova a richiedere un nuovo link se sono passati più di 10 minuti"
+  },
+  "web.help.forgot_password": {
+    "text": "Hai dimenticato la password?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Usa l'opzione Magic Link per accedere senza password. Una volta effettuato l'accesso, puoi cambiare la password nelle Impostazioni account."
+  },
+  "web.help.account_locked": {
+    "text": "Account temporaneamente bloccato?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Dopo più tentativi di accesso falliti, gli account vengono temporaneamente bloccati per sicurezza. Attendi 15 minuti e riprova, oppure usa il Magic Link per accedere."
+  },
+  "web.help.still_need_help": {
+    "text": "Hai ancora bisogno di aiuto?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Se hai ancora problemi, siamo qui per aiutarti. Inviaci un messaggio e ti risponderemo il prima possibile."
+  },
+  "web.help.contact_support": {
+    "text": "Contatta il supporto"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Invia link di accesso"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Un link sicuro verrà inviato alla tua casella email."
+  },
+  "web.login.or_divider": {
+    "text": "oppure"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Accedi con password"
+  },
+  "web.login.use_passwordless": {
+    "text": "Usa accesso senza password"
+  },
+  "web.login.create_account": {
+    "text": "Crea account"
+  },
+  "web.login.return_home": {
+    "text": "Torna alla home"
+  },
+  "web.login.tab_password": {
+    "text": "Password"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magic Link"
+  },
+  "web.login.need_help": {
+    "text": "Hai bisogno di aiuto?"
   }
 }

@@ -24,7 +24,7 @@
     "text": "Impostazioni"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Modifica le impostazioni di configurazione del sistema. Le modifiche si applicano immediatamente dopo il salvataggio"
+    "text": "Modifica le impostazioni di configurazione del sistema. Le modifiche vengono applicate immediatamente dopo il salvataggio."
   },
   "web.colonel.invalidJson": {
     "text": "JSON non valido nella sezione {section}"
@@ -33,10 +33,10 @@
     "text": "Errore di validazione"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Errore caricamento configurazione"
+    "text": "Errore nel caricamento della configurazione"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Errore salvataggio configurazione"
+    "text": "Errore nel salvataggio della configurazione"
   },
   "web.colonel.configSaved": {
     "text": "Configurazione salvata con successo"
@@ -87,7 +87,7 @@
     "text": "Utenti"
   },
   "web.colonel.usersDescription": {
-    "text": "Gestisci account utenti e permessi"
+    "text": "Gestisci account utente e permessi"
   },
   "web.colonel.domains": {
     "text": "Domini"
@@ -114,7 +114,7 @@
     "text": "Visualizza tutto"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "I dati sull'attività verranno visualizzati qui"
+    "text": "I dati dell'attività verranno visualizzati qui"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Segreti totali"
@@ -132,16 +132,16 @@
     "text": "Segreti condivisi"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Clienti totali"
+    "text": "Utenti totali"
   },
   "web.colonel.stats.emailsSent": {
     "text": "Email inviate"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Salute del sistema"
+    "text": "Stato del sistema"
   },
   "web.colonel.stats.healthy": {
-    "text": "Sano"
+    "text": "Funzionante"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Visualizza attività"
@@ -153,7 +153,7 @@
     "text": "Gestisci account"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Amministrazione account utenti"
+    "text": "Amministrazione account utente"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Configura domini"
@@ -171,7 +171,7 @@
     "text": "Processi in background"
   },
   "web.colonel.queueStatus": {
-    "text": "Stato della coda"
+    "text": "Stato coda"
   },
   "web.colonel.queueName": {
     "text": "Coda"
@@ -183,7 +183,7 @@
     "text": "Consumatori"
   },
   "web.colonel.processingRate": {
-    "text": "Tasso/sec"
+    "text": "Freq/sec"
   },
   "web.colonel.connectionStatus": {
     "text": "Stato connessione"
@@ -195,10 +195,10 @@
     "text": "worker attivi"
   },
   "web.colonel.noQueueData": {
-    "text": "Nessun dato della coda disponibile"
+    "text": "Nessun dato coda disponibile"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Caricamento dati della coda..."
+    "text": "Caricamento dati coda..."
   },
   "web.colonel.testPlanMode": {
     "text": "Modalità piano di test"
@@ -213,7 +213,7 @@
     "text": "Seleziona un piano da testare"
   },
   "web.colonel.resetToActual": {
-    "text": "Ripristina piano effettivo"
+    "text": "Reimposta al piano attuale"
   },
   "web.colonel.currentActualPlan": {
     "text": "Piano attuale"
@@ -228,10 +228,10 @@
     "text": "Modalità test attiva"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testa la tua applicazione con diversi permessi del piano. Le modifiche sono temporanee e influenzano solo la tua sessione."
+    "text": "Testa la tua applicazione con diverse funzionalità dei piani. Le modifiche sono temporanee e influiscono solo sulla tua sessione."
   },
   "web.colonel.warningTestMode": {
-    "text": "Stai testando con i permessi di {planName} (override temporaneo della sessione)."
+    "text": "Stai testando con le funzionalità di {planName} (override temporaneo della sessione)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Quando invii un feedback, vediamo:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Invio..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "IP bannati"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Gestisci lista IP bannati"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Domini personalizzati"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Gestisci domini personalizzati e branding"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Invia feedback"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Invio..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quando invii un feedback, vedremo:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organizzazioni"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Monitora stato sincronizzazione fatturazione"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Monitor stato fatturazione"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organizzazioni"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} richiedono attenzione"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} sconosciuti"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Nessuna organizzazione trovata"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Analizza"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Verifica..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Account"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Fatturazione"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Stato"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Utilizzo"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Creato"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Dettagli"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Proprietario"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Piano"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Membri"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domini"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Abbonamento"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Area di lavoro predefinita"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Ha fatturazione"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Cliente"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Abbonamento"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID Org"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Stato sincronizzazione"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Abbonamento"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Tutti"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potenzialmente obsoleto"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Sconosciuto"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Sincronizzato"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Attivo"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "In prova"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Scaduto"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Annullato"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Analisi fallita"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Risultato analisi"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Sincronizzazione verificata"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Discrepanza trovata"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Impossibile confrontare"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Dettagli abbonamento Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Stato"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Prodotto"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Piano risolto"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID prezzo"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Locale"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Amministrazione fatturazione organizzazioni"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Gestisci organizzazioni e monitora lo stato di sincronizzazione della fatturazione ({total} totali)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Nessuna organizzazione trovata"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potenzialmente obsoleto"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Obsoleto"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Sconosciuto"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "attivo"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} membri"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domini"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Segreti"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Visualizza e gestisci tutti i segreti"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Sistema"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Impostazioni di sistema, database e configurazione"
+  },
+  "web.colonel.titles.index": {
+    "text": "Amministrazione"
+  },
+  "web.colonel.titles.users": {
+    "text": "Gestione utenti"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Gestione segreti"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Domini personalizzati"
+  },
+  "web.colonel.titles.system": {
+    "text": "Sistema"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Database principale"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Database autenticazione"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "IP bannati"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Esportazione utilizzo"
+  },
+  "web.colonel.titles.info": {
+    "text": "Informazioni di sistema"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organizzazioni"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Esportazione utilizzo"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Esporta dati di utilizzo e statistiche"
   }
 }

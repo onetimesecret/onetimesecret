@@ -6,16 +6,16 @@
     "text": "I segreti sono progettati per essere visualizzati una sola volta. Questo link potrebbe essere già stato consultato, essere scaduto o essere stato cancellato manualmente dal mittente."
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Cosa devo fare ora?"
+    "text": "Cosa devo fare adesso?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
     "text": "Contattate la persona che vi ha inviato questo link e chiedetele di creare un nuovo segreto. Fategli sapere che non siete riusciti ad accedere alle informazioni originali"
   },
   "web.errors.warning_dismissed": {
-    "text": "Avviso respinto"
+    "text": "Avviso chiuso"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Avviso di troncamento respinto"
+    "text": "Chiudi avviso troncamento"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Oops! La pagina che stai cercando non esiste o è stata spostata"
@@ -27,10 +27,10 @@
     "text": "404 - Pagina non trovata"
   },
   "web.errors.dismiss_warning": {
-    "text": "Avviso di licenziamento"
+    "text": "Chiudi avviso"
   },
   "web.errors.dismiss_notification": {
-    "text": "Notifica di licenziamento"
+    "text": "Chiudi notifica"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Se non siete sicuri di cosa fare in seguito, vi preghiamo di contattare la persona che vi ha inviato questo link per ulteriori informazioni"
@@ -45,7 +45,7 @@
     "text": "{0} Qualcosa è andato storto"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Vai a condividere un segreto!"
+    "text": "Vai a condividere un segreto"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "La pagina che stai cercando non esiste o è stata spostata. Non preoccuparti, succede anche ai migliori di noi!"

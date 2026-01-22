@@ -6,13 +6,13 @@
     "text": "I tuoi dati risiedono esclusivamente nella regione scelta e non vengono mai trasferiti tra regioni"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Ogni regione opera come ambiente completamente indipendente con propria infrastruttura, chiavi di crittografia e archiviazione dati"
+    "text": "Ogni regione opera come un ambiente completamente indipendente con propria infrastruttura, chiavi di crittografia e archiviazione dati"
   },
   "web.regions.no_data_transfer_policy": {
     "text": "Manteniamo una politica rigorosa: i dati dei clienti non vengono mai trasferiti tra regioni in nessuna circostanza"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Importante: passare a una regione diversa crea un nuovo account. I tuoi dati rimangono nella tua regione originale"
+    "text": "Importante: passare a una regione diversa crea un nuovo account. I tuoi dati rimangono nella regione originale."
   },
   "web.regions.your_region": {
     "text": "La tua regione"
@@ -33,25 +33,25 @@
     "text": "Trasparenza e controllo"
   },
   "web.regions.trust_description": {
-    "text": "Sapere esattamente dove risiedono i tuoi dati e quali leggi ne governano la protezione"
+    "text": "Sappi esattamente dove risiedono i tuoi dati e quali leggi ne regolano la protezione."
   },
   "web.regions.privacy_title": {
     "text": "Diritti alla privacy"
   },
   "web.regions.privacy_description": {
-    "text": "Assicurare che le tue informazioni personali siano gestite secondo le leggi sulla privacy del tuo paese, prevenendo accessi non autorizzati o abusi"
+    "text": "Assicurati che le tue informazioni personali siano gestite secondo le leggi sulla privacy del tuo paese, prevenendo accessi non autorizzati o usi impropri."
   },
   "web.regions.compliance_title": {
     "text": "Conformità normativa"
   },
   "web.regions.compliance_description": {
-    "text": "Soddisfare i requisiti di protezione dei dati regionali come GDPR, HIPAA, CCPA e altri"
+    "text": "Soddisfa i requisiti GDPR, HIPAA, CCPA e altre normative regionali sulla protezione dei dati"
   },
   "web.regions.performance_title": {
     "text": "Accesso più veloce"
   },
   "web.regions.performance_description": {
-    "text": "I dati archiviati più vicino a te significano latenza inferiore e prestazioni migliori"
+    "text": "I dati archiviati più vicino a te significano minore latenza e migliori prestazioni."
   },
   "web.regions.regions": {
     "text": "Regioni"
@@ -60,7 +60,7 @@
     "text": "contatta il nostro team di conformità"
   },
   "web.regions.review_our_documentation": {
-    "text": "rivedere la nostra documentazione"
+    "text": "consulta la nostra documentazione"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Il tuo account e i tuoi dati sono protetti dalle leggi e dai regolamenti di"
@@ -75,7 +75,7 @@
     "text": "Per comprendere le normative e le protezioni specifiche che si applicano al vostro conto, vi preghiamo di"
   },
   "web.regions.current": {
-    "text": "corrente"
+    "text": "Attuale"
   },
   "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
     "text": "{0} {1}"
@@ -96,10 +96,10 @@
     "text": "Giurisdizione sconosciuta"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Servire da"
+    "text": "Ti serviamo da"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "Continua a {0}"
+    "text": "Continua su {0}"
   },
   "web.regions.current_jurisdiction": {
     "text": "Giurisdizione attuale:"

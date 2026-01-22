@@ -3,13 +3,13 @@
     "text": "Il tuo feedback"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Tutti i feedback sono benvenuti!"
+    "text": "Ogni feedback è benvenuto"
   },
   "web.feedback.help_us_improve": {
     "text": "Aiutaci a migliorare"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Chiudi modale feedback"
+    "text": "Chiudi finestra feedback"
   },
   "web.feedback.share_your_feedback": {
     "text": "Condividi il tuo feedback"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Il contenuto della guida va qui"
+    "text": "Il contenuto della guida va qui."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Grazie per aver aiutato Onetime Secret a migliorare. Significa molto"
@@ -36,12 +36,18 @@
     "text": "Una nota di Delano, fondatore di Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Aprire il modulo di feedback"
+    "text": "Apri modulo feedback"
   },
   "web.feedback.enter_your_feedback": {
     "text": "Inserisci il tuo feedback"
   },
   "web.feedback.send_feedback": {
     "text": "Invia feedback"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Leggo ogni feedback che arriva qui. È così che capisco su cosa vale la pena lavorare."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Se qualcosa non va, o hai idee su come dovrebbe funzionare, questo è il posto giusto."
   }
 }
