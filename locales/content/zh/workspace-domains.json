@@ -1,6 +1,6 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "了解有关 DNS 配置的更多信息"
+    "text": "了解更多关于 DNS 配置的信息"
   },
   "web.domains.view_domain_verification_status": {
     "text": "查看域名验证状态"
@@ -9,40 +9,40 @@
     "text": "此域名已在您的组织中注册"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "此域名已注册到其他组织。如果您认为这是错误，请联系支持。"
+    "text": "此域名已注册到另一个组织。如果您认为这是一个错误，请联系支持团队。"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "域名已成功认领并添加到您的组织"
+    "text": "域名已成功声明并添加到您的组织"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "隐私默认设置"
+    "text": "隐私默认值"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "为此域名下创建的内容设置默认隐私选项。这些设置将在创建新内容时自动填充。"
+    "text": "为此域名下创建的内容设置默认隐私选项。创建新内容时将预填这些设置。"
   },
   "web.domains.privacy_defaults": {
-    "text": "隐私默认设置"
+    "text": "隐私默认值"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "隐私默认设置图标"
+    "text": "隐私默认值图标"
   },
   "web.domains.default_ttl_label": {
     "text": "默认有效期"
   },
   "web.domains.default_ttl_hint": {
-    "text": "内容默认保持可访问的时长"
+    "text": "内容默认保持可访问的时间"
   },
   "web.domains.passphrase_required_label": {
-    "text": "要求口令"
+    "text": "需要口令"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "强制此域名下所有内容都需要口令"
+    "text": "使口令对此域名下的所有内容强制要求"
   },
   "web.domains.notify_enabled_label": {
     "text": "启用通知"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "默认在内容被查看时发送邮件通知"
+    "text": "默认在内容被查看时启用邮件通知"
   },
   "web.domains.use_global_default": {
     "text": "使用全局默认"
@@ -66,10 +66,10 @@
     "text": "自定义"
   },
   "web.domains.edit_defaults": {
-    "text": "编辑默认设置"
+    "text": "编辑默认值"
   },
   "web.domains.ttl_short": {
-    "text": "有效期"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
     "text": "口令"
@@ -81,7 +81,7 @@
     "text": "切换域名范围"
   },
   "web.domains.switcher_locked": {
-    "text": "此页面不支持切换域名"
+    "text": "此页面不可切换域名"
   },
   "web.domains.scope_list_label": {
     "text": "可用域名"
@@ -99,7 +99,7 @@
     "text": "默认域名没有设置页面"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "请输入 {0} 域名"
+    "text": "请输入一个 {0} 域名"
   },
   "web.domains.domain_name": {
     "text": "域名"
@@ -111,7 +111,7 @@
     "text": "主页访问"
   },
   "web.domains.and_status": {
-    "text": "与状态"
+    "text": "和状态"
   },
   "web.domains.domain": {
     "text": "域名"
@@ -129,7 +129,7 @@
     "text": "SSL 状态"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL 续订"
+    "text": "SSL 续期"
   },
   "web.domains.dns_record": {
     "text": "DNS 记录"
@@ -150,7 +150,7 @@
     "text": "在新标签页中打开域名"
   },
   "web.domains.back_to_domains": {
-    "text": "返回域名"
+    "text": "返回域名列表"
   },
   "web.domains.return_to_domains_list": {
     "text": "返回域名列表"
@@ -174,7 +174,7 @@
     "text": "未找到域名。"
   },
   "web.domains.loading_domain_information": {
-    "text": "加载域名信息中"
+    "text": "正在加载域名信息..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "为了连接您的域名，您需要在 DNS 中创建一个指向的 CNAME 记录"
@@ -189,10 +189,10 @@
     "text": "并删除该确切地址的任何其他 A、AAAA 或 CNAME 记录。"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": "，您需要完成这些步骤。"
+    "text": "，您需要完成以下步骤。"
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "在我们可以为以下对象激活链接之前"
+    "text": "在我们为以下域名激活链接之前"
   },
   "web.domains.please_note_that_for_apex_domains": {
     "text": "请注意，对于顶级域名（例如"
@@ -264,15 +264,39 @@
     "text": "您确定要删除此域名吗？此操作无法撤销。"
   },
   "web.domains.remove_domain": {
-    "text": "删除域名"
+    "text": "移除域名"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "域名已成功删除"
+    "text": "域名移除成功"
   },
   "web.domains.failed_to_add_domain": {
     "text": "添加域名失败"
   },
   "web.domains.domain_added_successfully": {
-    "text": "域名已成功添加"
+    "text": "域名添加成功"
+  },
+  "web.domains.passphrase_set": {
+    "text": "已保护"
+  },
+  "web.domains.manage_domains": {
+    "text": "管理域名"
+  },
+  "web.domains.global_defaults": {
+    "text": "全局默认值"
+  },
+  "web.domains.edit_ttl": {
+    "text": "编辑有效期设置"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "编辑口令要求"
+  },
+  "web.domains.edit_notify": {
+    "text": "编辑通知设置"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "配置 DNS 记录"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "使用下方工具自动检测您的 DNS 提供商，并获取配置域名的分步说明。"
   }
 }

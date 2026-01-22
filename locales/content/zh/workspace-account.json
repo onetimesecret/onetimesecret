@@ -33,7 +33,7 @@
     "text": "余额："
   },
   "web.account.default_payment_method": {
-    "text": "默认付款方式"
+    "text": "默认支付方式"
   },
   "web.account.card_ending": {
     "text": "尾号"
@@ -45,7 +45,7 @@
     "text": "数量："
   },
   "web.account.next_billing_date": {
-    "text": "下次账单日期："
+    "text": "下次计费日期："
   },
   "web.account.changePassword.username": {
     "text": "用户名"
@@ -63,7 +63,7 @@
     "text": "更新密码"
   },
   "web.account.changePassword.updating": {
-    "text": "更新中"
+    "text": "更新中..."
   },
   "web.account.timezone": {
     "text": "时区"
@@ -105,13 +105,13 @@
     "text": "🔐 请妥善保管此令牌。它提供对您账户的完全访问权限。"
   },
   "web.account.confirm_with_your_password": {
-    "text": "使用您的密码确认"
+    "text": "使用密码确认"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "您确定要永久删除您的账户吗？此操作无法撤销。"
   },
   "web.account.confirm_account_deletion": {
-    "text": "确认账户删除"
+    "text": "确认删除账户"
   },
   "web.account.deleting_cust_custid": {
     "text": "正在删除 {0}"
@@ -120,16 +120,16 @@
     "text": "永久删除账户"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "永久且不可逆。"
+    "text": "永久且不可逆的。"
   },
   "web.account.deleting_your_account_is": {
     "text": "删除您的账户是"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "在继续之前销毁它们"
+    "text": "请在继续前销毁它们"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "您希望删除的任何内容，"
+    "text": "如有任何您想移除的内容，"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "内容将保持活跃直到过期。"
@@ -159,7 +159,7 @@
     "text": "管理您的账户设置和偏好"
   },
   "web.settings.general": {
-    "text": "常规"
+    "text": "通用"
   },
   "web.settings.preferences": {
     "text": "偏好设置"
@@ -171,19 +171,19 @@
     "text": "主题"
   },
   "web.settings.theme.description": {
-    "text": "选择明亮或暗黑主题"
+    "text": "选择浅色或深色主题"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "选择明亮或暗黑主题"
+    "text": "选择浅色或深色主题"
   },
   "web.settings.language.title": {
     "text": "语言"
   },
   "web.settings.language.description": {
-    "text": "选择您的首选语言"
+    "text": "选择您偏好的语言"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "选择您的首选语言"
+    "text": "选择您偏好的语言"
   },
   "web.settings.security_settings_description": {
     "text": "管理认证和账户安全"
@@ -210,7 +210,7 @@
     "text": "输入您的当前密码"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "出于安全目的需要您的密码"
+    "text": "出于安全考虑需要您的密码"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "验证邮件将发送到新地址"
@@ -219,10 +219,10 @@
     "text": "更新邮箱"
   },
   "web.settings.profile.change_email_description": {
-    "text": "更新与您的账户关联的邮箱地址"
+    "text": "更新与您账户关联的邮箱地址"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "所有字段均为必填项"
+    "text": "所有字段均为必填"
   },
   "web.settings.profile.invalid_email": {
     "text": "请输入有效的邮箱地址"
@@ -231,10 +231,10 @@
     "text": "新邮箱必须与当前邮箱不同"
   },
   "web.settings.profile.email_change_success": {
-    "text": "邮箱更新成功。请查看收件箱以验证新邮箱地址。"
+    "text": "邮箱更新成功。请查收邮件以验证您的新邮箱地址。"
   },
   "web.settings.profile.email_change_error": {
-    "text": "更新邮箱失败。请重试。"
+    "text": "更新邮箱失败，请重试。"
   },
   "web.settings.sessions.title": {
     "text": "活跃会话"
@@ -267,25 +267,25 @@
     "text": "安全评分"
   },
   "web.settings.security.score_description": {
-    "text": "您的整体账户安全健康状况"
+    "text": "您的整体账户安全状况"
   },
   "web.settings.security.excellent": {
-    "text": "优秀"
+    "text": "极佳"
   },
   "web.settings.security.good": {
     "text": "良好"
   },
   "web.settings.security.fair": {
-    "text": "一般"
+    "text": "尚可"
   },
   "web.settings.security.weak": {
-    "text": "较弱"
+    "text": "弱"
   },
   "web.settings.security.improve_security": {
-    "text": "提升您的安全性"
+    "text": "提高您的安全性"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "启用双因素认证以获得更强保护"
+    "text": "启用双因素认证以获得更强的保护"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "生成恢复代码作为备份"
@@ -303,28 +303,28 @@
     "text": "启用"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} 个可用代码"
+    "text": "{0} 个代码可用"
   },
   "web.settings.security.no_codes": {
     "text": "未生成代码"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} 个活跃会话"
+    "text": "{0} 个活跃会话 | {0} 个活跃会话"
   },
   "web.settings.security.best_practices": {
     "text": "安全最佳实践"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "为您的账户使用强而独特的密码"
+    "text": "为您的账户使用强且唯一的密码"
   },
   "web.settings.security.enable_mfa_for_protection": {
     "text": "启用双因素认证以获得额外保护"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "将恢复代码保存在安全位置"
+    "text": "将恢复代码保存在安全的地方"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "定期审查和撤销未使用的会话"
+    "text": "定期检查并撤销未使用的会话"
   },
   "web.settings.security.view_details": {
     "text": "查看详情"
@@ -360,7 +360,7 @@
     "text": "安全最佳实践"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "永不将 API 密钥提交到版本控制"
+    "text": "切勿将 API 密钥提交到版本控制"
   },
   "web.settings.api.use_environment_variables": {
     "text": "使用环境变量存储 API 密钥"
@@ -369,7 +369,7 @@
     "text": "定期轮换 API 密钥以确保安全"
   },
   "web.settings.api.use_https_only": {
-    "text": "发出 API 请求时始终使用 HTTPS"
+    "text": "发起 API 请求时始终使用 HTTPS"
   },
   "web.settings.api.monitor_api_usage": {
     "text": "监控您的 API 使用情况并设置警报"
@@ -390,16 +390,16 @@
     "text": "您的隐私"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "不可协商"
+    "text": "不可商量"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "这不是一项设置"
+    "text": "这不是设置"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "无分析。无跟踪。就是这样。"
+    "text": "无分析。无追踪。如此简单。"
   },
   "web.settings.privacy.explanation": {
-    "text": "这不是一项设置，因为没有什么可以打开或关闭。您的隐私已内置于我们的运营方式中。"
+    "text": "这不是一个设置，因为没有什么可以开启或关闭。您的隐私已融入我们的运营方式。"
   },
   "web.settings.notifications.title": {
     "text": "通知设置"
@@ -408,7 +408,7 @@
     "text": "管理您接收通知的方式"
   },
   "web.settings.notifications.error_updating": {
-    "text": "更新通知偏好失败。请重试。"
+    "text": "更新通知偏好失败，请重试。"
   },
   "web.settings.notifications.reveal_notifications.title": {
     "text": "内容查看通知"
@@ -417,13 +417,13 @@
     "text": "当有人查看您的内容时收到邮件通知"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "每当收件人查看您的内容时，您将收到通知"
+    "text": "每当接收者查看您的内容时，您都会收到通知"
   },
   "web.settings.notifications.privacy_note": {
     "text": "通知邮件仅包含时间戳和内容 ID。绝不包含查看者信息。"
   },
   "web.settings.caution.title": {
-    "text": "谨慎操作区域"
+    "text": "谨慎操作区"
   },
   "web.settings.caution.description": {
     "text": "高级设置和数据管理"
@@ -435,7 +435,7 @@
     "text": "导出您的账户数据"
   },
   "web.settings.caution.export_description": {
-    "text": "请求以机器可读格式提供您账户数据的完整副本"
+    "text": "请求以机器可读格式导出您的账户数据完整副本"
   },
   "web.settings.caution.request_data_export": {
     "text": "请求数据导出"
@@ -453,12 +453,27 @@
     "text": "永久删除您的所有内容"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "删除所有内容元数据和历史记录"
+    "text": "删除所有内容的元数据和历史记录"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "使所有 API 密钥失效"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "此操作无法撤销"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "删除中..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "返回控制面板"
+  },
+  "web.settings.sections.account": {
+    "text": "账户"
+  },
+  "web.settings.sections.billing": {
+    "text": "账单"
+  },
+  "web.settings.sections.advanced": {
+    "text": "高级"
   }
 }

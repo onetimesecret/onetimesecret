@@ -3,7 +3,7 @@
     "text": "需要账户？"
   },
   "web.login.need_an_account": {
-    "text": "需要账户？"
+    "text": "注册。"
   },
   "web.login.forgot_your_password": {
     "text": "忘记密码？"
@@ -42,43 +42,43 @@
     "text": "您的账户已成功验证"
   },
   "web.auth.verify.invalid_key": {
-    "text": "无效或过期的验证密钥"
+    "text": "验证密钥无效或已过期"
   },
   "web.auth.verify.expired_key": {
-    "text": "此验证链接已过期。请请求新的链接。"
+    "text": "此验证链接已过期。请申请新的链接。"
   },
   "web.auth.verify.already_verified": {
     "text": "此账户已验证。您现在可以登录。"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "无法验证账户。请重试或联系支持。"
+    "text": "无法验证账户。请重试或联系支持团队。"
   },
   "web.auth.verify.check_email": {
-    "text": "请查看您的邮箱以获取验证链接"
+    "text": "请查收邮件中的验证链接"
   },
   "web.auth.verify.error": {
-    "text": "账户验证失败。请检查您的验证链接或请求新的链接。"
+    "text": "账户验证失败。请检查您的验证链接或申请新的链接。"
   },
   "web.auth.verify.error_title": {
     "text": "验证失败"
   },
   "web.auth.verify.what_to_do": {
-    "text": "我该怎么办？"
+    "text": "我应该怎么做？"
   },
   "web.auth.verify.check_email_help": {
-    "text": "查看您的邮箱以获取最新的验证链接"
+    "text": "请查收邮件中的最新验证链接"
   },
   "web.auth.verify.check_spam": {
     "text": "如果找不到邮件，请检查垃圾邮件文件夹"
   },
   "web.auth.verify.contact_support": {
-    "text": "如果问题持续存在，请联系支持"
+    "text": "如果问题持续，请联系支持团队"
   },
   "web.auth.verify.missing_key_title": {
     "text": "需要验证链接"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "请使用发送到您邮箱地址的验证链接来验证您的账户。"
+    "text": "请使用发送到您邮箱的验证链接来验证您的账户。"
   },
   "web.auth.verify.create_new_account": {
     "text": "创建新账户"
@@ -99,7 +99,7 @@
     "text": "您的密码已成功更改"
   },
   "web.auth.change_password.error": {
-    "text": "更改密码失败。请验证您的当前密码并重试。"
+    "text": "更改密码失败，请确认您的当前密码并重试。"
   },
   "web.auth.close_account.title": {
     "text": "关闭账户"
@@ -108,7 +108,7 @@
     "text": "此操作无法撤销。您的所有内容将被永久删除。"
   },
   "web.auth.close_account.confirm": {
-    "text": "我理解此操作是永久性的"
+    "text": "我了解此操作是永久性的"
   },
   "web.auth.close_account.password": {
     "text": "输入您的密码以确认"
@@ -120,7 +120,7 @@
     "text": "取消"
   },
   "web.auth.password_reset_request.title": {
-    "text": "请求密码重置"
+    "text": "请求重置密码"
   },
   "web.auth.password_reset_request.description": {
     "text": "在下方输入您的邮箱地址，我们将向您发送重置密码的链接"
@@ -129,13 +129,13 @@
     "text": "发送重置链接"
   },
   "web.auth.password_reset.title": {
-    "text": "选择新密码"
+    "text": "设置新密码"
   },
   "web.auth.password_reset.description": {
-    "text": "请在下方输入您的新密码。确保密码足够强大且唯一，以保护您的账户。"
+    "text": "请在下方输入您的新密码。确保它足够强且唯一，以保护您的账户。"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "我们已向您发送一封包含重置账户密码链接的邮件"
+    "text": "已向您发送一封包含密码重置链接的邮件"
   },
   "web.auth.terms.agree_prefix": {
     "text": "我同意"
@@ -177,7 +177,7 @@
     "text": "{count} 个活跃会话"
   },
   "web.auth.account.quick_actions": {
-    "text": "快速操作"
+    "text": "快捷操作"
   },
   "web.auth.account.manage_mfa": {
     "text": "管理双因素认证"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "关闭账户"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "注册后的邮箱验证流程"
+  },
+  "web.help.title": {
+    "text": "帮助与支持"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "登录问题排查"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "魔法链接没有收到？"
+  },
+  "web.help.check_spam_folder": {
+    "text": "检查您的垃圾邮件文件夹"
+  },
+  "web.help.check_email_spelling": {
+    "text": "确认您输入的邮箱地址正确"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "等待几分钟 - 邮件有时会延迟"
+  },
+  "web.help.try_again": {
+    "text": "如果超过 10 分钟，请尝试申请新链接"
+  },
+  "web.help.forgot_password": {
+    "text": "忘记密码？"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "使用魔法链接选项无需密码登录。登录后，您可以在账户设置中更改密码。"
+  },
+  "web.help.account_locked": {
+    "text": "账户被临时锁定？"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "多次登录失败后，账户将被临时锁定以确保安全。请等待 15 分钟后重试，或使用魔法链接登录。"
+  },
+  "web.help.still_need_help": {
+    "text": "仍需帮助？"
+  },
+  "web.help.contact_us_description": {
+    "text": "如果您仍有问题，我们随时为您提供帮助。给我们发送消息，我们会尽快回复。"
+  },
+  "web.help.contact_support": {
+    "text": "联系支持"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "发送登录链接"
+  },
+  "web.login.secure_link_helper": {
+    "text": "安全链接将发送到您的邮箱。"
+  },
+  "web.login.or_divider": {
+    "text": "或"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "使用密码登录"
+  },
+  "web.login.use_passwordless": {
+    "text": "使用无密码登录"
+  },
+  "web.login.create_account": {
+    "text": "创建账户"
+  },
+  "web.login.return_home": {
+    "text": "返回首页"
+  },
+  "web.login.tab_password": {
+    "text": "密码"
+  },
+  "web.login.tab_magic_link": {
+    "text": "魔法链接"
+  },
+  "web.login.need_help": {
+    "text": "需要帮助？"
   }
 }

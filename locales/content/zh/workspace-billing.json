@@ -3,7 +3,7 @@
     "text": "需要升级"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "查看套餐"
+    "text": "查看方案"
   },
   "web.billing.upgrade.needTeams": {
     "text": "团队管理需要 Identity Plus 或更高版本"
@@ -12,10 +12,10 @@
     "text": "自定义域名需要 Identity Plus 或更高版本"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API 访问需要多团队套餐或更高版本"
+    "text": "API 访问需要 Identity Plus 或更高版本"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "审计日志需要多团队套餐或更高版本"
+    "text": "审计日志需要多团队方案或更高版本"
   },
   "web.billing.manage_subscription_and_billing": {
     "text": "管理您的订阅、组织和账单设置"
@@ -24,25 +24,25 @@
     "text": "账单概览"
   },
   "web.billing.overview.description": {
-    "text": "查看和管理您的订阅和付款详情"
+    "text": "查看和管理您的订阅及支付详情"
   },
   "web.billing.overview.organization_selector": {
     "text": "选择组织"
   },
   "web.billing.overview.current_plan": {
-    "text": "当前套餐"
+    "text": "当前方案"
   },
   "web.billing.overview.plan_features": {
-    "text": "套餐功能"
+    "text": "方案功能"
   },
   "web.billing.overview.payment_method": {
-    "text": "付款方式"
+    "text": "支付方式"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "下次账单日期"
+    "text": "下次计费日期"
   },
   "web.billing.overview.quick_actions": {
-    "text": "快速操作"
+    "text": "快捷操作"
   },
   "web.billing.overview.manage_billing": {
     "text": "管理账单"
@@ -51,13 +51,13 @@
     "text": "查看发票"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "升级套餐"
+    "text": "升级方案"
   },
   "web.billing.overview.change_plan": {
-    "text": "更改套餐"
+    "text": "更改方案"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "未保存付款方式"
+    "text": "未存档支付方式"
   },
   "web.billing.overview.no_upcoming_billing": {
     "text": "无即将到来的账单"
@@ -66,10 +66,10 @@
     "text": "剩余天数"
   },
   "web.billing.overview.billing_on": {
-    "text": "{date} 账单"
+    "text": "计费日期 {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "查看套餐"
+    "text": "查看方案"
   },
   "web.billing.overview.view_plans_description": {
     "text": "比较和升级"
@@ -84,10 +84,10 @@
     "text": "管理账单"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "更新付款信息"
+    "text": "更新支付信息"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "无组织"
+    "text": "没有组织"
   },
   "web.billing.overview.no_organizations_description": {
     "text": "创建组织以管理您的账单和订阅"
@@ -96,7 +96,7 @@
     "text": "创建内容"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "查看收据"
+    "text": "查看回执"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "API 访问"
@@ -105,13 +105,13 @@
     "text": "自定义域名"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "自定义隐私默认设置"
+    "text": "自定义隐私默认值"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
     "text": "延长默认过期时间"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "自定义邮件默认设置"
+    "text": "自定义邮件默认值"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "自定义品牌"
@@ -150,16 +150,16 @@
     "text": "无可用功能"
   },
   "web.billing.plans.title": {
-    "text": "选择套餐"
+    "text": "选择方案"
   },
   "web.billing.plans.choose_plan": {
-    "text": "选择适合您需求的套餐"
+    "text": "选择适合您需求的方案"
   },
   "web.billing.plans.subtitle": {
-    "text": "为您的组织选择完美的套餐"
+    "text": "为您的组织选择完美的方案"
   },
   "web.billing.plans.current": {
-    "text": "当前套餐"
+    "text": "当前方案"
   },
   "web.billing.plans.current_badge": {
     "text": "当前"
@@ -171,16 +171,16 @@
     "text": "降级"
   },
   "web.billing.plans.monthly": {
-    "text": "按月"
+    "text": "月付"
   },
   "web.billing.plans.yearly": {
-    "text": "按年"
+    "text": "年付"
   },
   "web.billing.plans.per_month": {
-    "text": "每月"
+    "text": "/月"
   },
   "web.billing.plans.save_yearly": {
-    "text": "按年付费可节省 {percent}%"
+    "text": "年付节省 {percent}%"
   },
   "web.billing.plans.free_plan": {
     "text": "免费"
@@ -213,28 +213,28 @@
     "text": "优先支持"
   },
   "web.billing.plans.select_plan": {
-    "text": "选择套餐"
+    "text": "选择方案"
   },
   "web.billing.plans.contact_sales": {
     "text": "联系销售"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "有疑问或需要定制方案？"
+    "text": "有问题或需要定制方案？"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "我们很乐意听取您的意见。请告诉我们您的需求。"
+    "text": "我们很乐意听取您的意见。告诉我们您的需求。"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} 个团队"
+    "text": "{count} 个团队 | {count} 个团队"
   },
   "web.billing.plans.members_limit": {
-    "text": "每个团队 {count} 名成员"
+    "text": "每团队 {count} 名成员 | 每团队 {count} 名成员"
   },
   "web.billing.plans.unlimited_teams": {
     "text": "无限团队"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "每个团队的成员数无限"
+    "text": "每团队无限成员"
   },
   "web.billing.plans.most_popular": {
     "text": "最受欢迎"
@@ -243,31 +243,31 @@
     "text": "推荐"
   },
   "web.billing.plans.everything_in": {
-    "text": "{plan}的全部功能,加上:"
+    "text": "包含 {plan} 中的所有功能"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "目前没有可用的{interval}套餐。"
+    "text": "目前没有可用的 {interval} 方案。"
   },
   "web.billing.plans.change_immediate": {
-    "text": "您的套餐将立即更改。"
+    "text": "您的方案将立即更改。"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "当前套餐:"
+    "text": "当前方案："
   },
   "web.billing.plans.new_plan_label": {
-    "text": "新套餐:"
+    "text": "新方案："
   },
   "web.billing.plans.credit_label": {
-    "text": "未使用时间的余额:"
+    "text": "未使用时间的余额："
   },
   "web.billing.plans.next_invoice": {
-    "text": "下一张账单"
+    "text": "下次发票"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "套餐更改后,您的功能限制将立即更新。"
+    "text": "您的功能限制将在方案更改后立即更新。"
   },
   "web.billing.plans.change_failed": {
-    "text": "套餐更改失败。请重试。"
+    "text": "方案更改失败，请重试。"
   },
   "web.billing.plans.confirm_upgrade": {
     "text": "确认升级"
@@ -276,10 +276,10 @@
     "text": "确认降级"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "升级到"
+    "text": "升级至 {plan}？"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "降级到{plan}?"
+    "text": "降级至 {plan}？"
   },
   "web.billing.invoices.title": {
     "text": "账单历史"
@@ -303,7 +303,7 @@
     "text": "暂无发票"
   },
   "web.billing.invoices.paid": {
-    "text": "已付款"
+    "text": "已支付"
   },
   "web.billing.invoices.pending": {
     "text": "待处理"
@@ -315,13 +315,13 @@
     "text": "加载发票失败"
   },
   "web.billing.notices.org_managed": {
-    "text": "此团队的账单由 {orgName} 管理"
+    "text": "账单由 {orgName} 管理"
   },
   "web.billing.notices.view_org_billing": {
     "text": "查看组织账单"
   },
   "web.billing.limits.members_reached": {
-    "text": "您已达到此团队的成员限制"
+    "text": "您已达到此团队的成员上限"
   },
   "web.billing.limits.members_upgrade": {
     "text": "升级以添加更多成员"
@@ -345,25 +345,25 @@
     "text": "已取消"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "套餐"
+    "text": "方案"
   },
   "web.billing.portal.title": {
     "text": "账单门户"
   },
   "web.billing.portal.description": {
-    "text": "管理您的订阅、付款方式和账单历史"
+    "text": "管理您的订阅、支付方式和账单历史"
   },
   "web.billing.portal.open_portal": {
     "text": "打开账单门户"
   },
   "web.billing.portal.redirecting": {
-    "text": "正在跳转到账单门户"
+    "text": "正在跳转到账单门户..."
   },
   "web.billing.start_today": {
-    "text": "今天开始"
+    "text": "立即开始"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "今天就开始使用 Identity Plus"
+    "text": "立即开始使用 Identity Plus"
   },
   "web.billing.per_month": {
     "text": "每月"
@@ -387,19 +387,19 @@
     "text": "升级账户"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "升级到 Identity Plus"
+    "text": "升级至 Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "升级团队版"
+    "text": "为团队升级"
   },
   "web.billing.benefits_of": {
-    "text": "优势"
+    "text": "的优势"
   },
   "web.billing.t_benefits_of_identity_plus": {
     "text": "{0}：Identity Plus"
   },
   "web.billing.upgrade_to": {
-    "text": "升级到"
+    "text": "升级至"
   },
   "web.billing.upgrade_for_yourdomain": {
     "text": "为 secrets.yourdomain.com 升级"
@@ -408,7 +408,7 @@
     "text": "所有套餐都包含隐私功能和无限分享容量"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "所有套餐都包含数据位置选择：{0} 个区域"
+    "text": "所有方案均包含数据区域选择：{0} 个区域"
   },
   "web.billing.get_started": {
     "text": "开始使用"
@@ -430,5 +430,194 @@
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "在产品层级中找不到 Identity 层级"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "取消订阅"
+  },
+  "web.billing.cancel.title": {
+    "text": "取消订阅"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "确定要取消您的 {plan} 订阅吗？"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "取消后会发生什么："
+  },
+  "web.billing.cancel.access_until": {
+    "text": "您将保留对所有功能的访问直到 {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "您将保留访问权限直到当前计费周期结束"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "您将不会再被收费"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "您的账户将恢复为免费方案"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "保留订阅"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "取消订阅"
+  },
+  "web.billing.cancel.success": {
+    "text": "您的订阅已取消。您将保留访问权限直到计费周期结束。"
+  },
+  "web.billing.cancel.error": {
+    "text": "取消订阅失败，请重试。"
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "订阅取消已安排"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "您的订阅将保持有效直到 {date}。届时前您将继续拥有所有功能的完整访问权限。"
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "改变主意了？您可以在取消日期前随时重新激活订阅。"
+  },
+  "web.billing.features.create_secrets": {
+    "text": "创建和分享内容"
+  },
+  "web.billing.features.api_access": {
+    "text": "API 访问"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "自定义域名"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 个自定义域名"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "无限自定义域名"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "自定义品牌"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "品牌主页"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "团队管理"
+  },
+  "web.billing.features.manage_members": {
+    "text": "成员管理"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "审计日志"
+  },
+  "web.billing.features.sso": {
+    "text": "单点登录 (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "优先支持"
+  },
+  "web.billing.features.sla": {
+    "text": "服务等级协议"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "集中计费"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "审计追踪"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "活动流"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "交接工作流"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30 天内容保留"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "主页内容"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "接收内容"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "最多 5 名团队成员"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "最多 10 名团队成员"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "最多 25 名团队成员"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "最多 50 名团队成员"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "无限团队成员"
+  },
+  "web.billing.features.notifications": {
+    "text": "邮件通知"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP 访问规则"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "工作区品牌"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "专用基础设施"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "共享工作流"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "此组织的账单"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "您的方案已成功升级"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "您的新方案现已生效。感谢您的购买。"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "账单联系人"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "主页内容"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "邮件通知"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP 访问规则"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "工作区品牌"
+  },
+  "web.billing.plans.due_today": {
+    "text": "今日应付："
+  },
+  "web.billing.plans.next_billing": {
+    "text": "下次计费 ({date})："
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "您的余额如何应用："
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "下次账单金额："
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "已应用余额："
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "下次计费应付金额："
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "剩余账户余额："
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "应用于未来发票"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "团队用量"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used}/{limit} 个团队"
   }
 }

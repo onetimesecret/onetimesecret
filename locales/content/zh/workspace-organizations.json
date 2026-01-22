@@ -12,19 +12,19 @@
     "text": "管理您的组织"
   },
   "web.organizations.my_organizations": {
-    "text": "我的组织"
+    "text": "组织"
   },
   "web.organizations.manage_organizations": {
     "text": "管理组织"
   },
   "web.organizations.new_organization": {
-    "text": "新组织"
+    "text": "新建组织"
   },
   "web.organizations.no_organizations": {
     "text": "暂无组织"
   },
   "web.organizations.no_organizations_description": {
-    "text": "组织允许您使用统一的账单和管理来管理多个团队。创建您的第一个组织来开始使用。"
+    "text": "组织提供统一的账单和管理功能。创建您的第一个组织以开始使用。"
   },
   "web.organizations.no_description": {
     "text": "未提供描述"
@@ -39,7 +39,7 @@
     "text": "创建第一个组织"
   },
   "web.organizations.create_organization_description": {
-    "text": "创建新组织以组合您的团队"
+    "text": "创建新组织"
   },
   "web.organizations.create": {
     "text": "创建"
@@ -51,7 +51,7 @@
     "text": "组织名称"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "例如：Acme 公司"
+    "text": "例如 Acme 公司"
   },
   "web.organizations.display_name": {
     "text": "组织名称"
@@ -60,19 +60,19 @@
     "text": "描述"
   },
   "web.organizations.description_placeholder": {
-    "text": "此组织用于什么？"
+    "text": "这个组织是做什么的？"
   },
   "web.organizations.contact_email": {
     "text": "账单邮箱"
   },
   "web.organizations.contact_email_help": {
-    "text": "账单和管理通知的主要联系方式"
+    "text": "账单和管理通知的主要联系人"
   },
   "web.organizations.select_organization": {
     "text": "选择组织"
   },
   "web.organizations.switcher_locked": {
-    "text": "此页面不支持切换组织"
+    "text": "此页面不可切换组织"
   },
   "web.organizations.not_found": {
     "text": "未找到组织"
@@ -84,13 +84,13 @@
     "text": "加载组织失败"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "加载组织失败"
+    "text": "加载组织列表失败"
   },
   "web.organizations.organization_information": {
     "text": "组织信息"
   },
   "web.organizations.created": {
-    "text": "创建时间"
+    "text": "已创建"
   },
   "web.organizations.last_updated": {
     "text": "最后更新"
@@ -120,31 +120,31 @@
     "text": "账单集成即将推出"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "此组织中所有团队的统一账单和订阅管理将在未来版本中提供。"
+    "text": "统一的账单和订阅管理将在未来版本中提供。"
   },
   "web.organizations.about_title": {
     "text": "关于组织"
   },
   "web.organizations.about_description": {
-    "text": "组织为多个团队提供统一的账单和管理。它们是可选的 - 团队可以独立存在，也可以归入组织进行集中管理。"
+    "text": "组织提供统一的账单和管理功能，便于集中管理。"
   },
   "web.organizations.single_user_info_title": {
     "text": "管理您的组织"
   },
   "web.organizations.single_user_info_description": {
-    "text": "在此更新您的公司名称和组织详情。此信息有助于个性化您的账户，并可用于未来的品牌功能。"
+    "text": "在此更新您的公司名称和组织详情。这些信息有助于个性化您的账户，并可用于未来的品牌功能。"
   },
   "web.organizations.getting_started_title": {
-    "text": "开始使用组织"
+    "text": "组织入门"
   },
   "web.organizations.getting_started_description": {
-    "text": "创建您的第一个组织以管理您的公司信息，并为未来的团队协作和品牌功能做准备。"
+    "text": "创建您的第一个组织来管理公司信息，并为未来的品牌功能做好准备。"
   },
   "web.organizations.page_description": {
     "text": "管理您的组织和团队成员"
   },
   "web.organizations.tabs.general": {
-    "text": "常规"
+    "text": "设置"
   },
   "web.organizations.tabs.company_branding": {
     "text": "公司品牌"
@@ -162,7 +162,7 @@
     "text": "删除组织"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "这将永久删除该组织和所有关联的团队。此操作无法撤销。"
+    "text": "这将永久删除该组织。此操作无法撤销。"
   },
   "web.organizations.delete": {
     "text": "删除"
@@ -171,7 +171,7 @@
     "text": "删除组织"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "您确定要删除 {name} 吗？此操作无法撤销。"
+    "text": "确定要删除 {name} 吗？此操作无法撤销。"
   },
   "web.organizations.delete_error": {
     "text": "删除组织失败"
@@ -189,10 +189,10 @@
     "text": "成员"
   },
   "web.organizations.members.member_singular": {
-    "text": "名成员"
+    "text": "成员"
   },
   "web.organizations.members.member_plural": {
-    "text": "名成员"
+    "text": "成员"
   },
   "web.organizations.members.name": {
     "text": "姓名"
@@ -210,10 +210,10 @@
     "text": "操作"
   },
   "web.organizations.members.no_members": {
-    "text": "未找到成员"
+    "text": "暂无成员。邀请团队成员以开始使用。"
   },
   "web.organizations.members.no_members_description": {
-    "text": "此组织暂无成员。"
+    "text": "此组织还没有成员。"
   },
   "web.organizations.members.role_updated": {
     "text": "成员角色更新成功"
@@ -231,16 +231,16 @@
     "text": "移除成员"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "您确定要将 {name} 从此组织中移除吗？"
+    "text": "确定要将 {name} 从此组织中移除吗？"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "您不能更改自己的角色"
+    "text": "您无法更改自己的角色"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "您不能将自己从组织中移除"
+    "text": "您无法将自己从组织中移除"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "您不能移除组织所有者"
+    "text": "您无法移除组织所有者"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "您没有管理成员的权限"
@@ -255,13 +255,13 @@
     "text": "成员"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "完全访问所有组织设置和成员"
+    "text": "对所有组织设置和成员的完全访问权限"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "可以管理成员和大部分组织设置"
+    "text": "可以管理成员和大多数组织设置"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "基本访问组织资源"
+    "text": "组织资源的基本访问权限"
   },
   "web.organizations.invitations.title": {
     "text": "组织邀请"
@@ -276,7 +276,7 @@
     "text": "待处理邀请"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "暂无待处理邀请"
+    "text": "没有待处理的邀请"
   },
   "web.organizations.invitations.email_address": {
     "text": "邮箱地址"
@@ -315,7 +315,7 @@
     "text": "撤销邀请失败"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "邀请人"
+    "text": "邀请者"
   },
   "web.organizations.invitations.invited_at": {
     "text": "邀请时间"
@@ -324,10 +324,10 @@
     "text": "过期时间"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "已重发 {count} 次"
+    "text": "已重新发送 {count} 次"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "已重发 {count} 次"
+    "text": "已重新发送 {count} 次"
   },
   "web.organizations.invitations.status.pending": {
     "text": "待处理"
@@ -357,7 +357,7 @@
     "text": "邀请详情"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "您已被邀请加入"
+    "text": "您被邀请加入"
   },
   "web.organizations.invitations.invited_as": {
     "text": "您被邀请担任"
@@ -384,6 +384,51 @@
     "text": "请登录以接受此邀请"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "加载邀请详情中"
+    "text": "正在加载邀请详情"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "账单邮箱更新成功"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "账单邮箱可在账单概览页面更改"
+  },
+  "web.organizations.paid_badge": {
+    "text": "专业版"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} 名成员 | {count} 名成员"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} 个域名 | {count} 个域名"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "升级您的方案以邀请团队成员"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "团队成员邀请需要具有团队管理功能的方案。升级以向您的组织添加协作者。"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "账户不匹配"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "此邀请发送给 {invitedEmail}，但您当前登录的是 {currentEmail}。"
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "使用其他账户登录"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "剩余 {days} 天"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "剩余 {hours} 小时"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "即将过期"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "订阅"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "域名"
   }
 }

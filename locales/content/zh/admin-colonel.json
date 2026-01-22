@@ -18,16 +18,16 @@
     "text": "Secrets ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(active in the past 5 minutes)"
+    "text": "（过去 5 分钟内活跃）"
   },
   "web.colonel.configEditorTitle": {
     "text": "设置"
   },
   "web.colonel.configEditorDescription": {
-    "text": "编辑系统配置设置。保存后更改立即生效。"
+    "text": "编辑系统配置设置。保存后立即生效。"
   },
   "web.colonel.invalidJson": {
-    "text": "{section} 部分中的 JSON 无效"
+    "text": "{section} 部分的 JSON 无效"
   },
   "web.colonel.validationError": {
     "text": "验证错误"
@@ -39,7 +39,7 @@
     "text": "保存配置时出错"
   },
   "web.colonel.configSaved": {
-    "text": "配置保存成功"
+    "text": "配置已成功保存"
   },
   "web.colonel.mustBeObject": {
     "text": "配置必须是 JSON 对象"
@@ -51,7 +51,7 @@
     "text": "{section} 存在验证错误：{error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} 保存成功"
+    "text": "{section} 已成功保存"
   },
   "web.colonel.saveSection": {
     "text": "保存 {section}"
@@ -63,7 +63,7 @@
     "text": "未保存的更改"
   },
   "web.colonel.schemaValidationError": {
-    "text": "架构验证错误：{message}（{path}）"
+    "text": "架构验证错误：{message} ({path})"
   },
   "web.colonel.unknownValidationError": {
     "text": "未知验证错误：{error}"
@@ -72,10 +72,10 @@
     "text": "{section} 部分没有配置值"
   },
   "web.colonel.dashboard": {
-    "text": "仪表板"
+    "text": "控制面板"
   },
   "web.colonel.admin": {
-    "text": "管理员"
+    "text": "管理"
   },
   "web.colonel.activity": {
     "text": "活动"
@@ -105,7 +105,7 @@
     "text": "OneTimeSecret 管理控制面板"
   },
   "web.colonel.quickActions": {
-    "text": "快速操作"
+    "text": "快捷操作"
   },
   "web.colonel.recentActivity": {
     "text": "最近活动"
@@ -117,7 +117,7 @@
     "text": "活动数据将显示在此处"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "总内容数"
+    "text": "内容总数"
   },
   "web.colonel.stats.activeUsers": {
     "text": "活跃用户"
@@ -132,7 +132,7 @@
     "text": "已分享内容"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "总客户数"
+    "text": "总用户数"
   },
   "web.colonel.stats.emailsSent": {
     "text": "已发送邮件"
@@ -165,7 +165,7 @@
     "text": "系统设置"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "应用程序配置"
+    "text": "应用配置"
   },
   "web.colonel.backgroundJobs": {
     "text": "后台任务"
@@ -183,13 +183,13 @@
     "text": "消费者"
   },
   "web.colonel.processingRate": {
-    "text": "速率/秒"
+    "text": "处理速率/秒"
   },
   "web.colonel.connectionStatus": {
     "text": "连接状态"
   },
   "web.colonel.workerHealth": {
-    "text": "工作进程健康"
+    "text": "工作进程状态"
   },
   "web.colonel.activeWorkers": {
     "text": "活跃工作进程"
@@ -198,37 +198,37 @@
     "text": "无可用队列数据"
   },
   "web.colonel.loadingQueueData": {
-    "text": "加载队列数据中..."
+    "text": "正在加载队列数据..."
   },
   "web.colonel.testPlanMode": {
-    "text": "测试套餐模式"
+    "text": "测试方案模式"
   },
   "web.colonel.testingAsPlan": {
-    "text": "以 {planName} 身份测试"
+    "text": "正在以 {planName} 身份测试"
   },
   "web.colonel.clickToReset": {
     "text": "点击重置"
   },
   "web.colonel.selectTestPlan": {
-    "text": "选择要测试的套餐"
+    "text": "选择要测试的方案"
   },
   "web.colonel.resetToActual": {
-    "text": "重置为实际套餐"
+    "text": "重置为实际方案"
   },
   "web.colonel.currentActualPlan": {
-    "text": "当前套餐"
+    "text": "当前方案"
   },
   "web.colonel.availablePlans": {
-    "text": "可用套餐"
+    "text": "可用方案"
   },
   "web.colonel.activateTestMode": {
-    "text": "激活测试模式"
+    "text": "启用测试模式"
   },
   "web.colonel.testModeActive": {
-    "text": "测试模式已激活"
+    "text": "测试模式已启用"
   },
   "web.colonel.testModeDescription": {
-    "text": "使用不同的套餐权限测试您的应用程序。更改是临时的，仅影响您的会话。"
+    "text": "使用不同方案权限测试您的应用。更改是临时的，仅影响您的会话。"
   },
   "web.colonel.warningTestMode": {
     "text": "您正在使用 {planName} 权限进行测试（临时会话覆盖）。"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "发送中"
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "已封禁 IP"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "管理 IP 封禁列表"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "自定义域名"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "管理自定义域名和品牌"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "发送反馈"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "发送中..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "当您提交反馈时，我们会看到："
+  },
+  "web.colonel.organizations.title": {
+    "text": "组织"
+  },
+  "web.colonel.organizations.description": {
+    "text": "监控组织账单同步状态"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "账单健康监控"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} 个组织"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} 个需要关注"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} 个未知"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "未找到组织"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "调查"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "检查中..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "账户"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "账单"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "状态"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "用量"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "创建时间"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "详情"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "所有者"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "方案"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "成员"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "域名"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "订阅"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "默认工作区"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "有账单"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "客户"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "订阅"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "组织 ID"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "同步状态"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "订阅"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "全部"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "可能过期"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "未知"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "已同步"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "活跃"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "试用中"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "逾期"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "已取消"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "调查失败"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "调查结果"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "已验证同步"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "发现不匹配"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "无法比较"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe 订阅详情"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "状态"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "产品"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "已解析方案"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "价格 ID"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "本地"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "组织账单管理"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "管理组织并监控账单同步状态（共 {total} 个）"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "未找到组织"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "可能过期"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "过期"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "未知"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "活跃"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} 个成员"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} 个域名"
+  },
+  "web.colonel.secrets.title": {
+    "text": "内容"
+  },
+  "web.colonel.secrets.description": {
+    "text": "查看和管理所有内容"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "系统"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "系统设置、数据库和配置"
+  },
+  "web.colonel.titles.index": {
+    "text": "管理"
+  },
+  "web.colonel.titles.users": {
+    "text": "用户管理"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "内容管理"
+  },
+  "web.colonel.titles.domains": {
+    "text": "自定义域名"
+  },
+  "web.colonel.titles.system": {
+    "text": "系统"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "主数据库"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "认证数据库"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "已封禁 IP"
+  },
+  "web.colonel.titles.usage": {
+    "text": "使用量导出"
+  },
+  "web.colonel.titles.info": {
+    "text": "系统信息"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "组织"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "使用量导出"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "导出使用数据和统计信息"
   }
 }

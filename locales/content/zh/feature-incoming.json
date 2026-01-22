@@ -1,9 +1,9 @@
 {
   "incoming.page_title": {
-    "text": "发送机密"
+    "text": "发送内容"
   },
   "incoming.page_description": {
-    "text": "安全地与我们的支持团队共享敏感信息"
+    "text": "与我们的支持团队安全分享敏感信息"
   },
   "incoming.loading_config": {
     "text": "加载中..."
@@ -15,46 +15,46 @@
     "text": "功能不可用"
   },
   "incoming.feature_disabled_description": {
-    "text": "此功能当前已禁用。请联系支持团队寻求帮助。"
+    "text": "此功能目前已禁用。请联系支持团队获取帮助。"
   },
   "incoming.memo_label": {
     "text": "备注"
   },
   "incoming.memo_placeholder": {
-    "text": "简要描述(例如:密码重置请求)"
+    "text": "简要说明（例如：密码重置请求）"
   },
   "incoming.memo_hint": {
-    "text": "帮助我们将您的消息发送给正确的人"
+    "text": "帮助我们将您的信息转给合适的人"
   },
   "incoming.recipient_label": {
     "text": "发送至"
   },
   "incoming.recipient_placeholder": {
-    "text": "选择收件人"
+    "text": "选择接收者"
   },
   "incoming.recipient_aria_label": {
-    "text": "为此机密选择收件人"
+    "text": "选择此内容的接收者"
   },
   "incoming.recipient_hint": {
-    "text": "选择谁将收到此安全消息"
+    "text": "选择谁将收到此安全信息"
   },
   "incoming.no_recipients_available": {
-    "text": "没有可用的收件人"
+    "text": "没有可用的接收者"
   },
   "incoming.secret_content_label": {
     "text": "机密信息"
   },
   "incoming.secret_content_placeholder": {
-    "text": "在此粘贴敏感信息(密码、密钥等)"
+    "text": "在此粘贴敏感信息（密码、密钥等）"
   },
   "incoming.secret_content_hint": {
-    "text": "此信息将被加密,仅可查看一次"
+    "text": "此信息将被加密且只能查看一次"
   },
   "incoming.submit_button": {
-    "text": "发送机密"
+    "text": "发送内容"
   },
   "incoming.submit_secret": {
-    "text": "发送机密"
+    "text": "发送内容"
   },
   "incoming.submitting_button": {
     "text": "发送中..."
@@ -72,30 +72,30 @@
     "text": "发送成功"
   },
   "incoming.success_description": {
-    "text": "您的安全消息已送达。"
+    "text": "您的安全信息已送达。"
   },
   "incoming.reference_id": {
-    "text": "参考编号"
+    "text": "参考 ID"
   },
   "incoming.success_info_title": {
-    "text": "接下来会发生什么?"
+    "text": "接下来会发生什么？"
   },
   "incoming.success_info_description": {
-    "text": "收件人只能查看此机密一次。查看后,机密将被永久删除。"
+    "text": "接收者只能查看此内容一次。查看后，内容将被永久删除。"
   },
   "incoming.create_another": {
-    "text": "发送另一个机密"
+    "text": "发送另一条内容"
   },
   "incoming.tagline1": {
-    "text": "安全地共享敏感信息"
+    "text": "安全分享敏感信息"
   },
   "incoming.tagline2": {
-    "text": "将密码和私密数据远离电子邮件和聊天记录"
+    "text": "让密码和私密数据远离邮件和聊天记录"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "保存您的<a href='{receiptUrl}'>收据</a>以备记录。"
+    "text": "请保存您的{receipt}作为记录。"
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "回执"
   }
 }

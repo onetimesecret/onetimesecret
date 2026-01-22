@@ -3,22 +3,22 @@
     "text": "数据主权与区域隔离"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "您的数据仅存储在您选择的区域，永不跨区域传输"
+    "text": "您的数据仅存储在您选择的区域，绝不会跨区域传输"
   },
   "web.regions.separate_environments_explanation": {
     "text": "每个区域作为完全独立的环境运行，拥有自己的基础设施、加密密钥和数据存储"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "我们坚持严格的政策：客户数据在任何情况下都不会在区域之间传输"
+    "text": "我们维护严格的政策：在任何情况下，客户数据都不会在区域之间传输"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "重要提示：切换到不同区域会创建新账户。您的数据保留在原始区域。"
+    "text": "重要提示：切换到其他区域将创建新账户。您的数据将保留在原始区域。"
   },
   "web.regions.your_region": {
     "text": "您的区域"
   },
   "web.regions.your_current_region": {
-    "text": "您的当前区域"
+    "text": "您当前的区域"
   },
   "web.regions.active": {
     "text": "活跃"
@@ -30,22 +30,22 @@
     "text": "数据主权的重要性"
   },
   "web.regions.trust_title": {
-    "text": "透明度与控制"
+    "text": "透明与控制"
   },
   "web.regions.trust_description": {
-    "text": "准确了解您的数据存储位置以及管辖其保护的法律。"
+    "text": "准确了解您的数据存储位置以及哪些法律保护您的数据。"
   },
   "web.regions.privacy_title": {
     "text": "隐私权"
   },
   "web.regions.privacy_description": {
-    "text": "确保您的个人信息根据您所在国家的隐私法律和法规处理，防止未经授权的访问或滥用。"
+    "text": "确保您的个人信息按照您所在国家的隐私法律法规进行处理，防止未经授权的访问或滥用。"
   },
   "web.regions.compliance_title": {
-    "text": "监管合规"
+    "text": "法规合规"
   },
   "web.regions.compliance_description": {
-    "text": "满足 GDPR、HIPAA、CCPA 和其他区域数据保护要求"
+    "text": "满足 GDPR、HIPAA、CCPA 及其他区域数据保护要求"
   },
   "web.regions.performance_title": {
     "text": "更快的访问"
@@ -96,10 +96,10 @@
     "text": "未知司法管辖区"
   },
   "web.regions.serving_you_from_the": {
-    "text": "正在为您提供服务，来自"
+    "text": "服务区域"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "继续到 {0}"
+    "text": "继续前往 {0}"
   },
   "web.regions.current_jurisdiction": {
     "text": "当前司法管辖区："
