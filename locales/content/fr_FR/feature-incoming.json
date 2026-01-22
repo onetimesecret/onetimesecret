@@ -33,7 +33,7 @@
     "text": "Sélectionner un destinataire"
   },
   "incoming.recipient_aria_label": {
-    "text": "Sélectionnez un destinataire pour ce secret"
+    "text": "Sélectionner un destinataire pour ce secret"
   },
   "incoming.recipient_hint": {
     "text": "Choisissez qui recevra ce message sécurisé"
@@ -42,13 +42,13 @@
     "text": "Aucun destinataire disponible"
   },
   "incoming.secret_content_label": {
-    "text": "Informations confidentielles"
+    "text": "Informations secrètes"
   },
   "incoming.secret_content_placeholder": {
     "text": "Collez les informations sensibles ici (mots de passe, clés, etc.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Ces informations seront chiffrées et ne pourront être consultées qu'une seule fois"
+    "text": "Ces informations seront chiffrées et consultables une seule fois"
   },
   "incoming.submit_button": {
     "text": "Envoyer le secret"
@@ -57,10 +57,10 @@
     "text": "Envoyer le secret"
   },
   "incoming.submitting_button": {
-    "text": "Envoi en cours..."
+    "text": "Envoi..."
   },
   "incoming.submitting": {
-    "text": "Envoi en cours..."
+    "text": "Envoi..."
   },
   "incoming.reset_button": {
     "text": "Effacer le formulaire"
@@ -72,7 +72,7 @@
     "text": "Envoyé avec succès"
   },
   "incoming.success_description": {
-    "text": "Votre message sécurisé a été délivré."
+    "text": "Votre message sécurisé a été livré."
   },
   "incoming.reference_id": {
     "text": "ID de référence"
@@ -81,7 +81,7 @@
     "text": "Que se passe-t-il ensuite ?"
   },
   "incoming.success_info_description": {
-    "text": "Le destinataire pourra consulter ce secret une seule fois. Après consultation, le secret sera définitivement supprimé."
+    "text": "Le destinataire ne pourra consulter ce secret qu'une seule fois. Après consultation, le secret sera définitivement supprimé."
   },
   "incoming.create_another": {
     "text": "Envoyer un autre secret"
@@ -90,12 +90,12 @@
     "text": "Partagez des informations sensibles en toute sécurité"
   },
   "incoming.tagline2": {
-    "text": "Gardez les mots de passe et données privées hors des e-mails et journaux de discussion"
+    "text": "Gardez les mots de passe et les données privées hors des e-mails et des historiques de conversation"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Conservez votre <a href='{receiptUrl}'>reçu</a> pour vos dossiers."
+    "text": "Conservez votre {receipt} pour vos archives."
   },
   "incoming.receipt_link_text": {
-    "text": "reçu"
+    "text": "accusé de réception"
   }
 }

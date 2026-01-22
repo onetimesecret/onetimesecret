@@ -15,7 +15,7 @@ import { createI18n, type Composer } from 'vue-i18n';
 
 /**
  * Import pre-merged locale files directly from generated directory.
- * The Python sync script (locales/scripts/sync_to_src.py --merged) produces
+ * The Python sync script (locales/scripts/build/compile.py --merged) produces
  * these files during development and build.
  */
 // Using type assertion for Vite's import.meta.glob (types from vite/client reference)

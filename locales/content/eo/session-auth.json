@@ -1,0 +1,269 @@
+{
+  "web.login.alternate_prefix": {
+    "text": "Ĉu vi bezonas konton?"
+  },
+  "web.login.need_an_account": {
+    "text": "Registriĝu."
+  },
+  "web.login.forgot_your_password": {
+    "text": "Ĉu vi forgesis vian pasvorton?"
+  },
+  "web.login.button_sign_in": {
+    "text": "Ensaluti"
+  },
+  "web.login.enter_your_credentials": {
+    "text": "Enigu viajn akreditilojn"
+  },
+  "web.login.remember_me": {
+    "text": "Memori min"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Sendi ensalutan ligilon"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Sekura ligilo estos sendita al via retpoŝta poŝtkesto."
+  },
+  "web.login.or_divider": {
+    "text": "aŭ"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Ensaluti per pasvorto"
+  },
+  "web.login.use_passwordless": {
+    "text": "Uzi senpasvortan ensaluton"
+  },
+  "web.login.create_account": {
+    "text": "Krei konton"
+  },
+  "web.login.return_home": {
+    "text": "Reveni hejmen"
+  },
+  "web.login.tab_password": {
+    "text": "Pasvorto"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magia Ligilo"
+  },
+  "web.login.need_help": {
+    "text": "Ĉu vi bezonas helpon?"
+  },
+  "web.signup.create_your_account": {
+    "text": "Kreu Vian Konton"
+  },
+  "web.signup.alternate_prefix": {
+    "text": "Ĉu vi jam havas konton?"
+  },
+  "web.signup.have_an_account": {
+    "text": "Ensaluti."
+  },
+  "web.signup.error_title": {
+    "text": "Eraro pri Konto-Kreado"
+  },
+  "web.signup.password_error": {
+    "text": "Pasvorto"
+  },
+  "web.signup.email_error": {
+    "text": "Retpoŝto"
+  },
+  "web.auth.verify.title": {
+    "text": "Konfirmu Vian Konton"
+  },
+  "web.auth.verify.success": {
+    "text": "Via konto estis sukcese konfirmita"
+  },
+  "web.auth.verify.invalid_key": {
+    "text": "Nevalida aŭ eksvalidiĝinta konfirmŝlosilo"
+  },
+  "web.auth.verify.expired_key": {
+    "text": "Ĉi tiu konfirmligilo eksvalidiĝis. Bonvolu peti novan."
+  },
+  "web.auth.verify.already_verified": {
+    "text": "Ĉi tiu konto jam estis konfirmita. Vi povas ensaluti nun."
+  },
+  "web.auth.verify.unable_to_verify": {
+    "text": "Ne eblas konfirmi konton. Bonvolu reprovi aŭ kontakti subtenon."
+  },
+  "web.auth.verify.check_email": {
+    "text": "Bonvolu kontroli vian retpoŝton por konfirmligilo"
+  },
+  "web.auth.verify.error": {
+    "text": "Konto-konfirmo malsukcesis. Bonvolu kontroli vian konfirmligilon aŭ peti novan."
+  },
+  "web.auth.verify.error_title": {
+    "text": "Konfirmo Malsukcesis"
+  },
+  "web.auth.verify.what_to_do": {
+    "text": "Kion mi faru?"
+  },
+  "web.auth.verify.check_email_help": {
+    "text": "Kontrolu vian retpoŝton por la plej nova konfirmligilo"
+  },
+  "web.auth.verify.check_spam": {
+    "text": "Kontrolu vian spaman/rubaĵan dosierujon se vi ne povas trovi la retpoŝtmesaĝon"
+  },
+  "web.auth.verify.contact_support": {
+    "text": "Kontaktu subtenon se vi daŭre havas problemojn"
+  },
+  "web.auth.verify.missing_key_title": {
+    "text": "Konfirmligilo Bezonata"
+  },
+  "web.auth.verify.missing_key_message": {
+    "text": "Bonvolu uzi la konfirmligilon senditan al via retpoŝta adreso por konfirmi vian konton."
+  },
+  "web.auth.verify.create_new_account": {
+    "text": "Krei Novan Konton"
+  },
+  "web.auth.change_password.title": {
+    "text": "Ŝanĝi Pasvorton"
+  },
+  "web.auth.change_password.current_password": {
+    "text": "Nuna Pasvorto"
+  },
+  "web.auth.change_password.new_password": {
+    "text": "Nova Pasvorto"
+  },
+  "web.auth.change_password.confirm_password": {
+    "text": "Konfirmi Novan Pasvorton"
+  },
+  "web.auth.change_password.success": {
+    "text": "Via pasvorto estis sukcese ŝanĝita"
+  },
+  "web.auth.change_password.error": {
+    "text": "Pasvorta ŝanĝo malsukcesis. Bonvolu kontroli vian nunan pasvorton kaj reprovi."
+  },
+  "web.auth.close_account.title": {
+    "text": "Fermi Konton"
+  },
+  "web.auth.close_account.warning": {
+    "text": "Ĉi tiu ago ne povas esti malfara. Ĉiuj viaj sekretoj estos porĉiame forigitaj."
+  },
+  "web.auth.close_account.confirm": {
+    "text": "Mi komprenas ke ĉi tiu ago estas permanenta"
+  },
+  "web.auth.close_account.password": {
+    "text": "Enigu vian pasvorton por konfirmi"
+  },
+  "web.auth.close_account.button": {
+    "text": "Porĉiame Fermi Konton"
+  },
+  "web.auth.close_account.cancel": {
+    "text": "Nuligi"
+  },
+  "web.auth.password_reset_request.title": {
+    "text": "Peti Pasvortan Restarigon"
+  },
+  "web.auth.password_reset_request.description": {
+    "text": "Enigu vian retpoŝtan adreson sube kaj ni sendos al vi ligilon por restarigi vian pasvorton"
+  },
+  "web.auth.password_reset_request.button": {
+    "text": "Sendi Restarigligilon"
+  },
+  "web.auth.password_reset.title": {
+    "text": "Elektu Novan Pasvorton"
+  },
+  "web.auth.password_reset.description": {
+    "text": "Bonvolu enigi vian novan pasvorton sube. Certigu ke ĝi estas forta kaj unika por protekti vian konton."
+  },
+  "web.auth.passwordReset.emailSent": {
+    "text": "Retpoŝtmesaĝo kun ligilo por restarigi la pasvorton de via konto estis sendita al vi"
+  },
+  "web.auth.terms.agree_prefix": {
+    "text": "Mi konsentas al la"
+  },
+  "web.auth.account.title": {
+    "text": "Kontaj Informoj"
+  },
+  "web.auth.account.email": {
+    "text": "Retpoŝta Adreso"
+  },
+  "web.auth.account.created": {
+    "text": "Konto Kreita"
+  },
+  "web.auth.account.verified": {
+    "text": "Retpoŝto Konfirmita"
+  },
+  "web.auth.account.region": {
+    "text": "Regiono"
+  },
+  "web.auth.account.not_verified": {
+    "text": "Retpoŝto Ne Konfirmita"
+  },
+  "web.auth.account.verify_email": {
+    "text": "Konfirmi Retpoŝtan Adreson"
+  },
+  "web.auth.account.mfa_status": {
+    "text": "Dufaktora Aŭtentikigo"
+  },
+  "web.auth.account.mfa_enabled": {
+    "text": "Aktivigita"
+  },
+  "web.auth.account.mfa_disabled": {
+    "text": "Malaktivigita"
+  },
+  "web.auth.account.active_sessions": {
+    "text": "Aktivaj Sesioj"
+  },
+  "web.auth.account.session_count": {
+    "text": "{count} aktiva(j) sesio(j)"
+  },
+  "web.auth.account.quick_actions": {
+    "text": "Rapidaj Agoj"
+  },
+  "web.auth.account.manage_mfa": {
+    "text": "Administri Dufaktoran Aŭtentikigon"
+  },
+  "web.auth.account.manage_sessions": {
+    "text": "Administri Aktivajn Sesiojn"
+  },
+  "web.auth.account.change_password": {
+    "text": "Ŝanĝi Pasvorton"
+  },
+  "web.auth.account.close_account": {
+    "text": "Fermi Konton"
+  },
+  "web.help.title": {
+    "text": "Helpo kaj Subteno"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Ensaluta Problemsolvado"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Ĉu magia ligilo ne alvenas?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Kontrolu vian spaman aŭ rubaĵan dosierujon"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Kontrolu ke vi ĝuste enigis vian retpoŝtan adreson"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Atendu kelkajn minutojn - retpoŝtmesaĝoj foje povas malfruiĝi"
+  },
+  "web.help.try_again": {
+    "text": "Provu peti novan ligilon se pasis pli ol 10 minutoj"
+  },
+  "web.help.forgot_password": {
+    "text": "Ĉu vi forgesis vian pasvorton?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Uzu la Magian Ligilon por ensaluti sen pasvorto. Post ensaluto, vi povas ŝanĝi vian pasvorton en Kontaj Agordoj."
+  },
+  "web.help.account_locked": {
+    "text": "Ĉu konto provizore ŝlosita?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Post pluraj malsukcesaj ensalutaj provoj, kontoj estas provizore ŝlositaj pro sekureco. Atendu 15 minutojn kaj reprovu, aŭ uzu Magian Ligilon por ensaluti."
+  },
+  "web.help.still_need_help": {
+    "text": "Ankoraŭ bezonas helpon?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Se vi ankoraŭ havas problemojn, ni estas ĉi tie por helpi. Sendu al ni mesaĝon kaj ni respondos al vi kiel eble plej baldaŭ."
+  },
+  "web.help.contact_support": {
+    "text": "Kontakti Subtenon"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Retpoŝta konfirmfluo post registriĝo"
+  }
+}

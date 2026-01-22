@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Ricevita"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Ne ricevita"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Neniuj lastaj sekretoj"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Komencu kreante vian unuan sekreton."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Ne eblas ŝargi datumojn"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Estis problemo ŝargante viajn datumojn. Bonvolu reprovi."
+  }
+}

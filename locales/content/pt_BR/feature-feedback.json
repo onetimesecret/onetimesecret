@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Conteúdo de ajuda vai aqui."
+    "text": "O conteúdo de ajuda vai aqui."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Obrigado por ajudar o Onetime Secret a melhorar. Significa muito."
@@ -39,9 +39,15 @@
     "text": "Abrir formulário de feedback"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Insira seu feedback"
+    "text": "Digite seu feedback"
   },
   "web.feedback.send_feedback": {
     "text": "Enviar feedback"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Eu leio cada feedback que chega aqui. É assim que decido no que investir meu tempo."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Se algo está errado, ou você tem ideias sobre como deveria funcionar, este é o lugar certo."
   }
 }

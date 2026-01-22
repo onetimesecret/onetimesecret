@@ -9,7 +9,7 @@
     "text": "Hilf uns, besser zu werden"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Feedback-Modal schließen"
+    "text": "Feedback-Dialog schließen"
   },
   "web.feedback.share_your_feedback": {
     "text": "Teile dein Feedback"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Hilfeinhalt kommt hier hin."
+    "text": "Hilfeinhalte werden hier angezeigt."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Danke, dass du hilfst, Onetime Secret zu verbessern. Das bedeutet uns viel."
@@ -43,5 +43,11 @@
   },
   "web.feedback.send_feedback": {
     "text": "Feedback senden"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Ich lese jedes Feedback, das hier eingeht. So finde ich heraus, wofür ich meine Zeit verwenden sollte."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Wenn etwas nicht stimmt oder du Ideen hast, wie es besser funktionieren könnte, bist du hier genau richtig."
   }
 }

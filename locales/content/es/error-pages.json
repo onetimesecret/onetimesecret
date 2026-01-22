@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "¿Por qué no está disponible este secreto?"
+    "text": "¿Por qué este secreto no está disponible?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Los secretos están diseñados para ser vistos solo una vez. Es posible que este enlace ya haya sido accedido, haya expirado o haya sido eliminado manualmente por el remitente."
@@ -45,7 +45,7 @@
     "text": "{0} Algo salió mal"
   },
   "web.errors.go_share_a_secret": {
-    "text": "¡Ve a compartir un secreto!"
+    "text": "Ve a compartir un secreto"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "La página que buscas no existe o ha sido movida. ¡No te preocupes, le pasa a los mejores!"

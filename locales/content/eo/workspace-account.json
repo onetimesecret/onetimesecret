@@ -1,0 +1,479 @@
+{
+  "web.account.settings": {
+    "text": "Agordoj"
+  },
+  "web.account.change_password": {
+    "text": "Ŝanĝi Pasvorton"
+  },
+  "web.account.close_account": {
+    "text": "Fermi Konton"
+  },
+  "web.account.verify_account": {
+    "text": "Konfirmi Konton"
+  },
+  "web.account.subscription_title": {
+    "text": "Abono"
+  },
+  "web.account.manage_subscription": {
+    "text": "Administri Abonon"
+  },
+  "web.account.customer_information": {
+    "text": "Klientaj Informoj"
+  },
+  "web.account.customer_since": {
+    "text": "Kliento ekde:"
+  },
+  "web.account.email": {
+    "text": "Retpoŝto:"
+  },
+  "web.account.region": {
+    "text": "Regiono"
+  },
+  "web.account.account_balance": {
+    "text": "Saldo:"
+  },
+  "web.account.default_payment_method": {
+    "text": "Defaŭlta Pagmaniero"
+  },
+  "web.account.card_ending": {
+    "text": "finanta per"
+  },
+  "web.account.subscriptions_title": {
+    "text": "Abonoj"
+  },
+  "web.account.quantity": {
+    "text": "Kvanto:"
+  },
+  "web.account.next_billing_date": {
+    "text": "Sekva faktura dato:"
+  },
+  "web.account.changePassword.username": {
+    "text": "Uzantnomo"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "Nuna Pasvorto"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "Nova Pasvorto"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "Konfirmi"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "Ĝisdatigi Pasvorton"
+  },
+  "web.account.changePassword.updating": {
+    "text": "Ĝisdatigante..."
+  },
+  "web.account.timezone": {
+    "text": "Horzono"
+  },
+  "web.account.customer_id": {
+    "text": "Kliento-ID"
+  },
+  "web.account.account_id_customerid": {
+    "text": "Konto-ID"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "Kreis {0} sekretojn ekde {1}."
+  },
+  "web.account.delete_account": {
+    "text": "Forigi Konton"
+  },
+  "web.account.api_key": {
+    "text": "API-Ŝlosilo"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "Konto-tipo: {0}"
+  },
+  "web.account.your_account": {
+    "text": "Via Konto"
+  },
+  "web.account.support_details": {
+    "text": "Subtenaj Detaloj"
+  },
+  "web.account.back_to_details": {
+    "text": "Reen al Detaloj"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "Kliento-ID: {0}"
+  },
+  "web.account.token_generated": {
+    "text": "Ĵetono generita."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 Gardu ĉi tiun ĵetonon sekure! Ĝi donas plenan aliron al via konto."
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "Konfirmu per via pasvorto"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "Ĉu vi certas, ke vi volas porĉiame forigi vian konton? Ĉi tiu ago ne povas esti malfarita."
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "Konfirmi Konto-Forigon"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "Forigante {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "Porĉiame Forigi Konton"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "permanenta kaj ne reverskebla."
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "Forigi vian konton estas"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "forbruligu ilin antaŭ ol daŭrigi"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "Ajnajn sekretojn kiujn vi deziras forigi,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "Sekretoj restos aktivaj ĝis ili eksvalidiĝos."
+  },
+  "web.account.please_be_advised": {
+    "text": "Bonvolu noti:"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "Konto sukcese forigita."
+  },
+  "web.account.deactivate": {
+    "text": "Malaktivigi"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "Ĉu vi certas, ke vi volas malaktivigi vian konton? Ĉiuj viaj datumoj estos porĉiame forigitaj de niaj serviloj. Ĉi tiu ago ne povas esti malfarita."
+  },
+  "web.account.deactivate_account": {
+    "text": "Malaktivigi konton"
+  },
+  "web.settings.title": {
+    "text": "Agordoj"
+  },
+  "web.settings.description": {
+    "text": "Administru viajn kontajn agordojn kaj preferojn"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "Administru viajn kontoajn agordojn kaj preferojn"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Reen al Panelo"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fakturado"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Altnivelaj"
+  },
+  "web.settings.general": {
+    "text": "Ĝeneralaj"
+  },
+  "web.settings.preferences": {
+    "text": "Preferoj"
+  },
+  "web.settings.appearance": {
+    "text": "Aspekto"
+  },
+  "web.settings.theme.title": {
+    "text": "Etoso"
+  },
+  "web.settings.theme.description": {
+    "text": "Elekti helan aŭ malhelan etoson"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "Elekti helan aŭ malhelan etoson"
+  },
+  "web.settings.language.title": {
+    "text": "Lingvo"
+  },
+  "web.settings.language.description": {
+    "text": "Elekti vian preferatan lingvon"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "Elekti vian preferatan lingvon"
+  },
+  "web.settings.security_settings_description": {
+    "text": "Administru aŭtentikigon kaj kontan sekurecon"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "Administru viajn kontajn informojn"
+  },
+  "web.settings.profile.title": {
+    "text": "Profilo"
+  },
+  "web.settings.profile.change_email": {
+    "text": "Ŝanĝi Retpoŝtadreson"
+  },
+  "web.settings.profile.current_email": {
+    "text": "Nuna Retpoŝtadreso"
+  },
+  "web.settings.profile.current_password": {
+    "text": "Nuna Pasvorto"
+  },
+  "web.settings.profile.new_email": {
+    "text": "Nova Retpoŝtadreso"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "Enigu vian nunan pasvorton"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "Via pasvorto estas postulata por sekurecaj celoj"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "Kontrola retpoŝto estos sendita al la nova adreso"
+  },
+  "web.settings.profile.update_email": {
+    "text": "Ĝisdatigi Retpoŝtadreson"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "Ĝisdatigi la retpoŝtadreson asociitan kun via konto"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "Ĉiuj kampoj estas postulataj"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "Bonvolu enigi validan retpoŝtadreson"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "Nova retpoŝtadreso devas diferenci de la nuna retpoŝtadreso"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "Retpoŝtadreso sukcese ĝisdatigita. Bonvolu kontroli vian enirkeston por kontroli vian novan retpoŝtadreson."
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "Malsukcesis ĝisdatigi retpoŝtadreson. Bonvolu reprovi."
+  },
+  "web.settings.sessions.title": {
+    "text": "Aktivaj Sesioj"
+  },
+  "web.settings.sessions.description": {
+    "text": "Administri viajn aktivajn sesiojn"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "Administri viajn aktivajn sesiojn"
+  },
+  "web.settings.password.title": {
+    "text": "Pasvorto"
+  },
+  "web.settings.password.description": {
+    "text": "Ĝisdatigi vian kontan pasvorton"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "Ĝisdatigi vian kontan pasvorton"
+  },
+  "web.settings.delete_account.title": {
+    "text": "Forigi Konton"
+  },
+  "web.settings.delete_account.description": {
+    "text": "Porĉiam forigi vian konton kaj ĉiujn datumojn"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "Porĉiam forigi vian konton kaj ĉiujn datumojn"
+  },
+  "web.settings.security.security_score": {
+    "text": "Sekureca Poentaro"
+  },
+  "web.settings.security.score_description": {
+    "text": "Via ĝenerala konta sekureca sano"
+  },
+  "web.settings.security.excellent": {
+    "text": "Bonega"
+  },
+  "web.settings.security.good": {
+    "text": "Bona"
+  },
+  "web.settings.security.fair": {
+    "text": "Akceptebla"
+  },
+  "web.settings.security.weak": {
+    "text": "Malforta"
+  },
+  "web.settings.security.improve_security": {
+    "text": "Plibonigi vian sekurecon"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "Ebligi dufaktoran aŭtentikigon por pli forta protekto"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "Generi rekuperajn kodojn kiel rezervon"
+  },
+  "web.settings.security.configured": {
+    "text": "Agordita"
+  },
+  "web.settings.security.change": {
+    "text": "Ŝanĝi"
+  },
+  "web.settings.security.manage": {
+    "text": "Administri"
+  },
+  "web.settings.security.enable": {
+    "text": "Ebligi"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0} kodoj disponeblas"
+  },
+  "web.settings.security.no_codes": {
+    "text": "Neniuj kodoj generitaj"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0} aktiva sesio | {0} aktivaj sesioj"
+  },
+  "web.settings.security.best_practices": {
+    "text": "Plej Bonaj Sekurecaj Praktikoj"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "Uzi fortan, unikan pasvorton por via konto"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "Ebligi dufaktoran aŭtentikigon por plia protekto"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "Konservi viajn rekuperajn kodojn en sekura loko"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "Regule revizii kaj nuligi neuzatajn sesiojn"
+  },
+  "web.settings.security.view_details": {
+    "text": "Vidi detalojn"
+  },
+  "web.settings.api.title": {
+    "text": "API kaj Integriĝoj"
+  },
+  "web.settings.api.description": {
+    "text": "Administri API-ŝlosilojn kaj integriĝojn"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "Administri API-ŝlosilojn kaj integriĝojn"
+  },
+  "web.settings.api.documentation": {
+    "text": "API-Dokumentaro"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "Lernu kiel integri Onetime Secret en viajn aplikaĵojn"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "REST API Referenco"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "Kompleta API-dokumentaro kaj finpunktoj"
+  },
+  "web.settings.api.code_examples": {
+    "text": "Kodekzemploj"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "Ekzempla kodo kaj klientbibliotekoj"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "Plej Bonaj Sekurecaj Praktikoj"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "Neniam enmetu API-ŝlosilojn en versiokontrolo"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "Uzu mediajn variablojn por konservi API-ŝlosilojn"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "Rotaciu API-ŝlosilojn regule por sekureco"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "Ĉiam uzu HTTPS kiam vi faras API-petojn"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "Monitoru vian API-uzadon kaj agordu alarmojn"
+  },
+  "web.settings.api.important_notice": {
+    "text": "Grava Avizo"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "Regeneri vian API-ŝlosilon malvalidigos la nunan ŝlosilon. Ĝisdatigu ĉiujn aplikaĵojn uzantajn la malnovan ŝlosilon."
+  },
+  "web.settings.privacy.title": {
+    "text": "Privatecaj Agordoj"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "Administri viajn privatecajn preferojn"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "Via Privateco"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "Sendiskutebla"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "Ne agordo"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "Neniu analitiko. Neniu spurado. Punkto."
+  },
+  "web.settings.privacy.explanation": {
+    "text": "Ĉi tio ne estas agordo ĉar estas nenio por ŝalti aŭ malŝalti. Via privateco estas enkonstruita en kiel ni funkcias."
+  },
+  "web.settings.notifications.title": {
+    "text": "Sciigaj Agordoj"
+  },
+  "web.settings.notifications.description": {
+    "text": "Administri kiel vi ricevas sciigojn"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "Malsukcesis ĝisdatigi sciigan preferon. Bonvolu reprovi."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "Sciigoj pri Sekreta Montrado"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "Ricevi retpoŝton kiam iu vidas vian sekreton"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "Vi estos sciigita ĉiufoje kiam ricevanto montras unu el viaj sekretoj"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "Sciigaj retpoŝtoj inkluzivas nur la tempostampilon kaj sekretan identigilon. Informoj pri rigardanto neniam estas inkluzivitaj."
+  },
+  "web.settings.caution.title": {
+    "text": "Zono de Zorgema Konsidero"
+  },
+  "web.settings.caution.description": {
+    "text": "Altnivelaj agordoj kaj datumadministrado"
+  },
+  "web.settings.caution.data_export": {
+    "text": "Eksporto de Datumoj"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "Eksporti viajn kontajn datumojn"
+  },
+  "web.settings.caution.export_description": {
+    "text": "Peti kompletan kopion de viaj kontaj datumoj en maŝinlegebla formato"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "Peti Eksporton de Datumoj"
+  },
+  "web.settings.caution.export_info": {
+    "text": "Tempo de Eksporta Pritraktado"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "Eksportoj estas pritraktataj ene de 24 horoj kaj senditaj al via retpoŝtadreso"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "Forigo de via konto faros:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "Porĉiam forigi ĉiujn viajn sekretojn"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "Forigi ĉiujn sekretajn metadatumojn kaj historion"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "Malvalidigi ĉiujn API-ŝlosilojn"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "Ĉi tiu ago ne povas esti malfarita"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Forigante..."
+  }
+}

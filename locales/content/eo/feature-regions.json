@@ -3,16 +3,16 @@
     "text": "Datuma Suvereneco kaj Regiona Izolado"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Viaj datumoj troviĝas ekskluzive en via elektita regiono kaj neniam estas transdonitaj trans regionojn"
+    "text": "Viaj datumoj loĝas ekskluzive en via elektita regiono kaj neniam estas transdonitaj trans regionoj"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Ĉiu regiono funkcias kiel tute sendependa medio kun propra infrastrukturo, ĉifradaj ŝlosiloj kaj datuma stokado"
+    "text": "Ĉiu regiono funkcias kiel tute sendependa medio kun sia propra infrastrukturo, ĉifradaj ŝlosiloj kaj datumstokado"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Ni observas striktan politikon: klientaj datumoj neniam estas transdonitaj inter regionoj sub iaj ajn cirkonstancoj"
+    "text": "Ni konservas striktan politikon: klientaj datumoj neniam estas transdonitaj inter regionoj sub iuj ajn cirkonstancoj"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Grava: Ŝanĝo al alia regiono kreas novan konton. Viaj datumoj restas en via origina regiono."
+    "text": "Grava: Ŝanĝi al malsama regiono kreas novan konton. Viaj datumoj restas en via origina regiono."
   },
   "web.regions.your_region": {
     "text": "Via Regiono"
@@ -24,7 +24,7 @@
     "text": "Aktiva"
   },
   "web.regions.explore_other_regions": {
-    "text": "Esploru aliajn disponeblajn regionojn"
+    "text": "Esplori aliajn disponeblajn regionojn"
   },
   "web.regions.why_it_matters": {
     "text": "Kial Datuma Suvereneco Gravas"
@@ -33,34 +33,34 @@
     "text": "Travidebleco kaj Kontrolo"
   },
   "web.regions.trust_description": {
-    "text": "Sciu precize kie viaj datumoj troviĝas kaj kiuj leĝoj regas ilian protekton."
+    "text": "Sciu ekzakte kie viaj datumoj loĝas kaj kiuj leĝoj regas ilian protekton."
   },
   "web.regions.privacy_title": {
     "text": "Privatecaj Rajtoj"
   },
   "web.regions.privacy_description": {
-    "text": "Certigu, ke viaj personaj informoj estas traktataj laŭ la privatecaj leĝoj kaj regularoj de via lando, malhelpante neaŭtorizitan aliron aŭ misuzon."
+    "text": "Certigu ke viaj personaj informoj estas traktataj laŭ la privatecaj leĝoj kaj reguloj de via lando, malhelpi neaŭtorizitan aliron aŭ misuzon."
   },
   "web.regions.compliance_title": {
     "text": "Regulara Konformeco"
   },
   "web.regions.compliance_description": {
-    "text": "Konformu al GDPR, HIPAA, CCPA kaj aliaj regionaj datumprotektaj postuloj"
+    "text": "Plenumi GDPR, HIPAA, CCPA kaj aliajn regionajn datumprotektajn postulojn"
   },
   "web.regions.performance_title": {
     "text": "Pli Rapida Aliro"
   },
   "web.regions.performance_description": {
-    "text": "Datumoj stokitaj pli proksime al vi signifas malpli altan latentecon kaj pli bonan rendimenton."
+    "text": "Datumoj stokitaj pli proksime al vi signifas malpli altan latencon kaj pli bonan rendimenton."
   },
   "web.regions.regions": {
     "text": "Regionoj"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "kontaktu nian konformecan teamon"
+    "text": "kontakti nian konformecan teamon"
   },
   "web.regions.review_our_documentation": {
-    "text": "reviziu nian dokumentaron"
+    "text": "revizii nian dokumentaron"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Via konto kaj datumoj estas protektataj laŭ la leĝoj de"
@@ -96,6 +96,12 @@
     "text": "Nekonata Jurisdikcio"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Servante vin el"
+    "text": "Servas vin el"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Daŭrigi al {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Nuna jurisdikcio:"
   }
 }

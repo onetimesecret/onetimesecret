@@ -1,21 +1,21 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Kial ĉi tiu sekreto ne estas disponebla?"
+    "text": "Kial ĉi tiu sekreto estas nealirebla?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Sekretoj estas dizajnitaj por esti viditaj nur unufoje. Ĉi tiu ligilo eble jam estis alirita, eksvalidiĝis, aŭ estis permane forigita de la sendinto."
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Kion mi faru nun?"
+    "text": "Kion mi devus fari nun?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
     "text": "Kontaktu la personon kiu sendis al vi ĉi tiun ligilon kaj petu ilin krei novan sekreton. Sciigu ilin ke vi ne povis aliri la originalan informon."
   },
   "web.errors.warning_dismissed": {
-    "text": "Averto malakceptita"
+    "text": "Averto forigita"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Malakcepti averton pri tranĉo"
+    "text": "Forigi averton pri mallongigo"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Ho ve! La paĝo kiun vi serĉas ne ekzistas aŭ estis movita."
@@ -27,10 +27,10 @@
     "text": "404 - Paĝo Ne Trovita"
   },
   "web.errors.dismiss_warning": {
-    "text": "Malakcepti averton"
+    "text": "Forigi averton"
   },
   "web.errors.dismiss_notification": {
-    "text": "Malakcepti sciigon"
+    "text": "Forigi sciigon"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Se vi ne certas kion fari poste, bonvolu kontakti la personon kiu sendis al vi ĉi tiun ligilon por pliaj informoj."
@@ -45,7 +45,7 @@
     "text": "{0} Io misfunkciis"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Iru dividi sekreton!"
+    "text": "Iru kunhavigi sekreton!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "La paĝo kiun vi serĉas ne ekzistas aŭ estis movita. Ne zorgu, tio okazas al ĉiuj!"

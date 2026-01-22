@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Recebido"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Não Recebido"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Nenhuma mensagem confidencial recente"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Comece criando sua primeira mensagem confidencial."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Não foi possível carregar os dados"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Houve um problema ao carregar seus dados. Por favor, tente novamente."
+  }
+}

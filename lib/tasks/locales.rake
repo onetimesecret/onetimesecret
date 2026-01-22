@@ -5,7 +5,7 @@
 # Locale sync tasks
 #
 # The primary workflow for locale management is now:
-#   python locales/scripts/sync_to_src.py --all --merged
+#   python locales/scripts/build/compile.py --all --merged
 #
 # This generates pre-merged JSON files in generated/locales/ which
 # are consumed directly by the Ruby backend at boot time.
@@ -16,13 +16,13 @@
 namespace :locales do
   desc 'Generate merged locale files from content JSON (calls Python sync script)'
   task :sync do
-    script_path = File.join(Onetime::HOME, 'locales', 'scripts', 'sync_to_src.py')
+    script_path = File.join(Onetime::HOME, 'locales', 'scripts', 'build', 'compile.py')
     system('python3', script_path, '--all', '--merged') || exit(1)
   end
 
   desc 'Generate merged locale files (dry-run)'
   task :sync_dry_run do
-    script_path = File.join(Onetime::HOME, 'locales', 'scripts', 'sync_to_src.py')
+    script_path = File.join(Onetime::HOME, 'locales', 'scripts', 'build', 'compile.py')
     system('python3', script_path, '--all', '--merged', '--dry-run') || exit(1)
   end
 end

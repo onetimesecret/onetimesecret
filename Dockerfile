@@ -251,6 +251,7 @@ COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 # Copy application files
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/generated ./generated
 COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
 # Copy runtime files
@@ -259,7 +260,6 @@ COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
-COPY --chown=appuser:appuser templates ./templates
 COPY --chown=appuser:appuser scripts/entrypoint*.sh ./bin/
 COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
@@ -353,6 +353,7 @@ COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 # Copy application files (using --chown to avoid extra layer)
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/generated ./generated
 COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
 # Copy runtime files

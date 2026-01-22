@@ -1,18 +1,18 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Tus comentarios"
+    "text": "Tu opinión"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "¡Todos los comentarios son bienvenidos!"
+    "text": "¡Toda opinión es bienvenida!"
   },
   "web.feedback.help_us_improve": {
     "text": "Ayúdanos a mejorar"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Cerrar modal de comentarios"
+    "text": "Cerrar modal de opinión"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Comparte tus comentarios"
+    "text": "Comparte tu opinión"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -36,12 +36,18 @@
     "text": "Una nota de Delano, fundador de Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Abrir formulario de comentarios"
+    "text": "Abrir formulario de opinión"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Introduce tus comentarios"
+    "text": "Escribe tu opinión"
   },
   "web.feedback.send_feedback": {
-    "text": "Enviar comentarios"
+    "text": "Enviar opinión"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Leo cada opinión que llega por aquí. Es como decido en qué invertir mi tiempo."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Si algo no funciona bien, o tienes ideas sobre cómo debería funcionar, este es el lugar indicado."
   }
 }

@@ -1,4 +1,4 @@
-"""Tests for generate_tasks.py - translation task generation from locale comparison."""
+"""Tests for tasks/create.py - translation task generation from locale comparison."""
 
 import json
 import sqlite3
@@ -10,7 +10,7 @@ import pytest
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from generate_tasks import (
+from tasks.create import (
     TaskData,
     append_to_sql_file,
     compare_locale,
@@ -271,7 +271,7 @@ class TestTaskGeneration:
         today = date.today().isoformat()
 
         # We need to mock the module-level constants to use our test directories
-        import generate_tasks as gt
+        import tasks.create as gt
 
         original_src_locales = gt.SRC_LOCALES_DIR
         original_en_dir = gt.EN_DIR
@@ -303,7 +303,7 @@ class TestTaskGeneration:
         """Respects --batch flag with custom batch name."""
         custom_batch = "my-custom-batch"
 
-        import generate_tasks as gt
+        import tasks.create as gt
 
         original_src_locales = gt.SRC_LOCALES_DIR
         original_en_dir = gt.EN_DIR
@@ -368,7 +368,7 @@ class TestDryRun:
 
     def test_dry_run_does_not_write(self, mock_src_locales: Path, tmp_path: Path):
         """No file changes in dry-run mode."""
-        import generate_tasks as gt
+        import tasks.create as gt
 
         original_src_locales = gt.SRC_LOCALES_DIR
         original_en_dir = gt.EN_DIR
@@ -402,7 +402,7 @@ class TestDryRun:
 
     def test_dry_run_shows_task_count(self, mock_src_locales: Path, tmp_path: Path, capsys):
         """Reports what would be created in dry-run mode."""
-        import generate_tasks as gt
+        import tasks.create as gt
 
         original_src_locales = gt.SRC_LOCALES_DIR
         original_en_dir = gt.EN_DIR
@@ -471,7 +471,7 @@ class TestAppendToSqlFile:
 
     def test_appends_to_file(self, tmp_path: Path):
         """SQL statements are appended to existing file."""
-        import generate_tasks as gt
+        import tasks.create as gt
 
         original_tasks_file = gt.TASKS_FILE
 
@@ -495,7 +495,7 @@ class TestAppendToSqlFile:
 
     def test_creates_file_if_not_exists(self, tmp_path: Path):
         """Creates tasks.sql if it does not exist."""
-        import generate_tasks as gt
+        import tasks.create as gt
 
         original_tasks_file = gt.TASKS_FILE
 

@@ -1,0 +1,251 @@
+{
+  "web.footer.api_docs": {
+    "text": "Documentação da API"
+  },
+  "web.footer.branding_guide": {
+    "text": "Guia de Marca"
+  },
+  "web.footer.customize": {
+    "text": "Personalizar"
+  },
+  "web.footer.plans": {
+    "text": "Planos"
+  },
+  "web.footer.security": {
+    "text": "Segurança"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "Conheça nossas medidas de segurança"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "Consulte nossos Termos e Condições"
+  },
+  "web.footer.terms": {
+    "text": "Termos"
+  },
+  "web.footer.privacy": {
+    "text": "Privacidade"
+  },
+  "web.footer.contact": {
+    "text": "Contato"
+  },
+  "web.footer.support": {
+    "text": "Suporte"
+  },
+  "web.footer.legals": {
+    "text": "Informações Legais"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "Leia nossa Política de Privacidade"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "Verifique o status do nosso serviço"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "Explore nossa documentação de API"
+  },
+  "web.footer.docs": {
+    "text": "Documentação"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "Acesse nossa documentação"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "Veja nosso código-fonte no GitHub"
+  },
+  "web.footer.resources": {
+    "text": "Recursos"
+  },
+  "web.footer.blog": {
+    "text": "Blog"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "Leia nossas últimas publicações no blog"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "Veja nossos preços de assinatura"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "Conheça nossa empresa"
+  },
+  "web.footer.company": {
+    "text": "Empresa"
+  },
+  "web.navigation.billing": {
+    "text": "Faturamento"
+  },
+  "web.navigation.billingOverview": {
+    "text": "Visão Geral"
+  },
+  "web.navigation.organizations": {
+    "text": "Organizações"
+  },
+  "web.site.website_version": {
+    "text": "Versão do Site"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": "Estamos disponibilizando o {onetime-secret} em vários idiomas. Como este é um recurso novo, você pode encontrar erros de tradução ou frases estranhas. Seu feedback nos ajuda a melhorar - se você encontrar algum problema, por favor {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": "As traduções são novas. Encontrou um erro? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "Adicionamos traduções recentemente. Encontrou um erro? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": "Privacidade e segurança devem ser acessíveis a todos, independentemente do idioma. Estamos adicionando traduções para ajudar nossos usuários e os destinatários de suas mensagens a entender melhor como usar e acessar mensagens e links seguros com segurança. Como este é um recurso novo, você pode encontrar alguns erros de tradução ou instruções pouco claras. Para nos ajudar a melhorar a clareza e a precisão de nossas traduções, especialmente para conteúdo crítico relacionado à segurança, por favor {send-feedback} se você encontrar algum problema"
+  },
+  "web.help.learn_more": {
+    "text": "Saiba mais"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "O que estou vendo?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Você está visualizando uma mensagem segura que foi compartilhada com você através do Onetime Secret. Este conteúdo é exibido apenas uma vez e depois é permanentemente excluído dos nossos servidores."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "Posso ver esta mensagem confidencial novamente depois?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "Não. Por razões de segurança, esta mensagem confidencial só pode ser visualizada uma vez. Após fechar esta página, o conteúdo será permanentemente excluído e não poderá ser recuperado por ninguém, incluindo nós."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "Como salvo esta informação?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "Use o botão 'Copiar para Área de Transferência' para copiar toda a mensagem confidencial. Para mensagens mais longas, verifique se você copiou o conteúdo completo antes de sair desta página."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "Minha visualização desta mensagem confidencial é rastreada?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "O remetente será notificado de que sua mensagem confidencial foi visualizada, mas não rastreamos quem a visualizou nem de qual localização. Sua privacidade está protegida."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "Quando você sair ou atualizar esta página, esta mensagem confidencial será permanentemente excluída e não poderá ser recuperada por ninguém."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "Voltar para a página anterior"
+  },
+  "web.layout.site_footer": {
+    "text": "Rodapé do site"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "Alternar modo escuro"
+  },
+  "web.layout.provide_feedback": {
+    "text": "Enviar feedback"
+  },
+  "web.layout.company_logo": {
+    "text": "Logo da empresa"
+  },
+  "web.layout.brand_logo": {
+    "text": "Logo da marca"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "Navegação do Painel"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "Navegação Mobile"
+  },
+  "web.layout.main_navigation": {
+    "text": "Navegação Principal"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "{count} itens"
+  },
+  "web.layout.release_notes": {
+    "text": "Notas de Versão"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "Carregando conteúdo das configurações..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "Seções de configurações"
+  },
+  "web.layout.close_settings": {
+    "text": "Fechar configurações"
+  },
+  "web.layout.settings_sections": {
+    "text": "Seções de configurações"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": "Personalize suas preferências e configurações do aplicativo"
+  },
+  "web.layout.return_home": {
+    "text": "Voltar para início"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "Voltar para a página inicial"
+  },
+  "web.layout.return_to_home": {
+    "text": "Voltar para Início"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "Ver Política de Privacidade"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "Ver Termos de Serviço"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Visitar página inicial do Onetime Secret"
+  },
+  "web.layout.footer_navigation": {
+    "text": "Navegação do rodapé"
+  },
+  "web.layout.terms_of_service": {
+    "text": "Termos de Serviço"
+  },
+  "web.layout.privacy_policy": {
+    "text": "Política de Privacidade"
+  },
+  "web.layout.icon_library": {
+    "text": "Biblioteca de Ícones"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "Ver código-fonte no GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "Versão do Site: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "Alterar idioma. Idioma atual é {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "Idioma alterado para {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "Mudar para modo {0}"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "Modo {0} ativado"
+  },
+  "web.layout.workspace": {
+    "text": "Área de Trabalho"
+  },
+  "web.layout.workspace_context": {
+    "text": "Contexto da área de trabalho"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quando você enviar feedback, veremos:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Redefinir para {0}"
+  }
+}

@@ -3,7 +3,7 @@
     "text": "[Ticket: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "Um cliente te enviou a seguinte informação"
+    "text": "Um cliente enviou as seguintes informações"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} enviou uma mensagem confidencial para você"
@@ -15,19 +15,19 @@
     "text": "Importante:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Este link funcionará apenas uma vez. Após visualizar, a mensagem será excluída permanentemente."
+    "text": "Este link funcionará apenas uma vez. Após a visualização, a mensagem confidencial será excluída permanentemente."
   },
   "email.secret_link.sent_via": {
     "text": "Enviado via"
   },
   "email.welcome.subject": {
-    "text": "Verifique sua conta Onetime Secret"
+    "text": "Bem-vindo ao %{product_name} - Por favor, verifique seu e-mail"
   },
   "email.welcome.title": {
-    "text": "Você foi convidado para participar de %{product_name}!"
+    "text": "Bem-vindo ao %{product_name}!"
   },
   "email.welcome.verify_prompt": {
-    "text": "Verifique seu endereço de e-mail clicando no link abaixo:"
+    "text": "Por favor, verifique seu endereço de e-mail clicando no link abaixo:"
   },
   "email.welcome.verify_button": {
     "text": "Verificar Endereço de E-mail"
@@ -39,13 +39,13 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Este e-mail foi enviado para %{email_address}. Se você não estava esperando este convite, pode ignorar esta mensagem com segurança."
+    "text": "P.S. Este e-mail foi enviado para %{email_address}. Se você não criou uma conta, pode ignorar esta mensagem com segurança."
   },
   "email.password_request.subject": {
-    "text": "Redefinir sua senha (%{display_domain})"
+    "text": "Redefina sua senha (%{display_domain})"
   },
   "email.password_request.title": {
-    "text": "Redefinir Sua Senha"
+    "text": "Redefina Sua Senha"
   },
   "email.password_request.request_notice": {
     "text": "Recebemos uma solicitação para redefinir sua senha do %{product_name}."
@@ -57,7 +57,7 @@
     "text": "Ou copie e cole este link:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Se você não solicitou uma redefinição de senha, pode ignorar este e-mail com segurança."
+    "text": "Se você não solicitou a redefinição de senha, pode ignorar este e-mail com segurança."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -72,7 +72,7 @@
     "text": "Entrar com Link Mágico"
   },
   "email.magic_link.request_notice": {
-    "text": "Você solicitou um link de acesso para sua conta %{product_name}."
+    "text": "Você solicitou um link de login para sua conta %{product_name}."
   },
   "email.magic_link.login_button": {
     "text": "Entrar"
@@ -81,7 +81,7 @@
     "text": "Ou copie e cole este link:"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Este link expira em 15 minutos."
+    "text": "Este link vai expirar em 15 minutos."
   },
   "email.magic_link.ignore_notice": {
     "text": "Se você não solicitou este link, pode ignorar este e-mail com segurança."
@@ -99,19 +99,19 @@
     "text": "Você recebeu uma mensagem segura:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Observação:"
+    "text": "Nota:"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Alguém enviou uma mensagem segura para você através de %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Para visualizar esta mensagem confidencial, clique no link abaixo:"
+    "text": "Para ver esta mensagem confidencial, clique no link abaixo:"
   },
   "email.incoming_secret.important_label": {
     "text": "Importante:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Este link funcionará apenas uma vez. Após visualizar, a mensagem será excluída permanentemente."
+    "text": "Este link funcionará apenas uma vez. Após a visualização, a mensagem confidencial será permanentemente excluída."
   },
   "email.incoming_secret.sent_via": {
     "text": "Enviado via"
@@ -141,28 +141,28 @@
     "text": "Para gerenciar suas preferências de notificação:"
   },
   "email.expiration_warning.subject": {
-    "text": "Seu link de mensagem confidencial expirará em breve"
+    "text": "Seu link da mensagem confidencial vai expirar em breve"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Seu link de mensagem confidencial expirará em %{time_remaining}"
+    "text": "Seu link da mensagem confidencial vai expirar em %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
-    "text": "Visualize sua mensagem confidencial antes que expire"
+    "text": "Ver sua mensagem confidencial antes de expirar"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Lembrete:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Após a expiração, a mensagem será excluída permanentemente e não poderá ser recuperada."
+    "text": "Após a expiração, a mensagem confidencial será permanentemente excluída e não poderá ser recuperada."
   },
   "email.expiration_warning.sent_via": {
     "text": "Enviado via"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Visualize antes que desapareça:"
+    "text": "Veja antes que desapareça:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Após a expiração, a mensagem será excluída permanentemente."
+    "text": "Após a expiração, a mensagem confidencial será permanentemente excluída."
   },
   "email.feedback_email.subject": {
     "text": "Feedback em %{date} via %{display_domain} (%{strategy})"
@@ -186,13 +186,13 @@
     "text": "Suporte Secret"
   },
   "email.organization_invitation.subject": {
-    "text": "Você foi convidado para participar de %{organization_name}"
+    "text": "Você foi convidado para se juntar a %{organization_name}"
   },
   "email.organization_invitation.title": {
-    "text": "Você foi convidado para participar de %{organization_name}!"
+    "text": "Você foi convidado para se juntar a %{organization_name}!"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} convidou você para participar de \"%{organization_name}\" como %{role_description}."
+    "text": "%{inviter_email} convidou você para se juntar a \"%{organization_name}\" como %{role_description}."
   },
   "email.organization_invitation.accept_button": {
     "text": "Aceitar Convite"
@@ -201,10 +201,10 @@
     "text": "Ou copie e cole este link:"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Este convite expirará em %{days} dias."
+    "text": "Este convite vai expirar em %{days} dias."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Se você não deseja participar, simplesmente ignore este e-mail ou recuse o convite."
+    "text": "Se você não quiser participar, pode simplesmente ignorar este e-mail ou recusar o convite."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
@@ -213,10 +213,10 @@
     "text": "P.S. Este e-mail foi enviado para %{invited_email}. Se você não estava esperando este convite, pode ignorar esta mensagem com segurança."
   },
   "email.organization_invitation.roles.member": {
-    "text": "membro"
+    "text": "um membro"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "administrador"
+    "text": "um administrador"
   },
   "email.password_changed.subject": {
     "text": "Sua senha foi alterada (%{display_domain})"
@@ -228,7 +228,7 @@
     "text": "Sua senha do %{product_name} foi alterada em %{date} às %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Se você não fez esta alteração, proteja sua conta imediatamente redefinindo sua senha e entrando em contato com o suporte."
+    "text": "Se você não fez essa alteração, proteja sua conta imediatamente redefinindo sua senha e entrando em contato com o suporte."
   },
   "email.password_changed.signature": {
     "text": "Delano"
@@ -255,7 +255,7 @@
     "text": "Verifique Seu Novo Endereço de E-mail"
   },
   "email.email_change_confirmation.body": {
-    "text": "Verifique este endereço de e-mail para concluir a alteração da sua conta %{product_name}."
+    "text": "Por favor, verifique este endereço de e-mail para concluir a alteração em sua conta %{product_name}."
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Verificar Endereço de E-mail"
@@ -276,7 +276,7 @@
     "text": "A autenticação de dois fatores foi ativada para sua conta %{product_name} em %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Sua conta agora está mais segura. Você precisará inserir um código de verificação do seu aplicativo autenticador ao fazer login."
+    "text": "Sua conta agora está mais segura. Você precisará inserir um código de verificação do seu aplicativo autenticador ao entrar."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
@@ -297,13 +297,13 @@
     "text": "Delano"
   },
   "email.new_login_alert.subject": {
-    "text": "Novo login na sua conta (%{display_domain})"
+    "text": "Novo login em sua conta (%{display_domain})"
   },
   "email.new_login_alert.title": {
     "text": "Novo Login Detectado"
   },
   "email.new_login_alert.body": {
-    "text": "Um novo login na sua conta %{product_name} foi detectado em %{date} às %{time}."
+    "text": "Um novo login em sua conta %{product_name} foi detectado em %{date} às %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "Dispositivo:"
@@ -336,19 +336,19 @@
     "text": "Delano"
   },
   "email.role_changed.subject": {
-    "text": "Seu cargo foi alterado em %{organization_name}"
+    "text": "Sua função foi alterada em %{organization_name}"
   },
   "email.role_changed.title": {
-    "text": "Seu Cargo Foi Alterado"
+    "text": "Sua Função Foi Alterada"
   },
   "email.role_changed.body": {
-    "text": "Seu cargo em \"%{organization_name}\" foi alterado de %{old_role} para %{new_role}."
+    "text": "Sua função em \"%{organization_name}\" foi alterada de %{old_role} para %{new_role}."
   },
   "email.role_changed.signature": {
     "text": "Delano"
   },
   "email.organization_deleted.subject": {
-    "text": "A organização \"%{organization_name}\" foi excluída"
+    "text": "Organização \"%{organization_name}\" foi excluída"
   },
   "email.organization_deleted.title": {
     "text": "Organização Excluída"
@@ -360,13 +360,13 @@
     "text": "Delano"
   },
   "email.payment_receipt.subject": {
-    "text": "Recibo de pagamento do %{product_name}"
+    "text": "Recibo de pagamento para %{product_name}"
   },
   "email.payment_receipt.title": {
     "text": "Recibo de Pagamento"
   },
   "email.payment_receipt.body": {
-    "text": "Obrigado pelo seu pagamento. Aqui estão os detalhes do seu pagamento:"
+    "text": "Obrigado pelo seu pagamento. Aqui estão os detalhes do pagamento:"
   },
   "email.payment_receipt.amount_label": {
     "text": "Valor:"
@@ -384,13 +384,13 @@
     "text": "Delano"
   },
   "email.payment_failed.subject": {
-    "text": "Falha no pagamento do %{product_name}"
+    "text": "Pagamento falhou para %{product_name}"
   },
   "email.payment_failed.title": {
-    "text": "Falha no Pagamento"
+    "text": "Pagamento Falhou"
   },
   "email.payment_failed.body": {
-    "text": "Não conseguimos processar seu pagamento do %{product_name}. Atualize seu método de pagamento para evitar interrupção do serviço."
+    "text": "Não foi possível processar seu pagamento para o %{product_name}. Por favor, atualize seu método de pagamento para evitar interrupção do serviço."
   },
   "email.payment_failed.update_payment_button": {
     "text": "Atualizar Método de Pagamento"
@@ -399,13 +399,13 @@
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "Sua avaliação do %{product_name} expira em %{days_remaining} dias"
+    "text": "Seu teste do %{product_name} expira em %{days_remaining} dias"
   },
   "email.trial_expiring.title": {
-    "text": "Sua Avaliação Está Terminando em Breve"
+    "text": "Seu Período de Teste Está Terminando"
   },
   "email.trial_expiring.body": {
-    "text": "Sua avaliação gratuita do %{product_name} expirará em %{days_remaining} dias. Faça upgrade agora para manter acesso a todos os recursos."
+    "text": "Seu teste gratuito do %{product_name} expirará em %{days_remaining} dias. Faça o upgrade agora para manter acesso a todos os recursos."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Fazer Upgrade Agora"

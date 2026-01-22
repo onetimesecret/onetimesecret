@@ -1,6 +1,6 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Soberanía de Datos y Aislamiento Regional"
+    "text": "Soberanía de datos y aislamiento regional"
   },
   "web.regions.data_sovereignty_description": {
     "text": "Tus datos residen exclusivamente en tu región elegida y nunca se transfieren entre regiones"
@@ -9,16 +9,16 @@
     "text": "Cada región opera como un entorno completamente independiente con su propia infraestructura, claves de cifrado y almacenamiento de datos"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Mantenemos una política estricta: los datos de los clientes nunca se transfieren entre regiones bajo ninguna circunstancia"
+    "text": "Mantenemos una política estricta: los datos de clientes nunca se transfieren entre regiones bajo ninguna circunstancia"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Importante: Cambiar a una región diferente crea una nueva cuenta. Tus datos permanecen en tu región original."
+    "text": "Importante: Cambiar a una región diferente crea una cuenta nueva. Tus datos permanecen en tu región original."
   },
   "web.regions.your_region": {
-    "text": "Tu Región"
+    "text": "Tu región"
   },
   "web.regions.your_current_region": {
-    "text": "Tu Región Actual"
+    "text": "Tu región actual"
   },
   "web.regions.active": {
     "text": "Activa"
@@ -27,31 +27,31 @@
     "text": "Explorar otras regiones disponibles"
   },
   "web.regions.why_it_matters": {
-    "text": "Por Qué Importa la Soberanía de Datos"
+    "text": "Por qué importa la soberanía de datos"
   },
   "web.regions.trust_title": {
-    "text": "Transparencia y Control"
+    "text": "Transparencia y control"
   },
   "web.regions.trust_description": {
-    "text": "Saber exactamente dónde residen tus datos y qué leyes rigen su protección."
+    "text": "Sabe exactamente dónde residen tus datos y qué leyes rigen su protección."
   },
   "web.regions.privacy_title": {
-    "text": "Derechos de Privacidad"
+    "text": "Derechos de privacidad"
   },
   "web.regions.privacy_description": {
-    "text": "Asegurar que tu información personal se maneje de acuerdo con las leyes y regulaciones de privacidad de tu país, previniendo el acceso no autorizado o el mal uso."
+    "text": "Asegura que tu información personal sea manejada según las leyes de privacidad de tu país, previniendo accesos no autorizados o mal uso."
   },
   "web.regions.compliance_title": {
-    "text": "Cumplimiento Normativo"
+    "text": "Cumplimiento normativo"
   },
   "web.regions.compliance_description": {
-    "text": "Cumplir con GDPR, HIPAA, CCPA y otros requisitos regionales de protección de datos"
+    "text": "Cumple con GDPR, HIPAA, CCPA y otros requisitos regionales de protección de datos"
   },
   "web.regions.performance_title": {
-    "text": "Acceso Más Rápido"
+    "text": "Acceso más rápido"
   },
   "web.regions.performance_description": {
-    "text": "Los datos almacenados más cerca de ti significan menor latencia y mejor rendimiento."
+    "text": "Datos almacenados más cerca de ti significa menor latencia y mejor rendimiento."
   },
   "web.regions.regions": {
     "text": "Regiones"
@@ -81,7 +81,7 @@
     "text": "{0} {1}"
   },
   "web.regions.available_regions": {
-    "text": "Regiones Disponibles"
+    "text": "Regiones disponibles"
   },
   "web.regions.jurisdiction": {
     "text": "Jurisdicción"
@@ -90,10 +90,10 @@
     "text": "Ubicación del centro de datos: {0}"
   },
   "web.regions.data_region": {
-    "text": "Región de Datos"
+    "text": "Región de datos"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Jurisdicción Desconocida"
+    "text": "Jurisdicción desconocida"
   },
   "web.regions.serving_you_from_the": {
     "text": "Sirviéndote desde"

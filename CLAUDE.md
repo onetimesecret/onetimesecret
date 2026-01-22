@@ -10,6 +10,7 @@ Pull requests target `develop` branch, unless otherwise specified.
 1. **Research First**: Read files, understand patterns, plan before coding
 2. **TDD**: Write tests → fail → implement → pass → commit
 3. **Validate**: Test suite → type-check → lint → accessibility
+4. **Script-First for Bulk Ops**: When a plan calls for scripts (file moves, renames, migrations), create the script, stop, wait for review - do NOT execute directly
 
 ## Code Style (Non-Negotiable)
 - **Vue**: Composition API `<script setup lang="ts">`, Pinia stores, i18n `$t()`

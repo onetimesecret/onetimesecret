@@ -1,9 +1,9 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Support: %s]"
+    "text": "[Ticket : %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "Un client a soumis la demande suivante"
+    "text": "Un client a envoyé les informations suivantes"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} vous a envoyé un secret"
@@ -21,10 +21,10 @@
     "text": "Envoyé via"
   },
   "email.welcome.subject": {
-    "text": "Vérification de votre compte Onetime-Secret"
+    "text": "Bienvenue sur %{product_name} - Veuillez vérifier votre e-mail"
   },
   "email.welcome.title": {
-    "text": "Vous avez été invité à rejoindre %{product_name} !"
+    "text": "Bienvenue sur %{product_name} !"
   },
   "email.welcome.verify_prompt": {
     "text": "Veuillez vérifier votre adresse e-mail en cliquant sur le lien ci-dessous :"
@@ -39,13 +39,13 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address}. Si vous n'attendiez pas cette invitation, vous pouvez ignorer ce message en toute sécurité."
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address}. Si vous n'avez pas créé de compte, vous pouvez ignorer ce message en toute sécurité."
   },
   "email.password_request.subject": {
-    "text": "Réinitialisez votre mot de passe (%{display_domain})"
+    "text": "Réinitialiser votre mot de passe (%{display_domain})"
   },
   "email.password_request.title": {
-    "text": "Réinitialisez votre mot de passe"
+    "text": "Réinitialiser votre mot de passe"
   },
   "email.password_request.request_notice": {
     "text": "Nous avons reçu une demande de réinitialisation de votre mot de passe pour %{product_name}."
@@ -66,7 +66,7 @@
     "text": "P.S. Cet e-mail a été envoyé à %{email_address}."
   },
   "email.magic_link.subject": {
-    "text": "Se connecter à %{display_domain}"
+    "text": "Connexion à %{display_domain}"
   },
   "email.magic_link.title": {
     "text": "Connexion avec lien magique"
@@ -90,7 +90,7 @@
     "text": "Delano"
   },
   "email.magic_link.postscript": {
-    "text": "P.-S. Cet e-mail a été envoyé à %{email_address}."
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address}."
   },
   "email.incoming_secret.subject": {
     "text": "Vous avez reçu un message secret"
@@ -105,7 +105,7 @@
     "text": "Quelqu'un vous a envoyé un message sécurisé via %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Pour consulter ce secret, cliquez sur le lien ci-dessous :"
+    "text": "Pour voir ce secret, cliquez sur le lien ci-dessous :"
   },
   "email.incoming_secret.important_label": {
     "text": "Important :"
@@ -141,13 +141,13 @@
     "text": "Pour gérer vos préférences de notification :"
   },
   "email.expiration_warning.subject": {
-    "text": "Votre lien secret expirera bientôt"
+    "text": "Votre lien secret va bientôt expirer"
   },
   "email.expiration_warning.expires_in": {
     "text": "Votre lien secret expirera dans %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
-    "text": "Consultez votre secret avant qu'il n'expire"
+    "text": "Voir votre secret avant qu'il n'expire"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Rappel :"
@@ -165,10 +165,10 @@
     "text": "Après expiration, le secret sera définitivement supprimé."
   },
   "email.feedback_email.subject": {
-    "text": "Commentaires du %{date} via %{display_domain} (%{strategy})"
+    "text": "Commentaire le %{date} via %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
-    "text": "Commentaires de l'utilisateur"
+    "text": "Commentaire utilisateur"
   },
   "email.feedback_email.from_label": {
     "text": "De :"
@@ -183,7 +183,7 @@
     "text": "Message :"
   },
   "email.feedback_email.signature": {
-    "text": "Support Secret"
+    "text": "Support des secrets"
   },
   "email.organization_invitation.subject": {
     "text": "Vous avez été invité à rejoindre %{organization_name}"
@@ -204,7 +204,7 @@
     "text": "Cette invitation expirera dans %{days} jours."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Si vous ne souhaitez pas rejoindre l'organisation, vous pouvez simplement ignorer cet e-mail ou refuser l'invitation."
+    "text": "Si vous ne souhaitez pas rejoindre l'organisation, vous pouvez simplement ignorer cet e-mail ou décliner l'invitation."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
@@ -228,7 +228,7 @@
     "text": "Votre mot de passe pour %{product_name} a été modifié le %{date} à %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Si vous n'avez pas effectué ce changement, veuillez sécuriser votre compte immédiatement en réinitialisant votre mot de passe et en contactant le support."
+    "text": "Si vous n'avez pas effectué cette modification, veuillez sécuriser votre compte immédiatement en réinitialisant votre mot de passe et en contactant le support."
   },
   "email.password_changed.signature": {
     "text": "Delano"
@@ -240,10 +240,10 @@
     "text": "Votre adresse e-mail a été modifiée"
   },
   "email.email_changed.body": {
-    "text": "L'adresse e-mail de votre compte %{product_name} a été changée en %{new_email_masked} le %{date}."
+    "text": "L'adresse e-mail de votre compte %{product_name} a été modifiée en %{new_email_masked} le %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Si vous n'avez pas effectué ce changement, veuillez contacter le support immédiatement car votre compte pourrait être compromis."
+    "text": "Si vous n'avez pas effectué cette modification, veuillez contacter immédiatement le support car votre compte pourrait être compromis."
   },
   "email.email_changed.signature": {
     "text": "Delano"
@@ -255,7 +255,7 @@
     "text": "Vérifiez votre nouvelle adresse e-mail"
   },
   "email.email_change_confirmation.body": {
-    "text": "Veuillez vérifier cette adresse e-mail pour finaliser le changement de votre compte %{product_name}."
+    "text": "Veuillez vérifier cette adresse e-mail pour finaliser la modification de votre compte %{product_name}."
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Vérifier l'adresse e-mail"
@@ -291,7 +291,7 @@
     "text": "L'authentification à deux facteurs a été désactivée pour votre compte %{product_name} le %{date}."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Votre compte est maintenant moins sécurisé. Si vous n'avez pas effectué ce changement, veuillez sécuriser votre compte immédiatement."
+    "text": "Votre compte est maintenant moins sécurisé. Si vous n'avez pas effectué cette modification, veuillez sécuriser votre compte immédiatement."
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
@@ -378,7 +378,7 @@
     "text": "Forfait :"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Consulter la facture"
+    "text": "Voir la facture"
   },
   "email.payment_receipt.signature": {
     "text": "Delano"
@@ -390,22 +390,22 @@
     "text": "Échec du paiement"
   },
   "email.payment_failed.body": {
-    "text": "Nous n'avons pas pu traiter votre paiement pour %{product_name}. Veuillez mettre à jour votre mode de paiement pour éviter toute interruption de service."
+    "text": "Nous n'avons pas pu traiter votre paiement pour %{product_name}. Veuillez mettre à jour votre moyen de paiement pour éviter une interruption de service."
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Mettre à jour le mode de paiement"
+    "text": "Mettre à jour le moyen de paiement"
   },
   "email.payment_failed.signature": {
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "Votre essai de %{product_name} expire dans %{days_remaining} jours"
+    "text": "Votre période d'essai %{product_name} expire dans %{days_remaining} jours"
   },
   "email.trial_expiring.title": {
-    "text": "Votre essai se termine bientôt"
+    "text": "Votre période d'essai se termine bientôt"
   },
   "email.trial_expiring.body": {
-    "text": "Votre essai gratuit de %{product_name} expirera dans %{days_remaining} jours. Passez à un forfait payant maintenant pour conserver l'accès à toutes les fonctionnalités."
+    "text": "Votre période d'essai gratuite de %{product_name} expirera dans %{days_remaining} jours. Mettez à niveau maintenant pour conserver l'accès à toutes les fonctionnalités."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Mettre à niveau maintenant"
@@ -414,16 +414,16 @@
     "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "Votre abonnement à %{product_name} a été modifié"
+    "text": "Votre abonnement %{product_name} a été modifié"
   },
   "email.subscription_changed.title": {
     "text": "Abonnement modifié"
   },
   "email.subscription_changed.body": {
-    "text": "Votre abonnement à %{product_name} a été changé de %{old_plan} à %{new_plan}."
+    "text": "Votre abonnement %{product_name} a été modifié de %{old_plan} à %{new_plan}."
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ce changement prend effet le %{date}."
+    "text": "Cette modification est effective à partir du %{date}."
   },
   "email.subscription_changed.signature": {
     "text": "Delano"
@@ -432,13 +432,13 @@
     "text": "Bonjour,"
   },
   "email.common.thanks": {
-    "text": "Cordialement,"
+    "text": "Merci,"
   },
   "email.common.unsubscribe": {
     "text": "Se désabonner"
   },
   "email.common.view_in_browser": {
-    "text": "Afficher dans le navigateur"
+    "text": "Voir dans le navigateur"
   },
   "email.common.onetime_secret": {
     "text": "Onetime Secret"

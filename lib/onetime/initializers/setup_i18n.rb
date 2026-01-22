@@ -26,6 +26,7 @@ module Onetime
 
       def execute(_context)
         # Add JSON backend support to I18n
+        OT.ld '[init] Including JsonBackend module in I18n::Backend::Simple'
         I18n::Backend::Simple.include(JsonBackend)
         I18n::Backend::Simple.include(I18n::Backend::Fallbacks)
 
@@ -41,6 +42,13 @@ module Onetime
 
         # Load JSON files from generated/locales
         load_json_locales
+
+        # Force reload to ensure translations are loaded with our custom JsonBackend.
+        # Without this, I18n may have already loaded files with the default load_json
+        # method (which doesn't wrap data with locale key from filename).
+        OT.ld '[init] Forcing I18n backend reload to apply JsonBackend'
+        I18n.backend.reload!
+        OT.ld "[init] I18n backend reloaded, translations initialized: #{I18n.backend.initialized?}"
 
         OT.ld "[init] I18n configured: default=#{I18n.default_locale}, " \
               "available=#{I18n.available_locales}, " \
@@ -87,13 +95,23 @@ module Onetime
         # @return [Array<Hash, Boolean>] Tuple of [translations_hash, keys_symbolized]
         #
         def load_json(filename)
-          data = JSON.parse(File.read(filename))
+          # Defense in depth: validate path before reading to prevent traversal
+          locales_dir   = File.join(Onetime::HOME, 'generated', 'locales')
+          expanded_path = File.expand_path(filename)
+          unless expanded_path.start_with?(locales_dir + File::SEPARATOR)
+            raise I18n::InvalidLocaleData.new(filename, 'path outside allowed locales directory')
+          end
+
+          data = JSON.parse(File.read(expanded_path))
 
           # Infer locale from filename: generated/locales/en.json -> "en"
-          locale = File.basename(filename, '.json')
+          locale = File.basename(expanded_path, '.json')
 
           # If data doesn't have locale key at top level, wrap it
-          data = { locale => data } unless data.key?(locale)
+          wrapped = !data.key?(locale)
+          data    = { locale => data } if wrapped
+
+          OT.ld "[i18n] Loaded #{filename} (locale=#{locale}, wrapped=#{wrapped}, keys=#{data[locale]&.keys&.size || 0})"
 
           # Return tuple: [data, keys_symbolized]
           # keys_symbolized=false because we're using string keys like YAML

@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Empfangen"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Nicht empfangen"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Keine aktuellen Nachrichten"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Beginne, indem du deine erste Nachricht erstellst."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Daten konnten nicht geladen werden"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Beim Laden deiner Daten ist ein Problem aufgetreten. Bitte versuche es erneut."
+  }
+}

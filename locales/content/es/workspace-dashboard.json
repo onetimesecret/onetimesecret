@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Recibido"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "No recibido"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Sin secretos recientes"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Comienza creando tu primer secreto."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "No se pudieron cargar los datos"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Hubo un problema al cargar tus datos. Por favor, inténtalo de nuevo."
+  }
+}

@@ -5,28 +5,10 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
     applied_at TEXT DEFAULT (datetime('now'))
 );
 
--- Legacy per-key task table (used by hydrate_from_json for historical data)
-CREATE TABLE IF NOT EXISTS translation_tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    batch TEXT NOT NULL,              -- '2026-01-11' groups related work
-    locale TEXT NOT NULL,
-    file TEXT NOT NULL,               -- 'auth.json'
-    key TEXT NOT NULL,                -- 'web.auth.security.rate_limited'
-    source TEXT,                      -- Source language text (NULL when status=source)
-    text TEXT,                        -- Message content (translation, or source text when status=source)
-    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'completed', 'skipped', 'error', 'source')),
-    notes TEXT,                       -- translator notes, errors
-    created_at TEXT DEFAULT (datetime('now')),
-    completed_at TEXT,
-    UNIQUE(locale, file, key)
-);
-
-CREATE INDEX IF NOT EXISTS idx_locale_status ON translation_tasks(locale, status);
-CREATE INDEX IF NOT EXISTS idx_batch ON translation_tasks(batch);
-
--- Level-based task table (groups sibling keys by parent path)
+-- Translation tasks table (groups sibling keys by parent path)
 -- A "level" is a parent path, e.g., web.COMMON.buttons groups submit, cancel, etc.
-CREATE TABLE IF NOT EXISTS level_tasks (
+-- This consolidates the former level_tasks table as the primary workflow table.
+CREATE TABLE IF NOT EXISTS translation_tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     file TEXT NOT NULL,               -- 'auth.json'
     level_path TEXT NOT NULL,         -- 'web.COMMON.buttons' (parent path)
@@ -41,8 +23,8 @@ CREATE TABLE IF NOT EXISTS level_tasks (
     UNIQUE(file, level_path, locale)
 );
 
-CREATE INDEX IF NOT EXISTS idx_level_locale_status ON level_tasks(locale, status);
-CREATE INDEX IF NOT EXISTS idx_level_file ON level_tasks(file);
+CREATE INDEX IF NOT EXISTS idx_tasks_locale_status ON translation_tasks(locale, status);
+CREATE INDEX IF NOT EXISTS idx_tasks_file ON translation_tasks(file);
 
 -- Glossary table: translation decisions and terminology for each locale
 -- Captures choices made during translation sessions for consistency
