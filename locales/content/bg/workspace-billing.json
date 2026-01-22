@@ -1,623 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Изисква се надграждане"
+    "text": "Изисква се надграждане",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Преглед на плановете"
+    "text": "Преглед на плановете",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Управлението на екипи изисква Identity Plus или по-висок план"
+    "text": "Управлението на екипи изисква Identity Plus или по-висок план",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Персонализираните домейни изискват Identity Plus или по-висок план"
+    "text": "Персонализираните домейни изискват Identity Plus или по-висок план",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API достъпът изисква Identity Plus или по-висок план"
+    "text": "API достъпът изисква Identity Plus или по-висок план",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Одитните логове изискват план Multi-Team или по-висок"
+    "text": "Одитните логове изискват план Multi-Team или по-висок",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Управлявайте абонамента, организациите и настройките за фактуриране"
+    "text": "Управлявайте абонамента, организациите и настройките за фактуриране",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "Преглед на фактурирането"
+    "text": "Преглед на фактурирането",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Преглед и управление на абонамента и детайлите за плащане"
+    "text": "Преглед и управление на абонамента и детайлите за плащане",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Изберете организация"
   },
   "web.billing.overview.current_plan": {
-    "text": "Текущ план"
+    "text": "Текущ план",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Функции на плана"
+    "text": "Функции на плана",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "Метод на плащане"
+    "text": "Метод на плащане",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Следваща дата на фактуриране"
+    "text": "Следваща дата на фактуриране",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Бързи действия"
+    "text": "Бързи действия",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Управление на фактуриране"
+    "text": "Управление на фактуриране",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Преглед на фактури"
+    "text": "Преглед на фактури",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Надградете плана"
+    "text": "Надградете плана",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Смени плана"
+    "text": "Смени плана",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Няма записан метод на плащане"
+    "text": "Няма записан метод на плащане",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Няма предстоящо фактуриране"
+    "text": "Няма предстоящо фактуриране",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "оставащи дни"
+    "text": "оставащи дни",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "Фактуриране на {date}"
+    "text": "Фактуриране на {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Преглед на плановете"
+    "text": "Преглед на плановете",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Сравни и надгради"
+    "text": "Сравни и надгради",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Преглед на фактури"
+    "text": "Преглед на фактури",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Изтегли история"
+    "text": "Изтегли история",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Управление на фактуриране"
+    "text": "Управление на фактуриране",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Актуализирай информацията за плащане"
+    "text": "Актуализирай информацията за плащане",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Няма организации"
+    "text": "Няма организации",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Създайте организация, за да управлявате фактурирането и абонамента си"
+    "text": "Създайте организация, за да управлявате фактурирането и абонамента си",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Създаване на тайни"
+    "text": "Създаване на тайни",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Преглед на разписки"
+    "text": "Преглед на разписки",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "API достъп"
+    "text": "API достъп",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Персонализирани домейни"
+    "text": "Персонализирани домейни",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Персонализирани настройки за поверителност"
+    "text": "Персонализирани настройки за поверителност",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Удължено време на изтичане по подразбиране"
+    "text": "Удължено време на изтичане по подразбиране",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Персонализирани настройки за поща"
+    "text": "Персонализирани настройки за поща",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Персонализирано брандиране"
+    "text": "Персонализирано брандиране",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Брандирана начална страница"
+    "text": "Брандирана начална страница",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Входящи тайни"
+    "text": "Входящи тайни",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Управление на организации"
+    "text": "Управление на организации",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Управление на екипи"
+    "text": "Управление на екипи",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Управление на членове"
+    "text": "Управление на членове",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Одитни логове"
+    "text": "Одитни логове",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Единен вход"
+    "text": "Единен вход",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Приоритетна поддръжка"
+    "text": "Приоритетна поддръжка",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Споразумение за ниво на обслужване"
+    "text": "Споразумение за ниво на обслужване",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Неуспешно зареждане на детайли за функциите"
+    "text": "Неуспешно зареждане на детайли за функциите",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Няма налични функции"
+    "text": "Няма налични функции",
+    "sha256": "03d195e8"
   },
   "web.billing.features.create_secrets": {
-    "text": "Създаване и споделяне на тайни"
+    "text": "Създаване и споделяне на тайни",
+    "sha256": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "API достъп"
+    "text": "API достъп",
+    "sha256": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Персонализирани домейни"
+    "text": "Персонализирани домейни",
+    "sha256": "6170ab94"
   },
   "web.billing.features.custom_branding": {
-    "text": "Персонализирано брандиране"
+    "text": "Персонализирано брандиране",
+    "sha256": "237dabec"
   },
   "web.billing.features.branded_homepage": {
-    "text": "Брандирана начална страница"
+    "text": "Брандирана начална страница",
+    "sha256": "e355a396"
   },
   "web.billing.features.manage_teams": {
-    "text": "Управление на екипи"
+    "text": "Управление на екипи",
+    "sha256": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
-    "text": "Управление на членове"
+    "text": "Управление на членове",
+    "sha256": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "Одитни логове"
+    "text": "Одитни логове",
+    "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Единен вход (SSO)"
+    "text": "Единен вход (SSO)",
+    "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "Приоритетна поддръжка"
+    "text": "Приоритетна поддръжка",
+    "sha256": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Споразумение за ниво на обслужване"
+    "text": "Споразумение за ниво на обслужване",
+    "sha256": "436f2550"
   },
   "web.billing.plans.title": {
-    "text": "Изберете план"
+    "text": "Изберете план",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Изберете плана, който отговаря на нуждите ви"
+    "text": "Изберете плана, който отговаря на нуждите ви",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Изберете перфектния план за вашата организация"
+    "text": "Изберете перфектния план за вашата организация",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Текущ план"
+    "text": "Текущ план",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "Текущ"
+    "text": "Текущ",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "Надграждане"
+    "text": "Надграждане",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Понижаване"
+    "text": "Понижаване",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "Месечно"
+    "text": "Месечно",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "Годишно"
+    "text": "Годишно",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "/месец"
+    "text": "/месец",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Спестете {percent}% с годишно фактуриране"
+    "text": "Спестете {percent}% с годишно фактуриране",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "Безплатен"
+    "text": "Безплатен",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Един екип"
+    "text": "Един екип",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Много екипи"
+    "text": "Много екипи",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "Индивидуален акаунт"
+    "text": "Индивидуален акаунт",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "Екипен акаунт"
+    "text": "Екипен акаунт",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Организационен акаунт"
+    "text": "Организационен акаунт",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Функции"
+    "text": "Функции",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Неограничени тайни"
+    "text": "Неограничени тайни",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "API достъп"
+    "text": "API достъп",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "Приоритетна поддръжка"
+    "text": "Приоритетна поддръжка",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Изберете план"
+    "text": "Изберете план",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Свържете се с търговския екип"
+    "text": "Свържете се с търговския екип",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Имате въпроси или нуждаете се от нещо персонализирано?"
+    "text": "Имате въпроси или нуждаете се от нещо персонализирано?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Ще се радваме да чуем от вас. Кажете ни какво търсите."
+    "text": "Ще се радваме да чуем от вас. Кажете ни какво търсите.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} екип | {count} екипа"
+    "text": "{count} екип | {count} екипа",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} член на екип | {count} членове на екип"
+    "text": "{count} член на екип | {count} членове на екип",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Неограничени екипи"
+    "text": "Неограничени екипи",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Неограничени членове на екип"
+    "text": "Неограничени членове на екип",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Най-популярен"
+    "text": "Най-популярен",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Препоръчано"
+    "text": "Препоръчано",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Включва всичко в {plan}"
+    "text": "Включва всичко в {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Няма налични {interval} планове в момента."
+    "text": "Няма налични {interval} планове в момента.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Планът ви ще се промени незабавно."
+    "text": "Планът ви ще се промени незабавно.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Текущ план:"
+    "text": "Текущ план:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Нов план:"
+    "text": "Нов план:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Кредит за неизползвано време:"
+    "text": "Кредит за неизползвано време:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.due_today": {
-    "text": "Дължимо днес:"
+    "text": "Дължимо днес:",
+    "sha256": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Следващо фактуриране ({date}):"
+    "text": "Следващо фактуриране ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Следваща фактура"
+    "text": "Следваща фактура",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Лимитите на функциите ви ще се актуализират незабавно след промяната на плана."
+    "text": "Лимитите на функциите ви ще се актуализират незабавно след промяната на плана.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Промяната на плана е неуспешна. Моля, опитайте отново."
+    "text": "Промяната на плана е неуспешна. Моля, опитайте отново.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Потвърди надграждането"
+    "text": "Потвърди надграждането",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Потвърди понижаването"
+    "text": "Потвърди понижаването",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Надградете до {plan}?"
+    "text": "Надградете до {plan}?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Понижете до {plan}?"
+    "text": "Понижете до {plan}?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Как се прилага кредитът ви:"
+    "text": "Как се прилага кредитът ви:",
+    "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Сума на следващата сметка:"
+    "text": "Сума на следващата сметка:",
+    "sha256": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Приложен кредит:"
+    "text": "Приложен кредит:",
+    "sha256": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Дължима сума при следващо фактуриране:"
+    "text": "Дължима сума при следващо фактуриране:",
+    "sha256": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Оставащ кредит в акаунта:"
+    "text": "Оставащ кредит в акаунта:",
+    "sha256": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Приложен към бъдещи фактури"
+    "text": "Приложен към бъдещи фактури",
+    "sha256": "5007add6"
   },
   "web.billing.invoices.title": {
-    "text": "История на фактурирането"
+    "text": "История на фактурирането",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Преглед на историята на фактурирането и изтегляне на фактури"
+    "text": "Преглед на историята на фактурирането и изтегляне на фактури",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "Дата"
+    "text": "Дата",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "Сума"
+    "text": "Сума",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "Статус"
+    "text": "Статус",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Изтегли"
+    "text": "Изтегли",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Все още няма фактури"
+    "text": "Все още няма фактури",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "Платена"
+    "text": "Платена",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "Чакаща"
+    "text": "Чакаща",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Неуспешна"
+    "text": "Неуспешна",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "Неуспешно зареждане на фактури"
+    "text": "Неуспешно зареждане на фактури",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Фактурирането се управлява от {orgName}"
+    "text": "Фактурирането се управлява от {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Преглед на фактурирането на организацията"
+    "text": "Преглед на фактурирането на организацията",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Достигнахте лимита на членове за този екип"
+    "text": "Достигнахте лимита на членове за този екип",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Надградете, за да добавите повече членове"
+    "text": "Надградете, за да добавите повече членове",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "Абонамент"
+    "text": "Абонамент",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "Статус на абонамента"
+    "text": "Статус на абонамента",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "Активен"
+    "text": "Активен",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "Неактивен"
+    "text": "Неактивен",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Просрочен"
+    "text": "Просрочен",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Отменен"
+    "text": "Отменен",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "План"
+    "text": "План",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Използване на екипа"
+    "text": "Използване на екипа",
+    "sha256": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{used} от {limit} екипа"
+    "text": "{used} от {limit} екипа",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
-    "text": "Портал за фактуриране"
+    "text": "Портал за фактуриране",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Управлявайте абонамента, методите на плащане и историята на фактурирането"
+    "text": "Управлявайте абонамента, методите на плащане и историята на фактурирането",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "Отвори портала за фактуриране"
+    "text": "Отвори портала за фактуриране",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "Пренасочване към портала за фактуриране..."
+    "text": "Пренасочване към портала за фактуриране...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Започнете днес"
+    "text": "Започнете днес",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Започнете днес с Identity Plus"
+    "text": "Започнете днес с Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "на месец"
+    "text": "на месец",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "Пълен API достъп"
+    "text": "Пълен API достъп",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Дизайн с фокус върху поверителността"
+    "text": "Дизайн с фокус върху поверителността",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Кликнете върху тази светкавица, за да надстроите за персонализирани домейни"
+    "text": "Кликнете върху тази светкавица, за да надстроите за персонализирани домейни",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "Може би по-късно"
+    "text": "Може би по-късно",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Надградете акаунта"
+    "text": "Надградете акаунта",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Надградете до Identity Plus"
+    "text": "Надградете до Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Надградете за екипи"
+    "text": "Надградете за екипи",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "Предимства на"
+    "text": "Предимства на",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Надградете до"
+    "text": "Надградете до",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Надградете за secrets.yourdomain.com"
+    "text": "Надградете за secrets.yourdomain.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Всички планове включват функции за поверителност и неограничена възможност за споделяне"
+    "text": "Всички планове включват функции за поверителност и неограничена възможност за споделяне",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Всички планове включват избор на местоположение на данни: {0} региона"
+    "text": "Всички планове включват избор на местоположение на данни: {0} региона",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "Започнете"
+    "text": "Започнете",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "{0} абонамент"
+    "text": "{0} абонамент",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Повишете сигурното споделяне с персонализирани домейни, неограничени възможности и корпоративни функции."
+    "text": "Повишете сигурното споделяне с персонализирани домейни, неограничени възможности и корпоративни функции.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Честота на плащане"
+    "text": "Честота на плащане",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Защитете вашата марка и изградете доверие у клиентите чрез връзки от вашия домейн. Идеално за компании, които ценят поверителността и професионализма."
+    "text": "Защитете вашата марка и изградете доверие у клиентите чрез връзки от вашия домейн. Идеално за компании, които ценят поверителността и професионализма.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Сигурни връзки, по-силни взаимоотношения"
+    "text": "Сигурни връзки, по-силни взаимоотношения",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Нивото на идентичност не е намерено в продуктовите нива"
+    "text": "Нивото на идентичност не е намерено в продуктовите нива",
+    "sha256": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Отмени абонамента"
+    "text": "Отмени абонамента",
+    "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Отмяна на абонамент"
+    "text": "Отмяна на абонамент",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Сигурни ли сте, че искате да отмените абонамента си {plan}?"
+    "text": "Сигурни ли сте, че искате да отмените абонамента си {plan}?",
+    "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Какво се случва, когато отмените:"
+    "text": "Какво се случва, когато отмените:",
+    "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Ще запазите достъп до всички функции до {date}"
+    "text": "Ще запазите достъп до всички функции до {date}",
+    "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Ще запазите достъп до края на текущия период на фактуриране"
+    "text": "Ще запазите достъп до края на текущия период на фактуриране",
+    "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Няма да бъдете таксувани отново"
+    "text": "Няма да бъдете таксувани отново",
+    "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Акаунтът ви ще се върне към безплатния план"
+    "text": "Акаунтът ви ще се върне към безплатния план",
+    "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Запази абонамента"
+    "text": "Запази абонамента",
+    "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Отмени абонамента"
+    "text": "Отмени абонамента",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Абонаментът ви е отменен. Ще запазите достъп до края на периода на фактуриране."
+    "text": "Абонаментът ви е отменен. Ще запазите достъп до края на периода на фактуриране.",
+    "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Неуспешна отмяна на абонамента. Моля, опитайте отново."
+    "text": "Неуспешна отмяна на абонамента. Моля, опитайте отново.",
+    "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Отмяната на абонамента е насрочена"
+    "text": "Отмяната на абонамента е насрочена",
+    "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Абонаментът ви ще остане активен до {date}. Ще продължите да имате пълен достъп до всички функции дотогава."
+    "text": "Абонаментът ви ще остане активен до {date}. Ще продължите да имате пълен достъп до всички функции дотогава.",
+    "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Промените мнението си? Можете да реактивирате абонамента си по всяко време преди датата на отмяна."
+    "text": "Промените мнението си? Можете да реактивирате абонамента си по всяко време преди датата на отмяна.",
+    "sha256": "c94d5527"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 персонализиран домейн"
+    "text": "1 персонализиран домейн",
+    "sha256": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Неограничени персонализирани домейни"
+    "text": "Неограничени персонализирани домейни",
+    "sha256": "53eb7521"
   },
   "web.billing.features.centralized_billing": {
-    "text": "Централизирано фактуриране"
+    "text": "Централизирано фактуриране",
+    "sha256": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Одитна следа"
+    "text": "Одитна следа",
+    "sha256": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Поток от активност"
+    "text": "Поток от активност",
+    "sha256": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Работни процеси за предаване"
+    "text": "Работни процеси за предаване",
+    "sha256": "07202af3"
   },
   "web.billing.features.extended_retention": {
-    "text": "30-дневно съхранение на тайни"
+    "text": "30-дневно съхранение на тайни",
+    "sha256": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Тайни на начална страница"
+    "text": "Тайни на начална страница",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Входящи тайни"
+    "text": "Входящи тайни",
+    "sha256": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "До 5 членове на екипа"
+    "text": "До 5 членове на екипа",
+    "sha256": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "До 10 членове на екипа"
+    "text": "До 10 членове на екипа",
+    "sha256": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "До 25 членове на екипа"
+    "text": "До 25 членове на екипа",
+    "sha256": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "До 50 членове на екипа"
+    "text": "До 50 членове на екипа",
+    "sha256": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Неограничени членове на екипа"
+    "text": "Неограничени членове на екипа",
+    "sha256": "b7491ee9"
   },
   "web.billing.features.notifications": {
-    "text": "Имейл известия"
+    "text": "Имейл известия",
+    "sha256": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "IP правила за достъп"
+    "text": "IP правила за достъп",
+    "sha256": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Брандиране на работно пространство"
+    "text": "Брандиране на работно пространство",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
-    "text": "Специализирана инфраструктура"
+    "text": "Специализирана инфраструктура",
+    "sha256": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "Споделени работни процеси"
+    "text": "Споделени работни процеси",
+    "sha256": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "Фактуриране за тази организация"
+    "text": "Фактуриране за тази организация",
+    "sha256": "21806992"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Планът ви е надграден успешно"
+    "text": "Планът ви е надграден успешно",
+    "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Новият ви план вече е активен. Благодарим за покупката."
+    "text": "Новият ви план вече е активен. Благодарим за покупката.",
+    "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
-    "text": "Контакт за фактуриране"
+    "text": "Контакт за фактуриране",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Тайни на начална страница"
+    "text": "Тайни на начална страница",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
-    "text": "Имейл известия"
+    "text": "Имейл известия",
+    "sha256": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP правила за достъп"
+    "text": "IP правила за достъп",
+    "sha256": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Брандиране на работно пространство"
+    "text": "Брандиране на работно пространство",
+    "sha256": "e7acbf6f"
   }
 }

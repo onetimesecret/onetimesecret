@@ -1,128 +1,170 @@
 {
   "web.branding.color_picker": {
-    "text": "Izbirnik barv"
+    "text": "Izbirnik barv",
+    "sha256": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Trenutna {0}: {1}. Kliknite za kroženje po možnostih."
+    "text": "Trenutna {0}: {1}. Kliknite za kroženje po možnostih.",
+    "sha256": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Uporabi nastavitev"
+    "text": "Uporabi nastavitev",
+    "sha256": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Družina pisav"
+    "text": "Družina pisav",
+    "sha256": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Slog vogalov"
+    "text": "Slog vogalov",
+    "sha256": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Barva blagovne znamke"
+    "text": "Barva blagovne znamke",
+    "sha256": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Predogled pogleda prejemnika pri dostopu do vaše varne povezave"
+    "text": "Predogled pogleda prejemnika pri dostopu do vaše varne povezave",
+    "sha256": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Predogled in prilagoditev"
+    "text": "Predogled in prilagoditev",
+    "sha256": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Preklopi na pogled brskalnika Safari"
+    "text": "Preklopi na pogled brskalnika Safari",
+    "sha256": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
-    "text": "Microsoft Edge"
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Povečaj okno"
+    "text": "Povečaj okno",
+    "sha256": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Pomanjšaj okno"
+    "text": "Pomanjšaj okno",
+    "sha256": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Preklopi na pogled brskalnika Edge"
+    "text": "Preklopi na pogled brskalnika Edge",
+    "sha256": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
-    "text": "{0}/500 znakov"
+    "text": "{0}/500 znakov",
+    "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "S telefonom skenirajte QR kodo"
+    "text": "S telefonom skenirajte QR kodo",
+    "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Za vprašanja se obrnite na uvajanje{'@'}primer.si"
+    "text": "Za vprašanja se obrnite na uvajanje{'@'}primer.si",
+    "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Ta navodila bodo prikazana prejemnikom, preden razkrijejo vsebino skrivnosti"
+    "text": "Ta navodila bodo prikazana prejemnikom, preden razkrijejo vsebino skrivnosti",
+    "sha256": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Ta navodila bodo prikazana prejemnikom po tem, ko razkrijejo skrivnost"
+    "text": "Ta navodila bodo prikazana prejemnikom po tem, ko razkrijejo skrivnost",
+    "sha256": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Navodila pred razkritjem"
+    "text": "Navodila pred razkritjem",
+    "sha256": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Navodila po razkritju"
+    "text": "Navodila po razkritju",
+    "sha256": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "Navodila"
+    "text": "Navodila",
+    "sha256": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Kontrole logotipa"
+    "text": "Kontrole logotipa",
+    "sha256": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Kliknite za nalaganje logotipa. Priporočena velikost: 128x128 slikovnih točk. Največja velikost datoteke: 1MB. Podprti formati: PNG, JPG, SVG"
+    "text": "Kliknite za nalaganje logotipa. Priporočena velikost: 128x128 slikovnih točk. Največja velikost datoteke: 1MB. Podprti formati: PNG, JPG, SVG",
+    "sha256": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Naloži logotip"
+    "text": "Naloži logotip",
+    "sha256": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Nalaganje predogleda ..."
+    "text": "Nalaganje predogleda ...",
+    "sha256": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Predoglejte, kako bodo prejemniki videli vaše skrivnosti, s testiranjem gumba \"Prikaži skrivnost\""
+    "text": "Predoglejte, kako bodo prejemniki videli vaše skrivnosti, s testiranjem gumba \"Prikaži skrivnost\"",
+    "sha256": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Ikona očesa"
+    "text": "Ikona očesa",
+    "sha256": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Kliknite spodnjo sliko predogleda za posodobitev logotipa (priporočeno najmanj 128x128 slikovnih točk, največ 1MB)"
+    "text": "Kliknite spodnjo sliko predogleda za posodobitev logotipa (priporočeno najmanj 128x128 slikovnih točk, največ 1MB)",
+    "sha256": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Ikona slike"
+    "text": "Ikona slike",
+    "sha256": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Uporabite zgornje kontrole za prilagoditev barve blagovne znamke, slogov in navodil prejemnikom"
+    "text": "Uporabite zgornje kontrole za prilagoditev barve blagovne znamke, slogov in navodil prejemnikom",
+    "sha256": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Ikona prilagoditve"
+    "text": "Ikona prilagoditve",
+    "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Imate neshranjene spremembe. Ali ste prepričani?"
+    "text": "Imate neshranjene spremembe. Ali ste prepričani?",
+    "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Nalaganje nastavitev blagovne znamke ni uspelo"
+    "text": "Nalaganje nastavitev blagovne znamke ni uspelo",
+    "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "To je interaktivni predogled, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z uporabo zgornjih kontrol - Naložite logotip (priporočeno najmanj 128x128 slikovnih pik, največ 1 MB) - Testirate predogled z gumbom \"Ogled skrivnosti\""
+    "text": "To je interaktivni predogled, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z uporabo zgornjih kontrol - Naložite logotip (priporočeno najmanj 128x128 slikovnih pik, največ 1 MB) - Testirate predogled z gumbom \"Ogled skrivnosti\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "To je interaktiven predogled tega, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočeno najmanj 128x128 slikovnih točk, največ 1MB) - Testirajte predogled z gumbom \"Prikaži skrivnost\""
+    "text": "To je interaktiven predogled tega, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočeno najmanj 128x128 slikovnih točk, največ 1MB) - Testirajte predogled z gumbom \"Prikaži skrivnost\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japonski kanji '秘' (himitsu), ki pomeni 'skrivnost' ali 'zaupno'"
+    "text": "Japonski kanji '秘' (himitsu), ki pomeni 'skrivnost' ali 'zaupno'",
+    "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Poganja Onetime Secret"
+    "text": "Poganja Onetime Secret",
+    "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "Logotip {0}"
+    "text": "Logotip {0}",
+    "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
-    "text": "Edge"
+    "text": "Edge",
+    "sha256": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Preklopi na predogled Edge"
+    "text": "Preklopi na predogled Edge",
+    "sha256": "83883d84"
   },
   "web.branding.safari": {
-    "text": "Safari"
+    "text": "Safari",
+    "sha256": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Preklopi na predogled Safari"
+    "text": "Preklopi na predogled Safari",
+    "sha256": "f24ac447"
   }
 }

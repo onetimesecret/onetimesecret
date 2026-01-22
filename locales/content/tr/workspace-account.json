@@ -1,483 +1,642 @@
 {
   "web.account.settings": {
-    "text": "Ayarlar"
+    "text": "Ayarlar",
+    "sha256": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Parola Değiştir"
+    "text": "Parola Değiştir",
+    "sha256": "a949f462"
   },
   "web.account.close_account": {
-    "text": "Hesabı Kapat"
+    "text": "Hesabı Kapat",
+    "sha256": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Hesabı Doğrula"
+    "text": "Hesabı Doğrula",
+    "sha256": "2f3ea760"
   },
   "web.account.subscription_title": {
-    "text": "Abonelik"
+    "text": "Abonelik",
+    "sha256": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Aboneliği Yönet"
+    "text": "Aboneliği Yönet",
+    "sha256": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Müşteri Bilgileri"
+    "text": "Müşteri Bilgileri",
+    "sha256": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "Müşteri olma tarihi:"
+    "text": "Müşteri olma tarihi:",
+    "sha256": "0b37cff3"
   },
   "web.account.email": {
-    "text": "E-posta:"
+    "text": "E-posta:",
+    "sha256": "17507dcf"
   },
   "web.account.region": {
-    "text": "Bölge"
+    "text": "Bölge",
+    "sha256": "d3a008ef"
   },
   "web.account.account_balance": {
-    "text": "Bakiye:"
+    "text": "Bakiye:",
+    "sha256": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Varsayılan Ödeme Yöntemi"
+    "text": "Varsayılan Ödeme Yöntemi",
+    "sha256": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "ile biten"
+    "text": "ile biten",
+    "sha256": "0195bccf"
   },
   "web.account.subscriptions_title": {
-    "text": "Abonelikler"
+    "text": "Abonelikler",
+    "sha256": "a151f2e9"
   },
   "web.account.quantity": {
-    "text": "Miktar:"
+    "text": "Miktar:",
+    "sha256": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Sonraki fatura tarihi:"
+    "text": "Sonraki fatura tarihi:",
+    "sha256": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
-    "text": "Kullanıcı Adı"
+    "text": "Kullanıcı Adı",
+    "sha256": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
-    "text": "Mevcut Parola"
+    "text": "Mevcut Parola",
+    "sha256": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
-    "text": "Yeni Parola"
+    "text": "Yeni Parola",
+    "sha256": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Onayla"
+    "text": "Onayla",
+    "sha256": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Parolayı Güncelle"
+    "text": "Parolayı Güncelle",
+    "sha256": "557be0da"
   },
   "web.account.changePassword.updating": {
-    "text": "Güncelleniyor..."
+    "text": "Güncelleniyor...",
+    "sha256": "0a4e0b71"
   },
   "web.account.timezone": {
-    "text": "Saat Dilimi"
+    "text": "Saat Dilimi",
+    "sha256": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "Müşteri Kimliği"
+    "text": "Müşteri Kimliği",
+    "sha256": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "Hesap Kimliği"
+    "text": "Hesap Kimliği",
+    "sha256": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "{1} tarihinden beri {0} mesaj oluşturuldu."
+    "text": "{1} tarihinden beri {0} mesaj oluşturuldu.",
+    "sha256": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Hesabı Sil"
+    "text": "Hesabı Sil",
+    "sha256": "c031bf99"
   },
   "web.account.api_key": {
-    "text": "API Anahtarı"
+    "text": "API Anahtarı",
+    "sha256": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
-    "text": "Hesap türü: {0}"
+    "text": "Hesap türü: {0}",
+    "sha256": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Hesabınız"
+    "text": "Hesabınız",
+    "sha256": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Destek Ayrıntıları"
+    "text": "Destek Ayrıntıları",
+    "sha256": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Ayrıntılara Geri Dön"
+    "text": "Ayrıntılara Geri Dön",
+    "sha256": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "Müşteri Kimliği: {0}"
+    "text": "Müşteri Kimliği: {0}",
+    "sha256": "7e2d4201"
   },
   "web.account.token_generated": {
-    "text": "Token oluşturuldu."
+    "text": "Token oluşturuldu.",
+    "sha256": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Bu belirteci güvende tutun! Hesabınıza tam erişim sağlar."
+    "text": "🔐 Bu belirteci güvende tutun! Hesabınıza tam erişim sağlar.",
+    "sha256": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Parolanızla onaylayın"
+    "text": "Parolanızla onaylayın",
+    "sha256": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
-    "text": "Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+    "text": "Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "sha256": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Hesap Silme Onayı"
+    "text": "Hesap Silme Onayı",
+    "sha256": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
-    "text": "{0} siliniyor"
+    "text": "{0} siliniyor",
+    "sha256": "81d21828"
   },
   "web.account.permanently_delete_account": {
-    "text": "Hesabı Kalıcı Olarak Sil"
+    "text": "Hesabı Kalıcı Olarak Sil",
+    "sha256": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "kalıcı ve geri alınamaz."
+    "text": "kalıcı ve geri alınamaz.",
+    "sha256": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Hesabınızı silmek"
+    "text": "Hesabınızı silmek",
+    "sha256": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "devam etmeden önce onları yakın"
+    "text": "devam etmeden önce onları yakın",
+    "sha256": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Kaldırmak istediğiniz gizli mesajlar varsa,"
+    "text": "Kaldırmak istediğiniz gizli mesajlar varsa,",
+    "sha256": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Mesajlar süresi dolana kadar aktif kalacaktır."
+    "text": "Mesajlar süresi dolana kadar aktif kalacaktır.",
+    "sha256": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Lütfen dikkat edin:"
+    "text": "Lütfen dikkat edin:",
+    "sha256": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Hesap başarıyla silindi."
+    "text": "Hesap başarıyla silindi.",
+    "sha256": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "Devre Dışı Bırak"
+    "text": "Devre Dışı Bırak",
+    "sha256": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Hesabınızı devre dışı bırakmak istediğinizden emin misiniz? Tüm verileriniz sunucularımızdan sonsuza kadar kalıcı olarak kaldırılacaktır. Bu işlem geri alınamaz."
+    "text": "Hesabınızı devre dışı bırakmak istediğinizden emin misiniz? Tüm verileriniz sunucularımızdan sonsuza kadar kalıcı olarak kaldırılacaktır. Bu işlem geri alınamaz.",
+    "sha256": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Hesabı devre dışı bırak"
+    "text": "Hesabı devre dışı bırak",
+    "sha256": "5e31b73d"
   },
   "web.settings.title": {
-    "text": "Ayarlar"
+    "text": "Ayarlar",
+    "sha256": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Hesap ayarlarınızı ve tercihlerinizi yönetin"
+    "text": "Hesap ayarlarınızı ve tercihlerinizi yönetin",
+    "sha256": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "",
     "skip": true,
-    "note": "empty"
+    "note": "empty",
+    "sha256": "2ff0853c"
   },
   "web.settings.general": {
-    "text": "Genel"
+    "text": "Genel",
+    "sha256": "c910d474"
   },
   "web.settings.preferences": {
-    "text": "Tercihler"
+    "text": "Tercihler",
+    "sha256": "66962f72"
   },
   "web.settings.appearance": {
-    "text": "Görünüm"
+    "text": "Görünüm",
+    "sha256": "3907fa7f"
   },
   "web.settings.theme.title": {
-    "text": "Tema"
+    "text": "Tema",
+    "sha256": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Açık veya koyu tema seçin"
+    "text": "Açık veya koyu tema seçin",
+    "sha256": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Açık veya koyu tema seçin"
+    "text": "Açık veya koyu tema seçin",
+    "sha256": "ff0ae84f"
   },
   "web.settings.language.title": {
-    "text": "Dil"
+    "text": "Dil",
+    "sha256": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Tercih ettiğiniz dili seçin"
+    "text": "Tercih ettiğiniz dili seçin",
+    "sha256": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Tercih ettiğiniz dili seçin"
+    "text": "Tercih ettiğiniz dili seçin",
+    "sha256": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Kimlik doğrulama ve hesap güvenliğini yönetin"
+    "text": "Kimlik doğrulama ve hesap güvenliğini yönetin",
+    "sha256": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Hesap bilgilerinizi yönetin"
+    "text": "Hesap bilgilerinizi yönetin",
+    "sha256": "4a23a29f"
   },
   "web.settings.profile.title": {
-    "text": "Profil"
+    "text": "Profil",
+    "sha256": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "E-posta Değiştir"
+    "text": "E-posta Değiştir",
+    "sha256": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "Mevcut E-posta"
+    "text": "Mevcut E-posta",
+    "sha256": "5f1cab64"
   },
   "web.settings.profile.current_password": {
-    "text": "Mevcut Parola"
+    "text": "Mevcut Parola",
+    "sha256": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Yeni E-posta"
+    "text": "Yeni E-posta",
+    "sha256": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Mevcut parolanızı girin"
+    "text": "Mevcut parolanızı girin",
+    "sha256": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Güvenlik amacıyla parolanız gereklidir"
+    "text": "Güvenlik amacıyla parolanız gereklidir",
+    "sha256": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Yeni adrese bir doğrulama e-postası gönderilecektir"
+    "text": "Yeni adrese bir doğrulama e-postası gönderilecektir",
+    "sha256": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "E-postayı Güncelle"
+    "text": "E-postayı Güncelle",
+    "sha256": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Hesabınızla ilişkili e-posta adresini güncelleyin"
+    "text": "Hesabınızla ilişkili e-posta adresini güncelleyin",
+    "sha256": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Tüm alanlar zorunludur"
+    "text": "Tüm alanlar zorunludur",
+    "sha256": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Lütfen geçerli bir e-posta adresi girin"
+    "text": "Lütfen geçerli bir e-posta adresi girin",
+    "sha256": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Yeni e-posta mevcut e-postadan farklı olmalıdır"
+    "text": "Yeni e-posta mevcut e-postadan farklı olmalıdır",
+    "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-posta başarıyla güncellendi. Yeni e-posta adresinizi doğrulamak için lütfen gelen kutunuzu kontrol edin."
+    "text": "E-posta başarıyla güncellendi. Yeni e-posta adresinizi doğrulamak için lütfen gelen kutunuzu kontrol edin.",
+    "sha256": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "E-posta güncellenemedi. Lütfen tekrar deneyin."
+    "text": "E-posta güncellenemedi. Lütfen tekrar deneyin.",
+    "sha256": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "Aktif Oturumlar"
+    "text": "Aktif Oturumlar",
+    "sha256": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Aktif oturumlarınızı yönetin"
+    "text": "Aktif oturumlarınızı yönetin",
+    "sha256": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Aktif oturumlarınızı yönetin"
+    "text": "Aktif oturumlarınızı yönetin",
+    "sha256": "e5646da4"
   },
   "web.settings.password.title": {
-    "text": "Parola"
+    "text": "Parola",
+    "sha256": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Hesap parolanızı güncelleyin"
+    "text": "Hesap parolanızı güncelleyin",
+    "sha256": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Hesap parolanızı güncelleyin"
+    "text": "Hesap parolanızı güncelleyin",
+    "sha256": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "Hesabı Sil"
+    "text": "Hesabı Sil",
+    "sha256": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin"
+    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin",
+    "sha256": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin"
+    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin",
+    "sha256": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Güvenlik Puanı"
+    "text": "Güvenlik Puanı",
+    "sha256": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Genel hesap güvenlik durumunuz"
+    "text": "Genel hesap güvenlik durumunuz",
+    "sha256": "cf20935e"
   },
   "web.settings.security.excellent": {
-    "text": "Mükemmel"
+    "text": "Mükemmel",
+    "sha256": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "İyi"
+    "text": "İyi",
+    "sha256": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Orta"
+    "text": "Orta",
+    "sha256": "f7b19afc"
   },
   "web.settings.security.weak": {
-    "text": "Zayıf"
+    "text": "Zayıf",
+    "sha256": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Güvenliğinizi iyileştirin"
+    "text": "Güvenliğinizi iyileştirin",
+    "sha256": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Daha güçlü koruma için iki faktörlü kimlik doğrulamayı etkinleştirin"
+    "text": "Daha güçlü koruma için iki faktörlü kimlik doğrulamayı etkinleştirin",
+    "sha256": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "",
     "skip": true,
-    "note": "empty"
+    "note": "empty",
+    "sha256": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "Yapılandırıldı"
+    "text": "Yapılandırıldı",
+    "sha256": "84aebc69"
   },
   "web.settings.security.change": {
-    "text": "Değiştir"
+    "text": "Değiştir",
+    "sha256": "c0bf75bd"
   },
   "web.settings.security.manage": {
-    "text": "Yönet"
+    "text": "Yönet",
+    "sha256": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "Etkinleştir"
+    "text": "Etkinleştir",
+    "sha256": "5342e09f"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} kod mevcut"
+    "text": "{0} kod mevcut",
+    "sha256": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Kod oluşturulmadı"
+    "text": "Kod oluşturulmadı",
+    "sha256": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} aktif oturum | {0} aktif oturum"
+    "text": "{0} aktif oturum | {0} aktif oturum",
+    "sha256": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Güvenlik En İyi Uygulamaları"
+    "text": "Güvenlik En İyi Uygulamaları",
+    "sha256": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Hesabınız için güçlü, benzersiz bir parola kullanın"
+    "text": "Hesabınız için güçlü, benzersiz bir parola kullanın",
+    "sha256": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Ek koruma için iki faktörlü kimlik doğrulamayı etkinleştirin"
+    "text": "Ek koruma için iki faktörlü kimlik doğrulamayı etkinleştirin",
+    "sha256": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Kurtarma kodlarınızı güvenli bir yerde saklayın"
+    "text": "Kurtarma kodlarınızı güvenli bir yerde saklayın",
+    "sha256": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Kullanılmayan oturumları düzenli olarak inceleyin ve iptal edin"
+    "text": "Kullanılmayan oturumları düzenli olarak inceleyin ve iptal edin",
+    "sha256": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Ayrıntıları görüntüle"
+    "text": "Ayrıntıları görüntüle",
+    "sha256": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "API ve Entegrasyonlar"
+    "text": "API ve Entegrasyonlar",
+    "sha256": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "API anahtarlarını ve entegrasyonları yönetin"
+    "text": "API anahtarlarını ve entegrasyonları yönetin",
+    "sha256": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "API anahtarlarını ve entegrasyonları yönetin"
+    "text": "API anahtarlarını ve entegrasyonları yönetin",
+    "sha256": "70976099"
   },
   "web.settings.api.documentation": {
-    "text": "API Belgeleri"
+    "text": "API Belgeleri",
+    "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Onetime Secret'ı uygulamalarınıza nasıl entegre edeceğinizi öğrenin"
+    "text": "Onetime Secret'ı uygulamalarınıza nasıl entegre edeceğinizi öğrenin",
+    "sha256": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "REST API Referansı"
+    "text": "REST API Referansı",
+    "sha256": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Tam API belgeleri ve uç noktalar"
+    "text": "Tam API belgeleri ve uç noktalar",
+    "sha256": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
-    "text": "Kod Örnekleri"
+    "text": "Kod Örnekleri",
+    "sha256": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Örnek kod ve istemci kütüphaneleri"
+    "text": "Örnek kod ve istemci kütüphaneleri",
+    "sha256": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Güvenlik En İyi Uygulamaları"
+    "text": "Güvenlik En İyi Uygulamaları",
+    "sha256": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "API anahtarlarını asla sürüm kontrolüne işlemeyin"
+    "text": "API anahtarlarını asla sürüm kontrolüne işlemeyin",
+    "sha256": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "API anahtarlarını saklamak için ortam değişkenleri kullanın"
+    "text": "API anahtarlarını saklamak için ortam değişkenleri kullanın",
+    "sha256": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Güvenlik için API anahtarlarını düzenli olarak yenileyin"
+    "text": "Güvenlik için API anahtarlarını düzenli olarak yenileyin",
+    "sha256": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "API istekleri yaparken her zaman HTTPS kullanın"
+    "text": "API istekleri yaparken her zaman HTTPS kullanın",
+    "sha256": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "API kullanımınızı izleyin ve uyarılar ayarlayın"
+    "text": "API kullanımınızı izleyin ve uyarılar ayarlayın",
+    "sha256": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Önemli Uyarı"
+    "text": "Önemli Uyarı",
+    "sha256": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "API anahtarınızı yeniden oluşturmak mevcut anahtarı geçersiz kılacaktır. Eski anahtarı kullanan tüm uygulamaları güncelleyin."
+    "text": "API anahtarınızı yeniden oluşturmak mevcut anahtarı geçersiz kılacaktır. Eski anahtarı kullanan tüm uygulamaları güncelleyin.",
+    "sha256": "ab168f83"
   },
   "web.settings.privacy.title": {
-    "text": "Gizlilik Ayarları"
+    "text": "Gizlilik Ayarları",
+    "sha256": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Gizlilik tercihlerinizi yönetin"
+    "text": "Gizlilik tercihlerinizi yönetin",
+    "sha256": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Gizliliğiniz"
+    "text": "Gizliliğiniz",
+    "sha256": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Pazarlık Edilemez"
+    "text": "Pazarlık Edilemez",
+    "sha256": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "Bir ayar değil"
+    "text": "Bir ayar değil",
+    "sha256": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Analitik yok. İzleme yok. Nokta."
+    "text": "Analitik yok. İzleme yok. Nokta.",
+    "sha256": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Bu bir ayar değil çünkü açılıp kapanacak bir şey yok. Gizliliğiniz çalışma şeklimizin bir parçası."
+    "text": "Bu bir ayar değil çünkü açılıp kapanacak bir şey yok. Gizliliğiniz çalışma şeklimizin bir parçası.",
+    "sha256": "ed943792"
   },
   "web.settings.notifications.title": {
-    "text": "Bildirim Ayarları"
+    "text": "Bildirim Ayarları",
+    "sha256": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Bildirimleri nasıl alacağınızı yönetin"
+    "text": "Bildirimleri nasıl alacağınızı yönetin",
+    "sha256": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Bildirim tercihi güncellenemedi. Lütfen tekrar deneyin."
+    "text": "Bildirim tercihi güncellenemedi. Lütfen tekrar deneyin.",
+    "sha256": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Gizli Mesaj Görüntüleme Bildirimleri"
+    "text": "Gizli Mesaj Görüntüleme Bildirimleri",
+    "sha256": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Birisi gizli mesajınızı görüntülediğinde e-posta alın"
+    "text": "Birisi gizli mesajınızı görüntülediğinde e-posta alın",
+    "sha256": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Bir alıcı gizli mesajlarınızdan birini görüntülediğinde her seferinde bilgilendirileceksiniz"
+    "text": "Bir alıcı gizli mesajlarınızdan birini görüntülediğinde her seferinde bilgilendirileceksiniz",
+    "sha256": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Bildirim e-postaları yalnızca zaman damgası ve gizli mesaj kimliğini içerir. Görüntüleyen bilgileri asla dahil edilmez."
+    "text": "Bildirim e-postaları yalnızca zaman damgası ve gizli mesaj kimliğini içerir. Görüntüleyen bilgileri asla dahil edilmez.",
+    "sha256": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Dikkatli Değerlendirme Alanı"
+    "text": "Dikkatli Değerlendirme Alanı",
+    "sha256": "fe27a3a8"
   },
   "web.settings.caution.description": {
-    "text": "Gelişmiş ayarlar ve veri yönetimi"
+    "text": "Gelişmiş ayarlar ve veri yönetimi",
+    "sha256": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Veri Dışa Aktarımı"
+    "text": "Veri Dışa Aktarımı",
+    "sha256": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Hesap verilerinizi dışa aktarın"
+    "text": "Hesap verilerinizi dışa aktarın",
+    "sha256": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Hesap verilerinizin makine tarafından okunabilir formatta tam bir kopyasını talep edin"
+    "text": "Hesap verilerinizin makine tarafından okunabilir formatta tam bir kopyasını talep edin",
+    "sha256": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Veri Dışa Aktarımı Talep Et"
+    "text": "Veri Dışa Aktarımı Talep Et",
+    "sha256": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Dışa Aktarma İşlem Süresi"
+    "text": "Dışa Aktarma İşlem Süresi",
+    "sha256": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Dışa aktarımlar 24 saat içinde işlenir ve e-posta adresinize gönderilir"
+    "text": "Dışa aktarımlar 24 saat içinde işlenir ve e-posta adresinize gönderilir",
+    "sha256": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Hesabınızı silmek şunlara neden olacaktır:"
+    "text": "Hesabınızı silmek şunlara neden olacaktır:",
+    "sha256": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Tüm gizli mesajlarınızı kalıcı olarak sil"
+    "text": "Tüm gizli mesajlarınızı kalıcı olarak sil",
+    "sha256": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Tüm gizli mesaj meta verilerini ve geçmişini kaldır"
+    "text": "Tüm gizli mesaj meta verilerini ve geçmişini kaldır",
+    "sha256": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Tüm API anahtarlarını geçersiz kıl"
+    "text": "Tüm API anahtarlarını geçersiz kıl",
+    "sha256": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Bu işlem geri alınamaz"
+    "text": "Bu işlem geri alınamaz",
+    "sha256": "02ccc074"
   },
   "web.account.deleting_ellipsis": {
-    "text": "Siliniyor..."
+    "text": "Siliniyor...",
+    "sha256": "685ecb98"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Kontrol Paneline Dön"
+    "text": "Kontrol Paneline Dön",
+    "sha256": "97ba1d39"
   },
   "web.settings.sections.account": {
-    "text": "Hesap"
+    "text": "Hesap",
+    "sha256": "7e1b0d56"
   },
   "web.settings.sections.billing": {
-    "text": "Faturalandırma"
+    "text": "Faturalandırma",
+    "sha256": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
-    "text": "Gelişmiş"
+    "text": "Gelişmiş",
+    "sha256": "9f088dbe"
   }
 }

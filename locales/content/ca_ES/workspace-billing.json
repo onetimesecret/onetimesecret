@@ -1,623 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Es requereix millora"
+    "text": "Es requereix millora",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Veure plans"
+    "text": "Veure plans",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "La gestió d'equips requereix Identity Plus o superior"
+    "text": "La gestió d'equips requereix Identity Plus o superior",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Els dominis personalitzats requereixen Identity Plus o superior"
+    "text": "Els dominis personalitzats requereixen Identity Plus o superior",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "L'accés a l'API requereix Identity Plus o superior"
+    "text": "L'accés a l'API requereix Identity Plus o superior",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Els registres d'auditoria requereixen el pla Multi-Team o superior"
+    "text": "Els registres d'auditoria requereixen el pla Multi-Team o superior",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Gestiona la teva subscripció, organitzacions i configuració de facturació"
+    "text": "Gestiona la teva subscripció, organitzacions i configuració de facturació",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "Resum de facturació"
+    "text": "Resum de facturació",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Consulta i gestiona la teva subscripció i els detalls de pagament"
+    "text": "Consulta i gestiona la teva subscripció i els detalls de pagament",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Selecciona una organització"
   },
   "web.billing.overview.current_plan": {
-    "text": "Pla actual"
+    "text": "Pla actual",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Característiques del pla"
+    "text": "Característiques del pla",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "Mètode de pagament"
+    "text": "Mètode de pagament",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Pròxima data de facturació"
+    "text": "Pròxima data de facturació",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Accions ràpides"
+    "text": "Accions ràpides",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Gestionar facturació"
+    "text": "Gestionar facturació",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Veure factures"
+    "text": "Veure factures",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Millorar pla"
+    "text": "Millorar pla",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Canviar pla"
+    "text": "Canviar pla",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Cap mètode de pagament registrat"
+    "text": "Cap mètode de pagament registrat",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Sense facturació propera"
+    "text": "Sense facturació propera",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "dies restants"
+    "text": "dies restants",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "Facturació el {date}"
+    "text": "Facturació el {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Veure plans"
+    "text": "Veure plans",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Comparar i millorar"
+    "text": "Comparar i millorar",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Veure factures"
+    "text": "Veure factures",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Descarregar historial"
+    "text": "Descarregar historial",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Gestionar facturació"
+    "text": "Gestionar facturació",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Actualitzar informació de pagament"
+    "text": "Actualitzar informació de pagament",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Sense organitzacions"
+    "text": "Sense organitzacions",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Crea una organització per gestionar la teva facturació i subscripció"
+    "text": "Crea una organització per gestionar la teva facturació i subscripció",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Crear secrets"
+    "text": "Crear secrets",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Veure rebuts"
+    "text": "Veure rebuts",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "Accés a l'API"
+    "text": "Accés a l'API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Dominis personalitzats"
+    "text": "Dominis personalitzats",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Valors predeterminats de privadesa personalitzats"
+    "text": "Valors predeterminats de privadesa personalitzats",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Expiració predeterminada ampliada"
+    "text": "Expiració predeterminada ampliada",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Valors predeterminats de correu personalitzat"
+    "text": "Valors predeterminats de correu personalitzat",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Marca personalitzada"
+    "text": "Marca personalitzada",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Pàgina d'inici amb marca"
+    "text": "Pàgina d'inici amb marca",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Secrets entrants"
+    "text": "Secrets entrants",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Gestionar organitzacions"
+    "text": "Gestionar organitzacions",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Gestionar equips"
+    "text": "Gestionar equips",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Gestionar membres"
+    "text": "Gestionar membres",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Registres d'auditoria"
+    "text": "Registres d'auditoria",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Inici de sessió únic"
+    "text": "Inici de sessió únic",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Suport prioritari"
+    "text": "Suport prioritari",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Acord de nivell de servei"
+    "text": "Acord de nivell de servei",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "No s'han pogut carregar els detalls de les funcions"
+    "text": "No s'han pogut carregar els detalls de les funcions",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Cap funció disponible"
+    "text": "Cap funció disponible",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "Selecciona un pla"
+    "text": "Selecciona un pla",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Tria el pla que s'adapti a les teves necessitats"
+    "text": "Tria el pla que s'adapti a les teves necessitats",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Tria el pla perfecte per a la teva organització"
+    "text": "Tria el pla perfecte per a la teva organització",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Pla actual"
+    "text": "Pla actual",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "Actual"
+    "text": "Actual",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "Millorar"
+    "text": "Millorar",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Rebaixar"
+    "text": "Rebaixar",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "Mensual"
+    "text": "Mensual",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "Anual"
+    "text": "Anual",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "/mes"
+    "text": "/mes",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Estalvia un {percent}% amb facturació anual"
+    "text": "Estalvia un {percent}% amb facturació anual",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "Gratuït"
+    "text": "Gratuït",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Equip únic"
+    "text": "Equip únic",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Múltiples equips"
+    "text": "Múltiples equips",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "Compte individual"
+    "text": "Compte individual",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "Compte d'equip"
+    "text": "Compte d'equip",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Compte d'organització"
+    "text": "Compte d'organització",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Característiques"
+    "text": "Característiques",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Secrets il·limitats"
+    "text": "Secrets il·limitats",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "Accés a l'API"
+    "text": "Accés a l'API",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "Suport prioritari"
+    "text": "Suport prioritari",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Seleccionar pla"
+    "text": "Seleccionar pla",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Contactar vendes"
+    "text": "Contactar vendes",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Tens preguntes o necessites alguna cosa personalitzada?"
+    "text": "Tens preguntes o necessites alguna cosa personalitzada?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Ens encantaria saber de tu. Fes-nos saber què estàs buscant."
+    "text": "Ens encantaria saber de tu. Fes-nos saber què estàs buscant.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} equip | {count} equips"
+    "text": "{count} equip | {count} equips",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} membre per equip | {count} membres per equip"
+    "text": "{count} membre per equip | {count} membres per equip",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Equips il·limitats"
+    "text": "Equips il·limitats",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Membres il·limitats per equip"
+    "text": "Membres il·limitats per equip",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Més popular"
+    "text": "Més popular",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Suggerit"
+    "text": "Suggerit",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Inclou tot de {plan}"
+    "text": "Inclou tot de {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "No hi ha plans {interval} disponibles en aquest moment."
+    "text": "No hi ha plans {interval} disponibles en aquest moment.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "El teu pla canviarà immediatament."
+    "text": "El teu pla canviarà immediatament.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Pla actual:"
+    "text": "Pla actual:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Pla nou:"
+    "text": "Pla nou:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Crèdit pel temps no utilitzat:"
+    "text": "Crèdit pel temps no utilitzat:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Pròxima factura"
+    "text": "Pròxima factura",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Els límits de les teves funcions s'actualitzaran immediatament després del canvi de pla."
+    "text": "Els límits de les teves funcions s'actualitzaran immediatament després del canvi de pla.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "El canvi de pla ha fallat. Torna-ho a provar."
+    "text": "El canvi de pla ha fallat. Torna-ho a provar.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Confirmar millora"
+    "text": "Confirmar millora",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Confirmar rebaixament"
+    "text": "Confirmar rebaixament",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Millorar a {plan}?"
+    "text": "Millorar a {plan}?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Rebaixar a {plan}?"
+    "text": "Rebaixar a {plan}?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "Historial de facturació"
+    "text": "Historial de facturació",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Consulta el teu historial de facturació i descarrega les factures"
+    "text": "Consulta el teu historial de facturació i descarrega les factures",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "Data"
+    "text": "Data",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "Import"
+    "text": "Import",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "Estat"
+    "text": "Estat",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Descarregar"
+    "text": "Descarregar",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Encara no hi ha factures"
+    "text": "Encara no hi ha factures",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "Pagat"
+    "text": "Pagat",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "Pendent"
+    "text": "Pendent",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Fallat"
+    "text": "Fallat",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "No s'han pogut carregar les factures"
+    "text": "No s'han pogut carregar les factures",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "La facturació és gestionada per {orgName}"
+    "text": "La facturació és gestionada per {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Veure la facturació de l'organització"
+    "text": "Veure la facturació de l'organització",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Has arribat al límit de membres per a aquest equip"
+    "text": "Has arribat al límit de membres per a aquest equip",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Millora per afegir més membres"
+    "text": "Millora per afegir més membres",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "Subscripció"
+    "text": "Subscripció",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "Estat de la subscripció"
+    "text": "Estat de la subscripció",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "Actiu"
+    "text": "Actiu",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "Inactiu"
+    "text": "Inactiu",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Vençut"
+    "text": "Vençut",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Cancel·lat"
+    "text": "Cancel·lat",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "Pla"
+    "text": "Pla",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "Portal de facturació"
+    "text": "Portal de facturació",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Gestiona la teva subscripció, mètodes de pagament i historial de facturació"
+    "text": "Gestiona la teva subscripció, mètodes de pagament i historial de facturació",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "Obrir el portal de facturació"
+    "text": "Obrir el portal de facturació",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "Redirigint al portal de facturació..."
+    "text": "Redirigint al portal de facturació...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Comença avui"
+    "text": "Comença avui",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Comença avui amb Identity Plus"
+    "text": "Comença avui amb Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "al mes"
+    "text": "al mes",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "Accés complet a l'API"
+    "text": "Accés complet a l'API",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Disseny que prioritza la privadesa"
+    "text": "Disseny que prioritza la privadesa",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Fes clic en aquest llamp per actualitzar per a dominis personalitzats"
+    "text": "Fes clic en aquest llamp per actualitzar per a dominis personalitzats",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "Potser més tard"
+    "text": "Potser més tard",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Millorar el compte"
+    "text": "Millorar el compte",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Millorar a Identity Plus"
+    "text": "Millorar a Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Millorar per a equips"
+    "text": "Millorar per a equips",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "Avantatges de"
+    "text": "Avantatges de",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Millorar a"
+    "text": "Millorar a",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Millorar per a secrets.elteudomini.com"
+    "text": "Millorar per a secrets.elteudomini.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Tots els plans inclouen funcions de privadesa i capacitat de compartició il·limitada"
+    "text": "Tots els plans inclouen funcions de privadesa i capacitat de compartició il·limitada",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Tots els plans inclouen l'elecció de localització de dades: {0} regions"
+    "text": "Tots els plans inclouen l'elecció de localització de dades: {0} regions",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "Comença"
+    "text": "Comença",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "Subscripció {0}"
+    "text": "Subscripció {0}",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Eleva la teva compartició segura amb dominis personalitzats, capacitat il·limitada i funcions de nivell empresarial."
+    "text": "Eleva la teva compartició segura amb dominis personalitzats, capacitat il·limitada i funcions de nivell empresarial.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Freqüència de pagament"
+    "text": "Freqüència de pagament",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Assegura la teva marca i genera confiança amb els clients amb enllaços del teu domini. Perfecte per a empreses que valoren la privadesa i el professionalisme."
+    "text": "Assegura la teva marca i genera confiança amb els clients amb enllaços del teu domini. Perfecte per a empreses que valoren la privadesa i el professionalisme.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Enllaços segurs, connexions més fortes"
+    "text": "Enllaços segurs, connexions més fortes",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "No s'ha trobat el nivell d'identitat als nivells de producte"
+    "text": "No s'ha trobat el nivell d'identitat als nivells de producte",
+    "sha256": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Cancel·lar la subscripció"
+    "text": "Cancel·lar la subscripció",
+    "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Cancel·lar la subscripció"
+    "text": "Cancel·lar la subscripció",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Estàs segur que vols cancel·lar la teva subscripció {plan}?"
+    "text": "Estàs segur que vols cancel·lar la teva subscripció {plan}?",
+    "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Què passa quan cancel·les:"
+    "text": "Què passa quan cancel·les:",
+    "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Mantindràs l'accés a totes les funcions fins a {date}"
+    "text": "Mantindràs l'accés a totes les funcions fins a {date}",
+    "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Mantindràs l'accés fins que finalitzi el teu període de facturació actual"
+    "text": "Mantindràs l'accés fins que finalitzi el teu període de facturació actual",
+    "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "No se't tornarà a cobrar"
+    "text": "No se't tornarà a cobrar",
+    "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "El teu compte tornarà al pla gratuït"
+    "text": "El teu compte tornarà al pla gratuït",
+    "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Mantenir la subscripció"
+    "text": "Mantenir la subscripció",
+    "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Cancel·lar la subscripció"
+    "text": "Cancel·lar la subscripció",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "La teva subscripció s'ha cancel·lat. Mantindràs l'accés fins al final del teu període de facturació."
+    "text": "La teva subscripció s'ha cancel·lat. Mantindràs l'accés fins al final del teu període de facturació.",
+    "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "No s'ha pogut cancel·lar la subscripció. Torna-ho a provar."
+    "text": "No s'ha pogut cancel·lar la subscripció. Torna-ho a provar.",
+    "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Cancel·lació de subscripció programada"
+    "text": "Cancel·lació de subscripció programada",
+    "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "La teva subscripció romandrà activa fins a {date}. Continuaràs tenint accés complet a totes les funcions fins aleshores."
+    "text": "La teva subscripció romandrà activa fins a {date}. Continuaràs tenint accés complet a totes les funcions fins aleshores.",
+    "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Has canviat d'opinió? Pots reactivar la teva subscripció en qualsevol moment abans de la data de cancel·lació."
+    "text": "Has canviat d'opinió? Pots reactivar la teva subscripció en qualsevol moment abans de la data de cancel·lació.",
+    "sha256": "c94d5527"
   },
   "web.billing.features.create_secrets": {
-    "text": "Crear i compartir secrets"
+    "text": "Crear i compartir secrets",
+    "sha256": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "Accés a l'API"
+    "text": "Accés a l'API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Dominis personalitzats"
+    "text": "Dominis personalitzats",
+    "sha256": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 domini personalitzat"
+    "text": "1 domini personalitzat",
+    "sha256": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Dominis personalitzats il·limitats"
+    "text": "Dominis personalitzats il·limitats",
+    "sha256": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "Marca personalitzada"
+    "text": "Marca personalitzada",
+    "sha256": "237dabec"
   },
   "web.billing.features.branded_homepage": {
-    "text": "Pàgina d'inici amb marca"
+    "text": "Pàgina d'inici amb marca",
+    "sha256": "e355a396"
   },
   "web.billing.features.manage_teams": {
-    "text": "Gestió d'equips"
+    "text": "Gestió d'equips",
+    "sha256": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
-    "text": "Gestió de membres"
+    "text": "Gestió de membres",
+    "sha256": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "Registres d'auditoria"
+    "text": "Registres d'auditoria",
+    "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Inici de sessió únic (SSO)"
+    "text": "Inici de sessió únic (SSO)",
+    "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "Suport prioritari"
+    "text": "Suport prioritari",
+    "sha256": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Acord de nivell de servei"
+    "text": "Acord de nivell de servei",
+    "sha256": "436f2550"
   },
   "web.billing.features.centralized_billing": {
-    "text": "Facturació centralitzada"
+    "text": "Facturació centralitzada",
+    "sha256": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Traça d'auditoria"
+    "text": "Traça d'auditoria",
+    "sha256": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Flux d'activitat"
+    "text": "Flux d'activitat",
+    "sha256": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Fluxos de treball de traspàs"
+    "text": "Fluxos de treball de traspàs",
+    "sha256": "07202af3"
   },
   "web.billing.features.extended_retention": {
-    "text": "Retenció de secrets de 30 dies"
+    "text": "Retenció de secrets de 30 dies",
+    "sha256": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Secrets a la pàgina d'inici"
+    "text": "Secrets a la pàgina d'inici",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Secrets entrants"
+    "text": "Secrets entrants",
+    "sha256": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "Fins a 5 membres de l'equip"
+    "text": "Fins a 5 membres de l'equip",
+    "sha256": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "Fins a 10 membres de l'equip"
+    "text": "Fins a 10 membres de l'equip",
+    "sha256": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "Fins a 25 membres de l'equip"
+    "text": "Fins a 25 membres de l'equip",
+    "sha256": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "Fins a 50 membres de l'equip"
+    "text": "Fins a 50 membres de l'equip",
+    "sha256": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Membres de l'equip il·limitats"
+    "text": "Membres de l'equip il·limitats",
+    "sha256": "b7491ee9"
   },
   "web.billing.features.notifications": {
-    "text": "Notificacions per correu electrònic"
+    "text": "Notificacions per correu electrònic",
+    "sha256": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "Regles d'accés per IP"
+    "text": "Regles d'accés per IP",
+    "sha256": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Marca de l'espai de treball"
+    "text": "Marca de l'espai de treball",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
-    "text": "Infraestructura dedicada"
+    "text": "Infraestructura dedicada",
+    "sha256": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "Fluxos de treball compartits"
+    "text": "Fluxos de treball compartits",
+    "sha256": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "Facturació per a aquesta organització"
+    "text": "Facturació per a aquesta organització",
+    "sha256": "21806992"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "El teu pla s'ha millorat correctament"
+    "text": "El teu pla s'ha millorat correctament",
+    "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "El teu nou pla ja està actiu. Gràcies per la teva compra."
+    "text": "El teu nou pla ja està actiu. Gràcies per la teva compra.",
+    "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
-    "text": "Contacte de facturació"
+    "text": "Contacte de facturació",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Secrets a la pàgina d'inici"
+    "text": "Secrets a la pàgina d'inici",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
-    "text": "Notificacions per correu electrònic"
+    "text": "Notificacions per correu electrònic",
+    "sha256": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Regles d'accés per IP"
+    "text": "Regles d'accés per IP",
+    "sha256": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Marca de l'espai de treball"
+    "text": "Marca de l'espai de treball",
+    "sha256": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
-    "text": "A pagar avui:"
+    "text": "A pagar avui:",
+    "sha256": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Pròxima facturació ({date}):"
+    "text": "Pròxima facturació ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Com s'aplica el teu crèdit:"
+    "text": "Com s'aplica el teu crèdit:",
+    "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Import de la pròxima factura:"
+    "text": "Import de la pròxima factura:",
+    "sha256": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Crèdit aplicat:"
+    "text": "Crèdit aplicat:",
+    "sha256": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Import a pagar a la pròxima facturació:"
+    "text": "Import a pagar a la pròxima facturació:",
+    "sha256": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Crèdit restant del compte:"
+    "text": "Crèdit restant del compte:",
+    "sha256": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Aplicat a futures factures"
+    "text": "Aplicat a futures factures",
+    "sha256": "5007add6"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Ús de l'equip"
+    "text": "Ús de l'equip",
+    "sha256": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{used} de {limit} equips"
+    "text": "{used} de {limit} equips",
+    "sha256": "1db6b53c"
   }
 }

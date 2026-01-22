@@ -1,251 +1,334 @@
 {
   "web.footer.api_docs": {
-    "text": "Tuhinga API"
+    "text": "Tuhinga API",
+    "sha256": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Aratohu Waitohu"
+    "text": "Aratohu Waitohu",
+    "sha256": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "Whakariterite"
+    "text": "Whakariterite",
+    "sha256": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "Mahere"
+    "text": "Mahere",
+    "sha256": "dfe8b2f0"
   },
   "web.footer.security": {
-    "text": "Haumaru"
+    "text": "Haumaru",
+    "sha256": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Ako mō ā mātou tikanga haumaru"
+    "text": "Ako mō ā mātou tikanga haumaru",
+    "sha256": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Tirohia ā mātou Tikanga me ngā Herenga"
+    "text": "Tirohia ā mātou Tikanga me ngā Herenga",
+    "sha256": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "Tikanga"
+    "text": "Tikanga",
+    "sha256": "ede54899"
   },
   "web.footer.privacy": {
-    "text": "Matatapu"
+    "text": "Matatapu",
+    "sha256": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "Whakapā"
+    "text": "Whakapā",
+    "sha256": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "Tautoko"
+    "text": "Tautoko",
+    "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Ture"
+    "text": "Ture",
+    "sha256": "0a410c78"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Pānuihia tā mātou Kaupapahere Matatapu"
+    "text": "Pānuihia tā mātou Kaupapahere Matatapu",
+    "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Tirohia te tūnga o tā mātou ratonga"
+    "text": "Tirohia te tūnga o tā mātou ratonga",
+    "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Tūhura i ā mātou tuhinga API"
+    "text": "Tūhura i ā mātou tuhinga API",
+    "sha256": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "Tuhinga"
+    "text": "Tuhinga",
+    "sha256": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Whakauru ki ā mātou tuhinga"
+    "text": "Whakauru ki ā mātou tuhinga",
+    "sha256": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Tirohia tā mātou waehere pūtake ki GitHub"
+    "text": "Tirohia tā mātou waehere pūtake ki GitHub",
+    "sha256": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "Rauemi"
+    "text": "Rauemi",
+    "sha256": "e89b30aa"
   },
   "web.footer.blog": {
-    "text": "Pūrongo"
+    "text": "Pūrongo",
+    "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Pānuihia ā mātou tuhinga pūrongo hou"
+    "text": "Pānuihia ā mātou tuhinga pūrongo hou",
+    "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Tirohia ā mātou utu ohaurunga"
+    "text": "Tirohia ā mātou utu ohaurunga",
+    "sha256": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Ako mō tō mātou kamupene"
+    "text": "Ako mō tō mātou kamupene",
+    "sha256": "780e18cd"
   },
   "web.footer.company": {
-    "text": "Kamupene"
+    "text": "Kamupene",
+    "sha256": "de4743c8"
   },
   "web.navigation.billing": {
-    "text": "Nama"
+    "text": "Nama",
+    "sha256": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "Tirohanga Whānui"
+    "text": "Tirohanga Whānui",
+    "sha256": "d4b1ea57"
   },
   "web.navigation.organizations": {
-    "text": "Whakahaere"
+    "text": "Whakahaere",
+    "sha256": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Putanga Paetukutuku"
+    "text": "Putanga Paetukutuku",
+    "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Kei te whakarato mātou i a {onetime-secret} i roto i ngā reo maha. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ngā hapa whakamaori, kupu whakatakoto pōrearea rānei. Ka āwhina tō urupare i a mātou ki te whakapai ake - mēnā ka kitea e koe he take, tēnā {send-feedback}"
+    "text": "Kei te whakarato mātou i a {onetime-secret} i roto i ngā reo maha. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ngā hapa whakamaori, kupu whakatakoto pōrearea rānei. Ka āwhina tō urupare i a mātou ki te whakapai ake - mēnā ka kitea e koe he take, tēnā {send-feedback}",
+    "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "He hou ngā whakamaoritanga. Kua kitea he hapa? {send-feedback}"
+    "text": "He hou ngā whakamaoritanga. Kua kitea he hapa? {send-feedback}",
+    "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Kua tāpiri mātou i ngā whakamāoritanga i tata nei. Kua kite koe i tētahi hapa? {send-feedback}"
+    "text": "Kua tāpiri mātou i ngā whakamāoritanga i tata nei. Kua kite koe i tētahi hapa? {send-feedback}",
+    "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "Me wātea te matatapu me te haumaru ki te katoa, ahakoa te reo. Kei te tāpiri mātou i ngā whakamaoritanga hei āwhina i ā mātou kaiwhakamahi me ā rātou kaiwhiwhi karere ki te mārama pai ake me pēhea te whakamahi haumaru me te uru ki ngā karere me ngā hononga haumaru. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ētahi hapa whakamaori, tohutohu mārama kore rānei. Hei āwhina i a mātou ki te whakapai ake i te mārama me te tika o ā mātou whakamaoritanga, otirā mō ngā ihirangi e pā ana ki te haumaru-tino, tēnā {send-feedback} mēnā ka kitea e koe he take"
+    "text": "Me wātea te matatapu me te haumaru ki te katoa, ahakoa te reo. Kei te tāpiri mātou i ngā whakamaoritanga hei āwhina i ā mātou kaiwhakamahi me ā rātou kaiwhiwhi karere ki te mārama pai ake me pēhea te whakamahi haumaru me te uru ki ngā karere me ngā hononga haumaru. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ētahi hapa whakamaori, tohutohu mārama kore rānei. Hei āwhina i a mātou ki te whakapai ake i te mārama me te tika o ā mātou whakamaoritanga, otirā mō ngā ihirangi e pā ana ki te haumaru-tino, tēnā {send-feedback} mēnā ka kitea e koe he take",
+    "sha256": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Ako atu"
+    "text": "Ako atu",
+    "sha256": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "He aha tēnei e tiro ana au?"
+    "text": "He aha tēnei e tiro ana au?",
+    "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "E tiro ana koe i tētahi karere haumaru i tohatohaina ki a koe mā Onetime Secret. Kotahi noa te wā e whakaatuhia ai tēnei ihirangi, kātahi ka mukua pūmau mai i ā mātou tūmau."
+    "text": "E tiro ana koe i tētahi karere haumaru i tohatohaina ki a koe mā Onetime Secret. Kotahi noa te wā e whakaatuhia ai tēnei ihirangi, kātahi ka mukua pūmau mai i ā mātou tūmau.",
+    "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Ka taea e au te tiro anō i tēnei karere huna ā muri ake?"
+    "text": "Ka taea e au te tiro anō i tēnei karere huna ā muri ake?",
+    "sha256": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Kāo. Mō ngā take haumaru, kotahi noa te wā e taea ai te tiro i tēnei karere huna. I muri i te katinga o tēnei whārangi, ka mukua pūmau te ihirangi, kāore e taea te whakahoki e tētahi, tae atu ki a mātou."
+    "text": "Kāo. Mō ngā take haumaru, kotahi noa te wā e taea ai te tiro i tēnei karere huna. I muri i te katinga o tēnei whārangi, ka mukua pūmau te ihirangi, kāore e taea te whakahoki e tētahi, tae atu ki a mātou.",
+    "sha256": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Me pēhea e tiaki ai au i tēnei mōhiohio?"
+    "text": "Me pēhea e tiaki ai au i tēnei mōhiohio?",
+    "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Whakamahia te pātene 'Tārua ki te Papatopenga' ki te tārua i te karere huna katoa. Mō ngā karere huna roa, me whakaū kua tāruatia te ihirangi katoa i mua i te wehenga i tēnei whārangi."
+    "text": "Whakamahia te pātene 'Tārua ki te Papatopenga' ki te tārua i te karere huna katoa. Mō ngā karere huna roa, me whakaū kua tāruatia te ihirangi katoa i mua i te wehenga i tēnei whārangi.",
+    "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "E aroturukihia ana tāku tirohanga o tēnei karere huna?"
+    "text": "E aroturukihia ana tāku tirohanga o tēnei karere huna?",
+    "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Ka whakamōhiotia te kaituku kua tirohia tā rātou karere huna, engari kāore mātou e aroturuki ko wai i tiro, nō hea rānei. Kua tiakina tō matatapu."
+    "text": "Ka whakamōhiotia te kaituku kua tirohia tā rātou karere huna, engari kāore mātou e aroturuki ko wai i tiro, nō hea rānei. Kua tiakina tō matatapu.",
+    "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Ki te wehe koe, ki te whakahou rānei i tēnei whārangi, ka mukua pūmau tēnei karere huna, kāore e taea te whakahoki e tētahi."
+    "text": "Ki te wehe koe, ki te whakahou rānei i tēnei whārangi, ka mukua pūmau tēnei karere huna, kāore e taea te whakahoki e tētahi.",
+    "sha256": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Hoki ki te whārangi o mua"
+    "text": "Hoki ki te whārangi o mua",
+    "sha256": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Waewae pae"
+    "text": "Waewae pae",
+    "sha256": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Huri aratau pōuri"
+    "text": "Huri aratau pōuri",
+    "sha256": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Homai urupare"
+    "text": "Homai urupare",
+    "sha256": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "Tohu kamupene"
+    "text": "Tohu kamupene",
+    "sha256": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Tohu waitohu"
+    "text": "Tohu waitohu",
+    "sha256": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Whakatere Papatohu"
+    "text": "Whakatere Papatohu",
+    "sha256": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "Whakatere Waea Pūkoro"
+    "text": "Whakatere Waea Pūkoro",
+    "sha256": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Whakatere Matua"
+    "text": "Whakatere Matua",
+    "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} tūemi"
+    "text": "{count} tūemi",
+    "sha256": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Tuhipoka Putanga"
+    "text": "Tuhipoka Putanga",
+    "sha256": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "E uta ana ngā ihirangi tautuhinga..."
+    "text": "E uta ana ngā ihirangi tautuhinga...",
+    "sha256": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Ngā wāhanga tautuhinga"
+    "text": "Ngā wāhanga tautuhinga",
+    "sha256": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "Kati tautuhinga"
+    "text": "Kati tautuhinga",
+    "sha256": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Ngā wāhanga tautuhinga"
+    "text": "Ngā wāhanga tautuhinga",
+    "sha256": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Whakariterite ō manakohanga taupānga me ngā tautuhinga"
+    "text": "Whakariterite ō manakohanga taupānga me ngā tautuhinga",
+    "sha256": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Hoki ki te kāinga"
+    "text": "Hoki ki te kāinga",
+    "sha256": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Hoki ki te whārangi kāinga"
+    "text": "Hoki ki te whārangi kāinga",
+    "sha256": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Hoki ki te Kāinga"
+    "text": "Hoki ki te Kāinga",
+    "sha256": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Tiro Kaupapahere Matatapu"
+    "text": "Tiro Kaupapahere Matatapu",
+    "sha256": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Tiro Tikanga Ratonga"
+    "text": "Tiro Tikanga Ratonga",
+    "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Toro atu ki te whārangi kāinga o Onetime Secret"
+    "text": "Toro atu ki te whārangi kāinga o Onetime Secret",
+    "sha256": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Whakatere waewae"
+    "text": "Whakatere waewae",
+    "sha256": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Tikanga Ratonga"
+    "text": "Tikanga Ratonga",
+    "sha256": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "Kaupapahere Matatapu"
+    "text": "Kaupapahere Matatapu",
+    "sha256": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "Puna Ata"
+    "text": "Puna Ata",
+    "sha256": "a73f4c07"
   },
   "web.layout.google_material": {
-    "text": "Google Material"
+    "text": "Google Material",
+    "sha256": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons"
+    "text": "Material Design Icons",
+    "sha256": "0fb27437"
   },
   "web.layout.heroicons": {
-    "text": "Heroicons"
+    "text": "Heroicons",
+    "sha256": "5e7cc07e"
   },
   "web.layout.carbon": {
-    "text": "Carbon"
+    "text": "Carbon",
+    "sha256": "694c87c2"
   },
   "web.layout.font_awesome_6": {
-    "text": "Font Awesome 6"
+    "text": "Font Awesome 6",
+    "sha256": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Tiro waehere pūtake ki GitHub"
+    "text": "Tiro waehere pūtake ki GitHub",
+    "sha256": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Putanga Paetukutuku: v{0}"
+    "text": "Putanga Paetukutuku: v{0}",
+    "sha256": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Huri reo. Ko te reo o nāianei ko {0}"
+    "text": "Huri reo. Ko te reo o nāianei ko {0}",
+    "sha256": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Kua hurihia te reo ki {0}"
+    "text": "Kua hurihia te reo ki {0}",
+    "sha256": "1680f4fe"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Huri ki te aratau {0}"
+    "text": "Huri ki te aratau {0}",
+    "sha256": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "Kua whakahohe te aratau {0}"
+    "text": "Kua whakahohe te aratau {0}",
+    "sha256": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Wāhi Mahi"
+    "text": "Wāhi Mahi",
+    "sha256": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Horopaki wāhi mahi"
+    "text": "Horopaki wāhi mahi",
+    "sha256": "dc6fa4f5"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "I te wā e tuku urupare ana koe, ka kite mātou i:"
+    "text": "I te wā e tuku urupare ana koe, ka kite mātou i:",
+    "sha256": "fe77172e"
   },
   "web.layout.reset_to_default_language": {
-    "text": "Tautuhi anō ki {0}"
+    "text": "Tautuhi anō ki {0}",
+    "sha256": "c0cfa9b2"
   }
 }

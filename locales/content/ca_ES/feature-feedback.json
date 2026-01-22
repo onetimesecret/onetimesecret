@@ -1,27 +1,35 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Els teus comentaris"
+    "text": "Els teus comentaris",
+    "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Tots els comentaris són benvinguts!"
+    "text": "Tots els comentaris són benvinguts!",
+    "sha256": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Ajuda'ns a millorar"
+    "text": "Ajuda'ns a millorar",
+    "sha256": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Tancar finestra de comentaris"
+    "text": "Tancar finestra de comentaris",
+    "sha256": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Comparteix els teus comentaris"
+    "text": "Comparteix els teus comentaris",
+    "sha256": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
-    "text": "Delano Mandelbaum"
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
   },
   "web.feedback.delano": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "El contingut d'ajuda va aquí."
+    "text": "El contingut d'ajuda va aquí.",
+    "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Gràcies per ajudar a millorar Onetime Secret. Significa molt."
@@ -36,18 +44,23 @@
     "text": "Una nota de Delano, fundador d'Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Obrir formulari de comentaris"
+    "text": "Obrir formulari de comentaris",
+    "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Introdueix els teus comentaris"
+    "text": "Introdueix els teus comentaris",
+    "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Enviar comentaris"
+    "text": "Enviar comentaris",
+    "sha256": "8235980b"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Llegeixo cada comentari que arriba aquí. És com determino en què dedicar temps."
+    "text": "Llegeixo cada comentari que arriba aquí. És com determino en què dedicar temps.",
+    "sha256": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Si alguna cosa no va bé, o tens idees sobre com hauria de funcionar, aquest és el lloc adequat."
+    "text": "Si alguna cosa no va bé, o tens idees sobre com hauria de funcionar, aquest és el lloc adequat.",
+    "sha256": "d4b8f073"
   }
 }

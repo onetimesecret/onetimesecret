@@ -1,269 +1,357 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Me Whai Pūkete?"
+    "text": "Me Whai Pūkete?",
+    "sha256": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Waitohu."
+    "text": "Waitohu.",
+    "sha256": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Kua wareware tō kupuhipa?"
+    "text": "Kua wareware tō kupuhipa?",
+    "sha256": "afd25fdf"
   },
   "web.login.button_sign_in": {
-    "text": "Takiuru"
+    "text": "Takiuru",
+    "sha256": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Urunga ō taipitopito"
+    "text": "Urunga ō taipitopito",
+    "sha256": "07e1c44e"
   },
   "web.login.remember_me": {
-    "text": "Mahara mai i au"
+    "text": "Mahara mai i au",
+    "sha256": "f93267aa"
   },
   "web.signup.create_your_account": {
-    "text": "Waihanga Tō Pūkete"
+    "text": "Waihanga Tō Pūkete",
+    "sha256": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Kua whai pūkete kē?"
+    "text": "Kua whai pūkete kē?",
+    "sha256": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Takiuru."
+    "text": "Takiuru.",
+    "sha256": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "Hapa Hanganga Pūkete"
+    "text": "Hapa Hanganga Pūkete",
+    "sha256": "e380a0b6"
   },
   "web.signup.password_error": {
-    "text": "Kupuhipa"
+    "text": "Kupuhipa",
+    "sha256": "e7cf3ef4"
   },
   "web.signup.email_error": {
-    "text": "Īmēra"
+    "text": "Īmēra",
+    "sha256": "969ccbd3"
   },
   "web.auth.verify.title": {
-    "text": "Manatoko i Tō Pūkete"
+    "text": "Manatoko i Tō Pūkete",
+    "sha256": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "Kua manatokohia tō pūkete"
+    "text": "Kua manatokohia tō pūkete",
+    "sha256": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "He kī manatoko muhu, kua pau rānei"
+    "text": "He kī manatoko muhu, kua pau rānei",
+    "sha256": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Kua pau tēnei hononga manatoko. Tēnā tonoa he mea hou."
+    "text": "Kua pau tēnei hononga manatoko. Tēnā tonoa he mea hou.",
+    "sha256": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Kua manatokohia kē tēnei pūkete. Ka taea te takiuru ināianei."
+    "text": "Kua manatokohia kē tēnei pūkete. Ka taea te takiuru ināianei.",
+    "sha256": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Kāore e taea te manatoko i te pūkete. Tēnā whakamātauria anō, whakapā rānei ki te tautoko."
+    "text": "Kāore e taea te manatoko i te pūkete. Tēnā whakamātauria anō, whakapā rānei ki te tautoko.",
+    "sha256": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Tēnā tirohia tō īmēra mō te hononga manatoko"
+    "text": "Tēnā tirohia tō īmēra mō te hononga manatoko",
+    "sha256": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "I rahua te manatokotanga pūkete. Tēnā tirohia tō hononga manatoko, tonoa rānei he mea hou."
+    "text": "I rahua te manatokotanga pūkete. Tēnā tirohia tō hononga manatoko, tonoa rānei he mea hou.",
+    "sha256": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "I Rahua te Manatokotanga"
+    "text": "I Rahua te Manatokotanga",
+    "sha256": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
-    "text": "Me aha au?"
+    "text": "Me aha au?",
+    "sha256": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Tirohia tō īmēra mō te hononga manatoko hou rawa"
+    "text": "Tirohia tō īmēra mō te hononga manatoko hou rawa",
+    "sha256": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Tirohia tō kōpaki spam/junk mēnā kāore e kitea te īmēra"
+    "text": "Tirohia tō kōpaki spam/junk mēnā kāore e kitea te īmēra",
+    "sha256": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Whakapā atu ki te tautoko mēnā ka haere tonu ngā raru"
+    "text": "Whakapā atu ki te tautoko mēnā ka haere tonu ngā raru",
+    "sha256": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Me Whai Hononga Manatoko"
+    "text": "Me Whai Hononga Manatoko",
+    "sha256": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Tēnā whakamahia te hononga manatoko i tukuna ki tō wāhitau īmēra hei manatoko i tō pūkete."
+    "text": "Tēnā whakamahia te hononga manatoko i tukuna ki tō wāhitau īmēra hei manatoko i tō pūkete.",
+    "sha256": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "Waihanga Pūkete Hou"
+    "text": "Waihanga Pūkete Hou",
+    "sha256": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "Huri te Kupuhipa"
+    "text": "Huri te Kupuhipa",
+    "sha256": "a949f462"
   },
   "web.auth.change_password.current_password": {
-    "text": "Kupuhipa o Nāianei"
+    "text": "Kupuhipa o Nāianei",
+    "sha256": "8ac76099"
   },
   "web.auth.change_password.new_password": {
-    "text": "Kupuhipa Hou"
+    "text": "Kupuhipa Hou",
+    "sha256": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Whakaū te Kupuhipa Hou"
+    "text": "Whakaū te Kupuhipa Hou",
+    "sha256": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "Kua hurihia tō kupuhipa"
+    "text": "Kua hurihia tō kupuhipa",
+    "sha256": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "I rahua te huri kupuhipa. Tēnā manatoko i tō kupuhipa o nāianei me whakamātau anō."
+    "text": "I rahua te huri kupuhipa. Tēnā manatoko i tō kupuhipa o nāianei me whakamātau anō.",
+    "sha256": "1aa11b3f"
   },
   "web.auth.close_account.title": {
-    "text": "Kati te Pūkete"
+    "text": "Kati te Pūkete",
+    "sha256": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "Kāore e taea te whakakore i tēnei mahi. Ka mukua pūmautia ō karere huna katoa."
+    "text": "Kāore e taea te whakakore i tēnei mahi. Ka mukua pūmautia ō karere huna katoa.",
+    "sha256": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "E mārama ana au ka mau tonu tēnei mahi"
+    "text": "E mārama ana au ka mau tonu tēnei mahi",
+    "sha256": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Urunga tō kupuhipa hei whakaū"
+    "text": "Urunga tō kupuhipa hei whakaū",
+    "sha256": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Kati Pūmautia te Pūkete"
+    "text": "Kati Pūmautia te Pūkete",
+    "sha256": "0713c012"
   },
   "web.auth.close_account.cancel": {
-    "text": "Whakakore"
+    "text": "Whakakore",
+    "sha256": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Tono Tautuhi Kupuhipa Anō"
+    "text": "Tono Tautuhi Kupuhipa Anō",
+    "sha256": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Urunga tō wāhitau īmēra ki raro nei ka tuku mātou i tētahi hononga ki a koe hei tautuhi anō i tō kupuhipa"
+    "text": "Urunga tō wāhitau īmēra ki raro nei ka tuku mātou i tētahi hononga ki a koe hei tautuhi anō i tō kupuhipa",
+    "sha256": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Tukua te Hononga Tautuhi Anō"
+    "text": "Tukua te Hononga Tautuhi Anō",
+    "sha256": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "Kōwhiria he Kupuhipa Hou"
+    "text": "Kōwhiria he Kupuhipa Hou",
+    "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Tēnā urunga tō kupuhipa hou ki raro nei. Me mōhio kia kaha, kia motuhake hoki hei tiaki i tō pūkete."
+    "text": "Tēnā urunga tō kupuhipa hou ki raro nei. Me mōhio kia kaha, kia motuhake hoki hei tiaki i tō pūkete.",
+    "sha256": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Kua tukuna he īmēra ki a koe me tētahi hononga hei tautuhi anō i te kupuhipa mō tō pūkete"
+    "text": "Kua tukuna he īmēra ki a koe me tētahi hononga hei tautuhi anō i te kupuhipa mō tō pūkete",
+    "sha256": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "E whakaae ana au ki te"
+    "text": "E whakaae ana au ki te",
+    "sha256": "26a58d00"
   },
   "web.auth.account.title": {
-    "text": "Kōrero Pūkete"
+    "text": "Kōrero Pūkete",
+    "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
-    "text": "Wāhitau Īmēra"
+    "text": "Wāhitau Īmēra",
+    "sha256": "09bf25ef"
   },
   "web.auth.account.created": {
-    "text": "I hangaia te Pūkete"
+    "text": "I hangaia te Pūkete",
+    "sha256": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "Kua manatokohia te Īmēra"
+    "text": "Kua manatokohia te Īmēra",
+    "sha256": "bc512ab0"
   },
   "web.auth.account.region": {
-    "text": "Rohe"
+    "text": "Rohe",
+    "sha256": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "Kāore anō kia Manatokohia te Īmēra"
+    "text": "Kāore anō kia Manatokohia te Īmēra",
+    "sha256": "53955e0e"
   },
   "web.auth.account.verify_email": {
-    "text": "Manatoko te Wāhitau Īmēra"
+    "text": "Manatoko te Wāhitau Īmēra",
+    "sha256": "d261b9df"
   },
   "web.auth.account.mfa_status": {
-    "text": "Whakamotuhēhētanga Āhuatanga-Rua"
+    "text": "Whakamotuhēhētanga Āhuatanga-Rua",
+    "sha256": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Kua whakahohea"
+    "text": "Kua whakahohea",
+    "sha256": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Kua monokia"
+    "text": "Kua monokia",
+    "sha256": "75081b59"
   },
   "web.auth.account.active_sessions": {
-    "text": "Ngā Wātū Hohe"
+    "text": "Ngā Wātū Hohe",
+    "sha256": "b58fa4e0"
   },
   "web.auth.account.session_count": {
-    "text": "{count} wātū hohe"
+    "text": "{count} wātū hohe",
+    "sha256": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
-    "text": "Mahi Tere"
+    "text": "Mahi Tere",
+    "sha256": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Whakahaere te Whakamotuhēhētanga Āhuatanga-Rua"
+    "text": "Whakahaere te Whakamotuhēhētanga Āhuatanga-Rua",
+    "sha256": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Whakahaere Ngā Wātū Hohe"
+    "text": "Whakahaere Ngā Wātū Hohe",
+    "sha256": "c5d54d87"
   },
   "web.auth.account.change_password": {
-    "text": "Huri te Kupuhipa"
+    "text": "Huri te Kupuhipa",
+    "sha256": "a949f462"
   },
   "web.auth.account.close_account": {
-    "text": "Kati te Pūkete"
+    "text": "Kati te Pūkete",
+    "sha256": "e1513814"
   },
   "web.auth.verify._guidance.context": {
     "text": "Te rere manatoko īmēra i muri i te waitohu"
   },
   "web.help.title": {
-    "text": "Āwhina & Tautoko"
+    "text": "Āwhina & Tautoko",
+    "sha256": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Whakatika Raru Takiuru"
+    "text": "Whakatika Raru Takiuru",
+    "sha256": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Kāore te hononga karakia e tae mai ana?"
+    "text": "Kāore te hononga karakia e tae mai ana?",
+    "sha256": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Tirohia tō kōpaki spam, junk rānei"
+    "text": "Tirohia tō kōpaki spam, junk rānei",
+    "sha256": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Manatoko i urungahia tika tō wāhitau īmēra"
+    "text": "Manatoko i urungahia tika tō wāhitau īmēra",
+    "sha256": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Tatari mō ētahi meneti - ka takaroa pea ngā īmēra"
+    "text": "Tatari mō ētahi meneti - ka takaroa pea ngā īmēra",
+    "sha256": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Whakamātauria te tono i tētahi hononga hou mēnā kua neke atu i te 10 meneti"
+    "text": "Whakamātauria te tono i tētahi hononga hou mēnā kua neke atu i te 10 meneti",
+    "sha256": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "Kua wareware tō kupuhipa?"
+    "text": "Kua wareware tō kupuhipa?",
+    "sha256": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Whakamahia te kōwhiringa Hononga Karakia hei takiuru me te kore kupuhipa. Kia takiuru ana, ka taea e koe te huri i tō kupuhipa i ngā Tautuhinga Pūkete."
+    "text": "Whakamahia te kōwhiringa Hononga Karakia hei takiuru me te kore kupuhipa. Kia takiuru ana, ka taea e koe te huri i tō kupuhipa i ngā Tautuhinga Pūkete.",
+    "sha256": "2a058600"
   },
   "web.help.account_locked": {
-    "text": "Kua rakaina te pūkete mō te wā poto?"
+    "text": "Kua rakaina te pūkete mō te wā poto?",
+    "sha256": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "I muri i ngā nganatanga takiuru hē maha, ka rakaina ngā pūkete mō te wā poto hei tiaki. Tatari 15 meneti ka whakamātau anō, whakamahia rānei te Hononga Karakia hei takiuru."
+    "text": "I muri i ngā nganatanga takiuru hē maha, ka rakaina ngā pūkete mō te wā poto hei tiaki. Tatari 15 meneti ka whakamātau anō, whakamahia rānei te Hononga Karakia hei takiuru.",
+    "sha256": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Kei te hiahia āwhina tonu?"
+    "text": "Kei te hiahia āwhina tonu?",
+    "sha256": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Mēnā kei te raru tonu koe, kei konei mātou hei āwhina. Tukuna mai he karere ka whakautu mātou i te wā tata."
+    "text": "Mēnā kei te raru tonu koe, kei konei mātou hei āwhina. Tukuna mai he karere ka whakautu mātou i te wā tata.",
+    "sha256": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "Whakapā ki te Tautoko"
+    "text": "Whakapā ki te Tautoko",
+    "sha256": "f8d47b82"
   },
   "web.login.send_sign_in_link": {
-    "text": "Tukua te hononga takiuru"
+    "text": "Tukua te hononga takiuru",
+    "sha256": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Ka tukuna he hononga haumaru ki tō pouaka īmēra."
+    "text": "Ka tukuna he hononga haumaru ki tō pouaka īmēra.",
+    "sha256": "d31d20cf"
   },
   "web.login.or_divider": {
-    "text": "rānei"
+    "text": "rānei",
+    "sha256": "7175517a"
   },
   "web.login.sign_in_with_password": {
-    "text": "Takiuru mā te kupuhipa"
+    "text": "Takiuru mā te kupuhipa",
+    "sha256": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Whakamahia te takiuru kore-kupuhipa"
+    "text": "Whakamahia te takiuru kore-kupuhipa",
+    "sha256": "dddc0097"
   },
   "web.login.create_account": {
-    "text": "Waihanga pūkete"
+    "text": "Waihanga pūkete",
+    "sha256": "798ca2ce"
   },
   "web.login.return_home": {
-    "text": "Hoki ki te kāinga"
+    "text": "Hoki ki te kāinga",
+    "sha256": "bbcc935e"
   },
   "web.login.tab_password": {
-    "text": "Kupuhipa"
+    "text": "Kupuhipa",
+    "sha256": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "Hononga Karakia"
+    "text": "Hononga Karakia",
+    "sha256": "7a9ba11a"
   },
   "web.login.need_help": {
-    "text": "Me āwhina?"
+    "text": "Me āwhina?",
+    "sha256": "c225cdfb"
   }
 }

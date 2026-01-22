@@ -1,434 +1,578 @@
 {
   "web.organizations.title": {
-    "text": "Organisationer"
+    "text": "Organisationer",
+    "sha256": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organisation"
+    "text": "Organisation",
+    "sha256": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "Organisationer"
+    "text": "Organisationer",
+    "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Hantera dina organisationer"
+    "text": "Hantera dina organisationer",
+    "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organisationer"
+    "text": "Organisationer",
+    "sha256": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Hantera organisationer"
+    "text": "Hantera organisationer",
+    "sha256": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Ny organisation"
+    "text": "Ny organisation",
+    "sha256": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Inga organisationer ännu"
+    "text": "Inga organisationer ännu",
+    "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisationer ger enhetlig fakturering och administration. Kom igång genom att skapa din första organisation."
+    "text": "Organisationer ger enhetlig fakturering och administration. Kom igång genom att skapa din första organisation.",
+    "sha256": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Ingen beskrivning angiven"
+    "text": "Ingen beskrivning angiven",
+    "sha256": "41183d01"
   },
   "web.organizations.default": {
-    "text": "Standard"
+    "text": "Standard",
+    "sha256": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Skapa organisation"
+    "text": "Skapa organisation",
+    "sha256": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Skapa första organisationen"
+    "text": "Skapa första organisationen",
+    "sha256": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Skapa en ny organisation"
+    "text": "Skapa en ny organisation",
+    "sha256": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "Skapa"
+    "text": "Skapa",
+    "sha256": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Kunde inte skapa organisation"
+    "text": "Kunde inte skapa organisation",
+    "sha256": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Organisationsnamn"
+    "text": "Organisationsnamn",
+    "sha256": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "t.ex. Acme Corporation"
+    "text": "t.ex. Acme Corporation",
+    "sha256": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Organisationsnamn"
+    "text": "Organisationsnamn",
+    "sha256": "4cbd9073"
   },
   "web.organizations.description": {
-    "text": "Beskrivning"
+    "text": "Beskrivning",
+    "sha256": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Vad är denna organisation för?"
+    "text": "Vad är denna organisation för?",
+    "sha256": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Faktureringsmejl"
+    "text": "Faktureringsmejl",
+    "sha256": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Primär kontakt för fakturering och administrativa aviseringar"
+    "text": "Primär kontakt för fakturering och administrativa aviseringar",
+    "sha256": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Välj en organisation"
+    "text": "Välj en organisation",
+    "sha256": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organisationsbyte ej tillgängligt på denna sida"
+    "text": "Organisationsbyte ej tillgängligt på denna sida",
+    "sha256": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "Organisation hittades inte"
+    "text": "Organisation hittades inte",
+    "sha256": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "Kunde inte ladda organisation"
+    "text": "Kunde inte ladda organisation",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Kunde inte ladda organisation"
+    "text": "Kunde inte ladda organisation",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Kunde inte ladda organisationer"
+    "text": "Kunde inte ladda organisationer",
+    "sha256": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Organisationsinformation"
+    "text": "Organisationsinformation",
+    "sha256": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Skapad"
+    "text": "Skapad",
+    "sha256": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Senast uppdaterad"
+    "text": "Senast uppdaterad",
+    "sha256": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Organisationsinställningar"
+    "text": "Organisationsinställningar",
+    "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Uppdatera ditt organisationsnamn och beskrivning"
+    "text": "Uppdatera ditt organisationsnamn och beskrivning",
+    "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Allmänna inställningar"
+    "text": "Allmänna inställningar",
+    "sha256": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Fakturering och prenumeration"
+    "text": "Fakturering och prenumeration",
+    "sha256": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Spara ändringar"
+    "text": "Spara ändringar",
+    "sha256": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "Organisation uppdaterad"
+    "text": "Organisation uppdaterad",
+    "sha256": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Kunde inte uppdatera organisation"
+    "text": "Kunde inte uppdatera organisation",
+    "sha256": "bc2b59b8"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Faktureringsintegration kommer snart"
+    "text": "Faktureringsintegration kommer snart",
+    "sha256": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Enhetlig fakturerings- och prenumerationshantering blir tillgänglig i en framtida version."
+    "text": "Enhetlig fakturerings- och prenumerationshantering blir tillgänglig i en framtida version.",
+    "sha256": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "Om organisationer"
+    "text": "Om organisationer",
+    "sha256": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organisationer ger enhetlig fakturering och administration för centraliserad hantering."
+    "text": "Organisationer ger enhetlig fakturering och administration för centraliserad hantering.",
+    "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Hantera din organisation"
+    "text": "Hantera din organisation",
+    "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Uppdatera ditt företagsnamn och organisationsdetaljer här. Denna information hjälper till att personalisera ditt konto och kan användas för varumärkesfunktioner i framtiden."
+    "text": "Uppdatera ditt företagsnamn och organisationsdetaljer här. Denna information hjälper till att personalisera ditt konto och kan användas för varumärkesfunktioner i framtiden.",
+    "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Kom igång med organisationer"
+    "text": "Kom igång med organisationer",
+    "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Skapa din första organisation för att hantera din företagsinformation och förbereda för framtida varumärkesfunktioner."
+    "text": "Skapa din första organisation för att hantera din företagsinformation och förbereda för framtida varumärkesfunktioner.",
+    "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Hantera dina organisationer och teammedlemmar"
+    "text": "Hantera dina organisationer och teammedlemmar",
+    "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
-    "text": "Inställningar"
+    "text": "Inställningar",
+    "sha256": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Företagsvarumärke"
+    "text": "Företagsvarumärke",
+    "sha256": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team"
+    "text": "Team",
+    "sha256": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Fakturering"
+    "text": "Fakturering",
+    "sha256": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
-    "text": "Farozon"
+    "text": "Farozon",
+    "sha256": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Radera organisation"
+    "text": "Radera organisation",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Detta raderar organisationen permanent. Denna åtgärd kan inte ångras."
+    "text": "Detta raderar organisationen permanent. Denna åtgärd kan inte ångras.",
+    "sha256": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "Radera"
+    "text": "Radera",
+    "sha256": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Radera organisation"
+    "text": "Radera organisation",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Är du säker på att du vill radera {name}? Denna åtgärd kan inte ångras."
+    "text": "Är du säker på att du vill radera {name}? Denna åtgärd kan inte ångras.",
+    "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Kunde inte radera organisation"
+    "text": "Kunde inte radera organisation",
+    "sha256": "a8e5bb28"
   },
   "web.organizations.members.title": {
-    "text": "Medlemmar"
+    "text": "Medlemmar",
+    "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Hantera organisationsmedlemmar och deras roller"
+    "text": "Hantera organisationsmedlemmar och deras roller",
+    "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Nuvarande medlemmar"
+    "text": "Nuvarande medlemmar",
+    "sha256": "cfc156ae"
   },
   "web.organizations.members.member": {
-    "text": "Medlem"
+    "text": "Medlem",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
-    "text": "medlem"
+    "text": "medlem",
+    "sha256": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "medlemmar"
+    "text": "medlemmar",
+    "sha256": "17373ca1"
   },
   "web.organizations.members.name": {
-    "text": "Namn"
+    "text": "Namn",
+    "sha256": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "E-post"
+    "text": "E-post",
+    "sha256": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Roll"
+    "text": "Roll",
+    "sha256": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Gick med"
+    "text": "Gick med",
+    "sha256": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "Åtgärder"
+    "text": "Åtgärder",
+    "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Inga medlemmar ännu. Bjud in teammedlemmar för att komma igång."
+    "text": "Inga medlemmar ännu. Bjud in teammedlemmar för att komma igång.",
+    "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "Denna organisation har inga medlemmar ännu."
+    "text": "Denna organisation har inga medlemmar ännu.",
+    "sha256": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Medlemsroll uppdaterad"
+    "text": "Medlemsroll uppdaterad",
+    "sha256": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Kunde inte uppdatera medlemsroll"
+    "text": "Kunde inte uppdatera medlemsroll",
+    "sha256": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Medlem borttagen från organisation"
+    "text": "Medlem borttagen från organisation",
+    "sha256": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Kunde inte ta bort medlem"
+    "text": "Kunde inte ta bort medlem",
+    "sha256": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Ta bort medlem"
+    "text": "Ta bort medlem",
+    "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Är du säker på att du vill ta bort {name} från denna organisation?"
+    "text": "Är du säker på att du vill ta bort {name} från denna organisation?",
+    "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Du kan inte ändra din egen roll"
+    "text": "Du kan inte ändra din egen roll",
+    "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Du kan inte ta bort dig själv från organisationen"
+    "text": "Du kan inte ta bort dig själv från organisationen",
+    "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Du kan inte ta bort organisationsägaren"
+    "text": "Du kan inte ta bort organisationsägaren",
+    "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Du har inte behörighet att hantera medlemmar"
+    "text": "Du har inte behörighet att hantera medlemmar",
+    "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Ägare"
+    "text": "Ägare",
+    "sha256": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Administratör"
+    "text": "Administratör",
+    "sha256": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
-    "text": "Medlem"
+    "text": "Medlem",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Full åtkomst till alla organisationsinställningar och medlemmar"
+    "text": "Full åtkomst till alla organisationsinställningar och medlemmar",
+    "sha256": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Kan hantera medlemmar och de flesta organisationsinställningar"
+    "text": "Kan hantera medlemmar och de flesta organisationsinställningar",
+    "sha256": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Grundläggande åtkomst till organisationsresurser"
+    "text": "Grundläggande åtkomst till organisationsresurser",
+    "sha256": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Organisationsinbjudningar"
+    "text": "Organisationsinbjudningar",
+    "sha256": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Bjud in medlem"
+    "text": "Bjud in medlem",
+    "sha256": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Bjud in ny medlem"
+    "text": "Bjud in ny medlem",
+    "sha256": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Väntande inbjudningar"
+    "text": "Väntande inbjudningar",
+    "sha256": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Inga väntande inbjudningar"
+    "text": "Inga väntande inbjudningar",
+    "sha256": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "E-postadress"
+    "text": "E-postadress",
+    "sha256": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "medlem{'@'}example.com"
+    "text": "medlem{'@'}example.com",
+    "sha256": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Roll"
+    "text": "Roll",
+    "sha256": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Skicka inbjudan"
+    "text": "Skicka inbjudan",
+    "sha256": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Inbjudan skickad"
+    "text": "Inbjudan skickad",
+    "sha256": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Kunde inte skicka inbjudan"
+    "text": "Kunde inte skicka inbjudan",
+    "sha256": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Skicka igen"
+    "text": "Skicka igen",
+    "sha256": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Återkalla"
+    "text": "Återkalla",
+    "sha256": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Inbjudan skickad igen"
+    "text": "Inbjudan skickad igen",
+    "sha256": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Kunde inte skicka om inbjudan"
+    "text": "Kunde inte skicka om inbjudan",
+    "sha256": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Inbjudan återkallad"
+    "text": "Inbjudan återkallad",
+    "sha256": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Kunde inte återkalla inbjudan"
+    "text": "Kunde inte återkalla inbjudan",
+    "sha256": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Inbjuden av"
+    "text": "Inbjuden av",
+    "sha256": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Inbjuden"
+    "text": "Inbjuden",
+    "sha256": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Går ut"
+    "text": "Går ut",
+    "sha256": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Skickad igen {count} gång"
+    "text": "Skickad igen {count} gång",
+    "sha256": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Skickad igen {count} gånger"
+    "text": "Skickad igen {count} gånger",
+    "sha256": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Väntande"
+    "text": "Väntande",
+    "sha256": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Accepterad"
+    "text": "Accepterad",
+    "sha256": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Avböjd"
+    "text": "Avböjd",
+    "sha256": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Utgången"
+    "text": "Utgången",
+    "sha256": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Medlem"
+    "text": "Medlem",
+    "sha256": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Administratör"
+    "text": "Administratör",
+    "sha256": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Acceptera inbjudan"
+    "text": "Acceptera inbjudan",
+    "sha256": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Avböj inbjudan"
+    "text": "Avböj inbjudan",
+    "sha256": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Inbjudningsdetaljer"
+    "text": "Inbjudningsdetaljer",
+    "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Du har blivit inbjuden att gå med i"
+    "text": "Du har blivit inbjuden att gå med i",
+    "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Du har blivit inbjuden som"
+    "text": "Du har blivit inbjuden som",
+    "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Inbjudan accepterad"
+    "text": "Inbjudan accepterad",
+    "sha256": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Kunde inte acceptera inbjudan"
+    "text": "Kunde inte acceptera inbjudan",
+    "sha256": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Inbjudan avböjd"
+    "text": "Inbjudan avböjd",
+    "sha256": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Kunde inte avböja inbjudan"
+    "text": "Kunde inte avböja inbjudan",
+    "sha256": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Denna inbjudan har gått ut"
+    "text": "Denna inbjudan har gått ut",
+    "sha256": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Ogiltig eller utgången inbjudan"
+    "text": "Ogiltig eller utgången inbjudan",
+    "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Vänligen logga in för att acceptera denna inbjudan"
+    "text": "Vänligen logga in för att acceptera denna inbjudan",
+    "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Laddar inbjudningsdetaljer"
+    "text": "Laddar inbjudningsdetaljer",
+    "sha256": "58884885"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Faktureringsmejl uppdaterad"
+    "text": "Faktureringsmejl uppdaterad",
+    "sha256": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Faktureringsmejl kan ändras på sidan Faktureringsöversikt"
+    "text": "Faktureringsmejl kan ändras på sidan Faktureringsöversikt",
+    "sha256": "8a131415"
   },
   "web.organizations.paid_badge": {
-    "text": "Pro"
+    "text": "Pro",
+    "sha256": "957b0b87"
   },
   "web.organizations.member_count": {
-    "text": "{count} medlem | {count} medlemmar"
+    "text": "{count} medlem | {count} medlemmar",
+    "sha256": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} domän | {count} domäner"
+    "text": "{count} domän | {count} domäner",
+    "sha256": "09f52efa"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Uppgradera din plan för att bjuda in teammedlemmar"
+    "text": "Uppgradera din plan för att bjuda in teammedlemmar",
+    "sha256": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Inbjudningar av teammedlemmar kräver en plan med teamhantering. Uppgradera för att lägga till samarbetspartners i din organisation."
+    "text": "Inbjudningar av teammedlemmar kräver en plan med teamhantering. Uppgradera för att lägga till samarbetspartners i din organisation.",
+    "sha256": "cf10d623"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Fel konto"
+    "text": "Fel konto",
+    "sha256": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Denna inbjudan skickades till {invitedEmail}, men du är inloggad som {currentEmail}."
+    "text": "Denna inbjudan skickades till {invitedEmail}, men du är inloggad som {currentEmail}.",
+    "sha256": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
-    "text": "Logga in med annat konto"
+    "text": "Logga in med annat konto",
+    "sha256": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days}d kvar"
+    "text": "{days}d kvar",
+    "sha256": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours}t kvar"
+    "text": "{hours}t kvar",
+    "sha256": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Går snart ut"
+    "text": "Går snart ut",
+    "sha256": "a5dcfef9"
   },
   "web.organizations.tabs.subscription": {
-    "text": "Prenumeration"
+    "text": "Prenumeration",
+    "sha256": "4999c6c6"
   },
   "web.organizations.tabs.domains": {
-    "text": "Domäner"
+    "text": "Domäner",
+    "sha256": "ced67718"
   }
 }

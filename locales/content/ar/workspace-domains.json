@@ -1,302 +1,402 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "اعرف المزيد عن تكوين DNS"
+    "text": "اعرف المزيد عن تكوين DNS",
+    "sha256": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "عرض حالة التحقق من النطاق"
+    "text": "عرض حالة التحقق من النطاق",
+    "sha256": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "هذا النطاق مسجل بالفعل في مؤسستك"
+    "text": "هذا النطاق مسجل بالفعل في مؤسستك",
+    "sha256": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "هذا النطاق مسجل بالفعل لمؤسسة أخرى. يرجى الاتصال بالدعم إذا كنت تعتقد أن هذا خطأ."
+    "text": "هذا النطاق مسجل بالفعل لمؤسسة أخرى. يرجى الاتصال بالدعم إذا كنت تعتقد أن هذا خطأ.",
+    "sha256": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "تم المطالبة بالنطاق بنجاح وإضافته لمؤسستك"
+    "text": "تم المطالبة بالنطاق بنجاح وإضافته لمؤسستك",
+    "sha256": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "إعدادات الخصوصية الافتراضية"
+    "text": "إعدادات الخصوصية الافتراضية",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "تعيين خيارات الخصوصية الافتراضية للأسرار المنشأة تحت هذا النطاق. سيتم ملء هذه الإعدادات مسبقاً عند إنشاء أسرار جديدة."
+    "text": "تعيين خيارات الخصوصية الافتراضية للأسرار المنشأة تحت هذا النطاق. سيتم ملء هذه الإعدادات مسبقاً عند إنشاء أسرار جديدة.",
+    "sha256": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "إعدادات الخصوصية الافتراضية"
+    "text": "إعدادات الخصوصية الافتراضية",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "أيقونة إعدادات الخصوصية الافتراضية"
+    "text": "أيقونة إعدادات الخصوصية الافتراضية",
+    "sha256": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "وقت الصلاحية الافتراضي"
+    "text": "وقت الصلاحية الافتراضي",
+    "sha256": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "كم من الوقت يجب أن تبقى الأسرار متاحة افتراضياً"
+    "text": "كم من الوقت يجب أن تبقى الأسرار متاحة افتراضياً",
+    "sha256": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "طلب عبارة مرور"
+    "text": "طلب عبارة مرور",
+    "sha256": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "جعل عبارة المرور إلزامية لجميع الأسرار في هذا النطاق"
+    "text": "جعل عبارة المرور إلزامية لجميع الأسرار في هذا النطاق",
+    "sha256": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
-    "text": "تفعيل الإشعارات"
+    "text": "تفعيل الإشعارات",
+    "sha256": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "تفعيل إشعارات البريد الإلكتروني افتراضياً عند عرض الأسرار"
+    "text": "تفعيل إشعارات البريد الإلكتروني افتراضياً عند عرض الأسرار",
+    "sha256": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "استخدام الافتراضي العام"
+    "text": "استخدام الافتراضي العام",
+    "sha256": "a83c91e4"
   },
   "web.domains.global_default": {
-    "text": "عام"
+    "text": "عام",
+    "sha256": "a258b30f"
   },
   "web.domains.required": {
-    "text": "مطلوب"
+    "text": "مطلوب",
+    "sha256": "4850b174"
   },
   "web.domains.optional": {
-    "text": "اختياري"
+    "text": "اختياري",
+    "sha256": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "مفعّل"
+    "text": "مفعّل",
+    "sha256": "92c1cdfd"
   },
   "web.domains.disabled": {
-    "text": "معطّل"
+    "text": "معطّل",
+    "sha256": "75081b59"
   },
   "web.domains.custom": {
-    "text": "مخصص"
+    "text": "مخصص",
+    "sha256": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "تعديل الافتراضيات"
+    "text": "تعديل الافتراضيات",
+    "sha256": "50f49b87"
   },
   "web.domains.ttl_short": {
-    "text": "TTL"
+    "text": "TTL",
+    "sha256": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "عبارة المرور"
+    "text": "عبارة المرور",
+    "sha256": "e7611f05"
   },
   "web.domains.notify_short": {
-    "text": "الإشعارات"
+    "text": "الإشعارات",
+    "sha256": "78801183"
   },
   "web.domains.scope_switch_label": {
-    "text": "تبديل نطاق النطاق"
+    "text": "تبديل نطاق النطاق",
+    "sha256": "c776f846"
   },
   "web.domains.switcher_locked": {
-    "text": "تبديل النطاق غير متاح في هذه الصفحة"
+    "text": "تبديل النطاق غير متاح في هذه الصفحة",
+    "sha256": "ccd202fe"
   },
   "web.domains.scope_list_label": {
-    "text": "النطاقات المتاحة"
+    "text": "النطاقات المتاحة",
+    "sha256": "026552b3"
   },
   "web.domains.scope_header": {
-    "text": "النطاقات"
+    "text": "النطاقات",
+    "sha256": "ced67718"
   },
   "web.domains.add_domain": {
-    "text": "إضافة نطاق"
+    "text": "إضافة نطاق",
+    "sha256": "d86476ae"
   },
   "web.domains.domain_settings": {
-    "text": "إعدادات النطاق"
+    "text": "إعدادات النطاق",
+    "sha256": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "النطاق الافتراضي ليس لديه صفحة إعدادات"
+    "text": "النطاق الافتراضي ليس لديه صفحة إعدادات",
+    "sha256": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "يرجى إدخال اسم نطاق {0}"
+    "text": "يرجى إدخال اسم نطاق {0}",
+    "sha256": "167f2d19"
   },
   "web.domains.domain_name": {
-    "text": "اسم النطاق"
+    "text": "اسم النطاق",
+    "sha256": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "التحكم في ما إذا كان يمكن للمستخدمين إنشاء روابط أسرار من الصفحة الرئيسية لنطاقك"
+    "text": "التحكم في ما إذا كان يمكن للمستخدمين إنشاء روابط أسرار من الصفحة الرئيسية لنطاقك",
+    "sha256": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "الوصول للصفحة الرئيسية"
+    "text": "الوصول للصفحة الرئيسية",
+    "sha256": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "والحالة"
+    "text": "والحالة",
+    "sha256": "fe871d2c"
   },
   "web.domains.domain": {
-    "text": "النطاق"
+    "text": "النطاق",
+    "sha256": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "إدارة وتكوين نطاقاتك المخصصة المتحقق منها"
+    "text": "إدارة وتكوين نطاقاتك المخصصة المتحقق منها",
+    "sha256": "4e7f8311"
   },
   "web.domains.domains": {
-    "text": "النطاقات"
+    "text": "النطاقات",
+    "sha256": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "آخر مراقبة"
+    "text": "آخر مراقبة",
+    "sha256": "8d39d1d0"
   },
   "web.domains.ssl_status": {
-    "text": "حالة SSL"
+    "text": "حالة SSL",
+    "sha256": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "تجديد SSL"
+    "text": "تجديد SSL",
+    "sha256": "c49a8cff"
   },
   "web.domains.dns_record": {
-    "text": "سجل DNS"
+    "text": "سجل DNS",
+    "sha256": "33cbb244"
   },
   "web.domains.target_address": {
-    "text": "العنوان المستهدف"
+    "text": "العنوان المستهدف",
+    "sha256": "5e812179"
   },
   "web.domains.domain_status": {
-    "text": "حالة النطاق"
+    "text": "حالة النطاق",
+    "sha256": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
-    "text": "عدد النطاقات المخصصة"
+    "text": "عدد النطاقات المخصصة",
+    "sha256": "a9929be0"
   },
   "web.domains.custom_domain": {
-    "text": "نطاق مخصص"
+    "text": "نطاق مخصص",
+    "sha256": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "فتح النطاق في تبويب جديد"
+    "text": "فتح النطاق في تبويب جديد",
+    "sha256": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "العودة للنطاقات"
+    "text": "العودة للنطاقات",
+    "sha256": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "العودة لقائمة النطاقات"
+    "text": "العودة لقائمة النطاقات",
+    "sha256": "c7632413"
   },
   "web.domains.verify_domain": {
-    "text": "التحقق من النطاق"
+    "text": "التحقق من النطاق",
+    "sha256": "b416f537"
   },
   "web.domains.manage_brand": {
-    "text": "إدارة العلامة التجارية"
+    "text": "إدارة العلامة التجارية",
+    "sha256": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
-    "text": "تمت الإضافة {0}"
+    "text": "تمت الإضافة {0}",
+    "sha256": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "أضف نطاقك"
+    "text": "أضف نطاقك",
+    "sha256": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "ابدأ بإضافة نطاق مخصص."
+    "text": "ابدأ بإضافة نطاق مخصص.",
+    "sha256": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
-    "text": "لم يتم العثور على نطاقات."
+    "text": "لم يتم العثور على نطاقات.",
+    "sha256": "574264df"
   },
   "web.domains.loading_domain_information": {
-    "text": "جاري تحميل معلومات النطاق..."
+    "text": "جاري تحميل معلومات النطاق...",
+    "sha256": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "لربط نطاقك، ستحتاج إلى سجل CNAME في DNS يشير"
+    "text": "لربط نطاقك، ستحتاج إلى سجل CNAME في DNS يشير",
+    "sha256": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "إذا كان لديك بالفعل سجل CNAME لذلك العنوان، يرجى تغييره للإشارة إلى"
+    "text": "إذا كان لديك بالفعل سجل CNAME لذلك العنوان، يرجى تغييره للإشارة إلى",
+    "sha256": "6f23e6db"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "text": ")، سجل CNAME غير مسموح. بدلاً من ذلك، ستحتاج إلى إنشاء سجل A. تفاصيل كيفية القيام بذلك موجودة أسفل الصفحة."
+    "text": ")، سجل CNAME غير مسموح. بدلاً من ذلك، ستحتاج إلى إنشاء سجل A. تفاصيل كيفية القيام بذلك موجودة أسفل الصفحة.",
+    "sha256": "76d5ab5f"
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
-    "text": "وأزل أي سجلات A أو AAAA أو CNAME أخرى لذلك العنوان بالضبط."
+    "text": "وأزل أي سجلات A أو AAAA أو CNAME أخرى لذلك العنوان بالضبط.",
+    "sha256": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": "، ستحتاج إلى إكمال هذه الخطوات."
+    "text": "، ستحتاج إلى إكمال هذه الخطوات.",
+    "sha256": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "قبل أن نتمكن من تفعيل الروابط لـ"
+    "text": "قبل أن نتمكن من تفعيل الروابط لـ",
+    "sha256": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "يرجى ملاحظة أنه للنطاقات الرئيسية (مثل،"
+    "text": "يرجى ملاحظة أنه للنطاقات الرئيسية (مثل،",
+    "sha256": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "تحقق من نطاقك"
+    "text": "تحقق من نطاقك",
+    "sha256": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.example.com"
+    "text": "secrets.example.com",
+    "sha256": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "تخصيص علامتك التجارية للنطاق"
+    "text": "تخصيص علامتك التجارية للنطاق",
+    "sha256": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "text": "قد يستغرق الأمر بضع دقائق حتى تصبح شهادة SSL الخاصة بك سارية المفعول."
+    "text": "قد يستغرق الأمر بضع دقائق حتى تصبح شهادة SSL الخاصة بك سارية المفعول.",
+    "sha256": "2e4f3179"
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
-    "text": "يمكن أن تستغرق تغييرات DNS من 60 ثانية فقط إلى 24 ساعة حتى تصبح سارية المفعول."
+    "text": "يمكن أن تستغرق تغييرات DNS من 60 ثانية فقط إلى 24 ساعة حتى تصبح سارية المفعول.",
+    "sha256": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. انتظار الانتشار"
+    "text": "3. انتظار الانتشار",
+    "sha256": "3e6cf4e1"
   },
   "web.domains.value_2": {
-    "text": "القيمة"
+    "text": "القيمة",
+    "sha256": "8e37953d"
   },
   "web.domains.value_1": {
-    "text": "القيمة"
+    "text": "القيمة",
+    "sha256": "8e37953d"
   },
   "web.domains.host_1": {
-    "text": "المضيف"
+    "text": "المضيف",
+    "sha256": "4a823118"
   },
   "web.domains.type_2": {
-    "text": "النوع"
+    "text": "النوع",
+    "sha256": "baaddf70"
   },
   "web.domains.type_1": {
-    "text": "النوع"
+    "text": "النوع",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. إنشاء سجل CNAME"
+    "text": "2. إنشاء سجل CNAME",
+    "sha256": "781e438b"
   },
   "web.domains.value_0": {
-    "text": "القيمة"
+    "text": "القيمة",
+    "sha256": "8e37953d"
   },
   "web.domains.host_0": {
-    "text": "المضيف"
+    "text": "المضيف",
+    "sha256": "4a823118"
   },
   "web.domains.type_0": {
-    "text": "النوع"
+    "text": "النوع",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. إنشاء سجل A"
+    "text": "2. إنشاء سجل A",
+    "sha256": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "أضف اسم المضيف هذا إلى تكوين DNS الخاص بك:"
+    "text": "أضف اسم المضيف هذا إلى تكوين DNS الخاص بك:",
+    "sha256": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. إنشاء سجل TXT"
+    "text": "1. إنشاء سجل TXT",
+    "sha256": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "اتبع هذه الخطوات للتحقق من ملكية النطاق وتعزيز تواجدك على الإنترنت:"
+    "text": "اتبع هذه الخطوات للتحقق من ملكية النطاق وتعزيز تواجدك على الإنترنت:",
+    "sha256": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "خطوات التحقق من النطاق"
+    "text": "خطوات التحقق من النطاق",
+    "sha256": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "تم بدء التحقق من النطاق بنجاح."
+    "text": "تم بدء التحقق من النطاق بنجاح.",
+    "sha256": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "هل أنت متأكد من أنك تريد إزالة هذا النطاق؟ لا يمكن التراجع عن هذا الإجراء."
+    "text": "هل أنت متأكد من أنك تريد إزالة هذا النطاق؟ لا يمكن التراجع عن هذا الإجراء.",
+    "sha256": "403c6d3b"
   },
   "web.domains.remove_domain": {
-    "text": "إزالة النطاق"
+    "text": "إزالة النطاق",
+    "sha256": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "تمت إزالة النطاق بنجاح"
+    "text": "تمت إزالة النطاق بنجاح",
+    "sha256": "2984d483"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "فشل إضافة النطاق"
+    "text": "فشل إضافة النطاق",
+    "sha256": "5fc4c4b3"
   },
   "web.domains.domain_added_successfully": {
-    "text": "تمت إضافة النطاق بنجاح"
+    "text": "تمت إضافة النطاق بنجاح",
+    "sha256": "dd8180cf"
   },
   "web.domains.passphrase_set": {
-    "text": "محمي"
+    "text": "محمي",
+    "sha256": "b0ed2633"
   },
   "web.domains.manage_domains": {
-    "text": "إدارة النطاقات"
+    "text": "إدارة النطاقات",
+    "sha256": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "الافتراضيات العامة"
+    "text": "الافتراضيات العامة",
+    "sha256": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "تعديل إعداد وقت الصلاحية"
+    "text": "تعديل إعداد وقت الصلاحية",
+    "sha256": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "تعديل متطلب عبارة المرور"
+    "text": "تعديل متطلب عبارة المرور",
+    "sha256": "0b5555b5"
   },
   "web.domains.edit_notify": {
-    "text": "تعديل إعداد الإشعارات"
+    "text": "تعديل إعداد الإشعارات",
+    "sha256": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "تكوين سجلات DNS"
+    "text": "تكوين سجلات DNS",
+    "sha256": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "استخدم الأداة أدناه للكشف تلقائياً عن مزود DNS الخاص بك والحصول على تعليمات خطوة بخطوة لتكوين نطاقك."
+    "text": "استخدم الأداة أدناه للكشف تلقائياً عن مزود DNS الخاص بك والحصول على تعليمات خطوة بخطوة لتكوين نطاقك.",
+    "sha256": "91c1af2e"
   }
 }

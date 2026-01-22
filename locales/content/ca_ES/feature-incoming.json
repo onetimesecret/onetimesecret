@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "Enviar un secret"
+    "text": "Enviar un secret",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Comparteix informació sensible de manera segura amb el nostre equip de suport"
+    "text": "Comparteix informació sensible de manera segura amb el nostre equip de suport",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Carregant..."
+    "text": "Carregant...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Error en carregar la configuració"
+    "text": "Error en carregar la configuració",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Funció no disponible"
+    "text": "Funció no disponible",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Aquesta funció està desactivada actualment. Si us plau, contacta amb el suport per obtenir assistència."
+    "text": "Aquesta funció està desactivada actualment. Si us plau, contacta amb el suport per obtenir assistència.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Memo"
+    "text": "Memo",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Descripció breu (p. ex., Sol·licitud de restabliment de contrasenya)"
+    "text": "Descripció breu (p. ex., Sol·licitud de restabliment de contrasenya)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Ajuda'ns a dirigir el teu missatge a la persona adequada"
+    "text": "Ajuda'ns a dirigir el teu missatge a la persona adequada",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Enviar a"
+    "text": "Enviar a",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Selecciona un destinatari"
+    "text": "Selecciona un destinatari",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Selecciona un destinatari per a aquest secret"
+    "text": "Selecciona un destinatari per a aquest secret",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Tria qui rebrà aquest missatge segur"
+    "text": "Tria qui rebrà aquest missatge segur",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "No hi ha destinataris disponibles"
+    "text": "No hi ha destinataris disponibles",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Informació secreta"
+    "text": "Informació secreta",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Enganxa informació sensible aquí (contrasenyes, claus, etc.)"
+    "text": "Enganxa informació sensible aquí (contrasenyes, claus, etc.)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Aquesta informació serà xifrada i només es podrà veure una vegada"
+    "text": "Aquesta informació serà xifrada i només es podrà veure una vegada",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Enviar secret"
+    "text": "Enviar secret",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Enviar secret"
+    "text": "Enviar secret",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Enviant..."
+    "text": "Enviant...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Enviant..."
+    "text": "Enviant...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Esborrar formulari"
+    "text": "Esborrar formulari",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Esborrar formulari"
+    "text": "Esborrar formulari",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Enviat correctament"
+    "text": "Enviat correctament",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "El teu missatge segur s'ha lliurat."
+    "text": "El teu missatge segur s'ha lliurat.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "ID de referència"
+    "text": "ID de referència",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Què passa ara?"
+    "text": "Què passa ara?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "El destinatari podrà veure aquest secret només una vegada. Després de veure'l, el secret s'eliminarà permanentment."
+    "text": "El destinatari podrà veure aquest secret només una vegada. Després de veure'l, el secret s'eliminarà permanentment.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Enviar un altre secret"
+    "text": "Enviar un altre secret",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Comparteix informació sensible de manera segura"
+    "text": "Comparteix informació sensible de manera segura",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Mantén les contrasenyes i les dades privades fora del correu electrònic i els registres de xat"
+    "text": "Mantén les contrasenyes i les dades privades fora del correu electrònic i els registres de xat",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Desa el teu {receipt} per als teus registres."
+    "text": "Desa el teu {receipt} per als teus registres.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "rebut"
+    "text": "rebut",
+    "sha256": "6f328609"
   }
 }

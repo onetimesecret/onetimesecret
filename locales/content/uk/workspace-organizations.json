@@ -1,434 +1,578 @@
 {
   "web.organizations.title": {
-    "text": "Організації"
+    "text": "Організації",
+    "sha256": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Організація"
+    "text": "Організація",
+    "sha256": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "Організації"
+    "text": "Організації",
+    "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Керуйте своїми організаціями"
+    "text": "Керуйте своїми організаціями",
+    "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Організації"
+    "text": "Організації",
+    "sha256": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Керувати організаціями"
+    "text": "Керувати організаціями",
+    "sha256": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Нова організація"
+    "text": "Нова організація",
+    "sha256": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Організацій ще немає"
+    "text": "Організацій ще немає",
+    "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Організації забезпечують уніфіковану оплату та адміністрування. Почніть зі створення Вашої першої організації."
+    "text": "Організації забезпечують уніфіковану оплату та адміністрування. Почніть зі створення Вашої першої організації.",
+    "sha256": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Опис не надано"
+    "text": "Опис не надано",
+    "sha256": "41183d01"
   },
   "web.organizations.default": {
-    "text": "За замовчуванням"
+    "text": "За замовчуванням",
+    "sha256": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Створити організацію"
+    "text": "Створити організацію",
+    "sha256": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Створити першу організацію"
+    "text": "Створити першу організацію",
+    "sha256": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Створити нову організацію"
+    "text": "Створити нову організацію",
+    "sha256": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "Створити"
+    "text": "Створити",
+    "sha256": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Не вдалося створити організацію"
+    "text": "Не вдалося створити організацію",
+    "sha256": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Назва організації"
+    "text": "Назва організації",
+    "sha256": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "напр. Acme Corporation"
+    "text": "напр. Acme Corporation",
+    "sha256": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Назва організації"
+    "text": "Назва організації",
+    "sha256": "4cbd9073"
   },
   "web.organizations.description": {
-    "text": "Опис"
+    "text": "Опис",
+    "sha256": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Для чого ця організація?"
+    "text": "Для чого ця організація?",
+    "sha256": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Електронна адреса для оплати"
+    "text": "Електронна адреса для оплати",
+    "sha256": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Основний контакт для сповіщень про оплату та адміністративних сповіщень"
+    "text": "Основний контакт для сповіщень про оплату та адміністративних сповіщень",
+    "sha256": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Виберіть організацію"
+    "text": "Виберіть організацію",
+    "sha256": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Перемикання організації недоступне на цій сторінці"
+    "text": "Перемикання організації недоступне на цій сторінці",
+    "sha256": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "Організацію не знайдено"
+    "text": "Організацію не знайдено",
+    "sha256": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "Не вдалося завантажити організацію"
+    "text": "Не вдалося завантажити організацію",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Не вдалося завантажити організацію"
+    "text": "Не вдалося завантажити організацію",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Не вдалося завантажити організації"
+    "text": "Не вдалося завантажити організації",
+    "sha256": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Інформація про організацію"
+    "text": "Інформація про організацію",
+    "sha256": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Створено"
+    "text": "Створено",
+    "sha256": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Останнє оновлення"
+    "text": "Останнє оновлення",
+    "sha256": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Налаштування організації"
+    "text": "Налаштування організації",
+    "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Оновіть назву та опис Вашої організації"
+    "text": "Оновіть назву та опис Вашої організації",
+    "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Загальні налаштування"
+    "text": "Загальні налаштування",
+    "sha256": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Оплата та підписка"
+    "text": "Оплата та підписка",
+    "sha256": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Зберегти зміни"
+    "text": "Зберегти зміни",
+    "sha256": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "Організацію успішно оновлено"
+    "text": "Організацію успішно оновлено",
+    "sha256": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Не вдалося оновити організацію"
+    "text": "Не вдалося оновити організацію",
+    "sha256": "bc2b59b8"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Інтеграція оплати незабаром"
+    "text": "Інтеграція оплати незабаром",
+    "sha256": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Уніфіковане керування оплатою та підписками буде доступне в майбутньому випуску."
+    "text": "Уніфіковане керування оплатою та підписками буде доступне в майбутньому випуску.",
+    "sha256": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "Про організації"
+    "text": "Про організації",
+    "sha256": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Організації забезпечують уніфіковану оплату та адміністрування для централізованого керування."
+    "text": "Організації забезпечують уніфіковану оплату та адміністрування для централізованого керування.",
+    "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Керуйте Вашою організацією"
+    "text": "Керуйте Вашою організацією",
+    "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Оновіть назву Вашої компанії та деталі організації тут. Ця інформація допомагає персоналізувати Ваш обліковий запис і може використовуватися для функцій брендування в майбутньому."
+    "text": "Оновіть назву Вашої компанії та деталі організації тут. Ця інформація допомагає персоналізувати Ваш обліковий запис і може використовуватися для функцій брендування в майбутньому.",
+    "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Початок роботи з організаціями"
+    "text": "Початок роботи з організаціями",
+    "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Створіть свою першу організацію, щоб керувати інформацією про компанію та підготуватися до майбутніх функцій брендування."
+    "text": "Створіть свою першу організацію, щоб керувати інформацією про компанію та підготуватися до майбутніх функцій брендування.",
+    "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Керуйте своїми організаціями та учасниками команди"
+    "text": "Керуйте своїми організаціями та учасниками команди",
+    "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
-    "text": "Налаштування"
+    "text": "Налаштування",
+    "sha256": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Брендування компанії"
+    "text": "Брендування компанії",
+    "sha256": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Команда"
+    "text": "Команда",
+    "sha256": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Оплата"
+    "text": "Оплата",
+    "sha256": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
-    "text": "Небезпечна зона"
+    "text": "Небезпечна зона",
+    "sha256": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Видалити організацію"
+    "text": "Видалити організацію",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Це назавжди видалить організацію. Цю дію неможливо скасувати."
+    "text": "Це назавжди видалить організацію. Цю дію неможливо скасувати.",
+    "sha256": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "Видалити"
+    "text": "Видалити",
+    "sha256": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Видалити організацію"
+    "text": "Видалити організацію",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Ви впевнені, що хочете видалити {name}? Цю дію неможливо скасувати."
+    "text": "Ви впевнені, що хочете видалити {name}? Цю дію неможливо скасувати.",
+    "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Не вдалося видалити організацію"
+    "text": "Не вдалося видалити організацію",
+    "sha256": "a8e5bb28"
   },
   "web.organizations.members.title": {
-    "text": "Учасники"
+    "text": "Учасники",
+    "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Керуйте учасниками організації та їхніми ролями"
+    "text": "Керуйте учасниками організації та їхніми ролями",
+    "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Поточні учасники"
+    "text": "Поточні учасники",
+    "sha256": "cfc156ae"
   },
   "web.organizations.members.member": {
-    "text": "Учасник"
+    "text": "Учасник",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
-    "text": "учасник"
+    "text": "учасник",
+    "sha256": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "учасників"
+    "text": "учасників",
+    "sha256": "17373ca1"
   },
   "web.organizations.members.name": {
-    "text": "Ім'я"
+    "text": "Ім'я",
+    "sha256": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "Електронна адреса"
+    "text": "Електронна адреса",
+    "sha256": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Роль"
+    "text": "Роль",
+    "sha256": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Приєднався"
+    "text": "Приєднався",
+    "sha256": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "Дії"
+    "text": "Дії",
+    "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Учасників ще немає. Запросіть членів команди, щоб почати."
+    "text": "Учасників ще немає. Запросіть членів команди, щоб почати.",
+    "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "У цій організації ще немає учасників."
+    "text": "У цій організації ще немає учасників.",
+    "sha256": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Роль учасника успішно оновлено"
+    "text": "Роль учасника успішно оновлено",
+    "sha256": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Не вдалося оновити роль учасника"
+    "text": "Не вдалося оновити роль учасника",
+    "sha256": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Учасника видалено з організації"
+    "text": "Учасника видалено з організації",
+    "sha256": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Не вдалося видалити учасника"
+    "text": "Не вдалося видалити учасника",
+    "sha256": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Видалити учасника"
+    "text": "Видалити учасника",
+    "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Ви впевнені, що хочете видалити {name} з цієї організації?"
+    "text": "Ви впевнені, що хочете видалити {name} з цієї організації?",
+    "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Ви не можете змінити власну роль"
+    "text": "Ви не можете змінити власну роль",
+    "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Ви не можете видалити себе з організації"
+    "text": "Ви не можете видалити себе з організації",
+    "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Ви не можете видалити власника організації"
+    "text": "Ви не можете видалити власника організації",
+    "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "У Вас немає дозволу керувати учасниками"
+    "text": "У Вас немає дозволу керувати учасниками",
+    "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Власник"
+    "text": "Власник",
+    "sha256": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Адміністратор"
+    "text": "Адміністратор",
+    "sha256": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
-    "text": "Учасник"
+    "text": "Учасник",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Повний доступ до всіх налаштувань організації та учасників"
+    "text": "Повний доступ до всіх налаштувань організації та учасників",
+    "sha256": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Може керувати учасниками та більшістю налаштувань організації"
+    "text": "Може керувати учасниками та більшістю налаштувань організації",
+    "sha256": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Базовий доступ до ресурсів організації"
+    "text": "Базовий доступ до ресурсів організації",
+    "sha256": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Запрошення до організації"
+    "text": "Запрошення до організації",
+    "sha256": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Запросити учасника"
+    "text": "Запросити учасника",
+    "sha256": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Запросити нового учасника"
+    "text": "Запросити нового учасника",
+    "sha256": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Очікуючі запрошення"
+    "text": "Очікуючі запрошення",
+    "sha256": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Немає очікуючих запрошень"
+    "text": "Немає очікуючих запрошень",
+    "sha256": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "Електронна адреса"
+    "text": "Електронна адреса",
+    "sha256": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "member{'@'}example.com"
+    "text": "member{'@'}example.com",
+    "sha256": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Роль"
+    "text": "Роль",
+    "sha256": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Надіслати запрошення"
+    "text": "Надіслати запрошення",
+    "sha256": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Запрошення успішно надіслано"
+    "text": "Запрошення успішно надіслано",
+    "sha256": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Не вдалося надіслати запрошення"
+    "text": "Не вдалося надіслати запрошення",
+    "sha256": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Надіслати повторно"
+    "text": "Надіслати повторно",
+    "sha256": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Відкликати"
+    "text": "Відкликати",
+    "sha256": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Запрошення успішно надіслано повторно"
+    "text": "Запрошення успішно надіслано повторно",
+    "sha256": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Не вдалося повторно надіслати запрошення"
+    "text": "Не вдалося повторно надіслати запрошення",
+    "sha256": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Запрошення успішно відкликано"
+    "text": "Запрошення успішно відкликано",
+    "sha256": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Не вдалося відкликати запрошення"
+    "text": "Не вдалося відкликати запрошення",
+    "sha256": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Запросив"
+    "text": "Запросив",
+    "sha256": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Запрошено"
+    "text": "Запрошено",
+    "sha256": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Закінчується"
+    "text": "Закінчується",
+    "sha256": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Повторно надіслано {count} раз"
+    "text": "Повторно надіслано {count} раз",
+    "sha256": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Повторно надіслано {count} разів"
+    "text": "Повторно надіслано {count} разів",
+    "sha256": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "В очікуванні"
+    "text": "В очікуванні",
+    "sha256": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Прийнято"
+    "text": "Прийнято",
+    "sha256": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Відхилено"
+    "text": "Відхилено",
+    "sha256": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Прострочено"
+    "text": "Прострочено",
+    "sha256": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Учасник"
+    "text": "Учасник",
+    "sha256": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Адміністратор"
+    "text": "Адміністратор",
+    "sha256": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Прийняти запрошення"
+    "text": "Прийняти запрошення",
+    "sha256": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Відхилити запрошення"
+    "text": "Відхилити запрошення",
+    "sha256": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Деталі запрошення"
+    "text": "Деталі запрошення",
+    "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Вас запрошено приєднатися до"
+    "text": "Вас запрошено приєднатися до",
+    "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Вас запрошено як"
+    "text": "Вас запрошено як",
+    "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Запрошення успішно прийнято"
+    "text": "Запрошення успішно прийнято",
+    "sha256": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Не вдалося прийняти запрошення"
+    "text": "Не вдалося прийняти запрошення",
+    "sha256": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Запрошення відхилено"
+    "text": "Запрошення відхилено",
+    "sha256": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Не вдалося відхилити запрошення"
+    "text": "Не вдалося відхилити запрошення",
+    "sha256": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Термін дії цього запрошення закінчився"
+    "text": "Термін дії цього запрошення закінчився",
+    "sha256": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Недійсне або прострочене запрошення"
+    "text": "Недійсне або прострочене запрошення",
+    "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Будь ласка, увійдіть, щоб прийняти це запрошення"
+    "text": "Будь ласка, увійдіть, щоб прийняти це запрошення",
+    "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Завантаження деталей запрошення"
+    "text": "Завантаження деталей запрошення",
+    "sha256": "58884885"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Електронну адресу для оплати успішно оновлено"
+    "text": "Електронну адресу для оплати успішно оновлено",
+    "sha256": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Електронну адресу для оплати можна змінити на сторінці «Огляд оплати»"
+    "text": "Електронну адресу для оплати можна змінити на сторінці «Огляд оплати»",
+    "sha256": "8a131415"
   },
   "web.organizations.paid_badge": {
-    "text": "Pro"
+    "text": "Pro",
+    "sha256": "957b0b87"
   },
   "web.organizations.member_count": {
-    "text": "{count} учасник | {count} учасників"
+    "text": "{count} учасник | {count} учасників",
+    "sha256": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} домен | {count} доменів"
+    "text": "{count} домен | {count} доменів",
+    "sha256": "09f52efa"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Оновіть свій план, щоб запрошувати учасників команди"
+    "text": "Оновіть свій план, щоб запрошувати учасників команди",
+    "sha256": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Запрошення учасників команди потребує плану з керуванням командою. Оновіть, щоб додати співробітників до Вашої організації."
+    "text": "Запрошення учасників команди потребує плану з керуванням командою. Оновіть, щоб додати співробітників до Вашої організації.",
+    "sha256": "cf10d623"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Неправильний обліковий запис"
+    "text": "Неправильний обліковий запис",
+    "sha256": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Це запрошення було надіслано на {invitedEmail}, але Ви увійшли як {currentEmail}."
+    "text": "Це запрошення було надіслано на {invitedEmail}, але Ви увійшли як {currentEmail}.",
+    "sha256": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
-    "text": "Увійти з іншим обліковим записом"
+    "text": "Увійти з іншим обліковим записом",
+    "sha256": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days} дн. залишилось"
+    "text": "{days} дн. залишилось",
+    "sha256": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours} год. залишилось"
+    "text": "{hours} год. залишилось",
+    "sha256": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Скоро закінчується"
+    "text": "Скоро закінчується",
+    "sha256": "a5dcfef9"
   },
   "web.organizations.tabs.subscription": {
-    "text": "Підписка"
+    "text": "Підписка",
+    "sha256": "4999c6c6"
   },
   "web.organizations.tabs.domains": {
-    "text": "Домени"
+    "text": "Домени",
+    "sha256": "ced67718"
   }
 }

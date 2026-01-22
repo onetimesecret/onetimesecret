@@ -1,434 +1,578 @@
 {
   "web.organizations.title": {
-    "text": "المؤسسات"
+    "text": "المؤسسات",
+    "sha256": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "المؤسسة"
+    "text": "المؤسسة",
+    "sha256": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "المؤسسات"
+    "text": "المؤسسات",
+    "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "إدارة مؤسساتك"
+    "text": "إدارة مؤسساتك",
+    "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "المؤسسات"
+    "text": "المؤسسات",
+    "sha256": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "إدارة المؤسسات"
+    "text": "إدارة المؤسسات",
+    "sha256": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "مؤسسة جديدة"
+    "text": "مؤسسة جديدة",
+    "sha256": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "لا توجد مؤسسات بعد"
+    "text": "لا توجد مؤسسات بعد",
+    "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "توفر المؤسسات فوترة وإدارة موحدة. ابدأ بإنشاء أول مؤسسة لك."
+    "text": "توفر المؤسسات فوترة وإدارة موحدة. ابدأ بإنشاء أول مؤسسة لك.",
+    "sha256": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "لم يتم تقديم وصف"
+    "text": "لم يتم تقديم وصف",
+    "sha256": "41183d01"
   },
   "web.organizations.default": {
-    "text": "افتراضي"
+    "text": "افتراضي",
+    "sha256": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "إنشاء مؤسسة"
+    "text": "إنشاء مؤسسة",
+    "sha256": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "إنشاء أول مؤسسة"
+    "text": "إنشاء أول مؤسسة",
+    "sha256": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "إنشاء مؤسسة جديدة"
+    "text": "إنشاء مؤسسة جديدة",
+    "sha256": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "إنشاء"
+    "text": "إنشاء",
+    "sha256": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "فشل إنشاء المؤسسة"
+    "text": "فشل إنشاء المؤسسة",
+    "sha256": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "اسم المؤسسة"
+    "text": "اسم المؤسسة",
+    "sha256": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "مثال: شركة Acme"
+    "text": "مثال: شركة Acme",
+    "sha256": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "اسم المؤسسة"
+    "text": "اسم المؤسسة",
+    "sha256": "4cbd9073"
   },
   "web.organizations.description": {
-    "text": "الوصف"
+    "text": "الوصف",
+    "sha256": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "ما الغرض من هذه المؤسسة؟"
+    "text": "ما الغرض من هذه المؤسسة؟",
+    "sha256": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "بريد الفوترة"
+    "text": "بريد الفوترة",
+    "sha256": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "جهة الاتصال الرئيسية للفوترة والإشعارات الإدارية"
+    "text": "جهة الاتصال الرئيسية للفوترة والإشعارات الإدارية",
+    "sha256": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "اختر مؤسسة"
+    "text": "اختر مؤسسة",
+    "sha256": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "تبديل المؤسسة غير متاح في هذه الصفحة"
+    "text": "تبديل المؤسسة غير متاح في هذه الصفحة",
+    "sha256": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "المؤسسة غير موجودة"
+    "text": "المؤسسة غير موجودة",
+    "sha256": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "فشل تحميل المؤسسة"
+    "text": "فشل تحميل المؤسسة",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "فشل تحميل المؤسسة"
+    "text": "فشل تحميل المؤسسة",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "فشل تحميل المؤسسات"
+    "text": "فشل تحميل المؤسسات",
+    "sha256": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "معلومات المؤسسة"
+    "text": "معلومات المؤسسة",
+    "sha256": "85274cee"
   },
   "web.organizations.created": {
-    "text": "تاريخ الإنشاء"
+    "text": "تاريخ الإنشاء",
+    "sha256": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "آخر تحديث"
+    "text": "آخر تحديث",
+    "sha256": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "إعدادات المؤسسة"
+    "text": "إعدادات المؤسسة",
+    "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "تحديث اسم ووصف مؤسستك"
+    "text": "تحديث اسم ووصف مؤسستك",
+    "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "الإعدادات العامة"
+    "text": "الإعدادات العامة",
+    "sha256": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "الفوترة والاشتراك"
+    "text": "الفوترة والاشتراك",
+    "sha256": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "حفظ التغييرات"
+    "text": "حفظ التغييرات",
+    "sha256": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "تم تحديث المؤسسة بنجاح"
+    "text": "تم تحديث المؤسسة بنجاح",
+    "sha256": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "فشل تحديث المؤسسة"
+    "text": "فشل تحديث المؤسسة",
+    "sha256": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "تم تحديث بريد الفوترة بنجاح"
+    "text": "تم تحديث بريد الفوترة بنجاح",
+    "sha256": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "يمكن تغيير بريد الفوترة من صفحة نظرة عامة على الفوترة"
+    "text": "يمكن تغيير بريد الفوترة من صفحة نظرة عامة على الفوترة",
+    "sha256": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "تكامل الفوترة قريباً"
+    "text": "تكامل الفوترة قريباً",
+    "sha256": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "ستتوفر إدارة الفوترة والاشتراك الموحدة في إصدار مستقبلي."
+    "text": "ستتوفر إدارة الفوترة والاشتراك الموحدة في إصدار مستقبلي.",
+    "sha256": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "حول المؤسسات"
+    "text": "حول المؤسسات",
+    "sha256": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "توفر المؤسسات فوترة وإدارة موحدة للإدارة المركزية."
+    "text": "توفر المؤسسات فوترة وإدارة موحدة للإدارة المركزية.",
+    "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "إدارة مؤسستك"
+    "text": "إدارة مؤسستك",
+    "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "حدّث اسم شركتك وتفاصيل المؤسسة هنا. تساعد هذه المعلومات في تخصيص حسابك ويمكن استخدامها لميزات العلامة التجارية في المستقبل."
+    "text": "حدّث اسم شركتك وتفاصيل المؤسسة هنا. تساعد هذه المعلومات في تخصيص حسابك ويمكن استخدامها لميزات العلامة التجارية في المستقبل.",
+    "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "البدء مع المؤسسات"
+    "text": "البدء مع المؤسسات",
+    "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "أنشئ أول مؤسسة لك لإدارة معلومات شركتك والتحضير لميزات العلامة التجارية المستقبلية."
+    "text": "أنشئ أول مؤسسة لك لإدارة معلومات شركتك والتحضير لميزات العلامة التجارية المستقبلية.",
+    "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "إدارة مؤسساتك وأعضاء الفريق"
+    "text": "إدارة مؤسساتك وأعضاء الفريق",
+    "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
-    "text": "الإعدادات"
+    "text": "الإعدادات",
+    "sha256": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "العلامة التجارية للشركة"
+    "text": "العلامة التجارية للشركة",
+    "sha256": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "الفريق"
+    "text": "الفريق",
+    "sha256": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "الفوترة"
+    "text": "الفوترة",
+    "sha256": "3ac8bbca"
   },
   "web.organizations.tabs.subscription": {
-    "text": "الاشتراك"
+    "text": "الاشتراك",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
-    "text": "منطقة الخطر"
+    "text": "منطقة الخطر",
+    "sha256": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "حذف المؤسسة"
+    "text": "حذف المؤسسة",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "سيؤدي هذا إلى حذف المؤسسة نهائياً. لا يمكن التراجع عن هذا الإجراء."
+    "text": "سيؤدي هذا إلى حذف المؤسسة نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+    "sha256": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "حذف"
+    "text": "حذف",
+    "sha256": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "حذف المؤسسة"
+    "text": "حذف المؤسسة",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "هل أنت متأكد من رغبتك في حذف {name}؟ لا يمكن التراجع عن هذا الإجراء."
+    "text": "هل أنت متأكد من رغبتك في حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "فشل حذف المؤسسة"
+    "text": "فشل حذف المؤسسة",
+    "sha256": "a8e5bb28"
   },
   "web.organizations.members.title": {
-    "text": "الأعضاء"
+    "text": "الأعضاء",
+    "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "إدارة أعضاء المؤسسة وأدوارهم"
+    "text": "إدارة أعضاء المؤسسة وأدوارهم",
+    "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "الأعضاء الحاليون"
+    "text": "الأعضاء الحاليون",
+    "sha256": "cfc156ae"
   },
   "web.organizations.members.member": {
-    "text": "عضو"
+    "text": "عضو",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
-    "text": "عضو"
+    "text": "عضو",
+    "sha256": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "أعضاء"
+    "text": "أعضاء",
+    "sha256": "17373ca1"
   },
   "web.organizations.members.name": {
-    "text": "الاسم"
+    "text": "الاسم",
+    "sha256": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "البريد الإلكتروني"
+    "text": "البريد الإلكتروني",
+    "sha256": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "الدور"
+    "text": "الدور",
+    "sha256": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "تاريخ الانضمام"
+    "text": "تاريخ الانضمام",
+    "sha256": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "الإجراءات"
+    "text": "الإجراءات",
+    "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "لا يوجد أعضاء بعد. ادعُ أعضاء الفريق للبدء."
+    "text": "لا يوجد أعضاء بعد. ادعُ أعضاء الفريق للبدء.",
+    "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "هذه المؤسسة ليس لديها أعضاء بعد."
+    "text": "هذه المؤسسة ليس لديها أعضاء بعد.",
+    "sha256": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "تم تحديث دور العضو بنجاح"
+    "text": "تم تحديث دور العضو بنجاح",
+    "sha256": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "فشل تحديث دور العضو"
+    "text": "فشل تحديث دور العضو",
+    "sha256": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "تمت إزالة العضو من المؤسسة"
+    "text": "تمت إزالة العضو من المؤسسة",
+    "sha256": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "فشل إزالة العضو"
+    "text": "فشل إزالة العضو",
+    "sha256": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "إزالة عضو"
+    "text": "إزالة عضو",
+    "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "هل أنت متأكد من رغبتك في إزالة {name} من هذه المؤسسة؟"
+    "text": "هل أنت متأكد من رغبتك في إزالة {name} من هذه المؤسسة؟",
+    "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "لا يمكنك تغيير دورك الخاص"
+    "text": "لا يمكنك تغيير دورك الخاص",
+    "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "لا يمكنك إزالة نفسك من المؤسسة"
+    "text": "لا يمكنك إزالة نفسك من المؤسسة",
+    "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "لا يمكنك إزالة مالك المؤسسة"
+    "text": "لا يمكنك إزالة مالك المؤسسة",
+    "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "ليس لديك صلاحية لإدارة الأعضاء"
+    "text": "ليس لديك صلاحية لإدارة الأعضاء",
+    "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "المالك"
+    "text": "المالك",
+    "sha256": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "مسؤول"
+    "text": "مسؤول",
+    "sha256": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
-    "text": "عضو"
+    "text": "عضو",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "وصول كامل لجميع إعدادات وأعضاء المؤسسة"
+    "text": "وصول كامل لجميع إعدادات وأعضاء المؤسسة",
+    "sha256": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "يمكنه إدارة الأعضاء ومعظم إعدادات المؤسسة"
+    "text": "يمكنه إدارة الأعضاء ومعظم إعدادات المؤسسة",
+    "sha256": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "وصول أساسي لموارد المؤسسة"
+    "text": "وصول أساسي لموارد المؤسسة",
+    "sha256": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "دعوات المؤسسة"
+    "text": "دعوات المؤسسة",
+    "sha256": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "دعوة عضو"
+    "text": "دعوة عضو",
+    "sha256": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "دعوة عضو جديد"
+    "text": "دعوة عضو جديد",
+    "sha256": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "الدعوات المعلقة"
+    "text": "الدعوات المعلقة",
+    "sha256": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "لا توجد دعوات معلقة"
+    "text": "لا توجد دعوات معلقة",
+    "sha256": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "البريد الإلكتروني"
+    "text": "البريد الإلكتروني",
+    "sha256": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "member{'@'}example.com"
+    "text": "member{'@'}example.com",
+    "sha256": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "الدور"
+    "text": "الدور",
+    "sha256": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "إرسال الدعوة"
+    "text": "إرسال الدعوة",
+    "sha256": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "تم إرسال الدعوة بنجاح"
+    "text": "تم إرسال الدعوة بنجاح",
+    "sha256": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "فشل إرسال الدعوة"
+    "text": "فشل إرسال الدعوة",
+    "sha256": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "إعادة الإرسال"
+    "text": "إعادة الإرسال",
+    "sha256": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "إلغاء"
+    "text": "إلغاء",
+    "sha256": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "تمت إعادة إرسال الدعوة بنجاح"
+    "text": "تمت إعادة إرسال الدعوة بنجاح",
+    "sha256": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "فشل إعادة إرسال الدعوة"
+    "text": "فشل إعادة إرسال الدعوة",
+    "sha256": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "تم إلغاء الدعوة بنجاح"
+    "text": "تم إلغاء الدعوة بنجاح",
+    "sha256": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "فشل إلغاء الدعوة"
+    "text": "فشل إلغاء الدعوة",
+    "sha256": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "دُعي بواسطة"
+    "text": "دُعي بواسطة",
+    "sha256": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "تاريخ الدعوة"
+    "text": "تاريخ الدعوة",
+    "sha256": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "تنتهي"
+    "text": "تنتهي",
+    "sha256": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "أُعيد إرسالها {count} مرة"
+    "text": "أُعيد إرسالها {count} مرة",
+    "sha256": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "أُعيد إرسالها {count} مرات"
+    "text": "أُعيد إرسالها {count} مرات",
+    "sha256": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "قيد الانتظار"
+    "text": "قيد الانتظار",
+    "sha256": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "مقبول"
+    "text": "مقبول",
+    "sha256": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "مرفوض"
+    "text": "مرفوض",
+    "sha256": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "منتهي الصلاحية"
+    "text": "منتهي الصلاحية",
+    "sha256": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "عضو"
+    "text": "عضو",
+    "sha256": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "مسؤول"
+    "text": "مسؤول",
+    "sha256": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "قبول الدعوة"
+    "text": "قبول الدعوة",
+    "sha256": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "رفض الدعوة"
+    "text": "رفض الدعوة",
+    "sha256": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "تفاصيل الدعوة"
+    "text": "تفاصيل الدعوة",
+    "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "تمت دعوتك للانضمام إلى"
+    "text": "تمت دعوتك للانضمام إلى",
+    "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "تمت دعوتك بصفة"
+    "text": "تمت دعوتك بصفة",
+    "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "تم قبول الدعوة بنجاح"
+    "text": "تم قبول الدعوة بنجاح",
+    "sha256": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "فشل قبول الدعوة"
+    "text": "فشل قبول الدعوة",
+    "sha256": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "تم رفض الدعوة"
+    "text": "تم رفض الدعوة",
+    "sha256": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "فشل رفض الدعوة"
+    "text": "فشل رفض الدعوة",
+    "sha256": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "انتهت صلاحية هذه الدعوة"
+    "text": "انتهت صلاحية هذه الدعوة",
+    "sha256": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "دعوة غير صالحة أو منتهية الصلاحية"
+    "text": "دعوة غير صالحة أو منتهية الصلاحية",
+    "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "يرجى تسجيل الدخول لقبول هذه الدعوة"
+    "text": "يرجى تسجيل الدخول لقبول هذه الدعوة",
+    "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "جاري تحميل تفاصيل الدعوة"
+    "text": "جاري تحميل تفاصيل الدعوة",
+    "sha256": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "قم بترقية خطتك لدعوة أعضاء الفريق"
+    "text": "قم بترقية خطتك لدعوة أعضاء الفريق",
+    "sha256": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "دعوات أعضاء الفريق تتطلب خطة مع إدارة الفرق. قم بالترقية لإضافة متعاونين إلى مؤسستك."
+    "text": "دعوات أعضاء الفريق تتطلب خطة مع إدارة الفرق. قم بالترقية لإضافة متعاونين إلى مؤسستك.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
-    "text": "Pro"
+    "text": "Pro",
+    "sha256": "957b0b87"
   },
   "web.organizations.member_count": {
-    "text": "{count} عضو | {count} أعضاء"
+    "text": "{count} عضو | {count} أعضاء",
+    "sha256": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} نطاق | {count} نطاقات"
+    "text": "{count} نطاق | {count} نطاقات",
+    "sha256": "09f52efa"
   },
   "web.organizations.tabs.domains": {
-    "text": "النطاقات"
+    "text": "النطاقات",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "حساب خاطئ"
+    "text": "حساب خاطئ",
+    "sha256": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "أُرسلت هذه الدعوة إلى {invitedEmail}، لكنك مسجل الدخول بـ {currentEmail}."
+    "text": "أُرسلت هذه الدعوة إلى {invitedEmail}، لكنك مسجل الدخول بـ {currentEmail}.",
+    "sha256": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
-    "text": "تسجيل الدخول بحساب مختلف"
+    "text": "تسجيل الدخول بحساب مختلف",
+    "sha256": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days} يوم متبقي"
+    "text": "{days} يوم متبقي",
+    "sha256": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours} ساعة متبقية"
+    "text": "{hours} ساعة متبقية",
+    "sha256": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "تنتهي قريباً"
+    "text": "تنتهي قريباً",
+    "sha256": "a5dcfef9"
   }
 }

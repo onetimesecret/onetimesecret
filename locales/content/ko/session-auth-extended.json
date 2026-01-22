@@ -1,408 +1,543 @@
 {
   "web.auth.mfa_required": {
-    "text": "MFA 인증 필요"
+    "text": "MFA 인증 필요",
+    "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "계정에 접근하려면 MFA 인증이 필요합니다"
+    "text": "계정에 접근하려면 MFA 인증이 필요합니다",
+    "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "MFA 인증 완료"
+    "text": "MFA 인증 완료",
+    "sha256": "0e681134"
   },
   "web.auth.security.authentication_failed": {
-    "text": "인증에 실패했습니다. 자격 증명을 확인하고 다시 시도해 주세요."
+    "text": "인증에 실패했습니다. 자격 증명을 확인하고 다시 시도해 주세요.",
+    "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "시도 횟수가 너무 많습니다. 나중에 다시 시도해 주세요."
+    "text": "시도 횟수가 너무 많습니다. 나중에 다시 시도해 주세요.",
+    "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "세션이 만료되었습니다. 다시 로그인해 주세요."
+    "text": "세션이 만료되었습니다. 다시 로그인해 주세요.",
+    "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "복구 코드를 찾을 수 없습니다. 올바르게 입력했는지 확인해 주세요."
+    "text": "복구 코드를 찾을 수 없습니다. 올바르게 입력했는지 확인해 주세요.",
+    "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "이 복구 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있습니다."
+    "text": "이 복구 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있습니다.",
+    "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "네트워크 오류입니다. 연결을 확인하고 다시 시도해 주세요."
+    "text": "네트워크 오류입니다. 연결을 확인하고 다시 시도해 주세요.",
+    "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "오류가 발생했습니다. 다시 시도해 주세요."
+    "text": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "비밀번호"
+    "text": "비밀번호",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "이메일 링크"
+    "text": "이메일 링크",
+    "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "생체 인식"
+    "text": "생체 인식",
+    "sha256": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "이메일로 로그인"
+    "text": "이메일로 로그인",
+    "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "안전한 로그인 링크를 보내드립니다"
+    "text": "안전한 로그인 링크를 보내드립니다",
+    "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "이메일을 입력하세요"
+    "text": "이메일을 입력하세요",
+    "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "로그인 링크 보내기"
+    "text": "로그인 링크 보내기",
+    "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "이메일을 확인하세요"
+    "text": "이메일을 확인하세요",
+    "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "{email}(으)로 로그인 링크를 보냈습니다"
+    "text": "{email}(으)로 로그인 링크를 보냈습니다",
+    "sha256": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "이 링크는 15분 후에 만료됩니다"
+    "text": "이 링크는 15분 후에 만료됩니다",
+    "sha256": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "다른 이메일로 시도"
+    "text": "다른 이메일로 시도",
+    "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "비밀번호가 필요 없습니다 — 이메일의 링크를 클릭하세요"
+    "text": "비밀번호가 필요 없습니다 — 이메일의 링크를 클릭하세요",
+    "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "네트워크 오류. 다시 시도해 주세요."
+    "text": "네트워크 오류. 다시 시도해 주세요.",
+    "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "로그인 링크 전송 실패. 다시 시도해 주세요."
+    "text": "로그인 링크 전송 실패. 다시 시도해 주세요.",
+    "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "유효하지 않거나 누락된 로그인 링크"
+    "text": "유효하지 않거나 누락된 로그인 링크",
+    "sha256": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "로그인 실패. 다시 시도해 주세요."
+    "text": "로그인 실패. 다시 시도해 주세요.",
+    "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "로그인 중..."
+    "text": "로그인 중...",
+    "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "링크를 확인하는 동안 잠시 기다려 주세요"
+    "text": "링크를 확인하는 동안 잠시 기다려 주세요",
+    "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "인증 오류"
+    "text": "인증 오류",
+    "sha256": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "로그인으로 돌아가기"
+    "text": "로그인으로 돌아가기",
+    "sha256": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Face ID / Touch ID로 로그인"
+    "text": "Face ID / Touch ID로 로그인",
+    "sha256": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "생체 인식 로그인 설정"
+    "text": "생체 인식 로그인 설정",
+    "sha256": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "이 브라우저에서는 생체 인식 인증이 지원되지 않습니다"
+    "text": "이 브라우저에서는 생체 인식 인증이 지원되지 않습니다",
+    "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "WebAuthn을 지원하는 최신 브라우저를 사용해 주세요 (Chrome, Safari, Firefox 또는 Edge)"
+    "text": "WebAuthn을 지원하는 최신 브라우저를 사용해 주세요 (Chrome, Safari, Firefox 또는 Edge)",
+    "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "생체 인식 로그인이 활성화되었습니다"
+    "text": "생체 인식 로그인이 활성화되었습니다",
+    "sha256": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "생체 인식 로그인 설정 실패"
+    "text": "생체 인식 로그인 설정 실패",
+    "sha256": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "생체 인식 인증 실패. 다시 시도해 주세요."
+    "text": "생체 인식 인증 실패. 다시 시도해 주세요.",
+    "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "인증이 취소되었습니다"
+    "text": "인증이 취소되었습니다",
+    "sha256": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "인증 중..."
+    "text": "인증 중...",
+    "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "지문, 얼굴 또는 보안 키를 사용하여 로그인"
+    "text": "지문, 얼굴 또는 보안 키를 사용하여 로그인",
+    "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Face ID, Touch ID, Windows Hello 및 보안 키 지원"
+    "text": "Face ID, Touch ID, Windows Hello 및 보안 키 지원",
+    "sha256": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "경고: 로그인 시도가 {count}회 남았습니다"
+    "text": "경고: 로그인 시도가 {count}회 남았습니다",
+    "sha256": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "로그인 실패 횟수 초과로 계정이 잠겼습니다"
+    "text": "로그인 실패 횟수 초과로 계정이 잠겼습니다",
+    "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "{time}까지 계정이 잠겨 있습니다"
+    "text": "{time}까지 계정이 잠겨 있습니다",
+    "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "즉시 접근이 필요하시면 고객 지원에 문의해 주세요"
+    "text": "즉시 접근이 필요하시면 고객 지원에 문의해 주세요",
+    "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "대신 비밀번호를 재설정할 수 있습니다"
+    "text": "대신 비밀번호를 재설정할 수 있습니다",
+    "sha256": "a98a3f9d"
   },
   "web.auth.sessions.title": {
-    "text": "활성 세션"
+    "text": "활성 세션",
+    "sha256": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "현재 세션"
+    "text": "현재 세션",
+    "sha256": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "다른 세션"
+    "text": "다른 세션",
+    "sha256": "8409f445"
   },
   "web.auth.sessions.device": {
-    "text": "기기"
+    "text": "기기",
+    "sha256": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "위치"
+    "text": "위치",
+    "sha256": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "IP 주소"
+    "text": "IP 주소",
+    "sha256": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "마지막 활동"
+    "text": "마지막 활동",
+    "sha256": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "생성일"
+    "text": "생성일",
+    "sha256": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "제거"
+    "text": "제거",
+    "sha256": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "모든 다른 세션 로그아웃"
+    "text": "모든 다른 세션 로그아웃",
+    "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "이 세션을 제거하시겠습니까?"
+    "text": "이 세션을 제거하시겠습니까?",
+    "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "다른 모든 기기에서 로그아웃됩니다. 확실합니까?"
+    "text": "다른 모든 기기에서 로그아웃됩니다. 확실합니까?",
+    "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "다른 활성 세션이 없습니다"
+    "text": "다른 활성 세션이 없습니다",
+    "sha256": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "세션이 성공적으로 제거되었습니다"
+    "text": "세션이 성공적으로 제거되었습니다",
+    "sha256": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "모든 다른 세션이 로그아웃되었습니다"
+    "text": "모든 다른 세션이 로그아웃되었습니다",
+    "sha256": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "활성 세션"
+    "text": "활성 세션",
+    "sha256": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "2단계 인증"
+    "text": "2단계 인증",
+    "sha256": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "2단계 인증이 활성화되어 있습니다"
+    "text": "2단계 인증이 활성화되어 있습니다",
+    "sha256": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "2단계 인증이 비활성화되어 있습니다"
+    "text": "2단계 인증이 비활성화되어 있습니다",
+    "sha256": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "2단계 인증 활성화"
+    "text": "2단계 인증 활성화",
+    "sha256": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "2단계 인증 비활성화"
+    "text": "2단계 인증 비활성화",
+    "sha256": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "2단계 인증 설정"
+    "text": "2단계 인증 설정",
+    "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "계정에 추가 보안 계층 추가"
+    "text": "계정에 추가 보안 계층 추가",
+    "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. QR 코드 스캔"
+    "text": "1. QR 코드 스캔",
+    "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. 설정 확인"
+    "text": "2. 설정 확인",
+    "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "인증 앱으로 이 QR 코드를 스캔하세요"
+    "text": "인증 앱으로 이 QR 코드를 스캔하세요",
+    "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "또는 이 코드를 수동으로 입력하세요"
+    "text": "또는 이 코드를 수동으로 입력하세요",
+    "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "앱에서 6자리 코드를 입력하세요"
+    "text": "앱에서 6자리 코드를 입력하세요",
+    "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "인증 코드 입력"
+    "text": "인증 코드 입력",
+    "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "확인 및 활성화"
+    "text": "확인 및 활성화",
+    "sha256": "7c08f68d"
   },
   "web.auth.mfa.code_required": {
-    "text": "인증 코드가 필요합니다"
+    "text": "인증 코드가 필요합니다",
+    "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "유효하지 않은 코드입니다. 코드는 30초마다 만료됩니다. 인증 앱의 최신 코드를 시도해 주세요."
+    "text": "유효하지 않은 코드입니다. 코드는 30초마다 만료됩니다. 인증 앱의 최신 코드를 시도해 주세요.",
+    "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "2단계 인증이 활성화되었습니다"
+    "text": "2단계 인증이 활성화되었습니다",
+    "sha256": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "2단계 인증이 비활성화되었습니다"
+    "text": "2단계 인증이 비활성화되었습니다",
+    "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "2FA를 비활성화하려면 비밀번호를 입력하세요"
+    "text": "2FA를 비활성화하려면 비밀번호를 입력하세요",
+    "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "비밀번호"
+    "text": "비밀번호",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "2단계 인증 설정을 변경하려면 본인 확인"
+    "text": "2단계 인증 설정을 변경하려면 본인 확인",
+    "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "마지막 사용: {time}"
+    "text": "마지막 사용: {time}",
+    "sha256": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "사용한 적 없음"
+    "text": "사용한 적 없음",
+    "sha256": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "대신 복구 코드 사용"
+    "text": "대신 복구 코드 사용",
+    "sha256": "23d3441a"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "인증 코드로 돌아가기"
+    "text": "인증 코드로 돌아가기",
+    "sha256": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "취소하고 로그인으로 돌아가기"
+    "text": "취소하고 로그인으로 돌아가기",
+    "sha256": "83256742"
   },
   "web.auth.mfa.loading_status": {
-    "text": "MFA 상태 로딩 중..."
+    "text": "MFA 상태 로딩 중...",
+    "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "계정이 2단계 인증으로 보호되고 있습니다"
+    "text": "계정이 2단계 인증으로 보호되고 있습니다",
+    "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "추가 보안 계층으로 계정 보호"
+    "text": "추가 보안 계층으로 계정 보호",
+    "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "비밀번호가 유출되더라도 무단 접근 방지"
+    "text": "비밀번호가 유출되더라도 무단 접근 방지",
+    "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Google Authenticator, Authy 및 기타 TOTP 앱과 호환"
+    "text": "Google Authenticator, Authy 및 기타 TOTP 앱과 호환",
+    "sha256": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "긴급 접근을 위한 백업 복구 코드"
+    "text": "긴급 접근을 위한 백업 복구 코드",
+    "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "비밀번호를 입력하세요"
+    "text": "비밀번호를 입력하세요",
+    "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "비활성화 중..."
+    "text": "비활성화 중...",
+    "sha256": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "2FA 비활성화"
+    "text": "2FA 비활성화",
+    "sha256": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "QR 코드 생성 중..."
+    "text": "QR 코드 생성 중...",
+    "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Google Authenticator, Authy 또는 TOTP 앱 사용"
+    "text": "Google Authenticator, Authy 또는 TOTP 앱 사용",
+    "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "인증 계속"
+    "text": "인증 계속",
+    "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "인증 앱의 6자리 코드를 입력하세요"
+    "text": "인증 앱의 6자리 코드를 입력하세요",
+    "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "MFA 활성화"
+    "text": "MFA 활성화",
+    "sha256": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "설정 완료"
+    "text": "설정 완료",
+    "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "복구 코드 중 하나를 입력하세요"
+    "text": "복구 코드 중 하나를 입력하세요",
+    "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "복구 코드"
+    "text": "복구 코드",
+    "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "복구 코드를 입력하세요"
+    "text": "복구 코드를 입력하세요",
+    "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "복구 코드 확인"
+    "text": "복구 코드 확인",
+    "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "6자리 인증 코드 입력"
+    "text": "6자리 인증 코드 입력",
+    "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "복구 코드 모드 활성화됨"
+    "text": "복구 코드 모드 활성화됨",
+    "sha256": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "인증 코드 모드 활성화됨"
+    "text": "인증 코드 모드 활성화됨",
+    "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "계속하려면 6자리를 모두 입력해 주세요"
+    "text": "계속하려면 6자리를 모두 입력해 주세요",
+    "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "{total}자리 중 {current}번째"
+    "text": "{total}자리 중 {current}번째",
+    "sha256": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "복구 코드"
+    "text": "복구 코드",
+    "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "이 코드를 안전한 곳에 저장하세요. 인증 앱에 접근할 수 없을 때 각 코드를 한 번씩 사용할 수 있습니다."
+    "text": "이 코드를 안전한 곳에 저장하세요. 인증 앱에 접근할 수 없을 때 각 코드를 한 번씩 사용할 수 있습니다.",
+    "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "이 코드는 한 번만 표시됩니다"
+    "text": "이 코드는 한 번만 표시됩니다",
+    "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "설정을 완료하기 전에 복구 코드를 다운로드하거나 복사해야 합니다."
+    "text": "설정을 완료하기 전에 복구 코드를 다운로드하거나 복사해야 합니다.",
+    "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "새 코드 생성"
+    "text": "새 코드 생성",
+    "sha256": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "코드 재생성"
+    "text": "코드 재생성",
+    "sha256": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "모든 기존 복구 코드가 무효화됩니다"
+    "text": "모든 기존 복구 코드가 무효화됩니다",
+    "sha256": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "코드 다운로드"
+    "text": "코드 다운로드",
+    "sha256": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "복구 코드가 다운로드되었습니다"
+    "text": "복구 코드가 다운로드되었습니다",
+    "sha256": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "코드 인쇄"
+    "text": "코드 인쇄",
+    "sha256": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "모든 코드 복사"
+    "text": "모든 코드 복사",
+    "sha256": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "코드가 클립보드에 복사되었습니다"
+    "text": "코드가 클립보드에 복사되었습니다",
+    "sha256": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "코드를 클립보드에 복사하지 못했습니다"
+    "text": "코드를 클립보드에 복사하지 못했습니다",
+    "sha256": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "사용됨"
+    "text": "사용됨",
+    "sha256": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "미사용"
+    "text": "미사용",
+    "sha256": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{limit}개 중 {count}개 복구 코드 남음"
+    "text": "{limit}개 중 {count}개 복구 코드 남음",
+    "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "각 코드는 한 번만 사용할 수 있습니다. 부족할 경우 코드를 재생성하세요."
+    "text": "각 코드는 한 번만 사용할 수 있습니다. 부족할 경우 코드를 재생성하세요.",
+    "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "남은 복구 코드가 없습니다"
+    "text": "남은 복구 코드가 없습니다",
+    "sha256": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "새 복구 코드가 생성되었습니다"
+    "text": "새 복구 코드가 생성되었습니다",
+    "sha256": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "복구 코드"
+    "text": "복구 코드",
+    "sha256": "579c7f4e"
   },
   "web.auth.mfa.verify_login": {
-    "text": "인증"
+    "text": "인증",
+    "sha256": "eea2745e"
   },
   "web.auth.mfa.use_recovery_code_short": {
-    "text": "복구 코드 사용"
+    "text": "복구 코드 사용",
+    "sha256": "50d5790d"
   },
   "web.auth.mfa.cancel_sign_in": {
-    "text": "로그인 취소"
+    "text": "로그인 취소",
+    "sha256": "1bebad2f"
   },
   "web.auth.security._guidance.context": {
     "text": "⚠️ 보안 중요: 정보 노출을 방지하는 메시지입니다. src/locales/SECURITY-TRANSLATION-GUIDE.md를 참조하세요"

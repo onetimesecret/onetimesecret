@@ -1,128 +1,170 @@
 {
   "web.branding.color_picker": {
-    "text": "Selector de color"
+    "text": "Selector de color",
+    "sha256": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "{0} actual: {1}. Fes clic per recórrer les opcions."
+    "text": "{0} actual: {1}. Fes clic per recórrer les opcions.",
+    "sha256": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Utilitzar configuració"
+    "text": "Utilitzar configuració",
+    "sha256": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Família de tipus de lletra"
+    "text": "Família de tipus de lletra",
+    "sha256": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Estil de les cantonades"
+    "text": "Estil de les cantonades",
+    "sha256": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Color de marca"
+    "text": "Color de marca",
+    "sha256": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Vista prèvia de la visualització del destinatari en accedir al teu enllaç segur"
+    "text": "Vista prèvia de la visualització del destinatari en accedir al teu enllaç segur",
+    "sha256": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Previsualitzar i personalitzar"
+    "text": "Previsualitzar i personalitzar",
+    "sha256": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Canviar a vista del navegador Safari"
+    "text": "Canviar a vista del navegador Safari",
+    "sha256": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
-    "text": "Microsoft Edge"
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Maximitzar finestra"
+    "text": "Maximitzar finestra",
+    "sha256": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Minimitzar finestra"
+    "text": "Minimitzar finestra",
+    "sha256": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Canviar a vista del navegador Edge"
+    "text": "Canviar a vista del navegador Edge",
+    "sha256": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
-    "text": "{0}/500 caràcters"
+    "text": "{0}/500 caràcters",
+    "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Utilitza el teu telèfon per escanejar el codi QR"
+    "text": "Utilitza el teu telèfon per escanejar el codi QR",
+    "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contacta amb onboarding{'@'}example.com si tens preguntes"
+    "text": "Contacta amb onboarding{'@'}example.com si tens preguntes",
+    "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Aquestes instruccions es mostraran als destinataris abans que revelin el contingut secret"
+    "text": "Aquestes instruccions es mostraran als destinataris abans que revelin el contingut secret",
+    "sha256": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Aquestes instruccions es mostraran als destinataris després que revelin el secret"
+    "text": "Aquestes instruccions es mostraran als destinataris després que revelin el secret",
+    "sha256": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruccions abans de mostrar"
+    "text": "Instruccions abans de mostrar",
+    "sha256": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruccions després de mostrar"
+    "text": "Instruccions després de mostrar",
+    "sha256": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "Instruccions"
+    "text": "Instruccions",
+    "sha256": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Controls del logotip"
+    "text": "Controls del logotip",
+    "sha256": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Fes clic per carregar un logotip. Mida recomanada: 128x128 píxels. Mida màxima de fitxer: 1 MB. Formats compatibles: PNG, JPG, SVG"
+    "text": "Fes clic per carregar un logotip. Mida recomanada: 128x128 píxels. Mida màxima de fitxer: 1 MB. Formats compatibles: PNG, JPG, SVG",
+    "sha256": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Pujar logotip"
+    "text": "Pujar logotip",
+    "sha256": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Carregant previsualització..."
+    "text": "Carregant previsualització...",
+    "sha256": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Vista prèvia de com els destinataris veuran els teus secrets provant el botó \"Visualitza el secret\""
+    "text": "Vista prèvia de com els destinataris veuran els teus secrets provant el botó \"Visualitza el secret\"",
+    "sha256": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Icona d'ull"
+    "text": "Icona d'ull",
+    "sha256": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Fes clic a la imatge de vista prèvia de sota per actualitzar el teu logotip (mínim 128x128 píxels recomanat, 1 MB màx.)"
+    "text": "Fes clic a la imatge de vista prèvia de sota per actualitzar el teu logotip (mínim 128x128 píxels recomanat, 1 MB màx.)",
+    "sha256": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Icona d'imatge"
+    "text": "Icona d'imatge",
+    "sha256": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Utilitza els controls de sobre per personalitzar el color de la marca, els estils i les instruccions per als destinataris"
+    "text": "Utilitza els controls de sobre per personalitzar el color de la marca, els estils i les instruccions per als destinataris",
+    "sha256": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Icona de personalització"
+    "text": "Icona de personalització",
+    "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Tens canvis sense desar. Estàs segur?"
+    "text": "Tens canvis sense desar. Estàs segur?",
+    "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "No s'ha pogut carregar la configuració de marca"
+    "text": "No s'ha pogut carregar la configuració de marca",
+    "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Aquesta és una previsualització interactiva de com els destinataris veuran els teus missatges segurs. Pots: - Personalitzar colors i tipus de lletra utilitzant els controls de dalt - Pujar un logotip (es recomana mínim 128x128 píxels, màxim 1MB) - Provar la previsualització utilitzant el botó \"Veure secret\""
+    "text": "Aquesta és una previsualització interactiva de com els destinataris veuran els teus missatges segurs. Pots: - Personalitzar colors i tipus de lletra utilitzant els controls de dalt - Pujar un logotip (es recomana mínim 128x128 píxels, màxim 1MB) - Provar la previsualització utilitzant el botó \"Veure secret\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Aquesta és una vista prèvia interactiva de com els destinataris veuran els teus missatges segurs. Pots: - Personalitzar colors i tipus de lletra utilitzant els controls de sobre - Carregar un logotip (mínim 128x128 píxels recomanat, 1 MB màx.) - Provar la vista prèvia utilitzant el botó \"Visualitza el secret\""
+    "text": "Aquesta és una vista prèvia interactiva de com els destinataris veuran els teus missatges segurs. Pots: - Personalitzar colors i tipus de lletra utilitzant els controls de sobre - Carregar un logotip (mínim 128x128 píxels recomanat, 1 MB màx.) - Provar la vista prèvia utilitzant el botó \"Visualitza el secret\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Kanji japonès '秘' (himitsu) que significa 'secret' o 'confidencial'"
+    "text": "Kanji japonès '秘' (himitsu) que significa 'secret' o 'confidencial'",
+    "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Impulsat per Onetime Secret"
+    "text": "Impulsat per Onetime Secret",
+    "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "Logotip de {0}"
+    "text": "Logotip de {0}",
+    "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
-    "text": "Edge"
+    "text": "Edge",
+    "sha256": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Canviar a previsualització d'Edge"
+    "text": "Canviar a previsualització d'Edge",
+    "sha256": "83883d84"
   },
   "web.branding.safari": {
-    "text": "Safari"
+    "text": "Safari",
+    "sha256": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Canviar a previsualització de Safari"
+    "text": "Canviar a previsualització de Safari",
+    "sha256": "f24ac447"
   }
 }

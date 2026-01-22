@@ -1,623 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Yêu cầu nâng cấp"
+    "text": "Yêu cầu nâng cấp",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Xem gói"
+    "text": "Xem gói",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Quản lý nhóm yêu cầu Identity Plus hoặc cao hơn"
+    "text": "Quản lý nhóm yêu cầu Identity Plus hoặc cao hơn",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Tên miền tùy chỉnh yêu cầu Identity Plus hoặc cao hơn"
+    "text": "Tên miền tùy chỉnh yêu cầu Identity Plus hoặc cao hơn",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Truy cập API yêu cầu Identity Plus hoặc cao hơn"
+    "text": "Truy cập API yêu cầu Identity Plus hoặc cao hơn",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Nhật ký kiểm tra yêu cầu gói Đa nhóm hoặc cao hơn"
+    "text": "Nhật ký kiểm tra yêu cầu gói Đa nhóm hoặc cao hơn",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Quản lý đăng ký, tổ chức và cài đặt thanh toán"
+    "text": "Quản lý đăng ký, tổ chức và cài đặt thanh toán",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "Tổng quan thanh toán"
+    "text": "Tổng quan thanh toán",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Xem và quản lý đăng ký và chi tiết thanh toán"
+    "text": "Xem và quản lý đăng ký và chi tiết thanh toán",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Chọn tổ chức"
   },
   "web.billing.overview.current_plan": {
-    "text": "Gói hiện tại"
+    "text": "Gói hiện tại",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Tính năng gói"
+    "text": "Tính năng gói",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "Phương thức thanh toán"
+    "text": "Phương thức thanh toán",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Ngày thanh toán tiếp theo"
+    "text": "Ngày thanh toán tiếp theo",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Hành động nhanh"
+    "text": "Hành động nhanh",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Quản lý thanh toán"
+    "text": "Quản lý thanh toán",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Xem hóa đơn"
+    "text": "Xem hóa đơn",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Nâng cấp gói"
+    "text": "Nâng cấp gói",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Đổi gói"
+    "text": "Đổi gói",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Không có phương thức thanh toán được lưu"
+    "text": "Không có phương thức thanh toán được lưu",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Không có thanh toán sắp tới"
+    "text": "Không có thanh toán sắp tới",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "ngày còn lại"
+    "text": "ngày còn lại",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "Thanh toán vào {date}"
+    "text": "Thanh toán vào {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Xem gói"
+    "text": "Xem gói",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "So sánh và nâng cấp"
+    "text": "So sánh và nâng cấp",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Xem hóa đơn"
+    "text": "Xem hóa đơn",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Tải xuống lịch sử"
+    "text": "Tải xuống lịch sử",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Quản lý thanh toán"
+    "text": "Quản lý thanh toán",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Cập nhật thông tin thanh toán"
+    "text": "Cập nhật thông tin thanh toán",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Không có tổ chức"
+    "text": "Không có tổ chức",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Tạo tổ chức để quản lý thanh toán và đăng ký"
+    "text": "Tạo tổ chức để quản lý thanh toán và đăng ký",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Tạo bí mật"
+    "text": "Tạo bí mật",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Xem biên lai"
+    "text": "Xem biên lai",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "Truy cập API"
+    "text": "Truy cập API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Tên miền tùy chỉnh"
+    "text": "Tên miền tùy chỉnh",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Mặc định quyền riêng tư tùy chỉnh"
+    "text": "Mặc định quyền riêng tư tùy chỉnh",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Hết hạn mặc định mở rộng"
+    "text": "Hết hạn mặc định mở rộng",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Mặc định email tùy chỉnh"
+    "text": "Mặc định email tùy chỉnh",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Thương hiệu tùy chỉnh"
+    "text": "Thương hiệu tùy chỉnh",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Trang chủ có thương hiệu"
+    "text": "Trang chủ có thương hiệu",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Bí mật đến"
+    "text": "Bí mật đến",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Quản lý tổ chức"
+    "text": "Quản lý tổ chức",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Quản lý nhóm"
+    "text": "Quản lý nhóm",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Quản lý thành viên"
+    "text": "Quản lý thành viên",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Nhật ký kiểm tra"
+    "text": "Nhật ký kiểm tra",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Đăng nhập một lần"
+    "text": "Đăng nhập một lần",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Hỗ trợ ưu tiên"
+    "text": "Hỗ trợ ưu tiên",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Thỏa thuận mức dịch vụ"
+    "text": "Thỏa thuận mức dịch vụ",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Không thể tải chi tiết tính năng"
+    "text": "Không thể tải chi tiết tính năng",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Không có tính năng khả dụng"
+    "text": "Không có tính năng khả dụng",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "Chọn gói"
+    "text": "Chọn gói",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Chọn gói phù hợp với nhu cầu"
+    "text": "Chọn gói phù hợp với nhu cầu",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Chọn gói hoàn hảo cho tổ chức của bạn"
+    "text": "Chọn gói hoàn hảo cho tổ chức của bạn",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Gói hiện tại"
+    "text": "Gói hiện tại",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "Hiện tại"
+    "text": "Hiện tại",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "Nâng cấp"
+    "text": "Nâng cấp",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Hạ cấp"
+    "text": "Hạ cấp",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "Hàng tháng"
+    "text": "Hàng tháng",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "Hàng năm"
+    "text": "Hàng năm",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "/tháng"
+    "text": "/tháng",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Tiết kiệm {percent}% với thanh toán hàng năm"
+    "text": "Tiết kiệm {percent}% với thanh toán hàng năm",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "Miễn phí"
+    "text": "Miễn phí",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Một nhóm"
+    "text": "Một nhóm",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Đa nhóm"
+    "text": "Đa nhóm",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "Tài khoản cá nhân"
+    "text": "Tài khoản cá nhân",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "Tài khoản nhóm"
+    "text": "Tài khoản nhóm",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Tài khoản tổ chức"
+    "text": "Tài khoản tổ chức",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Tính năng"
+    "text": "Tính năng",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Bí mật không giới hạn"
+    "text": "Bí mật không giới hạn",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "Truy cập API"
+    "text": "Truy cập API",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "Hỗ trợ ưu tiên"
+    "text": "Hỗ trợ ưu tiên",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Chọn gói"
+    "text": "Chọn gói",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Liên hệ bán hàng"
+    "text": "Liên hệ bán hàng",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Có câu hỏi hoặc cần gì đó tùy chỉnh?"
+    "text": "Có câu hỏi hoặc cần gì đó tùy chỉnh?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Chúng tôi rất muốn nghe từ bạn. Cho chúng tôi biết bạn đang tìm kiếm gì."
+    "text": "Chúng tôi rất muốn nghe từ bạn. Cho chúng tôi biết bạn đang tìm kiếm gì.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} nhóm | {count} nhóm"
+    "text": "{count} nhóm | {count} nhóm",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} thành viên mỗi nhóm | {count} thành viên mỗi nhóm"
+    "text": "{count} thành viên mỗi nhóm | {count} thành viên mỗi nhóm",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Nhóm không giới hạn"
+    "text": "Nhóm không giới hạn",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Thành viên không giới hạn mỗi nhóm"
+    "text": "Thành viên không giới hạn mỗi nhóm",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Phổ biến nhất"
+    "text": "Phổ biến nhất",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Đề xuất"
+    "text": "Đề xuất",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Bao gồm mọi thứ trong {plan}"
+    "text": "Bao gồm mọi thứ trong {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Không có gói {interval} khả dụng lúc này."
+    "text": "Không có gói {interval} khả dụng lúc này.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Gói của bạn sẽ thay đổi ngay lập tức."
+    "text": "Gói của bạn sẽ thay đổi ngay lập tức.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Gói hiện tại:"
+    "text": "Gói hiện tại:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Gói mới:"
+    "text": "Gói mới:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Tín dụng cho thời gian chưa sử dụng:"
+    "text": "Tín dụng cho thời gian chưa sử dụng:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Hóa đơn tiếp theo"
+    "text": "Hóa đơn tiếp theo",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Giới hạn tính năng của bạn sẽ cập nhật ngay sau khi đổi gói."
+    "text": "Giới hạn tính năng của bạn sẽ cập nhật ngay sau khi đổi gói.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Đổi gói thất bại. Vui lòng thử lại."
+    "text": "Đổi gói thất bại. Vui lòng thử lại.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Xác nhận nâng cấp"
+    "text": "Xác nhận nâng cấp",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Xác nhận hạ cấp"
+    "text": "Xác nhận hạ cấp",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Nâng cấp lên {plan}?"
+    "text": "Nâng cấp lên {plan}?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Hạ cấp xuống {plan}?"
+    "text": "Hạ cấp xuống {plan}?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "Lịch sử thanh toán"
+    "text": "Lịch sử thanh toán",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Xem lịch sử thanh toán và tải xuống hóa đơn"
+    "text": "Xem lịch sử thanh toán và tải xuống hóa đơn",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "Ngày"
+    "text": "Ngày",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "Số tiền"
+    "text": "Số tiền",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "Trạng thái"
+    "text": "Trạng thái",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Tải xuống"
+    "text": "Tải xuống",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Chưa có hóa đơn"
+    "text": "Chưa có hóa đơn",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "Đã thanh toán"
+    "text": "Đã thanh toán",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "Đang chờ"
+    "text": "Đang chờ",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Thất bại"
+    "text": "Thất bại",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "Không thể tải hóa đơn"
+    "text": "Không thể tải hóa đơn",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Thanh toán được quản lý bởi {orgName}"
+    "text": "Thanh toán được quản lý bởi {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Xem thanh toán tổ chức"
+    "text": "Xem thanh toán tổ chức",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Bạn đã đạt giới hạn thành viên cho nhóm này"
+    "text": "Bạn đã đạt giới hạn thành viên cho nhóm này",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Nâng cấp để thêm thành viên"
+    "text": "Nâng cấp để thêm thành viên",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "Đăng ký"
+    "text": "Đăng ký",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "Trạng thái đăng ký"
+    "text": "Trạng thái đăng ký",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "Hoạt động"
+    "text": "Hoạt động",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "Không hoạt động"
+    "text": "Không hoạt động",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Quá hạn"
+    "text": "Quá hạn",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Đã hủy"
+    "text": "Đã hủy",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "Gói"
+    "text": "Gói",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "Cổng thanh toán"
+    "text": "Cổng thanh toán",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Quản lý đăng ký, phương thức thanh toán và lịch sử thanh toán"
+    "text": "Quản lý đăng ký, phương thức thanh toán và lịch sử thanh toán",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "Mở cổng thanh toán"
+    "text": "Mở cổng thanh toán",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "Đang chuyển hướng đến cổng thanh toán..."
+    "text": "Đang chuyển hướng đến cổng thanh toán...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Bắt đầu ngay hôm nay"
+    "text": "Bắt đầu ngay hôm nay",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Bắt đầu ngay hôm nay với Identity Plus"
+    "text": "Bắt đầu ngay hôm nay với Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "mỗi tháng"
+    "text": "mỗi tháng",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "Truy cập API đầy đủ"
+    "text": "Truy cập API đầy đủ",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Thiết kế ưu tiên quyền riêng tư"
+    "text": "Thiết kế ưu tiên quyền riêng tư",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Nhấp vào biểu tượng tia chớp này để nâng cấp cho tên miền tùy chỉnh"
+    "text": "Nhấp vào biểu tượng tia chớp này để nâng cấp cho tên miền tùy chỉnh",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "Để sau"
+    "text": "Để sau",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Nâng cấp tài khoản"
+    "text": "Nâng cấp tài khoản",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Nâng cấp lên Identity Plus"
+    "text": "Nâng cấp lên Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Nâng cấp cho nhóm"
+    "text": "Nâng cấp cho nhóm",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "Lợi ích của"
+    "text": "Lợi ích của",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Nâng cấp lên"
+    "text": "Nâng cấp lên",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Nâng cấp cho secrets.yourdomain.com"
+    "text": "Nâng cấp cho secrets.yourdomain.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Tất cả gói đều bao gồm tính năng quyền riêng tư và khả năng chia sẻ không giới hạn"
+    "text": "Tất cả gói đều bao gồm tính năng quyền riêng tư và khả năng chia sẻ không giới hạn",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Tất cả các gói bao gồm lựa chọn vị trí dữ liệu: {0} vùng"
+    "text": "Tất cả các gói bao gồm lựa chọn vị trí dữ liệu: {0} vùng",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "Bắt đầu"
+    "text": "Bắt đầu",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "Đăng ký {0}"
+    "text": "Đăng ký {0}",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Nâng cao chia sẻ an toàn của bạn với tên miền tùy chỉnh, dung lượng không giới hạn và các tính năng cấp doanh nghiệp."
+    "text": "Nâng cao chia sẻ an toàn của bạn với tên miền tùy chỉnh, dung lượng không giới hạn và các tính năng cấp doanh nghiệp.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Tần suất thanh toán"
+    "text": "Tần suất thanh toán",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Bảo mật thương hiệu của bạn và xây dựng lòng tin khách hàng với liên kết từ tên miền của bạn. Hoàn hảo cho các doanh nghiệp coi trọng quyền riêng tư và tính chuyên nghiệp."
+    "text": "Bảo mật thương hiệu của bạn và xây dựng lòng tin khách hàng với liên kết từ tên miền của bạn. Hoàn hảo cho các doanh nghiệp coi trọng quyền riêng tư và tính chuyên nghiệp.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Liên kết an toàn, kết nối mạnh mẽ hơn"
+    "text": "Liên kết an toàn, kết nối mạnh mẽ hơn",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Không tìm thấy cấp độ Identity trong các cấp sản phẩm"
+    "text": "Không tìm thấy cấp độ Identity trong các cấp sản phẩm",
+    "sha256": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Hủy đăng ký"
+    "text": "Hủy đăng ký",
+    "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Hủy đăng ký"
+    "text": "Hủy đăng ký",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Bạn có chắc muốn hủy đăng ký {plan}?"
+    "text": "Bạn có chắc muốn hủy đăng ký {plan}?",
+    "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Điều gì xảy ra khi bạn hủy:"
+    "text": "Điều gì xảy ra khi bạn hủy:",
+    "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Bạn sẽ giữ quyền truy cập tất cả tính năng đến {date}"
+    "text": "Bạn sẽ giữ quyền truy cập tất cả tính năng đến {date}",
+    "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Bạn sẽ giữ quyền truy cập đến cuối kỳ thanh toán hiện tại"
+    "text": "Bạn sẽ giữ quyền truy cập đến cuối kỳ thanh toán hiện tại",
+    "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Bạn sẽ không bị tính phí nữa"
+    "text": "Bạn sẽ không bị tính phí nữa",
+    "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Tài khoản của bạn sẽ trở về gói miễn phí"
+    "text": "Tài khoản của bạn sẽ trở về gói miễn phí",
+    "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Giữ đăng ký"
+    "text": "Giữ đăng ký",
+    "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Hủy đăng ký"
+    "text": "Hủy đăng ký",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Đăng ký của bạn đã được hủy. Bạn sẽ giữ quyền truy cập đến cuối kỳ thanh toán."
+    "text": "Đăng ký của bạn đã được hủy. Bạn sẽ giữ quyền truy cập đến cuối kỳ thanh toán.",
+    "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Không thể hủy đăng ký. Vui lòng thử lại."
+    "text": "Không thể hủy đăng ký. Vui lòng thử lại.",
+    "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Đã lên lịch hủy đăng ký"
+    "text": "Đã lên lịch hủy đăng ký",
+    "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Đăng ký của bạn sẽ vẫn hoạt động đến {date}. Bạn sẽ tiếp tục có quyền truy cập đầy đủ tất cả tính năng đến lúc đó."
+    "text": "Đăng ký của bạn sẽ vẫn hoạt động đến {date}. Bạn sẽ tiếp tục có quyền truy cập đầy đủ tất cả tính năng đến lúc đó.",
+    "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Đổi ý? Bạn có thể kích hoạt lại đăng ký bất cứ lúc nào trước ngày hủy."
+    "text": "Đổi ý? Bạn có thể kích hoạt lại đăng ký bất cứ lúc nào trước ngày hủy.",
+    "sha256": "c94d5527"
   },
   "web.billing.features.create_secrets": {
-    "text": "Tạo & Chia sẻ bí mật"
+    "text": "Tạo & Chia sẻ bí mật",
+    "sha256": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "Truy cập API"
+    "text": "Truy cập API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Tên miền tùy chỉnh"
+    "text": "Tên miền tùy chỉnh",
+    "sha256": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 tên miền tùy chỉnh"
+    "text": "1 tên miền tùy chỉnh",
+    "sha256": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Tên miền tùy chỉnh không giới hạn"
+    "text": "Tên miền tùy chỉnh không giới hạn",
+    "sha256": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "Thương hiệu tùy chỉnh"
+    "text": "Thương hiệu tùy chỉnh",
+    "sha256": "237dabec"
   },
   "web.billing.features.branded_homepage": {
-    "text": "Trang chủ có thương hiệu"
+    "text": "Trang chủ có thương hiệu",
+    "sha256": "e355a396"
   },
   "web.billing.features.manage_teams": {
-    "text": "Quản lý nhóm"
+    "text": "Quản lý nhóm",
+    "sha256": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
-    "text": "Quản lý thành viên"
+    "text": "Quản lý thành viên",
+    "sha256": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "Nhật ký kiểm tra"
+    "text": "Nhật ký kiểm tra",
+    "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Đăng nhập một lần (SSO)"
+    "text": "Đăng nhập một lần (SSO)",
+    "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "Hỗ trợ ưu tiên"
+    "text": "Hỗ trợ ưu tiên",
+    "sha256": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Thỏa thuận mức dịch vụ"
+    "text": "Thỏa thuận mức dịch vụ",
+    "sha256": "436f2550"
   },
   "web.billing.features.centralized_billing": {
-    "text": "Thanh toán tập trung"
+    "text": "Thanh toán tập trung",
+    "sha256": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Lịch sử kiểm tra"
+    "text": "Lịch sử kiểm tra",
+    "sha256": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Luồng hoạt động"
+    "text": "Luồng hoạt động",
+    "sha256": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Quy trình chuyển giao"
+    "text": "Quy trình chuyển giao",
+    "sha256": "07202af3"
   },
   "web.billing.features.extended_retention": {
-    "text": "Lưu giữ bí mật 30 ngày"
+    "text": "Lưu giữ bí mật 30 ngày",
+    "sha256": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Bí mật trang chủ"
+    "text": "Bí mật trang chủ",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Bí mật đến"
+    "text": "Bí mật đến",
+    "sha256": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "Tối đa 5 thành viên nhóm"
+    "text": "Tối đa 5 thành viên nhóm",
+    "sha256": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "Tối đa 10 thành viên nhóm"
+    "text": "Tối đa 10 thành viên nhóm",
+    "sha256": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "Tối đa 25 thành viên nhóm"
+    "text": "Tối đa 25 thành viên nhóm",
+    "sha256": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "Tối đa 50 thành viên nhóm"
+    "text": "Tối đa 50 thành viên nhóm",
+    "sha256": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Thành viên nhóm không giới hạn"
+    "text": "Thành viên nhóm không giới hạn",
+    "sha256": "b7491ee9"
   },
   "web.billing.features.notifications": {
-    "text": "Thông báo email"
+    "text": "Thông báo email",
+    "sha256": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "Quy tắc truy cập IP"
+    "text": "Quy tắc truy cập IP",
+    "sha256": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Thương hiệu không gian làm việc"
+    "text": "Thương hiệu không gian làm việc",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
-    "text": "Cơ sở hạ tầng chuyên dụng"
+    "text": "Cơ sở hạ tầng chuyên dụng",
+    "sha256": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "Quy trình làm việc chia sẻ"
+    "text": "Quy trình làm việc chia sẻ",
+    "sha256": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "Thanh toán cho tổ chức này"
+    "text": "Thanh toán cho tổ chức này",
+    "sha256": "21806992"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Gói của bạn đã được nâng cấp thành công"
+    "text": "Gói của bạn đã được nâng cấp thành công",
+    "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Gói mới của bạn hiện đang hoạt động. Cảm ơn bạn đã mua."
+    "text": "Gói mới của bạn hiện đang hoạt động. Cảm ơn bạn đã mua.",
+    "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
-    "text": "Liên hệ thanh toán"
+    "text": "Liên hệ thanh toán",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Bí mật trang chủ"
+    "text": "Bí mật trang chủ",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
-    "text": "Thông báo email"
+    "text": "Thông báo email",
+    "sha256": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Quy tắc truy cập IP"
+    "text": "Quy tắc truy cập IP",
+    "sha256": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Thương hiệu không gian làm việc"
+    "text": "Thương hiệu không gian làm việc",
+    "sha256": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
-    "text": "Đến hạn hôm nay:"
+    "text": "Đến hạn hôm nay:",
+    "sha256": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Thanh toán tiếp theo ({date}):"
+    "text": "Thanh toán tiếp theo ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Cách tín dụng của bạn được áp dụng:"
+    "text": "Cách tín dụng của bạn được áp dụng:",
+    "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Số tiền hóa đơn tiếp theo:"
+    "text": "Số tiền hóa đơn tiếp theo:",
+    "sha256": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Tín dụng đã áp dụng:"
+    "text": "Tín dụng đã áp dụng:",
+    "sha256": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Số tiền đến hạn khi thanh toán tiếp theo:"
+    "text": "Số tiền đến hạn khi thanh toán tiếp theo:",
+    "sha256": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Tín dụng tài khoản còn lại:"
+    "text": "Tín dụng tài khoản còn lại:",
+    "sha256": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Áp dụng cho hóa đơn trong tương lai"
+    "text": "Áp dụng cho hóa đơn trong tương lai",
+    "sha256": "5007add6"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Sử dụng nhóm"
+    "text": "Sử dụng nhóm",
+    "sha256": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{used} trong {limit} nhóm"
+    "text": "{used} trong {limit} nhóm",
+    "sha256": "1db6b53c"
   }
 }

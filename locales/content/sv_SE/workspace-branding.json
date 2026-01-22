@@ -1,128 +1,170 @@
 {
   "web.branding.color_picker": {
-    "text": "Färgväljare"
+    "text": "Färgväljare",
+    "sha256": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Nuvarande {0}: {1}. Klicka för att bläddra bland alternativen."
+    "text": "Nuvarande {0}: {1}. Klicka för att bläddra bland alternativen.",
+    "sha256": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Använd inställning"
+    "text": "Använd inställning",
+    "sha256": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Teckensnittsfamilj"
+    "text": "Teckensnittsfamilj",
+    "sha256": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Hörnstyling"
+    "text": "Hörnstyling",
+    "sha256": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Varumärkesfärg"
+    "text": "Varumärkesfärg",
+    "sha256": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Förhandsgranskning av mottagarens vy när de öppnar din säkra länk"
+    "text": "Förhandsgranskning av mottagarens vy när de öppnar din säkra länk",
+    "sha256": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Förhandsgranska och anpassa"
+    "text": "Förhandsgranska och anpassa",
+    "sha256": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Byt till Safari-webbläsarvy"
+    "text": "Byt till Safari-webbläsarvy",
+    "sha256": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
-    "text": "Microsoft Edge"
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Maximera fönster"
+    "text": "Maximera fönster",
+    "sha256": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Minimera fönster"
+    "text": "Minimera fönster",
+    "sha256": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Byt till Edge-webbläsarvy"
+    "text": "Byt till Edge-webbläsarvy",
+    "sha256": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
-    "text": "{0}/500 tecken"
+    "text": "{0}/500 tecken",
+    "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Använd din telefon för att skanna QR-koden"
+    "text": "Använd din telefon för att skanna QR-koden",
+    "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontakta onboarding{'@'}example.com vid frågor"
+    "text": "Kontakta onboarding{'@'}example.com vid frågor",
+    "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Dessa instruktioner visas för mottagare innan de avslöjar hemlighetens innehåll"
+    "text": "Dessa instruktioner visas för mottagare innan de avslöjar hemlighetens innehåll",
+    "sha256": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Dessa instruktioner visas för mottagare efter att de avslöjat hemligheten"
+    "text": "Dessa instruktioner visas för mottagare efter att de avslöjat hemligheten",
+    "sha256": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruktioner före visning"
+    "text": "Instruktioner före visning",
+    "sha256": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruktioner efter visning"
+    "text": "Instruktioner efter visning",
+    "sha256": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "Instruktioner"
+    "text": "Instruktioner",
+    "sha256": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Logotypkontroller"
+    "text": "Logotypkontroller",
+    "sha256": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Klicka för att ladda upp en logotyp. Rekommenderad storlek: 128x128 pixlar. Maximal filstorlek: 1MB. Stödda format: PNG, JPG, SVG"
+    "text": "Klicka för att ladda upp en logotyp. Rekommenderad storlek: 128x128 pixlar. Maximal filstorlek: 1MB. Stödda format: PNG, JPG, SVG",
+    "sha256": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Ladda upp logotyp"
+    "text": "Ladda upp logotyp",
+    "sha256": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Laddar förhandsvisning..."
+    "text": "Laddar förhandsvisning...",
+    "sha256": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Förhandsgranska hur mottagare kommer att se dina hemligheter genom att testa knappen \"Visa hemlighet\""
+    "text": "Förhandsgranska hur mottagare kommer att se dina hemligheter genom att testa knappen \"Visa hemlighet\"",
+    "sha256": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Ögonikonen"
+    "text": "Ögonikonen",
+    "sha256": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Klicka på förhandsgranskningsbilden nedan för att uppdatera din logotyp (minst 128x128 pixlar rekommenderas, max 1MB)"
+    "text": "Klicka på förhandsgranskningsbilden nedan för att uppdatera din logotyp (minst 128x128 pixlar rekommenderas, max 1MB)",
+    "sha256": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Bildikon"
+    "text": "Bildikon",
+    "sha256": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Använd kontrollerna ovan för att anpassa varumärkesfärg, stilar och mottagarinstruktioner"
+    "text": "Använd kontrollerna ovan för att anpassa varumärkesfärg, stilar och mottagarinstruktioner",
+    "sha256": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Anpassningsikon"
+    "text": "Anpassningsikon",
+    "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Du har osparade ändringar. Är du säker?"
+    "text": "Du har osparade ändringar. Är du säker?",
+    "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Kunde inte ladda varumärkesinställningar"
+    "text": "Kunde inte ladda varumärkesinställningar",
+    "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Detta är en interaktiv förhandsvisning av hur mottagare ser dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsvisningen med knappen \"Visa hemlighet\""
+    "text": "Detta är en interaktiv förhandsvisning av hur mottagare ser dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsvisningen med knappen \"Visa hemlighet\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Detta är en interaktiv förhandsgranskning av hur mottagare kommer att se dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsgranskningen med knappen \"Visa hemlighet\""
+    "text": "Detta är en interaktiv förhandsgranskning av hur mottagare kommer att se dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsgranskningen med knappen \"Visa hemlighet\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japanskt kanji '秘' (himitsu) som betyder 'hemlighet' eller 'konfidentiellt'"
+    "text": "Japanskt kanji '秘' (himitsu) som betyder 'hemlighet' eller 'konfidentiellt'",
+    "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Drivs av Onetime Secret"
+    "text": "Drivs av Onetime Secret",
+    "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0}-logotyp"
+    "text": "{0}-logotyp",
+    "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
-    "text": "Edge"
+    "text": "Edge",
+    "sha256": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Byt till Edge-förhandsvisning"
+    "text": "Byt till Edge-förhandsvisning",
+    "sha256": "83883d84"
   },
   "web.branding.safari": {
-    "text": "Safari"
+    "text": "Safari",
+    "sha256": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Byt till Safari-förhandsvisning"
+    "text": "Byt till Safari-förhandsvisning",
+    "sha256": "f24ac447"
   }
 }

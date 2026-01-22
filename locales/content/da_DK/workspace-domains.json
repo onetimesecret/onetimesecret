@@ -1,302 +1,402 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Lær mere om DNS-konfiguration"
+    "text": "Lær mere om DNS-konfiguration",
+    "sha256": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Se domænebekræftelsesstatus"
+    "text": "Se domænebekræftelsesstatus",
+    "sha256": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Dette domæne er allerede registreret i din organisation"
+    "text": "Dette domæne er allerede registreret i din organisation",
+    "sha256": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Dette domæne er allerede registreret til en anden organisation. Kontakt venligst support, hvis du mener, dette er en fejl."
+    "text": "Dette domæne er allerede registreret til en anden organisation. Kontakt venligst support, hvis du mener, dette er en fejl.",
+    "sha256": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domæne overtaget og tilføjet til din organisation"
+    "text": "Domæne overtaget og tilføjet til din organisation",
+    "sha256": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Privatlivsstandarder"
+    "text": "Privatlivsstandarder",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Indstil standardprivatlivsindstillinger for beskeder oprettet under dette domæne. Disse indstillinger udfyldes på forhånd ved oprettelse af nye beskeder."
+    "text": "Indstil standardprivatlivsindstillinger for beskeder oprettet under dette domæne. Disse indstillinger udfyldes på forhånd ved oprettelse af nye beskeder.",
+    "sha256": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "Privatlivsstandarder"
+    "text": "Privatlivsstandarder",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Privatlivsstandarder-ikon"
+    "text": "Privatlivsstandarder-ikon",
+    "sha256": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Standard levetid"
+    "text": "Standard levetid",
+    "sha256": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Hvor længe beskeder skal forblive tilgængelige som standard"
+    "text": "Hvor længe beskeder skal forblive tilgængelige som standard",
+    "sha256": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Kræv adgangssætning"
+    "text": "Kræv adgangssætning",
+    "sha256": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Gør adgangssætning obligatorisk for alle beskeder på dette domæne"
+    "text": "Gør adgangssætning obligatorisk for alle beskeder på dette domæne",
+    "sha256": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
-    "text": "Aktiver notifikationer"
+    "text": "Aktiver notifikationer",
+    "sha256": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Aktiver e-mailnotifikationer som standard, når beskeder bliver set"
+    "text": "Aktiver e-mailnotifikationer som standard, når beskeder bliver set",
+    "sha256": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "Brug global standard"
+    "text": "Brug global standard",
+    "sha256": "a83c91e4"
   },
   "web.domains.global_default": {
-    "text": "Global"
+    "text": "Global",
+    "sha256": "a258b30f"
   },
   "web.domains.required": {
-    "text": "Påkrævet"
+    "text": "Påkrævet",
+    "sha256": "4850b174"
   },
   "web.domains.optional": {
-    "text": "Valgfrit"
+    "text": "Valgfrit",
+    "sha256": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Aktiveret"
+    "text": "Aktiveret",
+    "sha256": "92c1cdfd"
   },
   "web.domains.disabled": {
-    "text": "Deaktiveret"
+    "text": "Deaktiveret",
+    "sha256": "75081b59"
   },
   "web.domains.custom": {
-    "text": "Brugerdefineret"
+    "text": "Brugerdefineret",
+    "sha256": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Rediger standarder"
+    "text": "Rediger standarder",
+    "sha256": "50f49b87"
   },
   "web.domains.ttl_short": {
-    "text": "TTL"
+    "text": "TTL",
+    "sha256": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "Adgangssætning"
+    "text": "Adgangssætning",
+    "sha256": "e7611f05"
   },
   "web.domains.notify_short": {
-    "text": "Notifikationer"
+    "text": "Notifikationer",
+    "sha256": "78801183"
   },
   "web.domains.scope_switch_label": {
-    "text": "Skift domæneomfang"
+    "text": "Skift domæneomfang",
+    "sha256": "c776f846"
   },
   "web.domains.switcher_locked": {
-    "text": "Domæneskift ikke tilgængeligt på denne side"
+    "text": "Domæneskift ikke tilgængeligt på denne side",
+    "sha256": "ccd202fe"
   },
   "web.domains.scope_list_label": {
-    "text": "Tilgængelige domæner"
+    "text": "Tilgængelige domæner",
+    "sha256": "026552b3"
   },
   "web.domains.scope_header": {
-    "text": "Domæner"
+    "text": "Domæner",
+    "sha256": "ced67718"
   },
   "web.domains.add_domain": {
-    "text": "Tilføj domæne"
+    "text": "Tilføj domæne",
+    "sha256": "d86476ae"
   },
   "web.domains.domain_settings": {
-    "text": "Domæneindstillinger"
+    "text": "Domæneindstillinger",
+    "sha256": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Standarddomæne har ingen indstillingsside"
+    "text": "Standarddomæne har ingen indstillingsside",
+    "sha256": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Indtast venligst et {0} domænenavn"
+    "text": "Indtast venligst et {0} domænenavn",
+    "sha256": "167f2d19"
   },
   "web.domains.domain_name": {
-    "text": "Domænenavn"
+    "text": "Domænenavn",
+    "sha256": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Kontroller, om brugerne kan oprette hemmelige links fra dit domænes hjemmeside"
+    "text": "Kontroller, om brugerne kan oprette hemmelige links fra dit domænes hjemmeside",
+    "sha256": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Hjemmesideadgang"
+    "text": "Hjemmesideadgang",
+    "sha256": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "og status"
+    "text": "og status",
+    "sha256": "fe871d2c"
   },
   "web.domains.domain": {
-    "text": "Domæne"
+    "text": "Domæne",
+    "sha256": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Administrer og konfigurer dine bekræftede brugerdefinerede domæner"
+    "text": "Administrer og konfigurer dine bekræftede brugerdefinerede domæner",
+    "sha256": "4e7f8311"
   },
   "web.domains.domains": {
-    "text": "Domæner"
+    "text": "Domæner",
+    "sha256": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "Sidst overvåget"
+    "text": "Sidst overvåget",
+    "sha256": "8d39d1d0"
   },
   "web.domains.ssl_status": {
-    "text": "SSL-status"
+    "text": "SSL-status",
+    "sha256": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL fornyes"
+    "text": "SSL fornyes",
+    "sha256": "c49a8cff"
   },
   "web.domains.dns_record": {
-    "text": "DNS-post"
+    "text": "DNS-post",
+    "sha256": "33cbb244"
   },
   "web.domains.target_address": {
-    "text": "Måladresse"
+    "text": "Måladresse",
+    "sha256": "5e812179"
   },
   "web.domains.domain_status": {
-    "text": "Domænestatus"
+    "text": "Domænestatus",
+    "sha256": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
-    "text": "Antal brugerdefinerede domæner"
+    "text": "Antal brugerdefinerede domæner",
+    "sha256": "a9929be0"
   },
   "web.domains.custom_domain": {
-    "text": "Brugerdefineret domæne"
+    "text": "Brugerdefineret domæne",
+    "sha256": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Åbn domæne i ny fane"
+    "text": "Åbn domæne i ny fane",
+    "sha256": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "Tilbage til domæner"
+    "text": "Tilbage til domæner",
+    "sha256": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Tilbage til domæneliste"
+    "text": "Tilbage til domæneliste",
+    "sha256": "c7632413"
   },
   "web.domains.verify_domain": {
-    "text": "Bekræft domæne"
+    "text": "Bekræft domæne",
+    "sha256": "b416f537"
   },
   "web.domains.manage_brand": {
-    "text": "Administrer brand"
+    "text": "Administrer brand",
+    "sha256": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
-    "text": "Tilføjet {0}"
+    "text": "Tilføjet {0}",
+    "sha256": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "Tilføj dit domæne"
+    "text": "Tilføj dit domæne",
+    "sha256": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Kom i gang ved at tilføje et brugerdefineret domæne."
+    "text": "Kom i gang ved at tilføje et brugerdefineret domæne.",
+    "sha256": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
-    "text": "Ingen domæner fundet."
+    "text": "Ingen domæner fundet.",
+    "sha256": "574264df"
   },
   "web.domains.loading_domain_information": {
-    "text": "Indlæser domæneoplysninger..."
+    "text": "Indlæser domæneoplysninger...",
+    "sha256": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "For at kunne forbinde dit domæne skal du have en CNAME-post i din DNS, der peger"
+    "text": "For at kunne forbinde dit domæne skal du have en CNAME-post i din DNS, der peger",
+    "sha256": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "Hvis du allerede har en CNAME-post for den adresse, skal du ændre den, så den peger på"
+    "text": "Hvis du allerede har en CNAME-post for den adresse, skal du ændre den, så den peger på",
+    "sha256": "6f23e6db"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "text": "), er en CNAME-post ikke tilladt. I stedet skal du oprette en A-record. Detaljer om, hvordan du gør dette, findes længere nede på siden."
+    "text": "), er en CNAME-post ikke tilladt. I stedet skal du oprette en A-record. Detaljer om, hvordan du gør dette, findes længere nede på siden.",
+    "sha256": "76d5ab5f"
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
-    "text": "og fjern alle andre A-, AAAA- eller CNAME-poster for netop den adresse."
+    "text": "og fjern alle andre A-, AAAA- eller CNAME-poster for netop den adresse.",
+    "sha256": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", skal du gennemføre disse trin."
+    "text": ", skal du gennemføre disse trin.",
+    "sha256": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "Før vi kan aktivere links for"
+    "text": "Før vi kan aktivere links for",
+    "sha256": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Bemærk venligst, at for apex-domæner (f.eks."
+    "text": "Bemærk venligst, at for apex-domæner (f.eks.",
+    "sha256": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "Bekræft dit domæne"
+    "text": "Bekræft dit domæne",
+    "sha256": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.example.com"
+    "text": "secrets.example.com",
+    "sha256": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Tilpas dit domænebrand"
+    "text": "Tilpas dit domænebrand",
+    "sha256": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "text": "Det kan tage et par minutter, før dit SSL-certifikat træder i kraft."
+    "text": "Det kan tage et par minutter, før dit SSL-certifikat træder i kraft.",
+    "sha256": "2e4f3179"
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
-    "text": "DNS-ændringer kan tage så lidt som 60 sekunder - eller op til 24 timer - om at træde i kraft."
+    "text": "DNS-ændringer kan tage så lidt som 60 sekunder - eller op til 24 timer - om at træde i kraft.",
+    "sha256": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Vent på udbredelse"
+    "text": "3. Vent på udbredelse",
+    "sha256": "3e6cf4e1"
   },
   "web.domains.value_2": {
-    "text": "Værdi"
+    "text": "Værdi",
+    "sha256": "8e37953d"
   },
   "web.domains.value_1": {
-    "text": "Værdi"
+    "text": "Værdi",
+    "sha256": "8e37953d"
   },
   "web.domains.host_1": {
-    "text": "Vært"
+    "text": "Vært",
+    "sha256": "4a823118"
   },
   "web.domains.type_2": {
-    "text": "Type"
+    "text": "Type",
+    "sha256": "baaddf70"
   },
   "web.domains.type_1": {
-    "text": "Type"
+    "text": "Type",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Opret CNAME-posten"
+    "text": "2. Opret CNAME-posten",
+    "sha256": "781e438b"
   },
   "web.domains.value_0": {
-    "text": "Værdi"
+    "text": "Værdi",
+    "sha256": "8e37953d"
   },
   "web.domains.host_0": {
-    "text": "Vært"
+    "text": "Vært",
+    "sha256": "4a823118"
   },
   "web.domains.type_0": {
-    "text": "Type"
+    "text": "Type",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Opret A-posten"
+    "text": "2. Opret A-posten",
+    "sha256": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Tilføj dette værtsnavn til din DNS-konfiguration:"
+    "text": "Tilføj dette værtsnavn til din DNS-konfiguration:",
+    "sha256": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Opret en TXT-post"
+    "text": "1. Opret en TXT-post",
+    "sha256": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "Følg disse trin for at verificere domæneejerskab og forbedre din online tilstedeværelse:"
+    "text": "Følg disse trin for at verificere domæneejerskab og forbedre din online tilstedeværelse:",
+    "sha256": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Domænebekræftelsestrin"
+    "text": "Domænebekræftelsestrin",
+    "sha256": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Domænebekræftelse påbegyndt."
+    "text": "Domænebekræftelse påbegyndt.",
+    "sha256": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "Er du sikker på, at du vil fjerne dette domæne? Denne handling kan ikke fortrydes."
+    "text": "Er du sikker på, at du vil fjerne dette domæne? Denne handling kan ikke fortrydes.",
+    "sha256": "403c6d3b"
   },
   "web.domains.remove_domain": {
-    "text": "Fjern domæne"
+    "text": "Fjern domæne",
+    "sha256": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "Domæne fjernet"
+    "text": "Domæne fjernet",
+    "sha256": "2984d483"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "Kunne ikke tilføje domæne"
+    "text": "Kunne ikke tilføje domæne",
+    "sha256": "5fc4c4b3"
   },
   "web.domains.domain_added_successfully": {
-    "text": "Domæne tilføjet"
+    "text": "Domæne tilføjet",
+    "sha256": "dd8180cf"
   },
   "web.domains.passphrase_set": {
-    "text": "Beskyttet"
+    "text": "Beskyttet",
+    "sha256": "b0ed2633"
   },
   "web.domains.manage_domains": {
-    "text": "Administrer domæner"
+    "text": "Administrer domæner",
+    "sha256": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "Globale standarder"
+    "text": "Globale standarder",
+    "sha256": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "Rediger levetidsindstilling"
+    "text": "Rediger levetidsindstilling",
+    "sha256": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "Rediger adgangssætningskrav"
+    "text": "Rediger adgangssætningskrav",
+    "sha256": "0b5555b5"
   },
   "web.domains.edit_notify": {
-    "text": "Rediger notifikationsindstilling"
+    "text": "Rediger notifikationsindstilling",
+    "sha256": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "Konfigurer DNS-poster"
+    "text": "Konfigurer DNS-poster",
+    "sha256": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Brug værktøjet nedenfor til automatisk at registrere din DNS-udbyder og få trinvise instruktioner til konfiguration af dit domæne."
+    "text": "Brug værktøjet nedenfor til automatisk at registrere din DNS-udbyder og få trinvise instruktioner til konfiguration af dit domæne.",
+    "sha256": "91c1af2e"
   }
 }

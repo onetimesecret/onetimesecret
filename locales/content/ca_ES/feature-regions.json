@@ -1,107 +1,142 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Sobirania de dades i aïllament regional"
+    "text": "Sobirania de dades i aïllament regional",
+    "sha256": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Les teves dades resideixen exclusivament a la teva regió escollida i mai es transfereixen entre regions"
+    "text": "Les teves dades resideixen exclusivament a la teva regió escollida i mai es transfereixen entre regions",
+    "sha256": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Cada regió opera com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades"
+    "text": "Cada regió opera com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades",
+    "sha256": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Mantenim una política estricta: les dades dels clients mai es transfereixen entre regions sota cap circumstància"
+    "text": "Mantenim una política estricta: les dades dels clients mai es transfereixen entre regions sota cap circumstància",
+    "sha256": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Important: Canviar a una regió diferent crea un compte nou. Les teves dades es mantenen a la teva regió original."
+    "text": "Important: Canviar a una regió diferent crea un compte nou. Les teves dades es mantenen a la teva regió original.",
+    "sha256": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "La teva regió"
+    "text": "La teva regió",
+    "sha256": "cafa720f"
   },
   "web.regions.your_current_region": {
-    "text": "La teva regió actual"
+    "text": "La teva regió actual",
+    "sha256": "45e2a9d6"
   },
   "web.regions.active": {
-    "text": "Actiu"
+    "text": "Actiu",
+    "sha256": "92340695"
   },
   "web.regions.explore_other_regions": {
-    "text": "Explora altres regions disponibles"
+    "text": "Explora altres regions disponibles",
+    "sha256": "953d0057"
   },
   "web.regions.why_it_matters": {
-    "text": "Per què la sobirania de dades és important"
+    "text": "Per què la sobirania de dades és important",
+    "sha256": "67de6cf7"
   },
   "web.regions.trust_title": {
-    "text": "Transparència i control"
+    "text": "Transparència i control",
+    "sha256": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Sap exactament on resideixen les teves dades i quines lleis governen la seva protecció."
+    "text": "Sap exactament on resideixen les teves dades i quines lleis governen la seva protecció.",
+    "sha256": "97fd57ab"
   },
   "web.regions.privacy_title": {
-    "text": "Drets de privadesa"
+    "text": "Drets de privadesa",
+    "sha256": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Assegura que la teva informació personal es gestioni d'acord amb les lleis i regulacions de privadesa del teu país, evitant l'accés no autoritzat o el mal ús."
+    "text": "Assegura que la teva informació personal es gestioni d'acord amb les lleis i regulacions de privadesa del teu país, evitant l'accés no autoritzat o el mal ús.",
+    "sha256": "28d9d42e"
   },
   "web.regions.compliance_title": {
-    "text": "Compliment normatiu"
+    "text": "Compliment normatiu",
+    "sha256": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Compleix els requisits de GDPR, HIPAA, CCPA i altres regulacions regionals de protecció de dades"
+    "text": "Compleix els requisits de GDPR, HIPAA, CCPA i altres regulacions regionals de protecció de dades",
+    "sha256": "c3b2ee43"
   },
   "web.regions.performance_title": {
-    "text": "Accés més ràpid"
+    "text": "Accés més ràpid",
+    "sha256": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Les dades emmagatzemades més a prop teu signifiquen menor latència i millor rendiment."
+    "text": "Les dades emmagatzemades més a prop teu signifiquen menor latència i millor rendiment.",
+    "sha256": "e133ef1d"
   },
   "web.regions.regions": {
-    "text": "Regions"
+    "text": "Regions",
+    "sha256": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "contacta amb el nostre equip de compliment"
+    "text": "contacta amb el nostre equip de compliment",
+    "sha256": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "consulta la nostra documentació"
+    "text": "consulta la nostra documentació",
+    "sha256": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
-    "text": "El teu compte i les teves dades estan protegits sota les lleis de"
+    "text": "El teu compte i les teves dades estan protegits sota les lleis de",
+    "sha256": "5f5ef5b6"
   },
   "web.regions.this_regulatory_framework_is_determined_by_your_": {
-    "text": "El teu marc normatiu està determinat pel teu domini d'accés:"
+    "text": "El teu marc normatiu està determinat pel teu domini d'accés:",
+    "sha256": "7fdbc59c"
   },
   "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
-    "text": "Cada regió és completament independent amb la seva pròpia infraestructura, quan és possible amb el seu propi proveïdor d'allotjament local. Pots crear comptes a diverses regions, però no es comparteixen dades entre elles."
+    "text": "Cada regió és completament independent amb la seva pròpia infraestructura, quan és possible amb el seu propi proveïdor d'allotjament local. Pots crear comptes a diverses regions, però no es comparteixen dades entre elles.",
+    "sha256": "5c0b350e"
   },
   "web.regions.to_understand_the_specific_regulations_and_prote": {
-    "text": "Per obtenir detalls sobre les regulacions i proteccions que s'apliquen al teu compte,"
+    "text": "Per obtenir detalls sobre les regulacions i proteccions que s'apliquen al teu compte,",
+    "sha256": "e8acc835"
   },
   "web.regions.current": {
-    "text": "Actual"
+    "text": "Actual",
+    "sha256": "e0d1b682"
   },
   "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
-    "text": "{0} {1}"
+    "text": "{0} {1}",
+    "sha256": "10866a9d"
   },
   "web.regions.available_regions": {
-    "text": "Regions disponibles"
+    "text": "Regions disponibles",
+    "sha256": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "Jurisdicció"
+    "text": "Jurisdicció",
+    "sha256": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
-    "text": "Ubicació del centre de dades: {0}"
+    "text": "Ubicació del centre de dades: {0}",
+    "sha256": "f1699c90"
   },
   "web.regions.data_region": {
-    "text": "Regió de dades"
+    "text": "Regió de dades",
+    "sha256": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Jurisdicció desconeguda"
+    "text": "Jurisdicció desconeguda",
+    "sha256": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Servint-te des de"
+    "text": "Servint-te des de",
+    "sha256": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "Continuar a {0}"
+    "text": "Continuar a {0}",
+    "sha256": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Jurisdicció actual:"
+    "text": "Jurisdicció actual:",
+    "sha256": "d0f2192d"
   }
 }

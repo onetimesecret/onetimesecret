@@ -1,251 +1,334 @@
 {
   "web.footer.api_docs": {
-    "text": "Dokumentacja API"
+    "text": "Dokumentacja API",
+    "sha256": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Przewodnik brandingowy"
+    "text": "Przewodnik brandingowy",
+    "sha256": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "Dostosuj"
+    "text": "Dostosuj",
+    "sha256": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "Plany"
+    "text": "Plany",
+    "sha256": "dfe8b2f0"
   },
   "web.footer.security": {
-    "text": "Bezpieczeństwo"
+    "text": "Bezpieczeństwo",
+    "sha256": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Dowiedz się o naszych środkach bezpieczeństwa"
+    "text": "Dowiedz się o naszych środkach bezpieczeństwa",
+    "sha256": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Zobacz nasze warunki korzystania"
+    "text": "Zobacz nasze warunki korzystania",
+    "sha256": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "Regulamin"
+    "text": "Regulamin",
+    "sha256": "ede54899"
   },
   "web.footer.privacy": {
-    "text": "Prywatność"
+    "text": "Prywatność",
+    "sha256": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "Kontakt"
+    "text": "Kontakt",
+    "sha256": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "Wsparcie"
+    "text": "Wsparcie",
+    "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Prawne"
+    "text": "Prawne",
+    "sha256": "0a410c78"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Przeczytaj naszą politykę prywatności"
+    "text": "Przeczytaj naszą politykę prywatności",
+    "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Sprawdź status naszych usług"
+    "text": "Sprawdź status naszych usług",
+    "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Poznaj naszą dokumentację API"
+    "text": "Poznaj naszą dokumentację API",
+    "sha256": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "Dokumentacja"
+    "text": "Dokumentacja",
+    "sha256": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Uzyskaj dostęp do naszej dokumentacji"
+    "text": "Uzyskaj dostęp do naszej dokumentacji",
+    "sha256": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Zobacz nasz kod źródłowy na GitHub"
+    "text": "Zobacz nasz kod źródłowy na GitHub",
+    "sha256": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "Zasoby"
+    "text": "Zasoby",
+    "sha256": "e89b30aa"
   },
   "web.footer.blog": {
-    "text": "Blog"
+    "text": "Blog",
+    "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Przeczytaj nasze najnowsze wpisy na blogu"
+    "text": "Przeczytaj nasze najnowsze wpisy na blogu",
+    "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Zobacz cennik subskrypcji"
+    "text": "Zobacz cennik subskrypcji",
+    "sha256": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Dowiedz się więcej o naszej firmie"
+    "text": "Dowiedz się więcej o naszej firmie",
+    "sha256": "780e18cd"
   },
   "web.footer.company": {
-    "text": "Firma"
+    "text": "Firma",
+    "sha256": "de4743c8"
   },
   "web.navigation.billing": {
-    "text": "Płatności"
+    "text": "Płatności",
+    "sha256": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "Przegląd"
+    "text": "Przegląd",
+    "sha256": "d4b1ea57"
   },
   "web.navigation.organizations": {
-    "text": "Organizacje"
+    "text": "Organizacje",
+    "sha256": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Wersja strony"
+    "text": "Wersja strony",
+    "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Udostępniamy {onetime-secret} w wielu językach. Ponieważ jest to nowa funkcja, możesz napotkać błędy w tłumaczeniu lub niezręczne sformułowania. Twoja opinia pomaga nam się doskonalić - jeśli zauważysz jakiekolwiek problemy, prosimy {send-feedback}"
+    "text": "Udostępniamy {onetime-secret} w wielu językach. Ponieważ jest to nowa funkcja, możesz napotkać błędy w tłumaczeniu lub niezręczne sformułowania. Twoja opinia pomaga nam się doskonalić - jeśli zauważysz jakiekolwiek problemy, prosimy {send-feedback}",
+    "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "Tłumaczenia są nowe. Zauważyłeś błąd? {send-feedback}"
+    "text": "Tłumaczenia są nowe. Zauważyłeś błąd? {send-feedback}",
+    "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Niedawno dodaliśmy tłumaczenia. Zauważyłeś błąd? {send-feedback}"
+    "text": "Niedawno dodaliśmy tłumaczenia. Zauważyłeś błąd? {send-feedback}",
+    "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "Prywatność i bezpieczeństwo powinny być dostępne dla każdego, niezależnie od języka. Dodajemy tłumaczenia, aby pomóc zarówno naszym użytkownikom, jak i odbiorcom ich sekretów lepiej zrozumieć, jak bezpiecznie używać i uzyskiwać dostęp do bezpiecznych sekretów i linków. Ponieważ jest to nowa funkcja, możesz napotkać błędy w tłumaczeniu lub niejasne instrukcje. Aby pomóc nam poprawić przejrzystość i dokładność naszych tłumaczeń, zwłaszcza w przypadku treści związanych z bezpieczeństwem, prosimy {send-feedback}, jeśli zauważysz jakiekolwiek problemy."
+    "text": "Prywatność i bezpieczeństwo powinny być dostępne dla każdego, niezależnie od języka. Dodajemy tłumaczenia, aby pomóc zarówno naszym użytkownikom, jak i odbiorcom ich sekretów lepiej zrozumieć, jak bezpiecznie używać i uzyskiwać dostęp do bezpiecznych sekretów i linków. Ponieważ jest to nowa funkcja, możesz napotkać błędy w tłumaczeniu lub niejasne instrukcje. Aby pomóc nam poprawić przejrzystość i dokładność naszych tłumaczeń, zwłaszcza w przypadku treści związanych z bezpieczeństwem, prosimy {send-feedback}, jeśli zauważysz jakiekolwiek problemy.",
+    "sha256": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Dowiedz się więcej"
+    "text": "Dowiedz się więcej",
+    "sha256": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Co widzę?"
+    "text": "Co widzę?",
+    "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Wyświetlasz bezpieczną wiadomość, która została Ci udostępniona przez Onetime Secret. Ta treść jest wyświetlana tylko raz, a następnie trwale usuwana z naszych serwerów."
+    "text": "Wyświetlasz bezpieczną wiadomość, która została Ci udostępniona przez Onetime Secret. Ta treść jest wyświetlana tylko raz, a następnie trwale usuwana z naszych serwerów.",
+    "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Czy mogę wyświetlić ten sekret ponownie później?"
+    "text": "Czy mogę wyświetlić ten sekret ponownie później?",
+    "sha256": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nie. Ze względów bezpieczeństwa ten sekret można wyświetlić tylko raz. Po zamknięciu tej strony treść zostanie trwale usunięta i nie będzie mogła zostać odzyskana przez nikogo, w tym przez nas."
+    "text": "Nie. Ze względów bezpieczeństwa ten sekret można wyświetlić tylko raz. Po zamknięciu tej strony treść zostanie trwale usunięta i nie będzie mogła zostać odzyskana przez nikogo, w tym przez nas.",
+    "sha256": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Jak zapisać te informacje?"
+    "text": "Jak zapisać te informacje?",
+    "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Użyj przycisku 'Kopiuj do schowka', aby skopiować cały sekret. W przypadku dłuższych sekretów upewnij się, że skopiowałeś całą treść przed opuszczeniem tej strony."
+    "text": "Użyj przycisku 'Kopiuj do schowka', aby skopiować cały sekret. W przypadku dłuższych sekretów upewnij się, że skopiowałeś całą treść przed opuszczeniem tej strony.",
+    "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Czy moje wyświetlenie tego sekretu jest śledzone?"
+    "text": "Czy moje wyświetlenie tego sekretu jest śledzone?",
+    "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Nadawca zostanie powiadomiony, że jego sekret został wyświetlony, ale nie śledzimy, kto go wyświetlił ani z jakiej lokalizacji. Twoja prywatność jest chroniona."
+    "text": "Nadawca zostanie powiadomiony, że jego sekret został wyświetlony, ale nie śledzimy, kto go wyświetlił ani z jakiej lokalizacji. Twoja prywatność jest chroniona.",
+    "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Po opuszczeniu lub odświeżeniu tej strony sekret zostanie trwale usunięty i nie będzie mógł zostać odzyskany przez nikogo."
+    "text": "Po opuszczeniu lub odświeżeniu tej strony sekret zostanie trwale usunięty i nie będzie mógł zostać odzyskany przez nikogo.",
+    "sha256": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Wróć do poprzedniej strony"
+    "text": "Wróć do poprzedniej strony",
+    "sha256": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Stopka strony"
+    "text": "Stopka strony",
+    "sha256": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Przełącz tryb ciemny"
+    "text": "Przełącz tryb ciemny",
+    "sha256": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Przekaż opinię"
+    "text": "Przekaż opinię",
+    "sha256": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "Logo firmy"
+    "text": "Logo firmy",
+    "sha256": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Logo marki"
+    "text": "Logo marki",
+    "sha256": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Nawigacja panelu"
+    "text": "Nawigacja panelu",
+    "sha256": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "Nawigacja mobilna"
+    "text": "Nawigacja mobilna",
+    "sha256": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Główna nawigacja"
+    "text": "Główna nawigacja",
+    "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} elementów"
+    "text": "{count} elementów",
+    "sha256": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Informacje o wydaniu"
+    "text": "Informacje o wydaniu",
+    "sha256": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Ładowanie zawartości ustawień..."
+    "text": "Ładowanie zawartości ustawień...",
+    "sha256": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Sekcje ustawień"
+    "text": "Sekcje ustawień",
+    "sha256": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "Zamknij ustawienia"
+    "text": "Zamknij ustawienia",
+    "sha256": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Sekcje ustawień"
+    "text": "Sekcje ustawień",
+    "sha256": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Dostosuj preferencje i ustawienia aplikacji"
+    "text": "Dostosuj preferencje i ustawienia aplikacji",
+    "sha256": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Wróć do strony głównej"
+    "text": "Wróć do strony głównej",
+    "sha256": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Wróć do strony głównej"
+    "text": "Wróć do strony głównej",
+    "sha256": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Wróć do strony głównej"
+    "text": "Wróć do strony głównej",
+    "sha256": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Zobacz politykę prywatności"
+    "text": "Zobacz politykę prywatności",
+    "sha256": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Zobacz warunki korzystania z usługi"
+    "text": "Zobacz warunki korzystania z usługi",
+    "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Odwiedź stronę główną Onetime Secret"
+    "text": "Odwiedź stronę główną Onetime Secret",
+    "sha256": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Nawigacja stopki"
+    "text": "Nawigacja stopki",
+    "sha256": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Warunki korzystania z usługi"
+    "text": "Warunki korzystania z usługi",
+    "sha256": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "Polityka prywatności"
+    "text": "Polityka prywatności",
+    "sha256": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "Biblioteka ikon"
+    "text": "Biblioteka ikon",
+    "sha256": "a73f4c07"
   },
   "web.layout.google_material": {
-    "text": "Google Material"
+    "text": "Google Material",
+    "sha256": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons"
+    "text": "Material Design Icons",
+    "sha256": "0fb27437"
   },
   "web.layout.heroicons": {
-    "text": "Heroicons"
+    "text": "Heroicons",
+    "sha256": "5e7cc07e"
   },
   "web.layout.carbon": {
-    "text": "Carbon"
+    "text": "Carbon",
+    "sha256": "694c87c2"
   },
   "web.layout.font_awesome_6": {
-    "text": "Font Awesome 6"
+    "text": "Font Awesome 6",
+    "sha256": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Zobacz kod źródłowy na GitHub"
+    "text": "Zobacz kod źródłowy na GitHub",
+    "sha256": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Wersja strony: v{0}"
+    "text": "Wersja strony: v{0}",
+    "sha256": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Zmień język. Bieżący język to {0}"
+    "text": "Zmień język. Bieżący język to {0}",
+    "sha256": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Język zmieniono na {0}"
+    "text": "Język zmieniono na {0}",
+    "sha256": "1680f4fe"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Przełącz na tryb {0}"
+    "text": "Przełącz na tryb {0}",
+    "sha256": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "Tryb {0} włączony"
+    "text": "Tryb {0} włączony",
+    "sha256": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Przestrzeń robocza"
+    "text": "Przestrzeń robocza",
+    "sha256": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Kontekst przestrzeni roboczej"
+    "text": "Kontekst przestrzeni roboczej",
+    "sha256": "dc6fa4f5"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Gdy wyślesz opinię, zobaczymy:"
+    "text": "Gdy wyślesz opinię, zobaczymy:",
+    "sha256": "fe77172e"
   },
   "web.layout.reset_to_default_language": {
-    "text": "Zresetuj do {0}"
+    "text": "Zresetuj do {0}",
+    "sha256": "c0cfa9b2"
   }
 }

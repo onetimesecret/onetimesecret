@@ -1,59 +1,78 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "为什么此内容不可用？"
+    "text": "为什么此内容不可用？",
+    "sha256": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "内容设计为只能查看一次。此链接可能已被访问、过期或被发送者手动删除。"
+    "text": "内容设计为只能查看一次。此链接可能已被访问、过期或被发送者手动删除。",
+    "sha256": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "我现在应该怎么做？"
+    "text": "我现在应该怎么做？",
+    "sha256": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "联系向您发送此链接的人并要求他们创建新内容。让他们知道您无法访问原始信息。"
+    "text": "联系向您发送此链接的人并要求他们创建新内容。让他们知道您无法访问原始信息。",
+    "sha256": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "警告已关闭"
+    "text": "警告已关闭",
+    "sha256": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "关闭截断警告"
+    "text": "关闭截断警告",
+    "sha256": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "哎呀，您正在寻找的页面不存在或已被移动。"
+    "text": "哎呀，您正在寻找的页面不存在或已被移动。",
+    "sha256": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - 页面未找到"
+    "text": "404 - 页面未找到",
+    "sha256": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - 页面未找到"
+    "text": "404 - 页面未找到",
+    "sha256": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "关闭警告"
+    "text": "关闭警告",
+    "sha256": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "关闭通知"
+    "text": "关闭通知",
+    "sha256": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
-    "text": "如果您不确定下一步该做什么，请与向您发送此链接的人联系以获取更多信息。"
+    "text": "如果您不确定下一步该做什么，请与向您发送此链接的人联系以获取更多信息。",
+    "sha256": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
-    "text": "通过我们的服务分享的信息只能访问一次。一旦查看，内容将从我们的服务器上永久删除以确保机密性。这种方法通过限制其暴露并防止未经授权的访问来帮助保护您的敏感数据。"
+    "text": "通过我们的服务分享的信息只能访问一次。一旦查看，内容将从我们的服务器上永久删除以确保机密性。这种方法通过限制其暴露并防止未经授权的访问来帮助保护您的敏感数据。",
+    "sha256": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
-    "text": "很抱歉，处理您的请求时发生了意外错误。我们的团队已收到通知，正在努力修复。"
+    "text": "很抱歉，处理您的请求时发生了意外错误。我们的团队已收到通知，正在努力修复。",
+    "sha256": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} 出了点问题"
+    "text": "{0} 出了点问题",
+    "sha256": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "去分享内容吧"
+    "text": "去分享内容吧",
+    "sha256": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
-    "text": "您正在寻找的页面不存在或已被移动。别担心，我们都会遇到这种情况"
+    "text": "您正在寻找的页面不存在或已被移动。别担心，我们都会遇到这种情况",
+    "sha256": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
-    "text": "{0} 404"
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
-    "text": "由于数据格式问题无法加载数据。请稍后再试。"
+    "text": "由于数据格式问题无法加载数据。请稍后再试。",
+    "sha256": "a7b6f998"
   }
 }

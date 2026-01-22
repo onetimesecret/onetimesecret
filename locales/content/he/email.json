@@ -1,446 +1,594 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[פנייה: %s]"
+    "text": "[פנייה: %s]",
+    "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "לקוח שלח את המידע הבא"
+    "text": "לקוח שלח את המידע הבא",
+    "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} שלח לך סוד"
+    "text": "%{sender_email} שלח לך סוד",
+    "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "שלח לך סוד:"
+    "text": "שלח לך סוד:",
+    "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "חשוב:"
+    "text": "חשוב:",
+    "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות."
+    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות.",
+    "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "נשלח באמצעות"
+    "text": "נשלח באמצעות",
+    "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "ברוך הבא ל-%{product_name} - אנא אמת את הדוא״ל שלך"
+    "text": "ברוך הבא ל-%{product_name} - אנא אמת את הדוא״ל שלך",
+    "sha256": "96008c17"
   },
   "email.welcome.title": {
-    "text": "ברוך הבא ל-%{product_name}!"
+    "text": "ברוך הבא ל-%{product_name}!",
+    "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "אנא אמת את כתובת הדוא״ל שלך על ידי לחיצה על הקישור למטה:"
+    "text": "אנא אמת את כתובת הדוא״ל שלך על ידי לחיצה על הקישור למטה:",
+    "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "אמת כתובת דוא״ל"
+    "text": "אמת כתובת דוא״ל",
+    "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:"
+    "text": "או העתק והדבק קישור זה:",
+    "sha256": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}. אם לא יצרת חשבון, ניתן להתעלם מהודעה זו בבטחה."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}. אם לא יצרת חשבון, ניתן להתעלם מהודעה זו בבטחה.",
+    "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "איפוס הסיסמה שלך (%{display_domain})"
+    "text": "איפוס הסיסמה שלך (%{display_domain})",
+    "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "איפוס הסיסמה שלך"
+    "text": "איפוס הסיסמה שלך",
+    "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "קיבלנו בקשה לאיפוס הסיסמה שלך עבור %{product_name}."
+    "text": "קיבלנו בקשה לאיפוס הסיסמה שלך עבור %{product_name}.",
+    "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "איפוס סיסמה"
+    "text": "איפוס סיסמה",
+    "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:"
+    "text": "או העתק והדבק קישור זה:",
+    "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "אם לא ביקשת איפוס סיסמה, ניתן להתעלם מהודעה זו בבטחה."
+    "text": "אם לא ביקשת איפוס סיסמה, ניתן להתעלם מהודעה זו בבטחה.",
+    "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "התחבר ל-%{display_domain}"
+    "text": "התחבר ל-%{display_domain}",
+    "sha256": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "התחבר עם קישור קסם"
+    "text": "התחבר עם קישור קסם",
+    "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "ביקשת קישור התחברות לחשבון %{product_name} שלך."
+    "text": "ביקשת קישור התחברות לחשבון %{product_name} שלך.",
+    "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "התחבר"
+    "text": "התחבר",
+    "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:"
+    "text": "או העתק והדבק קישור זה:",
+    "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "קישור זה יפוג בעוד 15 דקות."
+    "text": "קישור זה יפוג בעוד 15 דקות.",
+    "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "אם לא ביקשת קישור זה, ניתן להתעלם מהודעה זו בבטחה."
+    "text": "אם לא ביקשת קישור זה, ניתן להתעלם מהודעה זו בבטחה.",
+    "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "קיבלת הודעה סודית"
+    "text": "קיבלת הודעה סודית",
+    "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "קיבלת הודעה מאובטחת:"
+    "text": "קיבלת הודעה מאובטחת:",
+    "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "תזכורת:"
+    "text": "תזכורת:",
+    "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "מישהו שלח לך הודעה מאובטחת דרך %{display_domain}."
+    "text": "מישהו שלח לך הודעה מאובטחת דרך %{display_domain}.",
+    "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "כדי לצפות בסוד זה, לחץ על הקישור למטה:"
+    "text": "כדי לצפות בסוד זה, לחץ על הקישור למטה:",
+    "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "חשוב:"
+    "text": "חשוב:",
+    "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות."
+    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות.",
+    "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
-    "text": "נשלח באמצעות"
+    "text": "נשלח באמצעות",
+    "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "הסוד שלך נצפה"
+    "text": "הסוד שלך נצפה",
+    "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "הסוד שלך נצפה"
+    "text": "הסוד שלך נצפה",
+    "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "הסוד שלך נצפה בתאריך %{date}."
+    "text": "הסוד שלך נצפה בתאריך %{date}.",
+    "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "מזהה הסוד:"
+    "text": "מזהה הסוד:",
+    "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "זוהי התראה אוטומטית. לא נדרשת פעולה."
+    "text": "זוהי התראה אוטומטית. לא נדרשת פעולה.",
+    "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "ניהול העדפות התראות"
+    "text": "ניהול העדפות התראות",
+    "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "לניהול העדפות ההתראות שלך:"
+    "text": "לניהול העדפות ההתראות שלך:",
+    "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "הקישור הסודי שלך יפוג בקרוב"
+    "text": "הקישור הסודי שלך יפוג בקרוב",
+    "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "הקישור הסודי שלך יפוג בעוד %{time_remaining}"
+    "text": "הקישור הסודי שלך יפוג בעוד %{time_remaining}",
+    "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "צפה בסוד שלך לפני שיפוג"
+    "text": "צפה בסוד שלך לפני שיפוג",
+    "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "תזכורת:"
+    "text": "תזכורת:",
+    "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו."
+    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו.",
+    "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "נשלח באמצעות"
+    "text": "נשלח באמצעות",
+    "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "צפה בו לפני שייעלם:"
+    "text": "צפה בו לפני שייעלם:",
+    "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות."
+    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות.",
+    "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "משוב מתאריך %{date} באמצעות %{display_domain} (%{strategy})"
+    "text": "משוב מתאריך %{date} באמצעות %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "משוב משתמש"
+    "text": "משוב משתמש",
+    "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "מאת:"
+    "text": "מאת:",
+    "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "דומיין:"
+    "text": "דומיין:",
+    "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "אסטרטגיה:"
+    "text": "אסטרטגיה:",
+    "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "הודעה:"
+    "text": "הודעה:",
+    "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support"
+    "text": "Secret Support",
+    "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "הוזמנת להצטרף ל-%{organization_name}"
+    "text": "הוזמנת להצטרף ל-%{organization_name}",
+    "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "הוזמנת להצטרף ל-%{organization_name}!"
+    "text": "הוזמנת להצטרף ל-%{organization_name}!",
+    "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} הזמין אותך להצטרף ל-\"%{organization_name}\" כ-%{role_description}."
+    "text": "%{inviter_email} הזמין אותך להצטרף ל-\"%{organization_name}\" כ-%{role_description}.",
+    "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "קבל הזמנה"
+    "text": "קבל הזמנה",
+    "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "או העתק והדבק קישור זה:"
+    "text": "או העתק והדבק קישור זה:",
+    "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "הזמנה זו תפוג בעוד %{days} ימים."
+    "text": "הזמנה זו תפוג בעוד %{days} ימים.",
+    "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "אם אינך רוצה להצטרף, ניתן פשוט להתעלם מהודעה זו או לדחות את ההזמנה."
+    "text": "אם אינך רוצה להצטרף, ניתן פשוט להתעלם מהודעה זו או לדחות את ההזמנה.",
+    "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{invited_email}. אם לא ציפית להזמנה זו, ניתן להתעלם מהודעה זו בבטחה."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{invited_email}. אם לא ציפית להזמנה זו, ניתן להתעלם מהודעה זו בבטחה.",
+    "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "חבר"
+    "text": "חבר",
+    "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "מנהל"
+    "text": "מנהל",
+    "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "הסיסמה שלך שונתה (%{display_domain})"
+    "text": "הסיסמה שלך שונתה (%{display_domain})",
+    "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "הסיסמה שלך שונתה"
+    "text": "הסיסמה שלך שונתה",
+    "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "הסיסמה שלך עבור %{product_name} שונתה בתאריך %{date} בשעה %{time}."
+    "text": "הסיסמה שלך עבור %{product_name} שונתה בתאריך %{date} בשעה %{time}.",
+    "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד על ידי איפוס הסיסמה ויצירת קשר עם התמיכה."
+    "text": "אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד על ידי איפוס הסיסמה ויצירת קשר עם התמיכה.",
+    "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "כתובת הדוא״ל שלך שונתה (%{display_domain})"
+    "text": "כתובת הדוא״ל שלך שונתה (%{display_domain})",
+    "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "כתובת הדוא״ל שלך שונתה"
+    "text": "כתובת הדוא״ל שלך שונתה",
+    "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked} בתאריך %{date}."
+    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked} בתאריך %{date}.",
+    "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "אם לא ביצעת שינוי זה, אנא צור קשר עם התמיכה מיד מכיוון שהחשבון שלך עשוי להיות פרוץ."
+    "text": "אם לא ביצעת שינוי זה, אנא צור קשר עם התמיכה מיד מכיוון שהחשבון שלך עשוי להיות פרוץ.",
+    "sha256": "f505b562"
   },
   "email.email_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
-    "text": "אמת את כתובת הדוא״ל החדשה שלך (%{display_domain})"
+    "text": "אמת את כתובת הדוא״ל החדשה שלך (%{display_domain})",
+    "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "אמת את כתובת הדוא״ל החדשה שלך"
+    "text": "אמת את כתובת הדוא״ל החדשה שלך",
+    "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "אנא אמת כתובת דוא״ל זו כדי להשלים את השינוי עבור חשבון %{product_name} שלך."
+    "text": "אנא אמת כתובת דוא״ל זו כדי להשלים את השינוי עבור חשבון %{product_name} שלך.",
+    "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "אמת כתובת דוא״ל"
+    "text": "אמת כתובת דוא״ל",
+    "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:"
+    "text": "או העתק והדבק קישור זה:",
+    "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
-    "text": "אימות דו-שלבי הופעל (%{display_domain})"
+    "text": "אימות דו-שלבי הופעל (%{display_domain})",
+    "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "אימות דו-שלבי הופעל"
+    "text": "אימות דו-שלבי הופעל",
+    "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "אימות דו-שלבי הופעל עבור חשבון %{product_name} שלך בתאריך %{date}."
+    "text": "אימות דו-שלבי הופעל עבור חשבון %{product_name} שלך בתאריך %{date}.",
+    "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "החשבון שלך כעת מאובטח יותר. תצטרך להזין קוד אימות מאפליקציית האימות שלך בעת ההתחברות."
+    "text": "החשבון שלך כעת מאובטח יותר. תצטרך להזין קוד אימות מאפליקציית האימות שלך בעת ההתחברות.",
+    "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "אימות דו-שלבי הושבת (%{display_domain})"
+    "text": "אימות דו-שלבי הושבת (%{display_domain})",
+    "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "אימות דו-שלבי הושבת"
+    "text": "אימות דו-שלבי הושבת",
+    "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "אימות דו-שלבי הושבת עבור חשבון %{product_name} שלך בתאריך %{date}."
+    "text": "אימות דו-שלבי הושבת עבור חשבון %{product_name} שלך בתאריך %{date}.",
+    "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "החשבון שלך כעת פחות מאובטח. אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד."
+    "text": "החשבון שלך כעת פחות מאובטח. אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד.",
+    "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "התחברות חדשה לחשבון שלך (%{display_domain})"
+    "text": "התחברות חדשה לחשבון שלך (%{display_domain})",
+    "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "זוהתה התחברות חדשה"
+    "text": "זוהתה התחברות חדשה",
+    "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "זוהתה התחברות חדשה לחשבון %{product_name} שלך בתאריך %{date} בשעה %{time}."
+    "text": "זוהתה התחברות חדשה לחשבון %{product_name} שלך בתאריך %{date} בשעה %{time}.",
+    "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "מכשיר:"
+    "text": "מכשיר:",
+    "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "מיקום:"
+    "text": "מיקום:",
+    "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "כתובת IP:"
+    "text": "כתובת IP:",
+    "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "אם זה לא היית אתה, החשבון שלך עשוי להיות פרוץ."
+    "text": "אם זה לא היית אתה, החשבון שלך עשוי להיות פרוץ.",
+    "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "אבטח את החשבון שלך"
+    "text": "אבטח את החשבון שלך",
+    "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "הוסרת מ-%{organization_name}"
+    "text": "הוסרת מ-%{organization_name}",
+    "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "הוסרת מ-%{organization_name}"
+    "text": "הוסרת מ-%{organization_name}",
+    "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "הוסרת מהארגון \"%{organization_name}\" ב-%{product_name}."
+    "text": "הוסרת מהארגון \"%{organization_name}\" ב-%{product_name}.",
+    "sha256": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "התפקיד שלך שונה ב-%{organization_name}"
+    "text": "התפקיד שלך שונה ב-%{organization_name}",
+    "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "התפקיד שלך שונה"
+    "text": "התפקיד שלך שונה",
+    "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "התפקיד שלך ב-\"%{organization_name}\" שונה מ-%{old_role} ל-%{new_role}."
+    "text": "התפקיד שלך ב-\"%{organization_name}\" שונה מ-%{old_role} ל-%{new_role}.",
+    "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "הארגון \"%{organization_name}\" נמחק"
+    "text": "הארגון \"%{organization_name}\" נמחק",
+    "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "הארגון נמחק"
+    "text": "הארגון נמחק",
+    "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "הארגון \"%{organization_name}\" נמחק מ-%{product_name}. כל הנתונים המשויכים הוסרו."
+    "text": "הארגון \"%{organization_name}\" נמחק מ-%{product_name}. כל הנתונים המשויכים הוסרו.",
+    "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "קבלת תשלום עבור %{product_name}"
+    "text": "קבלת תשלום עבור %{product_name}",
+    "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "קבלת תשלום"
+    "text": "קבלת תשלום",
+    "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "תודה על התשלום שלך. הנה פרטי התשלום:"
+    "text": "תודה על התשלום שלך. הנה פרטי התשלום:",
+    "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "סכום:"
+    "text": "סכום:",
+    "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "תאריך:"
+    "text": "תאריך:",
+    "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "תוכנית:"
+    "text": "תוכנית:",
+    "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "צפה בחשבונית"
+    "text": "צפה בחשבונית",
+    "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "התשלום נכשל עבור %{product_name}"
+    "text": "התשלום נכשל עבור %{product_name}",
+    "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "התשלום נכשל"
+    "text": "התשלום נכשל",
+    "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "לא הצלחנו לעבד את התשלום שלך עבור %{product_name}. אנא עדכן את אמצעי התשלום שלך כדי למנוע הפסקת שירות."
+    "text": "לא הצלחנו לעבד את התשלום שלך עבור %{product_name}. אנא עדכן את אמצעי התשלום שלך כדי למנוע הפסקת שירות.",
+    "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "עדכן אמצעי תשלום"
+    "text": "עדכן אמצעי תשלום",
+    "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "תקופת הניסיון שלך ב-%{product_name} מסתיימת בעוד %{days_remaining} ימים"
+    "text": "תקופת הניסיון שלך ב-%{product_name} מסתיימת בעוד %{days_remaining} ימים",
+    "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "תקופת הניסיון שלך מסתיימת בקרוב"
+    "text": "תקופת הניסיון שלך מסתיימת בקרוב",
+    "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "תקופת הניסיון החינמית שלך ב-%{product_name} תסתיים בעוד %{days_remaining} ימים. שדרג עכשיו כדי לשמור על גישה לכל התכונות."
+    "text": "תקופת הניסיון החינמית שלך ב-%{product_name} תסתיים בעוד %{days_remaining} ימים. שדרג עכשיו כדי לשמור על גישה לכל התכונות.",
+    "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "שדרג עכשיו"
+    "text": "שדרג עכשיו",
+    "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "המנוי שלך ל-%{product_name} שונה"
+    "text": "המנוי שלך ל-%{product_name} שונה",
+    "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "המנוי שונה"
+    "text": "המנוי שונה",
+    "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "המנוי שלך ל-%{product_name} שונה מ-%{old_plan} ל-%{new_plan}."
+    "text": "המנוי שלך ל-%{product_name} שונה מ-%{old_plan} ל-%{new_plan}.",
+    "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "שינוי זה ייכנס לתוקף ב-%{date}."
+    "text": "שינוי זה ייכנס לתוקף ב-%{date}.",
+    "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "שלום,"
+    "text": "שלום,",
+    "sha256": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "תודה,"
+    "text": "תודה,",
+    "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "הסרה מרשימת התפוצה"
+    "text": "הסרה מרשימת התפוצה",
+    "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "צפה בדפדפן"
+    "text": "צפה בדפדפן",
+    "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret"
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
   }
 }

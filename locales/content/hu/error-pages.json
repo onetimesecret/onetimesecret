@@ -1,59 +1,78 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Miért nem érhető el ez a titok?"
+    "text": "Miért nem érhető el ez a titok?",
+    "sha256": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "A titkok csak egyszer tekinthetők meg. Ez a hivatkozás már elérésre kerülhetett, lejárt, vagy a feladó manuálisan törölte."
+    "text": "A titkok csak egyszer tekinthetők meg. Ez a hivatkozás már elérésre kerülhetett, lejárt, vagy a feladó manuálisan törölte.",
+    "sha256": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Mit tegyek most?"
+    "text": "Mit tegyek most?",
+    "sha256": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "Lépjen kapcsolatba azzal a személlyel, aki ezt a hivatkozást küldte, és kérje meg, hogy hozzon létre új titkot. Tudassa vele, hogy nem tudta elérni az eredeti információt."
+    "text": "Lépjen kapcsolatba azzal a személlyel, aki ezt a hivatkozást küldte, és kérje meg, hogy hozzon létre új titkot. Tudassa vele, hogy nem tudta elérni az eredeti információt.",
+    "sha256": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Figyelmeztetés elvetve"
+    "text": "Figyelmeztetés elvetve",
+    "sha256": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Csonkolási figyelmeztetés elvetése"
+    "text": "Csonkolási figyelmeztetés elvetése",
+    "sha256": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Hoppá! A keresett oldal nem létezik vagy áthelyezésre került."
+    "text": "Hoppá! A keresett oldal nem létezik vagy áthelyezésre került.",
+    "sha256": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Az oldal nem található"
+    "text": "404 - Az oldal nem található",
+    "sha256": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Az oldal nem található"
+    "text": "404 - Az oldal nem található",
+    "sha256": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Figyelmeztetés elvetése"
+    "text": "Figyelmeztetés elvetése",
+    "sha256": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Értesítés elvetése"
+    "text": "Értesítés elvetése",
+    "sha256": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
-    "text": "Ha nem biztos abban, mit tegyen ezután, kérjük, lépjen kapcsolatba azzal a személlyel, aki ezt a hivatkozást küldte további információért."
+    "text": "Ha nem biztos abban, mit tegyen ezután, kérjük, lépjen kapcsolatba azzal a személlyel, aki ezt a hivatkozást küldte további információért.",
+    "sha256": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
-    "text": "Szolgáltatásunkon keresztül megosztott információk csak egyszer érhetők el. Megtekintés után a tartalom véglegesen törlődik szervereinkről a bizalmasság biztosítása érdekében. Ez a megközelítés segít megvédeni érzékeny adatait azáltal, hogy korlátozza annak kitettségét és megakadályozza a jogosulatlan hozzáférést."
+    "text": "Szolgáltatásunkon keresztül megosztott információk csak egyszer érhetők el. Megtekintés után a tartalom véglegesen törlődik szervereinkről a bizalmasság biztosítása érdekében. Ez a megközelítés segít megvédeni érzékeny adatait azáltal, hogy korlátozza annak kitettségét és megakadályozza a jogosulatlan hozzáférést.",
+    "sha256": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
-    "text": "Elnézést kérünk, de váratlan hiba történt kérése feldolgozása közben. Csapatunkat értesítettük és dolgozunk a javításon."
+    "text": "Elnézést kérünk, de váratlan hiba történt kérése feldolgozása közben. Csapatunkat értesítettük és dolgozunk a javításon.",
+    "sha256": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} Valami hiba történt"
+    "text": "{0} Valami hiba történt",
+    "sha256": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Osszon meg egy titkot!"
+    "text": "Osszon meg egy titkot!",
+    "sha256": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
-    "text": "A keresett oldal nem létezik vagy áthelyezésre került. Ne aggódjon, ez a legjobbakkal is megtörténik!"
+    "text": "A keresett oldal nem létezik vagy áthelyezésre került. Ne aggódjon, ez a legjobbakkal is megtörténik!",
+    "sha256": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
-    "text": "{0} 404"
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
-    "text": "Nem sikerült betölteni az adatokat adatformátum problémák miatt. Kérjük, próbálja újra később."
+    "text": "Nem sikerült betölteni az adatokat adatformátum problémák miatt. Kérjük, próbálja újra később.",
+    "sha256": "a7b6f998"
   }
 }

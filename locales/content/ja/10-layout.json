@@ -1,251 +1,334 @@
 {
   "web.footer.api_docs": {
-    "text": "APIドキュメント"
+    "text": "APIドキュメント",
+    "sha256": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "ブランディングガイド"
+    "text": "ブランディングガイド",
+    "sha256": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "カスタマイズ"
+    "text": "カスタマイズ",
+    "sha256": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "プラン"
+    "text": "プラン",
+    "sha256": "dfe8b2f0"
   },
   "web.footer.security": {
-    "text": "セキュリティ"
+    "text": "セキュリティ",
+    "sha256": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "セキュリティ対策について詳しく見る"
+    "text": "セキュリティ対策について詳しく見る",
+    "sha256": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "利用規約を見る"
+    "text": "利用規約を見る",
+    "sha256": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "利用規約"
+    "text": "利用規約",
+    "sha256": "ede54899"
   },
   "web.footer.privacy": {
-    "text": "プライバシー"
+    "text": "プライバシー",
+    "sha256": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "お問い合わせ"
+    "text": "お問い合わせ",
+    "sha256": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "サポート"
+    "text": "サポート",
+    "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "法的情報"
+    "text": "法的情報",
+    "sha256": "0a410c78"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "プライバシーポリシーを読む"
+    "text": "プライバシーポリシーを読む",
+    "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "サービスステータスを確認"
+    "text": "サービスステータスを確認",
+    "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "APIドキュメントを見る"
+    "text": "APIドキュメントを見る",
+    "sha256": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "ドキュメント"
+    "text": "ドキュメント",
+    "sha256": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "ドキュメントにアクセス"
+    "text": "ドキュメントにアクセス",
+    "sha256": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "GitHubでソースコードを見る"
+    "text": "GitHubでソースコードを見る",
+    "sha256": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "リソース"
+    "text": "リソース",
+    "sha256": "e89b30aa"
   },
   "web.footer.blog": {
-    "text": "ブログ"
+    "text": "ブログ",
+    "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "最新のブログ記事を読む"
+    "text": "最新のブログ記事を読む",
+    "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "サブスクリプション料金を見る"
+    "text": "サブスクリプション料金を見る",
+    "sha256": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "会社について詳しく見る"
+    "text": "会社について詳しく見る",
+    "sha256": "780e18cd"
   },
   "web.footer.company": {
-    "text": "会社概要"
+    "text": "会社概要",
+    "sha256": "de4743c8"
   },
   "web.navigation.billing": {
-    "text": "請求"
+    "text": "請求",
+    "sha256": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "概要"
+    "text": "概要",
+    "sha256": "d4b1ea57"
   },
   "web.navigation.organizations": {
-    "text": "組織"
+    "text": "組織",
+    "sha256": "2730183d"
   },
   "web.site.website_version": {
-    "text": "ウェブサイトバージョン"
+    "text": "ウェブサイトバージョン",
+    "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "私たちは{onetime-secret}を複数の言語で提供しています。これは新機能のため、翻訳エラーや不自然な表現に遭遇する可能性があります。あなたのフィードバックは私たちの改善に役立ちます - 問題を見つけた場合は、{send-feedback}してください"
+    "text": "私たちは{onetime-secret}を複数の言語で提供しています。これは新機能のため、翻訳エラーや不自然な表現に遭遇する可能性があります。あなたのフィードバックは私たちの改善に役立ちます - 問題を見つけた場合は、{send-feedback}してください",
+    "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "翻訳は新しい機能です。エラーを見つけましたか？{send-feedback}"
+    "text": "翻訳は新しい機能です。エラーを見つけましたか？{send-feedback}",
+    "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "最近翻訳を追加しました。誤りを見つけましたか? {send-feedback}"
+    "text": "最近翻訳を追加しました。誤りを見つけましたか? {send-feedback}",
+    "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "プライバシーとセキュリティは言語に関係なく、すべての人がアクセスできるべきです。私たちは、ユーザーとメッセージ受信者の両方が安全なメッセージやリンクの使用方法と理解をより良くするために翻訳を追加しています。これは新機能のため、翻訳エラーや不明確な指示に遭遇する可能性があります。特に重要なセキュリティ関連のコンテンツの明確さと正確さを向上させるため、問題を見つけた場合は{send-feedback}してください"
+    "text": "プライバシーとセキュリティは言語に関係なく、すべての人がアクセスできるべきです。私たちは、ユーザーとメッセージ受信者の両方が安全なメッセージやリンクの使用方法と理解をより良くするために翻訳を追加しています。これは新機能のため、翻訳エラーや不明確な指示に遭遇する可能性があります。特に重要なセキュリティ関連のコンテンツの明確さと正確さを向上させるため、問題を見つけた場合は{send-feedback}してください",
+    "sha256": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "詳細を見る"
+    "text": "詳細を見る",
+    "sha256": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "これは何ですか?"
+    "text": "これは何ですか?",
+    "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。"
+    "text": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。",
+    "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "このシークレットを後で再度表示できますか?"
+    "text": "このシークレットを後で再度表示できますか?",
+    "sha256": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "いいえ。セキュリティ上の理由から、このシークレットは1回のみ閲覧可能です。このページを閉じると、内容は完全に削除され、私たちを含め誰も復元できません。"
+    "text": "いいえ。セキュリティ上の理由から、このシークレットは1回のみ閲覧可能です。このページを閉じると、内容は完全に削除され、私たちを含め誰も復元できません。",
+    "sha256": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "この情報を保存するにはどうすればいいですか?"
+    "text": "この情報を保存するにはどうすればいいですか?",
+    "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "「クリップボードにコピー」ボタンを使用して、シークレット全体をコピーしてください。長いシークレットの場合は、このページを離れる前に内容が完全にコピーされたことを確認してください。"
+    "text": "「クリップボードにコピー」ボタンを使用して、シークレット全体をコピーしてください。長いシークレットの場合は、このページを離れる前に内容が完全にコピーされたことを確認してください。",
+    "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "このシークレットの閲覧は追跡されますか?"
+    "text": "このシークレットの閲覧は追跡されますか?",
+    "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "送信者にはシークレットが閲覧されたことが通知されますが、誰がどこから閲覧したかは追跡されません。あなたのプライバシーは保護されています。"
+    "text": "送信者にはシークレットが閲覧されたことが通知されますが、誰がどこから閲覧したかは追跡されません。あなたのプライバシーは保護されています。",
+    "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "このページを離れるか更新すると、このシークレットは完全に削除され、誰も復元できなくなります。"
+    "text": "このページを離れるか更新すると、このシークレットは完全に削除され、誰も復元できなくなります。",
+    "sha256": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "前のページに戻る"
+    "text": "前のページに戻る",
+    "sha256": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "サイトフッター"
+    "text": "サイトフッター",
+    "sha256": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "ダークモードを切り替え"
+    "text": "ダークモードを切り替え",
+    "sha256": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "フィードバックを送信"
+    "text": "フィードバックを送信",
+    "sha256": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "会社ロゴ"
+    "text": "会社ロゴ",
+    "sha256": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "ブランドロゴ"
+    "text": "ブランドロゴ",
+    "sha256": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "ダッシュボードナビゲーション"
+    "text": "ダッシュボードナビゲーション",
+    "sha256": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "モバイルナビゲーション"
+    "text": "モバイルナビゲーション",
+    "sha256": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "メインナビゲーション"
+    "text": "メインナビゲーション",
+    "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count}項目"
+    "text": "{count}項目",
+    "sha256": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "リリースノート"
+    "text": "リリースノート",
+    "sha256": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "設定コンテンツを読み込み中..."
+    "text": "設定コンテンツを読み込み中...",
+    "sha256": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "設定セクション"
+    "text": "設定セクション",
+    "sha256": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "設定を閉じる"
+    "text": "設定を閉じる",
+    "sha256": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "設定セクション"
+    "text": "設定セクション",
+    "sha256": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "アプリの設定と環境設定をカスタマイズする"
+    "text": "アプリの設定と環境設定をカスタマイズする",
+    "sha256": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "ホームに戻る"
+    "text": "ホームに戻る",
+    "sha256": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "ホームページに戻る"
+    "text": "ホームページに戻る",
+    "sha256": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "ホームに戻る"
+    "text": "ホームに戻る",
+    "sha256": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "プライバシーポリシーを見る"
+    "text": "プライバシーポリシーを見る",
+    "sha256": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "利用規約を見る"
+    "text": "利用規約を見る",
+    "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secretホームページへ"
+    "text": "Onetime Secretホームページへ",
+    "sha256": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "フッターナビゲーション"
+    "text": "フッターナビゲーション",
+    "sha256": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "利用規約"
+    "text": "利用規約",
+    "sha256": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "プライバシーポリシー"
+    "text": "プライバシーポリシー",
+    "sha256": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "アイコンライブラリ"
+    "text": "アイコンライブラリ",
+    "sha256": "a73f4c07"
   },
   "web.layout.google_material": {
-    "text": "Google Material"
+    "text": "Google Material",
+    "sha256": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons"
+    "text": "Material Design Icons",
+    "sha256": "0fb27437"
   },
   "web.layout.heroicons": {
-    "text": "Heroicons"
+    "text": "Heroicons",
+    "sha256": "5e7cc07e"
   },
   "web.layout.carbon": {
-    "text": "Carbon"
+    "text": "Carbon",
+    "sha256": "694c87c2"
   },
   "web.layout.font_awesome_6": {
-    "text": "Font Awesome 6"
+    "text": "Font Awesome 6",
+    "sha256": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "GitHubでソースを見る"
+    "text": "GitHubでソースを見る",
+    "sha256": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "ウェブサイトバージョン: v{0}"
+    "text": "ウェブサイトバージョン: v{0}",
+    "sha256": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "言語を変更。現在の言語: {0}"
+    "text": "言語を変更。現在の言語: {0}",
+    "sha256": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "言語を{0}に変更しました"
+    "text": "言語を{0}に変更しました",
+    "sha256": "1680f4fe"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "{0}モードに切り替え"
+    "text": "{0}モードに切り替え",
+    "sha256": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0}モードが有効"
+    "text": "{0}モードが有効",
+    "sha256": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "ワークスペース"
+    "text": "ワークスペース",
+    "sha256": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "ワークスペースコンテキスト"
+    "text": "ワークスペースコンテキスト",
+    "sha256": "dc6fa4f5"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "フィードバックを送信すると、以下の情報が送信されます:"
+    "text": "フィードバックを送信すると、以下の情報が送信されます:",
+    "sha256": "fe77172e"
   },
   "web.layout.reset_to_default_language": {
-    "text": "{0}にリセット"
+    "text": "{0}にリセット",
+    "sha256": "c0cfa9b2"
   }
 }

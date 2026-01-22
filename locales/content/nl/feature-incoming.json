@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "Stuur een bericht"
+    "text": "Stuur een bericht",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Deel gevoelige informatie veilig met ons ondersteuningsteam"
+    "text": "Deel gevoelige informatie veilig met ons ondersteuningsteam",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Laden..."
+    "text": "Laden...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Configuratie laden mislukt"
+    "text": "Configuratie laden mislukt",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Functie niet beschikbaar"
+    "text": "Functie niet beschikbaar",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Deze functie is momenteel uitgeschakeld. Neem contact op met de ondersteuning voor hulp."
+    "text": "Deze functie is momenteel uitgeschakeld. Neem contact op met de ondersteuning voor hulp.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Memo"
+    "text": "Memo",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Korte beschrijving (bijv. Verzoek wachtwoordreset)"
+    "text": "Korte beschrijving (bijv. Verzoek wachtwoordreset)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Help ons je bericht naar de juiste persoon te sturen"
+    "text": "Help ons je bericht naar de juiste persoon te sturen",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Verzenden naar"
+    "text": "Verzenden naar",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Selecteer een ontvanger"
+    "text": "Selecteer een ontvanger",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Selecteer een ontvanger voor dit bericht"
+    "text": "Selecteer een ontvanger voor dit bericht",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Kies wie dit beveiligde bericht ontvangt"
+    "text": "Kies wie dit beveiligde bericht ontvangt",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Er zijn geen ontvangers beschikbaar"
+    "text": "Er zijn geen ontvangers beschikbaar",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Beveiligde informatie"
+    "text": "Beveiligde informatie",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Plak hier gevoelige informatie (wachtwoorden, sleutels, etc.)"
+    "text": "Plak hier gevoelige informatie (wachtwoorden, sleutels, etc.)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Deze informatie wordt versleuteld en is slechts één keer te bekijken"
+    "text": "Deze informatie wordt versleuteld en is slechts één keer te bekijken",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Bericht verzenden"
+    "text": "Bericht verzenden",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Bericht verzenden"
+    "text": "Bericht verzenden",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Verzenden..."
+    "text": "Verzenden...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Verzenden..."
+    "text": "Verzenden...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Formulier wissen"
+    "text": "Formulier wissen",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Formulier wissen"
+    "text": "Formulier wissen",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Succesvol verzonden"
+    "text": "Succesvol verzonden",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Je beveiligde bericht is afgeleverd."
+    "text": "Je beveiligde bericht is afgeleverd.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Referentie-ID"
+    "text": "Referentie-ID",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Wat gebeurt er nu?"
+    "text": "Wat gebeurt er nu?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "De ontvanger kan dit bericht slechts één keer bekijken. Nadat ze het hebben bekeken, wordt het bericht permanent verwijderd."
+    "text": "De ontvanger kan dit bericht slechts één keer bekijken. Nadat ze het hebben bekeken, wordt het bericht permanent verwijderd.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Nog een bericht versturen"
+    "text": "Nog een bericht versturen",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Deel gevoelige informatie veilig"
+    "text": "Deel gevoelige informatie veilig",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Houd wachtwoorden en privégegevens uit e-mail en chatgeschiedenis"
+    "text": "Houd wachtwoorden en privégegevens uit e-mail en chatgeschiedenis",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Bewaar je {receipt} voor je administratie."
+    "text": "Bewaar je {receipt} voor je administratie.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "ontvangstbewijs"
+    "text": "ontvangstbewijs",
+    "sha256": "6f328609"
   }
 }

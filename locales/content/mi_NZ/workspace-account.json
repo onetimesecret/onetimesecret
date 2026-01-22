@@ -1,479 +1,638 @@
 {
   "web.account.settings": {
-    "text": "Tautuhinga"
+    "text": "Tautuhinga",
+    "sha256": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Huri te Kupuhipa"
+    "text": "Huri te Kupuhipa",
+    "sha256": "a949f462"
   },
   "web.account.close_account": {
-    "text": "Kati te Pūkete"
+    "text": "Kati te Pūkete",
+    "sha256": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Manatoko te Pūkete"
+    "text": "Manatoko te Pūkete",
+    "sha256": "2f3ea760"
   },
   "web.account.subscription_title": {
-    "text": "Ohaurunga"
+    "text": "Ohaurunga",
+    "sha256": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Whakahaere te Ohaurunga"
+    "text": "Whakahaere te Ohaurunga",
+    "sha256": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Kōrero Kiritaki"
+    "text": "Kōrero Kiritaki",
+    "sha256": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "He kiritaki mai i:"
+    "text": "He kiritaki mai i:",
+    "sha256": "0b37cff3"
   },
   "web.account.email": {
-    "text": "Īmēra:"
+    "text": "Īmēra:",
+    "sha256": "17507dcf"
   },
   "web.account.region": {
-    "text": "Rohe"
+    "text": "Rohe",
+    "sha256": "d3a008ef"
   },
   "web.account.account_balance": {
-    "text": "Toenga:"
+    "text": "Toenga:",
+    "sha256": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Tikanga Utu Taunoa"
+    "text": "Tikanga Utu Taunoa",
+    "sha256": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "e mutu ana i"
+    "text": "e mutu ana i",
+    "sha256": "0195bccf"
   },
   "web.account.subscriptions_title": {
-    "text": "Ngā Ohaurunga"
+    "text": "Ngā Ohaurunga",
+    "sha256": "a151f2e9"
   },
   "web.account.quantity": {
-    "text": "Nui:"
+    "text": "Nui:",
+    "sha256": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Rā pire e haere mai ana:"
+    "text": "Rā pire e haere mai ana:",
+    "sha256": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
-    "text": "Ingoa Kaiwhakamahi"
+    "text": "Ingoa Kaiwhakamahi",
+    "sha256": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
-    "text": "Kupuhipa o Nāianei"
+    "text": "Kupuhipa o Nāianei",
+    "sha256": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
-    "text": "Kupuhipa Hou"
+    "text": "Kupuhipa Hou",
+    "sha256": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Whakaū"
+    "text": "Whakaū",
+    "sha256": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Whakahōu te Kupuhipa"
+    "text": "Whakahōu te Kupuhipa",
+    "sha256": "557be0da"
   },
   "web.account.changePassword.updating": {
-    "text": "E whakahōu ana..."
+    "text": "E whakahōu ana...",
+    "sha256": "0a4e0b71"
   },
   "web.account.timezone": {
-    "text": "Rohe Wā"
+    "text": "Rohe Wā",
+    "sha256": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "ID Kiritaki"
+    "text": "ID Kiritaki",
+    "sha256": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "ID Pūkete"
+    "text": "ID Pūkete",
+    "sha256": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "Kua hangaia {0} ngā karere huna mai i {1}."
+    "text": "Kua hangaia {0} ngā karere huna mai i {1}.",
+    "sha256": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Muku te Pūkete"
+    "text": "Muku te Pūkete",
+    "sha256": "c031bf99"
   },
   "web.account.api_key": {
-    "text": "Kī API"
+    "text": "Kī API",
+    "sha256": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
-    "text": "Momo pūkete: {0}"
+    "text": "Momo pūkete: {0}",
+    "sha256": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Tō Pūkete"
+    "text": "Tō Pūkete",
+    "sha256": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Taipitopito Tautoko"
+    "text": "Taipitopito Tautoko",
+    "sha256": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Hoki ki ngā Taipitopito"
+    "text": "Hoki ki ngā Taipitopito",
+    "sha256": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "ID Kiritaki: {0}"
+    "text": "ID Kiritaki: {0}",
+    "sha256": "7e2d4201"
   },
   "web.account.token_generated": {
-    "text": "Kua hangaia te tōkena."
+    "text": "Kua hangaia te tōkena.",
+    "sha256": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Tiakina tēnei tohu! Ka whakarato i te urunga katoa ki tō pūkete."
+    "text": "🔐 Tiakina tēnei tohu! Ka whakarato i te urunga katoa ki tō pūkete.",
+    "sha256": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Whakaū ki tō kupuhipa"
+    "text": "Whakaū ki tō kupuhipa",
+    "sha256": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
-    "text": "E tino hiahia ana koe ki te muku pūmau i tō pūkete? Kāore e taea te whakakore tēnei mahi."
+    "text": "E tino hiahia ana koe ki te muku pūmau i tō pūkete? Kāore e taea te whakakore tēnei mahi.",
+    "sha256": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Whakaū te Mukutanga Pūkete"
+    "text": "Whakaū te Mukutanga Pūkete",
+    "sha256": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
-    "text": "E muku ana i a {0}"
+    "text": "E muku ana i a {0}",
+    "sha256": "81d21828"
   },
   "web.account.permanently_delete_account": {
-    "text": "Muku Pūmautia te Pūkete"
+    "text": "Muku Pūmautia te Pūkete",
+    "sha256": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "ka mau tonu, kāore e taea te whakahoki."
+    "text": "ka mau tonu, kāore e taea te whakahoki.",
+    "sha256": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Ko te muku i tō pūkete"
+    "text": "Ko te muku i tō pūkete",
+    "sha256": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "whakawarekia i mua i te haere tonu"
+    "text": "whakawarekia i mua i te haere tonu",
+    "sha256": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Mēnā he karere huna e hiahia ana koe ki te tango,"
+    "text": "Mēnā he karere huna e hiahia ana koe ki te tango,",
+    "sha256": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Ka noho hohe ngā karere huna tae noa ki te paunga."
+    "text": "Ka noho hohe ngā karere huna tae noa ki te paunga.",
+    "sha256": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Tēnā kia mataara:"
+    "text": "Tēnā kia mataara:",
+    "sha256": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Kua mukua te pūkete."
+    "text": "Kua mukua te pūkete.",
+    "sha256": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "Monoki"
+    "text": "Monoki",
+    "sha256": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Kei te tino hiahia koe ki te monoki i tō pūkete? Ka tangohia pūmautia ō raraunga katoa mai i ā mātou tūmau. Kāore e taea te whakakore i tēnei mahi."
+    "text": "Kei te tino hiahia koe ki te monoki i tō pūkete? Ka tangohia pūmautia ō raraunga katoa mai i ā mātou tūmau. Kāore e taea te whakakore i tēnei mahi.",
+    "sha256": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Monoki te pūkete"
+    "text": "Monoki te pūkete",
+    "sha256": "5e31b73d"
   },
   "web.settings.title": {
-    "text": "Tautuhinga"
+    "text": "Tautuhinga",
+    "sha256": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Whakahaere i ō tautuhinga pūkete me ngā hiahia"
+    "text": "Whakahaere i ō tautuhinga pūkete me ngā hiahia",
+    "sha256": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Whakahaere i ō tautuhinga pūkete me ngā hiahia"
+    "text": "Whakahaere i ō tautuhinga pūkete me ngā hiahia",
+    "sha256": "2ff0853c"
   },
   "web.settings.general": {
-    "text": "Whānui"
+    "text": "Whānui",
+    "sha256": "c910d474"
   },
   "web.settings.preferences": {
-    "text": "Ngā Hiahia"
+    "text": "Ngā Hiahia",
+    "sha256": "66962f72"
   },
   "web.settings.appearance": {
-    "text": "Āhua"
+    "text": "Āhua",
+    "sha256": "3907fa7f"
   },
   "web.settings.theme.title": {
-    "text": "Kaupapa"
+    "text": "Kaupapa",
+    "sha256": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Kōwhiria te kaupapa mārama, pōuri rānei"
+    "text": "Kōwhiria te kaupapa mārama, pōuri rānei",
+    "sha256": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Kōwhiria te kaupapa mārama, pōuri rānei"
+    "text": "Kōwhiria te kaupapa mārama, pōuri rānei",
+    "sha256": "ff0ae84f"
   },
   "web.settings.language.title": {
-    "text": "Reo"
+    "text": "Reo",
+    "sha256": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Kōwhiria tō reo e hiahia ana"
+    "text": "Kōwhiria tō reo e hiahia ana",
+    "sha256": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Kōwhiria tō reo e hiahia ana"
+    "text": "Kōwhiria tō reo e hiahia ana",
+    "sha256": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Whakahaere i te whakamotuhēhētanga me te haumaru pūkete"
+    "text": "Whakahaere i te whakamotuhēhētanga me te haumaru pūkete",
+    "sha256": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Whakahaere i ō kōrero pūkete"
+    "text": "Whakahaere i ō kōrero pūkete",
+    "sha256": "4a23a29f"
   },
   "web.settings.profile.title": {
-    "text": "Kōtaha"
+    "text": "Kōtaha",
+    "sha256": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Huri te Īmēra"
+    "text": "Huri te Īmēra",
+    "sha256": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "Īmēra o Nāianei"
+    "text": "Īmēra o Nāianei",
+    "sha256": "5f1cab64"
   },
   "web.settings.profile.current_password": {
-    "text": "Kupuhipa o Nāianei"
+    "text": "Kupuhipa o Nāianei",
+    "sha256": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Īmēra Hou"
+    "text": "Īmēra Hou",
+    "sha256": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Urunga tō kupuhipa o nāianei"
+    "text": "Urunga tō kupuhipa o nāianei",
+    "sha256": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Me whai tō kupuhipa mō ngā take haumaru"
+    "text": "Me whai tō kupuhipa mō ngā take haumaru",
+    "sha256": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Ka tukuna he īmēra manatoko ki te wāhitau hou"
+    "text": "Ka tukuna he īmēra manatoko ki te wāhitau hou",
+    "sha256": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Whakahōu te Īmēra"
+    "text": "Whakahōu te Īmēra",
+    "sha256": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Whakahōu te wāhitau īmēra e hono ana ki tō pūkete"
+    "text": "Whakahōu te wāhitau īmēra e hono ana ki tō pūkete",
+    "sha256": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Me whakakī ngā āpure katoa"
+    "text": "Me whakakī ngā āpure katoa",
+    "sha256": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Tēnā urunga he wāhitau īmēra tika"
+    "text": "Tēnā urunga he wāhitau īmēra tika",
+    "sha256": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Me rerekē te īmēra hou i te īmēra o nāianei"
+    "text": "Me rerekē te īmēra hou i te īmēra o nāianei",
+    "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Kua whakahōu te īmēra. Tēnā tirohia tō pouaka waipuke hei manatoko i tō wāhitau īmēra hou."
+    "text": "Kua whakahōu te īmēra. Tēnā tirohia tō pouaka waipuke hei manatoko i tō wāhitau īmēra hou.",
+    "sha256": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "I rahua te whakahōu i te īmēra. Tēnā whakamātauria anō."
+    "text": "I rahua te whakahōu i te īmēra. Tēnā whakamātauria anō.",
+    "sha256": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "Ngā Wātū Hohe"
+    "text": "Ngā Wātū Hohe",
+    "sha256": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Whakahaere i ō wātū hohe"
+    "text": "Whakahaere i ō wātū hohe",
+    "sha256": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Whakahaere i ō wātū hohe"
+    "text": "Whakahaere i ō wātū hohe",
+    "sha256": "e5646da4"
   },
   "web.settings.password.title": {
-    "text": "Kupuhipa"
+    "text": "Kupuhipa",
+    "sha256": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Whakahōu tō kupuhipa pūkete"
+    "text": "Whakahōu tō kupuhipa pūkete",
+    "sha256": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Whakahōu tō kupuhipa pūkete"
+    "text": "Whakahōu tō kupuhipa pūkete",
+    "sha256": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "Muku te Pūkete"
+    "text": "Muku te Pūkete",
+    "sha256": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Muku pūmautia tō pūkete me ngā raraunga katoa"
+    "text": "Muku pūmautia tō pūkete me ngā raraunga katoa",
+    "sha256": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Muku pūmautia tō pūkete me ngā raraunga katoa"
+    "text": "Muku pūmautia tō pūkete me ngā raraunga katoa",
+    "sha256": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Kaute Haumaru"
+    "text": "Kaute Haumaru",
+    "sha256": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Tō hauora haumaru pūkete whānui"
+    "text": "Tō hauora haumaru pūkete whānui",
+    "sha256": "cf20935e"
   },
   "web.settings.security.excellent": {
-    "text": "Tino Pai"
+    "text": "Tino Pai",
+    "sha256": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "Pai"
+    "text": "Pai",
+    "sha256": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Āhua Pai"
+    "text": "Āhua Pai",
+    "sha256": "f7b19afc"
   },
   "web.settings.security.weak": {
-    "text": "Ngoikore"
+    "text": "Ngoikore",
+    "sha256": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Whakapai i tō haumaru"
+    "text": "Whakapai i tō haumaru",
+    "sha256": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Whakahohea te whakamotuhēhētanga āhuatanga-rua mō te tiakinga kaha ake"
+    "text": "Whakahohea te whakamotuhēhētanga āhuatanga-rua mō te tiakinga kaha ake",
+    "sha256": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Hangaia ngā waehere whakaora hei tāruarua"
+    "text": "Hangaia ngā waehere whakaora hei tāruarua",
+    "sha256": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "Kua Tautuhia"
+    "text": "Kua Tautuhia",
+    "sha256": "84aebc69"
   },
   "web.settings.security.change": {
-    "text": "Huri"
+    "text": "Huri",
+    "sha256": "c0bf75bd"
   },
   "web.settings.security.manage": {
-    "text": "Whakahaere"
+    "text": "Whakahaere",
+    "sha256": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "Whakahohea"
+    "text": "Whakahohea",
+    "sha256": "5342e09f"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} waehere e wātea ana"
+    "text": "{0} waehere e wātea ana",
+    "sha256": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Kāore he waehere kua hangaia"
+    "text": "Kāore he waehere kua hangaia",
+    "sha256": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} wātū hohe | {0} ngā wātū hohe"
+    "text": "{0} wātū hohe | {0} ngā wātū hohe",
+    "sha256": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Ngā Tikanga Haumaru Pai Rawa"
+    "text": "Ngā Tikanga Haumaru Pai Rawa",
+    "sha256": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Whakamahia he kupuhipa kaha, motuhake mō tō pūkete"
+    "text": "Whakamahia he kupuhipa kaha, motuhake mō tō pūkete",
+    "sha256": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Whakahohea te whakamotuhēhētanga āhuatanga-rua mō te tiakinga anō"
+    "text": "Whakahohea te whakamotuhēhētanga āhuatanga-rua mō te tiakinga anō",
+    "sha256": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Tiakina ō waehere whakaora ki tētahi wāhi haumaru"
+    "text": "Tiakina ō waehere whakaora ki tētahi wāhi haumaru",
+    "sha256": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Arotake me whakakore ngā wātū kore whakamahia i ngā wā katoa"
+    "text": "Arotake me whakakore ngā wātū kore whakamahia i ngā wā katoa",
+    "sha256": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Tirohia ngā taipitopito"
+    "text": "Tirohia ngā taipitopito",
+    "sha256": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "API & Ngā Whakahononga"
+    "text": "API & Ngā Whakahononga",
+    "sha256": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "Whakahaere i ngā kī API me ngā whakahononga"
+    "text": "Whakahaere i ngā kī API me ngā whakahononga",
+    "sha256": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Whakahaere i ngā kī API me ngā whakahononga"
+    "text": "Whakahaere i ngā kī API me ngā whakahononga",
+    "sha256": "70976099"
   },
   "web.settings.api.documentation": {
-    "text": "Tuhinga API"
+    "text": "Tuhinga API",
+    "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Akohia me pēhea te whakahono i a Onetime Secret ki ō taupānga"
+    "text": "Akohia me pēhea te whakahono i a Onetime Secret ki ō taupānga",
+    "sha256": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "Tohutoro REST API"
+    "text": "Tohutoro REST API",
+    "sha256": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Tuhinga API katoa me ngā pito mutunga"
+    "text": "Tuhinga API katoa me ngā pito mutunga",
+    "sha256": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
-    "text": "Tauira Waehere"
+    "text": "Tauira Waehere",
+    "sha256": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Waehere tauira me ngā whare pukapuka kiritaki"
+    "text": "Waehere tauira me ngā whare pukapuka kiritaki",
+    "sha256": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Ngā Tikanga Haumaru Pai Rawa"
+    "text": "Ngā Tikanga Haumaru Pai Rawa",
+    "sha256": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Kaua rawa e tuku ngā kī API ki te whakahaere putanga"
+    "text": "Kaua rawa e tuku ngā kī API ki te whakahaere putanga",
+    "sha256": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Whakamahia ngā taurangi taiao hei rokiroki i ngā kī API"
+    "text": "Whakamahia ngā taurangi taiao hei rokiroki i ngā kī API",
+    "sha256": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Hurihia ngā kī API i ngā wā katoa mō te haumaru"
+    "text": "Hurihia ngā kī API i ngā wā katoa mō te haumaru",
+    "sha256": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Whakamahia te HTTPS i ngā wā katoa ina tono API"
+    "text": "Whakamahia te HTTPS i ngā wā katoa ina tono API",
+    "sha256": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Aroturuki i tō whakamahinga API me whakarite ngā matohi"
+    "text": "Aroturuki i tō whakamahinga API me whakarite ngā matohi",
+    "sha256": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Pānui Hiranga"
+    "text": "Pānui Hiranga",
+    "sha256": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Ko te whakahou i tō kī API ka whakakore i te kī o nāianei. Whakahōu ngā taupānga katoa e whakamahi ana i te kī tawhito."
+    "text": "Ko te whakahou i tō kī API ka whakakore i te kī o nāianei. Whakahōu ngā taupānga katoa e whakamahi ana i te kī tawhito.",
+    "sha256": "ab168f83"
   },
   "web.settings.privacy.title": {
-    "text": "Tautuhinga Tūmataiti"
+    "text": "Tautuhinga Tūmataiti",
+    "sha256": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Whakahaere i ō hiahia tūmataiti"
+    "text": "Whakahaere i ō hiahia tūmataiti",
+    "sha256": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Tō Tūmataiti"
+    "text": "Tō Tūmataiti",
+    "sha256": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Kāore e Taea te Whiriwhiri"
+    "text": "Kāore e Taea te Whiriwhiri",
+    "sha256": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "Ehara i te tautuhinga"
+    "text": "Ehara i te tautuhinga",
+    "sha256": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Kāore he tātari. Kāore he aroturuki. Mutu noa."
+    "text": "Kāore he tātari. Kāore he aroturuki. Mutu noa.",
+    "sha256": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Ehara tēnei i te tautuhinga nā te mea kāore he mea hei whakakā, hei whakaweto rānei. Kua hangaia tō tūmataiti ki roto i tā mātou mahi."
+    "text": "Ehara tēnei i te tautuhinga nā te mea kāore he mea hei whakakā, hei whakaweto rānei. Kua hangaia tō tūmataiti ki roto i tā mātou mahi.",
+    "sha256": "ed943792"
   },
   "web.settings.notifications.title": {
-    "text": "Tautuhinga Whakamōhio"
+    "text": "Tautuhinga Whakamōhio",
+    "sha256": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Whakahaere me pēhea koe e whiwhi whakamōhio"
+    "text": "Whakahaere me pēhea koe e whiwhi whakamōhio",
+    "sha256": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "I rahua te whakahōu i te hiahia whakamōhio. Tēnā whakamātauria anō."
+    "text": "I rahua te whakahōu i te hiahia whakamōhio. Tēnā whakamātauria anō.",
+    "sha256": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Whakamōhio Whakaatu Karere Huna"
+    "text": "Whakamōhio Whakaatu Karere Huna",
+    "sha256": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Whiwhi īmēra ina tirohia e tētahi tō karere huna"
+    "text": "Whiwhi īmēra ina tirohia e tētahi tō karere huna",
+    "sha256": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Ka whakamōhiotia koe ia wā ka whakaaturia e te kaiwhiwhi tētahi o ō karere huna"
+    "text": "Ka whakamōhiotia koe ia wā ka whakaaturia e te kaiwhiwhi tētahi o ō karere huna",
+    "sha256": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Ko ngā īmēra whakamōhio he wā-tāhia me te ID karere huna anake. Kāore rawa e uru ana ngā kōrero kaitiro."
+    "text": "Ko ngā īmēra whakamōhio he wā-tāhia me te ID karere huna anake. Kāore rawa e uru ana ngā kōrero kaitiro.",
+    "sha256": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Wāhi Whiriwhiri Tūpato"
+    "text": "Wāhi Whiriwhiri Tūpato",
+    "sha256": "fe27a3a8"
   },
   "web.settings.caution.description": {
-    "text": "Tautuhinga matatau me te whakahaere raraunga"
+    "text": "Tautuhinga matatau me te whakahaere raraunga",
+    "sha256": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Kaweake Raraunga"
+    "text": "Kaweake Raraunga",
+    "sha256": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Kaweake ō raraunga pūkete"
+    "text": "Kaweake ō raraunga pūkete",
+    "sha256": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Tono he kape katoa o ō raraunga pūkete i te hōputu pānui-ā-mihini"
+    "text": "Tono he kape katoa o ō raraunga pūkete i te hōputu pānui-ā-mihini",
+    "sha256": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Tono Kaweake Raraunga"
+    "text": "Tono Kaweake Raraunga",
+    "sha256": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Wā Tukatuka Kaweake"
+    "text": "Wā Tukatuka Kaweake",
+    "sha256": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Ka tukatukahia ngā kaweake i roto i te 24 hāora ka tukuna ki tō wāhitau īmēra"
+    "text": "Ka tukatukahia ngā kaweake i roto i te 24 hāora ka tukuna ki tō wāhitau īmēra",
+    "sha256": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Ko te muku i tō pūkete ka:"
+    "text": "Ko te muku i tō pūkete ka:",
+    "sha256": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Muku pūmautia ō karere huna katoa"
+    "text": "Muku pūmautia ō karere huna katoa",
+    "sha256": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Tango ngā metadata karere huna katoa me te hītori"
+    "text": "Tango ngā metadata karere huna katoa me te hītori",
+    "sha256": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Whakakore ngā kī API katoa"
+    "text": "Whakakore ngā kī API katoa",
+    "sha256": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Kāore e taea te whakakore i tēnei mahi"
+    "text": "Kāore e taea te whakakore i tēnei mahi",
+    "sha256": "02ccc074"
   },
   "web.account.deleting_ellipsis": {
-    "text": "E muku ana..."
+    "text": "E muku ana...",
+    "sha256": "685ecb98"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Hoki ki te Papatohu"
+    "text": "Hoki ki te Papatohu",
+    "sha256": "97ba1d39"
   },
   "web.settings.sections.account": {
-    "text": "Pūkete"
+    "text": "Pūkete",
+    "sha256": "7e1b0d56"
   },
   "web.settings.sections.billing": {
-    "text": "Pire"
+    "text": "Pire",
+    "sha256": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
-    "text": "Matatau"
+    "text": "Matatau",
+    "sha256": "9f088dbe"
   }
 }

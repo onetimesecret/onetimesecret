@@ -1,59 +1,78 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Zakaj ta skrivnost ni na voljo?"
+    "text": "Zakaj ta skrivnost ni na voljo?",
+    "sha256": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "Skrivnosti so zasnovane tako, da si jih je mogoče ogledati samo enkrat. Ta povezava je morda že bila dostopana, je potekla ali jo je pošiljatelj ročno izbrisal."
+    "text": "Skrivnosti so zasnovane tako, da si jih je mogoče ogledati samo enkrat. Ta povezava je morda že bila dostopana, je potekla ali jo je pošiljatelj ročno izbrisal.",
+    "sha256": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Kaj naj zdaj storim?"
+    "text": "Kaj naj zdaj storim?",
+    "sha256": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "Kontaktirajte osebo, ki vam je poslala to povezavo, in jo prosite, naj ustvari novo skrivnost. Povejte ji, da niste mogli dostopati do izvirnih informacij."
+    "text": "Kontaktirajte osebo, ki vam je poslala to povezavo, in jo prosite, naj ustvari novo skrivnost. Povejte ji, da niste mogli dostopati do izvirnih informacij.",
+    "sha256": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Opozorilo opuščeno"
+    "text": "Opozorilo opuščeno",
+    "sha256": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Opusti opozorilo o skrajšanju"
+    "text": "Opusti opozorilo o skrajšanju",
+    "sha256": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Ups! Stran, ki jo iščete, ne obstaja ali je bila premaknjena."
+    "text": "Ups! Stran, ki jo iščete, ne obstaja ali je bila premaknjena.",
+    "sha256": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Stran ni najdena"
+    "text": "404 - Stran ni najdena",
+    "sha256": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Stran ni najdena"
+    "text": "404 - Stran ni najdena",
+    "sha256": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Opusti opozorilo"
+    "text": "Opusti opozorilo",
+    "sha256": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Opusti obvestilo"
+    "text": "Opusti obvestilo",
+    "sha256": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
-    "text": "Če niste prepričani, kaj storiti naprej, se prosimo obrnite na osebo, ki vam je poslala to povezavo za več informacij."
+    "text": "Če niste prepričani, kaj storiti naprej, se prosimo obrnite na osebo, ki vam je poslala to povezavo za več informacij.",
+    "sha256": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
-    "text": "Informacije, deljene preko naše storitve, je mogoče dostopati samo enkrat. Ko so ogledane, je vsebina trajno izbrisana z naših strežnikov za zagotovitev zaupnosti. Ta pristop pomaga zaščititi vaše občutljive podatke z omejevanjem njihove izpostavljenosti in preprečevanjem nepooblaščenega dostopa."
+    "text": "Informacije, deljene preko naše storitve, je mogoče dostopati samo enkrat. Ko so ogledane, je vsebina trajno izbrisana z naših strežnikov za zagotovitev zaupnosti. Ta pristop pomaga zaščititi vaše občutljive podatke z omejevanjem njihove izpostavljenosti in preprečevanjem nepooblaščenega dostopa.",
+    "sha256": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
-    "text": "Opravičujemo se, vendar je prišlo do nepričakovane napake med obdelavo vaše zahteve. Naša ekipa je bila obveščena in delamo na odpravi težave."
+    "text": "Opravičujemo se, vendar je prišlo do nepričakovane napake med obdelavo vaše zahteve. Naša ekipa je bila obveščena in delamo na odpravi težave.",
+    "sha256": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} Nekaj je šlo narobe"
+    "text": "{0} Nekaj je šlo narobe",
+    "sha256": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Pojdite deliti skrivnost!"
+    "text": "Pojdite deliti skrivnost!",
+    "sha256": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
-    "text": "Stran, ki jo iščete, ne obstaja ali je bila premaknjena. Ne skrbite, to se zgodi najboljšim!"
+    "text": "Stran, ki jo iščete, ne obstaja ali je bila premaknjena. Ne skrbite, to se zgodi najboljšim!",
+    "sha256": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
-    "text": "{0} 404"
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
-    "text": "Ni mogoče naložiti podatkov zaradi težav s formatom podatkov. Poskusite znova kasneje."
+    "text": "Ni mogoče naložiti podatkov zaradi težav s formatom podatkov. Poskusite znova kasneje.",
+    "sha256": "a7b6f998"
   }
 }

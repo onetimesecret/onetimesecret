@@ -1,434 +1,578 @@
 {
   "web.organizations.title": {
-    "text": "Organizacije"
+    "text": "Organizacije",
+    "sha256": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organizacija"
+    "text": "Organizacija",
+    "sha256": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "Organizacije"
+    "text": "Organizacije",
+    "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Upravljajte svoje organizacije"
+    "text": "Upravljajte svoje organizacije",
+    "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organizacije"
+    "text": "Organizacije",
+    "sha256": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Upravljaj organizacije"
+    "text": "Upravljaj organizacije",
+    "sha256": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Nova organizacija"
+    "text": "Nova organizacija",
+    "sha256": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Še ni organizacij"
+    "text": "Še ni organizacij",
+    "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizacije omogočajo enotno obračunavanje in administracijo. Začnite z ustvarjanjem prve organizacije."
+    "text": "Organizacije omogočajo enotno obračunavanje in administracijo. Začnite z ustvarjanjem prve organizacije.",
+    "sha256": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Opis ni na voljo"
+    "text": "Opis ni na voljo",
+    "sha256": "41183d01"
   },
   "web.organizations.default": {
-    "text": "Privzeto"
+    "text": "Privzeto",
+    "sha256": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Ustvari organizacijo"
+    "text": "Ustvari organizacijo",
+    "sha256": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Ustvarite prvo organizacijo"
+    "text": "Ustvarite prvo organizacijo",
+    "sha256": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Ustvarite novo organizacijo"
+    "text": "Ustvarite novo organizacijo",
+    "sha256": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "Ustvari"
+    "text": "Ustvari",
+    "sha256": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Ustvarjanje organizacije ni uspelo"
+    "text": "Ustvarjanje organizacije ni uspelo",
+    "sha256": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Ime organizacije"
+    "text": "Ime organizacije",
+    "sha256": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "npr. Podjetje d.o.o."
+    "text": "npr. Podjetje d.o.o.",
+    "sha256": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Ime organizacije"
+    "text": "Ime organizacije",
+    "sha256": "4cbd9073"
   },
   "web.organizations.description": {
-    "text": "Opis"
+    "text": "Opis",
+    "sha256": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Čemu je namenjena ta organizacija?"
+    "text": "Čemu je namenjena ta organizacija?",
+    "sha256": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "E-pošta za obračunavanje"
+    "text": "E-pošta za obračunavanje",
+    "sha256": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Primarni kontakt za obračunavanje in administrativna obvestila"
+    "text": "Primarni kontakt za obračunavanje in administrativna obvestila",
+    "sha256": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Izberite organizacijo"
+    "text": "Izberite organizacijo",
+    "sha256": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Preklapljanje organizacij ni na voljo na tej strani"
+    "text": "Preklapljanje organizacij ni na voljo na tej strani",
+    "sha256": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "Organizacija ni najdena"
+    "text": "Organizacija ni najdena",
+    "sha256": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "Nalaganje organizacije ni uspelo"
+    "text": "Nalaganje organizacije ni uspelo",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Nalaganje organizacije ni uspelo"
+    "text": "Nalaganje organizacije ni uspelo",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Nalaganje organizacij ni uspelo"
+    "text": "Nalaganje organizacij ni uspelo",
+    "sha256": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Podatki o organizaciji"
+    "text": "Podatki o organizaciji",
+    "sha256": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Ustvarjeno"
+    "text": "Ustvarjeno",
+    "sha256": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Zadnja posodobitev"
+    "text": "Zadnja posodobitev",
+    "sha256": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Nastavitve organizacije"
+    "text": "Nastavitve organizacije",
+    "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Posodobite ime in opis organizacije"
+    "text": "Posodobite ime in opis organizacije",
+    "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Splošne nastavitve"
+    "text": "Splošne nastavitve",
+    "sha256": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Obračunavanje in naročnina"
+    "text": "Obračunavanje in naročnina",
+    "sha256": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Shrani spremembe"
+    "text": "Shrani spremembe",
+    "sha256": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "Organizacija uspešno posodobljena"
+    "text": "Organizacija uspešno posodobljena",
+    "sha256": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Posodabljanje organizacije ni uspelo"
+    "text": "Posodabljanje organizacije ni uspelo",
+    "sha256": "bc2b59b8"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Integracija obračunavanja kmalu"
+    "text": "Integracija obračunavanja kmalu",
+    "sha256": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Enotno upravljanje obračunavanja in naročnin bo na voljo v prihodnji izdaji."
+    "text": "Enotno upravljanje obračunavanja in naročnin bo na voljo v prihodnji izdaji.",
+    "sha256": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "O organizacijah"
+    "text": "O organizacijah",
+    "sha256": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organizacije omogočajo enotno obračunavanje in administracijo za centralizirano upravljanje."
+    "text": "Organizacije omogočajo enotno obračunavanje in administracijo za centralizirano upravljanje.",
+    "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Upravljajte svojo organizacijo"
+    "text": "Upravljajte svojo organizacijo",
+    "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Tukaj posodobite ime podjetja in podrobnosti organizacije. Ti podatki pomagajo prilagoditi vaš račun in se lahko uporabijo za funkcije blagovne znamke v prihodnosti."
+    "text": "Tukaj posodobite ime podjetja in podrobnosti organizacije. Ti podatki pomagajo prilagoditi vaš račun in se lahko uporabijo za funkcije blagovne znamke v prihodnosti.",
+    "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Začnite z organizacijami"
+    "text": "Začnite z organizacijami",
+    "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Ustvarite prvo organizacijo za upravljanje podatkov o podjetju in pripravo na prihodnje funkcije blagovne znamke."
+    "text": "Ustvarite prvo organizacijo za upravljanje podatkov o podjetju in pripravo na prihodnje funkcije blagovne znamke.",
+    "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Upravljajte svoje organizacije in člane ekipe"
+    "text": "Upravljajte svoje organizacije in člane ekipe",
+    "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
-    "text": "Nastavitve"
+    "text": "Nastavitve",
+    "sha256": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Blagovna znamka podjetja"
+    "text": "Blagovna znamka podjetja",
+    "sha256": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Ekipa"
+    "text": "Ekipa",
+    "sha256": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Obračunavanje"
+    "text": "Obračunavanje",
+    "sha256": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
-    "text": "Nevarno območje"
+    "text": "Nevarno območje",
+    "sha256": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Izbriši organizacijo"
+    "text": "Izbriši organizacijo",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "S tem boste trajno izbrisali organizacijo. Tega dejanja ni mogoče razveljaviti."
+    "text": "S tem boste trajno izbrisali organizacijo. Tega dejanja ni mogoče razveljaviti.",
+    "sha256": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "Izbriši"
+    "text": "Izbriši",
+    "sha256": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Izbriši organizacijo"
+    "text": "Izbriši organizacijo",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Ali ste prepričani, da želite izbrisati {name}? Tega dejanja ni mogoče razveljaviti."
+    "text": "Ali ste prepričani, da želite izbrisati {name}? Tega dejanja ni mogoče razveljaviti.",
+    "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Brisanje organizacije ni uspelo"
+    "text": "Brisanje organizacije ni uspelo",
+    "sha256": "a8e5bb28"
   },
   "web.organizations.members.title": {
-    "text": "Člani"
+    "text": "Člani",
+    "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Upravljajte člane organizacije in njihove vloge"
+    "text": "Upravljajte člane organizacije in njihove vloge",
+    "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Trenutni člani"
+    "text": "Trenutni člani",
+    "sha256": "cfc156ae"
   },
   "web.organizations.members.member": {
-    "text": "Član"
+    "text": "Član",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
-    "text": "član"
+    "text": "član",
+    "sha256": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "članov"
+    "text": "članov",
+    "sha256": "17373ca1"
   },
   "web.organizations.members.name": {
-    "text": "Ime"
+    "text": "Ime",
+    "sha256": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "E-pošta"
+    "text": "E-pošta",
+    "sha256": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Vloga"
+    "text": "Vloga",
+    "sha256": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Pridružen"
+    "text": "Pridružen",
+    "sha256": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "Dejanja"
+    "text": "Dejanja",
+    "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Še ni članov. Povabite člane ekipe za začetek."
+    "text": "Še ni članov. Povabite člane ekipe za začetek.",
+    "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "Ta organizacija še nima članov."
+    "text": "Ta organizacija še nima članov.",
+    "sha256": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Vloga člana uspešno posodobljena"
+    "text": "Vloga člana uspešno posodobljena",
+    "sha256": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Posodobitev vloge člana ni uspela"
+    "text": "Posodobitev vloge člana ni uspela",
+    "sha256": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Član odstranjen iz organizacije"
+    "text": "Član odstranjen iz organizacije",
+    "sha256": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Odstranitev člana ni uspela"
+    "text": "Odstranitev člana ni uspela",
+    "sha256": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Odstrani člana"
+    "text": "Odstrani člana",
+    "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Ali ste prepričani, da želite odstraniti {name} iz te organizacije?"
+    "text": "Ali ste prepričani, da želite odstraniti {name} iz te organizacije?",
+    "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Ne morete spremeniti svoje vloge"
+    "text": "Ne morete spremeniti svoje vloge",
+    "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Ne morete odstraniti sebe iz organizacije"
+    "text": "Ne morete odstraniti sebe iz organizacije",
+    "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Ne morete odstraniti lastnika organizacije"
+    "text": "Ne morete odstraniti lastnika organizacije",
+    "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Nimate dovoljenja za upravljanje članov"
+    "text": "Nimate dovoljenja za upravljanje članov",
+    "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Lastnik"
+    "text": "Lastnik",
+    "sha256": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Skrbnik"
+    "text": "Skrbnik",
+    "sha256": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
-    "text": "Član"
+    "text": "Član",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Popoln dostop do vseh nastavitev organizacije in članov"
+    "text": "Popoln dostop do vseh nastavitev organizacije in članov",
+    "sha256": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Lahko upravlja člane in večino nastavitev organizacije"
+    "text": "Lahko upravlja člane in večino nastavitev organizacije",
+    "sha256": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Osnovni dostop do virov organizacije"
+    "text": "Osnovni dostop do virov organizacije",
+    "sha256": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Povabila v organizacijo"
+    "text": "Povabila v organizacijo",
+    "sha256": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Povabi člana"
+    "text": "Povabi člana",
+    "sha256": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Povabi novega člana"
+    "text": "Povabi novega člana",
+    "sha256": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Čakajoča povabila"
+    "text": "Čakajoča povabila",
+    "sha256": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Ni čakajočih povabil"
+    "text": "Ni čakajočih povabil",
+    "sha256": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "E-poštni naslov"
+    "text": "E-poštni naslov",
+    "sha256": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "clan{'@'}primer.si"
+    "text": "clan{'@'}primer.si",
+    "sha256": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Vloga"
+    "text": "Vloga",
+    "sha256": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Pošlji povabilo"
+    "text": "Pošlji povabilo",
+    "sha256": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Povabilo uspešno poslano"
+    "text": "Povabilo uspešno poslano",
+    "sha256": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Pošiljanje povabila ni uspelo"
+    "text": "Pošiljanje povabila ni uspelo",
+    "sha256": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Ponovno pošlji"
+    "text": "Ponovno pošlji",
+    "sha256": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Prekliči"
+    "text": "Prekliči",
+    "sha256": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Povabilo uspešno ponovno poslano"
+    "text": "Povabilo uspešno ponovno poslano",
+    "sha256": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Ponovno pošiljanje povabila ni uspelo"
+    "text": "Ponovno pošiljanje povabila ni uspelo",
+    "sha256": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Povabilo uspešno preklicano"
+    "text": "Povabilo uspešno preklicano",
+    "sha256": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Preklic povabila ni uspel"
+    "text": "Preklic povabila ni uspel",
+    "sha256": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Povabil"
+    "text": "Povabil",
+    "sha256": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Povabljen"
+    "text": "Povabljen",
+    "sha256": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Poteče"
+    "text": "Poteče",
+    "sha256": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Ponovno poslano {count}-krat"
+    "text": "Ponovno poslano {count}-krat",
+    "sha256": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Ponovno poslano {count}-krat"
+    "text": "Ponovno poslano {count}-krat",
+    "sha256": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "V čakanju"
+    "text": "V čakanju",
+    "sha256": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Sprejeto"
+    "text": "Sprejeto",
+    "sha256": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Zavrnjeno"
+    "text": "Zavrnjeno",
+    "sha256": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Poteklo"
+    "text": "Poteklo",
+    "sha256": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Član"
+    "text": "Član",
+    "sha256": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Skrbnik"
+    "text": "Skrbnik",
+    "sha256": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Sprejmi povabilo"
+    "text": "Sprejmi povabilo",
+    "sha256": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Zavrni povabilo"
+    "text": "Zavrni povabilo",
+    "sha256": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Podrobnosti povabila"
+    "text": "Podrobnosti povabila",
+    "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Povabljeni ste, da se pridružite"
+    "text": "Povabljeni ste, da se pridružite",
+    "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Povabljeni ste kot"
+    "text": "Povabljeni ste kot",
+    "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Povabilo uspešno sprejeto"
+    "text": "Povabilo uspešno sprejeto",
+    "sha256": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Sprejetje povabila ni uspelo"
+    "text": "Sprejetje povabila ni uspelo",
+    "sha256": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Povabilo zavrnjeno"
+    "text": "Povabilo zavrnjeno",
+    "sha256": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Zavrnitev povabila ni uspela"
+    "text": "Zavrnitev povabila ni uspela",
+    "sha256": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "To povabilo je poteklo"
+    "text": "To povabilo je poteklo",
+    "sha256": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Neveljavno ali poteklo povabilo"
+    "text": "Neveljavno ali poteklo povabilo",
+    "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Za sprejetje tega povabila se prijavite"
+    "text": "Za sprejetje tega povabila se prijavite",
+    "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Nalaganje podrobnosti povabila"
+    "text": "Nalaganje podrobnosti povabila",
+    "sha256": "58884885"
   },
   "web.organizations.billing_email_updated": {
-    "text": "E-pošta za obračunavanje uspešno posodobljena"
+    "text": "E-pošta za obračunavanje uspešno posodobljena",
+    "sha256": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "E-pošto za obračunavanje lahko spremenite na strani Pregled obračunavanja"
+    "text": "E-pošto za obračunavanje lahko spremenite na strani Pregled obračunavanja",
+    "sha256": "8a131415"
   },
   "web.organizations.paid_badge": {
-    "text": "Pro"
+    "text": "Pro",
+    "sha256": "957b0b87"
   },
   "web.organizations.member_count": {
-    "text": "{count} član | {count} člana | {count} člani | {count} članov"
+    "text": "{count} član | {count} člana | {count} člani | {count} članov",
+    "sha256": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} domena | {count} domeni | {count} domene | {count} domen"
+    "text": "{count} domena | {count} domeni | {count} domene | {count} domen",
+    "sha256": "09f52efa"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Nadgradite paket za povabilo članov ekipe"
+    "text": "Nadgradite paket za povabilo članov ekipe",
+    "sha256": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Povabila članov ekipe zahtevajo paket z upravljanjem ekip. Nadgradite za dodajanje sodelavcev v vašo organizacijo."
+    "text": "Povabila članov ekipe zahtevajo paket z upravljanjem ekip. Nadgradite za dodajanje sodelavcev v vašo organizacijo.",
+    "sha256": "cf10d623"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Napačen račun"
+    "text": "Napačen račun",
+    "sha256": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "To povabilo je bilo poslano na {invitedEmail}, vendar ste prijavljeni kot {currentEmail}."
+    "text": "To povabilo je bilo poslano na {invitedEmail}, vendar ste prijavljeni kot {currentEmail}.",
+    "sha256": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
-    "text": "Prijavite se z drugim računom"
+    "text": "Prijavite se z drugim računom",
+    "sha256": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "še {days}d"
+    "text": "še {days}d",
+    "sha256": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "še {hours}h"
+    "text": "še {hours}h",
+    "sha256": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Kmalu poteče"
+    "text": "Kmalu poteče",
+    "sha256": "a5dcfef9"
   },
   "web.organizations.tabs.subscription": {
-    "text": "Naročnina"
+    "text": "Naročnina",
+    "sha256": "4999c6c6"
   },
   "web.organizations.tabs.domains": {
-    "text": "Domene"
+    "text": "Domene",
+    "sha256": "ced67718"
   }
 }

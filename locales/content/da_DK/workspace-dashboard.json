@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "Modtaget"
+    "text": "Modtaget",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Ikke modtaget"
+    "text": "Ikke modtaget",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Ingen nylige beskeder"
+    "text": "Ingen nylige beskeder",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Kom i gang ved at oprette din første besked."
+    "text": "Kom i gang ved at oprette din første besked.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Kunne ikke indlæse data"
+    "text": "Kunne ikke indlæse data",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Der opstod et problem med at indlæse dine data. Prøv venligst igen."
+    "text": "Der opstod et problem med at indlæse dine data. Prøv venligst igen.",
+    "sha256": "ff0d904e"
   }
 }

@@ -1,128 +1,170 @@
 {
   "web.branding.color_picker": {
-    "text": "Színválasztó"
+    "text": "Színválasztó",
+    "sha256": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Jelenlegi {0}: {1}. Kattintson a lehetőségek közötti váltáshoz."
+    "text": "Jelenlegi {0}: {1}. Kattintson a lehetőségek közötti váltáshoz.",
+    "sha256": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Beállítás használata"
+    "text": "Beállítás használata",
+    "sha256": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Betűcsalád"
+    "text": "Betűcsalád",
+    "sha256": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Sarok stílus"
+    "text": "Sarok stílus",
+    "sha256": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Márka szín"
+    "text": "Márka szín",
+    "sha256": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "A címzett nézetének előnézete a biztonságos hivatkozás elérésekor"
+    "text": "A címzett nézetének előnézete a biztonságos hivatkozás elérésekor",
+    "sha256": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Előnézet és testreszabás"
+    "text": "Előnézet és testreszabás",
+    "sha256": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Váltás Safari böngésző nézetre"
+    "text": "Váltás Safari böngésző nézetre",
+    "sha256": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
-    "text": "Microsoft Edge"
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Ablak maximalizálása"
+    "text": "Ablak maximalizálása",
+    "sha256": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Ablak minimalizálása"
+    "text": "Ablak minimalizálása",
+    "sha256": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Váltás Edge böngésző nézetre"
+    "text": "Váltás Edge böngésző nézetre",
+    "sha256": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
-    "text": "{0}/500 karakter"
+    "text": "{0}/500 karakter",
+    "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Használja telefonját a QR-kód beolvasásához"
+    "text": "Használja telefonját a QR-kód beolvasásához",
+    "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kérdésekkel forduljon a onboarding{'@'}example.com címre"
+    "text": "Kérdésekkel forduljon a onboarding{'@'}example.com címre",
+    "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Ezek az utasítások megjelennek a címzetteknek, mielőtt felfednék a titok tartalmát"
+    "text": "Ezek az utasítások megjelennek a címzetteknek, mielőtt felfednék a titok tartalmát",
+    "sha256": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Ezek az utasítások megjelennek a címzetteknek, miután felfedték a titkot"
+    "text": "Ezek az utasítások megjelennek a címzetteknek, miután felfedték a titkot",
+    "sha256": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Felfedés előtti útmutatások"
+    "text": "Felfedés előtti útmutatások",
+    "sha256": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Felfedés utáni útmutatások"
+    "text": "Felfedés utáni útmutatások",
+    "sha256": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "Útmutatások"
+    "text": "Útmutatások",
+    "sha256": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Logó vezérlők"
+    "text": "Logó vezérlők",
+    "sha256": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Kattintson logó feltöltéséhez. Javasolt méret: 128x128 pixel. Maximális fájlméret: 1MB. Támogatott formátumok: PNG, JPG, SVG"
+    "text": "Kattintson logó feltöltéséhez. Javasolt méret: 128x128 pixel. Maximális fájlméret: 1MB. Támogatott formátumok: PNG, JPG, SVG",
+    "sha256": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Logó feltöltése"
+    "text": "Logó feltöltése",
+    "sha256": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Előnézet betöltése..."
+    "text": "Előnézet betöltése...",
+    "sha256": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Tekintse meg, hogyan látják majd a címzettek a titkait a \"Titok megtekintése\" gomb tesztelésével"
+    "text": "Tekintse meg, hogyan látják majd a címzettek a titkait a \"Titok megtekintése\" gomb tesztelésével",
+    "sha256": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Szem ikon"
+    "text": "Szem ikon",
+    "sha256": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Kattintson az alábbi előnézeti képre logója frissítéséhez (minimum 128x128 pixel javasolt, maximum 1MB)"
+    "text": "Kattintson az alábbi előnézeti képre logója frissítéséhez (minimum 128x128 pixel javasolt, maximum 1MB)",
+    "sha256": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Kép ikon"
+    "text": "Kép ikon",
+    "sha256": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Használja a fenti vezérlőket a márka szín, stílus és címzett utasítások testreszabásához"
+    "text": "Használja a fenti vezérlőket a márka szín, stílus és címzett utasítások testreszabásához",
+    "sha256": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Testreszabás ikon"
+    "text": "Testreszabás ikon",
+    "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Mentetlen módosításai vannak. Biztos benne?"
+    "text": "Mentetlen módosításai vannak. Biztos benne?",
+    "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "A márkabeállítások betöltése sikertelen"
+    "text": "A márkabeállítások betöltése sikertelen",
+    "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Ez egy interaktív előnézet arról, hogyan látják majd a címzettek a biztonságos üzeneteit. Ön: - Testreszabhatja a színeket és betűtípusokat a fenti vezérlőkkel - Feltölthet logót (ajánlott minimum 128x128 pixel, maximum 1MB) - Tesztelheti az előnézetet a \"Titok megtekintése\" gombbal"
+    "text": "Ez egy interaktív előnézet arról, hogyan látják majd a címzettek a biztonságos üzeneteit. Ön: - Testreszabhatja a színeket és betűtípusokat a fenti vezérlőkkel - Feltölthet logót (ajánlott minimum 128x128 pixel, maximum 1MB) - Tesztelheti az előnézetet a \"Titok megtekintése\" gombbal",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Ez egy interaktív előnézet arról, hogyan fogják a címzettek látni biztonságos üzeneteit. Lehetőségei: - Színek és betűtípusok testreszabása a fenti vezérlőkkel - Logó feltöltése (minimum 128x128 pixel javasolt, maximum 1MB) - Előnézet tesztelése a \"Titok megtekintése\" gombbal"
+    "text": "Ez egy interaktív előnézet arról, hogyan fogják a címzettek látni biztonságos üzeneteit. Lehetőségei: - Színek és betűtípusok testreszabása a fenti vezérlőkkel - Logó feltöltése (minimum 128x128 pixel javasolt, maximum 1MB) - Előnézet tesztelése a \"Titok megtekintése\" gombbal",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japán kanji '秘' (himitsu) jelentése 'titok' vagy 'bizalmas'"
+    "text": "Japán kanji '秘' (himitsu) jelentése 'titok' vagy 'bizalmas'",
+    "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Szolgáltatja az Onetime Secret"
+    "text": "Szolgáltatja az Onetime Secret",
+    "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0} logó"
+    "text": "{0} logó",
+    "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
-    "text": "Edge"
+    "text": "Edge",
+    "sha256": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Váltás Edge előnézetre"
+    "text": "Váltás Edge előnézetre",
+    "sha256": "83883d84"
   },
   "web.branding.safari": {
-    "text": "Safari"
+    "text": "Safari",
+    "sha256": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Váltás Safari előnézetre"
+    "text": "Váltás Safari előnézetre",
+    "sha256": "f24ac447"
   }
 }

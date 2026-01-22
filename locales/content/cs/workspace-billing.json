@@ -1,623 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Vyžadován upgrade"
+    "text": "Vyžadován upgrade",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Zobrazit plány"
+    "text": "Zobrazit plány",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Správa týmů vyžaduje Identity Plus nebo vyšší plán"
+    "text": "Správa týmů vyžaduje Identity Plus nebo vyšší plán",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Vlastní domény vyžadují Identity Plus nebo vyšší plán"
+    "text": "Vlastní domény vyžadují Identity Plus nebo vyšší plán",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Přístup k API vyžaduje Identity Plus nebo vyšší plán"
+    "text": "Přístup k API vyžaduje Identity Plus nebo vyšší plán",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Auditní záznamy vyžadují plán Multi-Team nebo vyšší"
+    "text": "Auditní záznamy vyžadují plán Multi-Team nebo vyšší",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Spravujte své předplatné, organizace a nastavení fakturace"
+    "text": "Spravujte své předplatné, organizace a nastavení fakturace",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "Přehled fakturace"
+    "text": "Přehled fakturace",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Zobrazit a spravovat své předplatné a platební údaje"
+    "text": "Zobrazit a spravovat své předplatné a platební údaje",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Vyber organizaci"
   },
   "web.billing.overview.current_plan": {
-    "text": "Aktuální plán"
+    "text": "Aktuální plán",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Funkce plánu"
+    "text": "Funkce plánu",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "Platební metoda"
+    "text": "Platební metoda",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Další datum fakturace"
+    "text": "Další datum fakturace",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Rychlé akce"
+    "text": "Rychlé akce",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Spravovat fakturaci"
+    "text": "Spravovat fakturaci",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Zobrazit faktury"
+    "text": "Zobrazit faktury",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Upgradovat plán"
+    "text": "Upgradovat plán",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Změnit plán"
+    "text": "Změnit plán",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Žádná platební metoda není uložena"
+    "text": "Žádná platební metoda není uložena",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Žádná nadcházející fakturace"
+    "text": "Žádná nadcházející fakturace",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "zbývajících dnů"
+    "text": "zbývajících dnů",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "Fakturace dne {date}"
+    "text": "Fakturace dne {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Zobrazit plány"
+    "text": "Zobrazit plány",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Porovnat a upgradovat"
+    "text": "Porovnat a upgradovat",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Zobrazit faktury"
+    "text": "Zobrazit faktury",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Stáhnout historii"
+    "text": "Stáhnout historii",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Spravovat fakturaci"
+    "text": "Spravovat fakturaci",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Aktualizovat platební údaje"
+    "text": "Aktualizovat platební údaje",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Žádné organizace"
+    "text": "Žádné organizace",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Vytvořte organizaci pro správu fakturace a předplatného"
+    "text": "Vytvořte organizaci pro správu fakturace a předplatného",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Vytvářet tajemství"
+    "text": "Vytvářet tajemství",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Zobrazit potvrzení"
+    "text": "Zobrazit potvrzení",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "Přístup k API"
+    "text": "Přístup k API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Vlastní domény"
+    "text": "Vlastní domény",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Vlastní výchozí nastavení soukromí"
+    "text": "Vlastní výchozí nastavení soukromí",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Prodloužená výchozí expirace"
+    "text": "Prodloužená výchozí expirace",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Vlastní výchozí nastavení e-mailu"
+    "text": "Vlastní výchozí nastavení e-mailu",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Vlastní branding"
+    "text": "Vlastní branding",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Značková domovská stránka"
+    "text": "Značková domovská stránka",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Příchozí tajemství"
+    "text": "Příchozí tajemství",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Správa organizací"
+    "text": "Správa organizací",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Správa týmů"
+    "text": "Správa týmů",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Správa členů"
+    "text": "Správa členů",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Auditní záznamy"
+    "text": "Auditní záznamy",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Jednotné přihlášení"
+    "text": "Jednotné přihlášení",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Prioritní podpora"
+    "text": "Prioritní podpora",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Dohoda o úrovni služeb"
+    "text": "Dohoda o úrovni služeb",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Nepodařilo se načíst podrobnosti funkcí"
+    "text": "Nepodařilo se načíst podrobnosti funkcí",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Žádné funkce nejsou k dispozici"
+    "text": "Žádné funkce nejsou k dispozici",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "Vyberte plán"
+    "text": "Vyberte plán",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Vyberte plán, který vyhovuje vašim potřebám"
+    "text": "Vyberte plán, který vyhovuje vašim potřebám",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Vyberte si dokonalý plán pro vaši organizaci"
+    "text": "Vyberte si dokonalý plán pro vaši organizaci",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Aktuální plán"
+    "text": "Aktuální plán",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "Aktuální"
+    "text": "Aktuální",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "Upgradovat"
+    "text": "Upgradovat",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Downgradovat"
+    "text": "Downgradovat",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "Měsíčně"
+    "text": "Měsíčně",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "Ročně"
+    "text": "Ročně",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "/měsíc"
+    "text": "/měsíc",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Ušetřete {percent}% s ročním předplatným"
+    "text": "Ušetřete {percent}% s ročním předplatným",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "Zdarma"
+    "text": "Zdarma",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Jeden tým"
+    "text": "Jeden tým",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Více týmů"
+    "text": "Více týmů",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "Individuální účet"
+    "text": "Individuální účet",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "Týmový účet"
+    "text": "Týmový účet",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Organizační účet"
+    "text": "Organizační účet",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Funkce"
+    "text": "Funkce",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Neomezená tajemství"
+    "text": "Neomezená tajemství",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "Přístup k API"
+    "text": "Přístup k API",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "Prioritní podpora"
+    "text": "Prioritní podpora",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Vybrat plán"
+    "text": "Vybrat plán",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Kontaktovat obchod"
+    "text": "Kontaktovat obchod",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Máte otázky nebo potřebujete něco vlastního?"
+    "text": "Máte otázky nebo potřebujete něco vlastního?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Rádi od vás uslyšíme. Dejte nám vědět, co hledáte."
+    "text": "Rádi od vás uslyšíme. Dejte nám vědět, co hledáte.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} tým | {count} týmů"
+    "text": "{count} tým | {count} týmů",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} člen na tým | {count} členů na tým"
+    "text": "{count} člen na tým | {count} členů na tým",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Neomezený počet týmů"
+    "text": "Neomezený počet týmů",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Neomezený počet členů na tým"
+    "text": "Neomezený počet členů na tým",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Nejoblíbenější"
+    "text": "Nejoblíbenější",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Doporučeno"
+    "text": "Doporučeno",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Zahrnuje vše z {plan}"
+    "text": "Zahrnuje vše z {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "V současné době nejsou k dispozici žádné plány s intervalem {interval}."
+    "text": "V současné době nejsou k dispozici žádné plány s intervalem {interval}.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Váš plán se změní okamžitě."
+    "text": "Váš plán se změní okamžitě.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Aktuální plán:"
+    "text": "Aktuální plán:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Nový plán:"
+    "text": "Nový plán:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Kredit za nevyužitý čas:"
+    "text": "Kredit za nevyužitý čas:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Další faktura"
+    "text": "Další faktura",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Vaše limity funkcí se aktualizují ihned po změně plánu."
+    "text": "Vaše limity funkcí se aktualizují ihned po změně plánu.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Změna plánu selhala. Zkuste to prosím znovu."
+    "text": "Změna plánu selhala. Zkuste to prosím znovu.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Potvrdit upgrade"
+    "text": "Potvrdit upgrade",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Potvrdit downgrade"
+    "text": "Potvrdit downgrade",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Upgradovat na {plan}?"
+    "text": "Upgradovat na {plan}?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Downgradovat na {plan}?"
+    "text": "Downgradovat na {plan}?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "Historie fakturace"
+    "text": "Historie fakturace",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Zobrazit historii fakturace a stáhnout faktury"
+    "text": "Zobrazit historii fakturace a stáhnout faktury",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "Datum"
+    "text": "Datum",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "Částka"
+    "text": "Částka",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "Stav"
+    "text": "Stav",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Stáhnout"
+    "text": "Stáhnout",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Zatím žádné faktury"
+    "text": "Zatím žádné faktury",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "Zaplaceno"
+    "text": "Zaplaceno",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "Čeká"
+    "text": "Čeká",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Selhalo"
+    "text": "Selhalo",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "Nepodařilo se načíst faktury"
+    "text": "Nepodařilo se načíst faktury",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Fakturaci spravuje {orgName}"
+    "text": "Fakturaci spravuje {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Zobrazit fakturaci organizace"
+    "text": "Zobrazit fakturaci organizace",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Dosáhli jste limitu členů pro tento tým"
+    "text": "Dosáhli jste limitu členů pro tento tým",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Upgradujte pro přidání více členů"
+    "text": "Upgradujte pro přidání více členů",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "Předplatné"
+    "text": "Předplatné",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "Stav předplatného"
+    "text": "Stav předplatného",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "Aktivní"
+    "text": "Aktivní",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "Neaktivní"
+    "text": "Neaktivní",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Po splatnosti"
+    "text": "Po splatnosti",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Zrušeno"
+    "text": "Zrušeno",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "Plán"
+    "text": "Plán",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "Fakturační portál"
+    "text": "Fakturační portál",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Spravujte své předplatné, platební metody a historii fakturace"
+    "text": "Spravujte své předplatné, platební metody a historii fakturace",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "Otevřít fakturační portál"
+    "text": "Otevřít fakturační portál",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "Přesměrování na fakturační portál..."
+    "text": "Přesměrování na fakturační portál...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Začít dnes"
+    "text": "Začít dnes",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Začněte dnes s Identity Plus"
+    "text": "Začněte dnes s Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "za měsíc"
+    "text": "za měsíc",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "Plný přístup k API"
+    "text": "Plný přístup k API",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Design zaměřený na soukromí"
+    "text": "Design zaměřený na soukromí",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Klikni na tento blesk pro upgrade na vlastní domény"
+    "text": "Klikni na tento blesk pro upgrade na vlastní domény",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "Možná později"
+    "text": "Možná později",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Upgradovat účet"
+    "text": "Upgradovat účet",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Upgradovat na Identity Plus"
+    "text": "Upgradovat na Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Upgrade pro týmy"
+    "text": "Upgrade pro týmy",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "Výhody"
+    "text": "Výhody",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Upgradovat na"
+    "text": "Upgradovat na",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Upgrade pro secrets.vasedomena.cz"
+    "text": "Upgrade pro secrets.vasedomena.cz",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Všechny tarify zahrnují funkce pro ochranu soukromí a neomezenou kapacitu sdílení"
+    "text": "Všechny tarify zahrnují funkce pro ochranu soukromí a neomezenou kapacitu sdílení",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Všechny plány zahrnují volbu lokality dat: {0} regionů"
+    "text": "Všechny plány zahrnují volbu lokality dat: {0} regionů",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "Začít"
+    "text": "Začít",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "předplatné {0}"
+    "text": "předplatné {0}",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Posuň své zabezpečené sdílení s vlastními doménami, neomezenou kapacitou a funkcemi na podnikové úrovni."
+    "text": "Posuň své zabezpečené sdílení s vlastními doménami, neomezenou kapacitou a funkcemi na podnikové úrovni.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Frekvence plateb"
+    "text": "Frekvence plateb",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Zabezpeč svou značku a buduj důvěru zákazníků pomocí odkazů z tvé domény. Perfektní pro firmy, které si cení soukromí a profesionality."
+    "text": "Zabezpeč svou značku a buduj důvěru zákazníků pomocí odkazů z tvé domény. Perfektní pro firmy, které si cení soukromí a profesionality.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Bezpečné odkazy, silnější spojení"
+    "text": "Bezpečné odkazy, silnější spojení",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Úroveň identity nebyla nalezena v produktových úrovních"
+    "text": "Úroveň identity nebyla nalezena v produktových úrovních",
+    "sha256": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Zrušit předplatné"
+    "text": "Zrušit předplatné",
+    "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Zrušit předplatné"
+    "text": "Zrušit předplatné",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Opravdu chcete zrušit své předplatné {plan}?"
+    "text": "Opravdu chcete zrušit své předplatné {plan}?",
+    "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Co se stane, když zrušíte:"
+    "text": "Co se stane, když zrušíte:",
+    "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Budete mít přístup ke všem funkcím do {date}"
+    "text": "Budete mít přístup ke všem funkcím do {date}",
+    "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Budete mít přístup do konce aktuálního fakturačního období"
+    "text": "Budete mít přístup do konce aktuálního fakturačního období",
+    "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Již vám nebude účtováno"
+    "text": "Již vám nebude účtováno",
+    "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Váš účet bude převeden na bezplatný plán"
+    "text": "Váš účet bude převeden na bezplatný plán",
+    "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Ponechat předplatné"
+    "text": "Ponechat předplatné",
+    "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Zrušit předplatné"
+    "text": "Zrušit předplatné",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Vaše předplatné bylo zrušeno. Budete mít přístup do konce fakturačního období."
+    "text": "Vaše předplatné bylo zrušeno. Budete mít přístup do konce fakturačního období.",
+    "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Nepodařilo se zrušit předplatné. Zkuste to prosím znovu."
+    "text": "Nepodařilo se zrušit předplatné. Zkuste to prosím znovu.",
+    "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Zrušení předplatného naplánováno"
+    "text": "Zrušení předplatného naplánováno",
+    "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Vaše předplatné zůstane aktivní do {date}. Do té doby budete mít plný přístup ke všem funkcím."
+    "text": "Vaše předplatné zůstane aktivní do {date}. Do té doby budete mít plný přístup ke všem funkcím.",
+    "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Změnili jste názor? Své předplatné můžete kdykoli před datem zrušení znovu aktivovat."
+    "text": "Změnili jste názor? Své předplatné můžete kdykoli před datem zrušení znovu aktivovat.",
+    "sha256": "c94d5527"
   },
   "web.billing.features.create_secrets": {
-    "text": "Vytváření a sdílení tajemství"
+    "text": "Vytváření a sdílení tajemství",
+    "sha256": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "Přístup k API"
+    "text": "Přístup k API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Vlastní domény"
+    "text": "Vlastní domény",
+    "sha256": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 vlastní doména"
+    "text": "1 vlastní doména",
+    "sha256": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Neomezené vlastní domény"
+    "text": "Neomezené vlastní domény",
+    "sha256": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "Vlastní branding"
+    "text": "Vlastní branding",
+    "sha256": "237dabec"
   },
   "web.billing.features.branded_homepage": {
-    "text": "Značková domovská stránka"
+    "text": "Značková domovská stránka",
+    "sha256": "e355a396"
   },
   "web.billing.features.manage_teams": {
-    "text": "Správa týmů"
+    "text": "Správa týmů",
+    "sha256": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
-    "text": "Správa členů"
+    "text": "Správa členů",
+    "sha256": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "Auditní záznamy"
+    "text": "Auditní záznamy",
+    "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Jednotné přihlášení (SSO)"
+    "text": "Jednotné přihlášení (SSO)",
+    "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "Prioritní podpora"
+    "text": "Prioritní podpora",
+    "sha256": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Dohoda o úrovni služeb"
+    "text": "Dohoda o úrovni služeb",
+    "sha256": "436f2550"
   },
   "web.billing.features.centralized_billing": {
-    "text": "Centralizovaná fakturace"
+    "text": "Centralizovaná fakturace",
+    "sha256": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Auditní stopa"
+    "text": "Auditní stopa",
+    "sha256": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Přehled aktivit"
+    "text": "Přehled aktivit",
+    "sha256": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Předávací pracovní postupy"
+    "text": "Předávací pracovní postupy",
+    "sha256": "07202af3"
   },
   "web.billing.features.extended_retention": {
-    "text": "30denní uchovávání tajemství"
+    "text": "30denní uchovávání tajemství",
+    "sha256": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Tajemství na domovské stránce"
+    "text": "Tajemství na domovské stránce",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Příchozí tajemství"
+    "text": "Příchozí tajemství",
+    "sha256": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "Až 5 členů týmu"
+    "text": "Až 5 členů týmu",
+    "sha256": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "Až 10 členů týmu"
+    "text": "Až 10 členů týmu",
+    "sha256": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "Až 25 členů týmu"
+    "text": "Až 25 členů týmu",
+    "sha256": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "Až 50 členů týmu"
+    "text": "Až 50 členů týmu",
+    "sha256": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Neomezený počet členů týmu"
+    "text": "Neomezený počet členů týmu",
+    "sha256": "b7491ee9"
   },
   "web.billing.features.notifications": {
-    "text": "E-mailová oznámení"
+    "text": "E-mailová oznámení",
+    "sha256": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "Pravidla přístupu podle IP"
+    "text": "Pravidla přístupu podle IP",
+    "sha256": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Branding pracovního prostoru"
+    "text": "Branding pracovního prostoru",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
-    "text": "Dedikovaná infrastruktura"
+    "text": "Dedikovaná infrastruktura",
+    "sha256": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "Sdílené pracovní postupy"
+    "text": "Sdílené pracovní postupy",
+    "sha256": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "Fakturace pro tuto organizaci"
+    "text": "Fakturace pro tuto organizaci",
+    "sha256": "21806992"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Váš plán byl úspěšně upgradován"
+    "text": "Váš plán byl úspěšně upgradován",
+    "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Váš nový plán je nyní aktivní. Děkujeme za váš nákup."
+    "text": "Váš nový plán je nyní aktivní. Děkujeme za váš nákup.",
+    "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
-    "text": "Fakturační kontakt"
+    "text": "Fakturační kontakt",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Tajemství na domovské stránce"
+    "text": "Tajemství na domovské stránce",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
-    "text": "E-mailová oznámení"
+    "text": "E-mailová oznámení",
+    "sha256": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Pravidla přístupu podle IP"
+    "text": "Pravidla přístupu podle IP",
+    "sha256": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Branding pracovního prostoru"
+    "text": "Branding pracovního prostoru",
+    "sha256": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
-    "text": "Splatné dnes:"
+    "text": "Splatné dnes:",
+    "sha256": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Další fakturace ({date}):"
+    "text": "Další fakturace ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Jak se váš kredit použije:"
+    "text": "Jak se váš kredit použije:",
+    "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Částka další faktury:"
+    "text": "Částka další faktury:",
+    "sha256": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Použitý kredit:"
+    "text": "Použitý kredit:",
+    "sha256": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Částka splatná při další fakturaci:"
+    "text": "Částka splatná při další fakturaci:",
+    "sha256": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Zbývající kredit účtu:"
+    "text": "Zbývající kredit účtu:",
+    "sha256": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Použito na budoucí faktury"
+    "text": "Použito na budoucí faktury",
+    "sha256": "5007add6"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Využití týmů"
+    "text": "Využití týmů",
+    "sha256": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{used} z {limit} týmů"
+    "text": "{used} z {limit} týmů",
+    "sha256": "1db6b53c"
   }
 }

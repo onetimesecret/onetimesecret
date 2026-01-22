@@ -1,479 +1,638 @@
 {
   "web.account.settings": {
-    "text": "Einstellungen"
+    "text": "Einstellungen",
+    "sha256": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Passwort ändern"
+    "text": "Passwort ändern",
+    "sha256": "a949f462"
   },
   "web.account.close_account": {
-    "text": "Konto schließen"
+    "text": "Konto schließen",
+    "sha256": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Konto verifizieren"
+    "text": "Konto verifizieren",
+    "sha256": "2f3ea760"
   },
   "web.account.subscription_title": {
-    "text": "Abonnement"
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Abonnement verwalten"
+    "text": "Abonnement verwalten",
+    "sha256": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Kundeninformationen"
+    "text": "Kundeninformationen",
+    "sha256": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "Kunde seit:"
+    "text": "Kunde seit:",
+    "sha256": "0b37cff3"
   },
   "web.account.email": {
-    "text": "E-Mail:"
+    "text": "E-Mail:",
+    "sha256": "17507dcf"
   },
   "web.account.region": {
-    "text": "Region"
+    "text": "Region",
+    "sha256": "d3a008ef"
   },
   "web.account.account_balance": {
-    "text": "Guthaben:"
+    "text": "Guthaben:",
+    "sha256": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Standard-Zahlungsmethode"
+    "text": "Standard-Zahlungsmethode",
+    "sha256": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "endet auf"
+    "text": "endet auf",
+    "sha256": "0195bccf"
   },
   "web.account.subscriptions_title": {
-    "text": "Abonnements"
+    "text": "Abonnements",
+    "sha256": "a151f2e9"
   },
   "web.account.quantity": {
-    "text": "Menge:"
+    "text": "Menge:",
+    "sha256": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Nächstes Rechnungsdatum:"
+    "text": "Nächstes Rechnungsdatum:",
+    "sha256": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
-    "text": "Benutzername"
+    "text": "Benutzername",
+    "sha256": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
-    "text": "Aktuelles Passwort"
+    "text": "Aktuelles Passwort",
+    "sha256": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
-    "text": "Neues Passwort"
+    "text": "Neues Passwort",
+    "sha256": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Bestätigen"
+    "text": "Bestätigen",
+    "sha256": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Passwort aktualisieren"
+    "text": "Passwort aktualisieren",
+    "sha256": "557be0da"
   },
   "web.account.changePassword.updating": {
-    "text": "Wird aktualisiert..."
+    "text": "Wird aktualisiert...",
+    "sha256": "0a4e0b71"
   },
   "web.account.timezone": {
-    "text": "Zeitzone"
+    "text": "Zeitzone",
+    "sha256": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "Kunden-ID"
+    "text": "Kunden-ID",
+    "sha256": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "Konto-ID"
+    "text": "Konto-ID",
+    "sha256": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "Erstellt {0} Geheimnisse seit {1}."
+    "text": "Erstellt {0} Geheimnisse seit {1}.",
+    "sha256": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Konto löschen"
+    "text": "Konto löschen",
+    "sha256": "c031bf99"
   },
   "web.account.api_key": {
-    "text": "API-Schlüssel"
+    "text": "API-Schlüssel",
+    "sha256": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
-    "text": "Konto-Typ: {0}"
+    "text": "Konto-Typ: {0}",
+    "sha256": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Dein Konto"
+    "text": "Dein Konto",
+    "sha256": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Support-Details"
+    "text": "Support-Details",
+    "sha256": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Zurück zu Details"
+    "text": "Zurück zu Details",
+    "sha256": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "Kunden-ID: {0}"
+    "text": "Kunden-ID: {0}",
+    "sha256": "7e2d4201"
   },
   "web.account.token_generated": {
-    "text": "Token generiert."
+    "text": "Token generiert.",
+    "sha256": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "Bewahren Sie diesen Token sicher auf! Er bietet vollen Zugang zu Ihrem Konto."
+    "text": "Bewahren Sie diesen Token sicher auf! Er bietet vollen Zugang zu Ihrem Konto.",
+    "sha256": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Mit deinem Passwort bestätigen"
+    "text": "Mit deinem Passwort bestätigen",
+    "sha256": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
-    "text": "Sind Sie sicher, dass Sie Ihr Konto endgültig löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+    "text": "Sind Sie sicher, dass Sie Ihr Konto endgültig löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "sha256": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Kontolöschung bestätigen"
+    "text": "Kontolöschung bestätigen",
+    "sha256": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Wird gelöscht: {0}"
+    "text": "Wird gelöscht: {0}",
+    "sha256": "81d21828"
   },
   "web.account.permanently_delete_account": {
-    "text": "Konto dauerhaft löschen"
+    "text": "Konto dauerhaft löschen",
+    "sha256": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "dauerhaft und unwiderruflich."
+    "text": "dauerhaft und unwiderruflich.",
+    "sha256": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Das Löschen deines Kontos ist"
+    "text": "Das Löschen deines Kontos ist",
+    "sha256": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "lösche sie dauerhaft, bevor du fortfährst"
+    "text": "lösche sie dauerhaft, bevor du fortfährst",
+    "sha256": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Geheimnisse, die du entfernen möchtest,"
+    "text": "Geheimnisse, die du entfernen möchtest,",
+    "sha256": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Geheimnisse bleiben aktiv, bis sie ablaufen."
+    "text": "Geheimnisse bleiben aktiv, bis sie ablaufen.",
+    "sha256": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Bitte beachte:"
+    "text": "Bitte beachte:",
+    "sha256": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Konto erfolgreich gelöscht."
+    "text": "Konto erfolgreich gelöscht.",
+    "sha256": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "Deaktivieren"
+    "text": "Deaktivieren",
+    "sha256": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Alle Ihre Daten werden dauerhaft und für immer von unseren Servern entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+    "text": "Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Alle Ihre Daten werden dauerhaft und für immer von unseren Servern entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "sha256": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Konto deaktivieren"
+    "text": "Konto deaktivieren",
+    "sha256": "5e31b73d"
   },
   "web.settings.title": {
-    "text": "Einstellungen"
+    "text": "Einstellungen",
+    "sha256": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Verwalte deine Kontoeinstellungen und Präferenzen"
+    "text": "Verwalte deine Kontoeinstellungen und Präferenzen",
+    "sha256": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Verwalte deine Kontoeinstellungen und Präferenzen"
+    "text": "Verwalte deine Kontoeinstellungen und Präferenzen",
+    "sha256": "2ff0853c"
   },
   "web.settings.general": {
-    "text": "Allgemein"
+    "text": "Allgemein",
+    "sha256": "c910d474"
   },
   "web.settings.preferences": {
-    "text": "Präferenzen"
+    "text": "Präferenzen",
+    "sha256": "66962f72"
   },
   "web.settings.appearance": {
-    "text": "Erscheinungsbild"
+    "text": "Erscheinungsbild",
+    "sha256": "3907fa7f"
   },
   "web.settings.theme.title": {
-    "text": "Design"
+    "text": "Design",
+    "sha256": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Wähle helles oder dunkles Design"
+    "text": "Wähle helles oder dunkles Design",
+    "sha256": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Wähle helles oder dunkles Design"
+    "text": "Wähle helles oder dunkles Design",
+    "sha256": "ff0ae84f"
   },
   "web.settings.language.title": {
-    "text": "Sprache"
+    "text": "Sprache",
+    "sha256": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Wähle deine bevorzugte Sprache"
+    "text": "Wähle deine bevorzugte Sprache",
+    "sha256": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Wähle deine bevorzugte Sprache"
+    "text": "Wähle deine bevorzugte Sprache",
+    "sha256": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Verwalte Authentifizierung und Kontosicherheit"
+    "text": "Verwalte Authentifizierung und Kontosicherheit",
+    "sha256": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Verwalte deine Kontoinformationen"
+    "text": "Verwalte deine Kontoinformationen",
+    "sha256": "4a23a29f"
   },
   "web.settings.profile.title": {
-    "text": "Profil"
+    "text": "Profil",
+    "sha256": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "E-Mail ändern"
+    "text": "E-Mail ändern",
+    "sha256": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "Aktuelle E-Mail"
+    "text": "Aktuelle E-Mail",
+    "sha256": "5f1cab64"
   },
   "web.settings.profile.current_password": {
-    "text": "Aktuelles Passwort"
+    "text": "Aktuelles Passwort",
+    "sha256": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Neue E-Mail"
+    "text": "Neue E-Mail",
+    "sha256": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Gib dein aktuelles Passwort ein"
+    "text": "Gib dein aktuelles Passwort ein",
+    "sha256": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Dein Passwort wird aus Sicherheitsgründen benötigt"
+    "text": "Dein Passwort wird aus Sicherheitsgründen benötigt",
+    "sha256": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Eine Bestätigungs-E-Mail wird an die neue Adresse gesendet"
+    "text": "Eine Bestätigungs-E-Mail wird an die neue Adresse gesendet",
+    "sha256": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "E-Mail aktualisieren"
+    "text": "E-Mail aktualisieren",
+    "sha256": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Aktualisiere die mit deinem Konto verknüpfte E-Mail-Adresse"
+    "text": "Aktualisiere die mit deinem Konto verknüpfte E-Mail-Adresse",
+    "sha256": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Alle Felder sind erforderlich"
+    "text": "Alle Felder sind erforderlich",
+    "sha256": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Bitte gib eine gültige E-Mail-Adresse ein"
+    "text": "Bitte gib eine gültige E-Mail-Adresse ein",
+    "sha256": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Die neue E-Mail muss sich von der aktuellen E-Mail unterscheiden"
+    "text": "Die neue E-Mail muss sich von der aktuellen E-Mail unterscheiden",
+    "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-Mail erfolgreich aktualisiert. Bitte überprüfe dein Postfach, um deine neue E-Mail-Adresse zu bestätigen."
+    "text": "E-Mail erfolgreich aktualisiert. Bitte überprüfe dein Postfach, um deine neue E-Mail-Adresse zu bestätigen.",
+    "sha256": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "E-Mail konnte nicht aktualisiert werden. Bitte versuche es erneut."
+    "text": "E-Mail konnte nicht aktualisiert werden. Bitte versuche es erneut.",
+    "sha256": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "Aktive Sitzungen"
+    "text": "Aktive Sitzungen",
+    "sha256": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Verwalte deine aktiven Sitzungen"
+    "text": "Verwalte deine aktiven Sitzungen",
+    "sha256": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Verwalte deine aktiven Sitzungen"
+    "text": "Verwalte deine aktiven Sitzungen",
+    "sha256": "e5646da4"
   },
   "web.settings.password.title": {
-    "text": "Passwort"
+    "text": "Passwort",
+    "sha256": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Aktualisiere dein Kontopasswort"
+    "text": "Aktualisiere dein Kontopasswort",
+    "sha256": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Aktualisiere dein Kontopasswort"
+    "text": "Aktualisiere dein Kontopasswort",
+    "sha256": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "Konto löschen"
+    "text": "Konto löschen",
+    "sha256": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Dein Konto und alle Daten dauerhaft löschen"
+    "text": "Dein Konto und alle Daten dauerhaft löschen",
+    "sha256": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Dein Konto und alle Daten dauerhaft löschen"
+    "text": "Dein Konto und alle Daten dauerhaft löschen",
+    "sha256": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Sicherheitsbewertung"
+    "text": "Sicherheitsbewertung",
+    "sha256": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Dein allgemeiner Kontosicherheitsstatus"
+    "text": "Dein allgemeiner Kontosicherheitsstatus",
+    "sha256": "cf20935e"
   },
   "web.settings.security.excellent": {
-    "text": "Ausgezeichnet"
+    "text": "Ausgezeichnet",
+    "sha256": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "Gut"
+    "text": "Gut",
+    "sha256": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Ausreichend"
+    "text": "Ausreichend",
+    "sha256": "f7b19afc"
   },
   "web.settings.security.weak": {
-    "text": "Schwach"
+    "text": "Schwach",
+    "sha256": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Verbessere deine Sicherheit"
+    "text": "Verbessere deine Sicherheit",
+    "sha256": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Aktiviere Zwei-Faktor-Authentifizierung für stärkeren Schutz"
+    "text": "Aktiviere Zwei-Faktor-Authentifizierung für stärkeren Schutz",
+    "sha256": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Generiere Wiederherstellungscodes als Backup"
+    "text": "Generiere Wiederherstellungscodes als Backup",
+    "sha256": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "Konfiguriert"
+    "text": "Konfiguriert",
+    "sha256": "84aebc69"
   },
   "web.settings.security.change": {
-    "text": "Ändern"
+    "text": "Ändern",
+    "sha256": "c0bf75bd"
   },
   "web.settings.security.manage": {
-    "text": "Verwalten"
+    "text": "Verwalten",
+    "sha256": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "Aktivieren"
+    "text": "Aktivieren",
+    "sha256": "5342e09f"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} Codes verfügbar"
+    "text": "{0} Codes verfügbar",
+    "sha256": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Keine Codes generiert"
+    "text": "Keine Codes generiert",
+    "sha256": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} aktive Sitzung | {0} aktive Sitzungen"
+    "text": "{0} aktive Sitzung | {0} aktive Sitzungen",
+    "sha256": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Sicherheits-Best-Practices"
+    "text": "Sicherheits-Best-Practices",
+    "sha256": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Verwende ein starkes, einzigartiges Passwort für dein Konto"
+    "text": "Verwende ein starkes, einzigartiges Passwort für dein Konto",
+    "sha256": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Aktiviere Zwei-Faktor-Authentifizierung für zusätzlichen Schutz"
+    "text": "Aktiviere Zwei-Faktor-Authentifizierung für zusätzlichen Schutz",
+    "sha256": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Speichere deine Wiederherstellungscodes an einem sicheren Ort"
+    "text": "Speichere deine Wiederherstellungscodes an einem sicheren Ort",
+    "sha256": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Überprüfe und widerrufe regelmäßig ungenutzte Sitzungen"
+    "text": "Überprüfe und widerrufe regelmäßig ungenutzte Sitzungen",
+    "sha256": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Details anzeigen"
+    "text": "Details anzeigen",
+    "sha256": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "API & Integrationen"
+    "text": "API & Integrationen",
+    "sha256": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "API-Schlüssel und Integrationen verwalten"
+    "text": "API-Schlüssel und Integrationen verwalten",
+    "sha256": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "API-Schlüssel und Integrationen verwalten"
+    "text": "API-Schlüssel und Integrationen verwalten",
+    "sha256": "70976099"
   },
   "web.settings.api.documentation": {
-    "text": "API-Dokumentation"
+    "text": "API-Dokumentation",
+    "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Erfahre, wie du Onetime Secret in deine Anwendungen integrierst"
+    "text": "Erfahre, wie du Onetime Secret in deine Anwendungen integrierst",
+    "sha256": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "REST-API-Referenz"
+    "text": "REST-API-Referenz",
+    "sha256": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Vollständige API-Dokumentation und Endpunkte"
+    "text": "Vollständige API-Dokumentation und Endpunkte",
+    "sha256": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
-    "text": "Codebeispiele"
+    "text": "Codebeispiele",
+    "sha256": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Beispielcode und Client-Bibliotheken"
+    "text": "Beispielcode und Client-Bibliotheken",
+    "sha256": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Sicherheits-Best-Practices"
+    "text": "Sicherheits-Best-Practices",
+    "sha256": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Speichere API-Schlüssel niemals in der Versionskontrolle"
+    "text": "Speichere API-Schlüssel niemals in der Versionskontrolle",
+    "sha256": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Verwende Umgebungsvariablen zum Speichern von API-Schlüsseln"
+    "text": "Verwende Umgebungsvariablen zum Speichern von API-Schlüsseln",
+    "sha256": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rotiere API-Schlüssel regelmäßig für mehr Sicherheit"
+    "text": "Rotiere API-Schlüssel regelmäßig für mehr Sicherheit",
+    "sha256": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Verwende immer HTTPS bei API-Anfragen"
+    "text": "Verwende immer HTTPS bei API-Anfragen",
+    "sha256": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Überwache deine API-Nutzung und richte Benachrichtigungen ein"
+    "text": "Überwache deine API-Nutzung und richte Benachrichtigungen ein",
+    "sha256": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Wichtiger Hinweis"
+    "text": "Wichtiger Hinweis",
+    "sha256": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Das Neugenerieren deines API-Schlüssels macht den aktuellen Schlüssel ungültig. Aktualisiere alle Anwendungen, die den alten Schlüssel verwenden."
+    "text": "Das Neugenerieren deines API-Schlüssels macht den aktuellen Schlüssel ungültig. Aktualisiere alle Anwendungen, die den alten Schlüssel verwenden.",
+    "sha256": "ab168f83"
   },
   "web.settings.privacy.title": {
-    "text": "Datenschutzeinstellungen"
+    "text": "Datenschutzeinstellungen",
+    "sha256": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Verwalte deine Datenschutzpräferenzen"
+    "text": "Verwalte deine Datenschutzpräferenzen",
+    "sha256": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Deine Privatsphäre"
+    "text": "Deine Privatsphäre",
+    "sha256": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Nicht verhandelbar"
+    "text": "Nicht verhandelbar",
+    "sha256": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "Keine Einstellung"
+    "text": "Keine Einstellung",
+    "sha256": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Keine Analysen. Kein Tracking. Punkt."
+    "text": "Keine Analysen. Kein Tracking. Punkt.",
+    "sha256": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Das ist keine Einstellung, weil es nichts ein- oder auszuschalten gibt. Deine Privatsphäre ist in unsere Arbeitsweise integriert."
+    "text": "Das ist keine Einstellung, weil es nichts ein- oder auszuschalten gibt. Deine Privatsphäre ist in unsere Arbeitsweise integriert.",
+    "sha256": "ed943792"
   },
   "web.settings.notifications.title": {
-    "text": "Benachrichtigungseinstellungen"
+    "text": "Benachrichtigungseinstellungen",
+    "sha256": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Verwalte, wie du Benachrichtigungen erhältst"
+    "text": "Verwalte, wie du Benachrichtigungen erhältst",
+    "sha256": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Benachrichtigungseinstellung konnte nicht aktualisiert werden. Bitte versuche es erneut."
+    "text": "Benachrichtigungseinstellung konnte nicht aktualisiert werden. Bitte versuche es erneut.",
+    "sha256": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Benachrichtigungen bei Geheimnis-Ansicht"
+    "text": "Benachrichtigungen bei Geheimnis-Ansicht",
+    "sha256": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Erhalte eine E-Mail, wenn jemand dein Geheimnis ansieht"
+    "text": "Erhalte eine E-Mail, wenn jemand dein Geheimnis ansieht",
+    "sha256": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Du wirst jedes Mal benachrichtigt, wenn ein Empfänger eines deiner Geheimnisse aufdeckt"
+    "text": "Du wirst jedes Mal benachrichtigt, wenn ein Empfänger eines deiner Geheimnisse aufdeckt",
+    "sha256": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Benachrichtigungs-E-Mails enthalten nur den Zeitstempel und die Geheimnis-ID. Informationen über den Betrachter werden niemals einbezogen."
+    "text": "Benachrichtigungs-E-Mails enthalten nur den Zeitstempel und die Geheimnis-ID. Informationen über den Betrachter werden niemals einbezogen.",
+    "sha256": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Vorsichtszone"
+    "text": "Vorsichtszone",
+    "sha256": "fe27a3a8"
   },
   "web.settings.caution.description": {
-    "text": "Erweiterte Einstellungen und Datenverwaltung"
+    "text": "Erweiterte Einstellungen und Datenverwaltung",
+    "sha256": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Datenexport"
+    "text": "Datenexport",
+    "sha256": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Deine Kontodaten exportieren"
+    "text": "Deine Kontodaten exportieren",
+    "sha256": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Fordere eine vollständige Kopie deiner Kontodaten in maschinenlesbarem Format an"
+    "text": "Fordere eine vollständige Kopie deiner Kontodaten in maschinenlesbarem Format an",
+    "sha256": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Datenexport anfordern"
+    "text": "Datenexport anfordern",
+    "sha256": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Exportverarbeitungszeit"
+    "text": "Exportverarbeitungszeit",
+    "sha256": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Exporte werden innerhalb von 24 Stunden verarbeitet und an deine E-Mail-Adresse gesendet"
+    "text": "Exporte werden innerhalb von 24 Stunden verarbeitet und an deine E-Mail-Adresse gesendet",
+    "sha256": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Das Löschen deines Kontos wird:"
+    "text": "Das Löschen deines Kontos wird:",
+    "sha256": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Alle deine Geheimnisse dauerhaft löschen"
+    "text": "Alle deine Geheimnisse dauerhaft löschen",
+    "sha256": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Alle Geheimnis-Metadaten und den Verlauf entfernen"
+    "text": "Alle Geheimnis-Metadaten und den Verlauf entfernen",
+    "sha256": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Alle API-Schlüssel ungültig machen"
+    "text": "Alle API-Schlüssel ungültig machen",
+    "sha256": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Diese Aktion kann nicht rückgängig gemacht werden"
+    "text": "Diese Aktion kann nicht rückgängig gemacht werden",
+    "sha256": "02ccc074"
   },
   "web.account.deleting_ellipsis": {
-    "text": "Wird gelöscht..."
+    "text": "Wird gelöscht...",
+    "sha256": "685ecb98"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Zurück zum Dashboard"
+    "text": "Zurück zum Dashboard",
+    "sha256": "97ba1d39"
   },
   "web.settings.sections.account": {
-    "text": "Konto"
+    "text": "Konto",
+    "sha256": "7e1b0d56"
   },
   "web.settings.sections.billing": {
-    "text": "Abrechnung"
+    "text": "Abrechnung",
+    "sha256": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
-    "text": "Erweitert"
+    "text": "Erweitert",
+    "sha256": "9f088dbe"
   }
 }

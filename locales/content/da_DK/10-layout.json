@@ -1,251 +1,334 @@
 {
   "web.footer.api_docs": {
-    "text": "API-dokumentation"
+    "text": "API-dokumentation",
+    "sha256": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Brandinggguide"
+    "text": "Brandinggguide",
+    "sha256": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "Tilpas"
+    "text": "Tilpas",
+    "sha256": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "Abonnementer"
+    "text": "Abonnementer",
+    "sha256": "dfe8b2f0"
   },
   "web.footer.security": {
-    "text": "Sikkerhed"
+    "text": "Sikkerhed",
+    "sha256": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Lær om vores sikkerhedsforanstaltninger"
+    "text": "Lær om vores sikkerhedsforanstaltninger",
+    "sha256": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Se vores vilkår og betingelser"
+    "text": "Se vores vilkår og betingelser",
+    "sha256": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "Vilkår"
+    "text": "Vilkår",
+    "sha256": "ede54899"
   },
   "web.footer.privacy": {
-    "text": "Privatliv"
+    "text": "Privatliv",
+    "sha256": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "Kontakt"
+    "text": "Kontakt",
+    "sha256": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "Support"
+    "text": "Support",
+    "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Juridisk"
+    "text": "Juridisk",
+    "sha256": "0a410c78"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Læs vores privatlivspolitik"
+    "text": "Læs vores privatlivspolitik",
+    "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Tjek vores servicestatus"
+    "text": "Tjek vores servicestatus",
+    "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Udforsk vores API-dokumentation"
+    "text": "Udforsk vores API-dokumentation",
+    "sha256": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "Dokumentation"
+    "text": "Dokumentation",
+    "sha256": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Få adgang til vores dokumentation"
+    "text": "Få adgang til vores dokumentation",
+    "sha256": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Se vores kildekode på GitHub"
+    "text": "Se vores kildekode på GitHub",
+    "sha256": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "Ressourcer"
+    "text": "Ressourcer",
+    "sha256": "e89b30aa"
   },
   "web.footer.blog": {
-    "text": "Blog"
+    "text": "Blog",
+    "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Læs vores seneste blogindlæg"
+    "text": "Læs vores seneste blogindlæg",
+    "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Se vores abonnementspriser"
+    "text": "Se vores abonnementspriser",
+    "sha256": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Lær om vores virksomhed"
+    "text": "Lær om vores virksomhed",
+    "sha256": "780e18cd"
   },
   "web.footer.company": {
-    "text": "Virksomhed"
+    "text": "Virksomhed",
+    "sha256": "de4743c8"
   },
   "web.navigation.billing": {
-    "text": "Fakturering"
+    "text": "Fakturering",
+    "sha256": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "Oversigt"
+    "text": "Oversigt",
+    "sha256": "d4b1ea57"
   },
   "web.navigation.organizations": {
-    "text": "Organisationer"
+    "text": "Organisationer",
+    "sha256": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Webstedsversion"
+    "text": "Webstedsversion",
+    "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Vi gør {onetime-secret} tilgængelig på flere sprog. Da dette er en ny funktion, kan du støde på oversættelsesfejl eller akavede formuleringer. Din feedback hjælper os med at forbedre os - hvis du opdager problemer, bedes du {send-feedback}"
+    "text": "Vi gør {onetime-secret} tilgængelig på flere sprog. Da dette er en ny funktion, kan du støde på oversættelsesfejl eller akavede formuleringer. Din feedback hjælper os med at forbedre os - hvis du opdager problemer, bedes du {send-feedback}",
+    "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "Oversættelserne er nye. Har du opdaget en fejl? {send-feedback}"
+    "text": "Oversættelserne er nye. Har du opdaget en fejl? {send-feedback}",
+    "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Vi har for nylig tilføjet oversættelser. Fundet en fejl? {send-feedback}"
+    "text": "Vi har for nylig tilføjet oversættelser. Fundet en fejl? {send-feedback}",
+    "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "Privatliv og sikkerhed bør være tilgængeligt for alle, uanset sprog. Vi tilføjer oversættelser for at hjælpe både vores brugere og deres meddelelsesmodtagere med bedre at forstå, hvordan de sikkert kan bruge og få adgang til sikre meddelelser og links. Da dette er en ny funktion, kan du støde på nogle oversættelsesfejl eller uklare instruktioner. For at hjælpe os med at forbedre klarheden og nøjagtigheden af vores oversættelser, især for kritisk sikkerhedsrelateret indhold, bedes du {send-feedback}, hvis du ser nogen problemer."
+    "text": "Privatliv og sikkerhed bør være tilgængeligt for alle, uanset sprog. Vi tilføjer oversættelser for at hjælpe både vores brugere og deres meddelelsesmodtagere med bedre at forstå, hvordan de sikkert kan bruge og få adgang til sikre meddelelser og links. Da dette er en ny funktion, kan du støde på nogle oversættelsesfejl eller uklare instruktioner. For at hjælpe os med at forbedre klarheden og nøjagtigheden af vores oversættelser, især for kritisk sikkerhedsrelateret indhold, bedes du {send-feedback}, hvis du ser nogen problemer.",
+    "sha256": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Lær mere"
+    "text": "Lær mere",
+    "sha256": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Hvad ser jeg på?"
+    "text": "Hvad ser jeg på?",
+    "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser en sikker besked der blev delt med dig gennem Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere."
+    "text": "Du ser en sikker besked der blev delt med dig gennem Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere.",
+    "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Kan jeg se denne besked igen senere?"
+    "text": "Kan jeg se denne besked igen senere?",
+    "sha256": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nej. Af sikkerhedsmæssige årsager kan denne besked kun ses én gang. Efter du lukker denne side, vil indholdet blive permanent slettet og kan ikke gendannes af nogen, inklusive os."
+    "text": "Nej. Af sikkerhedsmæssige årsager kan denne besked kun ses én gang. Efter du lukker denne side, vil indholdet blive permanent slettet og kan ikke gendannes af nogen, inklusive os.",
+    "sha256": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Hvordan gemmer jeg disse oplysninger?"
+    "text": "Hvordan gemmer jeg disse oplysninger?",
+    "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Brug knappen 'Kopier til udklipsholder' for at kopiere hele beskeden. Ved længere beskeder skal du sikre dig, at du har kopieret hele indholdet, før du forlader denne side."
+    "text": "Brug knappen 'Kopier til udklipsholder' for at kopiere hele beskeden. Ved længere beskeder skal du sikre dig, at du har kopieret hele indholdet, før du forlader denne side.",
+    "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Spores min visning af denne besked?"
+    "text": "Spores min visning af denne besked?",
+    "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Afsenderen vil få besked om at deres besked er blevet set, men vi sporer ikke hvem der så den eller fra hvilken lokation. Dit privatliv er beskyttet."
+    "text": "Afsenderen vil få besked om at deres besked er blevet set, men vi sporer ikke hvem der så den eller fra hvilken lokation. Dit privatliv er beskyttet.",
+    "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Når du forlader eller opdaterer denne side, vil beskeden blive permanent slettet og kan ikke gendannes af nogen."
+    "text": "Når du forlader eller opdaterer denne side, vil beskeden blive permanent slettet og kan ikke gendannes af nogen.",
+    "sha256": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Gå tilbage til forrige side"
+    "text": "Gå tilbage til forrige side",
+    "sha256": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Sidefod"
+    "text": "Sidefod",
+    "sha256": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Skift mørk tilstand"
+    "text": "Skift mørk tilstand",
+    "sha256": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Giv feedback"
+    "text": "Giv feedback",
+    "sha256": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "Virksomhedslogo"
+    "text": "Virksomhedslogo",
+    "sha256": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Brand-logo"
+    "text": "Brand-logo",
+    "sha256": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Oversigtsnavigation"
+    "text": "Oversigtsnavigation",
+    "sha256": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "Mobilnavigation"
+    "text": "Mobilnavigation",
+    "sha256": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Hovednavigation"
+    "text": "Hovednavigation",
+    "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} elementer"
+    "text": "{count} elementer",
+    "sha256": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Udgivelsesnoter"
+    "text": "Udgivelsesnoter",
+    "sha256": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Indlæser indstillingsindhold..."
+    "text": "Indlæser indstillingsindhold...",
+    "sha256": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Indstillingssektioner"
+    "text": "Indstillingssektioner",
+    "sha256": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "Luk indstillinger"
+    "text": "Luk indstillinger",
+    "sha256": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Indstillingssektioner"
+    "text": "Indstillingssektioner",
+    "sha256": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Tilpas dine app-præferencer og -indstillinger"
+    "text": "Tilpas dine app-præferencer og -indstillinger",
+    "sha256": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Gå til forsiden"
+    "text": "Gå til forsiden",
+    "sha256": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Gå tilbage til forsiden"
+    "text": "Gå tilbage til forsiden",
+    "sha256": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Gå til forsiden"
+    "text": "Gå til forsiden",
+    "sha256": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Se privatlivspolitik"
+    "text": "Se privatlivspolitik",
+    "sha256": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Se servicevilkår"
+    "text": "Se servicevilkår",
+    "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Besøg Onetime Secret-forsiden"
+    "text": "Besøg Onetime Secret-forsiden",
+    "sha256": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Sidefodnavigation"
+    "text": "Sidefodnavigation",
+    "sha256": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Servicevilkår"
+    "text": "Servicevilkår",
+    "sha256": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "Privatlivspolitik"
+    "text": "Privatlivspolitik",
+    "sha256": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "Ikonbibliotek"
+    "text": "Ikonbibliotek",
+    "sha256": "a73f4c07"
   },
   "web.layout.google_material": {
-    "text": "Google Material"
+    "text": "Google Material",
+    "sha256": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons"
+    "text": "Material Design Icons",
+    "sha256": "0fb27437"
   },
   "web.layout.heroicons": {
-    "text": "Heroicons"
+    "text": "Heroicons",
+    "sha256": "5e7cc07e"
   },
   "web.layout.carbon": {
-    "text": "Carbon"
+    "text": "Carbon",
+    "sha256": "694c87c2"
   },
   "web.layout.font_awesome_6": {
-    "text": "Font Awesome 6"
+    "text": "Font Awesome 6",
+    "sha256": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Se kildekode på GitHub"
+    "text": "Se kildekode på GitHub",
+    "sha256": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Webstedsversion: v{0}"
+    "text": "Webstedsversion: v{0}",
+    "sha256": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Skift sprog. Nuværende sprog er {0}"
+    "text": "Skift sprog. Nuværende sprog er {0}",
+    "sha256": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Sprog ændret til {0}"
+    "text": "Sprog ændret til {0}",
+    "sha256": "1680f4fe"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Skift til {0}-tilstand"
+    "text": "Skift til {0}-tilstand",
+    "sha256": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0}-tilstand aktiveret"
+    "text": "{0}-tilstand aktiveret",
+    "sha256": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Arbejdsområde"
+    "text": "Arbejdsområde",
+    "sha256": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Arbejdsområdekontekst"
+    "text": "Arbejdsområdekontekst",
+    "sha256": "dc6fa4f5"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Når du sender feedback, kan vi se:"
+    "text": "Når du sender feedback, kan vi se:",
+    "sha256": "fe77172e"
   },
   "web.layout.reset_to_default_language": {
-    "text": "Nulstil til {0}"
+    "text": "Nulstil til {0}",
+    "sha256": "c0cfa9b2"
   }
 }

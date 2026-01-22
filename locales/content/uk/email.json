@@ -1,446 +1,594 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Заявка: %s]"
+    "text": "[Заявка: %s]",
+    "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Клієнт надіслав наступну інформацію"
+    "text": "Клієнт надіслав наступну інформацію",
+    "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} надіслав(-ла) Вам таємницю"
+    "text": "%{sender_email} надіслав(-ла) Вам таємницю",
+    "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "надіслав(-ла) Вам таємницю:"
+    "text": "надіслав(-ла) Вам таємницю:",
+    "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Важливо:"
+    "text": "Важливо:",
+    "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Це посилання працюватиме лише один раз. Після перегляду таємницю буде остаточно видалено."
+    "text": "Це посилання працюватиме лише один раз. Після перегляду таємницю буде остаточно видалено.",
+    "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Надіслано через"
+    "text": "Надіслано через",
+    "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Ласкаво просимо до %{product_name} - Будь ласка, підтвердіть Вашу електронну адресу"
+    "text": "Ласкаво просимо до %{product_name} - Будь ласка, підтвердіть Вашу електронну адресу",
+    "sha256": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Ласкаво просимо до %{product_name}!"
+    "text": "Ласкаво просимо до %{product_name}!",
+    "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Будь ласка, підтвердіть Вашу електронну адресу, натиснувши на посилання нижче:"
+    "text": "Будь ласка, підтвердіть Вашу електронну адресу, натиснувши на посилання нижче:",
+    "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Підтвердити електронну адресу"
+    "text": "Підтвердити електронну адресу",
+    "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Або скопіюйте та вставте це посилання:"
+    "text": "Або скопіюйте та вставте це посилання:",
+    "sha256": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Цей лист було надіслано на %{email_address}. Якщо Ви не створювали обліковий запис, Ви можете спокійно проігнорувати це повідомлення."
+    "text": "P.S. Цей лист було надіслано на %{email_address}. Якщо Ви не створювали обліковий запис, Ви можете спокійно проігнорувати це повідомлення.",
+    "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Скидання пароля (%{display_domain})"
+    "text": "Скидання пароля (%{display_domain})",
+    "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Скидання Вашого пароля"
+    "text": "Скидання Вашого пароля",
+    "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Ми отримали запит на скидання Вашого пароля для %{product_name}."
+    "text": "Ми отримали запит на скидання Вашого пароля для %{product_name}.",
+    "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Скинути пароль"
+    "text": "Скинути пароль",
+    "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Або скопіюйте та вставте це посилання:"
+    "text": "Або скопіюйте та вставте це посилання:",
+    "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Якщо Ви не запитували скидання пароля, Ви можете спокійно проігнорувати цей лист."
+    "text": "Якщо Ви не запитували скидання пароля, Ви можете спокійно проігнорувати цей лист.",
+    "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Цей лист було надіслано на %{email_address}."
+    "text": "P.S. Цей лист було надіслано на %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Увійти до %{display_domain}"
+    "text": "Увійти до %{display_domain}",
+    "sha256": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Увійти за допомогою магічного посилання"
+    "text": "Увійти за допомогою магічного посилання",
+    "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Ви запросили посилання для входу до Вашого облікового запису %{product_name}."
+    "text": "Ви запросили посилання для входу до Вашого облікового запису %{product_name}.",
+    "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Увійти"
+    "text": "Увійти",
+    "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Або скопіюйте та вставте це посилання:"
+    "text": "Або скопіюйте та вставте це посилання:",
+    "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Термін дії цього посилання закінчується через 15 хвилин."
+    "text": "Термін дії цього посилання закінчується через 15 хвилин.",
+    "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Якщо Ви не запитували це посилання, Ви можете спокійно проігнорувати цей лист."
+    "text": "Якщо Ви не запитували це посилання, Ви можете спокійно проігнорувати цей лист.",
+    "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Цей лист було надіслано на %{email_address}."
+    "text": "P.S. Цей лист було надіслано на %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Ви отримали таємне повідомлення"
+    "text": "Ви отримали таємне повідомлення",
+    "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Ви отримали захищене повідомлення:"
+    "text": "Ви отримали захищене повідомлення:",
+    "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Нагадування:"
+    "text": "Нагадування:",
+    "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Хтось надіслав Вам захищене повідомлення через %{display_domain}."
+    "text": "Хтось надіслав Вам захищене повідомлення через %{display_domain}.",
+    "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Щоб переглянути цю таємницю, натисніть на посилання нижче:"
+    "text": "Щоб переглянути цю таємницю, натисніть на посилання нижче:",
+    "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Важливо:"
+    "text": "Важливо:",
+    "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Це посилання працюватиме лише один раз. Після перегляду таємницю буде остаточно видалено."
+    "text": "Це посилання працюватиме лише один раз. Після перегляду таємницю буде остаточно видалено.",
+    "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Надіслано через"
+    "text": "Надіслано через",
+    "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Вашу таємницю переглянули"
+    "text": "Вашу таємницю переглянули",
+    "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Вашу таємницю переглянули"
+    "text": "Вашу таємницю переглянули",
+    "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Вашу таємницю переглянули %{date}."
+    "text": "Вашу таємницю переглянули %{date}.",
+    "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "ID таємниці:"
+    "text": "ID таємниці:",
+    "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Це автоматичне сповіщення. Дії не потрібні."
+    "text": "Це автоматичне сповіщення. Дії не потрібні.",
+    "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Керувати налаштуваннями сповіщень"
+    "text": "Керувати налаштуваннями сповіщень",
+    "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Щоб керувати налаштуваннями сповіщень:"
+    "text": "Щоб керувати налаштуваннями сповіщень:",
+    "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Термін дії Вашого таємного посилання скоро закінчиться"
+    "text": "Термін дії Вашого таємного посилання скоро закінчиться",
+    "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Термін дії Вашого таємного посилання закінчується через %{time_remaining}"
+    "text": "Термін дії Вашого таємного посилання закінчується через %{time_remaining}",
+    "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Переглянути таємницю до закінчення терміну дії"
+    "text": "Переглянути таємницю до закінчення терміну дії",
+    "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Нагадування:"
+    "text": "Нагадування:",
+    "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Після закінчення терміну дії таємницю буде остаточно видалено і неможливо буде відновити."
+    "text": "Після закінчення терміну дії таємницю буде остаточно видалено і неможливо буде відновити.",
+    "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Надіслано через"
+    "text": "Надіслано через",
+    "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Перегляньте, поки не зникло:"
+    "text": "Перегляньте, поки не зникло:",
+    "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Після закінчення терміну дії таємницю буде остаточно видалено."
+    "text": "Після закінчення терміну дії таємницю буде остаточно видалено.",
+    "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Відгук за %{date} через %{display_domain} (%{strategy})"
+    "text": "Відгук за %{date} через %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Відгук користувача"
+    "text": "Відгук користувача",
+    "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "Від:"
+    "text": "Від:",
+    "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Домен:"
+    "text": "Домен:",
+    "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Стратегія:"
+    "text": "Стратегія:",
+    "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Повідомлення:"
+    "text": "Повідомлення:",
+    "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Служба підтримки Secret"
+    "text": "Служба підтримки Secret",
+    "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Вас запрошено приєднатися до %{organization_name}"
+    "text": "Вас запрошено приєднатися до %{organization_name}",
+    "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Вас запрошено приєднатися до %{organization_name}!"
+    "text": "Вас запрошено приєднатися до %{organization_name}!",
+    "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} запросив Вас приєднатися до «%{organization_name}» як %{role_description}."
+    "text": "%{inviter_email} запросив Вас приєднатися до «%{organization_name}» як %{role_description}.",
+    "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Прийняти запрошення"
+    "text": "Прийняти запрошення",
+    "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Або скопіюйте та вставте це посилання:"
+    "text": "Або скопіюйте та вставте це посилання:",
+    "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Термін дії цього запрошення закінчується через %{days} днів."
+    "text": "Термін дії цього запрошення закінчується через %{days} днів.",
+    "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Якщо Ви не хочете приєднуватися, Ви можете просто проігнорувати цей лист або відхилити запрошення."
+    "text": "Якщо Ви не хочете приєднуватися, Ви можете просто проігнорувати цей лист або відхилити запрошення.",
+    "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Цей лист було надіслано на %{invited_email}. Якщо Ви не очікували цього запрошення, Ви можете спокійно проігнорувати це повідомлення."
+    "text": "P.S. Цей лист було надіслано на %{invited_email}. Якщо Ви не очікували цього запрошення, Ви можете спокійно проігнорувати це повідомлення.",
+    "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "учасник"
+    "text": "учасник",
+    "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "адміністратор"
+    "text": "адміністратор",
+    "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Ваш пароль було змінено (%{display_domain})"
+    "text": "Ваш пароль було змінено (%{display_domain})",
+    "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Ваш пароль було змінено"
+    "text": "Ваш пароль було змінено",
+    "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Ваш пароль для %{product_name} було змінено %{date} о %{time}."
+    "text": "Ваш пароль для %{product_name} було змінено %{date} о %{time}.",
+    "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно захистіть свій обліковий запис, скинувши пароль та зв'язавшись зі службою підтримки."
+    "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно захистіть свій обліковий запис, скинувши пароль та зв'язавшись зі службою підтримки.",
+    "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Вашу електронну адресу було змінено (%{display_domain})"
+    "text": "Вашу електронну адресу було змінено (%{display_domain})",
+    "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Вашу електронну адресу було змінено"
+    "text": "Вашу електронну адресу було змінено",
+    "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Електронну адресу для Вашого облікового запису %{product_name} було змінено на %{new_email_masked} %{date}."
+    "text": "Електронну адресу для Вашого облікового запису %{product_name} було змінено на %{new_email_masked} %{date}.",
+    "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно зверніться до служби підтримки, оскільки Ваш обліковий запис може бути скомпрометовано."
+    "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно зверніться до служби підтримки, оскільки Ваш обліковий запис може бути скомпрометовано.",
+    "sha256": "f505b562"
   },
   "email.email_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Підтвердіть Вашу нову електронну адресу (%{display_domain})"
+    "text": "Підтвердіть Вашу нову електронну адресу (%{display_domain})",
+    "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Підтвердіть Вашу нову електронну адресу"
+    "text": "Підтвердіть Вашу нову електронну адресу",
+    "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Будь ласка, підтвердіть цю електронну адресу, щоб завершити зміну для Вашого облікового запису %{product_name}."
+    "text": "Будь ласка, підтвердіть цю електронну адресу, щоб завершити зміну для Вашого облікового запису %{product_name}.",
+    "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Підтвердити електронну адресу"
+    "text": "Підтвердити електронну адресу",
+    "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Або скопіюйте та вставте це посилання:"
+    "text": "Або скопіюйте та вставте це посилання:",
+    "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
-    "text": "Двофакторну автентифікацію увімкнено (%{display_domain})"
+    "text": "Двофакторну автентифікацію увімкнено (%{display_domain})",
+    "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Двофакторну автентифікацію увімкнено"
+    "text": "Двофакторну автентифікацію увімкнено",
+    "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Двофакторну автентифікацію було увімкнено для Вашого облікового запису %{product_name} %{date}."
+    "text": "Двофакторну автентифікацію було увімкнено для Вашого облікового запису %{product_name} %{date}.",
+    "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Ваш обліковий запис тепер більш захищений. Вам потрібно буде вводити код підтвердження з Вашого додатку автентифікації під час входу."
+    "text": "Ваш обліковий запис тепер більш захищений. Вам потрібно буде вводити код підтвердження з Вашого додатку автентифікації під час входу.",
+    "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Двофакторну автентифікацію вимкнено (%{display_domain})"
+    "text": "Двофакторну автентифікацію вимкнено (%{display_domain})",
+    "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Двофакторну автентифікацію вимкнено"
+    "text": "Двофакторну автентифікацію вимкнено",
+    "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Двофакторну автентифікацію було вимкнено для Вашого облікового запису %{product_name} %{date}."
+    "text": "Двофакторну автентифікацію було вимкнено для Вашого облікового запису %{product_name} %{date}.",
+    "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Ваш обліковий запис тепер менш захищений. Якщо Ви не робили цієї зміни, будь ласка, негайно захистіть свій обліковий запис."
+    "text": "Ваш обліковий запис тепер менш захищений. Якщо Ви не робили цієї зміни, будь ласка, негайно захистіть свій обліковий запис.",
+    "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Новий вхід до Вашого облікового запису (%{display_domain})"
+    "text": "Новий вхід до Вашого облікового запису (%{display_domain})",
+    "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Виявлено новий вхід"
+    "text": "Виявлено новий вхід",
+    "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Виявлено новий вхід до Вашого облікового запису %{product_name} %{date} о %{time}."
+    "text": "Виявлено новий вхід до Вашого облікового запису %{product_name} %{date} о %{time}.",
+    "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Пристрій:"
+    "text": "Пристрій:",
+    "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Місцезнаходження:"
+    "text": "Місцезнаходження:",
+    "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IP-адреса:"
+    "text": "IP-адреса:",
+    "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Якщо це були не Ви, Ваш обліковий запис може бути скомпрометовано."
+    "text": "Якщо це були не Ви, Ваш обліковий запис може бути скомпрометовано.",
+    "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Захистити Ваш обліковий запис"
+    "text": "Захистити Ваш обліковий запис",
+    "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Вас видалено з %{organization_name}"
+    "text": "Вас видалено з %{organization_name}",
+    "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Вас видалено з %{organization_name}"
+    "text": "Вас видалено з %{organization_name}",
+    "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Вас видалено з організації «%{organization_name}» на %{product_name}."
+    "text": "Вас видалено з організації «%{organization_name}» на %{product_name}.",
+    "sha256": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Вашу роль змінено в %{organization_name}"
+    "text": "Вашу роль змінено в %{organization_name}",
+    "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Вашу роль змінено"
+    "text": "Вашу роль змінено",
+    "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Вашу роль в «%{organization_name}» було змінено з %{old_role} на %{new_role}."
+    "text": "Вашу роль в «%{organization_name}» було змінено з %{old_role} на %{new_role}.",
+    "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Організацію «%{organization_name}» видалено"
+    "text": "Організацію «%{organization_name}» видалено",
+    "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Організацію видалено"
+    "text": "Організацію видалено",
+    "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Організацію «%{organization_name}» було видалено з %{product_name}. Усі пов'язані дані було видалено."
+    "text": "Організацію «%{organization_name}» було видалено з %{product_name}. Усі пов'язані дані було видалено.",
+    "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Квитанція про оплату за %{product_name}"
+    "text": "Квитанція про оплату за %{product_name}",
+    "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Квитанція про оплату"
+    "text": "Квитанція про оплату",
+    "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Дякуємо за Вашу оплату. Ось деталі Вашого платежу:"
+    "text": "Дякуємо за Вашу оплату. Ось деталі Вашого платежу:",
+    "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Сума:"
+    "text": "Сума:",
+    "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "Дата:"
+    "text": "Дата:",
+    "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "План:"
+    "text": "План:",
+    "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Переглянути рахунок"
+    "text": "Переглянути рахунок",
+    "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Помилка оплати для %{product_name}"
+    "text": "Помилка оплати для %{product_name}",
+    "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Помилка оплати"
+    "text": "Помилка оплати",
+    "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Нам не вдалося обробити Вашу оплату за %{product_name}. Будь ласка, оновіть спосіб оплати, щоб уникнути перерви в обслуговуванні."
+    "text": "Нам не вдалося обробити Вашу оплату за %{product_name}. Будь ласка, оновіть спосіб оплати, щоб уникнути перерви в обслуговуванні.",
+    "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Оновити спосіб оплати"
+    "text": "Оновити спосіб оплати",
+    "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Ваш пробний період %{product_name} закінчується через %{days_remaining} днів"
+    "text": "Ваш пробний період %{product_name} закінчується через %{days_remaining} днів",
+    "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Ваш пробний період скоро закінчується"
+    "text": "Ваш пробний період скоро закінчується",
+    "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Ваш безкоштовний пробний період %{product_name} закінчується через %{days_remaining} днів. Оновіть зараз, щоб зберегти доступ до всіх функцій."
+    "text": "Ваш безкоштовний пробний період %{product_name} закінчується через %{days_remaining} днів. Оновіть зараз, щоб зберегти доступ до всіх функцій.",
+    "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Оновити зараз"
+    "text": "Оновити зараз",
+    "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Вашу підписку на %{product_name} змінено"
+    "text": "Вашу підписку на %{product_name} змінено",
+    "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Підписку змінено"
+    "text": "Підписку змінено",
+    "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Вашу підписку на %{product_name} було змінено з %{old_plan} на %{new_plan}."
+    "text": "Вашу підписку на %{product_name} було змінено з %{old_plan} на %{new_plan}.",
+    "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ця зміна набуває чинності %{date}."
+    "text": "Ця зміна набуває чинності %{date}.",
+    "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Вітаємо,"
+    "text": "Вітаємо,",
+    "sha256": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Дякуємо,"
+    "text": "Дякуємо,",
+    "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Відписатися"
+    "text": "Відписатися",
+    "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Переглянути у браузері"
+    "text": "Переглянути у браузері",
+    "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret"
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
   }
 }

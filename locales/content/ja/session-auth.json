@@ -1,269 +1,357 @@
 {
   "web.login.alternate_prefix": {
-    "text": "アカウントが必要ですか?"
+    "text": "アカウントが必要ですか?",
+    "sha256": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "登録する"
+    "text": "登録する",
+    "sha256": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "パスワードを忘れましたか?"
+    "text": "パスワードを忘れましたか?",
+    "sha256": "afd25fdf"
   },
   "web.login.button_sign_in": {
-    "text": "ログイン"
+    "text": "ログイン",
+    "sha256": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "認証情報を入力"
+    "text": "認証情報を入力",
+    "sha256": "07e1c44e"
   },
   "web.login.remember_me": {
-    "text": "ログイン状態を維持"
+    "text": "ログイン状態を維持",
+    "sha256": "f93267aa"
   },
   "web.signup.create_your_account": {
-    "text": "アカウントを作成"
+    "text": "アカウントを作成",
+    "sha256": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "既にアカウントをお持ちですか?"
+    "text": "既にアカウントをお持ちですか?",
+    "sha256": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "ログイン"
+    "text": "ログイン",
+    "sha256": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "アカウント作成エラー"
+    "text": "アカウント作成エラー",
+    "sha256": "e380a0b6"
   },
   "web.signup.password_error": {
-    "text": "パスワード"
+    "text": "パスワード",
+    "sha256": "e7cf3ef4"
   },
   "web.signup.email_error": {
-    "text": "メール"
+    "text": "メール",
+    "sha256": "969ccbd3"
   },
   "web.auth.verify.title": {
-    "text": "アカウントを認証"
+    "text": "アカウントを認証",
+    "sha256": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "アカウントが正常に認証されました"
+    "text": "アカウントが正常に認証されました",
+    "sha256": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "無効または期限切れの認証キー"
+    "text": "無効または期限切れの認証キー",
+    "sha256": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "この認証リンクは期限切れです。新しいリンクをリクエストしてください。"
+    "text": "この認証リンクは期限切れです。新しいリンクをリクエストしてください。",
+    "sha256": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "このアカウントは既に認証されています。ログインできます。"
+    "text": "このアカウントは既に認証されています。ログインできます。",
+    "sha256": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "アカウントを認証できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。"
+    "text": "アカウントを認証できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。",
+    "sha256": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "認証リンクについてメールを確認してください"
+    "text": "認証リンクについてメールを確認してください",
+    "sha256": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "アカウントの認証に失敗しました。認証リンクを確認するか、新しいリンクをリクエストしてください。"
+    "text": "アカウントの認証に失敗しました。認証リンクを確認するか、新しいリンクをリクエストしてください。",
+    "sha256": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "認証に失敗しました"
+    "text": "認証に失敗しました",
+    "sha256": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
-    "text": "どうすればいいですか?"
+    "text": "どうすればいいですか?",
+    "sha256": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "最新の認証リンクについてメールを確認してください"
+    "text": "最新の認証リンクについてメールを確認してください",
+    "sha256": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "メールが見つからない場合は迷惑メールフォルダを確認してください"
+    "text": "メールが見つからない場合は迷惑メールフォルダを確認してください",
+    "sha256": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "問題が続く場合はサポートにお問い合わせください"
+    "text": "問題が続く場合はサポートにお問い合わせください",
+    "sha256": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "認証リンクが必要です"
+    "text": "認証リンクが必要です",
+    "sha256": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "アカウントを認証するには、メールアドレスに送信された認証リンクを使用してください。"
+    "text": "アカウントを認証するには、メールアドレスに送信された認証リンクを使用してください。",
+    "sha256": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "新しいアカウントを作成"
+    "text": "新しいアカウントを作成",
+    "sha256": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "パスワードを変更"
+    "text": "パスワードを変更",
+    "sha256": "a949f462"
   },
   "web.auth.change_password.current_password": {
-    "text": "現在のパスワード"
+    "text": "現在のパスワード",
+    "sha256": "8ac76099"
   },
   "web.auth.change_password.new_password": {
-    "text": "新しいパスワード"
+    "text": "新しいパスワード",
+    "sha256": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "新しいパスワードを確認"
+    "text": "新しいパスワードを確認",
+    "sha256": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "パスワードが正常に変更されました"
+    "text": "パスワードが正常に変更されました",
+    "sha256": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "パスワードの変更に失敗しました。現在のパスワードを確認してもう一度お試しください。"
+    "text": "パスワードの変更に失敗しました。現在のパスワードを確認してもう一度お試しください。",
+    "sha256": "1aa11b3f"
   },
   "web.auth.close_account.title": {
-    "text": "アカウントを閉鎖"
+    "text": "アカウントを閉鎖",
+    "sha256": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "この操作は取り消せません。すべてのシークレットが完全に削除されます。"
+    "text": "この操作は取り消せません。すべてのシークレットが完全に削除されます。",
+    "sha256": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "この操作は取り消せないことを理解しています"
+    "text": "この操作は取り消せないことを理解しています",
+    "sha256": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "確認のためパスワードを入力"
+    "text": "確認のためパスワードを入力",
+    "sha256": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "アカウントを完全に閉鎖"
+    "text": "アカウントを完全に閉鎖",
+    "sha256": "0713c012"
   },
   "web.auth.close_account.cancel": {
-    "text": "キャンセル"
+    "text": "キャンセル",
+    "sha256": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "パスワードリセットをリクエスト"
+    "text": "パスワードリセットをリクエスト",
+    "sha256": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "以下にメールアドレスを入力すると、パスワードをリセットするためのリンクを送信します"
+    "text": "以下にメールアドレスを入力すると、パスワードをリセットするためのリンクを送信します",
+    "sha256": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "リセットリンクを送信"
+    "text": "リセットリンクを送信",
+    "sha256": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "新しいパスワードを選択"
+    "text": "新しいパスワードを選択",
+    "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "以下に新しいパスワードを入力してください。アカウントを保護するため、強力でユニークなものにしてください。"
+    "text": "以下に新しいパスワードを入力してください。アカウントを保護するため、強力でユニークなものにしてください。",
+    "sha256": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "アカウントのパスワードをリセットするためのリンクが記載されたメールを送信しました"
+    "text": "アカウントのパスワードをリセットするためのリンクが記載されたメールを送信しました",
+    "sha256": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "同意します:"
+    "text": "同意します:",
+    "sha256": "26a58d00"
   },
   "web.auth.account.title": {
-    "text": "アカウント情報"
+    "text": "アカウント情報",
+    "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
-    "text": "メールアドレス"
+    "text": "メールアドレス",
+    "sha256": "09bf25ef"
   },
   "web.auth.account.created": {
-    "text": "アカウント作成日"
+    "text": "アカウント作成日",
+    "sha256": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "メール認証済み"
+    "text": "メール認証済み",
+    "sha256": "bc512ab0"
   },
   "web.auth.account.region": {
-    "text": "リージョン"
+    "text": "リージョン",
+    "sha256": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "メール未認証"
+    "text": "メール未認証",
+    "sha256": "53955e0e"
   },
   "web.auth.account.verify_email": {
-    "text": "メールアドレスを認証"
+    "text": "メールアドレスを認証",
+    "sha256": "d261b9df"
   },
   "web.auth.account.mfa_status": {
-    "text": "二要素認証"
+    "text": "二要素認証",
+    "sha256": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "有効"
+    "text": "有効",
+    "sha256": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "無効"
+    "text": "無効",
+    "sha256": "75081b59"
   },
   "web.auth.account.active_sessions": {
-    "text": "アクティブセッション"
+    "text": "アクティブセッション",
+    "sha256": "b58fa4e0"
   },
   "web.auth.account.session_count": {
-    "text": "{count}件のアクティブセッション"
+    "text": "{count}件のアクティブセッション",
+    "sha256": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
-    "text": "クイックアクション"
+    "text": "クイックアクション",
+    "sha256": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "二要素認証を管理"
+    "text": "二要素認証を管理",
+    "sha256": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
-    "text": "アクティブセッションを管理"
+    "text": "アクティブセッションを管理",
+    "sha256": "c5d54d87"
   },
   "web.auth.account.change_password": {
-    "text": "パスワードを変更"
+    "text": "パスワードを変更",
+    "sha256": "a949f462"
   },
   "web.auth.account.close_account": {
-    "text": "アカウントを閉鎖"
+    "text": "アカウントを閉鎖",
+    "sha256": "e1513814"
   },
   "web.auth.verify._guidance.context": {
     "text": "サインアップ後のメール認証フロー"
   },
   "web.help.title": {
-    "text": "ヘルプとサポート"
+    "text": "ヘルプとサポート",
+    "sha256": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "ログインのトラブルシューティング"
+    "text": "ログインのトラブルシューティング",
+    "sha256": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "マジックリンクが届きませんか?"
+    "text": "マジックリンクが届きませんか?",
+    "sha256": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "迷惑メールフォルダを確認してください"
+    "text": "迷惑メールフォルダを確認してください",
+    "sha256": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "メールアドレスを正しく入力したか確認してください"
+    "text": "メールアドレスを正しく入力したか確認してください",
+    "sha256": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "数分お待ちください - メールが遅れることがあります"
+    "text": "数分お待ちください - メールが遅れることがあります",
+    "sha256": "884fc272"
   },
   "web.help.try_again": {
-    "text": "10分以上経過した場合は、新しいリンクをリクエストしてください"
+    "text": "10分以上経過した場合は、新しいリンクをリクエストしてください",
+    "sha256": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "パスワードを忘れましたか?"
+    "text": "パスワードを忘れましたか?",
+    "sha256": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "マジックリンクオプションを使用して、パスワードなしでログインできます。ログイン後、アカウント設定でパスワードを変更できます。"
+    "text": "マジックリンクオプションを使用して、パスワードなしでログインできます。ログイン後、アカウント設定でパスワードを変更できます。",
+    "sha256": "2a058600"
   },
   "web.help.account_locked": {
-    "text": "アカウントが一時的にロックされましたか?"
+    "text": "アカウントが一時的にロックされましたか?",
+    "sha256": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "複数回のログイン失敗後、セキュリティのためアカウントは一時的にロックされます。15分待ってから再試行するか、マジックリンクを使用してログインしてください。"
+    "text": "複数回のログイン失敗後、セキュリティのためアカウントは一時的にロックされます。15分待ってから再試行するか、マジックリンクを使用してログインしてください。",
+    "sha256": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "まだ助けが必要ですか?"
+    "text": "まだ助けが必要ですか?",
+    "sha256": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "まだ問題がある場合は、お手伝いします。メッセージをお送りいただければ、できるだけ早くご連絡いたします。"
+    "text": "まだ問題がある場合は、お手伝いします。メッセージをお送りいただければ、できるだけ早くご連絡いたします。",
+    "sha256": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "サポートに連絡"
+    "text": "サポートに連絡",
+    "sha256": "f8d47b82"
   },
   "web.login.send_sign_in_link": {
-    "text": "ログインリンクを送信"
+    "text": "ログインリンクを送信",
+    "sha256": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "安全なリンクがメールに送信されます。"
+    "text": "安全なリンクがメールに送信されます。",
+    "sha256": "d31d20cf"
   },
   "web.login.or_divider": {
-    "text": "または"
+    "text": "または",
+    "sha256": "7175517a"
   },
   "web.login.sign_in_with_password": {
-    "text": "パスワードでログイン"
+    "text": "パスワードでログイン",
+    "sha256": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "パスワードなしでログイン"
+    "text": "パスワードなしでログイン",
+    "sha256": "dddc0097"
   },
   "web.login.create_account": {
-    "text": "アカウントを作成"
+    "text": "アカウントを作成",
+    "sha256": "798ca2ce"
   },
   "web.login.return_home": {
-    "text": "ホームに戻る"
+    "text": "ホームに戻る",
+    "sha256": "bbcc935e"
   },
   "web.login.tab_password": {
-    "text": "パスワード"
+    "text": "パスワード",
+    "sha256": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "マジックリンク"
+    "text": "マジックリンク",
+    "sha256": "7a9ba11a"
   },
   "web.login.need_help": {
-    "text": "ヘルプが必要ですか?"
+    "text": "ヘルプが必要ですか?",
+    "sha256": "c225cdfb"
   }
 }

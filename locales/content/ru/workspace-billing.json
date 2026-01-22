@@ -1,623 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Требуется обновление"
+    "text": "Требуется обновление",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Просмотреть планы"
+    "text": "Просмотреть планы",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Управление командами требует Identity Plus или выше"
+    "text": "Управление командами требует Identity Plus или выше",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Пользовательские домены требуют Identity Plus или выше"
+    "text": "Пользовательские домены требуют Identity Plus или выше",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Доступ к API требует Identity Plus или выше"
+    "text": "Доступ к API требует Identity Plus или выше",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Журналы аудита требуют Multi-Team или выше"
+    "text": "Журналы аудита требуют Multi-Team или выше",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Управление подпиской, организациями и настройками оплаты"
+    "text": "Управление подпиской, организациями и настройками оплаты",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "Обзор оплаты"
+    "text": "Обзор оплаты",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Просмотр и управление подпиской и платёжными данными"
+    "text": "Просмотр и управление подпиской и платёжными данными",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Выбор организации"
   },
   "web.billing.overview.current_plan": {
-    "text": "Текущий план"
+    "text": "Текущий план",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Возможности плана"
+    "text": "Возможности плана",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "Способ оплаты"
+    "text": "Способ оплаты",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Следующая дата оплаты"
+    "text": "Следующая дата оплаты",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Быстрые действия"
+    "text": "Быстрые действия",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Управление оплатой"
+    "text": "Управление оплатой",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Просмотреть счета"
+    "text": "Просмотреть счета",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Обновить план"
+    "text": "Обновить план",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Сменить план"
+    "text": "Сменить план",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Способ оплаты не указан"
+    "text": "Способ оплаты не указан",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Нет предстоящих платежей"
+    "text": "Нет предстоящих платежей",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "дней осталось"
+    "text": "дней осталось",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "Оплата {date}"
+    "text": "Оплата {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Просмотреть планы"
+    "text": "Просмотреть планы",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Сравнить и обновить"
+    "text": "Сравнить и обновить",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Просмотреть счета"
+    "text": "Просмотреть счета",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Скачать историю"
+    "text": "Скачать историю",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Управление оплатой"
+    "text": "Управление оплатой",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Обновить платёжные данные"
+    "text": "Обновить платёжные данные",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Нет организаций"
+    "text": "Нет организаций",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Создайте организацию для управления оплатой и подпиской"
+    "text": "Создайте организацию для управления оплатой и подпиской",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Создание секретов"
+    "text": "Создание секретов",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Просмотр квитанций"
+    "text": "Просмотр квитанций",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "Доступ к API"
+    "text": "Доступ к API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Пользовательские домены"
+    "text": "Пользовательские домены",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Настройки конфиденциальности по умолчанию"
+    "text": "Настройки конфиденциальности по умолчанию",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Расширенный срок действия по умолчанию"
+    "text": "Расширенный срок действия по умолчанию",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Настройки почты по умолчанию"
+    "text": "Настройки почты по умолчанию",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Пользовательский брендинг"
+    "text": "Пользовательский брендинг",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Брендированная главная"
+    "text": "Брендированная главная",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Входящие секреты"
+    "text": "Входящие секреты",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Управление организациями"
+    "text": "Управление организациями",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Управление командами"
+    "text": "Управление командами",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Управление участниками"
+    "text": "Управление участниками",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Журналы аудита"
+    "text": "Журналы аудита",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Единый вход"
+    "text": "Единый вход",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Приоритетная поддержка"
+    "text": "Приоритетная поддержка",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Соглашение об уровне обслуживания"
+    "text": "Соглашение об уровне обслуживания",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Не удалось загрузить детали функций"
+    "text": "Не удалось загрузить детали функций",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Нет доступных функций"
+    "text": "Нет доступных функций",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "Выберите план"
+    "text": "Выберите план",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Выберите план, который Вам подходит"
+    "text": "Выберите план, который Вам подходит",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Выберите идеальный план для Вашей организации"
+    "text": "Выберите идеальный план для Вашей организации",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Текущий план"
+    "text": "Текущий план",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "Текущий"
+    "text": "Текущий",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "Обновить"
+    "text": "Обновить",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Понизить"
+    "text": "Понизить",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "Ежемесячно"
+    "text": "Ежемесячно",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "Ежегодно"
+    "text": "Ежегодно",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "/месяц"
+    "text": "/месяц",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Экономьте {percent}% при годовой оплате"
+    "text": "Экономьте {percent}% при годовой оплате",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "Бесплатный"
+    "text": "Бесплатный",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Single Team"
+    "text": "Single Team",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi Team"
+    "text": "Multi Team",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "Личный аккаунт"
+    "text": "Личный аккаунт",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "Командный аккаунт"
+    "text": "Командный аккаунт",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Аккаунт организации"
+    "text": "Аккаунт организации",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Возможности"
+    "text": "Возможности",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Неограниченные секреты"
+    "text": "Неограниченные секреты",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "Доступ к API"
+    "text": "Доступ к API",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "Приоритетная поддержка"
+    "text": "Приоритетная поддержка",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Выбрать план"
+    "text": "Выбрать план",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Связаться с отделом продаж"
+    "text": "Связаться с отделом продаж",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Есть вопросы или нужно что-то особенное?"
+    "text": "Есть вопросы или нужно что-то особенное?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Мы будем рады услышать от Вас. Расскажите, что Вы ищете."
+    "text": "Мы будем рады услышать от Вас. Расскажите, что Вы ищете.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} команда | {count} команды | {count} команд"
+    "text": "{count} команда | {count} команды | {count} команд",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} участник в команде | {count} участника в команде | {count} участников в команде"
+    "text": "{count} участник в команде | {count} участника в команде | {count} участников в команде",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Неограниченные команды"
+    "text": "Неограниченные команды",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Неограниченное количество участников в команде"
+    "text": "Неограниченное количество участников в команде",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Самый популярный"
+    "text": "Самый популярный",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Рекомендуется"
+    "text": "Рекомендуется",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Включает всё из {plan}"
+    "text": "Включает всё из {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Нет доступных {interval} планов в данный момент."
+    "text": "Нет доступных {interval} планов в данный момент.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Ваш план изменится немедленно."
+    "text": "Ваш план изменится немедленно.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Текущий план:"
+    "text": "Текущий план:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Новый план:"
+    "text": "Новый план:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Кредит за неиспользованное время:"
+    "text": "Кредит за неиспользованное время:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Следующий счёт"
+    "text": "Следующий счёт",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Лимиты функций обновятся сразу после изменения плана."
+    "text": "Лимиты функций обновятся сразу после изменения плана.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Не удалось изменить план. Попробуйте ещё раз."
+    "text": "Не удалось изменить план. Попробуйте ещё раз.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Подтвердить обновление"
+    "text": "Подтвердить обновление",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Подтвердить понижение"
+    "text": "Подтвердить понижение",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Перейти на {plan}?"
+    "text": "Перейти на {plan}?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Понизить до {plan}?"
+    "text": "Понизить до {plan}?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "История оплаты"
+    "text": "История оплаты",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Просмотр истории оплаты и скачивание счетов"
+    "text": "Просмотр истории оплаты и скачивание счетов",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "Дата"
+    "text": "Дата",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "Сумма"
+    "text": "Сумма",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "Статус"
+    "text": "Статус",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Скачать"
+    "text": "Скачать",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Счетов пока нет"
+    "text": "Счетов пока нет",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "Оплачено"
+    "text": "Оплачено",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "В ожидании"
+    "text": "В ожидании",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Не удалось"
+    "text": "Не удалось",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "Не удалось загрузить счета"
+    "text": "Не удалось загрузить счета",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Оплата управляется {orgName}"
+    "text": "Оплата управляется {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Просмотреть оплату организации"
+    "text": "Просмотреть оплату организации",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Вы достигли лимита участников для этой команды"
+    "text": "Вы достигли лимита участников для этой команды",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Обновите план, чтобы добавить больше участников"
+    "text": "Обновите план, чтобы добавить больше участников",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "Подписка"
+    "text": "Подписка",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "Статус подписки"
+    "text": "Статус подписки",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "Активна"
+    "text": "Активна",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "Неактивна"
+    "text": "Неактивна",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Просрочена"
+    "text": "Просрочена",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Отменена"
+    "text": "Отменена",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "План"
+    "text": "План",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "Портал оплаты"
+    "text": "Портал оплаты",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Управление подпиской, способами оплаты и историей платежей"
+    "text": "Управление подпиской, способами оплаты и историей платежей",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "Открыть портал оплаты"
+    "text": "Открыть портал оплаты",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "Перенаправление на портал оплаты..."
+    "text": "Перенаправление на портал оплаты...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Начните сегодня"
+    "text": "Начните сегодня",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Начните сегодня с Identity Plus"
+    "text": "Начните сегодня с Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "в месяц"
+    "text": "в месяц",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "Полный доступ к API"
+    "text": "Полный доступ к API",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Конфиденциальность прежде всего"
+    "text": "Конфиденциальность прежде всего",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Нажмите на этот значок молнии, чтобы перейти на тариф с пользовательскими доменами"
+    "text": "Нажмите на этот значок молнии, чтобы перейти на тариф с пользовательскими доменами",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "Может быть, позже"
+    "text": "Может быть, позже",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Обновить аккаунт"
+    "text": "Обновить аккаунт",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Перейти на Identity Plus"
+    "text": "Перейти на Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Обновить для команд"
+    "text": "Обновить для команд",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "Преимущества"
+    "text": "Преимущества",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Перейти на"
+    "text": "Перейти на",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Обновить для secrets.yourdomain.com"
+    "text": "Обновить для secrets.yourdomain.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Все тарифы включают функции конфиденциальности и неограниченные возможности обмена"
+    "text": "Все тарифы включают функции конфиденциальности и неограниченные возможности обмена",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Все планы включают выбор региона данных: {0} регионов"
+    "text": "Все планы включают выбор региона данных: {0} регионов",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "Начать"
+    "text": "Начать",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "Подписка {0}"
+    "text": "Подписка {0}",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Поднимите Ваш безопасный обмен на новый уровень с пользовательскими доменами, неограниченными возможностями и функциями корпоративного уровня."
+    "text": "Поднимите Ваш безопасный обмен на новый уровень с пользовательскими доменами, неограниченными возможностями и функциями корпоративного уровня.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Периодичность оплаты"
+    "text": "Периодичность оплаты",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Защитите свой бренд и завоюйте доверие клиентов с помощью ссылок из Вашего домена. Идеально подходит для компаний, которые ценят конфиденциальность и профессионализм."
+    "text": "Защитите свой бренд и завоюйте доверие клиентов с помощью ссылок из Вашего домена. Идеально подходит для компаний, которые ценят конфиденциальность и профессионализм.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Безопасные ссылки, крепкие связи"
+    "text": "Безопасные ссылки, крепкие связи",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Уровень Identity не найден в уровнях продукта"
+    "text": "Уровень Identity не найден в уровнях продукта",
+    "sha256": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Отменить подписку"
+    "text": "Отменить подписку",
+    "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Отмена подписки"
+    "text": "Отмена подписки",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Вы уверены, что хотите отменить подписку {plan}?"
+    "text": "Вы уверены, что хотите отменить подписку {plan}?",
+    "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Что произойдёт при отмене:"
+    "text": "Что произойдёт при отмене:",
+    "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Вы сохраните доступ ко всем функциям до {date}"
+    "text": "Вы сохраните доступ ко всем функциям до {date}",
+    "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Вы сохраните доступ до конца текущего расчётного периода"
+    "text": "Вы сохраните доступ до конца текущего расчётного периода",
+    "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "С Вас больше не будет взиматься плата"
+    "text": "С Вас больше не будет взиматься плата",
+    "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Ваш аккаунт перейдёт на бесплатный план"
+    "text": "Ваш аккаунт перейдёт на бесплатный план",
+    "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Сохранить подписку"
+    "text": "Сохранить подписку",
+    "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Отменить подписку"
+    "text": "Отменить подписку",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Ваша подписка отменена. Вы сохраните доступ до конца расчётного периода."
+    "text": "Ваша подписка отменена. Вы сохраните доступ до конца расчётного периода.",
+    "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Не удалось отменить подписку. Попробуйте ещё раз."
+    "text": "Не удалось отменить подписку. Попробуйте ещё раз.",
+    "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Отмена подписки запланирована"
+    "text": "Отмена подписки запланирована",
+    "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Ваша подписка будет активна до {date}. До этого времени у Вас будет полный доступ ко всем функциям."
+    "text": "Ваша подписка будет активна до {date}. До этого времени у Вас будет полный доступ ко всем функциям.",
+    "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Передумали? Вы можете возобновить подписку в любое время до даты отмены."
+    "text": "Передумали? Вы можете возобновить подписку в любое время до даты отмены.",
+    "sha256": "c94d5527"
   },
   "web.billing.features.create_secrets": {
-    "text": "Создание и передача секретов"
+    "text": "Создание и передача секретов",
+    "sha256": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "Доступ к API"
+    "text": "Доступ к API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Пользовательские домены"
+    "text": "Пользовательские домены",
+    "sha256": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 пользовательский домен"
+    "text": "1 пользовательский домен",
+    "sha256": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Неограниченные пользовательские домены"
+    "text": "Неограниченные пользовательские домены",
+    "sha256": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "Пользовательский брендинг"
+    "text": "Пользовательский брендинг",
+    "sha256": "237dabec"
   },
   "web.billing.features.branded_homepage": {
-    "text": "Брендированная главная страница"
+    "text": "Брендированная главная страница",
+    "sha256": "e355a396"
   },
   "web.billing.features.manage_teams": {
-    "text": "Управление командами"
+    "text": "Управление командами",
+    "sha256": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
-    "text": "Управление участниками"
+    "text": "Управление участниками",
+    "sha256": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "Журналы аудита"
+    "text": "Журналы аудита",
+    "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Единый вход (SSO)"
+    "text": "Единый вход (SSO)",
+    "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "Приоритетная поддержка"
+    "text": "Приоритетная поддержка",
+    "sha256": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Соглашение об уровне обслуживания"
+    "text": "Соглашение об уровне обслуживания",
+    "sha256": "436f2550"
   },
   "web.billing.features.centralized_billing": {
-    "text": "Централизованная оплата"
+    "text": "Централизованная оплата",
+    "sha256": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Аудиторский след"
+    "text": "Аудиторский след",
+    "sha256": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Лента активности"
+    "text": "Лента активности",
+    "sha256": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Рабочие процессы передачи"
+    "text": "Рабочие процессы передачи",
+    "sha256": "07202af3"
   },
   "web.billing.features.extended_retention": {
-    "text": "30-дневное хранение секретов"
+    "text": "30-дневное хранение секретов",
+    "sha256": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Секреты на главной"
+    "text": "Секреты на главной",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Входящие секреты"
+    "text": "Входящие секреты",
+    "sha256": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "До 5 участников команды"
+    "text": "До 5 участников команды",
+    "sha256": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "До 10 участников команды"
+    "text": "До 10 участников команды",
+    "sha256": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "До 25 участников команды"
+    "text": "До 25 участников команды",
+    "sha256": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "До 50 участников команды"
+    "text": "До 50 участников команды",
+    "sha256": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Неограниченное количество участников"
+    "text": "Неограниченное количество участников",
+    "sha256": "b7491ee9"
   },
   "web.billing.features.notifications": {
-    "text": "Уведомления по почте"
+    "text": "Уведомления по почте",
+    "sha256": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "Правила доступа по IP"
+    "text": "Правила доступа по IP",
+    "sha256": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Брендинг рабочего пространства"
+    "text": "Брендинг рабочего пространства",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
-    "text": "Выделенная инфраструктура"
+    "text": "Выделенная инфраструктура",
+    "sha256": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "Общие рабочие процессы"
+    "text": "Общие рабочие процессы",
+    "sha256": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "Оплата для этой организации"
+    "text": "Оплата для этой организации",
+    "sha256": "21806992"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Ваш план успешно обновлён"
+    "text": "Ваш план успешно обновлён",
+    "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Ваш новый план теперь активен. Благодарим за покупку."
+    "text": "Ваш новый план теперь активен. Благодарим за покупку.",
+    "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
-    "text": "Контакт для оплаты"
+    "text": "Контакт для оплаты",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Секреты на главной"
+    "text": "Секреты на главной",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
-    "text": "Уведомления по почте"
+    "text": "Уведомления по почте",
+    "sha256": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Правила доступа по IP"
+    "text": "Правила доступа по IP",
+    "sha256": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Брендинг рабочего пространства"
+    "text": "Брендинг рабочего пространства",
+    "sha256": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
-    "text": "К оплате сегодня:"
+    "text": "К оплате сегодня:",
+    "sha256": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Следующая оплата ({date}):"
+    "text": "Следующая оплата ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Как применяется Ваш кредит:"
+    "text": "Как применяется Ваш кредит:",
+    "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Сумма следующего счёта:"
+    "text": "Сумма следующего счёта:",
+    "sha256": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Применённый кредит:"
+    "text": "Применённый кредит:",
+    "sha256": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "К оплате при следующем расчёте:"
+    "text": "К оплате при следующем расчёте:",
+    "sha256": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Остаток кредита на аккаунте:"
+    "text": "Остаток кредита на аккаунте:",
+    "sha256": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Применяется к будущим счетам"
+    "text": "Применяется к будущим счетам",
+    "sha256": "5007add6"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Использование команд"
+    "text": "Использование команд",
+    "sha256": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{used} из {limit} команд"
+    "text": "{used} из {limit} команд",
+    "sha256": "1db6b53c"
   }
 }

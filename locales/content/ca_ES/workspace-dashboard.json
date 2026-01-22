@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "Rebut"
+    "text": "Rebut",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "No rebut"
+    "text": "No rebut",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Cap secret recent"
+    "text": "Cap secret recent",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Comença creant el teu primer secret."
+    "text": "Comença creant el teu primer secret.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "No s'han pogut carregar les dades"
+    "text": "No s'han pogut carregar les dades",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Hi ha hagut un problema en carregar les teves dades. Torna-ho a provar."
+    "text": "Hi ha hagut un problema en carregar les teves dades. Torna-ho a provar.",
+    "sha256": "ff0d904e"
   }
 }

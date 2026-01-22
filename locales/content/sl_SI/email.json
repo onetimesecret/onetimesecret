@@ -1,446 +1,594 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Zahtevek: %s]"
+    "text": "[Zahtevek: %s]",
+    "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Stranka je poslala naslednje informacije"
+    "text": "Stranka je poslala naslednje informacije",
+    "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} vam je poslal/-a skrivnost"
+    "text": "%{sender_email} vam je poslal/-a skrivnost",
+    "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "vam je poslal/-a skrivnost:"
+    "text": "vam je poslal/-a skrivnost:",
+    "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Pomembno:"
+    "text": "Pomembno:",
+    "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Ta povezava bo delovala samo enkrat. Po ogledu bo skrivnost trajno izbrisana."
+    "text": "Ta povezava bo delovala samo enkrat. Po ogledu bo skrivnost trajno izbrisana.",
+    "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Poslano prek"
+    "text": "Poslano prek",
+    "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Dobrodošli v %{product_name} - Prosimo, preverite svojo e-pošto"
+    "text": "Dobrodošli v %{product_name} - Prosimo, preverite svojo e-pošto",
+    "sha256": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Dobrodošli v %{product_name}!"
+    "text": "Dobrodošli v %{product_name}!",
+    "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Prosimo, preverite svoj e-poštni naslov s klikom na spodnjo povezavo:"
+    "text": "Prosimo, preverite svoj e-poštni naslov s klikom na spodnjo povezavo:",
+    "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Preveri e-poštni naslov"
+    "text": "Preveri e-poštni naslov",
+    "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Ali kopirajte in prilepite to povezavo:"
+    "text": "Ali kopirajte in prilepite to povezavo:",
+    "sha256": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}. Če niste ustvarili računa, lahko to sporočilo varno prezrete."
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}. Če niste ustvarili računa, lahko to sporočilo varno prezrete.",
+    "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Ponastavite svoje geslo (%{display_domain})"
+    "text": "Ponastavite svoje geslo (%{display_domain})",
+    "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Ponastavite svoje geslo"
+    "text": "Ponastavite svoje geslo",
+    "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Prejeli smo zahtevo za ponastavitev vašega gesla za %{product_name}."
+    "text": "Prejeli smo zahtevo za ponastavitev vašega gesla za %{product_name}.",
+    "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Ponastavi geslo"
+    "text": "Ponastavi geslo",
+    "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Ali kopirajte in prilepite to povezavo:"
+    "text": "Ali kopirajte in prilepite to povezavo:",
+    "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Če niste zahtevali ponastavitve gesla, lahko to e-poštno sporočilo varno prezrete."
+    "text": "Če niste zahtevali ponastavitve gesla, lahko to e-poštno sporočilo varno prezrete.",
+    "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}."
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Prijava na %{display_domain}"
+    "text": "Prijava na %{display_domain}",
+    "sha256": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Prijava z magično povezavo"
+    "text": "Prijava z magično povezavo",
+    "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Zahtevali ste prijavno povezavo za svoj račun %{product_name}."
+    "text": "Zahtevali ste prijavno povezavo za svoj račun %{product_name}.",
+    "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Prijava"
+    "text": "Prijava",
+    "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Ali kopirajte in prilepite to povezavo:"
+    "text": "Ali kopirajte in prilepite to povezavo:",
+    "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Ta povezava bo potekla čez 15 minut."
+    "text": "Ta povezava bo potekla čez 15 minut.",
+    "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Če niste zahtevali te povezave, lahko to e-poštno sporočilo varno prezrete."
+    "text": "Če niste zahtevali te povezave, lahko to e-poštno sporočilo varno prezrete.",
+    "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}."
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Prejeli ste skrivno sporočilo"
+    "text": "Prejeli ste skrivno sporočilo",
+    "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Prejeli ste varno sporočilo:"
+    "text": "Prejeli ste varno sporočilo:",
+    "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memo:"
+    "text": "Memo:",
+    "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Nekdo vam je poslal varno sporočilo prek %{display_domain}."
+    "text": "Nekdo vam je poslal varno sporočilo prek %{display_domain}.",
+    "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Za ogled te skrivnosti kliknite na spodnjo povezavo:"
+    "text": "Za ogled te skrivnosti kliknite na spodnjo povezavo:",
+    "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Pomembno:"
+    "text": "Pomembno:",
+    "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Ta povezava bo delovala samo enkrat. Po ogledu bo skrivnost trajno izbrisana."
+    "text": "Ta povezava bo delovala samo enkrat. Po ogledu bo skrivnost trajno izbrisana.",
+    "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Poslano prek"
+    "text": "Poslano prek",
+    "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Vaša skrivnost je bila ogledana"
+    "text": "Vaša skrivnost je bila ogledana",
+    "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Vaša skrivnost je bila ogledana"
+    "text": "Vaša skrivnost je bila ogledana",
+    "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Vaša skrivnost je bila ogledana dne %{date}."
+    "text": "Vaša skrivnost je bila ogledana dne %{date}.",
+    "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "ID skrivnosti:"
+    "text": "ID skrivnosti:",
+    "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "To je samodejno obvestilo. Nobeno dejanje ni potrebno."
+    "text": "To je samodejno obvestilo. Nobeno dejanje ni potrebno.",
+    "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Upravljajte nastavitve obvestil"
+    "text": "Upravljajte nastavitve obvestil",
+    "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Za upravljanje nastavitev obvestil:"
+    "text": "Za upravljanje nastavitev obvestil:",
+    "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Vaša skrivna povezava bo kmalu potekla"
+    "text": "Vaša skrivna povezava bo kmalu potekla",
+    "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Vaša skrivna povezava bo potekla čez %{time_remaining}"
+    "text": "Vaša skrivna povezava bo potekla čez %{time_remaining}",
+    "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Oglejte si svojo skrivnost, preden poteče"
+    "text": "Oglejte si svojo skrivnost, preden poteče",
+    "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Opomnik:"
+    "text": "Opomnik:",
+    "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Po poteku bo skrivnost trajno izbrisana in je ne bo mogoče obnoviti."
+    "text": "Po poteku bo skrivnost trajno izbrisana in je ne bo mogoče obnoviti.",
+    "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Poslano prek"
+    "text": "Poslano prek",
+    "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Oglejte si jo, preden izgine:"
+    "text": "Oglejte si jo, preden izgine:",
+    "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Po poteku bo skrivnost trajno izbrisana."
+    "text": "Po poteku bo skrivnost trajno izbrisana.",
+    "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Povratne informacije dne %{date} prek %{display_domain} (%{strategy})"
+    "text": "Povratne informacije dne %{date} prek %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Povratne informacije uporabnika"
+    "text": "Povratne informacije uporabnika",
+    "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "Od:"
+    "text": "Od:",
+    "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domena:"
+    "text": "Domena:",
+    "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Strategija:"
+    "text": "Strategija:",
+    "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Sporočilo:"
+    "text": "Sporočilo:",
+    "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support"
+    "text": "Secret Support",
+    "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Povabljeni ste bili, da se pridružite %{organization_name}"
+    "text": "Povabljeni ste bili, da se pridružite %{organization_name}",
+    "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Povabljeni ste bili, da se pridružite %{organization_name}!"
+    "text": "Povabljeni ste bili, da se pridružite %{organization_name}!",
+    "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} vas je povabil/-a, da se pridružite \"%{organization_name}\" kot %{role_description}."
+    "text": "%{inviter_email} vas je povabil/-a, da se pridružite \"%{organization_name}\" kot %{role_description}.",
+    "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Sprejmi povabilo"
+    "text": "Sprejmi povabilo",
+    "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Ali kopirajte in prilepite to povezavo:"
+    "text": "Ali kopirajte in prilepite to povezavo:",
+    "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "To povabilo bo poteklo čez %{days} dni."
+    "text": "To povabilo bo poteklo čez %{days} dni.",
+    "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Če se ne želite pridružiti, lahko to e-poštno sporočilo preprosto prezrete ali zavrnete povabilo."
+    "text": "Če se ne želite pridružiti, lahko to e-poštno sporočilo preprosto prezrete ali zavrnete povabilo.",
+    "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{invited_email}. Če niste pričakovali tega povabila, lahko to sporočilo varno prezrete."
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{invited_email}. Če niste pričakovali tega povabila, lahko to sporočilo varno prezrete.",
+    "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "član"
+    "text": "član",
+    "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "administrator"
+    "text": "administrator",
+    "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Vaše geslo je bilo spremenjeno (%{display_domain})"
+    "text": "Vaše geslo je bilo spremenjeno (%{display_domain})",
+    "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Vaše geslo je bilo spremenjeno"
+    "text": "Vaše geslo je bilo spremenjeno",
+    "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Vaše geslo za %{product_name} je bilo spremenjeno dne %{date} ob %{time}."
+    "text": "Vaše geslo za %{product_name} je bilo spremenjeno dne %{date} ob %{time}.",
+    "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Če te spremembe niste opravili vi, nemudoma zavarujte svoj račun s ponastavitvijo gesla in kontaktirajte podporo."
+    "text": "Če te spremembe niste opravili vi, nemudoma zavarujte svoj račun s ponastavitvijo gesla in kontaktirajte podporo.",
+    "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Vaš e-poštni naslov je bil spremenjen (%{display_domain})"
+    "text": "Vaš e-poštni naslov je bil spremenjen (%{display_domain})",
+    "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Vaš e-poštni naslov je bil spremenjen"
+    "text": "Vaš e-poštni naslov je bil spremenjen",
+    "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked} dne %{date}."
+    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked} dne %{date}.",
+    "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Če te spremembe niste opravili vi, nemudoma kontaktirajte podporo, saj je vaš račun morda ogrožen."
+    "text": "Če te spremembe niste opravili vi, nemudoma kontaktirajte podporo, saj je vaš račun morda ogrožen.",
+    "sha256": "f505b562"
   },
   "email.email_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Preverite svoj novi e-poštni naslov (%{display_domain})"
+    "text": "Preverite svoj novi e-poštni naslov (%{display_domain})",
+    "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Preverite svoj novi e-poštni naslov"
+    "text": "Preverite svoj novi e-poštni naslov",
+    "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Prosimo, preverite ta e-poštni naslov, da dokončate spremembo za svoj račun %{product_name}."
+    "text": "Prosimo, preverite ta e-poštni naslov, da dokončate spremembo za svoj račun %{product_name}.",
+    "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Preveri e-poštni naslov"
+    "text": "Preveri e-poštni naslov",
+    "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Ali kopirajte in prilepite to povezavo:"
+    "text": "Ali kopirajte in prilepite to povezavo:",
+    "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
-    "text": "Dvostopenjska avtentikacija omogočena (%{display_domain})"
+    "text": "Dvostopenjska avtentikacija omogočena (%{display_domain})",
+    "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Dvostopenjska avtentikacija omogočena"
+    "text": "Dvostopenjska avtentikacija omogočena",
+    "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Dvostopenjska avtentikacija je bila omogočena za vaš račun %{product_name} dne %{date}."
+    "text": "Dvostopenjska avtentikacija je bila omogočena za vaš račun %{product_name} dne %{date}.",
+    "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Vaš račun je zdaj bolj varen. Ob prijavi boste morali vnesti potrditveno kodo iz svoje aplikacije za avtentikacijo."
+    "text": "Vaš račun je zdaj bolj varen. Ob prijavi boste morali vnesti potrditveno kodo iz svoje aplikacije za avtentikacijo.",
+    "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Dvostopenjska avtentikacija onemogočena (%{display_domain})"
+    "text": "Dvostopenjska avtentikacija onemogočena (%{display_domain})",
+    "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Dvostopenjska avtentikacija onemogočena"
+    "text": "Dvostopenjska avtentikacija onemogočena",
+    "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Dvostopenjska avtentikacija je bila onemogočena za vaš račun %{product_name} dne %{date}."
+    "text": "Dvostopenjska avtentikacija je bila onemogočena za vaš račun %{product_name} dne %{date}.",
+    "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Vaš račun je zdaj manj varen. Če te spremembe niste opravili vi, nemudoma zavarujte svoj račun."
+    "text": "Vaš račun je zdaj manj varen. Če te spremembe niste opravili vi, nemudoma zavarujte svoj račun.",
+    "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Nova prijava v vaš račun (%{display_domain})"
+    "text": "Nova prijava v vaš račun (%{display_domain})",
+    "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Zaznana nova prijava"
+    "text": "Zaznana nova prijava",
+    "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Nova prijava v vaš račun %{product_name} je bila zaznana dne %{date} ob %{time}."
+    "text": "Nova prijava v vaš račun %{product_name} je bila zaznana dne %{date} ob %{time}.",
+    "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Naprava:"
+    "text": "Naprava:",
+    "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Lokacija:"
+    "text": "Lokacija:",
+    "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IP naslov:"
+    "text": "IP naslov:",
+    "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Če to niste bili vi, je vaš račun morda ogrožen."
+    "text": "Če to niste bili vi, je vaš račun morda ogrožen.",
+    "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Zavarujte svoj račun"
+    "text": "Zavarujte svoj račun",
+    "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Odstranjeni ste bili iz %{organization_name}"
+    "text": "Odstranjeni ste bili iz %{organization_name}",
+    "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Odstranjeni ste bili iz %{organization_name}"
+    "text": "Odstranjeni ste bili iz %{organization_name}",
+    "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Odstranjeni ste bili iz organizacije \"%{organization_name}\" na %{product_name}."
+    "text": "Odstranjeni ste bili iz organizacije \"%{organization_name}\" na %{product_name}.",
+    "sha256": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Vaša vloga je bila spremenjena v %{organization_name}"
+    "text": "Vaša vloga je bila spremenjena v %{organization_name}",
+    "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Vaša vloga je bila spremenjena"
+    "text": "Vaša vloga je bila spremenjena",
+    "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Vaša vloga v \"%{organization_name}\" je bila spremenjena iz %{old_role} v %{new_role}."
+    "text": "Vaša vloga v \"%{organization_name}\" je bila spremenjena iz %{old_role} v %{new_role}.",
+    "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Organizacija \"%{organization_name}\" je bila izbrisana"
+    "text": "Organizacija \"%{organization_name}\" je bila izbrisana",
+    "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Organizacija izbrisana"
+    "text": "Organizacija izbrisana",
+    "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Organizacija \"%{organization_name}\" je bila izbrisana iz %{product_name}. Vsi povezani podatki so bili odstranjeni."
+    "text": "Organizacija \"%{organization_name}\" je bila izbrisana iz %{product_name}. Vsi povezani podatki so bili odstranjeni.",
+    "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Potrdilo o plačilu za %{product_name}"
+    "text": "Potrdilo o plačilu za %{product_name}",
+    "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Potrdilo o plačilu"
+    "text": "Potrdilo o plačilu",
+    "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Hvala za vaše plačilo. Tukaj so podrobnosti vašega plačila:"
+    "text": "Hvala za vaše plačilo. Tukaj so podrobnosti vašega plačila:",
+    "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Znesek:"
+    "text": "Znesek:",
+    "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "Datum:"
+    "text": "Datum:",
+    "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Načrt:"
+    "text": "Načrt:",
+    "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Prikaži račun"
+    "text": "Prikaži račun",
+    "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Plačilo ni uspelo za %{product_name}"
+    "text": "Plačilo ni uspelo za %{product_name}",
+    "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Plačilo ni uspelo"
+    "text": "Plačilo ni uspelo",
+    "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Vašega plačila za %{product_name} nismo mogli obdelati. Prosimo, posodobite plačilno sredstvo, da se izognete prekinitvi storitve."
+    "text": "Vašega plačila za %{product_name} nismo mogli obdelati. Prosimo, posodobite plačilno sredstvo, da se izognete prekinitvi storitve.",
+    "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Posodobi plačilno sredstvo"
+    "text": "Posodobi plačilno sredstvo",
+    "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Vaše preizkusno obdobje %{product_name} poteče čez %{days_remaining} dni"
+    "text": "Vaše preizkusno obdobje %{product_name} poteče čez %{days_remaining} dni",
+    "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Vaše preizkusno obdobje se kmalu konča"
+    "text": "Vaše preizkusno obdobje se kmalu konča",
+    "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Vaše brezplačno preizkusno obdobje %{product_name} bo poteklo čez %{days_remaining} dni. Nadgradite zdaj, da obdržite dostop do vseh funkcij."
+    "text": "Vaše brezplačno preizkusno obdobje %{product_name} bo poteklo čez %{days_remaining} dni. Nadgradite zdaj, da obdržite dostop do vseh funkcij.",
+    "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Nadgradi zdaj"
+    "text": "Nadgradi zdaj",
+    "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Vaša naročnina %{product_name} je bila spremenjena"
+    "text": "Vaša naročnina %{product_name} je bila spremenjena",
+    "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Naročnina spremenjena"
+    "text": "Naročnina spremenjena",
+    "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Vaša naročnina %{product_name} je bila spremenjena iz %{old_plan} v %{new_plan}."
+    "text": "Vaša naročnina %{product_name} je bila spremenjena iz %{old_plan} v %{new_plan}.",
+    "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ta sprememba velja od %{date}."
+    "text": "Ta sprememba velja od %{date}.",
+    "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Pozdravljeni,"
+    "text": "Pozdravljeni,",
+    "sha256": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Hvala,"
+    "text": "Hvala,",
+    "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Odjava"
+    "text": "Odjava",
+    "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Prikaži v brskalniku"
+    "text": "Prikaži v brskalniku",
+    "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret"
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
   }
 }

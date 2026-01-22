@@ -1,27 +1,35 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Vaše povratne informacije"
+    "text": "Vaše povratne informacije",
+    "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Vse povratne informacije so dobrodošle!"
+    "text": "Vse povratne informacije so dobrodošle!",
+    "sha256": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Pomagajte nam izboljšati"
+    "text": "Pomagajte nam izboljšati",
+    "sha256": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Zapri modalno okno povratnih informacij"
+    "text": "Zapri modalno okno povratnih informacij",
+    "sha256": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Delite svoje povratne informacije"
+    "text": "Delite svoje povratne informacije",
+    "sha256": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
-    "text": "Delano Mandelbaum"
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
   },
   "web.feedback.delano": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Vsebina pomoči gre sem."
+    "text": "Vsebina pomoči gre sem.",
+    "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Hvala, da pomagate izboljšati Onetime Secret. To nam veliko pomeni."
@@ -36,18 +44,23 @@
     "text": "Opomba od Delana, ustanovitelja Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Odpri obrazec za povratne informacije"
+    "text": "Odpri obrazec za povratne informacije",
+    "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Vnesite svoje povratne informacije"
+    "text": "Vnesite svoje povratne informacije",
+    "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Pošlji povratne informacije"
+    "text": "Pošlji povratne informacije",
+    "sha256": "8235980b"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Preberem vsak kos povratnih informacij, ki pride prek tukaj. Tako ugotovim, na kaj porabiti čas."
+    "text": "Preberem vsak kos povratnih informacij, ki pride prek tukaj. Tako ugotovim, na kaj porabiti čas.",
+    "sha256": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Če je kaj narobe ali imate ideje, kako bi moralo delovati, je to pravo mesto."
+    "text": "Če je kaj narobe ali imate ideje, kako bi moralo delovati, je to pravo mesto.",
+    "sha256": "d4b8f073"
   }
 }

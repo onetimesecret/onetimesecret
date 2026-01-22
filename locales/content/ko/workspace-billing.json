@@ -1,623 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "업그레이드 필요"
+    "text": "업그레이드 필요",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "요금제 보기"
+    "text": "요금제 보기",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "팀 관리에는 Identity Plus 이상이 필요합니다"
+    "text": "팀 관리에는 Identity Plus 이상이 필요합니다",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "사용자 지정 도메인에는 Identity Plus 이상이 필요합니다"
+    "text": "사용자 지정 도메인에는 Identity Plus 이상이 필요합니다",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API 접근에는 Identity Plus 이상이 필요합니다"
+    "text": "API 접근에는 Identity Plus 이상이 필요합니다",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "감사 로그에는 Multi-Team 요금제 이상이 필요합니다"
+    "text": "감사 로그에는 Multi-Team 요금제 이상이 필요합니다",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "구독, 조직 및 결제 설정 관리"
+    "text": "구독, 조직 및 결제 설정 관리",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "결제 개요"
+    "text": "결제 개요",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "구독 및 결제 세부정보 보기 및 관리"
+    "text": "구독 및 결제 세부정보 보기 및 관리",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "조직 선택"
   },
   "web.billing.overview.current_plan": {
-    "text": "현재 요금제"
+    "text": "현재 요금제",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "요금제 기능"
+    "text": "요금제 기능",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "결제 방법"
+    "text": "결제 방법",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "다음 결제일"
+    "text": "다음 결제일",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "빠른 작업"
+    "text": "빠른 작업",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "결제 관리"
+    "text": "결제 관리",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "청구서 보기"
+    "text": "청구서 보기",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "요금제 업그레이드"
+    "text": "요금제 업그레이드",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "요금제 변경"
+    "text": "요금제 변경",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "등록된 결제 방법 없음"
+    "text": "등록된 결제 방법 없음",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "예정된 결제 없음"
+    "text": "예정된 결제 없음",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "일 남음"
+    "text": "일 남음",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "{date} 결제"
+    "text": "{date} 결제",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "요금제 보기"
+    "text": "요금제 보기",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "비교 및 업그레이드"
+    "text": "비교 및 업그레이드",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "청구서 보기"
+    "text": "청구서 보기",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "내역 다운로드"
+    "text": "내역 다운로드",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "결제 관리"
+    "text": "결제 관리",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "결제 정보 업데이트"
+    "text": "결제 정보 업데이트",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "조직 없음"
+    "text": "조직 없음",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "결제 및 구독을 관리하려면 조직을 만드세요"
+    "text": "결제 및 구독을 관리하려면 조직을 만드세요",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "비밀 메시지 생성"
+    "text": "비밀 메시지 생성",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "수신확인 보기"
+    "text": "수신확인 보기",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "API 접근"
+    "text": "API 접근",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "사용자 지정 도메인"
+    "text": "사용자 지정 도메인",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "사용자 지정 개인정보 보호 기본값"
+    "text": "사용자 지정 개인정보 보호 기본값",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "연장된 기본 만료"
+    "text": "연장된 기본 만료",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "사용자 지정 메일 기본값"
+    "text": "사용자 지정 메일 기본값",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "사용자 지정 브랜딩"
+    "text": "사용자 지정 브랜딩",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "브랜드 홈페이지"
+    "text": "브랜드 홈페이지",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "수신 비밀 메시지"
+    "text": "수신 비밀 메시지",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "조직 관리"
+    "text": "조직 관리",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "팀 관리"
+    "text": "팀 관리",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "멤버 관리"
+    "text": "멤버 관리",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "감사 로그"
+    "text": "감사 로그",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "싱글 사인온"
+    "text": "싱글 사인온",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "우선 지원"
+    "text": "우선 지원",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "서비스 수준 계약"
+    "text": "서비스 수준 계약",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "기능 세부정보를 로드할 수 없습니다"
+    "text": "기능 세부정보를 로드할 수 없습니다",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "사용 가능한 기능 없음"
+    "text": "사용 가능한 기능 없음",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "요금제 선택"
+    "text": "요금제 선택",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "필요에 맞는 요금제를 선택하세요"
+    "text": "필요에 맞는 요금제를 선택하세요",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "조직에 완벽한 요금제를 선택하세요"
+    "text": "조직에 완벽한 요금제를 선택하세요",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "현재 요금제"
+    "text": "현재 요금제",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "현재"
+    "text": "현재",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "업그레이드"
+    "text": "업그레이드",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "다운그레이드"
+    "text": "다운그레이드",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "월간"
+    "text": "월간",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "연간"
+    "text": "연간",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "/월"
+    "text": "/월",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "연간 결제 시 {percent}% 절약"
+    "text": "연간 결제 시 {percent}% 절약",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "무료"
+    "text": "무료",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "싱글 팀"
+    "text": "싱글 팀",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "멀티 팀"
+    "text": "멀티 팀",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "개인 계정"
+    "text": "개인 계정",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "팀 계정"
+    "text": "팀 계정",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "조직 계정"
+    "text": "조직 계정",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "기능"
+    "text": "기능",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "무제한 비밀 메시지"
+    "text": "무제한 비밀 메시지",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "API 접근"
+    "text": "API 접근",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "우선 지원"
+    "text": "우선 지원",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "요금제 선택"
+    "text": "요금제 선택",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "영업팀 문의"
+    "text": "영업팀 문의",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "질문이 있거나 맞춤 요금제가 필요하신가요?"
+    "text": "질문이 있거나 맞춤 요금제가 필요하신가요?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "여러분의 의견을 듣고 싶습니다. 원하시는 것을 알려주세요."
+    "text": "여러분의 의견을 듣고 싶습니다. 원하시는 것을 알려주세요.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count}개 팀 | {count}개 팀"
+    "text": "{count}개 팀 | {count}개 팀",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "팀당 {count}명 멤버 | 팀당 {count}명 멤버"
+    "text": "팀당 {count}명 멤버 | 팀당 {count}명 멤버",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "무제한 팀"
+    "text": "무제한 팀",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "팀당 무제한 멤버"
+    "text": "팀당 무제한 멤버",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "가장 인기 있음"
+    "text": "가장 인기 있음",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "추천"
+    "text": "추천",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "{plan}의 모든 기능 포함"
+    "text": "{plan}의 모든 기능 포함",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "현재 {interval} 요금제가 없습니다."
+    "text": "현재 {interval} 요금제가 없습니다.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "요금제가 즉시 변경됩니다."
+    "text": "요금제가 즉시 변경됩니다.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "현재 요금제:"
+    "text": "현재 요금제:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "새 요금제:"
+    "text": "새 요금제:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "미사용 시간 크레딧:"
+    "text": "미사용 시간 크레딧:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "다음 청구서"
+    "text": "다음 청구서",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "요금제 변경 후 기능 제한이 즉시 업데이트됩니다."
+    "text": "요금제 변경 후 기능 제한이 즉시 업데이트됩니다.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "요금제 변경 실패. 다시 시도해 주세요."
+    "text": "요금제 변경 실패. 다시 시도해 주세요.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "업그레이드 확인"
+    "text": "업그레이드 확인",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "다운그레이드 확인"
+    "text": "다운그레이드 확인",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "{plan}(으)로 업그레이드하시겠습니까?"
+    "text": "{plan}(으)로 업그레이드하시겠습니까?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "{plan}(으)로 다운그레이드하시겠습니까?"
+    "text": "{plan}(으)로 다운그레이드하시겠습니까?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "결제 내역"
+    "text": "결제 내역",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "결제 내역 보기 및 청구서 다운로드"
+    "text": "결제 내역 보기 및 청구서 다운로드",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "날짜"
+    "text": "날짜",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "금액"
+    "text": "금액",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "상태"
+    "text": "상태",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "다운로드"
+    "text": "다운로드",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "청구서가 아직 없습니다"
+    "text": "청구서가 아직 없습니다",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "결제됨"
+    "text": "결제됨",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "대기 중"
+    "text": "대기 중",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "실패"
+    "text": "실패",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "청구서 로드 실패"
+    "text": "청구서 로드 실패",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "결제는 {orgName}에서 관리합니다"
+    "text": "결제는 {orgName}에서 관리합니다",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "조직 결제 보기"
+    "text": "조직 결제 보기",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "이 팀의 멤버 한도에 도달했습니다"
+    "text": "이 팀의 멤버 한도에 도달했습니다",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "더 많은 멤버를 추가하려면 업그레이드하세요"
+    "text": "더 많은 멤버를 추가하려면 업그레이드하세요",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "구독"
+    "text": "구독",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "구독 상태"
+    "text": "구독 상태",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "활성"
+    "text": "활성",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "비활성"
+    "text": "비활성",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "연체"
+    "text": "연체",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "취소됨"
+    "text": "취소됨",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "요금제"
+    "text": "요금제",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "결제 포털"
+    "text": "결제 포털",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "구독, 결제 방법 및 결제 내역 관리"
+    "text": "구독, 결제 방법 및 결제 내역 관리",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "결제 포털 열기"
+    "text": "결제 포털 열기",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "결제 포털로 이동 중..."
+    "text": "결제 포털로 이동 중...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "오늘 시작"
+    "text": "오늘 시작",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "오늘 Identity Plus로 시작하세요"
+    "text": "오늘 Identity Plus로 시작하세요",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "월"
+    "text": "월",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "전체 API 접근"
+    "text": "전체 API 접근",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "개인정보 보호 우선 설계"
+    "text": "개인정보 보호 우선 설계",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "맞춤 도메인으로 업그레이드하려면 이 번개 아이콘을 클릭하세요"
+    "text": "맞춤 도메인으로 업그레이드하려면 이 번개 아이콘을 클릭하세요",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "나중에"
+    "text": "나중에",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "계정 업그레이드"
+    "text": "계정 업그레이드",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Identity Plus로 업그레이드"
+    "text": "Identity Plus로 업그레이드",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "팀용 업그레이드"
+    "text": "팀용 업그레이드",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "혜택:"
+    "text": "혜택:",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "업그레이드"
+    "text": "업그레이드",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "secrets.yourdomain.com용 업그레이드"
+    "text": "secrets.yourdomain.com용 업그레이드",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "모든 플랜에는 개인 정보 보호 기능과 무제한 공유 기능이 포함됩니다"
+    "text": "모든 플랜에는 개인 정보 보호 기능과 무제한 공유 기능이 포함됩니다",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "모든 요금제에 데이터 지역 선택 포함: {0}개 지역"
+    "text": "모든 요금제에 데이터 지역 선택 포함: {0}개 지역",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "시작하기"
+    "text": "시작하기",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "{0} 구독"
+    "text": "{0} 구독",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "맞춤 도메인, 무제한 용량 및 기업급 기능으로 안전한 공유를 향상시키세요."
+    "text": "맞춤 도메인, 무제한 용량 및 기업급 기능으로 안전한 공유를 향상시키세요.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "결제 주기"
+    "text": "결제 주기",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "귀하의 도메인에서 링크로 브랜드를 보호하고 고객 신뢰를 구축하세요. 개인 정보 보호와 전문성을 중요시하는 기업에 적합합니다."
+    "text": "귀하의 도메인에서 링크로 브랜드를 보호하고 고객 신뢰를 구축하세요. 개인 정보 보호와 전문성을 중요시하는 기업에 적합합니다.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "안전한 링크, 더 강한 연결"
+    "text": "안전한 링크, 더 강한 연결",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "제품 등급에서 Identity 등급을 찾을 수 없습니다"
+    "text": "제품 등급에서 Identity 등급을 찾을 수 없습니다",
+    "sha256": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "구독 취소"
+    "text": "구독 취소",
+    "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "구독 취소"
+    "text": "구독 취소",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "{plan} 구독을 취소하시겠습니까?"
+    "text": "{plan} 구독을 취소하시겠습니까?",
+    "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "취소 시 발생하는 일:"
+    "text": "취소 시 발생하는 일:",
+    "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "{date}까지 모든 기능에 접근할 수 있습니다"
+    "text": "{date}까지 모든 기능에 접근할 수 있습니다",
+    "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "현재 결제 기간이 끝날 때까지 접근을 유지합니다"
+    "text": "현재 결제 기간이 끝날 때까지 접근을 유지합니다",
+    "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "더 이상 청구되지 않습니다"
+    "text": "더 이상 청구되지 않습니다",
+    "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "계정이 무료 요금제로 전환됩니다"
+    "text": "계정이 무료 요금제로 전환됩니다",
+    "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "구독 유지"
+    "text": "구독 유지",
+    "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "구독 취소"
+    "text": "구독 취소",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "구독이 취소되었습니다. 결제 기간이 끝날 때까지 접근을 유지합니다."
+    "text": "구독이 취소되었습니다. 결제 기간이 끝날 때까지 접근을 유지합니다.",
+    "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "구독 취소 실패. 다시 시도해 주세요."
+    "text": "구독 취소 실패. 다시 시도해 주세요.",
+    "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "구독 취소 예약됨"
+    "text": "구독 취소 예약됨",
+    "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "{date}까지 구독이 활성 상태로 유지됩니다. 그때까지 모든 기능에 대한 전체 접근 권한을 계속 갖습니다."
+    "text": "{date}까지 구독이 활성 상태로 유지됩니다. 그때까지 모든 기능에 대한 전체 접근 권한을 계속 갖습니다.",
+    "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "마음이 바뀌셨나요? 취소 날짜 전에 언제든지 구독을 다시 활성화할 수 있습니다."
+    "text": "마음이 바뀌셨나요? 취소 날짜 전에 언제든지 구독을 다시 활성화할 수 있습니다.",
+    "sha256": "c94d5527"
   },
   "web.billing.features.create_secrets": {
-    "text": "비밀 메시지 생성 및 공유"
+    "text": "비밀 메시지 생성 및 공유",
+    "sha256": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "API 접근"
+    "text": "API 접근",
+    "sha256": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "사용자 지정 도메인"
+    "text": "사용자 지정 도메인",
+    "sha256": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1개 사용자 지정 도메인"
+    "text": "1개 사용자 지정 도메인",
+    "sha256": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "무제한 사용자 지정 도메인"
+    "text": "무제한 사용자 지정 도메인",
+    "sha256": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "사용자 지정 브랜딩"
+    "text": "사용자 지정 브랜딩",
+    "sha256": "237dabec"
   },
   "web.billing.features.branded_homepage": {
-    "text": "브랜드 홈페이지"
+    "text": "브랜드 홈페이지",
+    "sha256": "e355a396"
   },
   "web.billing.features.manage_teams": {
-    "text": "팀 관리"
+    "text": "팀 관리",
+    "sha256": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
-    "text": "멤버 관리"
+    "text": "멤버 관리",
+    "sha256": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "감사 로그"
+    "text": "감사 로그",
+    "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "싱글 사인온(SSO)"
+    "text": "싱글 사인온(SSO)",
+    "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "우선 지원"
+    "text": "우선 지원",
+    "sha256": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "서비스 수준 계약"
+    "text": "서비스 수준 계약",
+    "sha256": "436f2550"
   },
   "web.billing.features.centralized_billing": {
-    "text": "중앙 집중식 결제"
+    "text": "중앙 집중식 결제",
+    "sha256": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "감사 추적"
+    "text": "감사 추적",
+    "sha256": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "활동 스트림"
+    "text": "활동 스트림",
+    "sha256": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "핸드오프 워크플로"
+    "text": "핸드오프 워크플로",
+    "sha256": "07202af3"
   },
   "web.billing.features.extended_retention": {
-    "text": "30일 비밀 메시지 보존"
+    "text": "30일 비밀 메시지 보존",
+    "sha256": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "홈페이지 비밀 메시지"
+    "text": "홈페이지 비밀 메시지",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "수신 비밀 메시지"
+    "text": "수신 비밀 메시지",
+    "sha256": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "최대 5명의 팀 멤버"
+    "text": "최대 5명의 팀 멤버",
+    "sha256": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "최대 10명의 팀 멤버"
+    "text": "최대 10명의 팀 멤버",
+    "sha256": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "최대 25명의 팀 멤버"
+    "text": "최대 25명의 팀 멤버",
+    "sha256": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "최대 50명의 팀 멤버"
+    "text": "최대 50명의 팀 멤버",
+    "sha256": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "무제한 팀 멤버"
+    "text": "무제한 팀 멤버",
+    "sha256": "b7491ee9"
   },
   "web.billing.features.notifications": {
-    "text": "이메일 알림"
+    "text": "이메일 알림",
+    "sha256": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "IP 접근 규칙"
+    "text": "IP 접근 규칙",
+    "sha256": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "작업 공간 브랜딩"
+    "text": "작업 공간 브랜딩",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
-    "text": "전용 인프라"
+    "text": "전용 인프라",
+    "sha256": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "공유 워크플로"
+    "text": "공유 워크플로",
+    "sha256": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "이 조직의 결제"
+    "text": "이 조직의 결제",
+    "sha256": "21806992"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "요금제가 성공적으로 업그레이드되었습니다"
+    "text": "요금제가 성공적으로 업그레이드되었습니다",
+    "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "새 요금제가 활성화되었습니다. 구매해 주셔서 감사합니다."
+    "text": "새 요금제가 활성화되었습니다. 구매해 주셔서 감사합니다.",
+    "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
-    "text": "결제 담당자"
+    "text": "결제 담당자",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "홈페이지 비밀 메시지"
+    "text": "홈페이지 비밀 메시지",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
-    "text": "이메일 알림"
+    "text": "이메일 알림",
+    "sha256": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP 접근 규칙"
+    "text": "IP 접근 규칙",
+    "sha256": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "작업 공간 브랜딩"
+    "text": "작업 공간 브랜딩",
+    "sha256": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
-    "text": "오늘 결제:"
+    "text": "오늘 결제:",
+    "sha256": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "다음 결제 ({date}):"
+    "text": "다음 결제 ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "크레딧 적용 방법:"
+    "text": "크레딧 적용 방법:",
+    "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "다음 청구 금액:"
+    "text": "다음 청구 금액:",
+    "sha256": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "적용된 크레딧:"
+    "text": "적용된 크레딧:",
+    "sha256": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "다음 결제 시 청구 금액:"
+    "text": "다음 결제 시 청구 금액:",
+    "sha256": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "남은 계정 크레딧:"
+    "text": "남은 계정 크레딧:",
+    "sha256": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "향후 청구서에 적용됨"
+    "text": "향후 청구서에 적용됨",
+    "sha256": "5007add6"
   },
   "web.billing.subscription.team_usage": {
-    "text": "팀 사용량"
+    "text": "팀 사용량",
+    "sha256": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{limit}개 팀 중 {used}개 사용"
+    "text": "{limit}개 팀 중 {used}개 사용",
+    "sha256": "1db6b53c"
   }
 }

@@ -1,479 +1,638 @@
 {
   "web.account.settings": {
-    "text": "Ρυθμίσεις"
+    "text": "Ρυθμίσεις",
+    "sha256": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Αλλαγή κωδικού πρόσβασης"
+    "text": "Αλλαγή κωδικού πρόσβασης",
+    "sha256": "a949f462"
   },
   "web.account.close_account": {
-    "text": "Κλείσιμο λογαριασμού"
+    "text": "Κλείσιμο λογαριασμού",
+    "sha256": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Επαλήθευση λογαριασμού"
+    "text": "Επαλήθευση λογαριασμού",
+    "sha256": "2f3ea760"
   },
   "web.account.subscription_title": {
-    "text": "Συνδρομή"
+    "text": "Συνδρομή",
+    "sha256": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Διαχείριση συνδρομής"
+    "text": "Διαχείριση συνδρομής",
+    "sha256": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Πληροφορίες πελάτη"
+    "text": "Πληροφορίες πελάτη",
+    "sha256": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "Πελάτης από:"
+    "text": "Πελάτης από:",
+    "sha256": "0b37cff3"
   },
   "web.account.email": {
-    "text": "Email:"
+    "text": "Email:",
+    "sha256": "17507dcf"
   },
   "web.account.region": {
-    "text": "Περιοχή"
+    "text": "Περιοχή",
+    "sha256": "d3a008ef"
   },
   "web.account.account_balance": {
-    "text": "Υπόλοιπο:"
+    "text": "Υπόλοιπο:",
+    "sha256": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Προεπιλεγμένη μέθοδος πληρωμής"
+    "text": "Προεπιλεγμένη μέθοδος πληρωμής",
+    "sha256": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "που λήγει σε"
+    "text": "που λήγει σε",
+    "sha256": "0195bccf"
   },
   "web.account.subscriptions_title": {
-    "text": "Συνδρομές"
+    "text": "Συνδρομές",
+    "sha256": "a151f2e9"
   },
   "web.account.quantity": {
-    "text": "Ποσότητα:"
+    "text": "Ποσότητα:",
+    "sha256": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Επόμενη ημερομηνία χρέωσης:"
+    "text": "Επόμενη ημερομηνία χρέωσης:",
+    "sha256": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
-    "text": "Όνομα χρήστη"
+    "text": "Όνομα χρήστη",
+    "sha256": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
-    "text": "Τρέχων κωδικός πρόσβασης"
+    "text": "Τρέχων κωδικός πρόσβασης",
+    "sha256": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
-    "text": "Νέος κωδικός πρόσβασης"
+    "text": "Νέος κωδικός πρόσβασης",
+    "sha256": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Επιβεβαίωση"
+    "text": "Επιβεβαίωση",
+    "sha256": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Ενημέρωση κωδικού πρόσβασης"
+    "text": "Ενημέρωση κωδικού πρόσβασης",
+    "sha256": "557be0da"
   },
   "web.account.changePassword.updating": {
-    "text": "Ενημέρωση..."
+    "text": "Ενημέρωση...",
+    "sha256": "0a4e0b71"
   },
   "web.account.timezone": {
-    "text": "Ζώνη ώρας"
+    "text": "Ζώνη ώρας",
+    "sha256": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "Αναγνωριστικό πελάτη"
+    "text": "Αναγνωριστικό πελάτη",
+    "sha256": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "Αναγνωριστικό λογαριασμού"
+    "text": "Αναγνωριστικό λογαριασμού",
+    "sha256": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "Δημιουργήθηκαν {0} μυστικά από {1}."
+    "text": "Δημιουργήθηκαν {0} μυστικά από {1}.",
+    "sha256": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Διαγραφή λογαριασμού"
+    "text": "Διαγραφή λογαριασμού",
+    "sha256": "c031bf99"
   },
   "web.account.api_key": {
-    "text": "Κλειδί API"
+    "text": "Κλειδί API",
+    "sha256": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
-    "text": "Τύπος λογαριασμού: {0}"
+    "text": "Τύπος λογαριασμού: {0}",
+    "sha256": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Ο λογαριασμός σας"
+    "text": "Ο λογαριασμός σας",
+    "sha256": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Στοιχεία υποστήριξης"
+    "text": "Στοιχεία υποστήριξης",
+    "sha256": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Επιστροφή στις λεπτομέρειες"
+    "text": "Επιστροφή στις λεπτομέρειες",
+    "sha256": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "Αναγνωριστικό πελάτη: {0}"
+    "text": "Αναγνωριστικό πελάτη: {0}",
+    "sha256": "7e2d4201"
   },
   "web.account.token_generated": {
-    "text": "Το token δημιουργήθηκε."
+    "text": "Το token δημιουργήθηκε.",
+    "sha256": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Διατηρήστε αυτό το διακριτικό ασφαλές! Παρέχει πλήρη πρόσβαση στον λογαριασμό σας."
+    "text": "🔐 Διατηρήστε αυτό το διακριτικό ασφαλές! Παρέχει πλήρη πρόσβαση στον λογαριασμό σας.",
+    "sha256": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Επιβεβαιώστε με τον κωδικό πρόσβασής σας"
+    "text": "Επιβεβαιώστε με τον κωδικό πρόσβασής σας",
+    "sha256": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
-    "text": "Είστε σίγουροι ότι θέλετε να διαγράψετε οριστικά τον λογαριασμό σας; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+    "text": "Είστε σίγουροι ότι θέλετε να διαγράψετε οριστικά τον λογαριασμό σας; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "sha256": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Επιβεβαίωση διαγραφής λογαριασμού"
+    "text": "Επιβεβαίωση διαγραφής λογαριασμού",
+    "sha256": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Διαγραφή {0}"
+    "text": "Διαγραφή {0}",
+    "sha256": "81d21828"
   },
   "web.account.permanently_delete_account": {
-    "text": "Οριστική διαγραφή λογαριασμού"
+    "text": "Οριστική διαγραφή λογαριασμού",
+    "sha256": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "οριστική και μη αναστρέψιμη."
+    "text": "οριστική και μη αναστρέψιμη.",
+    "sha256": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Η διαγραφή του λογαριασμού σας είναι"
+    "text": "Η διαγραφή του λογαριασμού σας είναι",
+    "sha256": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "διαγράψτε τα οριστικά πριν συνεχίσετε"
+    "text": "διαγράψτε τα οριστικά πριν συνεχίσετε",
+    "sha256": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Όσα μυστικά θέλετε να αφαιρέσετε,"
+    "text": "Όσα μυστικά θέλετε να αφαιρέσετε,",
+    "sha256": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Τα μυστικά θα παραμείνουν ενεργά μέχρι να λήξουν."
+    "text": "Τα μυστικά θα παραμείνουν ενεργά μέχρι να λήξουν.",
+    "sha256": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Παρακαλώ λάβετε υπόψη:"
+    "text": "Παρακαλώ λάβετε υπόψη:",
+    "sha256": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Ο λογαριασμός διαγράφηκε επιτυχώς."
+    "text": "Ο λογαριασμός διαγράφηκε επιτυχώς.",
+    "sha256": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "Απενεργοποίηση"
+    "text": "Απενεργοποίηση",
+    "sha256": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τον λογαριασμό σας; Όλα τα δεδομένα σας θα αφαιρεθούν οριστικά από τους διακομιστές μας για πάντα. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+    "text": "Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τον λογαριασμό σας; Όλα τα δεδομένα σας θα αφαιρεθούν οριστικά από τους διακομιστές μας για πάντα. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "sha256": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Απενεργοποίηση λογαριασμού"
+    "text": "Απενεργοποίηση λογαριασμού",
+    "sha256": "5e31b73d"
   },
   "web.settings.title": {
-    "text": "Ρυθμίσεις"
+    "text": "Ρυθμίσεις",
+    "sha256": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Διαχείριση ρυθμίσεων και προτιμήσεων λογαριασμού"
+    "text": "Διαχείριση ρυθμίσεων και προτιμήσεων λογαριασμού",
+    "sha256": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Διαχείριση ρυθμίσεων και προτιμήσεων λογαριασμού"
+    "text": "Διαχείριση ρυθμίσεων και προτιμήσεων λογαριασμού",
+    "sha256": "2ff0853c"
   },
   "web.settings.general": {
-    "text": "Γενικά"
+    "text": "Γενικά",
+    "sha256": "c910d474"
   },
   "web.settings.preferences": {
-    "text": "Προτιμήσεις"
+    "text": "Προτιμήσεις",
+    "sha256": "66962f72"
   },
   "web.settings.appearance": {
-    "text": "Εμφάνιση"
+    "text": "Εμφάνιση",
+    "sha256": "3907fa7f"
   },
   "web.settings.theme.title": {
-    "text": "Θέμα"
+    "text": "Θέμα",
+    "sha256": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Επιλέξτε φωτεινό ή σκοτεινό θέμα"
+    "text": "Επιλέξτε φωτεινό ή σκοτεινό θέμα",
+    "sha256": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Επιλέξτε φωτεινό ή σκοτεινό θέμα"
+    "text": "Επιλέξτε φωτεινό ή σκοτεινό θέμα",
+    "sha256": "ff0ae84f"
   },
   "web.settings.language.title": {
-    "text": "Γλώσσα"
+    "text": "Γλώσσα",
+    "sha256": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Επιλέξτε την προτιμώμενη γλώσσα σας"
+    "text": "Επιλέξτε την προτιμώμενη γλώσσα σας",
+    "sha256": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Επιλέξτε την προτιμώμενη γλώσσα σας"
+    "text": "Επιλέξτε την προτιμώμενη γλώσσα σας",
+    "sha256": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Διαχείριση ταυτοποίησης και ασφάλειας λογαριασμού"
+    "text": "Διαχείριση ταυτοποίησης και ασφάλειας λογαριασμού",
+    "sha256": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Διαχείριση πληροφοριών λογαριασμού"
+    "text": "Διαχείριση πληροφοριών λογαριασμού",
+    "sha256": "4a23a29f"
   },
   "web.settings.profile.title": {
-    "text": "Προφίλ"
+    "text": "Προφίλ",
+    "sha256": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Αλλαγή email"
+    "text": "Αλλαγή email",
+    "sha256": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "Τρέχον email"
+    "text": "Τρέχον email",
+    "sha256": "5f1cab64"
   },
   "web.settings.profile.current_password": {
-    "text": "Τρέχων κωδικός πρόσβασης"
+    "text": "Τρέχων κωδικός πρόσβασης",
+    "sha256": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Νέο email"
+    "text": "Νέο email",
+    "sha256": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Εισάγετε τον τρέχοντα κωδικό πρόσβασής σας"
+    "text": "Εισάγετε τον τρέχοντα κωδικό πρόσβασής σας",
+    "sha256": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Απαιτείται ο κωδικός πρόσβασής σας για λόγους ασφαλείας"
+    "text": "Απαιτείται ο κωδικός πρόσβασής σας για λόγους ασφαλείας",
+    "sha256": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Θα σταλεί email επαλήθευσης στη νέα διεύθυνση"
+    "text": "Θα σταλεί email επαλήθευσης στη νέα διεύθυνση",
+    "sha256": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Ενημέρωση email"
+    "text": "Ενημέρωση email",
+    "sha256": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Ενημερώστε τη διεύθυνση email που συσχετίζεται με τον λογαριασμό σας"
+    "text": "Ενημερώστε τη διεύθυνση email που συσχετίζεται με τον λογαριασμό σας",
+    "sha256": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Όλα τα πεδία είναι υποχρεωτικά"
+    "text": "Όλα τα πεδία είναι υποχρεωτικά",
+    "sha256": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Παρακαλώ εισάγετε έγκυρη διεύθυνση email"
+    "text": "Παρακαλώ εισάγετε έγκυρη διεύθυνση email",
+    "sha256": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Το νέο email πρέπει να διαφέρει από το τρέχον"
+    "text": "Το νέο email πρέπει να διαφέρει από το τρέχον",
+    "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Το email ενημερώθηκε επιτυχώς. Παρακαλώ ελέγξτε τα εισερχόμενά σας για να επαληθεύσετε τη νέα σας διεύθυνση email."
+    "text": "Το email ενημερώθηκε επιτυχώς. Παρακαλώ ελέγξτε τα εισερχόμενά σας για να επαληθεύσετε τη νέα σας διεύθυνση email.",
+    "sha256": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Αποτυχία ενημέρωσης email. Παρακαλώ δοκιμάστε ξανά."
+    "text": "Αποτυχία ενημέρωσης email. Παρακαλώ δοκιμάστε ξανά.",
+    "sha256": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "Ενεργές συνεδρίες"
+    "text": "Ενεργές συνεδρίες",
+    "sha256": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Διαχείριση ενεργών συνεδριών"
+    "text": "Διαχείριση ενεργών συνεδριών",
+    "sha256": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Διαχείριση ενεργών συνεδριών"
+    "text": "Διαχείριση ενεργών συνεδριών",
+    "sha256": "e5646da4"
   },
   "web.settings.password.title": {
-    "text": "Κωδικός πρόσβασης"
+    "text": "Κωδικός πρόσβασης",
+    "sha256": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Ενημερώστε τον κωδικό πρόσβασης του λογαριασμού σας"
+    "text": "Ενημερώστε τον κωδικό πρόσβασης του λογαριασμού σας",
+    "sha256": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Ενημερώστε τον κωδικό πρόσβασης του λογαριασμού σας"
+    "text": "Ενημερώστε τον κωδικό πρόσβασης του λογαριασμού σας",
+    "sha256": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "Διαγραφή λογαριασμού"
+    "text": "Διαγραφή λογαριασμού",
+    "sha256": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Οριστική διαγραφή του λογαριασμού και όλων των δεδομένων σας"
+    "text": "Οριστική διαγραφή του λογαριασμού και όλων των δεδομένων σας",
+    "sha256": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Οριστική διαγραφή του λογαριασμού και όλων των δεδομένων σας"
+    "text": "Οριστική διαγραφή του λογαριασμού και όλων των δεδομένων σας",
+    "sha256": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Βαθμολογία ασφάλειας"
+    "text": "Βαθμολογία ασφάλειας",
+    "sha256": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Η συνολική υγεία ασφάλειας του λογαριασμού σας"
+    "text": "Η συνολική υγεία ασφάλειας του λογαριασμού σας",
+    "sha256": "cf20935e"
   },
   "web.settings.security.excellent": {
-    "text": "Άριστη"
+    "text": "Άριστη",
+    "sha256": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "Καλή"
+    "text": "Καλή",
+    "sha256": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Μέτρια"
+    "text": "Μέτρια",
+    "sha256": "f7b19afc"
   },
   "web.settings.security.weak": {
-    "text": "Αδύναμη"
+    "text": "Αδύναμη",
+    "sha256": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Βελτιώστε την ασφάλειά σας"
+    "text": "Βελτιώστε την ασφάλειά σας",
+    "sha256": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Ενεργοποιήστε την ταυτοποίηση δύο παραγόντων για ισχυρότερη προστασία"
+    "text": "Ενεργοποιήστε την ταυτοποίηση δύο παραγόντων για ισχυρότερη προστασία",
+    "sha256": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Δημιουργήστε κωδικούς ανάκτησης ως αντίγραφο ασφαλείας"
+    "text": "Δημιουργήστε κωδικούς ανάκτησης ως αντίγραφο ασφαλείας",
+    "sha256": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "Διαμορφωμένο"
+    "text": "Διαμορφωμένο",
+    "sha256": "84aebc69"
   },
   "web.settings.security.change": {
-    "text": "Αλλαγή"
+    "text": "Αλλαγή",
+    "sha256": "c0bf75bd"
   },
   "web.settings.security.manage": {
-    "text": "Διαχείριση"
+    "text": "Διαχείριση",
+    "sha256": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "Ενεργοποίηση"
+    "text": "Ενεργοποίηση",
+    "sha256": "5342e09f"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} διαθέσιμοι κωδικοί"
+    "text": "{0} διαθέσιμοι κωδικοί",
+    "sha256": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Δεν δημιουργήθηκαν κωδικοί"
+    "text": "Δεν δημιουργήθηκαν κωδικοί",
+    "sha256": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} ενεργή συνεδρία | {0} ενεργές συνεδρίες"
+    "text": "{0} ενεργή συνεδρία | {0} ενεργές συνεδρίες",
+    "sha256": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Βέλτιστες πρακτικές ασφάλειας"
+    "text": "Βέλτιστες πρακτικές ασφάλειας",
+    "sha256": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Χρησιμοποιήστε ισχυρό, μοναδικό κωδικό πρόσβασης για τον λογαριασμό σας"
+    "text": "Χρησιμοποιήστε ισχυρό, μοναδικό κωδικό πρόσβασης για τον λογαριασμό σας",
+    "sha256": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Ενεργοποιήστε την ταυτοποίηση δύο παραγόντων για πρόσθετη προστασία"
+    "text": "Ενεργοποιήστε την ταυτοποίηση δύο παραγόντων για πρόσθετη προστασία",
+    "sha256": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Αποθηκεύστε τους κωδικούς ανάκτησής σας σε ασφαλή τοποθεσία"
+    "text": "Αποθηκεύστε τους κωδικούς ανάκτησής σας σε ασφαλή τοποθεσία",
+    "sha256": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Ελέγχετε και ανακαλείτε τακτικά τις αχρησιμοποίητες συνεδρίες"
+    "text": "Ελέγχετε και ανακαλείτε τακτικά τις αχρησιμοποίητες συνεδρίες",
+    "sha256": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Προβολή λεπτομερειών"
+    "text": "Προβολή λεπτομερειών",
+    "sha256": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "API & Ενσωματώσεις"
+    "text": "API & Ενσωματώσεις",
+    "sha256": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "Διαχείριση κλειδιών API και ενσωματώσεων"
+    "text": "Διαχείριση κλειδιών API και ενσωματώσεων",
+    "sha256": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Διαχείριση κλειδιών API και ενσωματώσεων"
+    "text": "Διαχείριση κλειδιών API και ενσωματώσεων",
+    "sha256": "70976099"
   },
   "web.settings.api.documentation": {
-    "text": "Τεκμηρίωση API"
+    "text": "Τεκμηρίωση API",
+    "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Μάθετε πώς να ενσωματώσετε το Onetime Secret στις εφαρμογές σας"
+    "text": "Μάθετε πώς να ενσωματώσετε το Onetime Secret στις εφαρμογές σας",
+    "sha256": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "Αναφορά REST API"
+    "text": "Αναφορά REST API",
+    "sha256": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Πλήρης τεκμηρίωση API και endpoints"
+    "text": "Πλήρης τεκμηρίωση API και endpoints",
+    "sha256": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
-    "text": "Παραδείγματα κώδικα"
+    "text": "Παραδείγματα κώδικα",
+    "sha256": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Παραδείγματα κώδικα και βιβλιοθήκες client"
+    "text": "Παραδείγματα κώδικα και βιβλιοθήκες client",
+    "sha256": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Βέλτιστες πρακτικές ασφάλειας"
+    "text": "Βέλτιστες πρακτικές ασφάλειας",
+    "sha256": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Μην αποθηκεύετε ποτέ κλειδιά API σε έλεγχο εκδόσεων"
+    "text": "Μην αποθηκεύετε ποτέ κλειδιά API σε έλεγχο εκδόσεων",
+    "sha256": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Χρησιμοποιήστε μεταβλητές περιβάλλοντος για αποθήκευση κλειδιών API"
+    "text": "Χρησιμοποιήστε μεταβλητές περιβάλλοντος για αποθήκευση κλειδιών API",
+    "sha256": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Εναλλάσσετε τακτικά τα κλειδιά API για ασφάλεια"
+    "text": "Εναλλάσσετε τακτικά τα κλειδιά API για ασφάλεια",
+    "sha256": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Χρησιμοποιείτε πάντα HTTPS κατά τα αιτήματα API"
+    "text": "Χρησιμοποιείτε πάντα HTTPS κατά τα αιτήματα API",
+    "sha256": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Παρακολουθήστε τη χρήση του API σας και ρυθμίστε ειδοποιήσεις"
+    "text": "Παρακολουθήστε τη χρήση του API σας και ρυθμίστε ειδοποιήσεις",
+    "sha256": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Σημαντική ειδοποίηση"
+    "text": "Σημαντική ειδοποίηση",
+    "sha256": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Η αναδημιουργία του κλειδιού API σας θα ακυρώσει το τρέχον κλειδί. Ενημερώστε όλες τις εφαρμογές που χρησιμοποιούν το παλιό κλειδί."
+    "text": "Η αναδημιουργία του κλειδιού API σας θα ακυρώσει το τρέχον κλειδί. Ενημερώστε όλες τις εφαρμογές που χρησιμοποιούν το παλιό κλειδί.",
+    "sha256": "ab168f83"
   },
   "web.settings.privacy.title": {
-    "text": "Ρυθμίσεις απορρήτου"
+    "text": "Ρυθμίσεις απορρήτου",
+    "sha256": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Διαχείριση προτιμήσεων απορρήτου"
+    "text": "Διαχείριση προτιμήσεων απορρήτου",
+    "sha256": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Το απόρρητό σας"
+    "text": "Το απόρρητό σας",
+    "sha256": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Αδιαπραγμάτευτο"
+    "text": "Αδιαπραγμάτευτο",
+    "sha256": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "Δεν είναι ρύθμιση"
+    "text": "Δεν είναι ρύθμιση",
+    "sha256": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Χωρίς αναλυτικά στοιχεία. Χωρίς παρακολούθηση. Τελεία."
+    "text": "Χωρίς αναλυτικά στοιχεία. Χωρίς παρακολούθηση. Τελεία.",
+    "sha256": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Αυτή δεν είναι ρύθμιση γιατί δεν υπάρχει τίποτα να ενεργοποιήσετε ή απενεργοποιήσετε. Το απόρρητό σας είναι ενσωματωμένο στον τρόπο λειτουργίας μας."
+    "text": "Αυτή δεν είναι ρύθμιση γιατί δεν υπάρχει τίποτα να ενεργοποιήσετε ή απενεργοποιήσετε. Το απόρρητό σας είναι ενσωματωμένο στον τρόπο λειτουργίας μας.",
+    "sha256": "ed943792"
   },
   "web.settings.notifications.title": {
-    "text": "Ρυθμίσεις ειδοποιήσεων"
+    "text": "Ρυθμίσεις ειδοποιήσεων",
+    "sha256": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Διαχείριση τρόπου λήψης ειδοποιήσεων"
+    "text": "Διαχείριση τρόπου λήψης ειδοποιήσεων",
+    "sha256": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Αποτυχία ενημέρωσης προτίμησης ειδοποιήσεων. Παρακαλώ δοκιμάστε ξανά."
+    "text": "Αποτυχία ενημέρωσης προτίμησης ειδοποιήσεων. Παρακαλώ δοκιμάστε ξανά.",
+    "sha256": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Ειδοποιήσεις αποκάλυψης μυστικού"
+    "text": "Ειδοποιήσεις αποκάλυψης μυστικού",
+    "sha256": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Λάβετε email όταν κάποιος προβάλλει το μυστικό σας"
+    "text": "Λάβετε email όταν κάποιος προβάλλει το μυστικό σας",
+    "sha256": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Θα ειδοποιηθείτε κάθε φορά που ένας παραλήπτης αποκαλύπτει ένα από τα μυστικά σας"
+    "text": "Θα ειδοποιηθείτε κάθε φορά που ένας παραλήπτης αποκαλύπτει ένα από τα μυστικά σας",
+    "sha256": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Τα email ειδοποιήσεων περιλαμβάνουν μόνο τη χρονική σήμανση και το αναγνωριστικό μυστικού. Οι πληροφορίες θεατή δεν συμπεριλαμβάνονται ποτέ."
+    "text": "Τα email ειδοποιήσεων περιλαμβάνουν μόνο τη χρονική σήμανση και το αναγνωριστικό μυστικού. Οι πληροφορίες θεατή δεν συμπεριλαμβάνονται ποτέ.",
+    "sha256": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Ζώνη προσοχής"
+    "text": "Ζώνη προσοχής",
+    "sha256": "fe27a3a8"
   },
   "web.settings.caution.description": {
-    "text": "Προηγμένες ρυθμίσεις και διαχείριση δεδομένων"
+    "text": "Προηγμένες ρυθμίσεις και διαχείριση δεδομένων",
+    "sha256": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Εξαγωγή δεδομένων"
+    "text": "Εξαγωγή δεδομένων",
+    "sha256": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Εξαγωγή δεδομένων λογαριασμού σας"
+    "text": "Εξαγωγή δεδομένων λογαριασμού σας",
+    "sha256": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Αιτηθείτε πλήρες αντίγραφο των δεδομένων του λογαριασμού σας σε μορφή αναγνώσιμη από μηχανή"
+    "text": "Αιτηθείτε πλήρες αντίγραφο των δεδομένων του λογαριασμού σας σε μορφή αναγνώσιμη από μηχανή",
+    "sha256": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Αίτημα εξαγωγής δεδομένων"
+    "text": "Αίτημα εξαγωγής δεδομένων",
+    "sha256": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Χρόνος επεξεργασίας εξαγωγής"
+    "text": "Χρόνος επεξεργασίας εξαγωγής",
+    "sha256": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Οι εξαγωγές επεξεργάζονται εντός 24 ωρών και αποστέλλονται στη διεύθυνση email σας"
+    "text": "Οι εξαγωγές επεξεργάζονται εντός 24 ωρών και αποστέλλονται στη διεύθυνση email σας",
+    "sha256": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Η διαγραφή του λογαριασμού σας θα:"
+    "text": "Η διαγραφή του λογαριασμού σας θα:",
+    "sha256": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Διαγράψει οριστικά όλα τα μυστικά σας"
+    "text": "Διαγράψει οριστικά όλα τα μυστικά σας",
+    "sha256": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Αφαιρέσει όλα τα μεταδεδομένα και το ιστορικό μυστικών"
+    "text": "Αφαιρέσει όλα τα μεταδεδομένα και το ιστορικό μυστικών",
+    "sha256": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Ακύρωση όλων των κλειδιών API"
+    "text": "Ακύρωση όλων των κλειδιών API",
+    "sha256": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί"
+    "text": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί",
+    "sha256": "02ccc074"
   },
   "web.account.deleting_ellipsis": {
-    "text": "Διαγραφή..."
+    "text": "Διαγραφή...",
+    "sha256": "685ecb98"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Επιστροφή στον πίνακα ελέγχου"
+    "text": "Επιστροφή στον πίνακα ελέγχου",
+    "sha256": "97ba1d39"
   },
   "web.settings.sections.account": {
-    "text": "Λογαριασμός"
+    "text": "Λογαριασμός",
+    "sha256": "7e1b0d56"
   },
   "web.settings.sections.billing": {
-    "text": "Χρεώσεις"
+    "text": "Χρεώσεις",
+    "sha256": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
-    "text": "Για προχωρημένους"
+    "text": "Για προχωρημένους",
+    "sha256": "9f088dbe"
   }
 }

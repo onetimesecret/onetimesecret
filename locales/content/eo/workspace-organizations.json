@@ -1,434 +1,578 @@
 {
   "web.organizations.title": {
-    "text": "Organizoj"
+    "text": "Organizoj",
+    "sha256": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organizo"
+    "text": "Organizo",
+    "sha256": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "Organizoj"
+    "text": "Organizoj",
+    "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Administru viajn organizojn"
+    "text": "Administru viajn organizojn",
+    "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Organizoj"
+    "text": "Organizoj",
+    "sha256": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Administru organizojn"
+    "text": "Administru organizojn",
+    "sha256": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Nova organizo"
+    "text": "Nova organizo",
+    "sha256": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Ankoraŭ neniuj organizoj"
+    "text": "Ankoraŭ neniuj organizoj",
+    "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizoj provizas unuigitan fakturado kaj administradon. Komencu kreante vian unuan organizon."
+    "text": "Organizoj provizas unuigitan fakturado kaj administradon. Komencu kreante vian unuan organizon.",
+    "sha256": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Neniu priskribo provizita"
+    "text": "Neniu priskribo provizita",
+    "sha256": "41183d01"
   },
   "web.organizations.default": {
-    "text": "Defaŭlta"
+    "text": "Defaŭlta",
+    "sha256": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Kreu organizon"
+    "text": "Kreu organizon",
+    "sha256": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Kreu unuan organizon"
+    "text": "Kreu unuan organizon",
+    "sha256": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Kreu novan organizon"
+    "text": "Kreu novan organizon",
+    "sha256": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "Krei"
+    "text": "Krei",
+    "sha256": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Malsukcesis krei organizon"
+    "text": "Malsukcesis krei organizon",
+    "sha256": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Organioznomo"
+    "text": "Organioznomo",
+    "sha256": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "ekz. Acme Korporacio"
+    "text": "ekz. Acme Korporacio",
+    "sha256": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Organioznomo"
+    "text": "Organioznomo",
+    "sha256": "4cbd9073"
   },
   "web.organizations.description": {
-    "text": "Priskribo"
+    "text": "Priskribo",
+    "sha256": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Por kio estas ĉi tiu organizo?"
+    "text": "Por kio estas ĉi tiu organizo?",
+    "sha256": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Fakturada retpoŝto"
+    "text": "Fakturada retpoŝto",
+    "sha256": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Ĉefa kontakto por fakturadaj kaj administraj sciigoj"
+    "text": "Ĉefa kontakto por fakturadaj kaj administraj sciigoj",
+    "sha256": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Elektu organizon"
+    "text": "Elektu organizon",
+    "sha256": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organizoŝanĝado ne disponebla sur ĉi tiu paĝo"
+    "text": "Organizoŝanĝado ne disponebla sur ĉi tiu paĝo",
+    "sha256": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "Organizo ne trovita"
+    "text": "Organizo ne trovita",
+    "sha256": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "Malsukcesis ŝargi organizon"
+    "text": "Malsukcesis ŝargi organizon",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Malsukcesis ŝargi organizon"
+    "text": "Malsukcesis ŝargi organizon",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Malsukcesis ŝargi organizojn"
+    "text": "Malsukcesis ŝargi organizojn",
+    "sha256": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Organiza informo"
+    "text": "Organiza informo",
+    "sha256": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Kreita"
+    "text": "Kreita",
+    "sha256": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Laste ĝisdatigita"
+    "text": "Laste ĝisdatigita",
+    "sha256": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Organizaj agordoj"
+    "text": "Organizaj agordoj",
+    "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Ĝisdatigu vian organiznomon kaj priskribon"
+    "text": "Ĝisdatigu vian organiznomon kaj priskribon",
+    "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Ĝeneralaj agordoj"
+    "text": "Ĝeneralaj agordoj",
+    "sha256": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Fakturado kaj abono"
+    "text": "Fakturado kaj abono",
+    "sha256": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Konservu ŝanĝojn"
+    "text": "Konservu ŝanĝojn",
+    "sha256": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "Organizo sukcese ĝisdatigita"
+    "text": "Organizo sukcese ĝisdatigita",
+    "sha256": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Malsukcesis ĝisdatigi organizon"
+    "text": "Malsukcesis ĝisdatigi organizon",
+    "sha256": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Fakturada retpoŝto sukcese ĝisdatigita"
+    "text": "Fakturada retpoŝto sukcese ĝisdatigita",
+    "sha256": "080a7f11"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Fakturada integriĝo baldaŭ venonta"
+    "text": "Fakturada integriĝo baldaŭ venonta",
+    "sha256": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Unuigita fakturado kaj abono-administrado estos disponebla en estonta eldono."
+    "text": "Unuigita fakturado kaj abono-administrado estos disponebla en estonta eldono.",
+    "sha256": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "Pri organizoj"
+    "text": "Pri organizoj",
+    "sha256": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organizoj provizas unuigitan fakturado kaj administradon por centralizita administrado."
+    "text": "Organizoj provizas unuigitan fakturado kaj administradon por centralizita administrado.",
+    "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Administru vian organizon"
+    "text": "Administru vian organizon",
+    "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Ĝisdatigu vian kompanionnomon kaj organizajn detalojn ĉi tie. Ĉi tiu informo helpas personecigi vian konton kaj povas esti uzata por markaj funkcioj en la estonteco."
+    "text": "Ĝisdatigu vian kompanionnomon kaj organizajn detalojn ĉi tie. Ĉi tiu informo helpas personecigi vian konton kaj povas esti uzata por markaj funkcioj en la estonteco.",
+    "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Komenci kun organizoj"
+    "text": "Komenci kun organizoj",
+    "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Kreu vian unuan organizon por administri viajn kompaniajn informojn kaj prepariĝi por estontaj markaj funkcioj."
+    "text": "Kreu vian unuan organizon por administri viajn kompaniajn informojn kaj prepariĝi por estontaj markaj funkcioj.",
+    "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Administru viajn organizojn kaj teamanojn"
+    "text": "Administru viajn organizojn kaj teamanojn",
+    "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
-    "text": "Agordoj"
+    "text": "Agordoj",
+    "sha256": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Kompania markado"
+    "text": "Kompania markado",
+    "sha256": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Teamo"
+    "text": "Teamo",
+    "sha256": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Fakturado"
+    "text": "Fakturado",
+    "sha256": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
-    "text": "Danĝera zono"
+    "text": "Danĝera zono",
+    "sha256": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Forigu organizon"
+    "text": "Forigu organizon",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Ĉi tio porĉiame forigos la organizon. Ĉi tiu ago ne povas esti malfarita."
+    "text": "Ĉi tio porĉiame forigos la organizon. Ĉi tiu ago ne povas esti malfarita.",
+    "sha256": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "Forigi"
+    "text": "Forigi",
+    "sha256": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Forigu organizon"
+    "text": "Forigu organizon",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Ĉu vi certas ke vi volas forigi {name}? Ĉi tiu ago ne povas esti malfarita."
+    "text": "Ĉu vi certas ke vi volas forigi {name}? Ĉi tiu ago ne povas esti malfarita.",
+    "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Malsukcesis forigi organizon"
+    "text": "Malsukcesis forigi organizon",
+    "sha256": "a8e5bb28"
   },
   "web.organizations.members.title": {
-    "text": "Membroj"
+    "text": "Membroj",
+    "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Administru organizajn membrojn kaj iliajn rolojn"
+    "text": "Administru organizajn membrojn kaj iliajn rolojn",
+    "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Nunaj membroj"
+    "text": "Nunaj membroj",
+    "sha256": "cfc156ae"
   },
   "web.organizations.members.member": {
-    "text": "Membro"
+    "text": "Membro",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
-    "text": "membro"
+    "text": "membro",
+    "sha256": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "membroj"
+    "text": "membroj",
+    "sha256": "17373ca1"
   },
   "web.organizations.members.name": {
-    "text": "Nomo"
+    "text": "Nomo",
+    "sha256": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "Retpoŝto"
+    "text": "Retpoŝto",
+    "sha256": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Rolo"
+    "text": "Rolo",
+    "sha256": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Aliĝis"
+    "text": "Aliĝis",
+    "sha256": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "Agoj"
+    "text": "Agoj",
+    "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Ankoraŭ neniuj membroj. Invitu teamanojn por komenci."
+    "text": "Ankoraŭ neniuj membroj. Invitu teamanojn por komenci.",
+    "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "Ĉi tiu organizo ankoraŭ ne havas membrojn."
+    "text": "Ĉi tiu organizo ankoraŭ ne havas membrojn.",
+    "sha256": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Membrorolon sukcese ĝisdatigita"
+    "text": "Membrorolon sukcese ĝisdatigita",
+    "sha256": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Malsukcesis ĝisdatigi membrorolon"
+    "text": "Malsukcesis ĝisdatigi membrorolon",
+    "sha256": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Membro forigita de organizo"
+    "text": "Membro forigita de organizo",
+    "sha256": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Malsukcesis forigi membron"
+    "text": "Malsukcesis forigi membron",
+    "sha256": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Forigu membron"
+    "text": "Forigu membron",
+    "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Ĉu vi certas ke vi volas forigi {name} de ĉi tiu organizo?"
+    "text": "Ĉu vi certas ke vi volas forigi {name} de ĉi tiu organizo?",
+    "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Vi ne povas ŝanĝi vian propran rolon"
+    "text": "Vi ne povas ŝanĝi vian propran rolon",
+    "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Vi ne povas forigi vin mem de la organizo"
+    "text": "Vi ne povas forigi vin mem de la organizo",
+    "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Vi ne povas forigi la organizoposedanton"
+    "text": "Vi ne povas forigi la organizoposedanton",
+    "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Vi ne havas permeson administri membrojn"
+    "text": "Vi ne havas permeson administri membrojn",
+    "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Posedanto"
+    "text": "Posedanto",
+    "sha256": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Administranto"
+    "text": "Administranto",
+    "sha256": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
-    "text": "Membro"
+    "text": "Membro",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Plena aliro al ĉiuj organizaj agordoj kaj membroj"
+    "text": "Plena aliro al ĉiuj organizaj agordoj kaj membroj",
+    "sha256": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Povas administri membrojn kaj plej multajn organizajn agordojn"
+    "text": "Povas administri membrojn kaj plej multajn organizajn agordojn",
+    "sha256": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Baza aliro al organizaj rimedoj"
+    "text": "Baza aliro al organizaj rimedoj",
+    "sha256": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Organizaj invitoj"
+    "text": "Organizaj invitoj",
+    "sha256": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Invitu membron"
+    "text": "Invitu membron",
+    "sha256": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Invitu novan membron"
+    "text": "Invitu novan membron",
+    "sha256": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Atendantaj invitoj"
+    "text": "Atendantaj invitoj",
+    "sha256": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Neniuj atendantaj invitoj"
+    "text": "Neniuj atendantaj invitoj",
+    "sha256": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "Retpoŝtadreso"
+    "text": "Retpoŝtadreso",
+    "sha256": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "member{'@'}example.com"
+    "text": "member{'@'}example.com",
+    "sha256": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Rolo"
+    "text": "Rolo",
+    "sha256": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Sendu inviton"
+    "text": "Sendu inviton",
+    "sha256": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Invito sukcese sendita"
+    "text": "Invito sukcese sendita",
+    "sha256": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Malsukcesis sendi inviton"
+    "text": "Malsukcesis sendi inviton",
+    "sha256": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Resendi"
+    "text": "Resendi",
+    "sha256": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Revoki"
+    "text": "Revoki",
+    "sha256": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Invito sukcese resendita"
+    "text": "Invito sukcese resendita",
+    "sha256": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Malsukcesis resendi inviton"
+    "text": "Malsukcesis resendi inviton",
+    "sha256": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Invito sukcese revokita"
+    "text": "Invito sukcese revokita",
+    "sha256": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Malsukcesis revoki inviton"
+    "text": "Malsukcesis revoki inviton",
+    "sha256": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Invitita de"
+    "text": "Invitita de",
+    "sha256": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Invitita"
+    "text": "Invitita",
+    "sha256": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Senvalidiĝas"
+    "text": "Senvalidiĝas",
+    "sha256": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Resendita {count} fojon"
+    "text": "Resendita {count} fojon",
+    "sha256": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Resendita {count} fojojn"
+    "text": "Resendita {count} fojojn",
+    "sha256": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Atendanta"
+    "text": "Atendanta",
+    "sha256": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Akceptita"
+    "text": "Akceptita",
+    "sha256": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Rifuzita"
+    "text": "Rifuzita",
+    "sha256": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Senvalidiĝinta"
+    "text": "Senvalidiĝinta",
+    "sha256": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro"
+    "text": "Membro",
+    "sha256": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Administranto"
+    "text": "Administranto",
+    "sha256": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Akceptu inviton"
+    "text": "Akceptu inviton",
+    "sha256": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Rifuzu inviton"
+    "text": "Rifuzu inviton",
+    "sha256": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Invitaj detaloj"
+    "text": "Invitaj detaloj",
+    "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Vi estis invitita aliĝi al"
+    "text": "Vi estis invitita aliĝi al",
+    "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Vi estis invitita kiel"
+    "text": "Vi estis invitita kiel",
+    "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Invito sukcese akceptita"
+    "text": "Invito sukcese akceptita",
+    "sha256": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Malsukcesis akcepti inviton"
+    "text": "Malsukcesis akcepti inviton",
+    "sha256": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Invito rifuzita"
+    "text": "Invito rifuzita",
+    "sha256": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Malsukcesis rifuzi inviton"
+    "text": "Malsukcesis rifuzi inviton",
+    "sha256": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Ĉi tiu invito senvalidiĝis"
+    "text": "Ĉi tiu invito senvalidiĝis",
+    "sha256": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Nevalida aŭ senvalidiĝinta invito"
+    "text": "Nevalida aŭ senvalidiĝinta invito",
+    "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Bonvolu ensaluti por akcepti ĉi tiun inviton"
+    "text": "Bonvolu ensaluti por akcepti ĉi tiun inviton",
+    "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Ŝargante invitajn detalojn"
+    "text": "Ŝargante invitajn detalojn",
+    "sha256": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Ĝisdatigu vian planon por inviti teamanojn"
+    "text": "Ĝisdatigu vian planon por inviti teamanojn",
+    "sha256": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teamanaj invitoj bezonas planon kun team-administrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo."
+    "text": "Teamanaj invitoj bezonas planon kun team-administrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo.",
+    "sha256": "cf10d623"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Fakturada retpoŝto povas esti ŝanĝita sur la Fakturada Superrigardopaĝo"
+    "text": "Fakturada retpoŝto povas esti ŝanĝita sur la Fakturada Superrigardopaĝo",
+    "sha256": "8a131415"
   },
   "web.organizations.paid_badge": {
-    "text": "Pro"
+    "text": "Pro",
+    "sha256": "957b0b87"
   },
   "web.organizations.member_count": {
-    "text": "{count} membro | {count} membroj"
+    "text": "{count} membro | {count} membroj",
+    "sha256": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} domajno | {count} domajnoj"
+    "text": "{count} domajno | {count} domajnoj",
+    "sha256": "09f52efa"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Malĝusta konto"
+    "text": "Malĝusta konto",
+    "sha256": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Ĉi tiu invito estis sendita al {invitedEmail}, sed vi estas ensalutinta kiel {currentEmail}."
+    "text": "Ĉi tiu invito estis sendita al {invitedEmail}, sed vi estas ensalutinta kiel {currentEmail}.",
+    "sha256": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
-    "text": "Ensalutu per alia konto"
+    "text": "Ensalutu per alia konto",
+    "sha256": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days}t restantaj"
+    "text": "{days}t restantaj",
+    "sha256": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours}h restantaj"
+    "text": "{hours}h restantaj",
+    "sha256": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Baldaŭ senvalidiĝas"
+    "text": "Baldaŭ senvalidiĝas",
+    "sha256": "a5dcfef9"
   },
   "web.organizations.tabs.subscription": {
-    "text": "Abono"
+    "text": "Abono",
+    "sha256": "4999c6c6"
   },
   "web.organizations.tabs.domains": {
-    "text": "Domajnoj"
+    "text": "Domajnoj",
+    "sha256": "ced67718"
   }
 }

@@ -1,107 +1,142 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "데이터 주권 및 지역 격리"
+    "text": "데이터 주권 및 지역 격리",
+    "sha256": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "귀하의 데이터는 선택한 지역에만 존재하며 지역 간에 전송되지 않습니다"
+    "text": "귀하의 데이터는 선택한 지역에만 존재하며 지역 간에 전송되지 않습니다",
+    "sha256": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "각 지역은 자체 인프라, 암호화 키 및 데이터 저장소를 갖춘 완전히 독립적인 환경으로 운영됩니다"
+    "text": "각 지역은 자체 인프라, 암호화 키 및 데이터 저장소를 갖춘 완전히 독립적인 환경으로 운영됩니다",
+    "sha256": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "엄격한 정책을 유지합니다: 고객 데이터는 어떤 상황에서도 지역 간에 전송되지 않습니다"
+    "text": "엄격한 정책을 유지합니다: 고객 데이터는 어떤 상황에서도 지역 간에 전송되지 않습니다",
+    "sha256": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "중요: 다른 지역으로 전환하면 새 계정이 생성됩니다. 데이터는 원래 지역에 유지됩니다."
+    "text": "중요: 다른 지역으로 전환하면 새 계정이 생성됩니다. 데이터는 원래 지역에 유지됩니다.",
+    "sha256": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "귀하의 지역"
+    "text": "귀하의 지역",
+    "sha256": "cafa720f"
   },
   "web.regions.your_current_region": {
-    "text": "현재 지역"
+    "text": "현재 지역",
+    "sha256": "45e2a9d6"
   },
   "web.regions.active": {
-    "text": "활성"
+    "text": "활성",
+    "sha256": "92340695"
   },
   "web.regions.explore_other_regions": {
-    "text": "다른 이용 가능한 지역 탐색"
+    "text": "다른 이용 가능한 지역 탐색",
+    "sha256": "953d0057"
   },
   "web.regions.why_it_matters": {
-    "text": "데이터 주권이 중요한 이유"
+    "text": "데이터 주권이 중요한 이유",
+    "sha256": "67de6cf7"
   },
   "web.regions.trust_title": {
-    "text": "투명성 및 제어"
+    "text": "투명성 및 제어",
+    "sha256": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "데이터가 정확히 어디에 있고 어떤 법률이 보호를 관장하는지 알 수 있습니다."
+    "text": "데이터가 정확히 어디에 있고 어떤 법률이 보호를 관장하는지 알 수 있습니다.",
+    "sha256": "97fd57ab"
   },
   "web.regions.privacy_title": {
-    "text": "개인정보 권리"
+    "text": "개인정보 권리",
+    "sha256": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "귀하의 개인정보가 국가의 개인정보 보호법 및 규정에 따라 처리되도록 하여 무단 접근이나 오용을 방지합니다."
+    "text": "귀하의 개인정보가 국가의 개인정보 보호법 및 규정에 따라 처리되도록 하여 무단 접근이나 오용을 방지합니다.",
+    "sha256": "28d9d42e"
   },
   "web.regions.compliance_title": {
-    "text": "규정 준수"
+    "text": "규정 준수",
+    "sha256": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "GDPR, HIPAA, CCPA 및 기타 지역 데이터 보호 요구 사항을 충족합니다"
+    "text": "GDPR, HIPAA, CCPA 및 기타 지역 데이터 보호 요구 사항을 충족합니다",
+    "sha256": "c3b2ee43"
   },
   "web.regions.performance_title": {
-    "text": "빠른 접근"
+    "text": "빠른 접근",
+    "sha256": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "가까운 곳에 저장된 데이터는 더 낮은 지연 시간과 더 나은 성능을 제공합니다."
+    "text": "가까운 곳에 저장된 데이터는 더 낮은 지연 시간과 더 나은 성능을 제공합니다.",
+    "sha256": "e133ef1d"
   },
   "web.regions.regions": {
-    "text": "지역"
+    "text": "지역",
+    "sha256": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "준수 팀에 문의"
+    "text": "준수 팀에 문의",
+    "sha256": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "문서 검토"
+    "text": "문서 검토",
+    "sha256": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
-    "text": "귀하의 계정과 데이터는 다음의 법률과 규정에 따라 보호됩니다"
+    "text": "귀하의 계정과 데이터는 다음의 법률과 규정에 따라 보호됩니다",
+    "sha256": "5f5ef5b6"
   },
   "web.regions.this_regulatory_framework_is_determined_by_your_": {
-    "text": "이 규제 프레임워크는 액세스 도메인에 의해 결정됩니다:"
+    "text": "이 규제 프레임워크는 액세스 도메인에 의해 결정됩니다:",
+    "sha256": "7fdbc59c"
   },
   "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
-    "text": "각 관할 구역은 별도의 법적 규정 준수 및 데이터 거버넌스를 유지합니다. 여러 관할 구역에서 계정을 만들 수 있지만, 규제 구역 간에 데이터 공유 없이 법적으로 구분됩니다."
+    "text": "각 관할 구역은 별도의 법적 규정 준수 및 데이터 거버넌스를 유지합니다. 여러 관할 구역에서 계정을 만들 수 있지만, 규제 구역 간에 데이터 공유 없이 법적으로 구분됩니다.",
+    "sha256": "5c0b350e"
   },
   "web.regions.to_understand_the_specific_regulations_and_prote": {
-    "text": "귀하의 계정에 적용되는 특정 규정 및 보호를 이해하려면"
+    "text": "귀하의 계정에 적용되는 특정 규정 및 보호를 이해하려면",
+    "sha256": "e8acc835"
   },
   "web.regions.current": {
-    "text": "현재"
+    "text": "현재",
+    "sha256": "e0d1b682"
   },
   "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
-    "text": "{0} {1}"
+    "text": "{0} {1}",
+    "sha256": "10866a9d"
   },
   "web.regions.available_regions": {
-    "text": "이용 가능한 지역"
+    "text": "이용 가능한 지역",
+    "sha256": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "관할권"
+    "text": "관할권",
+    "sha256": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
-    "text": "데이터 센터 위치: {0}"
+    "text": "데이터 센터 위치: {0}",
+    "sha256": "f1699c90"
   },
   "web.regions.data_region": {
-    "text": "데이터 지역"
+    "text": "데이터 지역",
+    "sha256": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "알 수 없는 관할권"
+    "text": "알 수 없는 관할권",
+    "sha256": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "서비스 제공 위치:"
+    "text": "서비스 제공 위치:",
+    "sha256": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "{0}(으)로 계속"
+    "text": "{0}(으)로 계속",
+    "sha256": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "현재 관할권:"
+    "text": "현재 관할권:",
+    "sha256": "d0f2192d"
   }
 }

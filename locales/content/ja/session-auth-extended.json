@@ -1,408 +1,543 @@
 {
   "web.auth.mfa_required": {
-    "text": "MFA認証が必要です"
+    "text": "MFA認証が必要です",
+    "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "アカウントにアクセスするにはMFA認証が必要です"
+    "text": "アカウントにアクセスするにはMFA認証が必要です",
+    "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "MFA認証を完了"
+    "text": "MFA認証を完了",
+    "sha256": "0e681134"
   },
   "web.auth.security.authentication_failed": {
-    "text": "認証に失敗しました。認証情報を確認してもう一度お試しください。"
+    "text": "認証に失敗しました。認証情報を確認してもう一度お試しください。",
+    "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "試行回数が多すぎます。後でもう一度お試しください。"
+    "text": "試行回数が多すぎます。後でもう一度お試しください。",
+    "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "セッションが期限切れです。再度ログインしてください。"
+    "text": "セッションが期限切れです。再度ログインしてください。",
+    "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "リカバリーコードが見つかりません。正しく入力されたか確認してください。"
+    "text": "リカバリーコードが見つかりません。正しく入力されたか確認してください。",
+    "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "このリカバリーコードは既に使用されています。各コードは1回のみ使用できます。"
+    "text": "このリカバリーコードは既に使用されています。各コードは1回のみ使用できます。",
+    "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "ネットワークエラー。接続を確認してもう一度お試しください。"
+    "text": "ネットワークエラー。接続を確認してもう一度お試しください。",
+    "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "エラーが発生しました。もう一度お試しください。"
+    "text": "エラーが発生しました。もう一度お試しください。",
+    "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "パスワード"
+    "text": "パスワード",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "メールリンク"
+    "text": "メールリンク",
+    "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "生体認証"
+    "text": "生体認証",
+    "sha256": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "メールでログイン"
+    "text": "メールでログイン",
+    "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "安全なログインリンクを送信します"
+    "text": "安全なログインリンクを送信します",
+    "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "メールアドレスを入力"
+    "text": "メールアドレスを入力",
+    "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "ログインリンクを送信"
+    "text": "ログインリンクを送信",
+    "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "メールを確認してください"
+    "text": "メールを確認してください",
+    "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "{email}にログインリンクを送信しました"
+    "text": "{email}にログインリンクを送信しました",
+    "sha256": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "このリンクは15分で期限切れになります"
+    "text": "このリンクは15分で期限切れになります",
+    "sha256": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "別のメールアドレスを試す"
+    "text": "別のメールアドレスを試す",
+    "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "パスワード不要 - メール内のリンクをクリックするだけ"
+    "text": "パスワード不要 - メール内のリンクをクリックするだけ",
+    "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "ネットワークエラー。もう一度お試しください。"
+    "text": "ネットワークエラー。もう一度お試しください。",
+    "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "ログインリンクの送信に失敗しました。もう一度お試しください。"
+    "text": "ログインリンクの送信に失敗しました。もう一度お試しください。",
+    "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "無効またはログインリンクがありません"
+    "text": "無効またはログインリンクがありません",
+    "sha256": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "ログインに失敗しました。もう一度お試しください。"
+    "text": "ログインに失敗しました。もう一度お試しください。",
+    "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "ログイン中..."
+    "text": "ログイン中...",
+    "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "リンクを確認しています。お待ちください"
+    "text": "リンクを確認しています。お待ちください",
+    "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "認証エラー"
+    "text": "認証エラー",
+    "sha256": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "ログインに戻る"
+    "text": "ログインに戻る",
+    "sha256": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Face ID / Touch IDでログイン"
+    "text": "Face ID / Touch IDでログイン",
+    "sha256": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "生体認証ログインを設定"
+    "text": "生体認証ログインを設定",
+    "sha256": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "このブラウザでは生体認証がサポートされていません"
+    "text": "このブラウザでは生体認証がサポートされていません",
+    "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "WebAuthnをサポートする最新のブラウザ(Chrome、Safari、Firefox、またはEdge)をご使用ください"
+    "text": "WebAuthnをサポートする最新のブラウザ(Chrome、Safari、Firefox、またはEdge)をご使用ください",
+    "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "生体認証ログインが有効になりました"
+    "text": "生体認証ログインが有効になりました",
+    "sha256": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "生体認証ログインの設定に失敗しました"
+    "text": "生体認証ログインの設定に失敗しました",
+    "sha256": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "生体認証に失敗しました。もう一度お試しください。"
+    "text": "生体認証に失敗しました。もう一度お試しください。",
+    "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "認証がキャンセルされました"
+    "text": "認証がキャンセルされました",
+    "sha256": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "認証中..."
+    "text": "認証中...",
+    "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "指紋、顔、またはセキュリティキーでログイン"
+    "text": "指紋、顔、またはセキュリティキーでログイン",
+    "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Face ID、Touch ID、Windows Hello、セキュリティキーに対応"
+    "text": "Face ID、Touch ID、Windows Hello、セキュリティキーに対応",
+    "sha256": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "警告: ログイン試行回数が残り{count}回です"
+    "text": "警告: ログイン試行回数が残り{count}回です",
+    "sha256": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "ログイン失敗回数が多すぎるためアカウントがロックされました"
+    "text": "ログイン失敗回数が多すぎるためアカウントがロックされました",
+    "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "アカウントは{time}までロックされています"
+    "text": "アカウントは{time}までロックされています",
+    "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "すぐにアクセスが必要な場合はサポートにお問い合わせください"
+    "text": "すぐにアクセスが必要な場合はサポートにお問い合わせください",
+    "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "代わりにパスワードをリセットできます"
+    "text": "代わりにパスワードをリセットできます",
+    "sha256": "a98a3f9d"
   },
   "web.auth.sessions.title": {
-    "text": "アクティブセッション"
+    "text": "アクティブセッション",
+    "sha256": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "現在のセッション"
+    "text": "現在のセッション",
+    "sha256": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "その他のセッション"
+    "text": "その他のセッション",
+    "sha256": "8409f445"
   },
   "web.auth.sessions.device": {
-    "text": "デバイス"
+    "text": "デバイス",
+    "sha256": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "場所"
+    "text": "場所",
+    "sha256": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "IPアドレス"
+    "text": "IPアドレス",
+    "sha256": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "最終アクティブ"
+    "text": "最終アクティブ",
+    "sha256": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "作成日"
+    "text": "作成日",
+    "sha256": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "削除"
+    "text": "削除",
+    "sha256": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "他のすべてのセッションをログアウト"
+    "text": "他のすべてのセッションをログアウト",
+    "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "このセッションを削除してもよろしいですか?"
+    "text": "このセッションを削除してもよろしいですか?",
+    "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "他のすべてのデバイスからログアウトします。よろしいですか?"
+    "text": "他のすべてのデバイスからログアウトします。よろしいですか?",
+    "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "他にアクティブなセッションはありません"
+    "text": "他にアクティブなセッションはありません",
+    "sha256": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "セッションを削除しました"
+    "text": "セッションを削除しました",
+    "sha256": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "他のすべてのセッションをログアウトしました"
+    "text": "他のすべてのセッションをログアウトしました",
+    "sha256": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "アクティブセッション"
+    "text": "アクティブセッション",
+    "sha256": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "二要素認証"
+    "text": "二要素認証",
+    "sha256": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "二要素認証が有効です"
+    "text": "二要素認証が有効です",
+    "sha256": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "二要素認証が無効です"
+    "text": "二要素認証が無効です",
+    "sha256": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "二要素認証を有効化"
+    "text": "二要素認証を有効化",
+    "sha256": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "二要素認証を無効化"
+    "text": "二要素認証を無効化",
+    "sha256": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "二要素認証を設定"
+    "text": "二要素認証を設定",
+    "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "アカウントにセキュリティの追加レイヤーを追加"
+    "text": "アカウントにセキュリティの追加レイヤーを追加",
+    "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. QRコードをスキャン"
+    "text": "1. QRコードをスキャン",
+    "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. セットアップを確認"
+    "text": "2. セットアップを確認",
+    "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "認証アプリでこのQRコードをスキャン"
+    "text": "認証アプリでこのQRコードをスキャン",
+    "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "またはこのコードを手動で入力"
+    "text": "またはこのコードを手動で入力",
+    "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "アプリからの6桁のコードを入力"
+    "text": "アプリからの6桁のコードを入力",
+    "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "認証コードを入力"
+    "text": "認証コードを入力",
+    "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "確認して有効化"
+    "text": "確認して有効化",
+    "sha256": "7c08f68d"
   },
   "web.auth.mfa.code_required": {
-    "text": "認証コードが必要です"
+    "text": "認証コードが必要です",
+    "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "無効なコードです。コードは30秒ごとに期限切れになります。認証アプリから最新のコードを試してください。"
+    "text": "無効なコードです。コードは30秒ごとに期限切れになります。認証アプリから最新のコードを試してください。",
+    "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "二要素認証が有効になりました"
+    "text": "二要素認証が有効になりました",
+    "sha256": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "二要素認証が無効になりました"
+    "text": "二要素認証が無効になりました",
+    "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "2FAを無効化するにはパスワードを入力"
+    "text": "2FAを無効化するにはパスワードを入力",
+    "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "パスワード"
+    "text": "パスワード",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "二要素認証設定を変更するには本人確認が必要です"
+    "text": "二要素認証設定を変更するには本人確認が必要です",
+    "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "最終使用: {time}"
+    "text": "最終使用: {time}",
+    "sha256": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "未使用"
+    "text": "未使用",
+    "sha256": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "代わりにリカバリーコードを使用"
+    "text": "代わりにリカバリーコードを使用",
+    "sha256": "23d3441a"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "認証コードに戻る"
+    "text": "認証コードに戻る",
+    "sha256": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "キャンセルしてログインに戻る"
+    "text": "キャンセルしてログインに戻る",
+    "sha256": "83256742"
   },
   "web.auth.mfa.loading_status": {
-    "text": "MFAステータスを読み込み中..."
+    "text": "MFAステータスを読み込み中...",
+    "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "アカウントは二要素認証で保護されています"
+    "text": "アカウントは二要素認証で保護されています",
+    "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "追加のセキュリティレイヤーでアカウントを保護"
+    "text": "追加のセキュリティレイヤーでアカウントを保護",
+    "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "パスワードが漏洩しても不正アクセスを防止"
+    "text": "パスワードが漏洩しても不正アクセスを防止",
+    "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Google Authenticator、Authy、その他のTOTPアプリで動作"
+    "text": "Google Authenticator、Authy、その他のTOTPアプリで動作",
+    "sha256": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "緊急アクセス用のリカバリーコードをバックアップ"
+    "text": "緊急アクセス用のリカバリーコードをバックアップ",
+    "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "パスワードを入力"
+    "text": "パスワードを入力",
+    "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "無効化中..."
+    "text": "無効化中...",
+    "sha256": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "2FAを無効化"
+    "text": "2FAを無効化",
+    "sha256": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "QRコードを生成中..."
+    "text": "QRコードを生成中...",
+    "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Google Authenticator、Authy、または任意のTOTPアプリを使用"
+    "text": "Google Authenticator、Authy、または任意のTOTPアプリを使用",
+    "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "確認を続ける"
+    "text": "確認を続ける",
+    "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "認証アプリからの6桁のコードを入力"
+    "text": "認証アプリからの6桁のコードを入力",
+    "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "MFAを有効化"
+    "text": "MFAを有効化",
+    "sha256": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "セットアップを完了"
+    "text": "セットアップを完了",
+    "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "リカバリーコードの1つを入力"
+    "text": "リカバリーコードの1つを入力",
+    "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "リカバリーコード"
+    "text": "リカバリーコード",
+    "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "リカバリーコードを入力"
+    "text": "リカバリーコードを入力",
+    "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "リカバリーコードを確認"
+    "text": "リカバリーコードを確認",
+    "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "6桁の認証コードを入力"
+    "text": "6桁の認証コードを入力",
+    "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "リカバリーコードモードがアクティブ"
+    "text": "リカバリーコードモードがアクティブ",
+    "sha256": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "認証コードモードがアクティブ"
+    "text": "認証コードモードがアクティブ",
+    "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "続行するには6桁すべてを入力してください"
+    "text": "続行するには6桁すべてを入力してください",
+    "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "{total}桁中{current}桁目"
+    "text": "{total}桁中{current}桁目",
+    "sha256": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "リカバリーコード"
+    "text": "リカバリーコード",
+    "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "これらのコードを安全な場所に保存してください。認証アプリにアクセスできなくなった場合、各コードを1回使用できます。"
+    "text": "これらのコードを安全な場所に保存してください。認証アプリにアクセスできなくなった場合、各コードを1回使用できます。",
+    "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "これらのコードは一度だけ表示されます"
+    "text": "これらのコードは一度だけ表示されます",
+    "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "セットアップを完了する前に、リカバリーコードをダウンロードまたはコピーする必要があります。"
+    "text": "セットアップを完了する前に、リカバリーコードをダウンロードまたはコピーする必要があります。",
+    "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "新しいコードを生成"
+    "text": "新しいコードを生成",
+    "sha256": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "コードを再生成"
+    "text": "コードを再生成",
+    "sha256": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "これにより既存のすべてのリカバリーコードが無効になります"
+    "text": "これにより既存のすべてのリカバリーコードが無効になります",
+    "sha256": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "コードをダウンロード"
+    "text": "コードをダウンロード",
+    "sha256": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "リカバリーコードをダウンロードしました"
+    "text": "リカバリーコードをダウンロードしました",
+    "sha256": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "コードを印刷"
+    "text": "コードを印刷",
+    "sha256": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "すべてのコードをコピー"
+    "text": "すべてのコードをコピー",
+    "sha256": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "コードをクリップボードにコピーしました"
+    "text": "コードをクリップボードにコピーしました",
+    "sha256": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "コードのコピーに失敗しました"
+    "text": "コードのコピーに失敗しました",
+    "sha256": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "使用済み"
+    "text": "使用済み",
+    "sha256": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "未使用"
+    "text": "未使用",
+    "sha256": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "リカバリーコード: {limit}件中{count}件残り"
+    "text": "リカバリーコード: {limit}件中{count}件残り",
+    "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "各コードは1回のみ使用できます。残りが少なくなったらコードを再生成してください。"
+    "text": "各コードは1回のみ使用できます。残りが少なくなったらコードを再生成してください。",
+    "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "リカバリーコードが残っていません"
+    "text": "リカバリーコードが残っていません",
+    "sha256": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "新しいリカバリーコードが生成されました"
+    "text": "新しいリカバリーコードが生成されました",
+    "sha256": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "リカバリーコード"
+    "text": "リカバリーコード",
+    "sha256": "579c7f4e"
   },
   "web.auth.mfa.verify_login": {
-    "text": "確認"
+    "text": "確認",
+    "sha256": "eea2745e"
   },
   "web.auth.mfa.use_recovery_code_short": {
-    "text": "リカバリーコードを使用"
+    "text": "リカバリーコードを使用",
+    "sha256": "50d5790d"
   },
   "web.auth.mfa.cancel_sign_in": {
-    "text": "ログインをキャンセル"
+    "text": "ログインをキャンセル",
+    "sha256": "1bebad2f"
   },
   "web.auth.security._guidance.context": {
     "text": "⚠️ セキュリティ重要: メッセージは情報漏洩を防ぎます。src/locales/SECURITY-TRANSLATION-GUIDE.mdを参照"

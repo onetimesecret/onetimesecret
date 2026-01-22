@@ -5,1002 +5,1335 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Ασφαλείς σύνδεσμοι που λειτουργούν μόνο μία φορά"
+    "text": "Ασφαλείς σύνδεσμοι που λειτουργούν μόνο μία φορά",
+    "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Τροφοδοτείται από"
+    "text": "Τροφοδοτείται από",
+    "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/el"
+    "text": "https://onetimesecret.com/el",
+    "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Δημιουργία κωδικού"
+    "text": "Δημιουργία κωδικού",
+    "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Η δημιουργία κωδικού είναι απενεργοποιημένη όταν η φόρμα είναι έγκυρη"
+    "text": "Η δημιουργία κωδικού είναι απενεργοποιημένη όταν η φόρμα είναι έγκυρη",
+    "sha256": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "π.χ. tom{'@'}myspace.com"
+    "text": "π.χ. tom{'@'}myspace.com",
+    "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Εισάγετε τον κωδικό σας"
+    "text": "Εισάγετε τον κωδικό σας",
+    "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Προσαρμοσμένοι τομείς"
+    "text": "Προσαρμοσμένοι τομείς",
+    "sha256": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Ενισχύστε τις σχέσεις και χτίστε εμπιστοσύνη με τους δικούς σας επώνυμους μυστικούς συνδέσμους."
+    "text": "Ενισχύστε τις σχέσεις και χτίστε εμπιστοσύνη με τους δικούς σας επώνυμους μυστικούς συνδέσμους.",
+    "sha256": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Ξεκινήστε"
+    "text": "Ξεκινήστε",
+    "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Επιβεβαιώστε τον κωδικό σας"
+    "text": "Επιβεβαιώστε τον κωδικό σας",
+    "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
-    "text": "Ρυθμίσεις"
+    "text": "Ρυθμίσεις",
+    "sha256": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Υποβολή"
+    "text": "Υποβολή",
+    "sha256": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Υποβολή..."
+    "text": "Υποβολή...",
+    "sha256": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Επεξεργασία..."
+    "text": "Επεξεργασία...",
+    "sha256": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Κρατήστε τις ευαίσθητες πληροφορίες μακριά από τα αρχεία συνομιλιών και τα email σας. Μοιραστείτε έναν μυστικό σύνδεσμο που είναι διαθέσιμος μόνο μία φορά."
+    "text": "Κρατήστε τις ευαίσθητες πληροφορίες μακριά από τα αρχεία συνομιλιών και τα email σας. Μοιραστείτε έναν μυστικό σύνδεσμο που είναι διαθέσιμος μόνο μία φορά.",
+    "sha256": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Λανθασμένη φράση πρόσβασης"
+    "text": "Λανθασμένη φράση πρόσβασης",
+    "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "μυστικό,γεννήτρια κωδικών,κοινοποίηση μυστικού,onetime"
+    "text": "μυστικό,γεννήτρια κωδικών,κοινοποίηση μυστικού,onetime",
+    "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Δημιουργία μυστικού συνδέσμου"
+    "text": "Δημιουργία μυστικού συνδέσμου",
+    "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Ή δημιουργήστε έναν τυχαίο κωδικό"
+    "text": "Ή δημιουργήστε έναν τυχαίο κωδικό",
+    "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Επιλογές απορρήτου"
+    "text": "Επιλογές απορρήτου",
+    "sha256": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Φράση πρόσβασης"
+    "text": "Φράση πρόσβασης",
+    "sha256": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Μια λέξη ή φράση που είναι δύσκολο να μαντέψει κανείς"
+    "text": "Μια λέξη ή φράση που είναι δύσκολο να μαντέψει κανείς",
+    "sha256": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Διεύθυνση παραλήπτη"
+    "text": "Διεύθυνση παραλήπτη",
+    "sha256": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Το μυστικό περιεχόμενο τοποθετείται εδώ..."
+    "text": "Το μυστικό περιεχόμενο τοποθετείται εδώ...",
+    "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Δημιουργία λογαριασμού"
+    "text": "Δημιουργία λογαριασμού",
+    "sha256": "0dffe234"
   },
   "web.COMMON.header_about": {
-    "text": "Σχετικά"
+    "text": "Σχετικά",
+    "sha256": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Σύνδεση"
+    "text": "Σύνδεση",
+    "sha256": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Λογαριασμός"
+    "text": "Λογαριασμός",
+    "sha256": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Αποσύνδεση"
+    "text": "Αποσύνδεση",
+    "sha256": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Μυστικό | Μυστικά"
+    "text": "Μυστικό | Μυστικά",
+    "sha256": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Πρόσφατα"
+    "text": "Πρόσφατα",
+    "sha256": "690dbe9d"
   },
   "web.COMMON.received": {
-    "text": "Παραλήφθηκε"
+    "text": "Παραλήφθηκε",
+    "sha256": "49f19bee"
   },
   "web.COMMON.burn": {
-    "text": "Οριστική διαγραφή"
+    "text": "Οριστική διαγραφή",
+    "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Διαγράφηκε οριστικά"
+    "text": "Διαγράφηκε οριστικά",
+    "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "Λήγει σε"
+    "text": "Λήγει σε",
+    "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Οριστική διαγραφή μυστικού"
+    "text": "Οριστική διαγραφή μυστικού",
+    "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν διαβαστεί (κλικ για επιβεβαίωση)"
+    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν διαβαστεί (κλικ για επιβεβαίωση)",
+    "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Η οριστική διαγραφή είναι μόνιμη και δεν μπορεί να αναιρεθεί"
+    "text": "Η οριστική διαγραφή είναι μόνιμη και δεν μπορεί να αναιρεθεί",
+    "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Ελέγξτε το email σας"
+    "text": "Ελέγξτε το email σας",
+    "sha256": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Κάντε κλικ για αποκάλυψη →"
+    "text": "Κάντε κλικ για αποκάλυψη →",
+    "sha256": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Συνεχίστε για επαλήθευση του λογαριασμού σας:"
+    "text": "Συνεχίστε για επαλήθευση του λογαριασμού σας:",
+    "sha256": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Δεν παρείχατε κάτι για κοινοποίηση"
+    "text": "Δεν παρείχατε κάτι για κοινοποίηση",
+    "sha256": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Ελέγξτε ξανά τη φράση πρόσβασης"
+    "text": "Ελέγξτε ξανά τη φράση πρόσβασης",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Εισάγετε τη φράση πρόσβασης εδώ"
+    "text": "Εισάγετε τη φράση πρόσβασης εδώ",
+    "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Προβολή μυστικού"
+    "text": "Προβολή μυστικού",
+    "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Προσοχή: θα το δείτε μόνο μία φορά."
+    "text": "Προσοχή: θα το δείτε μόνο μία φορά.",
+    "sha256": "d29e2820"
   },
   "web.COMMON.warning": {
-    "text": "Προειδοποίηση"
+    "text": "Προειδοποίηση",
+    "sha256": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Ουπς!"
+    "text": "Ουπς!",
+    "sha256": "8344947a"
   },
   "web.COMMON.error": {
-    "text": "Σφάλμα"
+    "text": "Σφάλμα",
+    "sha256": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Παρουσιάστηκε απρόσμενο σφάλμα. Προσπαθήστε ξανά."
+    "text": "Παρουσιάστηκε απρόσμενο σφάλμα. Προσπαθήστε ξανά.",
+    "sha256": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Το μήνυμα περικόπηκε"
+    "text": "Το μήνυμα περικόπηκε",
+    "sha256": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Εγγραφείτε για περισσότερα"
+    "text": "Εγγραφείτε για περισσότερα",
+    "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Σύνδεση στον λογαριασμό σας"
+    "text": "Σύνδεση στον λογαριασμό σας",
+    "sha256": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Στάλθηκε σε:"
+    "text": "Στάλθηκε σε:",
+    "sha256": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "Email"
+    "text": "Email",
+    "sha256": "969ccbd3"
   },
   "web.COMMON.field_password": {
-    "text": "Κωδικός πρόσβασης"
+    "text": "Κωδικός πρόσβασης",
+    "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Επιβεβαίωση κωδικού"
+    "text": "Επιβεβαίωση κωδικού",
+    "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Δημιουργία λογαριασμού"
+    "text": "Δημιουργία λογαριασμού",
+    "sha256": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Κοινοποίηση μυστικού"
+    "text": "Κοινοποίηση μυστικού",
+    "sha256": "5384461b"
   },
   "web.COMMON.title_home": {
-    "text": "Αρχική"
+    "text": "Αρχική",
+    "sha256": "3a786953"
   },
   "web.COMMON.word_none": {
-    "text": "Κανένα"
+    "text": "Κανένα",
+    "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "διαγράφηκε οριστικά"
+    "text": "διαγράφηκε οριστικά",
+    "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "παραλήφθηκε"
+    "text": "παραλήφθηκε",
+    "sha256": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Επιβεβαίωση"
+    "text": "Επιβεβαίωση",
+    "sha256": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Ακύρωση"
+    "text": "Ακύρωση",
+    "sha256": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Συνέχεια"
+    "text": "Συνέχεια",
+    "sha256": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Ολοκληρώθηκε"
+    "text": "Ολοκληρώθηκε",
+    "sha256": "11a6767d"
   },
   "web.COMMON.back": {
-    "text": "Πίσω"
+    "text": "Πίσω",
+    "sha256": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Μοιραστείτε τις σκέψεις, ιδέες ή εμπειρίες σας..."
+    "text": "Μοιραστείτε τις σκέψεις, ιδέες ή εμπειρίες σας...",
+    "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Αποστολή σχολίων"
+    "text": "Αποστολή σχολίων",
+    "sha256": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Στάλθηκε επαλήθευση στο"
+    "text": "Στάλθηκε επαλήθευση στο",
+    "sha256": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Ο λογαριασμός δημιουργήθηκε. Συνδεθείτε."
+    "text": "Ο λογαριασμός δημιουργήθηκε. Συνδεθείτε.",
+    "sha256": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Εάν υπάρχει λογαριασμός με αυτό το email, θα λάβετε ένα email επαλήθευσης."
+    "text": "Εάν υπάρχει λογαριασμός με αυτό το email, θα λάβετε ένα email επαλήθευσης.",
+    "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Οριστική διαγραφή αυτού του μυστικού"
+    "text": "Οριστική διαγραφή αυτού του μυστικού",
+    "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Επιβεβαίωση"
+    "text": "Επιβεβαίωση",
+    "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Είστε σίγουροι ότι θέλετε να διαγράψετε οριστικά αυτό το μυστικό; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+    "text": "Είστε σίγουροι ότι θέλετε να διαγράψετε οριστικά αυτό το μυστικό; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ναι, διαγραφή οριστικά"
+    "text": "Ναι, διαγραφή οριστικά",
+    "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν παραληφθεί."
+    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν παραληφθεί.",
+    "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Για ασφάλεια, μοιραστείτε αυτόν τον σύνδεσμο ξεχωριστά από άλλες πληροφορίες."
+    "text": "Για ασφάλεια, μοιραστείτε αυτόν τον σύνδεσμο ξεχωριστά από άλλες πληροφορίες.",
+    "sha256": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Αντιγράφηκε στο πρόχειρο"
+    "text": "Αντιγράφηκε στο πρόχειρο",
+    "sha256": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Δημιουργία εισερχόμενου"
+    "text": "Δημιουργία εισερχόμενου",
+    "sha256": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "Συχνές ερωτήσεις"
+    "text": "Συχνές ερωτήσεις",
+    "sha256": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Η επαλήθευση δεν είναι έγκυρη"
+    "text": "Η επαλήθευση δεν είναι έγκυρη",
+    "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Δεν είναι δυνατή η επαλήθευση λογαριασμού όταν είστε ήδη συνδεδεμένοι"
+    "text": "Δεν είναι δυνατή η επαλήθευση λογαριασμού όταν είστε ήδη συνδεδεμένοι",
+    "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Εμφάνιση κωδικού"
+    "text": "Εμφάνιση κωδικού",
+    "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Απόκρυψη κωδικού"
+    "text": "Απόκρυψη κωδικού",
+    "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες"
+    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
+    "sha256": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες"
+    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
+    "sha256": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Οι κωδικοί δεν ταιριάζουν"
+    "text": "Οι κωδικοί δεν ταιριάζουν",
+    "sha256": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
-    "text": "Αυτό το πεδίο είναι υποχρεωτικό"
+    "text": "Αυτό το πεδίο είναι υποχρεωτικό",
+    "sha256": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Επεξεργασία του αιτήματός σας"
+    "text": "Επεξεργασία του αιτήματός σας",
+    "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Να παραμείνω συνδεδεμένος για 30 ημέρες"
+    "text": "Να παραμείνω συνδεδεμένος για 30 ημέρες",
+    "sha256": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Ανακατεύθυνση..."
+    "text": "Ανακατεύθυνση...",
+    "sha256": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Συνέχεια"
+    "text": "Συνέχεια",
+    "sha256": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Είστε σίγουροι;"
+    "text": "Είστε σίγουροι;",
+    "sha256": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "Επικίνδυνη ζώνη"
+    "text": "Επικίνδυνη ζώνη",
+    "sha256": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Ζώνη προσοχής"
+    "text": "Ζώνη προσοχής",
+    "sha256": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
-    "text": "Μενού χρήστη"
+    "text": "Μενού χρήστη",
+    "sha256": "6fa25be1"
   },
   "web.COMMON.security": {
-    "text": "Ασφάλεια"
+    "text": "Ασφάλεια",
+    "sha256": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Διαχείριση"
+    "text": "Διαχείριση",
+    "sha256": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "Φόρτωση..."
+    "text": "Φόρτωση...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Αποθήκευση αλλαγών"
+    "text": "Αποθήκευση αλλαγών",
+    "sha256": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Αποθήκευση..."
+    "text": "Αποθήκευση...",
+    "sha256": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Προσθήκη"
+    "text": "Προσθήκη",
+    "sha256": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "π.χ."
+    "text": "π.χ.",
+    "sha256": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "π.χ. {example}"
+    "text": "π.χ. {example}",
+    "sha256": "cc921aaa"
   },
   "web.COMMON.status": {
-    "text": "Κατάσταση"
+    "text": "Κατάσταση",
+    "sha256": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Escape"
+    "text": "Escape",
+    "sha256": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Ενεργό"
+    "text": "Ενεργό",
+    "sha256": "92340695"
   },
   "web.COMMON.preview": {
-    "text": "Προεπισκόπηση"
+    "text": "Προεπισκόπηση",
+    "sha256": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Αφαίρεση"
+    "text": "Αφαίρεση",
+    "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Πατήστε ESC για κλείσιμο"
+    "text": "Πατήστε ESC για κλείσιμο",
+    "sha256": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Enter"
+    "text": "Enter",
+    "sha256": "dc8659db"
   },
   "web.COMMON.important": {
-    "text": "Σημαντικό"
+    "text": "Σημαντικό",
+    "sha256": "ddca9a57"
   },
   "web.COMMON.language": {
-    "text": "Γλώσσα"
+    "text": "Γλώσσα",
+    "sha256": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Θέμα"
+    "text": "Θέμα",
+    "sha256": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Εμφάνιση"
+    "text": "Εμφάνιση",
+    "sha256": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Ολοκληρώθηκε"
+    "text": "Ολοκληρώθηκε",
+    "sha256": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Τέλος"
+    "text": "Τέλος",
+    "sha256": "f4db1e48"
   },
   "web.COMMON.general": {
-    "text": "Γενικά"
+    "text": "Γενικά",
+    "sha256": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Σημείωση"
+    "text": "Σημείωση",
+    "sha256": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "Μηνιαία"
+    "text": "Μηνιαία",
+    "sha256": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "Ετήσια"
+    "text": "Ετήσια",
+    "sha256": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Εντάξει, προχωρήστε."
+    "text": "Εντάξει, προχωρήστε.",
+    "sha256": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Φόρτωση..."
+    "text": "Φόρτωση...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.not_received": {
-    "text": "ΔΕΝ ΠΑΡΑΛΗΦΘΗΚΕ"
+    "text": "ΔΕΝ ΠΑΡΑΛΗΦΘΗΚΕ",
+    "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Επιβεβαίωση κωδικού πρόσβασης"
+    "text": "Επιβεβαίωση κωδικού πρόσβασης",
+    "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "Νέος κωδικός πρόσβασης"
+    "text": "Νέος κωδικός πρόσβασης",
+    "sha256": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "Διεύθυνση email"
+    "text": "Διεύθυνση email",
+    "sha256": "f2488fd4"
   },
   "web.COMMON.switch": {
-    "text": "εναλλαγή"
+    "text": "εναλλαγή",
+    "sha256": "78b49fb2"
   },
   "web.COMMON.features": {
-    "text": "Χαρακτηριστικά"
+    "text": "Χαρακτηριστικά",
+    "sha256": "5697d03d"
   },
   "web.COMMON.not_found": {
-    "text": "Δεν βρέθηκε"
+    "text": "Δεν βρέθηκε",
+    "sha256": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
-    "text": "❌"
+    "text": "❌",
+    "sha256": "2b2966a5"
   },
   "web.COMMON.emoji_checkmark": {
-    "text": "✅"
+    "text": "✅",
+    "sha256": "1d456424"
   },
   "web.COMMON.supported": {
-    "text": "Υποστηρίζεται"
+    "text": "Υποστηρίζεται",
+    "sha256": "c1658000"
   },
   "web.COMMON.version": {
-    "text": "Έκδοση"
+    "text": "Έκδοση",
+    "sha256": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Άλλο"
+    "text": "Άλλο",
+    "sha256": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(min-width: 1024px)"
+    "text": "(min-width: 1024px)",
+    "sha256": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Ctrl + Enter"
+    "text": "Ctrl + Enter",
+    "sha256": "78192e6e"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Enter"
+    "text": "⌘ + Enter",
+    "sha256": "558acbab"
   },
   "web.COMMON.mac": {
-    "text": "Mac"
+    "text": "Mac",
+    "sha256": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Η διεύθυνση email αντιγράφηκε στο πρόχειρο!"
+    "text": "Η διεύθυνση email αντιγράφηκε στο πρόχειρο!",
+    "sha256": "23238b4e"
   },
   "web.COMMON.value": {
-    "text": "Τιμή"
+    "text": "Τιμή",
+    "sha256": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "Διακομιστής"
+    "text": "Διακομιστής",
+    "sha256": "4a823118"
   },
   "web.COMMON.type": {
-    "text": "Τύπος"
+    "text": "Τύπος",
+    "sha256": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Προηγούμενο"
+    "text": "Προηγούμενο",
+    "sha256": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Επόμενο"
+    "text": "Επόμενο",
+    "sha256": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Ισχύς κωδικού:"
+    "text": "Ισχύς κωδικού:",
+    "sha256": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Εξαιρετικός"
+    "text": "Εξαιρετικός",
+    "sha256": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Αρκετά καλός"
+    "text": "Αρκετά καλός",
+    "sha256": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Μέτριος"
+    "text": "Μέτριος",
+    "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Έτσι κι έτσι"
+    "text": "Έτσι κι έτσι",
+    "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Όχι καλός"
+    "text": "Όχι καλός",
+    "sha256": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Άνοιγμα επιλογών"
+    "text": "Άνοιγμα επιλογών",
+    "sha256": "3dc08503"
   },
   "web.COMMON.inactive": {
-    "text": "Ανενεργό"
+    "text": "Ανενεργό",
+    "sha256": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Παρουσιάστηκε σφάλμα"
+    "text": "Παρουσιάστηκε σφάλμα",
+    "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Αντιγραφή μυστικού στο πρόχειρο"
+    "text": "Αντιγραφή μυστικού στο πρόχειρο",
+    "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Το μυστικό αντιγράφηκε στο πρόχειρο"
+    "text": "Το μυστικό αντιγράφηκε στο πρόχειρο",
+    "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Ελέγξτε ξανά τη φράση πρόσβασης"
+    "text": "Ελέγξτε ξανά τη φράση πρόσβασης",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Πατήστε το κουμπί αντιγραφής παρακάτω."
+    "text": "Πατήστε το κουμπί αντιγραφής παρακάτω.",
+    "sha256": "77fcf6fb"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Εμφάνιση"
+    "text": "Εμφάνιση",
+    "sha256": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Απόκρυψη"
+    "text": "Απόκρυψη",
+    "sha256": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Περισσότερα"
+    "text": "Περισσότερα",
+    "sha256": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Λιγότερα"
+    "text": "Λιγότερα",
+    "sha256": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Ενεργοποίηση"
+    "text": "Ενεργοποίηση",
+    "sha256": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Απενεργοποίηση"
+    "text": "Απενεργοποίηση",
+    "sha256": "b7e3e4aa"
   },
   "web.LABELS.stats": {
-    "text": "Στατιστικά"
+    "text": "Στατιστικά",
+    "sha256": "b4a73657"
   },
   "web.LABELS.timeline": {
-    "text": "Χρονολόγιο"
+    "text": "Χρονολόγιο",
+    "sha256": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Διάρκεια ζωής"
+    "text": "Διάρκεια ζωής",
+    "sha256": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Χρόνος λήξης"
+    "text": "Χρόνος λήξης",
+    "sha256": "c5db84a8"
   },
   "web.LABELS.close": {
-    "text": "Κλείσιμο"
+    "text": "Κλείσιμο",
+    "sha256": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "Φόρτωση..."
+    "text": "Φόρτωση...",
+    "sha256": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Ακύρωση"
+    "text": "Ακύρωση",
+    "sha256": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Αποθήκευση..."
+    "text": "Αποθήκευση...",
+    "sha256": "dc85af8f"
   },
   "web.LABELS.saved": {
-    "text": "Αποθηκεύτηκε"
+    "text": "Αποθηκεύτηκε",
+    "sha256": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Αποθήκευση"
+    "text": "Αποθήκευση",
+    "sha256": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Αποθήκευση όλων"
+    "text": "Αποθήκευση όλων",
+    "sha256": "d3c54e39"
   },
   "web.LABELS.details": {
-    "text": "Λεπτομέρειες"
+    "text": "Λεπτομέρειες",
+    "sha256": "45989de4"
   },
   "web.LABELS.encrypted": {
-    "text": "Κρυπτογραφημένο"
+    "text": "Κρυπτογραφημένο",
+    "sha256": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Κατάσταση μυστικού"
+    "text": "Κατάσταση μυστικού",
+    "sha256": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Χρειάζεστε βοήθεια;"
+    "text": "Χρειάζεστε βοήθεια;",
+    "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Δημιουργία νέου μυστικού"
+    "text": "Δημιουργία νέου μυστικού",
+    "sha256": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "Ενέργειες"
+    "text": "Ενέργειες",
+    "sha256": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Δεν απαιτείται φράση πρόσβασης"
+    "text": "Δεν απαιτείται φράση πρόσβασης",
+    "sha256": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Αντιγραφή στο πρόχειρο"
+    "text": "Αντιγραφή στο πρόχειρο",
+    "sha256": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Αποδείξεις"
+    "text": "Αποδείξεις",
+    "sha256": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Κοινοποίηση"
+    "text": "Κοινοποίηση",
+    "sha256": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Μυστικός σύνδεσμος"
+    "text": "Μυστικός σύνδεσμος",
+    "sha256": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Απόρριψη"
+    "text": "Απόρριψη",
+    "sha256": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Λεπτομέρειες ασφάλειας"
+    "text": "Λεπτομέρειες ασφάλειας",
+    "sha256": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} στοιχεία"
+    "text": "{count} στοιχεία",
+    "sha256": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} παραλήπτες"
+    "text": "{count} παραλήπτες",
+    "sha256": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Προβολή"
+    "text": "Προβολή",
+    "sha256": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Προβολές"
+    "text": "Προβολές",
+    "sha256": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "φορές προβλήθηκε"
+    "text": "φορές προβλήθηκε",
+    "sha256": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Προβολή προόδου"
+    "text": "Προβολή προόδου",
+    "sha256": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Ενότητα βοήθειας"
+    "text": "Ενότητα βοήθειας",
+    "sha256": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Προστατεύεται με φράση πρόσβασης"
+    "text": "Προστατεύεται με φράση πρόσβασης",
+    "sha256": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Τα σχόλια παραλήφθηκαν."
+    "text": "Τα σχόλια παραλήφθηκαν.",
+    "sha256": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Αποστολή..."
+    "text": "Αποστολή...",
+    "sha256": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Πρόσφατα μυστικά"
+    "text": "Πρόσφατα μυστικά",
+    "sha256": "0b907f8b"
   },
   "web.LABELS.pricing": {
-    "text": "Τιμολόγηση"
+    "text": "Τιμολόγηση",
+    "sha256": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Ανανέωση"
+    "text": "Ανανέωση",
+    "sha256": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Επαναφόρτωση"
+    "text": "Επαναφόρτωση",
+    "sha256": "bdc090ec"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Μυστικοί σύνδεσμοι που δημιουργήθηκαν σε αυτή τη συνεδρία"
+    "text": "Μυστικοί σύνδεσμοι που δημιουργήθηκαν σε αυτή τη συνεδρία",
+    "sha256": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Δημιουργία συνδέσμου"
+    "text": "Δημιουργία συνδέσμου",
+    "sha256": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Δημιουργία μυστικού συνδέσμου"
+    "text": "Δημιουργία μυστικού συνδέσμου",
+    "sha256": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Δημιουργία αιτήματος"
+    "text": "Δημιουργία αιτήματος",
+    "sha256": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Δημιουργία συνδέσμου αιτήματος"
+    "text": "Δημιουργία συνδέσμου αιτήματος",
+    "sha256": "190463dc"
   },
   "web.LABELS.related_settings": {
-    "text": "Σχετικές ρυθμίσεις"
+    "text": "Σχετικές ρυθμίσεις",
+    "sha256": "68574b20"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Δημιουργία συνδέσμων για"
+    "text": "Δημιουργία συνδέσμων για",
+    "sha256": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Δημιουργία μυστικών στο {domain}"
+    "text": "Δημιουργία μυστικών στο {domain}",
+    "sha256": "3bbed96b"
   },
   "web.STATUS.new": {
-    "text": "Νέο"
+    "text": "Νέο",
+    "sha256": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Μη αναγνωσμένο"
+    "text": "Μη αναγνωσμένο",
+    "sha256": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Ο σύνδεσμος ανοίχτηκε"
+    "text": "Ο σύνδεσμος ανοίχτηκε",
+    "sha256": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Παραλήφθηκε"
+    "text": "Παραλήφθηκε",
+    "sha256": "49f19bee"
   },
   "web.STATUS.burned": {
-    "text": "Διαγράφηκε οριστικά"
+    "text": "Διαγράφηκε οριστικά",
+    "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Καταστράφηκε"
+    "text": "Καταστράφηκε",
+    "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Λήγει σύντομα"
+    "text": "Λήγει σύντομα",
+    "sha256": "0259442c"
   },
   "web.STATUS.created": {
-    "text": "Δημιουργήθηκε"
+    "text": "Δημιουργήθηκε",
+    "sha256": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "Λήγει"
+    "text": "Λήγει",
+    "sha256": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Έληξε"
+    "text": "Έληξε",
+    "sha256": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Ορφανό"
+    "text": "Ορφανό",
+    "sha256": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Ασφαλισμένο"
+    "text": "Ασφαλισμένο",
+    "sha256": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Ασφάλιση"
+    "text": "Ασφάλιση",
+    "sha256": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "Αντιγράφηκε"
+    "text": "Αντιγράφηκε",
+    "sha256": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Χρόνος που απομένει"
+    "text": "Χρόνος που απομένει",
+    "sha256": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει ακόμα προβληθεί"
+    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει ακόμα προβληθεί",
+    "sha256": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει προβληθεί"
+    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει προβληθεί",
+    "sha256": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για προβολή"
+    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για προβολή",
+    "sha256": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Το μυστικό αποκαλύφθηκε στον παραλήπτη"
+    "text": "Το μυστικό αποκαλύφθηκε στον παραλήπτη",
+    "sha256": "ceb756b4"
   },
   "web.STATUS.burned_description": {
-    "text": "Το μυστικό διαγράφηκε χειροκίνητα πριν προβληθεί"
+    "text": "Το μυστικό διαγράφηκε χειροκίνητα πριν προβληθεί",
+    "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Το μυστικό καταστράφηκε οριστικά"
+    "text": "Το μυστικό καταστράφηκε οριστικά",
+    "sha256": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Το μυστικό θα λήξει σύντομα"
+    "text": "Το μυστικό θα λήξει σύντομα",
+    "sha256": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Το μυστικό έχει γίνει ορφανό και θα καταστραφεί σύντομα"
+    "text": "Το μυστικό έχει γίνει ορφανό και θα καταστραφεί σύντομα",
+    "sha256": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Το μυστικό έληξε πριν προβληθεί"
+    "text": "Το μυστικό έληξε πριν προβληθεί",
+    "sha256": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Επιτυχία"
+    "text": "Επιτυχία",
+    "sha256": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Παραδόθηκε"
+    "text": "Παραδόθηκε",
+    "sha256": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS λανθασμένο"
+    "text": "DNS λανθασμένο",
+    "sha256": "7848d601"
   },
   "web.STATUS.active": {
-    "text": "Ενεργό"
+    "text": "Ενεργό",
+    "sha256": "92340695"
   },
   "web.STATUS.inactive": {
-    "text": "Ανενεργό"
+    "text": "Ανενεργό",
+    "sha256": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Απεριόριστες προβολές"
+    "text": "Απεριόριστες προβολές",
+    "sha256": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Επωνυμία αξιόπιστου τομέα"
+    "text": "Επωνυμία αξιόπιστου τομέα",
+    "sha256": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Κρυπτογραφημένο κατά τη μεταφορά και σε ηρεμία"
+    "text": "Κρυπτογραφημένο κατά τη μεταφορά και σε ηρεμία",
+    "sha256": "314c7974"
   },
   "web.UNITS.ttl.duration": {
-    "text": "{count} {unit}"
+    "text": "{count} {unit}",
+    "sha256": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "ημέρα | ημέρες"
+    "text": "ημέρα | ημέρες",
+    "sha256": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "ώρα | ώρες"
+    "text": "ώρα | ώρες",
+    "sha256": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "λεπτό | λεπτά"
+    "text": "λεπτό | λεπτά",
+    "sha256": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "δευτερόλεπτο | δευτερόλεπτα"
+    "text": "δευτερόλεπτο | δευτερόλεπτα",
+    "sha256": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Απομένουν {count} {unit}"
+    "text": "Απομένουν {count} {unit}",
+    "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "απομένει ημέρα | απομένουν ημέρες"
+    "text": "απομένει ημέρα | απομένουν ημέρες",
+    "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "απομένει ώρα | απομένουν ώρες"
+    "text": "απομένει ώρα | απομένουν ώρες",
+    "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "απομένει λεπτό | απομένουν λεπτά"
+    "text": "απομένει λεπτό | απομένουν λεπτά",
+    "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "απομένει δευτερόλεπτο | απομένουν δευτερόλεπτα"
+    "text": "απομένει δευτερόλεπτο | απομένουν δευτερόλεπτα",
+    "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Όριο {count} προβολών"
+    "text": "Όριο {count} προβολών",
+    "sha256": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "Απομένουν {count} ημέρες"
+    "text": "Απομένουν {count} ημέρες",
+    "sha256": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Απομένουν {count} ώρες"
+    "text": "Απομένουν {count} ώρες",
+    "sha256": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Απομένουν {count} λεπτά"
+    "text": "Απομένουν {count} λεπτά",
+    "sha256": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Εισερχόμενα μυστικά"
+    "text": "Εισερχόμενα μυστικά",
+    "sha256": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Σχόλια"
+    "text": "Σχόλια",
+    "sha256": "aac77df3"
   },
   "web.TITLES.signin": {
-    "text": "Σύνδεση"
+    "text": "Σύνδεση",
+    "sha256": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Δημιουργία λογαριασμού"
+    "text": "Δημιουργία λογαριασμού",
+    "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Ξεχάσατε τον κωδικό"
+    "text": "Ξεχάσατε τον κωδικό",
+    "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Επαναφορά κωδικού"
+    "text": "Επαναφορά κωδικού",
+    "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Αποσύνδεση"
+    "text": "Αποσύνδεση",
+    "sha256": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Επαλήθευση λογαριασμού"
+    "text": "Επαλήθευση λογαριασμού",
+    "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Επαλήθευση δύο παραγόντων"
+    "text": "Επαλήθευση δύο παραγόντων",
+    "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Σύνδεση με email"
+    "text": "Σύνδεση με email",
+    "sha256": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Αποδοχή πρόσκλησης"
+    "text": "Αποδοχή πρόσκλησης",
+    "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
-    "text": "Μυστικό"
+    "text": "Μυστικό",
+    "sha256": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "Λεπτομέρειες μυστικού"
+    "text": "Λεπτομέρειες μυστικού",
+    "sha256": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Απόδειξη μυστικού"
+    "text": "Απόδειξη μυστικού",
+    "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Οριστική διαγραφή μυστικού"
+    "text": "Οριστική διαγραφή μυστικού",
+    "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
-    "text": "Πίνακας ελέγχου"
+    "text": "Πίνακας ελέγχου",
+    "sha256": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Πρόσφατα μυστικά"
+    "text": "Πρόσφατα μυστικά",
+    "sha256": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Προσαρμοσμένοι τομείς"
+    "text": "Προσαρμοσμένοι τομείς",
+    "sha256": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Προσθήκη τομέα"
+    "text": "Προσθήκη τομέα",
+    "sha256": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Επαλήθευση τομέα"
+    "text": "Επαλήθευση τομέα",
+    "sha256": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Επωνυμία τομέα"
+    "text": "Επωνυμία τομέα",
+    "sha256": "35e4dfbe"
   },
   "web.TITLES.account": {
-    "text": "Λογαριασμός"
+    "text": "Λογαριασμός",
+    "sha256": "7e1b0d56"
   },
   "web.TITLES.data_region": {
-    "text": "Περιοχή δεδομένων"
+    "text": "Περιοχή δεδομένων",
+    "sha256": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Τρέχουσα περιοχή"
+    "text": "Τρέχουσα περιοχή",
+    "sha256": "b92e254d"
   },
   "web.TITLES.available_regions": {
-    "text": "Διαθέσιμες περιοχές"
+    "text": "Διαθέσιμες περιοχές",
+    "sha256": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Γιατί έχει σημασία η κυριαρχία δεδομένων"
+    "text": "Γιατί έχει σημασία η κυριαρχία δεδομένων",
+    "sha256": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
-    "text": "Ρυθμίσεις προφίλ"
+    "text": "Ρυθμίσεις προφίλ",
+    "sha256": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Προτιμήσεις"
+    "text": "Προτιμήσεις",
+    "sha256": "66962f72"
   },
   "web.TITLES.privacy_settings": {
-    "text": "Απόρρητο"
+    "text": "Απόρρητο",
+    "sha256": "54a57c31"
   },
   "web.TITLES.notification_settings": {
-    "text": "Ειδοποιήσεις"
+    "text": "Ειδοποιήσεις",
+    "sha256": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Αλλαγή email"
+    "text": "Αλλαγή email",
+    "sha256": "18c3f2d5"
   },
   "web.TITLES.security_overview": {
-    "text": "Ασφάλεια"
+    "text": "Ασφάλεια",
+    "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Αλλαγή κωδικού πρόσβασης"
+    "text": "Αλλαγή κωδικού πρόσβασης",
+    "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Επαλήθευση δύο παραγόντων"
+    "text": "Επαλήθευση δύο παραγόντων",
+    "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "Ενεργές συνεδρίες"
+    "text": "Ενεργές συνεδρίες",
+    "sha256": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Κωδικοί ανάκτησης"
+    "text": "Κωδικοί ανάκτησης",
+    "sha256": "579c7f4e"
   },
   "web.TITLES.api_settings": {
-    "text": "Ρυθμίσεις API"
+    "text": "Ρυθμίσεις API",
+    "sha256": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Προχωρημένες ρυθμίσεις"
+    "text": "Προχωρημένες ρυθμίσεις",
+    "sha256": "22d4f608"
   },
   "web.TITLES.system_settings": {
-    "text": "Ρυθμίσεις συστήματος"
+    "text": "Ρυθμίσεις συστήματος",
+    "sha256": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Η σελίδα δεν βρέθηκε"
+    "text": "Η σελίδα δεν βρέθηκε",
+    "sha256": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Οργανισμοί"
+    "text": "Οργανισμοί",
+    "sha256": "2730183d"
   },
   "web.TITLES.organization_settings": {
-    "text": "Ρυθμίσεις οργανισμού"
+    "text": "Ρυθμίσεις οργανισμού",
+    "sha256": "cc1d9e61"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Η εστίαση είναι τώρα στην κύρια περιοχή κειμένου"
+    "text": "Η εστίαση είναι τώρα στην κύρια περιοχή κειμένου",
+    "sha256": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Οδηγίες κοινοποίησης"
+    "text": "Οδηγίες κοινοποίησης",
+    "sha256": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Μοιραστείτε τον σύνδεσμο με τον επιθυμητό παραλήπτη"
+    "text": "Μοιραστείτε τον σύνδεσμο με τον επιθυμητό παραλήπτη",
+    "sha256": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Μοιραστείτε τη φράση πρόσβασης ξεχωριστά μέσω ασφαλούς καναλιού"
+    "text": "Μοιραστείτε τη φράση πρόσβασης ξεχωριστά μέσω ασφαλούς καναλιού",
+    "sha256": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Χρησιμοποιήστε διαφορετικό ασφαλές κανάλι για να μοιραστείτε ευαίσθητες πληροφορίες"
+    "text": "Χρησιμοποιήστε διαφορετικό ασφαλές κανάλι για να μοιραστείτε ευαίσθητες πληροφορίες",
+    "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του Onetime Secret. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το Onetime Secret για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγξτε τον τομέα πριν δημιουργήσετε νέους συνδέσμους."
+    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του Onetime Secret. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το Onetime Secret για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγξτε τον τομέα πριν δημιουργήσετε νέους συνδέσμους.",
+    "sha256": "b588f5b2"
   },
   "web.STATUS.previewed": {
-    "text": "Προεπισκόπηση"
+    "text": "Προεπισκόπηση",
+    "sha256": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Αποκαλύφθηκε"
+    "text": "Αποκαλύφθηκε",
+    "sha256": "17376ee4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για αποκάλυψη"
+    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για αποκάλυψη",
+    "sha256": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Το περιεχόμενο του μυστικού αποκαλύφθηκε στον παραλήπτη"
+    "text": "Το περιεχόμενο του μυστικού αποκαλύφθηκε στον παραλήπτη",
+    "sha256": "39b32f80"
   },
   "web.COMMON.not_set": {
-    "text": "Δεν έχει οριστεί"
+    "text": "Δεν έχει οριστεί",
+    "sha256": "4895f731"
   },
   "web.COMMON.word_edit": {
-    "text": "Επεξεργασία"
+    "text": "Επεξεργασία",
+    "sha256": "464c4ffd"
   },
   "web.COMMON.word_save": {
-    "text": "Αποθήκευση"
+    "text": "Αποθήκευση",
+    "sha256": "1509f561"
   },
   "web.LABELS.secret_ttl": {
-    "text": "Λήγει σε"
+    "text": "Λήγει σε",
+    "sha256": "de996752"
   },
   "web.LABELS.filter": {
-    "text": "Φίλτρο"
+    "text": "Φίλτρο",
+    "sha256": "638e249f"
   },
   "web.LABELS.clear": {
-    "text": "Εκκαθάριση"
+    "text": "Εκκαθάριση",
+    "sha256": "83b12c22"
   },
   "web.LABELS.add_note": {
-    "text": "Προσθήκη σημείωσης..."
+    "text": "Προσθήκη σημείωσης...",
+    "sha256": "32738894"
   },
   "web.LABELS.edit_note": {
-    "text": "Επεξεργασία σημείωσης"
+    "text": "Επεξεργασία σημείωσης",
+    "sha256": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "Προσθήκη υπομνήματος..."
+    "text": "Προσθήκη υπομνήματος...",
+    "sha256": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Επεξεργασία υπομνήματος"
+    "text": "Επεξεργασία υπομνήματος",
+    "sha256": "0ec1a5db"
   },
   "web.TITLES.help": {
-    "text": "Βοήθεια"
+    "text": "Βοήθεια",
+    "sha256": "b79cac92"
   },
   "web.TITLES.pricing": {
-    "text": "Τιμολόγηση"
+    "text": "Τιμολόγηση",
+    "sha256": "dfe95783"
   },
   "web.pricing.title": {
-    "text": "Απλή, διαφανής τιμολόγηση"
+    "text": "Απλή, διαφανής τιμολόγηση",
+    "sha256": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Επιλέξτε το πλάνο που ταιριάζει στις ανάγκες σας. Όλα τα πλάνα περιλαμβάνουν απεριόριστη κοινοποίηση μυστικών και σχεδιασμό με προτεραιότητα στο απόρρητο."
+    "text": "Επιλέξτε το πλάνο που ταιριάζει στις ανάγκες σας. Όλα τα πλάνα περιλαμβάνουν απεριόριστη κοινοποίηση μυστικών και σχεδιασμό με προτεραιότητα στο απόρρητο.",
+    "sha256": "9204dff4"
   },
   "web.pricing.get_started_free": {
-    "text": "Ξεκινήστε δωρεάν"
+    "text": "Ξεκινήστε δωρεάν",
+    "sha256": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
-    "text": "Ξεκινήστε"
+    "text": "Ξεκινήστε",
+    "sha256": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Έχετε ήδη λογαριασμό;"
+    "text": "Έχετε ήδη λογαριασμό;",
+    "sha256": "e77fea93"
   },
   "web.pricing.sign_in": {
-    "text": "Σύνδεση"
+    "text": "Σύνδεση",
+    "sha256": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Προτείνεται για εσάς"
+    "text": "Προτείνεται για εσάς",
+    "sha256": "00093fbd"
   },
   "web.pricing.free_tier_description": {
-    "text": "Δημιουργήστε και μοιραστείτε μυστικά με βασικές λειτουργίες. Δεν απαιτείται πιστωτική κάρτα."
+    "text": "Δημιουργήστε και μοιραστείτε μυστικά με βασικές λειτουργίες. Δεν απαιτείται πιστωτική κάρτα.",
+    "sha256": "3a4f2bc0"
   }
 }

@@ -1,446 +1,594 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Ärende: %s]"
+    "text": "[Ärende: %s]",
+    "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "En kund har skickat följande information"
+    "text": "En kund har skickat följande information",
+    "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} skickade dig en hemlighet"
+    "text": "%{sender_email} skickade dig en hemlighet",
+    "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "skickade dig en hemlighet:"
+    "text": "skickade dig en hemlighet:",
+    "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Viktigt:"
+    "text": "Viktigt:",
+    "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent."
+    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent.",
+    "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Skickad via"
+    "text": "Skickad via",
+    "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Välkommen till %{product_name} - Vänligen verifiera din e-post"
+    "text": "Välkommen till %{product_name} - Vänligen verifiera din e-post",
+    "sha256": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Välkommen till %{product_name}!"
+    "text": "Välkommen till %{product_name}!",
+    "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Vänligen verifiera din e-postadress genom att klicka på länken nedan:"
+    "text": "Vänligen verifiera din e-postadress genom att klicka på länken nedan:",
+    "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Verifiera e-postadress"
+    "text": "Verifiera e-postadress",
+    "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Eller kopiera och klistra in denna länk:"
+    "text": "Eller kopiera och klistra in denna länk:",
+    "sha256": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}. Om du inte skapade ett konto kan du lugnt ignorera detta meddelande."
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}. Om du inte skapade ett konto kan du lugnt ignorera detta meddelande.",
+    "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Återställ ditt lösenord (%{display_domain})"
+    "text": "Återställ ditt lösenord (%{display_domain})",
+    "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Återställ ditt lösenord"
+    "text": "Återställ ditt lösenord",
+    "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Vi mottog en begäran om att återställa ditt lösenord för %{product_name}."
+    "text": "Vi mottog en begäran om att återställa ditt lösenord för %{product_name}.",
+    "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Återställ lösenord"
+    "text": "Återställ lösenord",
+    "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Eller kopiera och klistra in denna länk:"
+    "text": "Eller kopiera och klistra in denna länk:",
+    "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Om du inte begärde en lösenordsåterställning kan du lugnt ignorera detta e-postmeddelande."
+    "text": "Om du inte begärde en lösenordsåterställning kan du lugnt ignorera detta e-postmeddelande.",
+    "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Logga in på %{display_domain}"
+    "text": "Logga in på %{display_domain}",
+    "sha256": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Logga in med magisk länk"
+    "text": "Logga in med magisk länk",
+    "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Du begärde en inloggningslänk för ditt %{product_name}-konto."
+    "text": "Du begärde en inloggningslänk för ditt %{product_name}-konto.",
+    "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Logga in"
+    "text": "Logga in",
+    "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Eller kopiera och klistra in denna länk:"
+    "text": "Eller kopiera och klistra in denna länk:",
+    "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Denna länk går ut om 15 minuter."
+    "text": "Denna länk går ut om 15 minuter.",
+    "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Om du inte begärde denna länk kan du lugnt ignorera detta e-postmeddelande."
+    "text": "Om du inte begärde denna länk kan du lugnt ignorera detta e-postmeddelande.",
+    "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Du har mottagit ett hemligt meddelande"
+    "text": "Du har mottagit ett hemligt meddelande",
+    "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Du har mottagit ett säkert meddelande:"
+    "text": "Du har mottagit ett säkert meddelande:",
+    "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memo:"
+    "text": "Memo:",
+    "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Någon har skickat dig ett säkert meddelande via %{display_domain}."
+    "text": "Någon har skickat dig ett säkert meddelande via %{display_domain}.",
+    "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "För att visa denna hemlighet, klicka på länken nedan:"
+    "text": "För att visa denna hemlighet, klicka på länken nedan:",
+    "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Viktigt:"
+    "text": "Viktigt:",
+    "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent."
+    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent.",
+    "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Skickad via"
+    "text": "Skickad via",
+    "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Din hemlighet har visats"
+    "text": "Din hemlighet har visats",
+    "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Din hemlighet har visats"
+    "text": "Din hemlighet har visats",
+    "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Din hemlighet visades den %{date}."
+    "text": "Din hemlighet visades den %{date}.",
+    "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Hemlighets-ID:"
+    "text": "Hemlighets-ID:",
+    "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Detta är en automatisk avisering. Ingen åtgärd krävs."
+    "text": "Detta är en automatisk avisering. Ingen åtgärd krävs.",
+    "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Hantera aviseringsinställningar"
+    "text": "Hantera aviseringsinställningar",
+    "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "För att hantera dina aviseringsinställningar:"
+    "text": "För att hantera dina aviseringsinställningar:",
+    "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Din hemliga länk går ut snart"
+    "text": "Din hemliga länk går ut snart",
+    "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Din hemliga länk går ut om %{time_remaining}"
+    "text": "Din hemliga länk går ut om %{time_remaining}",
+    "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Visa din hemlighet innan den går ut"
+    "text": "Visa din hemlighet innan den går ut",
+    "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Påminnelse:"
+    "text": "Påminnelse:",
+    "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent och kan inte återställas."
+    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent och kan inte återställas.",
+    "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Skickad via"
+    "text": "Skickad via",
+    "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Visa den innan den försvinner:"
+    "text": "Visa den innan den försvinner:",
+    "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent."
+    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent.",
+    "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Återkoppling den %{date} via %{display_domain} (%{strategy})"
+    "text": "Återkoppling den %{date} via %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Användaråterkoppling"
+    "text": "Användaråterkoppling",
+    "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "Från:"
+    "text": "Från:",
+    "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domän:"
+    "text": "Domän:",
+    "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Strategi:"
+    "text": "Strategi:",
+    "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Meddelande:"
+    "text": "Meddelande:",
+    "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support"
+    "text": "Secret Support",
+    "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Du har bjudits in att gå med i %{organization_name}"
+    "text": "Du har bjudits in att gå med i %{organization_name}",
+    "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Du har bjudits in att gå med i %{organization_name}!"
+    "text": "Du har bjudits in att gå med i %{organization_name}!",
+    "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} har bjudit in dig att gå med i \"%{organization_name}\" som %{role_description}."
+    "text": "%{inviter_email} har bjudit in dig att gå med i \"%{organization_name}\" som %{role_description}.",
+    "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Acceptera inbjudan"
+    "text": "Acceptera inbjudan",
+    "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Eller kopiera och klistra in denna länk:"
+    "text": "Eller kopiera och klistra in denna länk:",
+    "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Denna inbjudan går ut om %{days} dagar."
+    "text": "Denna inbjudan går ut om %{days} dagar.",
+    "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Om du inte vill gå med kan du helt enkelt ignorera detta e-postmeddelande eller avböja inbjudan."
+    "text": "Om du inte vill gå med kan du helt enkelt ignorera detta e-postmeddelande eller avböja inbjudan.",
+    "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du lugnt ignorera detta meddelande."
+    "text": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du lugnt ignorera detta meddelande.",
+    "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "medlem"
+    "text": "medlem",
+    "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "administratör"
+    "text": "administratör",
+    "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Ditt lösenord har ändrats (%{display_domain})"
+    "text": "Ditt lösenord har ändrats (%{display_domain})",
+    "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Ditt lösenord har ändrats"
+    "text": "Ditt lösenord har ändrats",
+    "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Ditt lösenord för %{product_name} ändrades den %{date} klockan %{time}."
+    "text": "Ditt lösenord för %{product_name} ändrades den %{date} klockan %{time}.",
+    "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta supporten."
+    "text": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta supporten.",
+    "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Din e-postadress har ändrats (%{display_domain})"
+    "text": "Din e-postadress har ändrats (%{display_domain})",
+    "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Din e-postadress har ändrats"
+    "text": "Din e-postadress har ändrats",
+    "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked} den %{date}."
+    "text": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked} den %{date}.",
+    "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan vara komprometterat."
+    "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan vara komprometterat.",
+    "sha256": "f505b562"
   },
   "email.email_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Verifiera din nya e-postadress (%{display_domain})"
+    "text": "Verifiera din nya e-postadress (%{display_domain})",
+    "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Verifiera din nya e-postadress"
+    "text": "Verifiera din nya e-postadress",
+    "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Vänligen verifiera denna e-postadress för att slutföra ändringen av ditt %{product_name}-konto."
+    "text": "Vänligen verifiera denna e-postadress för att slutföra ändringen av ditt %{product_name}-konto.",
+    "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Verifiera e-postadress"
+    "text": "Verifiera e-postadress",
+    "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Eller kopiera och klistra in denna länk:"
+    "text": "Eller kopiera och klistra in denna länk:",
+    "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
-    "text": "Tvåfaktorsautentisering aktiverad (%{display_domain})"
+    "text": "Tvåfaktorsautentisering aktiverad (%{display_domain})",
+    "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Tvåfaktorsautentisering aktiverad"
+    "text": "Tvåfaktorsautentisering aktiverad",
+    "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Tvåfaktorsautentisering aktiverades för ditt %{product_name}-konto den %{date}."
+    "text": "Tvåfaktorsautentisering aktiverades för ditt %{product_name}-konto den %{date}.",
+    "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Ditt konto är nu säkrare. Du kommer att behöva ange en verifieringskod från din autentiseringsapp vid inloggning."
+    "text": "Ditt konto är nu säkrare. Du kommer att behöva ange en verifieringskod från din autentiseringsapp vid inloggning.",
+    "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Tvåfaktorsautentisering inaktiverad (%{display_domain})"
+    "text": "Tvåfaktorsautentisering inaktiverad (%{display_domain})",
+    "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Tvåfaktorsautentisering inaktiverad"
+    "text": "Tvåfaktorsautentisering inaktiverad",
+    "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Tvåfaktorsautentisering inaktiverades för ditt %{product_name}-konto den %{date}."
+    "text": "Tvåfaktorsautentisering inaktiverades för ditt %{product_name}-konto den %{date}.",
+    "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Ditt konto är nu mindre säkert. Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart."
+    "text": "Ditt konto är nu mindre säkert. Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart.",
+    "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Ny inloggning på ditt konto (%{display_domain})"
+    "text": "Ny inloggning på ditt konto (%{display_domain})",
+    "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Ny inloggning upptäckt"
+    "text": "Ny inloggning upptäckt",
+    "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "En ny inloggning på ditt %{product_name}-konto upptäcktes den %{date} klockan %{time}."
+    "text": "En ny inloggning på ditt %{product_name}-konto upptäcktes den %{date} klockan %{time}.",
+    "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Enhet:"
+    "text": "Enhet:",
+    "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Plats:"
+    "text": "Plats:",
+    "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IP-adress:"
+    "text": "IP-adress:",
+    "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Om detta inte var du kan ditt konto vara komprometterat."
+    "text": "Om detta inte var du kan ditt konto vara komprometterat.",
+    "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Säkra ditt konto"
+    "text": "Säkra ditt konto",
+    "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Du har tagits bort från %{organization_name}"
+    "text": "Du har tagits bort från %{organization_name}",
+    "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Du har tagits bort från %{organization_name}"
+    "text": "Du har tagits bort från %{organization_name}",
+    "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Du har tagits bort från organisationen \"%{organization_name}\" på %{product_name}."
+    "text": "Du har tagits bort från organisationen \"%{organization_name}\" på %{product_name}.",
+    "sha256": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Din roll har ändrats i %{organization_name}"
+    "text": "Din roll har ändrats i %{organization_name}",
+    "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Din roll har ändrats"
+    "text": "Din roll har ändrats",
+    "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Din roll i \"%{organization_name}\" har ändrats från %{old_role} till %{new_role}."
+    "text": "Din roll i \"%{organization_name}\" har ändrats från %{old_role} till %{new_role}.",
+    "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Organisationen \"%{organization_name}\" raderades"
+    "text": "Organisationen \"%{organization_name}\" raderades",
+    "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Organisation raderad"
+    "text": "Organisation raderad",
+    "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Organisationen \"%{organization_name}\" har raderats från %{product_name}. All tillhörande data har tagits bort."
+    "text": "Organisationen \"%{organization_name}\" har raderats från %{product_name}. All tillhörande data har tagits bort.",
+    "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Betalningskvitto för %{product_name}"
+    "text": "Betalningskvitto för %{product_name}",
+    "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Betalningskvitto"
+    "text": "Betalningskvitto",
+    "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Tack för din betalning. Här är dina betalningsuppgifter:"
+    "text": "Tack för din betalning. Här är dina betalningsuppgifter:",
+    "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Belopp:"
+    "text": "Belopp:",
+    "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "Datum:"
+    "text": "Datum:",
+    "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Plan:"
+    "text": "Plan:",
+    "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Visa faktura"
+    "text": "Visa faktura",
+    "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Betalning misslyckades för %{product_name}"
+    "text": "Betalning misslyckades för %{product_name}",
+    "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Betalning misslyckades"
+    "text": "Betalning misslyckades",
+    "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Vi kunde inte behandla din betalning för %{product_name}. Vänligen uppdatera din betalningsmetod för att undvika avbrott i tjänsten."
+    "text": "Vi kunde inte behandla din betalning för %{product_name}. Vänligen uppdatera din betalningsmetod för att undvika avbrott i tjänsten.",
+    "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Uppdatera betalningsmetod"
+    "text": "Uppdatera betalningsmetod",
+    "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Din %{product_name}-provperiod går ut om %{days_remaining} dagar"
+    "text": "Din %{product_name}-provperiod går ut om %{days_remaining} dagar",
+    "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Din provperiod avslutas snart"
+    "text": "Din provperiod avslutas snart",
+    "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Din kostnadsfria provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner."
+    "text": "Din kostnadsfria provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner.",
+    "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Uppgradera nu"
+    "text": "Uppgradera nu",
+    "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Din %{product_name}-prenumeration har ändrats"
+    "text": "Din %{product_name}-prenumeration har ändrats",
+    "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Prenumeration ändrad"
+    "text": "Prenumeration ändrad",
+    "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Din %{product_name}-prenumeration har ändrats från %{old_plan} till %{new_plan}."
+    "text": "Din %{product_name}-prenumeration har ändrats från %{old_plan} till %{new_plan}.",
+    "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Denna ändring träder i kraft %{date}."
+    "text": "Denna ändring träder i kraft %{date}.",
+    "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Hej,"
+    "text": "Hej,",
+    "sha256": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Tack,"
+    "text": "Tack,",
+    "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Avprenumerera"
+    "text": "Avprenumerera",
+    "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Visa i webbläsare"
+    "text": "Visa i webbläsare",
+    "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret"
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
   }
 }

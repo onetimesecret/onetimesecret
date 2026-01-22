@@ -1,446 +1,594 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Yêu cầu: %s]"
+    "text": "[Yêu cầu: %s]",
+    "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Khách hàng đã gửi thông tin sau"
+    "text": "Khách hàng đã gửi thông tin sau",
+    "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} đã gửi cho bạn bí mật"
+    "text": "%{sender_email} đã gửi cho bạn bí mật",
+    "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "đã gửi cho bạn bí mật:"
+    "text": "đã gửi cho bạn bí mật:",
+    "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Quan trọng:"
+    "text": "Quan trọng:",
+    "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
+    "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn.",
+    "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Gửi qua"
+    "text": "Gửi qua",
+    "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Chào mừng đến với %{product_name} - Vui lòng xác minh email của bạn"
+    "text": "Chào mừng đến với %{product_name} - Vui lòng xác minh email của bạn",
+    "sha256": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Chào mừng đến với %{product_name}!"
+    "text": "Chào mừng đến với %{product_name}!",
+    "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Vui lòng xác minh địa chỉ email của bạn bằng cách nhấp vào liên kết bên dưới:"
+    "text": "Vui lòng xác minh địa chỉ email của bạn bằng cách nhấp vào liên kết bên dưới:",
+    "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Xác minh địa chỉ email"
+    "text": "Xác minh địa chỉ email",
+    "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Hoặc sao chép và dán liên kết này:"
+    "text": "Hoặc sao chép và dán liên kết này:",
+    "sha256": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address}. Nếu bạn không tạo tài khoản, bạn có thể bỏ qua tin nhắn này một cách an toàn."
+    "text": "P.S. Email này được gửi đến %{email_address}. Nếu bạn không tạo tài khoản, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
+    "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Đặt lại mật khẩu của bạn (%{display_domain})"
+    "text": "Đặt lại mật khẩu của bạn (%{display_domain})",
+    "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Đặt lại mật khẩu của bạn"
+    "text": "Đặt lại mật khẩu của bạn",
+    "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho %{product_name} của bạn."
+    "text": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho %{product_name} của bạn.",
+    "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Đặt lại mật khẩu"
+    "text": "Đặt lại mật khẩu",
+    "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Hoặc sao chép và dán liên kết này:"
+    "text": "Hoặc sao chép và dán liên kết này:",
+    "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Nếu bạn không yêu cầu đặt lại mật khẩu, bạn có thể bỏ qua email này một cách an toàn."
+    "text": "Nếu bạn không yêu cầu đặt lại mật khẩu, bạn có thể bỏ qua email này một cách an toàn.",
+    "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address}."
+    "text": "P.S. Email này được gửi đến %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Đăng nhập vào %{display_domain}"
+    "text": "Đăng nhập vào %{display_domain}",
+    "sha256": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Đăng nhập bằng liên kết ma thuật"
+    "text": "Đăng nhập bằng liên kết ma thuật",
+    "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Bạn đã yêu cầu liên kết đăng nhập cho tài khoản %{product_name} của bạn."
+    "text": "Bạn đã yêu cầu liên kết đăng nhập cho tài khoản %{product_name} của bạn.",
+    "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Đăng nhập"
+    "text": "Đăng nhập",
+    "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Hoặc sao chép và dán liên kết này:"
+    "text": "Hoặc sao chép và dán liên kết này:",
+    "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Liên kết này sẽ hết hạn sau 15 phút."
+    "text": "Liên kết này sẽ hết hạn sau 15 phút.",
+    "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Nếu bạn không yêu cầu liên kết này, bạn có thể bỏ qua email này một cách an toàn."
+    "text": "Nếu bạn không yêu cầu liên kết này, bạn có thể bỏ qua email này một cách an toàn.",
+    "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address}."
+    "text": "P.S. Email này được gửi đến %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Bạn đã nhận được tin nhắn bí mật"
+    "text": "Bạn đã nhận được tin nhắn bí mật",
+    "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Bạn đã nhận được tin nhắn an toàn:"
+    "text": "Bạn đã nhận được tin nhắn an toàn:",
+    "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Ghi nhớ:"
+    "text": "Ghi nhớ:",
+    "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Ai đó đã gửi cho bạn tin nhắn an toàn qua %{display_domain}."
+    "text": "Ai đó đã gửi cho bạn tin nhắn an toàn qua %{display_domain}.",
+    "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Để xem bí mật này, nhấp vào liên kết bên dưới:"
+    "text": "Để xem bí mật này, nhấp vào liên kết bên dưới:",
+    "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Quan trọng:"
+    "text": "Quan trọng:",
+    "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
+    "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn.",
+    "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Gửi qua"
+    "text": "Gửi qua",
+    "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Bí mật của bạn đã được xem"
+    "text": "Bí mật của bạn đã được xem",
+    "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Bí mật của bạn đã được xem"
+    "text": "Bí mật của bạn đã được xem",
+    "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Bí mật của bạn đã được xem vào ngày %{date}."
+    "text": "Bí mật của bạn đã được xem vào ngày %{date}.",
+    "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "ID bí mật:"
+    "text": "ID bí mật:",
+    "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Đây là thông báo tự động. Không cần thực hiện hành động nào."
+    "text": "Đây là thông báo tự động. Không cần thực hiện hành động nào.",
+    "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Quản lý tùy chọn thông báo"
+    "text": "Quản lý tùy chọn thông báo",
+    "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Để quản lý tùy chọn thông báo của bạn:"
+    "text": "Để quản lý tùy chọn thông báo của bạn:",
+    "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Liên kết bí mật của bạn sẽ sớm hết hạn"
+    "text": "Liên kết bí mật của bạn sẽ sớm hết hạn",
+    "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Liên kết bí mật của bạn sẽ hết hạn sau %{time_remaining}"
+    "text": "Liên kết bí mật của bạn sẽ hết hạn sau %{time_remaining}",
+    "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Xem bí mật trước khi hết hạn"
+    "text": "Xem bí mật trước khi hết hạn",
+    "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Nhắc nhở:"
+    "text": "Nhắc nhở:",
+    "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn và không thể khôi phục."
+    "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn và không thể khôi phục.",
+    "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Gửi qua"
+    "text": "Gửi qua",
+    "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Xem trước khi nó biến mất:"
+    "text": "Xem trước khi nó biến mất:",
+    "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn."
+    "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn.",
+    "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Phản hồi ngày %{date} qua %{display_domain} (%{strategy})"
+    "text": "Phản hồi ngày %{date} qua %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Phản hồi người dùng"
+    "text": "Phản hồi người dùng",
+    "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "Từ:"
+    "text": "Từ:",
+    "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Tên miền:"
+    "text": "Tên miền:",
+    "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Chiến lược:"
+    "text": "Chiến lược:",
+    "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Tin nhắn:"
+    "text": "Tin nhắn:",
+    "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Hỗ trợ bí mật"
+    "text": "Hỗ trợ bí mật",
+    "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Bạn đã được mời tham gia %{organization_name}"
+    "text": "Bạn đã được mời tham gia %{organization_name}",
+    "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Bạn đã được mời tham gia %{organization_name}!"
+    "text": "Bạn đã được mời tham gia %{organization_name}!",
+    "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với vai trò %{role_description}."
+    "text": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với vai trò %{role_description}.",
+    "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Chấp nhận lời mời"
+    "text": "Chấp nhận lời mời",
+    "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Hoặc sao chép và dán liên kết này:"
+    "text": "Hoặc sao chép và dán liên kết này:",
+    "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Lời mời này sẽ hết hạn sau %{days} ngày."
+    "text": "Lời mời này sẽ hết hạn sau %{days} ngày.",
+    "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này hoặc từ chối lời mời."
+    "text": "Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này hoặc từ chối lời mời.",
+    "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Email này được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn."
+    "text": "P.S. Email này được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
+    "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "thành viên"
+    "text": "thành viên",
+    "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "quản trị viên"
+    "text": "quản trị viên",
+    "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Mật khẩu của bạn đã được thay đổi (%{display_domain})"
+    "text": "Mật khẩu của bạn đã được thay đổi (%{display_domain})",
+    "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Mật khẩu của bạn đã được thay đổi"
+    "text": "Mật khẩu của bạn đã được thay đổi",
+    "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Mật khẩu %{product_name} của bạn đã được thay đổi vào ngày %{date} lúc %{time}."
+    "text": "Mật khẩu %{product_name} của bạn đã được thay đổi vào ngày %{date} lúc %{time}.",
+    "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản ngay lập tức bằng cách đặt lại mật khẩu và liên hệ hỗ trợ."
+    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản ngay lập tức bằng cách đặt lại mật khẩu và liên hệ hỗ trợ.",
+    "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Địa chỉ email của bạn đã được thay đổi (%{display_domain})"
+    "text": "Địa chỉ email của bạn đã được thay đổi (%{display_domain})",
+    "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Địa chỉ email của bạn đã được thay đổi"
+    "text": "Địa chỉ email của bạn đã được thay đổi",
+    "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào ngày %{date}."
+    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào ngày %{date}.",
+    "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm."
+    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm.",
+    "sha256": "f505b562"
   },
   "email.email_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Xác minh địa chỉ email mới của bạn (%{display_domain})"
+    "text": "Xác minh địa chỉ email mới của bạn (%{display_domain})",
+    "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Xác minh địa chỉ email mới của bạn"
+    "text": "Xác minh địa chỉ email mới của bạn",
+    "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Vui lòng xác minh địa chỉ email này để hoàn tất thay đổi cho tài khoản %{product_name} của bạn."
+    "text": "Vui lòng xác minh địa chỉ email này để hoàn tất thay đổi cho tài khoản %{product_name} của bạn.",
+    "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Xác minh địa chỉ email"
+    "text": "Xác minh địa chỉ email",
+    "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Hoặc sao chép và dán liên kết này:"
+    "text": "Hoặc sao chép và dán liên kết này:",
+    "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
-    "text": "Xác thực hai yếu tố đã được bật (%{display_domain})"
+    "text": "Xác thực hai yếu tố đã được bật (%{display_domain})",
+    "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Xác thực hai yếu tố đã được bật"
+    "text": "Xác thực hai yếu tố đã được bật",
+    "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Xác thực hai yếu tố đã được bật cho tài khoản %{product_name} của bạn vào ngày %{date}."
+    "text": "Xác thực hai yếu tố đã được bật cho tài khoản %{product_name} của bạn vào ngày %{date}.",
+    "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Tài khoản của bạn hiện an toàn hơn. Bạn sẽ cần nhập mã xác minh từ ứng dụng xác thực khi đăng nhập."
+    "text": "Tài khoản của bạn hiện an toàn hơn. Bạn sẽ cần nhập mã xác minh từ ứng dụng xác thực khi đăng nhập.",
+    "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa (%{display_domain})"
+    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa (%{display_domain})",
+    "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa"
+    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa",
+    "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa cho tài khoản %{product_name} của bạn vào ngày %{date}."
+    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa cho tài khoản %{product_name} của bạn vào ngày %{date}.",
+    "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Tài khoản của bạn hiện kém an toàn hơn. Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức."
+    "text": "Tài khoản của bạn hiện kém an toàn hơn. Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức.",
+    "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Đăng nhập mới vào tài khoản của bạn (%{display_domain})"
+    "text": "Đăng nhập mới vào tài khoản của bạn (%{display_domain})",
+    "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Phát hiện đăng nhập mới"
+    "text": "Phát hiện đăng nhập mới",
+    "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Đã phát hiện đăng nhập mới vào tài khoản %{product_name} của bạn vào ngày %{date} lúc %{time}."
+    "text": "Đã phát hiện đăng nhập mới vào tài khoản %{product_name} của bạn vào ngày %{date} lúc %{time}.",
+    "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Thiết bị:"
+    "text": "Thiết bị:",
+    "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Vị trí:"
+    "text": "Vị trí:",
+    "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "Địa chỉ IP:"
+    "text": "Địa chỉ IP:",
+    "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Nếu đây không phải bạn, tài khoản của bạn có thể đã bị xâm phạm."
+    "text": "Nếu đây không phải bạn, tài khoản của bạn có thể đã bị xâm phạm.",
+    "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Bảo mật tài khoản"
+    "text": "Bảo mật tài khoản",
+    "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Bạn đã bị xóa khỏi %{organization_name}"
+    "text": "Bạn đã bị xóa khỏi %{organization_name}",
+    "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Bạn đã bị xóa khỏi %{organization_name}"
+    "text": "Bạn đã bị xóa khỏi %{organization_name}",
+    "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Bạn đã bị xóa khỏi tổ chức \"%{organization_name}\" trên %{product_name}."
+    "text": "Bạn đã bị xóa khỏi tổ chức \"%{organization_name}\" trên %{product_name}.",
+    "sha256": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Vai trò của bạn đã được thay đổi trong %{organization_name}"
+    "text": "Vai trò của bạn đã được thay đổi trong %{organization_name}",
+    "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Vai trò của bạn đã được thay đổi"
+    "text": "Vai trò của bạn đã được thay đổi",
+    "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Vai trò của bạn trong \"%{organization_name}\" đã được thay đổi từ %{old_role} thành %{new_role}."
+    "text": "Vai trò của bạn trong \"%{organization_name}\" đã được thay đổi từ %{old_role} thành %{new_role}.",
+    "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Tổ chức \"%{organization_name}\" đã bị xóa"
+    "text": "Tổ chức \"%{organization_name}\" đã bị xóa",
+    "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Tổ chức đã bị xóa"
+    "text": "Tổ chức đã bị xóa",
+    "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã bị xóa."
+    "text": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã bị xóa.",
+    "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Biên lai thanh toán cho %{product_name}"
+    "text": "Biên lai thanh toán cho %{product_name}",
+    "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Biên lai thanh toán"
+    "text": "Biên lai thanh toán",
+    "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Cảm ơn bạn đã thanh toán. Đây là chi tiết thanh toán của bạn:"
+    "text": "Cảm ơn bạn đã thanh toán. Đây là chi tiết thanh toán của bạn:",
+    "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Số tiền:"
+    "text": "Số tiền:",
+    "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "Ngày:"
+    "text": "Ngày:",
+    "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Gói:"
+    "text": "Gói:",
+    "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Xem hóa đơn"
+    "text": "Xem hóa đơn",
+    "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Thanh toán thất bại cho %{product_name}"
+    "text": "Thanh toán thất bại cho %{product_name}",
+    "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Thanh toán thất bại"
+    "text": "Thanh toán thất bại",
+    "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Chúng tôi không thể xử lý thanh toán cho %{product_name} của bạn. Vui lòng cập nhật phương thức thanh toán để tránh gián đoạn dịch vụ."
+    "text": "Chúng tôi không thể xử lý thanh toán cho %{product_name} của bạn. Vui lòng cập nhật phương thức thanh toán để tránh gián đoạn dịch vụ.",
+    "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Cập nhật phương thức thanh toán"
+    "text": "Cập nhật phương thức thanh toán",
+    "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Thời gian dùng thử %{product_name} của bạn hết hạn sau %{days_remaining} ngày"
+    "text": "Thời gian dùng thử %{product_name} của bạn hết hạn sau %{days_remaining} ngày",
+    "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Thời gian dùng thử của bạn sắp kết thúc"
+    "text": "Thời gian dùng thử của bạn sắp kết thúc",
+    "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Thời gian dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Nâng cấp ngay để tiếp tục truy cập tất cả tính năng."
+    "text": "Thời gian dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Nâng cấp ngay để tiếp tục truy cập tất cả tính năng.",
+    "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Nâng cấp ngay"
+    "text": "Nâng cấp ngay",
+    "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Đăng ký %{product_name} của bạn đã được thay đổi"
+    "text": "Đăng ký %{product_name} của bạn đã được thay đổi",
+    "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Đăng ký đã thay đổi"
+    "text": "Đăng ký đã thay đổi",
+    "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Đăng ký %{product_name} của bạn đã được thay đổi từ %{old_plan} sang %{new_plan}."
+    "text": "Đăng ký %{product_name} của bạn đã được thay đổi từ %{old_plan} sang %{new_plan}.",
+    "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Thay đổi này có hiệu lực từ %{date}."
+    "text": "Thay đổi này có hiệu lực từ %{date}.",
+    "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Xin chào,"
+    "text": "Xin chào,",
+    "sha256": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Cảm ơn,"
+    "text": "Cảm ơn,",
+    "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Hủy đăng ký"
+    "text": "Hủy đăng ký",
+    "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Xem trong trình duyệt"
+    "text": "Xem trong trình duyệt",
+    "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret"
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
   }
 }
