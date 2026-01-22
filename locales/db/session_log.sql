@@ -1,2 +1,0 @@
--- Session log metadata export
--- Restored during database hydration
