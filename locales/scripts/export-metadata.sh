@@ -43,7 +43,30 @@ EOF
   echo "  ✓ ${table}.sql"
 done
 
+# Generate checksums using Python (same hashlib used for verification)
+echo ""
+echo "Generating checksums..."
+python3 -c "
+import hashlib
+from pathlib import Path
+
+db_dir = Path('$DB_DIR')
+checksum_file = db_dir / 'checksums.sha256'
+tables = ['session_log', 'glossary', 'schema_migrations']
+
+lines = []
+for table in tables:
+    sql_file = db_dir / f'{table}.sql'
+    if sql_file.exists():
+        content = sql_file.read_bytes()
+        hash_hex = hashlib.sha256(content).hexdigest()
+        lines.append(f'{hash_hex}  {table}.sql')
+
+checksum_file.write_text('\n'.join(lines) + '\n')
+"
+echo "  ✓ checksums.sha256"
+
 echo ""
 echo "Metadata exported to locales/db/*.sql"
 echo "Remember to stage these files:"
-echo "  git add locales/db/*.sql"
+echo "  git add locales/db/*.sql locales/db/checksums.sha256"

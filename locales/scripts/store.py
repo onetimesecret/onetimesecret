@@ -17,6 +17,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import sqlite3
 import sys
@@ -101,6 +102,32 @@ def migrate_schema() -> None:
         print(f"New migrations recorded: {', '.join(new_versions)}")
     else:
         print("Schema is up to date.")
+
+
+def _load_checksums() -> dict[str, str]:
+    """Load checksums from checksums.sha256 file.
+
+    Returns:
+        Dictionary mapping filename to expected SHA256 hash.
+        Empty dict if checksums file doesn't exist.
+    """
+    checksum_file = DB_DIR / "checksums.sha256"
+    checksums: dict[str, str] = {}
+
+    if not checksum_file.exists():
+        return checksums
+
+    for line in checksum_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # Format: "hash  filename" (two spaces, standard sha256sum format)
+        parts = line.split("  ", 1)
+        if len(parts) == 2:
+            hash_hex, filename = parts
+            checksums[filename] = hash_hex
+
+    return checksums
 
 
 def _load_english_content() -> dict[tuple[str, str], dict[str, str]]:
@@ -285,13 +312,29 @@ def hydrate_from_json(force: bool = False) -> None:
         print(f"\nCreated database: {DB_FILE}")
         print(f"Loaded {inserted} translation records from JSON files.")
 
-        # Restore metadata tables from SQL exports
+        # Restore metadata tables from SQL exports (with checksum verification)
         metadata_tables = ["session_log", "glossary", "schema_migrations"]
+        checksums = _load_checksums()
+
         for table_name in metadata_tables:
             sql_file = DB_DIR / f"{table_name}.sql"
             if sql_file.exists():
                 try:
-                    sql_content = sql_file.read_text(encoding="utf-8")
+                    content = sql_file.read_bytes()
+
+                    # Verify checksum if available
+                    if checksums:
+                        expected = checksums.get(f"{table_name}.sql")
+                        actual = hashlib.sha256(content).hexdigest()
+                        if expected and actual != expected:
+                            print(
+                                f"Warning: Checksum mismatch for {table_name}.sql, "
+                                "skipping restore",
+                                file=sys.stderr,
+                            )
+                            continue
+
+                    sql_content = content.decode("utf-8")
                     if sql_content.strip():  # Only if file has content
                         cursor.executescript(sql_content)
                         conn.commit()
