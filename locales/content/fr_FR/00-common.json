@@ -710,7 +710,7 @@
     "text": "Le secret expirera bientôt"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Le secret a été orphelin et sera bientôt détruit"
+    "text": "Le secret est devenu orphelin et sera bientôt détruit"
   },
   "web.STATUS.expired_description": {
     "text": "Le secret a expiré avant d'être consulté"

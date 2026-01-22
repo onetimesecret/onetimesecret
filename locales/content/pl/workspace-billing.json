@@ -225,10 +225,10 @@
     "text": "Chętnie Cię wysłuchamy. Daj nam znać, czego szukasz."
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} zespół | {count} zespołów"
+    "text": "{count} zespół | {count} zespoły | {count} zespołów"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} członek na zespół | {count} członków na zespół"
+    "text": "{count} członek na zespół | {count} członków na zespół | {count} członków na zespół"
   },
   "web.billing.plans.unlimited_teams": {
     "text": "Nieograniczone zespoły"

@@ -132,7 +132,7 @@
     "text": "Tous les secrets que vous souhaitez supprimer,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Les messages sécurisés restent accessibles jusqu'à expiration."
+    "text": "Les secrets restent accessibles jusqu'à expiration."
   },
   "web.account.please_be_advised": {
     "text": "Veuillez noter :"

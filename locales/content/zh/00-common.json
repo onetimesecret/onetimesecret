@@ -95,7 +95,7 @@
     "text": "退出"
   },
   "web.COMMON.secret": {
-    "text": "内容 | 内容"
+    "text": "机密信息 | 机密信息"
   },
   "web.COMMON.recent": {
     "text": "最近"
@@ -113,13 +113,13 @@
     "text": "过期时间"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "销毁此内容"
+    "text": "销毁此机密信息"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "销毁内容将在查看前将其删除（点击确认）"
+    "text": "销毁机密信息将在查看前将其删除（点击确认）"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "销毁内容是永久性的，无法撤销"
+    "text": "销毁机密信息是永久性的，无法撤销"
   },
   "web.COMMON.msg_check_email": {
     "text": "请查收邮件"
@@ -140,7 +140,7 @@
     "text": "在此输入口令"
   },
   "web.COMMON.view_secret": {
-    "text": "查看内容"
+    "text": "查看机密信息"
   },
   "web.COMMON.careful_only_see_once": {
     "text": "注意：内容仅显示一次。"
@@ -227,19 +227,19 @@
     "text": "如果该邮箱已注册账户，您将收到一封验证邮件。"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "永久销毁此内容"
+    "text": "永久销毁此机密信息"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "请确认"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "确定要销毁此内容吗？此操作无法撤销。"
+    "text": "确定要销毁此机密信息吗？此操作无法撤销。"
   },
   "web.COMMON.confirm_burn": {
-    "text": "是的，销毁此内容"
+    "text": "是的，销毁此机密信息"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "销毁内容将在查看前将其永久删除。"
+    "text": "销毁机密信息将在查看前将其永久删除。"
   },
   "web.COMMON.share_link_securely": {
     "text": "为了安全起见，请单独分享此链接，不要与其他信息一起发送。"
@@ -476,10 +476,10 @@
     "text": "发生错误"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "复制内容"
+    "text": "复制机密信息"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "内容已复制"
+    "text": "机密信息已复制"
   },
   "web.COMMON.double_check_that_passphrase": {
     "text": "请检查您的口令"
@@ -551,7 +551,7 @@
     "text": "需要帮助？"
   },
   "web.LABELS.create_new_secret": {
-    "text": "创建新内容"
+    "text": "创建新机密信息"
   },
   "web.LABELS.actions": {
     "text": "操作"
@@ -608,7 +608,7 @@
     "text": "发送中..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "最近的内容"
+    "text": "最近的机密信息"
   },
   "web.LABELS.pricing": {
     "text": "定价"
@@ -641,7 +641,7 @@
     "text": "正在为以下地址创建链接"
   },
   "web.LABELS.scope_indicator": {
-    "text": "正在 {domain} 中创建内容"
+    "text": "正在 {domain} 中创建机密信息"
   },
   "web.STATUS.new": {
     "text": "新建"
@@ -788,7 +788,7 @@
     "text": "剩余 {count} 分钟"
   },
   "web.TITLES.incoming": {
-    "text": "接收的内容"
+    "text": "接收的机密信息"
   },
   "web.TITLES.feedback": {
     "text": "反馈"
@@ -821,7 +821,7 @@
     "text": "接受邀请"
   },
   "web.TITLES.secret": {
-    "text": "内容"
+    "text": "机密信息"
   },
   "web.TITLES.metadata": {
     "text": "详情"
@@ -830,13 +830,13 @@
     "text": "回执"
   },
   "web.TITLES.burn_secret": {
-    "text": "销毁内容"
+    "text": "销毁机密信息"
   },
   "web.TITLES.dashboard": {
     "text": "控制面板"
   },
   "web.TITLES.recent": {
-    "text": "最近的内容"
+    "text": "最近的机密信息"
   },
   "web.TITLES.domains": {
     "text": "自定义域名"

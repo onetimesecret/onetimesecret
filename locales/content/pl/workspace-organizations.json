@@ -396,10 +396,10 @@
     "text": "Pro"
   },
   "web.organizations.member_count": {
-    "text": "{count} członek | {count} członków"
+    "text": "{count} członek | {count} członków | {count} członków"
   },
   "web.organizations.domain_count": {
-    "text": "{count} domena | {count} domen"
+    "text": "{count} domena | {count} domeny | {count} domen"
   },
   "web.organizations.invitations.upgrade_to_invite": {
     "text": "Ulepsz swój plan, aby zapraszać członków zespołu"

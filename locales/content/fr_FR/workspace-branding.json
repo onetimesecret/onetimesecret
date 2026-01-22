@@ -99,10 +99,10 @@
     "text": "Échec du chargement des paramètres de marque"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des contrôles ci-dessus - Télécharger un logo (minimum 128x128 pixels recommandé, 1 Mo max) - Tester l'aperçu en utilisant le bouton « Voir le secret »"
+    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos secrets. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des contrôles ci-dessus - Télécharger un logo (minimum 128x128 pixels recommandé, 1 Mo max) - Tester l'aperçu en utilisant le bouton « Voir le secret »"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Il s'agit d'un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - télécharger un logo (128x128 pixels minimum recommandés, 1MB maximum) - tester l'aperçu à l'aide du bouton \"Voir le secret\""
+    "text": "Il s'agit d'un aperçu interactif de la façon dont les destinataires verront vos secrets. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - télécharger un logo (128x128 pixels minimum recommandés, 1MB maximum) - tester l'aperçu à l'aide du bouton \"Voir le secret\""
   },
   "web.branding.default_logo_icon": {
     "text": "Kanji japonais '秘' (himitsu) signifiant 'secret' ou 'confidentiel'"

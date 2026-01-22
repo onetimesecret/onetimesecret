@@ -15,7 +15,7 @@
     "text": "重要："
   },
   "email.secret_link.link_works_once": {
-    "text": "此链接仅可使用一次。查看后，内容将被永久删除。"
+    "text": "此链接仅可使用一次。查看后，机密信息将被永久删除。"
   },
   "email.secret_link.sent_via": {
     "text": "发送自"
@@ -105,28 +105,28 @@
     "text": "有人通过 %{display_domain} 向您发送了一条安全信息。"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "点击下方链接查看此内容："
+    "text": "点击下方链接查看此机密信息："
   },
   "email.incoming_secret.important_label": {
     "text": "重要："
   },
   "email.incoming_secret.link_works_once": {
-    "text": "此链接仅可使用一次。查看后，内容将被永久删除。"
+    "text": "此链接仅可使用一次。查看后，机密信息将被永久删除。"
   },
   "email.incoming_secret.sent_via": {
     "text": "发送自"
   },
   "email.secret_revealed.subject": {
-    "text": "您的内容已被查看"
+    "text": "您的机密信息已被查看"
   },
   "email.secret_revealed.title": {
-    "text": "您的内容已被查看"
+    "text": "您的机密信息已被查看"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "您的内容于 %{date} 被查看。"
+    "text": "您的机密信息于 %{date} 被查看。"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "内容 ID："
+    "text": "机密信息 ID："
   },
   "email.secret_revealed.automated_notice": {
     "text": "这是一条自动通知。无需采取任何操作。"
@@ -147,13 +147,13 @@
     "text": "您的链接将在 %{time_remaining} 后过期"
   },
   "email.expiration_warning.view_button": {
-    "text": "在过期前查看您的内容"
+    "text": "在过期前查看您的机密信息"
   },
   "email.expiration_warning.reminder_label": {
     "text": "提醒："
   },
   "email.expiration_warning.after_expiration": {
-    "text": "过期后，内容将被永久删除且无法恢复。"
+    "text": "过期后，机密信息将被永久删除且无法恢复。"
   },
   "email.expiration_warning.sent_via": {
     "text": "发送自"
@@ -162,7 +162,7 @@
     "text": "在失效前查看："
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "过期后，内容将被永久删除。"
+    "text": "过期后，机密信息将被永久删除。"
   },
   "email.feedback_email.subject": {
     "text": "反馈于 %{date} 通过 %{display_domain} (%{strategy})"

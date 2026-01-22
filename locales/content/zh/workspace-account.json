@@ -75,7 +75,7 @@
     "text": "账户 ID"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "自 {1} 以来已创建 {0} 条内容。"
+    "text": "自 {1} 以来已创建 {0} 条机密信息。"
   },
   "web.account.delete_account": {
     "text": "删除账户"
@@ -132,7 +132,7 @@
     "text": "如有任何您想移除的内容，"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "内容将保持活跃直到过期。"
+    "text": "机密信息将保持活跃直到过期。"
   },
   "web.account.please_be_advised": {
     "text": "请注意："
@@ -411,16 +411,16 @@
     "text": "更新通知偏好失败，请重试。"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "内容查看通知"
+    "text": "机密信息查看通知"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "当有人查看您的内容时收到邮件通知"
+    "text": "当有人查看您的机密信息时收到邮件通知"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "每当接收者查看您的内容时，您都会收到通知"
+    "text": "每当接收者查看您的机密信息时，您都会收到通知"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "通知邮件仅包含时间戳和内容 ID。绝不包含查看者信息。"
+    "text": "通知邮件仅包含时间戳和机密信息 ID。绝不包含查看者信息。"
   },
   "web.settings.caution.title": {
     "text": "谨慎操作区"
@@ -450,10 +450,10 @@
     "text": "删除您的账户将："
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "永久删除您的所有内容"
+    "text": "永久删除您的所有机密信息"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "删除所有内容的元数据和历史记录"
+    "text": "删除所有机密信息的元数据和历史记录"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "使所有 API 密钥失效"
