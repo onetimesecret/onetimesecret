@@ -5,28 +5,22 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sikre links der kun virker én gang"
   },
   "web.COMMON.powered_by": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Drevet af"
   },
   "web.COMMON.website_url": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "https://onetimesecret.com/da"
   },
   "web.COMMON.button_generate_secret_short": {
     "text": "Generer adgangskode"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Generer adgangskode er deaktiveret, når formularen er korrekt udfyldt"
+    "text": "Generer adgangskode er deaktiveret når formularen er gyldig"
   },
   "web.COMMON.email_placeholder": {
-    "text": "f.eks. jens{'@'}eksempel.dk"
+    "text": "f.eks. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
     "text": "Indtast din adgangskode"
@@ -35,7 +29,7 @@
     "text": "Brugerdefinerede domæner"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Styrk og opbyg tillid med dine egne brandede links."
+    "text": "Styrk forbindelser og opbyg tillid med dine egne brandede beskedlinks."
   },
   "web.COMMON.get_started_button": {
     "text": "Kom i gang"
@@ -50,22 +44,22 @@
     "text": "Send"
   },
   "web.COMMON.submitting": {
-    "text": "Behandler"
+    "text": "Sender..."
   },
   "web.COMMON.processing": {
     "text": "Behandler..."
   },
   "web.COMMON.description": {
-    "text": "Hold følsomme oplysninger ude af dine chats og e-mails. Del et sikkert link, der kun virker én gang."
+    "text": "Hold følsomme oplysninger ude af dine chatlogfiler og e-mail. Del et beskedlink der kun er tilgængeligt én gang."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Forkert adgangssætning"
   },
   "web.COMMON.keywords": {
-    "text": "adgangskode, adgangskode generator, del en adgangskode, éngangs"
+    "text": "besked,adgangskodegenerator,del en besked,onetime"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Opret et sikkert link"
+    "text": "Opret et beskedlink"
   },
   "web.COMMON.button_generate_secret": {
     "text": "Eller generer en tilfældig adgangskode"
@@ -74,13 +68,13 @@
     "text": "Privatlivsindstillinger"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Kode"
+    "text": "Adgangssætning"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Et ord eller en sætning, der er svær at gætte"
+    "text": "Et ord eller en sætning der er svær at gætte"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Modtagers e-mail adresse"
+    "text": "Modtageradresse"
   },
   "web.COMMON.secret_placeholder": {
     "text": "Beskedens indhold skrives her..."
@@ -101,7 +95,7 @@
     "text": "Log ud"
   },
   "web.COMMON.secret": {
-    "text": "Besked"
+    "text": "Besked | Beskeder"
   },
   "web.COMMON.recent": {
     "text": "Seneste"
@@ -110,28 +104,28 @@
     "text": "Modtaget"
   },
   "web.COMMON.burn": {
-    "text": "Brænd"
+    "text": "Ødelæg"
   },
   "web.COMMON.burned": {
-    "text": "Brændt"
+    "text": "Ødelagt"
   },
   "web.COMMON.expires_in": {
     "text": "Udløber om"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Brænd denne besked"
+    "text": "Ødelæg denne besked"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "At brænde en besked vil slette den, før den er blevet læst (klik for at bekræfte)"
+    "text": "At ødelægge en besked sletter den før den er blevet læst (klik for at bekræfte)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "At brænde en besked er permanent og kan ikke fortrydes"
+    "text": "At ødelægge en besked er permanent og kan ikke fortrydes"
   },
   "web.COMMON.msg_check_email": {
     "text": "Tjek din e-mail"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klik for at fortsætte →"
+    "text": "Klik for at afsløre →"
   },
   "web.COMMON.click_to_verify": {
     "text": "Fortsæt for at bekræfte din konto:"
@@ -140,13 +134,13 @@
     "text": "Du har ikke angivet noget at dele"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Tjek koden igen"
+    "text": "Dobbelttjek adgangssætningen"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Indtast koden her"
+    "text": "Indtast adgangssætningen her"
   },
   "web.COMMON.view_secret": {
-    "text": "Se beskeden"
+    "text": "Vis besked"
   },
   "web.COMMON.careful_only_see_once": {
     "text": "Bemærk: vi viser den kun én gang."
@@ -161,21 +155,19 @@
     "text": "Fejl"
   },
   "web.COMMON.unexpected_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Der opstod en uventet fejl. Prøv venligst igen."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Beskeden blev afkortet, fordi den var slut"
+    "text": "Beskeden blev afkortet"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Tilmeld dig for flere muligheder"
+    "text": "Tilmeld dig for mere"
   },
   "web.COMMON.login_to_your_account": {
     "text": "Log ind på din konto"
   },
   "web.COMMON.sent_to": {
-    "text": "Sendt til: "
+    "text": "Sendt til:"
   },
   "web.COMMON.field_email": {
     "text": "E-mail"
@@ -199,7 +191,7 @@
     "text": "Ingen"
   },
   "web.COMMON.word_burned": {
-    "text": "brændt"
+    "text": "ødelagt"
   },
   "web.COMMON.word_received": {
     "text": "modtaget"
@@ -211,162 +203,124 @@
     "text": "Annuller"
   },
   "web.COMMON.word_continue": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fortsæt"
   },
   "web.COMMON.word_done": {
-    "text": "Udført"
+    "text": "Færdig"
   },
   "web.COMMON.back": {
     "text": "Tilbage"
   },
   "web.COMMON.feedback_text": {
-    "text": "Del dine tanker, ideer eller kommentarer..."
+    "text": "Del dine tanker, idéer eller oplevelser..."
   },
   "web.COMMON.button_send_feedback": {
     "text": "Send feedback"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "En bekræftelse blev sendt til"
+    "text": "En verifikation blev sendt til"
   },
   "web.COMMON.autoverified_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Konto oprettet. Log venligst ind."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hvis der findes en konto med denne e-mail, vil du modtage en verifikationsmail."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Brænd denne hemmelighed permanent"
+    "text": "Ødelæg denne besked permanent"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Bekræft venligst"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Er du sikker på, at du vil brænde denne hemmelighed? Denne handling kan ikke fortrydes."
+    "text": "Er du sikker på at du vil ødelægge denne besked? Denne handling kan ikke fortrydes."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ja, brænd denne hemmelighed"
+    "text": "Ja, ødelæg denne besked"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Hvis du brænder en hemmelighed, slettes den, før den er modtaget."
+    "text": "At ødelægge en besked sletter den før den er blevet modtaget."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Af sikkerhedshensyn skal du dele dette link separat fra andre detaljer."
+    "text": "For sikkerhedens skyld, del dette link separat fra andre oplysninger."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Kopieret til udklipsholder"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret indgående"
   },
   "web.COMMON.faq_title": {
-    "text": "F.A.Q."
+    "text": "FAQ"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Bekræftelsen er ikke gyldig"
+    "text": "Verifikationen er ikke gyldig"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Kan ikke verificere en konto, når du allerede er logget ind"
+    "text": "Kan ikke verificere en konto når du allerede er logget ind"
   },
   "web.COMMON.show_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vis adgangskode"
   },
   "web.COMMON.hide_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skjul adgangskode"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Adgangskoden skal være mindst 8 tegn"
   },
   "web.COMMON.password_requirements": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Adgangskoden skal være mindst 8 tegn lang"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Adgangskoderne matcher ikke"
   },
   "web.COMMON.form_field_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dette felt er påkrævet"
   },
   "web.COMMON.form_processing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Behandler din anmodning"
   },
   "web.COMMON.remember_me_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hold mig logget ind i 30 dage"
   },
   "web.COMMON.redirecting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Omdirigerer..."
   },
   "web.COMMON.continue": {
     "text": "Fortsæt"
   },
   "web.COMMON.are_you_sure": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Er du sikker?"
   },
   "web.COMMON.danger_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Farezone"
   },
   "web.COMMON.caution_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Zone for omhyggelig overvejelse"
   },
   "web.COMMON.user_menu": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brugermenu"
   },
   "web.COMMON.security": {
     "text": "Sikkerhed"
   },
   "web.COMMON.manage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer"
   },
   "web.COMMON.loading": {
-    "text": "Indlæser ..."
+    "text": "Indlæser..."
   },
   "web.COMMON.save_changes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gem ændringer"
   },
   "web.COMMON.saving": {
     "text": "Gemmer..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Tilføjelse"
+    "text": "Tilføjer"
   },
   "web.COMMON.e_g_example": {
-    "text": "e.g."
+    "text": "f.eks."
   },
   "web.COMMON.example_placeholder": {
     "text": "f.eks. {example}"
@@ -387,7 +341,7 @@
     "text": "Fjern"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Tryk på ESC for at lukke"
+    "text": "Tryk ESC for at lukke"
   },
   "web.COMMON.enter": {
     "text": "Enter"
@@ -405,7 +359,7 @@
     "text": "Udseende"
   },
   "web.COMMON.done": {
-    "text": "Udført"
+    "text": "Færdig"
   },
   "web.COMMON.end": {
     "text": "Slut"
@@ -414,19 +368,19 @@
     "text": "Generelt"
   },
   "web.COMMON.note": {
-    "text": "Bemærkning"
+    "text": "Note"
   },
   "web.COMMON.monthly": {
-    "text": "Månedlig"
+    "text": "Månedligt"
   },
   "web.COMMON.yearly": {
     "text": "Årligt"
   },
   "web.COMMON.go_on_then": {
-    "text": "Gå videre derefter."
+    "text": "Okay, fortsæt."
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Indlæser ..."
+    "text": "Indlæser..."
   },
   "web.COMMON.not_received": {
     "text": "IKKE MODTAGET"
@@ -438,10 +392,10 @@
     "text": "Ny adgangskode"
   },
   "web.COMMON.email_address": {
-    "text": "E-mail-adresse"
+    "text": "E-mailadresse"
   },
   "web.COMMON.switch": {
-    "text": "switch"
+    "text": "skift"
   },
   "web.COMMON.features": {
     "text": "Funktioner"
@@ -477,13 +431,13 @@
     "text": "Mac"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "E-mail-adresse kopieret til udklipsholder!"
+    "text": "E-mailadresse kopieret til udklipsholder!"
   },
   "web.COMMON.value": {
     "text": "Værdi"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Vært"
   },
   "web.COMMON.type": {
     "text": "Type"
@@ -498,22 +452,22 @@
     "text": "Adgangskodestyrke:"
   },
   "web.COMMON.great": {
-    "text": "Fremragende"
+    "text": "Fantastisk"
   },
   "web.COMMON.pretty_good": {
-    "text": "Temmelig god"
+    "text": "Ret godt"
   },
   "web.COMMON.fair": {
-    "text": "Rimelig"
+    "text": "Nogenlunde"
   },
   "web.COMMON.meh": {
-    "text": "Måske"
+    "text": "Sådan da"
   },
   "web.COMMON.not_great": {
-    "text": "Ikke fantastisk"
+    "text": "Ikke så godt"
   },
   "web.COMMON.open_options": {
-    "text": "Åbne muligheder"
+    "text": "Åbn indstillinger"
   },
   "web.COMMON.inactive": {
     "text": "Inaktiv"
@@ -522,16 +476,16 @@
     "text": "Der opstod en fejl"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Kopier hemmelighed til udklipsholder"
+    "text": "Kopier besked til udklipsholder"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Hemmelighed kopieret til udklipsholder"
+    "text": "Besked kopieret til udklipsholder"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Dobbelttjek den passphrase"
+    "text": "Dobbelttjek adgangssætningen"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Tryk på kopiknappen nedenfor."
+    "text": "Tryk på kopiér-knappen nedenfor."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Vis"
@@ -546,10 +500,10 @@
     "text": "Vis mindre"
   },
   "web.LABELS.enable": {
-    "text": "Aktiver"
+    "text": "Aktivér"
   },
   "web.LABELS.disable": {
-    "text": "Deaktiver"
+    "text": "Deaktivér"
   },
   "web.LABELS.stats": {
     "text": "Statistik"
@@ -561,13 +515,13 @@
     "text": "Levetid"
   },
   "web.LABELS.expiration_time": {
-    "text": "Udløbstid"
+    "text": "Udløbstidspunkt"
   },
   "web.LABELS.close": {
     "text": "Luk"
   },
   "web.LABELS.loading": {
-    "text": "Indlæser ..."
+    "text": "Indlæser..."
   },
   "web.LABELS.cancel": {
     "text": "Annuller"
@@ -591,13 +545,13 @@
     "text": "Krypteret"
   },
   "web.LABELS.secret_status": {
-    "text": "Hemmelig status"
+    "text": "Beskedstatus"
   },
   "web.LABELS.need_help": {
     "text": "Brug for hjælp?"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Opret ny hemmelighed"
+    "text": "Opret ny besked"
   },
   "web.LABELS.actions": {
     "text": "Handlinger"
@@ -615,7 +569,7 @@
     "text": "Del"
   },
   "web.LABELS.secret_link": {
-    "text": "Hemmeligt link"
+    "text": "Beskedlink"
   },
   "web.LABELS.dismiss": {
     "text": "Afvis"
@@ -624,19 +578,19 @@
     "text": "Sikkerhedsdetaljer"
   },
   "web.LABELS.items_count": {
-    "text": "{count} Elementer"
+    "text": "{count} elementer"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} Modtagere"
+    "text": "{count} modtagere"
   },
   "web.LABELS.view": {
-    "text": "Se"
+    "text": "Vis"
   },
   "web.LABELS.views": {
     "text": "Visninger"
   },
   "web.LABELS.times_viewed": {
-    "text": "gange set"
+    "text": "gange vist"
   },
   "web.LABELS.view_progress": {
     "text": "Vis fremskridt"
@@ -651,10 +605,10 @@
     "text": "Feedback modtaget."
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Sender ..."
+    "text": "Sender..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Seneste hemmeligheder"
+    "text": "Seneste beskeder"
   },
   "web.LABELS.pricing": {
     "text": "Priser"
@@ -666,27 +620,25 @@
     "text": "Genindlæs"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Hemmelige links oprettet i denne session"
+    "text": "Beskedlinks oprettet i denne session"
   },
   "web.LABELS.create_link_short": {
     "text": "Opret link"
   },
   "web.LABELS.create_link": {
-    "text": "Opret hemmeligt link"
+    "text": "Opret beskedlink"
   },
   "web.LABELS.create_request_short": {
     "text": "Opret anmodning"
   },
   "web.LABELS.create_request": {
-    "text": "Opret link til anmodning"
+    "text": "Opret anmodningslink"
   },
   "web.LABELS.related_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Relaterede indstillinger"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Opretter links til"
+    "text": "Opretter links for"
   },
   "web.LABELS.scope_indicator": {
     "text": "Opretter beskeder i {domain}"
@@ -704,10 +656,10 @@
     "text": "Modtaget"
   },
   "web.STATUS.burned": {
-    "text": "Brændt"
+    "text": "Ødelagt"
   },
   "web.STATUS.destroyed": {
-    "text": "Destrueret"
+    "text": "Slettet"
   },
   "web.STATUS.expiring_soon": {
     "text": "Udløber snart"
@@ -728,40 +680,40 @@
     "text": "Sikret"
   },
   "web.STATUS.securing": {
-    "text": "Sikring"
+    "text": "Sikrer"
   },
   "web.STATUS.copied": {
     "text": "Kopieret"
   },
   "web.STATUS.time_remaining": {
-    "text": "Resterende tid"
+    "text": "Tid tilbage"
   },
   "web.STATUS.new_description": {
-    "text": "Hemmeligt link er oprettet og endnu ikke set"
+    "text": "Beskedlink er oprettet og endnu ikke vist"
   },
   "web.STATUS.unread_description": {
-    "text": "Hemmeligt link er oprettet og er ikke blevet set"
+    "text": "Beskedlink er oprettet og er ikke blevet vist"
   },
   "web.STATUS.viewed_description": {
-    "text": "Hemmeligt link er blevet åbnet og klar til at blive set"
+    "text": "Beskedlink er åbnet og klar til at blive vist"
   },
   "web.STATUS.received_description": {
-    "text": "Hemmelighed er blevet afsløret for modtageren"
+    "text": "Beskeden er blevet afsløret for modtageren"
   },
   "web.STATUS.burned_description": {
-    "text": "Hemmeligheden blev brændt manuelt, før den blev vist"
+    "text": "Beskeden blev manuelt ødelagt før den blev vist"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Hemmeligheden er blevet destrueret permanent"
+    "text": "Beskeden er blevet permanent slettet"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Hemmeligheden udløber snart"
+    "text": "Beskeden udløber snart"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Hemmeligheden er blevet forældreløs og vil snart blive ødelagt"
+    "text": "Beskeden er forældreløs og vil snart blive slettet"
   },
   "web.STATUS.expired_description": {
-    "text": "Hemmeligheden er udløbet, før den blev vist"
+    "text": "Beskeden udløb før den blev vist"
   },
   "web.STATUS.success": {
     "text": "Succes"
@@ -770,22 +722,22 @@
     "text": "Leveret"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS Forkert"
+    "text": "DNS forkert"
   },
   "web.STATUS.active": {
     "text": "Aktiv"
   },
   "web.STATUS.inactive": {
-    "text": "Inactive"
+    "text": "Inaktiv"
   },
   "web.FEATURES.unlimited_views": {
     "text": "Ubegrænsede visninger"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Trusted domain branding"
+    "text": "Brugerdefineret domæne-branding"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Krypteret i transit og i hvile"
+    "text": "Krypteret under overførsel og lagring"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -806,7 +758,7 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit}"
+    "text": "{count} {unit} tilbage"
   },
   "web.UNITS.ttl_remaining.time.day": {
     "text": "dag tilbage | dage tilbage"
@@ -815,10 +767,10 @@
     "text": "time tilbage | timer tilbage"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "resterende minut | resterende minutter"
+    "text": "minut tilbage | minutter tilbage"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "resterende sekund | resterende sekunder"
+    "text": "sekund tilbage | sekunder tilbage"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
@@ -827,219 +779,139 @@
     "text": "{count} visningsgrænse"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} Dage tilbage"
+    "text": "{count} dage tilbage"
   },
   "web.UNITS.hours_remaining": {
     "text": "{count} timer tilbage"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} Minutter tilbage"
+    "text": "{count} minutter tilbage"
   },
   "web.TITLES.incoming": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indgående beskeder"
   },
   "web.TITLES.feedback": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Feedback"
   },
   "web.TITLES.signin": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Log ind"
   },
   "web.TITLES.signup": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret konto"
   },
   "web.TITLES.forgot_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Glemt adgangskode"
   },
   "web.TITLES.reset_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nulstil adgangskode"
   },
   "web.TITLES.logout": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Logger ud"
   },
   "web.TITLES.verify_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft konto"
   },
   "web.TITLES.mfa_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "To-faktor-godkendelse"
   },
   "web.TITLES.email_login": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-mail-login"
   },
   "web.TITLES.accept_invitation": {
     "text": "Accepter invitation"
   },
   "web.TITLES.secret": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Besked"
   },
   "web.TITLES.metadata": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Beskeddetaljer"
   },
   "web.TITLES.receipt": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Beskedkvittering"
   },
   "web.TITLES.burn_secret": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ødelæg besked"
   },
   "web.TITLES.dashboard": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oversigt"
   },
   "web.TITLES.recent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Seneste beskeder"
   },
   "web.TITLES.domains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brugerdefinerede domæner"
   },
   "web.TITLES.domain_add": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tilføj domæne"
   },
   "web.TITLES.domain_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft domæne"
   },
   "web.TITLES.domain_brand": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brand-domæne"
   },
   "web.TITLES.account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Konto"
   },
   "web.TITLES.data_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dataregion"
   },
   "web.TITLES.current_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende region"
   },
   "web.TITLES.available_regions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tilgængelige regioner"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hvorfor datasuverænitet betyder noget"
   },
   "web.TITLES.profile_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Profilindstillinger"
   },
   "web.TITLES.preferences_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Præferencer"
   },
   "web.TITLES.privacy_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Privatliv"
   },
   "web.TITLES.notification_settings": {
     "text": "Notifikationer"
   },
   "web.TITLES.change_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift e-mail"
   },
   "web.TITLES.security_overview": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sikkerhed"
   },
   "web.TITLES.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift adgangskode"
   },
   "web.TITLES.mfa_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "To-faktor-godkendelse"
   },
   "web.TITLES.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktive sessioner"
   },
   "web.TITLES.recovery_codes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gendannelseskoder"
   },
   "web.TITLES.api_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-indstillinger"
   },
   "web.TITLES.advanced_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Avancerede indstillinger"
   },
   "web.TITLES.system_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Systemindstillinger"
   },
   "web.TITLES.not_found": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Side ikke fundet"
   },
   "web.TITLES.organizations_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationer"
   },
   "web.TITLES.organization_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationsindstillinger"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "Fokus er nu i hovedtekstområdet"
@@ -1051,26 +923,84 @@
     "text": "Del linket med den tiltænkte modtager"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Del adgangssætningen separat via en sikker kanal"
+    "text": "Del adgangssætningen separat gennem en sikker kanal"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
     "text": "Brug en anden sikker kanal til at dele følsomme oplysninger"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft altid at du er på den officielle Onetime Secret-hjemmeside. Svindlere opretter nogle gange falske hjemmesider der ligner Onetime Secret for at stjæle dine beskeder. For at undgå phishing-angreb, tjek regiondomænet før du opretter nye links."
   },
   "web.STATUS.previewed": {
-    "text": "Link åbnet"
+    "text": "Forhåndsvist"
   },
   "web.STATUS.revealed": {
     "text": "Afsløret"
   },
   "web.STATUS.previewed_description": {
-    "text": "Hemmeligt link er blevet åbnet og klar til at blive afsløret"
+    "text": "Beskedlink er åbnet og klar til at blive afsløret"
   },
   "web.STATUS.revealed_description": {
-    "text": "Hemmelighedens indhold er blevet afsløret for modtageren"
+    "text": "Beskedens indhold er blevet afsløret for modtageren"
+  },
+  "web.COMMON.not_set": {
+    "text": "Ikke angivet"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Rediger"
+  },
+  "web.COMMON.word_save": {
+    "text": "Gem"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Udløber om"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtrer"
+  },
+  "web.LABELS.clear": {
+    "text": "Ryd"
+  },
+  "web.LABELS.add_note": {
+    "text": "Tilføj note..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Rediger note"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Tilføj memo..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Rediger memo"
+  },
+  "web.TITLES.help": {
+    "text": "Hjælp"
+  },
+  "web.TITLES.pricing": {
+    "text": "Priser"
+  },
+  "web.pricing.title": {
+    "text": "Enkle, gennemsigtige priser"
+  },
+  "web.pricing.subtitle": {
+    "text": "Vælg det abonnement der passer til dine behov. Alle abonnementer inkluderer ubegrænset beskeddeling og privatlivs-først design."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Kom i gang gratis"
+  },
+  "web.pricing.start_trial": {
+    "text": "Kom i gang"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Har du allerede en konto?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Log ind"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Anbefalet til dig"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Opret og del beskeder med grundlæggende funktioner. Intet kreditkort påkrævet."
   }
 }

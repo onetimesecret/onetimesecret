@@ -1,23 +1,15 @@
 {
   "web.account.settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indstillinger"
   },
   "web.account.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift adgangskode"
   },
   "web.account.close_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Luk konto"
   },
   "web.account.verify_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft konto"
   },
   "web.account.subscription_title": {
     "text": "Abonnement"
@@ -35,27 +27,25 @@
     "text": "E-mail:"
   },
   "web.account.region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Region"
   },
   "web.account.account_balance": {
-    "text": "Kontosaldo:"
+    "text": "Saldo:"
   },
   "web.account.default_payment_method": {
     "text": "Standard betalingsmetode"
   },
   "web.account.card_ending": {
-    "text": "slutter i"
+    "text": "slutter på"
   },
   "web.account.subscriptions_title": {
     "text": "Abonnementer"
   },
   "web.account.quantity": {
-    "text": "Mængde:"
+    "text": "Antal:"
   },
   "web.account.next_billing_date": {
-    "text": "Næste faktureringsdato:"
+    "text": "Næste fakturadato:"
   },
   "web.account.changePassword.username": {
     "text": "Brugernavn"
@@ -73,13 +63,13 @@
     "text": "Opdater adgangskode"
   },
   "web.account.changePassword.updating": {
-    "text": "Opdaterer ..."
+    "text": "Opdaterer..."
   },
   "web.account.timezone": {
     "text": "Tidszone"
   },
   "web.account.customer_id": {
-    "text": "Kunde-id"
+    "text": "Kunde-ID"
   },
   "web.account.account_id_customerid": {
     "text": "Konto-ID"
@@ -130,25 +120,25 @@
     "text": "Slet konto permanent"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "permanent og ikke-reversibel."
+    "text": "permanent og kan ikke fortrydes."
   },
   "web.account.deleting_your_account_is": {
-    "text": "At slette din konto er"
+    "text": "Sletning af din konto er"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "brænd dem, før du fortsætter"
+    "text": "slet dem permanent, før du fortsætter"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Eventuelle hemmeligheder, du ønsker at fjerne"
+    "text": "Eventuelle beskeder, du ønsker at fjerne,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Hemmeligheder vil forblive aktive, indtil de udløber."
+    "text": "Beskeder forbliver aktive, indtil de udløber."
   },
   "web.account.please_be_advised": {
     "text": "Vær opmærksom på:"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Konto slettet med succes."
+    "text": "Konto slettet."
   },
   "web.account.deactivate": {
     "text": "Deaktiver"
@@ -160,424 +150,256 @@
     "text": "Deaktiver konto"
   },
   "web.settings.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indstillinger"
   },
   "web.settings.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine kontoindstillinger og præferencer"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine kontoindstillinger og præferencer"
   },
   "web.settings.general": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Generelt"
   },
   "web.settings.preferences": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Præferencer"
   },
   "web.settings.appearance": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Udseende"
   },
   "web.settings.theme.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tema"
   },
   "web.settings.theme.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg lyst eller mørkt tema"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg lyst eller mørkt tema"
   },
   "web.settings.language.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sprog"
   },
   "web.settings.language.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg dit foretrukne sprog"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg dit foretrukne sprog"
   },
   "web.settings.security_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer godkendelse og kontosikkerhed"
   },
   "web.settings.profile_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine kontooplysninger"
   },
   "web.settings.profile.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Profil"
   },
   "web.settings.profile.change_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift e-mail"
   },
   "web.settings.profile.current_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende e-mail"
   },
   "web.settings.profile.current_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende adgangskode"
   },
   "web.settings.profile.new_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ny e-mail"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indtast din nuværende adgangskode"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din adgangskode er påkrævet af sikkerhedsmæssige årsager"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "En bekræftelsesmail vil blive sendt til den nye adresse"
   },
   "web.settings.profile.update_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater e-mail"
   },
   "web.settings.profile.change_email_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater e-mailadressen tilknyttet din konto"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Alle felter er påkrævede"
   },
   "web.settings.profile.invalid_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indtast venligst en gyldig e-mailadresse"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ny e-mail skal være forskellig fra nuværende e-mail"
   },
   "web.settings.profile.email_change_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-mail opdateret. Tjek venligst din indbakke for at bekræfte din nye e-mailadresse."
   },
   "web.settings.profile.email_change_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke opdatere e-mail. Prøv venligst igen."
   },
   "web.settings.sessions.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktive sessioner"
   },
   "web.settings.sessions.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine aktive sessioner"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine aktive sessioner"
   },
   "web.settings.password.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Adgangskode"
   },
   "web.settings.password.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater din kontoadgangskode"
   },
   "web.settings.password.update_account_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater din kontoadgangskode"
   },
   "web.settings.delete_account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet konto"
   },
   "web.settings.delete_account.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet din konto og alle data permanent"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet din konto og alle data permanent"
   },
   "web.settings.security.security_score": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sikkerhedsscore"
   },
   "web.settings.security.score_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din overordnede kontosikkerhed"
   },
   "web.settings.security.excellent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fremragende"
   },
   "web.settings.security.good": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "God"
   },
   "web.settings.security.fair": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Rimelig"
   },
   "web.settings.security.weak": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Svag"
   },
   "web.settings.security.improve_security": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Forbedre din sikkerhed"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiver to-faktor-godkendelse for stærkere beskyttelse"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Generer gendannelseskoder som backup"
   },
   "web.settings.security.configured": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Konfigureret"
   },
   "web.settings.security.change": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift"
   },
   "web.settings.security.manage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer"
   },
   "web.settings.security.enable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiver"
   },
   "web.settings.security.codes_available": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{0} koder tilgængelige"
   },
   "web.settings.security.no_codes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen koder genereret"
   },
   "web.settings.security.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{0} aktiv session | {0} aktive sessioner"
   },
   "web.settings.security.best_practices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bedste sikkerhedspraksis"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brug en stærk, unik adgangskode til din konto"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiver to-faktor-godkendelse for ekstra beskyttelse"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gem dine gendannelseskoder et sikkert sted"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gennemgå og tilbagekald ubrugte sessioner regelmæssigt"
   },
   "web.settings.security.view_details": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se detaljer"
   },
   "web.settings.api.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API og integrationer"
   },
   "web.settings.api.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer API-nøgler og integrationer"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer API-nøgler og integrationer"
   },
   "web.settings.api.documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-dokumentation"
   },
   "web.settings.api.documentation_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Lær hvordan du integrerer Onetime Secret i dine applikationer"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "REST API-reference"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Komplet API-dokumentation og endpoints"
   },
   "web.settings.api.code_examples": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kodeeksempler"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksempelkode og klientbiblioteker"
   },
   "web.settings.api.security_best_practices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bedste sikkerhedspraksis"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Commit aldrig API-nøgler til versionskontrol"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brug miljøvariabler til at gemme API-nøgler"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Roter API-nøgler regelmæssigt for sikkerhed"
   },
   "web.settings.api.use_https_only": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brug altid HTTPS ved API-forespørgsler"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Overvåg dit API-forbrug og opsæt advarsler"
   },
   "web.settings.api.important_notice": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vigtig meddelelse"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gendannelse af din API-nøgle vil ugyldiggøre den nuværende nøgle. Opdater alle applikationer, der bruger den gamle nøgle."
   },
   "web.settings.privacy.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Privatlivsindstillinger"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine privatlivspræferencer"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dit privatliv"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ikke til forhandling"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ikke en indstilling"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen analyser. Ingen sporing. Punktum."
   },
   "web.settings.privacy.explanation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dette er ikke en indstilling, fordi der ikke er noget at slå til eller fra. Dit privatliv er indbygget i måden, vi driver virksomhed på."
   },
   "web.settings.notifications.title": {
     "text": "Notifikationsindstillinger"
@@ -586,83 +408,72 @@
     "text": "Administrer hvordan du modtager notifikationer"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Kunne ikke opdatere notifikationspræference. Prøv igen."
+    "text": "Kunne ikke opdatere notifikationspræference. Prøv venligst igen."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Notifikationer ved visning af beskeder"
+    "text": "Notifikationer ved visning af besked"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Modtag en e-mail, når nogen ser din besked"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Du vil få besked hver gang en modtager åbner en af dine beskeder"
+    "text": "Du får besked hver gang en modtager ser en af dine beskeder"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Notifikations-e-mails indeholder kun tidsstempel og besked-ID. Oplysninger om seeren inkluderes aldrig."
+    "text": "Notifikationsmails indeholder kun tidsstempel og besked-ID. Oplysninger om læser er aldrig inkluderet."
   },
   "web.settings.caution.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Zone til omhyggelig overvejelse"
   },
   "web.settings.caution.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Avancerede indstillinger og datahåndtering"
   },
   "web.settings.caution.data_export": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dataeksport"
   },
   "web.settings.caution.export_your_data": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksporter dine kontodata"
   },
   "web.settings.caution.export_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Anmod om en komplet kopi af dine kontodata i maskinlæsbart format"
   },
   "web.settings.caution.request_data_export": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Anmod om dataeksport"
   },
   "web.settings.caution.export_info": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksportbehandlingstid"
   },
   "web.settings.caution.export_info_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksporter behandles inden for 24 timer og sendes til din e-mailadresse"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sletning af din konto vil:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slette alle dine beskeder permanent"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fjerne alle beskedmetadata og historik"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ugyldiggør alle API-nøgler"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Denne handling kan ikke fortrydes"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Sletter..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Tilbage til kontrolpanel"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fakturering"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avanceret"
   }
 }

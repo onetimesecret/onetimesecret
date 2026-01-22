@@ -1,290 +1,180 @@
 {
   "web.organizations.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationer"
   },
   "web.organizations.organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisation"
   },
   "web.organizations.organization_plural": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationer"
   },
   "web.organizations.organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine organisationer"
   },
   "web.organizations.my_organizations": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationer"
   },
   "web.organizations.manage_organizations": {
     "text": "Administrer organisationer"
   },
   "web.organizations.new_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ny organisation"
   },
   "web.organizations.no_organizations": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen organisationer endnu"
   },
   "web.organizations.no_organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationer giver samlet fakturering og administration. Kom i gang ved at oprette din første organisation."
   },
   "web.organizations.no_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen beskrivelse angivet"
   },
   "web.organizations.default": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Standard"
   },
   "web.organizations.create_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret organisation"
   },
   "web.organizations.create_first_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret første organisation"
   },
   "web.organizations.create_organization_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret en ny organisation"
   },
   "web.organizations.create": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret"
   },
   "web.organizations.create_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke oprette organisation"
   },
   "web.organizations.organization_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationsnavn"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "f.eks. Acme Corporation"
   },
   "web.organizations.display_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationsnavn"
   },
   "web.organizations.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Beskrivelse"
   },
   "web.organizations.description_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hvad bruges denne organisation til?"
   },
   "web.organizations.contact_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturerings-e-mail"
   },
   "web.organizations.contact_email_help": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Primær kontakt for fakturering og administrative notifikationer"
   },
   "web.organizations.select_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg en organisation"
   },
   "web.organizations.switcher_locked": {
     "text": "Organisationsskift ikke tilgængeligt på denne side"
   },
   "web.organizations.not_found": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisation ikke fundet"
   },
   "web.organizations.load_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke indlæse organisation"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke indlæse organisation"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke indlæse organisationer"
   },
   "web.organizations.organization_information": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationsoplysninger"
   },
   "web.organizations.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oprettet"
   },
   "web.organizations.last_updated": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sidst opdateret"
   },
   "web.organizations.organization_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationsindstillinger"
   },
   "web.organizations.organization_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater dit organisationsnavn og beskrivelse"
   },
   "web.organizations.general_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Generelle indstillinger"
   },
   "web.organizations.billing_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturering og abonnement"
   },
   "web.organizations.save_changes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gem ændringer"
   },
   "web.organizations.update_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisation opdateret"
   },
   "web.organizations.update_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke opdatere organisation"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faktureringsintegration kommer snart"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Samlet fakturering og abonnementshåndtering vil være tilgængelig i en fremtidig version."
   },
   "web.organizations.about_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Om organisationer"
   },
   "web.organizations.about_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationer giver samlet fakturering og administration til centraliseret styring."
   },
   "web.organizations.single_user_info_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer din organisation"
   },
   "web.organizations.single_user_info_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater dit firmanavn og organisationsoplysninger her. Disse oplysninger hjælper med at personliggøre din konto og kan bruges til brandingfunktioner i fremtiden."
   },
   "web.organizations.getting_started_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kom i gang med organisationer"
   },
   "web.organizations.getting_started_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret din første organisation for at administrere dine virksomhedsoplysninger og forberede fremtidige brandingfunktioner."
   },
   "web.organizations.page_description": {
     "text": "Administrer dine organisationer og teammedlemmer"
   },
   "web.organizations.tabs.general": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indstillinger"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Virksomhedsbranding"
   },
   "web.organizations.tabs.members": {
     "text": "Team"
   },
   "web.organizations.tabs.billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturering"
   },
   "web.organizations.danger_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Farezone"
   },
   "web.organizations.delete_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet organisation"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dette vil permanent slette organisationen. Denne handling kan ikke fortrydes."
   },
   "web.organizations.delete": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet organisation"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Er du sikker på, at du vil slette {name}? Denne handling kan ikke fortrydes."
   },
   "web.organizations.delete_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke slette organisation"
   },
   "web.organizations.members.title": {
     "text": "Medlemmer"
@@ -299,10 +189,10 @@
     "text": "Medlem"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "medlem"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "medlemmer"
   },
   "web.organizations.members.name": {
     "text": "Navn"
@@ -314,16 +204,16 @@
     "text": "Rolle"
   },
   "web.organizations.members.joined": {
-    "text": "Tilmeldt"
+    "text": "Deltog"
   },
   "web.organizations.members.actions": {
     "text": "Handlinger"
   },
   "web.organizations.members.no_members": {
-    "text": "Ingen medlemmer fundet"
+    "text": "Ingen medlemmer endnu. Inviter teammedlemmer for at komme i gang."
   },
   "web.organizations.members.no_members_description": {
-    "text": "Denne organisation har endnu ingen medlemmer."
+    "text": "Denne organisation har ingen medlemmer endnu."
   },
   "web.organizations.members.role_updated": {
     "text": "Medlemsrolle opdateret"
@@ -350,7 +240,7 @@
     "text": "Du kan ikke fjerne dig selv fra organisationen"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Du kan ikke fjerne organisationens ejer"
+    "text": "Du kan ikke fjerne organisationsejeren"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "Du har ikke tilladelse til at administrere medlemmer"
@@ -389,10 +279,10 @@
     "text": "Ingen afventende invitationer"
   },
   "web.organizations.invitations.email_address": {
-    "text": "E-mail-adresse"
+    "text": "E-mailadresse"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "medlem{'@'}eksempel.dk"
+    "text": "medlem{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rolle"
@@ -407,16 +297,16 @@
     "text": "Kunne ikke sende invitation"
   },
   "web.organizations.invitations.resend": {
-    "text": "Gensend"
+    "text": "Send igen"
   },
   "web.organizations.invitations.revoke": {
     "text": "Tilbagekald"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Invitation gensendt"
+    "text": "Invitation sendt igen"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Kunne ikke gensende invitation"
+    "text": "Kunne ikke sende invitation igen"
   },
   "web.organizations.invitations.revoke_success": {
     "text": "Invitation tilbagekaldt"
@@ -434,10 +324,10 @@
     "text": "Udløber"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Gensendt {count} gang"
+    "text": "Sendt igen {count} gang"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Gensendt {count} gange"
+    "text": "Sendt igen {count} gange"
   },
   "web.organizations.invitations.status.pending": {
     "text": "Afventer"
@@ -467,10 +357,10 @@
     "text": "Invitationsdetaljer"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Du er inviteret til at deltage i"
+    "text": "Du er blevet inviteret til at deltage i"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Du er inviteret som"
+    "text": "Du er blevet inviteret som"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Invitation accepteret"
@@ -495,5 +385,50 @@
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Indlæser invitationsdetaljer"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Fakturerings-e-mail opdateret"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Fakturerings-e-mail kan ændres på faktureringsoversigt-siden"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} medlem | {count} medlemmer"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domæne | {count} domæner"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Opgrader dit abonnement for at invitere teammedlemmer"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Teammedlemsinvitationer kræver et abonnement med teamadministration. Opgrader for at tilføje samarbejdspartnere til din organisation."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Forkert konto"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Denne invitation blev sendt til {invitedEmail}, men du er logget ind som {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Log ind med en anden konto"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}d tilbage"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}t tilbage"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Udløber snart"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abonnement"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domæner"
   }
 }

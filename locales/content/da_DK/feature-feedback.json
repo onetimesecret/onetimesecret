@@ -6,10 +6,10 @@
     "text": "Al feedback er velkommen!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Hjælp os med at forbedre os"
+    "text": "Hjælp os med at forbedre"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Luk feedback-modal"
+    "text": "Luk feedbackvindue"
   },
   "web.feedback.share_your_feedback": {
     "text": "Del din feedback"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Hjælpeindholdet kommer her."
+    "text": "Hjælpeindhold vises her."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Tak, fordi du hjalp Onetime Secret med at blive bedre. Det betyder meget."
@@ -36,12 +36,18 @@
     "text": "En note fra Delano, grundlægger af Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Åben feedback-formular"
+    "text": "Åbn feedbackformular"
   },
   "web.feedback.enter_your_feedback": {
     "text": "Indtast din feedback"
   },
   "web.feedback.send_feedback": {
     "text": "Send feedback"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Jeg læser hver eneste feedback der kommer ind her. Det er sådan jeg finder ud af, hvad jeg skal bruge tid på."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Hvis noget er galt, eller du har idéer til hvordan det burde fungere, er dette det rette sted."
   }
 }

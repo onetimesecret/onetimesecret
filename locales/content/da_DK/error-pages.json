@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Hvorfor er denne hemmelighed ikke tilgængelig?"
+    "text": "Hvorfor er denne besked utilgængelig?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Hemmeligheder er designet til kun at blive set én gang. Dette link kan allerede være blevet brugt, være udløbet eller være blevet slettet manuelt af afsenderen."
@@ -15,22 +15,22 @@
     "text": "Advarsel afvist"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Afvis trunkeringsadvarsel"
+    "text": "Afvis afkortningsadvarsel"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Ups! Den side, du leder efter, findes ikke eller er blevet flyttet."
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Siden blev ikke fundet"
+    "text": "404 - Side ikke fundet"
   },
   "web.errors.404_page_not_found": {
     "text": "404 - Side ikke fundet"
   },
   "web.errors.dismiss_warning": {
-    "text": "Advarsel om afskedigelse"
+    "text": "Afvis advarsel"
   },
   "web.errors.dismiss_notification": {
-    "text": "Afskedigelsesmeddelelse"
+    "text": "Afvis notifikation"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Hvis du er usikker på, hvad du skal gøre nu, så følg op med den person, der har sendt dig dette link, for at få flere oplysninger."
@@ -45,7 +45,7 @@
     "text": "{0} Noget gik galt"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Gå ind og del en hemmelighed!"
+    "text": "Del en besked!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "Den side, du leder efter, findes ikke eller er blevet flyttet. Bare rolig, det sker for de bedste af os!"

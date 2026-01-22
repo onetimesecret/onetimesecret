@@ -1,30 +1,30 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Supportsag: %s]"
+    "text": "[Sag: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "En kunde har sendt følgende oplysninger"
+    "text": "En kunde har sendt følgende info"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} sendte dig en hemmelighed"
+    "text": "%{sender_email} har sendt dig en besked"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "sendte dig en hemmelighed:"
+    "text": "har sendt dig en besked:"
   },
   "email.secret_link.important_label": {
     "text": "Vigtigt:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Dette link virker kun én gang. Efter visning slettes hemmeligheden permanent."
+    "text": "Dette link virker kun én gang. Efter visning vil beskeden blive permanent slettet."
   },
   "email.secret_link.sent_via": {
     "text": "Sendt via"
   },
   "email.welcome.subject": {
-    "text": "Bekræft din Onetime Secret konto"
+    "text": "Velkommen til %{product_name} - Bekræft venligst din e-mail"
   },
   "email.welcome.title": {
-    "text": "Du er inviteret til at deltage i %{product_name}!"
+    "text": "Velkommen til %{product_name}!"
   },
   "email.welcome.verify_prompt": {
     "text": "Bekræft venligst din e-mailadresse ved at klikke på linket nedenfor:"
@@ -39,7 +39,7 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Denne e-mail blev sendt til %{email_address}. Hvis du ikke forventede denne invitation, kan du roligt ignorere denne besked."
+    "text": "P.S. Denne e-mail blev sendt til %{email_address}. Hvis du ikke har oprettet en konto, kan du trygt ignorere denne meddelelse."
   },
   "email.password_request.subject": {
     "text": "Nulstil din adgangskode (%{display_domain})"
@@ -48,7 +48,7 @@
     "text": "Nulstil din adgangskode"
   },
   "email.password_request.request_notice": {
-    "text": "Vi modtog en anmodning om at nulstille din adgangskode til %{product_name}."
+    "text": "Vi har modtaget en anmodning om at nulstille din adgangskode til %{product_name}."
   },
   "email.password_request.reset_button": {
     "text": "Nulstil adgangskode"
@@ -57,7 +57,7 @@
     "text": "Eller kopier og indsæt dette link:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Hvis du ikke anmodede om en nulstilling af adgangskode, kan du roligt ignorere denne e-mail."
+    "text": "Hvis du ikke har anmodet om en nulstilling af adgangskoden, kan du trygt ignorere denne e-mail."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -69,7 +69,7 @@
     "text": "Log ind på %{display_domain}"
   },
   "email.magic_link.title": {
-    "text": "Log ind med Magic Link"
+    "text": "Log ind med magic link"
   },
   "email.magic_link.request_notice": {
     "text": "Du har anmodet om et login-link til din %{product_name}-konto."
@@ -78,7 +78,7 @@
     "text": "Log ind"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Eller kopiér og indsæt dette link:"
+    "text": "Eller kopier og indsæt dette link:"
   },
   "email.magic_link.expiration_notice": {
     "text": "Dette link udløber om 15 minutter."
@@ -93,40 +93,40 @@
     "text": "P.S. Denne e-mail blev sendt til %{email_address}."
   },
   "email.incoming_secret.subject": {
-    "text": "Du har modtaget en hemmelig besked"
+    "text": "Du har modtaget en sikker besked"
   },
   "email.incoming_secret.received_message": {
     "text": "Du har modtaget en sikker besked:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Notat:"
+    "text": "Memo:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Nogen har sendt dig en sikker besked via %{display_domain}."
+    "text": "Nogen har sendt dig en sikker besked gennem %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "For at se denne hemmelighed skal du klikke på linket nedenfor:"
+    "text": "For at se denne besked, klik på linket nedenfor:"
   },
   "email.incoming_secret.important_label": {
     "text": "Vigtigt:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Dette link virker kun én gang. Efter visning slettes hemmeligheden permanent."
+    "text": "Dette link virker kun én gang. Efter visning vil beskeden blive permanent slettet."
   },
   "email.incoming_secret.sent_via": {
     "text": "Sendt via"
   },
   "email.secret_revealed.subject": {
-    "text": "Din hemmelighed blev set"
+    "text": "Din besked blev set"
   },
   "email.secret_revealed.title": {
-    "text": "Din hemmelighed blev set"
+    "text": "Din besked blev set"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Din hemmelighed blev set den %{date}."
+    "text": "Din besked blev set den %{date}."
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Hemmeligheds-ID:"
+    "text": "Besked-ID:"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Dette er en automatisk notifikation. Ingen handling er påkrævet."
@@ -135,34 +135,34 @@
     "text": "Delano"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Administrer notifikationsindstillinger"
+    "text": "Administrer notifikationspræferencer"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "For at administrere dine notifikationsindstillinger:"
+    "text": "For at administrere dine notifikationspræferencer:"
   },
   "email.expiration_warning.subject": {
-    "text": "Dit hemmelige link udløber snart"
+    "text": "Dit beskedlink udløber snart"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Dit hemmelige link udløber om %{time_remaining}"
+    "text": "Dit beskedlink udløber om %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
-    "text": "Se din hemmelighed før den udløber"
+    "text": "Se din besked før den udløber"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Påmindelse:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Efter udløb slettes hemmeligheden permanent og kan ikke gendannes."
+    "text": "Efter udløb vil beskeden blive permanent slettet og kan ikke gendannes."
   },
   "email.expiration_warning.sent_via": {
     "text": "Sendt via"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Se den før den forsvinder:"
+    "text": "Se den før den er væk:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Efter udløb slettes hemmeligheden permanent."
+    "text": "Efter udløb vil beskeden blive permanent slettet."
   },
   "email.feedback_email.subject": {
     "text": "Feedback den %{date} via %{display_domain} (%{strategy})"
@@ -186,10 +186,10 @@
     "text": "Secret Support"
   },
   "email.organization_invitation.subject": {
-    "text": "Du er inviteret til at deltage i %{organization_name}"
+    "text": "Du er blevet inviteret til at deltage i %{organization_name}"
   },
   "email.organization_invitation.title": {
-    "text": "Du er inviteret til at deltage i %{organization_name}!"
+    "text": "Du er blevet inviteret til at deltage i %{organization_name}!"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} har inviteret dig til at deltage i \"%{organization_name}\" som %{role_description}."
@@ -204,46 +204,46 @@
     "text": "Denne invitation udløber om %{days} dage."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Hvis du ikke vil deltage, kan du blot ignorere denne e-mail eller afslå invitationen."
+    "text": "Hvis du ikke ønsker at deltage, kan du blot ignorere denne e-mail eller afslå invitationen."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Denne e-mail blev sendt til %{invited_email}. Hvis du ikke forventede denne invitation, kan du roligt ignorere denne besked."
+    "text": "P.S. Denne e-mail blev sendt til %{invited_email}. Hvis du ikke forventede denne invitation, kan du trygt ignorere denne meddelelse."
   },
   "email.organization_invitation.roles.member": {
-    "text": "et medlem"
+    "text": "medlem"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "en administrator"
+    "text": "administrator"
   },
   "email.password_changed.subject": {
-    "text": "Din adgangskode blev ændret (%{display_domain})"
+    "text": "Din adgangskode er blevet ændret (%{display_domain})"
   },
   "email.password_changed.title": {
-    "text": "Din adgangskode blev ændret"
+    "text": "Din adgangskode er blevet ændret"
   },
   "email.password_changed.body": {
     "text": "Din adgangskode til %{product_name} blev ændret den %{date} kl. %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Hvis du ikke foretog denne ændring, bedes du sikre din konto med det samme ved at nulstille din adgangskode og kontakte support."
+    "text": "Hvis du ikke har foretaget denne ændring, skal du straks sikre din konto ved at nulstille din adgangskode og kontakte support."
   },
   "email.password_changed.signature": {
     "text": "Delano"
   },
   "email.email_changed.subject": {
-    "text": "Din e-mailadresse blev ændret (%{display_domain})"
+    "text": "Din e-mailadresse er blevet ændret (%{display_domain})"
   },
   "email.email_changed.title": {
-    "text": "Din e-mailadresse blev ændret"
+    "text": "Din e-mailadresse er blevet ændret"
   },
   "email.email_changed.body": {
-    "text": "E-mailadressen til din %{product_name}-konto blev ændret til %{new_email_masked} den %{date}."
+    "text": "E-mailadressen for din %{product_name}-konto blev ændret til %{new_email_masked} den %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Hvis du ikke foretog denne ændring, bedes du kontakte support med det samme, da din konto kan være kompromitteret."
+    "text": "Hvis du ikke har foretaget denne ændring, kontakt venligst support med det samme, da din konto kan være kompromitteret."
   },
   "email.email_changed.signature": {
     "text": "Delano"
@@ -267,55 +267,55 @@
     "text": "Delano"
   },
   "email.mfa_enabled.subject": {
-    "text": "To-faktor-autentificering aktiveret (%{display_domain})"
+    "text": "To-faktor-godkendelse aktiveret (%{display_domain})"
   },
   "email.mfa_enabled.title": {
-    "text": "To-faktor-autentificering aktiveret"
+    "text": "To-faktor-godkendelse aktiveret"
   },
   "email.mfa_enabled.body": {
-    "text": "To-faktor-autentificering blev aktiveret for din %{product_name}-konto den %{date}."
+    "text": "To-faktor-godkendelse blev aktiveret for din %{product_name}-konto den %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Din konto er nu mere sikker. Du skal indtaste en bekræftelseskode fra din autentificeringsapp, når du logger ind."
+    "text": "Din konto er nu mere sikker. Du skal indtaste en bekræftelseskode fra din authenticator-app, når du logger ind."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
   },
   "email.mfa_disabled.subject": {
-    "text": "To-faktor-autentificering deaktiveret (%{display_domain})"
+    "text": "To-faktor-godkendelse deaktiveret (%{display_domain})"
   },
   "email.mfa_disabled.title": {
-    "text": "To-faktor-autentificering deaktiveret"
+    "text": "To-faktor-godkendelse deaktiveret"
   },
   "email.mfa_disabled.body": {
-    "text": "To-faktor-autentificering blev deaktiveret for din %{product_name}-konto den %{date}."
+    "text": "To-faktor-godkendelse blev deaktiveret for din %{product_name}-konto den %{date}."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Din konto er nu mindre sikker. Hvis du ikke foretog denne ændring, bedes du sikre din konto med det samme."
+    "text": "Din konto er nu mindre sikker. Hvis du ikke har foretaget denne ændring, skal du sikre din konto med det samme."
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
   },
   "email.new_login_alert.subject": {
-    "text": "Nyt login til din konto (%{display_domain})"
+    "text": "Nyt login på din konto (%{display_domain})"
   },
   "email.new_login_alert.title": {
     "text": "Nyt login registreret"
   },
   "email.new_login_alert.body": {
-    "text": "Et nyt login til din %{product_name}-konto blev registreret den %{date} kl. %{time}."
+    "text": "Et nyt login på din %{product_name}-konto blev registreret den %{date} kl. %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "Enhed:"
   },
   "email.new_login_alert.location_label": {
-    "text": "Placering:"
+    "text": "Lokation:"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "IP-adresse:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Hvis dette ikke var dig, kan din konto være kompromitteret."
+    "text": "Hvis det ikke var dig, kan din konto være kompromitteret."
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Sikr din konto"
@@ -336,10 +336,10 @@
     "text": "Delano"
   },
   "email.role_changed.subject": {
-    "text": "Din rolle blev ændret i %{organization_name}"
+    "text": "Din rolle er blevet ændret i %{organization_name}"
   },
   "email.role_changed.title": {
-    "text": "Din rolle blev ændret"
+    "text": "Din rolle er blevet ændret"
   },
   "email.role_changed.body": {
     "text": "Din rolle i \"%{organization_name}\" er blevet ændret fra %{old_role} til %{new_role}."
@@ -348,7 +348,7 @@
     "text": "Delano"
   },
   "email.organization_deleted.subject": {
-    "text": "Organisation \"%{organization_name}\" blev slettet"
+    "text": "Organisationen \"%{organization_name}\" blev slettet"
   },
   "email.organization_deleted.title": {
     "text": "Organisation slettet"
@@ -375,7 +375,7 @@
     "text": "Dato:"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Plan:"
+    "text": "Abonnement:"
   },
   "email.payment_receipt.invoice_link": {
     "text": "Se faktura"
@@ -390,7 +390,7 @@
     "text": "Betaling mislykkedes"
   },
   "email.payment_failed.body": {
-    "text": "Vi kunne ikke behandle din betaling for %{product_name}. Opdater venligst din betalingsmetode for at undgå serviceafbrydelse."
+    "text": "Vi kunne ikke behandle din betaling for %{product_name}. Opdater venligst din betalingsmetode for at undgå afbrydelse af tjenesten."
   },
   "email.payment_failed.update_payment_button": {
     "text": "Opdater betalingsmetode"
@@ -405,7 +405,7 @@
     "text": "Din prøveperiode slutter snart"
   },
   "email.trial_expiring.body": {
-    "text": "Din gratis prøveperiode af %{product_name} udløber om %{days_remaining} dage. Opgrader nu for at bevare adgang til alle funktioner."
+    "text": "Din gratis prøveperiode af %{product_name} udløber om %{days_remaining} dage. Opgrader nu for at beholde adgang til alle funktioner."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Opgrader nu"
@@ -414,7 +414,7 @@
     "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "Dit %{product_name}-abonnement blev ændret"
+    "text": "Dit %{product_name}-abonnement er blevet ændret"
   },
   "email.subscription_changed.title": {
     "text": "Abonnement ændret"

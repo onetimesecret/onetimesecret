@@ -3,34 +3,28 @@
     "text": "Lær mere om DNS-konfiguration"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Se status for domænebekræftelse"
+    "text": "Se domænebekræftelsesstatus"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dette domæne er allerede registreret i din organisation"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dette domæne er allerede registreret til en anden organisation. Kontakt venligst support, hvis du mener, dette er en fejl."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Domæne overtaget og tilføjet til din organisation"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Standardindstillinger for privatliv"
+    "text": "Privatlivsstandarder"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Indstil standardprivatlivsindstillinger for beskeder oprettet under dette domæne. Disse indstillinger udfyldes automatisk ved oprettelse af nye beskeder."
+    "text": "Indstil standardprivatlivsindstillinger for beskeder oprettet under dette domæne. Disse indstillinger udfyldes på forhånd ved oprettelse af nye beskeder."
   },
   "web.domains.privacy_defaults": {
-    "text": "Standardindstillinger for privatliv"
+    "text": "Privatlivsstandarder"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Ikon for privatlivsindstillinger"
+    "text": "Privatlivsstandarder-ikon"
   },
   "web.domains.default_ttl_label": {
     "text": "Standard levetid"
@@ -42,13 +36,13 @@
     "text": "Kræv adgangssætning"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Gør adgangssætning obligatorisk for alle beskeder i dette domæne"
+    "text": "Gør adgangssætning obligatorisk for alle beskeder på dette domæne"
   },
   "web.domains.notify_enabled_label": {
     "text": "Aktiver notifikationer"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Aktiver e-mail-notifikationer som standard, når beskeder vises"
+    "text": "Aktiver e-mailnotifikationer som standard, når beskeder bliver set"
   },
   "web.domains.use_global_default": {
     "text": "Brug global standard"
@@ -60,7 +54,7 @@
     "text": "Påkrævet"
   },
   "web.domains.optional": {
-    "text": "Valgfri"
+    "text": "Valgfrit"
   },
   "web.domains.enabled": {
     "text": "Aktiveret"
@@ -69,10 +63,10 @@
     "text": "Deaktiveret"
   },
   "web.domains.custom": {
-    "text": "Tilpasset"
+    "text": "Brugerdefineret"
   },
   "web.domains.edit_defaults": {
-    "text": "Rediger standardindstillinger"
+    "text": "Rediger standarder"
   },
   "web.domains.ttl_short": {
     "text": "TTL"
@@ -117,13 +111,13 @@
     "text": "Hjemmesideadgang"
   },
   "web.domains.and_status": {
-    "text": "& Status"
+    "text": "og status"
   },
   "web.domains.domain": {
     "text": "Domæne"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Administrer og konfigurer dine verificerede brugerdefinerede domæner"
+    "text": "Administrer og konfigurer dine bekræftede brugerdefinerede domæner"
   },
   "web.domains.domains": {
     "text": "Domæner"
@@ -135,7 +129,7 @@
     "text": "SSL-status"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL-fornyelser"
+    "text": "SSL fornyes"
   },
   "web.domains.dns_record": {
     "text": "DNS-post"
@@ -159,7 +153,7 @@
     "text": "Tilbage til domæner"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Gå tilbage til domæneliste"
+    "text": "Tilbage til domæneliste"
   },
   "web.domains.verify_domain": {
     "text": "Bekræft domæne"
@@ -174,13 +168,13 @@
     "text": "Tilføj dit domæne"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Kom i gang med at tilføje et brugerdefineret domæne."
+    "text": "Kom i gang ved at tilføje et brugerdefineret domæne."
   },
   "web.domains.no_domains_found": {
     "text": "Ingen domæner fundet."
   },
   "web.domains.loading_domain_information": {
-    "text": "Indlæser domæneinformation ..."
+    "text": "Indlæser domæneoplysninger..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "For at kunne forbinde dit domæne skal du have en CNAME-post i din DNS, der peger"
@@ -198,10 +192,10 @@
     "text": ", skal du gennemføre disse trin."
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "Før vi kan aktivere links til"
+    "text": "Før vi kan aktivere links for"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Bemærk, at for apex-domæner (f.eks."
+    "text": "Bemærk venligst, at for apex-domæner (f.eks."
   },
   "web.domains.verify_your_domain": {
     "text": "Bekræft dit domæne"
@@ -210,7 +204,7 @@
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Tilpas dit domænes branding"
+    "text": "Tilpas dit domænebrand"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Det kan tage et par minutter, før dit SSL-certifikat træder i kraft."
@@ -228,7 +222,7 @@
     "text": "Værdi"
   },
   "web.domains.host_1": {
-    "text": "Host"
+    "text": "Vært"
   },
   "web.domains.type_2": {
     "text": "Type"
@@ -237,22 +231,22 @@
     "text": "Type"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Opret CNAME-record"
+    "text": "2. Opret CNAME-posten"
   },
   "web.domains.value_0": {
     "text": "Værdi"
   },
   "web.domains.host_0": {
-    "text": "Host"
+    "text": "Vært"
   },
   "web.domains.type_0": {
     "text": "Type"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Opret A-record"
+    "text": "2. Opret A-posten"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Føj dette værtsnavn til din DNS-konfiguration:"
+    "text": "Tilføj dette værtsnavn til din DNS-konfiguration:"
   },
   "web.domains.1_create_a_txt_record": {
     "text": "1. Opret en TXT-post"
@@ -261,10 +255,10 @@
     "text": "Følg disse trin for at verificere domæneejerskab og forbedre din online tilstedeværelse:"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Trin til domænebekræftelse"
+    "text": "Domænebekræftelsestrin"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Domænebekræftelse påbegyndt med succes."
+    "text": "Domænebekræftelse påbegyndt."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Er du sikker på, at du vil fjerne dette domæne? Denne handling kan ikke fortrydes."
@@ -273,12 +267,36 @@
     "text": "Fjern domæne"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "Domæne fjernet med succes"
+    "text": "Domæne fjernet"
   },
   "web.domains.failed_to_add_domain": {
     "text": "Kunne ikke tilføje domæne"
   },
   "web.domains.domain_added_successfully": {
-    "text": "Domæne tilføjet med succes"
+    "text": "Domæne tilføjet"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Beskyttet"
+  },
+  "web.domains.manage_domains": {
+    "text": "Administrer domæner"
+  },
+  "web.domains.global_defaults": {
+    "text": "Globale standarder"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Rediger levetidsindstilling"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Rediger adgangssætningskrav"
+  },
+  "web.domains.edit_notify": {
+    "text": "Rediger notifikationsindstilling"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Konfigurer DNS-poster"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Brug værktøjet nedenfor til automatisk at registrere din DNS-udbyder og få trinvise instruktioner til konfiguration af dit domæne."
   }
 }

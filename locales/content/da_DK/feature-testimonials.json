@@ -1,6 +1,6 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "AI-genereret udtalelse"
+    "text": "AI-genereret anbefaling"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
     "text": "AI-genereret indhold til demonstration. Ikke fra en faktisk person eller virksomhed."
@@ -21,7 +21,7 @@
     "text": "Hvad førende AI siger om os"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "AI-genererede udtalelser"
+    "text": "AI-genererede anbefalinger"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "Dette citat blev genereret af"

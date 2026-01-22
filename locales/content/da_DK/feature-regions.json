@@ -1,93 +1,57 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Datasuverænitet og regional isolation"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dine data befinder sig udelukkende i din valgte region og overføres aldrig på tværs af regioner"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hver region fungerer som et fuldstændigt uafhængigt miljø med sin egen infrastruktur, krypteringsnøgler og datalagring"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vi opretholder en streng politik: kundedata overføres aldrig mellem regioner under nogen omstændigheder"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vigtigt: Skift til en anden region opretter en ny konto. Dine data forbliver i din oprindelige region."
   },
   "web.regions.your_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din region"
   },
   "web.regions.your_current_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din nuværende region"
   },
   "web.regions.active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiv"
   },
   "web.regions.explore_other_regions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Udforsk andre tilgængelige regioner"
   },
   "web.regions.why_it_matters": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hvorfor datasuverænitet betyder noget"
   },
   "web.regions.trust_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gennemsigtighed og kontrol"
   },
   "web.regions.trust_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ved præcis hvor dine data befinder sig, og hvilke love der styrer deres beskyttelse."
   },
   "web.regions.privacy_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Privatlivsrettigheder"
   },
   "web.regions.privacy_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sikr at dine personlige oplysninger håndteres i henhold til dit lands privatlivslove og regler, hvilket forhindrer uautoriseret adgang eller misbrug."
   },
   "web.regions.compliance_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Regulatorisk overholdelse"
   },
   "web.regions.compliance_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opfyld GDPR, HIPAA, CCPA og andre regionale databeskyttelseskrav"
   },
   "web.regions.performance_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hurtigere adgang"
   },
   "web.regions.performance_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Data lagret tættere på dig betyder lavere latenstid og bedre ydeevne."
   },
   "web.regions.regions": {
     "text": "Regioner"

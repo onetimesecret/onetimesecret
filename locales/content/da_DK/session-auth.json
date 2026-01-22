@@ -1,11 +1,9 @@
 {
   "web.login.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Har du brug for en konto?"
   },
   "web.login.need_an_account": {
-    "text": "Eller opret din konto i dag"
+    "text": "Tilmeld dig."
   },
   "web.login.forgot_your_password": {
     "text": "Glemt din adgangskode?"
@@ -14,7 +12,7 @@
     "text": "Log ind"
   },
   "web.login.enter_your_credentials": {
-    "text": "Indtast dine oplysninger"
+    "text": "Indtast dine loginoplysninger"
   },
   "web.login.remember_me": {
     "text": "Husk mig"
@@ -23,173 +21,109 @@
     "text": "Opret din konto"
   },
   "web.signup.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Har du allerede en konto?"
   },
   "web.signup.have_an_account": {
-    "text": "Eller log ind på din konto"
+    "text": "Log ind."
   },
   "web.signup.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fejl ved oprettelse af konto"
   },
   "web.signup.password_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Adgangskode"
   },
   "web.signup.email_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-mail"
   },
   "web.auth.verify.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft din konto"
   },
   "web.auth.verify.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din konto er blevet bekræftet"
   },
   "web.auth.verify.invalid_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ugyldig eller udløbet bekræftelsesnøgle"
   },
   "web.auth.verify.expired_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dette bekræftelseslink er udløbet. Anmod venligst om et nyt."
   },
   "web.auth.verify.already_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Denne konto er allerede bekræftet. Du kan logge ind nu."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke bekræfte konto. Prøv venligst igen eller kontakt support."
   },
   "web.auth.verify.check_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tjek venligst din e-mail for et bekræftelseslink"
   },
   "web.auth.verify.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kontobekræftelse mislykkedes. Tjek venligst dit bekræftelseslink eller anmod om et nyt."
   },
   "web.auth.verify.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræftelse mislykkedes"
   },
   "web.auth.verify.what_to_do": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hvad skal jeg gøre?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tjek din e-mail for det seneste bekræftelseslink"
   },
   "web.auth.verify.check_spam": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tjek din spam-/uønsket mail-mappe, hvis du ikke kan finde e-mailen"
   },
   "web.auth.verify.contact_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kontakt support, hvis du fortsat har problemer"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræftelseslink påkrævet"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brug venligst bekræftelseslinket, der er sendt til din e-mailadresse, for at bekræfte din konto."
   },
   "web.auth.verify.create_new_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret ny konto"
   },
   "web.auth.change_password.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift adgangskode"
   },
   "web.auth.change_password.current_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende adgangskode"
   },
   "web.auth.change_password.new_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ny adgangskode"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft ny adgangskode"
   },
   "web.auth.change_password.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din adgangskode er blevet ændret succesfuldt"
   },
   "web.auth.change_password.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ændring af adgangskode mislykkedes. Bekræft venligst din nuværende adgangskode og prøv igen."
   },
   "web.auth.close_account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Luk konto"
   },
   "web.auth.close_account.warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Denne handling kan ikke fortrydes. Alle dine beskeder vil blive slettet permanent."
   },
   "web.auth.close_account.confirm": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Jeg forstår, at denne handling er permanent"
   },
   "web.auth.close_account.password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indtast din adgangskode for at bekræfte"
   },
   "web.auth.close_account.button": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Luk konto permanent"
   },
   "web.auth.close_account.cancel": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Annuller"
   },
   "web.auth.password_reset_request.title": {
     "text": "Anmod om nulstilling af adgangskode"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Indtast din e-mailadresse nedenfor, og vi sender dig et link til at nulstille din adgangskode"
+    "text": "Indtast din e-mailadresse nedenfor, så sender vi dig et link til at nulstille din adgangskode"
   },
   "web.auth.password_reset_request.button": {
     "text": "Send nulstillingslink"
@@ -201,96 +135,135 @@
     "text": "Indtast venligst din nye adgangskode nedenfor. Sørg for, at den er stærk og unik for at beskytte din konto."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Der er sendt en e-mail til dig med et link til at nulstille adgangskoden til din konto"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Jeg accepterer"
   },
   "web.auth.account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kontoinformation"
   },
   "web.auth.account.email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-mailadresse"
   },
   "web.auth.account.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Konto oprettet"
   },
   "web.auth.account.verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-mail bekræftet"
   },
   "web.auth.account.region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Region"
   },
   "web.auth.account.not_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-mail ikke bekræftet"
   },
   "web.auth.account.verify_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft e-mailadresse"
   },
   "web.auth.account.mfa_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "To-faktor-godkendelse"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiveret"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Deaktiveret"
   },
   "web.auth.account.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktive sessioner"
   },
   "web.auth.account.session_count": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{count} aktiv(e) session(er)"
   },
   "web.auth.account.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hurtige handlinger"
   },
   "web.auth.account.manage_mfa": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer to-faktor-godkendelse"
   },
   "web.auth.account.manage_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer aktive sessioner"
   },
   "web.auth.account.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift adgangskode"
   },
   "web.auth.account.close_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Luk konto"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-mailbekræftelsesflow efter tilmelding"
+  },
+  "web.help.title": {
+    "text": "Hjælp og support"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Fejlfinding af login"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Modtager du ikke magisk link?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Tjek din spam- eller uønsket mail-mappe"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Bekræft, at du har indtastet din e-mailadresse korrekt"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Vent et par minutter - e-mails kan nogle gange være forsinkede"
+  },
+  "web.help.try_again": {
+    "text": "Prøv at anmode om et nyt link, hvis der er gået mere end 10 minutter"
+  },
+  "web.help.forgot_password": {
+    "text": "Glemt din adgangskode?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Brug Magisk link-muligheden for at logge ind uden adgangskode. Når du er logget ind, kan du ændre din adgangskode under Kontoindstillinger."
+  },
+  "web.help.account_locked": {
+    "text": "Konto midlertidigt låst?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Efter flere mislykkede loginforsøg låses konti midlertidigt af sikkerhedsmæssige årsager. Vent 15 minutter og prøv igen, eller brug Magisk link til at logge ind."
+  },
+  "web.help.still_need_help": {
+    "text": "Har du stadig brug for hjælp?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Hvis du stadig har problemer, er vi her for at hjælpe. Send os en besked, og vi vender tilbage hurtigst muligt."
+  },
+  "web.help.contact_support": {
+    "text": "Kontakt support"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Send login-link"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Et sikkert link vil blive sendt til din e-mailindbakke."
+  },
+  "web.login.or_divider": {
+    "text": "eller"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Log ind med adgangskode"
+  },
+  "web.login.use_passwordless": {
+    "text": "Brug login uden adgangskode"
+  },
+  "web.login.create_account": {
+    "text": "Opret konto"
+  },
+  "web.login.return_home": {
+    "text": "Gå til startsiden"
+  },
+  "web.login.tab_password": {
+    "text": "Adgangskode"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magisk link"
+  },
+  "web.login.need_help": {
+    "text": "Brug for hjælp?"
   }
 }

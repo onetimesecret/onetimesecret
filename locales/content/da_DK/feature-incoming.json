@@ -1,9 +1,9 @@
 {
   "incoming.page_title": {
-    "text": "Send en hemmelighed"
+    "text": "Send en besked"
   },
   "incoming.page_description": {
-    "text": "Del følsom information sikkert med vores supportteam"
+    "text": "Del følsomme oplysninger sikkert med vores supportteam"
   },
   "incoming.loading_config": {
     "text": "Indlæser..."
@@ -15,16 +15,16 @@
     "text": "Funktion ikke tilgængelig"
   },
   "incoming.feature_disabled_description": {
-    "text": "Denne funktion er i øjeblikket deaktiveret. Kontakt support for hjælp."
+    "text": "Denne funktion er i øjeblikket deaktiveret. Kontakt venligst support for hjælp."
   },
   "incoming.memo_label": {
-    "text": "Notat"
+    "text": "Memo"
   },
   "incoming.memo_placeholder": {
     "text": "Kort beskrivelse (f.eks. Anmodning om nulstilling af adgangskode)"
   },
   "incoming.memo_hint": {
-    "text": "Hjælp os med at dirigere din besked til den rette person"
+    "text": "Hjælp os med at sende din besked til den rette person"
   },
   "incoming.recipient_label": {
     "text": "Send til"
@@ -33,28 +33,28 @@
     "text": "Vælg en modtager"
   },
   "incoming.recipient_aria_label": {
-    "text": "Vælg en modtager til denne hemmelighed"
+    "text": "Vælg en modtager til denne besked"
   },
   "incoming.recipient_hint": {
     "text": "Vælg hvem der skal modtage denne sikre besked"
   },
   "incoming.no_recipients_available": {
-    "text": "Ingen modtagere tilgængelige"
+    "text": "Ingen modtagere er tilgængelige"
   },
   "incoming.secret_content_label": {
-    "text": "Fortrolig information"
+    "text": "Hemmelig information"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Indsæt følsom information her (adgangskoder, nøgler osv.)"
+    "text": "Indsæt følsomme oplysninger her (adgangskoder, nøgler osv.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Denne information vil blive krypteret og kun kunne ses én gang"
+    "text": "Disse oplysninger vil blive krypteret og kan kun ses én gang"
   },
   "incoming.submit_button": {
-    "text": "Send hemmelighed"
+    "text": "Send besked"
   },
   "incoming.submit_secret": {
-    "text": "Send hemmelighed"
+    "text": "Send besked"
   },
   "incoming.submitting_button": {
     "text": "Sender..."
@@ -69,7 +69,7 @@
     "text": "Ryd formular"
   },
   "incoming.success_title": {
-    "text": "Sendt"
+    "text": "Sendt succesfuldt"
   },
   "incoming.success_description": {
     "text": "Din sikre besked er blevet leveret."
@@ -81,21 +81,21 @@
     "text": "Hvad sker der nu?"
   },
   "incoming.success_info_description": {
-    "text": "Modtageren vil kun kunne se denne hemmelighed én gang. Efter visning vil hemmeligheden blive permanent slettet."
+    "text": "Modtageren vil kun kunne se denne besked én gang. Når de har set den, vil beskeden blive permanent slettet."
   },
   "incoming.create_another": {
-    "text": "Send endnu en hemmelighed"
+    "text": "Send en ny besked"
   },
   "incoming.tagline1": {
-    "text": "Del følsom information sikkert"
+    "text": "Del følsomme oplysninger sikkert"
   },
   "incoming.tagline2": {
-    "text": "Hold adgangskoder og private data væk fra e-mails og chatlogger"
+    "text": "Hold adgangskoder og private data ude af e-mail og chatlogfiler"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Gem din <a href='{receiptUrl}'>kvittering</a> til dine optegnelser."
+    "text": "Gem din {receipt} til dine optegnelser."
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "kvittering"
   }
 }

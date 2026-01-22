@@ -3,128 +3,82 @@
     "text": "API-dokumentation"
   },
   "web.footer.branding_guide": {
-    "text": "Brandinggide"
+    "text": "Brandinggguide"
   },
   "web.footer.customize": {
     "text": "Tilpas"
   },
   "web.footer.plans": {
-    "text": "Planer"
+    "text": "Abonnementer"
   },
   "web.footer.security": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sikkerhed"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Lær om vores sikkerhedsforanstaltninger"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se vores vilkår og betingelser"
   },
   "web.footer.terms": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vilkår"
   },
   "web.footer.privacy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Privatliv"
   },
   "web.footer.contact": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kontakt"
   },
   "web.footer.support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Support"
   },
   "web.footer.legals": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Juridisk"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Læs vores privatlivspolitik"
   },
   "web.footer.check_our_service_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tjek vores servicestatus"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Udforsk vores API-dokumentation"
   },
   "web.footer.docs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dokumentation"
   },
   "web.footer.access_our_documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Få adgang til vores dokumentation"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se vores kildekode på GitHub"
   },
   "web.footer.resources": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ressourcer"
   },
   "web.footer.blog": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Blog"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Læs vores seneste blogindlæg"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se vores abonnementspriser"
   },
   "web.footer.learn_about_our_company": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Lær om vores virksomhed"
   },
   "web.footer.company": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Virksomhed"
   },
   "web.navigation.billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturering"
   },
   "web.navigation.billingOverview": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oversigt"
   },
   "web.navigation.organizations": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Organisationer"
   },
   "web.site.website_version": {
     "text": "Webstedsversion"
@@ -136,7 +90,7 @@
     "text": "Oversættelserne er nye. Har du opdaget en fejl? {send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Vi har for nylig tilføjet oversættelser. Opdagede du en fejl? {send-feedback}"
+    "text": "Vi har for nylig tilføjet oversættelser. Fundet en fejl? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "Privatliv og sikkerhed bør være tilgængeligt for alle, uanset sprog. Vi tilføjer oversættelser for at hjælpe både vores brugere og deres meddelelsesmodtagere med bedre at forstå, hvordan de sikkert kan bruge og få adgang til sikre meddelelser og links. Da dette er en ny funktion, kan du støde på nogle oversættelsesfejl eller uklare instruktioner. For at hjælpe os med at forbedre klarheden og nøjagtigheden af vores oversættelser, især for kritisk sikkerhedsrelateret indhold, bedes du {send-feedback}, hvis du ser nogen problemer."
@@ -145,112 +99,106 @@
     "text": "Lær mere"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Hvad kigger jeg på?"
+    "text": "Hvad ser jeg på?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser en sikker besked, som blev delt med dig via Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere."
+    "text": "Du ser en sikker besked der blev delt med dig gennem Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Kan jeg se denne hemmelighed igen senere?"
+    "text": "Kan jeg se denne besked igen senere?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nej. Af sikkerhedsmæssige årsager kan denne hemmelighed kun ses én gang. Når du har lukket denne side, slettes indholdet permanent og kan ikke gendannes af nogen, heller ikke af os."
+    "text": "Nej. Af sikkerhedsmæssige årsager kan denne besked kun ses én gang. Efter du lukker denne side, vil indholdet blive permanent slettet og kan ikke gendannes af nogen, inklusive os."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
     "text": "Hvordan gemmer jeg disse oplysninger?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Brug knappen 'Kopier til udklipsholder' til at kopiere hele hemmeligheden. Ved længere hemmeligheder skal du kontrollere, at du har kopieret hele indholdet, før du forlader denne side."
+    "text": "Brug knappen 'Kopier til udklipsholder' for at kopiere hele beskeden. Ved længere beskeder skal du sikre dig, at du har kopieret hele indholdet, før du forlader denne side."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Spores min visning af denne hemmelighed?"
+    "text": "Spores min visning af denne besked?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Afsenderen får besked om, at deres hemmelighed er blevet set, men vi sporer ikke, hvem der har set den eller fra hvilken placering. Dit privatliv er beskyttet."
+    "text": "Afsenderen vil få besked om at deres besked er blevet set, men vi sporer ikke hvem der så den eller fra hvilken lokation. Dit privatliv er beskyttet."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Når du forlader eller opdaterer denne side, vil denne hemmelighed blive slettet permanent og kan ikke gendannes af nogen."
+    "text": "Når du forlader eller opdaterer denne side, vil beskeden blive permanent slettet og kan ikke gendannes af nogen."
   },
   "web.layout.go_back_to_previous_page": {
     "text": "Gå tilbage til forrige side"
   },
   "web.layout.site_footer": {
-    "text": "Sidens sidefod"
+    "text": "Sidefod"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Slå mørk tilstand til"
+    "text": "Skift mørk tilstand"
   },
   "web.layout.provide_feedback": {
     "text": "Giv feedback"
   },
   "web.layout.company_logo": {
-    "text": "Virksomhedens logo"
+    "text": "Virksomhedslogo"
   },
   "web.layout.brand_logo": {
     "text": "Brand-logo"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Dashboard-navigation"
+    "text": "Oversigtsnavigation"
   },
   "web.layout.mobile_navigation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mobilnavigation"
   },
   "web.layout.main_navigation": {
     "text": "Hovednavigation"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{count} elementer"
   },
   "web.layout.release_notes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Udgivelsesnoter"
   },
   "web.layout.loading_settings_content": {
     "text": "Indlæser indstillingsindhold..."
   },
   "web.layout.settings_sections_0": {
-    "text": "Indstillingsafsnit"
+    "text": "Indstillingssektioner"
   },
   "web.layout.close_settings": {
     "text": "Luk indstillinger"
   },
   "web.layout.settings_sections": {
-    "text": "Indstillingsafsnit"
+    "text": "Indstillingssektioner"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
     "text": "Tilpas dine app-præferencer og -indstillinger"
   },
   "web.layout.return_home": {
-    "text": "Vend hjem"
+    "text": "Gå til forsiden"
   },
   "web.layout.return_to_home_page": {
-    "text": "Vend tilbage til startsiden"
+    "text": "Gå tilbage til forsiden"
   },
   "web.layout.return_to_home": {
-    "text": "Vend tilbage til hjemmet"
+    "text": "Gå til forsiden"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Se fortrolighedspolitik"
+    "text": "Se privatlivspolitik"
   },
   "web.layout.view_terms_of_service": {
     "text": "Se servicevilkår"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Besøg Onetime Secret-hjemmesiden"
+    "text": "Besøg Onetime Secret-forsiden"
   },
   "web.layout.footer_navigation": {
-    "text": "Navigation i sidefod"
+    "text": "Sidefodnavigation"
   },
   "web.layout.terms_of_service": {
     "text": "Servicevilkår"
   },
   "web.layout.privacy_policy": {
-    "text": "Fortrolighedspolitik"
+    "text": "Privatlivspolitik"
   },
   "web.layout.icon_library": {
     "text": "Ikonbibliotek"
@@ -271,7 +219,7 @@
     "text": "Font Awesome 6"
   },
   "web.layout.view_source_on_github": {
-    "text": "Se kilde på GitHub"
+    "text": "Se kildekode på GitHub"
   },
   "web.layout.website_version_v_ot_version": {
     "text": "Webstedsversion: v{0}"
@@ -293,5 +241,11 @@
   },
   "web.layout.workspace_context": {
     "text": "Arbejdsområdekontekst"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Når du sender feedback, kan vi se:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Nulstil til {0}"
   }
 }

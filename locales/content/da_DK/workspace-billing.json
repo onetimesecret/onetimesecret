@@ -1,46 +1,30 @@
 {
   "web.billing.upgrade.required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgradering påkrævet"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se abonnementer"
   },
   "web.billing.upgrade.needTeams": {
     "text": "Teamadministration kræver Identity Plus eller højere"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brugerdefinerede domæner kræver Identity Plus eller højere"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-adgang kræver Identity Plus eller højere"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Revisionslogfiler kræver Multi-Team-abonnement eller højere"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dit abonnement, organisationer og faktureringsindstillinger"
   },
   "web.billing.overview.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faktureringsoversigt"
   },
   "web.billing.overview.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se og administrer dit abonnement og betalingsoplysninger"
   },
   "web.billing.overview.organization_selector": {
     "text": "",
@@ -48,145 +32,97 @@
     "note": "empty"
   },
   "web.billing.overview.current_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende abonnement"
   },
   "web.billing.overview.plan_features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnementsfunktioner"
   },
   "web.billing.overview.payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Betalingsmetode"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Næste fakturadato"
   },
   "web.billing.overview.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hurtige handlinger"
   },
   "web.billing.overview.manage_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer fakturering"
   },
   "web.billing.overview.view_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se fakturaer"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader abonnement"
   },
   "web.billing.overview.change_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift abonnement"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen betalingsmetode registreret"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen kommende fakturering"
   },
   "web.billing.overview.days_remaining": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "dage tilbage"
   },
   "web.billing.overview.billing_on": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturering den {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se abonnementer"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sammenlign og opgrader"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se fakturaer"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Download historik"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer fakturering"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater betalingsoplysninger"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen organisationer"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret en organisation for at administrere din fakturering og dit abonnement"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret beskeder"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Vis kvitteringer"
+    "text": "Se kvitteringer"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-adgang"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brugerdefinerede domæner"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Tilpassede privatlivsindstillinger"
+    "text": "Brugerdefinerede privatlivsstandarder"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
     "text": "Udvidet standardudløb"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Tilpassede e-mail-standarder"
+    "text": "Brugerdefinerede mailstandarder"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Tilpasset branding"
+    "text": "Brugerdefineret branding"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Branded hjemmeside"
+    "text": "Brandet hjemmeside"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Indkommende beskeder"
+    "text": "Indgående beskeder"
   },
   "web.billing.overview.entitlements.manage_orgs": {
     "text": "Administrer organisationer"
@@ -198,17 +134,13 @@
     "text": "Administrer medlemmer"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Revisionslogfiler"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Single Sign-On"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Prioriteret support"
   },
   "web.billing.overview.entitlements.sla": {
     "text": "Serviceniveauaftale"
@@ -220,68 +152,46 @@
     "text": "Ingen funktioner tilgængelige"
   },
   "web.billing.plans.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg et abonnement"
   },
   "web.billing.plans.choose_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg det abonnement, der passer til dine behov"
   },
   "web.billing.plans.subtitle": {
-    "text": "Vælg den perfekte plan til din organisation"
+    "text": "Vælg det perfekte abonnement til din organisation"
   },
   "web.billing.plans.current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende abonnement"
   },
   "web.billing.plans.current_badge": {
     "text": "Nuværende"
   },
   "web.billing.plans.upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader"
   },
   "web.billing.plans.downgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nedgrader"
   },
   "web.billing.plans.monthly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Månedligt"
   },
   "web.billing.plans.yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Årligt"
   },
   "web.billing.plans.per_month": {
-    "text": "per måned"
+    "text": "/måned"
   },
   "web.billing.plans.save_yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Spar {percent}% med årlig fakturering"
   },
   "web.billing.plans.free_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gratis"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Enkelt team"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Multi-team"
   },
   "web.billing.plans.individual_account": {
     "text": "Individuel konto"
@@ -293,34 +203,22 @@
     "text": "Organisationskonto"
   },
   "web.billing.plans.features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Funktioner"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ubegrænsede beskeder"
   },
   "web.billing.plans.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-adgang"
   },
   "web.billing.plans.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Prioriteret support"
   },
   "web.billing.plans.select_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg abonnement"
   },
   "web.billing.plans.contact_sales": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kontakt salg"
   },
   "web.billing.plans.custom_needs_title": {
     "text": "Har du spørgsmål eller brug for noget tilpasset?"
@@ -338,7 +236,7 @@
     "text": "Ubegrænsede teams"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Ubegrænset antal medlemmer pr. team"
+    "text": "Ubegrænsede medlemmer pr. team"
   },
   "web.billing.plans.most_popular": {
     "text": "Mest populær"
@@ -347,19 +245,19 @@
     "text": "Anbefalet"
   },
   "web.billing.plans.everything_in": {
-    "text": "Alt i {plan}, plus:"
+    "text": "Inkluderer alt i {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Ingen {interval} planer tilgængelige i øjeblikket."
+    "text": "Ingen {interval} abonnementer tilgængelige på nuværende tidspunkt."
   },
   "web.billing.plans.change_immediate": {
-    "text": "Din plan ændres med det samme."
+    "text": "Dit abonnement ændres med det samme."
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Nuværende plan:"
+    "text": "Nuværende abonnement:"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Ny plan:"
+    "text": "Nyt abonnement:"
   },
   "web.billing.plans.credit_label": {
     "text": "Kredit for ubrugt tid:"
@@ -368,10 +266,10 @@
     "text": "Næste faktura"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Dine funktionsgrænser opdateres med det samme efter planændringen."
+    "text": "Dine funktionsbegrænsninger opdateres med det samme efter abonnementsændringen."
   },
   "web.billing.plans.change_failed": {
-    "text": "Planændring mislykkedes. Prøv venligst igen."
+    "text": "Abonnementsændring mislykkedes. Prøv venligst igen."
   },
   "web.billing.plans.confirm_upgrade": {
     "text": "Bekræft opgradering"
@@ -380,140 +278,88 @@
     "text": "Bekræft nedgradering"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Opgrader til"
+    "text": "Opgrader til {plan}?"
   },
   "web.billing.plans.downgrade_to": {
     "text": "Nedgrader til {plan}?"
   },
   "web.billing.invoices.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faktureringshistorik"
   },
   "web.billing.invoices.view_history": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se din faktureringshistorik og download fakturaer"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dato"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Beløb"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Status"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Download"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen fakturaer endnu"
   },
   "web.billing.invoices.paid": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Betalt"
   },
   "web.billing.invoices.pending": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Afventer"
   },
   "web.billing.invoices.failed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mislykket"
   },
   "web.billing.invoices.load_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke indlæse fakturaer"
   },
   "web.billing.notices.org_managed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturering administreres af {orgName}"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se organisationens fakturering"
   },
   "web.billing.limits.members_reached": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Du har nået medlemsgrænsen for dette team"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader for at tilføje flere medlemmer"
   },
   "web.billing.subscription.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnement"
   },
   "web.billing.subscription.status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnementsstatus"
   },
   "web.billing.subscription.active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiv"
   },
   "web.billing.subscription.inactive": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Inaktiv"
   },
   "web.billing.subscription.past_due": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Forfaldent"
   },
   "web.billing.subscription.canceled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Annulleret"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnement"
   },
   "web.billing.portal.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faktureringsportal"
   },
   "web.billing.portal.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dit abonnement, betalingsmetoder og faktureringshistorik"
   },
   "web.billing.portal.open_portal": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Åbn faktureringsportal"
   },
   "web.billing.portal.redirecting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Omdirigerer til faktureringsportal..."
   },
   "web.billing.start_today": {
     "text": "Start i dag"
@@ -522,13 +368,13 @@
     "text": "Start i dag med Identity Plus"
   },
   "web.billing.per_month": {
-    "text": "per måned"
+    "text": "pr. måned"
   },
   "web.billing.full_api_access": {
     "text": "Fuld API-adgang"
   },
   "web.billing.privacy_first_design": {
-    "text": "Privacy-first-design"
+    "text": "Privatliv-først design"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus"
@@ -546,9 +392,7 @@
     "text": "Opgrader til Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader til teams"
   },
   "web.billing.benefits_of": {
     "text": "Fordele ved"
@@ -566,10 +410,10 @@
     "text": "Alle planer inkluderer privatlivsfunktioner og ubegrænset delingskapacitet"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Alle abonnementer inkluderer valg af datalokalitet: {0} regioner"
+    "text": "Alle abonnementer inkluderer valg af dataplacering: {0} regioner"
   },
   "web.billing.get_started": {
-    "text": "Kom godt i gang"
+    "text": "Kom i gang"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
     "text": "{0} abonnement"
@@ -587,6 +431,195 @@
     "text": "Sikre links, stærkere forbindelser"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Identitetsniveau ikke fundet i produktniveauer"
+    "text": "Identity-niveau ikke fundet i produktniveauer"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Annuller abonnement"
+  },
+  "web.billing.cancel.title": {
+    "text": "Annuller abonnement"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Er du sikker på, at du vil annullere dit {plan}-abonnement?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Hvad sker der, når du annullerer:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Du beholder adgang til alle funktioner indtil {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Du beholder adgang indtil din nuværende faktureringsperiode slutter"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Du vil ikke blive opkrævet igen"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Din konto vil blive nedgraderet til det gratis abonnement"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Behold abonnement"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Annuller abonnement"
+  },
+  "web.billing.cancel.success": {
+    "text": "Dit abonnement er blevet annulleret. Du beholder adgang indtil slutningen af din faktureringsperiode."
+  },
+  "web.billing.cancel.error": {
+    "text": "Kunne ikke annullere abonnement. Prøv venligst igen."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Abonnementsannullering planlagt"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Dit abonnement forbliver aktivt indtil {date}. Du vil fortsat have fuld adgang til alle funktioner indtil da."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Ombestemt dig? Du kan genaktivere dit abonnement når som helst før annulleringsdatoen."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Opret og del beskeder"
+  },
+  "web.billing.features.api_access": {
+    "text": "API-adgang"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Brugerdefinerede domæner"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 brugerdefineret domæne"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Ubegrænsede brugerdefinerede domæner"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Brugerdefineret branding"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Brandet hjemmeside"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Teamadministration"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Medlemsadministration"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Revisionslogfiler"
+  },
+  "web.billing.features.sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Prioriteret support"
+  },
+  "web.billing.features.sla": {
+    "text": "Serviceniveauaftale"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Centraliseret fakturering"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Revisionsspor"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Aktivitetsstrøm"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Overleveringsarbejdsgange"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30-dages beskedopbevaring"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Hjemmesidebeskeder"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Indgående beskeder"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Op til 5 teammedlemmer"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Op til 10 teammedlemmer"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Op til 25 teammedlemmer"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Op til 50 teammedlemmer"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Ubegrænsede teammedlemmer"
+  },
+  "web.billing.features.notifications": {
+    "text": "E-mailnotifikationer"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP-adgangsregler"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Arbejdsområdebranding"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dedikeret infrastruktur"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Delte arbejdsgange"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Fakturering for denne organisation"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Dit abonnement er blevet opgraderet"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Dit nye abonnement er nu aktivt. Tak for dit køb."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Faktureringskontakt"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Hjemmesidebeskeder"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-mailnotifikationer"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP-adgangsregler"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Arbejdsområdebranding"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Forfald i dag:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Næste fakturering ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Sådan anvendes din kredit:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Næste fakturabeløb:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Kredit anvendt:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Beløb til betaling ved næste fakturering:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Resterende kontokredit:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Anvendes på fremtidige fakturaer"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Teamforbrug"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} af {limit} teams"
   }
 }
