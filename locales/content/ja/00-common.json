@@ -1,6 +1,8 @@
 {
   "web.COMMON.broadcast": {
-    "text": "ウェブ::COMMON::放送"
+    "text": "",
+    "skip": true,
+    "note": "empty source"
   },
   "web.COMMON.tagline": {
     "text": "一度しか使えないセキュアなリンク"
