@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Organització"
+    "text": "Organitzacions"
   },
   "web.organizations.organization": {
     "text": "Organització"
@@ -12,37 +12,37 @@
     "text": "Gestiona les teves organitzacions"
   },
   "web.organizations.my_organizations": {
-    "text": "Les meves organitzacions"
+    "text": "Organitzacions"
   },
   "web.organizations.manage_organizations": {
     "text": "Gestionar organitzacions"
   },
   "web.organizations.new_organization": {
-    "text": "Organització nova"
+    "text": "Nova organització"
   },
   "web.organizations.no_organizations": {
     "text": "Encara no hi ha organitzacions"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Les organitzacions et permeten gestionar diversos equips amb facturació i administració unificades. Comença creant la teva primera organització."
+    "text": "Les organitzacions proporcionen facturació i administració unificades. Comença creant la teva primera organització."
   },
   "web.organizations.no_description": {
-    "text": "No s'ha proporcionat cap descripció"
+    "text": "Cap descripció proporcionada"
   },
   "web.organizations.default": {
-    "text": "Per defecte"
+    "text": "Predeterminat"
   },
   "web.organizations.create_organization": {
-    "text": "Crea una organització"
+    "text": "Crear organització"
   },
   "web.organizations.create_first_organization": {
-    "text": "Crea la primera organització"
+    "text": "Crear la primera organització"
   },
   "web.organizations.create_organization_description": {
-    "text": "Crea una organització nova per agrupar els teus equips"
+    "text": "Crear una nova organització"
   },
   "web.organizations.create": {
-    "text": "Crea"
+    "text": "Crear"
   },
   "web.organizations.create_error": {
     "text": "No s'ha pogut crear l'organització"
@@ -60,10 +60,10 @@
     "text": "Descripció"
   },
   "web.organizations.description_placeholder": {
-    "text": "Per a què és aquesta organització?"
+    "text": "Per a què serveix aquesta organització?"
   },
   "web.organizations.contact_email": {
-    "text": "Correu electrònic de facturació"
+    "text": "Correu de facturació"
   },
   "web.organizations.contact_email_help": {
     "text": "Contacte principal per a notificacions de facturació i administratives"
@@ -90,7 +90,7 @@
     "text": "Informació de l'organització"
   },
   "web.organizations.created": {
-    "text": "Creada"
+    "text": "Creat"
   },
   "web.organizations.last_updated": {
     "text": "Última actualització"
@@ -108,7 +108,7 @@
     "text": "Facturació i subscripció"
   },
   "web.organizations.save_changes": {
-    "text": "Desa els canvis"
+    "text": "Desar canvis"
   },
   "web.organizations.update_success": {
     "text": "Organització actualitzada correctament"
@@ -120,13 +120,13 @@
     "text": "Integració de facturació pròximament"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "La gestió de facturació i subscripció unificada per a tots els equips d'aquesta organització estarà disponible en una versió futura."
+    "text": "La gestió unificada de facturació i subscripcions estarà disponible en una futura versió."
   },
   "web.organizations.about_title": {
     "text": "Sobre les organitzacions"
   },
   "web.organizations.about_description": {
-    "text": "Les organitzacions proporcionen facturació i administració unificades per a diversos equips. Són opcionals: els equips poden existir independentment o agrupar-se sota una organització per a una gestió centralitzada."
+    "text": "Les organitzacions proporcionen facturació i administració unificades per a una gestió centralitzada."
   },
   "web.organizations.single_user_info_title": {
     "text": "Gestiona la teva organització"
@@ -135,16 +135,16 @@
     "text": "Actualitza el nom de la teva empresa i els detalls de l'organització aquí. Aquesta informació ajuda a personalitzar el teu compte i es pot utilitzar per a funcions de marca en el futur."
   },
   "web.organizations.getting_started_title": {
-    "text": "Com començar amb les organitzacions"
+    "text": "Començar amb les organitzacions"
   },
   "web.organizations.getting_started_description": {
-    "text": "Crea la teva primera organització per gestionar la informació de la teva empresa i preparar-te per a futures funcions de col·laboració en equip i marca."
+    "text": "Crea la teva primera organització per gestionar la informació de la teva empresa i preparar-te per a futures funcions de marca."
   },
   "web.organizations.page_description": {
-    "text": "Gestioneu les vostres organitzacions i membres de l'equip"
+    "text": "Gestiona les teves organitzacions i membres de l'equip"
   },
   "web.organizations.tabs.general": {
-    "text": "General"
+    "text": "Configuració"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Marca de l'empresa"
@@ -156,25 +156,25 @@
     "text": "Facturació"
   },
   "web.organizations.danger_zone": {
-    "text": "Zona de perill"
+    "text": "Zona perillosa"
   },
   "web.organizations.delete_organization": {
-    "text": "Suprimeix l'organització"
+    "text": "Eliminar organització"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Això suprimirà permanentment l'organització i tots els equips associats. Aquesta acció no es pot desfer."
+    "text": "Això eliminarà permanentment l'organització. Aquesta acció no es pot desfer."
   },
   "web.organizations.delete": {
-    "text": "Suprimeix"
+    "text": "Eliminar"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Suprimeix l'organització"
+    "text": "Eliminar organització"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Estàs segur que vols suprimir {name}? Aquesta acció no es pot desfer."
+    "text": "Estàs segur que vols eliminar {name}? Aquesta acció no es pot desfer."
   },
   "web.organizations.delete_error": {
-    "text": "No s'ha pogut suprimir l'organització"
+    "text": "No s'ha pogut eliminar l'organització"
   },
   "web.organizations.members.title": {
     "text": "Membres"
@@ -189,10 +189,10 @@
     "text": "Membre"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "membre"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "membres"
   },
   "web.organizations.members.name": {
     "text": "Nom"
@@ -204,13 +204,13 @@
     "text": "Rol"
   },
   "web.organizations.members.joined": {
-    "text": "S'ha unit"
+    "text": "Unit"
   },
   "web.organizations.members.actions": {
     "text": "Accions"
   },
   "web.organizations.members.no_members": {
-    "text": "No s'han trobat membres"
+    "text": "Encara no hi ha membres. Convida membres de l'equip per començar."
   },
   "web.organizations.members.no_members_description": {
     "text": "Aquesta organització encara no té membres."
@@ -228,7 +228,7 @@
     "text": "No s'ha pogut eliminar el membre"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Elimina el membre"
+    "text": "Eliminar membre"
   },
   "web.organizations.members.remove_member_confirm": {
     "text": "Estàs segur que vols eliminar {name} d'aquesta organització?"
@@ -243,7 +243,7 @@
     "text": "No pots eliminar el propietari de l'organització"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "No tens permís per gestionar els membres"
+    "text": "No tens permís per gestionar membres"
   },
   "web.organizations.members.roles.owner": {
     "text": "Propietari"
@@ -255,28 +255,28 @@
     "text": "Membre"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Accés complet a tota la configuració de l'organització i als membres"
+    "text": "Accés complet a totes les configuracions i membres de l'organització"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Pot gestionar els membres i la majoria de la configuració de l'organització"
+    "text": "Pot gestionar membres i la majoria de configuracions de l'organització"
   },
   "web.organizations.members.role_descriptions.member": {
     "text": "Accés bàsic als recursos de l'organització"
   },
   "web.organizations.invitations.title": {
-    "text": "Invitacions de l'organització"
+    "text": "Invitacions d'organització"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Convida un membre"
+    "text": "Convidar membre"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Convida un membre nou"
+    "text": "Convidar nou membre"
   },
   "web.organizations.invitations.pending_invitations": {
     "text": "Invitacions pendents"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "No hi ha invitacions pendents"
+    "text": "Cap invitació pendent"
   },
   "web.organizations.invitations.email_address": {
     "text": "Adreça de correu electrònic"
@@ -288,7 +288,7 @@
     "text": "Rol"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Envia la invitació"
+    "text": "Enviar invitació"
   },
   "web.organizations.invitations.invite_sent": {
     "text": "Invitació enviada correctament"
@@ -297,10 +297,10 @@
     "text": "No s'ha pogut enviar la invitació"
   },
   "web.organizations.invitations.resend": {
-    "text": "Reenvia"
+    "text": "Reenviar"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Revoca"
+    "text": "Revocar"
   },
   "web.organizations.invitations.resend_success": {
     "text": "Invitació reenviada correctament"
@@ -333,13 +333,13 @@
     "text": "Pendent"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Acceptada"
+    "text": "Acceptat"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Rebutjada"
+    "text": "Rebutjat"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Caducada"
+    "text": "Caducat"
   },
   "web.organizations.invitations.roles.member": {
     "text": "Membre"
@@ -348,10 +348,10 @@
     "text": "Administrador"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Accepta la invitació"
+    "text": "Acceptar invitació"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Rebutja la invitació"
+    "text": "Rebutjar invitació"
   },
   "web.organizations.invitations.invitation_details": {
     "text": "Detalls de la invitació"
@@ -384,6 +384,51 @@
     "text": "Inicia sessió per acceptar aquesta invitació"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Carregant els detalls de la invitació"
+    "text": "Carregant detalls de la invitació"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Correu de facturació actualitzat correctament"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "El correu de facturació es pot canviar a la pàgina de resum de facturació"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} membre | {count} membres"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domini | {count} dominis"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Millora el teu pla per convidar membres de l'equip"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Les invitacions de membres de l'equip requereixen un pla amb gestió d'equips. Millora per afegir col·laboradors a la teva organització."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Compte incorrecte"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Aquesta invitació s'ha enviat a {invitedEmail}, però has iniciat sessió com a {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Iniciar sessió amb un compte diferent"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}d restants"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h restants"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Caduca aviat"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Subscripció"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Dominis"
   }
 }

@@ -1,63 +1,63 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Tiquet:% s]"
+    "text": "[Tiquet: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "Un client ha enviat la informació següent"
+    "text": "Un client ha enviat la següent informació"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} us ha enviat un secret"
+    "text": "%{sender_email} t'ha enviat un secret"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "us ha enviat un secret:"
+    "text": "t'ha enviat un secret:"
   },
   "email.secret_link.important_label": {
     "text": "Important:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Aquest enllaç només funcionarà una vegada. Després de visualitzar-lo, el secret s'esborrarà permanentment."
+    "text": "Aquest enllaç només funcionarà una vegada. Després de veure'l, el secret s'eliminarà permanentment."
   },
   "email.secret_link.sent_via": {
     "text": "Enviat via"
   },
   "email.welcome.subject": {
-    "text": "Verifica el teu compte d'Onetime Secret"
+    "text": "Benvingut a %{product_name} - Si us plau verifica el teu correu electrònic"
   },
   "email.welcome.title": {
-    "text": "Heu estat convidat a unir-vos a %{product_name}!"
+    "text": "Benvingut a %{product_name}!"
   },
   "email.welcome.verify_prompt": {
-    "text": "Si us plau, verifiqueu la vostra adreça de correu electrònic fent clic a l'enllaç de sota:"
+    "text": "Si us plau, verifica la teva adreça de correu electrònic fent clic a l'enllaç a continuació:"
   },
   "email.welcome.verify_button": {
     "text": "Verificar adreça de correu electrònic"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "O copieu i enganxeu aquest enllaç:"
+    "text": "O copia i enganxa aquest enllaç:"
   },
   "email.welcome.signature": {
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}. Si no esperàveu aquesta invitació, podeu ignorar aquest missatge amb seguretat."
+    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}. Si no has creat un compte, pots ignorar aquest missatge amb seguretat."
   },
   "email.password_request.subject": {
-    "text": "Restabliu la vostra contrasenya (%{display_domain})"
+    "text": "Restablir la teva contrasenya (%{display_domain})"
   },
   "email.password_request.title": {
-    "text": "Restablir la vostra contrasenya"
+    "text": "Restablir la teva contrasenya"
   },
   "email.password_request.request_notice": {
-    "text": "Hem rebut una sol·licitud per restablir la vostra contrasenya de %{product_name}."
+    "text": "Hem rebut una sol·licitud per restablir la teva contrasenya de %{product_name}."
   },
   "email.password_request.reset_button": {
     "text": "Restablir contrasenya"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "O copieu i enganxeu aquest enllaç:"
+    "text": "O copia i enganxa aquest enllaç:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Si no heu sol·licitat un restabliment de contrasenya, podeu ignorar aquest correu electrònic amb seguretat."
+    "text": "Si no has sol·licitat restablir la contrasenya, pots ignorar aquest correu electrònic amb seguretat."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -66,13 +66,13 @@
     "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}."
   },
   "email.magic_link.subject": {
-    "text": "Inicia sessió a %{display_domain}"
+    "text": "Iniciar sessió a %{display_domain}"
   },
   "email.magic_link.title": {
-    "text": "Inicia sessió amb l'enllaç màgic"
+    "text": "Iniciar sessió amb enllaç màgic"
   },
   "email.magic_link.request_notice": {
-    "text": "Has sol·licitat un enllaç d'accés per al teu compte de %{product_name}."
+    "text": "Has sol·licitat un enllaç d'inici de sessió per al teu compte de %{product_name}."
   },
   "email.magic_link.login_button": {
     "text": "Iniciar sessió"
@@ -84,7 +84,7 @@
     "text": "Aquest enllaç caducarà en 15 minuts."
   },
   "email.magic_link.ignore_notice": {
-    "text": "Si no has sol·licitat aquest enllaç, pots ignorar aquest correu electrònic sense problema."
+    "text": "Si no has sol·licitat aquest enllaç, pots ignorar aquest correu electrònic amb seguretat."
   },
   "email.magic_link.signature": {
     "text": "Delano"
@@ -93,43 +93,43 @@
     "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}."
   },
   "email.incoming_secret.subject": {
-    "text": "Heu rebut un missatge secret"
+    "text": "Has rebut un missatge secret"
   },
   "email.incoming_secret.received_message": {
-    "text": "Heu rebut un missatge segur:"
+    "text": "Has rebut un missatge segur:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Nota:"
+    "text": "Memo:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Algú us ha enviat un missatge segur a través de %{display_domain}."
+    "text": "Algú t'ha enviat un missatge segur a través de %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Per veure aquest secret, feu clic a l'enllaç de sota:"
+    "text": "Per veure aquest secret, fes clic a l'enllaç a continuació:"
   },
   "email.incoming_secret.important_label": {
     "text": "Important:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Aquest enllaç només funcionarà una vegada. Després de visualitzar-lo, el secret s'esborrarà permanentment."
+    "text": "Aquest enllaç només funcionarà una vegada. Després de veure'l, el secret s'eliminarà permanentment."
   },
   "email.incoming_secret.sent_via": {
     "text": "Enviat via"
   },
   "email.secret_revealed.subject": {
-    "text": "El vostre secret ha estat visualitzat"
+    "text": "El teu secret s'ha visualitzat"
   },
   "email.secret_revealed.title": {
-    "text": "El vostre secret ha estat visualitzat"
+    "text": "El teu secret s'ha visualitzat"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "El vostre secret va ser visualitzat el %{date}."
+    "text": "El teu secret s'ha visualitzat el %{date}."
   },
   "email.secret_revealed.secret_id_label": {
     "text": "ID del secret:"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Aquesta és una notificació automàtica. No cal fer cap acció."
+    "text": "Aquesta és una notificació automàtica. No es requereix cap acció."
   },
   "email.secret_revealed.signature": {
     "text": "Delano"
@@ -138,37 +138,37 @@
     "text": "Gestionar preferències de notificació"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Per gestionar les vostres preferències de notificació:"
+    "text": "Per gestionar les teves preferències de notificació:"
   },
   "email.expiration_warning.subject": {
-    "text": "El vostre enllaç secret caducarà aviat"
+    "text": "El teu enllaç secret caducarà aviat"
   },
   "email.expiration_warning.expires_in": {
-    "text": "El vostre enllaç secret caducarà en %{time_remaining}"
+    "text": "El teu enllaç secret caducarà en %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
-    "text": "Visualitzeu el vostre secret abans que caduqui"
+    "text": "Veure el teu secret abans que caduqui"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Recordatori:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Després de caducar, el secret s'esborrarà permanentment i no es podrà recuperar."
+    "text": "Després de la caducitat, el secret s'eliminarà permanentment i no es podrà recuperar."
   },
   "email.expiration_warning.sent_via": {
     "text": "Enviat via"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Visualitzeu-lo abans que desaparegui:"
+    "text": "Mira'l abans que desaparegui:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Després de caducar, el secret s'esborrarà permanentment."
+    "text": "Després de la caducitat, el secret s'eliminarà permanentment."
   },
   "email.feedback_email.subject": {
-    "text": "Comentari del %{date} via %{display_domain} (%{strategy})"
+    "text": "Comentaris el %{date} via %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
-    "text": "Comentari de l'usuari"
+    "text": "Comentaris d'usuari"
   },
   "email.feedback_email.from_label": {
     "text": "De:"
@@ -183,7 +183,7 @@
     "text": "Missatge:"
   },
   "email.feedback_email.signature": {
-    "text": "Suport de Secret"
+    "text": "Secret Support"
   },
   "email.organization_invitation.subject": {
     "text": "Has estat convidat a unir-te a %{organization_name}"
@@ -195,7 +195,7 @@
     "text": "%{inviter_email} t'ha convidat a unir-te a \"%{organization_name}\" com a %{role_description}."
   },
   "email.organization_invitation.accept_button": {
-    "text": "Accepta la invitació"
+    "text": "Acceptar invitació"
   },
   "email.organization_invitation.link_instruction": {
     "text": "O copia i enganxa aquest enllaç:"
@@ -213,55 +213,55 @@
     "text": "P.D. Aquest correu electrònic s'ha enviat a %{invited_email}. Si no esperaves aquesta invitació, pots ignorar aquest missatge amb seguretat."
   },
   "email.organization_invitation.roles.member": {
-    "text": "un membre"
+    "text": "membre"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "un administrador"
+    "text": "administrador"
   },
   "email.password_changed.subject": {
-    "text": "La vostra contrasenya ha estat canviada (%{display_domain})"
+    "text": "La teva contrasenya s'ha canviat (%{display_domain})"
   },
   "email.password_changed.title": {
-    "text": "La vostra contrasenya ha estat canviada"
+    "text": "La teva contrasenya s'ha canviat"
   },
   "email.password_changed.body": {
-    "text": "La vostra contrasenya de %{product_name} va ser canviada el %{date} a les %{time}."
+    "text": "La teva contrasenya de %{product_name} s'ha canviat el %{date} a les %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Si no heu fet aquest canvi, si us plau, protegiu el vostre compte immediatament restablint la vostra contrasenya i contactant amb el suport."
+    "text": "Si no has fet aquest canvi, si us plau protegeix el teu compte immediatament restablint la teva contrasenya i contactant amb el suport."
   },
   "email.password_changed.signature": {
     "text": "Delano"
   },
   "email.email_changed.subject": {
-    "text": "La vostra adreça de correu electrònic ha estat canviada (%{display_domain})"
+    "text": "La teva adreça de correu electrònic s'ha canviat (%{display_domain})"
   },
   "email.email_changed.title": {
-    "text": "La vostra adreça de correu electrònic ha estat canviada"
+    "text": "La teva adreça de correu electrònic s'ha canviat"
   },
   "email.email_changed.body": {
-    "text": "L'adreça de correu electrònic del vostre compte de %{product_name} va ser canviada a %{new_email_masked} el %{date}."
+    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat a %{new_email_masked} el %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Si no heu fet aquest canvi, si us plau, contacteu amb el suport immediatament ja que el vostre compte pot estar compromès."
+    "text": "Si no has fet aquest canvi, si us plau contacta amb el suport immediatament ja que el teu compte pot estar compromès."
   },
   "email.email_changed.signature": {
     "text": "Delano"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Verifiqueu la vostra nova adreça de correu electrònic (%{display_domain})"
+    "text": "Verifica la teva nova adreça de correu electrònic (%{display_domain})"
   },
   "email.email_change_confirmation.title": {
-    "text": "Verificar la vostra nova adreça de correu electrònic"
+    "text": "Verifica la teva nova adreça de correu electrònic"
   },
   "email.email_change_confirmation.body": {
-    "text": "Si us plau, verifiqueu aquesta adreça de correu electrònic per completar el canvi del vostre compte de %{product_name}."
+    "text": "Si us plau, verifica aquesta adreça de correu electrònic per completar el canvi del teu compte de %{product_name}."
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Verificar adreça de correu electrònic"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "O copieu i enganxeu aquest enllaç:"
+    "text": "O copia i enganxa aquest enllaç:"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano"
@@ -273,10 +273,10 @@
     "text": "Autenticació de dos factors activada"
   },
   "email.mfa_enabled.body": {
-    "text": "L'autenticació de dos factors va ser activada per al vostre compte de %{product_name} el %{date}."
+    "text": "L'autenticació de dos factors s'ha activat per al teu compte de %{product_name} el %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "El vostre compte ara és més segur. Haureu d'introduir un codi de verificació de la vostra aplicació d'autenticació quan inicieu sessió."
+    "text": "El teu compte ara és més segur. Hauràs d'introduir un codi de verificació de la teva aplicació d'autenticació quan iniciïs sessió."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
@@ -288,22 +288,22 @@
     "text": "Autenticació de dos factors desactivada"
   },
   "email.mfa_disabled.body": {
-    "text": "L'autenticació de dos factors va ser desactivada per al vostre compte de %{product_name} el %{date}."
+    "text": "L'autenticació de dos factors s'ha desactivat per al teu compte de %{product_name} el %{date}."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "El vostre compte ara és menys segur. Si no heu fet aquest canvi, si us plau, protegiu el vostre compte immediatament."
+    "text": "El teu compte ara és menys segur. Si no has fet aquest canvi, si us plau protegeix el teu compte immediatament."
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
   },
   "email.new_login_alert.subject": {
-    "text": "Nou inici de sessió al vostre compte (%{display_domain})"
+    "text": "Nou inici de sessió al teu compte (%{display_domain})"
   },
   "email.new_login_alert.title": {
     "text": "Nou inici de sessió detectat"
   },
   "email.new_login_alert.body": {
-    "text": "S'ha detectat un nou inici de sessió al vostre compte de %{product_name} el %{date} a les %{time}."
+    "text": "S'ha detectat un nou inici de sessió al teu compte de %{product_name} el %{date} a les %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "Dispositiu:"
@@ -315,58 +315,58 @@
     "text": "Adreça IP:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Si no heu estat vós, el vostre compte pot estar compromès."
+    "text": "Si no has estat tu, el teu compte pot estar compromès."
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Protegir el vostre compte"
+    "text": "Protegir el teu compte"
   },
   "email.new_login_alert.signature": {
     "text": "Delano"
   },
   "email.member_removed.subject": {
-    "text": "Heu estat eliminat de %{organization_name}"
+    "text": "Has estat eliminat de %{organization_name}"
   },
   "email.member_removed.title": {
-    "text": "Heu estat eliminat de %{organization_name}"
+    "text": "Has estat eliminat de %{organization_name}"
   },
   "email.member_removed.body": {
-    "text": "Heu estat eliminat de l'organització \"%{organization_name}\" a %{product_name}."
+    "text": "Has estat eliminat de l'organització \"%{organization_name}\" a %{product_name}."
   },
   "email.member_removed.signature": {
     "text": "Delano"
   },
   "email.role_changed.subject": {
-    "text": "El vostre rol ha estat canviat a %{organization_name}"
+    "text": "El teu rol s'ha canviat a %{organization_name}"
   },
   "email.role_changed.title": {
-    "text": "El vostre rol ha estat canviat"
+    "text": "El teu rol s'ha canviat"
   },
   "email.role_changed.body": {
-    "text": "El vostre rol a \"%{organization_name}\" ha estat canviat de %{old_role} a %{new_role}."
+    "text": "El teu rol a \"%{organization_name}\" s'ha canviat de %{old_role} a %{new_role}."
   },
   "email.role_changed.signature": {
     "text": "Delano"
   },
   "email.organization_deleted.subject": {
-    "text": "L'organització \"%{organization_name}\" ha estat eliminada"
+    "text": "L'organització \"%{organization_name}\" s'ha eliminat"
   },
   "email.organization_deleted.title": {
     "text": "Organització eliminada"
   },
   "email.organization_deleted.body": {
-    "text": "L'organització \"%{organization_name}\" ha estat eliminada de %{product_name}. Totes les dades associades han estat eliminades."
+    "text": "L'organització \"%{organization_name}\" s'ha eliminat de %{product_name}. Totes les dades associades s'han eliminat."
   },
   "email.organization_deleted.signature": {
     "text": "Delano"
   },
   "email.payment_receipt.subject": {
-    "text": "Rebut de pagament de %{product_name}"
+    "text": "Rebut de pagament per a %{product_name}"
   },
   "email.payment_receipt.title": {
     "text": "Rebut de pagament"
   },
   "email.payment_receipt.body": {
-    "text": "Gràcies pel vostre pagament. Aquí teniu els detalls del vostre pagament:"
+    "text": "Gràcies pel teu pagament. Aquí tens els detalls del pagament:"
   },
   "email.payment_receipt.amount_label": {
     "text": "Import:"
@@ -384,13 +384,13 @@
     "text": "Delano"
   },
   "email.payment_failed.subject": {
-    "text": "El pagament de %{product_name} ha fallat"
+    "text": "Pagament fallit per a %{product_name}"
   },
   "email.payment_failed.title": {
-    "text": "El pagament ha fallat"
+    "text": "Pagament fallit"
   },
   "email.payment_failed.body": {
-    "text": "No hem pogut processar el vostre pagament de %{product_name}. Si us plau, actualitzeu el vostre mètode de pagament per evitar la interrupció del servei."
+    "text": "No hem pogut processar el teu pagament per a %{product_name}. Si us plau, actualitza el teu mètode de pagament per evitar la interrupció del servei."
   },
   "email.payment_failed.update_payment_button": {
     "text": "Actualitzar mètode de pagament"
@@ -399,13 +399,13 @@
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "El vostre període de prova de %{product_name} caduca en %{days_remaining} dies"
+    "text": "La teva prova de %{product_name} caduca en %{days_remaining} dies"
   },
   "email.trial_expiring.title": {
-    "text": "El vostre període de prova finalitza aviat"
+    "text": "La teva prova acaba aviat"
   },
   "email.trial_expiring.body": {
-    "text": "El vostre període de prova gratuït de %{product_name} caducarà en %{days_remaining} dies. Actualitzeu ara per mantenir l'accés a totes les funcions."
+    "text": "La teva prova gratuïta de %{product_name} caducarà en %{days_remaining} dies. Actualitza ara per mantenir l'accés a totes les funcions."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Actualitzar ara"
@@ -414,13 +414,13 @@
     "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "La vostra subscripció de %{product_name} ha estat canviada"
+    "text": "La teva subscripció de %{product_name} s'ha canviat"
   },
   "email.subscription_changed.title": {
     "text": "Subscripció canviada"
   },
   "email.subscription_changed.body": {
-    "text": "La vostra subscripció de %{product_name} ha estat canviada de %{old_plan} a %{new_plan}."
+    "text": "La teva subscripció de %{product_name} s'ha canviat de %{old_plan} a %{new_plan}."
   },
   "email.subscription_changed.effective_date": {
     "text": "Aquest canvi és efectiu el %{date}."
@@ -435,10 +435,10 @@
     "text": "Gràcies,"
   },
   "email.common.unsubscribe": {
-    "text": "Cancel·la la subscripció"
+    "text": "Donar-se de baixa"
   },
   "email.common.view_in_browser": {
-    "text": "Visualitza al navegador"
+    "text": "Veure al navegador"
   },
   "email.common.onetime_secret": {
     "text": "Onetime Secret"

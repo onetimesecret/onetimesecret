@@ -9,7 +9,7 @@
     "text": "Ajuda'ns a millorar"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Tanca el modal de comentaris"
+    "text": "Tancar finestra de comentaris"
   },
   "web.feedback.share_your_feedback": {
     "text": "Comparteix els teus comentaris"
@@ -36,12 +36,18 @@
     "text": "Una nota de Delano, fundador d'Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Obre el formulari de comentaris"
+    "text": "Obrir formulari de comentaris"
   },
   "web.feedback.enter_your_feedback": {
     "text": "Introdueix els teus comentaris"
   },
   "web.feedback.send_feedback": {
-    "text": "Envia comentaris"
+    "text": "Enviar comentaris"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Llegeixo cada comentari que arriba aquí. És com determino en què dedicar temps."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Si alguna cosa no va bé, o tens idees sobre com hauria de funcionar, aquest és el lloc adequat."
   }
 }

@@ -3,16 +3,16 @@
     "text": "Sobirania de dades i aïllament regional"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Les teves dades resideixen exclusivament a la regió que has triat i mai es transfereixen entre regions"
+    "text": "Les teves dades resideixen exclusivament a la teva regió escollida i mai es transfereixen entre regions"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Cada regió funciona com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades"
+    "text": "Cada regió opera com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades"
   },
   "web.regions.no_data_transfer_policy": {
     "text": "Mantenim una política estricta: les dades dels clients mai es transfereixen entre regions sota cap circumstància"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Important: canviar a una regió diferent crea un compte nou. Les teves dades es queden a la teva regió original."
+    "text": "Important: Canviar a una regió diferent crea un compte nou. Les teves dades es mantenen a la teva regió original."
   },
   "web.regions.your_region": {
     "text": "La teva regió"
@@ -21,31 +21,31 @@
     "text": "La teva regió actual"
   },
   "web.regions.active": {
-    "text": "Activa"
+    "text": "Actiu"
   },
   "web.regions.explore_other_regions": {
     "text": "Explora altres regions disponibles"
   },
   "web.regions.why_it_matters": {
-    "text": "Per què importa la sobirania de dades"
+    "text": "Per què la sobirania de dades és important"
   },
   "web.regions.trust_title": {
     "text": "Transparència i control"
   },
   "web.regions.trust_description": {
-    "text": "Sap exactament on resideixen les teves dades i quines lleis en regulen la protecció."
+    "text": "Sap exactament on resideixen les teves dades i quines lleis governen la seva protecció."
   },
   "web.regions.privacy_title": {
     "text": "Drets de privadesa"
   },
   "web.regions.privacy_description": {
-    "text": "Assegura't que la teva informació personal es tracta d'acord amb les lleis de privadesa del teu país i les regulacions, evitant l'accés o l'ús no autoritzats."
+    "text": "Assegura que la teva informació personal es gestioni d'acord amb les lleis i regulacions de privadesa del teu país, evitant l'accés no autoritzat o el mal ús."
   },
   "web.regions.compliance_title": {
     "text": "Compliment normatiu"
   },
   "web.regions.compliance_description": {
-    "text": "Compleix amb el GDPR, HIPAA, CCPA i altres requisits de protecció de dades regionals"
+    "text": "Compleix els requisits de GDPR, HIPAA, CCPA i altres regulacions regionals de protecció de dades"
   },
   "web.regions.performance_title": {
     "text": "Accés més ràpid"
@@ -60,7 +60,7 @@
     "text": "contacta amb el nostre equip de compliment"
   },
   "web.regions.review_our_documentation": {
-    "text": "revisa la nostra documentació"
+    "text": "consulta la nostra documentació"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "El teu compte i les teves dades estan protegits sota les lleis de"
@@ -99,7 +99,7 @@
     "text": "Servint-te des de"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "Continua a {0}"
+    "text": "Continuar a {0}"
   },
   "web.regions.current_jurisdiction": {
     "text": "Jurisdicció actual:"

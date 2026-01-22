@@ -14,10 +14,10 @@
     "text": "https://onetimesecret.com/ca"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Genera una contrasenya"
+    "text": "Generar contrasenya"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Genera una contrasenya està desactivat quan el formulari és vàlid"
+    "text": "Generar contrasenya està desactivat quan el formulari és vàlid"
   },
   "web.COMMON.email_placeholder": {
     "text": "p. ex. tom{'@'}myspace.com"
@@ -29,7 +29,7 @@
     "text": "Dominis personalitzats"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Enforteix les connexions i genera confiança amb els teus propis enllaços de marca."
+    "text": "Reforça les connexions i genera confiança amb els teus propis enllaços de secrets amb marca."
   },
   "web.COMMON.get_started_button": {
     "text": "Comença"
@@ -41,7 +41,7 @@
     "text": "Configuració"
   },
   "web.COMMON.submit_with": {
-    "text": "Envia"
+    "text": "Enviar"
   },
   "web.COMMON.submitting": {
     "text": "Enviant..."
@@ -50,19 +50,19 @@
     "text": "Processant..."
   },
   "web.COMMON.description": {
-    "text": "Mantenir protegida la informació confidencial dels meus registres de xat i de correu electrònic. Comparteix un enllaç secret que està disponible sols una vegada."
+    "text": "Mantén la informació sensible fora dels registres de xat i correu electrònic. Comparteix un enllaç secret que només està disponible una vegada."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Frase de contrasenya incorrecta"
   },
   "web.COMMON.keywords": {
-    "text": "secret,generador de contrasenyes,comparteix un secret,una sola vegada"
+    "text": "secret,generador de contrasenyes,compartir un secret,onetime"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Crea un enllaç secret"
+    "text": "Crear un enllaç secret"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "O crea una contrasenya aleatòria"
+    "text": "O genera una contrasenya aleatòria"
   },
   "web.COMMON.secret_privacy_options": {
     "text": "Opcions de privadesa"
@@ -77,25 +77,25 @@
     "text": "Adreça del destinatari"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "El contingut secret va aquí..."
+    "text": "El contingut del secret va aquí..."
   },
   "web.COMMON.header_create_account": {
-    "text": "Crea un compte"
+    "text": "Crear compte"
   },
   "web.COMMON.header_about": {
     "text": "Quant a"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Inicia sessió"
+    "text": "Iniciar sessió"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Tauler de control"
+    "text": "Compte"
   },
   "web.COMMON.header_logout": {
-    "text": "Tanca la sessió"
+    "text": "Tancar sessió"
   },
   "web.COMMON.secret": {
-    "text": "Secret"
+    "text": "Secret | Secrets"
   },
   "web.COMMON.recent": {
     "text": "Recent"
@@ -104,7 +104,7 @@
     "text": "Rebut"
   },
   "web.COMMON.burn": {
-    "text": "Destrueix"
+    "text": "Destruir"
   },
   "web.COMMON.burned": {
     "text": "Destruït"
@@ -113,58 +113,58 @@
     "text": "Caduca en"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Destrueix aquest secret"
+    "text": "Destruir aquest secret"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Destruir un secret l'eliminarà abans que s'hagi llegit (fes clic per confirmar)"
+    "text": "Destruir un secret l'eliminarà abans que hagi estat llegit (fes clic per confirmar)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "La destrucció d'un secret és permanent i no es pot desfer"
+    "text": "Destruir un secret és permanent i no es pot desfer"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Comprova el correu electrònic"
+    "text": "Comprova el teu correu electrònic"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Fes clic per continuar →"
+    "text": "Fes clic per revelar →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Continua per verificar el compte:"
+    "text": "Continua per verificar el teu compte:"
   },
   "web.COMMON.error_secret": {
-    "text": "No has proporcionat res a compartir"
+    "text": "No has proporcionat res per compartir"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Comprova doblement la frase de contrasenya"
+    "text": "Comprova la frase de contrasenya"
   },
   "web.COMMON.enter_passphrase_here": {
     "text": "Introdueix la frase de contrasenya aquí"
   },
   "web.COMMON.view_secret": {
-    "text": "Mostra el secret"
+    "text": "Veure secret"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Compte: només ho mostrarem una vegada"
+    "text": "Atenció: només el mostrarem una vegada."
   },
   "web.COMMON.warning": {
     "text": "Advertència"
   },
   "web.COMMON.oops": {
-    "text": "Ups"
+    "text": "Ups!"
   },
   "web.COMMON.error": {
     "text": "Error"
   },
   "web.COMMON.unexpected_error": {
-    "text": "S'ha produït un error inesperat. Torna-ho a provar."
+    "text": "S'ha produït un error inesperat. Si us plau, torna-ho a provar."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "S'ha truncat el missatge perquè era massa llarg"
+    "text": "El missatge s'ha truncat"
   },
   "web.COMMON.signup_for_more": {
     "text": "Registra't per a més"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Inicia sessió al teu compte"
+    "text": "Iniciar sessió al teu compte"
   },
   "web.COMMON.sent_to": {
     "text": "Enviat a:"
@@ -176,16 +176,16 @@
     "text": "Contrasenya"
   },
   "web.COMMON.field_password2": {
-    "text": "Confirma la contrasenya"
+    "text": "Confirmar contrasenya"
   },
   "web.COMMON.button_create_account": {
-    "text": "Crea un compte"
+    "text": "Crear compte"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Comparteix un secret"
+    "text": "Compartir un secret"
   },
   "web.COMMON.title_home": {
-    "text": "Pàgina inicial"
+    "text": "Inici"
   },
   "web.COMMON.word_none": {
     "text": "Cap"
@@ -197,13 +197,13 @@
     "text": "rebut"
   },
   "web.COMMON.word_confirm": {
-    "text": "Confirma"
+    "text": "Confirmar"
   },
   "web.COMMON.word_cancel": {
-    "text": "Cancel·la"
+    "text": "Cancel·lar"
   },
   "web.COMMON.word_continue": {
-    "text": "Continua"
+    "text": "Continuar"
   },
   "web.COMMON.word_done": {
     "text": "Fet"
@@ -212,43 +212,43 @@
     "text": "Enrere"
   },
   "web.COMMON.feedback_text": {
-    "text": "Tens cap demanda o comentari?"
+    "text": "Comparteix els teus pensaments, idees o experiències..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Envia un comentari"
+    "text": "Enviar comentaris"
   },
   "web.COMMON.verification_sent_to": {
     "text": "S'ha enviat una verificació a"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Compte creat. Inicia sessió."
+    "text": "Compte creat. Si us plau, inicia sessió."
   },
   "web.COMMON.signup_success_generic": {
     "text": "Si existeix un compte amb aquest correu electrònic, rebràs un correu de verificació."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Destrueix aquest secret permanentment"
+    "text": "Destruir aquest secret permanentment"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Confirma l'acció"
+    "text": "Si us plau, confirma"
   },
   "web.COMMON.burn_confirmation_message": {
     "text": "Estàs segur que vols destruir aquest secret? Aquesta acció no es pot desfer."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Sí, destrueix aquest secret"
+    "text": "Sí, destruir aquest secret"
   },
   "web.COMMON.burn_security_notice": {
     "text": "Destruir un secret l'eliminarà abans que hagi estat rebut."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Per seguretat, comparteix aquest enllaç separadament d'altres detalls."
+    "text": "Per seguretat, comparteix aquest enllaç per separat d'altres detalls."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Copiat al porta-retalls"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Crea una sol·licitud"
+    "text": "Crear entrant"
   },
   "web.COMMON.faq_title": {
     "text": "Preguntes freqüents"
@@ -260,16 +260,16 @@
     "text": "No es pot verificar un compte quan ja has iniciat sessió"
   },
   "web.COMMON.show_password": {
-    "text": "Mostra la contrasenya"
+    "text": "Mostrar contrasenya"
   },
   "web.COMMON.hide_password": {
-    "text": "Amaga la contrasenya"
+    "text": "Amagar contrasenya"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "La contrasenya ha de tenir com a mínim 8 caràcters"
+    "text": "La contrasenya ha de tenir almenys 8 caràcters"
   },
   "web.COMMON.password_requirements": {
-    "text": "La contrasenya ha de tenir com a mínim 8 caràcters"
+    "text": "La contrasenya ha de tenir almenys 8 caràcters"
   },
   "web.COMMON.passwords_do_not_match": {
     "text": "Les contrasenyes no coincideixen"
@@ -281,22 +281,22 @@
     "text": "Processant la teva sol·licitud"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Mantén-me connectat durant 30 dies"
+    "text": "Mantenir-me connectat durant 30 dies"
   },
   "web.COMMON.redirecting": {
     "text": "Redirigint..."
   },
   "web.COMMON.continue": {
-    "text": "Continua"
+    "text": "Continuar"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Estàs segur?"
+    "text": "N'estàs segur?"
   },
   "web.COMMON.danger_zone": {
     "text": "Zona de perill"
   },
   "web.COMMON.caution_zone": {
-    "text": "Zona de consideració acurada"
+    "text": "Zona de consideració atenta"
   },
   "web.COMMON.user_menu": {
     "text": "Menú d'usuari"
@@ -305,13 +305,13 @@
     "text": "Seguretat"
   },
   "web.COMMON.manage": {
-    "text": "Gestiona"
+    "text": "Gestionar"
   },
   "web.COMMON.loading": {
     "text": "Carregant..."
   },
   "web.COMMON.save_changes": {
-    "text": "Desa els canvis"
+    "text": "Desar canvis"
   },
   "web.COMMON.saving": {
     "text": "Desant..."
@@ -329,22 +329,22 @@
     "text": "Estat"
   },
   "web.COMMON.escape": {
-    "text": "Escapa"
+    "text": "Escapament"
   },
   "web.COMMON.active": {
     "text": "Actiu"
   },
   "web.COMMON.preview": {
-    "text": "Vista prèvia"
+    "text": "Previsualització"
   },
   "web.COMMON.remove": {
-    "text": "Elimina"
+    "text": "Eliminar"
   },
   "web.COMMON.press_esc_to_close": {
     "text": "Prem ESC per tancar"
   },
   "web.COMMON.enter": {
-    "text": "Introdueix"
+    "text": "Intro"
   },
   "web.COMMON.important": {
     "text": "Important"
@@ -386,19 +386,19 @@
     "text": "NO REBUT"
   },
   "web.COMMON.confirm_password": {
-    "text": "Confirma la contrasenya"
+    "text": "Confirmar contrasenya"
   },
   "web.COMMON.new_password": {
-    "text": "Contrasenya nova"
+    "text": "Nova contrasenya"
   },
   "web.COMMON.email_address": {
     "text": "Adreça de correu electrònic"
   },
   "web.COMMON.switch": {
-    "text": "canvia"
+    "text": "canviar"
   },
   "web.COMMON.features": {
-    "text": "Característiques"
+    "text": "Funcions"
   },
   "web.COMMON.not_found": {
     "text": "No trobat"
@@ -416,10 +416,10 @@
     "text": "Versió"
   },
   "web.COMMON.other": {
-    "text": "Altres"
+    "text": "Altre"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(amplada mínima: 1024px)"
+    "text": "(amplada-mín: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Intro"
@@ -437,7 +437,7 @@
     "text": "Valor"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Amfitrió"
   },
   "web.COMMON.type": {
     "text": "Tipus"
@@ -449,13 +449,13 @@
     "text": "Següent"
   },
   "web.COMMON.password_strength": {
-    "text": "Força de la contrasenya:"
+    "text": "Seguretat de la contrasenya:"
   },
   "web.COMMON.great": {
     "text": "Excel·lent"
   },
   "web.COMMON.pretty_good": {
-    "text": "Força bo"
+    "text": "Força bé"
   },
   "web.COMMON.fair": {
     "text": "Acceptable"
@@ -464,10 +464,10 @@
     "text": "Regular"
   },
   "web.COMMON.not_great": {
-    "text": "No gaire bo"
+    "text": "No gaire bé"
   },
   "web.COMMON.open_options": {
-    "text": "Obre les opcions"
+    "text": "Obrir opcions"
   },
   "web.COMMON.inactive": {
     "text": "Inactiu"
@@ -476,55 +476,55 @@
     "text": "S'ha produït un error"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Copia el secret al porta-retalls"
+    "text": "Copiar secret al porta-retalls"
   },
   "web.COMMON.secret_copied_to_clipboard": {
     "text": "Secret copiat al porta-retalls"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Comprova doblement aquesta frase de contrasenya"
+    "text": "Comprova la frase de contrasenya"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Prem el botó de copiar de sota."
+    "text": "Prem el botó de copiar a sota."
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Mostra"
+    "text": "Mostrar"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Amaga"
+    "text": "Amagar"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Mostra més"
+    "text": "Mostrar més"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Mostra menys"
+    "text": "Mostrar menys"
   },
   "web.LABELS.enable": {
-    "text": "Activa"
+    "text": "Activar"
   },
   "web.LABELS.disable": {
-    "text": "Desactiva"
+    "text": "Desactivar"
   },
   "web.LABELS.stats": {
     "text": "Estadístiques"
   },
   "web.LABELS.timeline": {
-    "text": "Línia de temps"
+    "text": "Cronologia"
   },
   "web.LABELS.lifespan": {
-    "text": "Durada de vida"
+    "text": "Durada"
   },
   "web.LABELS.expiration_time": {
-    "text": "Hora de caducitat"
+    "text": "Temps de caducitat"
   },
   "web.LABELS.close": {
-    "text": "Tanca"
+    "text": "Tancar"
   },
   "web.LABELS.loading": {
     "text": "Carregant..."
   },
   "web.LABELS.cancel": {
-    "text": "Cancel·la"
+    "text": "Cancel·lar"
   },
   "web.LABELS.saving": {
     "text": "Desant..."
@@ -533,10 +533,10 @@
     "text": "Desat"
   },
   "web.LABELS.save": {
-    "text": "Desa"
+    "text": "Desar"
   },
   "web.LABELS.save_all": {
-    "text": "Desa-ho tot"
+    "text": "Desar tot"
   },
   "web.LABELS.details": {
     "text": "Detalls"
@@ -551,40 +551,40 @@
     "text": "Necessites ajuda?"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Crea un secret nou"
+    "text": "Crear nou secret"
   },
   "web.LABELS.actions": {
     "text": "Accions"
   },
   "web.LABELS.no_passphrase": {
-    "text": "No cal frase de contrasenya"
+    "text": "No es requereix frase de contrasenya"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Copia al porta-retalls"
+    "text": "Copiar al porta-retalls"
   },
   "web.LABELS.receipts": {
     "text": "Rebuts"
   },
   "web.LABELS.share": {
-    "text": "Comparteix"
+    "text": "Compartir"
   },
   "web.LABELS.secret_link": {
     "text": "Enllaç secret"
   },
   "web.LABELS.dismiss": {
-    "text": "Descarta"
+    "text": "Descartar"
   },
   "web.LABELS.security_details": {
     "text": "Detalls de seguretat"
   },
   "web.LABELS.items_count": {
-    "text": "{count} elements"
+    "text": "{count} Elements"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} destinataris"
+    "text": "{count} Destinataris"
   },
   "web.LABELS.view": {
-    "text": "Visualitza"
+    "text": "Veure"
   },
   "web.LABELS.views": {
     "text": "Visualitzacions"
@@ -593,7 +593,7 @@
     "text": "vegades visualitzat"
   },
   "web.LABELS.view_progress": {
-    "text": "Progrés de visualització"
+    "text": "Veure progrés"
   },
   "web.LABELS.help_section": {
     "text": "Secció d'ajuda"
@@ -614,25 +614,25 @@
     "text": "Preus"
   },
   "web.LABELS.refresh": {
-    "text": "Actualitza"
+    "text": "Refrescar"
   },
   "web.LABELS.reload": {
-    "text": "Recarrega"
+    "text": "Recarregar"
   },
   "web.LABELS.caption_recent_secrets": {
     "text": "Enllaços de secrets creats en aquesta sessió"
   },
   "web.LABELS.create_link_short": {
-    "text": "Crea un enllaç"
+    "text": "Crear enllaç"
   },
   "web.LABELS.create_link": {
-    "text": "Crea un enllaç secret"
+    "text": "Crear enllaç secret"
   },
   "web.LABELS.create_request_short": {
-    "text": "Crea una sol·licitud"
+    "text": "Crear sol·licitud"
   },
   "web.LABELS.create_request": {
-    "text": "Crea un enllaç de sol·licitud"
+    "text": "Crear enllaç de sol·licitud"
   },
   "web.LABELS.related_settings": {
     "text": "Configuració relacionada"
@@ -677,10 +677,10 @@
     "text": "Orfe"
   },
   "web.STATUS.secured": {
-    "text": "Segur"
+    "text": "Protegit"
   },
   "web.STATUS.securing": {
-    "text": "Assegurant"
+    "text": "Protegint"
   },
   "web.STATUS.copied": {
     "text": "Copiat"
@@ -689,13 +689,13 @@
     "text": "Temps restant"
   },
   "web.STATUS.new_description": {
-    "text": "L'enllaç secret s'ha creat i encara no s'ha visualitzat"
+    "text": "L'enllaç del secret s'ha creat i encara no s'ha visualitzat"
   },
   "web.STATUS.unread_description": {
-    "text": "L'enllaç secret s'ha creat i no s'ha visualitzat"
+    "text": "L'enllaç del secret s'ha creat i no s'ha visualitzat"
   },
   "web.STATUS.viewed_description": {
-    "text": "L'enllaç secret s'ha obert i està llest per visualitzar-se"
+    "text": "L'enllaç del secret s'ha obert i està llest per ser visualitzat"
   },
   "web.STATUS.received_description": {
     "text": "El secret s'ha revelat al destinatari"
@@ -716,7 +716,7 @@
     "text": "El secret ha caducat abans de ser visualitzat"
   },
   "web.STATUS.success": {
-    "text": "Èxit"
+    "text": "Correcte"
   },
   "web.STATUS.delivered": {
     "text": "Lliurat"
@@ -734,7 +734,7 @@
     "text": "Visualitzacions il·limitades"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Marca de domini de confiança"
+    "text": "Marca amb domini de confiança"
   },
   "web.FEATURES.encrypted_in_transit": {
     "text": "Xifrat en trànsit i en repòs"
@@ -794,22 +794,22 @@
     "text": "Comentaris"
   },
   "web.TITLES.signin": {
-    "text": "Inicia sessió"
+    "text": "Iniciar sessió"
   },
   "web.TITLES.signup": {
-    "text": "Crea un compte"
+    "text": "Crear compte"
   },
   "web.TITLES.forgot_password": {
-    "text": "Has oblidat la contrasenya"
+    "text": "Contrasenya oblidada"
   },
   "web.TITLES.reset_password": {
-    "text": "Restableix la contrasenya"
+    "text": "Restablir contrasenya"
   },
   "web.TITLES.logout": {
-    "text": "Tancant la sessió"
+    "text": "Tancant sessió"
   },
   "web.TITLES.verify_account": {
-    "text": "Verifica el compte"
+    "text": "Verificar compte"
   },
   "web.TITLES.mfa_verify": {
     "text": "Autenticació de dos factors"
@@ -818,7 +818,7 @@
     "text": "Inici de sessió per correu electrònic"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Accepta la invitació"
+    "text": "Acceptar invitació"
   },
   "web.TITLES.secret": {
     "text": "Secret"
@@ -830,7 +830,7 @@
     "text": "Rebut del secret"
   },
   "web.TITLES.burn_secret": {
-    "text": "Destrueix el secret"
+    "text": "Destruir secret"
   },
   "web.TITLES.dashboard": {
     "text": "Tauler de control"
@@ -842,16 +842,16 @@
     "text": "Dominis personalitzats"
   },
   "web.TITLES.domain_add": {
-    "text": "Afegeix un domini"
+    "text": "Afegir domini"
   },
   "web.TITLES.domain_verify": {
-    "text": "Verifica el domini"
+    "text": "Verificar domini"
   },
   "web.TITLES.domain_brand": {
-    "text": "Marca del domini"
+    "text": "Domini de marca"
   },
   "web.TITLES.account": {
-    "text": "Configuració del compte"
+    "text": "Compte"
   },
   "web.TITLES.data_region": {
     "text": "Regió de dades"
@@ -863,7 +863,7 @@
     "text": "Regions disponibles"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Per què importa la sobirania de dades"
+    "text": "Per què la sobirania de dades és important"
   },
   "web.TITLES.profile_settings": {
     "text": "Configuració del perfil"
@@ -878,13 +878,13 @@
     "text": "Notificacions"
   },
   "web.TITLES.change_email": {
-    "text": "Canvia el correu electrònic"
+    "text": "Canviar correu electrònic"
   },
   "web.TITLES.security_overview": {
     "text": "Seguretat"
   },
   "web.TITLES.change_password": {
-    "text": "Canvia la contrasenya"
+    "text": "Canviar contrasenya"
   },
   "web.TITLES.mfa_settings": {
     "text": "Autenticació de dos factors"
@@ -929,18 +929,78 @@
     "text": "Utilitza un canal segur diferent per compartir informació sensible"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre que estàs al lloc web oficial d'Onetime Secret. Els estafadors de vegades creen llocs web falsos que semblen exactament Onetime Secret per robar els teus secrets. Per evitar atacs de pesca electrònica, comprova el domini de la regió abans de crear nous enllaços."
+    "text": "Verifica sempre que estàs al lloc web oficial d'Onetime Secret. Els estafadors de vegades creen llocs web falsos que semblen exactament Onetime Secret per robar els teus secrets. Per evitar atacs de phishing, comprova el domini de la regió abans de crear nous enllaços."
   },
   "web.STATUS.previewed": {
-    "text": "Enllaç obert"
+    "text": "Previsualitzat"
   },
   "web.STATUS.revealed": {
     "text": "Revelat"
   },
   "web.STATUS.previewed_description": {
-    "text": "L'enllaç secret s'ha obert i està llest per revelar-se"
+    "text": "L'enllaç del secret s'ha obert i està llest per ser revelat"
   },
   "web.STATUS.revealed_description": {
-    "text": "El contingut secret s'ha revelat al destinatari"
+    "text": "El contingut del secret s'ha revelat al destinatari"
+  },
+  "web.COMMON.not_set": {
+    "text": "No definit"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Editar"
+  },
+  "web.COMMON.word_save": {
+    "text": "Desar"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Caduca en"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtre"
+  },
+  "web.LABELS.clear": {
+    "text": "Esborrar"
+  },
+  "web.LABELS.add_note": {
+    "text": "Afegir nota..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Editar nota"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Afegir memo..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Editar memo"
+  },
+  "web.TITLES.help": {
+    "text": "Ajuda"
+  },
+  "web.TITLES.pricing": {
+    "text": "Preus"
+  },
+  "web.pricing.title": {
+    "text": "Preus simples i transparents"
+  },
+  "web.pricing.subtitle": {
+    "text": "Tria el pla que s'adapti a les teves necessitats. Tots els plans inclouen compartició il·limitada de secrets i disseny que prioritza la privadesa."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Comença gratis"
+  },
+  "web.pricing.start_trial": {
+    "text": "Comença"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Ja tens un compte?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Iniciar sessió"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Recomanat per a tu"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Crea i comparteix secrets amb funcions bàsiques. No es requereix targeta de crèdit."
   }
 }

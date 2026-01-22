@@ -3,19 +3,19 @@
     "text": "Configuració"
   },
   "web.account.change_password": {
-    "text": "Canvia la contrasenya"
+    "text": "Canviar la contrasenya"
   },
   "web.account.close_account": {
-    "text": "Tanca el compte"
+    "text": "Tancar el compte"
   },
   "web.account.verify_account": {
-    "text": "Verifica el compte"
+    "text": "Verificar el compte"
   },
   "web.account.subscription_title": {
     "text": "Subscripció"
   },
   "web.account.manage_subscription": {
-    "text": "Gestiona la subscripció"
+    "text": "Gestionar la subscripció"
   },
   "web.account.customer_information": {
     "text": "Informació del client"
@@ -36,7 +36,7 @@
     "text": "Mètode de pagament predeterminat"
   },
   "web.account.card_ending": {
-    "text": "que acaba en"
+    "text": "acabada en"
   },
   "web.account.subscriptions_title": {
     "text": "Subscripcions"
@@ -57,31 +57,31 @@
     "text": "Contrasenya nova"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Confirma"
+    "text": "Confirmar"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Actualitza la contrasenya"
+    "text": "Actualitzar la contrasenya"
   },
   "web.account.changePassword.updating": {
     "text": "Actualitzant..."
   },
   "web.account.timezone": {
-    "text": "Zona horària"
+    "text": "Fus horari"
   },
   "web.account.customer_id": {
-    "text": "ID de client"
+    "text": "ID del client"
   },
   "web.account.account_id_customerid": {
-    "text": "ID de compte"
+    "text": "ID del compte"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
     "text": "Creat {0} secrets des de {1}."
   },
   "web.account.delete_account": {
-    "text": "Suprimeix el compte"
+    "text": "Eliminar el compte"
   },
   "web.account.api_key": {
-    "text": "Clau d'API"
+    "text": "Clau API"
   },
   "web.account.account_type_windowprops_plan_options_name": {
     "text": "Tipus de compte: {0}"
@@ -90,13 +90,13 @@
     "text": "El teu compte"
   },
   "web.account.support_details": {
-    "text": "Detalls de l'assistència"
+    "text": "Detalls del suport"
   },
   "web.account.back_to_details": {
-    "text": "Torna als detalls"
+    "text": "Tornar als detalls"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "ID de client: {0}"
+    "text": "ID del client: {0}"
   },
   "web.account.token_generated": {
     "text": "Token generat."
@@ -111,19 +111,19 @@
     "text": "Estàs segur que vols suprimir permanentment el teu compte? Aquesta acció no es pot desfer."
   },
   "web.account.confirm_account_deletion": {
-    "text": "Confirma la supressió del compte"
+    "text": "Confirmar l'eliminació del compte"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Suprimint {0}"
+    "text": "Eliminant {0}"
   },
   "web.account.permanently_delete_account": {
-    "text": "Suprimeix el compte permanentment"
+    "text": "Eliminar el compte permanentment"
   },
   "web.account.permanent_and_non_reversible": {
     "text": "permanent i irreversible."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Suprimir el teu compte és"
+    "text": "L'eliminació del teu compte és"
   },
   "web.account.burn_them_before_continuing": {
     "text": "destrueix-los abans de continuar"
@@ -135,25 +135,25 @@
     "text": "Els secrets romandran actius fins que caduquin."
   },
   "web.account.please_be_advised": {
-    "text": "Si us plau, tingues en compte:"
+    "text": "Tingues en compte:"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Compte suprimit correctament."
+    "text": "El compte s'ha eliminat correctament."
   },
   "web.account.deactivate": {
-    "text": "Desactiva"
+    "text": "Desactivar"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
     "text": "Estàs segur que vols desactivar el teu compte? Totes les teves dades s'eliminaran permanentment dels nostres servidors per sempre. Aquesta acció no es pot desfer."
   },
   "web.account.deactivate_account": {
-    "text": "Desactiva el compte"
+    "text": "Desactivar el compte"
   },
   "web.settings.title": {
     "text": "Configuració"
   },
   "web.settings.description": {
-    "text": "Gestiona la configuració i preferències del teu compte"
+    "text": "Gestiona la configuració i les preferències del teu compte"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Gestiona la configuració i preferències del teu compte"
@@ -195,7 +195,7 @@
     "text": "Perfil"
   },
   "web.settings.profile.change_email": {
-    "text": "Canvia el correu electrònic"
+    "text": "Canviar el correu electrònic"
   },
   "web.settings.profile.current_email": {
     "text": "Correu electrònic actual"
@@ -210,13 +210,13 @@
     "text": "Introdueix la teva contrasenya actual"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "La teva contrasenya és necessària per motius de seguretat"
+    "text": "Es requereix la teva contrasenya per motius de seguretat"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "S'enviarà un correu de verificació a la nova adreça"
   },
   "web.settings.profile.update_email": {
-    "text": "Actualitza el correu electrònic"
+    "text": "Actualitzar el correu electrònic"
   },
   "web.settings.profile.change_email_description": {
     "text": "Actualitza l'adreça de correu electrònic associada al teu compte"
@@ -231,7 +231,7 @@
     "text": "El correu electrònic nou ha de ser diferent del correu electrònic actual"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Correu electrònic actualitzat correctament. Comprova la teva safata d'entrada per verificar la teva nova adreça de correu electrònic."
+    "text": "El correu electrònic s'ha actualitzat correctament. Comprova la teva bústia d'entrada per verificar la teva nova adreça de correu electrònic."
   },
   "web.settings.profile.email_change_error": {
     "text": "No s'ha pogut actualitzar el correu electrònic. Torna-ho a provar."
@@ -255,13 +255,13 @@
     "text": "Actualitza la contrasenya del teu compte"
   },
   "web.settings.delete_account.title": {
-    "text": "Suprimeix el compte"
+    "text": "Eliminar el compte"
   },
   "web.settings.delete_account.description": {
-    "text": "Suprimeix permanentment el teu compte i totes les dades"
+    "text": "Elimina permanentment el teu compte i totes les dades"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Suprimeix permanentment el teu compte i totes les dades"
+    "text": "Elimina permanentment el teu compte i totes les dades"
   },
   "web.settings.security.security_score": {
     "text": "Puntuació de seguretat"
@@ -294,19 +294,19 @@
     "text": "Configurat"
   },
   "web.settings.security.change": {
-    "text": "Canvia"
+    "text": "Canviar"
   },
   "web.settings.security.manage": {
-    "text": "Gestiona"
+    "text": "Gestionar"
   },
   "web.settings.security.enable": {
-    "text": "Activa"
+    "text": "Activar"
   },
   "web.settings.security.codes_available": {
     "text": "{0} codis disponibles"
   },
   "web.settings.security.no_codes": {
-    "text": "No s'han generat codis"
+    "text": "Cap codi generat"
   },
   "web.settings.security.active_sessions": {
     "text": "{0} sessió activa | {0} sessions actives"
@@ -321,64 +321,64 @@
     "text": "Activa l'autenticació de dos factors per a una protecció addicional"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Desa els teus codis de recuperació en un lloc segur"
+    "text": "Guarda els codis de recuperació en un lloc segur"
   },
   "web.settings.security.review_sessions_regularly": {
     "text": "Revisa i revoca les sessions no utilitzades regularment"
   },
   "web.settings.security.view_details": {
-    "text": "Mostra els detalls"
+    "text": "Veure detalls"
   },
   "web.settings.api.title": {
     "text": "API i integracions"
   },
   "web.settings.api.description": {
-    "text": "Gestiona les claus d'API i les integracions"
+    "text": "Gestiona les claus API i les integracions"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Gestiona les claus d'API i les integracions"
+    "text": "Gestiona les claus API i les integracions"
   },
   "web.settings.api.documentation": {
     "text": "Documentació de l'API"
   },
   "web.settings.api.documentation_description": {
-    "text": "Aprèn com integrar Onetime Secret a les teves aplicacions"
+    "text": "Aprèn a integrar Onetime Secret a les teves aplicacions"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Referència de l'API REST"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Documentació completa de l'API i punts finals"
+    "text": "Documentació completa de l'API i els endpoints"
   },
   "web.settings.api.code_examples": {
     "text": "Exemples de codi"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Codi d'exemple i biblioteques del client"
+    "text": "Codi d'exemple i biblioteques de client"
   },
   "web.settings.api.security_best_practices": {
     "text": "Bones pràctiques de seguretat"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "No registris mai les claus d'API al control de versions"
+    "text": "No facis mai commit de les claus API al control de versions"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Utilitza variables d'entorn per emmagatzemar les claus d'API"
+    "text": "Utilitza variables d'entorn per emmagatzemar les claus API"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rota les claus d'API regularment per seguretat"
+    "text": "Rota les claus API regularment per seguretat"
   },
   "web.settings.api.use_https_only": {
-    "text": "Utilitza sempre HTTPS quan facis sol·licituds d'API"
+    "text": "Utilitza sempre HTTPS quan facis peticions a l'API"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Supervisa l'ús de la teva API i configura alertes"
+    "text": "Supervisa l'ús de l'API i configura alertes"
   },
   "web.settings.api.important_notice": {
     "text": "Avís important"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Regenerar la teva clau d'API invalidarà la clau actual. Actualitza totes les aplicacions que utilitzin la clau antiga."
+    "text": "Regenerar la teva clau API invalidarà la clau actual. Actualitza totes les aplicacions que utilitzen la clau antiga."
   },
   "web.settings.privacy.title": {
     "text": "Configuració de privadesa"
@@ -390,16 +390,16 @@
     "text": "La teva privadesa"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "No negociable"
+    "text": "Innegociable"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "No és una configuració"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Cap analítica. Cap seguiment. Punt."
+    "text": "Sense analítiques. Sense rastreig. Punt."
   },
   "web.settings.privacy.explanation": {
-    "text": "Això no és una configuració perquè no hi ha res a activar o desactivar. La teva privadesa està integrada en com operem."
+    "text": "Això no és una configuració perquè no hi ha res a activar o desactivar. La teva privadesa està integrada en la manera com operem."
   },
   "web.settings.notifications.title": {
     "text": "Configuració de notificacions"
@@ -408,7 +408,7 @@
     "text": "Gestiona com reps les notificacions"
   },
   "web.settings.notifications.error_updating": {
-    "text": "No s'ha pogut actualitzar la preferència de notificacions. Torna-ho a provar."
+    "text": "No s'ha pogut actualitzar la preferència de notificació. Torna-ho a provar."
   },
   "web.settings.notifications.reveal_notifications.title": {
     "text": "Notificacions de visualització de secrets"
@@ -417,10 +417,10 @@
     "text": "Rep un correu electrònic quan algú visualitza el teu secret"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Rebràs una notificació cada vegada que un destinatari visualitzi un dels teus secrets"
+    "text": "Se't notificarà cada vegada que un destinatari visualitzi un dels teus secrets"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Els correus de notificació només inclouen la marca de temps i l'identificador del secret. Mai s'inclou informació del visualitzador."
+    "text": "Els correus de notificació només inclouen la marca de temps i l'ID del secret. La informació del visualitzador no s'inclou mai."
   },
   "web.settings.caution.title": {
     "text": "Zona de consideració acurada"
@@ -438,7 +438,7 @@
     "text": "Sol·licita una còpia completa de les dades del teu compte en format llegible per màquina"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Sol·licita l'exportació de dades"
+    "text": "Sol·licitar exportació de dades"
   },
   "web.settings.caution.export_info": {
     "text": "Temps de processament de l'exportació"
@@ -447,18 +447,33 @@
     "text": "Les exportacions es processen en 24 hores i s'envien a la teva adreça de correu electrònic"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Suprimir el teu compte:"
+    "text": "Eliminar el teu compte farà:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Suprimirà permanentment tots els teus secrets"
+    "text": "Eliminar permanentment tots els teus secrets"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Eliminarà totes les metadades i l'historial de secrets"
+    "text": "Eliminar totes les metadades i l'historial dels secrets"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Invalidarà totes les claus d'API"
+    "text": "Invalidar totes les claus API"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Aquesta acció no es pot desfer"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Eliminant..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Tornar al tauler de control"
+  },
+  "web.settings.sections.account": {
+    "text": "Compte"
+  },
+  "web.settings.sections.billing": {
+    "text": "Facturació"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avançat"
   }
 }

@@ -18,7 +18,7 @@
     "text": "Secrets ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(actiu en els darrers 5 minuts)"
+    "text": "(actiu en els últims 5 minuts)"
   },
   "web.colonel.configEditorTitle": {
     "text": "Configuració"
@@ -54,10 +54,10 @@
     "text": "{section} desat correctament"
   },
   "web.colonel.saveSection": {
-    "text": "Desa {section}"
+    "text": "Desar {section}"
   },
   "web.colonel.saveAll": {
-    "text": "Desa-ho tot"
+    "text": "Desar tot"
   },
   "web.colonel.unsavedChanges": {
     "text": "Canvis no desats"
@@ -75,7 +75,7 @@
     "text": "Tauler de control"
   },
   "web.colonel.admin": {
-    "text": "Admin"
+    "text": "Administració"
   },
   "web.colonel.activity": {
     "text": "Activitat"
@@ -87,7 +87,7 @@
     "text": "Usuaris"
   },
   "web.colonel.usersDescription": {
-    "text": "Gestiona els comptes d'usuari i els permisos"
+    "text": "Gestionar comptes d'usuari i permisos"
   },
   "web.colonel.domains": {
     "text": "Dominis"
@@ -111,13 +111,13 @@
     "text": "Activitat recent"
   },
   "web.colonel.viewAll": {
-    "text": "Mostra-ho tot"
+    "text": "Veure tot"
   },
   "web.colonel.activityPlaceholder": {
     "text": "Les dades d'activitat es mostraran aquí"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Total de secrets"
+    "text": "Secrets totals"
   },
   "web.colonel.stats.activeUsers": {
     "text": "Usuaris actius"
@@ -132,10 +132,10 @@
     "text": "Secrets compartits"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Total de clients"
+    "text": "Usuaris totals"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Correus electrònics enviats"
+    "text": "Correus enviats"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Salut del sistema"
@@ -144,19 +144,19 @@
     "text": "Saludable"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Mostra l'activitat"
+    "text": "Veure activitat"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Supervisa l'activitat i l'ús del sistema"
+    "text": "Supervisar l'activitat i l'ús del sistema"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "Gestiona els comptes"
+    "text": "Gestionar comptes"
   },
   "web.colonel.actions.manageAccountsDesc": {
     "text": "Administració de comptes d'usuari"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Configura els dominis"
+    "text": "Configurar dominis"
   },
   "web.colonel.actions.configureDomainsDesc": {
     "text": "Configuració de dominis i DNS"
@@ -168,7 +168,7 @@
     "text": "Configuració de l'aplicació"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Treballs en segon pla"
+    "text": "Tasques en segon pla"
   },
   "web.colonel.queueStatus": {
     "text": "Estat de la cua"
@@ -189,7 +189,7 @@
     "text": "Estat de la connexió"
   },
   "web.colonel.workerHealth": {
-    "text": "Salut dels treballadors"
+    "text": "Estat dels treballadors"
   },
   "web.colonel.activeWorkers": {
     "text": "treballadors actius"
@@ -198,7 +198,7 @@
     "text": "No hi ha dades de cua disponibles"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Carregant les dades de la cua..."
+    "text": "Carregant dades de la cua..."
   },
   "web.colonel.testPlanMode": {
     "text": "Mode de prova de pla"
@@ -213,7 +213,7 @@
     "text": "Selecciona un pla per provar"
   },
   "web.colonel.resetToActual": {
-    "text": "Restableix al pla actual"
+    "text": "Restablir al pla actual"
   },
   "web.colonel.currentActualPlan": {
     "text": "Pla actual"
@@ -222,13 +222,13 @@
     "text": "Plans disponibles"
   },
   "web.colonel.activateTestMode": {
-    "text": "Activa el mode de prova"
+    "text": "Activar mode de prova"
   },
   "web.colonel.testModeActive": {
     "text": "Mode de prova actiu"
   },
   "web.colonel.testModeDescription": {
-    "text": "Prova la teva aplicació amb diferents drets de pla. Els canvis són temporals i només afecten la teva sessió."
+    "text": "Prova la teva aplicació amb diferents drets de pla. Els canvis són temporals i afecten només la teva sessió."
   },
   "web.colonel.warningTestMode": {
     "text": "Estàs provant amb els drets de {planName} (substitució temporal de sessió)."
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Enviant..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "IPs prohibides"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Gestionar llista de prohibició d'IP"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Dominis personalitzats"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Gestionar dominis personalitzats i marca"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Enviar comentaris"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Enviant..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quan enviïs comentaris, veurem:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organitzacions"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Supervisar la salut de sincronització de facturació d'organitzacions"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Monitor de salut de facturació"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organitzacions"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} requereixen atenció"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} desconegudes"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "No s'han trobat organitzacions"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Investigar"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Comprovant..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Compte"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Facturació"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Estat"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Ús"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Creat"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Detalls"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Propietari"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Pla"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Membres"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Dominis"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Subscripció"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Espai de treball predeterminat"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Té facturació"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Client"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Subscripció"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID d'organització"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Estat de sincronització"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Subscripció"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Tot"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potencialment obsolet"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Desconegut"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Sincronitzat"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Actiu"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "En prova"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Vençut"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Cancel·lat"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Investigació fallida"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Resultat de la investigació"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Sincronització verificada"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Discrepància trobada"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "No es pot comparar"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Detalls de la subscripció de Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Estat"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Producte"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Pla resolt"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID de preu"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Local"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Administració de facturació d'organitzacions"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Gestionar organitzacions i supervisar la salut de sincronització de facturació ({total} total)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "No s'han trobat organitzacions"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potencialment obsolet"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Obsolet"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Desconegut"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "actiu"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} membres"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} dominis"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Secrets"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Veure i gestionar tots els secrets"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Sistema"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Configuració del sistema, bases de dades i configuració"
+  },
+  "web.colonel.titles.index": {
+    "text": "Administració"
+  },
+  "web.colonel.titles.users": {
+    "text": "Gestió d'usuaris"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Gestió de secrets"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Dominis personalitzats"
+  },
+  "web.colonel.titles.system": {
+    "text": "Sistema"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Base de dades principal"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Base de dades d'autenticació"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "IPs prohibides"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Exportació d'ús"
+  },
+  "web.colonel.titles.info": {
+    "text": "Informació del sistema"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organitzacions"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Exportació d'ús"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Exportar dades d'ús i estadístiques"
   }
 }

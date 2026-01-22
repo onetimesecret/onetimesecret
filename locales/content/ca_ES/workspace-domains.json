@@ -1,24 +1,24 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Més informació sobre la configuració de DNS"
+    "text": "Més informació sobre la configuració DNS"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Mostra l'estat de verificació del domini"
+    "text": "Veure l'estat de verificació del domini"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Aquest domini ja està registrat a la teva organització"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Aquest domini ja està registrat a una altra organització. Contacta amb l'assistència tècnica si creus que això és un error."
+    "text": "Aquest domini ja està registrat a una altra organització. Contacta amb el suport si creus que és un error."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domini reclamat i afegit correctament a la teva organització"
+    "text": "Domini reclamat correctament i afegit a la teva organització"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Valors predeterminats de privadesa"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Configura les opcions de privadesa predeterminades per als secrets creats sota aquest domini. Aquests paràmetres s'emplenaran prèviament en crear secrets nous."
+    "text": "Estableix les opcions de privadesa predeterminades per als secrets creats sota aquest domini. Aquestes configuracions s'ompliran prèviament en crear nous secrets."
   },
   "web.domains.privacy_defaults": {
     "text": "Valors predeterminats de privadesa"
@@ -30,22 +30,22 @@
     "text": "Temps de vida predeterminat"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Quant temps haurien de romandre accessibles els secrets per defecte"
+    "text": "Quant de temps han d'estar accessibles els secrets per defecte"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Requereix frase de contrasenya"
+    "text": "Requerir frase de contrasenya"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Fes obligatòria la frase de contrasenya per a tots els secrets d'aquest domini"
+    "text": "Fer obligatòria la frase de contrasenya per a tots els secrets d'aquest domini"
   },
   "web.domains.notify_enabled_label": {
-    "text": "Activa les notificacions"
+    "text": "Activar notificacions"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Activa les notificacions per correu electrònic per defecte quan es visualitzen els secrets"
+    "text": "Activar les notificacions per correu electrònic per defecte quan es visualitzen els secrets"
   },
   "web.domains.use_global_default": {
-    "text": "Utilitza el valor global predeterminat"
+    "text": "Utilitzar valor predeterminat global"
   },
   "web.domains.global_default": {
     "text": "Global"
@@ -66,7 +66,7 @@
     "text": "Personalitzat"
   },
   "web.domains.edit_defaults": {
-    "text": "Edita els valors predeterminats"
+    "text": "Editar valors predeterminats"
   },
   "web.domains.ttl_short": {
     "text": "TTL"
@@ -78,7 +78,7 @@
     "text": "Notificacions"
   },
   "web.domains.scope_switch_label": {
-    "text": "Canvia l'àmbit del domini"
+    "text": "Canviar l'àmbit del domini"
   },
   "web.domains.switcher_locked": {
     "text": "El canvi de domini no està disponible en aquesta pàgina"
@@ -90,25 +90,25 @@
     "text": "Dominis"
   },
   "web.domains.add_domain": {
-    "text": "Afegeix un domini"
+    "text": "Afegir domini"
   },
   "web.domains.domain_settings": {
     "text": "Configuració del domini"
   },
   "web.domains.canonical_no_settings": {
-    "text": "El domini per defecte no té pàgina de configuració"
+    "text": "El domini predeterminat no té pàgina de configuració"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "Introdueix un nom de domini {0}"
   },
   "web.domains.domain_name": {
-    "text": "Nom de domini"
+    "text": "Nom del domini"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
     "text": "Controla si els usuaris poden crear enllaços de secrets des de la pàgina inicial del teu domini"
   },
   "web.domains.homepage_access": {
-    "text": "Accés a la pàgina inicial"
+    "text": "Accés a la pàgina d'inici"
   },
   "web.domains.and_status": {
     "text": "i estat"
@@ -129,7 +129,7 @@
     "text": "Estat SSL"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL es renova"
+    "text": "Renovació SSL"
   },
   "web.domains.dns_record": {
     "text": "Registre DNS"
@@ -147,19 +147,19 @@
     "text": "Domini personalitzat"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Obre el domini en una pestanya nova"
+    "text": "Obrir domini en una pestanya nova"
   },
   "web.domains.back_to_domains": {
-    "text": "Torna als dominis"
+    "text": "Tornar als dominis"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Torna a la llista de dominis"
+    "text": "Tornar a la llista de dominis"
   },
   "web.domains.verify_domain": {
-    "text": "Verifica el domini"
+    "text": "Verificar domini"
   },
   "web.domains.manage_brand": {
-    "text": "Gestiona la marca"
+    "text": "Gestionar marca"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
     "text": "Afegit {0}"
@@ -174,7 +174,7 @@
     "text": "No s'han trobat dominis."
   },
   "web.domains.loading_domain_information": {
-    "text": "Carregant la informació del domini..."
+    "text": "Carregant informació del domini..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Per connectar el teu domini, hauràs de tenir un registre CNAME al teu DNS que apunti"
@@ -195,7 +195,7 @@
     "text": "Abans que puguem activar els enllaços per a"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Tingues en compte que per als dominis apex (p. ex.,"
+    "text": "Tingues en compte que per als dominis arrel (p. ex.,"
   },
   "web.domains.verify_your_domain": {
     "text": "Verifica el teu domini"
@@ -213,7 +213,7 @@
     "text": "Els canvis de DNS poden trigar tan poc com 60 segons -- o fins a 24 hores -- a entrar en vigor."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Espera la propagació"
+    "text": "3. Esperar la propagació"
   },
   "web.domains.value_2": {
     "text": "Valor"
@@ -231,7 +231,7 @@
     "text": "Tipus"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Crea el registre CNAME"
+    "text": "2. Crear el registre CNAME"
   },
   "web.domains.value_0": {
     "text": "Valor"
@@ -243,13 +243,13 @@
     "text": "Tipus"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Crea el registre A"
+    "text": "2. Crear el registre A"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
     "text": "Afegeix aquest nom d'host a la teva configuració de DNS:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Crea un registre TXT"
+    "text": "1. Crear un registre TXT"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Segueix aquests passos per verificar la propietat del domini i elevar la teva presència en línia:"
@@ -264,7 +264,7 @@
     "text": "Estàs segur que vols eliminar aquest domini? Aquesta acció no es pot desfer."
   },
   "web.domains.remove_domain": {
-    "text": "Elimina el domini"
+    "text": "Eliminar domini"
   },
   "web.domains.domain_removed_successfully": {
     "text": "Domini eliminat correctament"
@@ -274,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "Domini afegit correctament"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Protegit"
+  },
+  "web.domains.manage_domains": {
+    "text": "Gestionar dominis"
+  },
+  "web.domains.global_defaults": {
+    "text": "Valors predeterminats globals"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Editar configuració de temps de vida"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Editar requisit de frase de contrasenya"
+  },
+  "web.domains.edit_notify": {
+    "text": "Editar configuració de notificacions"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Configurar registres DNS"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Utilitza l'eina de sota per detectar automàticament el teu proveïdor de DNS i obtenir instruccions pas a pas per configurar el teu domini."
   }
 }

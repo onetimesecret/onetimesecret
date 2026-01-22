@@ -1,9 +1,9 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Cal actualitzar"
+    "text": "Es requereix millora"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Mostra els plans"
+    "text": "Veure plans"
   },
   "web.billing.upgrade.needTeams": {
     "text": "La gestió d'equips requereix Identity Plus o superior"
@@ -12,7 +12,7 @@
     "text": "Els dominis personalitzats requereixen Identity Plus o superior"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "L'accés a l'API requereix el pla Multi-Team o superior"
+    "text": "L'accés a l'API requereix Identity Plus o superior"
   },
   "web.billing.upgrade.needAuditLogs": {
     "text": "Els registres d'auditoria requereixen el pla Multi-Team o superior"
@@ -24,7 +24,7 @@
     "text": "Resum de facturació"
   },
   "web.billing.overview.description": {
-    "text": "Visualitza i gestiona els detalls de la teva subscripció i pagament"
+    "text": "Consulta i gestiona la teva subscripció i els detalls de pagament"
   },
   "web.billing.overview.organization_selector": {
     "text": "Selecciona una organització"
@@ -39,28 +39,28 @@
     "text": "Mètode de pagament"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Data de facturació següent"
+    "text": "Pròxima data de facturació"
   },
   "web.billing.overview.quick_actions": {
     "text": "Accions ràpides"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Gestiona la facturació"
+    "text": "Gestionar facturació"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Mostra les factures"
+    "text": "Veure factures"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Actualitza el pla"
+    "text": "Millorar pla"
   },
   "web.billing.overview.change_plan": {
-    "text": "Canvia el pla"
+    "text": "Canviar pla"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "No hi ha cap mètode de pagament registrat"
+    "text": "Cap mètode de pagament registrat"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "No hi ha facturació pròxima"
+    "text": "Sense facturació propera"
   },
   "web.billing.overview.days_remaining": {
     "text": "dies restants"
@@ -69,31 +69,31 @@
     "text": "Facturació el {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Mostra els plans"
+    "text": "Veure plans"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Compara i actualitza"
+    "text": "Comparar i millorar"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Mostra les factures"
+    "text": "Veure factures"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Descarrega l'historial"
+    "text": "Descarregar historial"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Gestiona la facturació"
+    "text": "Gestionar facturació"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Actualitza la informació de pagament"
+    "text": "Actualitzar informació de pagament"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "No hi ha organitzacions"
+    "text": "Sense organitzacions"
   },
   "web.billing.overview.no_organizations_description": {
     "text": "Crea una organització per gestionar la teva facturació i subscripció"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Crea secrets"
+    "text": "Crear secrets"
   },
   "web.billing.overview.entitlements.view_receipt": {
     "text": "Veure rebuts"
@@ -108,37 +108,37 @@
     "text": "Valors predeterminats de privadesa personalitzats"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Caducitat predeterminada ampliada"
+    "text": "Expiració predeterminada ampliada"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Valors predeterminats de correu personalitzats"
+    "text": "Valors predeterminats de correu personalitzat"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "Marca personalitzada"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Pàgina inicial amb marca"
+    "text": "Pàgina d'inici amb marca"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Secrets entrants"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Gestiona les organitzacions"
+    "text": "Gestionar organitzacions"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Gestiona els equips"
+    "text": "Gestionar equips"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Gestiona els membres"
+    "text": "Gestionar membres"
   },
   "web.billing.overview.entitlements.audit_logs": {
     "text": "Registres d'auditoria"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On"
+    "text": "Inici de sessió únic"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Assistència prioritària"
+    "text": "Suport prioritari"
   },
   "web.billing.overview.entitlements.sla": {
     "text": "Acord de nivell de servei"
@@ -147,7 +147,7 @@
     "text": "No s'han pogut carregar els detalls de les funcions"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "No hi ha funcions disponibles"
+    "text": "Cap funció disponible"
   },
   "web.billing.plans.title": {
     "text": "Selecciona un pla"
@@ -156,7 +156,7 @@
     "text": "Tria el pla que s'adapti a les teves necessitats"
   },
   "web.billing.plans.subtitle": {
-    "text": "Trieu el pla perfecte per a la vostra organització"
+    "text": "Tria el pla perfecte per a la teva organització"
   },
   "web.billing.plans.current": {
     "text": "Pla actual"
@@ -165,10 +165,10 @@
     "text": "Actual"
   },
   "web.billing.plans.upgrade": {
-    "text": "Actualitza"
+    "text": "Millorar"
   },
   "web.billing.plans.downgrade": {
-    "text": "Baixa de categoria"
+    "text": "Rebaixar"
   },
   "web.billing.plans.monthly": {
     "text": "Mensual"
@@ -177,10 +177,10 @@
     "text": "Anual"
   },
   "web.billing.plans.per_month": {
-    "text": "al mes"
+    "text": "/mes"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Estalvia un {percent}% amb la facturació anual"
+    "text": "Estalvia un {percent}% amb facturació anual"
   },
   "web.billing.plans.free_plan": {
     "text": "Gratuït"
@@ -189,7 +189,7 @@
     "text": "Equip únic"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Equips múltiples"
+    "text": "Múltiples equips"
   },
   "web.billing.plans.individual_account": {
     "text": "Compte individual"
@@ -210,19 +210,19 @@
     "text": "Accés a l'API"
   },
   "web.billing.plans.priority_support": {
-    "text": "Assistència prioritària"
+    "text": "Suport prioritari"
   },
   "web.billing.plans.select_plan": {
-    "text": "Selecciona el pla"
+    "text": "Seleccionar pla"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Contacta amb vendes"
+    "text": "Contactar vendes"
   },
   "web.billing.plans.custom_needs_title": {
     "text": "Tens preguntes o necessites alguna cosa personalitzada?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Ens encantaria saber de tu. Fes-nos saber què busques."
+    "text": "Ens encantaria saber de tu. Fes-nos saber què estàs buscant."
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} equip | {count} equips"
@@ -240,16 +240,16 @@
     "text": "Més popular"
   },
   "web.billing.plans.suggested": {
-    "text": "Recomanat"
+    "text": "Suggerit"
   },
   "web.billing.plans.everything_in": {
-    "text": "Tot el que inclou {plan}, més:"
+    "text": "Inclou tot de {plan}"
   },
   "web.billing.plans.no_plans_available": {
     "text": "No hi ha plans {interval} disponibles en aquest moment."
   },
   "web.billing.plans.change_immediate": {
-    "text": "El vostre pla canviarà immediatament."
+    "text": "El teu pla canviarà immediatament."
   },
   "web.billing.plans.current_plan_label": {
     "text": "Pla actual:"
@@ -258,34 +258,34 @@
     "text": "Pla nou:"
   },
   "web.billing.plans.credit_label": {
-    "text": "Crèdit per temps no utilitzat:"
+    "text": "Crèdit pel temps no utilitzat:"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Propera factura"
+    "text": "Pròxima factura"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Els vostres límits de funcions s'actualitzaran immediatament després del canvi de pla."
+    "text": "Els límits de les teves funcions s'actualitzaran immediatament després del canvi de pla."
   },
   "web.billing.plans.change_failed": {
-    "text": "El canvi de pla ha fallat. Si us plau, torneu-ho a provar."
+    "text": "El canvi de pla ha fallat. Torna-ho a provar."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Confirmar actualització"
+    "text": "Confirmar millora"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Confirmar reducció"
+    "text": "Confirmar rebaixament"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Actualitza a {plan}"
+    "text": "Millorar a {plan}?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Reduir a {plan}?"
+    "text": "Rebaixar a {plan}?"
   },
   "web.billing.invoices.title": {
     "text": "Historial de facturació"
   },
   "web.billing.invoices.view_history": {
-    "text": "Visualitza l'historial de facturació i descarrega les factures"
+    "text": "Consulta el teu historial de facturació i descarrega les factures"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Data"
@@ -297,7 +297,7 @@
     "text": "Estat"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Descarrega"
+    "text": "Descarregar"
   },
   "web.billing.invoices.no_invoices": {
     "text": "Encara no hi ha factures"
@@ -309,22 +309,22 @@
     "text": "Pendent"
   },
   "web.billing.invoices.failed": {
-    "text": "Fallit"
+    "text": "Fallat"
   },
   "web.billing.invoices.load_error": {
     "text": "No s'han pogut carregar les factures"
   },
   "web.billing.notices.org_managed": {
-    "text": "La facturació d'aquest equip és gestionada per {orgName}"
+    "text": "La facturació és gestionada per {orgName}"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Mostra la facturació de l'organització"
+    "text": "Veure la facturació de l'organització"
   },
   "web.billing.limits.members_reached": {
-    "text": "Has arribat al límit de membres d'aquest equip"
+    "text": "Has arribat al límit de membres per a aquest equip"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Actualitza per afegir més membres"
+    "text": "Millora per afegir més membres"
   },
   "web.billing.subscription.title": {
     "text": "Subscripció"
@@ -333,16 +333,16 @@
     "text": "Estat de la subscripció"
   },
   "web.billing.subscription.active": {
-    "text": "Activa"
+    "text": "Actiu"
   },
   "web.billing.subscription.inactive": {
-    "text": "Inactiva"
+    "text": "Inactiu"
   },
   "web.billing.subscription.past_due": {
-    "text": "Vençuda"
+    "text": "Vençut"
   },
   "web.billing.subscription.canceled": {
-    "text": "Cancel·lada"
+    "text": "Cancel·lat"
   },
   "web.billing.subscription.catalog_name": {
     "text": "Pla"
@@ -354,7 +354,7 @@
     "text": "Gestiona la teva subscripció, mètodes de pagament i historial de facturació"
   },
   "web.billing.portal.open_portal": {
-    "text": "Obre el portal de facturació"
+    "text": "Obrir el portal de facturació"
   },
   "web.billing.portal.redirecting": {
     "text": "Redirigint al portal de facturació..."
@@ -384,31 +384,31 @@
     "text": "Potser més tard"
   },
   "web.billing.upgrade_account": {
-    "text": "Actualitza el compte"
+    "text": "Millorar el compte"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Actualitza a Identity Plus"
+    "text": "Millorar a Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Actualitza per a equips"
+    "text": "Millorar per a equips"
   },
   "web.billing.benefits_of": {
-    "text": "Beneficis de"
+    "text": "Avantatges de"
   },
   "web.billing.t_benefits_of_identity_plus": {
     "text": "{0}: Identity Plus"
   },
   "web.billing.upgrade_to": {
-    "text": "Actualitza a"
+    "text": "Millorar a"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Actualitza per a secrets.elteudomain.com"
+    "text": "Millorar per a secrets.elteudomini.com"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Tots els plans inclouen funcions de privadesa i capacitat de compartició il·limitada"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Tots els plans inclouen opcions de localitat de dades: {0} regions"
+    "text": "Tots els plans inclouen l'elecció de localització de dades: {0} regions"
   },
   "web.billing.get_started": {
     "text": "Comença"
@@ -430,5 +430,194 @@
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "No s'ha trobat el nivell d'identitat als nivells de producte"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Cancel·lar la subscripció"
+  },
+  "web.billing.cancel.title": {
+    "text": "Cancel·lar la subscripció"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Estàs segur que vols cancel·lar la teva subscripció {plan}?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Què passa quan cancel·les:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Mantindràs l'accés a totes les funcions fins a {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Mantindràs l'accés fins que finalitzi el teu període de facturació actual"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "No se't tornarà a cobrar"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "El teu compte tornarà al pla gratuït"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Mantenir la subscripció"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Cancel·lar la subscripció"
+  },
+  "web.billing.cancel.success": {
+    "text": "La teva subscripció s'ha cancel·lat. Mantindràs l'accés fins al final del teu període de facturació."
+  },
+  "web.billing.cancel.error": {
+    "text": "No s'ha pogut cancel·lar la subscripció. Torna-ho a provar."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Cancel·lació de subscripció programada"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "La teva subscripció romandrà activa fins a {date}. Continuaràs tenint accés complet a totes les funcions fins aleshores."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Has canviat d'opinió? Pots reactivar la teva subscripció en qualsevol moment abans de la data de cancel·lació."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Crear i compartir secrets"
+  },
+  "web.billing.features.api_access": {
+    "text": "Accés a l'API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Dominis personalitzats"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 domini personalitzat"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Dominis personalitzats il·limitats"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Marca personalitzada"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Pàgina d'inici amb marca"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Gestió d'equips"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Gestió de membres"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Registres d'auditoria"
+  },
+  "web.billing.features.sso": {
+    "text": "Inici de sessió únic (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Suport prioritari"
+  },
+  "web.billing.features.sla": {
+    "text": "Acord de nivell de servei"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Facturació centralitzada"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Traça d'auditoria"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Flux d'activitat"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Fluxos de treball de traspàs"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "Retenció de secrets de 30 dies"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Secrets a la pàgina d'inici"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Secrets entrants"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Fins a 5 membres de l'equip"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Fins a 10 membres de l'equip"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Fins a 25 membres de l'equip"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Fins a 50 membres de l'equip"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Membres de l'equip il·limitats"
+  },
+  "web.billing.features.notifications": {
+    "text": "Notificacions per correu electrònic"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "Regles d'accés per IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Marca de l'espai de treball"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Infraestructura dedicada"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Fluxos de treball compartits"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Facturació per a aquesta organització"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "El teu pla s'ha millorat correctament"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "El teu nou pla ja està actiu. Gràcies per la teva compra."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Contacte de facturació"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Secrets a la pàgina d'inici"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Notificacions per correu electrònic"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Regles d'accés per IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Marca de l'espai de treball"
+  },
+  "web.billing.plans.due_today": {
+    "text": "A pagar avui:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Pròxima facturació ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Com s'aplica el teu crèdit:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Import de la pròxima factura:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Crèdit aplicat:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Import a pagar a la pròxima facturació:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Crèdit restant del compte:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Aplicat a futures factures"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Ús de l'equip"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} de {limit} equips"
   }
 }

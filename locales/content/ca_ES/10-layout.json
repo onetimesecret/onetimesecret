@@ -6,7 +6,7 @@
     "text": "Guia de marca"
   },
   "web.footer.customize": {
-    "text": "Personalitza"
+    "text": "Personalitzar"
   },
   "web.footer.plans": {
     "text": "Plans"
@@ -15,7 +15,7 @@
     "text": "Seguretat"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Més informació sobre les nostres mesures de seguretat"
+    "text": "Coneix les nostres mesures de seguretat"
   },
   "web.footer.view_our_terms_and_conditions": {
     "text": "Consulta els nostres termes i condicions"
@@ -30,10 +30,10 @@
     "text": "Contacte"
   },
   "web.footer.support": {
-    "text": "Assistència"
+    "text": "Suport"
   },
   "web.footer.legals": {
-    "text": "Aspectes legals"
+    "text": "Legals"
   },
   "web.footer.read_our_privacy_policy": {
     "text": "Llegeix la nostra política de privadesa"
@@ -42,7 +42,7 @@
     "text": "Comprova l'estat del nostre servei"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Explora la nostra documentació de l'API"
+    "text": "Explora la documentació de la nostra API"
   },
   "web.footer.docs": {
     "text": "Documentació"
@@ -51,7 +51,7 @@
     "text": "Accedeix a la nostra documentació"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Visualitza el nostre codi font a GitHub"
+    "text": "Consulta el nostre codi font a GitHub"
   },
   "web.footer.resources": {
     "text": "Recursos"
@@ -60,13 +60,13 @@
     "text": "Blog"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Llegeix les nostres últimes entrades del blog"
+    "text": "Llegeix les nostres últimes publicacions del blog"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Consulta els nostres preus de subscripció"
+    "text": "Consulta els preus de subscripció"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Més informació sobre la nostra empresa"
+    "text": "Coneix la nostra empresa"
   },
   "web.footer.company": {
     "text": "Empresa"
@@ -75,7 +75,7 @@
     "text": "Facturació"
   },
   "web.navigation.billingOverview": {
-    "text": "Resum"
+    "text": "Visió general"
   },
   "web.navigation.organizations": {
     "text": "Organitzacions"
@@ -90,7 +90,7 @@
     "text": "Les traduccions són noves. Has detectat un error? {send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Recentment hem afegit traduccions. Has detectat un error? {send-feedback}"
+    "text": "Hem afegit traduccions recentment. Has detectat un error? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "La privadesa i la seguretat han de ser accessibles per a tothom, independentment de l'idioma. Estem afegint traduccions per ajudar tant els nostres usuaris com els destinataris dels seus missatges a entendre millor com utilitzar i accedir de manera segura als missatges i enllaços segurs. Com que aquesta és una funció nova, és possible que trobis alguns errors de traducció o instruccions poc clares. Per ajudar-nos a millorar la claredat i la precisió de les nostres traduccions, especialment per al contingut crític relacionat amb la seguretat, {send-feedback} si detectes algun problema"
@@ -102,40 +102,40 @@
     "text": "Què estic veient?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Estàs visualitzant un missatge segur que s'ha compartit amb tu a través d'Onetime Secret. Aquest contingut es mostra només una vegada i després se suprimeix permanentment dels nostres servidors."
+    "text": "Estàs veient un missatge segur que s'ha compartit amb tu a través d'Onetime Secret. Aquest contingut es mostra només una vegada i després s'elimina permanentment dels nostres servidors."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Puc tornar a veure aquest secret més tard?"
+    "text": "Puc veure aquest secret més tard?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "No. Per motius de seguretat, aquest secret només es pot visualitzar una vegada. Després de tancar aquesta pàgina, el contingut se suprimirà permanentment i ningú el podrà recuperar, ni tan sols nosaltres."
+    "text": "No. Per motius de seguretat, aquest secret només es pot veure una vegada. Després de tancar aquesta pàgina, el contingut s'eliminarà permanentment i ningú el podrà recuperar, ni nosaltres mateixos."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
     "text": "Com puc desar aquesta informació?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Utilitza el botó 'Copia al porta-retalls' per copiar el secret complet. Per a secrets més llargs, assegura't de verificar que has copiat el contingut complet abans de sortir d'aquesta pàgina."
+    "text": "Utilitza el botó 'Copiar al porta-retalls' per copiar tot el secret. Per a secrets més llargs, assegura't de verificar que has copiat el contingut complet abans de sortir d'aquesta pàgina."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
     "text": "Es fa un seguiment de la meva visualització d'aquest secret?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "El remitent serà notificat que el seu secret s'ha visualitzat, però no fem un seguiment de qui l'ha visualitzat ni des d'on. La teva privadesa està protegida."
+    "text": "El remitent rebrà una notificació que el seu secret s'ha visualitzat, però no fem un seguiment de qui l'ha vist ni des d'on. La teva privadesa està protegida."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Una vegada que sortis o actualitzis aquesta pàgina, aquest secret se suprimirà permanentment i ningú el podrà recuperar."
+    "text": "Un cop surtis o refresquis aquesta pàgina, aquest secret s'eliminarà permanentment i ningú el podrà recuperar."
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Torna a la pàgina anterior"
+    "text": "Tornar a la pàgina anterior"
   },
   "web.layout.site_footer": {
-    "text": "Peu del lloc"
+    "text": "Peu de pàgina"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Commuta el mode fosc"
+    "text": "Canviar mode fosc"
   },
   "web.layout.provide_feedback": {
-    "text": "Proporciona comentaris"
+    "text": "Enviar comentaris"
   },
   "web.layout.company_logo": {
     "text": "Logotip de l'empresa"
@@ -159,13 +159,13 @@
     "text": "Notes de la versió"
   },
   "web.layout.loading_settings_content": {
-    "text": "Carregant el contingut de la configuració..."
+    "text": "Carregant contingut de configuració..."
   },
   "web.layout.settings_sections_0": {
     "text": "Seccions de configuració"
   },
   "web.layout.close_settings": {
-    "text": "Tanca la configuració"
+    "text": "Tancar configuració"
   },
   "web.layout.settings_sections": {
     "text": "Seccions de configuració"
@@ -174,25 +174,25 @@
     "text": "Personalitza les preferències i la configuració de la teva aplicació"
   },
   "web.layout.return_home": {
-    "text": "Torna a casa"
+    "text": "Tornar a l'inici"
   },
   "web.layout.return_to_home_page": {
-    "text": "Torna a la pàgina inicial"
+    "text": "Tornar a la pàgina d'inici"
   },
   "web.layout.return_to_home": {
-    "text": "Torna a la pàgina inicial"
+    "text": "Tornar a l'inici"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Consulta la política de privadesa"
+    "text": "Veure política de privadesa"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Consulta els termes del servei"
+    "text": "Veure termes del servei"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visita la pàgina inicial d'Onetime Secret"
+    "text": "Visitar la pàgina d'inici d'Onetime Secret"
   },
   "web.layout.footer_navigation": {
-    "text": "Navegació del peu"
+    "text": "Navegació del peu de pàgina"
   },
   "web.layout.terms_of_service": {
     "text": "Termes del servei"
@@ -219,19 +219,19 @@
     "text": "Font Awesome 6"
   },
   "web.layout.view_source_on_github": {
-    "text": "Visualitza el codi font a GitHub"
+    "text": "Veure codi font a GitHub"
   },
   "web.layout.website_version_v_ot_version": {
     "text": "Versió del lloc web: v{0}"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Canvia l'idioma. L'idioma actual és {0}"
+    "text": "Canviar idioma. L'idioma actual és {0}"
   },
   "web.layout.language_changed_to_newlocale": {
     "text": "Idioma canviat a {0}"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Canvia al mode {0}"
+    "text": "Canviar a mode {0}"
   },
   "web.layout.blank_mode_enabled": {
     "text": "Mode {0} activat"
@@ -241,5 +241,11 @@
   },
   "web.layout.workspace_context": {
     "text": "Context de l'espai de treball"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quan enviïs comentaris, veurem:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Restablir a {0}"
   }
 }

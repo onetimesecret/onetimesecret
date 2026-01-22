@@ -3,13 +3,13 @@
     "text": "Necessites un compte?"
   },
   "web.login.need_an_account": {
-    "text": "Et cal un compte?"
+    "text": "Registra't."
   },
   "web.login.forgot_your_password": {
     "text": "Has oblidat la contrasenya?"
   },
   "web.login.button_sign_in": {
-    "text": "Inicia sessió"
+    "text": "Iniciar sessió"
   },
   "web.login.enter_your_credentials": {
     "text": "Introdueix les teves credencials"
@@ -27,7 +27,7 @@
     "text": "Inicia sessió."
   },
   "web.signup.error_title": {
-    "text": "Error de creació de compte"
+    "text": "Error en la creació del compte"
   },
   "web.signup.password_error": {
     "text": "Contrasenya"
@@ -36,7 +36,7 @@
     "text": "Correu electrònic"
   },
   "web.auth.verify.title": {
-    "text": "Verifica el teu compte"
+    "text": "Verificar el teu compte"
   },
   "web.auth.verify.success": {
     "text": "El teu compte s'ha verificat correctament"
@@ -45,16 +45,16 @@
     "text": "Clau de verificació no vàlida o caducada"
   },
   "web.auth.verify.expired_key": {
-    "text": "Aquest enllaç de verificació ha caducat. Sol·licita'n un de nou."
+    "text": "Aquest enllaç de verificació ha caducat. Si us plau, sol·licita'n un de nou."
   },
   "web.auth.verify.already_verified": {
-    "text": "Aquest compte ja s'ha verificat. Ara pots iniciar sessió."
+    "text": "Aquest compte ja ha estat verificat. Ara pots iniciar sessió."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "No es pot verificar el compte. Torna-ho a provar o contacta amb l'assistència tècnica."
+    "text": "No s'ha pogut verificar el compte. Torna-ho a provar o contacta amb el suport."
   },
   "web.auth.verify.check_email": {
-    "text": "Comprova el teu correu electrònic per trobar un enllaç de verificació"
+    "text": "Comprova el teu correu electrònic per trobar l'enllaç de verificació"
   },
   "web.auth.verify.error": {
     "text": "La verificació del compte ha fallat. Comprova l'enllaç de verificació o sol·licita'n un de nou."
@@ -69,22 +69,22 @@
     "text": "Comprova el teu correu electrònic per trobar l'enllaç de verificació més recent"
   },
   "web.auth.verify.check_spam": {
-    "text": "Comprova la teva carpeta de correu brossa si no trobes el correu electrònic"
+    "text": "Comprova la carpeta de correu brossa si no pots trobar el correu"
   },
   "web.auth.verify.contact_support": {
-    "text": "Contacta amb l'assistència tècnica si continues tenint problemes"
+    "text": "Contacta amb el suport si continues tenint problemes"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Cal enllaç de verificació"
+    "text": "Es requereix l'enllaç de verificació"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Utilitza l'enllaç de verificació enviat a la teva adreça de correu electrònic per verificar el teu compte."
+    "text": "Si us plau, utilitza l'enllaç de verificació enviat a la teva adreça de correu electrònic per verificar el teu compte."
   },
   "web.auth.verify.create_new_account": {
-    "text": "Crea un compte nou"
+    "text": "Crear un compte nou"
   },
   "web.auth.change_password.title": {
-    "text": "Canvia la contrasenya"
+    "text": "Canviar la contrasenya"
   },
   "web.auth.change_password.current_password": {
     "text": "Contrasenya actual"
@@ -93,19 +93,19 @@
     "text": "Contrasenya nova"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Confirma la contrasenya nova"
+    "text": "Confirmar la contrasenya nova"
   },
   "web.auth.change_password.success": {
     "text": "La teva contrasenya s'ha canviat correctament"
   },
   "web.auth.change_password.error": {
-    "text": "El canvi de contrasenya ha fallat. Verifica la teva contrasenya actual i torna-ho a provar."
+    "text": "No s'ha pogut canviar la contrasenya. Verifica la teva contrasenya actual i torna-ho a provar."
   },
   "web.auth.close_account.title": {
-    "text": "Tanca el compte"
+    "text": "Tancar el compte"
   },
   "web.auth.close_account.warning": {
-    "text": "Aquesta acció no es pot desfer. Tots els teus secrets se suprimiran permanentment."
+    "text": "Aquesta acció no es pot desfer. Tots els teus secrets s'eliminaran permanentment."
   },
   "web.auth.close_account.confirm": {
     "text": "Entenc que aquesta acció és permanent"
@@ -114,28 +114,28 @@
     "text": "Introdueix la teva contrasenya per confirmar"
   },
   "web.auth.close_account.button": {
-    "text": "Tanca el compte permanentment"
+    "text": "Tancar el compte permanentment"
   },
   "web.auth.close_account.cancel": {
-    "text": "Cancel·la"
+    "text": "Cancel·lar"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Sol·licita el restabliment de contrasenya"
+    "text": "Sol·licitar restabliment de contrasenya"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Introdueix la teva adreça de correu electrònic a sota i t'enviarem un enllaç per restablir la contrasenya"
+    "text": "Introdueix la teva adreça de correu electrònic a continuació i t'enviarem un enllaç per restablir la teva contrasenya"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Envia l'enllaç de restabliment"
+    "text": "Enviar l'enllaç de restabliment"
   },
   "web.auth.password_reset.title": {
     "text": "Tria una contrasenya nova"
   },
   "web.auth.password_reset.description": {
-    "text": "Introdueix la teva contrasenya nova a sota. Assegura't que sigui forta i única per protegir el teu compte."
+    "text": "Introdueix la teva contrasenya nova a continuació. Assegura't que sigui forta i única per protegir el teu compte."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Se t'ha enviat un correu electrònic amb un enllaç per restablir la contrasenya del teu compte"
+    "text": "S'ha enviat un correu electrònic amb un enllaç per restablir la contrasenya del teu compte"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Accepto els"
@@ -159,36 +159,111 @@
     "text": "Correu electrònic no verificat"
   },
   "web.auth.account.verify_email": {
-    "text": "Verifica l'adreça de correu electrònic"
+    "text": "Verificar adreça de correu electrònic"
   },
   "web.auth.account.mfa_status": {
     "text": "Autenticació de dos factors"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Activada"
+    "text": "Activat"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Desactivada"
+    "text": "Desactivat"
   },
   "web.auth.account.active_sessions": {
     "text": "Sessions actives"
   },
   "web.auth.account.session_count": {
-    "text": "{count} sessió(s) activa(es)"
+    "text": "{count} sessió(ns) activa(es)"
   },
   "web.auth.account.quick_actions": {
     "text": "Accions ràpides"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Gestiona l'autenticació de dos factors"
+    "text": "Gestionar autenticació de dos factors"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Gestiona les sessions actives"
+    "text": "Gestionar sessions actives"
   },
   "web.auth.account.change_password": {
-    "text": "Canvia la contrasenya"
+    "text": "Canviar contrasenya"
   },
   "web.auth.account.close_account": {
-    "text": "Tanca el compte"
+    "text": "Tancar compte"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Flux de verificació de correu electrònic després del registre"
+  },
+  "web.help.title": {
+    "text": "Ajuda i suport"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Resolució de problemes d'inici de sessió"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "No arriba l'enllaç màgic?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Comprova la carpeta de correu brossa"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Verifica que has introduït correctament la teva adreça de correu electrònic"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Espera uns minuts - els correus electrònics de vegades es retarden"
+  },
+  "web.help.try_again": {
+    "text": "Prova de sol·licitar un nou enllaç si han passat més de 10 minuts"
+  },
+  "web.help.forgot_password": {
+    "text": "Has oblidat la contrasenya?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Utilitza l'opció d'enllaç màgic per iniciar sessió sense contrasenya. Un cop hagis iniciat sessió, pots canviar la contrasenya a la configuració del compte."
+  },
+  "web.help.account_locked": {
+    "text": "Compte bloquejat temporalment?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Després de diversos intents d'inici de sessió fallits, els comptes es bloquegen temporalment per seguretat. Espera 15 minuts i torna-ho a provar, o utilitza l'enllaç màgic per iniciar sessió."
+  },
+  "web.help.still_need_help": {
+    "text": "Encara necessites ajuda?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Si encara tens problemes, estem aquí per ajudar-te. Envia'ns un missatge i et respondrem el més aviat possible."
+  },
+  "web.help.contact_support": {
+    "text": "Contactar amb el suport"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Enviar enllaç d'inici de sessió"
+  },
+  "web.login.secure_link_helper": {
+    "text": "S'enviarà un enllaç segur a la teva bústia de correu electrònic."
+  },
+  "web.login.or_divider": {
+    "text": "o"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Iniciar sessió amb contrasenya"
+  },
+  "web.login.use_passwordless": {
+    "text": "Utilitza l'inici de sessió sense contrasenya"
+  },
+  "web.login.create_account": {
+    "text": "Crear compte"
+  },
+  "web.login.return_home": {
+    "text": "Tornar a l'inici"
+  },
+  "web.login.tab_password": {
+    "text": "Contrasenya"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Enllaç màgic"
+  },
+  "web.login.need_help": {
+    "text": "Necessites ajuda?"
   }
 }

@@ -3,7 +3,7 @@
     "text": "Enviar un secret"
   },
   "incoming.page_description": {
-    "text": "Compartiu informació confidencial de manera segura amb el nostre equip de suport"
+    "text": "Comparteix informació sensible de manera segura amb el nostre equip de suport"
   },
   "incoming.loading_config": {
     "text": "Carregant..."
@@ -15,40 +15,40 @@
     "text": "Funció no disponible"
   },
   "incoming.feature_disabled_description": {
-    "text": "Aquesta funció està desactivada actualment. Contacteu amb el suport per obtenir assistència."
+    "text": "Aquesta funció està desactivada actualment. Si us plau, contacta amb el suport per obtenir assistència."
   },
   "incoming.memo_label": {
-    "text": "Nota"
+    "text": "Memo"
   },
   "incoming.memo_placeholder": {
-    "text": "Breu descripció (p. ex. Sol·licitud de restabliment de contrasenya)"
+    "text": "Descripció breu (p. ex., Sol·licitud de restabliment de contrasenya)"
   },
   "incoming.memo_hint": {
-    "text": "Ajudeu-nos a dirigir el vostre missatge a la persona adequada"
+    "text": "Ajuda'ns a dirigir el teu missatge a la persona adequada"
   },
   "incoming.recipient_label": {
     "text": "Enviar a"
   },
   "incoming.recipient_placeholder": {
-    "text": "Seleccioneu un destinatari"
+    "text": "Selecciona un destinatari"
   },
   "incoming.recipient_aria_label": {
-    "text": "Seleccioneu un destinatari per aquest secret"
+    "text": "Selecciona un destinatari per a aquest secret"
   },
   "incoming.recipient_hint": {
-    "text": "Trieu qui rebrà aquest missatge segur"
+    "text": "Tria qui rebrà aquest missatge segur"
   },
   "incoming.no_recipients_available": {
     "text": "No hi ha destinataris disponibles"
   },
   "incoming.secret_content_label": {
-    "text": "Informació confidencial"
+    "text": "Informació secreta"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Enganxeu informació confidencial aquí (contrasenyes, claus, etc.)"
+    "text": "Enganxa informació sensible aquí (contrasenyes, claus, etc.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Aquesta informació s'encriptarà i només es podrà veure una vegada"
+    "text": "Aquesta informació serà xifrada i només es podrà veure una vegada"
   },
   "incoming.submit_button": {
     "text": "Enviar secret"
@@ -72,7 +72,7 @@
     "text": "Enviat correctament"
   },
   "incoming.success_description": {
-    "text": "El vostre missatge segur s'ha lliurat."
+    "text": "El teu missatge segur s'ha lliurat."
   },
   "incoming.reference_id": {
     "text": "ID de referència"
@@ -87,15 +87,15 @@
     "text": "Enviar un altre secret"
   },
   "incoming.tagline1": {
-    "text": "Compartiu informació confidencial de manera segura"
+    "text": "Comparteix informació sensible de manera segura"
   },
   "incoming.tagline2": {
-    "text": "Mantingueu contrasenyes i dades privades fora dels correus electrònics i registres de xat"
+    "text": "Mantén les contrasenyes i les dades privades fora del correu electrònic i els registres de xat"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Deseu el vostre <a href='{receiptUrl}'>rebut</a> per als vostres registres."
+    "text": "Desa el teu {receipt} per als teus registres."
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "rebut"
   }
 }

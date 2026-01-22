@@ -15,7 +15,7 @@
     "text": "Advertència descartada"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Descarta l'advertència de truncament"
+    "text": "Descartar advertència de truncament"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Ups! La pàgina que busques no existeix o s'ha mogut."
@@ -27,10 +27,10 @@
     "text": "404 - Pàgina no trobada"
   },
   "web.errors.dismiss_warning": {
-    "text": "Descarta l'advertència"
+    "text": "Descartar advertència"
   },
   "web.errors.dismiss_notification": {
-    "text": "Descarta la notificació"
+    "text": "Descartar notificació"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Si no estàs segur de què fer després, si us plau, segueix amb la persona que t'ha enviat aquest enllaç per obtenir més informació."
