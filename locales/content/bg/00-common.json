@@ -8,7 +8,7 @@
     "text": "Сигурни връзки, които работят само веднъж"
   },
   "web.COMMON.powered_by": {
-    "text": "Създадено с"
+    "text": "Предоставено от"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/bg"
@@ -17,64 +17,64 @@
     "text": "Генерирай парола"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Генерирането на парола е изключено, когато формата е валидна"
+    "text": "Генерирането на парола е деактивирано, когато формулярът е валиден"
   },
   "web.COMMON.email_placeholder": {
-    "text": "напр. tom{'@'}myspace.com"
+    "text": "напр. ivan{'@'}gmail.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Въведете парола"
+    "text": "Въведете паролата си"
   },
   "web.COMMON.custom_domains_title": {
     "text": "Персонализирани домейни"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Подобрете връзките и изградете доверие с персонализирани тайни връзки."
+    "text": "Укрепете връзките и изградете доверие със собствени брандирани тайни връзки."
   },
   "web.COMMON.get_started_button": {
     "text": "Започнете"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Потвърдете паролата"
+    "text": "Потвърдете паролата си"
   },
   "web.COMMON.header_settings": {
     "text": "Настройки"
   },
   "web.COMMON.submit_with": {
-    "text": "Изпратете"
+    "text": "Изпрати"
   },
   "web.COMMON.submitting": {
     "text": "Изпращане..."
   },
   "web.COMMON.processing": {
-    "text": "Обработка"
+    "text": "Обработка..."
   },
   "web.COMMON.description": {
-    "text": "Пазете чувствителна информация далеч от вашите чатове и имейли. Споделяйте тайна връзка, която е достъпна само веднъж."
+    "text": "Пазете чувствителната информация извън чат логовете и имейла си. Споделете тайна връзка, която е достъпна само веднъж."
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Грешна ключова фраза"
+    "text": "Грешна защитна фраза"
   },
   "web.COMMON.keywords": {
-    "text": "тайна,генератор на пароли,сподели тайна,onetime"
+    "text": "тайна,генератор на пароли,сподели тайна,еднократна"
   },
   "web.COMMON.button_create_secret": {
     "text": "Създай тайна връзка"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Или генерирай случайна парола."
+    "text": "Или генерирайте случайна парола"
   },
   "web.COMMON.secret_privacy_options": {
     "text": "Опции за поверителност"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Ключова фраза за тайната"
+    "text": "Защитна фраза"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Дума или фраза, която е трудна за познаване."
+    "text": "Дума или фраза, която е трудна за отгатване"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Адрес на получател"
+    "text": "Адрес на получателя"
   },
   "web.COMMON.secret_placeholder": {
     "text": "Тайното съдържание се въвежда тук..."
@@ -98,55 +98,55 @@
     "text": "Тайна | Тайни"
   },
   "web.COMMON.recent": {
-    "text": "Последни"
+    "text": "Скорошни"
   },
   "web.COMMON.received": {
     "text": "Получена"
   },
   "web.COMMON.burn": {
-    "text": "Изгори"
+    "text": "Изтрий"
   },
   "web.COMMON.burned": {
-    "text": "Изгорена"
+    "text": "Изтрита"
   },
   "web.COMMON.expires_in": {
     "text": "Изтича след"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Изгори тази тайна"
+    "text": "Изтрий тази тайна"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Изгарянето на тайна ще я изтрие, преди да бъде прочетена (кликнете за потвърждение)"
+    "text": "Изтриването на тайна ще я премахне преди да е била прочетена (натиснете за потвърждение)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Изгарянето на тайна е необратим процес"
+    "text": "Изтриването на тайна е перманентно и не може да бъде отменено"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Проверете си имейла"
+    "text": "Проверете имейла си"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Кликнете, за да продължите →"
+    "text": "Натиснете за разкриване →"
   },
   "web.COMMON.click_to_verify": {
     "text": "Продължете, за да потвърдите акаунта си:"
   },
   "web.COMMON.error_secret": {
-    "text": "Не предоставихте нищо за споделяне"
+    "text": "Не сте предоставили нищо за споделяне"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Проверете ключовата фраза още веднъж"
+    "text": "Проверете отново защитната фраза"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Въведете ключовата фраза тук"
+    "text": "Въведете защитната фраза тук"
   },
   "web.COMMON.view_secret": {
-    "text": "Преглед на тайната"
+    "text": "Виж тайната"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Внимавайте: ще ви я покажем само веднъж."
+    "text": "Внимание: ще го покажем само веднъж."
   },
   "web.COMMON.warning": {
-    "text": "Внимание"
+    "text": "Предупреждение"
   },
   "web.COMMON.oops": {
     "text": "Опа!"
@@ -158,7 +158,7 @@
     "text": "Възникна неочаквана грешка. Моля, опитайте отново."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Съобщението беше отрязано поради изтичане на лимита"
+    "text": "Съобщението е съкратено"
   },
   "web.COMMON.signup_for_more": {
     "text": "Регистрирайте се за повече"
@@ -167,7 +167,7 @@
     "text": "Влезте в акаунта си"
   },
   "web.COMMON.sent_to": {
-    "text": "Изпратено до: "
+    "text": "Изпратено до:"
   },
   "web.COMMON.field_email": {
     "text": "Имейл"
@@ -191,10 +191,10 @@
     "text": "Няма"
   },
   "web.COMMON.word_burned": {
-    "text": "изгорени"
+    "text": "изтрита"
   },
   "web.COMMON.word_received": {
-    "text": "получени"
+    "text": "получена"
   },
   "web.COMMON.word_confirm": {
     "text": "Потвърди"
@@ -212,13 +212,13 @@
     "text": "Назад"
   },
   "web.COMMON.feedback_text": {
-    "text": "Имате въпрос или коментар?"
+    "text": "Споделете вашите мисли, идеи или опит..."
   },
   "web.COMMON.button_send_feedback": {
     "text": "Изпрати обратна връзка"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Информация за потвърждаване беше изпратена до"
+    "text": "Потвърждение беше изпратено до"
   },
   "web.COMMON.autoverified_success": {
     "text": "Акаунтът е създаден. Моля, влезте."
@@ -227,37 +227,37 @@
     "text": "Ако съществува акаунт с този имейл, ще получите имейл за потвърждение."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Изгорете тази тайна перманентно"
+    "text": "Изтрий тази тайна перманентно"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Моля, потвърдете"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Сигурни ли сте, че искате да изгорите тази тайна? Това действие не може да бъде отменено."
+    "text": "Сигурни ли сте, че искате да изтриете тази тайна? Това действие не може да бъде отменено."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Да, изгори тази тайна"
+    "text": "Да, изтрий тази тайна"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Изгарянето на тайна ще я изтрие, преди да бъде получена."
+    "text": "Изтриването на тайна ще я премахне преди да е била получена."
   },
   "web.COMMON.share_link_securely": {
-    "text": "За сигурност, споделете тази връзка отделно от другите детайли."
+    "text": "За сигурност споделете тази връзка отделно от другите детайли."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Копирано в клипборда"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Създай входящо"
+    "text": "Създай входяща"
   },
   "web.COMMON.faq_title": {
-    "text": "Ч.З.В."
+    "text": "ЧЗВ"
   },
   "web.COMMON.verification_not_valid": {
     "text": "Потвърждението не е валидно"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Не може да се потвърди акаунт, когато вече сте влезли"
+    "text": "Не можете да потвърдите акаунт, докато сте вече влезли"
   },
   "web.COMMON.show_password": {
     "text": "Покажи паролата"
@@ -269,7 +269,7 @@
     "text": "Паролата трябва да е поне 8 символа"
   },
   "web.COMMON.password_requirements": {
-    "text": "Паролата трябва да е дълга поне 8 символа"
+    "text": "Паролата трябва да е поне 8 символа"
   },
   "web.COMMON.passwords_do_not_match": {
     "text": "Паролите не съвпадат"
@@ -278,10 +278,10 @@
     "text": "Това поле е задължително"
   },
   "web.COMMON.form_processing": {
-    "text": "Обработка на вашата заявка"
+    "text": "Обработка на заявката ви"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Запази ме вписан за 30 дни"
+    "text": "Остани влезнал за 30 дни"
   },
   "web.COMMON.redirecting": {
     "text": "Пренасочване..."
@@ -296,10 +296,10 @@
     "text": "Опасна зона"
   },
   "web.COMMON.caution_zone": {
-    "text": "Зона за внимателно обмисляне"
+    "text": "Зона за внимание"
   },
   "web.COMMON.user_menu": {
-    "text": "Меню на потребителя"
+    "text": "Потребителско меню"
   },
   "web.COMMON.security": {
     "text": "Сигурност"
@@ -317,7 +317,7 @@
     "text": "Запазване..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Добавяне..."
+    "text": "Добавяне"
   },
   "web.COMMON.e_g_example": {
     "text": "напр."
@@ -329,10 +329,10 @@
     "text": "Статус"
   },
   "web.COMMON.escape": {
-    "text": "Изход (Esc)"
+    "text": "Escape"
   },
   "web.COMMON.active": {
-    "text": "Активен"
+    "text": "Активна"
   },
   "web.COMMON.preview": {
     "text": "Преглед"
@@ -344,7 +344,7 @@
     "text": "Натиснете ESC за затваряне"
   },
   "web.COMMON.enter": {
-    "text": "Въведи"
+    "text": "Enter"
   },
   "web.COMMON.important": {
     "text": "Важно"
@@ -368,7 +368,7 @@
     "text": "Общи"
   },
   "web.COMMON.note": {
-    "text": "Забележка"
+    "text": "Бележка"
   },
   "web.COMMON.monthly": {
     "text": "Месечно"
@@ -377,16 +377,16 @@
     "text": "Годишно"
   },
   "web.COMMON.go_on_then": {
-    "text": "Продължи"
+    "text": "Продължете тогава."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Зареждане..."
   },
   "web.COMMON.not_received": {
-    "text": "НЕПОЛУЧЕНА"
+    "text": "НЕ Е ПОЛУЧЕНА"
   },
   "web.COMMON.confirm_password": {
-    "text": "Потвърди парола"
+    "text": "Потвърди паролата"
   },
   "web.COMMON.new_password": {
     "text": "Нова парола"
@@ -395,7 +395,7 @@
     "text": "Имейл адрес"
   },
   "web.COMMON.switch": {
-    "text": "Превключи"
+    "text": "превключи"
   },
   "web.COMMON.features": {
     "text": "Функции"
@@ -410,13 +410,13 @@
     "text": "✅"
   },
   "web.COMMON.supported": {
-    "text": "Поддържан"
+    "text": "Поддържано"
   },
   "web.COMMON.version": {
     "text": "Версия"
   },
   "web.COMMON.other": {
-    "text": "Други"
+    "text": "Друго"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)"
@@ -443,34 +443,34 @@
     "text": "Тип"
   },
   "web.COMMON.previous": {
-    "text": "Предишно"
+    "text": "Назад"
   },
   "web.COMMON.next": {
-    "text": "Следващо"
+    "text": "Напред"
   },
   "web.COMMON.password_strength": {
     "text": "Сила на паролата:"
   },
   "web.COMMON.great": {
-    "text": "Отлична"
+    "text": "Отлично"
   },
   "web.COMMON.pretty_good": {
-    "text": "Много добра"
+    "text": "Доста добро"
   },
   "web.COMMON.fair": {
-    "text": "Добра"
+    "text": "Задоволително"
   },
   "web.COMMON.meh": {
-    "text": "Задоволителна"
+    "text": "Посредствено"
   },
   "web.COMMON.not_great": {
-    "text": "Слаба"
+    "text": "Не е добро"
   },
   "web.COMMON.open_options": {
-    "text": "Отвори опции"
+    "text": "Отвори опциите"
   },
   "web.COMMON.inactive": {
-    "text": "Неактивен"
+    "text": "Неактивна"
   },
   "web.COMMON.an_error_occurred": {
     "text": "Възникна грешка"
@@ -482,7 +482,7 @@
     "text": "Тайната е копирана в клипборда"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Моля, проверете отново въведената ключова фраза"
+    "text": "Проверете отново защитната фраза"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "Натиснете бутона за копиране по-долу."
@@ -494,7 +494,7 @@
     "text": "Скрий"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Покажи още"
+    "text": "Покажи повече"
   },
   "web.LABELS.view_toggle.show_less": {
     "text": "Покажи по-малко"
@@ -506,13 +506,13 @@
     "text": "Деактивирай"
   },
   "web.LABELS.stats": {
-    "text": "Статистика"
+    "text": "Статистики"
   },
   "web.LABELS.timeline": {
     "text": "Хронология"
   },
   "web.LABELS.lifespan": {
-    "text": "Продължителност на живот"
+    "text": "Продължителност"
   },
   "web.LABELS.expiration_time": {
     "text": "Време на изтичане"
@@ -536,13 +536,13 @@
     "text": "Запази"
   },
   "web.LABELS.save_all": {
-    "text": "Запази всичко"
+    "text": "Запази всички"
   },
   "web.LABELS.details": {
     "text": "Детайли"
   },
   "web.LABELS.encrypted": {
-    "text": "Шифровано"
+    "text": "Криптирано"
   },
   "web.LABELS.secret_status": {
     "text": "Статус на тайната"
@@ -557,7 +557,7 @@
     "text": "Действия"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Не се изисква ключова фраза"
+    "text": "Не се изисква защитна фраза"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Копирай в клипборда"
@@ -590,16 +590,16 @@
     "text": "Прегледи"
   },
   "web.LABELS.times_viewed": {
-    "text": "пъти прегледано"
+    "text": "пъти прегледана"
   },
   "web.LABELS.view_progress": {
-    "text": "Напредък на прегледа"
+    "text": "Преглед на напредъка"
   },
   "web.LABELS.help_section": {
-    "text": "Секция Помощ"
+    "text": "Раздел помощ"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Защитено с ключова фраза"
+    "text": "Защитено с защитна фраза"
   },
   "web.LABELS.feedback_received": {
     "text": "Обратната връзка е получена."
@@ -608,7 +608,7 @@
     "text": "Изпращане..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Последни тайни"
+    "text": "Скорошни тайни"
   },
   "web.LABELS.pricing": {
     "text": "Цени"
@@ -662,13 +662,13 @@
     "text": "Получена"
   },
   "web.STATUS.burned": {
-    "text": "Изгорена"
+    "text": "Изтрита"
   },
   "web.STATUS.destroyed": {
     "text": "Унищожена"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Изтича скоро"
+    "text": "Скоро изтича"
   },
   "web.STATUS.created": {
     "text": "Създадена"
@@ -680,7 +680,7 @@
     "text": "Изтекла"
   },
   "web.STATUS.orphaned": {
-    "text": "Изоставена"
+    "text": "Осиротяла"
   },
   "web.STATUS.secured": {
     "text": "Защитена"
@@ -689,7 +689,7 @@
     "text": "Защитаване"
   },
   "web.STATUS.copied": {
-    "text": "Копирана"
+    "text": "Копирано"
   },
   "web.STATUS.time_remaining": {
     "text": "Оставащо време"
@@ -698,25 +698,25 @@
     "text": "Тайната връзка е създадена и все още не е прегледана"
   },
   "web.STATUS.unread_description": {
-    "text": "Тайната връзка е създадена и не е прегледана"
+    "text": "Тайната връзка е създадена и не е била прегледана"
   },
   "web.STATUS.viewed_description": {
-    "text": "Тайната връзка е отворена и готова за преглед"
+    "text": "Тайната връзка е отворена и е готова за преглед"
   },
   "web.STATUS.received_description": {
     "text": "Тайната е разкрита на получателя"
   },
   "web.STATUS.burned_description": {
-    "text": "Тайната е ръчно изгорена преди да бъде прегледана"
+    "text": "Тайната е ръчно изтрита преди да бъде прегледана"
   },
   "web.STATUS.destroyed_description": {
     "text": "Тайната е перманентно унищожена"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Тайната ще изтече скоро"
+    "text": "Тайната скоро ще изтече"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Тайната е изоставена и ще бъде унищожена скоро"
+    "text": "Тайната е осиротяла и скоро ще бъде унищожена"
   },
   "web.STATUS.expired_description": {
     "text": "Тайната е изтекла преди да бъде прегледана"
@@ -728,7 +728,7 @@
     "text": "Доставена"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Неправилен DNS"
+    "text": "DNS е некоректен"
   },
   "web.STATUS.active": {
     "text": "Активна"
@@ -740,10 +740,10 @@
     "text": "Неограничени прегледи"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Брандиране с доверен домейн"
+    "text": "Надежден домейн с брандинг"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Шифровано при пренос и в покой"
+    "text": "Криптирано при пренос и в покой"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -764,34 +764,34 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} остават"
+    "text": "Остават {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "ден остава | дни остават"
+    "text": "остава ден | остават дни"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "час остава | часа остават"
+    "text": "остава час | остават часа"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "минута остава | минути остават"
+    "text": "остава минута | остават минути"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "секунда остава | секунди остават"
+    "text": "остава секунда | остават секунди"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "лимит {count} прегледа"
+    "text": "Лимит от {count} прегледа"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} дни остават"
+    "text": "Остават {count} дни"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} часа остават"
+    "text": "Остават {count} часа"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} минути остават"
+    "text": "Остават {count} минути"
   },
   "web.TITLES.incoming": {
     "text": "Входящи тайни"
@@ -803,7 +803,7 @@
     "text": "Вход"
   },
   "web.TITLES.signup": {
-    "text": "Създаване на акаунт"
+    "text": "Създай акаунт"
   },
   "web.TITLES.forgot_password": {
     "text": "Забравена парола"
@@ -815,34 +815,34 @@
     "text": "Излизане"
   },
   "web.TITLES.verify_account": {
-    "text": "Потвърждение на акаунт"
+    "text": "Потвърди акаунт"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Двуфакторна автентикация"
+    "text": "Двуфакторно удостоверяване"
   },
   "web.TITLES.email_login": {
     "text": "Вход с имейл"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Приемане на покана"
+    "text": "Приеми покана"
   },
   "web.TITLES.secret": {
-    "text": "Тайна | Тайни"
+    "text": "Тайна"
   },
   "web.TITLES.metadata": {
-    "text": "Детайли на тайната"
+    "text": "Детайли за тайната"
   },
   "web.TITLES.receipt": {
     "text": "Разписка за тайна"
   },
   "web.TITLES.burn_secret": {
-    "text": "Изгори тайна"
+    "text": "Изтрий тайна"
   },
   "web.TITLES.dashboard": {
-    "text": "Табло"
+    "text": "Информационно табло"
   },
   "web.TITLES.recent": {
-    "text": "Последни"
+    "text": "Скорошни тайни"
   },
   "web.TITLES.domains": {
     "text": "Персонализирани домейни"
@@ -851,16 +851,16 @@
     "text": "Добави домейн"
   },
   "web.TITLES.domain_verify": {
-    "text": "Потвърди домейн"
+    "text": "Потвърждение на домейн"
   },
   "web.TITLES.domain_brand": {
-    "text": "Брандирай домейн"
+    "text": "Брандиране на домейн"
   },
   "web.TITLES.account": {
-    "text": "Настройки на акаунта"
+    "text": "Акаунт"
   },
   "web.TITLES.data_region": {
-    "text": "Регион на данните"
+    "text": "Регион за данни"
   },
   "web.TITLES.current_region": {
     "text": "Текущ регион"
@@ -893,7 +893,7 @@
     "text": "Промяна на парола"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Двуфакторна автентикация"
+    "text": "Двуфакторно удостоверяване"
   },
   "web.TITLES.active_sessions": {
     "text": "Активни сесии"
@@ -902,7 +902,7 @@
     "text": "Кодове за възстановяване"
   },
   "web.TITLES.api_settings": {
-    "text": "Настройки на API"
+    "text": "API настройки"
   },
   "web.TITLES.advanced_settings": {
     "text": "Разширени настройки"
@@ -920,7 +920,7 @@
     "text": "Настройки на организацията"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Фокусът сега е в основната текстова област"
+    "text": "Фокусът вече е в основната текстова област"
   },
   "web.INSTRUCTION.sharing_instructions": {
     "text": "Инструкции за споделяне"
@@ -929,24 +929,78 @@
     "text": "Споделете връзката с предвидения получател"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Споделете паролата отделно чрез сигурен канал"
+    "text": "Споделете защитната фраза отделно през сигурен канал"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
     "text": "Използвайте различен сигурен канал за споделяне на чувствителна информация"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Винаги проверявайте дали сте на официалния уебсайт на Onetime Secret. Измамниците понякога създават фалшиви уебсайтове, които изглеждат точно като Onetime Secret, за да откраднат вашите тайни. За да избегнете фишинг атаки, проверете регионалния домейн преди да създавате нови връзки."
+    "text": "Винаги проверявайте дали сте на официалния уебсайт на Onetime Secret. Измамниците понякога създават фалшиви уебсайтове, които изглеждат точно като Onetime Secret, за да откраднат тайните ви. За да избегнете фишинг атаки, проверете домейна преди да създавате нови връзки."
   },
   "web.STATUS.previewed": {
-    "text": "Връзката е отворена"
+    "text": "Прегледана"
   },
   "web.STATUS.revealed": {
     "text": "Разкрита"
   },
   "web.STATUS.previewed_description": {
-    "text": "Тайната връзка е отворена и готова за разкриване"
+    "text": "Тайната връзка е отворена и е готова за разкриване"
   },
   "web.STATUS.revealed_description": {
     "text": "Съдържанието на тайната е разкрито на получателя"
+  },
+  "web.COMMON.not_set": {
+    "text": "Не е зададено"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Редактирай"
+  },
+  "web.COMMON.word_save": {
+    "text": "Запази"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Изтича след"
+  },
+  "web.LABELS.add_note": {
+    "text": "Добави бележка..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Редактирай бележка"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Добави бележка..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Редактирай бележка"
+  },
+  "web.TITLES.help": {
+    "text": "Помощ"
+  },
+  "web.TITLES.pricing": {
+    "text": "Цени"
+  },
+  "web.pricing.title": {
+    "text": "Прости и прозрачни цени"
+  },
+  "web.pricing.subtitle": {
+    "text": "Изберете плана, който отговаря на нуждите ви. Всички планове включват неограничено споделяне на тайни и дизайн с фокус върху поверителността."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Започнете безплатно"
+  },
+  "web.pricing.start_trial": {
+    "text": "Започнете"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Вече имате акаунт?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Вход"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Препоръчано за вас"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Създавайте и споделяйте тайни с основни функции. Не се изисква кредитна карта."
   }
 }

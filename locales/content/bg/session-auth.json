@@ -3,28 +3,28 @@
     "text": "Нужен ви е акаунт?"
   },
   "web.login.need_an_account": {
-    "text": "Или създайте своя акаунт днес"
+    "text": "Регистрирай се."
   },
   "web.login.forgot_your_password": {
-    "text": "Забравена парола?"
+    "text": "Забравихте паролата си?"
   },
   "web.login.button_sign_in": {
     "text": "Вход"
   },
   "web.login.enter_your_credentials": {
-    "text": "Въведете вашите данни за вход"
+    "text": "Въведете данните си"
   },
   "web.login.remember_me": {
     "text": "Запомни ме"
   },
   "web.signup.create_your_account": {
-    "text": "Създайте вашия акаунт"
+    "text": "Създайте акаунта си"
   },
   "web.signup.alternate_prefix": {
     "text": "Вече имате акаунт?"
   },
   "web.signup.have_an_account": {
-    "text": "Или влезте в акаунта си"
+    "text": "Влезте."
   },
   "web.signup.error_title": {
     "text": "Грешка при създаване на акаунт"
@@ -36,10 +36,10 @@
     "text": "Имейл"
   },
   "web.auth.verify.title": {
-    "text": "Потвърдете вашия акаунт"
+    "text": "Потвърдете акаунта си"
   },
   "web.auth.verify.success": {
-    "text": "Вашият акаунт е потвърден успешно"
+    "text": "Акаунтът ви е потвърден успешно"
   },
   "web.auth.verify.invalid_key": {
     "text": "Невалиден или изтекъл ключ за потвърждение"
@@ -51,25 +51,25 @@
     "text": "Този акаунт вече е потвърден. Можете да влезете сега."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Невъзможно е да се потвърди акаунтът. Моля, опитайте отново или се свържете с поддръжката."
+    "text": "Неуспешно потвърждение на акаунта. Моля, опитайте отново или се свържете с поддръжката."
   },
   "web.auth.verify.check_email": {
     "text": "Моля, проверете имейла си за връзка за потвърждение"
   },
   "web.auth.verify.error": {
-    "text": "Потвърждението на акаунта е неуспешно. Моля, проверете връзката за потвърждение или заявете нова."
+    "text": "Потвърждението на акаунта е неуспешно. Моля, проверете връзката си за потвърждение или заявете нова."
   },
   "web.auth.verify.error_title": {
-    "text": "Неуспешно потвърждение"
+    "text": "Потвърждението е неуспешно"
   },
   "web.auth.verify.what_to_do": {
-    "text": "Какво да направя?"
+    "text": "Какво трябва да направя?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Проверете имейла си за най-новата връзка за потвърждение"
+    "text": "Проверете имейла си за най-скорошната връзка за потвърждение"
   },
   "web.auth.verify.check_spam": {
-    "text": "Проверете папката си за спам/нежелана поща, ако не намирате имейла"
+    "text": "Проверете папката за спам/нежелана поща, ако не можете да намерите имейла"
   },
   "web.auth.verify.contact_support": {
     "text": "Свържете се с поддръжката, ако продължавате да имате проблеми"
@@ -78,13 +78,13 @@
     "text": "Изисква се връзка за потвърждение"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Моля, използвайте връзката за потвърждение, изпратена на вашия имейл адрес, за да потвърдите акаунта си."
+    "text": "Моля, използвайте връзката за потвърждение, изпратена на имейл адреса ви, за да потвърдите акаунта си."
   },
   "web.auth.verify.create_new_account": {
     "text": "Създай нов акаунт"
   },
   "web.auth.change_password.title": {
-    "text": "Променете паролата"
+    "text": "Промяна на парола"
   },
   "web.auth.change_password.current_password": {
     "text": "Текуща парола"
@@ -93,19 +93,19 @@
     "text": "Нова парола"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Потвърдете новата парола"
+    "text": "Потвърди новата парола"
   },
   "web.auth.change_password.success": {
-    "text": "Вашата парола е променена успешно"
+    "text": "Паролата ви е променена успешно"
   },
   "web.auth.change_password.error": {
     "text": "Промяната на паролата е неуспешна. Моля, проверете текущата си парола и опитайте отново."
   },
   "web.auth.close_account.title": {
-    "text": "Затвори акаунт"
+    "text": "Закриване на акаунт"
   },
   "web.auth.close_account.warning": {
-    "text": "Това действие не може да бъде отменено. Всички ваши тайни ще бъдат перманентно изтрити."
+    "text": "Това действие не може да бъде отменено. Всичките ви тайни ще бъдат перманентно изтрити."
   },
   "web.auth.close_account.confirm": {
     "text": "Разбирам, че това действие е перманентно"
@@ -114,10 +114,10 @@
     "text": "Въведете паролата си за потвърждение"
   },
   "web.auth.close_account.button": {
-    "text": "Перманентно затваряне на акаунт"
+    "text": "Закрий акаунта перманентно"
   },
   "web.auth.close_account.cancel": {
-    "text": "Отмени"
+    "text": "Отказ"
   },
   "web.auth.password_reset_request.title": {
     "text": "Заявка за нулиране на парола"
@@ -135,10 +135,10 @@
     "text": "Моля, въведете новата си парола по-долу. Уверете се, че е силна и уникална, за да защитите акаунта си."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Изпратен ви е имейл с връзка за нулиране на паролата за вашия акаунт"
+    "text": "Изпратен е имейл с връзка за нулиране на паролата за вашия акаунт"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Съгласявам се с"
+    "text": "Съгласен съм с"
   },
   "web.auth.account.title": {
     "text": "Информация за акаунта"
@@ -159,36 +159,111 @@
     "text": "Имейлът не е потвърден"
   },
   "web.auth.account.verify_email": {
-    "text": "Потвърдете имейл адреса"
+    "text": "Потвърди имейл адрес"
   },
   "web.auth.account.mfa_status": {
-    "text": "Двуфакторна автентикация"
+    "text": "Двуфакторно удостоверяване"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Активирана"
+    "text": "Активирано"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Деактивирана"
+    "text": "Деактивирано"
   },
   "web.auth.account.active_sessions": {
     "text": "Активни сесии"
   },
   "web.auth.account.session_count": {
-    "text": "{count} активни сесии"
+    "text": "{count} активна сесия(и)"
   },
   "web.auth.account.quick_actions": {
     "text": "Бързи действия"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Управление на двуфакторна автентикация"
+    "text": "Управление на двуфакторно удостоверяване"
   },
   "web.auth.account.manage_sessions": {
     "text": "Управление на активни сесии"
   },
   "web.auth.account.change_password": {
-    "text": "Променете паролата"
+    "text": "Промяна на парола"
   },
   "web.auth.account.close_account": {
-    "text": "Затвори акаунт"
+    "text": "Закрий акаунта"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Процес на потвърждение на имейл след регистрация"
+  },
+  "web.help.title": {
+    "text": "Помощ и поддръжка"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Отстраняване на проблеми при влизане"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Магическата връзка не пристига?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Проверете папката за спам или нежелана поща"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Проверете дали сте въвели имейл адреса си правилно"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Изчакайте няколко минути - имейлите понякога закъсняват"
+  },
+  "web.help.try_again": {
+    "text": "Опитайте да заявите нова връзка, ако са минали повече от 10 минути"
+  },
+  "web.help.forgot_password": {
+    "text": "Забравихте паролата си?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Използвайте опцията Магическа връзка, за да влезете без парола. След като влезете, можете да промените паролата си в Настройки на акаунта."
+  },
+  "web.help.account_locked": {
+    "text": "Акаунтът временно заключен?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "След множество неуспешни опити за влизане акаунтите се заключват временно за сигурност. Изчакайте 15 минути и опитайте отново или използвайте Магическа връзка за влизане."
+  },
+  "web.help.still_need_help": {
+    "text": "Все още се нуждаете от помощ?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Ако все още имате проблеми, ние сме тук да помогнем. Изпратете ни съобщение и ще ви отговорим възможно най-скоро."
+  },
+  "web.help.contact_support": {
+    "text": "Свържете се с поддръжката"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Изпрати връзка за вход"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Сигурна връзка ще бъде изпратена до имейл кутията ви."
+  },
+  "web.login.or_divider": {
+    "text": "или"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Влез с парола"
+  },
+  "web.login.use_passwordless": {
+    "text": "Използвай вход без парола"
+  },
+  "web.login.create_account": {
+    "text": "Създай акаунт"
+  },
+  "web.login.return_home": {
+    "text": "Обратно към началната страница"
+  },
+  "web.login.tab_password": {
+    "text": "Парола"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Магическа връзка"
+  },
+  "web.login.need_help": {
+    "text": "Нуждаете се от помощ?"
   }
 }

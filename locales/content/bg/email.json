@@ -1,9 +1,9 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Билет: %s]"
+    "text": "[Тикет: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "Клиент изпрати следната информация"
+    "text": "Клиент е изпратил следната информация"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} ви изпрати тайна"
@@ -15,22 +15,22 @@
     "text": "Важно:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Тази връзка работи само веднъж. След преглед, тайната ще бъде изтрита безвъзвратно."
+    "text": "Тази връзка ще работи само веднъж. След преглеждане тайната ще бъде перманентно изтрита."
   },
   "email.secret_link.sent_via": {
     "text": "Изпратено чрез"
   },
   "email.welcome.subject": {
-    "text": "Потвърдете вашия Onetime Secret акаунт"
+    "text": "Добре дошли в %{product_name} - Моля, потвърдете имейла си"
   },
   "email.welcome.title": {
-    "text": "Поканени сте да се присъедините към %{product_name}!"
+    "text": "Добре дошли в %{product_name}!"
   },
   "email.welcome.verify_prompt": {
-    "text": "Моля, потвърдете вашия имейл адрес, като щракнете на връзката по-долу:"
+    "text": "Моля, потвърдете имейл адреса си като натиснете връзката по-долу:"
   },
   "email.welcome.verify_button": {
-    "text": "Потвърдете имейл адреса"
+    "text": "Потвърди имейл адрес"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Или копирайте и поставете тази връзка:"
@@ -39,7 +39,7 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Този имейл е изпратен до %{email_address}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение."
+    "text": "P.S. Този имейл беше изпратен до %{email_address}. Ако не сте създали акаунт, можете спокойно да игнорирате това съобщение."
   },
   "email.password_request.subject": {
     "text": "Нулирайте паролата си (%{display_domain})"
@@ -57,7 +57,7 @@
     "text": "Или копирайте и поставете тази връзка:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Ако не сте заявили нулиране на парола, можете спокойно да игнорирате този имейл."
+    "text": "Ако не сте поискали нулиране на паролата, можете спокойно да игнорирате този имейл."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -66,13 +66,13 @@
     "text": "P.S. Този имейл беше изпратен до %{email_address}."
   },
   "email.magic_link.subject": {
-    "text": "Влезте в %{display_domain}"
+    "text": "Вход в %{display_domain}"
   },
   "email.magic_link.title": {
     "text": "Вход с магическа връзка"
   },
   "email.magic_link.request_notice": {
-    "text": "Поискахте връзка за вход в акаунта си в %{product_name}."
+    "text": "Поискахте връзка за вход за вашия %{product_name} акаунт."
   },
   "email.magic_link.login_button": {
     "text": "Вход"
@@ -102,31 +102,31 @@
     "text": "Бележка:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Някой ви изпрати защитено съобщение чрез %{display_domain}."
+    "text": "Някой ви е изпратил защитено съобщение чрез %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "За да прегледате тази тайна, щракнете на връзката по-долу:"
+    "text": "За да прегледате тази тайна, натиснете връзката по-долу:"
   },
   "email.incoming_secret.important_label": {
     "text": "Важно:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Тази връзка работи само веднъж. След преглед, тайната ще бъде изтрита безвъзвратно."
+    "text": "Тази връзка ще работи само веднъж. След преглеждане тайната ще бъде перманентно изтрита."
   },
   "email.incoming_secret.sent_via": {
     "text": "Изпратено чрез"
   },
   "email.secret_revealed.subject": {
-    "text": "Вашата тайна беше прегледана"
+    "text": "Тайната ви беше прегледана"
   },
   "email.secret_revealed.title": {
-    "text": "Вашата тайна беше прегледана"
+    "text": "Тайната ви беше прегледана"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Вашата тайна беше прегледана на %{date}."
+    "text": "Тайната ви беше прегледана на %{date}."
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "ID на тайна:"
+    "text": "ID на тайната:"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Това е автоматично известие. Не се изисква действие."
@@ -135,16 +135,16 @@
     "text": "Delano"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Управление на настройките за известия"
+    "text": "Управление на предпочитанията за известия"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "За да управлявате настройките си за известия:"
+    "text": "За да управлявате предпочитанията си за известия:"
   },
   "email.expiration_warning.subject": {
-    "text": "Вашата връзка за тайната скоро ще изтече"
+    "text": "Вашата тайна връзка скоро ще изтече"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Вашата връзка за тайната ще изтече след %{time_remaining}"
+    "text": "Вашата тайна връзка ще изтече след %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
     "text": "Прегледайте тайната си преди да изтече"
@@ -153,22 +153,22 @@
     "text": "Напомняне:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "След изтичане, тайната ще бъде изтрита безвъзвратно и няма да може да бъде възстановена."
+    "text": "След изтичане тайната ще бъде перманентно изтрита и не може да бъде възстановена."
   },
   "email.expiration_warning.sent_via": {
     "text": "Изпратено чрез"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Прегледайте я преди да изчезне:"
+    "text": "Прегледайте я, преди да изчезне:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "След изтичане, тайната ще бъде изтрита безвъзвратно."
+    "text": "След изтичане тайната ще бъде перманентно изтрита."
   },
   "email.feedback_email.subject": {
     "text": "Обратна връзка на %{date} чрез %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
-    "text": "Обратна връзка от потребител"
+    "text": "Потребителска обратна връзка"
   },
   "email.feedback_email.from_label": {
     "text": "От:"
@@ -183,7 +183,7 @@
     "text": "Съобщение:"
   },
   "email.feedback_email.signature": {
-    "text": "Поддръжка на Secret"
+    "text": "Поддръжка на тайни"
   },
   "email.organization_invitation.subject": {
     "text": "Поканени сте да се присъедините към %{organization_name}"
@@ -195,7 +195,7 @@
     "text": "%{inviter_email} ви покани да се присъедините към \"%{organization_name}\" като %{role_description}."
   },
   "email.organization_invitation.accept_button": {
-    "text": "Приемане на покана"
+    "text": "Приеми поканата"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Или копирайте и поставете тази връзка:"
@@ -204,13 +204,13 @@
     "text": "Тази покана ще изтече след %{days} дни."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Ако не искате да се присъедините, можете просто да игнорирате този имейл или да отхвърлите поканата."
+    "text": "Ако не желаете да се присъедините, можете просто да игнорирате този имейл или да откажете поканата."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Този имейл е изпратен до %{invited_email}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение."
+    "text": "P.S. Този имейл беше изпратен до %{invited_email}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение."
   },
   "email.organization_invitation.roles.member": {
     "text": "член"
@@ -219,16 +219,16 @@
     "text": "администратор"
   },
   "email.password_changed.subject": {
-    "text": "Вашата парола беше променена (%{display_domain})"
+    "text": "Паролата ви беше променена (%{display_domain})"
   },
   "email.password_changed.title": {
-    "text": "Вашата парола беше променена"
+    "text": "Паролата ви беше променена"
   },
   "email.password_changed.body": {
-    "text": "Вашата парола за %{product_name} беше променена на %{date} в %{time}."
+    "text": "Паролата ви за %{product_name} беше променена на %{date} в %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Ако не сте направили тази промяна, моля, защитете акаунта си незабавно, като нулирате паролата си и се свържете с поддръжката."
+    "text": "Ако не сте направили тази промяна, моля, защитете акаунта си незабавно като нулирате паролата и се свържете с поддръжката."
   },
   "email.password_changed.signature": {
     "text": "Delano"
@@ -240,7 +240,7 @@
     "text": "Вашият имейл адрес беше променен"
   },
   "email.email_changed.body": {
-    "text": "Имейл адресът за вашия акаунт в %{product_name} беше променен на %{new_email_masked} на %{date}."
+    "text": "Имейл адресът за вашия %{product_name} акаунт беше променен на %{new_email_masked} на %{date}."
   },
   "email.email_changed.security_notice": {
     "text": "Ако не сте направили тази промяна, моля, свържете се с поддръжката незабавно, тъй като акаунтът ви може да е компрометиран."
@@ -255,10 +255,10 @@
     "text": "Потвърдете новия си имейл адрес"
   },
   "email.email_change_confirmation.body": {
-    "text": "Моля, потвърдете този имейл адрес, за да завършите промяната за вашия акаунт в %{product_name}."
+    "text": "Моля, потвърдете този имейл адрес, за да завършите промяната за вашия %{product_name} акаунт."
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Потвърдете имейл адреса"
+    "text": "Потвърди имейл адрес"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Или копирайте и поставете тази връзка:"
@@ -267,28 +267,28 @@
     "text": "Delano"
   },
   "email.mfa_enabled.subject": {
-    "text": "Двуфакторната автентикация е активирана (%{display_domain})"
+    "text": "Двуфакторното удостоверяване е активирано (%{display_domain})"
   },
   "email.mfa_enabled.title": {
-    "text": "Двуфакторната автентикация е активирана"
+    "text": "Двуфакторното удостоверяване е активирано"
   },
   "email.mfa_enabled.body": {
-    "text": "Двуфакторната автентикация беше активирана за вашия акаунт в %{product_name} на %{date}."
+    "text": "Двуфакторното удостоверяване беше активирано за вашия %{product_name} акаунт на %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Вашият акаунт вече е по-защитен. Ще трябва да въведете код за потвърждение от вашето приложение за автентикация при влизане."
+    "text": "Вашият акаунт вече е по-защитен. Ще трябва да въведете код за потвърждение от приложението за удостоверяване при влизане."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
   },
   "email.mfa_disabled.subject": {
-    "text": "Двуфакторната автентикация е деактивирана (%{display_domain})"
+    "text": "Двуфакторното удостоверяване е деактивирано (%{display_domain})"
   },
   "email.mfa_disabled.title": {
-    "text": "Двуфакторната автентикация е деактивирана"
+    "text": "Двуфакторното удостоверяване е деактивирано"
   },
   "email.mfa_disabled.body": {
-    "text": "Двуфакторната автентикация беше деактивирана за вашия акаунт в %{product_name} на %{date}."
+    "text": "Двуфакторното удостоверяване беше деактивирано за вашия %{product_name} акаунт на %{date}."
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Вашият акаунт вече е по-малко защитен. Ако не сте направили тази промяна, моля, защитете акаунта си незабавно."
@@ -297,13 +297,13 @@
     "text": "Delano"
   },
   "email.new_login_alert.subject": {
-    "text": "Ново влизане в акаунта ви (%{display_domain})"
+    "text": "Нов вход във вашия акаунт (%{display_domain})"
   },
   "email.new_login_alert.title": {
-    "text": "Засечено е ново влизане"
+    "text": "Засечен нов вход"
   },
   "email.new_login_alert.body": {
-    "text": "Засечено е ново влизане във вашия акаунт в %{product_name} на %{date} в %{time}."
+    "text": "Нов вход във вашия %{product_name} акаунт беше засечен на %{date} в %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "Устройство:"
@@ -315,7 +315,7 @@
     "text": "IP адрес:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Ако това не сте вие, вашият акаунт може да е компрометиран."
+    "text": "Ако това не сте били вие, акаунтът ви може да е компрометиран."
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Защитете акаунта си"
@@ -324,25 +324,25 @@
     "text": "Delano"
   },
   "email.member_removed.subject": {
-    "text": "Премахнати сте от %{organization_name}"
+    "text": "Бяхте премахнати от %{organization_name}"
   },
   "email.member_removed.title": {
-    "text": "Премахнати сте от %{organization_name}"
+    "text": "Бяхте премахнати от %{organization_name}"
   },
   "email.member_removed.body": {
-    "text": "Премахнати сте от организацията \"%{organization_name}\" в %{product_name}."
+    "text": "Бяхте премахнати от организацията \"%{organization_name}\" в %{product_name}."
   },
   "email.member_removed.signature": {
     "text": "Delano"
   },
   "email.role_changed.subject": {
-    "text": "Вашата роля беше променена в %{organization_name}"
+    "text": "Ролята ви беше променена в %{organization_name}"
   },
   "email.role_changed.title": {
-    "text": "Вашата роля беше променена"
+    "text": "Ролята ви беше променена"
   },
   "email.role_changed.body": {
-    "text": "Вашата роля в \"%{organization_name}\" беше променена от %{old_role} на %{new_role}."
+    "text": "Ролята ви в \"%{organization_name}\" беше променена от %{old_role} на %{new_role}."
   },
   "email.role_changed.signature": {
     "text": "Delano"
@@ -354,7 +354,7 @@
     "text": "Организацията е изтрита"
   },
   "email.organization_deleted.body": {
-    "text": "Организацията \"%{organization_name}\" беше изтрита от %{product_name}. Всички свързани данни са премахнати."
+    "text": "Организацията \"%{organization_name}\" беше изтрита от %{product_name}. Всички свързани данни бяха премахнати."
   },
   "email.organization_deleted.signature": {
     "text": "Delano"
@@ -366,7 +366,7 @@
     "text": "Разписка за плащане"
   },
   "email.payment_receipt.body": {
-    "text": "Благодарим ви за плащането. Ето детайлите за плащането:"
+    "text": "Благодарим за плащането. Ето детайлите за плащането ви:"
   },
   "email.payment_receipt.amount_label": {
     "text": "Сума:"
@@ -378,7 +378,7 @@
     "text": "План:"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Преглед на фактура"
+    "text": "Преглед на фактурата"
   },
   "email.payment_receipt.signature": {
     "text": "Delano"
@@ -393,19 +393,19 @@
     "text": "Не успяхме да обработим плащането ви за %{product_name}. Моля, актуализирайте метода си на плащане, за да избегнете прекъсване на услугата."
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Актуализиране на метода на плащане"
+    "text": "Актуализирай метода на плащане"
   },
   "email.payment_failed.signature": {
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "Вашият пробен период за %{product_name} изтича след %{days_remaining} дни"
+    "text": "Вашият %{product_name} пробен период изтича след %{days_remaining} дни"
   },
   "email.trial_expiring.title": {
-    "text": "Вашият пробен период скоро изтича"
+    "text": "Пробният ви период скоро изтича"
   },
   "email.trial_expiring.body": {
-    "text": "Вашият безплатен пробен период за %{product_name} ще изтече след %{days_remaining} дни. Надградете сега, за да запазите достъп до всички функции."
+    "text": "Безплатният ви пробен период на %{product_name} ще изтече след %{days_remaining} дни. Надградете сега, за да запазите достъпа до всички функции."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Надградете сега"
@@ -414,16 +414,16 @@
     "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "Вашият абонамент за %{product_name} беше променен"
+    "text": "Вашият %{product_name} абонамент беше променен"
   },
   "email.subscription_changed.title": {
     "text": "Абонаментът е променен"
   },
   "email.subscription_changed.body": {
-    "text": "Вашият абонамент за %{product_name} беше променен от %{old_plan} на %{new_plan}."
+    "text": "Вашият %{product_name} абонамент беше променен от %{old_plan} на %{new_plan}."
   },
   "email.subscription_changed.effective_date": {
-    "text": "Тази промяна влиза в сила на %{date}."
+    "text": "Тази промяна е в сила от %{date}."
   },
   "email.subscription_changed.signature": {
     "text": "Delano"
@@ -432,13 +432,13 @@
     "text": "Здравейте,"
   },
   "email.common.thanks": {
-    "text": "Благодарим,"
+    "text": "Благодаря,"
   },
   "email.common.unsubscribe": {
     "text": "Отписване"
   },
   "email.common.view_in_browser": {
-    "text": "Преглед в браузъра"
+    "text": "Преглед в браузър"
   },
   "email.common.onetime_secret": {
     "text": "Onetime Secret"

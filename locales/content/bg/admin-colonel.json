@@ -18,64 +18,64 @@
     "text": "Тайни ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(активен през последните 5 минути)"
+    "text": "(активни през последните 5 минути)"
   },
   "web.colonel.configEditorTitle": {
     "text": "Настройки"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Редактирайте настройките на системната конфигурация. Промените се прилагат веднага след записване."
+    "text": "Редактирайте системните конфигурационни настройки. Промените се прилагат незабавно след запазване."
   },
   "web.colonel.invalidJson": {
     "text": "Невалиден JSON в раздел {section}"
   },
   "web.colonel.validationError": {
-    "text": "Грешка при валидиране"
+    "text": "Грешка при валидация"
   },
   "web.colonel.errorFetchingConfig": {
     "text": "Грешка при зареждане на конфигурацията"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Грешка при записване на конфигурацията"
+    "text": "Грешка при запазване на конфигурацията"
   },
   "web.colonel.configSaved": {
-    "text": "Конфигурацията е записана успешно"
+    "text": "Конфигурацията е запазена успешно"
   },
   "web.colonel.mustBeObject": {
     "text": "Конфигурацията трябва да бъде JSON обект"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Множество раздели имат грешки при валидиране: {sections}"
+    "text": "Няколко раздела имат грешки при валидация: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} има грешки при валидиране: {error}"
+    "text": "{section} има грешки при валидация: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} е записан успешно"
+    "text": "{section} е запазен успешно"
   },
   "web.colonel.saveSection": {
     "text": "Запази {section}"
   },
   "web.colonel.saveAll": {
-    "text": "Запази всичко"
+    "text": "Запази всички"
   },
   "web.colonel.unsavedChanges": {
     "text": "Незапазени промени"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Грешка при валидиране на схема: {message} ({path})"
+    "text": "Грешка при валидация на схема: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Неизвестна грешка при валидиране: {error}"
+    "text": "Неизвестна грешка при валидация: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "Секция {section} няма конфигурирани стойности"
+    "text": "Раздел {section} няма конфигурирани стойности"
   },
   "web.colonel.dashboard": {
-    "text": "Табло за управление"
+    "text": "Табло"
   },
   "web.colonel.admin": {
-    "text": "Админ"
+    "text": "Администратор"
   },
   "web.colonel.activity": {
     "text": "Активност"
@@ -87,7 +87,7 @@
     "text": "Потребители"
   },
   "web.colonel.usersDescription": {
-    "text": "Управление на потребителски акаунти и права"
+    "text": "Управление на потребителски акаунти и разрешения"
   },
   "web.colonel.domains": {
     "text": "Домейни"
@@ -108,13 +108,13 @@
     "text": "Бързи действия"
   },
   "web.colonel.recentActivity": {
-    "text": "Последна активност"
+    "text": "Скорошна активност"
   },
   "web.colonel.viewAll": {
-    "text": "Прегледай всичко"
+    "text": "Виж всички"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Данните за активност ще бъдат показани тук"
+    "text": "Данните за активността ще бъдат показани тук"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Общо тайни"
@@ -132,22 +132,22 @@
     "text": "Споделени тайни"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Общо клиенти"
+    "text": "Общо потребители"
   },
   "web.colonel.stats.emailsSent": {
     "text": "Изпратени имейли"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Състояние на системата"
+    "text": "Здраве на системата"
   },
   "web.colonel.stats.healthy": {
     "text": "Здрава"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Прегледай активността"
+    "text": "Преглед на активността"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Наблюдавайте активността и използването на системата"
+    "text": "Наблюдение на системната активност и използване"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Управление на акаунти"
@@ -159,7 +159,7 @@
     "text": "Конфигуриране на домейни"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Настройки за домейни и DNS"
+    "text": "Настройки на домейни и DNS"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Системни настройки"
@@ -180,7 +180,7 @@
     "text": "Чакащи"
   },
   "web.colonel.consumers": {
-    "text": "Потребители"
+    "text": "Консуматори"
   },
   "web.colonel.processingRate": {
     "text": "Скорост/сек"
@@ -207,13 +207,13 @@
     "text": "Тестване като {planName}"
   },
   "web.colonel.clickToReset": {
-    "text": "Кликнете за нулиране"
+    "text": "Натиснете за нулиране"
   },
   "web.colonel.selectTestPlan": {
     "text": "Изберете план за тестване"
   },
   "web.colonel.resetToActual": {
-    "text": "Нулиране към действителен план"
+    "text": "Нулиране до действителен план"
   },
   "web.colonel.currentActualPlan": {
     "text": "Текущ план"
@@ -222,25 +222,25 @@
     "text": "Налични планове"
   },
   "web.colonel.activateTestMode": {
-    "text": "Активирайте тестов режим"
+    "text": "Активирай тестов режим"
   },
   "web.colonel.testModeActive": {
-    "text": "Тестовият режим е активен"
+    "text": "Тестов режим е активен"
   },
   "web.colonel.testModeDescription": {
-    "text": "Тествайте приложението с различни права на планове. Промените са временни и засягат само вашата сесия."
+    "text": "Тествайте приложението си с различни права на план. Промените са временни и засягат само вашата сесия."
   },
   "web.colonel.warningTestMode": {
-    "text": "Тествате с права на {planName} (временно заместване на сесията)."
+    "text": "Тествате с права на {planName} (временно презаписване на сесията)."
   },
   "web.colonel.organizations.title": {
     "text": "Организации"
   },
   "web.colonel.organizations.description": {
-    "text": "Мониторинг на синхронизацията на фактурирането"
+    "text": "Наблюдение на здравето на синхронизацията на фактурирането на организациите"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Мониторинг на състоянието на фактурирането"
+    "text": "Монитор за здраве на фактурирането"
   },
   "web.colonel.organizations.organizationsCount": {
     "text": "{count} организации"
@@ -252,7 +252,7 @@
     "text": "{count} неизвестни"
   },
   "web.colonel.organizations.noOrganizations": {
-    "text": "Няма намерени организации"
+    "text": "Не са намерени организации"
   },
   "web.colonel.organizations.filters.syncStatus": {
     "text": "Статус на синхронизация"
@@ -264,25 +264,25 @@
     "text": "Всички"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Възможно остарели"
+    "text": "Потенциално остарели"
   },
   "web.colonel.organizations.filters.unknown": {
-    "text": "Неизвестен"
+    "text": "Неизвестни"
   },
   "web.colonel.organizations.filters.synced": {
-    "text": "Синхронизиран"
+    "text": "Синхронизирани"
   },
   "web.colonel.organizations.filters.active": {
-    "text": "Активен"
+    "text": "Активни"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "Пробен период"
+    "text": "В пробен период"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "Просрочен"
+    "text": "Просрочени"
   },
   "web.colonel.organizations.filters.canceled": {
-    "text": "Отменен"
+    "text": "Отменени"
   },
   "web.colonel.organizations.columns.account": {
     "text": "Акаунт"
@@ -297,7 +297,7 @@
     "text": "Използване"
   },
   "web.colonel.organizations.columns.created": {
-    "text": "Създаден"
+    "text": "Създадена"
   },
   "web.colonel.organizations.columns.details": {
     "text": "Детайли"
@@ -324,25 +324,25 @@
     "text": "Има фактуриране"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Администрация на фактурирането на организации"
+    "text": "Администриране на фактурирането на организации"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Управление на организации и мониторинг на синхронизацията на фактурирането ({total} общо)"
+    "text": "Управление на организации и наблюдение на здравето на синхронизацията на фактурирането ({total} общо)"
   },
   "web.colonel.organizations.legacy.empty": {
-    "text": "Няма намерени организации"
+    "text": "Не са намерени организации"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "възможно остарял"
+    "text": "потенциално остарели"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "Остарял"
+    "text": "Остаряла"
   },
   "web.colonel.organizations.status.unknown": {
-    "text": "Неизвестен"
+    "text": "Неизвестна"
   },
   "web.colonel.organizations.status.active": {
-    "text": "active"
+    "text": "активна"
   },
   "web.colonel.organizations.actions.investigate": {
     "text": "Разследване"
@@ -366,7 +366,7 @@
     "text": "Резултат от разследването"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Потвърдено синхронизиран"
+    "text": "Потвърдено синхронизирано"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
     "text": "Открито несъответствие"
@@ -390,7 +390,7 @@
     "text": "ID на цена"
   },
   "web.colonel.organizations.investigation.local": {
-    "text": "Локален"
+    "text": "Локално"
   },
   "web.colonel.organizations.investigation.stripe": {
     "text": "Stripe"
@@ -417,7 +417,7 @@
     "text": "Експорт на използване"
   },
   "web.colonel.usageExport.description": {
-    "text": "Експорт на данни и статистики за използване"
+    "text": "Експорт на данни за използване и статистики"
   },
   "web.colonel.systemSettings.title": {
     "text": "Система"
@@ -432,7 +432,7 @@
     "text": "Управление на персонализирани домейни и брандиране"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Когато изпратите обратна връзка, ние ще видим:"
+    "text": "Когато изпратите обратна връзка, ще видим:"
   },
   "web.colonel.feedback.send_feedback": {
     "text": "Изпрати обратна връзка"
