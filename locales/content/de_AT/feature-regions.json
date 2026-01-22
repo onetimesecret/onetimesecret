@@ -6,10 +6,10 @@
     "text": "Ihre Daten befinden sich ausschließlich in Ihrer gewählten Region und werden niemals zwischen Regionen übertragen"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Jede Region arbeitet als völlig unabhängige Umgebung mit eigener Infrastruktur, Verschlüsselungsschlüsseln und Datenspeicherung"
+    "text": "Jede Region arbeitet als vollständig unabhängige Umgebung mit eigener Infrastruktur, Verschlüsselungsschlüsseln und Datenspeicherung"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Wir verfolgen eine strikte Richtlinie: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen"
+    "text": "Wir halten eine strenge Richtlinie ein: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen"
   },
   "web.regions.switching_creates_new_account": {
     "text": "Wichtig: Der Wechsel zu einer anderen Region erstellt ein neues Konto. Ihre Daten bleiben in Ihrer ursprünglichen Region."
@@ -33,16 +33,16 @@
     "text": "Transparenz & Kontrolle"
   },
   "web.regions.trust_description": {
-    "text": "Wissen Sie genau, wo sich Ihre Daten befinden und welche Gesetze ihren Schutz regeln."
+    "text": "Wissen Sie genau, wo Ihre Daten gespeichert sind und welche Gesetze deren Schutz regeln."
   },
   "web.regions.privacy_title": {
     "text": "Datenschutzrechte"
   },
   "web.regions.privacy_description": {
-    "text": "Stellen Sie sicher, dass Ihre persönlichen Informationen gemäß den Datenschutzgesetzen und -vorschriften Ihres Landes behandelt werden, um unbefugten Zugriff oder Missbrauch zu verhindern."
+    "text": "Stellen Sie sicher, dass Ihre persönlichen Daten gemäß den Datenschutzgesetzen und -vorschriften Ihres Landes behandelt werden, um unbefugten Zugriff oder Missbrauch zu verhindern."
   },
   "web.regions.compliance_title": {
-    "text": "Einhaltung von Vorschriften"
+    "text": "Regulatorische Compliance"
   },
   "web.regions.compliance_description": {
     "text": "Erfüllen Sie DSGVO, HIPAA, CCPA und andere regionale Datenschutzanforderungen"
@@ -51,16 +51,16 @@
     "text": "Schnellerer Zugriff"
   },
   "web.regions.performance_description": {
-    "text": "Näher bei Ihnen gespeicherte Daten bedeuten geringere Latenz und bessere Leistung."
+    "text": "Daten, die näher bei Ihnen gespeichert werden, bedeuten geringere Latenz und bessere Leistung."
   },
   "web.regions.regions": {
     "text": "Regionen"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "kontakt zu unserem Compliance-Team"
+    "text": "unser Compliance-Team kontaktieren"
   },
   "web.regions.review_our_documentation": {
-    "text": "überprüfung unserer Dokumentation"
+    "text": "unsere Dokumentation ansehen"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Ihr Konto und Ihre Daten sind durch die Gesetze und Vorschriften folgender Länder geschützt"
@@ -84,24 +84,24 @@
     "text": "Verfügbare Regionen"
   },
   "web.regions.jurisdiction": {
-    "text": "Zuständigkeitsbereich"
+    "text": "Rechtsraum"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
     "text": "Standort des Rechenzentrums: {0}"
   },
   "web.regions.data_region": {
-    "text": "Daten Region"
+    "text": "Datenregion"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Unbekannte Gerichtsbarkeit"
+    "text": "Unbekannter Rechtsraum"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Für Sie da vom"
+    "text": "Wir bedienen Sie aus"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "Weiter zu {0}"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Derzeitige Rechtsprechung:"
+    "text": "Aktueller Rechtsraum:"
   }
 }

@@ -6,16 +6,16 @@
     "text": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht."
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Was soll ich jetzt tun?"
+    "text": "Was sollte ich jetzt tun?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
     "text": "Kontaktieren Sie die Person, die Ihnen diesen Link gesendet hat, und bitten Sie sie, ein neues Geheimnis zu erstellen. Teilen Sie ihr mit, dass Sie nicht auf die ursprünglichen Informationen zugreifen konnten."
   },
   "web.errors.warning_dismissed": {
-    "text": "Abgelehnte Warnung"
+    "text": "Warnung geschlossen"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Trunkierungswarnung aufheben"
+    "text": "Kürzungswarnung schließen"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Huch! Die Seite, die Sie suchen, existiert nicht oder wurde verschoben."
@@ -27,10 +27,10 @@
     "text": "404 - Seite nicht gefunden"
   },
   "web.errors.dismiss_warning": {
-    "text": "Warnung verwerfen"
+    "text": "Warnung schließen"
   },
   "web.errors.dismiss_notification": {
-    "text": "Benachrichtigung entlassen"
+    "text": "Benachrichtigung schließen"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Wenn Sie sich nicht sicher sind, wie Sie weiter vorgehen sollen, wenden Sie sich bitte an die Person, die Ihnen diesen Link geschickt hat, um weitere Informationen zu erhalten."
@@ -45,7 +45,7 @@
     "text": "{0} Etwas ist schief gelaufen"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Geh und teile ein Geheimnis!"
+    "text": "Los, teilen Sie ein Geheimnis!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "Die Seite, die Sie suchen, existiert nicht oder wurde verschoben. Keine Sorge, das passiert auch den Besten von uns!"

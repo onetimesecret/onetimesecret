@@ -18,7 +18,7 @@
     "text": "Sitzung abgelaufen. Bitte melden Sie sich erneut an."
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Wiederherstellungscode nicht gefunden. Bitte überprüfen Sie, ob Sie ihn korrekt eingegeben haben."
+    "text": "Wiederherstellungscode nicht gefunden. Bitte überprüfen Sie, ob Sie ihn richtig eingegeben haben."
   },
   "web.auth.security.recovery_code_used": {
     "text": "Dieser Wiederherstellungscode wurde bereits verwendet. Jeder Code kann nur einmal verwendet werden."
@@ -60,7 +60,7 @@
     "text": "Dieser Link läuft in 15 Minuten ab"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Eine andere E-Mail ausprobieren"
+    "text": "Versuchen Sie eine andere E-Mail"
   },
   "web.auth.magicLink.noPasswordNeeded": {
     "text": "Kein Passwort erforderlich — klicken Sie einfach auf den Link in Ihrer E-Mail"
@@ -69,7 +69,7 @@
     "text": "Netzwerkfehler. Bitte versuchen Sie es erneut."
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Senden des Anmeldelinks fehlgeschlagen. Bitte versuchen Sie es erneut."
+    "text": "Anmeldelink konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
   },
   "web.auth.magicLink.invalidLink": {
     "text": "Ungültiger oder fehlender Anmeldelink"
@@ -105,7 +105,7 @@
     "text": "Biometrische Anmeldung wurde aktiviert"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Einrichtung der biometrischen Anmeldung fehlgeschlagen"
+    "text": "Biometrische Anmeldung konnte nicht eingerichtet werden"
   },
   "web.auth.webauthn.authFailed": {
     "text": "Biometrische Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut."
@@ -132,7 +132,7 @@
     "text": "Ihr Konto ist bis {time} gesperrt"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Kontaktieren Sie den Support, falls Sie sofortigen Zugriff benötigen"
+    "text": "Kontaktieren Sie den Support, wenn Sie sofortigen Zugang benötigen"
   },
   "web.auth.lockout.try_password_reset": {
     "text": "Sie können stattdessen Ihr Passwort zurücksetzen"
@@ -171,7 +171,7 @@
     "text": "Sind Sie sicher, dass Sie diese Sitzung entfernen möchten?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Dies meldet Sie von allen anderen Geräten ab. Sind Sie sicher?"
+    "text": "Dies wird Sie von allen anderen Geräten abmelden. Sind Sie sicher?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Keine anderen aktiven Sitzungen"
@@ -204,7 +204,7 @@
     "text": "Zwei-Faktor-Authentifizierung einrichten"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Fügen Sie eine zusätzliche Sicherheitsebene zu Ihrem Konto hinzu"
+    "text": "Fügen Sie Ihrem Konto eine zusätzliche Sicherheitsebene hinzu"
   },
   "web.auth.mfa.step_scan": {
     "text": "1. QR-Code scannen"
@@ -216,7 +216,7 @@
     "text": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Oder geben Sie diesen Code manuell ein"
+    "text": "Oder diesen Code manuell eingeben"
   },
   "web.auth.mfa.verify_code": {
     "text": "Geben Sie den 6-stelligen Code aus Ihrer App ein"
@@ -255,7 +255,7 @@
     "text": "Nie verwendet"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Verwenden Sie stattdessen einen Wiederherstellungscode"
+    "text": "Stattdessen einen Wiederherstellungscode verwenden"
   },
   "web.auth.mfa.back_to_code": {
     "text": "Zurück zum Authentifizierungscode"
@@ -279,7 +279,7 @@
     "text": "Funktioniert mit Google Authenticator, Authy und anderen TOTP-Apps"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Backup-Wiederherstellungscodes für Notfallzugriff"
+    "text": "Backup-Wiederherstellungscodes für Notfallzugang"
   },
   "web.auth.mfa.password_placeholder": {
     "text": "Geben Sie Ihr Passwort ein"
@@ -294,10 +294,10 @@
     "text": "QR-Code wird generiert..."
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Verwenden Sie Google Authenticator, Authy oder eine TOTP-App"
+    "text": "Verwenden Sie Google Authenticator, Authy oder eine andere TOTP-App"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Weiter zur Verifizierung"
+    "text": "Zur Verifizierung fortfahren"
   },
   "web.auth.mfa.enter_code_description": {
     "text": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein"
@@ -339,7 +339,7 @@
     "text": "Wiederherstellungscodes"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Speichern Sie diese Codes an einem sicheren Ort. Jeder kann einmal verwendet werden, falls Sie den Zugriff auf Ihren Authenticator verlieren."
+    "text": "Speichern Sie diese Codes an einem sicheren Ort. Jeder kann einmal verwendet werden, wenn Sie den Zugriff auf Ihren Authenticator verlieren."
   },
   "web.auth.recovery_codes.warning": {
     "text": "Diese Codes werden nur einmal angezeigt"
@@ -369,7 +369,7 @@
     "text": "Alle Codes kopieren"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "Codes in Zwischenablage kopiert"
+    "text": "Codes in die Zwischenablage kopiert"
   },
   "web.auth.recovery_codes.copy_failed": {
     "text": "Codes konnten nicht in die Zwischenablage kopiert werden"
@@ -381,18 +381,33 @@
     "text": "Unbenutzt"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} Wiederherstellungscode(s) verbleibend"
+    "text": "{count} von {limit} Wiederherstellungscodes verbleibend"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Jeder Code kann nur einmal verwendet werden. Generieren Sie neue Codes, wenn Sie zur Neige gehen."
+    "text": "Jeder Code kann nur einmal verwendet werden. Generieren Sie neue Codes, wenn Sie wenige übrig haben."
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Keine Wiederherstellungscodes verbleibend"
+    "text": "Keine Wiederherstellungscodes mehr vorhanden"
   },
   "web.auth.recovery_codes.generate_success": {
     "text": "Neue Wiederherstellungscodes wurden generiert"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Wiederherstellungscodes"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Verifizieren"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Wiederherstellungscode verwenden"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Anmeldung abbrechen"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SICHERHEITSKRITISCH: Nachrichten verhindern Informationsoffenlegung. Siehe src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Verwaltungsseite für angemeldete Geräte/Browser des Benutzers"
   }
 }

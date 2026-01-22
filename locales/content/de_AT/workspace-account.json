@@ -18,7 +18,7 @@
     "text": "Abonnement verwalten"
   },
   "web.account.customer_information": {
-    "text": "Informationen für Kunden"
+    "text": "Kundeninformationen"
   },
   "web.account.customer_since": {
     "text": "Kunde seit:"
@@ -30,13 +30,13 @@
     "text": "Region"
   },
   "web.account.account_balance": {
-    "text": "Kontostand:"
+    "text": "Guthaben:"
   },
   "web.account.default_payment_method": {
     "text": "Standard-Zahlungsmethode"
   },
   "web.account.card_ending": {
-    "text": "endend mit"
+    "text": "endet auf"
   },
   "web.account.subscriptions_title": {
     "text": "Abonnements"
@@ -57,13 +57,13 @@
     "text": "Neues Passwort"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Bestätigen Sie"
+    "text": "Bestätigen"
   },
   "web.account.changePassword.updatePassword": {
     "text": "Passwort aktualisieren"
   },
   "web.account.changePassword.updating": {
-    "text": "Aktualisieren..."
+    "text": "Wird aktualisiert..."
   },
   "web.account.timezone": {
     "text": "Zeitzone"
@@ -87,10 +87,10 @@
     "text": "Konto-Typ: {0}"
   },
   "web.account.your_account": {
-    "text": "Ihr Konto"
+    "text": "Dein Konto"
   },
   "web.account.support_details": {
-    "text": "Details zur Unterstützung"
+    "text": "Support-Details"
   },
   "web.account.back_to_details": {
     "text": "Zurück zu Details"
@@ -99,49 +99,49 @@
     "text": "Kunden-ID: {0}"
   },
   "web.account.token_generated": {
-    "text": "Token erzeugt."
+    "text": "Token generiert."
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
     "text": "Bewahren Sie diesen Token sicher auf! Er bietet vollen Zugang zu Ihrem Konto."
   },
   "web.account.confirm_with_your_password": {
-    "text": "Bestätigen Sie mit Ihrem Passwort"
+    "text": "Mit deinem Passwort bestätigen"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Sind Sie sicher, dass Sie Ihr Konto endgültig löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "web.account.confirm_account_deletion": {
-    "text": "Bestätigung der Kontolöschung"
+    "text": "Kontolöschung bestätigen"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Löschen von {0}"
+    "text": "Wird gelöscht: {0}"
   },
   "web.account.permanently_delete_account": {
-    "text": "Dauerhaftes Löschen des Kontos"
+    "text": "Konto dauerhaft löschen"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "dauerhaft und nicht umkehrbar."
+    "text": "dauerhaft und unwiderruflich."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Die Löschung Ihres Kontos ist"
+    "text": "Das Löschen deines Kontos ist"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "zerstören Sie sie, bevor Sie fortfahren"
+    "text": "lösche sie dauerhaft, bevor du fortfährst"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Alle Geheimnisse, die Sie entfernen möchten,"
+    "text": "Geheimnisse, die du entfernen möchtest,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Die Geheimnisse bleiben aktiv, bis sie ablaufen."
+    "text": "Geheimnisse bleiben aktiv, bis sie ablaufen."
   },
   "web.account.please_be_advised": {
-    "text": "Bitte beachten Sie:"
+    "text": "Bitte beachte:"
   },
   "web.account.account_deleted_successfully": {
     "text": "Konto erfolgreich gelöscht."
   },
   "web.account.deactivate": {
-    "text": "Deaktivieren Sie"
+    "text": "Deaktivieren"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
     "text": "Sind Sie sicher, dass Sie Ihr Konto deaktivieren möchten? Alle Ihre Daten werden dauerhaft und für immer von unseren Servern entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
@@ -153,16 +153,16 @@
     "text": "Einstellungen"
   },
   "web.settings.description": {
-    "text": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen"
+    "text": "Verwalte deine Kontoeinstellungen und Präferenzen"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen"
+    "text": "Verwalte deine Kontoeinstellungen und Präferenzen"
   },
   "web.settings.general": {
     "text": "Allgemein"
   },
   "web.settings.preferences": {
-    "text": "Einstellungen"
+    "text": "Präferenzen"
   },
   "web.settings.appearance": {
     "text": "Erscheinungsbild"
@@ -171,25 +171,25 @@
     "text": "Design"
   },
   "web.settings.theme.description": {
-    "text": "Wählen Sie helles oder dunkles Design"
+    "text": "Wähle helles oder dunkles Design"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Wählen Sie helles oder dunkles Design"
+    "text": "Wähle helles oder dunkles Design"
   },
   "web.settings.language.title": {
     "text": "Sprache"
   },
   "web.settings.language.description": {
-    "text": "Wählen Sie Ihre bevorzugte Sprache"
+    "text": "Wähle deine bevorzugte Sprache"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Wählen Sie Ihre bevorzugte Sprache"
+    "text": "Wähle deine bevorzugte Sprache"
   },
   "web.settings.security_settings_description": {
-    "text": "Verwalten Sie Authentifizierung und Kontosicherheit"
+    "text": "Verwalte Authentifizierung und Kontosicherheit"
   },
   "web.settings.profile_settings_description": {
-    "text": "Verwalten Sie Ihre Kontoinformationen"
+    "text": "Verwalte deine Kontoinformationen"
   },
   "web.settings.profile.title": {
     "text": "Profil"
@@ -207,67 +207,67 @@
     "text": "Neue E-Mail"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Geben Sie Ihr aktuelles Passwort ein"
+    "text": "Gib dein aktuelles Passwort ein"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Ihr Passwort wird aus Sicherheitsgründen benötigt"
+    "text": "Dein Passwort wird aus Sicherheitsgründen benötigt"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Eine Verifizierungs-E-Mail wird an die neue Adresse gesendet"
+    "text": "Eine Bestätigungs-E-Mail wird an die neue Adresse gesendet"
   },
   "web.settings.profile.update_email": {
     "text": "E-Mail aktualisieren"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Aktualisieren Sie die E-Mail-Adresse, die mit Ihrem Konto verknüpft ist"
+    "text": "Aktualisiere die mit deinem Konto verknüpfte E-Mail-Adresse"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Alle Felder sind erforderlich"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Bitte geben Sie eine gültige E-Mail-Adresse ein"
+    "text": "Bitte gib eine gültige E-Mail-Adresse ein"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Neue E-Mail muss sich von der aktuellen E-Mail unterscheiden"
+    "text": "Die neue E-Mail muss sich von der aktuellen E-Mail unterscheiden"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-Mail erfolgreich aktualisiert. Bitte überprüfen Sie Ihren Posteingang, um Ihre neue E-Mail-Adresse zu verifizieren."
+    "text": "E-Mail erfolgreich aktualisiert. Bitte überprüfe dein Postfach, um deine neue E-Mail-Adresse zu bestätigen."
   },
   "web.settings.profile.email_change_error": {
-    "text": "E-Mail konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+    "text": "E-Mail konnte nicht aktualisiert werden. Bitte versuche es erneut."
   },
   "web.settings.sessions.title": {
     "text": "Aktive Sitzungen"
   },
   "web.settings.sessions.description": {
-    "text": "Verwalten Sie Ihre aktiven Sitzungen"
+    "text": "Verwalte deine aktiven Sitzungen"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Verwalten Sie Ihre aktiven Sitzungen"
+    "text": "Verwalte deine aktiven Sitzungen"
   },
   "web.settings.password.title": {
     "text": "Passwort"
   },
   "web.settings.password.description": {
-    "text": "Aktualisieren Sie Ihr Kontopasswort"
+    "text": "Aktualisiere dein Kontopasswort"
   },
   "web.settings.password.update_account_password": {
-    "text": "Aktualisieren Sie Ihr Kontopasswort"
+    "text": "Aktualisiere dein Kontopasswort"
   },
   "web.settings.delete_account.title": {
     "text": "Konto löschen"
   },
   "web.settings.delete_account.description": {
-    "text": "Löschen Sie Ihr Konto und alle Daten dauerhaft"
+    "text": "Dein Konto und alle Daten dauerhaft löschen"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Löschen Sie Ihr Konto und alle Daten dauerhaft"
+    "text": "Dein Konto und alle Daten dauerhaft löschen"
   },
   "web.settings.security.security_score": {
     "text": "Sicherheitsbewertung"
   },
   "web.settings.security.score_description": {
-    "text": "Ihr allgemeiner Kontosicherheitsstatus"
+    "text": "Dein allgemeiner Kontosicherheitsstatus"
   },
   "web.settings.security.excellent": {
     "text": "Ausgezeichnet"
@@ -276,19 +276,19 @@
     "text": "Gut"
   },
   "web.settings.security.fair": {
-    "text": "Befriedigend"
+    "text": "Ausreichend"
   },
   "web.settings.security.weak": {
     "text": "Schwach"
   },
   "web.settings.security.improve_security": {
-    "text": "Verbessern Sie Ihre Sicherheit"
+    "text": "Verbessere deine Sicherheit"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Aktivieren Sie die Zwei-Faktor-Authentifizierung für stärkeren Schutz"
+    "text": "Aktiviere Zwei-Faktor-Authentifizierung für stärkeren Schutz"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Generieren Sie Wiederherstellungscodes als Backup"
+    "text": "Generiere Wiederherstellungscodes als Backup"
   },
   "web.settings.security.configured": {
     "text": "Konfiguriert"
@@ -312,19 +312,19 @@
     "text": "{0} aktive Sitzung | {0} aktive Sitzungen"
   },
   "web.settings.security.best_practices": {
-    "text": "Best Practices für Sicherheit"
+    "text": "Sicherheits-Best-Practices"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Verwenden Sie ein starkes, eindeutiges Passwort für Ihr Konto"
+    "text": "Verwende ein starkes, einzigartiges Passwort für dein Konto"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Aktivieren Sie die Zwei-Faktor-Authentifizierung für zusätzlichen Schutz"
+    "text": "Aktiviere Zwei-Faktor-Authentifizierung für zusätzlichen Schutz"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Speichern Sie Ihre Wiederherstellungscodes an einem sicheren Ort"
+    "text": "Speichere deine Wiederherstellungscodes an einem sicheren Ort"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Überprüfen und widerrufen Sie nicht verwendete Sitzungen regelmäßig"
+    "text": "Überprüfe und widerrufe regelmäßig ungenutzte Sitzungen"
   },
   "web.settings.security.view_details": {
     "text": "Details anzeigen"
@@ -333,16 +333,16 @@
     "text": "API & Integrationen"
   },
   "web.settings.api.description": {
-    "text": "Verwalten Sie API-Schlüssel und Integrationen"
+    "text": "API-Schlüssel und Integrationen verwalten"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Verwalten Sie API-Schlüssel und Integrationen"
+    "text": "API-Schlüssel und Integrationen verwalten"
   },
   "web.settings.api.documentation": {
     "text": "API-Dokumentation"
   },
   "web.settings.api.documentation_description": {
-    "text": "Erfahren Sie, wie Sie Onetime Secret in Ihre Anwendungen integrieren"
+    "text": "Erfahre, wie du Onetime Secret in deine Anwendungen integrierst"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST-API-Referenz"
@@ -357,37 +357,37 @@
     "text": "Beispielcode und Client-Bibliotheken"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Best Practices für Sicherheit"
+    "text": "Sicherheits-Best-Practices"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Verpflichten Sie niemals API-Schlüssel zur Versionskontrolle"
+    "text": "Speichere API-Schlüssel niemals in der Versionskontrolle"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Verwenden Sie Umgebungsvariablen zum Speichern von API-Schlüsseln"
+    "text": "Verwende Umgebungsvariablen zum Speichern von API-Schlüsseln"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rotieren Sie API-Schlüssel regelmäßig aus Sicherheitsgründen"
+    "text": "Rotiere API-Schlüssel regelmäßig für mehr Sicherheit"
   },
   "web.settings.api.use_https_only": {
-    "text": "Verwenden Sie immer HTTPS bei API-Anfragen"
+    "text": "Verwende immer HTTPS bei API-Anfragen"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Überwachen Sie Ihre API-Nutzung und richten Sie Benachrichtigungen ein"
+    "text": "Überwache deine API-Nutzung und richte Benachrichtigungen ein"
   },
   "web.settings.api.important_notice": {
     "text": "Wichtiger Hinweis"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Das Regenerieren Ihres API-Schlüssels macht den aktuellen Schlüssel ungültig. Aktualisieren Sie alle Anwendungen, die den alten Schlüssel verwenden."
+    "text": "Das Neugenerieren deines API-Schlüssels macht den aktuellen Schlüssel ungültig. Aktualisiere alle Anwendungen, die den alten Schlüssel verwenden."
   },
   "web.settings.privacy.title": {
     "text": "Datenschutzeinstellungen"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Verwalten Sie Ihre Datenschutzpräferenzen"
+    "text": "Verwalte deine Datenschutzpräferenzen"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Ihr Datenschutz"
+    "text": "Deine Privatsphäre"
   },
   "web.settings.privacy.non_negotiable": {
     "text": "Nicht verhandelbar"
@@ -399,31 +399,31 @@
     "text": "Keine Analysen. Kein Tracking. Punkt."
   },
   "web.settings.privacy.explanation": {
-    "text": "Dies ist keine Einstellung, weil es nichts ein- oder auszuschalten gibt. Ihr Datenschutz ist in unserer Arbeitsweise eingebaut."
+    "text": "Das ist keine Einstellung, weil es nichts ein- oder auszuschalten gibt. Deine Privatsphäre ist in unsere Arbeitsweise integriert."
   },
   "web.settings.notifications.title": {
     "text": "Benachrichtigungseinstellungen"
   },
   "web.settings.notifications.description": {
-    "text": "Verwalten Sie, wie Sie Benachrichtigungen erhalten"
+    "text": "Verwalte, wie du Benachrichtigungen erhältst"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Benachrichtigungseinstellung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+    "text": "Benachrichtigungseinstellung konnte nicht aktualisiert werden. Bitte versuche es erneut."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Benachrichtigungen bei Geheimnis-Anzeige"
+    "text": "Benachrichtigungen bei Geheimnis-Ansicht"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Erhalten Sie eine E-Mail, wenn jemand Ihr Geheimnis ansieht"
+    "text": "Erhalte eine E-Mail, wenn jemand dein Geheimnis ansieht"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Sie werden jedes Mal benachrichtigt, wenn ein Empfänger eines Ihrer Geheimnisse öffnet"
+    "text": "Du wirst jedes Mal benachrichtigt, wenn ein Empfänger eines deiner Geheimnisse aufdeckt"
   },
   "web.settings.notifications.privacy_note": {
     "text": "Benachrichtigungs-E-Mails enthalten nur den Zeitstempel und die Geheimnis-ID. Informationen über den Betrachter werden niemals einbezogen."
   },
   "web.settings.caution.title": {
-    "text": "Bereich für sorgfältige Überlegung"
+    "text": "Vorsichtszone"
   },
   "web.settings.caution.description": {
     "text": "Erweiterte Einstellungen und Datenverwaltung"
@@ -432,10 +432,10 @@
     "text": "Datenexport"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exportieren Sie Ihre Kontodaten"
+    "text": "Deine Kontodaten exportieren"
   },
   "web.settings.caution.export_description": {
-    "text": "Fordern Sie eine vollständige Kopie Ihrer Kontodaten in maschinenlesbarem Format an"
+    "text": "Fordere eine vollständige Kopie deiner Kontodaten in maschinenlesbarem Format an"
   },
   "web.settings.caution.request_data_export": {
     "text": "Datenexport anfordern"
@@ -444,21 +444,36 @@
     "text": "Exportverarbeitungszeit"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Exporte werden innerhalb von 24 Stunden verarbeitet und an Ihre E-Mail-Adresse gesendet"
+    "text": "Exporte werden innerhalb von 24 Stunden verarbeitet und an deine E-Mail-Adresse gesendet"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Das Löschen Ihres Kontos wird:"
+    "text": "Das Löschen deines Kontos wird:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Alle Ihre Geheimnisse dauerhaft löschen"
+    "text": "Alle deine Geheimnisse dauerhaft löschen"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Alle Geheimnis-Metadaten und Historie entfernen"
+    "text": "Alle Geheimnis-Metadaten und den Verlauf entfernen"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "Alle API-Schlüssel ungültig machen"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Diese Aktion kann nicht rückgängig gemacht werden"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Wird gelöscht..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Zurück zum Dashboard"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto"
+  },
+  "web.settings.sections.billing": {
+    "text": "Abrechnung"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Erweitert"
   }
 }

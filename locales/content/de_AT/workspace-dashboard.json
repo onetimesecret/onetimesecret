@@ -3,18 +3,18 @@
     "text": "Empfangen"
   },
   "web.dashboard.title_not_received": {
-    "text": "Nicht erhalten"
+    "text": "Nicht empfangen"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Keine neuen Geheimnisse"
+    "text": "Keine aktuellen Geheimnisse"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Beginnen Sie mit der Erstellung Ihres ersten Geheimnisses."
+    "text": "Leg los, indem du dein erstes Geheimnis erstellst."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Teams konnten nicht geladen werden"
+    "text": "Daten konnten nicht geladen werden"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Beim Laden Ihrer Teams ist ein Problem aufgetreten. Bitte versuchen Sie es erneut."
+    "text": "Beim Laden deiner Daten ist ein Problem aufgetreten. Bitte versuche es erneut."
   }
 }

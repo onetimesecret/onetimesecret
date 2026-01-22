@@ -1,30 +1,30 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Benötigen Sie ein Konto?"
+    "text": "Noch kein Konto?"
   },
   "web.login.need_an_account": {
-    "text": "Oder erstellen Sie Ihr Konto noch heute"
+    "text": "Registrieren."
   },
   "web.login.forgot_your_password": {
-    "text": "Haben Sie Ihr Passwort vergessen?"
+    "text": "Passwort vergessen?"
   },
   "web.login.button_sign_in": {
-    "text": "Eintragen"
+    "text": "Anmelden"
   },
   "web.login.enter_your_credentials": {
-    "text": "Geben Sie Ihre Anmeldedaten ein"
+    "text": "Gib deine Anmeldedaten ein"
   },
   "web.login.remember_me": {
-    "text": "Erinnern Sie sich an mich"
+    "text": "Angemeldet bleiben"
   },
   "web.signup.create_your_account": {
-    "text": "Erstellen Sie Ihr Konto"
+    "text": "Erstelle dein Konto"
   },
   "web.signup.alternate_prefix": {
-    "text": "Haben Sie bereits ein Konto?"
+    "text": "Bereits ein Konto?"
   },
   "web.signup.have_an_account": {
-    "text": "Oder melden Sie sich bei Ihrem Konto an"
+    "text": "Anmelden."
   },
   "web.signup.error_title": {
     "text": "Fehler bei der Kontoerstellung"
@@ -36,28 +36,28 @@
     "text": "E-Mail"
   },
   "web.auth.verify.title": {
-    "text": "Verifizieren Sie Ihr Konto"
+    "text": "Konto verifizieren"
   },
   "web.auth.verify.success": {
-    "text": "Ihr Konto wurde erfolgreich verifiziert"
+    "text": "Dein Konto wurde erfolgreich verifiziert"
   },
   "web.auth.verify.invalid_key": {
     "text": "Ungültiger oder abgelaufener Verifizierungsschlüssel"
   },
   "web.auth.verify.expired_key": {
-    "text": "Dieser Verifizierungslink ist abgelaufen. Bitte fordern Sie einen neuen an."
+    "text": "Dieser Verifizierungslink ist abgelaufen. Bitte fordere einen neuen an."
   },
   "web.auth.verify.already_verified": {
-    "text": "Dieses Konto wurde bereits verifiziert. Sie können sich jetzt anmelden."
+    "text": "Dieses Konto wurde bereits verifiziert. Du kannst dich jetzt anmelden."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Konto konnte nicht verifiziert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support."
+    "text": "Konto konnte nicht verifiziert werden. Bitte versuche es erneut oder kontaktiere den Support."
   },
   "web.auth.verify.check_email": {
-    "text": "Bitte überprüfen Sie Ihre E-Mail auf einen Verifizierungslink"
+    "text": "Bitte überprüfe deine E-Mail auf einen Verifizierungslink"
   },
   "web.auth.verify.error": {
-    "text": "Kontoverifizierung fehlgeschlagen. Bitte überprüfen Sie Ihren Verifizierungslink oder fordern Sie einen neuen an."
+    "text": "Kontoverifizierung fehlgeschlagen. Bitte überprüfe deinen Verifizierungslink oder fordere einen neuen an."
   },
   "web.auth.verify.error_title": {
     "text": "Verifizierung fehlgeschlagen"
@@ -66,19 +66,19 @@
     "text": "Was soll ich tun?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Überprüfen Sie Ihre E-Mail auf den neuesten Verifizierungslink"
+    "text": "Überprüfe deine E-Mail auf den aktuellsten Verifizierungslink"
   },
   "web.auth.verify.check_spam": {
-    "text": "Überprüfen Sie Ihren Spam-/Junk-Ordner, falls Sie die E-Mail nicht finden können"
+    "text": "Überprüfe deinen Spam-/Junk-Ordner, wenn du die E-Mail nicht finden kannst"
   },
   "web.auth.verify.contact_support": {
-    "text": "Kontaktieren Sie den Support, falls Sie weiterhin Probleme haben"
+    "text": "Kontaktiere den Support, wenn du weiterhin Probleme hast"
   },
   "web.auth.verify.missing_key_title": {
     "text": "Verifizierungslink erforderlich"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Bitte verwenden Sie den Verifizierungslink, der an Ihre E-Mail-Adresse gesendet wurde, um Ihr Konto zu verifizieren."
+    "text": "Bitte verwende den Verifizierungslink, der an deine E-Mail-Adresse gesendet wurde, um dein Konto zu verifizieren."
   },
   "web.auth.verify.create_new_account": {
     "text": "Neues Konto erstellen"
@@ -120,25 +120,25 @@
     "text": "Abbrechen"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Passwort zurücksetzen anfordern"
+    "text": "Passwortzurücksetzung anfordern"
   },
   "web.auth.password_reset_request.description": {
     "text": "Geben Sie unten Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Link zum Zurücksetzen senden"
+    "text": "Zurücksetzungslink senden"
   },
   "web.auth.password_reset.title": {
     "text": "Neues Passwort wählen"
   },
   "web.auth.password_reset.description": {
-    "text": "Bitte geben Sie unten Ihr neues Passwort ein. Achten Sie darauf, dass es stark und einzigartig ist, um Ihr Konto zu schützen."
+    "text": "Bitte geben Sie unten Ihr neues Passwort ein. Stellen Sie sicher, dass es stark und einzigartig ist, um Ihr Konto zu schützen."
   },
   "web.auth.passwordReset.emailSent": {
     "text": "Eine E-Mail mit einem Link zum Zurücksetzen des Passworts für Ihr Konto wurde an Sie gesendet"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Ich akzeptiere die"
+    "text": "Ich stimme den"
   },
   "web.auth.account.title": {
     "text": "Kontoinformationen"
@@ -177,7 +177,7 @@
     "text": "{count} aktive Sitzung(en)"
   },
   "web.auth.account.quick_actions": {
-    "text": "Schnelle Aktionen"
+    "text": "Schnellaktionen"
   },
   "web.auth.account.manage_mfa": {
     "text": "Zwei-Faktor-Authentifizierung verwalten"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "Konto schließen"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-Mail-Verifizierungsablauf nach der Registrierung"
+  },
+  "web.help.title": {
+    "text": "Hilfe & Support"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Anmeldung – Fehlerbehebung"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Magic Link kommt nicht an?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Überprüfe deinen Spam- oder Junk-Ordner"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Stelle sicher, dass du deine E-Mail-Adresse richtig eingegeben hast"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Warte ein paar Minuten – E-Mails können manchmal verzögert sein"
+  },
+  "web.help.try_again": {
+    "text": "Fordere einen neuen Link an, wenn mehr als 10 Minuten vergangen sind"
+  },
+  "web.help.forgot_password": {
+    "text": "Passwort vergessen?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Verwende die Magic Link-Option, um dich ohne Passwort anzumelden. Nach der Anmeldung kannst du dein Passwort in den Kontoeinstellungen ändern."
+  },
+  "web.help.account_locked": {
+    "text": "Konto vorübergehend gesperrt?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Nach mehreren fehlgeschlagenen Anmeldeversuchen wird das Konto aus Sicherheitsgründen vorübergehend gesperrt. Warte 15 Minuten und versuche es erneut, oder melde dich mit Magic Link an."
+  },
+  "web.help.still_need_help": {
+    "text": "Brauchst du noch Hilfe?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Wenn du immer noch Probleme hast, sind wir für dich da. Schreib uns eine Nachricht und wir melden uns so schnell wie möglich bei dir."
+  },
+  "web.help.contact_support": {
+    "text": "Support kontaktieren"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Anmeldelink senden"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Ein sicherer Link wird an dein E-Mail-Postfach gesendet."
+  },
+  "web.login.or_divider": {
+    "text": "oder"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Mit Passwort anmelden"
+  },
+  "web.login.use_passwordless": {
+    "text": "Passwortlose Anmeldung verwenden"
+  },
+  "web.login.create_account": {
+    "text": "Konto erstellen"
+  },
+  "web.login.return_home": {
+    "text": "Zur Startseite"
+  },
+  "web.login.tab_password": {
+    "text": "Passwort"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magic Link"
+  },
+  "web.login.need_help": {
+    "text": "Brauchst du Hilfe?"
   }
 }

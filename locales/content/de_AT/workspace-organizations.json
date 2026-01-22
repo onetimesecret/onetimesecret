@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Organisation"
+    "text": "Organisationen"
   },
   "web.organizations.organization": {
     "text": "Organisation"
@@ -9,10 +9,10 @@
     "text": "Organisationen"
   },
   "web.organizations.organizations_description": {
-    "text": "Verwalten Sie Ihre Organisationen"
+    "text": "Verwalte deine Organisationen"
   },
   "web.organizations.my_organizations": {
-    "text": "Meine Organisationen"
+    "text": "Organisationen"
   },
   "web.organizations.manage_organizations": {
     "text": "Organisationen verwalten"
@@ -24,10 +24,10 @@
     "text": "Noch keine Organisationen"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisationen ermöglichen es Ihnen, mehrere Teams mit einheitlicher Abrechnung und Verwaltung zu verwalten. Beginnen Sie mit der Erstellung Ihrer ersten Organisation."
+    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung. Leg los, indem du deine erste Organisation erstellst."
   },
   "web.organizations.no_description": {
-    "text": "Keine Beschreibung angegeben"
+    "text": "Keine Beschreibung vorhanden"
   },
   "web.organizations.default": {
     "text": "Standard"
@@ -39,7 +39,7 @@
     "text": "Erste Organisation erstellen"
   },
   "web.organizations.create_organization_description": {
-    "text": "Erstellen Sie eine neue Organisation, um Ihre Teams zu gruppieren"
+    "text": "Neue Organisation erstellen"
   },
   "web.organizations.create": {
     "text": "Erstellen"
@@ -51,7 +51,7 @@
     "text": "Organisationsname"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "z.B. Acme Corporation"
+    "text": "z.B. Acme GmbH"
   },
   "web.organizations.display_name": {
     "text": "Organisationsname"
@@ -63,7 +63,7 @@
     "text": "Wofür ist diese Organisation?"
   },
   "web.organizations.contact_email": {
-    "text": "Abrechnungs-E-Mail"
+    "text": "Rechnungs-E-Mail"
   },
   "web.organizations.contact_email_help": {
     "text": "Hauptkontakt für Abrechnungs- und Verwaltungsbenachrichtigungen"
@@ -99,7 +99,7 @@
     "text": "Organisationseinstellungen"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aktualisieren Sie Ihren Organisationsnamen und Ihre Beschreibung"
+    "text": "Aktualisiere deinen Organisationsnamen und die Beschreibung"
   },
   "web.organizations.general_settings": {
     "text": "Allgemeine Einstellungen"
@@ -117,34 +117,34 @@
     "text": "Organisation konnte nicht aktualisiert werden"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Abrechnungsintegration in Kürze verfügbar"
+    "text": "Abrechnungsintegration demnächst verfügbar"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Einheitliche Abrechnung und Abonnementverwaltung für alle Teams in dieser Organisation wird in einer zukünftigen Version verfügbar sein."
+    "text": "Einheitliche Abrechnungs- und Abonnementverwaltung wird in einer zukünftigen Version verfügbar sein."
   },
   "web.organizations.about_title": {
     "text": "Über Organisationen"
   },
   "web.organizations.about_description": {
-    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung für mehrere Teams. Sie sind optional - Teams können unabhängig existieren oder unter einer Organisation für zentralisierte Verwaltung gruppiert werden."
+    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung für zentralisiertes Management."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Verwalten Sie Ihre Organisation"
+    "text": "Deine Organisation verwalten"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Aktualisieren Sie hier Ihren Firmennamen und Organisationsdetails. Diese Informationen helfen, Ihr Konto zu personalisieren und können in Zukunft für Branding-Funktionen verwendet werden."
+    "text": "Aktualisiere hier deinen Firmennamen und Organisationsdetails. Diese Informationen helfen, dein Konto zu personalisieren und können für zukünftige Branding-Funktionen verwendet werden."
   },
   "web.organizations.getting_started_title": {
     "text": "Erste Schritte mit Organisationen"
   },
   "web.organizations.getting_started_description": {
-    "text": "Erstellen Sie Ihre erste Organisation, um Ihre Firmeninformationen zu verwalten und sich auf zukünftige Team-Zusammenarbeit und Branding-Funktionen vorzubereiten."
+    "text": "Erstelle deine erste Organisation, um deine Unternehmensinformationen zu verwalten und dich auf zukünftige Branding-Funktionen vorzubereiten."
   },
   "web.organizations.page_description": {
-    "text": "Verwalten Sie Ihre Organisationen und Teammitglieder"
+    "text": "Verwalte deine Organisationen und Teammitglieder"
   },
   "web.organizations.tabs.general": {
-    "text": "Allgemein"
+    "text": "Einstellungen"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Firmen-Branding"
@@ -156,13 +156,13 @@
     "text": "Abrechnung"
   },
   "web.organizations.danger_zone": {
-    "text": "Gefahrenbereich"
+    "text": "Gefahrenzone"
   },
   "web.organizations.delete_organization": {
     "text": "Organisation löschen"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Dies löscht die Organisation und alle zugehörigen Teams dauerhaft. Diese Aktion kann nicht rückgängig gemacht werden."
+    "text": "Dies wird die Organisation dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "web.organizations.delete": {
     "text": "Löschen"
@@ -171,7 +171,7 @@
     "text": "Organisation löschen"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Sind Sie sicher, dass Sie {name} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+    "text": "Bist du sicher, dass du {name} löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "web.organizations.delete_error": {
     "text": "Organisation konnte nicht gelöscht werden"
@@ -180,7 +180,7 @@
     "text": "Mitglieder"
   },
   "web.organizations.members.description": {
-    "text": "Organisationsmitglieder und deren Rollen verwalten"
+    "text": "Verwalte Organisationsmitglieder und ihre Rollen"
   },
   "web.organizations.members.current_members": {
     "text": "Aktuelle Mitglieder"
@@ -189,10 +189,10 @@
     "text": "Mitglied"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "Mitglied"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "Mitglieder"
   },
   "web.organizations.members.name": {
     "text": "Name"
@@ -210,16 +210,16 @@
     "text": "Aktionen"
   },
   "web.organizations.members.no_members": {
-    "text": "Keine Mitglieder gefunden"
+    "text": "Noch keine Mitglieder. Lade Teammitglieder ein, um loszulegen."
   },
   "web.organizations.members.no_members_description": {
     "text": "Diese Organisation hat noch keine Mitglieder."
   },
   "web.organizations.members.role_updated": {
-    "text": "Mitgliedsrolle erfolgreich aktualisiert"
+    "text": "Mitgliederrolle erfolgreich aktualisiert"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Mitgliedsrolle konnte nicht aktualisiert werden"
+    "text": "Mitgliederrolle konnte nicht aktualisiert werden"
   },
   "web.organizations.members.member_removed": {
     "text": "Mitglied aus Organisation entfernt"
@@ -231,40 +231,40 @@
     "text": "Mitglied entfernen"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Sind Sie sicher, dass Sie {name} aus dieser Organisation entfernen möchten?"
+    "text": "Bist du sicher, dass du {name} aus dieser Organisation entfernen möchtest?"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Sie können Ihre eigene Rolle nicht ändern"
+    "text": "Du kannst deine eigene Rolle nicht ändern"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Sie können sich nicht selbst aus der Organisation entfernen"
+    "text": "Du kannst dich nicht selbst aus der Organisation entfernen"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Sie können den Organisationsinhaber nicht entfernen"
+    "text": "Du kannst den Organisationsinhaber nicht entfernen"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Sie haben keine Berechtigung, Mitglieder zu verwalten"
+    "text": "Du hast keine Berechtigung, Mitglieder zu verwalten"
   },
   "web.organizations.members.roles.owner": {
     "text": "Inhaber"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Admin"
+    "text": "Administrator"
   },
   "web.organizations.members.roles.member": {
     "text": "Mitglied"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Voller Zugriff auf alle Organisationseinstellungen und Mitglieder"
+    "text": "Vollständiger Zugang zu allen Organisationseinstellungen und Mitgliedern"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "Kann Mitglieder und die meisten Organisationseinstellungen verwalten"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Grundlegender Zugriff auf Organisationsressourcen"
+    "text": "Grundlegender Zugang zu Organisationsressourcen"
   },
   "web.organizations.invitations.title": {
-    "text": "Organisations-Einladungen"
+    "text": "Organisationseinladungen"
   },
   "web.organizations.invitations.invite_member": {
     "text": "Mitglied einladen"
@@ -282,7 +282,7 @@
     "text": "E-Mail-Adresse"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "mitglied{'@'}beispiel.com"
+    "text": "mitglied{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rolle"
@@ -345,7 +345,7 @@
     "text": "Mitglied"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Admin"
+    "text": "Administrator"
   },
   "web.organizations.invitations.accept_invitation": {
     "text": "Einladung annehmen"
@@ -357,10 +357,10 @@
     "text": "Einladungsdetails"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Sie wurden eingeladen beizutreten"
+    "text": "Du wurdest eingeladen beizutreten"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Sie wurden eingeladen als"
+    "text": "Du wurdest eingeladen als"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Einladung erfolgreich angenommen"
@@ -381,9 +381,54 @@
     "text": "Ungültige oder abgelaufene Einladung"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Bitte melden Sie sich an, um diese Einladung anzunehmen"
+    "text": "Bitte melde dich an, um diese Einladung anzunehmen"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Einladungsdetails werden geladen"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Rechnungs-E-Mail erfolgreich aktualisiert"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Rechnungs-E-Mail kann auf der Abrechnungsübersichtsseite geändert werden"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} Mitglied | {count} Mitglieder"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} Domain | {count} Domains"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Upgrade deinen Plan, um Teammitglieder einzuladen"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Teammitglieder-Einladungen erfordern einen Plan mit Team-Verwaltung. Upgrade, um Mitarbeiter zu deiner Organisation hinzuzufügen."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Falsches Konto"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Diese Einladung wurde an {invitedEmail} gesendet, aber du bist als {currentEmail} angemeldet."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Mit anderem Konto anmelden"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}T übrig"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h übrig"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Läuft bald ab"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abonnement"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domains"
   }
 }

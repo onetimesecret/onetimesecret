@@ -3,7 +3,7 @@
     "text": "Farbwähler"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Aktuell {0}: {1}. Klicken Sie, um die Optionen zu durchlaufen."
+    "text": "Aktuell {0}: {1}. Klicken, um durch Optionen zu wechseln."
   },
   "web.branding.use_setting": {
     "text": "Einstellung verwenden"
@@ -12,10 +12,10 @@
     "text": "Schriftfamilie"
   },
   "web.branding.corner_style": {
-    "text": "Ecke Stil"
+    "text": "Eckenstil"
   },
   "web.branding.brand_color": {
-    "text": "Marke Farbe"
+    "text": "Markenfarbe"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Vorschau auf die geheime Link-Seite für Empfänger"
@@ -24,7 +24,7 @@
     "text": "Vorschau & Anpassen"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Zur Safari-Browser-Ansicht wechseln"
+    "text": "Zu Safari-Browseransicht wechseln"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge"
@@ -36,16 +36,16 @@
     "text": "Fenster minimieren"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Zur Edge-Browser-Ansicht wechseln"
+    "text": "Zu Edge-Browseransicht wechseln"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 Zeichen"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Scannen Sie mit Ihrem Handy den QR-Kennung"
+    "text": "Verwende dein Handy, um den QR-Code zu scannen"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontaktieren Sie onboarding{'@'}example.com bei Fragen"
+    "text": "Kontaktiere onboarding{'@'}example.com bei Fragen"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben"
@@ -54,16 +54,16 @@
     "text": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben."
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Anweisungen vor der Enthüllung"
+    "text": "Anweisungen vor der Anzeige"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Anweisungen nach der Enthüllung"
+    "text": "Anweisungen nach der Anzeige"
   },
   "web.branding.instructions": {
     "text": "Anweisungen"
   },
   "web.branding.logo_controls": {
-    "text": "Logo-Kontrollen"
+    "text": "Logo-Steuerung"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "Klicken Sie, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG"
@@ -72,7 +72,7 @@
     "text": "Logo hochladen"
   },
   "web.branding.loading_preview": {
-    "text": "Vorschau laden..."
+    "text": "Vorschau wird geladen..."
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Zeigen Sie in einer Vorschau an, wie die Empfänger Ihre Geheimnisse sehen werden, indem Sie die Schaltfläche \"Geheimnis anzeigen\" testen"
@@ -90,39 +90,39 @@
     "text": "Verwenden Sie die Steuerelemente oben, um Markenfarben, Stile und Empfängeranweisungen anzupassen"
   },
   "web.branding.customization_icon": {
-    "text": "Anpassungssymbol"
+    "text": "Anpassungs-Symbol"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Sie haben ungespeicherte Änderungen. Sind Sie sicher?"
+    "text": "Du hast nicht gespeicherte Änderungen. Bist du sicher?"
   },
   "web.branding.failed_to_load_brand_settings": {
     "text": "Markeneinstellungen konnten nicht geladen werden"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dies ist eine interaktive Vorschau darauf, wie die Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriftarten mit den obigen Steuerelementen anpassen - ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1 MB) - die Vorschau mit der Schaltfläche \"Geheimnis anzeigen\" testen"
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriften mit den obigen Steuerelementen anpassen - Ein Logo hochladen (empfohlen mindestens 128x128 Pixel, max. 1MB) - Die Vorschau mit der Schaltfläche 'Geheimnis anzeigen' testen"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Dies ist eine interaktive Vorschau darauf, wie die Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriftarten mit den obigen Steuerelementen anpassen - ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1 MB) - die Vorschau mit der Schaltfläche \"Geheimnis anzeigen\" testen"
   },
   "web.branding.default_logo_icon": {
-    "text": "Standard-Logosymbol"
+    "text": "Japanisches Kanji '秘' (himitsu) bedeutet 'Geheimnis' oder 'vertraulich'"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Angetrieben von Onetime Secret"
+    "text": "Powered by Onetime Secret"
   },
   "web.branding.heading_logo": {
     "text": "{0}-Logo"
   },
   "web.branding.edge": {
-    "text": "Kante"
+    "text": "Edge"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Zur Edge-Vorschau wechseln"
+    "text": "Zu Edge-Vorschau wechseln"
   },
   "web.branding.safari": {
     "text": "Safari"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Zur Safari-Vorschau wechseln"
+    "text": "Zu Safari-Vorschau wechseln"
   }
 }

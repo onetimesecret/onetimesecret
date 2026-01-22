@@ -3,49 +3,49 @@
     "text": "Mehr über DNS-Konfiguration erfahren"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Bereichs-Verifizierungsstatus anzeigen"
+    "text": "Domain-Verifizierungsstatus anzeigen"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Dieser Bereich ist bereits in Ihrer Organisation registriert"
+    "text": "Diese Domain ist bereits in deiner Organisation registriert"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Dieser Bereich ist bereits für eine andere Organisation registriert. Bitte kontaktieren Sie den Support, falls Sie glauben, dass dies ein Fehler ist."
+    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktiere den Support, wenn du glaubst, dass dies ein Fehler ist."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Bereich erfolgreich beansprucht und zu Ihrer Organisation hinzugefügt"
+    "text": "Domain erfolgreich beansprucht und zu deiner Organisation hinzugefügt"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Datenschutzeinstellungen"
+    "text": "Datenschutz-Standardwerte"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Legen Sie Standard-Datenschutzoptionen für Geheimnisse fest, die unter diesem Bereich erstellt werden. Diese Einstellungen werden beim Erstellen neuer Geheimnisse vorausgefüllt."
+    "text": "Setze Standard-Datenschutzoptionen für Geheimnisse, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Geheimnisse vorausgefüllt."
   },
   "web.domains.privacy_defaults": {
-    "text": "Datenschutzeinstellungen"
+    "text": "Datenschutz-Standardwerte"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Symbol für Datenschutzeinstellungen"
+    "text": "Datenschutz-Standardwerte-Symbol"
   },
   "web.domains.default_ttl_label": {
-    "text": "Standard-Lebensdauer"
+    "text": "Standard-Gültigkeitsdauer"
   },
   "web.domains.default_ttl_hint": {
     "text": "Wie lange Geheimnisse standardmäßig zugänglich bleiben sollen"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Sicherheitsphrase erforderlich"
+    "text": "Passphrase erforderlich"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Sicherheitsphrase für alle Geheimnisse in diesem Bereich obligatorisch machen"
+    "text": "Passphrase für alle Geheimnisse in dieser Domain obligatorisch machen"
   },
   "web.domains.notify_enabled_label": {
     "text": "Benachrichtigungen aktivieren"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Geheimnisse angezeigt werden"
+    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Geheimnisse angesehen werden"
   },
   "web.domains.use_global_default": {
-    "text": "Globale Standardeinstellung verwenden"
+    "text": "Globalen Standard verwenden"
   },
   "web.domains.global_default": {
     "text": "Global"
@@ -66,31 +66,31 @@
     "text": "Benutzerdefiniert"
   },
   "web.domains.edit_defaults": {
-    "text": "Einstellungen bearbeiten"
+    "text": "Standardwerte bearbeiten"
   },
   "web.domains.ttl_short": {
-    "text": "Lebensdauer"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
-    "text": "Sicherheitsphrase"
+    "text": "Passphrase"
   },
   "web.domains.notify_short": {
     "text": "Benachrichtigungen"
   },
   "web.domains.scope_switch_label": {
-    "text": "Bereichsumfang wechseln"
+    "text": "Domain-Bereich wechseln"
   },
   "web.domains.switcher_locked": {
     "text": "Domain-Wechsel auf dieser Seite nicht verfügbar"
   },
   "web.domains.scope_list_label": {
-    "text": "Verfügbare Bereiche"
+    "text": "Verfügbare Domains"
   },
   "web.domains.scope_header": {
-    "text": "Bereiche"
+    "text": "Domains"
   },
   "web.domains.add_domain": {
-    "text": "Bereich hinzufügen"
+    "text": "Domain hinzufügen"
   },
   "web.domains.domain_settings": {
     "text": "Domain-Einstellungen"
@@ -99,64 +99,64 @@
     "text": "Standard-Domain hat keine Einstellungsseite"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Bitte geben Sie einen {0} Bereichnamen ein"
+    "text": "Bitte gib einen {0} Domainnamen ein"
   },
   "web.domains.domain_name": {
-    "text": "Domänenname"
+    "text": "Domainname"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
     "text": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Bereich erstellen können"
   },
   "web.domains.homepage_access": {
-    "text": "Homepage Zugang"
+    "text": "Startseiten-Zugang"
   },
   "web.domains.and_status": {
-    "text": "&amp; Zustand"
+    "text": "& Status"
   },
   "web.domains.domain": {
-    "text": "Bereich"
+    "text": "Domain"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Verwalten und konfigurieren Sie Ihre verifizierten benutzerdefinierten Bereiche"
+    "text": "Verwalte und konfiguriere deine verifizierten eigenen Domains"
   },
   "web.domains.domains": {
-    "text": "Bereiche"
+    "text": "Domains"
   },
   "web.domains.last_monitored": {
     "text": "Zuletzt überwacht"
   },
   "web.domains.ssl_status": {
-    "text": "TLS-Sicherheitszustand"
+    "text": "SSL-Status"
   },
   "web.domains.ssl_renews": {
-    "text": "Sicherheitszertifikat erneuert"
+    "text": "SSL-Erneuerung"
   },
   "web.domains.dns_record": {
-    "text": "Namensserver-Eintrag"
+    "text": "DNS-Eintrag"
   },
   "web.domains.target_address": {
     "text": "Zieladresse"
   },
   "web.domains.domain_status": {
-    "text": "Zustand des Bereichs"
+    "text": "Domain-Status"
   },
   "web.domains.custom_domains_count": {
-    "text": "Benutzerdefinierte Domänen zählen"
+    "text": "Anzahl eigener Domains"
   },
   "web.domains.custom_domain": {
-    "text": "Benutzerdefinierter Bereich"
+    "text": "Eigene Domain"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Bereich in neuer Registerkarte öffnen"
+    "text": "Domain in neuem Tab öffnen"
   },
   "web.domains.back_to_domains": {
-    "text": "Zurück zu Bereiche"
+    "text": "Zurück zu Domains"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Zurück zur Liste der Bereiche"
+    "text": "Zur Domainliste zurückkehren"
   },
   "web.domains.verify_domain": {
-    "text": "Domäne verifizieren"
+    "text": "Domain verifizieren"
   },
   "web.domains.manage_brand": {
     "text": "Marke verwalten"
@@ -165,16 +165,16 @@
     "text": "Hinzugefügt {0}"
   },
   "web.domains.add_your_domain": {
-    "text": "Fügen Sie Ihre Bereich hinzu"
+    "text": "Deine Domain hinzufügen"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Beginnen Sie mit dem Hinzufügen einer benutzerdefinierten Bereich."
+    "text": "Leg los, indem du eine eigene Domain hinzufügst."
   },
   "web.domains.no_domains_found": {
-    "text": "Keine Domänen gefunden."
+    "text": "Keine Domains gefunden."
   },
   "web.domains.loading_domain_information": {
-    "text": "Laden der Domäneninformationen..."
+    "text": "Domain-Informationen werden geladen..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Um Ihre Bereich zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem Namensserver-Datensatz, der auf"
@@ -189,22 +189,22 @@
     "text": "und entfernen Sie alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": "müssen Sie die folgenden Schritte ausführen."
+    "text": ", musst du diese Schritte abschließen."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Bevor wir Links aktivieren können für"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Bitte beachten Sie, dass bei Apex-Domänen (z. B.,"
+    "text": "Bitte beachte, dass für Apex-Domains (z.B."
   },
   "web.domains.verify_your_domain": {
-    "text": "Überprüfen Sie Ihre Bereich"
+    "text": "Deine Domain verifizieren"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "geheimnisse.beispiel.de"
+    "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Passen Sie Ihr Bereich-Branding an"
+    "text": "Passe dein Domain-Branding an"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Es kann ein paar Minuten dauern, bis Ihr TLS-Sicherheitszertifikat wirksam wird."
@@ -213,7 +213,7 @@
     "text": "Namensserver-Änderungen können innerhalb von 60 Sekunden - oder bis zu 24 Stunden - wirksam werden."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Warten auf Ausbreitung"
+    "text": "3. Auf Propagierung warten"
   },
   "web.domains.value_2": {
     "text": "Wert"
@@ -222,7 +222,7 @@
     "text": "Wert"
   },
   "web.domains.host_1": {
-    "text": "Gastgeber"
+    "text": "Host"
   },
   "web.domains.type_2": {
     "text": "Typ"
@@ -231,48 +231,72 @@
     "text": "Typ"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Erstellen Sie den CNAME-Eintrag"
+    "text": "2. CNAME-Eintrag erstellen"
   },
   "web.domains.value_0": {
     "text": "Wert"
   },
   "web.domains.host_0": {
-    "text": "Gastgeber"
+    "text": "Host"
   },
   "web.domains.type_0": {
     "text": "Typ"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Erstellen Sie den A-Eintrag"
+    "text": "2. A-Eintrag erstellen"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Fügen Sie diesen Hostnamen zu Ihrer Namensserver-Konfiguration hinzu:"
+    "text": "Füge diesen Hostnamen zu deiner DNS-Konfiguration hinzu:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Einen TXT-Datensatz erstellen"
+    "text": "1. TXT-Eintrag erstellen"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Schritte der Domänenüberprüfung"
+    "text": "Domain-Verifizierungsschritte"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Die Domänenüberprüfung wurde erfolgreich eingeleitet."
+    "text": "Domain-Verifizierung erfolgreich gestartet."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Sind Sie sicher, dass Sie diese Domäne entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "web.domains.remove_domain": {
-    "text": "Bereich entfernen"
+    "text": "Domain entfernen"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "Bereich erfolgreich entfernt"
+    "text": "Domain erfolgreich entfernt"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "Domäne kann nicht hinzugefügt werden"
+    "text": "Domain konnte nicht hinzugefügt werden"
   },
   "web.domains.domain_added_successfully": {
-    "text": "Bereich erfolgreich hinzugefügt"
+    "text": "Domain erfolgreich hinzugefügt"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Geschützt"
+  },
+  "web.domains.manage_domains": {
+    "text": "Domains verwalten"
+  },
+  "web.domains.global_defaults": {
+    "text": "Globale Standardwerte"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Gültigkeitsdauer-Einstellung bearbeiten"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Passphrase-Anforderung bearbeiten"
+  },
+  "web.domains.edit_notify": {
+    "text": "Benachrichtigungseinstellung bearbeiten"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "DNS-Einträge konfigurieren"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Verwende das Tool unten, um deinen DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration deiner Domain zu erhalten."
   }
 }

@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "AI-generiertes Testimonial"
+    "text": "KI-generierte Empfehlung"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "KI-generierte Inhalte zu Demonstrationszwecken. Nicht von einer tatsächlichen Person oder einem Unternehmen."
+    "text": "KI-generierter Inhalt zur Demonstration. Nicht von einer tatsächlichen Person oder Firma."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -21,16 +21,16 @@
     "text": "Was führende KI über uns sagt"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "AI-generierte Testimonials"
+    "text": "KI-generierte Empfehlungen"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Dieses Zitat wurde erstellt von"
+    "text": "Dieses Zitat wurde generiert von"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "Sie basiert auf dem Inhalt der Seite und stellt keine tatsächliche Person oder Firma dar."
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Künstliche Rückkopplung"
+    "text": "Künstliches Feedback"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
     "text": "Dieser Inhalt wurde von einer künstlichen Intelligenz auf der Grundlage des Inhalts dieser Seite generiert und stellt keine tatsächliche Person oder Firma dar."
