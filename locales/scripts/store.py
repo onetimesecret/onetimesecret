@@ -17,6 +17,8 @@ Usage:
     python store.py init                          # Create database from schema
     python store.py migrate                       # Apply schema updates
     python store.py query "SELECT ..." [--json]   # Run SQL query
+    python store.py export [TABLE]                # Export committable tables to SQL
+    python store.py import [FILE]                 # Import SQL file into database
 """
 
 import argparse
@@ -33,6 +35,9 @@ LOCALES_DIR = SCRIPT_DIR.parent
 DB_DIR = LOCALES_DIR / "db"
 SCHEMA_FILE = DB_DIR / "schema.sql"
 DB_FILE = DB_DIR / "tasks.db"
+
+# Tables that can be exported/imported for version control
+COMMITTABLE_TABLES = ["glossary", "session_log", "translation_issues"]
 
 
 @contextmanager
@@ -191,6 +196,131 @@ def query(
             raise RuntimeError(f"SQL error: {e}") from e
 
 
+def export_tables(table: Optional[str] = None) -> None:
+    """Export committable tables to SQL files.
+
+    Exports data as INSERT statements that can be committed to git.
+    Files are written to locales/db/{table}.sql.
+
+    Args:
+        table: Specific table to export, or None for all committable tables.
+    """
+    if not DB_FILE.exists():
+        raise FileNotFoundError(
+            f"Database not found: {DB_FILE}\n"
+            "Run 'python store.py init' to create it."
+        )
+
+    tables_to_export = [table] if table else COMMITTABLE_TABLES
+
+    for tbl in tables_to_export:
+        if tbl not in COMMITTABLE_TABLES:
+            print(f"Warning: '{tbl}' is not a committable table. Skipping.")
+            continue
+
+        output_file = DB_DIR / f"{tbl}.sql"
+
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Get row count
+            cursor.execute(f"SELECT COUNT(*) FROM {tbl}")  # noqa: S608
+            count = cursor.fetchone()[0]
+
+            if count == 0:
+                print(f"{tbl}: empty (skipping)")
+                continue
+
+            # Get column names
+            cursor.execute(f"PRAGMA table_info({tbl})")  # noqa: S608
+            columns = [row[1] for row in cursor.fetchall()]
+
+            # Build INSERT statements
+            cursor.execute(f"SELECT * FROM {tbl}")  # noqa: S608
+            rows = cursor.fetchall()
+
+            lines = [
+                f"-- Exported from {tbl} table",
+                f"-- {count} rows",
+                f"-- Generated: {__import__('datetime').datetime.now().isoformat()}",
+                "",
+                f"DELETE FROM {tbl};",
+                "",
+            ]
+
+            for row in rows:
+                values = []
+                for val in row:
+                    if val is None:
+                        values.append("NULL")
+                    elif isinstance(val, (int, float)):
+                        values.append(str(val))
+                    else:
+                        # Escape single quotes
+                        escaped = str(val).replace("'", "''")
+                        values.append(f"'{escaped}'")
+
+                cols_str = ", ".join(columns)
+                vals_str = ", ".join(values)
+                lines.append(f"INSERT INTO {tbl} ({cols_str}) VALUES ({vals_str});")
+
+            output_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            print(f"{tbl}: exported {count} rows to {output_file.name}")
+
+
+def import_tables(file_path: Optional[str] = None) -> None:
+    """Import SQL files into database.
+
+    Imports data from SQL files in locales/db/.
+
+    Args:
+        file_path: Specific file to import, or None for all committable table files.
+    """
+    if not DB_FILE.exists():
+        raise FileNotFoundError(
+            f"Database not found: {DB_FILE}\n"
+            "Run 'python store.py init' to create it."
+        )
+
+    if file_path:
+        files_to_import = [Path(file_path)]
+    else:
+        files_to_import = [
+            DB_DIR / f"{tbl}.sql"
+            for tbl in COMMITTABLE_TABLES
+            if (DB_DIR / f"{tbl}.sql").exists()
+        ]
+
+    if not files_to_import:
+        print("No SQL files found to import.")
+        return
+
+    with get_connection() as conn:
+        for sql_file in files_to_import:
+            if not sql_file.exists():
+                print(f"Warning: {sql_file} not found. Skipping.")
+                continue
+
+            sql_content = sql_file.read_text(encoding="utf-8")
+
+            try:
+                conn.executescript(sql_content)
+                conn.commit()
+
+                # Count rows in affected table
+                table_name = sql_file.stem
+                if table_name in COMMITTABLE_TABLES:
+                    cursor = conn.cursor()
+                    cursor.execute(f"SELECT COUNT(*) FROM {table_name}")  # noqa: S608
+                    count = cursor.fetchone()[0]
+                    print(f"{sql_file.name}: imported ({count} rows in {table_name})")
+                else:
+                    print(f"{sql_file.name}: imported")
+
+            except sqlite3.Error as e:
+                print(f"Error importing {sql_file.name}: {e}", file=sys.stderr)
+
+
 def _print_table(rows: list[dict], description: tuple) -> None:
     """Print results as a human-readable table."""
     if not rows:
@@ -241,6 +371,10 @@ Examples:
     python store.py migrate                 # Apply schema updates
     python store.py query "SELECT * FROM glossary"
     python store.py query --json "SELECT * FROM session_log"
+    python store.py export                  # Export all committable tables
+    python store.py export glossary         # Export specific table
+    python store.py import                  # Import all SQL files
+    python store.py import glossary.sql     # Import specific file
         """,
     )
 
@@ -269,6 +403,27 @@ Examples:
         "--json", "-j", action="store_true", help="Output results as JSON"
     )
 
+    # export subcommand
+    export_parser = subparsers.add_parser(
+        "export", help="Export committable tables to SQL files"
+    )
+    export_parser.add_argument(
+        "table",
+        nargs="?",
+        choices=COMMITTABLE_TABLES,
+        help=f"Table to export (default: all of {', '.join(COMMITTABLE_TABLES)})",
+    )
+
+    # import subcommand
+    import_parser = subparsers.add_parser(
+        "import", help="Import SQL files into database"
+    )
+    import_parser.add_argument(
+        "file",
+        nargs="?",
+        help="SQL file to import (default: all committable table files)",
+    )
+
     args = parser.parse_args()
 
     try:
@@ -281,6 +436,10 @@ Examples:
                 args.sql,
                 output_json=args.json,
             )
+        elif args.command == "export":
+            export_tables(table=args.table)
+        elif args.command == "import":
+            import_tables(file_path=args.file)
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

@@ -1,0 +1,18 @@
+-- Exported from glossary table
+-- 12 rows
+-- Generated: 2026-01-21T21:21:58.582954
+
+DELETE FROM glossary;
+
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (1, 'eo', 'secret', 'sekreto', NULL, NULL, 'core concept - the confidential content being shared', '2026-01-21 08:50:15', '2026-01-21 08:50:15');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (2, 'eo', 'passphrase', 'sekreta frazo', NULL, NULL, 'protection phrase for secrets, distinct from password', '2026-01-21 08:50:17', '2026-01-21 08:50:17');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (3, 'eo', 'password', 'pasvorto', NULL, NULL, 'account login credential', '2026-01-21 08:50:19', '2026-01-21 08:50:19');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (4, 'eo', 'burn', 'forbruligi', NULL, NULL, 'destroy secret before viewing - uses Esperanto prefix for- (away/completely)', '2026-01-21 08:50:21', '2026-01-21 08:50:21');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (5, 'eo', 'clipboard', 'tondujo', NULL, NULL, 'system clipboard for copy/paste', '2026-01-21 08:50:22', '2026-01-21 08:50:22');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (6, 'eo', 'reveal', 'malkaŝi', NULL, NULL, 'to show/uncover the secret content', '2026-01-21 08:51:40', '2026-01-21 08:51:40');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (7, 'eo', 'expired', 'eksvalidiĝinta', NULL, NULL, 'past tense of expire - uses -iĝ- (become) suffix', '2026-01-21 08:51:42', '2026-01-21 08:51:42');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (8, 'eo', 'account', 'konto', NULL, NULL, 'user account', '2026-01-21 08:54:30', '2026-01-21 08:54:30');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (9, 'eo', 'link', 'ligilo', NULL, NULL, 'URL link', '2026-01-21 08:54:35', '2026-01-21 08:54:35');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (10, 'eo', 'email', 'retpoŝto', NULL, NULL, 'electronic mail', '2026-01-21 08:54:41', '2026-01-21 08:54:41');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (11, 'eo', 'encrypted', 'ĉifrita', NULL, NULL, 'cryptographically secured', '2026-01-21 08:54:46', '2026-01-21 08:54:46');
+INSERT INTO glossary (id, locale, term, translation, context, alternatives, notes, created_at, updated_at) VALUES (12, 'eo', 'domain', 'domajno', NULL, NULL, 'web domain', '2026-01-21 08:54:51', '2026-01-21 08:54:51');
