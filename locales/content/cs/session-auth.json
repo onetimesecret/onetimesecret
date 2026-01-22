@@ -1,30 +1,30 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Potřebuješ účet?"
+    "text": "Potřebujete účet?"
   },
   "web.login.need_an_account": {
-    "text": "Zaregistruj se."
+    "text": "Zaregistrujte se."
   },
   "web.login.forgot_your_password": {
-    "text": "Zapomněl jsi své heslo?"
+    "text": "Zapomněli jste heslo?"
   },
   "web.login.button_sign_in": {
     "text": "Přihlásit se"
   },
   "web.login.enter_your_credentials": {
-    "text": "Zadej své přihlašovací údaje"
+    "text": "Zadejte své přihlašovací údaje"
   },
   "web.login.remember_me": {
     "text": "Zapamatovat si mě"
   },
   "web.signup.create_your_account": {
-    "text": "Vytvoř si svůj účet"
+    "text": "Vytvořte si účet"
   },
   "web.signup.alternate_prefix": {
-    "text": "Už máš účet?"
+    "text": "Již máte účet?"
   },
   "web.signup.have_an_account": {
-    "text": "Přihlas se."
+    "text": "Přihlaste se."
   },
   "web.signup.error_title": {
     "text": "Chyba při vytváření účtu"
@@ -36,28 +36,28 @@
     "text": "E-mail"
   },
   "web.auth.verify.title": {
-    "text": "Ověř svůj účet"
+    "text": "Ověřte svůj účet"
   },
   "web.auth.verify.success": {
-    "text": "Tvůj účet byl úspěšně ověřen"
+    "text": "Váš účet byl úspěšně ověřen"
   },
   "web.auth.verify.invalid_key": {
     "text": "Neplatný nebo vypršelý ověřovací klíč"
   },
   "web.auth.verify.expired_key": {
-    "text": "Tento ověřovací odkaz vypršel. Požádej prosím o nový."
+    "text": "Platnost tohoto ověřovacího odkazu vypršela. Požádejte prosím o nový."
   },
   "web.auth.verify.already_verified": {
-    "text": "Tento účet již byl ověřen. Můžeš se nyní přihlásit."
+    "text": "Tento účet již byl ověřen. Nyní se můžete přihlásit."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Nelze ověřit účet. Zkus to prosím znovu nebo kontaktuj podporu."
+    "text": "Nelze ověřit účet. Zkuste to prosím znovu nebo kontaktujte podporu."
   },
   "web.auth.verify.check_email": {
-    "text": "Zkontroluj prosím svůj e-mail pro ověřovací odkaz"
+    "text": "Zkontrolujte prosím svůj e-mail pro ověřovací odkaz"
   },
   "web.auth.verify.error": {
-    "text": "Ověření účtu selhalo. Zkontroluj prosím svůj ověřovací odkaz nebo požádej o nový."
+    "text": "Ověření účtu selhalo. Zkontrolujte prosím svůj ověřovací odkaz nebo požádejte o nový."
   },
   "web.auth.verify.error_title": {
     "text": "Ověření selhalo"
@@ -66,19 +66,19 @@
     "text": "Co mám dělat?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Zkontroluj svůj e-mail pro nejnovější ověřovací odkaz"
+    "text": "Zkontrolujte svůj e-mail pro nejnovější ověřovací odkaz"
   },
   "web.auth.verify.check_spam": {
-    "text": "Zkontroluj složku spam/nevyžádaná pošta, pokud e-mail nemůžeš najít"
+    "text": "Pokud e-mail nemůžete najít, zkontrolujte složku spam/nevyžádaná pošta"
   },
   "web.auth.verify.contact_support": {
-    "text": "Kontaktuj podporu, pokud problémy přetrvávají"
+    "text": "Kontaktujte podporu, pokud problémy přetrvávají"
   },
   "web.auth.verify.missing_key_title": {
     "text": "Vyžadován ověřovací odkaz"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Pro ověření svého účtu prosím použij ověřovací odkaz odeslaný na tvou e-mailovou adresu."
+    "text": "Pro ověření účtu prosím použijte ověřovací odkaz odeslaný na vaši e-mailovou adresu."
   },
   "web.auth.verify.create_new_account": {
     "text": "Vytvořit nový účet"
@@ -96,46 +96,46 @@
     "text": "Potvrdit nové heslo"
   },
   "web.auth.change_password.success": {
-    "text": "Tvé heslo bylo úspěšně změněno"
+    "text": "Vaše heslo bylo úspěšně změněno"
   },
   "web.auth.change_password.error": {
-    "text": "Změna hesla selhala. Ověř prosím své aktuální heslo a zkus to znovu."
+    "text": "Změna hesla selhala. Ověřte prosím své aktuální heslo a zkuste to znovu."
   },
   "web.auth.close_account.title": {
-    "text": "Zavřít účet"
+    "text": "Zrušit účet"
   },
   "web.auth.close_account.warning": {
-    "text": "Tuto akci nelze vrátit zpět. Všechna tvá tajemství budou trvale smazána."
+    "text": "Tuto akci nelze vrátit zpět. Všechna vaše tajemství budou trvale smazána."
   },
   "web.auth.close_account.confirm": {
     "text": "Rozumím, že tato akce je trvalá"
   },
   "web.auth.close_account.password": {
-    "text": "Zadej své heslo pro potvrzení"
+    "text": "Pro potvrzení zadejte své heslo"
   },
   "web.auth.close_account.button": {
-    "text": "Trvale zavřít účet"
+    "text": "Trvale zrušit účet"
   },
   "web.auth.close_account.cancel": {
     "text": "Zrušit"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Požádat o obnovení hesla"
+    "text": "Žádost o obnovení hesla"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Zadej níže svou e-mailovou adresu a my ti pošleme odkaz pro obnovení hesla"
+    "text": "Níže zadejte svou e-mailovou adresu a my vám pošleme odkaz pro obnovení hesla"
   },
   "web.auth.password_reset_request.button": {
     "text": "Odeslat odkaz pro obnovení"
   },
   "web.auth.password_reset.title": {
-    "text": "Zvol si nové heslo"
+    "text": "Zvolte nové heslo"
   },
   "web.auth.password_reset.description": {
-    "text": "Zadej prosím své nové heslo níže. Ujisti se, že je silné a jedinečné pro ochranu tvého účtu."
+    "text": "Níže prosím zadejte své nové heslo. Ujistěte se, že je silné a jedinečné, aby chránilo váš účet."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "E-mail s odkazem pro obnovení hesla k tvému účtu ti byl odeslán"
+    "text": "Byl vám odeslán e-mail s odkazem pro obnovení hesla k vašemu účtu"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Souhlasím s"
@@ -153,7 +153,7 @@
     "text": "E-mail ověřen"
   },
   "web.auth.account.region": {
-    "text": "Oblast"
+    "text": "Region"
   },
   "web.auth.account.not_verified": {
     "text": "E-mail neověřen"
@@ -174,7 +174,7 @@
     "text": "Aktivní relace"
   },
   "web.auth.account.session_count": {
-    "text": "{count} aktivní relace/relací"
+    "text": "{count} aktivní relace"
   },
   "web.auth.account.quick_actions": {
     "text": "Rychlé akce"
@@ -189,6 +189,81 @@
     "text": "Změnit heslo"
   },
   "web.auth.account.close_account": {
-    "text": "Zavřít účet"
+    "text": "Zrušit účet"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Tok ověření e-mailu po registraci"
+  },
+  "web.help.title": {
+    "text": "Nápověda a podpora"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Řešení problémů s přihlášením"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Magický odkaz nepřichází?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Zkontrolujte složku spam nebo nevyžádaná pošta"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Ověřte, že jste správně zadali svou e-mailovou adresu"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Počkejte několik minut - e-maily mohou být někdy zpožděny"
+  },
+  "web.help.try_again": {
+    "text": "Zkuste požádat o nový odkaz, pokud uplynulo více než 10 minut"
+  },
+  "web.help.forgot_password": {
+    "text": "Zapomněli jste heslo?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Použijte možnost Magický odkaz pro přihlášení bez hesla. Po přihlášení můžete změnit heslo v Nastavení účtu."
+  },
+  "web.help.account_locked": {
+    "text": "Účet dočasně uzamčen?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Po několika neúspěšných pokusech o přihlášení jsou účty z bezpečnostních důvodů dočasně uzamčeny. Počkejte 15 minut a zkuste to znovu, nebo použijte Magický odkaz pro přihlášení."
+  },
+  "web.help.still_need_help": {
+    "text": "Stále potřebujete pomoc?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Pokud máte stále problémy, jsme tu, abychom pomohli. Pošlete nám zprávu a co nejdříve se vám ozveme."
+  },
+  "web.help.contact_support": {
+    "text": "Kontaktovat podporu"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Odeslat přihlašovací odkaz"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Bezpečný odkaz bude odeslán na váš e-mail."
+  },
+  "web.login.or_divider": {
+    "text": "nebo"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Přihlásit se heslem"
+  },
+  "web.login.use_passwordless": {
+    "text": "Použít přihlášení bez hesla"
+  },
+  "web.login.create_account": {
+    "text": "Vytvořit účet"
+  },
+  "web.login.return_home": {
+    "text": "Zpět domů"
+  },
+  "web.login.tab_password": {
+    "text": "Heslo"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magický odkaz"
+  },
+  "web.login.need_help": {
+    "text": "Potřebujete pomoc?"
   }
 }

@@ -9,10 +9,10 @@
     "text": "Organizace"
   },
   "web.organizations.organizations_description": {
-    "text": "Spravuj své organizace"
+    "text": "Spravujte své organizace"
   },
   "web.organizations.my_organizations": {
-    "text": "Moje organizace"
+    "text": "Organizace"
   },
   "web.organizations.manage_organizations": {
     "text": "Spravovat organizace"
@@ -24,10 +24,10 @@
     "text": "Zatím žádné organizace"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizace ti umožňují spravovat více týmů s jednotnou fakturací a administrací. Začni vytvořením své první organizace."
+    "text": "Organizace poskytují jednotnou fakturaci a administraci. Začněte vytvořením první organizace."
   },
   "web.organizations.no_description": {
-    "text": "Nebyl poskytnut žádný popis"
+    "text": "Popis nebyl poskytnut"
   },
   "web.organizations.default": {
     "text": "Výchozí"
@@ -39,13 +39,13 @@
     "text": "Vytvořit první organizaci"
   },
   "web.organizations.create_organization_description": {
-    "text": "Vytvoř novou organizaci pro seskupení svých týmů"
+    "text": "Vytvořit novou organizaci"
   },
   "web.organizations.create": {
     "text": "Vytvořit"
   },
   "web.organizations.create_error": {
-    "text": "Vytvoření organizace se nezdařilo"
+    "text": "Nepodařilo se vytvořit organizaci"
   },
   "web.organizations.organization_name": {
     "text": "Název organizace"
@@ -60,31 +60,31 @@
     "text": "Popis"
   },
   "web.organizations.description_placeholder": {
-    "text": "K čemu je tato organizace?"
+    "text": "K čemu tato organizace slouží?"
   },
   "web.organizations.contact_email": {
     "text": "Fakturační e-mail"
   },
   "web.organizations.contact_email_help": {
-    "text": "Primární kontakt pro fakturaci a administrativní oznámení"
+    "text": "Primární kontakt pro fakturační a administrativní oznámení"
   },
   "web.organizations.select_organization": {
-    "text": "Vyber organizaci"
+    "text": "Vybrat organizaci"
   },
   "web.organizations.switcher_locked": {
-    "text": "Přepínání organizací není na této stránce dostupné"
+    "text": "Přepínání organizací není na této stránce k dispozici"
   },
   "web.organizations.not_found": {
-    "text": "Organizace nebyla nalezena"
+    "text": "Organizace nenalezena"
   },
   "web.organizations.load_error": {
-    "text": "Načtení organizace se nezdařilo"
+    "text": "Nepodařilo se načíst organizaci"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Načtení organizace se nezdařilo"
+    "text": "Nepodařilo se načíst organizaci"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Načtení organizací se nezdařilo"
+    "text": "Nepodařilo se načíst organizace"
   },
   "web.organizations.organization_information": {
     "text": "Informace o organizaci"
@@ -99,7 +99,7 @@
     "text": "Nastavení organizace"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aktualizuj název a popis své organizace"
+    "text": "Aktualizujte název a popis organizace"
   },
   "web.organizations.general_settings": {
     "text": "Obecná nastavení"
@@ -114,40 +114,40 @@
     "text": "Organizace úspěšně aktualizována"
   },
   "web.organizations.update_error": {
-    "text": "Aktualizace organizace se nezdařila"
+    "text": "Nepodařilo se aktualizovat organizaci"
   },
   "web.organizations.billing_coming_soon": {
     "text": "Integrace fakturace již brzy"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Jednotná fakturace a správa předplatného pro všechny týmy v této organizaci bude k dispozici v budoucí verzi."
+    "text": "Jednotná správa fakturace a předplatného bude k dispozici v budoucí verzi."
   },
   "web.organizations.about_title": {
     "text": "O organizacích"
   },
   "web.organizations.about_description": {
-    "text": "Organizace poskytují jednotnou fakturaci a administraci pro více týmů. Jsou volitelné - týmy mohou existovat samostatně nebo být seskupeny pod organizací pro centralizovanou správu."
+    "text": "Organizace poskytují jednotnou fakturaci a administraci pro centralizovanou správu."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Spravuj svou organizaci"
+    "text": "Spravovat vaši organizaci"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Zde aktualizuj název své společnosti a podrobnosti o organizaci. Tyto informace pomáhají personalizovat tvůj účet a mohou být v budoucnu použity pro brandingové funkce."
+    "text": "Zde aktualizujte název vaší společnosti a podrobnosti o organizaci. Tyto informace pomáhají personalizovat váš účet a mohou být v budoucnu použity pro funkce brandingu."
   },
   "web.organizations.getting_started_title": {
     "text": "Začínáme s organizacemi"
   },
   "web.organizations.getting_started_description": {
-    "text": "Vytvoř svou první organizaci pro správu informací o společnosti a přípravu na budoucí týmovou spolupráci a brandingové funkce."
+    "text": "Vytvořte svou první organizaci pro správu informací o vaší společnosti a přípravu na budoucí funkce brandingu."
   },
   "web.organizations.page_description": {
-    "text": "Spravovat vaše organizace a členy týmu"
+    "text": "Spravujte své organizace a členy týmu"
   },
   "web.organizations.tabs.general": {
-    "text": "Obecné"
+    "text": "Nastavení"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Firemní branding"
+    "text": "Značka společnosti"
   },
   "web.organizations.tabs.members": {
     "text": "Tým"
@@ -162,7 +162,7 @@
     "text": "Smazat organizaci"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Tím trvale smažeš organizaci a všechny přidružené týmy. Tuto akci nelze vrátit zpět."
+    "text": "Tím trvale smažete organizaci. Tuto akci nelze vrátit zpět."
   },
   "web.organizations.delete": {
     "text": "Smazat"
@@ -171,16 +171,16 @@
     "text": "Smazat organizaci"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Opravdu chceš smazat {name}? Tuto akci nelze vrátit zpět."
+    "text": "Opravdu chcete smazat {name}? Tuto akci nelze vrátit zpět."
   },
   "web.organizations.delete_error": {
-    "text": "Smazání organizace se nezdařilo"
+    "text": "Nepodařilo se smazat organizaci"
   },
   "web.organizations.members.title": {
     "text": "Členové"
   },
   "web.organizations.members.description": {
-    "text": "Spravuj členy organizace a jejich role"
+    "text": "Spravujte členy organizace a jejich role"
   },
   "web.organizations.members.current_members": {
     "text": "Aktuální členové"
@@ -189,10 +189,10 @@
     "text": "Člen"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "člen"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "členů"
   },
   "web.organizations.members.name": {
     "text": "Jméno"
@@ -204,25 +204,25 @@
     "text": "Role"
   },
   "web.organizations.members.joined": {
-    "text": "Připojil se"
+    "text": "Připojeno"
   },
   "web.organizations.members.actions": {
     "text": "Akce"
   },
   "web.organizations.members.no_members": {
-    "text": "Nebyli nalezeni žádní členové"
+    "text": "Zatím žádní členové. Pozvěte členy týmu pro začátek."
   },
   "web.organizations.members.no_members_description": {
     "text": "Tato organizace zatím nemá žádné členy."
   },
   "web.organizations.members.role_updated": {
-    "text": "Role člena byla úspěšně aktualizována"
+    "text": "Role člena úspěšně aktualizována"
   },
   "web.organizations.members.role_update_error": {
     "text": "Nepodařilo se aktualizovat roli člena"
   },
   "web.organizations.members.member_removed": {
-    "text": "Člen byl odebrán z organizace"
+    "text": "Člen odebrán z organizace"
   },
   "web.organizations.members.member_remove_error": {
     "text": "Nepodařilo se odebrat člena"
@@ -231,19 +231,19 @@
     "text": "Odebrat člena"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Opravdu chceš odebrat {name} z této organizace?"
+    "text": "Opravdu chcete odebrat {name} z této organizace?"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Nemůžeš změnit svou vlastní roli"
+    "text": "Nemůžete změnit svou vlastní roli"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Nemůžeš se odebrat z organizace"
+    "text": "Nemůžete odebrat sami sebe z organizace"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Nemůžeš odebrat vlastníka organizace"
+    "text": "Nemůžete odebrat vlastníka organizace"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Nemáš oprávnění ke správě členů"
+    "text": "Nemáte oprávnění ke správě členů"
   },
   "web.organizations.members.roles.owner": {
     "text": "Vlastník"
@@ -255,13 +255,13 @@
     "text": "Člen"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Plný přístup ke všem nastavením organizace a členům"
+    "text": "Plný přístup ke všem nastavením a členům organizace"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "Může spravovat členy a většinu nastavení organizace"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Základní přístup ke zdrojům organizace"
+    "text": "Základní přístup k prostředkům organizace"
   },
   "web.organizations.invitations.title": {
     "text": "Pozvánky do organizace"
@@ -291,31 +291,31 @@
     "text": "Odeslat pozvánku"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Pozvánka byla úspěšně odeslána"
+    "text": "Pozvánka úspěšně odeslána"
   },
   "web.organizations.invitations.invite_error": {
     "text": "Nepodařilo se odeslat pozvánku"
   },
   "web.organizations.invitations.resend": {
-    "text": "Poslat znovu"
+    "text": "Znovu odeslat"
   },
   "web.organizations.invitations.revoke": {
     "text": "Zrušit"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Pozvánka byla znovu odeslána"
+    "text": "Pozvánka úspěšně znovu odeslána"
   },
   "web.organizations.invitations.resend_error": {
     "text": "Nepodařilo se znovu odeslat pozvánku"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Pozvánka byla zrušena"
+    "text": "Pozvánka úspěšně zrušena"
   },
   "web.organizations.invitations.revoke_error": {
     "text": "Nepodařilo se zrušit pozvánku"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Pozval"
+    "text": "Pozval/a"
   },
   "web.organizations.invitations.invited_at": {
     "text": "Pozváno"
@@ -324,13 +324,13 @@
     "text": "Vyprší"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Odesláno znovu {count}krát"
+    "text": "Znovu odesláno {count}x"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Odesláno znovu {count}krát"
+    "text": "Znovu odesláno {count}x"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Čekající"
+    "text": "Čeká"
   },
   "web.organizations.invitations.status.accepted": {
     "text": "Přijato"
@@ -357,19 +357,19 @@
     "text": "Podrobnosti pozvánky"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Byl jsi pozván do"
+    "text": "Byli jste pozváni k připojení"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Byl jsi pozván jako"
+    "text": "Byli jste pozváni jako"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Pozvánka byla úspěšně přijata"
+    "text": "Pozvánka úspěšně přijata"
   },
   "web.organizations.invitations.accept_error": {
     "text": "Nepodařilo se přijmout pozvánku"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Pozvánka byla odmítnuta"
+    "text": "Pozvánka odmítnuta"
   },
   "web.organizations.invitations.decline_error": {
     "text": "Nepodařilo se odmítnout pozvánku"
@@ -381,9 +381,54 @@
     "text": "Neplatná nebo vypršelá pozvánka"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Pro přijetí této pozvánky se prosím přihlas"
+    "text": "Pro přijetí této pozvánky se prosím přihlaste"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Načítám podrobnosti pozvánky"
+    "text": "Načítání podrobností pozvánky"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Fakturační e-mail úspěšně aktualizován"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Fakturační e-mail lze změnit na stránce Přehled fakturace"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} člen | {count} členů"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} doména | {count} domén"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Upgradujte svůj plán pro pozvání členů týmu"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Pozvánky členů týmu vyžadují plán se správou týmů. Upgradujte pro přidání spolupracovníků do vaší organizace."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Špatný účet"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Tato pozvánka byla odeslána na {invitedEmail}, ale jste přihlášeni jako {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Přihlásit se jiným účtem"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "Zbývá {days} d"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "Zbývá {hours} h"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Brzy vyprší"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Předplatné"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domény"
   }
 }

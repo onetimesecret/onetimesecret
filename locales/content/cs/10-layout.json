@@ -1,24 +1,24 @@
 {
   "web.footer.api_docs": {
-    "text": "Dokumentace API"
+    "text": "API dokumentace"
   },
   "web.footer.branding_guide": {
-    "text": "Průvodce brandingem"
+    "text": "Průvodce značkou"
   },
   "web.footer.customize": {
     "text": "Přizpůsobit"
   },
   "web.footer.plans": {
-    "text": "Tarify"
+    "text": "Plány"
   },
   "web.footer.security": {
     "text": "Zabezpečení"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Nauč se o našich bezpečnostních opatřeních"
+    "text": "Zjistěte více o našich bezpečnostních opatřeních"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Zobraz naše podmínky používání"
+    "text": "Zobrazit naše obchodní podmínky"
   },
   "web.footer.terms": {
     "text": "Podmínky"
@@ -36,22 +36,22 @@
     "text": "Právní informace"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Přečti si naše zásady ochrany soukromí"
+    "text": "Přečtěte si naše zásady ochrany osobních údajů"
   },
   "web.footer.check_our_service_status": {
-    "text": "Zkontroluj stav naší služby"
+    "text": "Zkontrolujte stav naší služby"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Prozkoumej naši dokumentaci API"
+    "text": "Prozkoumejte naši API dokumentaci"
   },
   "web.footer.docs": {
     "text": "Dokumentace"
   },
   "web.footer.access_our_documentation": {
-    "text": "Přistup k naší dokumentaci"
+    "text": "Přístup k naší dokumentaci"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Zobraz náš zdrojový kód na GitHubu"
+    "text": "Zobrazit náš zdrojový kód na GitHubu"
   },
   "web.footer.resources": {
     "text": "Zdroje"
@@ -60,13 +60,13 @@
     "text": "Blog"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Přečti si naše nejnovější příspěvky na blogu"
+    "text": "Přečtěte si naše nejnovější blogové příspěvky"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Zobraz naše předplatné a ceny"
+    "text": "Zobrazit ceny předplatného"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Nauč se o naší společnosti"
+    "text": "Zjistěte více o naší společnosti"
   },
   "web.footer.company": {
     "text": "Společnost"
@@ -90,7 +90,7 @@
     "text": "Překlady jsou nové. Našel jsi chybu? {send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Nedávno jsme přidali překlady. Našel jsi chybu? {send-feedback}"
+    "text": "Nedávno jsme přidali překlady. Našli jste chybu? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "Soukromí a zabezpečení by měly být přístupné všem, bez ohledu na jazyk. Přidáváme překlady, abychom pomohli našim uživatelům i příjemcům jejich zpráv lépe porozumět, jak bezpečně používat a přistupovat k bezpečným zprávám a odkazům. Protože jde o novou funkci, můžeš narazit na překladové chyby nebo nejasné instrukce. Abys nám pomohl zlepšit jasnost a přesnost našich překladů, zejména u kritického obsahu týkajícího se zabezpečení, prosím {send-feedback}, pokud narazíš na nějaké problémy"
@@ -102,31 +102,31 @@
     "text": "Na co se dívám?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Prohlížíš si bezpečnou zprávu, která byla s tebou sdílena přes Onetime Secret. Tento obsah je zobrazen pouze jednou a poté je trvale smazán z našich serverů."
+    "text": "Zobrazujete zabezpečenou zprávu, která s vámi byla sdílena prostřednictvím Onetime Secret. Tento obsah se zobrazí pouze jednou a poté je trvale smazán z našich serverů."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Můžu si toto tajemství zobrazit znovu později?"
+    "text": "Mohu toto tajemství zobrazit znovu později?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Ne. Z bezpečnostních důvodů je toto tajemství zobrazitelné pouze jednou. Po zavření této stránky bude obsah trvale smazán a nemůže být obnoven nikým, včetně nás."
+    "text": "Ne. Z bezpečnostních důvodů lze toto tajemství zobrazit pouze jednou. Po zavření této stránky bude obsah trvale smazán a nikdo, včetně nás, ho nebude moci obnovit."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Jak mohu uložit tyto informace?"
+    "text": "Jak si tyto informace uložím?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Použij tlačítko 'Zkopírovat do schránky' pro zkopírování celého tajemství. U delších tajemství se ujisti, že jsi zkopíroval kompletní obsah před opuštěním této stránky."
+    "text": "Použijte tlačítko 'Zkopírovat do schránky' pro zkopírování celého tajemství. U delších tajemství se ujistěte, že jste zkopírovali celý obsah, než tuto stránku opustíte."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Je mé zobrazení tohoto tajemství sledováno?"
+    "text": "Je moje zobrazení tohoto tajemství sledováno?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Odesílatel bude upozorněn, že jeho tajemství bylo zobrazeno, ale nesledujeme, kdo ho zobrazil nebo z jakého umístění. Tvé soukromí je chráněno."
+    "text": "Odesílatel bude upozorněn, že jeho tajemství bylo zobrazeno, ale nesledujeme, kdo ho zobrazil ani z jakého místa. Vaše soukromí je chráněno."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Jakmile opustíš nebo obnovíš tuto stránku, toto tajemství bude trvale smazáno a nemůže být obnoven nikým."
+    "text": "Jakmile opustíte nebo obnovíte tuto stránku, toto tajemství bude trvale smazáno a nikdo ho nebude moci obnovit."
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Vrátit se na předchozí stránku"
+    "text": "Přejít zpět na předchozí stránku"
   },
   "web.layout.site_footer": {
     "text": "Zápatí stránky"
@@ -159,7 +159,7 @@
     "text": "Poznámky k vydání"
   },
   "web.layout.loading_settings_content": {
-    "text": "Načítám obsah nastavení..."
+    "text": "Načítání obsahu nastavení..."
   },
   "web.layout.settings_sections_0": {
     "text": "Sekce nastavení"
@@ -174,13 +174,13 @@
     "text": "Přizpůsob si předvolby a nastavení aplikace"
   },
   "web.layout.return_home": {
-    "text": "Vrátit se domů"
+    "text": "Zpět domů"
   },
   "web.layout.return_to_home_page": {
-    "text": "Vrátit se na domovskou stránku"
+    "text": "Zpět na domovskou stránku"
   },
   "web.layout.return_to_home": {
-    "text": "Vrátit se domů"
+    "text": "Zpět domů"
   },
   "web.layout.view_privacy_policy": {
     "text": "Zobrazit zásady ochrany osobních údajů"
@@ -192,7 +192,7 @@
     "text": "Navštívit domovskou stránku Onetime Secret"
   },
   "web.layout.footer_navigation": {
-    "text": "Navigace v zápatí"
+    "text": "Navigace zápatí"
   },
   "web.layout.terms_of_service": {
     "text": "Podmínky služby"
@@ -234,12 +234,18 @@
     "text": "Přepnout do režimu {0}"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "Režim {0} aktivován"
+    "text": "Režim {0} povolen"
   },
   "web.layout.workspace": {
     "text": "Pracovní prostor"
   },
   "web.layout.workspace_context": {
     "text": "Kontext pracovního prostoru"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Když odešlete zpětnou vazbu, uvidíme:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Obnovit na {0}"
   }
 }

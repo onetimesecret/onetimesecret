@@ -1,24 +1,24 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Zjistit více o konfiguraci DNS"
+    "text": "Zjistěte více o konfiguraci DNS"
   },
   "web.domains.view_domain_verification_status": {
     "text": "Zobrazit stav ověření domény"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Tato doména je již registrována v tvé organizaci"
+    "text": "Tato doména je již registrována ve vaší organizaci"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Tato doména je již registrována jiné organizaci. Kontaktuj prosím podporu, pokud se domníváš, že jde o chybu."
+    "text": "Tato doména je již registrována v jiné organizaci. Pokud si myslíte, že jde o chybu, kontaktujte prosím podporu."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Doména úspěšně nárokována a přidána do tvé organizace"
+    "text": "Doména úspěšně nárokována a přidána do vaší organizace"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Výchozí nastavení soukromí"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Nastav výchozí možnosti soukromí pro tajemství vytvořená pod touto doménou. Tato nastavení budou předvyplněna při vytváření nových tajemství."
+    "text": "Nastavte výchozí možnosti soukromí pro tajemství vytvořená pod touto doménou. Tato nastavení budou předvyplněna při vytváření nových tajemství."
   },
   "web.domains.privacy_defaults": {
     "text": "Výchozí nastavení soukromí"
@@ -27,10 +27,10 @@
     "text": "Ikona výchozího nastavení soukromí"
   },
   "web.domains.default_ttl_label": {
-    "text": "Výchozí doba platnosti"
+    "text": "Výchozí doba životnosti"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Jak dlouho by tajemství měla být ve výchozím nastavení přístupná"
+    "text": "Jak dlouho by tajemství měla být standardně přístupná"
   },
   "web.domains.passphrase_required_label": {
     "text": "Vyžadovat přístupovou frázi"
@@ -42,7 +42,7 @@
     "text": "Povolit oznámení"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Ve výchozím nastavení povolit e-mailová oznámení při zobrazení tajemství"
+    "text": "Povolit e-mailová oznámení jako výchozí při zobrazení tajemství"
   },
   "web.domains.use_global_default": {
     "text": "Použít globální výchozí"
@@ -66,13 +66,13 @@
     "text": "Vlastní"
   },
   "web.domains.edit_defaults": {
-    "text": "Upravit výchozí nastavení"
+    "text": "Upravit výchozí"
   },
   "web.domains.ttl_short": {
-    "text": "Platnost"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
-    "text": "Fráze"
+    "text": "Přístupová fráze"
   },
   "web.domains.notify_short": {
     "text": "Oznámení"
@@ -81,7 +81,7 @@
     "text": "Přepnout rozsah domény"
   },
   "web.domains.switcher_locked": {
-    "text": "Přepínání domén není na této stránce dostupné"
+    "text": "Přepínání domén není na této stránce k dispozici"
   },
   "web.domains.scope_list_label": {
     "text": "Dostupné domény"
@@ -96,10 +96,10 @@
     "text": "Nastavení domény"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Výchozí doména nemá stránku s nastavením"
+    "text": "Výchozí doména nemá stránku nastavení"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Zadej prosím {0} název domény"
+    "text": "Zadejte prosím název domény {0}"
   },
   "web.domains.domain_name": {
     "text": "Název domény"
@@ -123,7 +123,7 @@
     "text": "Domény"
   },
   "web.domains.last_monitored": {
-    "text": "Naposledy monitorováno"
+    "text": "Naposledy sledováno"
   },
   "web.domains.ssl_status": {
     "text": "Stav SSL"
@@ -165,16 +165,16 @@
     "text": "Přidáno {0}"
   },
   "web.domains.add_your_domain": {
-    "text": "Přidej svou doménu"
+    "text": "Přidat vaši doménu"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
     "text": "Začni přidáním vlastní domény."
   },
   "web.domains.no_domains_found": {
-    "text": "Nebyly nalezeny žádné domény."
+    "text": "Žádné domény nenalezeny."
   },
   "web.domains.loading_domain_information": {
-    "text": "Načítám informace o doméně..."
+    "text": "Načítání informací o doméně..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Pro připojení své domény budeš muset mít CNAME záznam ve svém DNS, který ukazuje"
@@ -189,22 +189,22 @@
     "text": "a odstraň jakékoli další A, AAAA nebo CNAME záznamy pro tuto přesnou adresu."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", budeš muset dokončit tyto kroky."
+    "text": ", budete muset dokončit tyto kroky."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Než budeme moci aktivovat odkazy pro"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Prosím poznamenej, že pro apex domény (např."
+    "text": "Upozorňujeme, že pro apex domény (např."
   },
   "web.domains.verify_your_domain": {
-    "text": "Ověř svou doménu"
+    "text": "Ověřit vaši doménu"
   },
   "web.domains.secrets_example_dot_com": {
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Přizpůsob branding své domény"
+    "text": "Přizpůsobte značku vaší domény"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Než se tvůj SSL certifikát začne účinkovat, může to trvat několik minut."
@@ -213,7 +213,7 @@
     "text": "Změny DNS mohou trvat pouhých 60 sekund -- nebo až 24 hodin -- než se projeví."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Počkej na propagaci"
+    "text": "3. Počkejte na propagaci"
   },
   "web.domains.value_2": {
     "text": "Hodnota"
@@ -222,7 +222,7 @@
     "text": "Hodnota"
   },
   "web.domains.host_1": {
-    "text": "Host"
+    "text": "Hostitel"
   },
   "web.domains.type_2": {
     "text": "Typ"
@@ -231,25 +231,25 @@
     "text": "Typ"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Vytvoř CNAME záznam"
+    "text": "2. Vytvořte CNAME záznam"
   },
   "web.domains.value_0": {
     "text": "Hodnota"
   },
   "web.domains.host_0": {
-    "text": "Host"
+    "text": "Hostitel"
   },
   "web.domains.type_0": {
     "text": "Typ"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Vytvoř A záznam"
+    "text": "2. Vytvořte A záznam"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
     "text": "Přidej tento hostname do své DNS konfigurace:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Vytvoř TXT záznam"
+    "text": "1. Vytvořte TXT záznam"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Následuj tyto kroky k ověření vlastnictví domény a zvýšení své online přítomnosti:"
@@ -270,9 +270,33 @@
     "text": "Doména úspěšně odebrána"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "Přidání domény se nezdařilo"
+    "text": "Nepodařilo se přidat doménu"
   },
   "web.domains.domain_added_successfully": {
     "text": "Doména úspěšně přidána"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Chráněno"
+  },
+  "web.domains.manage_domains": {
+    "text": "Spravovat domény"
+  },
+  "web.domains.global_defaults": {
+    "text": "Globální výchozí hodnoty"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Upravit nastavení doby životnosti"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Upravit požadavek na přístupovou frázi"
+  },
+  "web.domains.edit_notify": {
+    "text": "Upravit nastavení oznámení"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Konfigurovat DNS záznamy"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Použijte nástroj níže k automatické detekci vašeho poskytovatele DNS a získání podrobných pokynů pro konfiguraci vaší domény."
   }
 }

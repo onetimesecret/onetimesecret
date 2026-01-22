@@ -1,18 +1,18 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Tvá zpětná vazba"
+    "text": "Vaše zpětná vazba"
   },
   "web.feedback.all_feedback_welcome": {
     "text": "Veškerá zpětná vazba je vítána!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Pomoz nám zlepšit se"
+    "text": "Pomozte nám se zlepšit"
   },
   "web.feedback.close_feedback_modal": {
     "text": "Zavřít okno zpětné vazby"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Sdílej svou zpětnou vazbu"
+    "text": "Podělte se o svou zpětnou vazbu"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -39,9 +39,15 @@
     "text": "Otevřít formulář zpětné vazby"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Zadej svou zpětnou vazbu"
+    "text": "Zadejte svou zpětnou vazbu"
   },
   "web.feedback.send_feedback": {
     "text": "Odeslat zpětnou vazbu"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Čtu každou zpětnou vazbu, která mi přijde. Je to způsob, jak zjistit, čemu věnovat čas."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Pokud něco nefunguje správně nebo máte nápady, jak by to mělo fungovat, toto je správné místo."
   }
 }

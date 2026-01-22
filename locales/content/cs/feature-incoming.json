@@ -9,7 +9,7 @@
     "text": "Načítání..."
   },
   "incoming.config_error_title": {
-    "text": "Načtení konfigurace se nezdařilo"
+    "text": "Nepodařilo se načíst konfiguraci"
   },
   "incoming.feature_disabled_title": {
     "text": "Funkce není dostupná"
@@ -21,7 +21,7 @@
     "text": "Poznámka"
   },
   "incoming.memo_placeholder": {
-    "text": "Stručný popis (např. Žádost o obnovení hesla)"
+    "text": "Stručný popis (např. žádost o obnovení hesla)"
   },
   "incoming.memo_hint": {
     "text": "Pomozte nám směrovat vaši zprávu správné osobě"
@@ -39,16 +39,16 @@
     "text": "Vyberte, kdo obdrží tuto zabezpečenou zprávu"
   },
   "incoming.no_recipients_available": {
-    "text": "Žádní příjemci nejsou k dispozici"
+    "text": "Nejsou k dispozici žádní příjemci"
   },
   "incoming.secret_content_label": {
-    "text": "Důvěrné informace"
+    "text": "Tajné informace"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Vložte sem citlivé informace (hesla, klíče apod.)"
+    "text": "Vložte sem citlivé informace (hesla, klíče atd.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Tyto informace budou šifrovány a zobrazí se pouze jednou"
+    "text": "Tyto informace budou šifrovány a lze je zobrazit pouze jednou"
   },
   "incoming.submit_button": {
     "text": "Odeslat tajemství"
@@ -81,7 +81,7 @@
     "text": "Co se stane dál?"
   },
   "incoming.success_info_description": {
-    "text": "Příjemce bude moci zobrazit toto tajemství pouze jednou. Po zobrazení bude tajemství trvale smazáno."
+    "text": "Příjemce bude moci toto tajemství zobrazit pouze jednou. Po zobrazení bude tajemství trvale smazáno."
   },
   "incoming.create_another": {
     "text": "Odeslat další tajemství"
@@ -90,10 +90,10 @@
     "text": "Bezpečně sdílejte citlivé informace"
   },
   "incoming.tagline2": {
-    "text": "Udržujte hesla a soukromá data mimo e-maily a záznamy chatů"
+    "text": "Udržujte hesla a soukromá data mimo e-maily a protokoly chatů"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Uložte si <a href='{receiptUrl}'>potvrzení</a> pro své záznamy."
+    "text": "Uložte si {receipt} pro své záznamy."
   },
   "incoming.receipt_link_text": {
     "text": "potvrzení"

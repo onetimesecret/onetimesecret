@@ -18,13 +18,13 @@
     "text": "Tajemství ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(aktivní za posledních 5 minut)"
+    "text": "(aktivní v posledních 5 minutách)"
   },
   "web.colonel.configEditorTitle": {
     "text": "Nastavení"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Uprav nastavení systémové konfigurace. Změny se projeví okamžitě po uložení."
+    "text": "Upravit nastavení konfigurace systému. Změny se projeví ihned po uložení."
   },
   "web.colonel.invalidJson": {
     "text": "Neplatný JSON v sekci {section}"
@@ -45,13 +45,13 @@
     "text": "Konfigurace musí být JSON objekt"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Více sekcí má chyby validace: {sections}"
+    "text": "Více sekcí obsahuje chyby validace: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} má chyby validace: {error}"
+    "text": "{section} obsahuje chyby validace: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} úspěšně uložena"
+    "text": "{section} úspěšně uloženo"
   },
   "web.colonel.saveSection": {
     "text": "Uložit {section}"
@@ -99,10 +99,10 @@
     "text": "Systém"
   },
   "web.colonel.welcome": {
-    "text": "Vítej v Colonel"
+    "text": "Vítejte v Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Administrátorský ovládací panel pro OneTimeSecret"
+    "text": "Administrativní ovládací panel pro OneTimeSecret"
   },
   "web.colonel.quickActions": {
     "text": "Rychlé akce"
@@ -114,25 +114,25 @@
     "text": "Zobrazit vše"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Data o aktivitě budou zobrazena zde"
+    "text": "Zde budou zobrazena data aktivity"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Celkem tajemství"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Aktivní uživatelé"
+    "text": "Aktivních uživatelů"
   },
   "web.colonel.stats.secretsToday": {
     "text": "Tajemství dnes"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Vytvořená tajemství"
+    "text": "Vytvořených tajemství"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Sdílená tajemství"
+    "text": "Sdílených tajemství"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Celkem zákazníků"
+    "text": "Celkem uživatelů"
   },
   "web.colonel.stats.emailsSent": {
     "text": "Odeslaných e-mailů"
@@ -147,13 +147,13 @@
     "text": "Zobrazit aktivitu"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Sleduj aktivitu a využití systému"
+    "text": "Sledovat aktivitu a využití systému"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Spravovat účty"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Správa uživatelských účtů"
+    "text": "Administrace uživatelských účtů"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Konfigurovat domény"
@@ -192,34 +192,34 @@
     "text": "Stav workerů"
   },
   "web.colonel.activeWorkers": {
-    "text": "aktivních workerů"
+    "text": "aktivní workery"
   },
   "web.colonel.noQueueData": {
-    "text": "Žádná data o frontě nejsou k dispozici"
+    "text": "Žádná data fronty nejsou k dispozici"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Načítám data fronty..."
+    "text": "Načítání dat fronty..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Testovací režim tarifu"
+    "text": "Režim testovacího plánu"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Testuji jako {planName}"
+    "text": "Testování jako {planName}"
   },
   "web.colonel.clickToReset": {
-    "text": "Klikni pro reset"
+    "text": "Klikněte pro reset"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Vyber tarif k testování"
+    "text": "Vyberte plán k testování"
   },
   "web.colonel.resetToActual": {
-    "text": "Obnovit skutečný tarif"
+    "text": "Obnovit skutečný plán"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Aktuální tarif"
+    "text": "Aktuální plán"
   },
   "web.colonel.availablePlans": {
-    "text": "Dostupné tarify"
+    "text": "Dostupné plány"
   },
   "web.colonel.activateTestMode": {
     "text": "Aktivovat testovací režim"
@@ -228,10 +228,10 @@
     "text": "Testovací režim aktivní"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testuj svou aplikaci s různými oprávněními tarifu. Změny jsou dočasné a ovlivňují pouze tvou relaci."
+    "text": "Otestujte svou aplikaci s různými oprávněními plánu. Změny jsou dočasné a ovlivní pouze vaši relaci."
   },
   "web.colonel.warningTestMode": {
-    "text": "Testuješ s oprávněními {planName} (dočasné přepsání relace)."
+    "text": "Testujete s oprávněními {planName} (dočasné přepsání relace)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Když odešleš zpětnou vazbu, uvidíme:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Odesílám..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Zakázané IP adresy"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Správa seznamu zakázaných IP adres"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Vlastní domény"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Správa vlastních domén a značky"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Odeslat zpětnou vazbu"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Odesílání..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Když odešlete zpětnou vazbu, uvidíme:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organizace"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Sledování stavu synchronizace fakturace organizací"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Monitor stavu fakturace"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organizací"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} vyžaduje pozornost"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} neznámých"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Nebyly nalezeny žádné organizace"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Prozkoumat"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Kontrola..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Účet"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Fakturace"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Stav"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Využití"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Vytvořeno"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Podrobnosti"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Vlastník"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Plán"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Členové"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domény"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Předplatné"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Výchozí pracovní prostor"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Má fakturaci"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Zákazník"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Předplatné"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID organizace"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Stav synchronizace"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Předplatné"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Vše"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potenciálně zastaralé"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Neznámý"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Synchronizováno"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktivní"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Zkušební období"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Po splatnosti"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Zrušeno"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Vyšetřování selhalo"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Výsledek vyšetřování"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Ověřeno synchronizováno"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Nalezena neshoda"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Nelze porovnat"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Podrobnosti předplatného Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Stav"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Produkt"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Vyřešený plán"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID ceny"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Lokální"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Administrace fakturace organizací"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Správa organizací a sledování stavu synchronizace fakturace ({total} celkem)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Nebyly nalezeny žádné organizace"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potenciálně zastaralé"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Zastaralé"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Neznámý"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktivní"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} členů"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domén"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Tajemství"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Zobrazit a spravovat všechna tajemství"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Systém"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Nastavení systému, databáze a konfigurace"
+  },
+  "web.colonel.titles.index": {
+    "text": "Administrace"
+  },
+  "web.colonel.titles.users": {
+    "text": "Správa uživatelů"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Správa tajemství"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Vlastní domény"
+  },
+  "web.colonel.titles.system": {
+    "text": "Systém"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Hlavní databáze"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Autentizační databáze"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Zakázané IP adresy"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Export využití"
+  },
+  "web.colonel.titles.info": {
+    "text": "Informace o systému"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organizace"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Export využití"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Export dat o využití a statistik"
   }
 }

@@ -6,7 +6,7 @@
     "text": "Změnit heslo"
   },
   "web.account.close_account": {
-    "text": "Zavřít účet"
+    "text": "Zrušit účet"
   },
   "web.account.verify_account": {
     "text": "Ověřit účet"
@@ -21,13 +21,13 @@
     "text": "Informace o zákazníkovi"
   },
   "web.account.customer_since": {
-    "text": "Zákazník od:"
+    "text": "Zákazníkem od:"
   },
   "web.account.email": {
     "text": "E-mail:"
   },
   "web.account.region": {
-    "text": "Oblast"
+    "text": "Region"
   },
   "web.account.account_balance": {
     "text": "Zůstatek:"
@@ -39,13 +39,13 @@
     "text": "končící na"
   },
   "web.account.subscriptions_title": {
-    "text": "Předplatné"
+    "text": "Předplatná"
   },
   "web.account.quantity": {
     "text": "Množství:"
   },
   "web.account.next_billing_date": {
-    "text": "Další datum účtování:"
+    "text": "Další datum fakturace:"
   },
   "web.account.changePassword.username": {
     "text": "Uživatelské jméno"
@@ -87,7 +87,7 @@
     "text": "Typ účtu: {0}"
   },
   "web.account.your_account": {
-    "text": "Tvůj účet"
+    "text": "Váš účet"
   },
   "web.account.support_details": {
     "text": "Podrobnosti podpory"
@@ -105,16 +105,16 @@
     "text": "🔐 Uchovej tento token v bezpečí! Poskytuje plný přístup k tvému účtu."
   },
   "web.account.confirm_with_your_password": {
-    "text": "Potvrď svým heslem"
+    "text": "Potvrďte svým heslem"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Opravdu chceš trvale smazat svůj účet? Tuto akci nelze vrátit zpět."
   },
   "web.account.confirm_account_deletion": {
-    "text": "Potvrď smazání účtu"
+    "text": "Potvrdit smazání účtu"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Mažu {0}"
+    "text": "Mazání {0}"
   },
   "web.account.permanently_delete_account": {
     "text": "Trvale smazat účet"
@@ -123,22 +123,22 @@
     "text": "trvalé a nevratné."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Mazání tvého účtu je"
+    "text": "Smazání vašeho účtu je"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "trvale je smaž před pokračováním"
+    "text": "trvale je smažte před pokračováním"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Jakákoli tajemství, která chceš odstranit,"
+    "text": "Jakákoli tajemství, která chcete odstranit,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "Tajemství zůstanou aktivní, dokud nevyprší."
   },
   "web.account.please_be_advised": {
-    "text": "Berte prosím na vědomí:"
+    "text": "Upozornění:"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Účet úspěšně smazán."
+    "text": "Účet byl úspěšně smazán."
   },
   "web.account.deactivate": {
     "text": "Deaktivovat"
@@ -153,7 +153,7 @@
     "text": "Nastavení"
   },
   "web.settings.description": {
-    "text": "Spravuj nastavení svého účtu a předvolby"
+    "text": "Spravujte nastavení a předvolby svého účtu"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Spravuj nastavení svého účtu a předvolby"
@@ -168,28 +168,28 @@
     "text": "Vzhled"
   },
   "web.settings.theme.title": {
-    "text": "Motiv"
+    "text": "Téma"
   },
   "web.settings.theme.description": {
-    "text": "Vyber si světlý nebo tmavý motiv"
+    "text": "Vyberte světlé nebo tmavé téma"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Vyber si světlý nebo tmavý motiv"
+    "text": "Vyberte světlé nebo tmavé téma"
   },
   "web.settings.language.title": {
     "text": "Jazyk"
   },
   "web.settings.language.description": {
-    "text": "Vyber si preferovaný jazyk"
+    "text": "Vyberte preferovaný jazyk"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Vyber si preferovaný jazyk"
+    "text": "Vyberte preferovaný jazyk"
   },
   "web.settings.security_settings_description": {
-    "text": "Spravuj autentizaci a zabezpečení účtu"
+    "text": "Spravujte ověřování a zabezpečení účtu"
   },
   "web.settings.profile_settings_description": {
-    "text": "Spravuj informace o svém účtu"
+    "text": "Spravujte informace o svém účtu"
   },
   "web.settings.profile.title": {
     "text": "Profil"
@@ -207,67 +207,67 @@
     "text": "Nový e-mail"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Zadej své aktuální heslo"
+    "text": "Zadejte své aktuální heslo"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Tvé heslo je vyžadováno z bezpečnostních důvodů"
+    "text": "Vaše heslo je vyžadováno z bezpečnostních důvodů"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Ověřovací e-mail bude odeslán na novou adresu"
+    "text": "Na novou adresu bude odeslán ověřovací e-mail"
   },
   "web.settings.profile.update_email": {
     "text": "Aktualizovat e-mail"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Aktualizuj e-mailovou adresu spojenou s tvým účtem"
+    "text": "Aktualizujte e-mailovou adresu přidruženou k vašemu účtu"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Všechna pole jsou povinná"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Zadej prosím platnou e-mailovou adresu"
+    "text": "Zadejte prosím platnou e-mailovou adresu"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Nový e-mail musí být odlišný od aktuálního"
+    "text": "Nový e-mail se musí lišit od aktuálního e-mailu"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail úspěšně aktualizován. Zkontroluj prosím svou schránku pro ověření nové e-mailové adresy."
+    "text": "E-mail úspěšně aktualizován. Zkontrolujte prosím svou schránku pro ověření nové e-mailové adresy."
   },
   "web.settings.profile.email_change_error": {
-    "text": "Nepodařilo se aktualizovat e-mail. Zkus to prosím znovu."
+    "text": "Nepodařilo se aktualizovat e-mail. Zkuste to prosím znovu."
   },
   "web.settings.sessions.title": {
     "text": "Aktivní relace"
   },
   "web.settings.sessions.description": {
-    "text": "Spravuj své aktivní relace"
+    "text": "Spravujte své aktivní relace"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Spravuj své aktivní relace"
+    "text": "Spravujte své aktivní relace"
   },
   "web.settings.password.title": {
     "text": "Heslo"
   },
   "web.settings.password.description": {
-    "text": "Aktualizuj heslo svého účtu"
+    "text": "Aktualizovat heslo účtu"
   },
   "web.settings.password.update_account_password": {
-    "text": "Aktualizuj heslo svého účtu"
+    "text": "Aktualizovat heslo účtu"
   },
   "web.settings.delete_account.title": {
     "text": "Smazat účet"
   },
   "web.settings.delete_account.description": {
-    "text": "Trvale smazat tvůj účet a všechna data"
+    "text": "Trvale smazat váš účet a všechna data"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Trvale smazat tvůj účet a všechna data"
+    "text": "Trvale smazat váš účet a všechna data"
   },
   "web.settings.security.security_score": {
-    "text": "Skóre zabezpečení"
+    "text": "Bezpečnostní skóre"
   },
   "web.settings.security.score_description": {
-    "text": "Celkový stav zabezpečení tvého účtu"
+    "text": "Celkové zdraví zabezpečení vašeho účtu"
   },
   "web.settings.security.excellent": {
     "text": "Výborné"
@@ -282,10 +282,10 @@
     "text": "Slabé"
   },
   "web.settings.security.improve_security": {
-    "text": "Zlepši své zabezpečení"
+    "text": "Zlepšete své zabezpečení"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Povol dvoufaktorové ověření pro silnější ochranu"
+    "text": "Povolte dvoufaktorové ověření pro silnější ochranu"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Vygeneruj záložní kódy jako zálohu"
@@ -303,10 +303,10 @@
     "text": "Povolit"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} kódů dostupných"
+    "text": "{0} kódů k dispozici"
   },
   "web.settings.security.no_codes": {
-    "text": "Žádné kódy vygenerovány"
+    "text": "Žádné kódy nevygenerovány"
   },
   "web.settings.security.active_sessions": {
     "text": "{0} aktivní relace | {0} aktivních relací"
@@ -315,16 +315,16 @@
     "text": "Osvědčené bezpečnostní postupy"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Použij silné a jedinečné heslo pro svůj účet"
+    "text": "Používejte silné a jedinečné heslo pro svůj účet"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Povol dvoufaktorové ověření pro dodatečnou ochranu"
+    "text": "Povolte dvoufaktorové ověření pro další ochranu"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Ulož své záložní kódy na bezpečné místo"
+    "text": "Uložte si obnovovací kódy na bezpečné místo"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Pravidelně kontroluj a rušuj nepoužívané relace"
+    "text": "Pravidelně kontrolujte a odvolávejte nepoužívané relace"
   },
   "web.settings.security.view_details": {
     "text": "Zobrazit podrobnosti"
@@ -333,22 +333,22 @@
     "text": "API a integrace"
   },
   "web.settings.api.description": {
-    "text": "Spravuj API klíče a integrace"
+    "text": "Správa API klíčů a integrací"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Spravuj API klíče a integrace"
+    "text": "Správa API klíčů a integrací"
   },
   "web.settings.api.documentation": {
-    "text": "Dokumentace API"
+    "text": "API dokumentace"
   },
   "web.settings.api.documentation_description": {
-    "text": "Nauč se, jak integrovat Onetime Secret do svých aplikací"
+    "text": "Naučte se, jak integrovat Onetime Secret do vašich aplikací"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "REST API Reference"
+    "text": "Reference REST API"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Kompletní dokumentace API a endpointy"
+    "text": "Kompletní API dokumentace a koncové body"
   },
   "web.settings.api.code_examples": {
     "text": "Příklady kódu"
@@ -360,82 +360,82 @@
     "text": "Osvědčené bezpečnostní postupy"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Nikdy neukládej API klíče do verzovacího systému"
+    "text": "Nikdy neukládejte API klíče do verzovacího systému"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Použij proměnné prostředí pro ukládání API klíčů"
+    "text": "Používejte proměnné prostředí pro ukládání API klíčů"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Pravidelně rotuj API klíče z bezpečnostních důvodů"
+    "text": "Pravidelně obměňujte API klíče pro bezpečnost"
   },
   "web.settings.api.use_https_only": {
-    "text": "Vždy používej HTTPS při API požadavcích"
+    "text": "Vždy používejte HTTPS při provádění API požadavků"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Monitoruj své využití API a nastav upozornění"
+    "text": "Sledujte využití API a nastavte upozornění"
   },
   "web.settings.api.important_notice": {
     "text": "Důležité upozornění"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Regenerování API klíče zneplatní aktuální klíč. Aktualizuj všechny aplikace používající starý klíč."
+    "text": "Regenerace vašeho API klíče zneplatní aktuální klíč. Aktualizujte všechny aplikace používající starý klíč."
   },
   "web.settings.privacy.title": {
     "text": "Nastavení soukromí"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Spravuj své předvolby soukromí"
+    "text": "Spravujte své předvolby soukromí"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Tvé soukromí"
+    "text": "Vaše soukromí"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Nepodléhá jednání"
+    "text": "Bez kompromisů"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "Není to nastavení"
+    "text": "Není nastavení"
   },
   "web.settings.privacy.no_analytics_statement": {
     "text": "Žádná analytika. Žádné sledování. Tečka."
   },
   "web.settings.privacy.explanation": {
-    "text": "Toto není nastavení, protože není co zapínat nebo vypínat. Tvé soukromí je zabudováno do způsobu, jak fungujeme."
+    "text": "Toto není nastavení, protože není co zapínat nebo vypínat. Vaše soukromí je součástí toho, jak fungujeme."
   },
   "web.settings.notifications.title": {
     "text": "Nastavení oznámení"
   },
   "web.settings.notifications.description": {
-    "text": "Spravuj, jak přijímáš oznámení"
+    "text": "Spravujte způsob přijímání oznámení"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Nepodařilo se aktualizovat předvolby oznámení. Zkus to prosím znovu."
+    "text": "Nepodařilo se aktualizovat předvolbu oznámení. Zkuste to prosím znovu."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Oznámení o zobrazení tajemství"
+    "text": "Oznámení o odhalení tajemství"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Obdrž e-mail, když někdo zobrazí tvé tajemství"
+    "text": "Obdržet e-mail, když někdo zobrazí vaše tajemství"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Budeš upozorněn/a pokaždé, když příjemce zobrazí některé z tvých tajemství"
+    "text": "Budete upozorněni pokaždé, když příjemce odhalí jedno z vašich tajemství"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "E-maily s oznámením obsahují pouze časové razítko a identifikátor tajemství. Informace o prohlížejícím nejsou nikdy zahrnuty."
+    "text": "Notifikační e-maily obsahují pouze časové razítko a ID tajemství. Informace o prohlížeči nejsou nikdy zahrnuty."
   },
   "web.settings.caution.title": {
-    "text": "Zóna opatrného zvážení"
+    "text": "Zóna pečlivého zvážení"
   },
   "web.settings.caution.description": {
-    "text": "Pokročilé nastavení a správa dat"
+    "text": "Pokročilá nastavení a správa dat"
   },
   "web.settings.caution.data_export": {
     "text": "Export dat"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exportuj data svého účtu"
+    "text": "Exportovat data účtu"
   },
   "web.settings.caution.export_description": {
-    "text": "Požádej o kompletní kopii dat svého účtu ve strojově čitelném formátu"
+    "text": "Požádejte o úplnou kopii dat vašeho účtu ve strojově čitelném formátu"
   },
   "web.settings.caution.request_data_export": {
     "text": "Požádat o export dat"
@@ -444,21 +444,36 @@
     "text": "Doba zpracování exportu"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Exporty jsou zpracovány do 24 hodin a odeslány na tvou e-mailovou adresu"
+    "text": "Exporty jsou zpracovány do 24 hodin a odeslány na vaši e-mailovou adresu"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Smazání tvého účtu způsobí:"
+    "text": "Smazání vašeho účtu způsobí:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Trvalé smazání všech tvých tajemství"
+    "text": "Trvalé smazání všech vašich tajemství"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Odstranění všech metadat tajemství a historie"
+    "text": "Odstranění všech metadat a historie tajemství"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Zneplatnění všech API klíčů"
+    "text": "Zneplatnit všechny API klíče"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Tuto akci nelze vrátit zpět"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Mazání..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Zpět na přehled"
+  },
+  "web.settings.sections.account": {
+    "text": "Účet"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fakturace"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Pokročilé"
   }
 }

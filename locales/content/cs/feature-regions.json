@@ -3,64 +3,64 @@
     "text": "Datová suverenita a regionální izolace"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Tvá data se nacházejí výhradně ve tvém zvoleném regionu a nikdy nejsou přenášena mezi regiony"
+    "text": "Vaše data se nacházejí výhradně ve vámi zvoleném regionu a nikdy nejsou přenášena mezi regiony"
   },
   "web.regions.separate_environments_explanation": {
     "text": "Každý region funguje jako zcela nezávislé prostředí s vlastní infrastrukturou, šifrovacími klíči a úložištěm dat"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Dodržujeme přísnou politiku: zákaznická data nejsou nikdy za žádných okolností přenášena mezi regiony"
+    "text": "Dodržujeme přísnou politiku: zákaznická data nejsou za žádných okolností přenášena mezi regiony"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Tvá data zůstanou v původním regionu."
+    "text": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Vaše data zůstávají v původním regionu."
   },
   "web.regions.your_region": {
-    "text": "Tvůj region"
+    "text": "Váš region"
   },
   "web.regions.your_current_region": {
-    "text": "Tvůj současný region"
+    "text": "Váš aktuální region"
   },
   "web.regions.active": {
     "text": "Aktivní"
   },
   "web.regions.explore_other_regions": {
-    "text": "Prozkoumat další dostupné regiony"
+    "text": "Prozkoumejte další dostupné regiony"
   },
   "web.regions.why_it_matters": {
-    "text": "Proč je datová suverenita důležitá"
+    "text": "Proč záleží na datové suverenitě"
   },
   "web.regions.trust_title": {
     "text": "Transparentnost a kontrola"
   },
   "web.regions.trust_description": {
-    "text": "Přesně víš, kde se tvá data nacházejí a které zákony chrání jejich ochranu."
+    "text": "Vědět přesně, kde se vaše data nacházejí a které zákony řídí jejich ochranu."
   },
   "web.regions.privacy_title": {
     "text": "Práva na soukromí"
   },
   "web.regions.privacy_description": {
-    "text": "Zajisti, aby tvé osobní údaje byly zpracovávány v souladu s pravidly soukromí tvé země, což zabrání neoprávněnému přístupu nebo zneužití."
+    "text": "Zajistěte, aby se s vašimi osobními údaji zacházelo podle zákonů a předpisů o soukromí vaší země, čímž se zabrání neoprávněnému přístupu nebo zneužití."
   },
   "web.regions.compliance_title": {
     "text": "Regulační soulad"
   },
   "web.regions.compliance_description": {
-    "text": "Splň požadavky GDPR, HIPAA, CCPA a dalších regionálních předpisů o ochraně dat"
+    "text": "Splňte požadavky GDPR, HIPAA, CCPA a dalších regionálních předpisů o ochraně dat"
   },
   "web.regions.performance_title": {
     "text": "Rychlejší přístup"
   },
   "web.regions.performance_description": {
-    "text": "Data uložená blíže k tobě znamenají nižší latenci a lepší výkon."
+    "text": "Data uložená blíže k vám znamenají nižší latenci a lepší výkon."
   },
   "web.regions.regions": {
     "text": "Regiony"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "kontaktuj náš tým pro soulad"
+    "text": "kontaktujte náš tým pro compliance"
   },
   "web.regions.review_our_documentation": {
-    "text": "přečti si naši dokumentaci"
+    "text": "prostudujte naši dokumentaci"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Tvůj účet a data jsou chráněny podle zákonů"
@@ -96,7 +96,7 @@
     "text": "Neznámá jurisdikce"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Obsluhujeme tě z"
+    "text": "Obsluhujeme vás z"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "Pokračovat na {0}"

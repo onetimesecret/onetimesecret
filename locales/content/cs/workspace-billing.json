@@ -3,37 +3,37 @@
     "text": "Vyžadován upgrade"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Zobrazit tarify"
+    "text": "Zobrazit plány"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Správa týmů vyžaduje Identity Plus nebo vyšší"
+    "text": "Správa týmů vyžaduje Identity Plus nebo vyšší plán"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Vlastní domény vyžadují Identity Plus nebo vyšší"
+    "text": "Vlastní domény vyžadují Identity Plus nebo vyšší plán"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Přístup k API vyžaduje tarif Multi-Team nebo vyšší"
+    "text": "Přístup k API vyžaduje Identity Plus nebo vyšší plán"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Logy auditu vyžadují tarif Multi-Team nebo vyšší"
+    "text": "Auditní záznamy vyžadují plán Multi-Team nebo vyšší"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Spravuj své předplatné, organizace a nastavení fakturace"
+    "text": "Spravujte své předplatné, organizace a nastavení fakturace"
   },
   "web.billing.overview.title": {
     "text": "Přehled fakturace"
   },
   "web.billing.overview.description": {
-    "text": "Zobraz a spravuj své předplatné a platební údaje"
+    "text": "Zobrazit a spravovat své předplatné a platební údaje"
   },
   "web.billing.overview.organization_selector": {
     "text": "Vyber organizaci"
   },
   "web.billing.overview.current_plan": {
-    "text": "Současný tarif"
+    "text": "Aktuální plán"
   },
   "web.billing.overview.plan_features": {
-    "text": "Funkce tarifu"
+    "text": "Funkce plánu"
   },
   "web.billing.overview.payment_method": {
     "text": "Platební metoda"
@@ -51,25 +51,25 @@
     "text": "Zobrazit faktury"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Upgradovat tarif"
+    "text": "Upgradovat plán"
   },
   "web.billing.overview.change_plan": {
-    "text": "Změnit tarif"
+    "text": "Změnit plán"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Žádná platební metoda"
+    "text": "Žádná platební metoda není uložena"
   },
   "web.billing.overview.no_upcoming_billing": {
     "text": "Žádná nadcházející fakturace"
   },
   "web.billing.overview.days_remaining": {
-    "text": "zbývající dny"
+    "text": "zbývajících dnů"
   },
   "web.billing.overview.billing_on": {
-    "text": "Fakturace {date}"
+    "text": "Fakturace dne {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Zobrazit tarify"
+    "text": "Zobrazit plány"
   },
   "web.billing.overview.view_plans_description": {
     "text": "Porovnat a upgradovat"
@@ -90,13 +90,13 @@
     "text": "Žádné organizace"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Vytvoř organizaci pro správu fakturace a předplatného"
+    "text": "Vytvořte organizaci pro správu fakturace a předplatného"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Vytvářet tajemství"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Zobrazit účtenky"
+    "text": "Zobrazit potvrzení"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "Přístup k API"
@@ -117,7 +117,7 @@
     "text": "Vlastní branding"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Brandovaná domovská stránka"
+    "text": "Značková domovská stránka"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Příchozí tajemství"
@@ -132,7 +132,7 @@
     "text": "Správa členů"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Logy auditu"
+    "text": "Auditní záznamy"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Jednotné přihlášení"
@@ -147,19 +147,19 @@
     "text": "Nepodařilo se načíst podrobnosti funkcí"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Žádné dostupné funkce"
+    "text": "Žádné funkce nejsou k dispozici"
   },
   "web.billing.plans.title": {
-    "text": "Vyber tarif"
+    "text": "Vyberte plán"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Vyber tarif, který ti vyhovuje"
+    "text": "Vyberte plán, který vyhovuje vašim potřebám"
   },
   "web.billing.plans.subtitle": {
-    "text": "Vyberte si ideální plán pro vaši organizaci"
+    "text": "Vyberte si dokonalý plán pro vaši organizaci"
   },
   "web.billing.plans.current": {
-    "text": "Současný tarif"
+    "text": "Aktuální plán"
   },
   "web.billing.plans.current_badge": {
     "text": "Aktuální"
@@ -177,10 +177,10 @@
     "text": "Ročně"
   },
   "web.billing.plans.per_month": {
-    "text": "za měsíc"
+    "text": "/měsíc"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Ušetři {percent} % s roční fakturací"
+    "text": "Ušetřete {percent}% s ročním předplatným"
   },
   "web.billing.plans.free_plan": {
     "text": "Zdarma"
@@ -213,25 +213,25 @@
     "text": "Prioritní podpora"
   },
   "web.billing.plans.select_plan": {
-    "text": "Vybrat tarif"
+    "text": "Vybrat plán"
   },
   "web.billing.plans.contact_sales": {
     "text": "Kontaktovat obchod"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Máš otázky nebo potřebuješ něco na míru?"
+    "text": "Máte otázky nebo potřebujete něco vlastního?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Rádi si tě vyslechneme. Dej nám vědět, co hledáš."
+    "text": "Rádi od vás uslyšíme. Dejte nám vědět, co hledáte."
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} tým | {count} týmy | {count} týmů"
+    "text": "{count} tým | {count} týmů"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} člen na tým | {count} členové na tým | {count} členů na tým"
+    "text": "{count} člen na tým | {count} členů na tým"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Neomezené množství týmů"
+    "text": "Neomezený počet týmů"
   },
   "web.billing.plans.unlimited_members": {
     "text": "Neomezený počet členů na tým"
@@ -243,10 +243,10 @@
     "text": "Doporučeno"
   },
   "web.billing.plans.everything_in": {
-    "text": "Vše v {plan} plus:"
+    "text": "Zahrnuje vše z {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "V této chvíli nejsou k dispozici žádné {interval} plány."
+    "text": "V současné době nejsou k dispozici žádné plány s intervalem {interval}."
   },
   "web.billing.plans.change_immediate": {
     "text": "Váš plán se změní okamžitě."
@@ -261,31 +261,31 @@
     "text": "Kredit za nevyužitý čas:"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Příští faktura"
+    "text": "Další faktura"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Vaše limity funkcí se aktualizují okamžitě po změně plánu."
+    "text": "Vaše limity funkcí se aktualizují ihned po změně plánu."
   },
   "web.billing.plans.change_failed": {
     "text": "Změna plánu selhala. Zkuste to prosím znovu."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Potvrdit rozšíření"
+    "text": "Potvrdit upgrade"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Potvrdit snížení"
+    "text": "Potvrdit downgrade"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Upgradovat na"
+    "text": "Upgradovat na {plan}?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Snížit na {plan}?"
+    "text": "Downgradovat na {plan}?"
   },
   "web.billing.invoices.title": {
     "text": "Historie fakturace"
   },
   "web.billing.invoices.view_history": {
-    "text": "Zobraz svou historii fakturace a stáhni si faktury"
+    "text": "Zobrazit historii fakturace a stáhnout faktury"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Datum"
@@ -315,16 +315,16 @@
     "text": "Nepodařilo se načíst faktury"
   },
   "web.billing.notices.org_managed": {
-    "text": "Fakturace pro tento tým je spravována organizací {orgName}"
+    "text": "Fakturaci spravuje {orgName}"
   },
   "web.billing.notices.view_org_billing": {
     "text": "Zobrazit fakturaci organizace"
   },
   "web.billing.limits.members_reached": {
-    "text": "Dosáhl jsi limitu členů pro tento tým"
+    "text": "Dosáhli jste limitu členů pro tento tým"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Upgraduj pro přidání více členů"
+    "text": "Upgradujte pro přidání více členů"
   },
   "web.billing.subscription.title": {
     "text": "Předplatné"
@@ -345,25 +345,25 @@
     "text": "Zrušeno"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "Tarif"
+    "text": "Plán"
   },
   "web.billing.portal.title": {
     "text": "Fakturační portál"
   },
   "web.billing.portal.description": {
-    "text": "Spravuj své předplatné, platební metody a historii fakturace"
+    "text": "Spravujte své předplatné, platební metody a historii fakturace"
   },
   "web.billing.portal.open_portal": {
     "text": "Otevřít fakturační portál"
   },
   "web.billing.portal.redirecting": {
-    "text": "Přesměrovávám do fakturačního portálu..."
+    "text": "Přesměrování na fakturační portál..."
   },
   "web.billing.start_today": {
-    "text": "Začni dnes"
+    "text": "Začít dnes"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Začni dnes s Identity Plus"
+    "text": "Začněte dnes s Identity Plus"
   },
   "web.billing.per_month": {
     "text": "za měsíc"
@@ -390,7 +390,7 @@
     "text": "Upgradovat na Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Upgradovat pro týmy"
+    "text": "Upgrade pro týmy"
   },
   "web.billing.benefits_of": {
     "text": "Výhody"
@@ -402,13 +402,13 @@
     "text": "Upgradovat na"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Upgradovat pro secrets.tvojadomena.cz"
+    "text": "Upgrade pro secrets.vasedomena.cz"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Všechny tarify zahrnují funkce pro ochranu soukromí a neomezenou kapacitu sdílení"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Všechny tarify zahrnují výběr umístění dat: {0} regiony"
+    "text": "Všechny plány zahrnují volbu lokality dat: {0} regionů"
   },
   "web.billing.get_started": {
     "text": "Začít"
@@ -426,9 +426,198 @@
     "text": "Zabezpeč svou značku a buduj důvěru zákazníků pomocí odkazů z tvé domény. Perfektní pro firmy, které si cení soukromí a profesionality."
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Zabezpečené odkazy, silnější spojení"
+    "text": "Bezpečné odkazy, silnější spojení"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "Úroveň identity nebyla nalezena v produktových úrovních"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Zrušit předplatné"
+  },
+  "web.billing.cancel.title": {
+    "text": "Zrušit předplatné"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Opravdu chcete zrušit své předplatné {plan}?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Co se stane, když zrušíte:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Budete mít přístup ke všem funkcím do {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Budete mít přístup do konce aktuálního fakturačního období"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Již vám nebude účtováno"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Váš účet bude převeden na bezplatný plán"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Ponechat předplatné"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Zrušit předplatné"
+  },
+  "web.billing.cancel.success": {
+    "text": "Vaše předplatné bylo zrušeno. Budete mít přístup do konce fakturačního období."
+  },
+  "web.billing.cancel.error": {
+    "text": "Nepodařilo se zrušit předplatné. Zkuste to prosím znovu."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Zrušení předplatného naplánováno"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Vaše předplatné zůstane aktivní do {date}. Do té doby budete mít plný přístup ke všem funkcím."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Změnili jste názor? Své předplatné můžete kdykoli před datem zrušení znovu aktivovat."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Vytváření a sdílení tajemství"
+  },
+  "web.billing.features.api_access": {
+    "text": "Přístup k API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Vlastní domény"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 vlastní doména"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Neomezené vlastní domény"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Vlastní branding"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Značková domovská stránka"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Správa týmů"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Správa členů"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Auditní záznamy"
+  },
+  "web.billing.features.sso": {
+    "text": "Jednotné přihlášení (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Prioritní podpora"
+  },
+  "web.billing.features.sla": {
+    "text": "Dohoda o úrovni služeb"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Centralizovaná fakturace"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Auditní stopa"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Přehled aktivit"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Předávací pracovní postupy"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30denní uchovávání tajemství"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Tajemství na domovské stránce"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Příchozí tajemství"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Až 5 členů týmu"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Až 10 členů týmu"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Až 25 členů týmu"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Až 50 členů týmu"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Neomezený počet členů týmu"
+  },
+  "web.billing.features.notifications": {
+    "text": "E-mailová oznámení"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "Pravidla přístupu podle IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Branding pracovního prostoru"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dedikovaná infrastruktura"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Sdílené pracovní postupy"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Fakturace pro tuto organizaci"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Váš plán byl úspěšně upgradován"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Váš nový plán je nyní aktivní. Děkujeme za váš nákup."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Fakturační kontakt"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Tajemství na domovské stránce"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-mailová oznámení"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Pravidla přístupu podle IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Branding pracovního prostoru"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Splatné dnes:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Další fakturace ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Jak se váš kredit použije:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Částka další faktury:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Použitý kredit:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Částka splatná při další fakturaci:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Zbývající kredit účtu:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Použito na budoucí faktury"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Využití týmů"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} z {limit} týmů"
   }
 }

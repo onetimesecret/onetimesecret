@@ -1,6 +1,6 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Vygenerováno AI - Reference"
+    "text": "Referencí vygenerovaná AI"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
     "text": "Obsah vygenerovaný AI pro demonstraci. Nepochází od skutečné osoby nebo společnosti."
@@ -21,10 +21,10 @@
     "text": "Co o nás říká přední AI"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Vygenerované AI - Reference"
+    "text": "Reference vygenerované AI"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Tento citát byl vygenerován pomocí"
+    "text": "Tento citát byl vygenerován"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "Byl založen na obsahu stránky a nepředstavuje skutečnou osobu nebo společnost."

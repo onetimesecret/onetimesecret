@@ -12,9 +12,9 @@
     "text": "Začni vytvořením svého prvního tajemství."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Nepodařilo se načíst týmy"
+    "text": "Nelze načíst data"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Při načítání vašich týmů došlo k problému. Zkuste to prosím znovu."
+    "text": "Při načítání vašich dat došlo k problému. Zkuste to prosím znovu."
   }
 }

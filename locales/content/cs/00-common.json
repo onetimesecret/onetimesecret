@@ -8,7 +8,7 @@
     "text": "Bezpečné odkazy, které fungují jen jednou"
   },
   "web.COMMON.powered_by": {
-    "text": "Vytvořeno s využitím"
+    "text": "Využívá"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/cs"
@@ -23,19 +23,19 @@
     "text": "např. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Zadej své heslo"
+    "text": "Zadejte své heslo"
   },
   "web.COMMON.custom_domains_title": {
     "text": "Vlastní domény"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Posílej důvěru a buduj vztahy se svými vlastními odkazy značky."
+    "text": "Posilte vztahy a budujte důvěru pomocí vlastních značkových tajných odkazů."
   },
   "web.COMMON.get_started_button": {
     "text": "Začít"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Potvrď své heslo"
+    "text": "Potvrďte své heslo"
   },
   "web.COMMON.header_settings": {
     "text": "Nastavení"
@@ -50,13 +50,13 @@
     "text": "Zpracování..."
   },
   "web.COMMON.description": {
-    "text": "Uchovejte citlivé informace mimo své záznamy chatů a emaily. Sdílejte tajný odkaz, který je k dispozici jen jedinkrát."
+    "text": "Udržujte citlivé informace mimo protokoly chatu a e-maily. Sdílejte tajný odkaz, který je dostupný pouze jednou."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Nesprávná přístupová fráze"
   },
   "web.COMMON.keywords": {
-    "text": "tajemství,generátor hesla,sdílet tajemství,jednorázový"
+    "text": "tajemství,generátor hesel,sdílet tajemství,jednorázový"
   },
   "web.COMMON.button_create_secret": {
     "text": "Vytvořit tajný odkaz"
@@ -71,19 +71,19 @@
     "text": "Přístupová fráze"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Slovo nebo fráze, kterou je těžké uhodnout"
+    "text": "Slovo nebo fráze, která se obtížně uhodne"
   },
   "web.COMMON.secret_recipient_address": {
     "text": "Adresa příjemce"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Sem patří tajný obsah..."
+    "text": "Obsah tajemství vložte sem..."
   },
   "web.COMMON.header_create_account": {
     "text": "Vytvořit účet"
   },
   "web.COMMON.header_about": {
-    "text": "O aplikaci"
+    "text": "O nás"
   },
   "web.COMMON.header_sign_in": {
     "text": "Přihlásit se"
@@ -92,10 +92,10 @@
     "text": "Účet"
   },
   "web.COMMON.header_logout": {
-    "text": "Odhlásit se"
+    "text": "Odhlásit"
   },
   "web.COMMON.secret": {
-    "text": "Tajemství"
+    "text": "Tajemství | Tajemství"
   },
   "web.COMMON.recent": {
     "text": "Nedávné"
@@ -107,43 +107,43 @@
     "text": "Trvale smazat"
   },
   "web.COMMON.burned": {
-    "text": "Spáleno"
+    "text": "Trvale smazáno"
   },
   "web.COMMON.expires_in": {
-    "text": "Expiruje za"
+    "text": "Vyprší za"
   },
   "web.COMMON.burn_this_secret": {
     "text": "Trvale smazat toto tajemství"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Trvalé smazání tajemství ho odstraní předtím, než bude přečteno (klikni pro potvrzení)"
+    "text": "Trvalé smazání tajemství ho odstraní ještě před jeho přečtením (klikněte pro potvrzení)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Trvalé smazání tajemství je nevratné a nelze ho zrušit"
+    "text": "Trvalé smazání tajemství nelze vrátit zpět"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Zkontrolujte svůj email"
+    "text": "Zkontrolujte svůj e-mail"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klepněte pro pokračování →"
+    "text": "Klikněte pro zobrazení →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Pokračujte k ověření svého účtu:"
+    "text": "Pokračujte pro ověření vašeho účtu:"
   },
   "web.COMMON.error_secret": {
     "text": "Nezadali jste nic ke sdílení"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Znovu zkontroluj tuto přístupovou frázi"
+    "text": "Zkontrolujte přístupovou frázi"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Sem vlož přístupovou frázi"
+    "text": "Zde zadejte přístupovou frázi"
   },
   "web.COMMON.view_secret": {
     "text": "Zobrazit tajemství"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Pozor: zobrazíme ho jen jednou."
+    "text": "Pozor: zobrazíme ho pouze jednou."
   },
   "web.COMMON.warning": {
     "text": "Varování"
@@ -155,28 +155,28 @@
     "text": "Chyba"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Došlo k neočekávané chybě. Zkus to prosím znovu."
+    "text": "Došlo k neočekávané chybě. Zkuste to prosím znovu."
   },
   "web.COMMON.secret_was_truncated": {
     "text": "Zpráva byla zkrácena"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Zaregistrujte se pro více"
+    "text": "Registrujte se pro více"
   },
   "web.COMMON.login_to_your_account": {
     "text": "Přihlaste se ke svému účtu"
   },
   "web.COMMON.sent_to": {
-    "text": "Poslat komu: "
+    "text": "Odesláno na:"
   },
   "web.COMMON.field_email": {
-    "text": "Email"
+    "text": "E-mail"
   },
   "web.COMMON.field_password": {
     "text": "Heslo"
   },
   "web.COMMON.field_password2": {
-    "text": "Potvrdit heslo"
+    "text": "Potvrzení hesla"
   },
   "web.COMMON.button_create_account": {
     "text": "Vytvořit účet"
@@ -188,10 +188,10 @@
     "text": "Domů"
   },
   "web.COMMON.word_none": {
-    "text": "Žádný"
+    "text": "Žádné"
   },
   "web.COMMON.word_burned": {
-    "text": "spáleno"
+    "text": "trvale smazáno"
   },
   "web.COMMON.word_received": {
     "text": "přijato"
@@ -200,7 +200,7 @@
     "text": "Potvrdit"
   },
   "web.COMMON.word_cancel": {
-    "text": "Storno"
+    "text": "Zrušit"
   },
   "web.COMMON.word_continue": {
     "text": "Pokračovat"
@@ -212,37 +212,37 @@
     "text": "Zpět"
   },
   "web.COMMON.feedback_text": {
-    "text": "Sdílej své myšlenky, nápady nebo zkušenosti..."
+    "text": "Podělte se o své myšlenky, nápady nebo zkušenosti..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Poslat odezvu"
+    "text": "Odeslat zpětnou vazbu"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Potvrzení bylo odesláno"
+    "text": "Ověření bylo odesláno na"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Účet vytvořen. Přihlas se prosím."
+    "text": "Účet byl vytvořen. Prosím přihlaste se."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Pokud účet s tímto e-mailem existuje, obdržíš ověřovací e-mail."
+    "text": "Pokud účet s tímto e-mailem existuje, obdržíte ověřovací e-mail."
   },
   "web.COMMON.burn_this_secret_aria": {
     "text": "Trvale smazat toto tajemství"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Potvrď prosím"
+    "text": "Prosím potvrďte"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Opravdu chceš trvale smazat toto tajemství? Tuto akci nelze vrátit zpět."
+    "text": "Opravdu chcete trvale smazat toto tajemství? Tuto akci nelze vrátit zpět."
   },
   "web.COMMON.confirm_burn": {
     "text": "Ano, trvale smazat toto tajemství"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Trvalé smazání tajemství ho odstraní předtím, než bude přijato."
+    "text": "Trvalé smazání tajemství ho odstraní ještě před jeho přečtením."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Pro bezpečnost sdílej tento odkaz odděleně od ostatních údajů."
+    "text": "Z bezpečnostních důvodů sdílejte tento odkaz odděleně od ostatních údajů."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Zkopírováno do schránky"
@@ -251,13 +251,13 @@
     "text": "Vytvořit příchozí"
   },
   "web.COMMON.faq_title": {
-    "text": "Často kladené otázky"
+    "text": "Časté dotazy"
   },
   "web.COMMON.verification_not_valid": {
     "text": "Ověření není platné"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nelze ověřit účet, když jsi již přihlášen"
+    "text": "Nelze ověřit účet, když jste již přihlášeni"
   },
   "web.COMMON.show_password": {
     "text": "Zobrazit heslo"
@@ -278,10 +278,10 @@
     "text": "Toto pole je povinné"
   },
   "web.COMMON.form_processing": {
-    "text": "Zpracovává se tvůj požadavek"
+    "text": "Zpracování vašeho požadavku"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Udržet mě přihlášeného 30 dní"
+    "text": "Zůstat přihlášen po dobu 30 dnů"
   },
   "web.COMMON.redirecting": {
     "text": "Přesměrování..."
@@ -290,13 +290,13 @@
     "text": "Pokračovat"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Jsi si jistý?"
+    "text": "Opravdu?"
   },
   "web.COMMON.danger_zone": {
     "text": "Nebezpečná zóna"
   },
   "web.COMMON.caution_zone": {
-    "text": "Zóna opatrného zvážení"
+    "text": "Zóna pečlivého zvážení"
   },
   "web.COMMON.user_menu": {
     "text": "Uživatelské menu"
@@ -317,7 +317,7 @@
     "text": "Ukládání..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Přidávám"
+    "text": "Přidávání"
   },
   "web.COMMON.e_g_example": {
     "text": "např."
@@ -341,7 +341,7 @@
     "text": "Odebrat"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Stiskni ESC pro zavření"
+    "text": "Stiskněte ESC pro zavření"
   },
   "web.COMMON.enter": {
     "text": "Enter"
@@ -377,16 +377,16 @@
     "text": "Ročně"
   },
   "web.COMMON.go_on_then": {
-    "text": "Tak do toho."
+    "text": "Tak jdi na to."
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Načítám..."
+    "text": "Načítání..."
   },
   "web.COMMON.not_received": {
     "text": "NEPŘIJATO"
   },
   "web.COMMON.confirm_password": {
-    "text": "Potvrď heslo"
+    "text": "Potvrďte heslo"
   },
   "web.COMMON.new_password": {
     "text": "Nové heslo"
@@ -416,7 +416,7 @@
     "text": "Verze"
   },
   "web.COMMON.other": {
-    "text": "Ostatní"
+    "text": "Jiné"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)"
@@ -437,7 +437,7 @@
     "text": "Hodnota"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Hostitel"
   },
   "web.COMMON.type": {
     "text": "Typ"
@@ -461,10 +461,10 @@
     "text": "Přijatelné"
   },
   "web.COMMON.meh": {
-    "text": "Slabé"
+    "text": "Ujde"
   },
   "web.COMMON.not_great": {
-    "text": "Špatné"
+    "text": "Není skvělé"
   },
   "web.COMMON.open_options": {
     "text": "Otevřít možnosti"
@@ -482,10 +482,10 @@
     "text": "Tajemství zkopírováno do schránky"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Zkontroluj si tu přístupovou frázi"
+    "text": "Zkontrolujte přístupovou frázi"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Stiskni tlačítko kopírovat níže."
+    "text": "Stiskněte tlačítko kopírovat níže."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Zobrazit"
@@ -515,7 +515,7 @@
     "text": "Životnost"
   },
   "web.LABELS.expiration_time": {
-    "text": "Čas expirace"
+    "text": "Čas vypršení"
   },
   "web.LABELS.close": {
     "text": "Zavřít"
@@ -548,7 +548,7 @@
     "text": "Stav tajemství"
   },
   "web.LABELS.need_help": {
-    "text": "Potřebuješ pomoc?"
+    "text": "Potřebujete pomoc?"
   },
   "web.LABELS.create_new_secret": {
     "text": "Vytvořit nové tajemství"
@@ -557,7 +557,7 @@
     "text": "Akce"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Není vyžadována přístupová fráze"
+    "text": "Přístupová fráze není vyžadována"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Zkopírovat do schránky"
@@ -572,7 +572,7 @@
     "text": "Tajný odkaz"
   },
   "web.LABELS.dismiss": {
-    "text": "Zavřít"
+    "text": "Odmítnout"
   },
   "web.LABELS.security_details": {
     "text": "Bezpečnostní podrobnosti"
@@ -593,7 +593,7 @@
     "text": "krát zobrazeno"
   },
   "web.LABELS.view_progress": {
-    "text": "Průběh zobrazení"
+    "text": "Zobrazit průběh"
   },
   "web.LABELS.help_section": {
     "text": "Sekce nápovědy"
@@ -617,10 +617,10 @@
     "text": "Obnovit"
   },
   "web.LABELS.reload": {
-    "text": "Znovu načíst"
+    "text": "Obnovit"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Odkazy na tajemství vytvořené v této relaci"
+    "text": "Tajné odkazy vytvořené v této relaci"
   },
   "web.LABELS.create_link_short": {
     "text": "Vytvořit odkaz"
@@ -629,10 +629,10 @@
     "text": "Vytvořit tajný odkaz"
   },
   "web.LABELS.create_request_short": {
-    "text": "Vytvořit požadavek"
+    "text": "Vytvořit žádost"
   },
   "web.LABELS.create_request": {
-    "text": "Vytvořit odkaz na požadavek"
+    "text": "Vytvořit odkaz žádosti"
   },
   "web.LABELS.related_settings": {
     "text": "Související nastavení"
@@ -647,7 +647,7 @@
     "text": "Nové"
   },
   "web.STATUS.unread": {
-    "text": "Nepřečtené"
+    "text": "Nepřečteno"
   },
   "web.STATUS.viewed": {
     "text": "Odkaz otevřen"
@@ -674,7 +674,7 @@
     "text": "Vypršelo"
   },
   "web.STATUS.orphaned": {
-    "text": "Osiřelé"
+    "text": "Opuštěno"
   },
   "web.STATUS.secured": {
     "text": "Zabezpečeno"
@@ -701,7 +701,7 @@
     "text": "Tajemství bylo odhaleno příjemci"
   },
   "web.STATUS.burned_description": {
-    "text": "Tajemství bylo manuálně trvale smazáno před zobrazením"
+    "text": "Tajemství bylo ručně trvale smazáno před zobrazením"
   },
   "web.STATUS.destroyed_description": {
     "text": "Tajemství bylo trvale zničeno"
@@ -710,7 +710,7 @@
     "text": "Tajemství brzy vyprší"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Tajemství bylo osiřelo a brzy bude zničeno"
+    "text": "Tajemství bylo opuštěno a bude brzy zničeno"
   },
   "web.STATUS.expired_description": {
     "text": "Tajemství vypršelo před zobrazením"
@@ -722,7 +722,7 @@
     "text": "Doručeno"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Nesprávný DNS"
+    "text": "DNS nesprávné"
   },
   "web.STATUS.active": {
     "text": "Aktivní"
@@ -731,10 +731,10 @@
     "text": "Neaktivní"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Neomezená zobrazení"
+    "text": "Neomezené zobrazení"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Důvěryhodný branding domény"
+    "text": "Značka důvěryhodné domény"
   },
   "web.FEATURES.encrypted_in_transit": {
     "text": "Šifrováno při přenosu i uložení"
@@ -758,19 +758,19 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} zbývá"
+    "text": "Zbývá {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "zbývá den | zbývají dny | zbývá dnů"
+    "text": "zbývající den | zbývající dny | zbývajících dnů"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "zbývá hodina | zbývají hodiny | zbývá hodin"
+    "text": "zbývající hodina | zbývající hodiny | zbývajících hodin"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "zbývá minuta | zbývají minuty | zbývá minut"
+    "text": "zbývající minuta | zbývající minuty | zbývajících minut"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "zbývá sekunda | zbývají sekundy | zbývá sekund"
+    "text": "zbývající sekunda | zbývající sekundy | zbývajících sekund"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
@@ -779,7 +779,7 @@
     "text": "Limit {count} zobrazení"
   },
   "web.UNITS.days_remaining": {
-    "text": "Zbývá {count} dní"
+    "text": "Zbývá {count} dnů"
   },
   "web.UNITS.hours_remaining": {
     "text": "Zbývá {count} hodin"
@@ -794,7 +794,7 @@
     "text": "Zpětná vazba"
   },
   "web.TITLES.signin": {
-    "text": "Přihlásit se"
+    "text": "Přihlášení"
   },
   "web.TITLES.signup": {
     "text": "Vytvořit účet"
@@ -848,22 +848,22 @@
     "text": "Ověřit doménu"
   },
   "web.TITLES.domain_brand": {
-    "text": "Branding domény"
+    "text": "Značka domény"
   },
   "web.TITLES.account": {
-    "text": "Nastavení účtu"
+    "text": "Účet"
   },
   "web.TITLES.data_region": {
-    "text": "Datová oblast"
+    "text": "Datový region"
   },
   "web.TITLES.current_region": {
-    "text": "Aktuální oblast"
+    "text": "Aktuální region"
   },
   "web.TITLES.available_regions": {
-    "text": "Dostupné oblasti"
+    "text": "Dostupné regiony"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Proč je datová suverenita důležitá"
+    "text": "Proč záleží na datové suverenitě"
   },
   "web.TITLES.profile_settings": {
     "text": "Nastavení profilu"
@@ -893,16 +893,16 @@
     "text": "Aktivní relace"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Záložní kódy"
+    "text": "Obnovovací kódy"
   },
   "web.TITLES.api_settings": {
     "text": "Nastavení API"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Pokročilé nastavení"
+    "text": "Pokročilá nastavení"
   },
   "web.TITLES.system_settings": {
-    "text": "Nastavení systému"
+    "text": "Systémová nastavení"
   },
   "web.TITLES.not_found": {
     "text": "Stránka nenalezena"
@@ -914,25 +914,25 @@
     "text": "Nastavení organizace"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Fokus je nyní v hlavní textové oblasti"
+    "text": "Zaměření je nyní v hlavní textové oblasti"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Instrukce pro sdílení"
+    "text": "Pokyny pro sdílení"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Sdílej odkaz se zamýšleným příjemcem"
+    "text": "Sdílejte odkaz zamýšlenému příjemci"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Sdílej přístupovou frázi odděleně prostřednictvím bezpečného kanálu"
+    "text": "Sdílejte přístupovou frázi odděleně prostřednictvím bezpečného kanálu"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Použij jiný bezpečný kanál pro sdílení citlivých informací"
+    "text": "Pro sdílení citlivých informací použijte jiný bezpečný kanál"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vždy ověř, že jsi na oficiální webové stránce Onetime Secret. Podvodníci někdy vytvářejí falešné webové stránky, které vypadají přesně jako Onetime Secret, aby ukradli tvá tajemství. Abys se vyhnul phishingovým útokům, zkontroluj doménu oblasti před vytvořením nových odkazů."
+    "text": "Vždy si ověřte, že jste na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako Onetime Secret, aby ukradli vaše tajemství. Abyste se vyhnuli phishingovým útokům, zkontrolujte doménu před vytvořením nových odkazů."
   },
   "web.STATUS.previewed": {
-    "text": "Odkaz otevřen"
+    "text": "Náhled zobrazen"
   },
   "web.STATUS.revealed": {
     "text": "Odhaleno"
@@ -942,5 +942,65 @@
   },
   "web.STATUS.revealed_description": {
     "text": "Obsah tajemství byl odhalen příjemci"
+  },
+  "web.COMMON.not_set": {
+    "text": "Nenastaveno"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Upravit"
+  },
+  "web.COMMON.word_save": {
+    "text": "Uložit"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Vyprší za"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtrovat"
+  },
+  "web.LABELS.clear": {
+    "text": "Vymazat"
+  },
+  "web.LABELS.add_note": {
+    "text": "Přidat poznámku..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Upravit poznámku"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Přidat poznámku..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Upravit poznámku"
+  },
+  "web.TITLES.help": {
+    "text": "Nápověda"
+  },
+  "web.TITLES.pricing": {
+    "text": "Ceník"
+  },
+  "web.pricing.title": {
+    "text": "Jednoduchý a transparentní ceník"
+  },
+  "web.pricing.subtitle": {
+    "text": "Vyberte si plán, který vyhovuje vašim potřebám. Všechny plány zahrnují neomezené sdílení tajemství a design zaměřený na soukromí."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Začít zdarma"
+  },
+  "web.pricing.start_trial": {
+    "text": "Začít"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Již máte účet?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Přihlásit se"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Doporučeno pro vás"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Vytvářejte a sdílejte tajemství se základními funkcemi. Není vyžadována platební karta."
   }
 }

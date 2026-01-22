@@ -42,10 +42,10 @@
     "text": "{0}/500 znaků"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Naskenuj QR kód pomocí svého telefonu"
+    "text": "Použijte telefon k naskenování QR kódu"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontaktuj onboarding{'@'}example.com s jakýmikoli dotazy"
+    "text": "V případě dotazů kontaktujte onboarding{'@'}example.com"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Tyto pokyny budou zobrazeny příjemcům před tím, než odhalí obsah tajemství"
@@ -72,7 +72,7 @@
     "text": "Nahrát logo"
   },
   "web.branding.loading_preview": {
-    "text": "Načítám náhled..."
+    "text": "Načítání náhledu..."
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Náhled toho, jak příjemci uvidí tvá tajemství, otestováním tlačítka \"Zobrazit tajemství\""
@@ -96,19 +96,19 @@
     "text": "Máš neuložené změny. Jsi si jistý?"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Načtení nastavení značky se nezdařilo"
+    "text": "Nepodařilo se načíst nastavení značky"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Toto je interaktivní náhled toho, jak příjemci uvidí tvé zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max 1MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\""
+    "text": "Toto je interaktivní náhled toho, jak příjemci uvidí vaše zabezpečené zprávy. Můžete: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max. 1 MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Toto je interaktivní náhled toho, jak příjemci uvidí tvé zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max 1MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\""
   },
   "web.branding.default_logo_icon": {
-    "text": "Japonské kanji '秘' (himitsu) znamenající 'tajemství' nebo 'důvěrné'"
+    "text": "Japonské kandži '秘' (himitsu) znamenající 'tajemství' nebo 'důvěrné'"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Poháněno Onetime Secret"
+    "text": "Provozováno službou Onetime Secret"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}"
