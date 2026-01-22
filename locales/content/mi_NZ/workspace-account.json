@@ -1,24 +1,24 @@
 {
   "web.account.settings": {
-    "text": "Ngā Tautuhinga"
+    "text": "Tautuhinga"
   },
   "web.account.change_password": {
-    "text": "Whakarerekē Kupuhipa"
+    "text": "Huri te Kupuhipa"
   },
   "web.account.close_account": {
-    "text": "Kati Pūkete"
+    "text": "Kati te Pūkete"
   },
   "web.account.verify_account": {
-    "text": "Whakaū Pūkete"
+    "text": "Manatoko te Pūkete"
   },
   "web.account.subscription_title": {
     "text": "Ohaurunga"
   },
   "web.account.manage_subscription": {
-    "text": "Whakahaere Ohaurunga"
+    "text": "Whakahaere te Ohaurunga"
   },
   "web.account.customer_information": {
-    "text": "Mōhiohio Kiritaki"
+    "text": "Kōrero Kiritaki"
   },
   "web.account.customer_since": {
     "text": "He kiritaki mai i:"
@@ -30,7 +30,7 @@
     "text": "Rohe"
   },
   "web.account.account_balance": {
-    "text": "Toenga pūkete:"
+    "text": "Toenga:"
   },
   "web.account.default_payment_method": {
     "text": "Tikanga Utu Taunoa"
@@ -42,10 +42,10 @@
     "text": "Ngā Ohaurunga"
   },
   "web.account.quantity": {
-    "text": "Te nui:"
+    "text": "Nui:"
   },
   "web.account.next_billing_date": {
-    "text": "Rā utu e whai ake nei:"
+    "text": "Rā pire e haere mai ana:"
   },
   "web.account.changePassword.username": {
     "text": "Ingoa Kaiwhakamahi"
@@ -60,13 +60,13 @@
     "text": "Whakaū"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Whakahou Kupuhipa"
+    "text": "Whakahōu te Kupuhipa"
   },
   "web.account.changePassword.updating": {
-    "text": "Kei te whakahou..."
+    "text": "E whakahōu ana..."
   },
   "web.account.timezone": {
-    "text": "Rohe wā"
+    "text": "Rohe Wā"
   },
   "web.account.customer_id": {
     "text": "ID Kiritaki"
@@ -78,7 +78,7 @@
     "text": "Kua hangaia {0} ngā karere huna mai i {1}."
   },
   "web.account.delete_account": {
-    "text": "Mukua Pūkete"
+    "text": "Muku te Pūkete"
   },
   "web.account.api_key": {
     "text": "Kī API"
@@ -90,7 +90,7 @@
     "text": "Tō Pūkete"
   },
   "web.account.support_details": {
-    "text": "Ngā Taipitopito Tautoko"
+    "text": "Taipitopito Tautoko"
   },
   "web.account.back_to_details": {
     "text": "Hoki ki ngā Taipitopito"
@@ -99,7 +99,7 @@
     "text": "ID Kiritaki: {0}"
   },
   "web.account.token_generated": {
-    "text": "Kua whakaputa tohu."
+    "text": "Kua hangaia te tōkena."
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
     "text": "🔐 Tiakina tēnei tohu! Ka whakarato i te urunga katoa ki tō pūkete."
@@ -111,58 +111,58 @@
     "text": "E tino hiahia ana koe ki te muku pūmau i tō pūkete? Kāore e taea te whakakore tēnei mahi."
   },
   "web.account.confirm_account_deletion": {
-    "text": "Whakaū Mukumukunga Pūkete"
+    "text": "Whakaū te Mukutanga Pūkete"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Kei te muku {0}"
+    "text": "E muku ana i a {0}"
   },
   "web.account.permanently_delete_account": {
-    "text": "Mukua Pūmautia te Pūkete"
+    "text": "Muku Pūmautia te Pūkete"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "pūmau me te kore-whakakore."
+    "text": "ka mau tonu, kāore e taea te whakahoki."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Ko te muku i tō pūkete he mea"
+    "text": "Ko te muku i tō pūkete"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "whakawarewaretia i mua i te haere tonu"
+    "text": "whakawarekia i mua i te haere tonu"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Ko ngā karere huna e hiahia ana koe ki te tango,"
+    "text": "Mēnā he karere huna e hiahia ana koe ki te tango,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Ka noho hohe tonu ngā karere huna tae noa ki te wā ka pau."
+    "text": "Ka noho hohe ngā karere huna tae noa ki te paunga."
   },
   "web.account.please_be_advised": {
-    "text": "Tēnā kia mōhio:"
+    "text": "Tēnā kia mataara:"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Kua mukua angitutia te pūkete."
+    "text": "Kua mukua te pūkete."
   },
   "web.account.deactivate": {
-    "text": "Whakakore"
+    "text": "Monoki"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "E tino hiahia ana koe ki te whakakore i tō pūkete? Ka tangohia pūmautia ō raraunga katoa mai i ā mātou tūmau mō ake tonu atu. Kāore e taea te whakakore tēnei mahi."
+    "text": "Kei te tino hiahia koe ki te monoki i tō pūkete? Ka tangohia pūmautia ō raraunga katoa mai i ā mātou tūmau. Kāore e taea te whakakore i tēnei mahi."
   },
   "web.account.deactivate_account": {
-    "text": "Whakakore pūkete"
+    "text": "Monoki te pūkete"
   },
   "web.settings.title": {
-    "text": "Ngā Tautuhinga"
+    "text": "Tautuhinga"
   },
   "web.settings.description": {
-    "text": "Whakahaere i ō tautuhinga pūkete me ō manakohanga"
+    "text": "Whakahaere i ō tautuhinga pūkete me ngā hiahia"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Whakahaere i ō tautuhinga pūkete me ō manakohanga"
+    "text": "Whakahaere i ō tautuhinga pūkete me ngā hiahia"
   },
   "web.settings.general": {
     "text": "Whānui"
   },
   "web.settings.preferences": {
-    "text": "Ngā Manakohanga"
+    "text": "Ngā Hiahia"
   },
   "web.settings.appearance": {
     "text": "Āhua"
@@ -171,31 +171,31 @@
     "text": "Kaupapa"
   },
   "web.settings.theme.description": {
-    "text": "Kōwhiri kaupapa mārama, pōuri rānei"
+    "text": "Kōwhiria te kaupapa mārama, pōuri rānei"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Kōwhiri kaupapa mārama, pōuri rānei"
+    "text": "Kōwhiria te kaupapa mārama, pōuri rānei"
   },
   "web.settings.language.title": {
     "text": "Reo"
   },
   "web.settings.language.description": {
-    "text": "Kōwhiri tō reo i pai ai"
+    "text": "Kōwhiria tō reo e hiahia ana"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Kōwhiri tō reo i pai ai"
+    "text": "Kōwhiria tō reo e hiahia ana"
   },
   "web.settings.security_settings_description": {
-    "text": "Whakahaere i te whakaūtanga me te haumaru pūkete"
+    "text": "Whakahaere i te whakamotuhēhētanga me te haumaru pūkete"
   },
   "web.settings.profile_settings_description": {
-    "text": "Whakahaere i ō mōhiohio pūkete"
+    "text": "Whakahaere i ō kōrero pūkete"
   },
   "web.settings.profile.title": {
     "text": "Kōtaha"
   },
   "web.settings.profile.change_email": {
-    "text": "Whakarerekē Īmēra"
+    "text": "Huri te Īmēra"
   },
   "web.settings.profile.current_email": {
     "text": "Īmēra o Nāianei"
@@ -207,34 +207,34 @@
     "text": "Īmēra Hou"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Tāurua tō kupuhipa o nāianei"
+    "text": "Urunga tō kupuhipa o nāianei"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "E hiahiatia ana tō kupuhipa mō ngā take haumaru"
+    "text": "Me whai tō kupuhipa mō ngā take haumaru"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "Ka tukuna he īmēra manatoko ki te wāhitau hou"
   },
   "web.settings.profile.update_email": {
-    "text": "Whakahou Īmēra"
+    "text": "Whakahōu te Īmēra"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Whakahou i te wāhitau īmēra e hono ana ki tō pūkete"
+    "text": "Whakahōu te wāhitau īmēra e hono ana ki tō pūkete"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "E hiahiatia ana ngā āpure katoa"
+    "text": "Me whakakī ngā āpure katoa"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Tēnā tāuru i tētahi wāhitau īmēra whaimana"
+    "text": "Tēnā urunga he wāhitau īmēra tika"
   },
   "web.settings.profile.email_same_as_current": {
     "text": "Me rerekē te īmēra hou i te īmēra o nāianei"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Kua whakahoutia angituhia te īmēra. Tēnā tirohia tō pouaka īmēra hei whakaū i tō wāhitau īmēra hou."
+    "text": "Kua whakahōu te īmēra. Tēnā tirohia tō pouaka waipuke hei manatoko i tō wāhitau īmēra hou."
   },
   "web.settings.profile.email_change_error": {
-    "text": "I rahua te whakahou īmēra. Tēnā ngana anō."
+    "text": "I rahua te whakahōu i te īmēra. Tēnā whakamātauria anō."
   },
   "web.settings.sessions.title": {
     "text": "Ngā Wātū Hohe"
@@ -249,22 +249,22 @@
     "text": "Kupuhipa"
   },
   "web.settings.password.description": {
-    "text": "Whakahou i tō kupuhipa pūkete"
+    "text": "Whakahōu tō kupuhipa pūkete"
   },
   "web.settings.password.update_account_password": {
-    "text": "Whakahou i tō kupuhipa pūkete"
+    "text": "Whakahōu tō kupuhipa pūkete"
   },
   "web.settings.delete_account.title": {
-    "text": "Muku Pūkete"
+    "text": "Muku te Pūkete"
   },
   "web.settings.delete_account.description": {
-    "text": "Mukua pūmautia tō pūkete me ngā raraunga katoa"
+    "text": "Muku pūmautia tō pūkete me ngā raraunga katoa"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Mukua pūmautia tō pūkete me ngā raraunga katoa"
+    "text": "Muku pūmautia tō pūkete me ngā raraunga katoa"
   },
   "web.settings.security.security_score": {
-    "text": "Tohu Haumaru"
+    "text": "Kaute Haumaru"
   },
   "web.settings.security.score_description": {
     "text": "Tō hauora haumaru pūkete whānui"
@@ -276,34 +276,34 @@
     "text": "Pai"
   },
   "web.settings.security.fair": {
-    "text": "Māmā"
+    "text": "Āhua Pai"
   },
   "web.settings.security.weak": {
     "text": "Ngoikore"
   },
   "web.settings.security.improve_security": {
-    "text": "Whakapai ake i tō haumaru"
+    "text": "Whakapai i tō haumaru"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Whakahohea te whakaūnga pūāhua-rua mō te tiaki kaha ake"
+    "text": "Whakahohea te whakamotuhēhētanga āhuatanga-rua mō te tiakinga kaha ake"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Hangaia ngā waehere whakaora hei taputapu taraki"
+    "text": "Hangaia ngā waehere whakaora hei tāruarua"
   },
   "web.settings.security.configured": {
-    "text": "Kua Whirihoratia"
+    "text": "Kua Tautuhia"
   },
   "web.settings.security.change": {
-    "text": "Whakarerekē"
+    "text": "Huri"
   },
   "web.settings.security.manage": {
     "text": "Whakahaere"
   },
   "web.settings.security.enable": {
-    "text": "Whakahohe"
+    "text": "Whakahohea"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} ngā waehere e wātea ana"
+    "text": "{0} waehere e wātea ana"
   },
   "web.settings.security.no_codes": {
     "text": "Kāore he waehere kua hangaia"
@@ -312,130 +312,130 @@
     "text": "{0} wātū hohe | {0} ngā wātū hohe"
   },
   "web.settings.security.best_practices": {
-    "text": "Ngā Tikanga Haumaru Pai"
+    "text": "Ngā Tikanga Haumaru Pai Rawa"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Whakamahia tētahi kupuhipa kaha, ahurei mō tō pūkete"
+    "text": "Whakamahia he kupuhipa kaha, motuhake mō tō pūkete"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Whakahohea te whakaūnga pūāhua-rua mō te tiaki tāpiri"
+    "text": "Whakahohea te whakamotuhēhētanga āhuatanga-rua mō te tiakinga anō"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Tiaki i ō waehere whakaora ki tētahi wāhi haumaru"
+    "text": "Tiakina ō waehere whakaora ki tētahi wāhi haumaru"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Aromātai me te whakakore i ngā wātū kore whakamahi i ia wā"
+    "text": "Arotake me whakakore ngā wātū kore whakamahia i ngā wā katoa"
   },
   "web.settings.security.view_details": {
     "text": "Tirohia ngā taipitopito"
   },
   "web.settings.api.title": {
-    "text": "API me ngā Honohononga"
+    "text": "API & Ngā Whakahononga"
   },
   "web.settings.api.description": {
-    "text": "Whakahaere i ngā kī API me ngā honohononga"
+    "text": "Whakahaere i ngā kī API me ngā whakahononga"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Whakahaere i ngā kī API me ngā honohononga"
+    "text": "Whakahaere i ngā kī API me ngā whakahononga"
   },
   "web.settings.api.documentation": {
     "text": "Tuhinga API"
   },
   "web.settings.api.documentation_description": {
-    "text": "Ako me pēhea te whakauru i Onetime Secret ki ō taupānga"
+    "text": "Akohia me pēhea te whakahono i a Onetime Secret ki ō taupānga"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Tohutoro REST API"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Tuhinga API me ngā pito tīmatanga katoa"
+    "text": "Tuhinga API katoa me ngā pito mutunga"
   },
   "web.settings.api.code_examples": {
-    "text": "Ngā Tauira Waehere"
+    "text": "Tauira Waehere"
   },
   "web.settings.api.example_code_and_libraries": {
     "text": "Waehere tauira me ngā whare pukapuka kiritaki"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Ngā Tikanga Haumaru Pai"
+    "text": "Ngā Tikanga Haumaru Pai Rawa"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Kaua e tāpae i ngā kī API ki te mana putanga"
+    "text": "Kaua rawa e tuku ngā kī API ki te whakahaere putanga"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Whakamahia ngā tāupe taiao hei rokiroki i ngā kī API"
+    "text": "Whakamahia ngā taurangi taiao hei rokiroki i ngā kī API"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Hurihia ngā kī API i ia wā mō te haumaru"
+    "text": "Hurihia ngā kī API i ngā wā katoa mō te haumaru"
   },
   "web.settings.api.use_https_only": {
-    "text": "Whakamahia HTTPS i ngā wā katoa ina hanga i ngā tono API"
+    "text": "Whakamahia te HTTPS i ngā wā katoa ina tono API"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Aromātai i tō whakamahi API me te whakatū whakamōhio"
+    "text": "Aroturuki i tō whakamahinga API me whakarite ngā matohi"
   },
   "web.settings.api.important_notice": {
-    "text": "Pānui Nui"
+    "text": "Pānui Hiranga"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Ko te whakahanga anō i tō kī API ka whakakorehia te kī o nāianei. Whakahou i ngā taupānga katoa e whakamahi ana i te kī tawhito."
+    "text": "Ko te whakahou i tō kī API ka whakakore i te kī o nāianei. Whakahōu ngā taupānga katoa e whakamahi ana i te kī tawhito."
   },
   "web.settings.privacy.title": {
-    "text": "Ngā Tautuhinga Matatapu"
+    "text": "Tautuhinga Tūmataiti"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Whakahaere i ō manakohanga matatapu"
+    "text": "Whakahaere i ō hiahia tūmataiti"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Tō Matatapu"
+    "text": "Tō Tūmataiti"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Kore e Whakawhitia"
+    "text": "Kāore e Taea te Whiriwhiri"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "Ehara i te tautuhinga"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Kāore he tātaritanga. Kāore he aroturuki. Kua mutu."
+    "text": "Kāore he tātari. Kāore he aroturuki. Mutu noa."
   },
   "web.settings.privacy.explanation": {
-    "text": "Ehara tēnei i te tautuhinga nō te mea kāore he mea hei hurihia. Kua hangaia tō matatapu ki tā mātou mahi."
+    "text": "Ehara tēnei i te tautuhinga nā te mea kāore he mea hei whakakā, hei whakaweto rānei. Kua hangaia tō tūmataiti ki roto i tā mātou mahi."
   },
   "web.settings.notifications.title": {
-    "text": "Ngā Tautuhinga Pānui"
+    "text": "Tautuhinga Whakamōhio"
   },
   "web.settings.notifications.description": {
-    "text": "Whakahaere i te āhuatanga e whiwhi pānui ai koe"
+    "text": "Whakahaere me pēhea koe e whiwhi whakamōhio"
   },
   "web.settings.notifications.error_updating": {
-    "text": "I rahua te whakahou i te manakohanga pānui. Tēnā ngana anō."
+    "text": "I rahua te whakahōu i te hiahia whakamōhio. Tēnā whakamātauria anō."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Ngā Pānui Whakaatu Karere Huna"
+    "text": "Whakamōhio Whakaatu Karere Huna"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Whiwhi īmēra ina tirohia e tētahi tō karere huna"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Ka whakamōhiotia koe i ia wā ka tirohia e te kaiwhiwhi tētahi o ō karere huna"
+    "text": "Ka whakamōhiotia koe ia wā ka whakaaturia e te kaiwhiwhi tētahi o ō karere huna"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Ko ngā īmēra pānui ka whai i te tohu wā me te ID karere huna anake. Kāore ngā mōhiohio kaitirotiro i te whakaurua."
+    "text": "Ko ngā īmēra whakamōhio he wā-tāhia me te ID karere huna anake. Kāore rawa e uru ana ngā kōrero kaitiro."
   },
   "web.settings.caution.title": {
     "text": "Wāhi Whiriwhiri Tūpato"
   },
   "web.settings.caution.description": {
-    "text": "Ngā tautuhinga arā atu me te whakahaere raraunga"
+    "text": "Tautuhinga matatau me te whakahaere raraunga"
   },
   "web.settings.caution.data_export": {
     "text": "Kaweake Raraunga"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Kaweake i ō raraunga pūkete"
+    "text": "Kaweake ō raraunga pūkete"
   },
   "web.settings.caution.export_description": {
-    "text": "Tono i tētahi kape katoa o ō raraunga pūkete i te hōputu pānui pūrere"
+    "text": "Tono he kape katoa o ō raraunga pūkete i te hōputu pānui-ā-mihini"
   },
   "web.settings.caution.request_data_export": {
     "text": "Tono Kaweake Raraunga"
@@ -444,21 +444,36 @@
     "text": "Wā Tukatuka Kaweake"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Ka tukatukatia ngā kaweake i roto i te 24 hāora ka tukuna ki tō wāhitau īmēra"
+    "text": "Ka tukatukahia ngā kaweake i roto i te 24 hāora ka tukuna ki tō wāhitau īmēra"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Ko te muku i tō pūkete:"
+    "text": "Ko te muku i tō pūkete ka:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Ka mukua pūmautia ngā karere huna katoa"
+    "text": "Muku pūmautia ō karere huna katoa"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Ka tangohia ngā raraunga ā-kiko katoa me te hītori karere huna"
+    "text": "Tango ngā metadata karere huna katoa me te hītori"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Ka whakakorehia ngā kī API katoa"
+    "text": "Whakakore ngā kī API katoa"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Kāore tēnei mahi e taea te whakakore"
+    "text": "Kāore e taea te whakakore i tēnei mahi"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "E muku ana..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Hoki ki te Papatohu"
+  },
+  "web.settings.sections.account": {
+    "text": "Pūkete"
+  },
+  "web.settings.sections.billing": {
+    "text": "Pire"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Matatau"
   }
 }

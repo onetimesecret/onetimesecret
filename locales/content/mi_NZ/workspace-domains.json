@@ -1,51 +1,51 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Ako atu anō mō te whirihoranga DNS"
+    "text": "Akohia te mea anō mō te tautuhinga DNS"
   },
   "web.domains.view_domain_verification_status": {
     "text": "Tirohia te tūnga manatoko rohe"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Kei roto kē tēnei rohe i tō whakahaere"
+    "text": "Kua rēhitatia kē tēnei rohe i roto i tō whakahaere"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Kei roto kē tēnei rohe i tētahi atu whakahaere. Tēnā whakapā ki te tautoko mēnā e whakapono ana koe he hapa tēnei."
+    "text": "Kua rēhitatia kē tēnei rohe ki tētahi atu whakahaere. Tēnā whakapā atu ki te tautoko mēnā e whakapono ana koe he hapa tēnei."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Kua angituhia te tiki i te rohe me te tāpiri ki tō whakahaere"
+    "text": "Kua kerēmehia te rohe me te tāpiritanga ki tō whakahaere"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Ngā Taunoa Matatapu"
+    "text": "Taunoa Tūmataiti"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Whakatau ngā kōwhiringa matatapu taunoa mō ngā karere huna i waihangahia i raro i tēnei rohe. Ka whakakīia wawe ēnei tautuhinga ina waihanga karere huna hou."
+    "text": "Whakatū ngā kōwhiringa tūmataiti taunoa mō ngā karere huna i hangaia i raro i tēnei rohe. Ka whakakīa ēnei tautuhinga ina waihanga karere huna hou."
   },
   "web.domains.privacy_defaults": {
-    "text": "Ngā Taunoa Matatapu"
+    "text": "Taunoa Tūmataiti"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Tohu taunoa matatapu"
+    "text": "Ata taunoa tūmataiti"
   },
   "web.domains.default_ttl_label": {
-    "text": "Wā-ora Taunoa"
+    "text": "Wā-ki-te-ora Taunoa"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Pēhea te roa e wātea ai ngā karere huna i te taunoa"
+    "text": "Te roanga ka wātea ai ngā karere huna mā te taunoa"
   },
   "web.domains.passphrase_required_label": {
     "text": "Me whai kupu karapa"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Whakaritea kia here te kupu karapa mō ngā karere huna katoa i tēnei rohe"
+    "text": "Me whai kupu karapa mō ngā karere huna katoa i tēnei rohe"
   },
   "web.domains.notify_enabled_label": {
     "text": "Whakahohea ngā whakamōhio"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Whakahohea ngā whakamōhio īmēra i te taunoa ina tirohia ngā karere huna"
+    "text": "Whakahohea ngā whakamōhio īmēra mā te taunoa ina tirohia ngā karere huna"
   },
   "web.domains.use_global_default": {
-    "text": "Whakamahia te taunoa ao whānui"
+    "text": "Whakamahi taunoa ao whānui"
   },
   "web.domains.global_default": {
     "text": "Ao Whānui"
@@ -75,13 +75,13 @@
     "text": "Kupu Karapa"
   },
   "web.domains.notify_short": {
-    "text": "Ngā Whakamōhio"
+    "text": "Whakamōhio"
   },
   "web.domains.scope_switch_label": {
-    "text": "Huri rohe horopaki"
+    "text": "Huri te horopaki rohe"
   },
   "web.domains.switcher_locked": {
-    "text": "Kāore te whakawhiti rohe i tēnei whārangi"
+    "text": "Kāore e wātea ana te huri rohe i tēnei whārangi"
   },
   "web.domains.scope_list_label": {
     "text": "Ngā rohe e wātea ana"
@@ -99,7 +99,7 @@
     "text": "Kāore he whārangi tautuhinga mō te rohe taunoa"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Tāurua he ingoa rohe {0}"
+    "text": "Tēnā urunga he ingoa rohe {0}"
   },
   "web.domains.domain_name": {
     "text": "Ingoa rohe"
@@ -108,7 +108,7 @@
     "text": "Whakahaere mehemea ka taea e ngā kaiwhakamahi te waihanga i ngā hononga karere huna mai i te whārangi matua o tō rohe"
   },
   "web.domains.homepage_access": {
-    "text": "Urunga Whārangi Matua"
+    "text": "Urunga Whārangi Kāinga"
   },
   "web.domains.and_status": {
     "text": "& Tūnga"
@@ -123,13 +123,13 @@
     "text": "Ngā Rohe"
   },
   "web.domains.last_monitored": {
-    "text": "Kua Aroturuki Mutunga"
+    "text": "Aroturuki Whakamutunga"
   },
   "web.domains.ssl_status": {
     "text": "Tūnga SSL"
   },
   "web.domains.ssl_renews": {
-    "text": "Ngā Whakahou SSL"
+    "text": "Whakahou SSL"
   },
   "web.domains.dns_record": {
     "text": "Tuhinga DNS"
@@ -147,16 +147,16 @@
     "text": "Rohe Ritenga"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Huaki rohe i tētahi ripa hou"
+    "text": "Huaki te rohe i te ripa hou"
   },
   "web.domains.back_to_domains": {
-    "text": "Hoki ki Ngā Rohe"
+    "text": "Hoki ki ngā Rohe"
   },
   "web.domains.return_to_domains_list": {
     "text": "Hoki ki te rārangi rohe"
   },
   "web.domains.verify_domain": {
-    "text": "Whakaū Rohe"
+    "text": "Manatoko Rohe"
   },
   "web.domains.manage_brand": {
     "text": "Whakahaere Waitohu"
@@ -165,16 +165,16 @@
     "text": "Kua tāpiritia {0}"
   },
   "web.domains.add_your_domain": {
-    "text": "Tāpiria tō rohe"
+    "text": "Tāpiri tō rohe"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Tīmatahia mā te tāpiri i tētahi rohe ritenga."
+    "text": "Tīmata mā te tāpiri i tētahi rohe ritenga."
   },
   "web.domains.no_domains_found": {
     "text": "Kāore he rohe i kitea."
   },
   "web.domains.loading_domain_information": {
-    "text": "Kei te uta mōhiohio rohe..."
+    "text": "E uta ana i ngā kōrero rohe..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Ki te tūhono i tō rohe, me whai he tuhinga CNAME i roto i tō DNS e tohu ana"
@@ -189,22 +189,22 @@
     "text": "ā, tangohia ētahi atu tuhinga A, AAAA, CNAME rānei mō taua wāhitau tonu."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", me whakaoti e koe ēnei mahi."
+    "text": ", me whakaoti e koe ēnei hipanga."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "I mua i tā mātou whakahohe i ngā hononga mō"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Tēnā kia mōhio mō ngā rohe tihi (hei tauira,"
+    "text": "Tēnā kia mataara mō ngā rohe tihi (hei tauira,"
   },
   "web.domains.verify_your_domain": {
-    "text": "Whakaū i tō rohe"
+    "text": "Manatoko tō rohe"
   },
   "web.domains.secrets_example_dot_com": {
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Whakaritea tō waitohu rohe"
+    "text": "Whakaritenga tō waitohu rohe"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Ka pau pea ētahi meneti mō tō tiwhikete SSL kia whai pānga."
@@ -213,7 +213,7 @@
     "text": "Ka taea e ngā whakarerekētanga DNS kia iti ake i te 60 hēkona -- tae atu rānei ki te 24 haora -- kia whai pānga."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Tatari kia whakamararatia"
+    "text": "3. Tatari mō te toronga"
   },
   "web.domains.value_2": {
     "text": "Uara"
@@ -222,7 +222,7 @@
     "text": "Uara"
   },
   "web.domains.host_1": {
-    "text": "Kaihautū"
+    "text": "Kaiwhakahari"
   },
   "web.domains.type_2": {
     "text": "Momo"
@@ -237,7 +237,7 @@
     "text": "Uara"
   },
   "web.domains.host_0": {
-    "text": "Kaihautū"
+    "text": "Kaiwhakahari"
   },
   "web.domains.type_0": {
     "text": "Momo"
@@ -246,7 +246,7 @@
     "text": "2. Waihanga te tuhinga A"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Tāpirihia tēnei ingoa kaihautū ki tō whirihoranga DNS:"
+    "text": "Tāpiria tēnei ingoa kaiwhakahari ki tō tautuhinga DNS:"
   },
   "web.domains.1_create_a_txt_record": {
     "text": "1. Waihanga he tuhinga TXT"
@@ -255,24 +255,48 @@
     "text": "Whāia ēnei mahi hei whakaū i te rangatiratanga rohe me te whakapiki i tō noho ipurangi:"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Ngā Mahi Whakaū Rohe"
+    "text": "Ngā Hipanga Manatoko Rohe"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "I tīmatahia angitutia te whakaū rohe."
+    "text": "Kua tīmata te manatoko rohe."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "E tino hiahia ana koe ki te tango i tēnei rohe? Kāore e taea te whakakore tēnei mahi."
+    "text": "Kei te tino hiahia koe ki te tango i tēnei rohe? Kāore e taea te whakakore i tēnei mahi."
   },
   "web.domains.remove_domain": {
-    "text": "Tangohia te Rohe"
+    "text": "Tango Rohe"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "Kua tangohia angitutia te rohe"
+    "text": "Kua tangohia te rohe"
   },
   "web.domains.failed_to_add_domain": {
     "text": "I rahua te tāpiri i te rohe"
   },
   "web.domains.domain_added_successfully": {
-    "text": "Kua tāpiritia angitutia te rohe"
+    "text": "Kua tāpiritia te rohe"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Kua Tiakina"
+  },
+  "web.domains.manage_domains": {
+    "text": "Whakahaere ngā Rohe"
+  },
+  "web.domains.global_defaults": {
+    "text": "Taunoa Ao Whānui"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Whakatika te tautuhinga wā-ki-te-ora"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Whakatika te here kupu karapa"
+  },
+  "web.domains.edit_notify": {
+    "text": "Whakatika te tautuhinga whakamōhio"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Tautuhia ngā Tuhinga DNS"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Whakamahia te utauta kei raro hei kite aunoa i tō kaiwhakarato DNS me te whiwhi tohutohu hipanga-ki-hipanga mō te tautuhi i tō rohe."
   }
 }

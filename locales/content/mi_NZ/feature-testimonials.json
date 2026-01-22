@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Whakaaturanga Hangaia-AI"
+    "text": "Whakaaturanga AI-Hanga"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Ihirangi hangaia-AI mō te whakaaturanga. Ehara i te tangata, kamupene rānei tūturu."
+    "text": "He ihirangi AI-hanga hei whakaatu. Ehara i tētahi tangata tūturu, i tētahi kamupene tūturu rānei."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -18,19 +18,19 @@
     "text": "{0}:"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "He aha ngā kōrero a te AI mātāmua mō mātou"
+    "text": "He aha tā AI mō mātou"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Ngā Whakaaturanga Hangaia-AI"
+    "text": "Ngā Whakaaturanga AI-Hanga"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "I hangaia tēnei whakataukī e"
+    "text": "I hangaia tēnei kōrero e"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "I hāngai ki te ihirangi o te whārangi, ā, kāore i te tohu i tētahi tangata, kamupene rānei tūturu."
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Urupare Hangahanga"
+    "text": "Urupare Hangarau"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
     "text": "Ko tēnei ihirangi he ai-hangaia i runga i te ihirangi o tēnei whārangi, ā, kāore i te tohu i tētahi tangata, kamupene rānei tūturu."

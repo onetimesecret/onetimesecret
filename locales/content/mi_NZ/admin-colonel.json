@@ -18,40 +18,40 @@
     "text": "Ngā Karere Huna ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(hohe i ngā meneti 5 kua hipa)"
+    "text": "(hohe i roto i ngā meneti 5 kua pahure)"
   },
   "web.colonel.configEditorTitle": {
-    "text": "Ngā Tautuhinga"
+    "text": "Tautuhinga"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Whakatika i ngā tautuhinga whirihoranga pūnaha. Ka whakamahia ngā huringa i muri tonu i te tiakitanga."
+    "text": "Whakatika ngā tautuhinga whirihoranga pūnaha. Ka mahi ngā huringa i muri tonu i te tiakinga."
   },
   "web.colonel.invalidJson": {
-    "text": "JSON muhu i roto i te wāhanga {section}"
+    "text": "He muhu te JSON i te wāhanga {section}"
   },
   "web.colonel.validationError": {
-    "text": "Hapa whakaū"
+    "text": "Hapa manatoko"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Hapa utanga whirihoranga"
+    "text": "Hapa i te wā e uta ana i te whirihoranga"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Hapa tiakitanga whirihoranga"
+    "text": "Hapa i te wā e tiaki ana i te whirihoranga"
   },
   "web.colonel.configSaved": {
-    "text": "Kua tiakina angituhia te whirihoranga"
+    "text": "Kua tiakina te whirihoranga"
   },
   "web.colonel.mustBeObject": {
-    "text": "Me whai te whirihoranga i tētahi ahanoa JSON"
+    "text": "Me he ahanoa JSON te whirihoranga"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "He hapa whakaū kei ngā wāhanga maha: {sections}"
+    "text": "He hapa manatoko ō ngā wāhanga maha: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "He hapa whakaū kei {section}: {error}"
+    "text": "He hapa manatoko tō {section}: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "Kua tiakina angituhia {section}"
+    "text": "Kua tiakina {section}"
   },
   "web.colonel.saveSection": {
     "text": "Tiaki {section}"
@@ -60,16 +60,16 @@
     "text": "Tiaki Katoa"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Ngā huringa kāore anō kia tiakina"
+    "text": "Huringa kāore anō kia tiakina"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Hapa whakaū kaupapa: {message} ({path})"
+    "text": "Hapa manatoko kaupapa: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Hapa whakaū tē mōhiotia: {error}"
+    "text": "Hapa manatoko kāore e mōhiotia: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "Kāore he uara whirihorahia i te wāhanga {section}"
+    "text": "Kāore he uara i whirihorahia i te wāhanga {section}"
   },
   "web.colonel.dashboard": {
     "text": "Papatohu"
@@ -78,22 +78,22 @@
     "text": "Kaiwhakahaere"
   },
   "web.colonel.activity": {
-    "text": "Hohenga"
+    "text": "Mahi"
   },
   "web.colonel.accounts": {
-    "text": "Ngā Pūkete"
+    "text": "Pūkete"
   },
   "web.colonel.users": {
-    "text": "Ngā Kaiwhakamahi"
+    "text": "Kaiwhakamahi"
   },
   "web.colonel.usersDescription": {
-    "text": "Whakahaere pūkete kaiwhakamahi me ngā whakaaetanga"
+    "text": "Whakahaere ngā pūkete kaiwhakamahi me ngā whakaaetanga"
   },
   "web.colonel.domains": {
-    "text": "Ngā Rohe"
+    "text": "Rohe"
   },
   "web.colonel.settings": {
-    "text": "Ngā Tautuhinga"
+    "text": "Tautuhinga"
   },
   "web.colonel.system": {
     "text": "Pūnaha"
@@ -102,40 +102,40 @@
     "text": "Nau mai ki Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Papa whakahaere mō OneTimeSecret"
+    "text": "Papa whakahaere whakahaere mō OneTimeSecret"
   },
   "web.colonel.quickActions": {
-    "text": "Ngā Mahi Tere"
+    "text": "Mahi Tere"
   },
   "web.colonel.recentActivity": {
-    "text": "Hohenga Tata"
+    "text": "Mahi Tata"
   },
   "web.colonel.viewAll": {
-    "text": "Titiro Katoa"
+    "text": "Tiro Katoa"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Ka whakaatuhia ngā raraunga hohenga ki konei"
+    "text": "Ka whakaatuhia ngā raraunga mahi ki konei"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Ngā Karere Huna Katoa"
+    "text": "Tapeke Karere Huna"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Ngā Kaiwhakamahi Hohe"
+    "text": "Kaiwhakamahi Hohe"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Ngā Karere Huna i Tēnei Rā"
+    "text": "Karere Huna i Tēnei Rā"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Ngā Karere Huna Kua Hangaia"
+    "text": "Karere Huna Kua Hangaia"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Ngā Karere Huna Kua Tohatohahia"
+    "text": "Karere Huna Kua Tohatohahia"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Ngā Kiritaki Katoa"
+    "text": "Tapeke Kaiwhakamahi"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Ngā Īmēra Kua Tukuna"
+    "text": "Īmēra Kua Tukuna"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Hauora Pūnaha"
@@ -144,10 +144,10 @@
     "text": "Hauora"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Titiro Hohenga"
+    "text": "Tiro Mahi"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Aromātai i te hohenga me te whakamahi pūnaha"
+    "text": "Aroturuki mahi pūnaha me te whakamahinga"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Whakahaere Pūkete"
@@ -159,31 +159,31 @@
     "text": "Whirihora Rohe"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Ngā tautuhinga rohe me DNS"
+    "text": "Tautuhinga rohe me DNS"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "Ngā Tautuhinga Pūnaha"
+    "text": "Tautuhinga Pūnaha"
   },
   "web.colonel.actions.systemSettingsDesc": {
     "text": "Whirihoranga taupānga"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Ngā Mahi Tūāpapa"
+    "text": "Mahi Tuarā"
   },
   "web.colonel.queueStatus": {
-    "text": "Tūnga Rārangi"
+    "text": "Tūnga Rarangi"
   },
   "web.colonel.queueName": {
-    "text": "Rārangi"
+    "text": "Rarangi"
   },
   "web.colonel.pendingMessages": {
-    "text": "Kei te Tatari"
+    "text": "E Tatari Ana"
   },
   "web.colonel.consumers": {
-    "text": "Ngā Kaiwhakarato"
+    "text": "Kaiwhakamahi"
   },
   "web.colonel.processingRate": {
-    "text": "Pāpātanga/hēkona"
+    "text": "Tere/hēk"
   },
   "web.colonel.connectionStatus": {
     "text": "Tūnga Hononga"
@@ -192,25 +192,25 @@
     "text": "Hauora Kaimahi"
   },
   "web.colonel.activeWorkers": {
-    "text": "ngā kaimahi hohe"
+    "text": "kaimahi hohe"
   },
   "web.colonel.noQueueData": {
-    "text": "Kāore he raraunga rārangi e wātea ana"
+    "text": "Kāore he raraunga rarangi e wātea ana"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Kei te uta raraunga rārangi..."
+    "text": "E uta ana ngā raraunga rarangi..."
   },
   "web.colonel.testPlanMode": {
     "text": "Aratau Whakamātau Mahere"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Kei te whakamātau hei {planName}"
+    "text": "E whakamātau ana hei {planName}"
   },
   "web.colonel.clickToReset": {
     "text": "Pāwhiri ki te tautuhi anō"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Kōwhiria he mahere hei whakamātau"
+    "text": "Kōwhiria he mahere ki te whakamātau"
   },
   "web.colonel.resetToActual": {
     "text": "Tautuhi anō ki te mahere tūturu"
@@ -219,19 +219,19 @@
     "text": "Mahere o nāianei"
   },
   "web.colonel.availablePlans": {
-    "text": "Ngā mahere e wātea ana"
+    "text": "Ngā mahere wātea"
   },
   "web.colonel.activateTestMode": {
-    "text": "Whakahohea te aratau whakamātau"
+    "text": "Whakahohe aratau whakamātau"
   },
   "web.colonel.testModeActive": {
-    "text": "Kei te hohe te aratau whakamātau"
+    "text": "Kua hohe te aratau whakamātau"
   },
   "web.colonel.testModeDescription": {
-    "text": "Whakamātaua tō taupānga me ngā whakaaetanga mahere rerekē. He wā poto ngā huringa, ka pā anake ki tō wātū."
+    "text": "Whakamātauria tō taupānga ki ngā tika mahere rerekē. He taupua ngā huringa, ka pā ki tō wāhanga anake."
   },
   "web.colonel.warningTestMode": {
-    "text": "Kei te whakamātau koe me ngā whakaaetanga {planName} (he whakapānga wātū wā poto)."
+    "text": "E whakamātau ana koe me ngā tika {planName} (whakakapi wāhanga taupua)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Ina tuku koe i te urupare, ka kite mātou:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Kei te tuku..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Ngā IP Kua Aukatihia"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Whakahaere rārangi aukati IP"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Rohe Ritenga"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Whakahaere rohe ritenga me te waitohu"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Tuku urupare"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "E tuku ana..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "I te wā e tuku urupare ana koe, ka kite mātou i:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Whakahaere"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Aroturuki hauora tukutahi nama whakahaere"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Kaiaroturuki Hauora Nama"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} whakahaere"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} e hiahia ana kia arotahitia"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} kāore e mōhiotia"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Kāore i kitea he whakahaere"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Tūhura"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "E tirotiro ana..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Pūkete"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Nama"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Tūnga"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Whakamahinga"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "I hangaia"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Taipitopito"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Rangatira"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Mahere"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Mema"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Rohe"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Ohaurunga"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Wāhi Mahi Taunoa"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "He Nama Tōna"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Kiritaki"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Ohaurunga"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID Whakahaere"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Tūnga Tukutahi"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Ohaurunga"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Katoa"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Tērā pea kua tawhito"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Kāore e mōhiotia"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Kua tukutahihia"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Hohe"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "E whakamātau ana"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Kua puta te wā"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Kua whakakore"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "I rahua te tūhura"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Hua Tūhura"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Kua Manatokohia Kua Tukutahihia"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Kua Kitea he Kore Ōrite"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Kāore e Taea te Whakataurite"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Taipitopito Ohaurunga Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Tūnga"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Hua"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Mahere Kua Whakatauhia"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID Utu"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Ā-rohe"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Whakahaere Nama Whakahaere"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Whakahaere whakahaere me te aroturuki hauora tukutahi nama ({total} tapeke)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Kāore i kitea he whakahaere"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "tērā pea kua tawhito"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Kua tawhito"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Kāore e mōhiotia"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "hohe"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} mema"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} rohe"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Ngā Karere Huna"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Tiro me te whakahaere i ngā karere huna katoa"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Pūnaha"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Tautuhinga pūnaha, pātengi raraunga, me te whirihoranga"
+  },
+  "web.colonel.titles.index": {
+    "text": "Whakahaere"
+  },
+  "web.colonel.titles.users": {
+    "text": "Whakahaere Kaiwhakamahi"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Whakahaere Karere Huna"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Rohe Ritenga"
+  },
+  "web.colonel.titles.system": {
+    "text": "Pūnaha"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Pātengi Raraunga Matua"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Pātengi Raraunga Manatoko"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Ngā IP Kua Aukatihia"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Kaweake Whakamahinga"
+  },
+  "web.colonel.titles.info": {
+    "text": "Mōhiohio Pūnaha"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Whakahaere"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Kaweake Whakamahinga"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Kaweake raraunga whakamahinga me ngā tatauranga"
   }
 }

@@ -1,30 +1,30 @@
 {
   "web.billing.upgrade.required": {
-    "text": "E Hiahiatia Ana te Whakapai Ake"
+    "text": "Me Whakapiki"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Tirohia Ngā Mahere"
+    "text": "Tirohia ngā Mahere"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Ko te whakahaere rōpū e hiahiatia ana Identity Plus, neke atu rānei"
+    "text": "Me whai Identity Plus, taumata teitei ake rānei mō te whakahaere rōpū"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Ngā rohe ritenga e hiahiatia ana Identity Plus, neke atu rānei"
+    "text": "Me whai Identity Plus, taumata teitei ake rānei mō ngā rohe ritenga"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Urunga API e hiahiatia ana te mahere Multi-Team, neke atu rānei"
+    "text": "Me whai Identity Plus, taumata teitei ake rānei mō te urunga API"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Ngā rārangi arotake e hiahiatia ana te mahere Multi-Team, neke atu rānei"
+    "text": "Me whai mahere Rōpū Maha, taumata teitei ake rānei mō ngā rārangi tātari"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Whakahaere i tō ohaurunga, ngā whakahaere, me ngā tautuhinga utu"
+    "text": "Whakahaere i tō ohaurunga, ngā whakahaere, me ngā tautuhinga pire"
   },
   "web.billing.overview.title": {
-    "text": "Arokite Utu"
+    "text": "Tirohanga Pire"
   },
   "web.billing.overview.description": {
-    "text": "Tirohia me te whakahaere i ō taipitopito ohaurunga me te utu"
+    "text": "Tirohia me whakahaere i tō ohaurunga me ngā taipitopito utu"
   },
   "web.billing.overview.organization_selector": {
     "text": "Kōwhiri Whakahaere"
@@ -39,64 +39,64 @@
     "text": "Tikanga Utu"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Rā Utu E Whai Ake Nei"
+    "text": "Rā Pire E Haere Mai Ana"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Ngā Mahi Tere"
+    "text": "Mahi Tere"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Whakahaere Utu"
+    "text": "Whakahaere te Pire"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Tirohia Ngā Nama"
+    "text": "Tirohia ngā Pire"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Whakapai Ake i te Mahere"
+    "text": "Whakapiki te Mahere"
   },
   "web.billing.overview.change_plan": {
-    "text": "Whakarerekē Mahere"
+    "text": "Huri te Mahere"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Kāore he tikanga utu kei te kōnae"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Kāore he utu heke mai"
+    "text": "Kāore he pire e haere mai ana"
   },
   "web.billing.overview.days_remaining": {
     "text": "ngā rā e toe ana"
   },
   "web.billing.overview.billing_on": {
-    "text": "Utu i te {date}"
+    "text": "Pire i te {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Tirohia Ngā Mahere"
+    "text": "Tirohia ngā Mahere"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Whakataurite me te whakapai ake"
+    "text": "Whakataurite me whakapiki"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Tirohia Ngā Nama"
+    "text": "Tirohia ngā Pire"
   },
   "web.billing.overview.view_invoices_description": {
     "text": "Tikiake hītori"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Whakahaere Utu"
+    "text": "Whakahaere te Pire"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Whakahou mōhiohio utu"
+    "text": "Whakahōu ngā kōrero utu"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Kāore He Whakahaere"
+    "text": "Kāore he Whakahaere"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Waihangahia tētahi whakahaere hei whakahaere i tō utu me te ohaurunga"
+    "text": "Waihanga he whakahaere hei whakahaere i tō pire me te ohaurunga"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Waihanga Karere Huna"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Tiro Rīhiti"
+    "text": "Tirohia ngā Rihīti"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "Urunga API"
@@ -105,40 +105,40 @@
     "text": "Ngā Rohe Ritenga"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Ngā Taunoa Matatapu Ritenga"
+    "text": "Taunoa Tūmataiti Ritenga"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Paunga Taunoa Whakaroahia"
+    "text": "Paunga Taunoa Toroa"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Ngā Taunoa Īmēra Ritenga"
+    "text": "Taunoa Mēra Ritenga"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "Waitohu Ritenga"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Whārangi Matua Waitohu"
+    "text": "Whārangi Kāinga Waitohu"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Ngā Karere Huna Taenga"
+    "text": "Karere Huna Tae Mai"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Whakahaere Whakahaere"
+    "text": "Whakahaere ngā Whakahaere"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Whakahaere Rōpū"
+    "text": "Whakahaere ngā Rōpū"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Whakahaere Mema"
+    "text": "Whakahaere ngā Mema"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Ngā Rārangi Arotake"
+    "text": "Ngā Rārangi Tātari"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Takiuru Kotahi"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Tautoko Matua"
+    "text": "Tautoko Tuatahi"
   },
   "web.billing.overview.entitlements.sla": {
     "text": "Kirimana Taumata Ratonga"
@@ -150,46 +150,46 @@
     "text": "Kāore he āhuatanga e wātea ana"
   },
   "web.billing.plans.title": {
-    "text": "Kōwhiri Mahere"
+    "text": "Kōwhiria he Mahere"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Kōwhiri te mahere e tika ana mō ō hiahia"
+    "text": "Kōwhiria te mahere e pai ana ki ō hiahia"
   },
   "web.billing.plans.subtitle": {
-    "text": "Kōwhiria te mahere tika mō tō whakahaere"
+    "text": "Kōwhiria te mahere tino pai mō tō whakahaere"
   },
   "web.billing.plans.current": {
     "text": "Mahere o Nāianei"
   },
   "web.billing.plans.current_badge": {
-    "text": "Ināianei"
+    "text": "O Nāianei"
   },
   "web.billing.plans.upgrade": {
-    "text": "Whakapai Ake"
+    "text": "Whakapiki"
   },
   "web.billing.plans.downgrade": {
-    "text": "Heke Iho"
+    "text": "Whakaiti"
   },
   "web.billing.plans.monthly": {
-    "text": "Ā-Marama"
+    "text": "Ā-marama"
   },
   "web.billing.plans.yearly": {
-    "text": "Ā-Tau"
+    "text": "Ā-tau"
   },
   "web.billing.plans.per_month": {
-    "text": "ia marama"
+    "text": "/marama"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Penapena {percent}% ki te utu ā-tau"
+    "text": "Tiaki {percent}% mā te pire ā-tau"
   },
   "web.billing.plans.free_plan": {
-    "text": "Koreutu"
+    "text": "Kore Utu"
   },
   "web.billing.plans.single_team_plan": {
     "text": "Rōpū Kotahi"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Ngā Rōpū Maha"
+    "text": "Rōpū Maha"
   },
   "web.billing.plans.individual_account": {
     "text": "Pūkete Takitahi"
@@ -204,55 +204,55 @@
     "text": "Ngā Āhuatanga"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Ngā karere huna mutunga kore"
+    "text": "Karere huna kore-mutunga"
   },
   "web.billing.plans.api_access": {
     "text": "Urunga API"
   },
   "web.billing.plans.priority_support": {
-    "text": "Tautoko matua"
+    "text": "Tautoko tuatahi"
   },
   "web.billing.plans.select_plan": {
     "text": "Kōwhiri Mahere"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Whakapā atu ki Ngā Hokohoko"
+    "text": "Whakapā ki ngā Hoko"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "He pātai āu, e hiahia ana rānei koe i tētahi mea ritenga?"
+    "text": "He pātai, he hiahia ritenga rānei?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Ka pai mātou ki te rongo mai i a koe. Whakamōhiotia mai he aha kei te rapuhia e koe."
+    "text": "E hiahia ana mātou ki te rongo mai i a koe. Whakamōhio mai he aha tō hiahia."
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} rōpū | {count} ngā rōpū"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} mema ia rōpū | {count} ngā mema ia rōpū"
+    "text": "{count} mema ia rōpū | {count} mema ia rōpū"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Rōpū mutunga kore"
+    "text": "Rōpū kore-mutunga"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Mema mutunga kore ia rōpū"
+    "text": "Mema kore-mutunga ia rōpū"
   },
   "web.billing.plans.most_popular": {
     "text": "Rongonui Rawa"
   },
   "web.billing.plans.suggested": {
-    "text": "Tūtohu"
+    "text": "E Tūtohu Ana"
   },
   "web.billing.plans.everything_in": {
-    "text": "Ngā mea katoa o {plan}, me:"
+    "text": "Me ngā mea katoa i te {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Kāore he mahere {interval} i tēnei wā."
+    "text": "Kāore he mahere {interval} e wātea ana i tēnei wā."
   },
   "web.billing.plans.change_immediate": {
-    "text": "Ka huri tō mahere ināianei."
+    "text": "Ka huri wawe tō mahere."
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Mahere ināianei:"
+    "text": "Mahere o nāianei:"
   },
   "web.billing.plans.new_plan_label": {
     "text": "Mahere hou:"
@@ -261,31 +261,31 @@
     "text": "Nama mō te wā kāore i whakamahia:"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Pire panuku"
+    "text": "Pire e haere mai ana"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Ka whakahou ō rohe āhuatanga ināianei i muri i te panoni mahere."
+    "text": "Ka whakahōu wawe ō tepe āhuatanga i muri i te huringa mahere."
   },
   "web.billing.plans.change_failed": {
-    "text": "I rahua te panoni mahere. Tēnā whakamātau anō."
+    "text": "I rahua te huri mahere. Tēnā whakamātauria anō."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Whakaū Whakapai Ake"
+    "text": "Whakaū te Whakapikinga"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Whakaū Whakaiti"
+    "text": "Whakaū te Whakaititanga"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Whakapai ake ki"
+    "text": "Whakapiki ki {plan}?"
   },
   "web.billing.plans.downgrade_to": {
     "text": "Whakaiti ki {plan}?"
   },
   "web.billing.invoices.title": {
-    "text": "Hītori Utu"
+    "text": "Hītori Pire"
   },
   "web.billing.invoices.view_history": {
-    "text": "Tirohia tō hītori utu me te tikiake i ngā nama"
+    "text": "Tirohia tō hītori pire me tikiake ngā pire"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Rā"
@@ -300,31 +300,31 @@
     "text": "Tikiake"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Kāore anō he nama"
+    "text": "Kāore anō he pire"
   },
   "web.billing.invoices.paid": {
     "text": "Kua Utua"
   },
   "web.billing.invoices.pending": {
-    "text": "Kei te Tatari"
+    "text": "E Tatari Ana"
   },
   "web.billing.invoices.failed": {
     "text": "I Rahua"
   },
   "web.billing.invoices.load_error": {
-    "text": "I rahua te uta i ngā nama"
+    "text": "I rahua te uta i ngā pire"
   },
   "web.billing.notices.org_managed": {
-    "text": "Ko te utu mō tēnei rōpū e whakahaerea ana e {orgName}"
+    "text": "Ko te pire e whakahaeretia ana e {orgName}"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Tirohia te utu whakahaere"
+    "text": "Tirohia te pire whakahaere"
   },
   "web.billing.limits.members_reached": {
     "text": "Kua tae koe ki te tepe mema mō tēnei rōpū"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Whakapai ake ki te tāpiri i ētahi atu mema"
+    "text": "Whakapiki hei tāpiri mema anō"
   },
   "web.billing.subscription.title": {
     "text": "Ohaurunga"
@@ -336,43 +336,43 @@
     "text": "Hohe"
   },
   "web.billing.subscription.inactive": {
-    "text": "Koretake"
+    "text": "Kāore e Hohe"
   },
   "web.billing.subscription.past_due": {
-    "text": "Tua i te Wā"
+    "text": "Kua Puta te Wā"
   },
   "web.billing.subscription.canceled": {
-    "text": "Kua Whakakōretia"
+    "text": "Kua Whakakorea"
   },
   "web.billing.subscription.catalog_name": {
     "text": "Mahere"
   },
   "web.billing.portal.title": {
-    "text": "Tomokanga Utu"
+    "text": "Tomokanga Pire"
   },
   "web.billing.portal.description": {
-    "text": "Whakahaere i tō ohaurunga, ngā tikanga utu, me te hītori utu"
+    "text": "Whakahaere i tō ohaurunga, ngā tikanga utu, me te hītori pire"
   },
   "web.billing.portal.open_portal": {
-    "text": "Huaki Tomokanga Utu"
+    "text": "Huaki te Tomokanga Pire"
   },
   "web.billing.portal.redirecting": {
-    "text": "Kei te tuku atu ki te tomokanga utu..."
+    "text": "E whakawhiti ana ki te tomokanga pire..."
   },
   "web.billing.start_today": {
     "text": "Tīmata i tēnei rā"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Tīmata i tēnei rā me Identity Plus"
+    "text": "Tīmata i tēnei rā ki Identity Plus"
   },
   "web.billing.per_month": {
     "text": "ia marama"
   },
   "web.billing.full_api_access": {
-    "text": "Urunga API Katoa"
+    "text": "Urunga API katoa"
   },
   "web.billing.privacy_first_design": {
-    "text": "Hoahoa matatapu-tuatahi"
+    "text": "Hoahoa tūmataiti-tuatahi"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus"
@@ -381,16 +381,16 @@
     "text": "Pāwhiria tēnei uira hei whakahou mō ngā rohe ritenga"
   },
   "web.billing.maybe_later": {
-    "text": "Ka Mutu Ake Pea"
+    "text": "Ākuanei Pea"
   },
   "web.billing.upgrade_account": {
-    "text": "Whakapai ake pūkete"
+    "text": "Whakapiki pūkete"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Whakapai ake ki Identity Plus"
+    "text": "Whakapiki ki Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Whakapai ake mō ngā Rōpū"
+    "text": "Whakapiki mō ngā Rōpū"
   },
   "web.billing.benefits_of": {
     "text": "Ngā painga o"
@@ -399,16 +399,16 @@
     "text": "{0}: Identity Plus"
   },
   "web.billing.upgrade_to": {
-    "text": "Whakapai ake ki"
+    "text": "Whakapiki ki"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Whakapai ake mō secrets.yourdomain.com"
+    "text": "Whakapiki mō secrets.yourdomain.com"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Ka whai ngā mahere katoa i ngā āhuatanga matatapu me te kaha tuari mutunga kore"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Ka whai ngā mahere katoa i te kōwhiringa o te wāhi raraunga: {0} rohe"
+    "text": "Ko ngā mahere katoa me te kōwhiringa rohe raraunga: {0} ngā rohe"
   },
   "web.billing.get_started": {
     "text": "Tīmata"
@@ -426,9 +426,198 @@
     "text": "Tiakina tō waitohu me te hanga i te whakawhirinaki kiritaki me ngā hononga mai i tō rohe. He tino pai mō ngā pakihi e uara ana i te matatapu me te ngaiotanga."
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Ngā Hononga Haumaru, Ngā Hononga Kaha Ake"
+    "text": "Hononga Haumaru, Hononga Kaha Ake"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Kāore i kitea te taumata Tuakiri i roto i ngā taumata hua"
+    "text": "Kāore i kitea te taumata Identity i ngā taumata hua"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Whakakore te ohaurunga"
+  },
+  "web.billing.cancel.title": {
+    "text": "Whakakore te Ohaurunga"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Kei te tino hiahia koe ki te whakakore i tō ohaurunga {plan}?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "He aha ka puta ina whakakore koe:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Ka mau tonu tō urunga ki ngā āhuatanga katoa tae noa ki te {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Ka mau tonu tō urunga tae noa ki te mutunga o tō wā pire o nāianei"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Kāore koe e utua anō"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Ka hoki tō pūkete ki te mahere kore utu"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Pupuri te Ohaurunga"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Whakakore te Ohaurunga"
+  },
+  "web.billing.cancel.success": {
+    "text": "Kua whakakorea tō ohaurunga. Ka mau tonu tō urunga tae noa ki te mutunga o tō wā pire."
+  },
+  "web.billing.cancel.error": {
+    "text": "I rahua te whakakore i te ohaurunga. Tēnā whakamātauria anō."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Kua Whakaritea te Whakakorenga Ohaurunga"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Ka noho hohe tonu tō ohaurunga tae noa ki te {date}. Ka noho urunga katoa ki ngā āhuatanga katoa tae noa ki tērā wā."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Kua huri tō whakaaro? Ka taea e koe te whakahohe anō i tō ohaurunga i mua i te rā whakakore."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Waihanga & Tohatoha Karere Huna"
+  },
+  "web.billing.features.api_access": {
+    "text": "Urunga API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Ngā Rohe Ritenga"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 Rohe Ritenga"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Ngā Rohe Ritenga Kore-mutunga"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Waitohu Ritenga"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Whārangi Kāinga Waitohu"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Whakahaere Rōpū"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Whakahaere Mema"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Ngā Rārangi Tātari"
+  },
+  "web.billing.features.sso": {
+    "text": "Takiuru Kotahi (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Tautoko Tuatahi"
+  },
+  "web.billing.features.sla": {
+    "text": "Kirimana Taumata Ratonga"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Pire Whakapū"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Ara Tātari"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Awa Mahi"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Ngā Rere Mahi Tuku"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "Pupuri Karere Huna 30-rā"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Karere Huna Whārangi Kāinga"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Karere Huna Tae Mai"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Tae noa ki te 5 mema rōpū"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Tae noa ki te 10 mema rōpū"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Tae noa ki te 25 mema rōpū"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Tae noa ki te 50 mema rōpū"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Mema rōpū kore-mutunga"
+  },
+  "web.billing.features.notifications": {
+    "text": "Whakamōhio Īmēra"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "Ture Urunga IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Waitohu Wāhi Mahi"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Hanganga Motuhake"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Ngā Rere Mahi Tohatohahia"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Pire mō tēnei whakahaere"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Kua whakapikia tō mahere"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Kua hohe ināianei tō mahere hou. Ngā mihi mō tō hokonga."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Whakapā Pire"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Karere Huna Whārangi Kāinga"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Whakamōhio Īmēra"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Ture Urunga IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Waitohu Wāhi Mahi"
+  },
+  "web.billing.plans.due_today": {
+    "text": "E tika ana i tēnei rā:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Pire e haere mai ana ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Me pēhea te whakamahi o tō nama:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Moni pire e haere mai ana:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Nama kua whakamahia:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Moni e tika ana i te pire e haere mai ana:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Nama pūkete e toe ana:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Kua whakamahia ki ngā pire ā muri"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Whakamahinga Rōpū"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} o te {limit} rōpū"
   }
 }

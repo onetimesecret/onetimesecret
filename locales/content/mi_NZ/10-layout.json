@@ -1,6 +1,6 @@
 {
   "web.footer.api_docs": {
-    "text": "Ngā Tuhinga API"
+    "text": "Tuhinga API"
   },
   "web.footer.branding_guide": {
     "text": "Aratohu Waitohu"
@@ -9,7 +9,7 @@
     "text": "Whakariterite"
   },
   "web.footer.plans": {
-    "text": "Ngā Mahere"
+    "text": "Mahere"
   },
   "web.footer.security": {
     "text": "Haumaru"
@@ -18,10 +18,10 @@
     "text": "Ako mō ā mātou tikanga haumaru"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Tirohia ā mātou Tikanga me ngā Kaupapa Here"
+    "text": "Tirohia ā mātou Tikanga me ngā Herenga"
   },
   "web.footer.terms": {
-    "text": "Ngā Tikanga"
+    "text": "Tikanga"
   },
   "web.footer.privacy": {
     "text": "Matatapu"
@@ -33,34 +33,34 @@
     "text": "Tautoko"
   },
   "web.footer.legals": {
-    "text": "Ngā Ture"
+    "text": "Ture"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Pānuitia tā mātou Kaupapa Here Matatapu"
+    "text": "Pānuihia tā mātou Kaupapahere Matatapu"
   },
   "web.footer.check_our_service_status": {
-    "text": "Tirohia te tūnga ratonga"
+    "text": "Tirohia te tūnga o tā mātou ratonga"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Tūhuratia ā mātou tuhinga API"
+    "text": "Tūhura i ā mātou tuhinga API"
   },
   "web.footer.docs": {
-    "text": "Ngā Tuhinga"
+    "text": "Tuhinga"
   },
   "web.footer.access_our_documentation": {
-    "text": "Uru ki ā mātou tuhinga"
+    "text": "Whakauru ki ā mātou tuhinga"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Tirohia tā mātou waehere pūtake i GitHub"
+    "text": "Tirohia tā mātou waehere pūtake ki GitHub"
   },
   "web.footer.resources": {
-    "text": "Ngā Rauemi"
+    "text": "Rauemi"
   },
   "web.footer.blog": {
-    "text": "Rangitaki"
+    "text": "Pūrongo"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Pānuitia ā mātou rangitaki hou rawa atu"
+    "text": "Pānuihia ā mātou tuhinga pūrongo hou"
   },
   "web.footer.view_our_subscription_pricing": {
     "text": "Tirohia ā mātou utu ohaurunga"
@@ -72,13 +72,13 @@
     "text": "Kamupene"
   },
   "web.navigation.billing": {
-    "text": "Utu"
+    "text": "Nama"
   },
   "web.navigation.billingOverview": {
     "text": "Tirohanga Whānui"
   },
   "web.navigation.organizations": {
-    "text": "Ngā Whakahaere"
+    "text": "Whakahaere"
   },
   "web.site.website_version": {
     "text": "Putanga Paetukutuku"
@@ -90,52 +90,52 @@
     "text": "He hou ngā whakamaoritanga. Kua kitea he hapa? {send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Kātahi anō mātou ka tāpiri i ngā whakamaoritanga. Kua kitea he hapa? {send-feedback}"
+    "text": "Kua tāpiri mātou i ngā whakamāoritanga i tata nei. Kua kite koe i tētahi hapa? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "Me wātea te matatapu me te haumaru ki te katoa, ahakoa te reo. Kei te tāpiri mātou i ngā whakamaoritanga hei āwhina i ā mātou kaiwhakamahi me ā rātou kaiwhiwhi karere ki te mārama pai ake me pēhea te whakamahi haumaru me te uru ki ngā karere me ngā hononga haumaru. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ētahi hapa whakamaori, tohutohu mārama kore rānei. Hei āwhina i a mātou ki te whakapai ake i te mārama me te tika o ā mātou whakamaoritanga, otirā mō ngā ihirangi e pā ana ki te haumaru-tino, tēnā {send-feedback} mēnā ka kitea e koe he take"
   },
   "web.help.learn_more": {
-    "text": "Mātaki atu anō"
+    "text": "Ako atu"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "He aha tēnei e titiro nei au?"
+    "text": "He aha tēnei e tiro ana au?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Kei te titiro koe ki tētahi karere haumaru i tuari ki a koe mā Onetime Secret. Ka whakaatuhia tēnei ihirangi kotahi anake ka mutu ka mukua pūmautia mai i ā mātou tūmau."
+    "text": "E tiro ana koe i tētahi karere haumaru i tohatohaina ki a koe mā Onetime Secret. Kotahi noa te wā e whakaatuhia ai tēnei ihirangi, kātahi ka mukua pūmau mai i ā mātou tūmau."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Ka taea e au te tiro anō i tēnei karere huna ā muri ake?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Kāore. Mō ngā take haumaru, ka kitea tēnei karere huna kotahi anake. Whai muri i te kati i tēnei whārangi, ka mukua pūmautia te ihirangi, ā, kāore e taea te whakahoki e tētahi, tae atu ki a mātou."
+    "text": "Kāo. Mō ngā take haumaru, kotahi noa te wā e taea ai te tiro i tēnei karere huna. I muri i te katinga o tēnei whārangi, ka mukua pūmau te ihirangi, kāore e taea te whakahoki e tētahi, tae atu ki a mātou."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Me pēhea tāku tiaki i tēnei mōhiohio?"
+    "text": "Me pēhea e tiaki ai au i tēnei mōhiohio?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Whakamahia te pātene 'Tārua ki te Papatopenga' ki te tārua i te karere huna katoa. Mō ngā karere huna roa ake, me whakaū kua tāruahia e koe te ihirangi katoa i mua i te wehe i tēnei whārangi."
+    "text": "Whakamahia te pātene 'Tārua ki te Papatopenga' ki te tārua i te karere huna katoa. Mō ngā karere huna roa, me whakaū kua tāruatia te ihirangi katoa i mua i te wehenga i tēnei whārangi."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Kei te aroturukihia taku tirohanga o tēnei karere huna?"
+    "text": "E aroturukihia ana tāku tirohanga o tēnei karere huna?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Ka whakamōhiotia te kaituku kua tirohia tā rātou karere huna, engari kāore mātou e aroturuki ko wai i tiro, mai i hea rānei. Ka tiakina tō matatapu."
+    "text": "Ka whakamōhiotia te kaituku kua tirohia tā rātou karere huna, engari kāore mātou e aroturuki ko wai i tiro, nō hea rānei. Kua tiakina tō matatapu."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Ka wehe ana koe, ka tāmata anō rānei i tēnei whārangi, ka mukua pūmautia tēnei karere huna, ā, kāore e taea te whakahoki e tētahi."
+    "text": "Ki te wehe koe, ki te whakahou rānei i tēnei whārangi, ka mukua pūmau tēnei karere huna, kāore e taea te whakahoki e tētahi."
   },
   "web.layout.go_back_to_previous_page": {
     "text": "Hoki ki te whārangi o mua"
   },
   "web.layout.site_footer": {
-    "text": "Hiku paetukutuku"
+    "text": "Waewae pae"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Takahuri kaingākau pōuri"
+    "text": "Huri aratau pōuri"
   },
   "web.layout.provide_feedback": {
-    "text": "Whakaratohia te urupare"
+    "text": "Homai urupare"
   },
   "web.layout.company_logo": {
     "text": "Tohu kamupene"
@@ -144,70 +144,70 @@
     "text": "Tohu waitohu"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Whakaterenga Papatohu"
+    "text": "Whakatere Papatohu"
   },
   "web.layout.mobile_navigation": {
-    "text": "Whakaterenga Waea Pūkoro"
+    "text": "Whakatere Waea Pūkoro"
   },
   "web.layout.main_navigation": {
-    "text": "Whakaterenga matua"
+    "text": "Whakatere Matua"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} ngā tūemi"
+    "text": "{count} tūemi"
   },
   "web.layout.release_notes": {
-    "text": "Ngā Tuhipoka Tuku"
+    "text": "Tuhipoka Putanga"
   },
   "web.layout.loading_settings_content": {
-    "text": "Kei te uta ihirangi tautuhinga..."
+    "text": "E uta ana ngā ihirangi tautuhinga..."
   },
   "web.layout.settings_sections_0": {
     "text": "Ngā wāhanga tautuhinga"
   },
   "web.layout.close_settings": {
-    "text": "Katia ngā tautuhinga"
+    "text": "Kati tautuhinga"
   },
   "web.layout.settings_sections": {
     "text": "Ngā wāhanga tautuhinga"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Whakaritea ō hiahia me ō tautuhinga taupānga"
+    "text": "Whakariterite ō manakohanga taupānga me ngā tautuhinga"
   },
   "web.layout.return_home": {
     "text": "Hoki ki te kāinga"
   },
   "web.layout.return_to_home_page": {
-    "text": "Hoki ki te whārangi matua"
+    "text": "Hoki ki te whārangi kāinga"
   },
   "web.layout.return_to_home": {
     "text": "Hoki ki te Kāinga"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Tirohia te Kaupapahere Matatapu"
+    "text": "Tiro Kaupapahere Matatapu"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Tirohia ngā Ture Ratonga"
+    "text": "Tiro Tikanga Ratonga"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Toro ki te whārangi matua Onetime Secret"
+    "text": "Toro atu ki te whārangi kāinga o Onetime Secret"
   },
   "web.layout.footer_navigation": {
-    "text": "Whakaterenga hiku"
+    "text": "Whakatere waewae"
   },
   "web.layout.terms_of_service": {
-    "text": "Ngā Ture Ratonga"
+    "text": "Tikanga Ratonga"
   },
   "web.layout.privacy_policy": {
     "text": "Kaupapahere Matatapu"
   },
   "web.layout.icon_library": {
-    "text": "Pātaka Tohu"
+    "text": "Puna Ata"
   },
   "web.layout.google_material": {
     "text": "Google Material"
   },
   "web.layout.material_design_icons": {
-    "text": "Ngā Tohu Hoahoa Material"
+    "text": "Material Design Icons"
   },
   "web.layout.heroicons": {
     "text": "Heroicons"
@@ -219,7 +219,7 @@
     "text": "Font Awesome 6"
   },
   "web.layout.view_source_on_github": {
-    "text": "Tirohia te pūtake i GitHub"
+    "text": "Tiro waehere pūtake ki GitHub"
   },
   "web.layout.website_version_v_ot_version": {
     "text": "Putanga Paetukutuku: v{0}"
@@ -231,7 +231,7 @@
     "text": "Kua hurihia te reo ki {0}"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Takahuri ki te aratau {0}"
+    "text": "Huri ki te aratau {0}"
   },
   "web.layout.blank_mode_enabled": {
     "text": "Kua whakahohe te aratau {0}"
@@ -241,5 +241,11 @@
   },
   "web.layout.workspace_context": {
     "text": "Horopaki wāhi mahi"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "I te wā e tuku urupare ana koe, ka kite mātou i:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Tautuhi anō ki {0}"
   }
 }

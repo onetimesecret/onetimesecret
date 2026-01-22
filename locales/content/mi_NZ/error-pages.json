@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "He aha tēnei karere huna kāore e wātea?"
+    "text": "He aha tēnei karere huna i kore ai e wātea?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Kua hoahoatia ngā karere huna kia kitea kotahi noa te wā. Kua urunga pea tēnei hononga, kua pau, kua mukua ā-ringa rānei e te kaituku."
@@ -15,7 +15,7 @@
     "text": "Kua whakakorehia te whakatūpato"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Whakakore i te whakatūpato poroa"
+    "text": "Whakakore whakatūpato poronga"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Auē! Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei."
@@ -42,10 +42,10 @@
     "text": "E whakapāha ana mātou, engari i puta he hapa ohorere i te wā o te tukatuka i tō tono. Kua whakamōhiotia tō mātou rōpū, ā, kei te mahi mātou ki te whakatika."
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} Kua hē tētahi mea"
+    "text": "{0} I hapa tētahi mea"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Haere tuari i tētahi karere huna!"
+    "text": "Haere tohatoha karere huna!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei. Kaua e māharahara, ka pā tēnei ki te pai rawa o tātou!"

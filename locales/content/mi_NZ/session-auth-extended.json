@@ -1,33 +1,33 @@
 {
   "web.auth.mfa_required": {
-    "text": "E hiahiatia ana te whakaūnga MFA"
+    "text": "Me manatoko MFA"
   },
   "web.auth.mfa_verification_required": {
-    "text": "E hiahiatia ana te whakaūnga MFA hei uru ki tō pūkete"
+    "text": "Me manatoko MFA ki te uru ki tō pūkete"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Whakaoti Whakaūnga MFA"
+    "text": "Whakaotia te Manatokotanga MFA"
   },
   "web.auth.security.authentication_failed": {
-    "text": "I rahua te whakaūnga. Tēnā manatoko i ō taipitopito whakaūnga ka ngana anō."
+    "text": "I rahua te whakamotuhēhē. Tēnā manatoko i ō taipitopito me whakamātau anō."
   },
   "web.auth.security.rate_limited": {
-    "text": "He maha rawa ngā ngana. Tēnā ngana anō i muri mai."
+    "text": "He nui rawa ngā nganatanga. Tēnā whakamātauria anō ā muri."
   },
   "web.auth.security.session_expired": {
     "text": "Kua pau te wātū. Tēnā takiuru anō."
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Kāore i kitea te waehere whakaora. Tēnā manatoko i tō tāurunga."
+    "text": "Kāore i kitea te waehere whakaora. Tēnā manatoko i urungahia tika."
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Kua whakamahia kē tēnei waehere whakaora. Ka taea te whakamahi kotahi ia waehere."
+    "text": "Kua whakamahia kē tēnei waehere whakaora. Ka taea te whakamahi ia waehere kotahi wā anake."
   },
   "web.auth.security.network_error": {
-    "text": "Hapa whatunga. Tēnā tirotiro i tō hononga ka ngana anō."
+    "text": "Hapa whatunga. Tēnā tirohia tō hononga me whakamātau anō."
   },
   "web.auth.security.internal_error": {
-    "text": "I puta tētahi hapa. Tēnā ngana anō."
+    "text": "I puta he hapa. Tēnā whakamātauria anō."
   },
   "web.auth.methods.password": {
     "text": "Kupuhipa"
@@ -36,106 +36,106 @@
     "text": "Hononga Īmēra"
   },
   "web.auth.methods.webauthn": {
-    "text": "Pūāhua Koiora"
+    "text": "Koiora"
   },
   "web.auth.magicLink.title": {
     "text": "Takiuru mā te Īmēra"
   },
   "web.auth.magicLink.description": {
-    "text": "Ka tukuna e mātou he hononga takiuru haumaru ki a koe"
+    "text": "Ka tuku mātou i tētahi hononga takiuru haumaru ki a koe"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Tāuru tō īmēra"
+    "text": "Urunga tō īmēra"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Tuku Hononga Takiuru"
+    "text": "Tukua te Hononga Takiuru"
   },
   "web.auth.magicLink.checkEmail": {
     "text": "Tirohia tō īmēra"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "I tuku mātou i tētahi hononga takiuru ki {email}"
+    "text": "I tukuna e mātou he hononga takiuru ki {email}"
   },
   "web.auth.magicLink.linkExpiresIn": {
     "text": "Ka pau tēnei hononga i roto i te 15 meneti"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Whakamātau i tētahi atu īmēra"
+    "text": "Whakamātauria he īmēra kē"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Kāore e hiahiatia he kupuhipa — pāwhiritia noa te hononga i tō īmēra"
+    "text": "Kāore e hiahiatia te kupuhipa — pāwhiria noa te hononga i roto i tō īmēra"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Hapa whatunga. Tēnā ngana anō."
+    "text": "Hapa whatunga. Tēnā whakamātauria anō."
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "I rahua te tuku hononga takiuru. Tēnā ngana anō."
+    "text": "I rahua te tuku i te hononga takiuru. Tēnā whakamātauria anō."
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Hononga muhu, ngaro rānei"
+    "text": "Hononga takiuru muhu, ngaro rānei"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "I rahua te takiuru. Tēnā ngana anō."
+    "text": "I rahua te takiuru. Tēnā whakamātauria anō."
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Kei te takiuru i a koe..."
+    "text": "E takiuru ana i a koe..."
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Tēnā taihoa i a mātou e whakaū ana i tō hononga"
+    "text": "Tēnā tatari i a mātou e manatoko ana i tō hononga"
   },
   "web.auth.magicLink.error": {
-    "text": "Hapa Whakaūnga"
+    "text": "Hapa Whakamotuhēhē"
   },
   "web.auth.magicLink.back_to_signin": {
     "text": "Hoki ki te Takiuru"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Takiuru mā te Face ID / Touch ID"
+    "text": "Takiuru mā Face ID / Touch ID"
   },
   "web.auth.webauthn.setup": {
-    "text": "Whakatū takiuru pūāhua koiora"
+    "text": "Tautuhia te takiuru koiora"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "Kāore te whakaūnga pūāhua koiora e tautokohia i tēnei pūtirotiro"
+    "text": "Kāore e tautokohia te whakamotuhēhētanga koiora i tēnei tirotiro"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Tēnā whakamahia tētahi pūtirotiro hou-ake e tautoko ana i WebAuthn (Chrome, Safari, Firefox, Edge rānei)"
+    "text": "Tēnā whakamahia he tirotiro hou e tautoko ana i te WebAuthn (Chrome, Safari, Firefox, Edge rānei)"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "Kua whakahohea te takiuru pūāhua koiora"
+    "text": "Kua whakahohea te takiuru koiora"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "I rahua te whakatū takiuru pūāhua koiora"
+    "text": "I rahua te tautuhinga takiuru koiora"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "I rahua te whakaūnga pūāhua koiora. Tēnā ngana anō."
+    "text": "I rahua te whakamotuhēhētanga koiora. Tēnā whakamātauria anō."
   },
   "web.auth.webauthn.cancelled": {
-    "text": "I whakakore te whakaūnga"
+    "text": "I whakakore te whakamotuhēhētanga"
   },
   "web.auth.webauthn.processing": {
-    "text": "Kei te whakaū..."
+    "text": "E whakamotuhēhē ana..."
   },
   "web.auth.webauthn.description": {
-    "text": "Whakamahia tō maihi-matikara, kanohi, kī haumaru rānei hei takiuru"
+    "text": "Whakamahia tō tapumati, kanohi, kī haumaru rānei hei takiuru"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "E tautoko ana i Face ID, Touch ID, Windows Hello, me ngā kī haumaru"
+    "text": "Ka tautoko i Face ID, Touch ID, Windows Hello, me ngā kī haumaru"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Whakatūpato: {count} ngā ngana takiuru e toe ana"
+    "text": "Whakatūpato: E {count} ngā nganatanga takiuru e toe ana"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Kua raka te pūkete nā te maha o ngā ngana takiuru i rahua"
+    "text": "Kua rakaina te pūkete nā te maha rawa o ngā nganatanga takiuru hē"
   },
   "web.auth.lockout.locked_until": {
-    "text": "Kua raka tō pūkete tae noa ki {time}"
+    "text": "Kua rakaina tō pūkete tae noa ki te {time}"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Whakapā ki te tautoko mēnā e hiahiatia ana te urunga tere"
+    "text": "Whakapā atu ki te tautoko mēnā me uru wawe koe"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Ka taea e koe te tautuhi anō i tō kupuhipa"
+    "text": "Ka taea e koe te tautuhi anō i tō kupuhipa kē"
   },
   "web.auth.sessions.title": {
     "text": "Ngā Wātū Hohe"
@@ -144,7 +144,7 @@
     "text": "Wātū o Nāianei"
   },
   "web.auth.sessions.other": {
-    "text": "Ngā Wātū Kē Atu"
+    "text": "Ngā Wātū Kē"
   },
   "web.auth.sessions.device": {
     "text": "Pūrere"
@@ -159,94 +159,94 @@
     "text": "Hohe Whakamutunga"
   },
   "web.auth.sessions.created": {
-    "text": "I Hangaia"
+    "text": "I hangaia"
   },
   "web.auth.sessions.remove": {
     "text": "Tango"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Takiputa i Ngā Wātū Kē Atu Katoa"
+    "text": "Takiputa i ngā Wātū Kē Katoa"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "E tino hiahia ana koe ki te tango i tēnei wātū?"
+    "text": "Kei te tino hiahia koe ki te tango i tēnei wātū?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Ka takiputa tēnei i a koe mai i ngā pūrere kē atu katoa. E tino hiahia ana koe?"
+    "text": "Ka takiputa koe mai i ngā pūrere kē katoa. Kei te tino hiahia koe?"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "Kāore he atu wātū hohe"
+    "text": "Kāore he wātū hohe kē"
   },
   "web.auth.sessions.removed_success": {
-    "text": "Kua tangohia angituhia te wātū"
+    "text": "Kua tangohia te wātū"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Kua takiputa ngā wātū kē atu katoa"
+    "text": "Kua takiputa ngā wātū kē katoa"
   },
   "web.auth.sessions.link_title": {
     "text": "Ngā Wātū Hohe"
   },
   "web.auth.mfa.title": {
-    "text": "Whakaūnga Pūāhua-Rua"
+    "text": "Whakamotuhēhētanga Āhuatanga-Rua"
   },
   "web.auth.mfa.enabled": {
-    "text": "Kua whakahohea te whakaūnga pūāhua-rua"
+    "text": "Kua whakahohea te whakamotuhēhētanga āhuatanga-rua"
   },
   "web.auth.mfa.disabled": {
-    "text": "Kua monokia te whakaūnga pūāhua-rua"
+    "text": "Kua monokia te whakamotuhēhētanga āhuatanga-rua"
   },
   "web.auth.mfa.enable": {
-    "text": "Whakahohe Whakaūnga Pūāhua-Rua"
+    "text": "Whakahohea te Whakamotuhēhētanga Āhuatanga-Rua"
   },
   "web.auth.mfa.disable": {
-    "text": "Monoki Whakaūnga Pūāhua-Rua"
+    "text": "Monokia te Whakamotuhēhētanga Āhuatanga-Rua"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Whakatū Whakaūnga Pūāhua-Rua"
+    "text": "Tautuhia te Whakamotuhēhētanga Āhuatanga-Rua"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Tāpiri i tētahi papa haumaru tāpiri ki tō pūkete"
+    "text": "Tāpirihia he taumata haumaru anō ki tō pūkete"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Kamera Waehere QR"
+    "text": "1. Matawai i te Waehere QR"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Whakaū Whakatūnga"
+    "text": "2. Manatoko te Tautuhinga"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Kamera i tēnei waehere QR ki tō taupānga whakaū"
+    "text": "Matawai i tēnei waehere QR ki tō taupānga whakamotuhēhē"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Tāuru rānei i tēnei waehere ā-ringa"
+    "text": "Urunga rānei tēnei waehere ā-ringa"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Tāuru i te waehere 6-mati mai i tō taupānga"
+    "text": "Urunga te waehere mati-6 mai i tō taupānga"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Tāuru waehere whakaū"
+    "text": "Urunga te waehere whakamotuhēhē"
   },
   "web.auth.mfa.verify": {
-    "text": "Whakaū me te Whakahohe"
+    "text": "Manatoko me Whakahohea"
   },
   "web.auth.mfa.code_required": {
-    "text": "E hiahiatia ana te waehere whakaū"
+    "text": "Me whai te waehere whakamotuhēhē"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Waehere muhu. Ka pau ngā waehere ia 30 hēkona. Whakamātau i te waehere hou rawa atu mai i tō taupānga whakaū."
+    "text": "He waehere muhu. Ka pau ngā waehere ia 30 hēkona. Whakamātauria te waehere hou rawa mai i tō taupānga whakamotuhēhē."
   },
   "web.auth.mfa.success_enabled": {
-    "text": "Kua whakahohea te whakaūnga pūāhua-rua"
+    "text": "Kua whakahohea te whakamotuhēhētanga āhuatanga-rua"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "Kua monokia te whakaūnga pūāhua-rua"
+    "text": "Kua monokia te whakamotuhēhētanga āhuatanga-rua"
   },
   "web.auth.mfa.require_password": {
-    "text": "Tāuru tō kupuhipa hei monoki i te 2FA"
+    "text": "Urunga tō kupuhipa hei monoki i te 2FA"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "Kupuhipa"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Whakaū i tō tuakiri hei whakarerekē i ngā tautuhinga whakaūnga pūāhua-rua"
+    "text": "Whakaūngia tō tuakiri hei whakarereke i ngā tautuhinga whakamotuhēhētanga āhuatanga-rua"
   },
   "web.auth.mfa.last_used": {
     "text": "I whakamahia whakamutunga: {time}"
@@ -255,118 +255,118 @@
     "text": "Kāore anō kia whakamahia"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Whakamahi i tētahi waehere whakaora"
+    "text": "Whakamahia kē he waehere whakaora"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Hoki ki te waehere whakaū"
+    "text": "Hoki ki te waehere whakamotuhēhē"
   },
   "web.auth.mfa.cancel": {
-    "text": "Whakakore me te hoki ki te takiuru"
+    "text": "Whakakore me hoki ki te takiuru"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Kei te uta i te tūnga MFA..."
+    "text": "E uta ana i te tūnga MFA..."
   },
   "web.auth.mfa.protected_description": {
-    "text": "Kua tiakina tō pūkete ki te whakaūnga pūāhua-rua"
+    "text": "Kua tiakina tō pūkete ki te whakamotuhēhētanga āhuatanga-rua"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Tiaki i tō pūkete ki tētahi papa haumaru tāpiri"
+    "text": "Tiakina tō pūkete ki tētahi taumata haumaru anō"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Ārai i te urunga kore mana ahakoa he hē tō kupuhipa"
+    "text": "Aukati i te urunga kore-whakaaetia ahakoa kua pāhekeheke tō kupuhipa"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Ka mahi tahi me Google Authenticator, Authy, me ētahi atu taupānga TOTP"
+    "text": "Ka mahi ki Google Authenticator, Authy, me ētahi atu taupānga TOTP"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Ngā waehere whakaora taraki mō te urunga ohotata"
+    "text": "Ngā waehere whakaora tāruarua mō te urunga ohorere"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "Tāuru tō kupuhipa"
+    "text": "Urunga tō kupuhipa"
   },
   "web.auth.mfa.disabling": {
-    "text": "Kei te monoki..."
+    "text": "E monoki ana..."
   },
   "web.auth.mfa.disable_button": {
-    "text": "Monoki 2FA"
+    "text": "Monokia 2FA"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "Kei te hanga waehere QR..."
+    "text": "E hanga ana i te waehere QR..."
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Whakamahi i Google Authenticator, Authy, tētahi taupānga TOTP rānei"
+    "text": "Whakamahia Google Authenticator, Authy, tētahi taupānga TOTP rānei"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Haere tonu ki te Whakaūnga"
+    "text": "Haere tonu ki te Manatokotanga"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Tāuru i te waehere 6-mati mai i tō taupānga whakaū"
+    "text": "Urunga te waehere mati-6 mai i tō taupānga whakamotuhēhē"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Whakahohe MFA"
+    "text": "Whakahohea MFA"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Whakaoti Whakatūnga"
+    "text": "Whakaotia te Tautuhinga"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Tāuru tētahi o ō waehere whakaora"
+    "text": "Urunga tētahi o ō waehere whakaora"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "Waehere Whakaora"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Tāuru waehere whakaora"
+    "text": "Urunga te waehere whakaora"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Whakaū Waehere Whakaora"
+    "text": "Manatoko te Waehere Whakaora"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Tāuru waehere whakaū 6-mati"
+    "text": "Urunga te waehere whakamotuhēhē mati-6"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Kei te hohe te aratau waehere whakaora"
+    "text": "Kua hohe te aratau waehere whakaora"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Kei te hohe te aratau waehere whakaū"
+    "text": "Kua hohe te aratau waehere whakamotuhēhē"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Tēnā tāuru i ngā mati 6 katoa kia haere tonu"
+    "text": "Tēnā urunga ngā mati 6 katoa hei haere tonu"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "Mati {current} o {total}"
+    "text": "Mati {current} o te {total}"
   },
   "web.auth.recovery_codes.title": {
     "text": "Ngā Waehere Whakaora"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Tiaki i ēnei waehere ki tētahi wāhi haumaru. Ka taea te whakamahi kotahi ia waehere mēnā ka ngaro tō urunga ki tō taupānga whakaū."
+    "text": "Tiakina ēnei waehere ki tētahi wāhi haumaru. Ka taea te whakamahi kotahi wā mēnā ka ngaro tō urunga ki tō taupānga whakamotuhēhē."
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Ka whakaatuhia ēnei waehere kotahi anake"
+    "text": "Ka whakaaturia ēnei waehere kotahi wā anake"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Me tikiake, tārua rānei i ō waehere whakaora i mua i te whakaoti whakatūnga."
+    "text": "Me tikiake, me tārua rānei ō waehere whakaora i mua i te whakaoti i te tautuhinga."
   },
   "web.auth.recovery_codes.generate_new": {
     "text": "Hanga Waehere Hou"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Hanga Anō i ngā Waehere"
+    "text": "Whakahou ngā Waehere"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Ka whakakorehia e tēnei ngā waehere whakaora tīari katoa"
+    "text": "Mā tēnei ka whakakore i ngā waehere whakaora o nāianei katoa"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Tikiake Waehere"
+    "text": "Tikiake ngā Waehere"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Kua tikiake ngā waehere whakaora"
+    "text": "Kua tikiakena ngā waehere whakaora"
   },
   "web.auth.recovery_codes.print": {
-    "text": "Tā Waehere"
+    "text": "Tā ngā Waehere"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Tārua i ngā Waehere Katoa"
+    "text": "Tārua ngā Waehere Katoa"
   },
   "web.auth.recovery_codes.copied": {
     "text": "Kua tāruatia ngā waehere ki te papatopenga"
@@ -375,16 +375,16 @@
     "text": "I rahua te tārua i ngā waehere ki te papatopenga"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "Kua Whakamahia"
+    "text": "Kua whakamahia"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "Kāore anō Kia Whakamahia"
+    "text": "Kāore anō kia whakamahia"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} ngā waehere whakaora e toe ana"
+    "text": "{count} o te {limit} waehere whakaora e toe ana"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Ka taea te whakamahi kotahi ia waehere. Hangaia anō ngā waehere mēnā kei te iti haere."
+    "text": "Ka taea te whakamahi i ia waehere kotahi wā anake. Whakahou ngā waehere mēnā kei te iti haere."
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "Kāore he waehere whakaora e toe ana"
@@ -394,5 +394,20 @@
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Ngā Waehere Whakaora"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Manatoko"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Whakamahia te waehere whakaora"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Whakakore te takiuru"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ HAUMARU-HIRAHIRA: Ko ngā karere hei aukati i te whakakite kōrero. Tirohia src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Whārangi whakahaere mō ngā pūrere/tirotiro kua takiuru a te kaiwhakamahi"
   }
 }

@@ -3,43 +3,43 @@
     "text": "[Tīkiti: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "Kua tukuna e tētahi kiritaki te mōhiohio e whai ake nei"
+    "text": "Kua tukuna e te kiritaki ngā mōhiohio e whai ake nei"
   },
   "email.secret_link.subject": {
-    "text": "I tukua e %{sender_email} tētahi karere huna ki a koe"
+    "text": "I tuku a %{sender_email} i tētahi karere huna ki a koe"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "i tuku i tētahi karere huna ki a koe:"
+    "text": "i tuku ki a koe he karere huna:"
   },
   "email.secret_link.important_label": {
-    "text": "Mea Nui:"
+    "text": "Hira:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Ka mahi tēnei hononga kotahi wā anake. I muri i te tirohanga, ka mukua tonutia te karere huna."
+    "text": "Kotahi noa te wā e mahi ai tēnei hononga. Whai muri i te tirohanga, ka mukua pūmau te karere huna."
   },
   "email.secret_link.sent_via": {
-    "text": "I tukua mā"
+    "text": "I tukuna mā"
   },
   "email.welcome.subject": {
-    "text": "Whakaūngia tō pūkete Onetime Secret"
+    "text": "Nau mai ki %{product_name} - Tēnā manatoko i tō īmēra"
   },
   "email.welcome.title": {
-    "text": "Kua pōwhiritia koe ki te hono ki %{product_name}!"
+    "text": "Nau mai ki %{product_name}!"
   },
   "email.welcome.verify_prompt": {
-    "text": "Tēnā manatokohia tō wāhitau īmēra mā te pāwhiri i te hononga i raro:"
+    "text": "Tēnā manatoko i tō wāhitau īmēra mā te pāwhiri i te hononga i raro:"
   },
   "email.welcome.verify_button": {
     "text": "Manatoko Wāhitau Īmēra"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Tārua, whakapiri rānei i tēnei hononga:"
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:"
   },
   "email.welcome.signature": {
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}. Mēnā kāore koe i te tūmanako i tēnei pōwhiri, ka taea e koe te karo haumaru i tēnei karere."
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}. Mēnā kāore koe i waihanga pūkete, ka taea e koe te waiho i tēnei karere."
   },
   "email.password_request.subject": {
     "text": "Tautuhi anō tō kupuhipa (%{display_domain})"
@@ -48,16 +48,16 @@
     "text": "Tautuhi Anō Tō Kupuhipa"
   },
   "email.password_request.request_notice": {
-    "text": "I whiwhi mātou i tētahi tono kia tautuhi anō i tō kupuhipa mō %{product_name}."
+    "text": "Kua riro i a mātou tētahi tono ki te tautuhi anō i tō kupuhipa mō %{product_name}."
   },
   "email.password_request.reset_button": {
     "text": "Tautuhi Anō Kupuhipa"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Tārua, whakapiri rānei i tēnei hononga:"
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Mēnā kāore koe i tono i te tautuhi anō kupuhipa, ka taea e koe te karo haumaru i tēnei īmēra."
+    "text": "Mēnā kāore koe i tono i te tautuhi anō kupuhipa, ka taea e koe te waiho i tēnei īmēra."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -69,7 +69,7 @@
     "text": "Takiuru ki %{display_domain}"
   },
   "email.magic_link.title": {
-    "text": "Takiuru mā te Hononga Mākutu"
+    "text": "Takiuru mā te Hononga Mana"
   },
   "email.magic_link.request_notice": {
     "text": "I tono koe i tētahi hononga takiuru mō tō pūkete %{product_name}."
@@ -78,43 +78,43 @@
     "text": "Takiuru"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Tāruatia rānei ka whakapiri i tēnei hononga:"
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Ka pau tēnei hononga i roto i te 15 meneti."
+    "text": "Ka pau tēnei hononga i roto i ngā meneti 15."
   },
   "email.magic_link.ignore_notice": {
-    "text": "Mēnā kāore koe i tono i tēnei hononga, ka taea e koe te karo i tēnei īmēra."
+    "text": "Mēnā kāore koe i tono i tēnei hononga, ka taea e koe te waiho i tēnei īmēra."
   },
   "email.magic_link.signature": {
     "text": "Delano"
   },
   "email.magic_link.postscript": {
-    "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address}."
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}."
   },
   "email.incoming_secret.subject": {
-    "text": "Kua whiwhi koe i tētahi karere huna"
+    "text": "Kua riro i a koe he karere huna"
   },
   "email.incoming_secret.received_message": {
-    "text": "Kua whiwhi koe i tētahi karere haumaru:"
+    "text": "Kua riro i a koe he karere haumaru:"
   },
   "email.incoming_secret.memo_label": {
     "text": "Memo:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Kua tukuna e tētahi tētahi karere haumaru ki a koe mā %{display_domain}."
+    "text": "Kua tukuna e tētahi he karere haumaru ki a koe mā %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Hei tiro i tēnei karere huna, pāwhiri i te hononga i raro:"
+    "text": "Ki te tiro i tēnei karere huna, pāwhiri i te hononga i raro:"
   },
   "email.incoming_secret.important_label": {
-    "text": "Mea Nui:"
+    "text": "Hira:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Ka mahi tēnei hononga kotahi wā anake. I muri i te tirohanga, ka mukua tonutia te karere huna."
+    "text": "Kotahi noa te wā e mahi ai tēnei hononga. Whai muri i te tirohanga, ka mukua pūmau te karere huna."
   },
   "email.incoming_secret.sent_via": {
-    "text": "I tukua mā"
+    "text": "I tukuna mā"
   },
   "email.secret_revealed.subject": {
     "text": "Kua tirohia tō karere huna"
@@ -123,55 +123,55 @@
     "text": "Kua Tirohia Tō Karere Huna"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "I tirohia tō karere huna i %{date}."
+    "text": "I tirohia tō karere huna i te %{date}."
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Karere Huna ID:"
+    "text": "ID Karere Huna:"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "He pānui aunoa tēnei. Kāore he mahi e hiahiatia ana."
+    "text": "He whakamōhiotanga aunoa tēnei. Kāore he mahi e hiahiatia ana."
   },
   "email.secret_revealed.signature": {
     "text": "Delano"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Whakahaere hiahia pānui"
+    "text": "Whakahaere manakohanga whakamōhiotanga"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Hei whakahaere i ō hiahia pānui:"
+    "text": "Ki te whakahaere i ō manakohanga whakamōhiotanga:"
   },
   "email.expiration_warning.subject": {
-    "text": "Ka pau wawe tō hononga karere huna"
+    "text": "Ka pau tata tō hononga huna"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Ka pau tō hononga karere huna i roto i %{time_remaining}"
+    "text": "Ka pau tō hononga huna i roto i %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
-    "text": "Tirohia tō karere huna kia kore anō i pau"
+    "text": "Tirohia tō karere huna i mua i te paunga"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Whakamaumahara:"
+    "text": "Whakamahara:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "I muri i te pauhanga, ka mukua tonutia te karere huna, ā, kāore e taea te whakaora."
+    "text": "Whai muri i te paunga, ka mukua pūmau te karere huna, kāore e taea te whakahoki."
   },
   "email.expiration_warning.sent_via": {
-    "text": "I tukua mā"
+    "text": "I tukuna mā"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Tirohia kia kore anō i ngaro:"
+    "text": "Tirohia i mua i te ngaro:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "I muri i te pauhanga, ka mukua tonutia te karere huna."
+    "text": "Whai muri i te paunga, ka mukua pūmau te karere huna."
   },
   "email.feedback_email.subject": {
-    "text": "Urupare i %{date} mā %{display_domain} (%{strategy})"
+    "text": "Urupare i te %{date} mā %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
     "text": "Urupare Kaiwhakamahi"
   },
   "email.feedback_email.from_label": {
-    "text": "Nō:"
+    "text": "Mai i:"
   },
   "email.feedback_email.domain_label": {
     "text": "Rohe:"
@@ -183,34 +183,34 @@
     "text": "Karere:"
   },
   "email.feedback_email.signature": {
-    "text": "Tautoko Karere Huna"
+    "text": "Tautoko Huna"
   },
   "email.organization_invitation.subject": {
-    "text": "Kua pōwhiritia koe ki te hono ki %{organization_name}"
+    "text": "Kua pōhiritia koe ki te hono atu ki %{organization_name}"
   },
   "email.organization_invitation.title": {
-    "text": "Kua pōwhiritia koe ki te hono ki %{organization_name}!"
+    "text": "Kua pōhiritia koe ki te hono atu ki %{organization_name}!"
   },
   "email.organization_invitation.body": {
-    "text": "Kua pōwhiri a %{inviter_email} i a koe ki te hono ki \"%{organization_name}\" hei %{role_description}."
+    "text": "Kua pōhiri a %{inviter_email} i a koe ki te hono atu ki \"%{organization_name}\" hei %{role_description}."
   },
   "email.organization_invitation.accept_button": {
-    "text": "Whakaae ki te Pōwhiri"
+    "text": "Whakaae Pōhiri"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Tārua rānei me te whakapiri i tēnei hononga:"
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Ka pau tēnei pōwhiri i roto i te %{days} rā."
+    "text": "Ka pau tēnei pōhiri i roto i ngā rā %{days}."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Mēnā kāore koe e hiahia ki te hono, ka taea e koe te karo noa i tēnei īmēra, te whakakāhore rānei i te pōwhiri."
+    "text": "Mēnā kāore koe e hiahia ki te hono atu, ka taea e koe te waiho i tēnei īmēra, te whakakāhore rānei i te pōhiri."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Mēnā kāore koe i te tūmanako i tēnei pōwhiri, ka taea e koe te karo haumaru i tēnei karere."
+    "text": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Mēnā kāore koe i te tūmanako ki tēnei pōhiri, ka taea e koe te waiho i tēnei karere."
   },
   "email.organization_invitation.roles.member": {
     "text": "he mema"
@@ -225,10 +225,10 @@
     "text": "Kua Hurihia Tō Kupuhipa"
   },
   "email.password_changed.body": {
-    "text": "I hurihia tō kupuhipa mō %{product_name} i %{date} i %{time}."
+    "text": "Kua hurihia tō kupuhipa mō %{product_name} i te %{date} i te %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Mēnā kāore koe i hanga i tēnei panoni, tēnā whakaū i tō pūkete ināianei mā te tautuhi anō i tō kupuhipa me te whakapā atu ki te tautoko."
+    "text": "Mēnā ehara i a koe i huri i tēnei, tēnā haumarutia tō pūkete ināianei tonu mā te tautuhi anō i tō kupuhipa me te whakapā atu ki te tautoko."
   },
   "email.password_changed.signature": {
     "text": "Delano"
@@ -240,10 +240,10 @@
     "text": "Kua Hurihia Tō Wāhitau Īmēra"
   },
   "email.email_changed.body": {
-    "text": "I hurihia te wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email_masked} i %{date}."
+    "text": "Kua hurihia te wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email_masked} i te %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Mēnā kāore koe i hanga i tēnei panoni, tēnā whakapā atu ki te tautoko ināianei, kei kino tō pūkete."
+    "text": "Mēnā ehara i a koe i huri i tēnei, tēnā whakapā tere ki te tautoko nā te mea tērā pea kua whakaekea tō pūkete."
   },
   "email.email_changed.signature": {
     "text": "Delano"
@@ -255,43 +255,43 @@
     "text": "Manatoko Tō Wāhitau Īmēra Hou"
   },
   "email.email_change_confirmation.body": {
-    "text": "Tēnā manatokohia tēnei wāhitau īmēra kia oti te panoni mō tō pūkete %{product_name}."
+    "text": "Tēnā manatoko i tēnei wāhitau īmēra hei whakaoti i te huringa mō tō pūkete %{product_name}."
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Manatoko Wāhitau Īmēra"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Tārua, whakapiri rānei i tēnei hononga:"
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano"
   },
   "email.mfa_enabled.subject": {
-    "text": "Kua whakahohehia te manatoko rua-āhuatanga (%{display_domain})"
+    "text": "Kua whakahohea te manatoko rua-āhuatanga (%{display_domain})"
   },
   "email.mfa_enabled.title": {
-    "text": "Kua Whakahohehia Te Manatoko Rua-Āhuatanga"
+    "text": "Kua Whakahohea te Manatoko Rua-Āhuatanga"
   },
   "email.mfa_enabled.body": {
-    "text": "I whakahohehia te manatoko rua-āhuatanga mō tō pūkete %{product_name} i %{date}."
+    "text": "Kua whakahohea te manatoko rua-āhuatanga mō tō pūkete %{product_name} i te %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Kei te haumaru ake tō pūkete. Me whakauru e koe tētahi waehere manatoko mai i tō taupānga manatoko i te takiuru."
+    "text": "Kua haumaru ake tō pūkete ināianei. Me whakauru koe i tētahi waehere manatoko mai i tō taupānga manatoko i te wā e takiuru ana."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
   },
   "email.mfa_disabled.subject": {
-    "text": "Kua whakakāhoretia te manatoko rua-āhuatanga (%{display_domain})"
+    "text": "Kua monokia te manatoko rua-āhuatanga (%{display_domain})"
   },
   "email.mfa_disabled.title": {
-    "text": "Kua Whakakāhoretia Te Manatoko Rua-Āhuatanga"
+    "text": "Kua Monokia te Manatoko Rua-Āhuatanga"
   },
   "email.mfa_disabled.body": {
-    "text": "I whakakāhoretia te manatoko rua-āhuatanga mō tō pūkete %{product_name} i %{date}."
+    "text": "Kua monokia te manatoko rua-āhuatanga mō tō pūkete %{product_name} i te %{date}."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Kei te iti ake te haumaru o tō pūkete. Mēnā kāore koe i hanga i tēnei panoni, tēnā whakaū i tō pūkete ināianei."
+    "text": "Kua iti iho te haumaru o tō pūkete ināianei. Mēnā ehara i a koe i huri i tēnei, tēnā haumarutia tō pūkete ināianei tonu."
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
@@ -300,10 +300,10 @@
     "text": "Takiuru hou ki tō pūkete (%{display_domain})"
   },
   "email.new_login_alert.title": {
-    "text": "Kua Kitea Tētahi Takiuru Hou"
+    "text": "Kua Kitea He Takiuru Hou"
   },
   "email.new_login_alert.body": {
-    "text": "I kitea tētahi takiuru hou ki tō pūkete %{product_name} i %{date} i %{time}."
+    "text": "Kua kitea he takiuru hou ki tō pūkete %{product_name} i te %{date} i te %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "Pūrere:"
@@ -315,22 +315,22 @@
     "text": "Wāhitau IP:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Mēnā kāore tēnei koe, kei kino pea tō pūkete."
+    "text": "Mēnā ehara tēnei i a koe, tērā pea kua whakaekea tō pūkete."
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Whakaū Tō Pūkete"
+    "text": "Haumarutia Tō Pūkete"
   },
   "email.new_login_alert.signature": {
     "text": "Delano"
   },
   "email.member_removed.subject": {
-    "text": "Kua tangohia koe i %{organization_name}"
+    "text": "Kua tangohia koe mai i %{organization_name}"
   },
   "email.member_removed.title": {
-    "text": "Kua Tangohia Koe i %{organization_name}"
+    "text": "Kua Tangohia Koe Mai i %{organization_name}"
   },
   "email.member_removed.body": {
-    "text": "Kua tangohia koe i te whakahaere \"%{organization_name}\" i %{product_name}."
+    "text": "Kua tangohia koe mai i te whakahaere \"%{organization_name}\" i runga i %{product_name}."
   },
   "email.member_removed.signature": {
     "text": "Delano"
@@ -351,25 +351,25 @@
     "text": "Kua mukua te whakahaere \"%{organization_name}\""
   },
   "email.organization_deleted.title": {
-    "text": "Kua Mukua Te Whakahaere"
+    "text": "Kua Mukua te Whakahaere"
   },
   "email.organization_deleted.body": {
-    "text": "Kua mukua te whakahaere \"%{organization_name}\" i %{product_name}. Kua tangohia ngā raraunga katoa e pā ana."
+    "text": "Kua mukua te whakahaere \"%{organization_name}\" mai i %{product_name}. Kua tangohia ngā raraunga katoa e pā ana."
   },
   "email.organization_deleted.signature": {
     "text": "Delano"
   },
   "email.payment_receipt.subject": {
-    "text": "Rīhiti utu mō %{product_name}"
+    "text": "Rihīti utu mō %{product_name}"
   },
   "email.payment_receipt.title": {
-    "text": "Rīhiti Utu"
+    "text": "Rihīti Utu"
   },
   "email.payment_receipt.body": {
-    "text": "Ngā mihi mō tō utu. Kei konei ō taipitopito utu:"
+    "text": "Ngā mihi mō tō utu. Anei ngā taipitopito utu:"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Moni:"
+    "text": "Tapeke:"
   },
   "email.payment_receipt.date_label": {
     "text": "Rā:"
@@ -387,28 +387,28 @@
     "text": "I rahua te utu mō %{product_name}"
   },
   "email.payment_failed.title": {
-    "text": "I Rahua Te Utu"
+    "text": "I Rahua te Utu"
   },
   "email.payment_failed.body": {
-    "text": "Kāore mātou i taea te tukatuka i tō utu mō %{product_name}. Tēnā whakahou i tō tikanga utu kia kore ai te whakamutuhanga ratonga."
+    "text": "Kāore i taea e mātou te tukatuka tō utu mō %{product_name}. Tēnā whakahōu tō tikanga utu kia karo i te whakatarunga ratonga."
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Whakahou Tikanga Utu"
+    "text": "Whakahōu Tikanga Utu"
   },
   "email.payment_failed.signature": {
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "Ka pau tō whakamātautau %{product_name} i roto i %{days_remaining} rā"
+    "text": "Ka pau tō whakamātautau %{product_name} i roto i ngā rā %{days_remaining}"
   },
   "email.trial_expiring.title": {
-    "text": "Kei Te Mutu Wawe Tō Whakamātautau"
+    "text": "Ka Pau Tata Tō Whakamātautau"
   },
   "email.trial_expiring.body": {
-    "text": "Ka pau tō whakamātautau koreutu o %{product_name} i roto i %{days_remaining} rā. Whakapai ake ināianei kia puritia te urunga ki ngā āhuatanga katoa."
+    "text": "Ka pau tō whakamātautau utukore o %{product_name} i roto i ngā rā %{days_remaining}. Whakapikia ināianei kia pupuri i te uru ki ngā āhuatanga katoa."
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Whakapai Ake Ināianei"
+    "text": "Whakapiki Ināianei"
   },
   "email.trial_expiring.signature": {
     "text": "Delano"
@@ -417,28 +417,28 @@
     "text": "Kua hurihia tō ohaurunga %{product_name}"
   },
   "email.subscription_changed.title": {
-    "text": "Kua Hurihia Te Ohaurunga"
+    "text": "Kua Hurihia te Ohaurunga"
   },
   "email.subscription_changed.body": {
     "text": "Kua hurihia tō ohaurunga %{product_name} mai i %{old_plan} ki %{new_plan}."
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ka tīmata tēnei panoni i %{date}."
+    "text": "Ka mahi tēnei huringa mai i te %{date}."
   },
   "email.subscription_changed.signature": {
     "text": "Delano"
   },
   "email.common.greeting": {
-    "text": "Tēnā koe,"
+    "text": "Kia ora,"
   },
   "email.common.thanks": {
     "text": "Ngā mihi,"
   },
   "email.common.unsubscribe": {
-    "text": "Whakakore ohaurunga"
+    "text": "Whakakorea ohaurunga"
   },
   "email.common.view_in_browser": {
-    "text": "Tirohia i te pūtirotiro"
+    "text": "Tiro i te pūtirotiro"
   },
   "email.common.onetime_secret": {
     "text": "Onetime Secret"

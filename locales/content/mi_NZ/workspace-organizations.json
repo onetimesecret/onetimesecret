@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Whakahaere"
+    "text": "Ngā Whakahaere"
   },
   "web.organizations.organization": {
     "text": "Whakahaere"
@@ -12,10 +12,10 @@
     "text": "Whakahaere i ō whakahaere"
   },
   "web.organizations.my_organizations": {
-    "text": "Ōku Whakahaere"
+    "text": "Ngā Whakahaere"
   },
   "web.organizations.manage_organizations": {
-    "text": "Whakahaere Whakahaere"
+    "text": "Whakahaere ngā Whakahaere"
   },
   "web.organizations.new_organization": {
     "text": "Whakahaere Hou"
@@ -24,10 +24,10 @@
     "text": "Kāore anō he whakahaere"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Ka taea e ngā whakahaere te whakahaere i ngā rōpū maha me te utu me te whakahaere kotahi. Tīmata mā te waihanga i tō whakahaere tuatahi."
+    "text": "He pire me te whakahaere kotahi e whakaratohia ana e ngā whakahaere. Tīmata mā te waihanga i tō whakahaere tuatahi."
   },
   "web.organizations.no_description": {
-    "text": "Kāore he whakamārama kua homai"
+    "text": "Kāore he whakamārama i whakaratohia"
   },
   "web.organizations.default": {
     "text": "Taunoa"
@@ -39,19 +39,19 @@
     "text": "Waihanga Whakahaere Tuatahi"
   },
   "web.organizations.create_organization_description": {
-    "text": "Waihanga i tētahi whakahaere hou hei rōpū i ō rōpū"
+    "text": "Waihanga whakahaere hou"
   },
   "web.organizations.create": {
     "text": "Waihanga"
   },
   "web.organizations.create_error": {
-    "text": "I rahua te waihanga whakahaere"
+    "text": "I rahua te waihanga i te whakahaere"
   },
   "web.organizations.organization_name": {
     "text": "Ingoa Whakahaere"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "hei tauira. Kamupene Acme"
+    "text": "hei tauira, Acme Corporation"
   },
   "web.organizations.display_name": {
     "text": "Ingoa Whakahaere"
@@ -63,88 +63,88 @@
     "text": "Mō te aha tēnei whakahaere?"
   },
   "web.organizations.contact_email": {
-    "text": "Īmēra Utu"
+    "text": "Īmēra Pire"
   },
   "web.organizations.contact_email_help": {
-    "text": "Whakapā matua mō te utu me ngā whakamōhio whakahaere"
+    "text": "Whakapā matua mō ngā whakamōhio pire me te whakahaere"
   },
   "web.organizations.select_organization": {
-    "text": "Kōwhiri tētahi whakahaere"
+    "text": "Kōwhiria he whakahaere"
   },
   "web.organizations.switcher_locked": {
-    "text": "Kāore te whakawhiti whakahaere i tēnei whārangi"
+    "text": "Kāore e wātea ana te huri whakahaere i tēnei whārangi"
   },
   "web.organizations.not_found": {
     "text": "Kāore i kitea te whakahaere"
   },
   "web.organizations.load_error": {
-    "text": "I rahua te uta whakahaere"
+    "text": "I rahua te uta i te whakahaere"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "I rahua te uta whakahaere"
+    "text": "I rahua te uta i te whakahaere"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "I rahua te uta whakahaere"
+    "text": "I rahua te uta i ngā whakahaere"
   },
   "web.organizations.organization_information": {
-    "text": "Mōhiohio Whakahaere"
+    "text": "Kōrero Whakahaere"
   },
   "web.organizations.created": {
     "text": "I Hangaia"
   },
   "web.organizations.last_updated": {
-    "text": "I Whakahoutia Whakamutunga"
+    "text": "Whakahōu Whakamutunga"
   },
   "web.organizations.organization_settings": {
-    "text": "Ngā Tautuhinga Whakahaere"
+    "text": "Tautuhinga Whakahaere"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Whakahou i tō ingoa whakahaere me te whakamārama"
+    "text": "Whakahōu te ingoa me te whakamārama o tō whakahaere"
   },
   "web.organizations.general_settings": {
-    "text": "Ngā Tautuhinga Whānui"
+    "text": "Tautuhinga Whānui"
   },
   "web.organizations.billing_settings": {
-    "text": "Utu me te Ohaurunga"
+    "text": "Pire & Ohaurunga"
   },
   "web.organizations.save_changes": {
-    "text": "Tiaki Whakarerekētanga"
+    "text": "Tiaki ngā Huringa"
   },
   "web.organizations.update_success": {
-    "text": "Kua whakahoutia angituhia te whakahaere"
+    "text": "Kua whakahōu te whakahaere"
   },
   "web.organizations.update_error": {
-    "text": "I rahua te whakahou whakahaere"
+    "text": "I rahua te whakahōu i te whakahaere"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Ka Tae Mai te Honohononga Utu"
+    "text": "E Haere Mai Ana te Whakahononga Pire"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Ka wātea te whakahaere utu me te ohaurunga kotahi mō ngā rōpū katoa i roto i tēnei whakahaere i tētahi putanga ā muri ake."
+    "text": "Ka wātea te whakahaere pire me ohaurunga kotahi i tētahi putanga ā muri."
   },
   "web.organizations.about_title": {
     "text": "Mō ngā Whakahaere"
   },
   "web.organizations.about_description": {
-    "text": "Ka whakarato ngā whakahaere i te utu me te whakahaere kotahi mō ngā rōpū maha. He kōwhiringa - ka taea e ngā rōpū te noho motuhake, te rōpū rānei i raro i tētahi whakahaere mō te whakahaere pokapū."
+    "text": "He pire me te whakahaere kotahi e whakaratohia ana e ngā whakahaere mō te whakahaere whakapū."
   },
   "web.organizations.single_user_info_title": {
     "text": "Whakahaere i Tō Whakahaere"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Whakahou i tō ingoa kamupene me ngā taipitopito whakahaere ki konei. Ka āwhina ēnei mōhiohio ki te whakamana i tō pūkete, ka taea hoki te whakamahi mō ngā āhuatanga waitohu ā muri ake."
+    "text": "Whakahōu te ingoa o tō kamupene me ngā taipitopito whakahaere ki konei. Ka āwhina ēnei kōrero ki te whakamotuhake i tō pūkete ka taea te whakamahi mō ngā āhuatanga waitohu ā muri."
   },
   "web.organizations.getting_started_title": {
-    "text": "Te Tīmata me ngā Whakahaere"
+    "text": "Te Tīmata ki ngā Whakahaere"
   },
   "web.organizations.getting_started_description": {
-    "text": "Waihanga i tō whakahaere tuatahi hei whakahaere i ngā mōhiohio kamupene me te whakareri mō ngā āhuatanga mahi tahi rōpū me te waitohu ā muri ake."
+    "text": "Waihanga tō whakahaere tuatahi hei whakahaere i ngā kōrero o tō kamupene me te whakarite mō ngā āhuatanga waitohu ā muri."
   },
   "web.organizations.page_description": {
     "text": "Whakahaere i ō whakahaere me ngā mema rōpū"
   },
   "web.organizations.tabs.general": {
-    "text": "Whānui"
+    "text": "Tautuhinga"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Waitohu Kamupene"
@@ -153,7 +153,7 @@
     "text": "Rōpū"
   },
   "web.organizations.tabs.billing": {
-    "text": "Utu"
+    "text": "Pire"
   },
   "web.organizations.danger_zone": {
     "text": "Wāhi Mōrearea"
@@ -162,7 +162,7 @@
     "text": "Muku Whakahaere"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Ka mukua pūmautia e tēnei te whakahaere me ngā rōpū hono katoa. Kāore tēnei mahi e taea te whakakore."
+    "text": "Ka muku pūmautia tēnei i te whakahaere. Kāore e taea te whakakore i tēnei mahi."
   },
   "web.organizations.delete": {
     "text": "Muku"
@@ -171,10 +171,10 @@
     "text": "Muku Whakahaere"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "E tino hiahia ana koe ki te muku i {name}? Kāore tēnei mahi e taea te whakakore."
+    "text": "Kei te tino hiahia koe ki te muku i a {name}? Kāore e taea te whakakore i tēnei mahi."
   },
   "web.organizations.delete_error": {
-    "text": "I rahua te muku whakahaere"
+    "text": "I rahua te muku i te whakahaere"
   },
   "web.organizations.members.title": {
     "text": "Ngā Mema"
@@ -183,16 +183,16 @@
     "text": "Whakahaere i ngā mema whakahaere me ō rātou tūranga"
   },
   "web.organizations.members.current_members": {
-    "text": "Mema Ināianei"
+    "text": "Ngā Mema o Nāianei"
   },
   "web.organizations.members.member": {
     "text": "Mema"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "mema"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "ngā mema"
   },
   "web.organizations.members.name": {
     "text": "Ingoa"
@@ -210,16 +210,16 @@
     "text": "Ngā Mahi"
   },
   "web.organizations.members.no_members": {
-    "text": "Kāore he mema i kitea"
+    "text": "Kāore anō he mema. Pōhiria ngā mema rōpū hei tīmata."
   },
   "web.organizations.members.no_members_description": {
-    "text": "Kāore anō he mema o tēnei whakahaere."
+    "text": "Kāore anō he mema i tēnei whakahaere."
   },
   "web.organizations.members.role_updated": {
-    "text": "Kua whakahoutia angituhia te tūranga mema"
+    "text": "Kua whakahōu te tūranga mema"
   },
   "web.organizations.members.role_update_error": {
-    "text": "I rahua te whakahou tūranga mema"
+    "text": "I rahua te whakahōu i te tūranga mema"
   },
   "web.organizations.members.member_removed": {
     "text": "Kua tangohia te mema mai i te whakahaere"
@@ -231,22 +231,22 @@
     "text": "Tango Mema"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "E tino hiahia ana koe ki te tango i a {name} mai i tēnei whakahaere?"
+    "text": "Kei te tino hiahia koe ki te tango i a {name} mai i tēnei whakahaere?"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "Kāore e taea e koe te huri i tō ake tūranga"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Kāore e taea e koe te tango i a koe anō mai i te whakahaere"
+    "text": "Kāore e taea e koe te tango i a koe ake mai i te whakahaere"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Kāore e taea e koe te tango i te kaipupuri o te whakahaere"
+    "text": "Kāore e taea e koe te tango i te rangatira whakahaere"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Kāore koe i te mana ki te whakahaere mema"
+    "text": "Kāore ō mana ki te whakahaere mema"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Kaipupuri"
+    "text": "Rangatira"
   },
   "web.organizations.members.roles.admin": {
     "text": "Kaiwhakahaere"
@@ -255,28 +255,28 @@
     "text": "Mema"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Urunga katoa ki ngā tautuhinga me ngā mema whakahaere katoa"
+    "text": "Urunga katoa ki ngā tautuhinga whakahaere me ngā mema katoa"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Ka taea te whakahaere i ngā mema me te nuinga o ngā tautuhinga whakahaere"
+    "text": "Ka taea te whakahaere mema me te nuinga o ngā tautuhinga whakahaere"
   },
   "web.organizations.members.role_descriptions.member": {
     "text": "Urunga taketake ki ngā rauemi whakahaere"
   },
   "web.organizations.invitations.title": {
-    "text": "Ngā Pōwhiri Whakahaere"
+    "text": "Ngā Pōhiri Whakahaere"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Pōwhiri Mema"
+    "text": "Pōhiri Mema"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Pōwhiri Mema Hou"
+    "text": "Pōhiri Mema Hou"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Ngā Pōwhiri Kei te Tatari"
+    "text": "Ngā Pōhiri e Tatari Ana"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Kāore he pōwhiri kei te tatari"
+    "text": "Kāore he pōhiri e tatari ana"
   },
   "web.organizations.invitations.email_address": {
     "text": "Wāhitau Īmēra"
@@ -288,13 +288,13 @@
     "text": "Tūranga"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Tuku Pōwhiri"
+    "text": "Tuku Pōhiri"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Kua tukuna angituhia te pōwhiri"
+    "text": "Kua tukuna te pōhiri"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "I rahua te tuku pōwhiri"
+    "text": "I rahua te tuku pōhiri"
   },
   "web.organizations.invitations.resend": {
     "text": "Tuku Anō"
@@ -303,40 +303,40 @@
     "text": "Whakakore"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Kua tukuna anō angituhia te pōwhiri"
+    "text": "Kua tuku anō te pōhiri"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "I rahua te tuku anō pōwhiri"
+    "text": "I rahua te tuku anō i te pōhiri"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Kua whakakōretia angituhia te pōwhiri"
+    "text": "Kua whakakorea te pōhiri"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "I rahua te whakakore pōwhiri"
+    "text": "I rahua te whakakore i te pōhiri"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Nā wai i pōwhiri"
+    "text": "I pōhiritia e"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "I Pōwhiritia"
+    "text": "I Pōhiritia"
   },
   "web.organizations.invitations.expires_at": {
     "text": "Ka Pau"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "I tukuna anō {count} wā"
+    "text": "I tuku anō {count} wā"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "I tukuna anō {count} ngā wā"
+    "text": "I tuku anō {count} ngā wā"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Kei te Tatari"
+    "text": "E Tatari Ana"
   },
   "web.organizations.invitations.status.accepted": {
     "text": "Kua Whakaae"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Kua Whakakāhore"
+    "text": "Kua Whakakāhoretia"
   },
   "web.organizations.invitations.status.expired": {
     "text": "Kua Pau"
@@ -348,42 +348,87 @@
     "text": "Kaiwhakahaere"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Whakaae ki te Pōwhiri"
+    "text": "Whakaae ki te Pōhiri"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Whakakāhore i te Pōwhiri"
+    "text": "Whakakāhore i te Pōhiri"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Ngā Taipitopito Pōwhiri"
+    "text": "Taipitopito Pōhiri"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Kua pōwhiritia koe ki te hono ki"
+    "text": "Kua pōhiritia koe ki te hono ki"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Kua pōwhiritia koe hei"
+    "text": "Kua pōhiritia koe hei"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Kua whakaae angituhia ki te pōwhiri"
+    "text": "Kua whakaae ki te pōhiri"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "I rahua te whakaae ki te pōwhiri"
+    "text": "I rahua te whakaae ki te pōhiri"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Kua whakakāhore te pōwhiri"
+    "text": "Kua whakakāhoretia te pōhiri"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "I rahua te whakakāhore i te pōwhiri"
+    "text": "I rahua te whakakāhore i te pōhiri"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Kua pau tēnei pōwhiri"
+    "text": "Kua pau tēnei pōhiri"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "He muhu te pōwhiri, kua pau rānei"
+    "text": "He pōhiri muhu, kua pau rānei"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Tēnā takiuru ki te whakaae ki tēnei pōwhiri"
+    "text": "Tēnā takiuru hei whakaae ki tēnei pōhiri"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Kei te uta ngā taipitopito pōwhiri"
+    "text": "E uta ana i ngā taipitopito pōhiri"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Kua whakahōu te īmēra pire"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Ka taea te huri i te īmēra pire i te whārangi Tirohanga Pire"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} mema | {count} mema"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} rohe | {count} rohe"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Whakapiki tō mahere hei pōhiri mema rōpū"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Me whai mahere me te whakahaere rōpū mō ngā pōhiri mema rōpū. Whakapiki hei tāpiri kaihonohono ki tō whakahaere."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Pūkete Hē"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "I tukuna tēnei pōhiri ki {invitedEmail}, engari kua takiuru koe hei {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Takiuru mā Pūkete Kē"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}r e toe ana"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h e toe ana"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Ka pau tata"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Ohaurunga"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Ngā Rohe"
   }
 }

@@ -1,9 +1,9 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Me whai pūkete?"
+    "text": "Me Whai Pūkete?"
   },
   "web.login.need_an_account": {
-    "text": "Me whai pūkete? Waihangahia tō pūkete i tēnei rā"
+    "text": "Waitohu."
   },
   "web.login.forgot_your_password": {
     "text": "Kua wareware tō kupuhipa?"
@@ -12,22 +12,22 @@
     "text": "Takiuru"
   },
   "web.login.enter_your_credentials": {
-    "text": "Tāurua ō tohu tuakiri"
+    "text": "Urunga ō taipitopito"
   },
   "web.login.remember_me": {
-    "text": "Mahara ki a au"
+    "text": "Mahara mai i au"
   },
   "web.signup.create_your_account": {
-    "text": "Waihangahia Tō Pūkete"
+    "text": "Waihanga Tō Pūkete"
   },
   "web.signup.alternate_prefix": {
     "text": "Kua whai pūkete kē?"
   },
   "web.signup.have_an_account": {
-    "text": "Kua whai pūkete kē? Takiuru ki tō pūkete"
+    "text": "Takiuru."
   },
   "web.signup.error_title": {
-    "text": "Hapa Waihanga Pūkete"
+    "text": "Hapa Hanganga Pūkete"
   },
   "web.signup.password_error": {
     "text": "Kupuhipa"
@@ -36,55 +36,55 @@
     "text": "Īmēra"
   },
   "web.auth.verify.title": {
-    "text": "Whakaū Tō Pūkete"
+    "text": "Manatoko i Tō Pūkete"
   },
   "web.auth.verify.success": {
-    "text": "Kua whakaūngia angituhia tō pūkete"
+    "text": "Kua manatokohia tō pūkete"
   },
   "web.auth.verify.invalid_key": {
-    "text": "Kī whakaū muhu, kua pau rānei"
+    "text": "He kī manatoko muhu, kua pau rānei"
   },
   "web.auth.verify.expired_key": {
-    "text": "Kua pau tēnei hononga whakaū. Tēnā tono i tētahi hou."
+    "text": "Kua pau tēnei hononga manatoko. Tēnā tonoa he mea hou."
   },
   "web.auth.verify.already_verified": {
-    "text": "Kua whakaūngia kē tēnei pūkete. Ka taea e koe te takiuru ināianei."
+    "text": "Kua manatokohia kē tēnei pūkete. Ka taea te takiuru ināianei."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Kāore e taea te whakaū pūkete. Tēnā ngana anō, whakapā rānei ki te tautoko."
+    "text": "Kāore e taea te manatoko i te pūkete. Tēnā whakamātauria anō, whakapā rānei ki te tautoko."
   },
   "web.auth.verify.check_email": {
-    "text": "Tēnā tirohia tō īmēra mō tētahi hononga whakaū"
+    "text": "Tēnā tirohia tō īmēra mō te hononga manatoko"
   },
   "web.auth.verify.error": {
-    "text": "I rahua te whakaū pūkete. Tēnā tirohia tō hononga whakaū, tono rānei i tētahi hou."
+    "text": "I rahua te manatokotanga pūkete. Tēnā tirohia tō hononga manatoko, tonoa rānei he mea hou."
   },
   "web.auth.verify.error_title": {
-    "text": "I Rahua te Whakaū"
+    "text": "I Rahua te Manatokotanga"
   },
   "web.auth.verify.what_to_do": {
     "text": "Me aha au?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Tirohia tō īmēra mō te hononga whakaū hou rawa atu"
+    "text": "Tirohia tō īmēra mō te hononga manatoko hou rawa"
   },
   "web.auth.verify.check_spam": {
-    "text": "Tirohia tō kōpaki mokorere/paihana mēnā kāore e kitea te īmēra"
+    "text": "Tirohia tō kōpaki spam/junk mēnā kāore e kitea te īmēra"
   },
   "web.auth.verify.contact_support": {
-    "text": "Whakapā ki te tautoko mēnā ka haere tonu ngā take"
+    "text": "Whakapā atu ki te tautoko mēnā ka haere tonu ngā raru"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "E Hiahiatia Ana te Hononga Whakaū"
+    "text": "Me Whai Hononga Manatoko"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Tēnā whakamahia te hononga whakaū i tukuna ki tō wāhitau īmēra hei whakaū i tō pūkete."
+    "text": "Tēnā whakamahia te hononga manatoko i tukuna ki tō wāhitau īmēra hei manatoko i tō pūkete."
   },
   "web.auth.verify.create_new_account": {
     "text": "Waihanga Pūkete Hou"
   },
   "web.auth.change_password.title": {
-    "text": "Whakarerekē Kupuhipa"
+    "text": "Huri te Kupuhipa"
   },
   "web.auth.change_password.current_password": {
     "text": "Kupuhipa o Nāianei"
@@ -93,102 +93,177 @@
     "text": "Kupuhipa Hou"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Whakaū Kupuhipa Hou"
+    "text": "Whakaū te Kupuhipa Hou"
   },
   "web.auth.change_password.success": {
-    "text": "Kua whakarerekētia angituhia tō kupuhipa"
+    "text": "Kua hurihia tō kupuhipa"
   },
   "web.auth.change_password.error": {
-    "text": "I rahua te whakarerekē kupuhipa. Tēnā whakaū i tō kupuhipa o nāianei, ngana anō rānei."
+    "text": "I rahua te huri kupuhipa. Tēnā manatoko i tō kupuhipa o nāianei me whakamātau anō."
   },
   "web.auth.close_account.title": {
-    "text": "Kati Pūkete"
+    "text": "Kati te Pūkete"
   },
   "web.auth.close_account.warning": {
-    "text": "Kāore tēnei mahi e taea te whakakore. Ka mukua pūmautia ngā karere huna katoa."
+    "text": "Kāore e taea te whakakore i tēnei mahi. Ka mukua pūmautia ō karere huna katoa."
   },
   "web.auth.close_account.confirm": {
-    "text": "E mārama ana au he pūmau tēnei mahi"
+    "text": "E mārama ana au ka mau tonu tēnei mahi"
   },
   "web.auth.close_account.password": {
-    "text": "Tāuru tō kupuhipa hei whakaū"
+    "text": "Urunga tō kupuhipa hei whakaū"
   },
   "web.auth.close_account.button": {
-    "text": "Kati Pūmau i te Pūkete"
+    "text": "Kati Pūmautia te Pūkete"
   },
   "web.auth.close_account.cancel": {
     "text": "Whakakore"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Tono Tautuhi Anō Kupuhipa"
+    "text": "Tono Tautuhi Kupuhipa Anō"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Tāuru tō wāhitau īmēra ki raro nei ka tukuna e mātou he hononga hei tautuhi anō i tō kupuhipa"
+    "text": "Urunga tō wāhitau īmēra ki raro nei ka tuku mātou i tētahi hononga ki a koe hei tautuhi anō i tō kupuhipa"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Tuku Hononga Tautuhi Anō"
+    "text": "Tukua te Hononga Tautuhi Anō"
   },
   "web.auth.password_reset.title": {
     "text": "Kōwhiria he Kupuhipa Hou"
   },
   "web.auth.password_reset.description": {
-    "text": "Tēnā tāuru tō kupuhipa hou ki raro nei. Me whakaū he kaha, he ahurei hoki hei tiaki i tō pūkete."
+    "text": "Tēnā urunga tō kupuhipa hou ki raro nei. Me mōhio kia kaha, kia motuhake hoki hei tiaki i tō pūkete."
   },
   "web.auth.passwordReset.emailSent": {
     "text": "Kua tukuna he īmēra ki a koe me tētahi hononga hei tautuhi anō i te kupuhipa mō tō pūkete"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Ka whakaae au ki te"
+    "text": "E whakaae ana au ki te"
   },
   "web.auth.account.title": {
-    "text": "Mōhiohio Pūkete"
+    "text": "Kōrero Pūkete"
   },
   "web.auth.account.email": {
     "text": "Wāhitau Īmēra"
   },
   "web.auth.account.created": {
-    "text": "I Hangaia te Pūkete"
+    "text": "I hangaia te Pūkete"
   },
   "web.auth.account.verified": {
-    "text": "Kua Whakaūngia te Īmēra"
+    "text": "Kua manatokohia te Īmēra"
   },
   "web.auth.account.region": {
     "text": "Rohe"
   },
   "web.auth.account.not_verified": {
-    "text": "Kāore Anō Kia Whakaūngia te Īmēra"
+    "text": "Kāore anō kia Manatokohia te Īmēra"
   },
   "web.auth.account.verify_email": {
-    "text": "Whakaū Wāhitau Īmēra"
+    "text": "Manatoko te Wāhitau Īmēra"
   },
   "web.auth.account.mfa_status": {
-    "text": "Whakaūnga Pūāhua-Rua"
+    "text": "Whakamotuhēhētanga Āhuatanga-Rua"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Kua Whakahohea"
+    "text": "Kua whakahohea"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Kua Monokia"
+    "text": "Kua monokia"
   },
   "web.auth.account.active_sessions": {
     "text": "Ngā Wātū Hohe"
   },
   "web.auth.account.session_count": {
-    "text": "{count} ngā wātū hohe"
+    "text": "{count} wātū hohe"
   },
   "web.auth.account.quick_actions": {
-    "text": "Ngā Mahi Tere"
+    "text": "Mahi Tere"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Whakahaere Whakaūnga Pūāhua-Rua"
+    "text": "Whakahaere te Whakamotuhēhētanga Āhuatanga-Rua"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Whakahaere Wātū Hohe"
+    "text": "Whakahaere Ngā Wātū Hohe"
   },
   "web.auth.account.change_password": {
-    "text": "Whakarerekē Kupuhipa"
+    "text": "Huri te Kupuhipa"
   },
   "web.auth.account.close_account": {
-    "text": "Kati Pūkete"
+    "text": "Kati te Pūkete"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Te rere manatoko īmēra i muri i te waitohu"
+  },
+  "web.help.title": {
+    "text": "Āwhina & Tautoko"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Whakatika Raru Takiuru"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Kāore te hononga karakia e tae mai ana?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Tirohia tō kōpaki spam, junk rānei"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Manatoko i urungahia tika tō wāhitau īmēra"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Tatari mō ētahi meneti - ka takaroa pea ngā īmēra"
+  },
+  "web.help.try_again": {
+    "text": "Whakamātauria te tono i tētahi hononga hou mēnā kua neke atu i te 10 meneti"
+  },
+  "web.help.forgot_password": {
+    "text": "Kua wareware tō kupuhipa?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Whakamahia te kōwhiringa Hononga Karakia hei takiuru me te kore kupuhipa. Kia takiuru ana, ka taea e koe te huri i tō kupuhipa i ngā Tautuhinga Pūkete."
+  },
+  "web.help.account_locked": {
+    "text": "Kua rakaina te pūkete mō te wā poto?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "I muri i ngā nganatanga takiuru hē maha, ka rakaina ngā pūkete mō te wā poto hei tiaki. Tatari 15 meneti ka whakamātau anō, whakamahia rānei te Hononga Karakia hei takiuru."
+  },
+  "web.help.still_need_help": {
+    "text": "Kei te hiahia āwhina tonu?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Mēnā kei te raru tonu koe, kei konei mātou hei āwhina. Tukuna mai he karere ka whakautu mātou i te wā tata."
+  },
+  "web.help.contact_support": {
+    "text": "Whakapā ki te Tautoko"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Tukua te hononga takiuru"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Ka tukuna he hononga haumaru ki tō pouaka īmēra."
+  },
+  "web.login.or_divider": {
+    "text": "rānei"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Takiuru mā te kupuhipa"
+  },
+  "web.login.use_passwordless": {
+    "text": "Whakamahia te takiuru kore-kupuhipa"
+  },
+  "web.login.create_account": {
+    "text": "Waihanga pūkete"
+  },
+  "web.login.return_home": {
+    "text": "Hoki ki te kāinga"
+  },
+  "web.login.tab_password": {
+    "text": "Kupuhipa"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Hononga Karakia"
+  },
+  "web.login.need_help": {
+    "text": "Me āwhina?"
   }
 }

@@ -5,37 +5,37 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Ngā hononga haumaru e mahi kotahi anake"
+    "text": "Ngā hononga haumaru kotahi noa te wā e mahi ai"
   },
   "web.COMMON.powered_by": {
-    "text": "E tākohatia ana e"
+    "text": "Mā te"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/mi_NZ"
+    "text": "https://onetimesecret.com/mi"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Waihanga Kupuhipa"
+    "text": "Hanga Kupuhipa"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Kua monokia te Waihanga Kupuhipa i te wā e tika ana te puka"
+    "text": "Kua monokia te Hanga Kupuhipa i te wā e whaimana ana te puka"
   },
   "web.COMMON.email_placeholder": {
-    "text": "hei tauira. tom{'@'}myspace.com"
+    "text": "hei tauira tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Tāurua tō kupuhipa"
+    "text": "Whakauru tō kupuhipa"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Ngā Rohe Ritenga"
+    "text": "Rohe Ritenga"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Whakapakari i ngā hononga me te hanga i te whakawhirinaki me ō ake hononga karere huna waitohu."
+    "text": "Whakakaha i ngā hononga, hangaia te whakawhirinaki mā ō ake hononga karere huna waitohu."
   },
   "web.COMMON.get_started_button": {
     "text": "Tīmata"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Whakaū i tō kupuhipa"
+    "text": "Whakaū tō kupuhipa"
   },
   "web.COMMON.header_settings": {
     "text": "Tautuhinga"
@@ -44,46 +44,46 @@
     "text": "Tuku"
   },
   "web.COMMON.submitting": {
-    "text": "Kei te tuku..."
+    "text": "E tuku ana..."
   },
   "web.COMMON.processing": {
-    "text": "Kei te tukatuka..."
+    "text": "E tukatuka ana..."
   },
   "web.COMMON.description": {
-    "text": "Puritia ngā mōhiohio tairongo kei roto i ō kōrerorero me te īmēra. Tuari i tētahi hononga karere huna e wātea ana kotahi anake te wā."
+    "text": "Pupuri i ngā kōrero hira kia kaua e puta i ō kōrerorero me ō īmēra. Tohatoha he hononga huna kotahi noa te wā e wātea ai."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "He hē te kupu karapa"
   },
   "web.COMMON.keywords": {
-    "text": "karere huna,waihanga kupuhipa,tuari i tētahi karere huna,onetime"
+    "text": "karere huna,hanga kupuhipa,tohatoha karere huna,kotahi-wā"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Waihanga hononga karere huna"
+    "text": "Waihanga hononga huna"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Waihanga rānei he kupuhipa matapōkere"
+    "text": "Rānei hanga kupuhipa matapōkere"
   },
   "web.COMMON.secret_privacy_options": {
     "text": "Kōwhiringa Matatapu"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Kupu Karapa"
+    "text": "Kupu karapa"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "He kupu, rerenga kupu rānei e uaua ana te mātai"
+    "text": "He kupu, he kīanga rānei he uaua ki te whakapae"
   },
   "web.COMMON.secret_recipient_address": {
     "text": "Wāhitau Kaiwhiwhi"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Ka noho te ihirangi karere huna ki konei..."
+    "text": "Ka haere ngā kōrero huna ki konei..."
   },
   "web.COMMON.header_create_account": {
     "text": "Waihanga Pūkete"
   },
   "web.COMMON.header_about": {
-    "text": "Mō Mātou"
+    "text": "Mō mātou"
   },
   "web.COMMON.header_sign_in": {
     "text": "Takiuru"
@@ -95,55 +95,55 @@
     "text": "Takiputa"
   },
   "web.COMMON.secret": {
-    "text": "Karere Huna | Ngā Karere Huna"
+    "text": "Karere huna | Ngā karere huna"
   },
   "web.COMMON.recent": {
-    "text": "Tata"
+    "text": "Tata nei"
   },
   "web.COMMON.received": {
-    "text": "Kua Tae"
+    "text": "Kua riro"
   },
   "web.COMMON.burn": {
     "text": "Whakawareware"
   },
   "web.COMMON.burned": {
-    "text": "Kua Whakawarekia"
+    "text": "Kua whakawarekia"
   },
   "web.COMMON.expires_in": {
     "text": "Ka pau i roto i"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Whakawarewaretia tēnei karere huna"
+    "text": "Whakawareware i tēnei karere huna"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Ko te whakawareware i tētahi karere huna ka muku i mua i te pānuitanga (pāwhiri ki te whakaū)"
+    "text": "Mā te whakawareware e muku te karere huna i mua i te pānuitanga (pāwhiri ki te whakaū)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "He pūmau te whakawareware i tētahi karere huna, kāore e taea te whakakore"
+    "text": "Ko te whakawareware he mea pūmau, kāore e taea te whakakore"
   },
   "web.COMMON.msg_check_email": {
     "text": "Tirohia tō īmēra"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Pāwhiri kia kitea →"
+    "text": "Pāwhiri ki te whakaatu →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Haere tonu ki te whakaū i tō pūkete:"
+    "text": "Haere tonu ki te manatoko i tō pūkete:"
   },
   "web.COMMON.error_secret": {
-    "text": "Kāore koe i whakarato i tētahi mea hei tuari"
+    "text": "Kāore koe i homai i tētahi mea ki te tohatoha"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Matuatua anō i taua kupu karapa"
+    "text": "Tirohia anō te kupu karapa"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Tāurua te kupu karapa ki konei"
+    "text": "Whakauru te kupu karapa ki konei"
   },
   "web.COMMON.view_secret": {
-    "text": "Tirohia te Karere Huna"
+    "text": "Tiro i te karere huna"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Kia tūpato: ka whakaatu noa mātou i tēnei kotahi anake."
+    "text": "Kia tūpato: kotahi noa te wā ka whakaatuhia."
   },
   "web.COMMON.warning": {
     "text": "Whakatūpato"
@@ -155,19 +155,19 @@
     "text": "Hapa"
   },
   "web.COMMON.unexpected_error": {
-    "text": "I puta tētahi hapa ohorere. Tēnā ngana anō."
+    "text": "I puta he hapa ohorere. Tēnā whakamātau anō."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Kua poroa te karere"
+    "text": "I porohia te karere"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Waitohu mō ētahi atu"
+    "text": "Rēhita mō ētahi atu"
   },
   "web.COMMON.login_to_your_account": {
     "text": "Takiuru ki tō pūkete"
   },
   "web.COMMON.sent_to": {
-    "text": "Kua tukuna ki: "
+    "text": "I tukuna ki:"
   },
   "web.COMMON.field_email": {
     "text": "Īmēra"
@@ -182,7 +182,7 @@
     "text": "Waihanga Pūkete"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Tuari i tētahi karere huna"
+    "text": "Tohatoha karere huna"
   },
   "web.COMMON.title_home": {
     "text": "Kāinga"
@@ -194,7 +194,7 @@
     "text": "kua whakawarekia"
   },
   "web.COMMON.word_received": {
-    "text": "kua tae"
+    "text": "kua riro"
   },
   "web.COMMON.word_confirm": {
     "text": "Whakaū"
@@ -206,13 +206,13 @@
     "text": "Haere tonu"
   },
   "web.COMMON.word_done": {
-    "text": "Kua Oti"
+    "text": "Kua oti"
   },
   "web.COMMON.back": {
     "text": "Hoki"
   },
   "web.COMMON.feedback_text": {
-    "text": "Tuari i ō whakaaro, ariā, wheako rānei..."
+    "text": "Tohatoha ō whakaaro, ō ariā, ō wheako rānei..."
   },
   "web.COMMON.button_send_feedback": {
     "text": "Tuku Urupare"
@@ -221,43 +221,43 @@
     "text": "Kua tukuna he manatoko ki"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Kua hangaia te pūkete. Tēnā takiuru mai."
+    "text": "Kua hangaia te pūkete. Tēnā takiuru."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Mēnā kei te tīari tētahi pūkete me tēnei īmēra, ka whiwhi koe i tētahi īmēra manatoko."
+    "text": "Mēnā he pūkete tō tēnei īmēra, ka whiwhi koe i tētahi īmēra manatoko."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Whakawarewaretia tēnei karere huna mō ake tonu"
+    "text": "Whakawareware mō ake tonu tēnei karere huna"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Tēnā Whakaūngia"
+    "text": "Tēnā Whakaū"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "E tino hiahia ana koe ki te whakawareware i tēnei karere huna? Kāore tēnei mahi e taea te whakakore."
+    "text": "Kei te tino hiahia koe ki te whakawareware i tēnei karere huna? Kāore e taea te whakakore i tēnei mahi."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Āe, whakawarewaretia tēnei karere huna"
+    "text": "Āe, whakawareware i tēnei karere huna"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Ka mukua te karere huna i te whakawarewaretanga i mua i te taenga."
+    "text": "Mā te whakawareware e muku te karere huna i mua i te rironga."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Mō te haumaru, tuari i tēnei hononga motuhake i ētahi atu taipitopito."
+    "text": "Mō te haumaru, tohatohaina tēnei hononga motuhake mai i ētahi atu kōrero."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Kua tāruatia ki te papatopenga"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Waihanga Taenga"
+    "text": "Waihanga Karere Mai"
   },
   "web.COMMON.faq_title": {
-    "text": "FAQ"
+    "text": "Pātai Auau"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Kāore te manatoko i te whaimana"
+    "text": "Kāore e whaimana te manatoko"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Kāore e taea te whakaū i tētahi pūkete ina kua takiuru kē koe"
+    "text": "Kāore e taea te manatoko i te pūkete i a koe e takiuru ana"
   },
   "web.COMMON.show_password": {
     "text": "Whakaatu kupuhipa"
@@ -266,37 +266,37 @@
     "text": "Huna kupuhipa"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Me kia 8 ngā pūāhua te iti rawa o te kupuhipa"
+    "text": "Me 8 ngā pūāhua nui ake te kupuhipa"
   },
   "web.COMMON.password_requirements": {
-    "text": "Me kia 8 ngā pūāhua te iti rawa o te roa o te kupuhipa"
+    "text": "Me 8 ngā pūāhua nui ake te roa o te kupuhipa"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Kāore e rite ngā kupuhipa"
+    "text": "Kāore e ōrite ngā kupuhipa"
   },
   "web.COMMON.form_field_required": {
     "text": "E hiahiatia ana tēnei āpure"
   },
   "web.COMMON.form_processing": {
-    "text": "Kei te tukatuka i tō tono"
+    "text": "E tukatuka ana i tō tono"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Kia noho takiuru tonu au mō te 30 rā"
+    "text": "Pupuri ahau kia takiuru mō ngā rā 30"
   },
   "web.COMMON.redirecting": {
-    "text": "Kei te tuku atu..."
+    "text": "E whakawhiti ana..."
   },
   "web.COMMON.continue": {
     "text": "Haere tonu"
   },
   "web.COMMON.are_you_sure": {
-    "text": "E tino hiahia ana koe?"
+    "text": "Kei te tino hiahia koe?"
   },
   "web.COMMON.danger_zone": {
     "text": "Wāhi Mōrearea"
   },
   "web.COMMON.caution_zone": {
-    "text": "Wāhi Whiriwhiri Tūpato"
+    "text": "Wāhi Tūpato"
   },
   "web.COMMON.user_menu": {
     "text": "Tahua kaiwhakamahi"
@@ -308,28 +308,28 @@
     "text": "Whakahaere"
   },
   "web.COMMON.loading": {
-    "text": "Kei te uta..."
+    "text": "E uta ana..."
   },
   "web.COMMON.save_changes": {
-    "text": "Tiaki Whakarerekētanga"
+    "text": "Tiaki Huringa"
   },
   "web.COMMON.saving": {
-    "text": "Kei te tiaki..."
+    "text": "E tiaki ana..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Kei te tāpiri"
+    "text": "E tāpiri ana..."
   },
   "web.COMMON.e_g_example": {
-    "text": "hei tauira."
+    "text": "hei tauira"
   },
   "web.COMMON.example_placeholder": {
-    "text": "hei tauira: {example}"
+    "text": "hei tauira {example}"
   },
   "web.COMMON.status": {
     "text": "Tūnga"
   },
   "web.COMMON.escape": {
-    "text": "Putanga"
+    "text": "Puta"
   },
   "web.COMMON.active": {
     "text": "Hohe"
@@ -338,16 +338,16 @@
     "text": "Arokite"
   },
   "web.COMMON.remove": {
-    "text": "Tangohia"
+    "text": "Tango"
   },
   "web.COMMON.press_esc_to_close": {
     "text": "Pēhi ESC ki te kati"
   },
   "web.COMMON.enter": {
-    "text": "Tāuru"
+    "text": "Whakauru"
   },
   "web.COMMON.important": {
-    "text": "He Mea Nui"
+    "text": "Hira"
   },
   "web.COMMON.language": {
     "text": "Reo"
@@ -359,7 +359,7 @@
     "text": "Āhua"
   },
   "web.COMMON.done": {
-    "text": "Kua Oti"
+    "text": "Kua oti"
   },
   "web.COMMON.end": {
     "text": "Mutunga"
@@ -371,19 +371,19 @@
     "text": "Tuhipoka"
   },
   "web.COMMON.monthly": {
-    "text": "Ā-Marama"
+    "text": "Ia marama"
   },
   "web.COMMON.yearly": {
-    "text": "Ā-Tau"
+    "text": "Ia tau"
   },
   "web.COMMON.go_on_then": {
-    "text": "Haere tonu."
+    "text": "Tēnā, haere tonu."
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Kei te uta..."
+    "text": "E uta ana..."
   },
   "web.COMMON.not_received": {
-    "text": "KĀORE I TAE"
+    "text": "KĀORE I RIRO"
   },
   "web.COMMON.confirm_password": {
     "text": "Whakaū kupuhipa"
@@ -395,13 +395,13 @@
     "text": "Wāhitau īmēra"
   },
   "web.COMMON.switch": {
-    "text": "takahuri"
+    "text": "huri"
   },
   "web.COMMON.features": {
-    "text": "Ngā Āhuatanga"
+    "text": "Āhuatanga"
   },
   "web.COMMON.not_found": {
-    "text": "Kāore i Kitea"
+    "text": "Kāore i kitea"
   },
   "web.COMMON.emoji_x": {
     "text": "❌"
@@ -410,13 +410,13 @@
     "text": "✅"
   },
   "web.COMMON.supported": {
-    "text": "Kua Tautokona"
+    "text": "E tautokona ana"
   },
   "web.COMMON.version": {
     "text": "Putanga"
   },
   "web.COMMON.other": {
-    "text": "Ētahi atu"
+    "text": "Tētahi atu"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)"
@@ -437,16 +437,16 @@
     "text": "Uara"
   },
   "web.COMMON.host": {
-    "text": "Kaihautū"
+    "text": "Kaiwhakahaere"
   },
   "web.COMMON.type": {
     "text": "Momo"
   },
   "web.COMMON.previous": {
-    "text": "O Mua"
+    "text": "Mua"
   },
   "web.COMMON.next": {
-    "text": "E Whai Ake Nei"
+    "text": "Panuku"
   },
   "web.COMMON.password_strength": {
     "text": "Kaha Kupuhipa:"
@@ -455,22 +455,22 @@
     "text": "Tino pai"
   },
   "web.COMMON.pretty_good": {
-    "text": "Pai tonu"
+    "text": "Āhua pai"
   },
   "web.COMMON.fair": {
     "text": "Pai"
   },
   "web.COMMON.meh": {
-    "text": "Āhua"
+    "text": "Āhua pai"
   },
   "web.COMMON.not_great": {
     "text": "Kāore i te pai"
   },
   "web.COMMON.open_options": {
-    "text": "Huakina ngā kōwhiringa"
+    "text": "Huaki kōwhiringa"
   },
   "web.COMMON.inactive": {
-    "text": "Koretake"
+    "text": "Kāore e hohe"
   },
   "web.COMMON.an_error_occurred": {
     "text": "I puta he hapa"
@@ -482,10 +482,10 @@
     "text": "Kua tāruatia te karere huna ki te papatopenga"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Matuatua anō i taua kupu karapa"
+    "text": "Tirohia anō te kupu karapa"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Pēhia te pātene tārua i raro nei."
+    "text": "Pēhi i te pātene tārua i raro."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Whakaatu"
@@ -494,10 +494,10 @@
     "text": "Huna"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Whakaatu Anō"
+    "text": "Whakaatu Atu"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Whakaatu Iti Ake"
+    "text": "Whakaatu Iti"
   },
   "web.LABELS.enable": {
     "text": "Whakahohe"
@@ -506,7 +506,7 @@
     "text": "Monoki"
   },
   "web.LABELS.stats": {
-    "text": "Ngā Tatauranga"
+    "text": "Tatauranga"
   },
   "web.LABELS.timeline": {
     "text": "Rārangi wā"
@@ -521,13 +521,13 @@
     "text": "Kati"
   },
   "web.LABELS.loading": {
-    "text": "Kei te uta..."
+    "text": "E uta ana..."
   },
   "web.LABELS.cancel": {
     "text": "Whakakore"
   },
   "web.LABELS.saving": {
-    "text": "Kei te tiaki..."
+    "text": "E tiaki ana..."
   },
   "web.LABELS.saved": {
     "text": "Kua tiakina"
@@ -539,7 +539,7 @@
     "text": "Tiaki Katoa"
   },
   "web.LABELS.details": {
-    "text": "Ngā Taipitopito"
+    "text": "Taipitopito"
   },
   "web.LABELS.encrypted": {
     "text": "Muhumuhu"
@@ -548,52 +548,52 @@
     "text": "Tūnga Karere Huna"
   },
   "web.LABELS.need_help": {
-    "text": "Me āwhina?"
+    "text": "E hiahia āwhina?"
   },
   "web.LABELS.create_new_secret": {
     "text": "Waihanga Karere Huna Hou"
   },
   "web.LABELS.actions": {
-    "text": "Ngā Mahi"
+    "text": "Mahi"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Kāore he Kupu Karapa e Hiahiatia"
+    "text": "Kāore he Kupu Karapa E Hiahiatia Ana"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Tārua ki te papatopenga"
   },
   "web.LABELS.receipts": {
-    "text": "Ngā Rīhīti"
+    "text": "Rihīti"
   },
   "web.LABELS.share": {
-    "text": "Tuari"
+    "text": "Tohatoha"
   },
   "web.LABELS.secret_link": {
-    "text": "Hononga Karere Huna"
+    "text": "Hononga Huna"
   },
   "web.LABELS.dismiss": {
     "text": "Whakakore"
   },
   "web.LABELS.security_details": {
-    "text": "Ngā Taipitopito Haumaru"
+    "text": "Taipitopito Haumaru"
   },
   "web.LABELS.items_count": {
-    "text": "{count} Ngā Tūemi"
+    "text": "{count} Tūemi"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} Ngā Kaiwhiwhi"
+    "text": "{count} Kaiwhiwhi"
   },
   "web.LABELS.view": {
-    "text": "Tirohia"
+    "text": "Tiro"
   },
   "web.LABELS.views": {
-    "text": "Ngā Tirohanga"
+    "text": "Tirohanga"
   },
   "web.LABELS.times_viewed": {
     "text": "ngā wā i tirohia"
   },
   "web.LABELS.view_progress": {
-    "text": "Kauneketanga Tirohanga"
+    "text": "Tiro Ahunga"
   },
   "web.LABELS.help_section": {
     "text": "Wāhanga Āwhina"
@@ -602,10 +602,10 @@
     "text": "Kua tiakina ki te kupu karapa"
   },
   "web.LABELS.feedback_received": {
-    "text": "Kua tae te urupare."
+    "text": "Kua riro te urupare."
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Kei te tuku..."
+    "text": "E tuku ana..."
   },
   "web.LABELS.title_recent_secrets": {
     "text": "Ngā Karere Huna Tata"
@@ -614,7 +614,7 @@
     "text": "Utu"
   },
   "web.LABELS.refresh": {
-    "text": "Tāmata anō"
+    "text": "Whakahou"
   },
   "web.LABELS.reload": {
     "text": "Uta anō"
@@ -626,7 +626,7 @@
     "text": "Waihanga Hononga"
   },
   "web.LABELS.create_link": {
-    "text": "Waihanga Hononga Karere Huna"
+    "text": "Waihanga Hononga Huna"
   },
   "web.LABELS.create_request_short": {
     "text": "Waihanga Tono"
@@ -635,82 +635,82 @@
     "text": "Waihanga Hononga Tono"
   },
   "web.LABELS.related_settings": {
-    "text": "Ngā Tautuhinga Hāngai"
+    "text": "Tautuhinga E Pā Ana"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Kei te waihanga hononga mō"
+    "text": "E waihanga hononga ana mō"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Kei te waihanga karere huna i {domain}"
+    "text": "E waihanga karere huna ana i {domain}"
   },
   "web.STATUS.new": {
     "text": "Hou"
   },
   "web.STATUS.unread": {
-    "text": "Kore Pānui"
+    "text": "Kāore anō kia pānuitia"
   },
   "web.STATUS.viewed": {
-    "text": "Kua huaki te hononga"
+    "text": "Kua huakina te hononga"
   },
   "web.STATUS.received": {
-    "text": "Kua Tae"
+    "text": "Kua riro"
   },
   "web.STATUS.burned": {
-    "text": "Kua Whakawarekia"
+    "text": "Kua whakawarekia"
   },
   "web.STATUS.destroyed": {
-    "text": "Kua Whakangaromia"
+    "text": "Kua whakangaro"
   },
   "web.STATUS.expiring_soon": {
     "text": "Ka Pau Tata"
   },
   "web.STATUS.created": {
-    "text": "Kua Hangaia"
+    "text": "Kua hangaia"
   },
   "web.STATUS.expires": {
-    "text": "Ka Pau"
+    "text": "Ka pau"
   },
   "web.STATUS.expired": {
-    "text": "Kua Pau"
+    "text": "Kua pau"
   },
   "web.STATUS.orphaned": {
-    "text": "Pōpuku"
+    "text": "Kua whakarērea"
   },
   "web.STATUS.secured": {
-    "text": "Kua Haumarutia"
+    "text": "Kua haumarutia"
   },
   "web.STATUS.securing": {
-    "text": "Kei te Haumaru"
+    "text": "E haumaru ana"
   },
   "web.STATUS.copied": {
-    "text": "Kua Tāruatia"
+    "text": "Kua tāruatia"
   },
   "web.STATUS.time_remaining": {
-    "text": "Wā e Toe Ana"
+    "text": "Wā E Toe Ana"
   },
   "web.STATUS.new_description": {
-    "text": "Kua hangaia te hononga karere huna, kāore anō kia tirohia"
+    "text": "Kua hangaia te hononga huna, kāore anō kia tirohia"
   },
   "web.STATUS.unread_description": {
-    "text": "Kua hangaia te hononga karere huna, kāore anō kia tirohia"
+    "text": "Kua hangaia te hononga huna, kāore anō kia tirohia"
   },
   "web.STATUS.viewed_description": {
-    "text": "Kua huaki te hononga karere huna, ā, kua reri ki te tirohia"
+    "text": "Kua huakina te hononga huna, kua rite ki te tirohia"
   },
   "web.STATUS.received_description": {
-    "text": "Kua kitea te karere huna ki te kaiwhiwhi"
+    "text": "Kua whakaatuhia te karere huna ki te kaiwhiwhi"
   },
   "web.STATUS.burned_description": {
-    "text": "I whakawarewaretia ā-ringa te karere huna i mua i te tirohanga"
+    "text": "I whakawarekia ā-ringa te karere huna i mua i te tirohanga"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Kua whakangaromia pūmautia te karere huna"
+    "text": "Kua whakangaro pūmau te karere huna"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "Ka pau tata te karere huna"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Kua pōpuku te karere huna, ā, ka whakangaromia tata"
+    "text": "Kua whakarērea te karere huna, ka whakangaro tata"
   },
   "web.STATUS.expired_description": {
     "text": "Kua pau te karere huna i mua i te tirohanga"
@@ -719,7 +719,7 @@
     "text": "Angitu"
   },
   "web.STATUS.delivered": {
-    "text": "Kua Tukuna"
+    "text": "Kua tukuna"
   },
   "web.STATUS.dns_incorrect": {
     "text": "He Hē te DNS"
@@ -728,16 +728,16 @@
     "text": "Hohe"
   },
   "web.STATUS.inactive": {
-    "text": "Koretake"
+    "text": "Kāore e hohe"
   },
   "web.FEATURES.unlimited_views": {
     "text": "Tirohanga Mutunga Kore"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Waitohu rohe pono"
+    "text": "Waitohu rohe whakawhirinaki"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Muhumuhu i te wā kawe, i te wā ata"
+    "text": "Muhumuhu i te wā kawe me te wā noho"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -776,19 +776,19 @@
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} tepe tirohanga"
+    "text": "{count} te paenga tirohanga"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} Ngā Rā e Toe Ana"
+    "text": "{count} Rā E Toe Ana"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} Ngā Hāora e Toe Ana"
+    "text": "{count} Hāora E Toe Ana"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} Ngā Meneti e Toe Ana"
+    "text": "{count} Meneti E Toe Ana"
   },
   "web.TITLES.incoming": {
-    "text": "Ngā Karere Huna Taenga"
+    "text": "Ngā Karere Huna Mai"
   },
   "web.TITLES.feedback": {
     "text": "Urupare"
@@ -800,34 +800,34 @@
     "text": "Waihanga Pūkete"
   },
   "web.TITLES.forgot_password": {
-    "text": "Kua Wareware te Kupuhipa"
+    "text": "Wareware Kupuhipa"
   },
   "web.TITLES.reset_password": {
-    "text": "Tautuhi Anō i te Kupuhipa"
+    "text": "Tautuhi Anō Kupuhipa"
   },
   "web.TITLES.logout": {
-    "text": "Kei te Takiputa"
+    "text": "E Takiputa Ana"
   },
   "web.TITLES.verify_account": {
-    "text": "Whakaū Pūkete"
+    "text": "Manatoko Pūkete"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Whakaūnga Pūāhua-Rua"
+    "text": "Manatoko Rua-Āhuatanga"
   },
   "web.TITLES.email_login": {
     "text": "Takiuru Īmēra"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Whakaae ki te Pōwhiri"
+    "text": "Whakaae Pōhiri"
   },
   "web.TITLES.secret": {
-    "text": "Karere Huna | Ngā Karere Huna"
+    "text": "Karere Huna"
   },
   "web.TITLES.metadata": {
-    "text": "Ngā Taipitopito Karere Huna"
+    "text": "Taipitopito Karere Huna"
   },
   "web.TITLES.receipt": {
-    "text": "Rīhīti Karere Huna"
+    "text": "Rihīti Karere Huna"
   },
   "web.TITLES.burn_secret": {
     "text": "Whakawareware Karere Huna"
@@ -836,111 +836,171 @@
     "text": "Papatohu"
   },
   "web.TITLES.recent": {
-    "text": "Tata"
+    "text": "Ngā Karere Huna Tata"
   },
   "web.TITLES.domains": {
-    "text": "Ngā Rohe Ritenga"
+    "text": "Rohe Ritenga"
   },
   "web.TITLES.domain_add": {
     "text": "Tāpiri Rohe"
   },
   "web.TITLES.domain_verify": {
-    "text": "Whakaū Rohe"
+    "text": "Manatoko Rohe"
   },
   "web.TITLES.domain_brand": {
-    "text": "Rohe Waitohu"
+    "text": "Waitohu Rohe"
   },
   "web.TITLES.account": {
-    "text": "Ngā Tautuhinga Pūkete"
+    "text": "Pūkete"
   },
   "web.TITLES.data_region": {
     "text": "Rohe Raraunga"
   },
   "web.TITLES.current_region": {
-    "text": "Rohe o Nāianei"
+    "text": "Rohe O Nāianei"
   },
   "web.TITLES.available_regions": {
-    "text": "Ngā Rohe E Wātea Ana"
+    "text": "Ngā Rohe Wātea"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "He Aha Te Take o te Mana Motuhake Raraunga"
+    "text": "He Aha te Hiranga o te Mana Raraunga"
   },
   "web.TITLES.profile_settings": {
-    "text": "Ngā Tautuhinga Kōtaha"
+    "text": "Tautuhinga Kōtaha"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Ngā Manakohanga"
+    "text": "Manakohanga"
   },
   "web.TITLES.privacy_settings": {
     "text": "Matatapu"
   },
   "web.TITLES.notification_settings": {
-    "text": "Ngā Whakamōhio"
+    "text": "Whakamōhiotanga"
   },
   "web.TITLES.change_email": {
-    "text": "Whakarerekē Īmēra"
+    "text": "Huri Īmēra"
   },
   "web.TITLES.security_overview": {
     "text": "Haumaru"
   },
   "web.TITLES.change_password": {
-    "text": "Whakarerekē Kupuhipa"
+    "text": "Huri Kupuhipa"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Whakaūnga Pūāhua-Rua"
+    "text": "Manatoko Rua-Āhuatanga"
   },
   "web.TITLES.active_sessions": {
-    "text": "Ngā Wātū Hohe"
+    "text": "Wāhanga Hohe"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Ngā Waehere Whakaora"
+    "text": "Waehere Whakaora"
   },
   "web.TITLES.api_settings": {
-    "text": "Ngā Tautuhinga API"
+    "text": "Tautuhinga API"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Ngā Tautuhinga Arā Atu"
+    "text": "Tautuhinga Matatau"
   },
   "web.TITLES.system_settings": {
-    "text": "Ngā Tautuhinga Pūnaha"
+    "text": "Tautuhinga Pūnaha"
   },
   "web.TITLES.not_found": {
     "text": "Kāore i Kitea te Whārangi"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Ngā Whakahaere"
+    "text": "Whakahaere"
   },
   "web.TITLES.organization_settings": {
-    "text": "Ngā Tautuhinga Whakahaere"
+    "text": "Tautuhinga Whakahaere"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Kei te wāhi tuhituhi matua te arotahi ināianei"
+    "text": "Kua ū te arotahi ki te wāhi kupu matua"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Ngā Tohutohu Tuari"
+    "text": "Tohutohu Tohatoha"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Tuaria te hononga ki te kaiwhiwhi e hiahiatia ana"
+    "text": "Tohatoha te hononga ki te kaiwhiwhi e hiahiatia ana"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Tuaria te kupu karapa motuhake mā tētahi hongere haumaru"
+    "text": "Tohatoha te kupu karapa motuhake mā tētahi ara haumaru kē"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Whakamahia tētahi hongere haumaru rerekē ki te tuari i ngā mōhiohio tairongo"
+    "text": "Whakamahia tētahi ara haumaru kē ki te tohatoha ngā kōrero hira"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Me whakaū tonu kei runga koe i te paetukutuku ōkawa o Onetime Secret. I ētahi wā ka hanga ngā kaitapahi i ngā paetukutuku parau e rite tino ana ki Onetime Secret hei tāhae i ō karere huna. Hei karo i ngā whakaekenga hī-ika, tirohia te rohe rohe i mua i te waihanga hononga hou."
+    "text": "Me manatoko koe kei runga koe i te paetukutuku mana o Onetime Secret. I ētahi wā ka hangaia e ngā kaihangarau ngā paetukutuku teka e rite ana ki a Onetime Secret ki te tāhae i ō karere huna. Kia karo i ngā whakaekehanga tīpako, tirohia te rohe i mua i te hanga hononga hou."
   },
   "web.STATUS.previewed": {
-    "text": "Kua huaki te hononga"
+    "text": "Kua arokitea"
   },
   "web.STATUS.revealed": {
-    "text": "Kua whakakitea"
+    "text": "Kua whakaatuhia"
   },
   "web.STATUS.previewed_description": {
-    "text": "Kua huaki te hononga karere huna, ā, kua reri ki te whakakite"
+    "text": "Kua huakina te hononga huna, kua rite ki te whakaatu"
   },
   "web.STATUS.revealed_description": {
-    "text": "Kua whakakitea te ihirangi huna ki te tangata whakawhiwhi"
+    "text": "Kua whakaatuhia te ihirangi karere huna ki te kaiwhiwhi"
+  },
+  "web.COMMON.not_set": {
+    "text": "Kāore i tautuhia"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Whakatika"
+  },
+  "web.COMMON.word_save": {
+    "text": "Tiaki"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Ka pau i roto i"
+  },
+  "web.LABELS.filter": {
+    "text": "Tātari"
+  },
+  "web.LABELS.clear": {
+    "text": "Ūkui"
+  },
+  "web.LABELS.add_note": {
+    "text": "Tāpiri tuhipoka..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Whakatika tuhipoka"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Tāpiri memo..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Whakatika memo"
+  },
+  "web.TITLES.help": {
+    "text": "Āwhina"
+  },
+  "web.TITLES.pricing": {
+    "text": "Utu"
+  },
+  "web.pricing.title": {
+    "text": "Utu Mārama, Pono"
+  },
+  "web.pricing.subtitle": {
+    "text": "Kōwhiria te mahere e tika ana ki ō hiahia. Ko ngā mahere katoa e whakaurua ana te tohatoha karere huna mutunga kore me te hoahoa matatapu-tuatahi."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Tīmata Utukore"
+  },
+  "web.pricing.start_trial": {
+    "text": "Tīmata"
+  },
+  "web.pricing.already_have_account": {
+    "text": "He pūkete tōu kē?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Takiuru"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "E Tūtohu Ana Mōu"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Waihanga me te tohatoha karere huna me ngā āhuatanga taketake. Kāore he kāri nama e hiahiatia ana."
   }
 }

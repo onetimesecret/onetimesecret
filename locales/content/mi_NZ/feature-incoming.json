@@ -1,9 +1,9 @@
 {
   "incoming.page_title": {
-    "text": "Tukuna he mea huna"
+    "text": "Tuku Karere Huna"
   },
   "incoming.page_description": {
-    "text": "Tohaina ngā kōrero ngaro ki tō mātou rōpū tautoko"
+    "text": "Tohatoha mōhiohio hira mā te haumaru ki tō mātou rōpū tautoko"
   },
   "incoming.loading_config": {
     "text": "E uta ana..."
@@ -12,49 +12,49 @@
     "text": "I rahua te uta whirihoranga"
   },
   "incoming.feature_disabled_title": {
-    "text": "Kāore i wātea te āhuatanga"
+    "text": "Kāore te Āhuatanga e Wātea"
   },
   "incoming.feature_disabled_description": {
-    "text": "Kei te monokia tēnei āhuatanga i tēnei wā. Pā mai ki te tautoko mō te āwhina."
+    "text": "Kua monokia tēnei āhuatanga i tēnei wā. Tēnā whakapā atu ki te tautoko mō te āwhina."
   },
   "incoming.memo_label": {
-    "text": "Pūrongo"
+    "text": "Memo"
   },
   "incoming.memo_placeholder": {
-    "text": "He whakamārama poto (hei tauira, Tono tautuhi kupuhipa anō)"
+    "text": "Whakamārama poto (hei tauira, Tono tautuhi anō kupuhipa)"
   },
   "incoming.memo_hint": {
-    "text": "Āwhina mātou ki te tuku i tō karere ki te tangata tika"
+    "text": "Āwhinatia mātou ki te tuku tō karere ki te tangata tika"
   },
   "incoming.recipient_label": {
-    "text": "Tuku ki"
+    "text": "Tukuna ki"
   },
   "incoming.recipient_placeholder": {
     "text": "Kōwhiria he kaiwhiwhi"
   },
   "incoming.recipient_aria_label": {
-    "text": "Kōwhiria he kaiwhiwhi mō tēnei mea huna"
+    "text": "Kōwhiria he kaiwhiwhi mō tēnei karere huna"
   },
   "incoming.recipient_hint": {
-    "text": "Kōwhiria ko wai ka whiwhi i tēnei karere haumaru"
+    "text": "Kōwhiria ko wai hei whiwhi i tēnei karere haumaru"
   },
   "incoming.no_recipients_available": {
     "text": "Kāore he kaiwhiwhi e wātea ana"
   },
   "incoming.secret_content_label": {
-    "text": "Kōrero ngaro"
+    "text": "Mōhiohio Huna"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Whakapiri kōrero ngaro ki konei (kupuhipa, kī, me ērā atu)"
+    "text": "Whakapiri mōhiohio hira ki konei (kupuhipa, kī, me ērā atu)"
   },
   "incoming.secret_content_hint": {
-    "text": "Ka whakamunaina ēnei kōrero, kotahi noa te wā ka kitea"
+    "text": "Ka whakamuhumuhu tēnei mōhiohio, kotahi noa te wā e taea ai te tiro"
   },
   "incoming.submit_button": {
-    "text": "Tukuna te mea huna"
+    "text": "Tuku Karere Huna"
   },
   "incoming.submit_secret": {
-    "text": "Tukuna te mea huna"
+    "text": "Tuku Karere Huna"
   },
   "incoming.submitting_button": {
     "text": "E tuku ana..."
@@ -63,39 +63,39 @@
     "text": "E tuku ana..."
   },
   "incoming.reset_button": {
-    "text": "Whakawātea puka"
+    "text": "Ūkui Puka"
   },
   "incoming.reset_form": {
-    "text": "Whakawātea puka"
+    "text": "Ūkui Puka"
   },
   "incoming.success_title": {
-    "text": "I angitu te tuku"
+    "text": "Kua Tukuna"
   },
   "incoming.success_description": {
     "text": "Kua tukuna tō karere haumaru."
   },
   "incoming.reference_id": {
-    "text": "Tautuhi tohutoro"
+    "text": "ID Tohutoro"
   },
   "incoming.success_info_title": {
-    "text": "He aha te mea e pā mai ana?"
+    "text": "He aha te mea ka tū?"
   },
   "incoming.success_info_description": {
-    "text": "Ka taea e te kaiwhiwhi te tiro i tēnei mea huna kotahi noa te wā. I muri i te tiro, ka mukua tūturu te mea huna."
+    "text": "Ka taea e te kaiwhiwhi te tiro i tēnei karere huna kotahi noa te wā. Whai muri i tā rātou tirohanga, ka mukua pūmau te karere huna."
   },
   "incoming.create_another": {
-    "text": "Tukuna anō he mea huna"
+    "text": "Tuku Karere Huna Anō"
   },
   "incoming.tagline1": {
-    "text": "Tohaina ngā kōrero ngaro haumaru"
+    "text": "Tohatoha mōhiohio hira mā te haumaru"
   },
   "incoming.tagline2": {
-    "text": "Kia tawhiti atu ngā kupuhipa me ngā raraunga tūmataiti i te īmēra me ngā rārangi kōrerorero"
+    "text": "Pupuri i ngā kupuhipa me ngā raraunga tūmataiti kia kaua e puta i ngā pūrongo īmēra me te kōrerorero"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Tiakina tō <a href='{receiptUrl}'>rīhīti</a> mō ō rēkōtanga."
+    "text": "Tiakina tō {receipt} mō ō tuhinga."
   },
   "incoming.receipt_link_text": {
-    "text": "rīhīti"
+    "text": "rihīti"
   }
 }

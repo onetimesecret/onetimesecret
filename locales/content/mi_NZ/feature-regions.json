@@ -1,66 +1,66 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Mana Motuhake Raraunga me te Motuhake Rohe"
+    "text": "Mana Raraunga & Wehe Ā-Rohe"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Ka noho ō raraunga i tō rohe i kōwhiria e koe anake, ā, kāore e tukuna ki ngā rohe kē"
+    "text": "E noho ana ō raraunga i roto i tō rohe i kōwhiria ai anake, kāore e whakawhitia ki ētahi atu rohe"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Ka mahi ia rohe hei taiao motuhake tino me ōna ake hanganga, kī whakamuhumuhu, me te rokiroki raraunga"
+    "text": "E mahi motuhake ana ia rohe hei taiao tino motuhake me tōna ake hanganga, kī whakamuhumuhu, me te rokiroki raraunga"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Kei a mātou tētahi kaupapa here mārō: kāore e tukuna ngā raraunga kiritaki i waenga i ngā rohe i raro i ngā āhuatanga katoa"
+    "text": "E whai ana mātou i tētahi kaupapahere tūturu: kāore ngā raraunga kiritaki e whakawhitia i waenga i ngā rohe i raro i ngā āhuatanga katoa"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Nui te take: Ko te huri ki tētahi rohe kē ka hanga i tētahi pūkete hou. Ka noho ō raraunga i tō rohe taketake."
+    "text": "Hira: Mā te huri ki tētahi rohe kē e waihanga he pūkete hou. Ka noho tonu ō raraunga i tō rohe taketake."
   },
   "web.regions.your_region": {
     "text": "Tō Rohe"
   },
   "web.regions.your_current_region": {
-    "text": "Tō Rohe o Nāianei"
+    "text": "Tō Rohe O Nāianei"
   },
   "web.regions.active": {
     "text": "Hohe"
   },
   "web.regions.explore_other_regions": {
-    "text": "Tūhuratia ngā rohe kē e wātea ana"
+    "text": "Tūhura i ētahi atu rohe wātea"
   },
   "web.regions.why_it_matters": {
-    "text": "He Aha Te Take o te Mana Motuhake Raraunga"
+    "text": "He Aha te Hiranga o te Mana Raraunga"
   },
   "web.regions.trust_title": {
-    "text": "Māramatanga me te Mana"
+    "text": "Pūataata & Mana Whakahaere"
   },
   "web.regions.trust_description": {
-    "text": "Mōhio tika ki te wāhi e noho ana ō raraunga me ngā ture e whakahaere ana i tōna tiaki."
+    "text": "Mōhio tino ki hea e noho ana ō raraunga, ko ēhea ture e whakahaere ana i tōna tiakitanga."
   },
   "web.regions.privacy_title": {
-    "text": "Ngā Tika Matatapu"
+    "text": "Tika Matatapu"
   },
   "web.regions.privacy_description": {
-    "text": "Whakaū ka whakahaerea ō mōhiohio whaiaro e ai ki ngā ture me ngā ture matatapu o tō whenua, hei ārai i te urunga kore mana, te kino whakamahi rānei."
+    "text": "Whakaū ka whāngaihia ō mōhiohio whaiaro e ai ki ngā ture matatapu o tō whenua, e aukati ana i te urunga kore mana me te whakamahi hē."
   },
   "web.regions.compliance_title": {
-    "text": "Whakaū Ture"
+    "text": "Whakatutuki Ture"
   },
   "web.regions.compliance_description": {
-    "text": "Whakatutuki i ngā whakaritenga tiaki raraunga rohe pērā i GDPR, HIPAA, CCPA, me ētahi atu"
+    "text": "Whakaea ngā whakaritenga GDPR, HIPAA, CCPA, me ētahi atu tiakitanga raraunga ā-rohe"
   },
   "web.regions.performance_title": {
-    "text": "Urunga Tere Ake"
+    "text": "Urunga Tere"
   },
   "web.regions.performance_description": {
-    "text": "Ko ngā raraunga kua rokirokihia tata ki a koe, ka iti ake te wā takaroa, ka pai ake te mahi."
+    "text": "Ko te roanga o ngā raraunga tata ake ki a koe, ko te iti ake o te takaroa me te pai ake o te mahi."
   },
   "web.regions.regions": {
     "text": "Ngā Rohe"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "whakapā atu ki tō mātou rōpū tūtohu"
+    "text": "whakapā atu ki tō mātou rōpū whakatutuki"
   },
   "web.regions.review_our_documentation": {
-    "text": "arotake i ā mātou tuhinga"
+    "text": "tirohia ā mātou tuhinga"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Ka tiakina tō pūkete me ō raraunga i raro i ngā ture me ngā whakaritenga o"
@@ -75,16 +75,16 @@
     "text": "Ki te mārama ki ngā ture motuhake me ngā whakamarumaru e hāngai ana ki tō pūkete, tēnā"
   },
   "web.regions.current": {
-    "text": "O Nāianei"
+    "text": "O nāianei"
   },
   "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
     "text": "{0} {1}"
   },
   "web.regions.available_regions": {
-    "text": "Ngā Rohe E Wātea Ana"
+    "text": "Ngā Rohe Wātea"
   },
   "web.regions.jurisdiction": {
-    "text": "Mana Whakahaere"
+    "text": "Mana Ture"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
     "text": "Wāhi pokapū raraunga: {0}"
@@ -93,15 +93,15 @@
     "text": "Rohe Raraunga"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Mana Whakahaere Tē Mōhiotia"
+    "text": "Mana Ture Kāore E Mōhiotia"
   },
   "web.regions.serving_you_from_the": {
-    "text": "E manaaki ana i a koe mai i te"
+    "text": "E tuku ratonga ana ki a koe mai i"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "Haere tonu ki {0}"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Mana whakahaere o nāianei:"
+    "text": "Mana ture o nāianei:"
   }
 }
