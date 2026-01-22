@@ -80,10 +80,20 @@ def get_translations_from_content(content: dict[str, Any]) -> dict[str, str]:
     return translations
 
 
+def _is_metadata_key(key: str) -> bool:
+    """Check if a key is metadata (has underscore-prefixed segment).
+
+    Keys like '_meta', 'web.auth._guidance', or 'web.auth._guidance.context'
+    are all metadata keys that should be excluded from translation counts.
+    """
+    return any(part.startswith("_") for part in key.split("."))
+
+
 def _get_source_keys(locale_dir: Path) -> set[str]:
     """Get the set of valid translation keys for a locale.
 
-    Returns keys that have non-empty 'text' and no 'skip' flag.
+    Returns keys that have non-empty 'text', no 'skip' flag, and are not
+    metadata keys (no underscore-prefixed segments in the key path).
 
     Args:
         locale_dir: Path to locale content directory.
@@ -102,6 +112,8 @@ def _get_source_keys(locale_dir: Path) -> set[str]:
             continue
 
         for key, entry in content.items():
+            if _is_metadata_key(key):
+                continue
             if not isinstance(entry, dict):
                 continue
             if entry.get("skip"):
