@@ -24,7 +24,7 @@
     "text": "Nastavitve"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Uredite sistemske konfiguracijske nastavitve. Spremembe se uveljavijo takoj po shranjevanju."
+    "text": "Uredite nastavitve sistemske konfiguracije. Spremembe veljajo takoj po shranjevanju."
   },
   "web.colonel.invalidJson": {
     "text": "Neveljaven JSON v razdelku {section}"
@@ -42,7 +42,7 @@
     "text": "Konfiguracija uspešno shranjena"
   },
   "web.colonel.mustBeObject": {
-    "text": "Konfiguracija mora biti objekt JSON"
+    "text": "Konfiguracija mora biti JSON objekt"
   },
   "web.colonel.multipleSectionsInvalid": {
     "text": "Več razdelkov ima napake pri preverjanju: {sections}"
@@ -51,7 +51,7 @@
     "text": "{section} ima napake pri preverjanju: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} uspešno shranjen"
+    "text": "{section} uspešno shranjeno"
   },
   "web.colonel.saveSection": {
     "text": "Shrani {section}"
@@ -75,10 +75,10 @@
     "text": "Nadzorna plošča"
   },
   "web.colonel.admin": {
-    "text": "Admin"
+    "text": "Administracija"
   },
   "web.colonel.activity": {
-    "text": "Aktivnost"
+    "text": "Dejavnost"
   },
   "web.colonel.accounts": {
     "text": "Računi"
@@ -108,34 +108,34 @@
     "text": "Hitra dejanja"
   },
   "web.colonel.recentActivity": {
-    "text": "Nedavna aktivnost"
+    "text": "Nedavna dejavnost"
   },
   "web.colonel.viewAll": {
     "text": "Prikaži vse"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Podatki o aktivnosti bodo prikazani tukaj"
+    "text": "Podatki o dejavnosti bodo prikazani tukaj"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Skupaj skrivnosti"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Aktivni uporabniki"
+    "text": "Aktivnih uporabnikov"
   },
   "web.colonel.stats.secretsToday": {
     "text": "Skrivnosti danes"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Ustvarjene skrivnosti"
+    "text": "Ustvarjenih skrivnosti"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Deljene skrivnosti"
+    "text": "Deljenih skrivnosti"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Skupaj strank"
+    "text": "Skupaj uporabnikov"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Poslane e-pošte"
+    "text": "Poslanih e-poštnih sporočil"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Zdravje sistema"
@@ -144,10 +144,10 @@
     "text": "Zdravo"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Prikaži aktivnost"
+    "text": "Prikaži dejavnost"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Spremljajte sistemsko aktivnost in uporabo"
+    "text": "Spremljajte sistemsko dejavnost in uporabo"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Upravljaj račune"
@@ -156,10 +156,10 @@
     "text": "Administracija uporabniških računov"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Konfiguriraj domene"
+    "text": "Nastavi domene"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Nastavitve domene in DNS"
+    "text": "Nastavitve domen in DNS"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Sistemske nastavitve"
@@ -171,7 +171,7 @@
     "text": "Opravila v ozadju"
   },
   "web.colonel.queueStatus": {
-    "text": "Status čakalne vrste"
+    "text": "Stanje čakalne vrste"
   },
   "web.colonel.queueName": {
     "text": "Čakalna vrsta"
@@ -186,7 +186,7 @@
     "text": "Hitrost/sek"
   },
   "web.colonel.connectionStatus": {
-    "text": "Status povezave"
+    "text": "Stanje povezave"
   },
   "web.colonel.workerHealth": {
     "text": "Zdravje delavcev"
@@ -195,13 +195,13 @@
     "text": "aktivnih delavcev"
   },
   "web.colonel.noQueueData": {
-    "text": "Ni podatkov o čakalni vrsti"
+    "text": "Podatki čakalne vrste niso na voljo"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Nalaganje podatkov o čakalni vrsti..."
+    "text": "Nalaganje podatkov čakalne vrste..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Način testiranja paketa"
+    "text": "Testni način načrta"
   },
   "web.colonel.testingAsPlan": {
     "text": "Testiranje kot {planName}"
@@ -210,16 +210,16 @@
     "text": "Kliknite za ponastavitev"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Izberite paket za testiranje"
+    "text": "Izberite načrt za testiranje"
   },
   "web.colonel.resetToActual": {
-    "text": "Ponastavi na dejanski paket"
+    "text": "Ponastavi na dejanski načrt"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Trenutni paket"
+    "text": "Trenutni načrt"
   },
   "web.colonel.availablePlans": {
-    "text": "Razpoložljivi paketi"
+    "text": "Razpoložljivi načrti"
   },
   "web.colonel.activateTestMode": {
     "text": "Aktiviraj testni način"
@@ -228,10 +228,10 @@
     "text": "Testni način aktiven"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testirajte svojo aplikacijo z različnimi pravicami paketov. Spremembe so začasne in vplivajo samo na vašo sejo."
+    "text": "Testirajte svojo aplikacijo z različnimi upravičenji načrtov. Spremembe so začasne in vplivajo samo na vašo sejo."
   },
   "web.colonel.warningTestMode": {
-    "text": "Testirate s pravicami paketa {planName} (začasno preglasitev seje)."
+    "text": "Testirate z upravičenji {planName} (začasna preglasitev seje)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Ko pošljete povratne informacije, bomo videli:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Pošiljam..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Blokirani IP naslovi"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Upravljaj seznam blokiranih IP naslovov"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Lastne domene"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Upravljaj lastne domene in blagovno znamko"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Pošlji povratne informacije"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Pošiljanje..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Ko pošljete povratne informacije, bomo videli:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organizacije"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Spremljaj zdravje sinhronizacije obračunavanja org"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Monitor zdravja obračunavanja"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organizacij"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} potrebuje pozornost"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} neznanih"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Ni najdenih organizacij"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Preišči"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Preverjanje..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Račun"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Obračun"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Stanje"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Uporaba"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Ustvarjeno"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Podrobnosti"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Lastnik"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Načrt"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Člani"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domene"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Naročnina"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Privzeti delovni prostor"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Ima obračun"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Stranka"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Naročnina"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID organizacije"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Stanje sinhronizacije"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Naročnina"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Vse"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potencialno zastarelo"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Neznano"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Sinhronizirano"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktivno"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Preizkusno obdobje"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Zapadlo"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Preklicano"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Preiskava ni uspela"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Rezultat preiskave"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Preverjeno sinhronizirano"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Najdeno neujemanje"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Ni mogoče primerjati"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Podrobnosti Stripe naročnine"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Stanje"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Izdelek"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Razrešen načrt"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID cene"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Lokalno"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Administracija obračunavanja organizacij"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Upravljaj organizacije in spremljaj zdravje sinhronizacije obračunavanja ({total} skupaj)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Ni najdenih organizacij"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potencialno zastarelo"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Zastarelo"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Neznano"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktivno"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} članov"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domen"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Skrivnosti"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Oglejte si in upravljajte vse skrivnosti"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Sistem"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Sistemske nastavitve, podatkovne baze in konfiguracija"
+  },
+  "web.colonel.titles.index": {
+    "text": "Administracija"
+  },
+  "web.colonel.titles.users": {
+    "text": "Upravljanje uporabnikov"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Upravljanje skrivnosti"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Lastne domene"
+  },
+  "web.colonel.titles.system": {
+    "text": "Sistem"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Glavna podatkovna baza"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Avtentikacijska podatkovna baza"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Blokirani IP naslovi"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Izvoz uporabe"
+  },
+  "web.colonel.titles.info": {
+    "text": "Sistemske informacije"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organizacije"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Izvoz uporabe"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Izvozi podatke o uporabi in statistiko"
   }
 }

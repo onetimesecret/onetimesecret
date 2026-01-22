@@ -12,9 +12,9 @@
     "text": "Začnite z ustvarjanjem svoje prve skrivnosti."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Ekip ni bilo mogoče naložiti"
+    "text": "Podatkov ni mogoče naložiti"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Pri nalaganju vaših ekip je prišlo do težave. Poskusite znova."
+    "text": "Pri nalaganju vaših podatkov je prišlo do težave. Poskusite znova."
   }
 }

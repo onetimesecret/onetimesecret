@@ -1,33 +1,33 @@
 {
   "web.auth.mfa_required": {
-    "text": "Potrebno preverjanje MFA"
+    "text": "Zahtevano preverjanje MFA"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Preverjanje MFA je potrebno za dostop do vašega računa"
+    "text": "Za dostop do računa je zahtevano preverjanje MFA"
   },
   "web.auth.complete_mfa_verification": {
     "text": "Dokončaj preverjanje MFA"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Avtentikacija ni uspela. Preverite svoje poverilnice in poskusite znova."
+    "text": "Avtentikacija ni uspela. Prosimo, preverite svoje poverilnice in poskusite znova."
   },
   "web.auth.security.rate_limited": {
-    "text": "Preveč poskusov. Poskusite znova kasneje."
+    "text": "Preveč poskusov. Prosimo, poskusite znova pozneje."
   },
   "web.auth.security.session_expired": {
-    "text": "Seja je potekla. Ponovno se prijavite."
+    "text": "Seja je potekla. Prosimo, prijavite se znova."
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Obnovitvene kode ni bilo mogoče najti. Preverite, ali ste jo pravilno vnesli."
+    "text": "Obnovitvena koda ni najdena. Prosimo, preverite, da ste jo vnesli pravilno."
   },
   "web.auth.security.recovery_code_used": {
     "text": "Ta obnovitvena koda je že bila uporabljena. Vsako kodo je mogoče uporabiti samo enkrat."
   },
   "web.auth.security.network_error": {
-    "text": "Napaka omrežja. Preverite svojo povezavo in poskusite znova."
+    "text": "Omrežna napaka. Prosimo, preverite svojo povezavo in poskusite znova."
   },
   "web.auth.security.internal_error": {
-    "text": "Prišlo je do napake. Poskusite znova."
+    "text": "Prišlo je do napake. Prosimo, poskusite znova."
   },
   "web.auth.methods.password": {
     "text": "Geslo"
@@ -36,25 +36,25 @@
     "text": "E-poštna povezava"
   },
   "web.auth.methods.webauthn": {
-    "text": "Biometrija"
+    "text": "Biometrično"
   },
   "web.auth.magicLink.title": {
     "text": "Prijava z e-pošto"
   },
   "web.auth.magicLink.description": {
-    "text": "Poslali vam bomo varno povezavo za prijavo"
+    "text": "Poslali vam bomo varno prijavno povezavo"
   },
   "web.auth.magicLink.emailPlaceholder": {
     "text": "Vnesite svojo e-pošto"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Pošlji povezavo za prijavo"
+    "text": "Pošlji prijavno povezavo"
   },
   "web.auth.magicLink.checkEmail": {
     "text": "Preverite svojo e-pošto"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Poslali smo povezavo za prijavo na {email}"
+    "text": "Poslali smo prijavno povezavo na {email}"
   },
   "web.auth.magicLink.linkExpiresIn": {
     "text": "Ta povezava bo potekla čez 15 minut"
@@ -63,25 +63,25 @@
     "text": "Poskusite z drugo e-pošto"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Geslo ni potrebno — samo kliknite povezavo v svoji e-pošti"
+    "text": "Geslo ni potrebno — samo kliknite povezavo v vaši e-pošti"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Napaka omrežja. Poskusite znova."
+    "text": "Omrežna napaka. Prosimo, poskusite znova."
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Pošiljanje povezave za prijavo ni uspelo. Poskusite znova."
+    "text": "Pošiljanje prijavne povezave ni uspelo. Prosimo, poskusite znova."
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Neveljavna ali manjkajoča povezava za prijavo"
+    "text": "Neveljavna ali manjkajoča prijavna povezava"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Prijava ni uspela. Poskusite znova."
+    "text": "Prijava ni uspela. Prosimo, poskusite znova."
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Prijavljam vas..."
+    "text": "Prijavljamo vas..."
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Počakajte, medtem ko preverjamo vašo povezavo"
+    "text": "Prosimo, počakajte, medtem ko preverjamo vašo povezavo"
   },
   "web.auth.magicLink.error": {
     "text": "Napaka pri avtentikaciji"
@@ -123,10 +123,10 @@
     "text": "Podpira Face ID, Touch ID, Windows Hello in varnostne ključe"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Opozorilo: Preostane {count} poskusov prijave"
+    "text": "Opozorilo: preostalo še {count} poskusov prijave"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Račun je zaklenjen zaradi preveč neuspelih poskusov prijave"
+    "text": "Račun zaklenjen zaradi preveč neuspelih poskusov prijave"
   },
   "web.auth.lockout.locked_until": {
     "text": "Vaš račun je zaklenjen do {time}"
@@ -135,7 +135,7 @@
     "text": "Kontaktirajte podporo, če potrebujete takojšen dostop"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Namesto tega lahko ponastavite svoje geslo"
+    "text": "Namesto tega lahko ponastavite geslo"
   },
   "web.auth.sessions.title": {
     "text": "Aktivne seje"
@@ -156,7 +156,7 @@
     "text": "IP naslov"
   },
   "web.auth.sessions.last_active": {
-    "text": "Zadnja aktivnost"
+    "text": "Nazadnje aktivno"
   },
   "web.auth.sessions.created": {
     "text": "Ustvarjeno"
@@ -171,7 +171,7 @@
     "text": "Ali ste prepričani, da želite odstraniti to sejo?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "To vas bo odjavilo iz vseh drugih naprav. Ali ste prepričani?"
+    "text": "To vas bo odjavilo z vseh drugih naprav. Ali ste prepričani?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Ni drugih aktivnih sej"
@@ -186,67 +186,67 @@
     "text": "Aktivne seje"
   },
   "web.auth.mfa.title": {
-    "text": "Dvofaktorska avtentikacija"
+    "text": "Dvostopenjska avtentikacija"
   },
   "web.auth.mfa.enabled": {
-    "text": "Dvofaktorska avtentikacija je omogočena"
+    "text": "Dvostopenjska avtentikacija je omogočena"
   },
   "web.auth.mfa.disabled": {
-    "text": "Dvofaktorska avtentikacija je onemogočena"
+    "text": "Dvostopenjska avtentikacija je onemogočena"
   },
   "web.auth.mfa.enable": {
-    "text": "Omogoči dvofaktorsko avtentikacijo"
+    "text": "Omogoči dvostopenjsko avtentikacijo"
   },
   "web.auth.mfa.disable": {
-    "text": "Onemogoči dvofaktorsko avtentikacijo"
+    "text": "Onemogoči dvostopenjsko avtentikacijo"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Nastavite dvofaktorsko avtentikacijo"
+    "text": "Nastavi dvostopenjsko avtentikacijo"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Dodajte dodatno raven varnosti svojemu računu"
+    "text": "Dodajte dodatno plast varnosti svojemu računu"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Skenirajte QR kodo"
+    "text": "1. Skeniraj QR kodo"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Preverite nastavitev"
+    "text": "2. Preveri nastavitev"
   },
   "web.auth.mfa.scan_qr": {
     "text": "Skenirajte to QR kodo s svojo aplikacijo za avtentikacijo"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Ali ročno vnesite to kodo"
+    "text": "Ali vnesite to kodo ročno"
   },
   "web.auth.mfa.verify_code": {
     "text": "Vnesite 6-mestno kodo iz svoje aplikacije"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Vnesite kodo za avtentikacijo"
+    "text": "Vnesite avtentikacijsko kodo"
   },
   "web.auth.mfa.verify": {
     "text": "Preveri in omogoči"
   },
   "web.auth.mfa.code_required": {
-    "text": "Koda za avtentikacijo je obvezna"
+    "text": "Avtentikacijska koda je zahtevana"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Neveljavna koda. Kode potečejo vsakih 30 sekund. Poskusite z najnovejšo kodo iz svoje aplikacije za avtentikacijo."
+    "text": "Neveljavna koda. Kode potečejo vsakih 30 sekund. Poskusite najnovejšo kodo iz svoje aplikacije za avtentikacijo."
   },
   "web.auth.mfa.success_enabled": {
-    "text": "Dvofaktorska avtentikacija je bila omogočena"
+    "text": "Dvostopenjska avtentikacija je bila omogočena"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "Dvofaktorska avtentikacija je bila onemogočena"
+    "text": "Dvostopenjska avtentikacija je bila onemogočena"
   },
   "web.auth.mfa.require_password": {
-    "text": "Vnesite svoje geslo za onemogočenje 2FA"
+    "text": "Vnesite geslo za onemogočenje 2FA"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "Geslo"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Potrdite svojo identiteto za spreminjanje nastavitev dvofaktorske avtentikacije"
+    "text": "Potrdite svojo identiteto za spremembo nastavitev dvostopenjske avtentikacije"
   },
   "web.auth.mfa.last_used": {
     "text": "Nazadnje uporabljeno: {time}"
@@ -255,49 +255,49 @@
     "text": "Nikoli uporabljeno"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Uporabite obnovitveno kodo namesto tega"
+    "text": "Namesto tega uporabite obnovitveno kodo"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Nazaj na kodo za avtentikacijo"
+    "text": "Nazaj na avtentikacijsko kodo"
   },
   "web.auth.mfa.cancel": {
     "text": "Prekliči in vrni se na prijavo"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Nalagam status MFA..."
+    "text": "Nalaganje stanja MFA..."
   },
   "web.auth.mfa.protected_description": {
-    "text": "Vaš račun je zaščiten z dvofaktorsko avtentikacijo"
+    "text": "Vaš račun je zaščiten z dvostopenjsko avtentikacijo"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Zaščitite svoj račun z dodatno ravnjo varnosti"
+    "text": "Zaščitite svoj račun z dodatno plastjo varnosti"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Preprečite nepooblaščen dostop, tudi če je vaše geslo ogroženo"
+    "text": "Preprečite nepooblaščen dostop tudi če je vaše geslo ogroženo"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "Deluje z Google Authenticator, Authy in drugimi TOTP aplikacijami"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Varnostne obnovitvene kode za nujni dostop"
+    "text": "Rezervne obnovitvene kode za nujni dostop"
   },
   "web.auth.mfa.password_placeholder": {
     "text": "Vnesite svoje geslo"
   },
   "web.auth.mfa.disabling": {
-    "text": "Onemogočam..."
+    "text": "Onemogočanje..."
   },
   "web.auth.mfa.disable_button": {
     "text": "Onemogoči 2FA"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "Generiranje QR kode..."
+    "text": "Ustvarjanje QR kode..."
   },
   "web.auth.mfa.supported_apps": {
     "text": "Uporabite Google Authenticator, Authy ali katero koli TOTP aplikacijo"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Nadaljujte na preverjanje"
+    "text": "Nadaljuj na preverjanje"
   },
   "web.auth.mfa.enter_code_description": {
     "text": "Vnesite 6-mestno kodo iz svoje aplikacije za avtentikacijo"
@@ -309,7 +309,7 @@
     "text": "Dokončaj nastavitev"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Vnesite eno svojih obnovitvenih kod"
+    "text": "Vnesite eno od svojih obnovitvenih kod"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "Obnovitvena koda"
@@ -321,37 +321,37 @@
     "text": "Preveri obnovitveno kodo"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Vnesite 6-mestno kodo za avtentikacijo"
+    "text": "Vnesite 6-mestno avtentikacijsko kodo"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Način obnovitvene kode je aktiven"
+    "text": "Način obnovitvene kode aktiven"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Način kode za avtentikacijo je aktiven"
+    "text": "Način avtentikacijske kode aktiven"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Vnesite vseh 6 številk za nadaljevanje"
+    "text": "Za nadaljevanje prosimo vnesite vseh 6 števk"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "Številka {current} od {total}"
+    "text": "Števka {current} od {total}"
   },
   "web.auth.recovery_codes.title": {
     "text": "Obnovitvene kode"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Shranite te kode na varno mesto. Vsako lahko uporabite enkrat, če izgubite dostop do svoje aplikacije za avtentikacijo."
+    "text": "Shranite te kode na varnem mestu. Vsako je mogoče uporabiti enkrat, če izgubite dostop do svoje aplikacije za avtentikacijo."
   },
   "web.auth.recovery_codes.warning": {
     "text": "Te kode bodo prikazane samo enkrat"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Preden dokončate nastavitev, morate prenesti ali kopirati svoje obnovitvene kode."
+    "text": "Pred dokončanjem nastavitve morate prenesti ali kopirati svoje obnovitvene kode."
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "Generiraj nove kode"
+    "text": "Ustvari nove kode"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Ponovno generiraj kode"
+    "text": "Ponovno ustvari kode"
   },
   "web.auth.recovery_codes.generate_new_warning": {
     "text": "To bo razveljavilo vse obstoječe obnovitvene kode"
@@ -375,24 +375,39 @@
     "text": "Kopiranje kod v odložišče ni uspelo"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "Uporabljena"
+    "text": "Uporabljeno"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "Neuporabljena"
+    "text": "Neuporabljeno"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "Preostane {count} obnovitvenih kod"
+    "text": "{count} od {limit} obnovitvenih kod preostane"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Vsako kodo lahko uporabite samo enkrat. Ponovno generirajte kode, če vam zmanjkuje."
+    "text": "Vsako kodo je mogoče uporabiti samo enkrat. Ponovno ustvarite kode, če vam zmanjkuje."
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Ne preostane več obnovitvenih kod"
+    "text": "Ni preostalih obnovitvenih kod"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Nove obnovitvene kode so bile generirane"
+    "text": "Nove obnovitvene kode so bile ustvarjene"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Obnovitvene kode"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Preveri"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Uporabi obnovitveno kodo"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Prekliči prijavo"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ VARNOSTNO-KRITIČNO: Sporočila preprečujejo razkritje informacij. Glejte src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Stran za upravljanje prijavljenih naprav/brskalnikov uporabnika"
   }
 }

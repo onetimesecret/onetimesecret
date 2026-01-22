@@ -6,7 +6,7 @@
     "text": "Skrivnosti so zasnovane tako, da si jih je mogoče ogledati samo enkrat. Ta povezava je morda že bila dostopana, je potekla ali jo je pošiljatelj ročno izbrisal."
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Kaj naj storim zdaj?"
+    "text": "Kaj naj zdaj storim?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
     "text": "Kontaktirajte osebo, ki vam je poslala to povezavo, in jo prosite, naj ustvari novo skrivnost. Povejte ji, da niste mogli dostopati do izvirnih informacij."
@@ -15,7 +15,7 @@
     "text": "Opozorilo opuščeno"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Opusti opozorilo o okrnitvi"
+    "text": "Opusti opozorilo o skrajšanju"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Ups! Stran, ki jo iščete, ne obstaja ali je bila premaknjena."
@@ -45,7 +45,7 @@
     "text": "{0} Nekaj je šlo narobe"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Pojdi deliti skrivnost!"
+    "text": "Pojdite deliti skrivnost!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "Stran, ki jo iščete, ne obstaja ali je bila premaknjena. Ne skrbite, to se zgodi najboljšim!"

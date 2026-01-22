@@ -6,7 +6,7 @@
     "text": "Registrirajte se."
   },
   "web.login.forgot_your_password": {
-    "text": "Ste pozabili svoje geslo?"
+    "text": "Ste pozabili geslo?"
   },
   "web.login.button_sign_in": {
     "text": "Prijava"
@@ -36,10 +36,10 @@
     "text": "E-pošta"
   },
   "web.auth.verify.title": {
-    "text": "Preverite svoj račun"
+    "text": "Potrdite svoj račun"
   },
   "web.auth.verify.success": {
-    "text": "Vaš račun je bil uspešno preverjen"
+    "text": "Vaš račun je bil uspešno potrjen"
   },
   "web.auth.verify.invalid_key": {
     "text": "Neveljaven ali potekel ključ za preverjanje"
@@ -48,16 +48,16 @@
     "text": "Ta povezava za preverjanje je potekla. Zahtevajte novo."
   },
   "web.auth.verify.already_verified": {
-    "text": "Ta račun je že bil preverjen. Zdaj se lahko prijavite."
+    "text": "Ta račun je že potrjen. Zdaj se lahko prijavite."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Računa ni mogoče preveriti. Poskusite znova ali kontaktirajte podporo."
+    "text": "Računa ni mogoče potrditi. Poskusite znova ali se obrnite na podporo."
   },
   "web.auth.verify.check_email": {
-    "text": "Preverite svojo e-pošto za povezavo za preverjanje"
+    "text": "Preverite svoj e-poštni predal za povezavo za preverjanje"
   },
   "web.auth.verify.error": {
-    "text": "Preverjanje računa ni uspelo. Preverite svojo povezavo za preverjanje ali zahtevajte novo."
+    "text": "Preverjanje računa ni uspelo. Preverite povezavo za preverjanje ali zahtevajte novo."
   },
   "web.auth.verify.error_title": {
     "text": "Preverjanje ni uspelo"
@@ -66,19 +66,19 @@
     "text": "Kaj naj storim?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Preverite svojo e-pošto za najnovejšo povezavo za preverjanje"
+    "text": "Preverite svoj e-poštni predal za najnovejšo povezavo za preverjanje"
   },
   "web.auth.verify.check_spam": {
-    "text": "Preverite mapo za neželeno pošto, če ne najdete e-pošte"
+    "text": "Preverite mapo z neželeno pošto, če ne najdete e-pošte"
   },
   "web.auth.verify.contact_support": {
-    "text": "Kontaktirajte podporo, če imate še vedno težave"
+    "text": "Obrnite se na podporo, če imate še naprej težave"
   },
   "web.auth.verify.missing_key_title": {
     "text": "Potrebna je povezava za preverjanje"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Uporabite povezavo za preverjanje, poslano na vaš e-poštni naslov, za preverjanje svojega računa."
+    "text": "Za potrditev računa uporabite povezavo za preverjanje, ki smo jo poslali na vaš e-poštni naslov."
   },
   "web.auth.verify.create_new_account": {
     "text": "Ustvari nov račun"
@@ -93,13 +93,13 @@
     "text": "Novo geslo"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Potrdite novo geslo"
+    "text": "Potrdi novo geslo"
   },
   "web.auth.change_password.success": {
     "text": "Vaše geslo je bilo uspešno spremenjeno"
   },
   "web.auth.change_password.error": {
-    "text": "Sprememba gesla ni uspela. Preverite svoje trenutno geslo in poskusite znova."
+    "text": "Sprememba gesla ni uspela. Preverite trenutno geslo in poskusite znova."
   },
   "web.auth.close_account.title": {
     "text": "Zapri račun"
@@ -111,7 +111,7 @@
     "text": "Razumem, da je to dejanje trajno"
   },
   "web.auth.close_account.password": {
-    "text": "Vnesite svoje geslo za potrditev"
+    "text": "Vnesite geslo za potrditev"
   },
   "web.auth.close_account.button": {
     "text": "Trajno zapri račun"
@@ -132,16 +132,16 @@
     "text": "Izberite novo geslo"
   },
   "web.auth.password_reset.description": {
-    "text": "Spodaj vnesite svoje novo geslo. Prepričajte se, da je močno in edinstveno za zaščito vašega računa."
+    "text": "Spodaj vnesite novo geslo. Poskrbite, da bo močno in edinstveno za zaščito vašega računa."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Poslali smo vam e-pošto s povezavo za ponastavitev gesla za vaš račun"
+    "text": "Na vaš e-poštni naslov smo poslali povezavo za ponastavitev gesla vašega računa"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Strinjam se s"
   },
   "web.auth.account.title": {
-    "text": "Informacije o računu"
+    "text": "Podatki o računu"
   },
   "web.auth.account.email": {
     "text": "E-poštni naslov"
@@ -150,31 +150,31 @@
     "text": "Račun ustvarjen"
   },
   "web.auth.account.verified": {
-    "text": "E-pošta preverjena"
+    "text": "E-pošta potrjena"
   },
   "web.auth.account.region": {
     "text": "Regija"
   },
   "web.auth.account.not_verified": {
-    "text": "E-pošta ni preverjena"
+    "text": "E-pošta ni potrjena"
   },
   "web.auth.account.verify_email": {
-    "text": "Preveri e-poštni naslov"
+    "text": "Potrdi e-poštni naslov"
   },
   "web.auth.account.mfa_status": {
     "text": "Dvofaktorska avtentikacija"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Omogočena"
+    "text": "Omogočeno"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Onemogočena"
+    "text": "Onemogočeno"
   },
   "web.auth.account.active_sessions": {
     "text": "Aktivne seje"
   },
   "web.auth.account.session_count": {
-    "text": "{count} aktivnih sej"
+    "text": "{count} aktivna seja | {count} aktivni seji | {count} aktivne seje | {count} aktivnih sej"
   },
   "web.auth.account.quick_actions": {
     "text": "Hitra dejanja"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "Zapri račun"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Postopek preverjanja e-pošte po registraciji"
+  },
+  "web.help.title": {
+    "text": "Pomoč in podpora"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Odpravljanje težav s prijavo"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Čarobna povezava ne prihaja?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Preverite mapo z neželeno pošto"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Preverite, ali ste pravilno vnesli e-poštni naslov"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Počakajte nekaj minut – e-pošta ima lahko zamudo"
+  },
+  "web.help.try_again": {
+    "text": "Zahtevajte novo povezavo, če je minilo več kot 10 minut"
+  },
+  "web.help.forgot_password": {
+    "text": "Ste pozabili geslo?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Uporabite možnost Čarobna povezava za prijavo brez gesla. Ko se prijavite, lahko spremenite geslo v nastavitvah računa."
+  },
+  "web.help.account_locked": {
+    "text": "Račun začasno zaklenjen?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Po več neuspelih poskusih prijave se računi iz varnostnih razlogov začasno zaklenejo. Počakajte 15 minut in poskusite znova ali uporabite Čarobno povezavo za prijavo."
+  },
+  "web.help.still_need_help": {
+    "text": "Še vedno potrebujete pomoč?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Če imate še vedno težave, smo tu, da vam pomagamo. Pošljite nam sporočilo in odgovorili vam bomo v najkrajšem možnem času."
+  },
+  "web.help.contact_support": {
+    "text": "Obrnite se na podporo"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Pošlji prijavno povezavo"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Na vaš e-poštni naslov bo poslana varna povezava."
+  },
+  "web.login.or_divider": {
+    "text": "ali"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Prijava z geslom"
+  },
+  "web.login.use_passwordless": {
+    "text": "Uporabi prijavo brez gesla"
+  },
+  "web.login.create_account": {
+    "text": "Ustvari račun"
+  },
+  "web.login.return_home": {
+    "text": "Nazaj na začetno stran"
+  },
+  "web.login.tab_password": {
+    "text": "Geslo"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Čarobna povezava"
+  },
+  "web.login.need_help": {
+    "text": "Potrebujete pomoč?"
   }
 }

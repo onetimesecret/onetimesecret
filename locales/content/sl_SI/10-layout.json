@@ -3,22 +3,22 @@
     "text": "API dokumentacija"
   },
   "web.footer.branding_guide": {
-    "text": "Vodnik za blagovno znamko"
+    "text": "Vodnik blagovne znamke"
   },
   "web.footer.customize": {
     "text": "Prilagodi"
   },
   "web.footer.plans": {
-    "text": "Paketi"
+    "text": "Načrti"
   },
   "web.footer.security": {
     "text": "Varnost"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Več o naših varnostnih ukrepih"
+    "text": "Spoznajte naše varnostne ukrepe"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Oglejte si naše pogoje poslovanja"
+    "text": "Oglejte si naše pogoje uporabe"
   },
   "web.footer.terms": {
     "text": "Pogoji"
@@ -33,25 +33,25 @@
     "text": "Podpora"
   },
   "web.footer.legals": {
-    "text": "Pravno"
+    "text": "Pravne informacije"
   },
   "web.footer.read_our_privacy_policy": {
     "text": "Preberite našo politiko zasebnosti"
   },
   "web.footer.check_our_service_status": {
-    "text": "Preverite status naše storitve"
+    "text": "Preverite stanje naših storitev"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Raziščite našo dokumentacijo API"
+    "text": "Raziščite našo API dokumentacijo"
   },
   "web.footer.docs": {
     "text": "Dokumentacija"
   },
   "web.footer.access_our_documentation": {
-    "text": "Dostopajte do naše dokumentacije"
+    "text": "Dostopite do naše dokumentacije"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Oglejte si našo izvorno kodo na GitHub"
+    "text": "Oglejte si našo izvorno kodo na GitHubu"
   },
   "web.footer.resources": {
     "text": "Viri"
@@ -63,16 +63,16 @@
     "text": "Preberite naše najnovejše objave na blogu"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Oglejte si naše cene naročnin"
+    "text": "Oglejte si cene naročnin"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Izvedite več o našem podjetju"
+    "text": "Spoznajte naše podjetje"
   },
   "web.footer.company": {
     "text": "Podjetje"
   },
   "web.navigation.billing": {
-    "text": "Plačila"
+    "text": "Obračun"
   },
   "web.navigation.billingOverview": {
     "text": "Pregled"
@@ -90,7 +90,7 @@
     "text": "Prevodi so novi. Opazili ste napako? {send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Nedavno smo dodali prevode. Opazili ste napako? {send-feedback}"
+    "text": "Pred kratkim smo dodali prevode. Opazili napako? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "Zasebnost in varnost bi morali biti dostopni vsem, ne glede na jezik. Dodajamo prevode, da našim uporabnikom in njihovim prejemnikom sporočil pomagamo bolje razumeti, kako varno uporabljati in dostopati do varnih sporočil in povezav. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nejasna navodila. Za pomoč pri izboljšanju jasnosti in točnosti naših prevodov, zlasti za kritično varnostno vsebino, {send-feedback}, če opazite težave"
@@ -102,31 +102,31 @@
     "text": "Kaj gledam?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Ogledujete si varno sporočilo, ki je bilo z vami deljeno preko Onetime Secret. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov."
+    "text": "Gledate varno sporočilo, ki vam je bilo posredovano prek Onetime Secret. Ta vsebina se prikaže samo enkrat in je nato trajno izbrisana z naših strežnikov."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Ali lahko to skrivnost znova pogledam kasneje?"
+    "text": "Ali si lahko to skrivnost ogledam še kdaj?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Ne. Iz varnostnih razlogov je ta skrivnost vidna samo enkrat. Po zaprtju te strani bo vsebina trajno izbrisana in je nihče, vključno z nami, ne bo mogel obnoviti."
+    "text": "Ne. Iz varnostnih razlogov si lahko to skrivnost ogledate samo enkrat. Ko zaprete to stran, bo vsebina trajno izbrisana in je nihče ne bo mogel obnoviti, niti mi."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
     "text": "Kako shranim te informacije?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Uporabite gumb 'Kopiraj v odložišče' za kopiranje celotne skrivnosti. Za daljše skrivnosti se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran."
+    "text": "Uporabite gumb 'Kopiraj v odložišče' za kopiranje celotne skrivnosti. Pri daljših skrivnostih se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Ali se moj ogled te skrivnosti sledi?"
+    "text": "Ali se moj ogled te skrivnosti beleži?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne sledimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena."
+    "text": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne beležimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče ne bo mogel obnoviti."
+    "text": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče več ne bo mogel obnoviti."
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Pojdi nazaj na prejšnjo stran"
+    "text": "Pojdite nazaj na prejšnjo stran"
   },
   "web.layout.site_footer": {
     "text": "Noga spletne strani"
@@ -135,7 +135,7 @@
     "text": "Preklopi temni način"
   },
   "web.layout.provide_feedback": {
-    "text": "Posredujte povratne informacije"
+    "text": "Podajte povratne informacije"
   },
   "web.layout.company_logo": {
     "text": "Logotip podjetja"
@@ -159,7 +159,7 @@
     "text": "Opombe ob izdaji"
   },
   "web.layout.loading_settings_content": {
-    "text": "Nalagam vsebino nastavitev..."
+    "text": "Nalaganje vsebine nastavitev..."
   },
   "web.layout.settings_sections_0": {
     "text": "Razdelki nastavitev"
@@ -174,28 +174,28 @@
     "text": "Prilagodite svoje preference in nastavitve aplikacije"
   },
   "web.layout.return_home": {
-    "text": "Vrni se domov"
+    "text": "Nazaj domov"
   },
   "web.layout.return_to_home_page": {
-    "text": "Vrni se na domačo stran"
+    "text": "Nazaj na domačo stran"
   },
   "web.layout.return_to_home": {
-    "text": "Vrni se domov"
+    "text": "Nazaj na domačo stran"
   },
   "web.layout.view_privacy_policy": {
     "text": "Oglejte si politiko zasebnosti"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Oglejte si pogoje storitve"
+    "text": "Oglejte si pogoje uporabe"
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Obiščite domačo stran Onetime Secret"
   },
   "web.layout.footer_navigation": {
-    "text": "Navigacija noge"
+    "text": "Navigacija v nogi"
   },
   "web.layout.terms_of_service": {
-    "text": "Pogoji storitve"
+    "text": "Pogoji uporabe"
   },
   "web.layout.privacy_policy": {
     "text": "Politika zasebnosti"
@@ -219,7 +219,7 @@
     "text": "Font Awesome 6"
   },
   "web.layout.view_source_on_github": {
-    "text": "Oglejte si izvorno kodo na GitHub"
+    "text": "Oglejte si izvorno kodo na GitHubu"
   },
   "web.layout.website_version_v_ot_version": {
     "text": "Različica spletne strani: v{0}"
@@ -228,18 +228,24 @@
     "text": "Spremeni jezik. Trenutni jezik je {0}"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Jezik spremenjen v {0}"
+    "text": "Jezik spremenjen na {0}"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Preklopi v {0} način"
+    "text": "Preklopi na način {0}"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0} način omogočen"
+    "text": "Način {0} omogočen"
   },
   "web.layout.workspace": {
     "text": "Delovni prostor"
   },
   "web.layout.workspace_context": {
     "text": "Kontekst delovnega prostora"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Ko pošljete povratne informacije, bomo videli:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Ponastavi na {0}"
   }
 }

@@ -21,16 +21,16 @@
     "text": "Poslano prek"
   },
   "email.welcome.subject": {
-    "text": "Preverite svoj račun Onetime Secret"
+    "text": "Dobrodošli v %{product_name} - Prosimo, preverite svojo e-pošto"
   },
   "email.welcome.title": {
-    "text": "Povabljeni ste k pridružitvi organizaciji %{product_name}!"
+    "text": "Dobrodošli v %{product_name}!"
   },
   "email.welcome.verify_prompt": {
-    "text": "Prosimo, potrdite svoj e-poštni naslov s klikom na spodnjo povezavo:"
+    "text": "Prosimo, preverite svoj e-poštni naslov s klikom na spodnjo povezavo:"
   },
   "email.welcome.verify_button": {
-    "text": "Potrdi e-poštni naslov"
+    "text": "Preveri e-poštni naslov"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Ali kopirajte in prilepite to povezavo:"
@@ -39,7 +39,7 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Ta e-pošta je bila poslana na %{email_address}. Če niste ustvarili računa, lahko to sporočilo varno prezrete."
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}. Če niste ustvarili računa, lahko to sporočilo varno prezrete."
   },
   "email.password_request.subject": {
     "text": "Ponastavite svoje geslo (%{display_domain})"
@@ -57,22 +57,22 @@
     "text": "Ali kopirajte in prilepite to povezavo:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Če niste zahtevali ponastavitve gesla, lahko to e-pošto varno prezrete."
+    "text": "Če niste zahtevali ponastavitve gesla, lahko to e-poštno sporočilo varno prezrete."
   },
   "email.password_request.signature": {
     "text": "Delano"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Ta e-pošta je bila poslana na %{email_address}."
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}."
   },
   "email.magic_link.subject": {
-    "text": "Prijava v %{display_domain}"
+    "text": "Prijava na %{display_domain}"
   },
   "email.magic_link.title": {
-    "text": "Prijava s čarobno povezavo"
+    "text": "Prijava z magično povezavo"
   },
   "email.magic_link.request_notice": {
-    "text": "Zahtevali ste povezavo za prijavo v vaš račun %{product_name}."
+    "text": "Zahtevali ste prijavno povezavo za svoj račun %{product_name}."
   },
   "email.magic_link.login_button": {
     "text": "Prijava"
@@ -81,10 +81,10 @@
     "text": "Ali kopirajte in prilepite to povezavo:"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Ta povezava poteče čez 15 minut."
+    "text": "Ta povezava bo potekla čez 15 minut."
   },
   "email.magic_link.ignore_notice": {
-    "text": "Če niste zahtevali te povezave, lahko to e-pošto varno prezrete."
+    "text": "Če niste zahtevali te povezave, lahko to e-poštno sporočilo varno prezrete."
   },
   "email.magic_link.signature": {
     "text": "Delano"
@@ -99,13 +99,13 @@
     "text": "Prejeli ste varno sporočilo:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Opomba:"
+    "text": "Memo:"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Nekdo vam je poslal varno sporočilo prek %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Za ogled te skrivnosti kliknite spodnjo povezavo:"
+    "text": "Za ogled te skrivnosti kliknite na spodnjo povezavo:"
   },
   "email.incoming_secret.important_label": {
     "text": "Pomembno:"
@@ -117,19 +117,19 @@
     "text": "Poslano prek"
   },
   "email.secret_revealed.subject": {
-    "text": "Vaša skrivnost je bila pregledana"
+    "text": "Vaša skrivnost je bila ogledana"
   },
   "email.secret_revealed.title": {
-    "text": "Vaša skrivnost je bila pregledana"
+    "text": "Vaša skrivnost je bila ogledana"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Vaša skrivnost je bila pregledana dne %{date}."
+    "text": "Vaša skrivnost je bila ogledana dne %{date}."
   },
   "email.secret_revealed.secret_id_label": {
     "text": "ID skrivnosti:"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "To je samodejno obvestilo. Ni potrebno ukrepanje."
+    "text": "To je samodejno obvestilo. Nobeno dejanje ni potrebno."
   },
   "email.secret_revealed.signature": {
     "text": "Delano"
@@ -141,10 +141,10 @@
     "text": "Za upravljanje nastavitev obvestil:"
   },
   "email.expiration_warning.subject": {
-    "text": "Vaša povezava do skrivnosti bo kmalu potekla"
+    "text": "Vaša skrivna povezava bo kmalu potekla"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Vaša povezava do skrivnosti bo potekla čez %{time_remaining}"
+    "text": "Vaša skrivna povezava bo potekla čez %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
     "text": "Oglejte si svojo skrivnost, preden poteče"
@@ -153,7 +153,7 @@
     "text": "Opomnik:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Po preteku veljavnosti bo skrivnost trajno izbrisana in je ne bo mogoče obnoviti."
+    "text": "Po poteku bo skrivnost trajno izbrisana in je ne bo mogoče obnoviti."
   },
   "email.expiration_warning.sent_via": {
     "text": "Poslano prek"
@@ -162,7 +162,7 @@
     "text": "Oglejte si jo, preden izgine:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Po preteku veljavnosti bo skrivnost trajno izbrisana."
+    "text": "Po poteku bo skrivnost trajno izbrisana."
   },
   "email.feedback_email.subject": {
     "text": "Povratne informacije dne %{date} prek %{display_domain} (%{strategy})"
@@ -183,16 +183,16 @@
     "text": "Sporočilo:"
   },
   "email.feedback_email.signature": {
-    "text": "Podpora"
+    "text": "Secret Support"
   },
   "email.organization_invitation.subject": {
-    "text": "Povabljeni ste k pridružitvi organizaciji %{organization_name}"
+    "text": "Povabljeni ste bili, da se pridružite %{organization_name}"
   },
   "email.organization_invitation.title": {
-    "text": "Povabljeni ste k pridružitvi organizaciji %{organization_name}!"
+    "text": "Povabljeni ste bili, da se pridružite %{organization_name}!"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} vas je povabil/-a, da se pridružite organizaciji \"%{organization_name}\" kot %{role_description}."
+    "text": "%{inviter_email} vas je povabil/-a, da se pridružite \"%{organization_name}\" kot %{role_description}."
   },
   "email.organization_invitation.accept_button": {
     "text": "Sprejmi povabilo"
@@ -204,13 +204,13 @@
     "text": "To povabilo bo poteklo čez %{days} dni."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Če se ne želite pridružiti, lahko preprosto prezrete to e-pošto ali zavrnete povabilo."
+    "text": "Če se ne želite pridružiti, lahko to e-poštno sporočilo preprosto prezrete ali zavrnete povabilo."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Ta e-pošta je bila poslana na %{invited_email}. Če niste pričakovali tega povabila, lahko to sporočilo varno prezrete."
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{invited_email}. Če niste pričakovali tega povabila, lahko to sporočilo varno prezrete."
   },
   "email.organization_invitation.roles.member": {
     "text": "član"
@@ -228,7 +228,7 @@
     "text": "Vaše geslo za %{product_name} je bilo spremenjeno dne %{date} ob %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "Če te spremembe niste naredili vi, takoj zavarujte svoj račun tako, da ponastavite geslo in stopite v stik s podporo."
+    "text": "Če te spremembe niste opravili vi, nemudoma zavarujte svoj račun s ponastavitvijo gesla in kontaktirajte podporo."
   },
   "email.password_changed.signature": {
     "text": "Delano"
@@ -240,25 +240,25 @@
     "text": "Vaš e-poštni naslov je bil spremenjen"
   },
   "email.email_changed.body": {
-    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen v %{new_email_masked} dne %{date}."
+    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked} dne %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Če te spremembe niste naredili vi, takoj stopite v stik s podporo, saj je vaš račun morda ogrožen."
+    "text": "Če te spremembe niste opravili vi, nemudoma kontaktirajte podporo, saj je vaš račun morda ogrožen."
   },
   "email.email_changed.signature": {
     "text": "Delano"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Potrdite svoj novi e-poštni naslov (%{display_domain})"
+    "text": "Preverite svoj novi e-poštni naslov (%{display_domain})"
   },
   "email.email_change_confirmation.title": {
-    "text": "Potrdite svoj novi e-poštni naslov"
+    "text": "Preverite svoj novi e-poštni naslov"
   },
   "email.email_change_confirmation.body": {
-    "text": "Prosimo, potrdite ta e-poštni naslov za dokončanje spremembe za vaš račun %{product_name}."
+    "text": "Prosimo, preverite ta e-poštni naslov, da dokončate spremembo za svoj račun %{product_name}."
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Potrdi e-poštni naslov"
+    "text": "Preveri e-poštni naslov"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Ali kopirajte in prilepite to povezavo:"
@@ -267,31 +267,31 @@
     "text": "Delano"
   },
   "email.mfa_enabled.subject": {
-    "text": "Dvofaktorska avtentikacija omogočena (%{display_domain})"
+    "text": "Dvostopenjska avtentikacija omogočena (%{display_domain})"
   },
   "email.mfa_enabled.title": {
-    "text": "Dvofaktorska avtentikacija omogočena"
+    "text": "Dvostopenjska avtentikacija omogočena"
   },
   "email.mfa_enabled.body": {
-    "text": "Dvofaktorska avtentikacija je bila omogočena za vaš račun %{product_name} dne %{date}."
+    "text": "Dvostopenjska avtentikacija je bila omogočena za vaš račun %{product_name} dne %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Vaš račun je zdaj varnejši. Pri prijavi boste morali vnesti potrditveno kodo iz aplikacije za avtentikacijo."
+    "text": "Vaš račun je zdaj bolj varen. Ob prijavi boste morali vnesti potrditveno kodo iz svoje aplikacije za avtentikacijo."
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
   },
   "email.mfa_disabled.subject": {
-    "text": "Dvofaktorska avtentikacija onemogočena (%{display_domain})"
+    "text": "Dvostopenjska avtentikacija onemogočena (%{display_domain})"
   },
   "email.mfa_disabled.title": {
-    "text": "Dvofaktorska avtentikacija onemogočena"
+    "text": "Dvostopenjska avtentikacija onemogočena"
   },
   "email.mfa_disabled.body": {
-    "text": "Dvofaktorska avtentikacija je bila onemogočena za vaš račun %{product_name} dne %{date}."
+    "text": "Dvostopenjska avtentikacija je bila onemogočena za vaš račun %{product_name} dne %{date}."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Vaš račun je zdaj manj varen. Če te spremembe niste naredili vi, takoj zavarujte svoj račun."
+    "text": "Vaš račun je zdaj manj varen. Če te spremembe niste opravili vi, nemudoma zavarujte svoj račun."
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
@@ -375,37 +375,37 @@
     "text": "Datum:"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Paket:"
+    "text": "Načrt:"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Oglejte si račun"
+    "text": "Prikaži račun"
   },
   "email.payment_receipt.signature": {
     "text": "Delano"
   },
   "email.payment_failed.subject": {
-    "text": "Plačilo za %{product_name} ni uspelo"
+    "text": "Plačilo ni uspelo za %{product_name}"
   },
   "email.payment_failed.title": {
     "text": "Plačilo ni uspelo"
   },
   "email.payment_failed.body": {
-    "text": "Vašega plačila za %{product_name} nismo mogli obdelati. Prosimo, posodobite način plačila, da se izognete prekinitvi storitve."
+    "text": "Vašega plačila za %{product_name} nismo mogli obdelati. Prosimo, posodobite plačilno sredstvo, da se izognete prekinitvi storitve."
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Posodobi način plačila"
+    "text": "Posodobi plačilno sredstvo"
   },
   "email.payment_failed.signature": {
     "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "Vaše preskusno obdobje za %{product_name} poteče čez %{days_remaining} dni"
+    "text": "Vaše preizkusno obdobje %{product_name} poteče čez %{days_remaining} dni"
   },
   "email.trial_expiring.title": {
-    "text": "Vaše preskusno obdobje se kmalu zaključuje"
+    "text": "Vaše preizkusno obdobje se kmalu konča"
   },
   "email.trial_expiring.body": {
-    "text": "Vaše brezplačno preskusno obdobje za %{product_name} bo poteklo čez %{days_remaining} dni. Nadgradite zdaj, da ohranite dostop do vseh funkcij."
+    "text": "Vaše brezplačno preizkusno obdobje %{product_name} bo poteklo čez %{days_remaining} dni. Nadgradite zdaj, da obdržite dostop do vseh funkcij."
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Nadgradi zdaj"
@@ -414,16 +414,16 @@
     "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "Vaša naročnina na %{product_name} je bila spremenjena"
+    "text": "Vaša naročnina %{product_name} je bila spremenjena"
   },
   "email.subscription_changed.title": {
     "text": "Naročnina spremenjena"
   },
   "email.subscription_changed.body": {
-    "text": "Vaša naročnina na %{product_name} je bila spremenjena iz %{old_plan} v %{new_plan}."
+    "text": "Vaša naročnina %{product_name} je bila spremenjena iz %{old_plan} v %{new_plan}."
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ta sprememba je veljavna od %{date}."
+    "text": "Ta sprememba velja od %{date}."
   },
   "email.subscription_changed.signature": {
     "text": "Delano"

@@ -3,16 +3,16 @@
     "text": "Več o konfiguraciji DNS"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Prikaži status preverjanja domene"
+    "text": "Ogled stanja preverjanja domene"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Ta domena je že registrirana v vaši organizaciji"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Ta domena je že registrirana drugi organizaciji. Kontaktirajte podporo, če menite, da je to napaka."
+    "text": "Ta domena je že registrirana pri drugi organizaciji. Obrnite se na podporo, če menite, da gre za napako."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domena uspešno zahtevana in dodana vaši organizaciji"
+    "text": "Domena uspešno prevzeta in dodana v vašo organizacijo"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Privzete nastavitve zasebnosti"
@@ -27,22 +27,22 @@
     "text": "Ikona privzetih nastavitev zasebnosti"
   },
   "web.domains.default_ttl_label": {
-    "text": "Privzeti čas trajanja"
+    "text": "Privzeti čas veljavnosti"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Kako dolgo naj bodo skrivnosti privzeto dostopne"
+    "text": "Koliko časa naj bodo skrivnosti privzeto dostopne"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Zahtevaj geslo"
+    "text": "Zahtevaj pristopno frazo"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Naredi geslo obvezno za vse skrivnosti v tej domeni"
+    "text": "Naredi pristopno frazo obvezno za vse skrivnosti v tej domeni"
   },
   "web.domains.notify_enabled_label": {
     "text": "Omogoči obvestila"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Privzeto omogoči e-poštna obvestila, ko si nekdo ogleda skrivnosti"
+    "text": "Privzeto omogoči e-poštna obvestila, ko so skrivnosti ogledane"
   },
   "web.domains.use_global_default": {
     "text": "Uporabi globalno privzeto"
@@ -69,10 +69,10 @@
     "text": "Uredi privzete nastavitve"
   },
   "web.domains.ttl_short": {
-    "text": "Trajanje"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
-    "text": "Geslo"
+    "text": "Pristopna fraza"
   },
   "web.domains.notify_short": {
     "text": "Obvestila"
@@ -81,7 +81,7 @@
     "text": "Preklopi obseg domene"
   },
   "web.domains.switcher_locked": {
-    "text": "Domain switching not available on this page"
+    "text": "Preklapljanje domen ni na voljo na tej strani"
   },
   "web.domains.scope_list_label": {
     "text": "Razpoložljive domene"
@@ -93,13 +93,13 @@
     "text": "Dodaj domeno"
   },
   "web.domains.domain_settings": {
-    "text": "Domain settings"
+    "text": "Nastavitve domene"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Default domain has no settings page"
+    "text": "Privzeta domena nima strani z nastavitvami"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Vnesite {0} ime domene"
+    "text": "Vnesite ime domene {0}"
   },
   "web.domains.domain_name": {
     "text": "Ime domene"
@@ -111,7 +111,7 @@
     "text": "Dostop do domače strani"
   },
   "web.domains.and_status": {
-    "text": "in status"
+    "text": "in stanje"
   },
   "web.domains.domain": {
     "text": "Domena"
@@ -123,28 +123,28 @@
     "text": "Domene"
   },
   "web.domains.last_monitored": {
-    "text": "Zadnjič spremljano"
+    "text": "Zadnje spremljanje"
   },
   "web.domains.ssl_status": {
-    "text": "Status SSL"
+    "text": "Stanje SSL"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL se obnovi"
+    "text": "Obnova SSL"
   },
   "web.domains.dns_record": {
-    "text": "Zapis DNS"
+    "text": "DNS zapis"
   },
   "web.domains.target_address": {
     "text": "Ciljni naslov"
   },
   "web.domains.domain_status": {
-    "text": "Status domene"
+    "text": "Stanje domene"
   },
   "web.domains.custom_domains_count": {
-    "text": "Število domen po meri"
+    "text": "Število lastnih domen"
   },
   "web.domains.custom_domain": {
-    "text": "Domena po meri"
+    "text": "Lastna domena"
   },
   "web.domains.open_domain_in_new_tab": {
     "text": "Odpri domeno v novem zavihku"
@@ -174,7 +174,7 @@
     "text": "Ni najdenih domen."
   },
   "web.domains.loading_domain_information": {
-    "text": "Nalagam informacije o domeni..."
+    "text": "Nalaganje podatkov o domeni ..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Za povezavo svoje domene boste morali imeti zapis CNAME v svojem DNS, ki kaže"
@@ -195,7 +195,7 @@
     "text": "Preden lahko aktiviramo povezave za"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Upoštevajte, da za vrhunske domene (npr."
+    "text": "Upoštevajte, da za korenske domene (npr."
   },
   "web.domains.verify_your_domain": {
     "text": "Preverite svojo domeno"
@@ -204,7 +204,7 @@
     "text": "skrivnosti.primer.si"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Prilagodite blagovno znamko svoje domene"
+    "text": "Prilagodite blagovno znamko vaše domene"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Lahko traja nekaj minut, da vaš SSL certifikat začne veljati."
@@ -213,7 +213,7 @@
     "text": "Spremembe DNS lahko trajajo le 60 sekund -- ali do 24 ur -- da začnejo veljati."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Počakajte na širjenje"
+    "text": "3. Počakajte na propagacijo"
   },
   "web.domains.value_2": {
     "text": "Vrednost"
@@ -231,7 +231,7 @@
     "text": "Vrsta"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Ustvarite zapis CNAME"
+    "text": "2. Ustvarite CNAME zapis"
   },
   "web.domains.value_0": {
     "text": "Vrednost"
@@ -243,13 +243,13 @@
     "text": "Vrsta"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Ustvarite zapis A"
+    "text": "2. Ustvarite A zapis"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
     "text": "Dodajte to ime gostitelja v svojo konfiguracijo DNS:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Ustvarite zapis TXT"
+    "text": "1. Ustvarite TXT zapis"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Sledite tem korakom za preverjanje lastništva domene in dvignite svojo spletno prisotnost:"
@@ -274,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "Domena uspešno dodana"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Zaščiteno"
+  },
+  "web.domains.manage_domains": {
+    "text": "Upravljaj domene"
+  },
+  "web.domains.global_defaults": {
+    "text": "Globalne privzete nastavitve"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Uredi nastavitev časa veljavnosti"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Uredi zahtevo za pristopno frazo"
+  },
+  "web.domains.edit_notify": {
+    "text": "Uredi nastavitev obvestil"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Konfiguriraj DNS zapise"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Uporabite spodnje orodje za samodejno zaznavo vašega ponudnika DNS in pridobite navodila po korakih za konfiguracijo vaše domene."
   }
 }

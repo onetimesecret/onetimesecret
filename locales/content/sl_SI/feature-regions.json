@@ -1,18 +1,18 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Suverenost podatkov in regionalna izolacija"
+    "text": "Podatkovna suverenost in regionalna izolacija"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Vaši podatki se nahajajo izključno v vaši izbrani regiji in se nikoli ne prenašajo preko regij"
+    "text": "Vaši podatki so shranjeni izključno v izbrani regiji in se nikoli ne prenašajo med regijami"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Vsaka regija deluje kot popolnoma neodvisno okolje z lastno infrastrukturo, šifrirnimi ključi in shranjevanjem podatkov"
+    "text": "Vsaka regija deluje kot popolnoma neodvisno okolje z lastno infrastrukturo, šifrirnimi ključi in shrambo podatkov"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Vzdrževamo strogo politiko: podatki strank se nikoli ne prenašajo med regijami pod nobenim pogojem"
+    "text": "Vzdržujemo strogo politiko: podatki strank se pod nobenim pogojem nikoli ne prenašajo med regijami"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Pomembno: Preklop v drugo regijo ustvari nov račun. Vaši podatki ostanejo v vaši izvirni regiji."
+    "text": "Pomembno: Preklop na drugo regijo ustvari nov račun. Vaši podatki ostanejo v izvirni regiji."
   },
   "web.regions.your_region": {
     "text": "Vaša regija"
@@ -27,31 +27,31 @@
     "text": "Raziščite druge razpoložljive regije"
   },
   "web.regions.why_it_matters": {
-    "text": "Zakaj je suverenost podatkov pomembna"
+    "text": "Zakaj je podatkovna suverenost pomembna"
   },
   "web.regions.trust_title": {
-    "text": "Preglednost in nadzor"
+    "text": "Transparentnost in nadzor"
   },
   "web.regions.trust_description": {
-    "text": "Veste točno, kje se nahajajo vaši podatki in katere zakone urejajo njihovo zaščito."
+    "text": "Točno vedite, kje so shranjeni vaši podatki in kateri zakoni urejajo njihovo zaščito."
   },
   "web.regions.privacy_title": {
     "text": "Pravice do zasebnosti"
   },
   "web.regions.privacy_description": {
-    "text": "Zagotovite, da se vaše osebne informacije obravnavajo v skladu z zakoni o zasebnosti vaše države in predpisi, kar preprečuje nepooblaščen dostop ali zlorabo."
+    "text": "Zagotovite, da se z vašimi osebnimi podatki ravna v skladu z zakoni in predpisi o zasebnosti vaše države, kar preprečuje nepooblaščen dostop ali zlorabo."
   },
   "web.regions.compliance_title": {
-    "text": "Skladnost s predpisi"
+    "text": "Regulativna skladnost"
   },
   "web.regions.compliance_description": {
-    "text": "Izpolnite zahteve GDPR, HIPAA, CCPA in druge regionalne zahteve za zaščito podatkov"
+    "text": "Izpolnite zahteve GDPR, HIPAA, CCPA in druge regionalne zahteve za varstvo podatkov"
   },
   "web.regions.performance_title": {
     "text": "Hitrejši dostop"
   },
   "web.regions.performance_description": {
-    "text": "Podatki, shranjeni bliže vam, pomenijo nižjo zakasnitev in boljšo zmogljivost."
+    "text": "Podatki, shranjeni bližje vam, pomenijo manjšo zakasnitev in boljše delovanje."
   },
   "web.regions.regions": {
     "text": "Regije"
@@ -75,7 +75,7 @@
     "text": "Za podrobnosti o predpisih in zaščitah, ki veljajo za vaš račun,"
   },
   "web.regions.current": {
-    "text": "Trenutno"
+    "text": "Trenutna"
   },
   "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
     "text": "{0} {1}"

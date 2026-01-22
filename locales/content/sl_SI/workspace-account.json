@@ -9,7 +9,7 @@
     "text": "Zapri račun"
   },
   "web.account.verify_account": {
-    "text": "Preveri račun"
+    "text": "Potrdi račun"
   },
   "web.account.subscription_title": {
     "text": "Naročnina"
@@ -18,7 +18,7 @@
     "text": "Upravljaj naročnino"
   },
   "web.account.customer_information": {
-    "text": "Informacije o stranki"
+    "text": "Podatki o stranki"
   },
   "web.account.customer_since": {
     "text": "Stranka od:"
@@ -36,7 +36,7 @@
     "text": "Privzeti način plačila"
   },
   "web.account.card_ending": {
-    "text": "končnica"
+    "text": "ki se končuje z"
   },
   "web.account.subscriptions_title": {
     "text": "Naročnine"
@@ -45,7 +45,7 @@
     "text": "Količina:"
   },
   "web.account.next_billing_date": {
-    "text": "Naslednji datum zaračunavanja:"
+    "text": "Naslednji datum obračuna:"
   },
   "web.account.changePassword.username": {
     "text": "Uporabniško ime"
@@ -63,7 +63,7 @@
     "text": "Posodobi geslo"
   },
   "web.account.changePassword.updating": {
-    "text": "Posodabljam..."
+    "text": "Posodabljanje ..."
   },
   "web.account.timezone": {
     "text": "Časovni pas"
@@ -81,7 +81,7 @@
     "text": "Izbriši račun"
   },
   "web.account.api_key": {
-    "text": "Ključ API"
+    "text": "API ključ"
   },
   "web.account.account_type_windowprops_plan_options_name": {
     "text": "Vrsta računa: {0}"
@@ -99,34 +99,34 @@
     "text": "ID stranke: {0}"
   },
   "web.account.token_generated": {
-    "text": "Žeton generiran."
+    "text": "Žeton ustvarjen."
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
     "text": "🔐 Ohranite ta žeton varen! Zagotavlja poln dostop do vašega računa."
   },
   "web.account.confirm_with_your_password": {
-    "text": "Potrdite s svojim geslom"
+    "text": "Potrdite z vašim geslom"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Ali ste prepričani, da želite trajno izbrisati svoj račun? Tega dejanja ni mogoče razveljaviti."
   },
   "web.account.confirm_account_deletion": {
-    "text": "Potrdite brisanje računa"
+    "text": "Potrdite izbris računa"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Brišem {0}"
+    "text": "Brisanje {0}"
   },
   "web.account.permanently_delete_account": {
     "text": "Trajno izbriši račun"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "trajno in nepovratno."
+    "text": "trajen in nepovraten."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Brisanje vašega računa je"
+    "text": "Izbris vašega računa je"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "jih trajno izbrišite pred nadaljevanjem"
+    "text": "jih trajno izbrišite, preden nadaljujete"
   },
   "web.account.any_secrets_you_wish_to_remove": {
     "text": "Vse skrivnosti, ki jih želite odstraniti,"
@@ -135,7 +135,7 @@
     "text": "Skrivnosti bodo ostale aktivne, dokler ne potečejo."
   },
   "web.account.please_be_advised": {
-    "text": "Prosimo, upoštevajte:"
+    "text": "Upoštevajte naslednje:"
   },
   "web.account.account_deleted_successfully": {
     "text": "Račun uspešno izbrisan."
@@ -153,7 +153,7 @@
     "text": "Nastavitve"
   },
   "web.settings.description": {
-    "text": "Upravljajte nastavitve svojega računa in preference"
+    "text": "Upravljajte nastavitve in preference svojega računa"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Upravljajte nastavitve svojega računa in preference"
@@ -162,7 +162,7 @@
     "text": "Splošno"
   },
   "web.settings.preferences": {
-    "text": "Preference"
+    "text": "Nastavitve"
   },
   "web.settings.appearance": {
     "text": "Videz"
@@ -180,16 +180,16 @@
     "text": "Jezik"
   },
   "web.settings.language.description": {
-    "text": "Izberite svoj prednostni jezik"
+    "text": "Izberite želeni jezik"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Izberite svoj prednostni jezik"
+    "text": "Izberite želeni jezik"
   },
   "web.settings.security_settings_description": {
     "text": "Upravljajte avtentikacijo in varnost računa"
   },
   "web.settings.profile_settings_description": {
-    "text": "Upravljajte informacije o svojem računu"
+    "text": "Upravljajte podatke o vašem računu"
   },
   "web.settings.profile.title": {
     "text": "Profil"
@@ -207,13 +207,13 @@
     "text": "Nova e-pošta"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Vnesite svoje trenutno geslo"
+    "text": "Vnesite trenutno geslo"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Vaše geslo je potrebno zaradi varnosti"
+    "text": "Vaše geslo je potrebno iz varnostnih razlogov"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "E-poštno sporočilo za preverjanje bo poslano na nov naslov"
+    "text": "Na nov naslov bo poslana potrditvena e-pošta"
   },
   "web.settings.profile.update_email": {
     "text": "Posodobi e-pošto"
@@ -228,10 +228,10 @@
     "text": "Vnesite veljaven e-poštni naslov"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Nova e-pošta se mora razlikovati od trenutne e-pošte"
+    "text": "Nova e-pošta mora biti drugačna od trenutne"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-pošta uspešno posodobljena. Preverite svoj poštni predal za preverjanje novega e-poštnega naslova."
+    "text": "E-pošta uspešno posodobljena. Preverite nabiralnik, da potrdite nov e-poštni naslov."
   },
   "web.settings.profile.email_change_error": {
     "text": "Posodobitev e-pošte ni uspela. Poskusite znova."
@@ -264,10 +264,10 @@
     "text": "Trajno izbrišite svoj račun in vse podatke"
   },
   "web.settings.security.security_score": {
-    "text": "Varnostna ocena"
+    "text": "Ocena varnosti"
   },
   "web.settings.security.score_description": {
-    "text": "Splošno zdravje varnosti vašega računa"
+    "text": "Skupna ocena varnosti vašega računa"
   },
   "web.settings.security.excellent": {
     "text": "Odlično"
@@ -276,7 +276,7 @@
     "text": "Dobro"
   },
   "web.settings.security.fair": {
-    "text": "Primerno"
+    "text": "Zadovoljivo"
   },
   "web.settings.security.weak": {
     "text": "Šibko"
@@ -291,7 +291,7 @@
     "text": "Generirajte obnovitvene kode kot varnostno kopijo"
   },
   "web.settings.security.configured": {
-    "text": "Konfigurirano"
+    "text": "Nastavljeno"
   },
   "web.settings.security.change": {
     "text": "Spremeni"
@@ -306,40 +306,40 @@
     "text": "{0} kod na voljo"
   },
   "web.settings.security.no_codes": {
-    "text": "Ni generiranih kod"
+    "text": "Ni ustvarjenih kod"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} aktivna seja | {0} aktivni seji | {0} aktivnih sej"
+    "text": "{0} aktivna seja | {0} aktivni seji | {0} aktivne seje | {0} aktivnih sej"
   },
   "web.settings.security.best_practices": {
     "text": "Najboljše varnostne prakse"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Uporabite močno, unikatno geslo za svoj račun"
+    "text": "Uporabite močno, edinstveno geslo za svoj račun"
   },
   "web.settings.security.enable_mfa_for_protection": {
     "text": "Omogočite dvofaktorsko avtentikacijo za dodatno zaščito"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Shranite svoje obnovitvene kode na varno lokacijo"
+    "text": "Shranite obnovitvene kode na varno mesto"
   },
   "web.settings.security.review_sessions_regularly": {
     "text": "Redno pregledujte in prekličite neuporabljene seje"
   },
   "web.settings.security.view_details": {
-    "text": "Prikaži podrobnosti"
+    "text": "Ogled podrobnosti"
   },
   "web.settings.api.title": {
     "text": "API in integracije"
   },
   "web.settings.api.description": {
-    "text": "Upravljajte ključe API in integracije"
+    "text": "Upravljajte API ključe in integracije"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Upravljajte ključe API in integracije"
+    "text": "Upravljajte API ključe in integracije"
   },
   "web.settings.api.documentation": {
-    "text": "Dokumentacija API"
+    "text": "API dokumentacija"
   },
   "web.settings.api.documentation_description": {
     "text": "Naučite se, kako integrirati Onetime Secret v svoje aplikacije"
@@ -348,49 +348,49 @@
     "text": "Referenca REST API"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Popolna dokumentacija API in končne točke"
+    "text": "Popolna API dokumentacija in končne točke"
   },
   "web.settings.api.code_examples": {
     "text": "Primeri kode"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Primeri kode in knjižnice odjemalcev"
+    "text": "Primeri kode in odjemalske knjižnice"
   },
   "web.settings.api.security_best_practices": {
     "text": "Najboljše varnostne prakse"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Nikoli ne shranite ključev API v nadzor različic"
+    "text": "Nikoli ne shranjujte API ključev v nadzor različic"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Uporabite okoljske spremenljivke za shranjevanje ključev API"
+    "text": "Za shranjevanje API ključev uporabljajte okoljske spremenljivke"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Redno rotirajte ključe API zaradi varnosti"
+    "text": "Redno menjajte API ključe za večjo varnost"
   },
   "web.settings.api.use_https_only": {
-    "text": "Vedno uporabljajte HTTPS pri zahtevah API"
+    "text": "Pri API zahtevah vedno uporabljajte HTTPS"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Spremljajte uporabo API in nastavite opozorila"
+    "text": "Spremljajte uporabo API-ja in nastavite opozorila"
   },
   "web.settings.api.important_notice": {
     "text": "Pomembno obvestilo"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Regeneriranje vašega ključa API bo razveljavilo trenutni ključ. Posodobite vse aplikacije, ki uporabljajo stari ključ."
+    "text": "Z regeneracijo API ključa bo trenutni ključ razveljavljen. Posodobite vse aplikacije, ki uporabljajo stari ključ."
   },
   "web.settings.privacy.title": {
     "text": "Nastavitve zasebnosti"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Upravljajte svoje preference zasebnosti"
+    "text": "Upravljajte nastavitve zasebnosti"
   },
   "web.settings.privacy.your_privacy": {
     "text": "Vaša zasebnost"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Nedoločljivo"
+    "text": "Brez kompromisov"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "Ni nastavitev"
@@ -399,7 +399,7 @@
     "text": "Brez analitike. Brez sledenja. Pika."
   },
   "web.settings.privacy.explanation": {
-    "text": "To ni nastavitev, ker ni ničesar za vklopiti ali izklopiti. Vaša zasebnost je vgrajena v način našega delovanja."
+    "text": "To ni nastavitev, ker ni ničesar za vklopiti ali izklopiti. Vaša zasebnost je vgrajena v naš način delovanja."
   },
   "web.settings.notifications.title": {
     "text": "Nastavitve obvestil"
@@ -411,16 +411,16 @@
     "text": "Posodobitev nastavitev obvestil ni uspela. Poskusite znova."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Obvestila o ogledu skrivnosti"
+    "text": "Obvestila o razkritju skrivnosti"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Prejmite e-pošto, ko nekdo pogleda vašo skrivnost"
+    "text": "Prejmite e-pošto, ko nekdo ogleda vašo skrivnost"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Obveščeni boste vsakič, ko prejemnik pogleda eno od vaših skrivnosti"
+    "text": "Obveščeni boste vsakič, ko prejemnik razkrije eno od vaših skrivnosti"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "E-poštna obvestila vsebujejo samo časovni žig in ID skrivnosti. Informacije o ogledovalcu niso nikoli vključene."
+    "text": "E-poštna obvestila vključujejo samo časovni žig in ID skrivnosti. Podatki o gledalcu niso nikoli vključeni."
   },
   "web.settings.caution.title": {
     "text": "Območje previdnosti"
@@ -435,7 +435,7 @@
     "text": "Izvozite podatke svojega računa"
   },
   "web.settings.caution.export_description": {
-    "text": "Zahtevajte popolno kopijo podatkov svojega računa v strojno berljivem formatu"
+    "text": "Zahtevajte popolno kopijo podatkov vašega računa v strojno berljivem formatu"
   },
   "web.settings.caution.request_data_export": {
     "text": "Zahtevaj izvoz podatkov"
@@ -447,18 +447,33 @@
     "text": "Izvozi so obdelani v 24 urah in poslani na vaš e-poštni naslov"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Brisanje vašega računa bo:"
+    "text": "Z izbrisom računa boste:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Trajno izbrisalo vse vaše skrivnosti"
+    "text": "Trajno izbrisali vse svoje skrivnosti"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Odstranilo vse metapodatke in zgodovino skrivnosti"
+    "text": "Odstranili vse metapodatke in zgodovino skrivnosti"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Razveljavilo vse ključe API"
+    "text": "Razveljavite vse API ključe"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Tega dejanja ni mogoče razveljaviti"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Brisanje ..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Nazaj na nadzorno ploščo"
+  },
+  "web.settings.sections.account": {
+    "text": "Račun"
+  },
+  "web.settings.sections.billing": {
+    "text": "Obračunavanje"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Napredno"
   }
 }

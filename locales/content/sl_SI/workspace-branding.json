@@ -9,10 +9,10 @@
     "text": "Uporabi nastavitev"
   },
   "web.branding.font_family": {
-    "text": "Družina pisave"
+    "text": "Družina pisav"
   },
   "web.branding.corner_style": {
-    "text": "Slog kotov"
+    "text": "Slog vogalov"
   },
   "web.branding.brand_color": {
     "text": "Barva blagovne znamke"
@@ -30,10 +30,10 @@
     "text": "Microsoft Edge"
   },
   "web.branding.maximize_window": {
-    "text": "Maksimiziraj okno"
+    "text": "Povečaj okno"
   },
   "web.branding.minimize_window": {
-    "text": "Minimiziraj okno"
+    "text": "Pomanjšaj okno"
   },
   "web.branding.switch_to_edge_browser_view": {
     "text": "Preklopi na pogled brskalnika Edge"
@@ -42,10 +42,10 @@
     "text": "{0}/500 znakov"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Uporabite telefon za skeniranje QR kode"
+    "text": "S telefonom skenirajte QR kodo"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontaktirajte onboarding{'@'}primer.si z vprašanji"
+    "text": "Za vprašanja se obrnite na uvajanje{'@'}primer.si"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Ta navodila bodo prikazana prejemnikom, preden razkrijejo vsebino skrivnosti"
@@ -72,7 +72,7 @@
     "text": "Naloži logotip"
   },
   "web.branding.loading_preview": {
-    "text": "Nalagam predogled..."
+    "text": "Nalaganje predogleda ..."
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Predoglejte, kako bodo prejemniki videli vaše skrivnosti, s testiranjem gumba \"Prikaži skrivnost\""
@@ -99,19 +99,19 @@
     "text": "Nalaganje nastavitev blagovne znamke ni uspelo"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "To je interaktiven predogled tega, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočeno najmanj 128x128 slikovnih točk, največ 1MB) - Testirajte predogled z gumbom \"Prikaži skrivnost\""
+    "text": "To je interaktivni predogled, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z uporabo zgornjih kontrol - Naložite logotip (priporočeno najmanj 128x128 slikovnih pik, največ 1 MB) - Testirate predogled z gumbom \"Ogled skrivnosti\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "To je interaktiven predogled tega, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočeno najmanj 128x128 slikovnih točk, največ 1MB) - Testirajte predogled z gumbom \"Prikaži skrivnost\""
   },
   "web.branding.default_logo_icon": {
-    "text": "Japonski kanji '秘' (himitsu) pomeni 'skrivnost' ali 'zaupno'"
+    "text": "Japonski kanji '秘' (himitsu), ki pomeni 'skrivnost' ali 'zaupno'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Poganja Onetime Secret"
   },
   "web.branding.heading_logo": {
-    "text": "{0} logotip"
+    "text": "Logotip {0}"
   },
   "web.branding.edge": {
     "text": "Edge"
