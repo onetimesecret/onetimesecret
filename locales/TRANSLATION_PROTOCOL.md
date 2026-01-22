@@ -86,7 +86,7 @@ python locales/scripts/store.py query "INSERT INTO glossary (locale, term, trans
 ### 6. End session - export to content
 ```bash
 python locales/scripts/migrate/export.py eo
-bash locales/scripts/export-metadata.sh
+python locales/scripts/store.py export
 ```
 The frontend auto-generates `generated/locales/` on startup from `locales/content/`.
 
