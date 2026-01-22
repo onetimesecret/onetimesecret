@@ -24,10 +24,10 @@
     "text": "Beállítások"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Rendszerkonfigurációs beállítások szerkesztése. A változtatások azonnal érvénybe lépnek mentés után."
+    "text": "Rendszerkonfigurációs beállítások szerkesztése. A módosítások mentés után azonnal érvényesülnek."
   },
   "web.colonel.invalidJson": {
-    "text": "Érvénytelen JSON a(z) {section} szakaszban"
+    "text": "Érvénytelen JSON a {section} szakaszban"
   },
   "web.colonel.validationError": {
     "text": "Érvényesítési hiba"
@@ -45,10 +45,10 @@
     "text": "A konfigurációnak JSON objektumnak kell lennie"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Több szakasznak vannak érvényesítési hibái: {sections}"
+    "text": "Több szakasz tartalmaz érvényesítési hibákat: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "A(z) {section} szakasznak érvényesítési hibái vannak: {error}"
+    "text": "{section} érvényesítési hibákat tartalmaz: {error}"
   },
   "web.colonel.sectionSaved": {
     "text": "{section} sikeresen mentve"
@@ -60,7 +60,7 @@
     "text": "Összes mentése"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Nem mentett változtatások"
+    "text": "Mentetlen módosítások"
   },
   "web.colonel.schemaValidationError": {
     "text": "Séma érvényesítési hiba: {message} ({path})"
@@ -69,13 +69,13 @@
     "text": "Ismeretlen érvényesítési hiba: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "A(z) {section} szakaszban nincsenek beállított értékek"
+    "text": "A {section} szakaszban nincs beállított érték"
   },
   "web.colonel.dashboard": {
-    "text": "Vezérlőpult"
+    "text": "Irányítópult"
   },
   "web.colonel.admin": {
-    "text": "Admin"
+    "text": "Adminisztráció"
   },
   "web.colonel.activity": {
     "text": "Tevékenység"
@@ -90,7 +90,7 @@
     "text": "Felhasználói fiókok és jogosultságok kezelése"
   },
   "web.colonel.domains": {
-    "text": "Domének"
+    "text": "Domainek"
   },
   "web.colonel.settings": {
     "text": "Beállítások"
@@ -99,10 +99,10 @@
     "text": "Rendszer"
   },
   "web.colonel.welcome": {
-    "text": "Üdvözöljük a Colonel-ben"
+    "text": "Üdvözöljük a Colonel felületen"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Adminisztratív vezérlőpult az Onetime Secret számára"
+    "text": "OneTimeSecret adminisztrációs vezérlőpult"
   },
   "web.colonel.quickActions": {
     "text": "Gyors műveletek"
@@ -132,34 +132,34 @@
     "text": "Megosztott titkok"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Összes ügyfél"
+    "text": "Összes felhasználó"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Küldött e-mailek"
+    "text": "Elküldött e-mailek"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Rendszer állapota"
+    "text": "Rendszer állapot"
   },
   "web.colonel.stats.healthy": {
-    "text": "Egészséges"
+    "text": "Rendben"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Tevékenység megtekintése"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Rendszertevékenység és használat figyelése"
+    "text": "Rendszer tevékenység és használat figyelése"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Fiókok kezelése"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Felhasználói fiók adminisztráció"
+    "text": "Felhasználói fiókok adminisztrációja"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Domének konfigurálása"
+    "text": "Domainek beállítása"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Domén és DNS beállítások"
+    "text": "Domain és DNS beállítások"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Rendszerbeállítások"
@@ -183,37 +183,37 @@
     "text": "Fogyasztók"
   },
   "web.colonel.processingRate": {
-    "text": "Feldolgozás/mp"
+    "text": "Sebesség/mp"
   },
   "web.colonel.connectionStatus": {
     "text": "Kapcsolat állapota"
   },
   "web.colonel.workerHealth": {
-    "text": "Dolgozók állapota"
+    "text": "Worker állapot"
   },
   "web.colonel.activeWorkers": {
-    "text": "aktív dolgozó"
+    "text": "aktív worker"
   },
   "web.colonel.noQueueData": {
-    "text": "Nincsenek elérhető várólista adatok"
+    "text": "Nincs elérhető várólista adat"
   },
   "web.colonel.loadingQueueData": {
     "text": "Várólista adatok betöltése..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Teszt csomag mód"
+    "text": "Csomag tesztelési mód"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Tesztelés mint: {planName}"
+    "text": "Tesztelés {planName} csomagként"
   },
   "web.colonel.clickToReset": {
     "text": "Kattintson a visszaállításhoz"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Válasszon tesztelendő csomagot"
+    "text": "Válasszon csomagot a teszteléshez"
   },
   "web.colonel.resetToActual": {
-    "text": "Visszaállítás tényleges csomagra"
+    "text": "Visszaállítás az aktuális csomagra"
   },
   "web.colonel.currentActualPlan": {
     "text": "Jelenlegi csomag"
@@ -228,10 +228,10 @@
     "text": "Teszt mód aktív"
   },
   "web.colonel.testModeDescription": {
-    "text": "Tesztelje alkalmazását különböző csomag jogosultságokkal. A változtatások ideiglenesek és csak az ön munkamenetét érintik."
+    "text": "Tesztelje az alkalmazást különböző csomagok jogosultságaival. A módosítások ideiglenesek és csak az Ön munkamenetét érintik."
   },
   "web.colonel.warningTestMode": {
-    "text": "Ön {planName} jogosultságokkal tesztel (ideiglenes munkamenet felülírás)."
+    "text": "Tesztelés folyamatban {planName} jogosultságokkal (ideiglenes munkamenet felülírás)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Amikor visszajelzést küld, látni fogjuk:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Küldés..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Tiltott IP címek"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP tiltólista kezelése"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Egyéni domainek"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Egyéni domainek és arculat kezelése"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Visszajelzés küldése"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Küldés..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "A visszajelzés beküldésekor a következőket látjuk:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Szervezetek"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Szervezeti számlázási szinkron állapot figyelése"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Számlázási állapot figyelő"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} szervezet"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} figyelmet igényel"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} ismeretlen"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Nem található szervezet"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Vizsgálat"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Ellenőrzés..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Fiók"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Számlázás"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Állapot"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Használat"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Létrehozva"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Részletek"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Tulajdonos"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Csomag"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Tagok"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domainek"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Előfizetés"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Alapértelmezett munkaterület"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Van számlázás"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Ügyfél"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Előfizetés"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "Szervezet azonosító"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Szinkron állapot"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Előfizetés"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Összes"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Valószínűleg elavult"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Ismeretlen"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Szinkronizált"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktív"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Próbaidőszak"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Lejárt"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Lemondva"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "A vizsgálat sikertelen"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Vizsgálat eredménye"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Szinkronizálás ellenőrzött"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Eltérés található"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Nem összehasonlítható"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe előfizetés részletei"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Állapot"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Termék"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Meghatározott csomag"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "Ár azonosító"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Helyi"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Szervezetek számlázási adminisztrációja"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Szervezetek kezelése és számlázási szinkron állapot figyelése ({total} összesen)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Nem található szervezet"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "valószínűleg elavult"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Elavult"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Ismeretlen"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktív"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} tag"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domain"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Titkok"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Összes titok megtekintése és kezelése"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Rendszer"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Rendszerbeállítások, adatbázisok és konfiguráció"
+  },
+  "web.colonel.titles.index": {
+    "text": "Adminisztráció"
+  },
+  "web.colonel.titles.users": {
+    "text": "Felhasználók kezelése"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Titkok kezelése"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Egyéni domainek"
+  },
+  "web.colonel.titles.system": {
+    "text": "Rendszer"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Fő adatbázis"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Hitelesítési adatbázis"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Tiltott IP címek"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Használat exportálása"
+  },
+  "web.colonel.titles.info": {
+    "text": "Rendszerinformációk"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Szervezetek"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Használat exportálása"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Használati adatok és statisztikák exportálása"
   }
 }

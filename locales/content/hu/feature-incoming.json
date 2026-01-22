@@ -3,31 +3,31 @@
     "text": "Titok küldése"
   },
   "incoming.page_description": {
-    "text": "Osszon meg bizalmasan érzékeny információkat a támogatási csapatunkkal"
+    "text": "Osszon meg érzékeny információkat biztonságosan támogatási csapatunkkal"
   },
   "incoming.loading_config": {
     "text": "Betöltés..."
   },
   "incoming.config_error_title": {
-    "text": "A konfiguráció betöltése sikertelen"
+    "text": "Nem sikerült betölteni a konfigurációt"
   },
   "incoming.feature_disabled_title": {
     "text": "A funkció nem elérhető"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ez a funkció jelenleg le van tiltva. Kérjük, forduljon a támogatáshoz segítségért."
+    "text": "Ez a funkció jelenleg ki van kapcsolva. Kérjük, lépjen kapcsolatba az ügyfélszolgálattal segítségért."
   },
   "incoming.memo_label": {
-    "text": "Megjegyzés"
+    "text": "Emlékeztető"
   },
   "incoming.memo_placeholder": {
-    "text": "Rövid leírás (pl. Jelszó-visszaállítási kérelem)"
+    "text": "Rövid leírás (pl. Jelszó-visszaállítási kérés)"
   },
   "incoming.memo_hint": {
-    "text": "Segítsen nekünk az üzenetet a megfelelő személyhez eljuttatni"
+    "text": "Segítsen nekünk a megfelelő személyhez irányítani az üzenetét"
   },
   "incoming.recipient_label": {
-    "text": "Címzett"
+    "text": "Küldés neki:"
   },
   "incoming.recipient_placeholder": {
     "text": "Válasszon címzettet"
@@ -36,19 +36,19 @@
     "text": "Válasszon címzettet ehhez a titokhoz"
   },
   "incoming.recipient_hint": {
-    "text": "Válassza ki, ki fogja megkapni ezt a biztonságos üzenetet"
+    "text": "Válassza ki, ki kapja meg ezt a biztonságos üzenetet"
   },
   "incoming.no_recipients_available": {
-    "text": "Nincsenek elérhető címzettek"
+    "text": "Nincs elérhető címzett"
   },
   "incoming.secret_content_label": {
-    "text": "Bizalmas információ"
+    "text": "Titkos információ"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Illessze be ide az érzékeny információkat (jelszavak, kulcsok stb.)"
+    "text": "Illessze be az érzékeny információkat ide (jelszavak, kulcsok stb.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Ez az információ titkosítva lesz, és csak egyszer tekinthető meg"
+    "text": "Ez az információ titkosítva lesz és csak egyszer tekinthető meg"
   },
   "incoming.submit_button": {
     "text": "Titok küldése"
@@ -72,7 +72,7 @@
     "text": "Sikeresen elküldve"
   },
   "incoming.success_description": {
-    "text": "A biztonságos üzenete kézbesítve lett."
+    "text": "Biztonságos üzenete kézbesítve."
   },
   "incoming.reference_id": {
     "text": "Hivatkozási azonosító"
@@ -81,7 +81,7 @@
     "text": "Mi történik ezután?"
   },
   "incoming.success_info_description": {
-    "text": "A címzett csak egyszer tekintheti meg ezt a titkot. A megtekintés után a titok véglegesen törlődik."
+    "text": "A címzett csak egyszer tekintheti meg ezt a titkot. Megtekintés után a titok véglegesen törlődik."
   },
   "incoming.create_another": {
     "text": "Újabb titok küldése"
@@ -90,12 +90,12 @@
     "text": "Osszon meg érzékeny információkat biztonságosan"
   },
   "incoming.tagline2": {
-    "text": "Tartsa a jelszavakat és privát adatokat távol az e-mailektől és chat naplóktól"
+    "text": "Tartsa távol a jelszavakat és privát adatokat az e-mail és csevegési naplóktól"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Mentse el a <a href='{receiptUrl}'>nyugtáját</a> a nyilvántartásához."
+    "text": "Mentse el a {receipt} a nyilvántartásához."
   },
   "incoming.receipt_link_text": {
-    "text": "nyugta"
+    "text": "visszaigazolás"
   }
 }

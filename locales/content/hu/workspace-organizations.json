@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Szervezet"
+    "text": "Szervezetek"
   },
   "web.organizations.organization": {
     "text": "Szervezet"
@@ -12,7 +12,7 @@
     "text": "Szervezetek kezelése"
   },
   "web.organizations.my_organizations": {
-    "text": "Szervezeteim"
+    "text": "Szervezetek"
   },
   "web.organizations.manage_organizations": {
     "text": "Szervezetek kezelése"
@@ -24,7 +24,7 @@
     "text": "Még nincsenek szervezetek"
   },
   "web.organizations.no_organizations_description": {
-    "text": "A szervezetek lehetővé teszik több csapat kezelését egységes számlázással és adminisztrációval. Kezdje el első szervezete létrehozásával."
+    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak. Kezdje az első szervezetének létrehozásával."
   },
   "web.organizations.no_description": {
     "text": "Nincs megadva leírás"
@@ -39,19 +39,19 @@
     "text": "Első szervezet létrehozása"
   },
   "web.organizations.create_organization_description": {
-    "text": "Új szervezet létrehozása csapatok csoportosításához"
+    "text": "Új szervezet létrehozása"
   },
   "web.organizations.create": {
     "text": "Létrehozás"
   },
   "web.organizations.create_error": {
-    "text": "Nem sikerült létrehozni a szervezetet"
+    "text": "A szervezet létrehozása sikertelen"
   },
   "web.organizations.organization_name": {
     "text": "Szervezet neve"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "pl. Acme Corporation"
+    "text": "pl. Acme Kft."
   },
   "web.organizations.display_name": {
     "text": "Szervezet neve"
@@ -69,22 +69,22 @@
     "text": "Elsődleges kapcsolattartó a számlázási és adminisztratív értesítésekhez"
   },
   "web.organizations.select_organization": {
-    "text": "Szervezet kiválasztása"
+    "text": "Válasszon szervezetet"
   },
   "web.organizations.switcher_locked": {
-    "text": "Szervezetváltás nem elérhető ezen az oldalon"
+    "text": "Szervezet váltás nem elérhető ezen az oldalon"
   },
   "web.organizations.not_found": {
     "text": "Szervezet nem található"
   },
   "web.organizations.load_error": {
-    "text": "Nem sikerült betölteni a szervezetet"
+    "text": "A szervezet betöltése sikertelen"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Nem sikerült betölteni a szervezetet"
+    "text": "A szervezet betöltése sikertelen"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Nem sikerült betölteni a szervezeteket"
+    "text": "A szervezetek betöltése sikertelen"
   },
   "web.organizations.organization_information": {
     "text": "Szervezet információk"
@@ -96,7 +96,7 @@
     "text": "Utoljára frissítve"
   },
   "web.organizations.organization_settings": {
-    "text": "Szervezet beállításai"
+    "text": "Szervezet beállítások"
   },
   "web.organizations.organization_settings_description": {
     "text": "Szervezet nevének és leírásának frissítése"
@@ -114,37 +114,37 @@
     "text": "Szervezet sikeresen frissítve"
   },
   "web.organizations.update_error": {
-    "text": "Nem sikerült frissíteni a szervezetet"
+    "text": "A szervezet frissítése sikertelen"
   },
   "web.organizations.billing_coming_soon": {
     "text": "Számlázási integráció hamarosan"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Az egységes számlázás és előfizetés-kezelés a szervezet összes csapatához egy jövőbeli kiadásban lesz elérhető."
+    "text": "Az egységes számlázás és előfizetés kezelés egy későbbi kiadásban lesz elérhető."
   },
   "web.organizations.about_title": {
     "text": "A szervezetekről"
   },
   "web.organizations.about_description": {
-    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak több csapat számára. Opcionálisak - a csapatok létezhetnek függetlenül vagy csoportosíthatók egy szervezet alatt központosított kezeléshez."
+    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak a központosított kezeléshez."
   },
   "web.organizations.single_user_info_title": {
     "text": "Szervezet kezelése"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Frissítse cége nevét és szervezeti részleteit itt. Ez az információ segít személyre szabni fiókját és használható lesz jövőbeli márkajelzési funkciókhoz."
+    "text": "Frissítse cégnevét és szervezeti adatait itt. Ezek az információk segítenek személyre szabni fiókját és a jövőben felhasználhatók a márkajelzési funkciókhoz."
   },
   "web.organizations.getting_started_title": {
-    "text": "Kezdő lépések a szervezetekkel"
+    "text": "Kezdés a szervezetekkel"
   },
   "web.organizations.getting_started_description": {
-    "text": "Hozza létre első szervezetét cégének információinak kezeléséhez és készüljön fel a jövőbeli csapatmunkára és márkajelzési funkciókra."
+    "text": "Hozza létre első szervezetét a cégadatok kezeléséhez és a jövőbeli márkajelzési funkciókra való felkészüléshez."
   },
   "web.organizations.page_description": {
     "text": "Szervezetek és csapattagok kezelése"
   },
   "web.organizations.tabs.general": {
-    "text": "Általános"
+    "text": "Beállítások"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Céges márkajelzés"
@@ -156,13 +156,13 @@
     "text": "Számlázás"
   },
   "web.organizations.danger_zone": {
-    "text": "Veszélyzóna"
+    "text": "Veszélyes zóna"
   },
   "web.organizations.delete_organization": {
     "text": "Szervezet törlése"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Ez véglegesen törli a szervezetet és minden kapcsolódó csapatot. Ez a művelet nem vonható vissza."
+    "text": "Ez véglegesen törli a szervezetet. Ez a művelet nem vonható vissza."
   },
   "web.organizations.delete": {
     "text": "Törlés"
@@ -174,13 +174,13 @@
     "text": "Biztosan törölni szeretné a(z) {name} szervezetet? Ez a művelet nem vonható vissza."
   },
   "web.organizations.delete_error": {
-    "text": "Nem sikerült törölni a szervezetet"
+    "text": "A szervezet törlése sikertelen"
   },
   "web.organizations.members.title": {
     "text": "Tagok"
   },
   "web.organizations.members.description": {
-    "text": "Szervezeti tagok és szerepkörök kezelése"
+    "text": "Szervezet tagok és szerepköreik kezelése"
   },
   "web.organizations.members.current_members": {
     "text": "Jelenlegi tagok"
@@ -189,10 +189,10 @@
     "text": "Tag"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "tag"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "tagok"
   },
   "web.organizations.members.name": {
     "text": "Név"
@@ -210,7 +210,7 @@
     "text": "Műveletek"
   },
   "web.organizations.members.no_members": {
-    "text": "Nem találhatók tagok"
+    "text": "Még nincsenek tagok. Hívjon meg csapattagokat a kezdéshez."
   },
   "web.organizations.members.no_members_description": {
     "text": "Ennek a szervezetnek még nincsenek tagjai."
@@ -219,37 +219,37 @@
     "text": "Tag szerepköre sikeresen frissítve"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Nem sikerült frissíteni a tag szerepkörét"
+    "text": "A tag szerepkörének frissítése sikertelen"
   },
   "web.organizations.members.member_removed": {
     "text": "Tag eltávolítva a szervezetből"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Nem sikerült eltávolítani a tagot"
+    "text": "A tag eltávolítása sikertelen"
   },
   "web.organizations.members.remove_member_title": {
     "text": "Tag eltávolítása"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Biztosan el szeretné távolítani {name} nevű tagot ebből a szervezetből?"
+    "text": "Biztosan el szeretné távolítani {name} felhasználót ebből a szervezetből?"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "Nem módosíthatja saját szerepkörét"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Nem távolíthatja el magát a szervezetből"
+    "text": "Nem távolíthatja el önmagát a szervezetből"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Nem távolíthatja el a szervezet tulajdonosát"
+    "text": "A szervezet tulajdonosát nem távolíthatja el"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Nincs jogosultsága tagok kezeléséhez"
+    "text": "Nincs jogosultsága a tagok kezeléséhez"
   },
   "web.organizations.members.roles.owner": {
     "text": "Tulajdonos"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Adminisztrátor"
+    "text": "Admin"
   },
   "web.organizations.members.roles.member": {
     "text": "Tag"
@@ -261,7 +261,7 @@
     "text": "Kezelheti a tagokat és a legtöbb szervezeti beállítást"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Alapszintű hozzáférés a szervezeti erőforrásokhoz"
+    "text": "Alapvető hozzáférés a szervezet erőforrásaihoz"
   },
   "web.organizations.invitations.title": {
     "text": "Szervezeti meghívók"
@@ -273,16 +273,16 @@
     "text": "Új tag meghívása"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Függő meghívók"
+    "text": "Függőben lévő meghívók"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Nincsenek függő meghívók"
+    "text": "Nincsenek függőben lévő meghívók"
   },
   "web.organizations.invitations.email_address": {
     "text": "E-mail cím"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "tag{'@'}pelda.hu"
+    "text": "tag{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Szerepkör"
@@ -294,7 +294,7 @@
     "text": "Meghívó sikeresen elküldve"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Nem sikerült elküldeni a meghívót"
+    "text": "A meghívó küldése sikertelen"
   },
   "web.organizations.invitations.resend": {
     "text": "Újraküldés"
@@ -306,19 +306,19 @@
     "text": "Meghívó sikeresen újraküldve"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Nem sikerült újraküldeni a meghívót"
+    "text": "A meghívó újraküldése sikertelen"
   },
   "web.organizations.invitations.revoke_success": {
     "text": "Meghívó sikeresen visszavonva"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Nem sikerült visszavonni a meghívót"
+    "text": "A meghívó visszavonása sikertelen"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Meghívta"
+    "text": "Meghívó"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Meghívás időpontja"
+    "text": "Meghívva"
   },
   "web.organizations.invitations.expires_at": {
     "text": "Lejár"
@@ -345,7 +345,7 @@
     "text": "Tag"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Adminisztrátor"
+    "text": "Admin"
   },
   "web.organizations.invitations.accept_invitation": {
     "text": "Meghívó elfogadása"
@@ -357,22 +357,22 @@
     "text": "Meghívó részletei"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Meghívást kapott a csatlakozásra"
+    "text": "Meghívást kapott a csatlakozásra:"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Ön a következő szerepkörben lett meghívva:"
+    "text": "Ön meghívást kapott mint"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Meghívó sikeresen elfogadva"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Nem sikerült elfogadni a meghívót"
+    "text": "A meghívó elfogadása sikertelen"
   },
   "web.organizations.invitations.decline_success": {
     "text": "Meghívó elutasítva"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Nem sikerült elutasítani a meghívót"
+    "text": "A meghívó elutasítása sikertelen"
   },
   "web.organizations.invitations.expired_message": {
     "text": "Ez a meghívó lejárt"
@@ -385,5 +385,50 @@
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Meghívó részleteinek betöltése"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Számlázási e-mail sikeresen frissítve"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "A számlázási e-mail a Számlázási áttekintés oldalon módosítható"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} tag"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domén"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Frissítse csomagját a csapattagok meghívásához"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "A csapattag meghívásokhoz csapatkezeléssel rendelkező csomag szükséges. Frissítsen, hogy munkatársakat adhasson a szervezetéhez."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Rossz fiók"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Ez a meghívó a(z) {invitedEmail} címre lett küldve, de Ön jelenleg {currentEmail} fiókkal van bejelentkezve."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Bejelentkezés másik fiókkal"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days} nap van hátra"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours} óra van hátra"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Hamarosan lejár"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Előfizetés"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domének"
   }
 }

@@ -5,10 +5,10 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Biztonságos hivatkozások, amelyek csak egyszer működnek"
+    "text": "Biztonságos linkek, amelyek csak egyszer működnek"
   },
   "web.COMMON.powered_by": {
-    "text": "Szolgáltató:"
+    "text": "Szolgáltató"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/hu"
@@ -17,19 +17,19 @@
     "text": "Jelszó generálása"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "A jelszó generálása le van tiltva, amikor az űrlap érvényes"
+    "text": "A jelszógenerálás ki van kapcsolva, ha az űrlap érvényes"
   },
   "web.COMMON.email_placeholder": {
-    "text": "pl. kovacs{'@'}pelda.hu"
+    "text": "pl. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
     "text": "Adja meg jelszavát"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Egyéni domének"
+    "text": "Egyéni domainek"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Erősítse meg kapcsolatait és építsen bizalmat saját márkás titok hivatkozásokkal."
+    "text": "Erősítse kapcsolatait és építsen bizalmat saját márkázott titkos linkjeivel."
   },
   "web.COMMON.get_started_button": {
     "text": "Kezdés"
@@ -41,25 +41,25 @@
     "text": "Beállítások"
   },
   "web.COMMON.submit_with": {
-    "text": "Küldés"
+    "text": "Beküldés"
   },
   "web.COMMON.submitting": {
-    "text": "Küldés folyamatban..."
+    "text": "Beküldés..."
   },
   "web.COMMON.processing": {
     "text": "Feldolgozás..."
   },
   "web.COMMON.description": {
-    "text": "Tartsa távol az érzékeny információkat a csevegési naplókból és e-mailekből. Osszon meg egy titkos hivatkozást, amely csak egyszer érhető el."
+    "text": "Tartsa távol az érzékeny információkat a csevegési naplóktól és e-mailektől. Osszon meg egy titkos linket, amely csak egyszer érhető el."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Helytelen hozzáférési mondat"
   },
   "web.COMMON.keywords": {
-    "text": "titok,jelszógenerátor,titok megosztása,egyszer használatos"
+    "text": "titok,jelszógenerátor,titok megosztása,egyszer"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Titkos hivatkozás létrehozása"
+    "text": "Titkos link létrehozása"
   },
   "web.COMMON.button_generate_secret": {
     "text": "Vagy generáljon véletlenszerű jelszót"
@@ -71,7 +71,7 @@
     "text": "Hozzáférési mondat"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Egy szó vagy kifejezés, amelyet nehéz kitalálni"
+    "text": "Egy nehezen kitalálható szó vagy kifejezés"
   },
   "web.COMMON.secret_recipient_address": {
     "text": "Címzett e-mail címe"
@@ -83,7 +83,7 @@
     "text": "Fiók létrehozása"
   },
   "web.COMMON.header_about": {
-    "text": "Rólunk"
+    "text": "Névjegy"
   },
   "web.COMMON.header_sign_in": {
     "text": "Bejelentkezés"
@@ -101,7 +101,7 @@
     "text": "Legutóbbi"
   },
   "web.COMMON.received": {
-    "text": "Megkapva"
+    "text": "Fogadva"
   },
   "web.COMMON.burn": {
     "text": "Végleges törlés"
@@ -116,34 +116,34 @@
     "text": "Titok végleges törlése"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "A titok végleges törlése megsemmisíti azt, mielőtt elolvasnák (kattintson a megerősítéshez)"
+    "text": "A végleges törlés törli a titkot, mielőtt elolvasnák (kattintson a megerősítéshez)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
     "text": "A titok végleges törlése visszavonhatatlan"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Ellenőrizze e-mailjét"
+    "text": "Ellenőrizze e-mailjeit"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Kattintson a felfedéshez →"
+    "text": "Kattintson a megjelenítéshez →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Folytassa fiókja ellenőrzését:"
+    "text": "Folytassa a fiók ellenőrzéséhez:"
   },
   "web.COMMON.error_secret": {
-    "text": "Nem adott meg semmit, amit megoszthatnánk"
+    "text": "Nem adott meg semmit megosztásra"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Ellenőrizze újra a hozzáférési mondatot"
+    "text": "Ellenőrizze a hozzáférési mondatot"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Adja meg a hozzáférési mondatot itt"
+    "text": "Adja meg a hozzáférési mondatot"
   },
   "web.COMMON.view_secret": {
     "text": "Titok megtekintése"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Figyelem: csak egyszer fogjuk megmutatni."
+    "text": "Vigyázat: csak egyszer fogjuk megjeleníteni."
   },
   "web.COMMON.warning": {
     "text": "Figyelmeztetés"
@@ -158,16 +158,16 @@
     "text": "Váratlan hiba történt. Kérjük, próbálja újra."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Az üzenet lerövidítésre került"
+    "text": "Az üzenet le lett vágva"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Regisztráljon további lehetőségekért"
+    "text": "Regisztráljon a többért"
   },
   "web.COMMON.login_to_your_account": {
     "text": "Jelentkezzen be fiókjába"
   },
   "web.COMMON.sent_to": {
-    "text": "Elküldve: "
+    "text": "Elküldve:"
   },
   "web.COMMON.field_email": {
     "text": "E-mail"
@@ -194,7 +194,7 @@
     "text": "véglegesen törölve"
   },
   "web.COMMON.word_received": {
-    "text": "megkapva"
+    "text": "fogadva"
   },
   "web.COMMON.word_confirm": {
     "text": "Megerősítés"
@@ -218,13 +218,13 @@
     "text": "Visszajelzés küldése"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Ellenőrzést küldtünk a következő címre"
+    "text": "Megerősítő e-mail elküldve"
   },
   "web.COMMON.autoverified_success": {
     "text": "Fiók létrehozva. Kérjük, jelentkezzen be."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Ha létezik fiók ezzel az e-mail címmel, küldünk egy ellenőrző e-mailt."
+    "text": "Ha létezik fiók ezzel az e-mail címmel, megerősítő e-mailt fog kapni."
   },
   "web.COMMON.burn_this_secret_aria": {
     "text": "Titok végleges törlése"
@@ -236,13 +236,13 @@
     "text": "Biztosan véglegesen törölni szeretné ezt a titkot? Ez a művelet nem vonható vissza."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Igen, törlöm véglegesen ezt a titkot"
+    "text": "Igen, törlöm véglegesen"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "A titok végleges törlése megsemmisíti azt, mielőtt fogadták volna."
+    "text": "A végleges törlés a titok törlését jelenti, mielőtt fogadnák."
   },
   "web.COMMON.share_link_securely": {
-    "text": "A biztonság érdekében ossza meg ezt a hivatkozást külön a többi adattól."
+    "text": "Biztonsági okokból ossza meg ezt a linket a többi adattól elkülönítve."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Vágólapra másolva"
@@ -251,13 +251,13 @@
     "text": "Bejövő létrehozása"
   },
   "web.COMMON.faq_title": {
-    "text": "G.Y.I.K."
+    "text": "GY.I.K."
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Az ellenőrzés nem érvényes"
+    "text": "Az ellenőrzés érvénytelen"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nem ellenőrizhet fiókot, amikor már be van jelentkezve"
+    "text": "Nem ellenőrizheti a fiókot, ha már be van jelentkezve"
   },
   "web.COMMON.show_password": {
     "text": "Jelszó megjelenítése"
@@ -266,7 +266,7 @@
     "text": "Jelszó elrejtése"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "A jelszónak legalább 8 karakterből kell állnia"
+    "text": "A jelszónak legalább 8 karakter hosszúnak kell lennie"
   },
   "web.COMMON.password_requirements": {
     "text": "A jelszónak legalább 8 karakter hosszúnak kell lennie"
@@ -278,7 +278,7 @@
     "text": "Ez a mező kötelező"
   },
   "web.COMMON.form_processing": {
-    "text": "Kérése feldolgozása folyamatban"
+    "text": "Kérés feldolgozása"
   },
   "web.COMMON.remember_me_description": {
     "text": "Maradjak bejelentkezve 30 napig"
@@ -296,7 +296,7 @@
     "text": "Veszélyzóna"
   },
   "web.COMMON.caution_zone": {
-    "text": "Óvatosan mérlegelendő zóna"
+    "text": "Körültekintést igénylő terület"
   },
   "web.COMMON.user_menu": {
     "text": "Felhasználói menü"
@@ -329,7 +329,7 @@
     "text": "Állapot"
   },
   "web.COMMON.escape": {
-    "text": "Kilépés"
+    "text": "Escape"
   },
   "web.COMMON.active": {
     "text": "Aktív"
@@ -341,7 +341,7 @@
     "text": "Eltávolítás"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Nyomja meg az ESC-t a bezáráshoz"
+    "text": "Nyomja meg az ESC-et a bezáráshoz"
   },
   "web.COMMON.enter": {
     "text": "Enter"
@@ -377,13 +377,13 @@
     "text": "Éves"
   },
   "web.COMMON.go_on_then": {
-    "text": "Rendben, folytassa."
+    "text": "Rendben, mehet."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Betöltés..."
   },
   "web.COMMON.not_received": {
-    "text": "NEM KAPOTT MEG"
+    "text": "NEM ÉRKEZETT MEG"
   },
   "web.COMMON.confirm_password": {
     "text": "Jelszó megerősítése"
@@ -419,7 +419,7 @@
     "text": "Egyéb"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(min-szélesség: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -431,13 +431,13 @@
     "text": "Mac"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "E-mail cím vágólapra másolva!"
+    "text": "E-mail cím a vágólapra másolva!"
   },
   "web.COMMON.value": {
     "text": "Érték"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Gazdagép"
   },
   "web.COMMON.type": {
     "text": "Típus"
@@ -449,25 +449,25 @@
     "text": "Következő"
   },
   "web.COMMON.password_strength": {
-    "text": "Jelszó erősség:"
+    "text": "Jelszó erőssége:"
   },
   "web.COMMON.great": {
-    "text": "Remek"
+    "text": "Kiváló"
   },
   "web.COMMON.pretty_good": {
     "text": "Elég jó"
   },
   "web.COMMON.fair": {
-    "text": "Megfelelő"
+    "text": "Elfogadható"
   },
   "web.COMMON.meh": {
-    "text": "Gyenge"
+    "text": "Közömbös"
   },
   "web.COMMON.not_great": {
-    "text": "Nem jó"
+    "text": "Nem túl jó"
   },
   "web.COMMON.open_options": {
-    "text": "Lehetőségek megnyitása"
+    "text": "Beállítások megnyitása"
   },
   "web.COMMON.inactive": {
     "text": "Inaktív"
@@ -476,16 +476,16 @@
     "text": "Hiba történt"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Titok másolása vágólapra"
+    "text": "Titok másolása a vágólapra"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Titok vágólapra másolva"
+    "text": "Titok a vágólapra másolva"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Ellenőrizze újra a hozzáférési mondatot"
+    "text": "Ellenőrizze a hozzáférési mondatot"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Nyomja meg az alábbi másolás gombot."
+    "text": "Nyomja meg a másolás gombot alább."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Megjelenítés"
@@ -494,10 +494,10 @@
     "text": "Elrejtés"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Több megjelenítése"
+    "text": "Több mutatása"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Kevesebb megjelenítése"
+    "text": "Kevesebb mutatása"
   },
   "web.LABELS.enable": {
     "text": "Engedélyezés"
@@ -557,19 +557,19 @@
     "text": "Műveletek"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Nincs szükség hozzáférési mondatra"
+    "text": "Nem szükséges hozzáférési mondat"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Másolás vágólapra"
+    "text": "Másolás a vágólapra"
   },
   "web.LABELS.receipts": {
-    "text": "Nyugták"
+    "text": "Visszaigazolások"
   },
   "web.LABELS.share": {
     "text": "Megosztás"
   },
   "web.LABELS.secret_link": {
-    "text": "Titkos hivatkozás"
+    "text": "Titkos link"
   },
   "web.LABELS.dismiss": {
     "text": "Elvetés"
@@ -593,7 +593,7 @@
     "text": "alkalommal megtekintve"
   },
   "web.LABELS.view_progress": {
-    "text": "Megtekintési előrehaladás"
+    "text": "Folyamat megtekintése"
   },
   "web.LABELS.help_section": {
     "text": "Súgó"
@@ -602,7 +602,7 @@
     "text": "Hozzáférési mondattal védett"
   },
   "web.LABELS.feedback_received": {
-    "text": "Visszajelzés beérkezett."
+    "text": "Visszajelzés fogadva."
   },
   "web.LABELS.sending_ellipses": {
     "text": "Küldés..."
@@ -620,25 +620,25 @@
     "text": "Újratöltés"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Ebben a munkamenetben létrehozott titkos hivatkozások"
+    "text": "Ebben a munkamenetben létrehozott titkos linkek"
   },
   "web.LABELS.create_link_short": {
-    "text": "Hivatkozás létrehozása"
+    "text": "Link létrehozása"
   },
   "web.LABELS.create_link": {
-    "text": "Titkos hivatkozás létrehozása"
+    "text": "Titkos link létrehozása"
   },
   "web.LABELS.create_request_short": {
     "text": "Kérés létrehozása"
   },
   "web.LABELS.create_request": {
-    "text": "Kérési hivatkozás létrehozása"
+    "text": "Kérés link létrehozása"
   },
   "web.LABELS.related_settings": {
     "text": "Kapcsolódó beállítások"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Hivatkozások létrehozása ehhez:"
+    "text": "Linkek létrehozása ehhez:"
   },
   "web.LABELS.scope_indicator": {
     "text": "Titkok létrehozása itt: {domain}"
@@ -650,10 +650,10 @@
     "text": "Olvasatlan"
   },
   "web.STATUS.viewed": {
-    "text": "Hivatkozás megnyitva"
+    "text": "Link megnyitva"
   },
   "web.STATUS.received": {
-    "text": "Megkapva"
+    "text": "Fogadva"
   },
   "web.STATUS.burned": {
     "text": "Véglegesen törölve"
@@ -674,13 +674,13 @@
     "text": "Lejárt"
   },
   "web.STATUS.orphaned": {
-    "text": "Elárvulva"
+    "text": "Árva"
   },
   "web.STATUS.secured": {
-    "text": "Biztonságossá téve"
+    "text": "Védett"
   },
   "web.STATUS.securing": {
-    "text": "Biztonságossá tétel"
+    "text": "Védelem beállítása"
   },
   "web.STATUS.copied": {
     "text": "Másolva"
@@ -689,28 +689,28 @@
     "text": "Hátralévő idő"
   },
   "web.STATUS.new_description": {
-    "text": "A titkos hivatkozás létrejött, de még nem tekintették meg"
+    "text": "A titkos link létrejött és még nem tekintették meg"
   },
   "web.STATUS.unread_description": {
-    "text": "A titkos hivatkozás létrejött, de még nem tekintették meg"
+    "text": "A titkos link létrejött és nem tekintették meg"
   },
   "web.STATUS.viewed_description": {
-    "text": "A titkos hivatkozás meg lett nyitva és készen áll a megtekintésre"
+    "text": "A titkos linket megnyitották és készen áll a megtekintésre"
   },
   "web.STATUS.received_description": {
-    "text": "A titok felfedésre került a címzett számára"
+    "text": "A titkot megjelenítették a címzettnek"
   },
   "web.STATUS.burned_description": {
-    "text": "A titkot manuálisan véglegesen törölték, mielőtt megtekintették volna"
+    "text": "A titkot manuálisan törölték, mielőtt megtekintették volna"
   },
   "web.STATUS.destroyed_description": {
-    "text": "A titok véglegesen megsemmisítésre került"
+    "text": "A titok véglegesen megsemmisült"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "A titok hamarosan lejár"
   },
   "web.STATUS.orphaned_description": {
-    "text": "A titok elárvult és hamarosan megsemmisítésre kerül"
+    "text": "A titok árva lett és hamarosan megsemmisül"
   },
   "web.STATUS.expired_description": {
     "text": "A titok lejárt, mielőtt megtekintették volna"
@@ -722,7 +722,7 @@
     "text": "Kézbesítve"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Helytelen DNS"
+    "text": "DNS hibás"
   },
   "web.STATUS.active": {
     "text": "Aktív"
@@ -731,13 +731,13 @@
     "text": "Inaktív"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Korlátlan megtekintések"
+    "text": "Korlátlan megtekintés"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Megbízható domén márkajelzés"
+    "text": "Megbízható domain arculat"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Átvitel és tárolás közben titkosítva"
+    "text": "Titkosítva szállítás és tárolás közben"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -758,7 +758,7 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} van hátra"
+    "text": "Még {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
     "text": "nap van hátra | nap van hátra"
@@ -776,7 +776,7 @@
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} megtekintési korlát"
+    "text": "{count} megtekintés limit"
   },
   "web.UNITS.days_remaining": {
     "text": "{count} nap van hátra"
@@ -806,7 +806,7 @@
     "text": "Jelszó visszaállítása"
   },
   "web.TITLES.logout": {
-    "text": "Kijelentkezés folyamatban"
+    "text": "Kijelentkezés"
   },
   "web.TITLES.verify_account": {
     "text": "Fiók ellenőrzése"
@@ -827,37 +827,37 @@
     "text": "Titok részletei"
   },
   "web.TITLES.receipt": {
-    "text": "Titok nyugta"
+    "text": "Titok visszaigazolás"
   },
   "web.TITLES.burn_secret": {
     "text": "Titok végleges törlése"
   },
   "web.TITLES.dashboard": {
-    "text": "Vezérlőpult"
+    "text": "Irányítópult"
   },
   "web.TITLES.recent": {
     "text": "Legutóbbi titkok"
   },
   "web.TITLES.domains": {
-    "text": "Egyéni domének"
+    "text": "Egyéni domainek"
   },
   "web.TITLES.domain_add": {
-    "text": "Domén hozzáadása"
+    "text": "Domain hozzáadása"
   },
   "web.TITLES.domain_verify": {
-    "text": "Domén ellenőrzése"
+    "text": "Domain ellenőrzése"
   },
   "web.TITLES.domain_brand": {
-    "text": "Domén márkajelzése"
+    "text": "Domain arculat"
   },
   "web.TITLES.account": {
-    "text": "Fiókbeállítások"
+    "text": "Fiók"
   },
   "web.TITLES.data_region": {
     "text": "Adatrégió"
   },
   "web.TITLES.current_region": {
-    "text": "Jelenlegi régió"
+    "text": "Aktuális régió"
   },
   "web.TITLES.available_regions": {
     "text": "Elérhető régiók"
@@ -866,10 +866,10 @@
     "text": "Miért fontos az adatszuverenitás"
   },
   "web.TITLES.profile_settings": {
-    "text": "Profilbeállítások"
+    "text": "Profil beállítások"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Preferenciák"
+    "text": "Beállítások"
   },
   "web.TITLES.privacy_settings": {
     "text": "Adatvédelem"
@@ -878,7 +878,7 @@
     "text": "Értesítések"
   },
   "web.TITLES.change_email": {
-    "text": "E-mail cím módosítása"
+    "text": "E-mail módosítása"
   },
   "web.TITLES.security_overview": {
     "text": "Biztonság"
@@ -911,7 +911,7 @@
     "text": "Szervezetek"
   },
   "web.TITLES.organization_settings": {
-    "text": "Szervezet beállításai"
+    "text": "Szervezeti beállítások"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "A fókusz most a fő szövegmezőben van"
@@ -920,27 +920,87 @@
     "text": "Megosztási útmutató"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Ossza meg a hivatkozást a kívánt címzettel"
+    "text": "Ossza meg a linket a címzettel"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Ossza meg a hozzáférési mondatot külön, biztonságos csatornán keresztül"
+    "text": "A hozzáférési mondatot külön, biztonságos csatornán ossza meg"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
     "text": "Használjon másik biztonságos csatornát az érzékeny információk megosztásához"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domént, mielőtt új hivatkozásokat hoz létre."
+    "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint a Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a domain-t új linkek létrehozása előtt."
   },
   "web.STATUS.previewed": {
-    "text": "Hivatkozás megnyitva"
+    "text": "Előnézetben megtekintve"
   },
   "web.STATUS.revealed": {
-    "text": "Felfedve"
+    "text": "Megjelenítve"
   },
   "web.STATUS.previewed_description": {
-    "text": "A titkos hivatkozás meg lett nyitva és készen áll a felfedésre"
+    "text": "A titkos linket megnyitották és készen áll a megjelenítésre"
   },
   "web.STATUS.revealed_description": {
-    "text": "A titkos tartalom fel lett fedve a címzettnek"
+    "text": "A titok tartalmát megjelenítették a címzettnek"
+  },
+  "web.COMMON.not_set": {
+    "text": "Nincs beállítva"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Szerkesztés"
+  },
+  "web.COMMON.word_save": {
+    "text": "Mentés"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Lejár"
+  },
+  "web.LABELS.filter": {
+    "text": "Szűrés"
+  },
+  "web.LABELS.clear": {
+    "text": "Törlés"
+  },
+  "web.LABELS.add_note": {
+    "text": "Jegyzet hozzáadása..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Jegyzet szerkesztése"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Emlékeztető hozzáadása..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Emlékeztető szerkesztése"
+  },
+  "web.TITLES.help": {
+    "text": "Súgó"
+  },
+  "web.TITLES.pricing": {
+    "text": "Árak"
+  },
+  "web.pricing.title": {
+    "text": "Egyszerű, átlátható árazás"
+  },
+  "web.pricing.subtitle": {
+    "text": "Válassza az igényeinek megfelelő csomagot. Minden csomag korlátlan titokmegosztást és adatvédelem-központú tervezést tartalmaz."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Ingyenes kezdés"
+  },
+  "web.pricing.start_trial": {
+    "text": "Kezdés"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Már van fiókja?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Bejelentkezés"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Önnek ajánlott"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Hozzon létre és osszon meg titkokat alapfunkciókkal. Bankkártya nem szükséges."
   }
 }

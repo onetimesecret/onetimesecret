@@ -3,18 +3,18 @@
     "text": "Megkapva"
   },
   "web.dashboard.title_not_received": {
-    "text": "Nem kapott meg"
+    "text": "Nem kapták meg"
   },
   "web.dashboard.title_no_recent_secrets": {
     "text": "Nincsenek legutóbbi titkok"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Kezdje el első titka létrehozásával."
+    "text": "Kezdjen hozzá az első titkának létrehozásával."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Nem sikerült betölteni a csapatokat"
+    "text": "Nem sikerült betölteni az adatokat"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Probléma történt a csapatok betöltésekor. Kérjük, próbálja újra."
+    "text": "Probléma merült fel az adatok betöltése során. Kérjük, próbálja újra."
   }
 }

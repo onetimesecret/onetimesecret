@@ -12,10 +12,10 @@
     "text": "Lépjen kapcsolatba azzal a személlyel, aki ezt a hivatkozást küldte, és kérje meg, hogy hozzon létre új titkot. Tudassa vele, hogy nem tudta elérni az eredeti információt."
   },
   "web.errors.warning_dismissed": {
-    "text": "Figyelmeztetés elvetése"
+    "text": "Figyelmeztetés elvetve"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Rövidítési figyelmeztetés elvetése"
+    "text": "Csonkolási figyelmeztetés elvetése"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Hoppá! A keresett oldal nem létezik vagy áthelyezésre került."
@@ -45,7 +45,7 @@
     "text": "{0} Valami hiba történt"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Menjen és osszon meg egy titkot!"
+    "text": "Osszon meg egy titkot!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "A keresett oldal nem létezik vagy áthelyezésre került. Ne aggódjon, ez a legjobbakkal is megtörténik!"

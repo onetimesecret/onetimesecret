@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Mesterséges intelligencia által generált vélemény"
+    "text": "MI által generált ajánlás"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Mesterséges intelligencia által generált tartalom bemutatási célra. Nem valós személytől vagy cégtől."
+    "text": "MI által generált tartalom bemutatás céljából. Nem valódi személytől vagy cégtől származik."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -18,13 +18,13 @@
     "text": "{0}:"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Mit mond rólunk a vezető MI"
+    "text": "Mit mondanak a vezető MI rendszerek rólunk"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "MI által generált vélemények"
+    "text": "MI által generált ajánlások"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Ezt az idézetet generálta"
+    "text": "Ezt az idézetet generálta:"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "Az oldal tartalma alapján készült, és nem valós személyt vagy céget képvisel."

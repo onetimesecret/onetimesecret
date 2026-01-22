@@ -3,13 +3,13 @@
     "text": "Adatszuverenitás és regionális elkülönítés"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Adatai kizárólag a választott régióban találhatók, és soha nem kerülnek átadásra régiók között"
+    "text": "Adatai kizárólag a választott régióban tárolódnak és soha nem kerülnek átvitelre régiók között"
   },
   "web.regions.separate_environments_explanation": {
     "text": "Minden régió teljesen független környezetként működik saját infrastruktúrával, titkosítási kulcsokkal és adattárolással"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Szigorú szabályzatot tartunk: az ügyféladatok semmilyen körülmények között nem kerülnek átadásra régiók között"
+    "text": "Szigorú szabályzatot tartunk fenn: az ügyféladatok soha nem kerülnek átvitelre régiók között semmilyen körülmények között"
   },
   "web.regions.switching_creates_new_account": {
     "text": "Fontos: Másik régióra váltás új fiókot hoz létre. Adatai az eredeti régióban maradnak."
@@ -24,7 +24,7 @@
     "text": "Aktív"
   },
   "web.regions.explore_other_regions": {
-    "text": "Más elérhető régiók felfedezése"
+    "text": "Fedezze fel a többi elérhető régiót"
   },
   "web.regions.why_it_matters": {
     "text": "Miért fontos az adatszuverenitás"
@@ -33,25 +33,25 @@
     "text": "Átláthatóság és kontroll"
   },
   "web.regions.trust_description": {
-    "text": "Tudja pontosan, hol találhatók adatai és mely törvények védik azokat."
+    "text": "Tudja pontosan, hol tárolják adatait és mely törvények védik azokat."
   },
   "web.regions.privacy_title": {
     "text": "Adatvédelmi jogok"
   },
   "web.regions.privacy_description": {
-    "text": "Biztosítsa, hogy személyes információit országa adatvédelmi törvényei és szabályai szerint kezeljék, megakadályozva a jogosulatlan hozzáférést vagy visszaélést."
+    "text": "Biztosítsa, hogy személyes adatait az Ön országának adatvédelmi törvényeinek és előírásainak megfelelően kezelik, megakadályozva az illetéktelen hozzáférést vagy visszaélést."
   },
   "web.regions.compliance_title": {
-    "text": "Szabályozási megfelelés"
+    "text": "Szabályozási megfelelőség"
   },
   "web.regions.compliance_description": {
-    "text": "Feleljen meg a GDPR, HIPAA, CCPA és egyéb regionális adatvédelmi követelményeknek"
+    "text": "Feleljen meg a GDPR, HIPAA, CCPA és más regionális adatvédelmi követelményeknek"
   },
   "web.regions.performance_title": {
     "text": "Gyorsabb hozzáférés"
   },
   "web.regions.performance_description": {
-    "text": "Az Önhöz közelebb tárolt adatok alacsonyabb késleltetést és jobb teljesítményt jelentenek."
+    "text": "Az Önhöz közelebbi adattárolás alacsonyabb késleltetést és jobb teljesítményt jelent."
   },
   "web.regions.regions": {
     "text": "Régiók"
@@ -96,10 +96,10 @@
     "text": "Ismeretlen joghatóság"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Szolgáltatva innen:"
+    "text": "Kiszolgálás innen:"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "Folytatás ide: {0}"
+    "text": "Tovább ide: {0}"
   },
   "web.regions.current_jurisdiction": {
     "text": "Jelenlegi joghatóság:"

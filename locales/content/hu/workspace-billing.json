@@ -6,19 +6,19 @@
     "text": "Csomagok megtekintése"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Csapatkezeléshez Identity Plus vagy magasabb szükséges"
+    "text": "A csapatkezeléshez Identity Plus vagy magasabb csomag szükséges"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Egyéni doménekhez Identity Plus vagy magasabb szükséges"
+    "text": "Az egyéni doménekhez Identity Plus vagy magasabb csomag szükséges"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API hozzáféréshez Multi-Team csomag vagy magasabb szükséges"
+    "text": "Az API hozzáféréshez Identity Plus vagy magasabb csomag szükséges"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Audit naplókhoz Multi-Team csomag vagy magasabb szükséges"
+    "text": "Az audit naplókhoz Multi-Team csomag vagy magasabb szükséges"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Kezelje előfizetését, szervezeteit és számlázási beállításait"
+    "text": "Előfizetés, szervezetek és számlázási beállítások kezelése"
   },
   "web.billing.overview.title": {
     "text": "Számlázási áttekintés"
@@ -33,7 +33,7 @@
     "text": "Jelenlegi csomag"
   },
   "web.billing.overview.plan_features": {
-    "text": "Csomag szolgáltatásai"
+    "text": "Csomag funkciók"
   },
   "web.billing.overview.payment_method": {
     "text": "Fizetési mód"
@@ -57,13 +57,13 @@
     "text": "Csomag módosítása"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Nincs rögzített fizetési mód"
+    "text": "Nincs fizetési mód megadva"
   },
   "web.billing.overview.no_upcoming_billing": {
     "text": "Nincs közelgő számlázás"
   },
   "web.billing.overview.days_remaining": {
-    "text": "nap van hátra"
+    "text": "hátralévő nap"
   },
   "web.billing.overview.billing_on": {
     "text": "Számlázás: {date}"
@@ -90,13 +90,13 @@
     "text": "Nincsenek szervezetek"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Hozzon létre egy szervezetet számlázása és előfizetése kezeléséhez"
+    "text": "Hozzon létre szervezetet a számlázás és előfizetés kezeléséhez"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Titkok létrehozása"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Nyugták megtekintése"
+    "text": "Bizonylatok megtekintése"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "API hozzáférés"
@@ -105,19 +105,19 @@
     "text": "Egyéni domének"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Egyéni adatvédelmi beállítások"
+    "text": "Egyéni adatvédelmi alapértékek"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Hosszabb alapértelmezett lejárat"
+    "text": "Meghosszabbított alapértelmezett lejárat"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Egyéni e-mail beállítások"
+    "text": "Egyéni e-mail alapértékek"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "Egyéni márkajelzés"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Márkás kezdőlap"
+    "text": "Márkázott főoldal"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Bejövő titkok"
@@ -135,28 +135,28 @@
     "text": "Audit naplók"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Egyszeri bejelentkezés (SSO)"
+    "text": "Egyszeri bejelentkezés"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Elsőbbségi támogatás"
+    "text": "Kiemelt támogatás"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Szolgáltatási szint megállapodás (SLA)"
+    "text": "Szolgáltatási szint megállapodás"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Nem sikerült betölteni a szolgáltatás részleteit"
+    "text": "Nem sikerült betölteni a funkció részleteit"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Nincsenek elérhető szolgáltatások"
+    "text": "Nincsenek elérhető funkciók"
   },
   "web.billing.plans.title": {
-    "text": "Csomag kiválasztása"
+    "text": "Válasszon csomagot"
   },
   "web.billing.plans.choose_plan": {
     "text": "Válassza ki az igényeinek megfelelő csomagot"
   },
   "web.billing.plans.subtitle": {
-    "text": "Válassza ki a tökéletes csomagot szervezete számára"
+    "text": "Válassza ki a szervezetének tökéletes csomagot"
   },
   "web.billing.plans.current": {
     "text": "Jelenlegi csomag"
@@ -168,7 +168,7 @@
     "text": "Frissítés"
   },
   "web.billing.plans.downgrade": {
-    "text": "Visszalépés"
+    "text": "Visszaminősítés"
   },
   "web.billing.plans.monthly": {
     "text": "Havi"
@@ -177,7 +177,7 @@
     "text": "Éves"
   },
   "web.billing.plans.per_month": {
-    "text": "havonta"
+    "text": "/hónap"
   },
   "web.billing.plans.save_yearly": {
     "text": "Takarítson meg {percent}%-ot éves számlázással"
@@ -186,7 +186,7 @@
     "text": "Ingyenes"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Egy csapat"
+    "text": "Egyetlen csapat"
   },
   "web.billing.plans.multi_team_plan": {
     "text": "Több csapat"
@@ -201,55 +201,55 @@
     "text": "Szervezeti fiók"
   },
   "web.billing.plans.features": {
-    "text": "Szolgáltatások"
+    "text": "Funkciók"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Korlátlan titkok"
+    "text": "Korlátlan titok"
   },
   "web.billing.plans.api_access": {
     "text": "API hozzáférés"
   },
   "web.billing.plans.priority_support": {
-    "text": "Elsőbbségi támogatás"
+    "text": "Kiemelt támogatás"
   },
   "web.billing.plans.select_plan": {
     "text": "Csomag kiválasztása"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Értékesítés kapcsolatfelvétel"
+    "text": "Kapcsolatfelvétel értékesítéssel"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Kérdései vannak, vagy egyedi megoldásra van szüksége?"
+    "text": "Kérdései vannak vagy egyedi megoldásra van szüksége?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Szívesen hallanánk önről. Tudassa velünk, mit keres."
+    "text": "Szívesen hallanánk Öntől. Tudassa velünk, mit keres."
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} csapat | {count} csapat"
+    "text": "{count} csapat"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} tag csapatonként | {count} tag csapatonként"
+    "text": "{count} tag csapatonként"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Korlátlan számú csapat"
+    "text": "Korlátlan csapat"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Korlátlan számú tag csapatonként"
+    "text": "Korlátlan tag csapatonként"
   },
   "web.billing.plans.most_popular": {
     "text": "Legnépszerűbb"
   },
   "web.billing.plans.suggested": {
-    "text": "Javasolt"
+    "text": "Ajánlott"
   },
   "web.billing.plans.everything_in": {
-    "text": "Minden, ami a(z) {plan} csomagban van, plusz:"
+    "text": "Tartalmaz mindent a(z) {plan} csomagból"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Jelenleg nincsenek elérhető {interval} csomagok."
+    "text": "Jelenleg nem érhetők el {interval} csomagok."
   },
   "web.billing.plans.change_immediate": {
-    "text": "A csomagja azonnal módosul."
+    "text": "A csomag azonnal megváltozik."
   },
   "web.billing.plans.current_plan_label": {
     "text": "Jelenlegi csomag:"
@@ -264,28 +264,28 @@
     "text": "Következő számla"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "A funkciók korlátai azonnal frissülnek a csomagváltás után."
+    "text": "A funkció korlátok a csomag módosítása után azonnal frissülnek."
   },
   "web.billing.plans.change_failed": {
-    "text": "A csomagváltás sikertelen. Kérjük, próbálja újra."
+    "text": "A csomag módosítása sikertelen. Kérjük, próbálja újra."
   },
   "web.billing.plans.confirm_upgrade": {
     "text": "Frissítés megerősítése"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Visszalépés megerősítése"
+    "text": "Visszaminősítés megerősítése"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Frissítés erre"
+    "text": "Frissítés erre: {plan}?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Visszalépés a(z) {plan} csomagra?"
+    "text": "Visszaminősítés erre: {plan}?"
   },
   "web.billing.invoices.title": {
     "text": "Számlázási előzmények"
   },
   "web.billing.invoices.view_history": {
-    "text": "Számlázási előzmények megtekintése és számlák letöltése"
+    "text": "Tekintse meg számlázási előzményeit és töltse le a számlákat"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Dátum"
@@ -312,16 +312,16 @@
     "text": "Sikertelen"
   },
   "web.billing.invoices.load_error": {
-    "text": "Nem sikerült betölteni a számlákat"
+    "text": "A számlák betöltése sikertelen"
   },
   "web.billing.notices.org_managed": {
-    "text": "Ennek a csapatnak a számlázását a(z) {orgName} kezeli"
+    "text": "A számlázást a(z) {orgName} kezeli"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Szervezet számlázásának megtekintése"
+    "text": "Szervezeti számlázás megtekintése"
   },
   "web.billing.limits.members_reached": {
-    "text": "Elérte ennek a csapatnak a taglétszám-korlátját"
+    "text": "Elérte ennek a csapatnak a taglétszám korlátját"
   },
   "web.billing.limits.members_upgrade": {
     "text": "Frissítsen több tag hozzáadásához"
@@ -342,7 +342,7 @@
     "text": "Lejárt"
   },
   "web.billing.subscription.canceled": {
-    "text": "Megszakítva"
+    "text": "Lemondva"
   },
   "web.billing.subscription.catalog_name": {
     "text": "Csomag"
@@ -360,10 +360,10 @@
     "text": "Átirányítás a számlázási portálra..."
   },
   "web.billing.start_today": {
-    "text": "Kezdés ma"
+    "text": "Kezdje el még ma"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Kezdés ma az Identity Plus-szal"
+    "text": "Kezdje el még ma Identity Plus-szal"
   },
   "web.billing.per_month": {
     "text": "havonta"
@@ -378,7 +378,7 @@
     "text": "Identity Plus"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Kattintson erre a villámra az egyéni doménekre való frissítéshez"
+    "text": "Kattintson erre a villámra az egyéni domének frissítéséhez"
   },
   "web.billing.maybe_later": {
     "text": "Talán később"
@@ -387,28 +387,28 @@
     "text": "Fiók frissítése"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Frissítés Identity Plus-ra"
+    "text": "Váltás Identity Plus-ra"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Frissítés csapatokhoz"
+    "text": "Frissítés csapatoknak"
   },
   "web.billing.benefits_of": {
-    "text": "Előnyei"
+    "text": "Előnyei:"
   },
   "web.billing.t_benefits_of_identity_plus": {
     "text": "{0}: Identity Plus"
   },
   "web.billing.upgrade_to": {
-    "text": "Frissítés erre"
+    "text": "Váltás erre:"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Frissítés a titkok.ondomain.hu címhez"
+    "text": "Frissítés a secrets.yourdomain.com használatához"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Minden csomag tartalmazza az adatvédelmi funkciókat és korlátlan megosztási kapacitást"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Minden csomag tartalmazza az adatlokáció választását: {0} régió"
+    "text": "Minden csomag tartalmazza az adathelyszín választását: {0} régió"
   },
   "web.billing.get_started": {
     "text": "Kezdés"
@@ -429,6 +429,195 @@
     "text": "Biztonságos hivatkozások, erősebb kapcsolatok"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Identity szint nem található a termékszintekben"
+    "text": "Identity szint nem található a termékszintek között"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Előfizetés lemondása"
+  },
+  "web.billing.cancel.title": {
+    "text": "Előfizetés lemondása"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Biztosan le szeretné mondani a(z) {plan} előfizetését?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Mi történik lemondás esetén:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Minden funkcióhoz hozzáférhet {date}-ig"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "A hozzáférése megmarad a jelenlegi számlázási időszak végéig"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Nem kell többet fizetnie"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "A fiókja visszaáll az ingyenes csomagra"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Előfizetés megtartása"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Előfizetés lemondása"
+  },
+  "web.billing.cancel.success": {
+    "text": "Az előfizetése lemondva. Hozzáférése megmarad a számlázási időszak végéig."
+  },
+  "web.billing.cancel.error": {
+    "text": "Az előfizetés lemondása sikertelen. Kérjük, próbálja újra."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Előfizetés lemondás ütemezve"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Az előfizetése aktív marad {date}-ig. Addig teljes hozzáférése van minden funkcióhoz."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Meggondolta magát? Bármikor újraaktiválhatja előfizetését a lemondási dátum előtt."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Titkok létrehozása és megosztása"
+  },
+  "web.billing.features.api_access": {
+    "text": "API hozzáférés"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Egyéni domének"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 egyéni domén"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Korlátlan egyéni domén"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Egyéni márkajelzés"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Márkázott főoldal"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Csapatkezelés"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Tagkezelés"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Audit naplók"
+  },
+  "web.billing.features.sso": {
+    "text": "Egyszeri bejelentkezés (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Kiemelt támogatás"
+  },
+  "web.billing.features.sla": {
+    "text": "Szolgáltatási szint megállapodás"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Központosított számlázás"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Audit nyomvonal"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Tevékenységfolyam"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Átadási munkafolyamatok"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30 napos titok megőrzés"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Főoldali titkok"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Bejövő titkok"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Maximum 5 csapattag"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Maximum 10 csapattag"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Maximum 25 csapattag"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Maximum 50 csapattag"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Korlátlan csapattag"
+  },
+  "web.billing.features.notifications": {
+    "text": "E-mail értesítések"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP hozzáférési szabályok"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Munkaterület márkajelzés"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dedikált infrastruktúra"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Megosztott munkafolyamatok"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Számlázás ehhez a szervezethez"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "A csomagja sikeresen frissítve"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Az új csomagja most aktív. Köszönjük a vásárlást."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Számlázási kapcsolattartó"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Főoldali titkok"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-mail értesítések"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP hozzáférési szabályok"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Munkaterület márkajelzés"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Ma esedékes:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Következő számlázás ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Hogyan kerül alkalmazásra a jóváírás:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Következő számla összege:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Jóváírás alkalmazva:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Esedékes összeg a következő számlázáskor:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Fennmaradó fiók jóváírás:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Jövőbeli számlákra alkalmazva"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Csapathasználat"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} / {limit} csapat"
   }
 }

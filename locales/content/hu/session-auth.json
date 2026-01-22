@@ -1,21 +1,21 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Szüksége van fiókra?"
+    "text": "Nincs még fiókja?"
   },
   "web.login.need_an_account": {
     "text": "Regisztráljon."
   },
   "web.login.forgot_your_password": {
-    "text": "Elfelejtette jelszavát?"
+    "text": "Elfelejtette a jelszavát?"
   },
   "web.login.button_sign_in": {
     "text": "Bejelentkezés"
   },
   "web.login.enter_your_credentials": {
-    "text": "Adja meg bejelentkezési adatait"
+    "text": "Adja meg hitelesítő adatait"
   },
   "web.login.remember_me": {
-    "text": "Maradjak bejelentkezve"
+    "text": "Emlékezzen rám"
   },
   "web.signup.create_your_account": {
     "text": "Hozza létre fiókját"
@@ -27,7 +27,7 @@
     "text": "Jelentkezzen be."
   },
   "web.signup.error_title": {
-    "text": "Fióklétrehozási hiba"
+    "text": "Fiók létrehozási hiba"
   },
   "web.signup.password_error": {
     "text": "Jelszó"
@@ -36,28 +36,28 @@
     "text": "E-mail"
   },
   "web.auth.verify.title": {
-    "text": "Erősítse meg fiókját"
+    "text": "Fiók ellenőrzése"
   },
   "web.auth.verify.success": {
-    "text": "Fiókja sikeresen ellenőrizve lett"
+    "text": "A fiókja sikeresen ellenőrizve"
   },
   "web.auth.verify.invalid_key": {
     "text": "Érvénytelen vagy lejárt ellenőrző kulcs"
   },
   "web.auth.verify.expired_key": {
-    "text": "Ez az ellenőrző hivatkozás lejárt. Kérjük, kérjen újat."
+    "text": "Ez az ellenőrző hivatkozás lejárt. Kérjük, igényeljen újat."
   },
   "web.auth.verify.already_verified": {
-    "text": "Ez a fiók már ellenőrizve lett. Most bejelentkezhet."
+    "text": "Ez a fiók már ellenőrizve van. Most bejelentkezhet."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Nem sikerült ellenőrizni a fiókot. Kérjük, próbálja újra vagy lépjen kapcsolatba a támogatással."
+    "text": "Nem sikerült ellenőrizni a fiókot. Kérjük, próbálja újra, vagy lépjen kapcsolatba az ügyfélszolgálattal."
   },
   "web.auth.verify.check_email": {
-    "text": "Kérjük, ellenőrizze e-mailjét az ellenőrző hivatkozásért"
+    "text": "Kérjük, ellenőrizze e-mailjeit az ellenőrző hivatkozásért"
   },
   "web.auth.verify.error": {
-    "text": "Fiók ellenőrzése sikertelen. Kérjük, ellenőrizze ellenőrző hivatkozását vagy kérjen újat."
+    "text": "A fiók ellenőrzése sikertelen. Kérjük, ellenőrizze az ellenőrző hivatkozást, vagy igényeljen újat."
   },
   "web.auth.verify.error_title": {
     "text": "Ellenőrzés sikertelen"
@@ -66,19 +66,19 @@
     "text": "Mit tegyek?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Ellenőrizze e-mailjét a legfrissebb ellenőrző hivatkozásért"
+    "text": "Ellenőrizze e-mailjeit a legutóbbi ellenőrző hivatkozásért"
   },
   "web.auth.verify.check_spam": {
-    "text": "Ellenőrizze spam/levélszemét mappáját, ha nem találja az e-mailt"
+    "text": "Ellenőrizze a spam/levélszemét mappát, ha nem találja az e-mailt"
   },
   "web.auth.verify.contact_support": {
-    "text": "Lépjen kapcsolatba a támogatással, ha továbbra is problémái vannak"
+    "text": "Lépjen kapcsolatba az ügyfélszolgálattal, ha továbbra is problémái vannak"
   },
   "web.auth.verify.missing_key_title": {
     "text": "Ellenőrző hivatkozás szükséges"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Kérjük, használja az e-mail címére küldött ellenőrző hivatkozást fiókja ellenőrzéséhez."
+    "text": "Kérjük, használja az e-mail címére küldött ellenőrző hivatkozást a fiókja ellenőrzéséhez."
   },
   "web.auth.verify.create_new_account": {
     "text": "Új fiók létrehozása"
@@ -96,19 +96,19 @@
     "text": "Új jelszó megerősítése"
   },
   "web.auth.change_password.success": {
-    "text": "Jelszava sikeresen megváltozott"
+    "text": "A jelszava sikeresen megváltozott"
   },
   "web.auth.change_password.error": {
-    "text": "Jelszó módosítása sikertelen. Kérjük, ellenőrizze jelenlegi jelszavát és próbálja újra."
+    "text": "A jelszó módosítása sikertelen. Kérjük, ellenőrizze jelenlegi jelszavát, és próbálja újra."
   },
   "web.auth.close_account.title": {
     "text": "Fiók bezárása"
   },
   "web.auth.close_account.warning": {
-    "text": "Ez a művelet nem vonható vissza. Összes titka véglegesen törölve lesz."
+    "text": "Ez a művelet nem vonható vissza. Minden titka véglegesen törlődik."
   },
   "web.auth.close_account.confirm": {
-    "text": "Megértem, hogy ez a művelet végleges"
+    "text": "Megértettem, hogy ez a művelet végleges"
   },
   "web.auth.close_account.password": {
     "text": "Adja meg jelszavát a megerősítéshez"
@@ -120,10 +120,10 @@
     "text": "Mégse"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Jelszó visszaállítás kérése"
+    "text": "Jelszó visszaállításának kérése"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Adja meg e-mail címét alább, és elküldjük a jelszó visszaállításához szükséges hivatkozást"
+    "text": "Adja meg e-mail címét alább, és küldünk egy hivatkozást a jelszava visszaállításához"
   },
   "web.auth.password_reset_request.button": {
     "text": "Visszaállítási hivatkozás küldése"
@@ -132,16 +132,16 @@
     "text": "Válasszon új jelszót"
   },
   "web.auth.password_reset.description": {
-    "text": "Kérjük, adja meg új jelszavát alább. Győződjön meg róla, hogy erős és egyedi a fiókja védelme érdekében."
+    "text": "Kérjük, adja meg új jelszavát alább. Győződjön meg róla, hogy erős és egyedi, hogy védje fiókját."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "E-mailt küldtünk önnek egy hivatkozással fiókja jelszavának visszaállításához"
+    "text": "Egy e-mailt küldtünk Önnek a fiókja jelszavának visszaállításához szükséges hivatkozással"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Elfogadom a"
   },
   "web.auth.account.title": {
-    "text": "Fiókinformációk"
+    "text": "Fiókadatok"
   },
   "web.auth.account.email": {
     "text": "E-mail cím"
@@ -156,7 +156,7 @@
     "text": "Régió"
   },
   "web.auth.account.not_verified": {
-    "text": "E-mail nem ellenőrizve"
+    "text": "E-mail nincs ellenőrizve"
   },
   "web.auth.account.verify_email": {
     "text": "E-mail cím ellenőrzése"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "Fiók bezárása"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-mail ellenőrzési folyamat a regisztráció után"
+  },
+  "web.help.title": {
+    "text": "Súgó és támogatás"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Bejelentkezési hibaelhárítás"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Nem érkezik meg a mágikus hivatkozás?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Ellenőrizze a spam vagy levélszemét mappát"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Ellenőrizze, hogy helyesen adta-e meg az e-mail címét"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Várjon néhány percet - az e-mailek néha késhetnek"
+  },
+  "web.help.try_again": {
+    "text": "Igényeljen új hivatkozást, ha több mint 10 perc telt el"
+  },
+  "web.help.forgot_password": {
+    "text": "Elfelejtette a jelszavát?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Használja a Mágikus hivatkozás opciót a jelszó nélküli bejelentkezéshez. Bejelentkezés után módosíthatja jelszavát a Fiókbeállításokban."
+  },
+  "web.help.account_locked": {
+    "text": "Fiókja ideiglenesen zárolva van?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Több sikertelen bejelentkezési kísérlet után a fiókokat biztonsági okokból ideiglenesen zárolják. Várjon 15 percet és próbálja újra, vagy használja a Mágikus hivatkozást a bejelentkezéshez."
+  },
+  "web.help.still_need_help": {
+    "text": "Még mindig segítségre van szüksége?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Ha továbbra is problémái vannak, segítünk. Küldjön üzenetet, és a lehető leghamarabb válaszolunk."
+  },
+  "web.help.contact_support": {
+    "text": "Kapcsolatfelvétel az ügyfélszolgálattal"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Bejelentkezési hivatkozás küldése"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Egy biztonságos hivatkozást küldünk az e-mail postafiókjába."
+  },
+  "web.login.or_divider": {
+    "text": "vagy"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Bejelentkezés jelszóval"
+  },
+  "web.login.use_passwordless": {
+    "text": "Jelszó nélküli bejelentkezés használata"
+  },
+  "web.login.create_account": {
+    "text": "Fiók létrehozása"
+  },
+  "web.login.return_home": {
+    "text": "Vissza a főoldalra"
+  },
+  "web.login.tab_password": {
+    "text": "Jelszó"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Mágikus hivatkozás"
+  },
+  "web.login.need_help": {
+    "text": "Segítségre van szüksége?"
   }
 }
