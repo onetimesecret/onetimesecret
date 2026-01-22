@@ -1,9 +1,9 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Uw feedback"
+    "text": "Je feedback"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Alle feedback welkom!"
+    "text": "Alle feedback is welkom!"
   },
   "web.feedback.help_us_improve": {
     "text": "Help ons verbeteren"
@@ -12,7 +12,7 @@
     "text": "Feedbackvenster sluiten"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Deel uw feedback"
+    "text": "Deel je feedback"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Hulpinhoud komt hier."
+    "text": "Helpinhoud komt hier."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Bedankt voor uw hulp bij het verbeteren van Onetime Secret. Het betekent veel voor ons."
@@ -36,12 +36,18 @@
     "text": "Een bericht van Delano, oprichter van Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Open feedbackformulier"
+    "text": "Feedbackformulier openen"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Voer uw feedback in"
+    "text": "Voer je feedback in"
   },
   "web.feedback.send_feedback": {
-    "text": "Feedback versturen"
+    "text": "Feedback verzenden"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Ik lees elk stukje feedback dat hier binnenkomt. Zo bepaal ik waar ik mijn tijd aan besteed."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Als er iets niet klopt, of je hebt ideeën over hoe het zou moeten werken, dan is dit de juiste plek."
   }
 }

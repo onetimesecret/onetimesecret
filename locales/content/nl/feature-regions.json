@@ -3,16 +3,16 @@
     "text": "Datasoevereiniteit en regionale isolatie"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Je gegevens blijven uitsluitend in de door jou gekozen regio en worden nooit tussen regio's overgedragen"
+    "text": "Je gegevens bevinden zich uitsluitend in je gekozen regio en worden nooit tussen regio's overgedragen"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Elke regio werkt als een volledig onafhankelijke omgeving met eigen infrastructuur, versleutelingssleutels en data-opslag"
+    "text": "Elke regio functioneert als een volledig onafhankelijke omgeving met eigen infrastructuur, versleutelingssleutels en gegevensopslag"
   },
   "web.regions.no_data_transfer_policy": {
     "text": "We hanteren een strikt beleid: klantgegevens worden onder geen enkele omstandigheid tussen regio's overgedragen"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Belangrijk: overschakelen naar een andere regio maakt een nieuw account aan. Je gegevens blijven in je oorspronkelijke regio"
+    "text": "Belangrijk: Overschakelen naar een andere regio maakt een nieuw account aan. Je gegevens blijven in je oorspronkelijke regio."
   },
   "web.regions.your_region": {
     "text": "Je regio"
@@ -33,31 +33,31 @@
     "text": "Transparantie en controle"
   },
   "web.regions.trust_description": {
-    "text": "Precies weten waar je gegevens zich bevinden en welke wetten de bescherming ervan regelen"
+    "text": "Weet precies waar je gegevens zich bevinden en welke wetten de bescherming ervan regelen."
   },
   "web.regions.privacy_title": {
     "text": "Privacyrechten"
   },
   "web.regions.privacy_description": {
-    "text": "Ervoor zorgen dat je persoonlijke informatie wordt behandeld volgens de privacywetten van jouw land, om ongeautoriseerde toegang of misbruik te voorkomen"
+    "text": "Zorg ervoor dat je persoonlijke informatie wordt behandeld volgens de privacywetten en -regelgeving van je land, waardoor ongeautoriseerde toegang of misbruik wordt voorkomen."
   },
   "web.regions.compliance_title": {
-    "text": "Naleving van regelgeving"
+    "text": "Regelgevingsnaleving"
   },
   "web.regions.compliance_description": {
-    "text": "Voldoen aan regionale gegevensbeschermingsvereisten zoals AVG, HIPAA, CCPA en anderen"
+    "text": "Voldoe aan AVG, HIPAA, CCPA en andere regionale gegevensbeschermingseisen"
   },
   "web.regions.performance_title": {
     "text": "Snellere toegang"
   },
   "web.regions.performance_description": {
-    "text": "Gegevens die dichter bij jou worden opgeslagen betekenen lagere latentie en betere prestaties"
+    "text": "Gegevens die dichter bij je zijn opgeslagen betekenen lagere latentie en betere prestaties."
   },
   "web.regions.regions": {
     "text": "Regio's"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "neem contact op met ons compliance team"
+    "text": "neem contact op met ons complianceteam"
   },
   "web.regions.review_our_documentation": {
     "text": "bekijk onze documentatie"
@@ -84,7 +84,7 @@
     "text": "Beschikbare regio's"
   },
   "web.regions.jurisdiction": {
-    "text": "Jurisdictie"
+    "text": "Rechtsgebied"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
     "text": "Datacentrum locatie: {0}"
@@ -93,15 +93,15 @@
     "text": "Dataregio"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Onbekende jurisdictie"
+    "text": "Onbekend rechtsgebied"
   },
   "web.regions.serving_you_from_the": {
-    "text": "We bedienen u vanuit de"
+    "text": "Je wordt bediend vanuit"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "Doorgaan naar {0}"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Huidige jurisdictie:"
+    "text": "Huidig rechtsgebied:"
   }
 }

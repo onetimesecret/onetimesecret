@@ -3,28 +3,28 @@
     "text": "Meer informatie over DNS-configuratie"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Bekijk domeinverificatiestatus"
+    "text": "Domeinverificatiestatus bekijken"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Dit domein is al geregistreerd in je organisatie"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Dit domein is al geregistreerd bij een andere organisatie. Neem contact op met ondersteuning als je denkt dat dit een fout is."
+    "text": "Dit domein is al geregistreerd bij een andere organisatie. Neem contact op met de ondersteuning als je denkt dat dit een fout is."
   },
   "web.domains.domain_claimed_successfully": {
     "text": "Domein succesvol geclaimd en toegevoegd aan je organisatie"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Privacy-standaarden"
+    "text": "Privacystandaarden"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Stel standaard privacy-opties in voor berichten die onder dit domein worden aangemaakt. Deze instellingen worden vooraf ingevuld bij het aanmaken van nieuwe berichten."
+    "text": "Stel standaard privacyopties in voor berichten die onder dit domein worden aangemaakt. Deze instellingen worden vooraf ingevuld bij het aanmaken van nieuwe berichten."
   },
   "web.domains.privacy_defaults": {
-    "text": "Privacy-standaarden"
+    "text": "Privacystandaarden"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Privacy-standaarden pictogram"
+    "text": "Privacystandaarden pictogram"
   },
   "web.domains.default_ttl_label": {
     "text": "Standaard levensduur"
@@ -33,7 +33,7 @@
     "text": "Hoe lang berichten standaard toegankelijk moeten blijven"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Wachtwoordzin vereist"
+    "text": "Wachtwoordzin vereisen"
   },
   "web.domains.passphrase_required_hint": {
     "text": "Maak wachtwoordzin verplicht voor alle berichten in dit domein"
@@ -45,10 +45,10 @@
     "text": "Schakel standaard e-mailmeldingen in wanneer berichten worden bekeken"
   },
   "web.domains.use_global_default": {
-    "text": "Algemene standaard gebruiken"
+    "text": "Globale standaard gebruiken"
   },
   "web.domains.global_default": {
-    "text": "Algemeen"
+    "text": "Globaal"
   },
   "web.domains.required": {
     "text": "Vereist"
@@ -69,7 +69,7 @@
     "text": "Standaarden bewerken"
   },
   "web.domains.ttl_short": {
-    "text": "Levensduur"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
     "text": "Wachtwoordzin"
@@ -81,7 +81,7 @@
     "text": "Domeinbereik wisselen"
   },
   "web.domains.switcher_locked": {
-    "text": "Domain switching not available on this page"
+    "text": "Domeinwisseling niet beschikbaar op deze pagina"
   },
   "web.domains.scope_list_label": {
     "text": "Beschikbare domeinen"
@@ -93,10 +93,10 @@
     "text": "Domein toevoegen"
   },
   "web.domains.domain_settings": {
-    "text": "Domain settings"
+    "text": "Domeininstellingen"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Default domain has no settings page"
+    "text": "Standaarddomein heeft geen instellingenpagina"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "Voer een {0} domeinnaam in"
@@ -108,10 +108,10 @@
     "text": "Bepaal of gebruikers geheime links kunnen maken vanaf de homepage van uw domein"
   },
   "web.domains.homepage_access": {
-    "text": "Homepage toegang"
+    "text": "Homepage-toegang"
   },
   "web.domains.and_status": {
-    "text": "& Status"
+    "text": "en status"
   },
   "web.domains.domain": {
     "text": "Domein"
@@ -126,13 +126,13 @@
     "text": "Laatst gecontroleerd"
   },
   "web.domains.ssl_status": {
-    "text": "SSL status"
+    "text": "SSL-status"
   },
   "web.domains.ssl_renews": {
     "text": "SSL vernieuwt"
   },
   "web.domains.dns_record": {
-    "text": "DNS record"
+    "text": "DNS-record"
   },
   "web.domains.target_address": {
     "text": "Doeladres"
@@ -147,7 +147,7 @@
     "text": "Aangepast domein"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Open domein in nieuw tabblad"
+    "text": "Domein openen in nieuw tabblad"
   },
   "web.domains.back_to_domains": {
     "text": "Terug naar domeinen"
@@ -165,7 +165,7 @@
     "text": "Toegevoegd {0}"
   },
   "web.domains.add_your_domain": {
-    "text": "Voeg uw domein toe"
+    "text": "Voeg je domein toe"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
     "text": "Begin door een aangepast domein toe te voegen."
@@ -174,7 +174,7 @@
     "text": "Geen domeinen gevonden."
   },
   "web.domains.loading_domain_information": {
-    "text": "Domein informatie laden..."
+    "text": "Domeininformatie laden..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Om uw domein te verbinden, moet u een CNAME-record in uw DNS hebben dat verwijst"
@@ -189,22 +189,22 @@
     "text": "en verwijder alle andere A-, AAAA- of CNAME-records voor dat exacte adres."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", moet u deze stappen voltooien."
+    "text": ", moet je deze stappen voltooien."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Voordat we links kunnen activeren voor"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Let op dat voor apex-domeinen (bijv.,"
+    "text": "Let op dat voor apex-domeinen (bijv."
   },
   "web.domains.verify_your_domain": {
-    "text": "Verifieer uw domein"
+    "text": "Verifieer je domein"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "berichten.voorbeeld.com"
+    "text": "secrets.voorbeeld.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Pas uw domeinbranding aan"
+    "text": "Pas je domeinbranding aan"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Het kan enkele minuten duren voordat uw SSL-certificaat van kracht wordt."
@@ -213,7 +213,7 @@
     "text": "DNS-wijzigingen kunnen zo weinig als 60 seconden - of tot 24 uur - duren om van kracht te worden."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Wacht op verspreiding"
+    "text": "3. Wacht op doorgifte"
   },
   "web.domains.value_2": {
     "text": "Waarde"
@@ -231,7 +231,7 @@
     "text": "Type"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Maak het CNAME-record"
+    "text": "2. Maak het CNAME-record aan"
   },
   "web.domains.value_0": {
     "text": "Waarde"
@@ -243,13 +243,13 @@
     "text": "Type"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Maak het A-record"
+    "text": "2. Maak het A-record aan"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
     "text": "Voeg deze hostnaam toe aan uw DNS-configuratie:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Maak een TXT-record"
+    "text": "1. Maak een TXT-record aan"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Volg deze stappen om domeineigendom te verifiëren en uw online aanwezigheid te verbeteren:"
@@ -274,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "Domein succesvol toegevoegd"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Beveiligd"
+  },
+  "web.domains.manage_domains": {
+    "text": "Domeinen beheren"
+  },
+  "web.domains.global_defaults": {
+    "text": "Globale standaarden"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Levensduurinstelling bewerken"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Wachtwoordzinvereiste bewerken"
+  },
+  "web.domains.edit_notify": {
+    "text": "Meldingsinstelling bewerken"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "DNS-records configureren"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Gebruik de onderstaande tool om automatisch je DNS-provider te detecteren en stapsgewijze instructies te krijgen voor het configureren van je domein."
   }
 }

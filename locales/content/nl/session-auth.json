@@ -1,9 +1,9 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Account nodig?"
+    "text": "Heb je een account nodig?"
   },
   "web.login.need_an_account": {
-    "text": "Registreer je."
+    "text": "Aanmelden."
   },
   "web.login.forgot_your_password": {
     "text": "Wachtwoord vergeten?"
@@ -24,10 +24,10 @@
     "text": "Heb je al een account?"
   },
   "web.signup.have_an_account": {
-    "text": "Log in."
+    "text": "Inloggen."
   },
   "web.signup.error_title": {
-    "text": "Fout bij aanmaken account"
+    "text": "Fout bij account aanmaken"
   },
   "web.signup.password_error": {
     "text": "Wachtwoord"
@@ -69,7 +69,7 @@
     "text": "Controleer je e-mail voor de meest recente verificatielink"
   },
   "web.auth.verify.check_spam": {
-    "text": "Controleer je spam- of ongewenste-mailmap als je de e-mail niet kunt vinden"
+    "text": "Controleer je spam/ongewenste e-mail map als je de e-mail niet kunt vinden"
   },
   "web.auth.verify.contact_support": {
     "text": "Neem contact op met de ondersteuning als je problemen blijft ondervinden"
@@ -78,7 +78,7 @@
     "text": "Verificatielink vereist"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Gebruik de verificatielink die naar je e-mailadres is gestuurd om je account te verifiëren."
+    "text": "Gebruik de verificatielink die naar je e-mailadres is verzonden om je account te verifiëren."
   },
   "web.auth.verify.create_new_account": {
     "text": "Nieuw account aanmaken"
@@ -93,7 +93,7 @@
     "text": "Nieuw wachtwoord"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Bevestig nieuw wachtwoord"
+    "text": "Nieuw wachtwoord bevestigen"
   },
   "web.auth.change_password.success": {
     "text": "Je wachtwoord is succesvol gewijzigd"
@@ -105,13 +105,13 @@
     "text": "Account sluiten"
   },
   "web.auth.close_account.warning": {
-    "text": "Deze actie kan niet ongedaan worden gemaakt. Alle berichten worden permanent verwijderd."
+    "text": "Deze actie kan niet ongedaan worden gemaakt. Al je berichten worden permanent verwijderd."
   },
   "web.auth.close_account.confirm": {
     "text": "Ik begrijp dat deze actie permanent is"
   },
   "web.auth.close_account.password": {
-    "text": "Voer je wachtwoord in ter bevestiging"
+    "text": "Voer je wachtwoord in om te bevestigen"
   },
   "web.auth.close_account.button": {
     "text": "Account permanent sluiten"
@@ -120,10 +120,10 @@
     "text": "Annuleren"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Wachtwoord opnieuw instellen aanvragen"
+    "text": "Wachtwoordreset aanvragen"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Voer hieronder je e-mailadres in en we sturen je een link om je wachtwoord opnieuw in te stellen"
+    "text": "Voer hieronder je e-mailadres in en we sturen je een link om je wachtwoord te resetten"
   },
   "web.auth.password_reset_request.button": {
     "text": "Resetlink verzenden"
@@ -135,7 +135,7 @@
     "text": "Voer hieronder je nieuwe wachtwoord in. Zorg ervoor dat het sterk en uniek is om je account te beschermen."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Er is een e-mail naar je gestuurd met een link om het wachtwoord voor je account opnieuw in te stellen"
+    "text": "Er is een e-mail naar je verzonden met een link om het wachtwoord van je account te resetten"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Ik ga akkoord met de"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "Account sluiten"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-mailverificatieproces na aanmelden"
+  },
+  "web.help.title": {
+    "text": "Help en ondersteuning"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Probleemoplossing bij inloggen"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Magische link komt niet aan?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Controleer je spam- of ongewenste e-mailmap"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Controleer of je je e-mailadres correct hebt ingevoerd"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Wacht een paar minuten - e-mails kunnen soms vertraagd zijn"
+  },
+  "web.help.try_again": {
+    "text": "Probeer een nieuwe link aan te vragen als het meer dan 10 minuten geleden is"
+  },
+  "web.help.forgot_password": {
+    "text": "Wachtwoord vergeten?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Gebruik de optie Magische link om in te loggen zonder wachtwoord. Eenmaal ingelogd kun je je wachtwoord wijzigen in Accountinstellingen."
+  },
+  "web.help.account_locked": {
+    "text": "Account tijdelijk vergrendeld?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Na meerdere mislukte inlogpogingen worden accounts tijdelijk vergrendeld voor de veiligheid. Wacht 15 minuten en probeer het opnieuw, of gebruik Magische link om in te loggen."
+  },
+  "web.help.still_need_help": {
+    "text": "Nog steeds hulp nodig?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Als je nog steeds problemen ondervindt, staan we klaar om te helpen. Stuur ons een bericht en we nemen zo snel mogelijk contact met je op."
+  },
+  "web.help.contact_support": {
+    "text": "Contact ondersteuning"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Inloglink verzenden"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Een beveiligde link wordt naar je e-mailinbox verzonden."
+  },
+  "web.login.or_divider": {
+    "text": "of"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Inloggen met wachtwoord"
+  },
+  "web.login.use_passwordless": {
+    "text": "Wachtwoordloos inloggen"
+  },
+  "web.login.create_account": {
+    "text": "Account aanmaken"
+  },
+  "web.login.return_home": {
+    "text": "Terug naar home"
+  },
+  "web.login.tab_password": {
+    "text": "Wachtwoord"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magische link"
+  },
+  "web.login.need_help": {
+    "text": "Hulp nodig?"
   }
 }

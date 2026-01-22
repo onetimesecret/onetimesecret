@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Waarom is dit geheim niet beschikbaar?"
+    "text": "Waarom is dit bericht niet beschikbaar?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Geheimen zijn ontworpen om slechts één keer bekeken te worden. Deze link is mogelijk al geopend, verlopen of handmatig verwijderd door de afzender."
@@ -12,10 +12,10 @@
     "text": "Neem contact op met de persoon die je deze link heeft gestuurd en vraag om een nieuw geheim aan te maken. Laat hen weten dat je geen toegang had tot de oorspronkelijke informatie."
   },
   "web.errors.warning_dismissed": {
-    "text": "Waarschuwing genegeerd"
+    "text": "Waarschuwing gesloten"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Afkortingswaarschuwing negeren"
+    "text": "Afkappingswaarschuwing sluiten"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Oeps! De pagina die u zoekt bestaat niet of is verplaatst."
@@ -27,10 +27,10 @@
     "text": "404 - Pagina niet gevonden"
   },
   "web.errors.dismiss_warning": {
-    "text": "Waarschuwing negeren"
+    "text": "Waarschuwing sluiten"
   },
   "web.errors.dismiss_notification": {
-    "text": "Melding negeren"
+    "text": "Melding sluiten"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Als u niet zeker weet wat u nu moet doen, neem dan contact op met de persoon die u deze link heeft gestuurd voor meer informatie."

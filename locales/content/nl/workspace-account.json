@@ -30,7 +30,7 @@
     "text": "Regio"
   },
   "web.account.account_balance": {
-    "text": "Accountsaldo:"
+    "text": "Saldo:"
   },
   "web.account.default_payment_method": {
     "text": "Standaard betaalmethode"
@@ -87,10 +87,10 @@
     "text": "Accounttype: {0}"
   },
   "web.account.your_account": {
-    "text": "Uw account"
+    "text": "Je account"
   },
   "web.account.support_details": {
-    "text": "Supportdetails"
+    "text": "Ondersteuningsgegevens"
   },
   "web.account.back_to_details": {
     "text": "Terug naar details"
@@ -105,7 +105,7 @@
     "text": "🔐 Houd dit token veilig! Het geeft volledige toegang tot uw account."
   },
   "web.account.confirm_with_your_password": {
-    "text": "Bevestig met uw wachtwoord"
+    "text": "Bevestig met je wachtwoord"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Weet u zeker dat u uw account permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
@@ -114,7 +114,7 @@
     "text": "Bevestig accountverwijdering"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Verwijderen {0}"
+    "text": "{0} verwijderen"
   },
   "web.account.permanently_delete_account": {
     "text": "Account permanent verwijderen"
@@ -123,13 +123,13 @@
     "text": "permanent en onomkeerbaar."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Uw account verwijderen is"
+    "text": "Je account verwijderen is"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "verwijder ze voordat u doorgaat"
+    "text": "verbrand ze voordat je doorgaat"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Elk bericht dat u wilt verwijderen,"
+    "text": "Berichten die je wilt verwijderen,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "Berichten blijven actief totdat ze verlopen."
@@ -165,7 +165,7 @@
     "text": "Voorkeuren"
   },
   "web.settings.appearance": {
-    "text": "Uiterlijk"
+    "text": "Weergave"
   },
   "web.settings.theme.title": {
     "text": "Thema"
@@ -210,16 +210,16 @@
     "text": "Voer je huidige wachtwoord in"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Je wachtwoord is vereist voor beveiligingsdoeleinden"
+    "text": "Je wachtwoord is vereist om veiligheidsredenen"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Er wordt een verificatie-e-mail naar het nieuwe adres verzonden"
+    "text": "Er wordt een verificatie-e-mail verzonden naar het nieuwe adres"
   },
   "web.settings.profile.update_email": {
     "text": "E-mail bijwerken"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Werk het e-mailadres bij dat aan je account is gekoppeld"
+    "text": "Werk het e-mailadres bij dat is gekoppeld aan je account"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Alle velden zijn verplicht"
@@ -228,7 +228,7 @@
     "text": "Voer een geldig e-mailadres in"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Nieuw e-mailadres moet verschillen van huidig e-mailadres"
+    "text": "Nieuw e-mailadres moet anders zijn dan huidig e-mailadres"
   },
   "web.settings.profile.email_change_success": {
     "text": "E-mail succesvol bijgewerkt. Controleer je inbox om je nieuwe e-mailadres te verifiëren."
@@ -249,25 +249,25 @@
     "text": "Wachtwoord"
   },
   "web.settings.password.description": {
-    "text": "Werk je accountwachtwoord bij"
+    "text": "Je accountwachtwoord bijwerken"
   },
   "web.settings.password.update_account_password": {
-    "text": "Werk je accountwachtwoord bij"
+    "text": "Je accountwachtwoord bijwerken"
   },
   "web.settings.delete_account.title": {
     "text": "Account verwijderen"
   },
   "web.settings.delete_account.description": {
-    "text": "Verwijder je account en alle gegevens permanent"
+    "text": "Je account en alle gegevens permanent verwijderen"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Verwijder je account en alle gegevens permanent"
+    "text": "Je account en alle gegevens permanent verwijderen"
   },
   "web.settings.security.security_score": {
     "text": "Beveiligingsscore"
   },
   "web.settings.security.score_description": {
-    "text": "Je algehele accountbeveiligingsgezondheid"
+    "text": "Je algehele accountbeveiligingsstatus"
   },
   "web.settings.security.excellent": {
     "text": "Uitstekend"
@@ -312,7 +312,7 @@
     "text": "{0} actieve sessie | {0} actieve sessies"
   },
   "web.settings.security.best_practices": {
-    "text": "Best practices voor beveiliging"
+    "text": "Beste beveiligingspraktijken"
   },
   "web.settings.security.use_strong_unique_password": {
     "text": "Gebruik een sterk, uniek wachtwoord voor je account"
@@ -324,31 +324,31 @@
     "text": "Bewaar je herstelcodes op een veilige locatie"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Bekijk en herroep ongebruikte sessies regelmatig"
+    "text": "Bekijk en trek ongebruikte sessies regelmatig in"
   },
   "web.settings.security.view_details": {
     "text": "Details bekijken"
   },
   "web.settings.api.title": {
-    "text": "API & Integraties"
+    "text": "API en integraties"
   },
   "web.settings.api.description": {
-    "text": "Beheer API-sleutels en integraties"
+    "text": "API-sleutels en integraties beheren"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Beheer API-sleutels en integraties"
+    "text": "API-sleutels en integraties beheren"
   },
   "web.settings.api.documentation": {
     "text": "API-documentatie"
   },
   "web.settings.api.documentation_description": {
-    "text": "Leer hoe je Onetime Secret in je applicaties kunt integreren"
+    "text": "Leer hoe je Onetime Secret integreert in je applicaties"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API-referentie"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Volledige API-documentatie en endpoints"
+    "text": "Volledige API-documentatie en eindpunten"
   },
   "web.settings.api.code_examples": {
     "text": "Codevoorbeelden"
@@ -357,10 +357,10 @@
     "text": "Voorbeeldcode en clientbibliotheken"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Best practices voor beveiliging"
+    "text": "Beste beveiligingspraktijken"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Commit API-sleutels nooit naar versiebeheer"
+    "text": "Commit nooit API-sleutels naar versiebeheer"
   },
   "web.settings.api.use_environment_variables": {
     "text": "Gebruik omgevingsvariabelen om API-sleutels op te slaan"
@@ -369,7 +369,7 @@
     "text": "Roteer API-sleutels regelmatig voor beveiliging"
   },
   "web.settings.api.use_https_only": {
-    "text": "Gebruik altijd HTTPS bij het maken van API-verzoeken"
+    "text": "Gebruik altijd HTTPS bij API-verzoeken"
   },
   "web.settings.api.monitor_api_usage": {
     "text": "Monitor je API-gebruik en stel waarschuwingen in"
@@ -381,7 +381,7 @@
     "text": "Het opnieuw genereren van je API-sleutel maakt de huidige sleutel ongeldig. Werk alle applicaties bij die de oude sleutel gebruiken."
   },
   "web.settings.privacy.title": {
-    "text": "Privacyinstellingen"
+    "text": "Privacy-instellingen"
   },
   "web.settings.privacy.manage_privacy_settings": {
     "text": "Beheer je privacyvoorkeuren"
@@ -396,10 +396,10 @@
     "text": "Geen instelling"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Geen analytics. Geen tracking. Punt uit."
+    "text": "Geen analytics. Geen tracking. Punt."
   },
   "web.settings.privacy.explanation": {
-    "text": "Dit is geen instelling omdat er niets aan of uit te zetten is. Je privacy is ingebouwd in hoe we werken."
+    "text": "Dit is geen instelling omdat er niets aan of uit te zetten is. Je privacy is ingebouwd in hoe wij werken."
   },
   "web.settings.notifications.title": {
     "text": "Meldingsinstellingen"
@@ -411,28 +411,28 @@
     "text": "Meldingsvoorkeur bijwerken mislukt. Probeer het opnieuw."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Meldingen bij bekijken van berichten"
+    "text": "Berichtonthullingsmeldingen"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Ontvang een e-mail wanneer iemand je bericht bekijkt"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Je ontvangt een melding elke keer dat een ontvanger een van je berichten bekijkt"
+    "text": "Je krijgt een melding telkens wanneer een ontvanger een van je berichten onthult"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Meldingse-mails bevatten alleen het tijdstempel en de bericht-ID. Informatie over de kijker wordt nooit opgenomen."
+    "text": "Meldingse-mails bevatten alleen het tijdstempel en bericht-ID. Kijkerinformatie wordt nooit opgenomen."
   },
   "web.settings.caution.title": {
-    "text": "Zone voor zorgvuldige overweging"
+    "text": "Zone voor zorgvuldige afweging"
   },
   "web.settings.caution.description": {
     "text": "Geavanceerde instellingen en gegevensbeheer"
   },
   "web.settings.caution.data_export": {
-    "text": "Gegevensexport"
+    "text": "Gegevens exporteren"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exporteer je accountgegevens"
+    "text": "Je accountgegevens exporteren"
   },
   "web.settings.caution.export_description": {
     "text": "Vraag een volledige kopie van je accountgegevens aan in machineleesbaar formaat"
@@ -441,24 +441,39 @@
     "text": "Gegevensexport aanvragen"
   },
   "web.settings.caution.export_info": {
-    "text": "Verwerkingstijd export"
+    "text": "Exportverwerkingstijd"
   },
   "web.settings.caution.export_info_description": {
     "text": "Exports worden binnen 24 uur verwerkt en naar je e-mailadres verzonden"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Het verwijderen van je account zal:"
+    "text": "Je account verwijderen zal:"
   },
   "web.settings.caution.deletion_warning_secrets": {
     "text": "Al je berichten permanent verwijderen"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Alle metadata en geschiedenis van berichten verwijderen"
+    "text": "Alle berichtmetadata en geschiedenis verwijderen"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "Alle API-sleutels ongeldig maken"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Deze actie kan niet ongedaan worden gemaakt"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Verwijderen..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Terug naar dashboard"
+  },
+  "web.settings.sections.account": {
+    "text": "Account"
+  },
+  "web.settings.sections.billing": {
+    "text": "Facturering"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Geavanceerd"
   }
 }

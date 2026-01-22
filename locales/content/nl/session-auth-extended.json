@@ -45,7 +45,7 @@
     "text": "We sturen je een beveiligde inloglink"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Voer je e-mailadres in"
+    "text": "Voer je e-mail in"
   },
   "web.auth.magicLink.sendLink": {
     "text": "Inloglink verzenden"
@@ -81,7 +81,7 @@
     "text": "Je wordt ingelogd..."
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Een moment geduld terwijl we je link verifiëren"
+    "text": "Even geduld terwijl we je link verifiëren"
   },
   "web.auth.magicLink.error": {
     "text": "Authenticatiefout"
@@ -105,7 +105,7 @@
     "text": "Biometrisch inloggen is ingeschakeld"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Instellen van biometrisch inloggen mislukt"
+    "text": "Biometrisch inloggen instellen mislukt"
   },
   "web.auth.webauthn.authFailed": {
     "text": "Biometrische authenticatie mislukt. Probeer het opnieuw."
@@ -123,7 +123,7 @@
     "text": "Ondersteunt Face ID, Touch ID, Windows Hello en beveiligingssleutels"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Waarschuwing: {count} inlogpoging(en) resterend"
+    "text": "Waarschuwing: nog {count} inlogpoging(en) over"
   },
   "web.auth.lockout.account_locked": {
     "text": "Account vergrendeld vanwege te veel mislukte inlogpogingen"
@@ -132,7 +132,7 @@
     "text": "Je account is vergrendeld tot {time}"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Neem contact op met ondersteuning als je direct toegang nodig hebt"
+    "text": "Neem contact op met de ondersteuning als je directe toegang nodig hebt"
   },
   "web.auth.lockout.try_password_reset": {
     "text": "Je kunt in plaats daarvan je wachtwoord resetten"
@@ -165,13 +165,13 @@
     "text": "Verwijderen"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Uitloggen van alle andere sessies"
+    "text": "Alle andere sessies uitloggen"
   },
   "web.auth.sessions.confirm_remove": {
     "text": "Weet je zeker dat je deze sessie wilt verwijderen?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Hiermee log je uit van alle andere apparaten. Weet je het zeker?"
+    "text": "Dit logt je uit op alle andere apparaten. Weet je het zeker?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Geen andere actieve sessies"
@@ -210,7 +210,7 @@
     "text": "1. Scan QR-code"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Verificatie instellen"
+    "text": "2. Verifieer installatie"
   },
   "web.auth.mfa.scan_qr": {
     "text": "Scan deze QR-code met je authenticator-app"
@@ -219,7 +219,7 @@
     "text": "Of voer deze code handmatig in"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Voer de 6-cijferige code uit je app in"
+    "text": "Voer de 6-cijferige code van je app in"
   },
   "web.auth.mfa.enter_code": {
     "text": "Voer authenticatiecode in"
@@ -228,10 +228,10 @@
     "text": "Verifiëren en inschakelen"
   },
   "web.auth.mfa.code_required": {
-    "text": "Authenticatiecode is verplicht"
+    "text": "Authenticatiecode is vereist"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Ongeldige code. Codes verlopen elke 30 seconden. Probeer de laatste code uit je authenticator-app."
+    "text": "Ongeldige code. Codes verlopen elke 30 seconden. Probeer de nieuwste code van je authenticator-app."
   },
   "web.auth.mfa.success_enabled": {
     "text": "Tweefactorauthenticatie is ingeschakeld"
@@ -267,13 +267,13 @@
     "text": "MFA-status laden..."
   },
   "web.auth.mfa.protected_description": {
-    "text": "Je account is beveiligd met tweefactorauthenticatie"
+    "text": "Je account is beschermd met tweefactorauthenticatie"
   },
   "web.auth.mfa.enable_description": {
     "text": "Bescherm je account met een extra beveiligingslaag"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Voorkom ongeautoriseerde toegang zelfs als je wachtwoord gecompromitteerd is"
+    "text": "Voorkom ongeautoriseerde toegang zelfs als je wachtwoord is gecompromitteerd"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "Werkt met Google Authenticator, Authy en andere TOTP-apps"
@@ -300,13 +300,13 @@
     "text": "Doorgaan naar verificatie"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Voer de 6-cijferige code uit je authenticator-app in"
+    "text": "Voer de 6-cijferige code van je authenticator-app in"
   },
   "web.auth.mfa.enable_and_continue": {
     "text": "MFA inschakelen"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Setup voltooien"
+    "text": "Installatie voltooien"
   },
   "web.auth.mfa.enter_recovery_code": {
     "text": "Voer een van je herstelcodes in"
@@ -339,13 +339,13 @@
     "text": "Herstelcodes"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Bewaar deze codes op een veilige plaats. Elke code kan één keer worden gebruikt als je de toegang tot je authenticator verliest."
+    "text": "Bewaar deze codes op een veilige plek. Elke code kan één keer worden gebruikt als je geen toegang meer hebt tot je authenticator."
   },
   "web.auth.recovery_codes.warning": {
     "text": "Deze codes worden slechts één keer getoond"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Je moet je herstelcodes downloaden of kopiëren voordat je de setup voltooit."
+    "text": "Je moet je herstelcodes downloaden of kopiëren voordat je de installatie voltooit."
   },
   "web.auth.recovery_codes.generate_new": {
     "text": "Nieuwe codes genereren"
@@ -372,7 +372,7 @@
     "text": "Codes gekopieerd naar klembord"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Kopiëren naar klembord mislukt"
+    "text": "Kopiëren van codes naar klembord mislukt"
   },
   "web.auth.recovery_codes.code_used": {
     "text": "Gebruikt"
@@ -381,18 +381,33 @@
     "text": "Ongebruikt"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} herstelcode(s) resterend"
+    "text": "{count} van {limit} herstelcodes over"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Elke code kan slechts één keer worden gebruikt. Genereer nieuwe codes als je bijna op bent."
+    "text": "Elke code kan slechts één keer worden gebruikt. Genereer nieuwe codes als je er weinig over hebt."
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Geen herstelcodes resterend"
+    "text": "Geen herstelcodes meer over"
   },
   "web.auth.recovery_codes.generate_success": {
     "text": "Nieuwe herstelcodes zijn gegenereerd"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Herstelcodes"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Verifiëren"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Herstelcode gebruiken"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Inloggen annuleren"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ BEVEILIGINGSKRITISCH: Berichten voorkomen informatielekken. Zie src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Beheerpagina voor ingelogde apparaten/browsers van de gebruiker"
   }
 }

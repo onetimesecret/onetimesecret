@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "AI-gegenereerde testimonial"
+    "text": "AI-gegenereerde getuigenis"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "AI-gegenereerde inhoud voor demonstratie. \nNiet van een echte persoon of bedrijf."
+    "text": "AI-gegenereerde inhoud ter demonstratie. Niet van een echte persoon of bedrijf."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -21,7 +21,7 @@
     "text": "Wat toonaangevende AI over ons zegt"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "AI-gegenereerde testimonials"
+    "text": "AI-gegenereerde getuigenissen"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "Dit citaat is gegenereerd door"

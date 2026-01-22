@@ -24,10 +24,10 @@
     "text": "Instellingen"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Bewerk systeemconfiguratie-instellingen. Wijzigingen worden direct toegepast na het opslaan."
+    "text": "Bewerk systeemconfiguratie-instellingen. Wijzigingen worden direct toegepast na opslaan."
   },
   "web.colonel.invalidJson": {
-    "text": "Ongeldige JSON in sectie {section}"
+    "text": "Ongeldige JSON in {section}-sectie"
   },
   "web.colonel.validationError": {
     "text": "Validatiefout"
@@ -69,13 +69,13 @@
     "text": "Onbekende validatiefout: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section} sectie heeft geen geconfigureerde waarden"
+    "text": "{section}-sectie heeft geen geconfigureerde waarden"
   },
   "web.colonel.dashboard": {
     "text": "Dashboard"
   },
   "web.colonel.admin": {
-    "text": "Admin"
+    "text": "Beheer"
   },
   "web.colonel.activity": {
     "text": "Activiteit"
@@ -87,7 +87,7 @@
     "text": "Gebruikers"
   },
   "web.colonel.usersDescription": {
-    "text": "Beheer gebruikersaccounts en machtigingen"
+    "text": "Beheer gebruikersaccounts en rechten"
   },
   "web.colonel.domains": {
     "text": "Domeinen"
@@ -99,10 +99,10 @@
     "text": "Systeem"
   },
   "web.colonel.welcome": {
-    "text": "Welkom bij Beheer"
+    "text": "Welkom bij Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Administratief controlepaneel voor OneTimeSecret"
+    "text": "Beheerderspaneel voor OneTimeSecret"
   },
   "web.colonel.quickActions": {
     "text": "Snelle acties"
@@ -117,7 +117,7 @@
     "text": "Activiteitsgegevens worden hier weergegeven"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Totaal aantal berichten"
+    "text": "Totaal berichten"
   },
   "web.colonel.stats.activeUsers": {
     "text": "Actieve gebruikers"
@@ -132,7 +132,7 @@
     "text": "Berichten gedeeld"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Totaal aantal klanten"
+    "text": "Totaal gebruikers"
   },
   "web.colonel.stats.emailsSent": {
     "text": "E-mails verzonden"
@@ -153,7 +153,7 @@
     "text": "Accounts beheren"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Gebruikersaccountadministratie"
+    "text": "Gebruikersaccountbeheer"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Domeinen configureren"
@@ -177,10 +177,10 @@
     "text": "Wachtrij"
   },
   "web.colonel.pendingMessages": {
-    "text": "In behandeling"
+    "text": "Wachtend"
   },
   "web.colonel.consumers": {
-    "text": "Verwerkers"
+    "text": "Consumenten"
   },
   "web.colonel.processingRate": {
     "text": "Snelheid/sec"
@@ -189,10 +189,10 @@
     "text": "Verbindingsstatus"
   },
   "web.colonel.workerHealth": {
-    "text": "Worker-status"
+    "text": "Werkerstatus"
   },
   "web.colonel.activeWorkers": {
-    "text": "actieve workers"
+    "text": "actieve werkers"
   },
   "web.colonel.noQueueData": {
     "text": "Geen wachtrijgegevens beschikbaar"
@@ -201,7 +201,7 @@
     "text": "Wachtrijgegevens laden..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Testabonnementsmodus"
+    "text": "Testplanmodus"
   },
   "web.colonel.testingAsPlan": {
     "text": "Testen als {planName}"
@@ -210,16 +210,16 @@
     "text": "Klik om te resetten"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Selecteer een abonnement om te testen"
+    "text": "Selecteer een plan om te testen"
   },
   "web.colonel.resetToActual": {
-    "text": "Terugzetten naar werkelijk abonnement"
+    "text": "Terugzetten naar werkelijk plan"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Huidig abonnement"
+    "text": "Huidig plan"
   },
   "web.colonel.availablePlans": {
-    "text": "Beschikbare abonnementen"
+    "text": "Beschikbare plannen"
   },
   "web.colonel.activateTestMode": {
     "text": "Testmodus activeren"
@@ -228,7 +228,7 @@
     "text": "Testmodus actief"
   },
   "web.colonel.testModeDescription": {
-    "text": "Test je applicatie met verschillende abonnementsrechten. Wijzigingen zijn tijdelijk en beïnvloeden alleen je sessie."
+    "text": "Test je applicatie met verschillende planrechten. Wijzigingen zijn tijdelijk en zijn alleen van toepassing op je sessie."
   },
   "web.colonel.warningTestMode": {
     "text": "Je test met {planName}-rechten (tijdelijke sessie-override)."
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Versturen..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Geblokkeerde IP's"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP-blokkadelijst beheren"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Aangepaste domeinen"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Aangepaste domeinen en branding beheren"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Feedback verzenden"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Verzenden..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Wanneer je feedback verstuurt, zien wij:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organisaties"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Organisatie-factureringssynchronisatie monitoren"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Factureringsmonitor"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organisaties"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} hebben aandacht nodig"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} onbekend"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Geen organisaties gevonden"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Onderzoeken"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Controleren..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Account"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Facturering"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Gebruik"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Aangemaakt"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Details"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Eigenaar"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Plan"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Leden"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domeinen"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Abonnement"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Standaard werkruimte"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Heeft facturering"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Klant"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Abonnement"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "Org-ID"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Synchronisatiestatus"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Abonnement"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Alle"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Mogelijk verouderd"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Onbekend"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Gesynchroniseerd"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Actief"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Proefperiode"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Achterstallig"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Geannuleerd"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Onderzoek mislukt"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Onderzoeksresultaat"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Geverifieerd gesynchroniseerd"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Afwijking gevonden"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Kan niet vergelijken"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe-abonnementsdetails"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Product"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Opgelost plan"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "Prijs-ID"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Lokaal"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Organisaties factureringsbeheer"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Organisaties beheren en factureringssynchronisatie monitoren ({total} totaal)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Geen organisaties gevonden"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "mogelijk verouderd"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Verouderd"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Onbekend"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "actief"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} leden"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domeinen"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Berichten"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Alle berichten bekijken en beheren"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Systeem"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Systeeminstellingen, databases en configuratie"
+  },
+  "web.colonel.titles.index": {
+    "text": "Beheer"
+  },
+  "web.colonel.titles.users": {
+    "text": "Gebruikersbeheer"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Berichtenbeheer"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Aangepaste domeinen"
+  },
+  "web.colonel.titles.system": {
+    "text": "Systeem"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Hoofddatabase"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Authenticatiedatabase"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Geblokkeerde IP's"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Gebruiksexport"
+  },
+  "web.colonel.titles.info": {
+    "text": "Systeeminformatie"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organisaties"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Gebruiksexport"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Gebruiksgegevens en statistieken exporteren"
   }
 }

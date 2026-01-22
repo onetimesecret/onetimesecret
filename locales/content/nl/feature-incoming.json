@@ -1,6 +1,6 @@
 {
   "incoming.page_title": {
-    "text": "Een geheim verzenden"
+    "text": "Stuur een bericht"
   },
   "incoming.page_description": {
     "text": "Deel gevoelige informatie veilig met ons ondersteuningsteam"
@@ -21,10 +21,10 @@
     "text": "Memo"
   },
   "incoming.memo_placeholder": {
-    "text": "Korte beschrijving (bijv. Verzoek om wachtwoord opnieuw in te stellen)"
+    "text": "Korte beschrijving (bijv. Verzoek wachtwoordreset)"
   },
   "incoming.memo_hint": {
-    "text": "Help ons uw bericht naar de juiste persoon te sturen"
+    "text": "Help ons je bericht naar de juiste persoon te sturen"
   },
   "incoming.recipient_label": {
     "text": "Verzenden naar"
@@ -33,28 +33,28 @@
     "text": "Selecteer een ontvanger"
   },
   "incoming.recipient_aria_label": {
-    "text": "Selecteer een ontvanger voor dit geheim"
+    "text": "Selecteer een ontvanger voor dit bericht"
   },
   "incoming.recipient_hint": {
-    "text": "Kies wie dit veilige bericht ontvangt"
+    "text": "Kies wie dit beveiligde bericht ontvangt"
   },
   "incoming.no_recipients_available": {
-    "text": "Geen ontvangers beschikbaar"
+    "text": "Er zijn geen ontvangers beschikbaar"
   },
   "incoming.secret_content_label": {
-    "text": "Vertrouwelijke informatie"
+    "text": "Beveiligde informatie"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Plak hier gevoelige informatie (wachtwoorden, sleutels, enz.)"
+    "text": "Plak hier gevoelige informatie (wachtwoorden, sleutels, etc.)"
   },
   "incoming.secret_content_hint": {
     "text": "Deze informatie wordt versleuteld en is slechts één keer te bekijken"
   },
   "incoming.submit_button": {
-    "text": "Geheim verzenden"
+    "text": "Bericht verzenden"
   },
   "incoming.submit_secret": {
-    "text": "Geheim verzenden"
+    "text": "Bericht verzenden"
   },
   "incoming.submitting_button": {
     "text": "Verzenden..."
@@ -72,7 +72,7 @@
     "text": "Succesvol verzonden"
   },
   "incoming.success_description": {
-    "text": "Uw veilige bericht is afgeleverd."
+    "text": "Je beveiligde bericht is afgeleverd."
   },
   "incoming.reference_id": {
     "text": "Referentie-ID"
@@ -81,19 +81,19 @@
     "text": "Wat gebeurt er nu?"
   },
   "incoming.success_info_description": {
-    "text": "De ontvanger kan dit geheim slechts één keer bekijken. Nadat het is bekeken, wordt het geheim permanent verwijderd."
+    "text": "De ontvanger kan dit bericht slechts één keer bekijken. Nadat ze het hebben bekeken, wordt het bericht permanent verwijderd."
   },
   "incoming.create_another": {
-    "text": "Nog een geheim verzenden"
+    "text": "Nog een bericht versturen"
   },
   "incoming.tagline1": {
     "text": "Deel gevoelige informatie veilig"
   },
   "incoming.tagline2": {
-    "text": "Houd wachtwoorden en privégegevens uit e-mails en chatlogboeken"
+    "text": "Houd wachtwoorden en privégegevens uit e-mail en chatgeschiedenis"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Bewaar uw <a href='{receiptUrl}'>ontvangstbewijs</a> voor uw administratie."
+    "text": "Bewaar je {receipt} voor je administratie."
   },
   "incoming.receipt_link_text": {
     "text": "ontvangstbewijs"
