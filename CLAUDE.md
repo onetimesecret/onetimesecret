@@ -23,12 +23,12 @@ Pull requests target `develop` branch, unless otherwise specified.
 ## Tech Stack
 **Backend**: Ruby 3.4, Rack 3, Redis 7
 **Frontend**: Vue 3.5, Pinia 3, Vue Router 4.4, TypeScript 5.6
-**Build**: Vite 5.4., Vitest 2.1.8, Tailwind 3.4
+**Build**: Vite 7, Vitest 2.1.8, Tailwind 4
 **Validation**: Zod 4 (import from `'zod'`, NOT `'zod/v4'`), i18n 11
 
 ## Architecture Overview
 
-### Backend Structure
+### Backend Structure (Multi Rack-Application, rabbit workers, and rufus scheduler)
 - **`apps/`**: Modular Rack applications (API v1/v2, Web Core)
   - `apps/api/v1/`: Legacy API with logic modules, controllers, models
   - `apps/api/v2/`: New API architecture with Otto auth strategies
@@ -51,8 +51,14 @@ Pull requests target `develop` branch, unless otherwise specified.
   - `src/shared/composables/`: Shared composables
   - `src/shared/stores/`: Pinia state management
   - `src/shared/layouts/`: Layout components (TransactionalLayout, ManagementLayout, etc.)
-- **`src/locales/`**: i18n JSON files (hierarchical keys)
 - **`src/types/`**: TypeScript type definitions
+
+### Locales
+
+- **`generated/locales/`**: runtime i18n JSON files (generated, hierarchical keys -- do not modify directly)
+- **`locales/content/<LOCALE>/*.json`**: i18n JSON files (flat keys, multiple files, source of truth -- add and modify these)
+- **`locales/db`**: hydrate as needed sqlite database used for processing locales, translations.
+- **`locales/scripts`**: locale management tools
 
 ## Development Commands
 
@@ -139,11 +145,11 @@ pnpm run test:all:clean
 ```
 
 ## i18n Requirements
-- All text via `$t('key.path')` from locale files in `src/locales/`
+- All text via `$t('key.path')` from locale files in `locales/`
 - Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
 - NO hardcoded text
-- **UX guidance:** `src/locales/UX-TRANSLATION-GUIDE.md` (button text, character limits, pluralization)
-- **Security guidance:** `src/locales/SECURITY-TRANSLATION-GUIDE.md` (auth error messages)
+- **UX guidance:** `locales/UX-TRANSLATION-GUIDE.md` (button text, character limits, pluralization)
+- **Security guidance:** `locales/SECURITY-TRANSLATION-GUIDE.md` (auth error messages)
 
 ## Project Structure
 - Apps: `src/apps/` (secret, workspace, session, colonel)
