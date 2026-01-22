@@ -1,6 +1,6 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Testemunho Gerado por IA"
+    "text": "Testemunho gerado por IA"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
     "text": "Conteúdo gerado por IA para demonstração. Não é de uma pessoa ou empresa real."
@@ -21,7 +21,7 @@
     "text": "O que a IA líder diz sobre nós"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Testemunhos Gerados por IA"
+    "text": "Testemunhos gerados por IA"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "Esta citação foi gerada por"
@@ -30,7 +30,7 @@
     "text": "Foi baseada no conteúdo da página e não representa uma pessoa ou empresa real."
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Feedback Artificial"
+    "text": "Feedback artificial"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
     "text": "Este conteúdo é gerado por IA com base no conteúdo desta página e não representa uma pessoa ou empresa real."

@@ -5,7 +5,7 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Links seguros que funcionam apenas uma vez"
+    "text": "Links seguros que só funcionam uma vez"
   },
   "web.COMMON.powered_by": {
     "text": "Desenvolvido por"
@@ -14,88 +14,88 @@
     "text": "https://onetimesecret.com/pt"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Gerar Palavra-passe"
+    "text": "Gerar senha"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Gerar Palavra-passe está desativado quando o formulário é válido"
+    "text": "Gerar senha está desativado quando o formulário é válido"
   },
   "web.COMMON.email_placeholder": {
-    "text": "ex. tom{'@'}myspace.com"
+    "text": "p. ex. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Introduza a sua palavra-passe"
+    "text": "Introduz a tua senha"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Domínios Personalizados"
+    "text": "Domínios personalizados"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Fortaleça ligações e construa confiança com os seus próprios links secretos personalizados."
+    "text": "Fortalece ligações e cria confiança com os teus próprios links de mensagens confidenciais personalizados."
   },
   "web.COMMON.get_started_button": {
     "text": "Começar"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Confirme a sua palavra-passe"
+    "text": "Confirma a tua senha"
   },
   "web.COMMON.header_settings": {
     "text": "Definições"
   },
   "web.COMMON.submit_with": {
-    "text": "Enviar"
+    "text": "Submeter"
   },
   "web.COMMON.submitting": {
-    "text": "A enviar..."
+    "text": "A submeter..."
   },
   "web.COMMON.processing": {
     "text": "A processar..."
   },
   "web.COMMON.description": {
-    "text": "Mantenha informações sensíveis fora dos seus registos de chat e e-mail. Partilhe um link secreto que está disponível apenas uma vez."
+    "text": "Mantém informações sensíveis fora dos teus registos de chat e e-mail. Partilha um link secreto que está disponível apenas uma vez."
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Frase-passe incorreta"
+    "text": "Frase secreta incorreta"
   },
   "web.COMMON.keywords": {
-    "text": "secreto,gerador de palavras-passe,partilhar um segredo,uma vez"
+    "text": "mensagem confidencial,gerador de senhas,partilhar um segredo,onetime"
   },
   "web.COMMON.button_create_secret": {
     "text": "Criar um link secreto"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Ou gerar uma palavra-passe aleatória"
+    "text": "Ou gera uma senha aleatória"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Opções de Privacidade"
+    "text": "Opções de privacidade"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Frase-passe"
+    "text": "Frase secreta"
   },
   "web.COMMON.secret_passphrase_hint": {
     "text": "Uma palavra ou frase difícil de adivinhar"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Endereço do Destinatário"
+    "text": "Endereço do destinatário"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "O conteúdo secreto vai aqui..."
+    "text": "O conteúdo confidencial vai aqui..."
   },
   "web.COMMON.header_create_account": {
-    "text": "Criar Conta"
+    "text": "Criar conta"
   },
   "web.COMMON.header_about": {
     "text": "Sobre"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Iniciar Sessão"
+    "text": "Iniciar sessão"
   },
   "web.COMMON.header_dashboard": {
     "text": "Conta"
   },
   "web.COMMON.header_logout": {
-    "text": "Terminar Sessão"
+    "text": "Terminar sessão"
   },
   "web.COMMON.secret": {
-    "text": "Segredo"
+    "text": "Mensagem confidencial | Mensagens confidenciais"
   },
   "web.COMMON.recent": {
     "text": "Recente"
@@ -107,43 +107,43 @@
     "text": "Queimar"
   },
   "web.COMMON.burned": {
-    "text": "Destruído"
+    "text": "Queimado"
   },
   "web.COMMON.expires_in": {
     "text": "Expira em"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Destruir este segredo"
+    "text": "Queimar esta mensagem confidencial"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Destruir um segredo irá apagá-lo antes de ser lido (clique para confirmar)"
+    "text": "Queimar uma mensagem confidencial irá eliminá-la antes de ter sido lida (clica para confirmar)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Destruir um segredo é permanente e não pode ser desfeito"
+    "text": "Queimar uma mensagem confidencial é permanente e não pode ser desfeito"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Verifique o seu e-mail"
+    "text": "Verifica o teu e-mail"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Clique para continuar →"
+    "text": "Clica para revelar →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Continue para verificar a sua conta:"
+    "text": "Continua para verificar a tua conta:"
   },
   "web.COMMON.error_secret": {
-    "text": "Não forneceu nada para partilhar"
+    "text": "Não forneceste nada para partilhar"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Verifique novamente essa frase-passe"
+    "text": "Verifica novamente essa frase secreta"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Introduza a frase-passe aqui"
+    "text": "Introduz a frase secreta aqui"
   },
   "web.COMMON.view_secret": {
-    "text": "Ver segredo"
+    "text": "Ver mensagem confidencial"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "cuidado: só o mostraremos uma vez."
+    "text": "Cuidado: só te vamos mostrar uma vez."
   },
   "web.COMMON.warning": {
     "text": "Aviso"
@@ -155,34 +155,34 @@
     "text": "Erro"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Ocorreu um erro inesperado. Por favor, tente novamente."
+    "text": "Ocorreu um erro inesperado. Por favor tenta novamente."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "A mensagem foi truncada porque estava acima de"
+    "text": "A mensagem foi truncada"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Registe-se para mais"
+    "text": "Regista-te para mais"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Inicie sessão na sua conta"
+    "text": "Inicia sessão na tua conta"
   },
   "web.COMMON.sent_to": {
-    "text": "Enviado para: "
+    "text": "Enviado para:"
   },
   "web.COMMON.field_email": {
     "text": "E-mail"
   },
   "web.COMMON.field_password": {
-    "text": "Palavra-passe"
+    "text": "Senha"
   },
   "web.COMMON.field_password2": {
-    "text": "Confirmar Palavra-passe"
+    "text": "Confirmar senha"
   },
   "web.COMMON.button_create_account": {
-    "text": "Criar Conta"
+    "text": "Criar conta"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Partilhar um segredo"
+    "text": "Partilhar uma mensagem confidencial"
   },
   "web.COMMON.title_home": {
     "text": "Início"
@@ -191,7 +191,7 @@
     "text": "Nenhum"
   },
   "web.COMMON.word_burned": {
-    "text": "destruído"
+    "text": "queimado"
   },
   "web.COMMON.word_received": {
     "text": "recebido"
@@ -203,7 +203,7 @@
     "text": "Cancelar"
   },
   "web.COMMON.word_continue": {
-    "text": "Continue"
+    "text": "Continuar"
   },
   "web.COMMON.word_done": {
     "text": "Concluído"
@@ -212,43 +212,43 @@
     "text": "Voltar"
   },
   "web.COMMON.feedback_text": {
-    "text": "Tem uma pergunta ou comentário?"
+    "text": "Partilha os teus pensamentos, ideias ou experiências..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Enviar Feedback"
+    "text": "Enviar feedback"
   },
   "web.COMMON.verification_sent_to": {
     "text": "Uma verificação foi enviada para"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Conta criada. Por favor, inicie sessão."
+    "text": "Conta criada. Por favor inicia sessão."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Se existe uma conta com este e-mail, receberá um e-mail de verificação."
+    "text": "Se existir uma conta com este e-mail, receberás um e-mail de verificação."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Queimar este segredo permanentemente"
+    "text": "Queimar esta mensagem confidencial permanentemente"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Por favor, confirme"
+    "text": "Por favor confirma"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Tem a certeza de que deseja queimar este segredo? Esta ação não pode ser desfeita."
+    "text": "Tens a certeza de que queres queimar esta mensagem confidencial? Esta ação não pode ser desfeita."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Sim, queimar este segredo"
+    "text": "Sim, queimar esta mensagem confidencial"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Queimar um segredo irá eliminá-lo antes de ter sido recebido."
+    "text": "Queimar uma mensagem confidencial irá eliminá-la antes de ter sido recebida."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Por segurança, partilhe este link separadamente de outros detalhes."
+    "text": "Por segurança, partilha este link separadamente de outros detalhes."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Copiado para a área de transferência"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Criar Entrada"
+    "text": "Criar entrada"
   },
   "web.COMMON.faq_title": {
     "text": "Perguntas Frequentes"
@@ -257,31 +257,31 @@
     "text": "A verificação não é válida"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Não é possível verificar uma conta quando já tem sessão iniciada"
+    "text": "Não é possível verificar uma conta quando já tens sessão iniciada"
   },
   "web.COMMON.show_password": {
-    "text": "Mostrar palavra-passe"
+    "text": "Mostrar senha"
   },
   "web.COMMON.hide_password": {
-    "text": "Ocultar palavra-passe"
+    "text": "Ocultar senha"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "A palavra-passe deve ter pelo menos 8 caracteres"
+    "text": "A senha deve ter pelo menos 8 caracteres"
   },
   "web.COMMON.password_requirements": {
-    "text": "A palavra-passe deve ter pelo menos 8 caracteres"
+    "text": "A senha deve ter pelo menos 8 caracteres"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "As palavras-passe não coincidem"
+    "text": "As senhas não coincidem"
   },
   "web.COMMON.form_field_required": {
     "text": "Este campo é obrigatório"
   },
   "web.COMMON.form_processing": {
-    "text": "A processar o seu pedido"
+    "text": "A processar o teu pedido"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Manter sessão iniciada por 30 dias"
+    "text": "Manter sessão iniciada durante 30 dias"
   },
   "web.COMMON.redirecting": {
     "text": "A redirecionar..."
@@ -290,16 +290,16 @@
     "text": "Continuar"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Tem a certeza?"
+    "text": "Tens a certeza?"
   },
   "web.COMMON.danger_zone": {
-    "text": "Zona de Perigo"
+    "text": "Zona de perigo"
   },
   "web.COMMON.caution_zone": {
-    "text": "Zona de Consideração Cuidadosa"
+    "text": "Zona de consideração cuidadosa"
   },
   "web.COMMON.user_menu": {
-    "text": "Menu do utilizador"
+    "text": "Menu de utilizador"
   },
   "web.COMMON.security": {
     "text": "Segurança"
@@ -311,13 +311,13 @@
     "text": "A carregar..."
   },
   "web.COMMON.save_changes": {
-    "text": "Guardar Alterações"
+    "text": "Guardar alterações"
   },
   "web.COMMON.saving": {
     "text": "A guardar..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "A adicionar..."
+    "text": "A adicionar"
   },
   "web.COMMON.e_g_example": {
     "text": "p. ex."
@@ -329,7 +329,7 @@
     "text": "Estado"
   },
   "web.COMMON.escape": {
-    "text": "Sair"
+    "text": "Escape"
   },
   "web.COMMON.active": {
     "text": "Ativo"
@@ -341,10 +341,10 @@
     "text": "Remover"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Pressione ESC para fechar"
+    "text": "Prime ESC para fechar"
   },
   "web.COMMON.enter": {
-    "text": "Entrar"
+    "text": "Enter"
   },
   "web.COMMON.important": {
     "text": "Importante"
@@ -377,7 +377,7 @@
     "text": "Anual"
   },
   "web.COMMON.go_on_then": {
-    "text": "Prossiga."
+    "text": "Vamos a isso."
   },
   "web.COMMON.loading_ellipses": {
     "text": "A carregar..."
@@ -386,10 +386,10 @@
     "text": "NÃO RECEBIDO"
   },
   "web.COMMON.confirm_password": {
-    "text": "Confirmar palavra-passe"
+    "text": "Confirmar senha"
   },
   "web.COMMON.new_password": {
-    "text": "Nova palavra-passe"
+    "text": "Nova senha"
   },
   "web.COMMON.email_address": {
     "text": "Endereço de e-mail"
@@ -398,10 +398,10 @@
     "text": "alternar"
   },
   "web.COMMON.features": {
-    "text": "Recursos"
+    "text": "Funcionalidades"
   },
   "web.COMMON.not_found": {
-    "text": "Não Encontrado"
+    "text": "Não encontrado"
   },
   "web.COMMON.emoji_x": {
     "text": "❌"
@@ -419,7 +419,7 @@
     "text": "Outro"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(largura mínima: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -437,7 +437,7 @@
     "text": "Valor"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Anfitrião"
   },
   "web.COMMON.type": {
     "text": "Tipo"
@@ -449,22 +449,22 @@
     "text": "Seguinte"
   },
   "web.COMMON.password_strength": {
-    "text": "Força da Palavra-passe:"
+    "text": "Força da senha:"
   },
   "web.COMMON.great": {
-    "text": "Ótima"
+    "text": "Excelente"
   },
   "web.COMMON.pretty_good": {
-    "text": "Muito boa"
+    "text": "Bastante boa"
   },
   "web.COMMON.fair": {
     "text": "Razoável"
   },
   "web.COMMON.meh": {
-    "text": "Mais ou menos"
+    "text": "Assim-assim"
   },
   "web.COMMON.not_great": {
-    "text": "Não muito boa"
+    "text": "Não muito bom"
   },
   "web.COMMON.open_options": {
     "text": "Abrir opções"
@@ -476,16 +476,16 @@
     "text": "Ocorreu um erro"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Copiar mensagem secreta para a área de transferência"
+    "text": "Copiar mensagem confidencial para a área de transferência"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Mensagem secreta copiada para a área de transferência"
+    "text": "Mensagem confidencial copiada para a área de transferência"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Verifique novamente essa frase-passe"
+    "text": "Verifica novamente essa frase secreta"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Pressione o botão de copiar abaixo."
+    "text": "Prime o botão de copiar abaixo."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Mostrar"
@@ -494,10 +494,10 @@
     "text": "Ocultar"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Mostrar Mais"
+    "text": "Mostrar mais"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Mostrar Menos"
+    "text": "Mostrar menos"
   },
   "web.LABELS.enable": {
     "text": "Ativar"
@@ -509,13 +509,13 @@
     "text": "Estatísticas"
   },
   "web.LABELS.timeline": {
-    "text": "Linha Temporal"
+    "text": "Cronologia"
   },
   "web.LABELS.lifespan": {
-    "text": "Duração"
+    "text": "Tempo de vida"
   },
   "web.LABELS.expiration_time": {
-    "text": "Hora de Expiração"
+    "text": "Tempo de expiração"
   },
   "web.LABELS.close": {
     "text": "Fechar"
@@ -536,7 +536,7 @@
     "text": "Guardar"
   },
   "web.LABELS.save_all": {
-    "text": "Guardar Tudo"
+    "text": "Guardar tudo"
   },
   "web.LABELS.details": {
     "text": "Detalhes"
@@ -545,19 +545,19 @@
     "text": "Encriptado"
   },
   "web.LABELS.secret_status": {
-    "text": "Estado do Segredo"
+    "text": "Estado da mensagem confidencial"
   },
   "web.LABELS.need_help": {
-    "text": "Precisa de ajuda?"
+    "text": "Precisas de ajuda?"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Criar Novo Segredo"
+    "text": "Criar nova mensagem confidencial"
   },
   "web.LABELS.actions": {
     "text": "Ações"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Nenhuma Frase-passe Necessária"
+    "text": "Sem frase secreta necessária"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Copiar para a área de transferência"
@@ -569,19 +569,19 @@
     "text": "Partilhar"
   },
   "web.LABELS.secret_link": {
-    "text": "Link Secreto"
+    "text": "Link secreto"
   },
   "web.LABELS.dismiss": {
     "text": "Dispensar"
   },
   "web.LABELS.security_details": {
-    "text": "Detalhes de Segurança"
+    "text": "Detalhes de segurança"
   },
   "web.LABELS.items_count": {
-    "text": "{count} Item | {count} Itens"
+    "text": "{count} Itens"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} Destinatário | {count} Destinatários"
+    "text": "{count} Destinatários"
   },
   "web.LABELS.view": {
     "text": "Ver"
@@ -593,13 +593,13 @@
     "text": "vezes visualizado"
   },
   "web.LABELS.view_progress": {
-    "text": "Progresso da Visualização"
+    "text": "Ver progresso"
   },
   "web.LABELS.help_section": {
-    "text": "Secção de Ajuda"
+    "text": "Secção de ajuda"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Protegido com frase-passe"
+    "text": "Protegido com frase secreta"
   },
   "web.LABELS.feedback_received": {
     "text": "Feedback recebido."
@@ -608,7 +608,7 @@
     "text": "A enviar..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Segredos Recentes"
+    "text": "Mensagens confidenciais recentes"
   },
   "web.LABELS.pricing": {
     "text": "Preços"
@@ -620,28 +620,28 @@
     "text": "Recarregar"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Links secretos criados nesta sessão"
+    "text": "Links de mensagens confidenciais criados nesta sessão"
   },
   "web.LABELS.create_link_short": {
-    "text": "Criar Link"
+    "text": "Criar link"
   },
   "web.LABELS.create_link": {
-    "text": "Criar Link Secreto"
+    "text": "Criar link secreto"
   },
   "web.LABELS.create_request_short": {
-    "text": "Criar Pedido"
+    "text": "Criar pedido"
   },
   "web.LABELS.create_request": {
-    "text": "Criar Link de Pedido"
+    "text": "Criar link de pedido"
   },
   "web.LABELS.related_settings": {
-    "text": "Definições Relacionadas"
+    "text": "Definições relacionadas"
   },
   "web.LABELS.creating_links_for": {
     "text": "A criar links para"
   },
   "web.LABELS.scope_indicator": {
-    "text": "A criar segredos em {domain}"
+    "text": "A criar mensagens confidenciais em {domain}"
   },
   "web.STATUS.new": {
     "text": "Novo"
@@ -656,13 +656,13 @@
     "text": "Recebido"
   },
   "web.STATUS.burned": {
-    "text": "Destruído"
+    "text": "Queimado"
   },
   "web.STATUS.destroyed": {
     "text": "Destruído"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Expira em breve"
+    "text": "A expirar em breve"
   },
   "web.STATUS.created": {
     "text": "Criado"
@@ -674,7 +674,7 @@
     "text": "Expirado"
   },
   "web.STATUS.orphaned": {
-    "text": "Abandonado"
+    "text": "Órfão"
   },
   "web.STATUS.secured": {
     "text": "Protegido"
@@ -686,7 +686,7 @@
     "text": "Copiado"
   },
   "web.STATUS.time_remaining": {
-    "text": "Tempo Restante"
+    "text": "Tempo restante"
   },
   "web.STATUS.new_description": {
     "text": "O link secreto foi criado e ainda não foi visualizado"
@@ -698,22 +698,22 @@
     "text": "O link secreto foi aberto e está pronto para ser visualizado"
   },
   "web.STATUS.received_description": {
-    "text": "O segredo foi revelado ao destinatário"
+    "text": "A mensagem confidencial foi revelada ao destinatário"
   },
   "web.STATUS.burned_description": {
-    "text": "O segredo foi queimado manualmente antes de ser visualizado"
+    "text": "A mensagem confidencial foi queimada manualmente antes de ser visualizada"
   },
   "web.STATUS.destroyed_description": {
-    "text": "O segredo foi permanentemente destruído"
+    "text": "A mensagem confidencial foi permanentemente destruída"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "O segredo irá expirar em breve"
+    "text": "A mensagem confidencial vai expirar em breve"
   },
   "web.STATUS.orphaned_description": {
-    "text": "O segredo foi abandonado e será destruído em breve"
+    "text": "A mensagem confidencial ficou órfã e será destruída em breve"
   },
   "web.STATUS.expired_description": {
-    "text": "O segredo expirou antes de ser visualizado"
+    "text": "A mensagem confidencial expirou antes de ser visualizada"
   },
   "web.STATUS.success": {
     "text": "Sucesso"
@@ -722,7 +722,7 @@
     "text": "Entregue"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS Incorreto"
+    "text": "DNS incorreto"
   },
   "web.STATUS.active": {
     "text": "Ativo"
@@ -731,10 +731,10 @@
     "text": "Inativo"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Visualizações Ilimitadas"
+    "text": "Visualizações ilimitadas"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Marca de domínio confiável"
+    "text": "Marca de domínio de confiança"
   },
   "web.FEATURES.encrypted_in_transit": {
     "text": "Encriptado em trânsito e em repouso"
@@ -776,97 +776,97 @@
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "limite de {count} visualização | limite de {count} visualizações"
+    "text": "Limite de {count} visualizações"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} Dia Restante | {count} Dias Restantes"
+    "text": "{count} dias restantes"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} Hora Restante | {count} Horas Restantes"
+    "text": "{count} horas restantes"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} Minuto Restante | {count} Minutos Restantes"
+    "text": "{count} minutos restantes"
   },
   "web.TITLES.incoming": {
-    "text": "Segredos Recebidos"
+    "text": "Mensagens confidenciais recebidas"
   },
   "web.TITLES.feedback": {
     "text": "Feedback"
   },
   "web.TITLES.signin": {
-    "text": "Iniciar Sessão"
+    "text": "Iniciar sessão"
   },
   "web.TITLES.signup": {
-    "text": "Criar Conta"
+    "text": "Criar conta"
   },
   "web.TITLES.forgot_password": {
-    "text": "Esqueceu a Palavra-passe"
+    "text": "Esqueceste a senha"
   },
   "web.TITLES.reset_password": {
-    "text": "Redefinir Palavra-passe"
+    "text": "Redefinir senha"
   },
   "web.TITLES.logout": {
-    "text": "A Terminar Sessão"
+    "text": "A terminar sessão"
   },
   "web.TITLES.verify_account": {
-    "text": "Verificar Conta"
+    "text": "Verificar conta"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Autenticação de Dois Fatores"
+    "text": "Autenticação de dois fatores"
   },
   "web.TITLES.email_login": {
-    "text": "Iniciar Sessão por E-mail"
+    "text": "Início de sessão por e-mail"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Aceitar Convite"
+    "text": "Aceitar convite"
   },
   "web.TITLES.secret": {
-    "text": "Segredo"
+    "text": "Mensagem confidencial"
   },
   "web.TITLES.metadata": {
-    "text": "Detalhes do Segredo"
+    "text": "Detalhes da mensagem confidencial"
   },
   "web.TITLES.receipt": {
-    "text": "Recibo do Segredo"
+    "text": "Recibo da mensagem confidencial"
   },
   "web.TITLES.burn_secret": {
-    "text": "Queimar Segredo"
+    "text": "Queimar mensagem confidencial"
   },
   "web.TITLES.dashboard": {
     "text": "Painel"
   },
   "web.TITLES.recent": {
-    "text": "Segredos Recentes"
+    "text": "Mensagens confidenciais recentes"
   },
   "web.TITLES.domains": {
-    "text": "Domínios Personalizados"
+    "text": "Domínios personalizados"
   },
   "web.TITLES.domain_add": {
-    "text": "Adicionar Domínio"
+    "text": "Adicionar domínio"
   },
   "web.TITLES.domain_verify": {
-    "text": "Verificar Domínio"
+    "text": "Verificar domínio"
   },
   "web.TITLES.domain_brand": {
-    "text": "Marcar Domínio"
+    "text": "Marca do domínio"
   },
   "web.TITLES.account": {
-    "text": "Definições da Conta"
+    "text": "Conta"
   },
   "web.TITLES.data_region": {
-    "text": "Região de Dados"
+    "text": "Região de dados"
   },
   "web.TITLES.current_region": {
-    "text": "Região Atual"
+    "text": "Região atual"
   },
   "web.TITLES.available_regions": {
-    "text": "Regiões Disponíveis"
+    "text": "Regiões disponíveis"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Porque é que a Soberania de Dados Importa"
+    "text": "Por que a soberania de dados é importante"
   },
   "web.TITLES.profile_settings": {
-    "text": "Definições do Perfil"
+    "text": "Definições do perfil"
   },
   "web.TITLES.preferences_settings": {
     "text": "Preferências"
@@ -878,28 +878,28 @@
     "text": "Notificações"
   },
   "web.TITLES.change_email": {
-    "text": "Alterar E-mail"
+    "text": "Alterar e-mail"
   },
   "web.TITLES.security_overview": {
     "text": "Segurança"
   },
   "web.TITLES.change_password": {
-    "text": "Alterar Palavra-passe"
+    "text": "Alterar senha"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Autenticação de Dois Fatores"
+    "text": "Autenticação de dois fatores"
   },
   "web.TITLES.active_sessions": {
-    "text": "Sessões Ativas"
+    "text": "Sessões ativas"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Códigos de Recuperação"
+    "text": "Códigos de recuperação"
   },
   "web.TITLES.api_settings": {
-    "text": "Definições de API"
+    "text": "Definições da API"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Definições Avançadas"
+    "text": "Definições avançadas"
   },
   "web.TITLES.colonel": {
     "text": "Administração"
@@ -917,7 +917,7 @@
     "text": "Sistema"
   },
   "web.TITLES.system_settings": {
-    "text": "Definições do Sistema"
+    "text": "Definições do sistema"
   },
   "web.TITLES.colonel_maindb": {
     "text": "Base de Dados Principal"
@@ -935,34 +935,34 @@
     "text": "Informação do Sistema"
   },
   "web.TITLES.not_found": {
-    "text": "Página Não Encontrada"
+    "text": "Página não encontrada"
   },
   "web.TITLES.organizations_settings": {
     "text": "Organizações"
   },
   "web.TITLES.organization_settings": {
-    "text": "Definições da Organização"
+    "text": "Definições da organização"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "O foco está agora na área de texto principal"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Instruções de Partilha"
+    "text": "Instruções de partilha"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Partilhe o link com o destinatário pretendido"
+    "text": "Partilha o link com o destinatário pretendido"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Partilhe a frase-passe separadamente através de um canal seguro"
+    "text": "Partilha a frase secreta separadamente através de um canal seguro"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Use um canal seguro diferente para partilhar informações sensíveis"
+    "text": "Utiliza um canal seguro diferente para partilhar informações sensíveis"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifique sempre que está no site oficial do Onetime Secret. Os fraudadores por vezes criam sites falsos que parecem exatamente com o Onetime Secret para roubar os seus segredos. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links."
+    "text": "Verifica sempre que estás no site oficial do Onetime Secret. Os burlões por vezes criam sites falsos que parecem exatamente iguais ao Onetime Secret para roubar as tuas mensagens confidenciais. Para evitar ataques de phishing, verifica o domínio da região antes de criar novos links."
   },
   "web.STATUS.previewed": {
-    "text": "Link aberto"
+    "text": "Pré-visualizado"
   },
   "web.STATUS.revealed": {
     "text": "Revelado"
@@ -971,6 +971,66 @@
     "text": "O link secreto foi aberto e está pronto para ser revelado"
   },
   "web.STATUS.revealed_description": {
-    "text": "O conteúdo secreto foi revelado ao destinatário"
+    "text": "O conteúdo confidencial foi revelado ao destinatário"
+  },
+  "web.COMMON.not_set": {
+    "text": "Não definido"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Editar"
+  },
+  "web.COMMON.word_save": {
+    "text": "Guardar"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Expira em"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtrar"
+  },
+  "web.LABELS.clear": {
+    "text": "Limpar"
+  },
+  "web.LABELS.add_note": {
+    "text": "Adicionar nota..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Editar nota"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Adicionar memorando..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Editar memorando"
+  },
+  "web.TITLES.help": {
+    "text": "Ajuda"
+  },
+  "web.TITLES.pricing": {
+    "text": "Preços"
+  },
+  "web.pricing.title": {
+    "text": "Preços simples e transparentes"
+  },
+  "web.pricing.subtitle": {
+    "text": "Escolhe o plano que se adequa às tuas necessidades. Todos os planos incluem partilha ilimitada de mensagens confidenciais e design focado na privacidade."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Começar gratuitamente"
+  },
+  "web.pricing.start_trial": {
+    "text": "Começar"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Já tens uma conta?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Iniciar sessão"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Recomendado para ti"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Cria e partilha mensagens confidenciais com funcionalidades básicas. Não é necessário cartão de crédito."
   }
 }

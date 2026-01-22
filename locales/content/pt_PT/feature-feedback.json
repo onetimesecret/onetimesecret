@@ -1,18 +1,18 @@
 {
   "web.feedback.your_feedback": {
-    "text": "O seu feedback"
+    "text": "O teu feedback"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Todo feedback é bem-vindo!"
+    "text": "Todo o feedback é bem-vindo!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Ajude-nos a melhorar"
+    "text": "Ajuda-nos a melhorar"
   },
   "web.feedback.close_feedback_modal": {
     "text": "Fechar modal de feedback"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Partilhe o seu feedback"
+    "text": "Partilha o teu feedback"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Conteúdo de ajuda vai aqui."
+    "text": "O conteúdo de ajuda vai aqui."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Obrigado por ajudar o Onetime Secret a melhorar. Significa muito."
@@ -39,9 +39,15 @@
     "text": "Abrir formulário de feedback"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Introduza o seu feedback"
+    "text": "Introduz o teu feedback"
   },
   "web.feedback.send_feedback": {
     "text": "Enviar feedback"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Eu leio cada feedback que chega aqui. É assim que descubro em que devo investir tempo."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Se algo está mal, ou tens ideias sobre como deveria funcionar, este é o sítio certo."
   }
 }

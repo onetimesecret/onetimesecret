@@ -1,60 +1,60 @@
 {
   "incoming.page_title": {
-    "text": "Enviar um segredo"
+    "text": "Enviar uma mensagem confidencial"
   },
   "incoming.page_description": {
-    "text": "Partilhe informações sensíveis de forma segura com a nossa equipa de suporte"
+    "text": "Partilha informação sensível de forma segura com a nossa equipa de suporte"
   },
   "incoming.loading_config": {
     "text": "A carregar..."
   },
   "incoming.config_error_title": {
-    "text": "Falha ao carregar a configuração"
+    "text": "Falha ao carregar configuração"
   },
   "incoming.feature_disabled_title": {
     "text": "Funcionalidade não disponível"
   },
   "incoming.feature_disabled_description": {
-    "text": "Esta funcionalidade está atualmente desativada. Contacte o suporte para obter assistência."
+    "text": "Esta funcionalidade está atualmente desativada. Por favor contacta o suporte para assistência."
   },
   "incoming.memo_label": {
-    "text": "Nota"
+    "text": "Memorando"
   },
   "incoming.memo_placeholder": {
-    "text": "Breve descrição (ex. Pedido de redefinição de palavra-passe)"
+    "text": "Descrição breve (p. ex. Pedido de redefinição de senha)"
   },
   "incoming.memo_hint": {
-    "text": "Ajude-nos a encaminhar a sua mensagem para a pessoa certa"
+    "text": "Ajuda-nos a encaminhar a tua mensagem para a pessoa certa"
   },
   "incoming.recipient_label": {
     "text": "Enviar para"
   },
   "incoming.recipient_placeholder": {
-    "text": "Selecionar um destinatário"
+    "text": "Seleciona um destinatário"
   },
   "incoming.recipient_aria_label": {
-    "text": "Selecione um destinatário para este segredo"
+    "text": "Seleciona um destinatário para esta mensagem confidencial"
   },
   "incoming.recipient_hint": {
-    "text": "Escolha quem receberá esta mensagem segura"
+    "text": "Escolhe quem vai receber esta mensagem segura"
   },
   "incoming.no_recipients_available": {
-    "text": "Nenhum destinatário disponível"
+    "text": "Não há destinatários disponíveis"
   },
   "incoming.secret_content_label": {
-    "text": "Informações confidenciais"
+    "text": "Informação confidencial"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Cole aqui as informações sensíveis (palavras-passe, chaves, etc.)"
+    "text": "Cola aqui informação sensível (senhas, chaves, etc.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Estas informações serão encriptadas e visualizáveis apenas uma vez"
+    "text": "Esta informação será encriptada e só poderá ser visualizada uma vez"
   },
   "incoming.submit_button": {
-    "text": "Enviar segredo"
+    "text": "Enviar mensagem confidencial"
   },
   "incoming.submit_secret": {
-    "text": "Enviar segredo"
+    "text": "Enviar mensagem confidencial"
   },
   "incoming.submitting_button": {
     "text": "A enviar..."
@@ -72,28 +72,28 @@
     "text": "Enviado com sucesso"
   },
   "incoming.success_description": {
-    "text": "A sua mensagem segura foi entregue."
+    "text": "A tua mensagem segura foi entregue."
   },
   "incoming.reference_id": {
     "text": "ID de referência"
   },
   "incoming.success_info_title": {
-    "text": "O que acontece agora?"
+    "text": "O que acontece a seguir?"
   },
   "incoming.success_info_description": {
-    "text": "O destinatário poderá visualizar este segredo apenas uma vez. Após a visualização, o segredo será permanentemente eliminado."
+    "text": "O destinatário poderá ver esta mensagem confidencial apenas uma vez. Depois de a visualizar, a mensagem confidencial será permanentemente eliminada."
   },
   "incoming.create_another": {
-    "text": "Enviar outro segredo"
+    "text": "Enviar outra mensagem confidencial"
   },
   "incoming.tagline1": {
-    "text": "Partilhe informações sensíveis de forma segura"
+    "text": "Partilha informação sensível de forma segura"
   },
   "incoming.tagline2": {
-    "text": "Mantenha palavras-passe e dados privados fora de e-mails e registos de chat"
+    "text": "Mantém senhas e dados privados fora dos registos de e-mail e chat"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Guarde o seu <a href='{receiptUrl}'>recibo</a> para os seus registos."
+    "text": "Guarda o teu {receipt} para os teus registos."
   },
   "incoming.receipt_link_text": {
     "text": "recibo"

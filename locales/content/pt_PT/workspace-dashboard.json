@@ -1,20 +1,20 @@
 {
   "web.dashboard.title_received": {
-    "text": "Recebido"
+    "text": "Recebidas"
   },
   "web.dashboard.title_not_received": {
-    "text": "Não Recebido"
+    "text": "Não Recebidas"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Sem segredos recentes"
+    "text": "Sem mensagens confidenciais recentes"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Comece por criar o seu primeiro segredo."
+    "text": "Comece por criar a sua primeira mensagem confidencial."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Não foi possível carregar as equipas"
+    "text": "Não foi possível carregar dados"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Ocorreu um problema ao carregar as suas equipas. Por favor, tente novamente."
+    "text": "Ocorreu um problema ao carregar os seus dados. Por favor, tente novamente."
   }
 }

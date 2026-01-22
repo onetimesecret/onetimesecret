@@ -18,7 +18,7 @@
     "text": "Gerir Subscrição"
   },
   "web.account.customer_information": {
-    "text": "Informações do Cliente"
+    "text": "Informação do Cliente"
   },
   "web.account.customer_since": {
     "text": "Cliente desde:"
@@ -30,13 +30,13 @@
     "text": "Região"
   },
   "web.account.account_balance": {
-    "text": "Saldo da conta:"
+    "text": "Saldo:"
   },
   "web.account.default_payment_method": {
     "text": "Método de Pagamento Predefinido"
   },
   "web.account.card_ending": {
-    "text": "terminado em"
+    "text": "terminando em"
   },
   "web.account.subscriptions_title": {
     "text": "Subscrições"
@@ -66,7 +66,7 @@
     "text": "A atualizar..."
   },
   "web.account.timezone": {
-    "text": "Fuso Horário"
+    "text": "Fuso horário"
   },
   "web.account.customer_id": {
     "text": "ID do Cliente"
@@ -81,7 +81,7 @@
     "text": "Eliminar Conta"
   },
   "web.account.api_key": {
-    "text": "Chave de API"
+    "text": "Chave API"
   },
   "web.account.account_type_windowprops_plan_options_name": {
     "text": "Tipo de conta: {0}"
@@ -90,7 +90,7 @@
     "text": "A Sua Conta"
   },
   "web.account.support_details": {
-    "text": "Detalhes do Suporte"
+    "text": "Detalhes de Suporte"
   },
   "web.account.back_to_details": {
     "text": "Voltar aos Detalhes"
@@ -123,19 +123,19 @@
     "text": "permanente e irreversível."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Eliminar a sua conta é"
+    "text": "A eliminação da sua conta é"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "elimine-as antes de continuar"
+    "text": "queime-as antes de continuar"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Quaisquer mensagens secretas que deseje remover,"
+    "text": "Quaisquer mensagens confidenciais que deseje remover,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "As mensagens secretas permanecerão ativas até expirarem."
+    "text": "As mensagens confidenciais permanecerão ativas até expirarem."
   },
   "web.account.please_be_advised": {
-    "text": "Por favor, esteja ciente:"
+    "text": "Por favor, tenha em atenção:"
   },
   "web.account.account_deleted_successfully": {
     "text": "Conta eliminada com sucesso."
@@ -153,10 +153,10 @@
     "text": "Definições"
   },
   "web.settings.description": {
-    "text": "Gira as definições e preferências da sua conta"
+    "text": "Gerir as definições e preferências da sua conta"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Gira as definições e preferências da sua conta"
+    "text": "Gerir as definições e preferências da sua conta"
   },
   "web.settings.general": {
     "text": "Geral"
@@ -186,10 +186,10 @@
     "text": "Selecione o seu idioma preferido"
   },
   "web.settings.security_settings_description": {
-    "text": "Gira a autenticação e segurança da conta"
+    "text": "Gerir autenticação e segurança da conta"
   },
   "web.settings.profile_settings_description": {
-    "text": "Gira as informações da sua conta"
+    "text": "Gerir a informação da sua conta"
   },
   "web.settings.profile.title": {
     "text": "Perfil"
@@ -210,7 +210,7 @@
     "text": "Introduza a sua palavra-passe atual"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "A sua palavra-passe é necessária por motivos de segurança"
+    "text": "A sua palavra-passe é necessária por razões de segurança"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "Será enviado um e-mail de verificação para o novo endereço"
@@ -219,7 +219,7 @@
     "text": "Atualizar E-mail"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Atualize o endereço de e-mail associado à sua conta"
+    "text": "Atualizar o endereço de e-mail associado à sua conta"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Todos os campos são obrigatórios"
@@ -240,28 +240,28 @@
     "text": "Sessões Ativas"
   },
   "web.settings.sessions.description": {
-    "text": "Gira as suas sessões ativas"
+    "text": "Gerir as suas sessões ativas"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Gira as suas sessões ativas"
+    "text": "Gerir as suas sessões ativas"
   },
   "web.settings.password.title": {
     "text": "Palavra-passe"
   },
   "web.settings.password.description": {
-    "text": "Atualize a palavra-passe da sua conta"
+    "text": "Atualizar a palavra-passe da sua conta"
   },
   "web.settings.password.update_account_password": {
-    "text": "Atualize a palavra-passe da sua conta"
+    "text": "Atualizar a palavra-passe da sua conta"
   },
   "web.settings.delete_account.title": {
     "text": "Eliminar Conta"
   },
   "web.settings.delete_account.description": {
-    "text": "Elimine permanentemente a sua conta e todos os dados"
+    "text": "Eliminar permanentemente a sua conta e todos os dados"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Elimine permanentemente a sua conta e todos os dados"
+    "text": "Eliminar permanentemente a sua conta e todos os dados"
   },
   "web.settings.security.security_score": {
     "text": "Pontuação de Segurança"
@@ -288,10 +288,10 @@
     "text": "Ative a autenticação de dois fatores para maior proteção"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Gere códigos de recuperação como backup"
+    "text": "Gere códigos de recuperação como cópia de segurança"
   },
   "web.settings.security.configured": {
-    "text": "Configurado"
+    "text": "Configurada"
   },
   "web.settings.security.change": {
     "text": "Alterar"
@@ -315,7 +315,7 @@
     "text": "Melhores Práticas de Segurança"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Use uma palavra-passe forte e única para a sua conta"
+    "text": "Utilize uma palavra-passe forte e única para a sua conta"
   },
   "web.settings.security.enable_mfa_for_protection": {
     "text": "Ative a autenticação de dois fatores para proteção adicional"
@@ -333,16 +333,16 @@
     "text": "API e Integrações"
   },
   "web.settings.api.description": {
-    "text": "Gira chaves de API e integrações"
+    "text": "Gerir chaves API e integrações"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Gira chaves de API e integrações"
+    "text": "Gerir chaves API e integrações"
   },
   "web.settings.api.documentation": {
-    "text": "Documentação da API"
+    "text": "Documentação API"
   },
   "web.settings.api.documentation_description": {
-    "text": "Aprenda como integrar o Onetime Secret nas suas aplicações"
+    "text": "Saiba como integrar o Onetime Secret nas suas aplicações"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Referência da API REST"
@@ -360,43 +360,43 @@
     "text": "Melhores Práticas de Segurança"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Nunca faça commit de chaves de API no controlo de versões"
+    "text": "Nunca faça commit de chaves API no controlo de versões"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Use variáveis de ambiente para armazenar chaves de API"
+    "text": "Utilize variáveis de ambiente para guardar chaves API"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rotacione chaves de API regularmente por segurança"
+    "text": "Altere as chaves API regularmente para maior segurança"
   },
   "web.settings.api.use_https_only": {
-    "text": "Use sempre HTTPS ao fazer pedidos de API"
+    "text": "Utilize sempre HTTPS ao fazer pedidos à API"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Monitorize o seu uso de API e configure alertas"
+    "text": "Monitorize a utilização da sua API e configure alertas"
   },
   "web.settings.api.important_notice": {
     "text": "Aviso Importante"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Regenerar a sua chave de API invalidará a chave atual. Atualize todas as aplicações que usam a chave antiga."
+    "text": "Regenerar a sua chave API invalidará a chave atual. Atualize todas as aplicações que utilizam a chave antiga."
   },
   "web.settings.privacy.title": {
     "text": "Definições de Privacidade"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Gira as suas preferências de privacidade"
+    "text": "Gerir as suas preferências de privacidade"
   },
   "web.settings.privacy.your_privacy": {
     "text": "A Sua Privacidade"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Não Negociável"
+    "text": "Inegociável"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "Não é uma definição"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Sem análises. Sem rastreamento. Ponto final."
+    "text": "Sem análises. Sem rastreio. Ponto final."
   },
   "web.settings.privacy.explanation": {
     "text": "Isto não é uma definição porque não há nada para ativar ou desativar. A sua privacidade está integrada na forma como operamos."
@@ -405,22 +405,22 @@
     "text": "Definições de Notificações"
   },
   "web.settings.notifications.description": {
-    "text": "Gira como recebe notificações"
+    "text": "Gerir como recebe notificações"
   },
   "web.settings.notifications.error_updating": {
     "text": "Falha ao atualizar preferência de notificação. Por favor, tente novamente."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Notificações de Visualização de Segredos"
+    "text": "Notificações de Visualização de Mensagens Confidenciais"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Receba um e-mail quando alguém visualizar o seu segredo"
+    "text": "Receber um e-mail quando alguém visualiza a sua mensagem confidencial"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Será notificado sempre que um destinatário visualizar um dos seus segredos"
+    "text": "Será notificado sempre que um destinatário visualizar uma das suas mensagens confidenciais"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Os e-mails de notificação incluem apenas o carimbo de data/hora e o ID do segredo. Informações do visualizador nunca são incluídas."
+    "text": "Os e-mails de notificação incluem apenas a data/hora e o ID da mensagem confidencial. A informação do visualizador nunca é incluída."
   },
   "web.settings.caution.title": {
     "text": "Zona de Consideração Cuidadosa"
@@ -432,7 +432,7 @@
     "text": "Exportação de Dados"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exporte os dados da sua conta"
+    "text": "Exportar os dados da sua conta"
   },
   "web.settings.caution.export_description": {
     "text": "Solicite uma cópia completa dos dados da sua conta em formato legível por máquina"
@@ -444,21 +444,36 @@
     "text": "Tempo de Processamento da Exportação"
   },
   "web.settings.caution.export_info_description": {
-    "text": "As exportações são processadas em até 24 horas e enviadas para o seu endereço de e-mail"
+    "text": "As exportações são processadas dentro de 24 horas e enviadas para o seu endereço de e-mail"
   },
   "web.settings.caution.deletion_warning_title": {
     "text": "Eliminar a sua conta irá:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Eliminar permanentemente todas as suas mensagens secretas"
+    "text": "Eliminar permanentemente todas as suas mensagens confidenciais"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Remover todos os metadados e histórico de mensagens secretas"
+    "text": "Remover todos os metadados e histórico de mensagens confidenciais"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Invalidar todas as chaves de API"
+    "text": "Invalidar todas as chaves API"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Esta ação não pode ser revertida"
+    "text": "Esta ação não pode ser desfeita"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "A eliminar..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Voltar ao Painel"
+  },
+  "web.settings.sections.account": {
+    "text": "Conta"
+  },
+  "web.settings.sections.billing": {
+    "text": "Faturação"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avançado"
   }
 }

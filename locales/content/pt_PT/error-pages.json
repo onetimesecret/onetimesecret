@@ -1,30 +1,30 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Por que esta mensagem secreta está indisponível?"
+    "text": "Porque é que esta mensagem confidencial está indisponível?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "As mensagens secretas são projetadas para serem visualizadas apenas uma vez. Este link pode já ter sido acedido, expirado ou eliminado manualmente pelo remetente."
+    "text": "As mensagens confidenciais são concebidas para serem visualizadas apenas uma vez. Este link pode já ter sido acedido, expirado ou eliminado manualmente pelo remetente."
   },
   "web.errors.what_should_i_do_now": {
     "text": "O que devo fazer agora?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "Entre em contacto com a pessoa que lhe enviou este link e peça para criar uma nova mensagem secreta. Informe que não conseguiu aceder à informação original."
+    "text": "Contacta a pessoa que te enviou este link e pede-lhe para criar uma nova mensagem confidencial. Informa-a de que não conseguiste aceder à informação original."
   },
   "web.errors.warning_dismissed": {
     "text": "Aviso dispensado"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Dispensar aviso de truncamento"
+    "text": "Dispensar aviso de truncagem"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Ops! A página que procura não existe ou foi movida."
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Página Não Encontrada"
+    "text": "404 - Página não encontrada"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Página Não Encontrada"
+    "text": "404 - Página não encontrada"
   },
   "web.errors.dismiss_warning": {
     "text": "Dispensar aviso"
@@ -45,7 +45,7 @@
     "text": "{0} Algo correu mal"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Vá partilhar uma mensagem secreta!"
+    "text": "Vai partilhar uma mensagem confidencial!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "A página que procura não existe ou foi movida. Não se preocupe, acontece aos melhores!"

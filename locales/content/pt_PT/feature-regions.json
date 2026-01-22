@@ -1,66 +1,66 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Soberania de Dados e Isolamento Regional"
+    "text": "Soberania de dados e isolamento regional"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Os seus dados residem exclusivamente na região escolhida e nunca são transferidos entre regiões"
+    "text": "Os teus dados residem exclusivamente na tua região escolhida e nunca são transferidos entre regiões"
   },
   "web.regions.separate_environments_explanation": {
     "text": "Cada região opera como um ambiente completamente independente com a sua própria infraestrutura, chaves de encriptação e armazenamento de dados"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Mantemos uma política rigorosa: os dados dos clientes nunca são transferidos entre regiões em nenhuma circunstância"
+    "text": "Mantemos uma política rigorosa: os dados dos clientes nunca são transferidos entre regiões sob nenhuma circunstância"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Importante: Mudar para uma região diferente cria uma nova conta. Os seus dados permanecem na sua região original."
+    "text": "Importante: Mudar para uma região diferente cria uma nova conta. Os teus dados permanecem na tua região original."
   },
   "web.regions.your_region": {
-    "text": "A Sua Região"
+    "text": "A tua região"
   },
   "web.regions.your_current_region": {
-    "text": "A Sua Região Atual"
+    "text": "A tua região atual"
   },
   "web.regions.active": {
-    "text": "Ativa"
+    "text": "Ativo"
   },
   "web.regions.explore_other_regions": {
-    "text": "Explorar outras regiões disponíveis"
+    "text": "Explora outras regiões disponíveis"
   },
   "web.regions.why_it_matters": {
-    "text": "Porque é que a Soberania de Dados Importa"
+    "text": "Por que a soberania de dados é importante"
   },
   "web.regions.trust_title": {
-    "text": "Transparência e Controlo"
+    "text": "Transparência e controlo"
   },
   "web.regions.trust_description": {
-    "text": "Saiba exatamente onde os seus dados residem e que leis governam a sua proteção."
+    "text": "Sabe exatamente onde os teus dados residem e quais leis governam a sua proteção."
   },
   "web.regions.privacy_title": {
-    "text": "Direitos de Privacidade"
+    "text": "Direitos de privacidade"
   },
   "web.regions.privacy_description": {
-    "text": "Garanta que as suas informações pessoais são tratadas de acordo com as leis e regulamentos de privacidade do seu país, prevenindo acesso não autorizado ou uso indevido."
+    "text": "Garante que a tua informação pessoal é tratada de acordo com as leis e regulamentos de privacidade do teu país, prevenindo acesso não autorizado ou uso indevido."
   },
   "web.regions.compliance_title": {
-    "text": "Conformidade Regulatória"
+    "text": "Conformidade regulamentar"
   },
   "web.regions.compliance_description": {
-    "text": "Cumpra os requisitos de proteção de dados regionais GDPR, HIPAA, CCPA e outros"
+    "text": "Cumpre requisitos de proteção de dados RGPD, HIPAA, CCPA e outros regionais"
   },
   "web.regions.performance_title": {
-    "text": "Acesso Mais Rápido"
+    "text": "Acesso mais rápido"
   },
   "web.regions.performance_description": {
-    "text": "Dados armazenados mais perto de si significam menor latência e melhor desempenho."
+    "text": "Dados armazenados mais perto de ti significam menor latência e melhor desempenho."
   },
   "web.regions.regions": {
     "text": "Regiões"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "contacte a nossa equipa de conformidade"
+    "text": "contacta a nossa equipa de conformidade"
   },
   "web.regions.review_our_documentation": {
-    "text": "reveja a nossa documentação"
+    "text": "consulta a nossa documentação"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "A sua conta e dados estão protegidos sob as leis de"
@@ -81,7 +81,7 @@
     "text": "{0} {1}"
   },
   "web.regions.available_regions": {
-    "text": "Regiões Disponíveis"
+    "text": "Regiões disponíveis"
   },
   "web.regions.jurisdiction": {
     "text": "Jurisdição"
@@ -90,13 +90,13 @@
     "text": "Localização do data center: {0}"
   },
   "web.regions.data_region": {
-    "text": "Região de Dados"
+    "text": "Região de dados"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Jurisdição Desconhecida"
+    "text": "Jurisdição desconhecida"
   },
   "web.regions.serving_you_from_the": {
-    "text": "A servi-lo de"
+    "text": "A servir-te a partir de"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "Continuar para {0}"

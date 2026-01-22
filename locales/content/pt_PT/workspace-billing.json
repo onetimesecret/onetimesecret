@@ -6,25 +6,25 @@
     "text": "Ver Planos"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Gestão de equipas requer Identity Plus ou superior"
+    "text": "A gestão de equipas requer Identity Plus ou superior"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Domínios personalizados requerem Identity Plus ou superior"
+    "text": "Os domínios personalizados requerem Identity Plus ou superior"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Acesso à API requer plano Multi-Equipa ou superior"
+    "text": "O acesso à API requer Identity Plus ou superior"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Registos de auditoria requerem plano Multi-Equipa ou superior"
+    "text": "Os registos de auditoria requerem o plano Multi-Equipa ou superior"
   },
   "web.billing.manage_subscription_and_billing": {
     "text": "Gerir a sua subscrição, organizações e definições de faturação"
   },
   "web.billing.overview.title": {
-    "text": "Visão Geral de Faturação"
+    "text": "Visão Geral da Faturação"
   },
   "web.billing.overview.description": {
-    "text": "Ver e gerir os seus detalhes de subscrição e pagamento"
+    "text": "Ver e gerir a sua subscrição e detalhes de pagamento"
   },
   "web.billing.overview.organization_selector": {
     "text": "Selecionar Organização"
@@ -93,7 +93,7 @@
     "text": "Crie uma organização para gerir a sua faturação e subscrição"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Criar Segredos"
+    "text": "Criar Mensagens Confidenciais"
   },
   "web.billing.overview.entitlements.view_receipt": {
     "text": "Ver Recibos"
@@ -120,7 +120,7 @@
     "text": "Página Inicial Personalizada"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Segredos Recebidos"
+    "text": "Mensagens Confidenciais Recebidas"
   },
   "web.billing.overview.entitlements.manage_orgs": {
     "text": "Gerir Organizações"
@@ -144,16 +144,16 @@
     "text": "Acordo de Nível de Serviço"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Não foi possível carregar os detalhes das funcionalidades"
+    "text": "Não foi possível carregar detalhes das funcionalidades"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Nenhuma funcionalidade disponível"
+    "text": "Sem funcionalidades disponíveis"
   },
   "web.billing.plans.title": {
     "text": "Selecionar um Plano"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Escolha o plano que se adequa às suas necessidades"
+    "text": "Escolha o plano que se adapta às suas necessidades"
   },
   "web.billing.plans.subtitle": {
     "text": "Escolha o plano perfeito para a sua organização"
@@ -168,7 +168,7 @@
     "text": "Atualizar"
   },
   "web.billing.plans.downgrade": {
-    "text": "Desatualizar"
+    "text": "Reduzir"
   },
   "web.billing.plans.monthly": {
     "text": "Mensal"
@@ -177,7 +177,7 @@
     "text": "Anual"
   },
   "web.billing.plans.per_month": {
-    "text": "por mês"
+    "text": "/mês"
   },
   "web.billing.plans.save_yearly": {
     "text": "Poupe {percent}% com faturação anual"
@@ -189,7 +189,7 @@
     "text": "Equipa Única"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi-Equipa"
+    "text": "Multi Equipa"
   },
   "web.billing.plans.individual_account": {
     "text": "Conta Individual"
@@ -204,7 +204,7 @@
     "text": "Funcionalidades"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Segredos ilimitados"
+    "text": "Mensagens confidenciais ilimitadas"
   },
   "web.billing.plans.api_access": {
     "text": "Acesso à API"
@@ -219,10 +219,10 @@
     "text": "Contactar Vendas"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Tem perguntas ou precisa de algo personalizado?"
+    "text": "Tem questões ou precisa de algo personalizado?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Gostaríamos de ouvir de si. Diga-nos o que procura."
+    "text": "Adoraríamos ouvir de si. Diga-nos o que procura."
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} equipa | {count} equipas"
@@ -243,7 +243,7 @@
     "text": "Sugerido"
   },
   "web.billing.plans.everything_in": {
-    "text": "Tudo em {plan}, mais:"
+    "text": "Inclui tudo em {plan}"
   },
   "web.billing.plans.no_plans_available": {
     "text": "Nenhum plano {interval} disponível neste momento."
@@ -264,28 +264,28 @@
     "text": "Próxima fatura"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Os seus limites de funcionalidades serão atualizados imediatamente após a alteração do plano."
+    "text": "Os limites das suas funcionalidades serão atualizados imediatamente após a alteração do plano."
   },
   "web.billing.plans.change_failed": {
-    "text": "Falha ao alterar o plano. Por favor, tente novamente."
+    "text": "Falha na alteração do plano. Por favor, tente novamente."
   },
   "web.billing.plans.confirm_upgrade": {
     "text": "Confirmar Atualização"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Confirmar Downgrade"
+    "text": "Confirmar Redução"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Atualizar para"
+    "text": "Atualizar para {plan}?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Fazer downgrade para {plan}?"
+    "text": "Reduzir para {plan}?"
   },
   "web.billing.invoices.title": {
     "text": "Histórico de Faturação"
   },
   "web.billing.invoices.view_history": {
-    "text": "Veja o seu histórico de faturação e transfira faturas"
+    "text": "Ver o seu histórico de faturação e transferir faturas"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Data"
@@ -315,7 +315,7 @@
     "text": "Falha ao carregar faturas"
   },
   "web.billing.notices.org_managed": {
-    "text": "A faturação para esta equipa é gerida por {orgName}"
+    "text": "A faturação é gerida por {orgName}"
   },
   "web.billing.notices.view_org_billing": {
     "text": "Ver faturação da organização"
@@ -339,7 +339,7 @@
     "text": "Inativa"
   },
   "web.billing.subscription.past_due": {
-    "text": "Atrasada"
+    "text": "Em Atraso"
   },
   "web.billing.subscription.canceled": {
     "text": "Cancelada"
@@ -369,7 +369,7 @@
     "text": "por mês"
   },
   "web.billing.full_api_access": {
-    "text": "Acesso completo à API"
+    "text": "Acesso total à API"
   },
   "web.billing.privacy_first_design": {
     "text": "Design com privacidade em primeiro lugar"
@@ -381,7 +381,7 @@
     "text": "Clique neste raio para atualizar para domínios personalizados"
   },
   "web.billing.maybe_later": {
-    "text": "Talvez mais tarde"
+    "text": "Talvez Mais Tarde"
   },
   "web.billing.upgrade_account": {
     "text": "Atualizar conta"
@@ -402,13 +402,13 @@
     "text": "Atualizar para"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Atualizar para secrets.oseudominio.com"
+    "text": "Atualizar para secrets.seudominio.com"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Todos os planos incluem recursos de privacidade e capacidade de partilha ilimitada"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Todos os planos incluem escolha de localidade de dados: {0} regiões"
+    "text": "Todos os planos incluem escolha de localização de dados: {0} regiões"
   },
   "web.billing.get_started": {
     "text": "Começar"
@@ -426,9 +426,198 @@
     "text": "Proteja a sua marca e construa a confiança do cliente com links do seu domínio. Perfeito para empresas que valorizam privacidade e profissionalismo."
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Links Seguros, Conexões Mais Fortes"
+    "text": "Links Seguros, Ligações Mais Fortes"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Nível Identity não encontrado nos níveis de produto"
+    "text": "Escalão Identity não encontrado nos escalões do produto"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Cancelar subscrição"
+  },
+  "web.billing.cancel.title": {
+    "text": "Cancelar Subscrição"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Tem a certeza de que deseja cancelar a sua subscrição {plan}?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "O que acontece quando cancela:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Manterá acesso a todas as funcionalidades até {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Manterá acesso até ao final do seu período de faturação atual"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Não será cobrado novamente"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "A sua conta reverterá para o plano gratuito"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Manter Subscrição"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Cancelar Subscrição"
+  },
+  "web.billing.cancel.success": {
+    "text": "A sua subscrição foi cancelada. Manterá acesso até ao final do seu período de faturação."
+  },
+  "web.billing.cancel.error": {
+    "text": "Falha ao cancelar subscrição. Por favor, tente novamente."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Cancelamento de Subscrição Agendado"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "A sua subscrição permanecerá ativa até {date}. Continuará a ter acesso total a todas as funcionalidades até lá."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Mudou de ideias? Pode reativar a sua subscrição a qualquer momento antes da data de cancelamento."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Criar e Partilhar Mensagens Confidenciais"
+  },
+  "web.billing.features.api_access": {
+    "text": "Acesso à API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Domínios Personalizados"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 Domínio Personalizado"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Domínios Personalizados Ilimitados"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Marca Personalizada"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Página Inicial Personalizada"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Gestão de Equipas"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Gestão de Membros"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Registos de Auditoria"
+  },
+  "web.billing.features.sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Suporte Prioritário"
+  },
+  "web.billing.features.sla": {
+    "text": "Acordo de Nível de Serviço"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Faturação Centralizada"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Trilho de Auditoria"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Fluxo de Atividade"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Fluxos de Trabalho de Transferência"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "Retenção de Mensagens Confidenciais de 30 dias"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Mensagens Confidenciais na Página Inicial"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Mensagens Confidenciais Recebidas"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Até 5 membros da equipa"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Até 10 membros da equipa"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Até 25 membros da equipa"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Até 50 membros da equipa"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Membros da equipa ilimitados"
+  },
+  "web.billing.features.notifications": {
+    "text": "Notificações por E-mail"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "Regras de Acesso por IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Marca do Espaço de Trabalho"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Infraestrutura Dedicada"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Fluxos de Trabalho Partilhados"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Faturação para esta organização"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "O seu plano foi atualizado com sucesso"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "O seu novo plano está agora ativo. Obrigado pela sua compra."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Contacto de Faturação"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Mensagens Confidenciais na Página Inicial"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Notificações por E-mail"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Regras de Acesso por IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Marca do Espaço de Trabalho"
+  },
+  "web.billing.plans.due_today": {
+    "text": "A pagar hoje:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Próxima faturação ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Como o seu crédito é aplicado:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Montante da próxima fatura:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Crédito aplicado:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Montante devido na próxima faturação:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Crédito de conta restante:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Aplicado a faturas futuras"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Utilização de Equipas"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} de {limit} equipas"
   }
 }
