@@ -3,7 +3,7 @@
     "text": "Отзыв, сгенерированный ИИ"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "АИ-сгенерированный контент для демонстрации. \nНе от реального человека или компании."
+    "text": "Контент, сгенерированный ИИ для демонстрации. Не от реального человека или компании."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -18,19 +18,19 @@
     "text": "{0}:"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Что говорят о нас ведущие ИИ"
+    "text": "Что ведущие ИИ говорят о нас"
   },
   "web.testimonials.ai_generated_testimonials": {
     "text": "Отзывы, сгенерированные ИИ"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Эта цитата была создана"
+    "text": "Эта цитата была сгенерирована"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "Это было основано на содержании страницы и не представляет реального человека или компанию."
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Искусственная обратная связь"
+    "text": "Искусственный отзыв"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
     "text": "Это содержимое создано ИИ на основе содержимого этой страницы и не представляет реального человека или компанию."

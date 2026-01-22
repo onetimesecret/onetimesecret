@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Организация"
+    "text": "Организации"
   },
   "web.organizations.organization": {
     "text": "Организация"
@@ -9,10 +9,10 @@
     "text": "Организации"
   },
   "web.organizations.organizations_description": {
-    "text": "Управление вашими организациями"
+    "text": "Управление организациями"
   },
   "web.organizations.my_organizations": {
-    "text": "Мои организации"
+    "text": "Организации"
   },
   "web.organizations.manage_organizations": {
     "text": "Управление организациями"
@@ -21,13 +21,13 @@
     "text": "Новая организация"
   },
   "web.organizations.no_organizations": {
-    "text": "Организаций пока нет"
+    "text": "Пока нет организаций"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Организации позволяют управлять несколькими командами с единым выставлением счётов и администрированием. Начните с создания вашей первой организации."
+    "text": "Организации обеспечивают единую оплату и администрирование. Начните с создания первой организации."
   },
   "web.organizations.no_description": {
-    "text": "Описание не предоставлено"
+    "text": "Описание не указано"
   },
   "web.organizations.default": {
     "text": "По умолчанию"
@@ -39,7 +39,7 @@
     "text": "Создать первую организацию"
   },
   "web.organizations.create_organization_description": {
-    "text": "Создайте новую организацию для группировки ваших команд"
+    "text": "Создать новую организацию"
   },
   "web.organizations.create": {
     "text": "Создать"
@@ -51,7 +51,7 @@
     "text": "Название организации"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "например Acme Corporation"
+    "text": "напр. ООО «Компания»"
   },
   "web.organizations.display_name": {
     "text": "Название организации"
@@ -63,16 +63,16 @@
     "text": "Для чего эта организация?"
   },
   "web.organizations.contact_email": {
-    "text": "Электронная почта для счётов"
+    "text": "Почта для оплаты"
   },
   "web.organizations.contact_email_help": {
-    "text": "Основной контакт для счётов и административных уведомлений"
+    "text": "Основной контакт для уведомлений об оплате и администрировании"
   },
   "web.organizations.select_organization": {
     "text": "Выберите организацию"
   },
   "web.organizations.switcher_locked": {
-    "text": "Переключение организации недоступно на этой странице"
+    "text": "Переключение организаций недоступно на этой странице"
   },
   "web.organizations.not_found": {
     "text": "Организация не найдена"
@@ -99,13 +99,13 @@
     "text": "Настройки организации"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Обновите название и описание вашей организации"
+    "text": "Обновите название и описание организации"
   },
   "web.organizations.general_settings": {
     "text": "Общие настройки"
   },
   "web.organizations.billing_settings": {
-    "text": "Счета и подписка"
+    "text": "Оплата и подписка"
   },
   "web.organizations.save_changes": {
     "text": "Сохранить изменения"
@@ -117,34 +117,34 @@
     "text": "Не удалось обновить организацию"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Интеграция со счётами скоро появится"
+    "text": "Интеграция оплаты скоро появится"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Единое выставление счётов и управление подпиской для всех команд в этой организации будет доступно в будущем выпуске."
+    "text": "Единое управление оплатой и подписками будет доступно в будущем выпуске."
   },
   "web.organizations.about_title": {
     "text": "Об организациях"
   },
   "web.organizations.about_description": {
-    "text": "Организации обеспечивают единое выставление счётов и администрирование для нескольких команд. Они необязательны - команды могут существовать независимо или быть сгруппированы под организацией для централизованного управления."
+    "text": "Организации обеспечивают единую оплату и администрирование для централизованного управления."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Управление вашей организацией"
+    "text": "Управление организацией"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Обновите название вашей компании и детали организации здесь. Эта информация помогает персонализировать вашу учётную запись и может быть использована для функций брендинга в будущем."
+    "text": "Обновите название компании и детали организации здесь. Эта информация помогает персонализировать Ваш аккаунт и может использоваться для функций брендинга в будущем."
   },
   "web.organizations.getting_started_title": {
     "text": "Начало работы с организациями"
   },
   "web.organizations.getting_started_description": {
-    "text": "Создайте вашу первую организацию для управления информацией вашей компании и подготовки к будущему сотрудничеству в команде и функциям брендинга."
+    "text": "Создайте первую организацию для управления информацией о компании и подготовки к будущим функциям брендинга."
   },
   "web.organizations.page_description": {
-    "text": "Управление вашими организациями и участниками команды"
+    "text": "Управление организациями и участниками команды"
   },
   "web.organizations.tabs.general": {
-    "text": "Общие"
+    "text": "Настройки"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Брендинг компании"
@@ -153,7 +153,7 @@
     "text": "Команда"
   },
   "web.organizations.tabs.billing": {
-    "text": "Счета"
+    "text": "Оплата"
   },
   "web.organizations.danger_zone": {
     "text": "Опасная зона"
@@ -162,16 +162,16 @@
     "text": "Удалить организацию"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Это безвозвратно удалит организацию и все связанные команды. Это действие не может быть отменено."
+    "text": "Это безвозвратно удалит организацию. Это действие нельзя отменить."
   },
   "web.organizations.delete": {
     "text": "Удалить"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Удалить организацию"
+    "text": "Удаление организации"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Вы уверены, что хотите удалить {name}? Это действие не может быть отменено."
+    "text": "Вы уверены, что хотите удалить {name}? Это действие нельзя отменить."
   },
   "web.organizations.delete_error": {
     "text": "Не удалось удалить организацию"
@@ -189,16 +189,16 @@
     "text": "Участник"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "участник"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "участников"
   },
   "web.organizations.members.name": {
     "text": "Имя"
   },
   "web.organizations.members.email": {
-    "text": "Электронная почта"
+    "text": "Почта"
   },
   "web.organizations.members.role": {
     "text": "Роль"
@@ -210,7 +210,7 @@
     "text": "Действия"
   },
   "web.organizations.members.no_members": {
-    "text": "Участники не найдены"
+    "text": "Пока нет участников. Пригласите участников команды для начала."
   },
   "web.organizations.members.no_members_description": {
     "text": "В этой организации пока нет участников."
@@ -243,7 +243,7 @@
     "text": "Вы не можете удалить владельца организации"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "У вас нет прав для управления участниками"
+    "text": "У Вас нет прав для управления участниками"
   },
   "web.organizations.members.roles.owner": {
     "text": "Владелец"
@@ -282,7 +282,7 @@
     "text": "Адрес электронной почты"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "участник{'@'}пример.com"
+    "text": "member{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Роль"
@@ -306,7 +306,7 @@
     "text": "Приглашение успешно отправлено повторно"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Не удалось отправить приглашение повторно"
+    "text": "Не удалось повторно отправить приглашение"
   },
   "web.organizations.invitations.revoke_success": {
     "text": "Приглашение успешно отозвано"
@@ -318,7 +318,7 @@
     "text": "Приглашён"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Дата приглашения"
+    "text": "Приглашён"
   },
   "web.organizations.invitations.expires_at": {
     "text": "Истекает"
@@ -357,10 +357,10 @@
     "text": "Детали приглашения"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Вас пригласили присоединиться"
+    "text": "Вас пригласили присоединиться к"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Вас пригласили как"
+    "text": "Вас пригласили в роли"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Приглашение успешно принято"
@@ -375,15 +375,60 @@
     "text": "Не удалось отклонить приглашение"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Это приглашение истекло"
+    "text": "Срок действия этого приглашения истёк"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Недействительное или истекшее приглашение"
+    "text": "Недействительное или истёкшее приглашение"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Пожалуйста, войдите, чтобы принять это приглашение"
+    "text": "Войдите, чтобы принять это приглашение"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Загрузка деталей приглашения"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Почта для оплаты успешно обновлена"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Почту для оплаты можно изменить на странице обзора оплаты"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} участник | {count} участника | {count} участников"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} домен | {count} домена | {count} доменов"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Обновите план, чтобы приглашать участников команды"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Приглашения участников команды требуют плана с управлением командой. Обновите план, чтобы добавить сотрудников в организацию."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Неверный аккаунт"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Это приглашение было отправлено на {invitedEmail}, но Вы вошли как {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Войти с другим аккаунтом"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "Осталось {days} дн."
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "Осталось {hours} ч."
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Скоро истечёт"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Подписка"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Домены"
   }
 }

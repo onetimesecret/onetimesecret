@@ -24,13 +24,13 @@
     "text": "Настройки"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Редактирование системных параметров. Изменения применяются сразу после сохранения."
+    "text": "Редактирование системных настроек. Изменения применяются сразу после сохранения."
   },
   "web.colonel.invalidJson": {
     "text": "Некорректный JSON в разделе {section}"
   },
   "web.colonel.validationError": {
-    "text": "Ошибка проверки"
+    "text": "Ошибка валидации"
   },
   "web.colonel.errorFetchingConfig": {
     "text": "Ошибка загрузки конфигурации"
@@ -39,19 +39,19 @@
     "text": "Ошибка сохранения конфигурации"
   },
   "web.colonel.configSaved": {
-    "text": "Конфигурация сохранена"
+    "text": "Конфигурация успешно сохранена"
   },
   "web.colonel.mustBeObject": {
-    "text": "Конфигурация должна быть объектом JSON"
+    "text": "Конфигурация должна быть JSON-объектом"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Ошибки проверки в нескольких разделах: {sections}"
+    "text": "Несколько разделов содержат ошибки валидации: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "Раздел {section} содержит ошибки: {error}"
+    "text": "{section} содержит ошибки валидации: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "Раздел {section} сохранён"
+    "text": "{section} успешно сохранён"
   },
   "web.colonel.saveSection": {
     "text": "Сохранить {section}"
@@ -63,10 +63,10 @@
     "text": "Несохранённые изменения"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Ошибка проверки схемы: {message} ({path})"
+    "text": "Ошибка валидации схемы: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Неизвестная ошибка проверки: {error}"
+    "text": "Неизвестная ошибка валидации: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
     "text": "Раздел {section} не содержит настроенных значений"
@@ -75,19 +75,19 @@
     "text": "Панель управления"
   },
   "web.colonel.admin": {
-    "text": "Администрирование"
+    "text": "Администратор"
   },
   "web.colonel.activity": {
     "text": "Активность"
   },
   "web.colonel.accounts": {
-    "text": "Учётные записи"
+    "text": "Аккаунты"
   },
   "web.colonel.users": {
     "text": "Пользователи"
   },
   "web.colonel.usersDescription": {
-    "text": "Управление учётными записями и правами доступа"
+    "text": "Управление аккаунтами пользователей и правами доступа"
   },
   "web.colonel.domains": {
     "text": "Домены"
@@ -102,7 +102,7 @@
     "text": "Добро пожаловать в Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Панель управления OneTimeSecret"
+    "text": "Административная панель управления OneTimeSecret"
   },
   "web.colonel.quickActions": {
     "text": "Быстрые действия"
@@ -111,16 +111,16 @@
     "text": "Недавняя активность"
   },
   "web.colonel.viewAll": {
-    "text": "Показать всё"
+    "text": "Просмотреть всё"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Данные об активности будут отображены здесь"
+    "text": "Здесь будут отображаться данные об активности"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Всего секретов"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Активные пользователи"
+    "text": "Активных пользователей"
   },
   "web.colonel.stats.secretsToday": {
     "text": "Секретов сегодня"
@@ -141,25 +141,25 @@
     "text": "Состояние системы"
   },
   "web.colonel.stats.healthy": {
-    "text": "Исправна"
+    "text": "Исправно"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Просмотр активности"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Мониторинг системной активности и использования"
+    "text": "Мониторинг активности системы и использования"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "Управление учётными записями"
+    "text": "Управление аккаунтами"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Администрирование учётных записей"
+    "text": "Администрирование аккаунтов пользователей"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Настройка доменов"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Параметры доменов и DNS"
+    "text": "Настройки доменов и DNS"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Системные настройки"
@@ -177,10 +177,10 @@
     "text": "Очередь"
   },
   "web.colonel.pendingMessages": {
-    "text": "Ожидающие"
+    "text": "В ожидании"
   },
   "web.colonel.consumers": {
-    "text": "Обработчики"
+    "text": "Потребители"
   },
   "web.colonel.processingRate": {
     "text": "Скорость/сек"
@@ -189,10 +189,10 @@
     "text": "Статус подключения"
   },
   "web.colonel.workerHealth": {
-    "text": "Состояние обработчиков"
+    "text": "Состояние воркеров"
   },
   "web.colonel.activeWorkers": {
-    "text": "активных обработчиков"
+    "text": "активных воркеров"
   },
   "web.colonel.noQueueData": {
     "text": "Данные очереди недоступны"
@@ -201,7 +201,7 @@
     "text": "Загрузка данных очереди..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Режим тестирования тарифа"
+    "text": "Режим тестового плана"
   },
   "web.colonel.testingAsPlan": {
     "text": "Тестирование как {planName}"
@@ -210,16 +210,16 @@
     "text": "Нажмите для сброса"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Выберите тариф для тестирования"
+    "text": "Выберите план для тестирования"
   },
   "web.colonel.resetToActual": {
-    "text": "Сбросить к текущему тарифу"
+    "text": "Сбросить к фактическому плану"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Текущий тариф"
+    "text": "Текущий план"
   },
   "web.colonel.availablePlans": {
-    "text": "Доступные тарифы"
+    "text": "Доступные планы"
   },
   "web.colonel.activateTestMode": {
     "text": "Активировать тестовый режим"
@@ -228,10 +228,10 @@
     "text": "Тестовый режим активен"
   },
   "web.colonel.testModeDescription": {
-    "text": "Тестируйте приложение с различными правами тарифов. Изменения временные и влияют только на вашу сессию."
+    "text": "Тестируйте приложение с разными правами планов. Изменения временные и влияют только на Вашу сессию."
   },
   "web.colonel.warningTestMode": {
-    "text": "Вы тестируете с правами {planName} (временное переопределение сессии)."
+    "text": "Вы тестируете с правами плана {planName} (временное переопределение сессии)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Когда вы отправите отзыв, мы увидим:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Отправка..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Заблокированные IP"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Управление списком заблокированных IP-адресов"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Пользовательские домены"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Управление пользовательскими доменами и брендингом"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Отправить отзыв"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Отправка..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Когда Вы отправите отзыв, мы увидим:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Организации"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Мониторинг синхронизации оплаты организаций"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Мониторинг состояния оплаты"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} организаций"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} требуют внимания"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} неизвестно"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Организации не найдены"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Исследовать"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Проверка..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Аккаунт"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Оплата"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Статус"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Использование"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Создано"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Подробности"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Владелец"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "План"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Участники"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Домены"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Подписка"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Рабочее пространство по умолчанию"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Есть оплата"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Клиент"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Подписка"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID организации"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Статус синхронизации"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Подписка"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Все"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Возможно устарело"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Неизвестно"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Синхронизировано"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Активно"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Пробный период"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Просрочено"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Отменено"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Исследование не удалось"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Результат исследования"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Проверено и синхронизировано"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Обнаружено несоответствие"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Невозможно сравнить"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Детали подписки Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Статус"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Продукт"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Определённый план"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID цены"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Локально"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Администрирование оплаты организаций"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Управление организациями и мониторинг синхронизации оплаты ({total} всего)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Организации не найдены"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "возможно устарело"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Устарело"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Неизвестно"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "активно"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} участников"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} доменов"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Секреты"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Просмотр и управление всеми секретами"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Система"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Системные настройки, базы данных и конфигурация"
+  },
+  "web.colonel.titles.index": {
+    "text": "Администрирование"
+  },
+  "web.colonel.titles.users": {
+    "text": "Управление пользователями"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Управление секретами"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Пользовательские домены"
+  },
+  "web.colonel.titles.system": {
+    "text": "Система"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Основная база данных"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "База данных аутентификации"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Заблокированные IP"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Экспорт использования"
+  },
+  "web.colonel.titles.info": {
+    "text": "Системная информация"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Организации"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Экспорт использования"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Экспорт данных об использовании и статистики"
   }
 }

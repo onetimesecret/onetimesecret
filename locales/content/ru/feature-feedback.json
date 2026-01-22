@@ -3,16 +3,16 @@
     "text": "Ваш отзыв"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Приветствуется любая обратная связь"
+    "text": "Приветствуются любые отзывы!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Помогите нам улучшиться"
+    "text": "Помогите нам стать лучше"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Закрыть модальное окно обратной связи"
+    "text": "Закрыть окно отзыва"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Поделитесь своим отзывом"
+    "text": "Поделитесь отзывом"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Содержимое справки появится здесь."
+    "text": "Здесь будет справочная информация."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Спасибо за помощь в улучшении Onetime Secret. Это очень важно."
@@ -36,12 +36,18 @@
     "text": "Заметка от Delano, основателя Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Открыть форму обратной связи"
+    "text": "Открыть форму отзыва"
   },
   "web.feedback.enter_your_feedback": {
     "text": "Введите Ваш отзыв"
   },
   "web.feedback.send_feedback": {
     "text": "Отправить отзыв"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Я читаю каждый отзыв, который приходит сюда. Так я определяю, на что тратить время."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Если что-то не так или у Вас есть идеи о том, как это должно работать, здесь самое подходящее место."
   }
 }

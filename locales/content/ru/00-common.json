@@ -8,7 +8,7 @@
     "text": "Безопасные ссылки, которые работают только один раз"
   },
   "web.COMMON.powered_by": {
-    "text": "При поддержке"
+    "text": "На основе"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/ru"
@@ -20,22 +20,22 @@
     "text": "Генерация пароля отключена, когда форма заполнена"
   },
   "web.COMMON.email_placeholder": {
-    "text": "например tom{'@'}myspace.com"
+    "text": "напр. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Введите ваш пароль"
+    "text": "Введите Ваш пароль"
   },
   "web.COMMON.custom_domains_title": {
     "text": "Пользовательские домены"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Укрепляйте связи и завоёвывайте доверие с помощью фирменных ссылок на секреты."
+    "text": "Укрепляйте связи и доверие с помощью собственных брендированных секретных ссылок."
   },
   "web.COMMON.get_started_button": {
     "text": "Начать"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Подтвердите ваш пароль"
+    "text": "Подтвердите Ваш пароль"
   },
   "web.COMMON.header_settings": {
     "text": "Настройки"
@@ -50,25 +50,25 @@
     "text": "Обработка..."
   },
   "web.COMMON.description": {
-    "text": "Не пересылайте конфиденциальную информацию через беседы и эл-почту. Поделитесь ссылкой на тайну, доступную только один раз."
+    "text": "Держите конфиденциальную информацию вне логов чатов и электронной почты. Создайте секретную ссылку, доступную только один раз."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Неверная кодовая фраза"
   },
   "web.COMMON.keywords": {
-    "text": "тайна,генератор паролей,поделиться тайной,одноразовый"
+    "text": "секрет,генератор паролей,поделиться секретом,одноразовый"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Создать ссылку на тайну"
+    "text": "Создать секретную ссылку"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Или сгенерировать одноразовый пароль"
+    "text": "Или сгенерировать случайный пароль"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Настройки приватности"
+    "text": "Параметры конфиденциальности"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Пароль"
+    "text": "Кодовая фраза"
   },
   "web.COMMON.secret_passphrase_hint": {
     "text": "Слово или фраза, которую сложно угадать"
@@ -77,100 +77,100 @@
     "text": "Адрес получателя"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Введите тайное содержимое сюда..."
+    "text": "Секретное содержимое..."
   },
   "web.COMMON.header_create_account": {
-    "text": "Создать учётную запись"
+    "text": "Создать аккаунт"
   },
   "web.COMMON.header_about": {
-    "text": "О нас"
+    "text": "О сервисе"
   },
   "web.COMMON.header_sign_in": {
     "text": "Войти"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Учётная запись"
+    "text": "Аккаунт"
   },
   "web.COMMON.header_logout": {
     "text": "Выйти"
   },
   "web.COMMON.secret": {
-    "text": "Секрет"
+    "text": "Секрет | Секрета | Секретов"
   },
   "web.COMMON.recent": {
     "text": "Недавние"
   },
   "web.COMMON.received": {
-    "text": "Получено"
+    "text": "Получен"
   },
   "web.COMMON.burn": {
-    "text": "Удалить окончательно"
+    "text": "Уничтожить"
   },
   "web.COMMON.burned": {
-    "text": "Окончательно удалено"
+    "text": "Уничтожен"
   },
   "web.COMMON.expires_in": {
     "text": "Истекает через"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Окончательно удалить этот секрет"
+    "text": "Уничтожить секрет"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Окончательное удаление секрета удалит его до прочтения (нажмите здесь, чтобы подтвердить)"
+    "text": "Уничтожение секрета удалит его до прочтения (нажмите для подтверждения)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Окончательное удаление секрета не может быть отменено"
+    "text": "Уничтожение секрета необратимо"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Проверьте вашу эл-почту"
+    "text": "Проверьте почту"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Щёлкните для продолжения →"
+    "text": "Нажмите, чтобы раскрыть →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Продолжить, чтобы подтвердить вашу учётную запись:"
+    "text": "Продолжите, чтобы подтвердить аккаунт:"
   },
   "web.COMMON.error_secret": {
-    "text": "Вы не предоставили ничего, чем можно поделиться"
+    "text": "Вы не предоставили данные для отправки"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Перепроверить этот пароль"
+    "text": "Проверьте кодовую фразу ещё раз"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Введите пароль"
+    "text": "Введите кодовую фразу"
   },
   "web.COMMON.view_secret": {
-    "text": "Посмотреть сообщение"
+    "text": "Просмотреть секрет"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "внимание: оно будет показано только раз."
+    "text": "Внимание: секрет будет показан только один раз."
   },
   "web.COMMON.warning": {
-    "text": "Внимание"
+    "text": "Предупреждение"
   },
   "web.COMMON.oops": {
-    "text": "Ой!"
+    "text": "Упс!"
   },
   "web.COMMON.error": {
     "text": "Ошибка"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова."
+    "text": "Произошла непредвиденная ошибка. Попробуйте ещё раз."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Это сообщение было урезано, так как оно закончилось"
+    "text": "Сообщение было сокращено"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Подпишитесь для дополнительных возможностей"
+    "text": "Зарегистрируйтесь для большего"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Войдите в свою учётную запись"
+    "text": "Войдите в аккаунт"
   },
   "web.COMMON.sent_to": {
-    "text": "Отправить: "
+    "text": "Отправлено:"
   },
   "web.COMMON.field_email": {
-    "text": "эл-почта"
+    "text": "Электронная почта"
   },
   "web.COMMON.field_password": {
     "text": "Пароль"
@@ -179,28 +179,28 @@
     "text": "Подтвердите пароль"
   },
   "web.COMMON.button_create_account": {
-    "text": "Создать учётную запись"
+    "text": "Создать аккаунт"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Поделиться тайной"
+    "text": "Поделиться секретом"
   },
   "web.COMMON.title_home": {
-    "text": "Домашняя"
+    "text": "Главная"
   },
   "web.COMMON.word_none": {
-    "text": "Ничего"
+    "text": "Нет"
   },
   "web.COMMON.word_burned": {
-    "text": "окончательно удалено"
+    "text": "уничтожен"
   },
   "web.COMMON.word_received": {
-    "text": "получено"
+    "text": "получен"
   },
   "web.COMMON.word_confirm": {
     "text": "Подтвердить"
   },
   "web.COMMON.word_cancel": {
-    "text": "Отменить"
+    "text": "Отмена"
   },
   "web.COMMON.word_continue": {
     "text": "Продолжить"
@@ -212,52 +212,52 @@
     "text": "Назад"
   },
   "web.COMMON.feedback_text": {
-    "text": "Есть вопрос или комментарий?"
+    "text": "Поделитесь своими мыслями, идеями или впечатлениями..."
   },
   "web.COMMON.button_send_feedback": {
     "text": "Отправить отзыв"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Подтвреждение было отправлено на"
+    "text": "Письмо для подтверждения отправлено на"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Учётная запись создана. Пожалуйста, войдите."
+    "text": "Аккаунт создан. Пожалуйста, войдите."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Если учётная запись с этим адресом существует, вы получите письмо для подтверждения."
+    "text": "Если аккаунт с этим адресом существует, Вы получите письмо для подтверждения."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Окончательно удалить этот секрет"
+    "text": "Уничтожить секрет навсегда"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Пожалуйста, подтвердите"
+    "text": "Подтвердите действие"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Вы уверены, что хотите окончательно удалить этот секрет? Это действие не может быть отменено."
+    "text": "Вы уверены, что хотите уничтожить этот секрет? Это действие нельзя отменить."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Да, окончательно удалить этот секрет"
+    "text": "Да, уничтожить секрет"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Окончательное удаление секрета удалит его до того, как он будет получен."
+    "text": "Уничтожение секрета удалит его до того, как он будет получен."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Для безопасности делитесь этой ссылкой отдельно от других деталей."
+    "text": "В целях безопасности передавайте эту ссылку отдельно от других данных."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Скопировано в буфер обмена"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Создать входящий запрос"
+    "text": "Создать входящий"
   },
   "web.COMMON.faq_title": {
-    "text": "Часто задаваемые вопросы"
+    "text": "Вопросы и ответы"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Подтверждение недействительно"
+    "text": "Проверка недействительна"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Невозможно подтвердить учётную запись, когда вы уже вошли в систему"
+    "text": "Невозможно подтвердить аккаунт, когда Вы уже вошли в систему"
   },
   "web.COMMON.show_password": {
     "text": "Показать пароль"
@@ -278,7 +278,7 @@
     "text": "Это поле обязательно для заполнения"
   },
   "web.COMMON.form_processing": {
-    "text": "Обработка вашего запроса"
+    "text": "Обработка запроса"
   },
   "web.COMMON.remember_me_description": {
     "text": "Оставаться в системе 30 дней"
@@ -296,7 +296,7 @@
     "text": "Опасная зона"
   },
   "web.COMMON.caution_zone": {
-    "text": "Зона внимательного рассмотрения"
+    "text": "Зона осторожных решений"
   },
   "web.COMMON.user_menu": {
     "text": "Меню пользователя"
@@ -332,7 +332,7 @@
     "text": "Escape"
   },
   "web.COMMON.active": {
-    "text": "Активный"
+    "text": "Активен"
   },
   "web.COMMON.preview": {
     "text": "Предпросмотр"
@@ -341,7 +341,7 @@
     "text": "Удалить"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Нажмите ESC для закрытия"
+    "text": "Нажмите ESC, чтобы закрыть"
   },
   "web.COMMON.enter": {
     "text": "Ввод"
@@ -377,13 +377,13 @@
     "text": "Ежегодно"
   },
   "web.COMMON.go_on_then": {
-    "text": "Тогда продолжайте."
+    "text": "Продолжим."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Загрузка..."
   },
   "web.COMMON.not_received": {
-    "text": "НЕ ПОЛУЧЕНО"
+    "text": "НЕ ПОЛУЧЕН"
   },
   "web.COMMON.confirm_password": {
     "text": "Подтвердите пароль"
@@ -398,7 +398,7 @@
     "text": "переключить"
   },
   "web.COMMON.features": {
-    "text": "Функции"
+    "text": "Возможности"
   },
   "web.COMMON.not_found": {
     "text": "Не найдено"
@@ -419,7 +419,7 @@
     "text": "Другое"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(минимальная ширина: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -431,7 +431,7 @@
     "text": "Mac"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Адрес электронной почты скопирован в буфер обмена"
+    "text": "Адрес электронной почты скопирован в буфер обмена!"
   },
   "web.COMMON.value": {
     "text": "Значение"
@@ -443,10 +443,10 @@
     "text": "Тип"
   },
   "web.COMMON.previous": {
-    "text": "Предыдущий"
+    "text": "Назад"
   },
   "web.COMMON.next": {
-    "text": "Следующий"
+    "text": "Далее"
   },
   "web.COMMON.password_strength": {
     "text": "Надёжность пароля:"
@@ -455,34 +455,34 @@
     "text": "Отлично"
   },
   "web.COMMON.pretty_good": {
-    "text": "Довольно хорошо"
+    "text": "Неплохо"
   },
   "web.COMMON.fair": {
-    "text": "Удовлетворительно"
+    "text": "Приемлемо"
   },
   "web.COMMON.meh": {
     "text": "Так себе"
   },
   "web.COMMON.not_great": {
-    "text": "Не очень"
+    "text": "Неважно"
   },
   "web.COMMON.open_options": {
     "text": "Открыть параметры"
   },
   "web.COMMON.inactive": {
-    "text": "Неактивный"
+    "text": "Неактивен"
   },
   "web.COMMON.an_error_occurred": {
     "text": "Произошла ошибка"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Скопировать секрет в буфер обмена"
+    "text": "Копировать секрет в буфер обмена"
   },
   "web.COMMON.secret_copied_to_clipboard": {
     "text": "Секрет скопирован в буфер обмена"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Внимательно проверьте эту кодовую фразу"
+    "text": "Проверьте кодовую фразу ещё раз"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "Нажмите кнопку копирования ниже."
@@ -509,7 +509,7 @@
     "text": "Статистика"
   },
   "web.LABELS.timeline": {
-    "text": "Временная шкала"
+    "text": "Хронология"
   },
   "web.LABELS.lifespan": {
     "text": "Срок действия"
@@ -524,7 +524,7 @@
     "text": "Загрузка..."
   },
   "web.LABELS.cancel": {
-    "text": "Отменить"
+    "text": "Отмена"
   },
   "web.LABELS.saving": {
     "text": "Сохранение..."
@@ -569,10 +569,10 @@
     "text": "Поделиться"
   },
   "web.LABELS.secret_link": {
-    "text": "Ссылка на секрет"
+    "text": "Секретная ссылка"
   },
   "web.LABELS.dismiss": {
-    "text": "Закрыть"
+    "text": "Скрыть"
   },
   "web.LABELS.security_details": {
     "text": "Детали безопасности"
@@ -590,10 +590,10 @@
     "text": "Просмотры"
   },
   "web.LABELS.times_viewed": {
-    "text": "просмотров"
+    "text": "раз просмотрено"
   },
   "web.LABELS.view_progress": {
-    "text": "Прогресс просмотра"
+    "text": "Просмотр прогресса"
   },
   "web.LABELS.help_section": {
     "text": "Раздел помощи"
@@ -620,19 +620,19 @@
     "text": "Перезагрузить"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Ссылки на секреты, созданные в этом сеансе"
+    "text": "Секретные ссылки, созданные в этой сессии"
   },
   "web.LABELS.create_link_short": {
     "text": "Создать ссылку"
   },
   "web.LABELS.create_link": {
-    "text": "Создать ссылку на секрет"
+    "text": "Создать секретную ссылку"
   },
   "web.LABELS.create_request_short": {
     "text": "Создать запрос"
   },
   "web.LABELS.create_request": {
-    "text": "Создать ссылку для запроса"
+    "text": "Создать ссылку-запрос"
   },
   "web.LABELS.related_settings": {
     "text": "Связанные настройки"
@@ -647,25 +647,25 @@
     "text": "Новый"
   },
   "web.STATUS.unread": {
-    "text": "Непрочитано"
+    "text": "Не прочитан"
   },
   "web.STATUS.viewed": {
     "text": "Ссылка открыта"
   },
   "web.STATUS.received": {
-    "text": "Получено"
+    "text": "Получен"
   },
   "web.STATUS.burned": {
-    "text": "Окончательно удалено"
+    "text": "Уничтожен"
   },
   "web.STATUS.destroyed": {
-    "text": "Уничтожено"
+    "text": "Удалён"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Скоро истекает"
+    "text": "Скоро истечёт"
   },
   "web.STATUS.created": {
-    "text": "Создано"
+    "text": "Создан"
   },
   "web.STATUS.expires": {
     "text": "Истекает"
@@ -677,10 +677,10 @@
     "text": "Осиротевший"
   },
   "web.STATUS.secured": {
-    "text": "Защищено"
+    "text": "Защищён"
   },
   "web.STATUS.securing": {
-    "text": "Защита"
+    "text": "Защита..."
   },
   "web.STATUS.copied": {
     "text": "Скопировано"
@@ -689,28 +689,28 @@
     "text": "Осталось времени"
   },
   "web.STATUS.new_description": {
-    "text": "Ссылка на секрет создана и ещё не просмотрена"
+    "text": "Секретная ссылка создана и ещё не просмотрена"
   },
   "web.STATUS.unread_description": {
-    "text": "Ссылка на секрет создана и не была просмотрена"
+    "text": "Секретная ссылка создана и не была просмотрена"
   },
   "web.STATUS.viewed_description": {
-    "text": "Ссылка на секрет открыта и готова к просмотру"
+    "text": "Секретная ссылка открыта и готова к просмотру"
   },
   "web.STATUS.received_description": {
-    "text": "Секрет раскрыт получателю"
+    "text": "Секрет был раскрыт получателю"
   },
   "web.STATUS.burned_description": {
-    "text": "Секрет был вручную окончательно удалён до просмотра"
+    "text": "Секрет был вручную уничтожен до просмотра"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Секрет был безвозвратно уничтожен"
+    "text": "Секрет был безвозвратно удалён"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "Срок действия секрета скоро истечёт"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Секрет осиротел и скоро будет уничтожен"
+    "text": "Секрет стал осиротевшим и скоро будет удалён"
   },
   "web.STATUS.expired_description": {
     "text": "Срок действия секрета истёк до просмотра"
@@ -719,25 +719,25 @@
     "text": "Успешно"
   },
   "web.STATUS.delivered": {
-    "text": "Доставлено"
+    "text": "Доставлен"
   },
   "web.STATUS.dns_incorrect": {
     "text": "DNS неверен"
   },
   "web.STATUS.active": {
-    "text": "Активный"
+    "text": "Активен"
   },
   "web.STATUS.inactive": {
-    "text": "Неактивный"
+    "text": "Неактивен"
   },
   "web.FEATURES.unlimited_views": {
     "text": "Неограниченные просмотры"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Брендинг доверенного домена"
+    "text": "Брендирование на доверенном домене"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Зашифровано при передаче и хранении"
+    "text": "Шифрование при передаче и хранении"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -758,25 +758,25 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "осталось {count} {unit}"
+    "text": "Осталось {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "остался день | осталось дня | осталось дней"
+    "text": "день | дня | дней"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "остался час | осталось часа | осталось часов"
+    "text": "час | часа | часов"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "осталась минута | осталось минуты | осталось минут"
+    "text": "минута | минуты | минут"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "осталась секунда | осталось секунды | осталось секунд"
+    "text": "секунда | секунды | секунд"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "лимит {count} просмотров"
+    "text": "Лимит {count} просмотров"
   },
   "web.UNITS.days_remaining": {
     "text": "Осталось {count} дней"
@@ -794,28 +794,28 @@
     "text": "Обратная связь"
   },
   "web.TITLES.signin": {
-    "text": "Войти"
+    "text": "Вход"
   },
   "web.TITLES.signup": {
-    "text": "Создать учётную запись"
+    "text": "Создать аккаунт"
   },
   "web.TITLES.forgot_password": {
     "text": "Забыли пароль"
   },
   "web.TITLES.reset_password": {
-    "text": "Сброс пароля"
+    "text": "Сбросить пароль"
   },
   "web.TITLES.logout": {
     "text": "Выход из системы"
   },
   "web.TITLES.verify_account": {
-    "text": "Подтвердить учётную запись"
+    "text": "Подтвердить аккаунт"
   },
   "web.TITLES.mfa_verify": {
     "text": "Двухфакторная аутентификация"
   },
   "web.TITLES.email_login": {
-    "text": "Вход через электронную почту"
+    "text": "Вход по электронной почте"
   },
   "web.TITLES.accept_invitation": {
     "text": "Принять приглашение"
@@ -830,13 +830,13 @@
     "text": "Квитанция секрета"
   },
   "web.TITLES.burn_secret": {
-    "text": "Окончательное удаление секрета"
+    "text": "Уничтожить секрет"
   },
   "web.TITLES.dashboard": {
     "text": "Панель управления"
   },
   "web.TITLES.recent": {
-    "text": "Недавние"
+    "text": "Недавние секреты"
   },
   "web.TITLES.domains": {
     "text": "Пользовательские домены"
@@ -845,13 +845,13 @@
     "text": "Добавить домен"
   },
   "web.TITLES.domain_verify": {
-    "text": "Проверить домен"
+    "text": "Подтвердить домен"
   },
   "web.TITLES.domain_brand": {
-    "text": "Брендинг домена"
+    "text": "Брендирование домена"
   },
   "web.TITLES.account": {
-    "text": "Настройки учётной записи"
+    "text": "Аккаунт"
   },
   "web.TITLES.data_region": {
     "text": "Регион данных"
@@ -863,7 +863,7 @@
     "text": "Доступные регионы"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Почему важен суверенитет данных"
+    "text": "Почему суверенитет данных важен"
   },
   "web.TITLES.profile_settings": {
     "text": "Настройки профиля"
@@ -878,7 +878,7 @@
     "text": "Уведомления"
   },
   "web.TITLES.change_email": {
-    "text": "Изменить электронную почту"
+    "text": "Изменить почту"
   },
   "web.TITLES.security_overview": {
     "text": "Безопасность"
@@ -890,7 +890,7 @@
     "text": "Двухфакторная аутентификация"
   },
   "web.TITLES.active_sessions": {
-    "text": "Активные сеансы"
+    "text": "Активные сессии"
   },
   "web.TITLES.recovery_codes": {
     "text": "Коды восстановления"
@@ -914,33 +914,93 @@
     "text": "Настройки организации"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Фокус находится в основной текстовой области"
+    "text": "Фокус теперь в основной текстовой области"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Инструкции по обмену"
+    "text": "Инструкции по передаче"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Поделитесь ссылкой с предполагаемым получателем"
+    "text": "Отправьте ссылку предполагаемому получателю"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Поделитесь кодовой фразой отдельно через безопасный канал"
+    "text": "Передайте кодовую фразу отдельно через защищённый канал"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Используйте другой безопасный канал для обмена конфиденциальной информацией"
+    "text": "Используйте другой защищённый канал для передачи конфиденциальной информации"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Всегда проверяйте, что вы находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно так же, как Onetime Secret, чтобы украсть ваши секреты. Чтобы избежать фишинговых атак, проверьте доменное имя региона перед созданием новых ссылок."
+    "text": "Всегда проверяйте, что находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно как Onetime Secret, чтобы похитить Ваши секреты. Чтобы избежать фишинговых атак, проверяйте домен перед созданием новых ссылок."
   },
   "web.STATUS.previewed": {
-    "text": "Ссылка открыта"
+    "text": "Предпросмотрен"
   },
   "web.STATUS.revealed": {
-    "text": "Раскрыто"
+    "text": "Раскрыт"
   },
   "web.STATUS.previewed_description": {
-    "text": "Ссылка на секрет открыта и готова к раскрытию"
+    "text": "Секретная ссылка открыта и готова к раскрытию"
   },
   "web.STATUS.revealed_description": {
     "text": "Содержимое секрета было раскрыто получателю"
+  },
+  "web.COMMON.not_set": {
+    "text": "Не задано"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Редактировать"
+  },
+  "web.COMMON.word_save": {
+    "text": "Сохранить"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Истекает через"
+  },
+  "web.LABELS.filter": {
+    "text": "Фильтр"
+  },
+  "web.LABELS.clear": {
+    "text": "Очистить"
+  },
+  "web.LABELS.add_note": {
+    "text": "Добавить заметку..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Редактировать заметку"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Добавить примечание..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Редактировать примечание"
+  },
+  "web.TITLES.help": {
+    "text": "Помощь"
+  },
+  "web.TITLES.pricing": {
+    "text": "Тарифы"
+  },
+  "web.pricing.title": {
+    "text": "Простые и прозрачные тарифы"
+  },
+  "web.pricing.subtitle": {
+    "text": "Выберите план, который подходит Вам. Все планы включают неограниченный обмен секретами и дизайн, ориентированный на конфиденциальность."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Начать бесплатно"
+  },
+  "web.pricing.start_trial": {
+    "text": "Начать"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Уже есть аккаунт?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Войти"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Рекомендуется для Вас"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Создавайте и делитесь секретами с базовыми функциями. Кредитная карта не требуется."
   }
 }

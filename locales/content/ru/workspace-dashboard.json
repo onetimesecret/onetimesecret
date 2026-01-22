@@ -6,15 +6,15 @@
     "text": "Не получено"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Нет недавних тайн"
+    "text": "Нет недавних секретов"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "Начните с создания вашего первого секрета."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Не удалось загрузить команды"
+    "text": "Не удалось загрузить данные"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Произошла ошибка при загрузке ваших команд. Попробуйте ещё раз."
+    "text": "Возникла проблема при загрузке данных. Попробуйте ещё раз."
   }
 }
