@@ -43,7 +43,9 @@ from typing import Any
 # (dict[str, Any] syntax requires 3.9+, dataclass features used require 3.10+)
 MIN_PYTHON = (3, 10)
 if sys.version_info < MIN_PYTHON:
-    sys.exit(f"Error: Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]}+ required (found {sys.version_info.major}.{sys.version_info.minor})")
+    sys.exit(
+        f"Error: Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]}+ required (found {sys.version_info.major}.{sys.version_info.minor})"
+    )
 
 
 # Variable patterns (reused from audit-variables.py)
@@ -57,10 +59,22 @@ RUBY_ONLY_FILES = {"email.json"}
 # Security namespace forbidden patterns
 SECURITY_FORBIDDEN_PATTERNS = [
     # Credential-specific reveals
-    (r"\b(wrong|incorrect|invalid)\s+(password|otp|code|recovery)", "credential-specific failure"),
-    (r"\bpassword\s+(wrong|incorrect|invalid|failed)", "credential-specific failure"),
-    (r"\botp\s+(wrong|incorrect|invalid|failed)", "credential-specific failure"),
-    (r"\b(recovery\s+)?code\s+(wrong|incorrect|invalid|does\s+not\s+exist)", "credential-specific failure"),
+    (
+        r"\b(wrong|incorrect|invalid)\s+(password|otp|code|recovery)",
+        "credential-specific failure",
+    ),
+    (
+        r"\bpassword\s+(wrong|incorrect|invalid|failed)",
+        "credential-specific failure",
+    ),
+    (
+        r"\botp\s+(wrong|incorrect|invalid|failed)",
+        "credential-specific failure",
+    ),
+    (
+        r"\b(recovery\s+)?code\s+(wrong|incorrect|invalid|does\s+not\s+exist)",
+        "credential-specific failure",
+    ),
     # Precise timing reveals
     (r"\bwait\s+\d+\s+(minute|second|hour)", "precise timing"),
     (r"\btry\s+again\s+in\s+\d+", "precise timing"),
@@ -77,6 +91,7 @@ SECURITY_FORBIDDEN_PATTERNS = [
 @dataclass
 class ValidationIssue:
     """Single validation issue."""
+
     file: str
     locale: str
     key: str
@@ -89,6 +104,7 @@ class ValidationIssue:
 @dataclass
 class ValidationResult:
     """Validation results for all files."""
+
     issues: list[ValidationIssue] = field(default_factory=list)
     files_checked: int = 0
     locales_checked: set[str] = field(default_factory=set)
@@ -207,8 +223,8 @@ def get_changed_locale_files(base_branch: str) -> list[tuple[str, str]]:
             if not line:
                 continue
 
-            # Match src/locales/{locale}/{file.json}
-            match = re.match(r"^src/locales/([^/]+)/([^/]+\.json)$", line)
+            # Match locales/content/{locale}/{file.json}
+            match = re.match(r"^locales/content/([^/]+)/([^/]+\.json)$", line)
             if match:
                 locale, filename = match.groups()
                 if locale != "en":  # Skip English baseline
@@ -333,7 +349,7 @@ def validate_erb_format(
                 key=key,
                 severity="error",
                 category="format",
-                message=f"Use %{{var}} instead of {{var}} in email templates",
+                message="Use %{var} instead of {var} in email templates",
                 details={
                     "locale_text": locale_text,
                     "wrong_vars": [f"{{{v}}}" for v in vue_vars],
@@ -370,7 +386,7 @@ def validate_security_namespace(
                         "locale_text": locale_text,
                         "forbidden_pattern": pattern,
                         "risk": risk_type,
-                        "guide": "See src/locales/SECURITY-TRANSLATION-GUIDE.md",
+                        "guide": "See locales/guides/SECURITY-TRANSLATION-GUIDE.md",
                     },
                 )
             )
@@ -422,14 +438,14 @@ def validate_file(
     Args:
         locale: Locale code (e.g., 'es', 'fr', 'de')
         filename: JSON filename (e.g., 'auth.json', 'email.json')
-        locales_dir: Path to src/locales directory
+        locales_dir: Path to locales/content directory
         verbose: Print progress messages
 
     Returns:
         List of ValidationIssue objects found during validation.
 
     Examples:
-        >>> issues = validate_file('es', 'auth.json', Path('src/locales'))
+        >>> issues = validate_file('es', 'auth.json', Path('locales/content'))
         >>> [i.category for i in issues]
         ['variables', 'security']
     """
@@ -493,7 +509,9 @@ def validate_file(
         return issues
 
     # 5. Key Structure
-    validate_key_structure(set(en_data.keys()), set(locale_data.keys()), locale, filename, issues)
+    validate_key_structure(
+        set(en_data.keys()), set(locale_data.keys()), locale, filename, issues
+    )
 
     # Validate each key
     for key, source_text in en_data.items():
@@ -507,7 +525,9 @@ def validate_file(
             continue
 
         # 2. Template Variables
-        validate_variables(key, source_text, locale_text, locale, filename, issues)
+        validate_variables(
+            key, source_text, locale_text, locale, filename, issues
+        )
 
         # 3. ERB Format
         validate_erb_format(key, locale_text, locale, filename, issues)
@@ -521,12 +541,14 @@ def validate_file(
 def print_human_format(result: ValidationResult, verbose: bool = False) -> None:
     """Print validation results in human-readable format."""
     if result.passed:
-        print(f"✓ All checks passed")
+        print("✓ All checks passed")
         print(f"  Files checked: {result.files_checked}")
         print(f"  Locales: {', '.join(sorted(result.locales_checked))}")
         return
 
-    print(f"✗ Validation failed with {result.error_count} errors, {result.warning_count} warnings")
+    print(
+        f"✗ Validation failed with {result.error_count} errors, {result.warning_count} warnings"
+    )
     print(f"  Files checked: {result.files_checked}")
     print(f"  Locales: {', '.join(sorted(result.locales_checked))}")
     print()
@@ -554,9 +576,11 @@ def print_human_format(result: ValidationResult, verbose: bool = False) -> None:
             if verbose and issue.details:
                 for detail_key, detail_value in issue.details.items():
                     if detail_key in ["source_text", "locale_text"]:
-                        print(f"    {detail_key}: \"{detail_value}\"")
+                        print(f'    {detail_key}: "{detail_value}"')
                     elif isinstance(detail_value, list):
-                        print(f"    {detail_key}: {', '.join(str(v) for v in detail_value)}")
+                        print(
+                            f"    {detail_key}: {', '.join(str(v) for v in detail_value)}"
+                        )
                     else:
                         print(f"    {detail_key}: {detail_value}")
 
@@ -623,13 +647,19 @@ def main() -> int:
     project_root = find_project_root(script_dir)
 
     if project_root is None:
-        print("Error: Could not find project root (.git directory)", file=sys.stderr)
+        print(
+            "Error: Could not find project root (.git directory)",
+            file=sys.stderr,
+        )
         return 1
 
-    locales_dir = project_root / "src" / "locales"
+    locales_dir = project_root / "locales" / "content"
 
     if not locales_dir.exists():
-        print(f"Error: Locales directory not found: {locales_dir}", file=sys.stderr)
+        print(
+            f"Error: Locales directory not found: {locales_dir}",
+            file=sys.stderr,
+        )
         return 1
 
     # Get files to validate
@@ -642,7 +672,9 @@ def main() -> int:
                 locale, filename = match.groups()
                 files_to_check.append((locale, filename))
             else:
-                print(f"Error: Invalid file format: {file_spec}", file=sys.stderr)
+                print(
+                    f"Error: Invalid file format: {file_spec}", file=sys.stderr
+                )
                 print("Expected format: locale/file.json", file=sys.stderr)
                 return 1
     else:

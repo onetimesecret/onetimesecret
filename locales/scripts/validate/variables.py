@@ -452,31 +452,31 @@ Examples:
 
     # Determine locales directory
     script_dir = Path(__file__).resolve().parent
-    # Navigate from src/scripts/locales/audit to src/locales
-    locales_dir = script_dir.parent.parent.parent / "locales"
+    # Navigate from locales/scripts/validate to locales/content
+    content_dir = script_dir.parent.parent / "content"
 
-    if not locales_dir.exists():
+    if not content_dir.exists():
         print(
-            f"Error: Locales directory not found: {locales_dir}",
+            f"Error: Content directory not found: {content_dir}",
             file=sys.stderr,
         )
         return 1
 
-    en_dir = locales_dir / "en"
+    en_dir = content_dir / "en"
     if not en_dir.exists():
         print(f"Error: English locale not found: {en_dir}", file=sys.stderr)
         return 1
 
     # Get list of locales to check
     if args.locale:
-        locale_dirs = [locales_dir / args.locale]
+        locale_dirs = [content_dir / args.locale]
         if not locale_dirs[0].exists():
             print(f"Error: Locale not found: {args.locale}", file=sys.stderr)
             return 1
     else:
         locale_dirs = [
             d
-            for d in locales_dir.iterdir()
+            for d in content_dir.iterdir()
             if d.is_dir() and d.name != "en" and not d.name.startswith(".")
         ]
 
