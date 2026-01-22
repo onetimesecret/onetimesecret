@@ -9,10 +9,10 @@
     "text": "設定を使用"
   },
   "web.branding.font_family": {
-    "text": "フォント ファミリー"
+    "text": "フォントファミリー"
   },
   "web.branding.corner_style": {
-    "text": "コーナースタイル"
+    "text": "角のスタイル"
   },
   "web.branding.brand_color": {
     "text": "ブランドカラー"
@@ -24,7 +24,7 @@
     "text": "プレビューとカスタマイズ"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Safari ブラウザビューに切り替え"
+    "text": "Safariブラウザビューに切り替え"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge"
@@ -36,16 +36,16 @@
     "text": "ウィンドウを最小化"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Edge ブラウザビューに切り替え"
+    "text": "Edgeブラウザビューに切り替え"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500文字"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "QRコードをスキャンするには、スマートフォンを使用してください"
+    "text": "スマートフォンでQRコードをスキャンしてください"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "質問がある場合は、onboarding{'@'}example.comにお問い合わせください"
+    "text": "ご質問はonboarding{'@'}example.comまでお問い合わせください"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "これらの指示は、受信者がシークレットの内容を表示する前に表示されます"
@@ -54,13 +54,13 @@
     "text": "これらの指示は、受信者がシークレットを表示した後に表示されます"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "表示前の指示"
+    "text": "公開前の説明"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "表示後の指示"
+    "text": "公開後の説明"
   },
   "web.branding.instructions": {
-    "text": "手順"
+    "text": "説明"
   },
   "web.branding.logo_controls": {
     "text": "ロゴコントロール"
@@ -105,24 +105,24 @@
     "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト"
   },
   "web.branding.default_logo_icon": {
-    "text": "デフォルトのロゴアイコン"
+    "text": "日本語の漢字「秘」(ひみつ) - 「秘密」または「機密」を意味する"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Onetime Secretによる提供"
+    "text": "Powered by Onetime Secret"
   },
   "web.branding.heading_logo": {
     "text": "{0}ロゴ"
   },
   "web.branding.edge": {
-    "text": "エッジ"
+    "text": "Edge"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Edgeプレビューに切り替える"
+    "text": "Edgeプレビューに切り替え"
   },
   "web.branding.safari": {
     "text": "Safari"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Safariプレビューに切り替える"
+    "text": "Safariプレビューに切り替え"
   }
 }

@@ -12,9 +12,9 @@
     "text": "最初のシークレットを作成して始めましょう。"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "チームを読み込めませんでした"
+    "text": "データを読み込めません"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "チームの読み込み中に問題が発生しました。もう一度お試しください。"
+    "text": "データの読み込み中に問題が発生しました。もう一度お試しください。"
   }
 }

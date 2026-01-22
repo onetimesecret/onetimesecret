@@ -3,7 +3,7 @@
     "text": "シークレットを送信"
   },
   "incoming.page_description": {
-    "text": "サポートチームと機密情報を安全に共有する"
+    "text": "サポートチームと機密情報を安全に共有"
   },
   "incoming.loading_config": {
     "text": "読み込み中..."
@@ -21,10 +21,10 @@
     "text": "メモ"
   },
   "incoming.memo_placeholder": {
-    "text": "簡単な説明(例:パスワードリセット依頼)"
+    "text": "簡単な説明(例: パスワードリセットのリクエスト)"
   },
   "incoming.memo_hint": {
-    "text": "メッセージを適切な担当者に転送するためにご協力ください"
+    "text": "メッセージを適切な担当者に届けるためにご記入ください"
   },
   "incoming.recipient_label": {
     "text": "送信先"
@@ -33,22 +33,22 @@
     "text": "受信者を選択"
   },
   "incoming.recipient_aria_label": {
-    "text": "このシークレットの受信者を選択してください"
+    "text": "このシークレットの受信者を選択"
   },
   "incoming.recipient_hint": {
-    "text": "この安全なメッセージを受信する人を選択してください"
+    "text": "この安全なメッセージを受け取る人を選択"
   },
   "incoming.no_recipients_available": {
-    "text": "利用可能な受信者がありません"
+    "text": "受信者がいません"
   },
   "incoming.secret_content_label": {
     "text": "機密情報"
   },
   "incoming.secret_content_placeholder": {
-    "text": "機密情報をここに貼り付けてください(パスワード、キーなど)"
+    "text": "機密情報をここに貼り付け(パスワード、キーなど)"
   },
   "incoming.secret_content_hint": {
-    "text": "この情報は暗号化され、一度だけ閲覧可能です"
+    "text": "この情報は暗号化され、1回のみ閲覧可能です"
   },
   "incoming.submit_button": {
     "text": "シークレットを送信"
@@ -69,7 +69,7 @@
     "text": "フォームをクリア"
   },
   "incoming.success_title": {
-    "text": "送信に成功しました"
+    "text": "送信完了"
   },
   "incoming.success_description": {
     "text": "安全なメッセージが配信されました。"
@@ -81,7 +81,7 @@
     "text": "次に何が起こりますか?"
   },
   "incoming.success_info_description": {
-    "text": "受信者はこのシークレットを一度だけ閲覧できます。閲覧後、シークレットは完全に削除されます。"
+    "text": "受信者はこのシークレットを1回のみ閲覧できます。閲覧後、シークレットは完全に削除されます。"
   },
   "incoming.create_another": {
     "text": "別のシークレットを送信"
@@ -90,12 +90,12 @@
     "text": "機密情報を安全に共有"
   },
   "incoming.tagline2": {
-    "text": "パスワードや個人データをメールやチャットログから守りましょう"
+    "text": "パスワードや個人データをメールやチャットログから守ります"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "記録のために<a href='{receiptUrl}'>受領書</a>を保存してください。"
+    "text": "記録のために{receipt}を保存してください。"
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "受信確認"
   }
 }

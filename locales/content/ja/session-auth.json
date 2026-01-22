@@ -1,30 +1,30 @@
 {
   "web.login.alternate_prefix": {
-    "text": "アカウントが必要ですか？"
+    "text": "アカウントが必要ですか?"
   },
   "web.login.need_an_account": {
-    "text": "または、今すぐアカウントを作成"
+    "text": "登録する"
   },
   "web.login.forgot_your_password": {
-    "text": "パスワードをお忘れですか？"
+    "text": "パスワードを忘れましたか?"
   },
   "web.login.button_sign_in": {
-    "text": "サインイン"
+    "text": "ログイン"
   },
   "web.login.enter_your_credentials": {
-    "text": "認証情報を入力してください"
+    "text": "認証情報を入力"
   },
   "web.login.remember_me": {
-    "text": "ログイン状態を保持"
+    "text": "ログイン状態を維持"
   },
   "web.signup.create_your_account": {
     "text": "アカウントを作成"
   },
   "web.signup.alternate_prefix": {
-    "text": "すでにアカウントをお持ちですか？"
+    "text": "既にアカウントをお持ちですか?"
   },
   "web.signup.have_an_account": {
-    "text": "または、アカウントにサインイン"
+    "text": "ログイン"
   },
   "web.signup.error_title": {
     "text": "アカウント作成エラー"
@@ -36,49 +36,49 @@
     "text": "メール"
   },
   "web.auth.verify.title": {
-    "text": "アカウントを確認"
+    "text": "アカウントを認証"
   },
   "web.auth.verify.success": {
-    "text": "アカウントが正常に確認されました"
+    "text": "アカウントが正常に認証されました"
   },
   "web.auth.verify.invalid_key": {
-    "text": "無効または期限切れの確認キーです"
+    "text": "無効または期限切れの認証キー"
   },
   "web.auth.verify.expired_key": {
-    "text": "この確認リンクは期限切れです。新しいものをリクエストしてください。"
+    "text": "この認証リンクは期限切れです。新しいリンクをリクエストしてください。"
   },
   "web.auth.verify.already_verified": {
-    "text": "このアカウントは既に確認されています。今すぐサインインできます。"
+    "text": "このアカウントは既に認証されています。ログインできます。"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "アカウントを確認できません。もう一度試すか、サポートに連絡してください。"
+    "text": "アカウントを認証できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。"
   },
   "web.auth.verify.check_email": {
-    "text": "確認リンクについてメールを確認してください"
+    "text": "認証リンクについてメールを確認してください"
   },
   "web.auth.verify.error": {
-    "text": "アカウント確認に失敗しました。確認リンクを確認するか、新しいものをリクエストしてください。"
+    "text": "アカウントの認証に失敗しました。認証リンクを確認するか、新しいリンクをリクエストしてください。"
   },
   "web.auth.verify.error_title": {
-    "text": "確認失敗"
+    "text": "認証に失敗しました"
   },
   "web.auth.verify.what_to_do": {
-    "text": "どうすればよいですか？"
+    "text": "どうすればいいですか?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "最新の確認リンクについてメールを確認してください"
+    "text": "最新の認証リンクについてメールを確認してください"
   },
   "web.auth.verify.check_spam": {
-    "text": "メールが見つからない場合は、迷惑メール/ジャンクフォルダを確認してください"
+    "text": "メールが見つからない場合は迷惑メールフォルダを確認してください"
   },
   "web.auth.verify.contact_support": {
-    "text": "問題が続く場合はサポートに連絡してください"
+    "text": "問題が続く場合はサポートにお問い合わせください"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "確認リンクが必要です"
+    "text": "認証リンクが必要です"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "アカウントを確認するには、メールアドレスに送信された確認リンクを使用してください。"
+    "text": "アカウントを認証するには、メールアドレスに送信された認証リンクを使用してください。"
   },
   "web.auth.verify.create_new_account": {
     "text": "新しいアカウントを作成"
@@ -102,19 +102,19 @@
     "text": "パスワードの変更に失敗しました。現在のパスワードを確認してもう一度お試しください。"
   },
   "web.auth.close_account.title": {
-    "text": "アカウントを閉じる"
+    "text": "アカウントを閉鎖"
   },
   "web.auth.close_account.warning": {
-    "text": "この操作は元に戻せません。すべてのシークレットが完全に削除されます。"
+    "text": "この操作は取り消せません。すべてのシークレットが完全に削除されます。"
   },
   "web.auth.close_account.confirm": {
-    "text": "この操作が永久的であることを理解しています"
+    "text": "この操作は取り消せないことを理解しています"
   },
   "web.auth.close_account.password": {
-    "text": "確認するにはパスワードを入力してください"
+    "text": "確認のためパスワードを入力"
   },
   "web.auth.close_account.button": {
-    "text": "アカウントを完全に閉じる"
+    "text": "アカウントを完全に閉鎖"
   },
   "web.auth.close_account.cancel": {
     "text": "キャンセル"
@@ -123,22 +123,22 @@
     "text": "パスワードリセットをリクエスト"
   },
   "web.auth.password_reset_request.description": {
-    "text": "下にメールアドレスを入力してください。パスワードリセット用のリンクをお送りします。"
+    "text": "以下にメールアドレスを入力すると、パスワードをリセットするためのリンクを送信します"
   },
   "web.auth.password_reset_request.button": {
     "text": "リセットリンクを送信"
   },
   "web.auth.password_reset.title": {
-    "text": "新しいパスワードを設定"
+    "text": "新しいパスワードを選択"
   },
   "web.auth.password_reset.description": {
-    "text": "下に新しいパスワードを入力してください。アカウントを保護するために、強力でユニークなパスワードを設定してください。"
+    "text": "以下に新しいパスワードを入力してください。アカウントを保護するため、強力でユニークなものにしてください。"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "アカウントのパスワードをリセットするリンクが記載されたメールが送信されました"
+    "text": "アカウントのパスワードをリセットするためのリンクが記載されたメールを送信しました"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "以下に同意します："
+    "text": "同意します:"
   },
   "web.auth.account.title": {
     "text": "アカウント情報"
@@ -150,16 +150,16 @@
     "text": "アカウント作成日"
   },
   "web.auth.account.verified": {
-    "text": "メール確認済み"
+    "text": "メール認証済み"
   },
   "web.auth.account.region": {
     "text": "リージョン"
   },
   "web.auth.account.not_verified": {
-    "text": "メール未確認"
+    "text": "メール未認証"
   },
   "web.auth.account.verify_email": {
-    "text": "メールアドレスを確認"
+    "text": "メールアドレスを認証"
   },
   "web.auth.account.mfa_status": {
     "text": "二要素認証"
@@ -174,7 +174,7 @@
     "text": "アクティブセッション"
   },
   "web.auth.account.session_count": {
-    "text": "{count}個のアクティブセッション"
+    "text": "{count}件のアクティブセッション"
   },
   "web.auth.account.quick_actions": {
     "text": "クイックアクション"
@@ -189,6 +189,81 @@
     "text": "パスワードを変更"
   },
   "web.auth.account.close_account": {
-    "text": "アカウントを閉じる"
+    "text": "アカウントを閉鎖"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "サインアップ後のメール認証フロー"
+  },
+  "web.help.title": {
+    "text": "ヘルプとサポート"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "ログインのトラブルシューティング"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "マジックリンクが届きませんか?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "迷惑メールフォルダを確認してください"
+  },
+  "web.help.check_email_spelling": {
+    "text": "メールアドレスを正しく入力したか確認してください"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "数分お待ちください - メールが遅れることがあります"
+  },
+  "web.help.try_again": {
+    "text": "10分以上経過した場合は、新しいリンクをリクエストしてください"
+  },
+  "web.help.forgot_password": {
+    "text": "パスワードを忘れましたか?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "マジックリンクオプションを使用して、パスワードなしでログインできます。ログイン後、アカウント設定でパスワードを変更できます。"
+  },
+  "web.help.account_locked": {
+    "text": "アカウントが一時的にロックされましたか?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "複数回のログイン失敗後、セキュリティのためアカウントは一時的にロックされます。15分待ってから再試行するか、マジックリンクを使用してログインしてください。"
+  },
+  "web.help.still_need_help": {
+    "text": "まだ助けが必要ですか?"
+  },
+  "web.help.contact_us_description": {
+    "text": "まだ問題がある場合は、お手伝いします。メッセージをお送りいただければ、できるだけ早くご連絡いたします。"
+  },
+  "web.help.contact_support": {
+    "text": "サポートに連絡"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "ログインリンクを送信"
+  },
+  "web.login.secure_link_helper": {
+    "text": "安全なリンクがメールに送信されます。"
+  },
+  "web.login.or_divider": {
+    "text": "または"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "パスワードでログイン"
+  },
+  "web.login.use_passwordless": {
+    "text": "パスワードなしでログイン"
+  },
+  "web.login.create_account": {
+    "text": "アカウントを作成"
+  },
+  "web.login.return_home": {
+    "text": "ホームに戻る"
+  },
+  "web.login.tab_password": {
+    "text": "パスワード"
+  },
+  "web.login.tab_magic_link": {
+    "text": "マジックリンク"
+  },
+  "web.login.need_help": {
+    "text": "ヘルプが必要ですか?"
   }
 }

@@ -3,10 +3,10 @@
     "text": "ウェブ::COMMON::放送"
   },
   "web.COMMON.tagline": {
-    "text": "一度だけ機能する安全なリンク"
+    "text": "一度しか使えないセキュアなリンク"
   },
   "web.COMMON.powered_by": {
-    "text": "提供元"
+    "text": "Powered by"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/ja"
@@ -21,19 +21,19 @@
     "text": "例: tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "パスワードを入力してください"
+    "text": "パスワードを入力"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "カスタム ドメイン"
+    "text": "カスタムドメイン"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "独自のブランドのシークレットリンクで、つながりを強化し、信頼を構築します。"
+    "text": "独自のブランドシークレットリンクで、つながりを強化し信頼を築きましょう。"
   },
   "web.COMMON.get_started_button": {
-    "text": "始める"
+    "text": "はじめる"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "パスワードを確認"
+    "text": "パスワードを再入力"
   },
   "web.COMMON.header_settings": {
     "text": "設定"
@@ -42,25 +42,25 @@
     "text": "送信"
   },
   "web.COMMON.submitting": {
-    "text": "処理中"
+    "text": "送信中..."
   },
   "web.COMMON.processing": {
     "text": "処理中..."
   },
   "web.COMMON.description": {
-    "text": "チャットログやメールに機密情報を含めないでください。一度だけ利用可能な秘密のリンクを共有してください。"
+    "text": "チャットログやメールに機密情報を残さないでください。一度しか利用できないシークレットリンクを共有しましょう。"
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "パスフレーズが正しくありません"
   },
   "web.COMMON.keywords": {
-    "text": "シークレット,パスワード生成,シークレットを共有,onetime"
+    "text": "シークレット,パスワード生成,シークレット共有,ワンタイム"
   },
   "web.COMMON.button_create_secret": {
     "text": "シークレットリンクを作成"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "またはランダムパスワードを生成"
+    "text": "またはランダムなパスワードを生成"
   },
   "web.COMMON.secret_privacy_options": {
     "text": "プライバシーオプション"
@@ -69,10 +69,10 @@
     "text": "パスフレーズ"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "推測が難しい単語やフレーズ"
+    "text": "推測されにくい単語やフレーズ"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "受信者アドレス"
+    "text": "受信者のアドレス"
   },
   "web.COMMON.secret_placeholder": {
     "text": "シークレットの内容をここに入力..."
@@ -81,10 +81,10 @@
     "text": "アカウントを作成"
   },
   "web.COMMON.header_about": {
-    "text": "について"
+    "text": "概要"
   },
   "web.COMMON.header_sign_in": {
-    "text": "サインイン"
+    "text": "ログイン"
   },
   "web.COMMON.header_dashboard": {
     "text": "アカウント"
@@ -99,7 +99,7 @@
     "text": "最近"
   },
   "web.COMMON.received": {
-    "text": "受信"
+    "text": "受信済み"
   },
   "web.COMMON.burn": {
     "text": "削除"
@@ -114,10 +114,10 @@
     "text": "このシークレットを削除"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "シークレットを削除すると、閲覧される前に削除されます（クリックして確認）"
+    "text": "シークレットを削除すると、閲覧される前に消去されます(クリックして確認)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "シークレットの削除は永久的であり、元に戻すことはできません"
+    "text": "シークレットの削除は取り消すことができません"
   },
   "web.COMMON.msg_check_email": {
     "text": "メールを確認してください"
@@ -126,16 +126,16 @@
     "text": "クリックして表示 →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "アカウントを確認し続ける:"
+    "text": "続けてアカウントを認証:"
   },
   "web.COMMON.error_secret": {
-    "text": "共有するものが提供されていません"
+    "text": "共有する内容が入力されていません"
   },
   "web.COMMON.error_passphrase": {
     "text": "パスフレーズを再確認してください"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "ここにパスフレーズを入力してください"
+    "text": "パスフレーズを入力してください"
   },
   "web.COMMON.view_secret": {
     "text": "シークレットを表示"
@@ -147,7 +147,7 @@
     "text": "警告"
   },
   "web.COMMON.oops": {
-    "text": "おっと！"
+    "text": "おっと!"
   },
   "web.COMMON.error": {
     "text": "エラー"
@@ -159,13 +159,13 @@
     "text": "メッセージが切り詰められました"
   },
   "web.COMMON.signup_for_more": {
-    "text": "より多くの機能にサインアップ"
+    "text": "詳しくはサインアップ"
   },
   "web.COMMON.login_to_your_account": {
     "text": "アカウントにログイン"
   },
   "web.COMMON.sent_to": {
-    "text": "送信先: "
+    "text": "送信先:"
   },
   "web.COMMON.field_email": {
     "text": "メール"
@@ -192,7 +192,7 @@
     "text": "削除済み"
   },
   "web.COMMON.word_received": {
-    "text": "受信"
+    "text": "受信済み"
   },
   "web.COMMON.word_confirm": {
     "text": "確認"
@@ -210,64 +210,64 @@
     "text": "戻る"
   },
   "web.COMMON.feedback_text": {
-    "text": "あなたの考え、アイデア、または経験を共有してください..."
+    "text": "ご意見、アイデア、ご感想をお聞かせください..."
   },
   "web.COMMON.button_send_feedback": {
     "text": "フィードバックを送信"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "確認が送信されました"
+    "text": "認証メールを送信しました:"
   },
   "web.COMMON.autoverified_success": {
     "text": "アカウントが作成されました。ログインしてください。"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "このメールアドレスのアカウントが存在する場合、確認メールが送信されます。"
+    "text": "このメールアドレスに紐づくアカウントが存在する場合、認証メールが送信されます。"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "この秘密を永久に削除"
+    "text": "このシークレットを完全に削除"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "確認してください"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "このシークレットを焼却してもよろしいですか？この操作は元に戻せません。"
+    "text": "このシークレットを削除してもよろしいですか?この操作は取り消すことができません。"
   },
   "web.COMMON.confirm_burn": {
-    "text": "はい、このシークレットを削除します"
+    "text": "はい、このシークレットを削除"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "シークレットをバーンすると、受信される前に削除されます。"
+    "text": "シークレットを削除すると、受信される前に消去されます。"
   },
   "web.COMMON.share_link_securely": {
-    "text": "セキュリティのために、このリンクを他の詳細とは別に共有してください。"
+    "text": "セキュリティのため、このリンクは他の情報とは別に共有してください。"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "クリップボードにコピーされました"
+    "text": "クリップボードにコピーしました"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "受信を作成"
+    "text": "受信リンクを作成"
   },
   "web.COMMON.faq_title": {
     "text": "よくある質問"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "確認が有効ではありません"
+    "text": "認証が無効です"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "すでにログインしている場合、アカウントを確認することはできません"
+    "text": "ログイン中はアカウントを認証できません"
   },
   "web.COMMON.show_password": {
     "text": "パスワードを表示"
   },
   "web.COMMON.hide_password": {
-    "text": "パスワードを隠す"
+    "text": "パスワードを非表示"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "パスワードは8文字以上である必要があります"
+    "text": "パスワードは8文字以上必要です"
   },
   "web.COMMON.password_requirements": {
-    "text": "パスワードは8文字以上である必要があります"
+    "text": "パスワードは8文字以上必要です"
   },
   "web.COMMON.passwords_do_not_match": {
     "text": "パスワードが一致しません"
@@ -288,13 +288,13 @@
     "text": "続ける"
   },
   "web.COMMON.are_you_sure": {
-    "text": "よろしいですか？"
+    "text": "よろしいですか?"
   },
   "web.COMMON.danger_zone": {
     "text": "危険ゾーン"
   },
   "web.COMMON.caution_zone": {
-    "text": "慎重な検討ゾーン"
+    "text": "注意が必要なゾーン"
   },
   "web.COMMON.user_menu": {
     "text": "ユーザーメニュー"
@@ -327,10 +327,10 @@
     "text": "ステータス"
   },
   "web.COMMON.escape": {
-    "text": "閉じる"
+    "text": "Escape"
   },
   "web.COMMON.active": {
-    "text": "アクティブ"
+    "text": "有効"
   },
   "web.COMMON.preview": {
     "text": "プレビュー"
@@ -339,10 +339,10 @@
     "text": "削除"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "ESCキーを押して閉じる"
+    "text": "ESCキーで閉じる"
   },
   "web.COMMON.enter": {
-    "text": "入力"
+    "text": "Enter"
   },
   "web.COMMON.important": {
     "text": "重要"
@@ -366,16 +366,16 @@
     "text": "一般"
   },
   "web.COMMON.note": {
-    "text": "注意"
+    "text": "メモ"
   },
   "web.COMMON.monthly": {
-    "text": "毎月"
+    "text": "月間"
   },
   "web.COMMON.yearly": {
-    "text": "毎年"
+    "text": "年間"
   },
   "web.COMMON.go_on_then": {
-    "text": "それでは、どうぞ。"
+    "text": "続けてください。"
   },
   "web.COMMON.loading_ellipses": {
     "text": "読み込み中..."
@@ -384,7 +384,7 @@
     "text": "未受信"
   },
   "web.COMMON.confirm_password": {
-    "text": "パスワードを確認"
+    "text": "パスワードの確認"
   },
   "web.COMMON.new_password": {
     "text": "新しいパスワード"
@@ -393,7 +393,7 @@
     "text": "メールアドレス"
   },
   "web.COMMON.switch": {
-    "text": "スイッチ"
+    "text": "切替"
   },
   "web.COMMON.features": {
     "text": "機能"
@@ -408,7 +408,7 @@
     "text": "✅"
   },
   "web.COMMON.supported": {
-    "text": "サポート対象"
+    "text": "対応"
   },
   "web.COMMON.version": {
     "text": "バージョン"
@@ -417,7 +417,7 @@
     "text": "その他"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(最小幅: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -429,7 +429,7 @@
     "text": "Mac"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "メールアドレスがクリップボードにコピーされました！"
+    "text": "メールアドレスをクリップボードにコピーしました!"
   },
   "web.COMMON.value": {
     "text": "値"
@@ -447,10 +447,10 @@
     "text": "次へ"
   },
   "web.COMMON.password_strength": {
-    "text": "パスワード強度："
+    "text": "パスワードの強度:"
   },
   "web.COMMON.great": {
-    "text": "素晴らしい"
+    "text": "とても良い"
   },
   "web.COMMON.pretty_good": {
     "text": "かなり良い"
@@ -462,13 +462,13 @@
     "text": "まあまあ"
   },
   "web.COMMON.not_great": {
-    "text": "良くない"
+    "text": "あまり良くない"
   },
   "web.COMMON.open_options": {
     "text": "オプションを開く"
   },
   "web.COMMON.inactive": {
-    "text": "非アクティブ"
+    "text": "無効"
   },
   "web.COMMON.an_error_occurred": {
     "text": "エラーが発生しました"
@@ -477,10 +477,10 @@
     "text": "シークレットをクリップボードにコピー"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "シークレットがクリップボードにコピーされました"
+    "text": "シークレットをクリップボードにコピーしました"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "パスフレーズを再度ご確認ください"
+    "text": "パスフレーズを再確認してください"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "下のコピーボタンを押してください。"
@@ -495,13 +495,13 @@
     "text": "もっと見る"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "折りたたむ"
+    "text": "閉じる"
   },
   "web.LABELS.enable": {
-    "text": "有効化"
+    "text": "有効にする"
   },
   "web.LABELS.disable": {
-    "text": "無効化"
+    "text": "無効にする"
   },
   "web.LABELS.stats": {
     "text": "統計"
@@ -543,16 +543,16 @@
     "text": "暗号化済み"
   },
   "web.LABELS.secret_status": {
-    "text": "シークレットステータス"
+    "text": "シークレットのステータス"
   },
   "web.LABELS.need_help": {
-    "text": "ヘルプが必要ですか？"
+    "text": "ヘルプが必要ですか?"
   },
   "web.LABELS.create_new_secret": {
     "text": "新しいシークレットを作成"
   },
   "web.LABELS.actions": {
-    "text": "アクション"
+    "text": "操作"
   },
   "web.LABELS.no_passphrase": {
     "text": "パスフレーズ不要"
@@ -561,7 +561,7 @@
     "text": "クリップボードにコピー"
   },
   "web.LABELS.receipts": {
-    "text": "受領証"
+    "text": "受信確認"
   },
   "web.LABELS.share": {
     "text": "共有"
@@ -576,22 +576,22 @@
     "text": "セキュリティの詳細"
   },
   "web.LABELS.items_count": {
-    "text": "{count}アイテム"
+    "text": "{count}件"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count}受信者"
+    "text": "{count}人の受信者"
   },
   "web.LABELS.view": {
     "text": "表示"
   },
   "web.LABELS.views": {
-    "text": "表示回数"
+    "text": "閲覧数"
   },
   "web.LABELS.times_viewed": {
-    "text": "回表示されました"
+    "text": "回閲覧"
   },
   "web.LABELS.view_progress": {
-    "text": "表示進捗"
+    "text": "進捗を表示"
   },
   "web.LABELS.help_section": {
     "text": "ヘルプセクション"
@@ -600,7 +600,7 @@
     "text": "パスフレーズで保護"
   },
   "web.LABELS.feedback_received": {
-    "text": "フィードバックを受け取りました。"
+    "text": "フィードバックを受け付けました。"
   },
   "web.LABELS.sending_ellipses": {
     "text": "送信中..."
@@ -609,7 +609,7 @@
     "text": "最近のシークレット"
   },
   "web.LABELS.pricing": {
-    "text": "価格"
+    "text": "料金"
   },
   "web.LABELS.refresh": {
     "text": "更新"
@@ -636,7 +636,7 @@
     "text": "関連設定"
   },
   "web.LABELS.creating_links_for": {
-    "text": "リンク作成先"
+    "text": "リンクを作成中:"
   },
   "web.LABELS.scope_indicator": {
     "text": "{domain}でシークレットを作成中"
@@ -687,31 +687,31 @@
     "text": "残り時間"
   },
   "web.STATUS.new_description": {
-    "text": "シークレットリンクが作成され、まだ表示されていません"
+    "text": "シークレットリンクが作成され、まだ閲覧されていません"
   },
   "web.STATUS.unread_description": {
-    "text": "シークレットリンクが作成され、まだ表示されていません"
+    "text": "シークレットリンクが作成され、まだ閲覧されていません"
   },
   "web.STATUS.viewed_description": {
-    "text": "シークレットリンクが開かれ、表示する準備ができました"
+    "text": "シークレットリンクが開かれ、閲覧可能な状態です"
   },
   "web.STATUS.received_description": {
-    "text": "シークレットが受信者に表示されました"
+    "text": "シークレットは受信者に閲覧されました"
   },
   "web.STATUS.burned_description": {
-    "text": "シークレットは表示される前に手動で削除されました"
+    "text": "シークレットは閲覧される前に手動で削除されました"
   },
   "web.STATUS.destroyed_description": {
-    "text": "シークレットは完全に破棄されました"
+    "text": "シークレットは完全に削除されました"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "シークレットはまもなく期限切れになります"
+    "text": "シークレットがまもなく期限切れになります"
   },
   "web.STATUS.orphaned_description": {
-    "text": "シークレットは孤立しており、まもなく破棄されます"
+    "text": "シークレットは孤立状態となり、まもなく削除されます"
   },
   "web.STATUS.expired_description": {
-    "text": "シークレットは表示される前に期限切れになりました"
+    "text": "シークレットは閲覧される前に期限切れになりました"
   },
   "web.STATUS.success": {
     "text": "成功"
@@ -720,70 +720,70 @@
     "text": "配信済み"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS不正確"
+    "text": "DNS設定エラー"
   },
   "web.STATUS.active": {
-    "text": "アクティブ"
+    "text": "有効"
   },
   "web.STATUS.inactive": {
-    "text": "非アクティブ"
+    "text": "無効"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "無制限の表示回数"
+    "text": "無制限の閲覧"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "信頼されたドメインブランディング"
+    "text": "信頼できるドメインブランディング"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "転送中および保存中の暗号化"
+    "text": "転送中および保存時に暗号化"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "日 | 日"
+    "text": "日"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "時間 | 時間"
+    "text": "時間"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "分 | 分"
+    "text": "分"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "秒 | 秒"
+    "text": "秒"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "残り{count} {unit}"
+    "text": "残り{count}{unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "残り日数 | 残り日数"
+    "text": "日"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "残り時間 | 残り時間"
+    "text": "時間"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "残り分 | 残り分"
+    "text": "分"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "残り秒 | 残り秒"
+    "text": "秒"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} ビュー リミット"
+    "text": "閲覧制限: {count}回"
   },
   "web.UNITS.days_remaining": {
-    "text": "残り {count} 日"
+    "text": "残り{count}日"
   },
   "web.UNITS.hours_remaining": {
-    "text": "残り {count} 時間"
+    "text": "残り{count}時間"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "残り {count} 分"
+    "text": "残り{count}分"
   },
   "web.TITLES.incoming": {
     "text": "受信シークレット"
@@ -795,19 +795,19 @@
     "text": "ログイン"
   },
   "web.TITLES.signup": {
-    "text": "アカウント作成"
+    "text": "アカウントを作成"
   },
   "web.TITLES.forgot_password": {
-    "text": "パスワードをお忘れですか"
+    "text": "パスワードを忘れた場合"
   },
   "web.TITLES.reset_password": {
-    "text": "パスワードをリセット"
+    "text": "パスワードのリセット"
   },
   "web.TITLES.logout": {
     "text": "ログアウト中"
   },
   "web.TITLES.verify_account": {
-    "text": "アカウント確認"
+    "text": "アカウントの検証"
   },
   "web.TITLES.mfa_verify": {
     "text": "二要素認証"
@@ -822,19 +822,19 @@
     "text": "シークレット"
   },
   "web.TITLES.metadata": {
-    "text": "シークレット詳細"
+    "text": "シークレットの詳細"
   },
   "web.TITLES.receipt": {
-    "text": "シークレット受領証"
+    "text": "シークレットの受信確認"
   },
   "web.TITLES.burn_secret": {
-    "text": "シークレット削除"
+    "text": "シークレットを削除"
   },
   "web.TITLES.dashboard": {
     "text": "ダッシュボード"
   },
   "web.TITLES.recent": {
-    "text": "最近"
+    "text": "最近のシークレット"
   },
   "web.TITLES.domains": {
     "text": "カスタムドメイン"
@@ -843,13 +843,13 @@
     "text": "ドメインを追加"
   },
   "web.TITLES.domain_verify": {
-    "text": "ドメインを確認"
+    "text": "ドメインの検証"
   },
   "web.TITLES.domain_brand": {
     "text": "ブランドドメイン"
   },
   "web.TITLES.account": {
-    "text": "アカウント設定"
+    "text": "アカウント"
   },
   "web.TITLES.data_region": {
     "text": "データリージョン"
@@ -876,13 +876,13 @@
     "text": "通知"
   },
   "web.TITLES.change_email": {
-    "text": "メールアドレス変更"
+    "text": "メールアドレスの変更"
   },
   "web.TITLES.security_overview": {
     "text": "セキュリティ"
   },
   "web.TITLES.change_password": {
-    "text": "パスワード変更"
+    "text": "パスワードの変更"
   },
   "web.TITLES.mfa_settings": {
     "text": "二要素認証"
@@ -912,33 +912,93 @@
     "text": "組織設定"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "フォーカスがメインテキストエリアにあります"
+    "text": "メインテキストエリアにフォーカスが移動しました"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "共有手順"
+    "text": "共有方法"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "リンクを意図した受信者と共有してください"
+    "text": "意図した受信者にリンクを共有してください"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "パスフレーズは別の安全なチャネルを通じて共有してください"
+    "text": "パスフレーズは安全なチャネルで別途共有してください"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "機密情報を共有するには、別の安全なチャネルを使用してください"
+    "text": "機密情報を共有する際は、別の安全なチャネルを使用してください"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "常に公式のOnetime Secretウェブサイトにアクセスしていることを確認してください。詐欺師はOnetime Secretとそっくりな偽のウェブサイトを作成してシークレットを盗もうとすることがあります。フィッシング攻撃を避けるために、新しいリンクを作成する前にリージョンドメインを確認してください。"
+    "text": "常にOnetime Secret公式サイトにアクセスしていることを確認してください。詐欺師がOnetime Secretと同じように見せかけた偽サイトを作成し、シークレットを盗もうとすることがあります。フィッシング攻撃を防ぐため、新しいリンクを作成する前にドメインを確認してください。"
   },
   "web.STATUS.previewed": {
-    "text": "リンクが開かれました"
+    "text": "プレビュー済み"
   },
   "web.STATUS.revealed": {
-    "text": "公開済み"
+    "text": "閲覧済み"
   },
   "web.STATUS.previewed_description": {
-    "text": "シークレットリンクが開かれ、公開する準備ができました"
+    "text": "シークレットリンクが開かれ、閲覧可能な状態です"
   },
   "web.STATUS.revealed_description": {
-    "text": "シークレットの内容が受信者に公開されました"
+    "text": "シークレットの内容が受信者に閲覧されました"
+  },
+  "web.COMMON.not_set": {
+    "text": "未設定"
+  },
+  "web.COMMON.word_edit": {
+    "text": "編集"
+  },
+  "web.COMMON.word_save": {
+    "text": "保存"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "有効期限"
+  },
+  "web.LABELS.filter": {
+    "text": "フィルター"
+  },
+  "web.LABELS.clear": {
+    "text": "クリア"
+  },
+  "web.LABELS.add_note": {
+    "text": "メモを追加..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "メモを編集"
+  },
+  "web.LABELS.add_memo": {
+    "text": "メモを追加..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "メモを編集"
+  },
+  "web.TITLES.help": {
+    "text": "ヘルプ"
+  },
+  "web.TITLES.pricing": {
+    "text": "料金"
+  },
+  "web.pricing.title": {
+    "text": "シンプルで透明な料金"
+  },
+  "web.pricing.subtitle": {
+    "text": "ニーズに合ったプランをお選びください。すべてのプランで無制限のシークレット共有とプライバシー第一の設計が含まれています。"
+  },
+  "web.pricing.get_started_free": {
+    "text": "無料ではじめる"
+  },
+  "web.pricing.start_trial": {
+    "text": "はじめる"
+  },
+  "web.pricing.already_have_account": {
+    "text": "既にアカウントをお持ちですか?"
+  },
+  "web.pricing.sign_in": {
+    "text": "ログイン"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "おすすめ"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "基本機能でシークレットを作成・共有。クレジットカード不要。"
   }
 }

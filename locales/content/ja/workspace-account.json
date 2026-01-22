@@ -6,10 +6,10 @@
     "text": "パスワードを変更"
   },
   "web.account.close_account": {
-    "text": "アカウントを閉じる"
+    "text": "アカウントを閉鎖"
   },
   "web.account.verify_account": {
-    "text": "アカウントを確認"
+    "text": "アカウントを認証"
   },
   "web.account.subscription_title": {
     "text": "サブスクリプション"
@@ -30,13 +30,13 @@
     "text": "リージョン"
   },
   "web.account.account_balance": {
-    "text": "アカウント残高:"
+    "text": "残高:"
   },
   "web.account.default_payment_method": {
     "text": "デフォルトの支払い方法"
   },
   "web.account.card_ending": {
-    "text": "末尾が"
+    "text": "末尾"
   },
   "web.account.subscriptions_title": {
     "text": "サブスクリプション"
@@ -69,7 +69,7 @@
     "text": "タイムゾーン"
   },
   "web.account.customer_id": {
-    "text": "顧客 ID"
+    "text": "顧客ID"
   },
   "web.account.account_id_customerid": {
     "text": "アカウントID"
@@ -111,7 +111,7 @@
     "text": "アカウントを完全に削除してもよろしいですか？この操作は元に戻せません。"
   },
   "web.account.confirm_account_deletion": {
-    "text": "アカウント削除の確認"
+    "text": "アカウント削除を確認"
   },
   "web.account.deleting_cust_custid": {
     "text": "{0}を削除中"
@@ -120,7 +120,7 @@
     "text": "アカウントを完全に削除"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "永久的かつ非可逆的"
+    "text": "取り消しができません。"
   },
   "web.account.deleting_your_account_is": {
     "text": "アカウントの削除は"
@@ -129,13 +129,13 @@
     "text": "続行する前に削除してください"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "削除したいシークレットがあれば、"
+    "text": "削除したいシークレットがある場合は、"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "シークレットは有効期限が切れるまでアクティブのままです。"
   },
   "web.account.please_be_advised": {
-    "text": "ご注意ください："
+    "text": "ご注意ください:"
   },
   "web.account.account_deleted_successfully": {
     "text": "アカウントが正常に削除されました。"
@@ -153,7 +153,7 @@
     "text": "設定"
   },
   "web.settings.description": {
-    "text": "アカウント設定と環境設定を管理します"
+    "text": "アカウント設定と環境設定を管理"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "アカウント設定と環境設定を管理します"
@@ -180,88 +180,88 @@
     "text": "言語"
   },
   "web.settings.language.description": {
-    "text": "優先言語を選択"
+    "text": "お好みの言語を選択"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "優先言語を選択"
+    "text": "お好みの言語を選択"
   },
   "web.settings.security_settings_description": {
-    "text": "認証とアカウントセキュリティを管理します"
+    "text": "認証とアカウントセキュリティを管理"
   },
   "web.settings.profile_settings_description": {
-    "text": "アカウント情報を管理します"
+    "text": "アカウント情報を管理"
   },
   "web.settings.profile.title": {
     "text": "プロフィール"
   },
   "web.settings.profile.change_email": {
-    "text": "メールアドレスを変更"
+    "text": "メールを変更"
   },
   "web.settings.profile.current_email": {
-    "text": "現在のメールアドレス"
+    "text": "現在のメール"
   },
   "web.settings.profile.current_password": {
     "text": "現在のパスワード"
   },
   "web.settings.profile.new_email": {
-    "text": "新しいメールアドレス"
+    "text": "新しいメール"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "現在のパスワードを入力してください"
+    "text": "現在のパスワードを入力"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "セキュリティ上の理由からパスワードが必要です"
+    "text": "セキュリティのためパスワードが必要です"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "新しいアドレスに確認メールが送信されます"
+    "text": "新しいアドレスに認証メールが送信されます"
   },
   "web.settings.profile.update_email": {
-    "text": "メールアドレスを更新"
+    "text": "メールを更新"
   },
   "web.settings.profile.change_email_description": {
-    "text": "アカウントに関連付けられたメールアドレスを更新します"
+    "text": "アカウントに関連付けられているメールアドレスを更新"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "すべてのフィールドが必須です"
+    "text": "すべての項目が必須です"
   },
   "web.settings.profile.invalid_email": {
     "text": "有効なメールアドレスを入力してください"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "新しいメールアドレスは現在のものと異なる必要があります"
+    "text": "新しいメールは現在のメールと異なる必要があります"
   },
   "web.settings.profile.email_change_success": {
-    "text": "メールアドレスが正常に更新されました。新しいメールアドレスを確認するために受信トレイを確認してください。"
+    "text": "メールが正常に更新されました。新しいメールアドレスを認証するため、受信トレイを確認してください。"
   },
   "web.settings.profile.email_change_error": {
-    "text": "メールアドレスの更新に失敗しました。もう一度お試しください。"
+    "text": "メールの更新に失敗しました。もう一度お試しください。"
   },
   "web.settings.sessions.title": {
     "text": "アクティブセッション"
   },
   "web.settings.sessions.description": {
-    "text": "アクティブセッションを管理します"
+    "text": "アクティブセッションを管理"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "アクティブセッションを管理します"
+    "text": "アクティブセッションを管理"
   },
   "web.settings.password.title": {
     "text": "パスワード"
   },
   "web.settings.password.description": {
-    "text": "アカウントパスワードを更新します"
+    "text": "アカウントパスワードを更新"
   },
   "web.settings.password.update_account_password": {
-    "text": "アカウントパスワードを更新します"
+    "text": "アカウントパスワードを更新"
   },
   "web.settings.delete_account.title": {
     "text": "アカウントを削除"
   },
   "web.settings.delete_account.description": {
-    "text": "アカウントとすべてのデータを完全に削除します"
+    "text": "アカウントとすべてのデータを完全に削除"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "アカウントとすべてのデータを完全に削除します"
+    "text": "アカウントとすべてのデータを完全に削除"
   },
   "web.settings.security.security_score": {
     "text": "セキュリティスコア"
@@ -279,13 +279,13 @@
     "text": "普通"
   },
   "web.settings.security.weak": {
-    "text": "脆弱"
+    "text": "弱い"
   },
   "web.settings.security.improve_security": {
-    "text": "セキュリティを向上させる"
+    "text": "セキュリティを向上"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "より強力な保護のために二要素認証を有効にしてください"
+    "text": "より強力な保護のために二要素認証を有効化"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "バックアップとしてリカバリーコードを生成してください"
@@ -303,46 +303,46 @@
     "text": "有効化"
   },
   "web.settings.security.codes_available": {
-    "text": "{0}個のコードが利用可能"
+    "text": "{0}件のコードが利用可能"
   },
   "web.settings.security.no_codes": {
-    "text": "コードが生成されていません"
+    "text": "コード未生成"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0}個のアクティブセッション | {0}個のアクティブセッション"
+    "text": "{0}件のアクティブセッション"
   },
   "web.settings.security.best_practices": {
     "text": "セキュリティのベストプラクティス"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "アカウントには強力で一意のパスワードを使用してください"
+    "text": "アカウントには強力でユニークなパスワードを使用"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "追加の保護のために二要素認証を有効にしてください"
+    "text": "追加の保護のために二要素認証を有効化"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "リカバリーコードを安全な場所に保存してください"
+    "text": "リカバリーコードを安全な場所に保存"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "未使用のセッションを定期的に確認して取り消してください"
+    "text": "定期的にセッションを確認し、未使用のものを取り消す"
   },
   "web.settings.security.view_details": {
     "text": "詳細を表示"
   },
   "web.settings.api.title": {
-    "text": "API & 統合"
+    "text": "APIと統合"
   },
   "web.settings.api.description": {
-    "text": "APIキーと統合を管理します"
+    "text": "APIキーと統合を管理"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "APIキーと統合を管理します"
+    "text": "APIキーと統合を管理"
   },
   "web.settings.api.documentation": {
     "text": "APIドキュメント"
   },
   "web.settings.api.documentation_description": {
-    "text": "Onetime Secretをアプリケーションに統合する方法を学びます"
+    "text": "アプリケーションにOnetime Secretを統合する方法を学ぶ"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST APIリファレンス"
@@ -360,19 +360,19 @@
     "text": "セキュリティのベストプラクティス"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "APIキーをバージョン管理にコミットしないでください"
+    "text": "APIキーをバージョン管理にコミットしない"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "APIキーを保存するには環境変数を使用してください"
+    "text": "APIキーの保存には環境変数を使用"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "セキュリティのためにAPIキーを定期的にローテーションしてください"
+    "text": "セキュリティのためAPIキーを定期的にローテーション"
   },
   "web.settings.api.use_https_only": {
-    "text": "APIリクエストを行う際は常にHTTPSを使用してください"
+    "text": "APIリクエストには常にHTTPSを使用"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "API使用状況を監視してアラートを設定してください"
+    "text": "API使用状況を監視し、アラートを設定"
   },
   "web.settings.api.important_notice": {
     "text": "重要なお知らせ"
@@ -384,13 +384,13 @@
     "text": "プライバシー設定"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "プライバシー設定を管理します"
+    "text": "プライバシー設定を管理"
   },
   "web.settings.privacy.your_privacy": {
     "text": "あなたのプライバシー"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "交渉不可"
+    "text": "交渉の余地なし"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "設定ではありません"
@@ -399,13 +399,13 @@
     "text": "分析なし。追跡なし。以上。"
   },
   "web.settings.privacy.explanation": {
-    "text": "これは設定ではありません。オンまたはオフにするものがないからです。あなたのプライバシーは私たちの運営方法に組み込まれています。"
+    "text": "オン/オフにするものがないため、これは設定ではありません。プライバシーは私たちの運用方法に組み込まれています。"
   },
   "web.settings.notifications.title": {
     "text": "通知設定"
   },
   "web.settings.notifications.description": {
-    "text": "通知の受信方法を管理します"
+    "text": "通知の受け取り方を管理"
   },
   "web.settings.notifications.error_updating": {
     "text": "通知設定の更新に失敗しました。もう一度お試しください。"
@@ -414,16 +414,16 @@
     "text": "シークレット閲覧通知"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "誰かがあなたのシークレットを閲覧したときにメールを受け取ります"
+    "text": "誰かがシークレットを閲覧したときにメールを受信"
   },
   "web.settings.notifications.reveal_notifications.help": {
     "text": "受信者があなたのシークレットを閲覧するたびに通知されます"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "通知メールにはタイムスタンプとシークレットIDのみが含まれます。閲覧者の情報は含まれません。"
+    "text": "通知メールにはタイムスタンプとシークレットIDのみが含まれます。閲覧者情報は含まれません。"
   },
   "web.settings.caution.title": {
-    "text": "慎重な検討ゾーン"
+    "text": "注意が必要なゾーン"
   },
   "web.settings.caution.description": {
     "text": "詳細設定とデータ管理"
@@ -435,7 +435,7 @@
     "text": "アカウントデータをエクスポート"
   },
   "web.settings.caution.export_description": {
-    "text": "機械可読形式でアカウントデータの完全なコピーをリクエストします"
+    "text": "機械可読形式でアカウントデータの完全なコピーをリクエスト"
   },
   "web.settings.caution.request_data_export": {
     "text": "データエクスポートをリクエスト"
@@ -450,15 +450,30 @@
     "text": "アカウントを削除すると:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "すべてのシークレットを完全に削除します"
+    "text": "すべてのシークレットを完全に削除"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "すべてのシークレットメタデータと履歴を削除します"
+    "text": "すべてのシークレットメタデータと履歴を削除"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "すべてのAPIキーを無効化します"
+    "text": "すべてのAPIキーを無効化"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "この操作は元に戻せません"
+    "text": "この操作は取り消せません"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "削除中..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "ダッシュボードに戻る"
+  },
+  "web.settings.sections.account": {
+    "text": "アカウント"
+  },
+  "web.settings.sections.billing": {
+    "text": "請求"
+  },
+  "web.settings.sections.advanced": {
+    "text": "詳細"
   }
 }

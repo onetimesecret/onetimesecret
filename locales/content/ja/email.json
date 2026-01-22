@@ -3,46 +3,46 @@
     "text": "[チケット: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "お客様が次の情報を送信しました"
+    "text": "お客様から以下の情報が送信されました"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email}からシークレットが届いています"
+    "text": "%{sender_email}からシークレットが届きました"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "があなたにシークレットを送信しました："
+    "text": "がシークレットを送信しました:"
   },
   "email.secret_link.important_label": {
-    "text": "重要："
+    "text": "重要:"
   },
   "email.secret_link.link_works_once": {
     "text": "このリンクは1回のみ有効です。閲覧後、シークレットは完全に削除されます。"
   },
   "email.secret_link.sent_via": {
-    "text": "送信元："
+    "text": "経由"
   },
   "email.welcome.subject": {
-    "text": "Onetime Secretアカウントを確認してください"
+    "text": "%{product_name}へようこそ - メールアドレスを認証してください"
   },
   "email.welcome.title": {
-    "text": "%{product_name}に招待されました！"
+    "text": "%{product_name}へようこそ!"
   },
   "email.welcome.verify_prompt": {
-    "text": "以下のリンクをクリックしてメールアドレスを確認してください："
+    "text": "下のリンクをクリックして、メールアドレスを認証してください:"
   },
   "email.welcome.verify_button": {
-    "text": "メールアドレスを確認"
+    "text": "メールアドレスを認証"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "または、このリンクをコピーしてください："
+    "text": "または、このリンクをコピーして貼り付けてください:"
   },
   "email.welcome.signature": {
-    "text": "デラノ"
+    "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "追伸：このメールは%{email_address}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視しても問題ありません。"
+    "text": "追伸: このメールは%{email_address}宛に送信されました。アカウントを作成していない場合は、このメッセージを無視してください。"
   },
   "email.password_request.subject": {
-    "text": "パスワードをリセット（%{display_domain}）"
+    "text": "パスワードをリセット (%{display_domain})"
   },
   "email.password_request.title": {
     "text": "パスワードをリセット"
@@ -54,25 +54,25 @@
     "text": "パスワードをリセット"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "または、このリンクをコピーしてください："
+    "text": "または、このリンクをコピーして貼り付けてください:"
   },
   "email.password_request.ignore_notice": {
-    "text": "パスワードリセットをリクエストしていない場合は、このメールは無視してください。"
+    "text": "パスワードリセットをリクエストしていない場合は、このメールを無視してください。"
   },
   "email.password_request.signature": {
     "text": "Delano"
   },
   "email.password_request.postscript": {
-    "text": "追伸：このメールは%{email_address}宛に送信されました。"
+    "text": "追伸: このメールは%{email_address}宛に送信されました。"
   },
   "email.magic_link.subject": {
-    "text": "%{display_domain}へログイン"
+    "text": "%{display_domain}にログイン"
   },
   "email.magic_link.title": {
     "text": "マジックリンクでログイン"
   },
   "email.magic_link.request_notice": {
-    "text": "%{product_name}アカウントへのログインリンクがリクエストされました。"
+    "text": "%{product_name}アカウントへのログインリンクのリクエストがありました。"
   },
   "email.magic_link.login_button": {
     "text": "ログイン"
@@ -81,10 +81,10 @@
     "text": "または、このリンクをコピーして貼り付けてください:"
   },
   "email.magic_link.expiration_notice": {
-    "text": "このリンクの有効期限は15分です。"
+    "text": "このリンクは15分で期限切れになります。"
   },
   "email.magic_link.ignore_notice": {
-    "text": "このリンクをリクエストした覚えがない場合は、このメールを無視しても問題ありません。"
+    "text": "このリンクをリクエストしていない場合は、このメールを無視してください。"
   },
   "email.magic_link.signature": {
     "text": "Delano"
@@ -93,28 +93,28 @@
     "text": "追伸: このメールは%{email_address}宛に送信されました。"
   },
   "email.incoming_secret.subject": {
-    "text": "シークレットメッセージが届いています"
+    "text": "シークレットメッセージを受信しました"
   },
   "email.incoming_secret.received_message": {
-    "text": "セキュアなメッセージが届いています："
+    "text": "安全なメッセージを受信しました:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "メモ："
+    "text": "メモ:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "%{display_domain}経由でセキュアなメッセージが送信されました。"
+    "text": "%{display_domain}を通じて安全なメッセージが送信されました。"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "このシークレットを表示するには、以下のリンクをクリックしてください："
+    "text": "このシークレットを表示するには、下のリンクをクリックしてください:"
   },
   "email.incoming_secret.important_label": {
-    "text": "重要："
+    "text": "重要:"
   },
   "email.incoming_secret.link_works_once": {
     "text": "このリンクは1回のみ有効です。閲覧後、シークレットは完全に削除されます。"
   },
   "email.incoming_secret.sent_via": {
-    "text": "送信元："
+    "text": "経由"
   },
   "email.secret_revealed.subject": {
     "text": "シークレットが閲覧されました"
@@ -126,10 +126,10 @@
     "text": "シークレットは%{date}に閲覧されました。"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "シークレットID："
+    "text": "シークレットID:"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "これは自動通知です。アクションは不要です。"
+    "text": "これは自動通知です。対応は不要です。"
   },
   "email.secret_revealed.signature": {
     "text": "Delano"
@@ -138,79 +138,79 @@
     "text": "通知設定を管理"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "通知設定を管理するには："
+    "text": "通知設定を管理するには:"
   },
   "email.expiration_warning.subject": {
-    "text": "シークレットリンクの有効期限が近づいています"
+    "text": "シークレットリンクがまもなく期限切れになります"
   },
   "email.expiration_warning.expires_in": {
-    "text": "シークレットリンクは残り%{time_remaining}で期限切れになります"
+    "text": "シークレットリンクは%{time_remaining}後に期限切れになります"
   },
   "email.expiration_warning.view_button": {
     "text": "期限切れになる前にシークレットを表示"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "お知らせ："
+    "text": "リマインダー:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "期限切れ後、シークレットは完全に削除され、復元できません。"
+    "text": "期限切れ後、シークレットは完全に削除され、復元できなくなります。"
   },
   "email.expiration_warning.sent_via": {
-    "text": "送信元："
+    "text": "経由"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "削除される前にご確認ください："
+    "text": "消える前に確認してください:"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "期限切れ後、シークレットは完全に削除されます。"
   },
   "email.feedback_email.subject": {
-    "text": "%{date}のフィードバック（%{display_domain}経由・%{strategy}）"
+    "text": "%{display_domain}からのフィードバック (%{date}) (%{strategy})"
   },
   "email.feedback_email.title": {
     "text": "ユーザーフィードバック"
   },
   "email.feedback_email.from_label": {
-    "text": "送信者："
+    "text": "送信元:"
   },
   "email.feedback_email.domain_label": {
-    "text": "ドメイン："
+    "text": "ドメイン:"
   },
   "email.feedback_email.strategy_label": {
-    "text": "認証方式："
+    "text": "戦略:"
   },
   "email.feedback_email.message_label": {
-    "text": "メッセージ："
+    "text": "メッセージ:"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support"
+    "text": "シークレットサポート"
   },
   "email.organization_invitation.subject": {
-    "text": "%{organization_name}への招待が届いています"
+    "text": "%{organization_name}への招待"
   },
   "email.organization_invitation.title": {
-    "text": "%{organization_name}に招待されました！"
+    "text": "%{organization_name}への招待を受けました!"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email}から「%{organization_name}」に%{role_description}として招待されています。"
+    "text": "%{inviter_email}から「%{organization_name}」に%{role_description}として招待されました。"
   },
   "email.organization_invitation.accept_button": {
     "text": "招待を承諾"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "または、このリンクをコピーして貼り付けてください："
+    "text": "または、このリンクをコピーして貼り付けてください:"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "この招待は%{days}日で期限切れになります。"
+    "text": "この招待は%{days}日後に期限切れになります。"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "参加を希望されない場合は、このメールを無視するか、招待を辞退してください。"
+    "text": "参加を希望しない場合は、このメールを無視するか、招待を辞退してください。"
   },
   "email.organization_invitation.signature": {
-    "text": "デラノ"
+    "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "追伸：このメールは%{invited_email}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視しても問題ありません。"
+    "text": "追伸: このメールは%{invited_email}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視してください。"
   },
   "email.organization_invitation.roles.member": {
     "text": "メンバー"
@@ -219,106 +219,106 @@
     "text": "管理者"
   },
   "email.password_changed.subject": {
-    "text": "パスワードが変更されました（%{display_domain}）"
+    "text": "パスワードが変更されました (%{display_domain})"
   },
   "email.password_changed.title": {
     "text": "パスワードが変更されました"
   },
   "email.password_changed.body": {
-    "text": "%{product_name}のパスワードが%{date}の%{time}に変更されました。"
+    "text": "%{product_name}のパスワードが%{date} %{time}に変更されました。"
   },
   "email.password_changed.security_notice": {
-    "text": "この変更に心当たりがない場合は、直ちにパスワードをリセットし、サポートまでご連絡ください。"
+    "text": "この変更を行っていない場合は、すぐにパスワードをリセットし、サポートに連絡してアカウントを保護してください。"
   },
   "email.password_changed.signature": {
     "text": "Delano"
   },
   "email.email_changed.subject": {
-    "text": "メールアドレスが変更されました（%{display_domain}）"
+    "text": "メールアドレスが変更されました (%{display_domain})"
   },
   "email.email_changed.title": {
     "text": "メールアドレスが変更されました"
   },
   "email.email_changed.body": {
-    "text": "%{product_name}アカウントのメールアドレスが%{date}に%{new_email_masked}に変更されました。"
+    "text": "%{product_name}アカウントのメールアドレスは、%{date}に%{new_email_masked}に変更されました。"
   },
   "email.email_changed.security_notice": {
-    "text": "この変更に心当たりがない場合は、アカウントが侵害されている可能性があるため、直ちにサポートまでご連絡ください。"
+    "text": "この変更を行っていない場合は、アカウントが侵害されている可能性がありますので、すぐにサポートにご連絡ください。"
   },
   "email.email_changed.signature": {
     "text": "Delano"
   },
   "email.email_change_confirmation.subject": {
-    "text": "新しいメールアドレスを確認（%{display_domain}）"
+    "text": "新しいメールアドレスを認証してください (%{display_domain})"
   },
   "email.email_change_confirmation.title": {
-    "text": "新しいメールアドレスを確認"
+    "text": "新しいメールアドレスを認証"
   },
   "email.email_change_confirmation.body": {
-    "text": "%{product_name}アカウントの変更を完了するには、このメールアドレスを確認してください。"
+    "text": "%{product_name}アカウントの変更を完了するために、このメールアドレスを認証してください。"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "メールアドレスを確認"
+    "text": "メールアドレスを認証"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "または、このリンクをコピーしてください："
+    "text": "または、このリンクをコピーして貼り付けてください:"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano"
   },
   "email.mfa_enabled.subject": {
-    "text": "二要素認証が有効化されました（%{display_domain}）"
+    "text": "二要素認証が有効になりました (%{display_domain})"
   },
   "email.mfa_enabled.title": {
-    "text": "二要素認証が有効化されました"
+    "text": "二要素認証が有効になりました"
   },
   "email.mfa_enabled.body": {
-    "text": "%{product_name}アカウントの二要素認証が%{date}に有効化されました。"
+    "text": "%{product_name}アカウントの二要素認証が%{date}に有効になりました。"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "アカウントのセキュリティが強化されました。サインイン時に認証アプリから確認コードを入力する必要があります。"
+    "text": "アカウントのセキュリティが向上しました。ログイン時に認証アプリから確認コードを入力する必要があります。"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano"
   },
   "email.mfa_disabled.subject": {
-    "text": "二要素認証が無効化されました（%{display_domain}）"
+    "text": "二要素認証が無効になりました (%{display_domain})"
   },
   "email.mfa_disabled.title": {
-    "text": "二要素認証が無効化されました"
+    "text": "二要素認証が無効になりました"
   },
   "email.mfa_disabled.body": {
-    "text": "%{product_name}アカウントの二要素認証が%{date}に無効化されました。"
+    "text": "%{product_name}アカウントの二要素認証が%{date}に無効になりました。"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "アカウントのセキュリティレベルが低下しました。この変更に心当たりがない場合は、直ちにアカウントを保護してください。"
+    "text": "アカウントのセキュリティが低下しています。この変更を行っていない場合は、すぐにアカウントを保護してください。"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano"
   },
   "email.new_login_alert.subject": {
-    "text": "新しいサインインが検出されました（%{display_domain}）"
+    "text": "アカウントへの新しいログイン (%{display_domain})"
   },
   "email.new_login_alert.title": {
-    "text": "新しいサインインが検出されました"
+    "text": "新しいログインが検出されました"
   },
   "email.new_login_alert.body": {
-    "text": "%{product_name}アカウントへの新しいサインインが%{date}の%{time}に検出されました。"
+    "text": "%{product_name}アカウントへの新しいログインが%{date} %{time}に検出されました。"
   },
   "email.new_login_alert.device_label": {
-    "text": "デバイス："
+    "text": "デバイス:"
   },
   "email.new_login_alert.location_label": {
-    "text": "場所："
+    "text": "場所:"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IPアドレス："
+    "text": "IPアドレス:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "心当たりがない場合は、アカウントが侵害されている可能性があります。"
+    "text": "これがあなたではない場合、アカウントが侵害されている可能性があります。"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "アカウントを保護"
+    "text": "アカウントを保護する"
   },
   "email.new_login_alert.signature": {
     "text": "Delano"
@@ -336,13 +336,13 @@
     "text": "Delano"
   },
   "email.role_changed.subject": {
-    "text": "%{organization_name}での役割が変更されました"
+    "text": "%{organization_name}でのあなたの役割が変更されました"
   },
   "email.role_changed.title": {
-    "text": "役割が変更されました"
+    "text": "あなたの役割が変更されました"
   },
   "email.role_changed.body": {
-    "text": "「%{organization_name}」での役割が%{old_role}から%{new_role}に変更されました。"
+    "text": "「%{organization_name}」でのあなたの役割が%{old_role}から%{new_role}に変更されました。"
   },
   "email.role_changed.signature": {
     "text": "Delano"
@@ -366,16 +366,16 @@
     "text": "お支払い領収書"
   },
   "email.payment_receipt.body": {
-    "text": "お支払いいただき、ありがとうございます。お支払い詳細は以下の通りです："
+    "text": "お支払いありがとうございます。お支払いの詳細は以下の通りです:"
   },
   "email.payment_receipt.amount_label": {
-    "text": "金額："
+    "text": "金額:"
   },
   "email.payment_receipt.date_label": {
-    "text": "日付："
+    "text": "日付:"
   },
   "email.payment_receipt.plan_label": {
-    "text": "プラン："
+    "text": "プラン:"
   },
   "email.payment_receipt.invoice_link": {
     "text": "請求書を表示"
@@ -384,16 +384,16 @@
     "text": "Delano"
   },
   "email.payment_failed.subject": {
-    "text": "%{product_name}のお支払いが失敗しました"
+    "text": "%{product_name}のお支払いに失敗しました"
   },
   "email.payment_failed.title": {
-    "text": "お支払いが失敗しました"
+    "text": "お支払いに失敗しました"
   },
   "email.payment_failed.body": {
-    "text": "%{product_name}のお支払い処理ができませんでした。サービス中断を避けるため、お支払い方法を更新してください。"
+    "text": "%{product_name}のお支払いを処理できませんでした。サービスの中断を避けるため、支払い方法を更新してください。"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "お支払い方法を更新"
+    "text": "支払い方法を更新"
   },
   "email.payment_failed.signature": {
     "text": "Delano"
@@ -402,10 +402,10 @@
     "text": "%{product_name}のトライアルがあと%{days_remaining}日で終了します"
   },
   "email.trial_expiring.title": {
-    "text": "トライアル期間がまもなく終了します"
+    "text": "トライアルがまもなく終了します"
   },
   "email.trial_expiring.body": {
-    "text": "%{product_name}の無料トライアルがあと%{days_remaining}日で終了します。すべての機能をご利用いただくには、今すぐアップグレードしてください。"
+    "text": "%{product_name}の無料トライアルは%{days_remaining}日後に終了します。すべての機能へのアクセスを維持するには、今すぐアップグレードしてください。"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "今すぐアップグレード"

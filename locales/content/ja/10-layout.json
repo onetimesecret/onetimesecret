@@ -15,10 +15,10 @@
     "text": "セキュリティ"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "セキュリティ対策について学ぶ"
+    "text": "セキュリティ対策について詳しく見る"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "利用規約を表示"
+    "text": "利用規約を見る"
   },
   "web.footer.terms": {
     "text": "利用規約"
@@ -42,7 +42,7 @@
     "text": "サービスステータスを確認"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "APIドキュメントを探索"
+    "text": "APIドキュメントを見る"
   },
   "web.footer.docs": {
     "text": "ドキュメント"
@@ -51,7 +51,7 @@
     "text": "ドキュメントにアクセス"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "GitHubでソースコードを表示"
+    "text": "GitHubでソースコードを見る"
   },
   "web.footer.resources": {
     "text": "リソース"
@@ -60,16 +60,16 @@
     "text": "ブログ"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "最新のブログ投稿を読む"
+    "text": "最新のブログ記事を読む"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "サブスクリプション価格を表示"
+    "text": "サブスクリプション料金を見る"
   },
   "web.footer.learn_about_our_company": {
-    "text": "会社について学ぶ"
+    "text": "会社について詳しく見る"
   },
   "web.footer.company": {
-    "text": "会社"
+    "text": "会社概要"
   },
   "web.navigation.billing": {
     "text": "請求"
@@ -81,7 +81,7 @@
     "text": "組織"
   },
   "web.site.website_version": {
-    "text": "サイトバージョン"
+    "text": "ウェブサイトバージョン"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
     "text": "私たちは{onetime-secret}を複数の言語で提供しています。これは新機能のため、翻訳エラーや不自然な表現に遭遇する可能性があります。あなたのフィードバックは私たちの改善に役立ちます - 問題を見つけた場合は、{send-feedback}してください"
@@ -90,7 +90,7 @@
     "text": "翻訳は新しい機能です。エラーを見つけましたか？{send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "最近翻訳を追加しました。エラーを見つけましたか？{send-feedback}"
+    "text": "最近翻訳を追加しました。誤りを見つけましたか? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "プライバシーとセキュリティは言語に関係なく、すべての人がアクセスできるべきです。私たちは、ユーザーとメッセージ受信者の両方が安全なメッセージやリンクの使用方法と理解をより良くするために翻訳を追加しています。これは新機能のため、翻訳エラーや不明確な指示に遭遇する可能性があります。特に重要なセキュリティ関連のコンテンツの明確さと正確さを向上させるため、問題を見つけた場合は{send-feedback}してください"
@@ -99,43 +99,43 @@
     "text": "詳細を見る"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "これは何ですか？"
+    "text": "これは何ですか?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。"
+    "text": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "このシークレットを後でもう一度見ることはできますか？"
+    "text": "このシークレットを後で再度表示できますか?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "いいえ。セキュリティ上の理由から、このシークレットは一度だけ閲覧可能です。このページを閉じると、コンテンツは完全に削除され、私たちを含め誰も復元することはできません。"
+    "text": "いいえ。セキュリティ上の理由から、このシークレットは1回のみ閲覧可能です。このページを閉じると、内容は完全に削除され、私たちを含め誰も復元できません。"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "この情報を保存するにはどうすればよいですか？"
+    "text": "この情報を保存するにはどうすればいいですか?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "「クリップボードにコピー」ボタンを使用して、シークレット全体をコピーします。長いシークレットの場合は、このページを離れる前に完全なコンテンツをコピーしたことを確認してください。"
+    "text": "「クリップボードにコピー」ボタンを使用して、シークレット全体をコピーしてください。長いシークレットの場合は、このページを離れる前に内容が完全にコピーされたことを確認してください。"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "このシークレットの閲覧は追跡されていますか？"
+    "text": "このシークレットの閲覧は追跡されますか?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "送信者にはシークレットが閲覧されたことが通知されますが、誰が閲覧したか、どこから閲覧したかは追跡していません。あなたのプライバシーは保護されています。"
+    "text": "送信者にはシークレットが閲覧されたことが通知されますが、誰がどこから閲覧したかは追跡されません。あなたのプライバシーは保護されています。"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "このページを離れるか更新すると、このシークレットは完全に削除され、誰も復元することはできません。"
+    "text": "このページを離れるか更新すると、このシークレットは完全に削除され、誰も復元できなくなります。"
   },
   "web.layout.go_back_to_previous_page": {
     "text": "前のページに戻る"
   },
   "web.layout.site_footer": {
-    "text": "サイト フッター"
+    "text": "サイトフッター"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "ダークモードを切り替える"
+    "text": "ダークモードを切り替え"
   },
   "web.layout.provide_feedback": {
-    "text": "フィードバックを提供"
+    "text": "フィードバックを送信"
   },
   "web.layout.company_logo": {
     "text": "会社ロゴ"
@@ -144,13 +144,13 @@
     "text": "ブランドロゴ"
   },
   "web.layout.dashboard_navigation": {
-    "text": "ダッシュボード ナビゲーション"
+    "text": "ダッシュボードナビゲーション"
   },
   "web.layout.mobile_navigation": {
     "text": "モバイルナビゲーション"
   },
   "web.layout.main_navigation": {
-    "text": "メイン ナビゲーション"
+    "text": "メインナビゲーション"
   },
   "web.layout.mobile_nav_item_count": {
     "text": "{count}項目"
@@ -183,13 +183,13 @@
     "text": "ホームに戻る"
   },
   "web.layout.view_privacy_policy": {
-    "text": "プライバシーポリシーを表示"
+    "text": "プライバシーポリシーを見る"
   },
   "web.layout.view_terms_of_service": {
-    "text": "利用規約を表示"
+    "text": "利用規約を見る"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secretホームページにアクセス"
+    "text": "Onetime Secretホームページへ"
   },
   "web.layout.footer_navigation": {
     "text": "フッターナビゲーション"
@@ -219,27 +219,33 @@
     "text": "Font Awesome 6"
   },
   "web.layout.view_source_on_github": {
-    "text": "GitHubでソースを表示"
+    "text": "GitHubでソースを見る"
   },
   "web.layout.website_version_v_ot_version": {
     "text": "ウェブサイトバージョン: v{0}"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "言語を変更。現在の言語は{0}です"
+    "text": "言語を変更。現在の言語: {0}"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "言語が{0}に変更されました"
+    "text": "言語を{0}に変更しました"
   },
   "web.layout.switch_to_blank_mode": {
     "text": "{0}モードに切り替え"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0}モードが有効になりました"
+    "text": "{0}モードが有効"
   },
   "web.layout.workspace": {
     "text": "ワークスペース"
   },
   "web.layout.workspace_context": {
     "text": "ワークスペースコンテキスト"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "フィードバックを送信すると、以下の情報が送信されます:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "{0}にリセット"
   }
 }

@@ -18,7 +18,7 @@
     "text": "シークレット ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(過去5分間アクティブ)"
+    "text": "(過去5分以内にアクティブ)"
   },
   "web.colonel.configEditorTitle": {
     "text": "設定"
@@ -30,28 +30,28 @@
     "text": "{section}セクションのJSONが無効です"
   },
   "web.colonel.validationError": {
-    "text": "検証エラー"
+    "text": "バリデーションエラー"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "設定の読み込みエラー"
+    "text": "設定の読み込み中にエラーが発生しました"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "設定の保存エラー"
+    "text": "設定の保存中にエラーが発生しました"
   },
   "web.colonel.configSaved": {
-    "text": "設定が正常に保存されました"
+    "text": "設定を正常に保存しました"
   },
   "web.colonel.mustBeObject": {
     "text": "設定はJSONオブジェクトである必要があります"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "複数のセクションに検証エラーがあります: {sections}"
+    "text": "複数のセクションにバリデーションエラーがあります: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section}に検証エラーがあります: {error}"
+    "text": "{section}にバリデーションエラーがあります: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section}が正常に保存されました"
+    "text": "{section}を保存しました"
   },
   "web.colonel.saveSection": {
     "text": "{section}を保存"
@@ -63,13 +63,13 @@
     "text": "未保存の変更"
   },
   "web.colonel.schemaValidationError": {
-    "text": "スキーマ検証エラー: {message} ({path})"
+    "text": "スキーマバリデーションエラー: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "不明な検証エラー: {error}"
+    "text": "不明なバリデーションエラー: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section}セクションには設定された値がありません"
+    "text": "{section}セクションに設定値がありません"
   },
   "web.colonel.dashboard": {
     "text": "ダッシュボード"
@@ -117,13 +117,13 @@
     "text": "アクティビティデータがここに表示されます"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "総シークレット数"
+    "text": "シークレット総数"
   },
   "web.colonel.stats.activeUsers": {
     "text": "アクティブユーザー"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "今日のシークレット"
+    "text": "本日のシークレット"
   },
   "web.colonel.stats.secretsCreated": {
     "text": "作成されたシークレット"
@@ -132,13 +132,13 @@
     "text": "共有されたシークレット"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "総顧客数"
+    "text": "総ユーザー数"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "送信されたメール"
+    "text": "送信メール数"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "システムヘルス"
+    "text": "システム状態"
   },
   "web.colonel.stats.healthy": {
     "text": "正常"
@@ -147,7 +147,7 @@
     "text": "アクティビティを表示"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "システムアクティビティと使用状況を監視します"
+    "text": "システムアクティビティと使用状況を監視"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "アカウントを管理"
@@ -189,7 +189,7 @@
     "text": "接続ステータス"
   },
   "web.colonel.workerHealth": {
-    "text": "ワーカー状態"
+    "text": "ワーカーの状態"
   },
   "web.colonel.activeWorkers": {
     "text": "アクティブワーカー"
@@ -228,10 +228,10 @@
     "text": "テストモード有効"
   },
   "web.colonel.testModeDescription": {
-    "text": "異なるプランの権限でアプリケーションをテストします。変更は一時的で、このセッションにのみ影響します。"
+    "text": "異なるプランのエンタイトルメントでアプリケーションをテストします。変更は一時的で、あなたのセッションのみに影響します。"
   },
   "web.colonel.warningTestMode": {
-    "text": "{planName}の権限でテスト中です（一時的なセッションオーバーライド）。"
+    "text": "{planName}のエンタイトルメントでテスト中です(一時的なセッションオーバーライド)。"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "フィードバックを送信すると、以下が表示されます:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "送信中..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "禁止IP"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP禁止リストを管理"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "カスタムドメイン"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "カスタムドメインとブランディングを管理"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "フィードバックを送信"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "送信中..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "フィードバックを送信すると、以下の情報が送信されます:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "組織"
+  },
+  "web.colonel.organizations.description": {
+    "text": "組織の請求同期状態を監視"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "請求状態モニター"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count}件の組織"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count}件要対応"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count}件不明"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "組織が見つかりません"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "調査"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "確認中..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "アカウント"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "請求"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "ステータス"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "使用量"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "作成日"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "詳細"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "オーナー"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "プラン"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "メンバー"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "ドメイン"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "サブスクリプション"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "デフォルトワークスペース"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "請求あり"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "顧客"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "サブスクリプション"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "組織ID"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "同期ステータス"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "サブスクリプション"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "すべて"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "古い可能性あり"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "不明"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "同期済み"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "有効"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "トライアル中"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "期限超過"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "キャンセル済み"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "調査に失敗しました"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "調査結果"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "同期を確認"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "不一致を検出"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "比較不可"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripeサブスクリプション詳細"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "ステータス"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "製品"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "解決済みプラン"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "価格ID"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "ローカル"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "組織請求管理"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "組織の管理と請求同期状態の監視 (合計{total}件)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "組織が見つかりません"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "古い可能性あり"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "古い"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "不明"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "有効"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count}人のメンバー"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count}件のドメイン"
+  },
+  "web.colonel.secrets.title": {
+    "text": "シークレット"
+  },
+  "web.colonel.secrets.description": {
+    "text": "すべてのシークレットを表示・管理"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "システム"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "システム設定、データベース、および構成"
+  },
+  "web.colonel.titles.index": {
+    "text": "管理"
+  },
+  "web.colonel.titles.users": {
+    "text": "ユーザー管理"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "シークレット管理"
+  },
+  "web.colonel.titles.domains": {
+    "text": "カスタムドメイン"
+  },
+  "web.colonel.titles.system": {
+    "text": "システム"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "メインデータベース"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "認証データベース"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "禁止IP"
+  },
+  "web.colonel.titles.usage": {
+    "text": "使用量エクスポート"
+  },
+  "web.colonel.titles.info": {
+    "text": "システム情報"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "組織"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "使用量エクスポート"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "使用量データと統計をエクスポート"
   }
 }

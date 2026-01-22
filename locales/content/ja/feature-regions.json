@@ -1,15 +1,15 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "データ主権 & リージョン分離"
+    "text": "データ主権とリージョン分離"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "データは選択したリージョンにのみ存在し、リージョン間で転送されることはありません"
+    "text": "データは選択したリージョンにのみ保存され、リージョン間で転送されることはありません"
   },
   "web.regions.separate_environments_explanation": {
     "text": "各リージョンは、独自のインフラストラクチャ、暗号化キー、データストレージを持つ完全に独立した環境として運用されます"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "私たちは厳格なポリシーを維持しています: 顧客データはいかなる状況でもリージョン間で転送されません"
+    "text": "私たちは厳格な方針を維持しています: 顧客データは いかなる状況でもリージョン間で転送されません"
   },
   "web.regions.switching_creates_new_account": {
     "text": "重要: 別のリージョンに切り替えると、新しいアカウントが作成されます。データは元のリージョンに残ります。"
@@ -21,46 +21,46 @@
     "text": "現在のリージョン"
   },
   "web.regions.active": {
-    "text": "アクティブ"
+    "text": "有効"
   },
   "web.regions.explore_other_regions": {
-    "text": "他の利用可能なリージョンを探索"
+    "text": "他の利用可能なリージョンを見る"
   },
   "web.regions.why_it_matters": {
     "text": "データ主権が重要な理由"
   },
   "web.regions.trust_title": {
-    "text": "透明性 & コントロール"
+    "text": "透明性とコントロール"
   },
   "web.regions.trust_description": {
-    "text": "データがどこにあるか、どの法律がその保護を管理しているかを正確に把握できます。"
+    "text": "データの保存場所と、その保護を規定する法律を正確に把握できます。"
   },
   "web.regions.privacy_title": {
     "text": "プライバシー権"
   },
   "web.regions.privacy_description": {
-    "text": "個人情報が国のプライバシー法と規制に従って処理され、不正アクセスや誤用を防ぎます。"
+    "text": "個人情報があなたの国のプライバシー法と規制に従って取り扱われ、不正アクセスや悪用を防ぎます。"
   },
   "web.regions.compliance_title": {
-    "text": "規制準拠"
+    "text": "規制コンプライアンス"
   },
   "web.regions.compliance_description": {
-    "text": "GDPR、HIPAA、CCPA、その他の地域データ保護要件を満たします"
+    "text": "GDPR、HIPAA、CCPAなどの地域データ保護要件に対応"
   },
   "web.regions.performance_title": {
     "text": "高速アクセス"
   },
   "web.regions.performance_description": {
-    "text": "データが近くに保存されるため、レイテンシが低く、パフォーマンスが向上します。"
+    "text": "データが近くに保存されることで、低遅延と高パフォーマンスを実現します。"
   },
   "web.regions.regions": {
-    "text": "地域"
+    "text": "リージョン"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "コンプライアンスチームに連絡する"
+    "text": "コンプライアンスチームに連絡"
   },
   "web.regions.review_our_documentation": {
-    "text": "ドキュメントを確認する"
+    "text": "ドキュメントを確認"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "あなたのアカウントとデータは次の法律と規制の下で保護されています"
@@ -81,27 +81,27 @@
     "text": "{0} {1}"
   },
   "web.regions.available_regions": {
-    "text": "利用可能な地域"
+    "text": "利用可能なリージョン"
   },
   "web.regions.jurisdiction": {
-    "text": "管轄区域"
+    "text": "管轄"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
     "text": "データセンターの場所: {0}"
   },
   "web.regions.data_region": {
-    "text": "データ地域"
+    "text": "データリージョン"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "不明な管轄区域"
+    "text": "不明な管轄"
   },
   "web.regions.serving_you_from_the": {
-    "text": "サービス提供元："
+    "text": "サービス提供元:"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "{0}に進む"
   },
   "web.regions.current_jurisdiction": {
-    "text": "現在の管轄区域："
+    "text": "現在の管轄:"
   }
 }
