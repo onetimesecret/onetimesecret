@@ -1,18 +1,18 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Potrzebujesz konta?"
+    "text": "Nie masz konta?"
   },
   "web.login.need_an_account": {
-    "text": "Chcesz założyć konto?"
+    "text": "Zarejestruj się."
   },
   "web.login.forgot_your_password": {
     "text": "Zapomniałeś hasła?"
   },
   "web.login.button_sign_in": {
-    "text": "Zaloguj"
+    "text": "Zaloguj się"
   },
   "web.login.enter_your_credentials": {
-    "text": "Wprowadź swoje dane dostępowe"
+    "text": "Wprowadź swoje dane logowania"
   },
   "web.login.remember_me": {
     "text": "Zapamiętaj mnie"
@@ -24,7 +24,7 @@
     "text": "Masz już konto?"
   },
   "web.signup.have_an_account": {
-    "text": "Lub zaloguj się na swoje konto"
+    "text": "Zaloguj się."
   },
   "web.signup.error_title": {
     "text": "Błąd tworzenia konta"
@@ -54,10 +54,10 @@
     "text": "Nie można zweryfikować konta. Spróbuj ponownie lub skontaktuj się z pomocą techniczną."
   },
   "web.auth.verify.check_email": {
-    "text": "Sprawdź swoją skrzynkę e-mail w poszukiwaniu linku weryfikacyjnego"
+    "text": "Sprawdź swoją pocztę, aby znaleźć link weryfikacyjny"
   },
   "web.auth.verify.error": {
-    "text": "Weryfikacja konta nie powiodła się. Sprawdź link weryfikacyjny lub poproś o nowy."
+    "text": "Weryfikacja konta nie powiodła się. Sprawdź swój link weryfikacyjny lub poproś o nowy."
   },
   "web.auth.verify.error_title": {
     "text": "Weryfikacja nie powiodła się"
@@ -66,19 +66,19 @@
     "text": "Co powinienem zrobić?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Sprawdź swoją skrzynkę e-mail w poszukiwaniu najnowszego linku weryfikacyjnego"
+    "text": "Sprawdź swoją pocztę, aby znaleźć najnowszy link weryfikacyjny"
   },
   "web.auth.verify.check_spam": {
     "text": "Sprawdź folder spam/śmieci, jeśli nie możesz znaleźć e-maila"
   },
   "web.auth.verify.contact_support": {
-    "text": "Skontaktuj się z pomocą techniczną, jeśli problemy nadal występują"
+    "text": "Skontaktuj się z pomocą techniczną, jeśli nadal masz problemy"
   },
   "web.auth.verify.missing_key_title": {
     "text": "Wymagany link weryfikacyjny"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Użyj linku weryfikacyjnego wysłanego na Twój adres e-mail, aby zweryfikować konto."
+    "text": "Użyj linku weryfikacyjnego wysłanego na Twój adres e-mail, aby zweryfikować swoje konto."
   },
   "web.auth.verify.create_new_account": {
     "text": "Utwórz nowe konto"
@@ -87,7 +87,7 @@
     "text": "Zmień hasło"
   },
   "web.auth.change_password.current_password": {
-    "text": "Obecne hasło"
+    "text": "Aktualne hasło"
   },
   "web.auth.change_password.new_password": {
     "text": "Nowe hasło"
@@ -99,16 +99,16 @@
     "text": "Twoje hasło zostało pomyślnie zmienione"
   },
   "web.auth.change_password.error": {
-    "text": "Zmiana hasła nie powiodła się. Zweryfikuj swoje obecne hasło i spróbuj ponownie."
+    "text": "Zmiana hasła nie powiodła się. Sprawdź swoje aktualne hasło i spróbuj ponownie."
   },
   "web.auth.close_account.title": {
     "text": "Zamknij konto"
   },
   "web.auth.close_account.warning": {
-    "text": "Tej akcji nie można cofnąć. Wszystkie Twoje sekrety zostaną trwale usunięte."
+    "text": "Tej operacji nie można cofnąć. Wszystkie Twoje sekrety zostaną trwale usunięte."
   },
   "web.auth.close_account.confirm": {
-    "text": "Rozumiem, że ta akcja jest trwała"
+    "text": "Rozumiem, że ta operacja jest nieodwracalna"
   },
   "web.auth.close_account.password": {
     "text": "Wprowadź hasło, aby potwierdzić"
@@ -120,13 +120,13 @@
     "text": "Anuluj"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Żądanie resetowania hasła"
+    "text": "Żądanie resetu hasła"
   },
   "web.auth.password_reset_request.description": {
     "text": "Wprowadź swój adres e-mail poniżej, a wyślemy Ci link do zresetowania hasła"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Wyślij link resetowania"
+    "text": "Wyślij link resetujący"
   },
   "web.auth.password_reset.title": {
     "text": "Wybierz nowe hasło"
@@ -135,10 +135,10 @@
     "text": "Wprowadź nowe hasło poniżej. Upewnij się, że jest silne i unikalne, aby chronić swoje konto."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Wysłano do Ciebie e-mail z linkiem do zresetowania hasła do konta"
+    "text": "Wysłano do Ciebie e-mail z linkiem do zresetowania hasła do Twojego konta"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Zgadzam się z"
+    "text": "Zgadzam się na"
   },
   "web.auth.account.title": {
     "text": "Informacje o koncie"
@@ -177,7 +177,7 @@
     "text": "{count} aktywnych sesji"
   },
   "web.auth.account.quick_actions": {
-    "text": "Szybkie działania"
+    "text": "Szybkie akcje"
   },
   "web.auth.account.manage_mfa": {
     "text": "Zarządzaj uwierzytelnianiem dwuskładnikowym"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "Zamknij konto"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Proces weryfikacji e-mail po rejestracji"
+  },
+  "web.help.title": {
+    "text": "Pomoc i wsparcie"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Rozwiązywanie problemów z logowaniem"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Magiczny link nie przychodzi?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Sprawdź folder spam lub śmieci"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Sprawdź, czy wprowadziłeś poprawnie adres e-mail"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Poczekaj kilka minut - e-maile mogą czasem być opóźnione"
+  },
+  "web.help.try_again": {
+    "text": "Spróbuj poprosić o nowy link, jeśli minęło więcej niż 10 minut"
+  },
+  "web.help.forgot_password": {
+    "text": "Zapomniałeś hasła?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Użyj opcji Magiczny link, aby zalogować się bez hasła. Po zalogowaniu możesz zmienić hasło w Ustawieniach konta."
+  },
+  "web.help.account_locked": {
+    "text": "Konto tymczasowo zablokowane?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Po wielu nieudanych próbach logowania konta są tymczasowo blokowane ze względów bezpieczeństwa. Poczekaj 15 minut i spróbuj ponownie lub użyj Magicznego linku, aby się zalogować."
+  },
+  "web.help.still_need_help": {
+    "text": "Nadal potrzebujesz pomocy?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Jeśli nadal masz problemy, chętnie pomożemy. Wyślij nam wiadomość, a odpowiemy najszybciej jak to możliwe."
+  },
+  "web.help.contact_support": {
+    "text": "Skontaktuj się z pomocą techniczną"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Wyślij link logowania"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Bezpieczny link zostanie wysłany na Twoją skrzynkę e-mail."
+  },
+  "web.login.or_divider": {
+    "text": "lub"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Zaloguj się hasłem"
+  },
+  "web.login.use_passwordless": {
+    "text": "Użyj logowania bez hasła"
+  },
+  "web.login.create_account": {
+    "text": "Utwórz konto"
+  },
+  "web.login.return_home": {
+    "text": "Wróć do strony głównej"
+  },
+  "web.login.tab_password": {
+    "text": "Hasło"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magiczny link"
+  },
+  "web.login.need_help": {
+    "text": "Potrzebujesz pomocy?"
   }
 }

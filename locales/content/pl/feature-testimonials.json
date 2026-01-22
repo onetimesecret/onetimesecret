@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Opinia wygenerowana przez AI"
+    "text": "Referencja wygenerowana przez AI"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Treść wygenerowana przez AI w celach demonstracyjnych.\nNie pochodzi od rzeczywistej osoby ani firmy."
+    "text": "Treść wygenerowana przez AI w celach demonstracyjnych. Nie pochodzi od rzeczywistej osoby ani firmy."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -18,10 +18,10 @@
     "text": "{0}:"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Co mówi o nas wiodąca AI"
+    "text": "Co czołowa AI mówi o nas"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Opinie wygenerowane przez AI"
+    "text": "Referencje wygenerowane przez AI"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "Ten cytat został wygenerowany przez"

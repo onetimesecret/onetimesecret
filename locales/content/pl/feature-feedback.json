@@ -3,10 +3,10 @@
     "text": "Twoja opinia"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Wszelkie opinie mile widziane!"
+    "text": "Każda opinia jest mile widziana!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Pomóż nam ulepszyć"
+    "text": "Pomóż nam się doskonalić"
   },
   "web.feedback.close_feedback_modal": {
     "text": "Zamknij okno opinii"
@@ -43,5 +43,11 @@
   },
   "web.feedback.send_feedback": {
     "text": "Wyślij opinię"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Czytam każdą opinię, która tu trafia. W ten sposób określam, na co poświęcić czas."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Jeśli coś jest nie tak lub masz pomysły na to, jak to powinno działać, to jest właściwe miejsce."
   }
 }

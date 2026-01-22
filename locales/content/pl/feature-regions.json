@@ -3,16 +3,16 @@
     "text": "Suwerenność danych i izolacja regionalna"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Twoje dane znajdują się wyłącznie w wybranym przez Ciebie regionie i nigdy nie są przesyłane między regionami"
+    "text": "Twoje dane znajdują się wyłącznie w wybranym regionie i nigdy nie są transferowane między regionami"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Każdy region działa jako całkowicie niezależne środowisko z własną infrastrukturą, kluczami szyfrowania i przechowywaniem danych"
+    "text": "Każdy region działa jako całkowicie niezależne środowisko z własną infrastrukturą, kluczami szyfrowania i pamięcią masową danych"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Przestrzegamy ścisłej polityki: dane klientów nigdy nie są przesyłane między regionami w żadnych okolicznościach"
+    "text": "Utrzymujemy ścisłą politykę: dane klientów nigdy nie są transferowane między regionami w żadnych okolicznościach"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Ważne: Przejście do innego regionu tworzy nowe konto. Twoje dane pozostają w oryginalnym regionie."
+    "text": "Ważne: przejście do innego regionu powoduje utworzenie nowego konta. Twoje dane pozostają w oryginalnym regionie."
   },
   "web.regions.your_region": {
     "text": "Twój region"
@@ -33,19 +33,19 @@
     "text": "Przejrzystość i kontrola"
   },
   "web.regions.trust_description": {
-    "text": "Wiedz dokładnie, gdzie znajdują się Twoje dane i które prawa regulują ich ochronę."
+    "text": "Wiesz dokładnie, gdzie znajdują się Twoje dane i jakie przepisy regulują ich ochronę."
   },
   "web.regions.privacy_title": {
     "text": "Prawa do prywatności"
   },
   "web.regions.privacy_description": {
-    "text": "Zapewnij, że Twoje dane osobowe są przetwarzane zgodnie z przepisami prawa Twojego kraju dotyczącymi prywatności, zapobiegając nieautoryzowanemu dostępowi lub nadużyciom."
+    "text": "Upewnij się, że Twoje dane osobowe są przetwarzane zgodnie z przepisami o ochronie prywatności w Twoim kraju, zapobiegając nieautoryzowanemu dostępowi lub niewłaściwemu wykorzystaniu."
   },
   "web.regions.compliance_title": {
-    "text": "Zgodność regulacyjna"
+    "text": "Zgodność z przepisami"
   },
   "web.regions.compliance_description": {
-    "text": "Spełniaj wymogi RODO, HIPAA, CCPA i innych regionalnych przepisów dotyczących ochrony danych"
+    "text": "Spełnij wymagania RODO, HIPAA, CCPA i innych regionalnych przepisów o ochronie danych"
   },
   "web.regions.performance_title": {
     "text": "Szybszy dostęp"
@@ -60,7 +60,7 @@
     "text": "skontaktuj się z naszym zespołem ds. zgodności"
   },
   "web.regions.review_our_documentation": {
-    "text": "przejrzyj naszą dokumentację"
+    "text": "zapoznaj się z naszą dokumentacją"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Twoje konto i dane są chronione zgodnie z prawem i przepisami"

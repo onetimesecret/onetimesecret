@@ -3,13 +3,13 @@
     "text": "Wymagana weryfikacja MFA"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Weryfikacja MFA wymagana do uzyskania dostępu do konta"
+    "text": "Wymagana weryfikacja MFA, aby uzyskać dostęp do konta"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Ukończ weryfikację MFA"
+    "text": "Dokończ weryfikację MFA"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Uwierzytelnianie nie powiodło się. Zweryfikuj swoje dane uwierzytelniające i spróbuj ponownie."
+    "text": "Uwierzytelnianie nie powiodło się. Sprawdź swoje dane logowania i spróbuj ponownie."
   },
   "web.auth.security.rate_limited": {
     "text": "Zbyt wiele prób. Spróbuj ponownie później."
@@ -18,10 +18,10 @@
     "text": "Sesja wygasła. Zaloguj się ponownie."
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Kod odzyskiwania nie został znaleziony. Sprawdź, czy wprowadziłeś go poprawnie."
+    "text": "Nie znaleziono kodu odzyskiwania. Sprawdź, czy wprowadziłeś go poprawnie."
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Ten kod odzyskiwania został już użyty. Każdy kod może zostać użyty tylko raz."
+    "text": "Ten kod odzyskiwania został już użyty. Każdy kod może być użyty tylko raz."
   },
   "web.auth.security.network_error": {
     "text": "Błąd sieci. Sprawdź połączenie i spróbuj ponownie."
@@ -39,7 +39,7 @@
     "text": "Biometria"
   },
   "web.auth.magicLink.title": {
-    "text": "Zaloguj się za pomocą e-mail"
+    "text": "Zaloguj się przez e-mail"
   },
   "web.auth.magicLink.description": {
     "text": "Wyślemy Ci bezpieczny link logowania"
@@ -51,7 +51,7 @@
     "text": "Wyślij link logowania"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Sprawdź swoją skrzynkę e-mail"
+    "text": "Sprawdź swoją pocztę"
   },
   "web.auth.magicLink.sentTo": {
     "text": "Wysłaliśmy link logowania na {email}"
@@ -60,10 +60,10 @@
     "text": "Ten link wygaśnie za 15 minut"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Wypróbuj inny e-mail"
+    "text": "Spróbuj inny e-mail"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Nie potrzebujesz hasła — wystarczy kliknąć link w e-mailu"
+    "text": "Hasło nie jest potrzebne — po prostu kliknij link w e-mailu"
   },
   "web.auth.magicLink.networkError": {
     "text": "Błąd sieci. Spróbuj ponownie."
@@ -87,10 +87,10 @@
     "text": "Błąd uwierzytelniania"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Wróć do logowania"
+    "text": "Powrót do logowania"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Zaloguj się za pomocą Face ID / Touch ID"
+    "text": "Zaloguj się przez Face ID / Touch ID"
   },
   "web.auth.webauthn.setup": {
     "text": "Skonfiguruj logowanie biometryczne"
@@ -117,7 +117,7 @@
     "text": "Uwierzytelnianie..."
   },
   "web.auth.webauthn.description": {
-    "text": "Użyj odcisku palca, twarzy lub klucza bezpieczeństwa do logowania"
+    "text": "Użyj odcisku palca, twarzy lub klucza bezpieczeństwa, aby się zalogować"
   },
   "web.auth.webauthn.supportedMethods": {
     "text": "Obsługuje Face ID, Touch ID, Windows Hello i klucze bezpieczeństwa"
@@ -171,7 +171,7 @@
     "text": "Czy na pewno chcesz usunąć tę sesję?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Spowoduje to wylogowanie ze wszystkich innych urządzeń. Czy na pewno?"
+    "text": "To wyloguje Cię ze wszystkich innych urządzeń. Czy na pewno?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Brak innych aktywnych sesji"
@@ -204,7 +204,7 @@
     "text": "Skonfiguruj uwierzytelnianie dwuskładnikowe"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Dodaj dodatkową warstwę bezpieczeństwa do swojego konta"
+    "text": "Dodaj dodatkową warstwę zabezpieczeń do swojego konta"
   },
   "web.auth.mfa.step_scan": {
     "text": "1. Zeskanuj kod QR"
@@ -213,7 +213,7 @@
     "text": "2. Zweryfikuj konfigurację"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Zeskanuj ten kod QR za pomocą aplikacji uwierzytelniającej"
+    "text": "Zeskanuj ten kod QR aplikacją uwierzytelniającą"
   },
   "web.auth.mfa.manual_entry": {
     "text": "Lub wprowadź ten kod ręcznie"
@@ -231,7 +231,7 @@
     "text": "Kod uwierzytelniający jest wymagany"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Nieprawidłowy kod. Kody wygasają co 30 sekund. Wypróbuj najnowszy kod z aplikacji uwierzytelniającej."
+    "text": "Nieprawidłowy kod. Kody wygasają co 30 sekund. Spróbuj najnowszego kodu z aplikacji uwierzytelniającej."
   },
   "web.auth.mfa.success_enabled": {
     "text": "Uwierzytelnianie dwuskładnikowe zostało włączone"
@@ -246,19 +246,19 @@
     "text": "Hasło"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Potwierdź swoją tożsamość, aby zmodyfikować ustawienia uwierzytelniania dwuskładnikowego"
+    "text": "Potwierdź swoją tożsamość, aby zmienić ustawienia uwierzytelniania dwuskładnikowego"
   },
   "web.auth.mfa.last_used": {
-    "text": "Ostatnio użyte: {time}"
+    "text": "Ostatnio użyto: {time}"
   },
   "web.auth.mfa.never_used": {
-    "text": "Nigdy nie użyte"
+    "text": "Nigdy nie użyto"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Zamiast tego użyj kodu odzyskiwania"
+    "text": "Użyj kodu odzyskiwania zamiast tego"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Wróć do kodu uwierzytelniającego"
+    "text": "Powrót do kodu uwierzytelniającego"
   },
   "web.auth.mfa.cancel": {
     "text": "Anuluj i wróć do logowania"
@@ -270,10 +270,10 @@
     "text": "Twoje konto jest chronione uwierzytelnianiem dwuskładnikowym"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Chroń swoje konto dodatkową warstwą bezpieczeństwa"
+    "text": "Chroń swoje konto dodatkową warstwą zabezpieczeń"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Zapobiegaj nieautoryzowanemu dostępowi, nawet jeśli Twoje hasło zostanie skompromitowane"
+    "text": "Zapobiega nieautoryzowanemu dostępowi, nawet jeśli Twoje hasło zostanie ujawnione"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "Działa z Google Authenticator, Authy i innymi aplikacjami TOTP"
@@ -306,7 +306,7 @@
     "text": "Włącz MFA"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Ukończ konfigurację"
+    "text": "Zakończ konfigurację"
   },
   "web.auth.mfa.enter_recovery_code": {
     "text": "Wprowadź jeden z kodów odzyskiwania"
@@ -339,13 +339,13 @@
     "text": "Kody odzyskiwania"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Zapisz te kody w bezpiecznym miejscu. Każdy może zostać użyty raz, jeśli stracisz dostęp do aplikacji uwierzytelniającej."
+    "text": "Zapisz te kody w bezpiecznym miejscu. Każdy może być użyty raz, jeśli utracisz dostęp do aplikacji uwierzytelniającej."
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Te kody będą wyświetlone tylko raz"
+    "text": "Te kody zostaną pokazane tylko raz"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Musisz pobrać lub skopiować kody odzyskiwania przed zakończeniem konfiguracji."
+    "text": "Musisz pobrać lub skopiować swoje kody odzyskiwania przed zakończeniem konfiguracji."
   },
   "web.auth.recovery_codes.generate_new": {
     "text": "Wygeneruj nowe kody"
@@ -360,10 +360,10 @@
     "text": "Pobierz kody"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Pobrano kody odzyskiwania"
+    "text": "Kody odzyskiwania pobrane"
   },
   "web.auth.recovery_codes.print": {
-    "text": "Wydrukuj kody"
+    "text": "Drukuj kody"
   },
   "web.auth.recovery_codes.copy": {
     "text": "Kopiuj wszystkie kody"
@@ -381,10 +381,10 @@
     "text": "Nieużyty"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "Pozostało {count} kodów odzyskiwania"
+    "text": "Pozostało {count} z {limit} kodów odzyskiwania"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Każdy kod może zostać użyty tylko raz. Wygeneruj nowe kody, gdy się kończą."
+    "text": "Każdy kod może być użyty tylko raz. Wygeneruj nowe kody, jeśli kończy Ci się ich zapas."
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "Brak pozostałych kodów odzyskiwania"
@@ -394,5 +394,20 @@
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Kody odzyskiwania"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Zweryfikuj"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Użyj kodu odzyskiwania"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Anuluj logowanie"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ KRYTYCZNE DLA BEZPIECZEŃSTWA: Komunikaty zapobiegają ujawnieniu informacji. Zobacz src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Strona zarządzania zalogowanymi urządzeniami/przeglądarkami użytkownika"
   }
 }

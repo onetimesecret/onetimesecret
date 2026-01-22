@@ -18,13 +18,13 @@
     "text": "Wiadomości ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(aktywny w ciągu ostatnich 5 minut)"
+    "text": "(aktywni w ciągu ostatnich 5 minut)"
   },
   "web.colonel.configEditorTitle": {
     "text": "Ustawienia"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Edytuj ustawienia konfiguracji systemowej. Zmiany są stosowane natychmiast po zapisaniu."
+    "text": "Edytuj ustawienia konfiguracji systemu. Zmiany są stosowane natychmiast po zapisaniu."
   },
   "web.colonel.invalidJson": {
     "text": "Nieprawidłowy JSON w sekcji {section}"
@@ -45,10 +45,10 @@
     "text": "Konfiguracja musi być obiektem JSON"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Wiele sekcji ma błędy walidacji: {sections}"
+    "text": "Wiele sekcji zawiera błędy walidacji: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} ma błędy walidacji: {error}"
+    "text": "{section} zawiera błędy walidacji: {error}"
   },
   "web.colonel.sectionSaved": {
     "text": "{section} zapisano pomyślnie"
@@ -102,22 +102,22 @@
     "text": "Witaj w Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Panel kontrolny administracyjny OneTimeSecret"
+    "text": "Panel administracyjny dla OneTimeSecret"
   },
   "web.colonel.quickActions": {
-    "text": "Szybkie działania"
+    "text": "Szybkie akcje"
   },
   "web.colonel.recentActivity": {
     "text": "Ostatnia aktywność"
   },
   "web.colonel.viewAll": {
-    "text": "Wyświetl wszystko"
+    "text": "Zobacz wszystko"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Dane aktywności będą wyświetlane tutaj"
+    "text": "Dane aktywności zostaną wyświetlone tutaj"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Łączna liczba sekretów"
+    "text": "Łącznie sekretów"
   },
   "web.colonel.stats.activeUsers": {
     "text": "Aktywni użytkownicy"
@@ -132,7 +132,7 @@
     "text": "Udostępnione sekrety"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Łączna liczba klientów"
+    "text": "Łącznie użytkowników"
   },
   "web.colonel.stats.emailsSent": {
     "text": "Wysłane e-maile"
@@ -141,10 +141,10 @@
     "text": "Stan systemu"
   },
   "web.colonel.stats.healthy": {
-    "text": "Zdrowy"
+    "text": "Sprawny"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Wyświetl aktywność"
+    "text": "Zobacz aktywność"
   },
   "web.colonel.actions.viewActivityDesc": {
     "text": "Monitoruj aktywność i użycie systemu"
@@ -162,7 +162,7 @@
     "text": "Ustawienia domen i DNS"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "Ustawienia systemowe"
+    "text": "Ustawienia systemu"
   },
   "web.colonel.actions.systemSettingsDesc": {
     "text": "Konfiguracja aplikacji"
@@ -183,16 +183,16 @@
     "text": "Konsumenci"
   },
   "web.colonel.processingRate": {
-    "text": "Tempo/sek."
+    "text": "Przetwarzanie/s"
   },
   "web.colonel.connectionStatus": {
     "text": "Status połączenia"
   },
   "web.colonel.workerHealth": {
-    "text": "Stan procesów roboczych"
+    "text": "Stan workerów"
   },
   "web.colonel.activeWorkers": {
-    "text": "aktywne procesy robocze"
+    "text": "aktywni workerzy"
   },
   "web.colonel.noQueueData": {
     "text": "Brak dostępnych danych kolejki"
@@ -201,7 +201,7 @@
     "text": "Ładowanie danych kolejki..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Tryb planu testowego"
+    "text": "Tryb testowy planu"
   },
   "web.colonel.testingAsPlan": {
     "text": "Testowanie jako {planName}"
@@ -213,10 +213,10 @@
     "text": "Wybierz plan do testowania"
   },
   "web.colonel.resetToActual": {
-    "text": "Resetuj do aktualnego planu"
+    "text": "Przywróć rzeczywisty plan"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Obecny plan"
+    "text": "Bieżący plan"
   },
   "web.colonel.availablePlans": {
     "text": "Dostępne plany"
@@ -228,7 +228,7 @@
     "text": "Tryb testowy aktywny"
   },
   "web.colonel.testModeDescription": {
-    "text": "Przetestuj aplikację z różnymi uprawnieniami planów. Zmiany są tymczasowe i dotyczą tylko Twojej sesji."
+    "text": "Testuj aplikację z różnymi uprawnieniami planów. Zmiany są tymczasowe i dotyczą tylko Twojej sesji."
   },
   "web.colonel.warningTestMode": {
     "text": "Testujesz z uprawnieniami {planName} (tymczasowe nadpisanie sesji)."
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Wysyłanie..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Zablokowane IP"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Zarządzaj listą zablokowanych adresów IP"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Domeny niestandardowe"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Zarządzaj domenami niestandardowymi i brandingiem"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Wyślij opinię"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Wysyłanie..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Gdy wyślesz opinię, zobaczymy:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organizacje"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Monitoruj stan synchronizacji płatności organizacji"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Monitor stanu płatności"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organizacji"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} wymaga uwagi"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} nieznanych"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Nie znaleziono organizacji"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Zbadaj"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Sprawdzanie..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Konto"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Płatności"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Użycie"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Utworzono"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Szczegóły"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Właściciel"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Plan"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Członkowie"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domeny"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Subskrypcja"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Domyślna przestrzeń robocza"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Ma płatności"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Klient"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Subskrypcja"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID organizacji"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Status synchronizacji"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Subskrypcja"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Wszystkie"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potencjalnie nieaktualne"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Nieznane"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Zsynchronizowane"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktywne"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "W okresie próbnym"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Zaległe"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Anulowane"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Badanie nie powiodło się"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Wynik badania"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Zweryfikowano synchronizację"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Znaleziono niezgodność"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Nie można porównać"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Szczegóły subskrypcji Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Produkt"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Rozwiązany plan"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID ceny"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Lokalny"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Administracja płatności organizacji"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Zarządzaj organizacjami i monitoruj stan synchronizacji płatności ({total} łącznie)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Nie znaleziono organizacji"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potencjalnie nieaktualne"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Nieaktualny"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Nieznany"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktywny"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} członków"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domen"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Sekrety"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Wyświetl i zarządzaj wszystkimi sekretami"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "System"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Ustawienia systemu, bazy danych i konfiguracja"
+  },
+  "web.colonel.titles.index": {
+    "text": "Administracja"
+  },
+  "web.colonel.titles.users": {
+    "text": "Zarządzanie użytkownikami"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Zarządzanie sekretami"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Domeny niestandardowe"
+  },
+  "web.colonel.titles.system": {
+    "text": "System"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Główna baza danych"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Baza danych autoryzacji"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Zablokowane IP"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Eksport użycia"
+  },
+  "web.colonel.titles.info": {
+    "text": "Informacje systemowe"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organizacje"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Eksport użycia"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Eksportuj dane użycia i statystyki"
   }
 }

@@ -3,7 +3,7 @@
     "text": "Wyślij sekret"
   },
   "incoming.page_description": {
-    "text": "Bezpiecznie udostępnij poufne informacje naszemu zespołowi wsparcia"
+    "text": "Bezpieczne udostępnianie poufnych informacji naszemu zespołowi wsparcia"
   },
   "incoming.loading_config": {
     "text": "Ładowanie..."
@@ -15,13 +15,13 @@
     "text": "Funkcja niedostępna"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ta funkcja jest obecnie wyłączona. Skontaktuj się z pomocą techniczną w celu uzyskania pomocy."
+    "text": "Ta funkcja jest obecnie wyłączona. Skontaktuj się z pomocą techniczną, aby uzyskać pomoc."
   },
   "incoming.memo_label": {
     "text": "Notatka"
   },
   "incoming.memo_placeholder": {
-    "text": "Krótki opis (np. Żądanie resetowania hasła)"
+    "text": "Krótki opis (np. prośba o zresetowanie hasła)"
   },
   "incoming.memo_hint": {
     "text": "Pomóż nam skierować Twoją wiadomość do właściwej osoby"
@@ -42,13 +42,13 @@
     "text": "Brak dostępnych odbiorców"
   },
   "incoming.secret_content_label": {
-    "text": "Informacje poufne"
+    "text": "Poufne informacje"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Wklej tutaj poufne informacje (hasła, klucze itp.)"
+    "text": "Wklej poufne informacje tutaj (hasła, klucze itp.)"
   },
   "incoming.secret_content_hint": {
-    "text": "Te informacje zostaną zaszyfrowane i będą widoczne tylko raz"
+    "text": "Te informacje zostaną zaszyfrowane i będą dostępne do wyświetlenia tylko raz"
   },
   "incoming.submit_button": {
     "text": "Wyślij sekret"
@@ -75,10 +75,10 @@
     "text": "Twoja bezpieczna wiadomość została dostarczona."
   },
   "incoming.reference_id": {
-    "text": "Numer referencyjny"
+    "text": "ID referencyjny"
   },
   "incoming.success_info_title": {
-    "text": "Co dalej?"
+    "text": "Co się dzieje dalej?"
   },
   "incoming.success_info_description": {
     "text": "Odbiorca będzie mógł wyświetlić ten sekret tylko raz. Po wyświetleniu sekret zostanie trwale usunięty."
@@ -87,15 +87,15 @@
     "text": "Wyślij kolejny sekret"
   },
   "incoming.tagline1": {
-    "text": "Bezpiecznie udostępniaj poufne informacje"
+    "text": "Bezpieczne udostępnianie poufnych informacji"
   },
   "incoming.tagline2": {
-    "text": "Trzymaj hasła i dane prywatne z dala od e-maili i dzienników czatów"
+    "text": "Chroń hasła i prywatne dane przed zapisaniem w e-mailach i czatach"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Zapisz <a href='{receiptUrl}'>potwierdzenie</a> dla swoich zapisów."
+    "text": "Zapisz swoje {receipt} dla swoich archiwów."
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "potwierdzenie"
   }
 }

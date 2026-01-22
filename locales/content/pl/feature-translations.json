@@ -3,7 +3,7 @@
     "text": "zaprasza współtwórców zarówno dla istniejących, jak i nowych języków."
   },
   "web.translations.our_github_project": {
-    "text": "nasz projekt na GitHubie"
+    "text": "nasz projekt na GitHub"
   },
   "web.translations.if_youre_interested_in_translation": {
     "text": "Jeśli interesuje Cię tłumaczenie,"
@@ -12,7 +12,7 @@
     "text": ", którzy pomogli w tłumaczeniach, podczas gdy my kontynuujemy rozwój nowych funkcji."
   },
   "web.translations.25_contributors": {
-    "text": "ponad 25 współtwórców"
+    "text": "Ponad 25 współtwórców"
   },
   "web.translations.were_grateful_to_the": {
     "text": "Jesteśmy wdzięczni"
@@ -33,10 +33,10 @@
     "text": "Wyślij tłumaczenia e-mailem na adres"
   },
   "web.translations.english_template": {
-    "text": "Szablon angielski"
+    "text": "Angielski szablon"
   },
   "web.translations.start_a_new_translation_from_our": {
-    "text": "Rozpocznij nowe tłumaczenie z naszego"
+    "text": "Rozpocznij nowe tłumaczenie od naszego"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {
     "text": "Zaktualizuj język bezpośrednio przez nasz projekt na GitHubie"
@@ -54,7 +54,7 @@
     "text": "Tłumaczenia"
   },
   "web.translations.fork_on_github_and_submit_a_pr": {
-    "text": "Utwórz fork na GitHubie i prześlij PR"
+    "text": "Zrób fork na GitHub i wyślij PR"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
     "text": "Twoje umiejętności językowe mogą pomóc poszerzyć dostęp do bezpiecznej komunikacji."
@@ -66,6 +66,6 @@
     "text": "Od 2012 roku Onetime Secret zapewnia bezpieczny sposób udostępniania poufnych informacji na całym świecie. Użytkownicy pochodzą z regionów, w których angielski nie jest językiem podstawowym, dlatego dokładne tłumaczenia są niezbędne, aby bezpieczna komunikacja była dostępna dla wszystkich."
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Pomóż bezpiecznej komunikacji stać się globalną"
+    "text": "Pomóż bezpiecznej komunikacji dotrzeć na cały świat"
   }
 }

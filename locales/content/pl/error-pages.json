@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Dlaczego ta wiadomość jest niedostępna?"
+    "text": "Dlaczego ten sekret jest niedostępny?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Wiadomości są zaprojektowane do jednorazowego wyświetlenia. Ten link mógł już zostać otwarty, wygasnąć lub zostać ręcznie usunięty przez nadawcę."
@@ -15,16 +15,16 @@
     "text": "Ostrzeżenie odrzucone"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Odrzuć ostrzeżenie o obcięciu"
+    "text": "Odrzuć ostrzeżenie o skróceniu"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Ups! Strona, której szukasz, nie istnieje lub została przeniesiona."
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Nie znaleziono strony"
+    "text": "404 - Strona nie znaleziona"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Nie znaleziono strony"
+    "text": "404 - Strona nie znaleziona"
   },
   "web.errors.dismiss_warning": {
     "text": "Odrzuć ostrzeżenie"
@@ -45,7 +45,7 @@
     "text": "{0} Coś poszło nie tak"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Idź udostępnić wiadomość!"
+    "text": "Udostępnij sekret!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "Strona, której szukasz, nie istnieje lub została przeniesiona. Nie martw się, zdarza się najlepszym!"
