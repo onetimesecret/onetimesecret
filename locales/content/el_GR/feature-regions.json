@@ -1,93 +1,57 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κυριαρχία δεδομένων και περιφερειακή απομόνωση"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τα δεδομένα σας βρίσκονται αποκλειστικά στην περιοχή της επιλογής σας και δεν μεταφέρονται ποτέ σε άλλες περιοχές"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κάθε περιοχή λειτουργεί ως εντελώς ανεξάρτητο περιβάλλον με τη δική της υποδομή, κλειδιά κρυπτογράφησης και αποθήκευση δεδομένων"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διατηρούμε αυστηρή πολιτική: τα δεδομένα πελατών δεν μεταφέρονται ποτέ μεταξύ περιοχών υπό οποιεσδήποτε συνθήκες"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σημαντικό: Η αλλαγή σε διαφορετική περιοχή δημιουργεί νέο λογαριασμό. Τα δεδομένα σας παραμένουν στην αρχική σας περιοχή."
   },
   "web.regions.your_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η περιοχή σας"
   },
   "web.regions.your_current_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η τρέχουσα περιοχή σας"
   },
   "web.regions.active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργή"
   },
   "web.regions.explore_other_regions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Εξερευνήστε άλλες διαθέσιμες περιοχές"
   },
   "web.regions.why_it_matters": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γιατί έχει σημασία η κυριαρχία δεδομένων"
   },
   "web.regions.trust_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαφάνεια και έλεγχος"
   },
   "web.regions.trust_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γνωρίζετε ακριβώς πού βρίσκονται τα δεδομένα σας και ποιοι νόμοι διέπουν την προστασία τους."
   },
   "web.regions.privacy_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δικαιώματα απορρήτου"
   },
   "web.regions.privacy_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διασφαλίστε ότι οι προσωπικές σας πληροφορίες διαχειρίζονται σύμφωνα με τους νόμους απορρήτου και τους κανονισμούς της χώρας σας, αποτρέποντας τη μη εξουσιοδοτημένη πρόσβαση ή κακή χρήση."
   },
   "web.regions.compliance_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κανονιστική συμμόρφωση"
   },
   "web.regions.compliance_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πληροί τις απαιτήσεις GDPR, HIPAA, CCPA και άλλες περιφερειακές απαιτήσεις προστασίας δεδομένων"
   },
   "web.regions.performance_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ταχύτερη πρόσβαση"
   },
   "web.regions.performance_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τα δεδομένα που αποθηκεύονται πιο κοντά σας σημαίνουν χαμηλότερη καθυστέρηση και καλύτερη απόδοση."
   },
   "web.regions.regions": {
     "text": "Περιοχές"
@@ -96,7 +60,7 @@
     "text": "επικοινωνήστε με την ομάδα συμμόρφωσής μας"
   },
   "web.regions.review_our_documentation": {
-    "text": "ελέγξτε την τεκμηρίωσή μας"
+    "text": "ανατρέξτε στην τεκμηρίωσή μας"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
     "text": "Ο λογαριασμός και τα δεδομένα σας προστατεύονται σύμφωνα με τους νόμους και τους κανονισμούς της"
@@ -111,13 +75,13 @@
     "text": "Για να κατανοήσετε τους συγκεκριμένους κανονισμούς και προστασίες που ισχύουν για τον λογαριασμό σας, παρακαλώ"
   },
   "web.regions.current": {
-    "text": "Τρέχον"
+    "text": "Τρέχουσα"
   },
   "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
     "text": "{0} {1}"
   },
   "web.regions.available_regions": {
-    "text": "Διαθέσιμες Περιοχές"
+    "text": "Διαθέσιμες περιοχές"
   },
   "web.regions.jurisdiction": {
     "text": "Δικαιοδοσία"
@@ -126,13 +90,13 @@
     "text": "Τοποθεσία κέντρου δεδομένων: {0}"
   },
   "web.regions.data_region": {
-    "text": "Περιοχή Δεδομένων"
+    "text": "Περιοχή δεδομένων"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Άγνωστη Δικαιοδοσία"
+    "text": "Άγνωστη δικαιοδοσία"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Σας εξυπηρετούμε από την"
+    "text": "Σας εξυπηρετούμε από"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "Συνέχεια στο {0}"

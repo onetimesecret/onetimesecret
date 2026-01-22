@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Μαρτυρία Δημιουργημένη από AI"
+    "text": "Μαρτυρία δημιουργημένη από AI"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Περιεχόμενο δημιουργημένο από AI για επίδειξη. Όχι από πραγματικό άτομο ή εταιρεία."
+    "text": "Περιεχόμενο δημιουργημένο από AI για επίδειξη. Δεν προέρχεται από πραγματικό άτομο ή εταιρεία."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -12,7 +12,7 @@
     "text": "- {0}, {1}"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "\"{0}\""
+    "text": "«{0}»"
   },
   "web.testimonials.t_ai_generated_testimonial": {
     "text": "{0}:"
@@ -21,16 +21,16 @@
     "text": "Τι λέει η κορυφαία AI για εμάς"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Μαρτυρίες Δημιουργημένες από AI"
+    "text": "Μαρτυρίες δημιουργημένες από AI"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Αυτό το απόσπασμα δημιουργήθηκε από"
+    "text": "Αυτή η αναφορά δημιουργήθηκε από"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "Βασίστηκε στο περιεχόμενο της σελίδας και δεν αντιπροσωπεύει πραγματικό άτομο ή εταιρεία."
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Τεχνητά Σχόλια"
+    "text": "Τεχνητά σχόλια"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
     "text": "Αυτό το περιεχόμενο δημιουργήθηκε από AI με βάση το περιεχόμενο αυτής της σελίδας και δεν αντιπροσωπεύει πραγματικό άτομο ή εταιρεία."

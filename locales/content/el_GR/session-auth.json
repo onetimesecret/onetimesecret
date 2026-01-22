@@ -1,296 +1,269 @@
 {
   "web.login.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
-  },
-  "web.login.need_an_account": {
     "text": "Χρειάζεστε λογαριασμό;"
   },
+  "web.login.need_an_account": {
+    "text": "Εγγραφή."
+  },
   "web.login.forgot_your_password": {
-    "text": "Ξεχάσατε το συνθηματικό σας;"
+    "text": "Ξεχάσατε τον κωδικό σας;"
   },
   "web.login.button_sign_in": {
     "text": "Σύνδεση"
   },
   "web.login.enter_your_credentials": {
-    "text": "Εισάγετε όνομα και κωδικό χρήστη"
+    "text": "Εισάγετε τα διαπιστευτήριά σας"
   },
   "web.login.remember_me": {
     "text": "Να με θυμάσαι"
   },
   "web.signup.create_your_account": {
-    "text": "Δημιουργήστε τον Λογαριασμό σας"
+    "text": "Δημιουργήστε τον λογαριασμό σας"
   },
   "web.signup.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Έχετε ήδη λογαριασμό;"
   },
   "web.signup.have_an_account": {
-    "text": "Ή, συνδεθείτε στον λογαριασμό σας"
+    "text": "Σύνδεση."
   },
   "web.signup.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σφάλμα δημιουργίας λογαριασμού"
   },
   "web.signup.password_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κωδικός πρόσβασης"
   },
   "web.signup.email_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Email"
   },
   "web.auth.verify.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση του λογαριασμού σας"
   },
   "web.auth.verify.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο λογαριασμός σας επαληθεύτηκε επιτυχώς"
   },
   "web.auth.verify.invalid_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μη έγκυρο ή ληγμένο κλειδί επαλήθευσης"
   },
   "web.auth.verify.expired_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτός ο σύνδεσμος επαλήθευσης έχει λήξει. Παρακαλώ ζητήστε νέο."
   },
   "web.auth.verify.already_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτός ο λογαριασμός έχει ήδη επαληθευτεί. Μπορείτε να συνδεθείτε τώρα."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αδύνατη η επαλήθευση λογαριασμού. Παρακαλώ προσπαθήστε ξανά ή επικοινωνήστε με την υποστήριξη."
   },
   "web.auth.verify.check_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Παρακαλώ ελέγξτε το email σας για σύνδεσμο επαλήθευσης"
   },
   "web.auth.verify.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η επαλήθευση λογαριασμού απέτυχε. Παρακαλώ ελέγξτε τον σύνδεσμο επαλήθευσης ή ζητήστε νέο."
   },
   "web.auth.verify.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η επαλήθευση απέτυχε"
   },
   "web.auth.verify.what_to_do": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τι πρέπει να κάνω;"
   },
   "web.auth.verify.check_email_help": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ελέγξτε το email σας για τον πιο πρόσφατο σύνδεσμο επαλήθευσης"
   },
   "web.auth.verify.check_spam": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ελέγξτε τον φάκελο spam/ανεπιθύμητα αν δεν βρίσκετε το email"
   },
   "web.auth.verify.contact_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επικοινωνήστε με την υποστήριξη αν συνεχίζετε να αντιμετωπίζετε προβλήματα"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απαιτείται σύνδεσμος επαλήθευσης"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Παρακαλώ χρησιμοποιήστε τον σύνδεσμο επαλήθευσης που στάλθηκε στη διεύθυνση email σας για να επαληθεύσετε τον λογαριασμό σας."
   },
   "web.auth.verify.create_new_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία νέου λογαριασμού"
   },
   "web.auth.change_password.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αλλαγή κωδικού πρόσβασης"
   },
   "web.auth.change_password.current_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τρέχων κωδικός πρόσβασης"
   },
   "web.auth.change_password.new_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Νέος κωδικός πρόσβασης"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επιβεβαίωση νέου κωδικού πρόσβασης"
   },
   "web.auth.change_password.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο κωδικός πρόσβασής σας άλλαξε επιτυχώς"
   },
   "web.auth.change_password.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η αλλαγή κωδικού πρόσβασης απέτυχε. Παρακαλώ επαληθεύστε τον τρέχοντα κωδικό πρόσβασής σας και δοκιμάστε ξανά."
   },
   "web.auth.close_account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κλείσιμο λογαριασμού"
   },
   "web.auth.close_account.warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Όλα τα μυστικά σας θα διαγραφούν οριστικά."
   },
   "web.auth.close_account.confirm": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κατανοώ ότι αυτή η ενέργεια είναι οριστική"
   },
   "web.auth.close_account.password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Εισάγετε τον κωδικό πρόσβασής σας για επιβεβαίωση"
   },
   "web.auth.close_account.button": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οριστικό κλείσιμο λογαριασμού"
   },
   "web.auth.close_account.cancel": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ακύρωση"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Αίτημα Επαναφοράς Κωδικού"
+    "text": "Αίτημα επαναφοράς κωδικού πρόσβασης"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Εισαγάγετε τη διεύθυνση email σας παρακάτω και θα σας στείλουμε έναν σύνδεσμο για να επαναφέρετε τον κωδικό σας"
+    "text": "Εισάγετε τη διεύθυνση email σας παρακάτω και θα σας στείλουμε σύνδεσμο για επαναφορά του κωδικού πρόσβασής σας"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Αποστολή Συνδέσμου Επαναφοράς"
+    "text": "Αποστολή συνδέσμου επαναφοράς"
   },
   "web.auth.password_reset.title": {
-    "text": "Επιλέξτε Νέο Κωδικό Πρόσβασης"
+    "text": "Επιλέξτε νέο κωδικό πρόσβασης"
   },
   "web.auth.password_reset.description": {
-    "text": "Παρακαλώ εισαγάγετε τον νέο κωδικό πρόσβασής σας παρακάτω. Βεβαιωθείτε ότι είναι ισχυρός και μοναδικός για την προστασία του λογαριασμού σας."
+    "text": "Παρακαλώ εισάγετε τον νέο σας κωδικό πρόσβασης παρακάτω. Βεβαιωθείτε ότι είναι ισχυρός και μοναδικός για να προστατεύσετε τον λογαριασμό σας."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σας στάλθηκε email με σύνδεσμο για επαναφορά του κωδικού πρόσβασης του λογαριασμού σας"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Συμφωνώ με τους"
+    "text": "Συμφωνώ με"
   },
   "web.auth.account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πληροφορίες λογαριασμού"
   },
   "web.auth.account.email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διεύθυνση email"
   },
   "web.auth.account.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Λογαριασμός δημιουργήθηκε"
   },
   "web.auth.account.verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Email επαληθευμένο"
   },
   "web.auth.account.region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Περιοχή"
   },
   "web.auth.account.not_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Email μη επαληθευμένο"
   },
   "web.auth.account.verify_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση διεύθυνσης email"
   },
   "web.auth.account.mfa_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ταυτοποίηση δύο παραγόντων"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργοποιημένη"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απενεργοποιημένη"
   },
   "web.auth.account.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργές συνεδρίες"
   },
   "web.auth.account.session_count": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{count} ενεργές συνεδρίες"
   },
   "web.auth.account.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γρήγορες ενέργειες"
   },
   "web.auth.account.manage_mfa": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση ταυτοποίησης δύο παραγόντων"
   },
   "web.auth.account.manage_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση ενεργών συνεδριών"
   },
   "web.auth.account.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αλλαγή κωδικού πρόσβασης"
   },
   "web.auth.account.close_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κλείσιμο λογαριασμού"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Ροή επαλήθευσης email μετά την εγγραφή"
+  },
+  "web.help.title": {
+    "text": "Βοήθεια & Υποστήριξη"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Αντιμετώπιση προβλημάτων σύνδεσης"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Δεν λαμβάνετε τον σύνδεσμο σύνδεσης;"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Ελέγξτε τον φάκελο spam ή ανεπιθύμητα"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Επαληθεύστε ότι εισάγατε σωστά τη διεύθυνση email σας"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Περιμένετε λίγα λεπτά - τα email μπορεί μερικές φορές να καθυστερούν"
+  },
+  "web.help.try_again": {
+    "text": "Δοκιμάστε να ζητήσετε νέο σύνδεσμο αν έχουν περάσει περισσότερα από 10 λεπτά"
+  },
+  "web.help.forgot_password": {
+    "text": "Ξεχάσατε τον κωδικό πρόσβασής σας;"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Χρησιμοποιήστε την επιλογή Σύνδεσμος σύνδεσης για να συνδεθείτε χωρίς κωδικό πρόσβασης. Αφού συνδεθείτε, μπορείτε να αλλάξετε τον κωδικό πρόσβασής σας στις Ρυθμίσεις λογαριασμού."
+  },
+  "web.help.account_locked": {
+    "text": "Ο λογαριασμός κλειδώθηκε προσωρινά;"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Μετά από πολλές αποτυχημένες προσπάθειες σύνδεσης, οι λογαριασμοί κλειδώνονται προσωρινά για λόγους ασφαλείας. Περιμένετε 15 λεπτά και δοκιμάστε ξανά, ή χρησιμοποιήστε τον σύνδεσμο σύνδεσης."
+  },
+  "web.help.still_need_help": {
+    "text": "Χρειάζεστε ακόμα βοήθεια;"
+  },
+  "web.help.contact_us_description": {
+    "text": "Αν εξακολουθείτε να αντιμετωπίζετε προβλήματα, είμαστε εδώ για να βοηθήσουμε. Στείλτε μας μήνυμα και θα σας απαντήσουμε το συντομότερο δυνατό."
+  },
+  "web.help.contact_support": {
+    "text": "Επικοινωνία με την υποστήριξη"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Αποστολή συνδέσμου σύνδεσης"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Θα σταλεί ασφαλής σύνδεσμος στο email σας."
+  },
+  "web.login.or_divider": {
+    "text": "ή"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Σύνδεση με κωδικό πρόσβασης"
+  },
+  "web.login.use_passwordless": {
+    "text": "Χρήση σύνδεσης χωρίς κωδικό"
+  },
+  "web.login.create_account": {
+    "text": "Δημιουργία λογαριασμού"
+  },
+  "web.login.return_home": {
+    "text": "Επιστροφή στην αρχική"
+  },
+  "web.login.tab_password": {
+    "text": "Κωδικός πρόσβασης"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Σύνδεσμος σύνδεσης"
+  },
+  "web.login.need_help": {
+    "text": "Χρειάζεστε βοήθεια;"
   }
 }

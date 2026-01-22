@@ -1,308 +1,198 @@
 {
   "web.organizations.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οργανισμοί"
   },
   "web.organizations.organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οργανισμός"
   },
   "web.organizations.organization_plural": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οργανισμοί"
   },
   "web.organizations.organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση οργανισμών σας"
   },
   "web.organizations.my_organizations": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οργανισμοί"
   },
   "web.organizations.manage_organizations": {
-    "text": "Διαχείριση Οργανισμών"
+    "text": "Διαχείριση οργανισμών"
   },
   "web.organizations.new_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Νέος οργανισμός"
   },
   "web.organizations.no_organizations": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δεν υπάρχουν ακόμα οργανισμοί"
   },
   "web.organizations.no_organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οι οργανισμοί παρέχουν ενοποιημένη χρέωση και διαχείριση. Ξεκινήστε δημιουργώντας τον πρώτο σας οργανισμό."
   },
   "web.organizations.no_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δεν παρέχεται περιγραφή"
   },
   "web.organizations.default": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προεπιλογή"
   },
   "web.organizations.create_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία οργανισμού"
   },
   "web.organizations.create_first_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία πρώτου οργανισμού"
   },
   "web.organizations.create_organization_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία νέου οργανισμού"
   },
   "web.organizations.create": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία"
   },
   "web.organizations.create_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχία δημιουργίας οργανισμού"
   },
   "web.organizations.organization_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Όνομα οργανισμού"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "π.χ. Acme Corporation"
   },
   "web.organizations.display_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Όνομα οργανισμού"
   },
   "web.organizations.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Περιγραφή"
   },
   "web.organizations.description_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Για ποιο σκοπό είναι αυτός ο οργανισμός;"
   },
   "web.organizations.contact_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Email χρεώσεων"
   },
   "web.organizations.contact_email_help": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κύρια επαφή για ειδοποιήσεις χρεώσεων και διαχείρισης"
   },
   "web.organizations.select_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επιλέξτε οργανισμό"
   },
   "web.organizations.switcher_locked": {
     "text": "Η εναλλαγή οργανισμού δεν είναι διαθέσιμη σε αυτή τη σελίδα"
   },
   "web.organizations.not_found": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο οργανισμός δεν βρέθηκε"
   },
   "web.organizations.load_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχία φόρτωσης οργανισμού"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχία φόρτωσης οργανισμού"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχία φόρτωσης οργανισμών"
   },
   "web.organizations.organization_information": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πληροφορίες οργανισμού"
   },
   "web.organizations.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργήθηκε"
   },
   "web.organizations.last_updated": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τελευταία ενημέρωση"
   },
   "web.organizations.organization_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις οργανισμού"
   },
   "web.organizations.organization_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενημέρωση ονόματος και περιγραφής οργανισμού"
   },
   "web.organizations.general_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γενικές ρυθμίσεις"
   },
   "web.organizations.billing_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χρεώσεις & Συνδρομή"
   },
   "web.organizations.save_changes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποθήκευση αλλαγών"
   },
   "web.organizations.update_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο οργανισμός ενημερώθηκε επιτυχώς"
   },
   "web.organizations.update_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχία ενημέρωσης οργανισμού"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενοποίηση χρεώσεων σύντομα διαθέσιμη"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενοποιημένη διαχείριση χρεώσεων και συνδρομών θα είναι διαθέσιμη σε μελλοντική έκδοση."
   },
   "web.organizations.about_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σχετικά με τους οργανισμούς"
   },
   "web.organizations.about_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οι οργανισμοί παρέχουν ενοποιημένη χρέωση και διαχείριση για κεντρική διοίκηση."
   },
   "web.organizations.single_user_info_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση του οργανισμού σας"
   },
   "web.organizations.single_user_info_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενημερώστε το όνομα εταιρείας και τα στοιχεία οργανισμού εδώ. Αυτές οι πληροφορίες βοηθούν στην εξατομίκευση του λογαριασμού σας και μπορούν να χρησιμοποιηθούν για λειτουργίες επωνυμίας στο μέλλον."
   },
   "web.organizations.getting_started_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ξεκινώντας με τους οργανισμούς"
   },
   "web.organizations.getting_started_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργήστε τον πρώτο σας οργανισμό για διαχείριση πληροφοριών εταιρείας και προετοιμασία για μελλοντικές λειτουργίες επωνυμίας."
   },
   "web.organizations.page_description": {
-    "text": "Διαχειριστείτε τους οργανισμούς και τα μέλη ομάδας σας"
+    "text": "Διαχείριση οργανισμών και μελών ομάδας"
   },
   "web.organizations.tabs.general": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επωνυμία εταιρείας"
   },
   "web.organizations.tabs.members": {
     "text": "Ομάδα"
   },
   "web.organizations.tabs.billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χρεώσεις"
   },
   "web.organizations.danger_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επικίνδυνη ζώνη"
   },
   "web.organizations.delete_organization": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαγραφή οργανισμού"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτό θα διαγράψει οριστικά τον οργανισμό. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
   },
   "web.organizations.delete": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαγραφή"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαγραφή οργανισμού"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Είστε βέβαιοι ότι θέλετε να διαγράψετε τον {name}; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
   },
   "web.organizations.delete_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχία διαγραφής οργανισμού"
   },
   "web.organizations.members.title": {
     "text": "Μέλη"
   },
   "web.organizations.members.description": {
-    "text": "Διαχείριση μελών οργανισμού και των ρόλων τους"
+    "text": "Διαχείριση μελών οργανισμού και ρόλων τους"
   },
   "web.organizations.members.current_members": {
-    "text": "Τρέχοντα Μέλη"
+    "text": "Τρέχοντα μέλη"
   },
   "web.organizations.members.member": {
     "text": "Μέλος"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "μέλος"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "μέλη"
   },
   "web.organizations.members.name": {
     "text": "Όνομα"
@@ -314,19 +204,19 @@
     "text": "Ρόλος"
   },
   "web.organizations.members.joined": {
-    "text": "Εγγράφηκε"
+    "text": "Εντάχθηκε"
   },
   "web.organizations.members.actions": {
     "text": "Ενέργειες"
   },
   "web.organizations.members.no_members": {
-    "text": "Δεν βρέθηκαν μέλη"
+    "text": "Δεν υπάρχουν ακόμα μέλη. Προσκαλέστε μέλη ομάδας για να ξεκινήσετε."
   },
   "web.organizations.members.no_members_description": {
     "text": "Αυτός ο οργανισμός δεν έχει ακόμα μέλη."
   },
   "web.organizations.members.role_updated": {
-    "text": "Ο ρόλος του μέλους ενημερώθηκε με επιτυχία"
+    "text": "Ο ρόλος του μέλους ενημερώθηκε επιτυχώς"
   },
   "web.organizations.members.role_update_error": {
     "text": "Αποτυχία ενημέρωσης ρόλου μέλους"
@@ -338,10 +228,10 @@
     "text": "Αποτυχία αφαίρεσης μέλους"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Αφαίρεση Μέλους"
+    "text": "Αφαίρεση μέλους"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Είστε σίγουροι ότι θέλετε να αφαιρέσετε τον/την {name} από αυτόν τον οργανισμό;"
+    "text": "Είστε βέβαιοι ότι θέλετε να αφαιρέσετε τον/την {name} από αυτόν τον οργανισμό;"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "Δεν μπορείτε να αλλάξετε τον δικό σας ρόλο"
@@ -365,7 +255,7 @@
     "text": "Μέλος"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Πλήρης πρόσβαση σε όλες τις ρυθμίσεις οργανισμού και τα μέλη"
+    "text": "Πλήρης πρόσβαση σε όλες τις ρυθμίσεις και τα μέλη του οργανισμού"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "Μπορεί να διαχειρίζεται μέλη και τις περισσότερες ρυθμίσεις οργανισμού"
@@ -374,52 +264,52 @@
     "text": "Βασική πρόσβαση σε πόρους οργανισμού"
   },
   "web.organizations.invitations.title": {
-    "text": "Προσκλήσεις Οργανισμού"
+    "text": "Προσκλήσεις οργανισμού"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Πρόσκληση Μέλους"
+    "text": "Πρόσκληση μέλους"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Πρόσκληση Νέου Μέλους"
+    "text": "Πρόσκληση νέου μέλους"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Εκκρεμείς Προσκλήσεις"
+    "text": "Εκκρεμείς προσκλήσεις"
   },
   "web.organizations.invitations.no_pending_invitations": {
     "text": "Δεν υπάρχουν εκκρεμείς προσκλήσεις"
   },
   "web.organizations.invitations.email_address": {
-    "text": "Διεύθυνση Email"
+    "text": "Διεύθυνση email"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "melos{'@'}example.com"
+    "text": "member{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Ρόλος"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Αποστολή Πρόσκλησης"
+    "text": "Αποστολή πρόσκλησης"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Η πρόσκληση στάλθηκε με επιτυχία"
+    "text": "Η πρόσκληση στάλθηκε επιτυχώς"
   },
   "web.organizations.invitations.invite_error": {
     "text": "Αποτυχία αποστολής πρόσκλησης"
   },
   "web.organizations.invitations.resend": {
-    "text": "Επανάληψη"
+    "text": "Επαναποστολή"
   },
   "web.organizations.invitations.revoke": {
     "text": "Ανάκληση"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Η πρόσκληση επαναστάλθηκε με επιτυχία"
+    "text": "Η πρόσκληση επαναποστάλθηκε επιτυχώς"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Αποτυχία επανάληψης πρόσκλησης"
+    "text": "Αποτυχία επαναποστολής πρόσκλησης"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Η πρόσκληση ανακλήθηκε με επιτυχία"
+    "text": "Η πρόσκληση ανακλήθηκε επιτυχώς"
   },
   "web.organizations.invitations.revoke_error": {
     "text": "Αποτυχία ανάκλησης πρόσκλησης"
@@ -434,13 +324,13 @@
     "text": "Λήγει"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Επαναστάλθηκε {count} φορά"
+    "text": "Επαναποστάλθηκε {count} φορά"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Επαναστάλθηκε {count} φορές"
+    "text": "Επαναποστάλθηκε {count} φορές"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Εκκρεμεί"
+    "text": "Σε εκκρεμότητα"
   },
   "web.organizations.invitations.status.accepted": {
     "text": "Αποδεκτή"
@@ -458,22 +348,22 @@
     "text": "Διαχειριστής"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Αποδοχή Πρόσκλησης"
+    "text": "Αποδοχή πρόσκλησης"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Απόρριψη Πρόσκλησης"
+    "text": "Απόρριψη πρόσκλησης"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Λεπτομέρειες Πρόσκλησης"
+    "text": "Λεπτομέρειες πρόσκλησης"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Έχετε προσκληθεί να συμμετάσχετε"
+    "text": "Έχετε προσκληθεί να συμμετάσχετε σε"
   },
   "web.organizations.invitations.invited_as": {
     "text": "Έχετε προσκληθεί ως"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Η πρόσκληση έγινε αποδεκτή με επιτυχία"
+    "text": "Η πρόσκληση έγινε αποδεκτή επιτυχώς"
   },
   "web.organizations.invitations.accept_error": {
     "text": "Αποτυχία αποδοχής πρόσκλησης"
@@ -491,9 +381,54 @@
     "text": "Μη έγκυρη ή ληγμένη πρόσκληση"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Παρακαλώ συνδεθείτε για να αποδεχτείτε αυτήν την πρόσκληση"
+    "text": "Παρακαλώ συνδεθείτε για να αποδεχτείτε αυτή την πρόσκληση"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Φόρτωση λεπτομερειών πρόσκλησης"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Το email χρεώσεων ενημερώθηκε επιτυχώς"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Το email χρεώσεων μπορεί να αλλάξει στη σελίδα Επισκόπηση χρεώσεων"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} μέλος | {count} μέλη"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} τομέας | {count} τομείς"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Αναβαθμίστε το πακέτο σας για πρόσκληση μελών ομάδας"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Οι προσκλήσεις μελών ομάδας απαιτούν πακέτο με διαχείριση ομάδας. Αναβαθμίστε για να προσθέσετε συνεργάτες στον οργανισμό σας."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Λάθος λογαριασμός"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Αυτή η πρόσκληση στάλθηκε στο {invitedEmail}, αλλά είστε συνδεδεμένοι ως {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Σύνδεση με διαφορετικό λογαριασμό"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "Απομένουν {days}η"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "Απομένουν {hours}ω"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Λήγει σύντομα"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Συνδρομή"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Τομείς"
   }
 }

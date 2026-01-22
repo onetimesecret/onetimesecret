@@ -18,244 +18,160 @@
     "text": "Μυστικά ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(ενεργό τα τελευταία 5 λεπτά)"
+    "text": "(ενεργοί τα τελευταία 5 λεπτά)"
   },
   "web.colonel.configEditorTitle": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις"
   },
   "web.colonel.configEditorDescription": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επεξεργασία ρυθμίσεων διαμόρφωσης συστήματος. Οι αλλαγές εφαρμόζονται αμέσως μετά την αποθήκευση."
   },
   "web.colonel.invalidJson": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μη έγκυρο JSON στην ενότητα {section}"
   },
   "web.colonel.validationError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σφάλμα επικύρωσης"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σφάλμα φόρτωσης διαμόρφωσης"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σφάλμα αποθήκευσης διαμόρφωσης"
   },
   "web.colonel.configSaved": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η διαμόρφωση αποθηκεύτηκε επιτυχώς"
   },
   "web.colonel.mustBeObject": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η διαμόρφωση πρέπει να είναι αντικείμενο JSON"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πολλές ενότητες έχουν σφάλματα επικύρωσης: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Το {section} έχει σφάλματα επικύρωσης: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Το {section} αποθηκεύτηκε επιτυχώς"
   },
   "web.colonel.saveSection": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποθήκευση {section}"
   },
   "web.colonel.saveAll": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποθήκευση όλων"
   },
   "web.colonel.unsavedChanges": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μη αποθηκευμένες αλλαγές"
   },
   "web.colonel.schemaValidationError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σφάλμα επικύρωσης σχήματος: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Άγνωστο σφάλμα επικύρωσης: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
     "text": "Η ενότητα {section} δεν έχει διαμορφωμένες τιμές"
   },
   "web.colonel.dashboard": {
-    "text": "Πίνακας Ελέγχου"
+    "text": "Πίνακας ελέγχου"
   },
   "web.colonel.admin": {
-    "text": "Διαχείριση"
+    "text": "Διαχειριστής"
   },
   "web.colonel.activity": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δραστηριότητα"
   },
   "web.colonel.accounts": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Λογαριασμοί"
   },
   "web.colonel.users": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χρήστες"
   },
   "web.colonel.usersDescription": {
     "text": "Διαχείριση λογαριασμών χρηστών και δικαιωμάτων"
   },
   "web.colonel.domains": {
-    "text": "Domains"
+    "text": "Τομείς"
   },
   "web.colonel.settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις"
   },
   "web.colonel.system": {
     "text": "Σύστημα"
   },
   "web.colonel.welcome": {
-    "text": "Καλώς ορίσατε στο Colonel"
+    "text": "Καλώς ήρθατε στο Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πίνακας διαχείρισης για το OneTimeSecret"
   },
   "web.colonel.quickActions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γρήγορες ενέργειες"
   },
   "web.colonel.recentActivity": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πρόσφατη δραστηριότητα"
   },
   "web.colonel.viewAll": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή όλων"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τα δεδομένα δραστηριότητας θα εμφανιστούν εδώ"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Συνολικά μυστικά"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργοί χρήστες"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μυστικά σήμερα"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργημένα μυστικά"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κοινοποιημένα μυστικά"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Συνολικοί χρήστες"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απεσταλμένα email"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Υγεία συστήματος"
   },
   "web.colonel.stats.healthy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Υγιές"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή δραστηριότητας"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Παρακολούθηση δραστηριότητας και χρήσης συστήματος"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση λογαριασμών"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση λογαριασμών χρηστών"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαμόρφωση τομέων"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις τομέα και DNS"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις συστήματος"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαμόρφωση εφαρμογής"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Εργασίες Παρασκηνίου"
+    "text": "Εργασίες παρασκηνίου"
   },
   "web.colonel.queueStatus": {
-    "text": "Κατάσταση Ουράς"
+    "text": "Κατάσταση ουράς"
   },
   "web.colonel.queueName": {
     "text": "Ουρά"
@@ -270,10 +186,10 @@
     "text": "Ρυθμός/δευτ"
   },
   "web.colonel.connectionStatus": {
-    "text": "Κατάσταση Σύνδεσης"
+    "text": "Κατάσταση σύνδεσης"
   },
   "web.colonel.workerHealth": {
-    "text": "Υγεία Εργατών"
+    "text": "Υγεία εργατών"
   },
   "web.colonel.activeWorkers": {
     "text": "ενεργοί εργάτες"
@@ -285,16 +201,16 @@
     "text": "Φόρτωση δεδομένων ουράς..."
   },
   "web.colonel.testPlanMode": {
-    "text": "Λειτουργία Δοκιμαστικού Πλάνου"
+    "text": "Λειτουργία δοκιμαστικού πλάνου"
   },
   "web.colonel.testingAsPlan": {
     "text": "Δοκιμή ως {planName}"
   },
   "web.colonel.clickToReset": {
-    "text": "Κάντε κλικ για επαναφορά"
+    "text": "Κλικ για επαναφορά"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Επιλέξτε ένα πλάνο για δοκιμή"
+    "text": "Επιλέξτε πλάνο για δοκιμή"
   },
   "web.colonel.resetToActual": {
     "text": "Επαναφορά στο πραγματικό πλάνο"
@@ -309,7 +225,7 @@
     "text": "Ενεργοποίηση λειτουργίας δοκιμής"
   },
   "web.colonel.testModeActive": {
-    "text": "Η λειτουργία δοκιμής είναι ενεργή"
+    "text": "Λειτουργία δοκιμής ενεργή"
   },
   "web.colonel.testModeDescription": {
     "text": "Δοκιμάστε την εφαρμογή σας με διαφορετικά δικαιώματα πλάνου. Οι αλλαγές είναι προσωρινές και επηρεάζουν μόνο τη συνεδρία σας."
@@ -325,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Αποστολή..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Αποκλεισμένες IP"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Διαχείριση λίστας αποκλεισμένων IP"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Προσαρμοσμένοι τομείς"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Διαχείριση προσαρμοσμένων τομέων και επωνυμίας"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Αποστολή σχολίων"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Αποστολή..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Όταν υποβάλετε σχόλια, θα δούμε:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Οργανισμοί"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Παρακολούθηση υγείας συγχρονισμού χρεώσεων οργανισμών"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Παρακολούθηση υγείας χρεώσεων"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} οργανισμοί"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} χρειάζονται προσοχή"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} άγνωστοι"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Δεν βρέθηκαν οργανισμοί"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Διερεύνηση"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Έλεγχος..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Λογαριασμός"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Χρεώσεις"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Κατάσταση"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Χρήση"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Δημιουργήθηκε"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Λεπτομέρειες"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Ιδιοκτήτης"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Πλάνο"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Μέλη"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Τομείς"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Συνδρομή"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Προεπιλεγμένος χώρος εργασίας"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Έχει χρεώσεις"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Πελάτης"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Συνδρομή"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID οργανισμού"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Κατάσταση συγχρονισμού"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Συνδρομή"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Όλα"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Πιθανώς παλιά"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Άγνωστο"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Συγχρονισμένα"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Ενεργά"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Δοκιμαστική περίοδος"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Ληξιπρόθεσμα"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Ακυρωμένα"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Η διερεύνηση απέτυχε"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Αποτέλεσμα διερεύνησης"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Επαληθευμένος συγχρονισμός"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Βρέθηκε αναντιστοιχία"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Αδυναμία σύγκρισης"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Λεπτομέρειες συνδρομής Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Κατάσταση"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Προϊόν"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Επιλυμένο πλάνο"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID τιμής"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Τοπικό"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Διαχείριση χρεώσεων οργανισμών"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Διαχείριση οργανισμών και παρακολούθηση υγείας συγχρονισμού χρεώσεων ({total} σύνολο)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Δεν βρέθηκαν οργανισμοί"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "πιθανώς παλιά"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Παλιό"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Άγνωστο"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "ενεργό"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} μέλη"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} τομείς"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Μυστικά"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Προβολή και διαχείριση όλων των μυστικών"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Σύστημα"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Ρυθμίσεις συστήματος, βάσεις δεδομένων και διαμόρφωση"
+  },
+  "web.colonel.titles.index": {
+    "text": "Διαχείριση"
+  },
+  "web.colonel.titles.users": {
+    "text": "Διαχείριση χρηστών"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Διαχείριση μυστικών"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Προσαρμοσμένοι τομείς"
+  },
+  "web.colonel.titles.system": {
+    "text": "Σύστημα"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Κύρια βάση δεδομένων"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Βάση δεδομένων ταυτοποίησης"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Αποκλεισμένες IP"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Εξαγωγή χρήσης"
+  },
+  "web.colonel.titles.info": {
+    "text": "Πληροφορίες συστήματος"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Οργανισμοί"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Εξαγωγή χρήσης"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Εξαγωγή δεδομένων χρήσης και στατιστικών"
   }
 }

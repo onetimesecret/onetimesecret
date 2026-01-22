@@ -1,46 +1,30 @@
 {
   "web.billing.upgrade.required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απαιτείται αναβάθμιση"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή πακέτων"
   },
   "web.billing.upgrade.needTeams": {
     "text": "Η διαχείριση ομάδων απαιτεί Identity Plus ή ανώτερο"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οι προσαρμοσμένοι τομείς απαιτούν Identity Plus ή ανώτερο"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η πρόσβαση API απαιτεί Identity Plus ή ανώτερο"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τα αρχεία καταγραφής ελέγχου απαιτούν πακέτο Multi-Team ή ανώτερο"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση συνδρομής, οργανισμών και ρυθμίσεων χρεώσεων"
   },
   "web.billing.overview.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επισκόπηση χρεώσεων"
   },
   "web.billing.overview.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή και διαχείριση συνδρομής και στοιχείων πληρωμής"
   },
   "web.billing.overview.organization_selector": {
     "text": "",
@@ -48,285 +32,199 @@
     "note": "empty"
   },
   "web.billing.overview.current_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τρέχον πακέτο"
   },
   "web.billing.overview.plan_features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χαρακτηριστικά πακέτου"
   },
   "web.billing.overview.payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μέθοδος πληρωμής"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επόμενη ημερομηνία χρέωσης"
   },
   "web.billing.overview.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γρήγορες ενέργειες"
   },
   "web.billing.overview.manage_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση χρεώσεων"
   },
   "web.billing.overview.view_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή τιμολογίων"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αναβάθμιση πακέτου"
   },
   "web.billing.overview.change_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αλλαγή πακέτου"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δεν υπάρχει καταχωρημένη μέθοδος πληρωμής"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χωρίς επερχόμενη χρέωση"
   },
   "web.billing.overview.days_remaining": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "ημέρες απομένουν"
   },
   "web.billing.overview.billing_on": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χρέωση στις {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή πακέτων"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σύγκριση και αναβάθμιση"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή τιμολογίων"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Λήψη ιστορικού"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση χρεώσεων"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενημέρωση στοιχείων πληρωμής"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χωρίς οργανισμούς"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργήστε έναν οργανισμό για διαχείριση χρεώσεων και συνδρομής"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία μυστικών"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Προβολή Αποδείξεων"
+    "text": "Προβολή αποδείξεων"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πρόσβαση API"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προσαρμοσμένοι τομείς"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Προσαρμοσμένες Προεπιλογές Απορρήτου"
+    "text": "Προσαρμοσμένες προεπιλογές απορρήτου"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Εκτεταμένη Προεπιλεγμένη Λήξη"
+    "text": "Εκτεταμένη προεπιλεγμένη λήξη"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Προσαρμοσμένες Προεπιλογές Email"
+    "text": "Προσαρμοσμένες προεπιλογές αλληλογραφίας"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Προσαρμοσμένη Επωνυμία"
+    "text": "Προσαρμοσμένη επωνυμία"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Επωνυμασμένη Αρχική Σελίδα"
+    "text": "Επώνυμη αρχική σελίδα"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Εισερχόμενα Μυστικά"
+    "text": "Εισερχόμενα μυστικά"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Διαχείριση Οργανισμών"
+    "text": "Διαχείριση οργανισμών"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Διαχείριση Ομάδων"
+    "text": "Διαχείριση ομάδων"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Διαχείριση Μελών"
+    "text": "Διαχείριση μελών"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αρχεία καταγραφής ελέγχου"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Ενιαία Σύνδεση"
+    "text": "Ενιαία σύνδεση"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Υποστήριξη προτεραιότητας"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Συμφωνία Επιπέδου Υπηρεσιών"
+    "text": "Συμφωνία επιπέδου υπηρεσίας"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Δεν ήταν δυνατή η φόρτωση λεπτομερειών δυνατοτήτων"
+    "text": "Δεν ήταν δυνατή η φόρτωση λεπτομερειών λειτουργιών"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Δεν υπάρχουν διαθέσιμες δυνατότητες"
+    "text": "Δεν υπάρχουν διαθέσιμες λειτουργίες"
   },
   "web.billing.plans.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επιλέξτε πακέτο"
   },
   "web.billing.plans.choose_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επιλέξτε το πακέτο που ταιριάζει στις ανάγκες σας"
   },
   "web.billing.plans.subtitle": {
-    "text": "Επιλέξτε το ιδανικό πρόγραμμα για τον οργανισμό σας"
+    "text": "Επιλέξτε το τέλειο πακέτο για τον οργανισμό σας"
   },
   "web.billing.plans.current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τρέχον πακέτο"
   },
   "web.billing.plans.current_badge": {
     "text": "Τρέχον"
   },
   "web.billing.plans.upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αναβάθμιση"
   },
   "web.billing.plans.downgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Υποβάθμιση"
   },
   "web.billing.plans.monthly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μηνιαία"
   },
   "web.billing.plans.yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ετήσια"
   },
   "web.billing.plans.per_month": {
-    "text": "ανά μήνα"
+    "text": "/μήνα"
   },
   "web.billing.plans.save_yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Εξοικονομήστε {percent}% με ετήσια χρέωση"
   },
   "web.billing.plans.free_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δωρεάν"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μία ομάδα"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πολλαπλές ομάδες"
   },
   "web.billing.plans.individual_account": {
-    "text": "Ατομικός Λογαριασμός"
+    "text": "Ατομικός λογαριασμός"
   },
   "web.billing.plans.team_account": {
-    "text": "Λογαριασμός Ομάδας"
+    "text": "Λογαριασμός ομάδας"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Λογαριασμός Οργανισμού"
+    "text": "Λογαριασμός οργανισμού"
   },
   "web.billing.plans.features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χαρακτηριστικά"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απεριόριστα μυστικά"
   },
   "web.billing.plans.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πρόσβαση API"
   },
   "web.billing.plans.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Υποστήριξη προτεραιότητας"
   },
   "web.billing.plans.select_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επιλογή πακέτου"
   },
   "web.billing.plans.contact_sales": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επικοινωνία με πωλήσεις"
   },
   "web.billing.plans.custom_needs_title": {
     "text": "Έχετε ερωτήσεις ή χρειάζεστε κάτι προσαρμοσμένο;"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Θα χαρούμε να ακούσουμε από εσάς. Πείτε μας τι αναζητάτε."
+    "text": "Θα χαρούμε να ακούσουμε από εσάς. Πείτε μας τι ψάχνετε."
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} ομάδα | {count} ομάδες"
@@ -341,25 +239,25 @@
     "text": "Απεριόριστα μέλη ανά ομάδα"
   },
   "web.billing.plans.most_popular": {
-    "text": "Πιο Δημοφιλές"
+    "text": "Πιο δημοφιλές"
   },
   "web.billing.plans.suggested": {
     "text": "Προτεινόμενο"
   },
   "web.billing.plans.everything_in": {
-    "text": "Όλα από το {plan}, συν:"
+    "text": "Περιλαμβάνει όλα από το {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Δεν υπάρχουν διαθέσιμα προγράμματα {interval} αυτή τη στιγμή."
+    "text": "Δεν υπάρχουν διαθέσιμα {interval} πακέτα αυτή τη στιγμή."
   },
   "web.billing.plans.change_immediate": {
-    "text": "Το πρόγραμμά σας θα αλλάξει άμεσα."
+    "text": "Το πακέτο σας θα αλλάξει άμεσα."
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Τρέχον πρόγραμμα:"
+    "text": "Τρέχον πακέτο:"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Νέο πρόγραμμα:"
+    "text": "Νέο πακέτο:"
   },
   "web.billing.plans.credit_label": {
     "text": "Πίστωση για αχρησιμοποίητο χρόνο:"
@@ -368,158 +266,106 @@
     "text": "Επόμενο τιμολόγιο"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Τα όρια λειτουργιών σας θα ενημερωθούν άμεσα μετά την αλλαγή προγράμματος."
+    "text": "Τα όρια λειτουργιών σας θα ενημερωθούν άμεσα μετά την αλλαγή πακέτου."
   },
   "web.billing.plans.change_failed": {
-    "text": "Η αλλαγή προγράμματος απέτυχε. Παρακαλώ δοκιμάστε ξανά."
+    "text": "Η αλλαγή πακέτου απέτυχε. Παρακαλώ δοκιμάστε ξανά."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Επιβεβαίωση Αναβάθμισης"
+    "text": "Επιβεβαίωση αναβάθμισης"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Επιβεβαίωση Υποβάθμισης"
+    "text": "Επιβεβαίωση υποβάθμισης"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Αναβάθμιση σε"
+    "text": "Αναβάθμιση σε {plan};"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Υποβάθμιση στο {plan};"
+    "text": "Υποβάθμιση σε {plan};"
   },
   "web.billing.invoices.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ιστορικό χρεώσεων"
   },
   "web.billing.invoices.view_history": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δείτε το ιστορικό χρεώσεων και κατεβάστε τιμολόγια"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ημερομηνία"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ποσό"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κατάσταση"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Λήψη"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δεν υπάρχουν ακόμα τιμολόγια"
   },
   "web.billing.invoices.paid": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πληρωμένο"
   },
   "web.billing.invoices.pending": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σε εκκρεμότητα"
   },
   "web.billing.invoices.failed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχημένο"
   },
   "web.billing.invoices.load_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποτυχία φόρτωσης τιμολογίων"
   },
   "web.billing.notices.org_managed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οι χρεώσεις διαχειρίζονται από {orgName}"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προβολή χρεώσεων οργανισμού"
   },
   "web.billing.limits.members_reached": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Έχετε φτάσει το όριο μελών για αυτή την ομάδα"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αναβαθμίστε για προσθήκη περισσότερων μελών"
   },
   "web.billing.subscription.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Συνδρομή"
   },
   "web.billing.subscription.status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κατάσταση συνδρομής"
   },
   "web.billing.subscription.active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργή"
   },
   "web.billing.subscription.inactive": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ανενεργή"
   },
   "web.billing.subscription.past_due": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ληξιπρόθεσμη"
   },
   "web.billing.subscription.canceled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ακυρωμένη"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πακέτο"
   },
   "web.billing.portal.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πύλη χρεώσεων"
   },
   "web.billing.portal.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση συνδρομής, μεθόδων πληρωμής και ιστορικού χρεώσεων"
   },
   "web.billing.portal.open_portal": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Άνοιγμα πύλης χρεώσεων"
   },
   "web.billing.portal.redirecting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ανακατεύθυνση στην πύλη χρεώσεων..."
   },
   "web.billing.start_today": {
     "text": "Ξεκινήστε σήμερα"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Ξεκινήστε σήμερα με το Identity Plus"
+    "text": "Ξεκινήστε σήμερα με Identity Plus"
   },
   "web.billing.per_month": {
     "text": "ανά μήνα"
@@ -528,16 +374,16 @@
     "text": "Πλήρης πρόσβαση API"
   },
   "web.billing.privacy_first_design": {
-    "text": "Σχεδιασμός με προτεραιότητα το απόρρητο"
+    "text": "Σχεδιασμός με προτεραιότητα στο απόρρητο"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Κάντε κλικ σε αυτόν τον κεραυνό για αναβάθμιση για προσαρμοσμένα domain"
+    "text": "Κάντε κλικ σε αυτόν τον κεραυνό για αναβάθμιση για προσαρμοσμένους τομείς"
   },
   "web.billing.maybe_later": {
-    "text": "Ίσως Αργότερα"
+    "text": "Ίσως αργότερα"
   },
   "web.billing.upgrade_account": {
     "text": "Αναβάθμιση λογαριασμού"
@@ -546,9 +392,7 @@
     "text": "Αναβάθμιση σε Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αναβάθμιση για ομάδες"
   },
   "web.billing.benefits_of": {
     "text": "Οφέλη του"
@@ -566,7 +410,7 @@
     "text": "Όλα τα πλάνα περιλαμβάνουν δυνατότητες απορρήτου και απεριόριστη χωρητικότητα κοινοποίησης"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Όλα τα πλάνα περιλαμβάνουν επιλογή τοποθεσίας δεδομένων: {0} περιοχές"
+    "text": "Όλα τα πακέτα περιλαμβάνουν επιλογή τοποθεσίας δεδομένων: {0} περιοχές"
   },
   "web.billing.get_started": {
     "text": "Ξεκινήστε"
@@ -584,9 +428,198 @@
     "text": "Ασφαλίστε την επωνυμία σας και χτίστε εμπιστοσύνη πελατών με συνδέσμους από το domain σας. Ιδανικό για επιχειρήσεις που εκτιμούν το απόρρητο και τον επαγγελματισμό."
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Ασφαλείς Σύνδεσμοι, Ισχυρότερες Συνδέσεις"
+    "text": "Ασφαλείς σύνδεσμοι, ισχυρότερες συνδέσεις"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Το επίπεδο Identity δεν βρέθηκε στα επίπεδα προϊόντων"
+    "text": "Το επίπεδο Identity δεν βρέθηκε στα επίπεδα προϊόντος"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Ακύρωση συνδρομής"
+  },
+  "web.billing.cancel.title": {
+    "text": "Ακύρωση συνδρομής"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Είστε βέβαιοι ότι θέλετε να ακυρώσετε τη συνδρομή {plan};"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Τι συμβαίνει όταν ακυρώνετε:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Θα διατηρήσετε πρόσβαση σε όλες τις λειτουργίες μέχρι τις {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Θα διατηρήσετε πρόσβαση μέχρι το τέλος της τρέχουσας περιόδου χρέωσης"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Δεν θα χρεωθείτε ξανά"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Ο λογαριασμός σας θα επανέλθει στο δωρεάν πακέτο"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Διατήρηση συνδρομής"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Ακύρωση συνδρομής"
+  },
+  "web.billing.cancel.success": {
+    "text": "Η συνδρομή σας ακυρώθηκε. Θα διατηρήσετε πρόσβαση μέχρι το τέλος της περιόδου χρέωσης."
+  },
+  "web.billing.cancel.error": {
+    "text": "Αποτυχία ακύρωσης συνδρομής. Παρακαλώ δοκιμάστε ξανά."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Προγραμματισμένη ακύρωση συνδρομής"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Η συνδρομή σας θα παραμείνει ενεργή μέχρι τις {date}. Θα συνεχίσετε να έχετε πλήρη πρόσβαση σε όλες τις λειτουργίες μέχρι τότε."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Αλλάξατε γνώμη; Μπορείτε να επανενεργοποιήσετε τη συνδρομή σας οποιαδήποτε στιγμή πριν την ημερομηνία ακύρωσης."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Δημιουργία & κοινοποίηση μυστικών"
+  },
+  "web.billing.features.api_access": {
+    "text": "Πρόσβαση API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Προσαρμοσμένοι τομείς"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 προσαρμοσμένος τομέας"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Απεριόριστοι προσαρμοσμένοι τομείς"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Προσαρμοσμένη επωνυμία"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Επώνυμη αρχική σελίδα"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Διαχείριση ομάδων"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Διαχείριση μελών"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Αρχεία καταγραφής ελέγχου"
+  },
+  "web.billing.features.sso": {
+    "text": "Ενιαία σύνδεση (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Υποστήριξη προτεραιότητας"
+  },
+  "web.billing.features.sla": {
+    "text": "Συμφωνία επιπέδου υπηρεσίας"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Κεντρικοποιημένη χρέωση"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Ιχνηλασιμότητα ελέγχου"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Ροή δραστηριότητας"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Ροές εργασίας παράδοσης"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "Διατήρηση μυστικών 30 ημερών"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Μυστικά αρχικής σελίδας"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Εισερχόμενα μυστικά"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Έως 5 μέλη ομάδας"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Έως 10 μέλη ομάδας"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Έως 25 μέλη ομάδας"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Έως 50 μέλη ομάδας"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Απεριόριστα μέλη ομάδας"
+  },
+  "web.billing.features.notifications": {
+    "text": "Ειδοποιήσεις email"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "Κανόνες πρόσβασης IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Επωνυμία χώρου εργασίας"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Αποκλειστική υποδομή"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Κοινόχρηστες ροές εργασίας"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Χρεώσεις για αυτόν τον οργανισμό"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Το πακέτο σας αναβαθμίστηκε επιτυχώς"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Το νέο σας πακέτο είναι πλέον ενεργό. Ευχαριστούμε για την αγορά σας."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Επαφή χρεώσεων"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Μυστικά αρχικής σελίδας"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Ειδοποιήσεις email"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Κανόνες πρόσβασης IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Επωνυμία χώρου εργασίας"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Οφειλόμενο σήμερα:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Επόμενη χρέωση ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Πώς εφαρμόζεται η πίστωσή σας:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Ποσό επόμενης χρέωσης:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Εφαρμοσμένη πίστωση:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Οφειλόμενο ποσό στην επόμενη χρέωση:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Υπόλοιπο πίστωσης λογαριασμού:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Εφαρμόζεται σε μελλοντικά τιμολόγια"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Χρήση ομάδων"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} από {limit} ομάδες"
   }
 }

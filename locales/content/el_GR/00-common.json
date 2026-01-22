@@ -5,43 +5,37 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ασφαλείς σύνδεσμοι που λειτουργούν μόνο μία φορά"
   },
   "web.COMMON.powered_by": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τροφοδοτείται από"
   },
   "web.COMMON.website_url": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "https://onetimesecret.com/el"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Δημιουργία Κωδικού"
+    "text": "Δημιουργία κωδικού"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Η Δημιουργία Κωδικού είναι απενεργοποιημένη όταν η φόρμα είναι έγκυρη"
+    "text": "Η δημιουργία κωδικού είναι απενεργοποιημένη όταν η φόρμα είναι έγκυρη"
   },
   "web.COMMON.email_placeholder": {
     "text": "π.χ. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Εισαγάγετε τον κωδικό πρόσβασής σας"
+    "text": "Εισάγετε τον κωδικό σας"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Προσαρμοσμένα Domain"
+    "text": "Προσαρμοσμένοι τομείς"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Ενισχύστε τις συνδέσεις και χτίστε εμπιστοσύνη με τους δικούς σας επώνυμους μυστικούς συνδέσμους."
+    "text": "Ενισχύστε τις σχέσεις και χτίστε εμπιστοσύνη με τους δικούς σας επώνυμους μυστικούς συνδέσμους."
   },
   "web.COMMON.get_started_button": {
     "text": "Ξεκινήστε"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Επιβεβαιώστε τον κωδικό πρόσβασής σας"
+    "text": "Επιβεβαιώστε τον κωδικό σας"
   },
   "web.COMMON.header_settings": {
     "text": "Ρυθμίσεις"
@@ -50,43 +44,43 @@
     "text": "Υποβολή"
   },
   "web.COMMON.submitting": {
-    "text": "Υποβάλλεται..."
+    "text": "Υποβολή..."
   },
   "web.COMMON.processing": {
     "text": "Επεξεργασία..."
   },
   "web.COMMON.description": {
-    "text": "Κρατήστε ευαίσθητες πληροφορίες μακριά από την αλληλογραφία και τις καταγεγγραμένες συζητήσεις σας. Μοιραστείτε μυστικούς συνδέσμους που διατίθενται μόνο μία φορά."
+    "text": "Κρατήστε τις ευαίσθητες πληροφορίες μακριά από τα αρχεία συνομιλιών και τα email σας. Μοιραστείτε έναν μυστικό σύνδεσμο που είναι διαθέσιμος μόνο μία φορά."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Λανθασμένη φράση πρόσβασης"
   },
   "web.COMMON.keywords": {
-    "text": "μυστικό,γεννήτρια κωδικού πρόσβασης,διαμοιρασμός μυστικού,onetime"
+    "text": "μυστικό,γεννήτρια κωδικών,κοινοποίηση μυστικού,onetime"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Δημιουργήστε ένα μυστικό σύνδεσμο"
+    "text": "Δημιουργία μυστικού συνδέσμου"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Ή παράγετε ένα τυχαίο κωδικό πρόσβασης"
+    "text": "Ή δημιουργήστε έναν τυχαίο κωδικό"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Επιλογές Ιδιωτικότητας"
+    "text": "Επιλογές απορρήτου"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Φράση Πρόσβασης"
+    "text": "Φράση πρόσβασης"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Μία λέξη η φράση που είναι δύσκολο να μαντευτεί"
+    "text": "Μια λέξη ή φράση που είναι δύσκολο να μαντέψει κανείς"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Διεύθυνση Παραλήπτη"
+    "text": "Διεύθυνση παραλήπτη"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Γράψτε το μυστικό περιεχόμενο εδώ..."
+    "text": "Το μυστικό περιεχόμενο τοποθετείται εδώ..."
   },
   "web.COMMON.header_create_account": {
-    "text": "Δημιουργία Λογαριασμού"
+    "text": "Δημιουργία λογαριασμού"
   },
   "web.COMMON.header_about": {
     "text": "Σχετικά"
@@ -101,108 +95,106 @@
     "text": "Αποσύνδεση"
   },
   "web.COMMON.secret": {
-    "text": "Μυστικό"
+    "text": "Μυστικό | Μυστικά"
   },
   "web.COMMON.recent": {
     "text": "Πρόσφατα"
   },
   "web.COMMON.received": {
-    "text": "Ελήφθη"
+    "text": "Παραλήφθηκε"
   },
   "web.COMMON.burn": {
-    "text": "Κάψιμο"
+    "text": "Οριστική διαγραφή"
   },
   "web.COMMON.burned": {
-    "text": "Κάηκε"
+    "text": "Διαγράφηκε οριστικά"
   },
   "web.COMMON.expires_in": {
     "text": "Λήγει σε"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Κάψτε αυτό το μυστικό"
+    "text": "Οριστική διαγραφή μυστικού"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Εάν κάψετε ένα μυστικό, διαγράφεται πριν διαβαστεί (πατήστε για επιβεβαίωση)"
+    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν διαβαστεί (κλικ για επιβεβαίωση)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Το κάψιμο ενός μυστικού είναι μόνιμο και δε μπορεί να αναιρεθεί"
+    "text": "Η οριστική διαγραφή είναι μόνιμη και δεν μπορεί να αναιρεθεί"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Ελέγξτε την αλληλογραφία σας"
+    "text": "Ελέγξτε το email σας"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Επιλέξτε για συνέχεια →"
+    "text": "Κάντε κλικ για αποκάλυψη →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Συνεχίστε για να επαληθεύσετε το λογαριασμό σας:"
+    "text": "Συνεχίστε για επαλήθευση του λογαριασμού σας:"
   },
   "web.COMMON.error_secret": {
-    "text": "Δεν ορίσατε κάτι προς διαμοιρασμό"
+    "text": "Δεν παρείχατε κάτι για κοινοποίηση"
   },
   "web.COMMON.error_passphrase": {
     "text": "Ελέγξτε ξανά τη φράση πρόσβασης"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Εισαγάγετε τη φράση πρόσβασης εδώ"
+    "text": "Εισάγετε τη φράση πρόσβασης εδώ"
   },
   "web.COMMON.view_secret": {
-    "text": "Προβολή Μυστικού"
+    "text": "Προβολή μυστικού"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "προσοχή: θα το φανερώσουμε μόνο μια φορά."
+    "text": "Προσοχή: θα το δείτε μόνο μία φορά."
   },
   "web.COMMON.warning": {
     "text": "Προειδοποίηση"
   },
   "web.COMMON.oops": {
-    "text": "Ωχ!"
+    "text": "Ουπς!"
   },
   "web.COMMON.error": {
     "text": "Σφάλμα"
   },
   "web.COMMON.unexpected_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Παρουσιάστηκε απρόσμενο σφάλμα. Προσπαθήστε ξανά."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Το μήνυμα κόπηκε επειδή ολοκληρώθηκε"
+    "text": "Το μήνυμα περικόπηκε"
   },
   "web.COMMON.signup_for_more": {
     "text": "Εγγραφείτε για περισσότερα"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Συνδεθείτε στο λογαριασμό σας"
+    "text": "Σύνδεση στον λογαριασμό σας"
   },
   "web.COMMON.sent_to": {
-    "text": "Εστάλει στο χρήστη: "
+    "text": "Στάλθηκε σε:"
   },
   "web.COMMON.field_email": {
-    "text": "Αλληλογραφία"
+    "text": "Email"
   },
   "web.COMMON.field_password": {
-    "text": "Κωδικός Πρόσβασης"
+    "text": "Κωδικός πρόσβασης"
   },
   "web.COMMON.field_password2": {
-    "text": "Επιβεβαίωση Κωδικού Πρόσβασης"
+    "text": "Επιβεβαίωση κωδικού"
   },
   "web.COMMON.button_create_account": {
-    "text": "Δημιουργήστε Λογαριασμού"
+    "text": "Δημιουργία λογαριασμού"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Μοιραστείτε ένα μυστικό"
+    "text": "Κοινοποίηση μυστικού"
   },
   "web.COMMON.title_home": {
     "text": "Αρχική"
   },
   "web.COMMON.word_none": {
-    "text": "Άδειο"
+    "text": "Κανένα"
   },
   "web.COMMON.word_burned": {
-    "text": "καμμένο"
+    "text": "διαγράφηκε οριστικά"
   },
   "web.COMMON.word_received": {
-    "text": "ελήφθη"
+    "text": "παραλήφθηκε"
   },
   "web.COMMON.word_confirm": {
     "text": "Επιβεβαίωση"
@@ -211,9 +203,7 @@
     "text": "Ακύρωση"
   },
   "web.COMMON.word_continue": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Συνέχεια"
   },
   "web.COMMON.word_done": {
     "text": "Ολοκληρώθηκε"
@@ -222,52 +212,46 @@
     "text": "Πίσω"
   },
   "web.COMMON.feedback_text": {
-    "text": "Έχετε κάποια απορία ή θέλετε να σχολιάσετε;"
+    "text": "Μοιραστείτε τις σκέψεις, ιδέες ή εμπειρίες σας..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Αποστολή"
+    "text": "Αποστολή σχολίων"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Εστάλει επιβεβαίωση στο χρήστη"
+    "text": "Στάλθηκε επαλήθευση στο"
   },
   "web.COMMON.autoverified_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο λογαριασμός δημιουργήθηκε. Συνδεθείτε."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Εάν υπάρχει λογαριασμός με αυτό το email, θα λάβετε ένα email επαλήθευσης."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Κάψτε αυτό το μυστικό μόνιμα"
+    "text": "Οριστική διαγραφή αυτού του μυστικού"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Παρακαλώ Επιβεβαιώστε"
+    "text": "Επιβεβαίωση"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Είστε σίγουροι ότι θέλετε να κάψετε αυτό το μυστικό; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+    "text": "Είστε σίγουροι ότι θέλετε να διαγράψετε οριστικά αυτό το μυστικό; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ναι, κάψτε αυτό το μυστικό"
+    "text": "Ναι, διαγραφή οριστικά"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Το κάψιμο ενός μυστικού θα το διαγράψει πριν παραληφθεί."
+    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν παραληφθεί."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Για ασφάλεια, μοιραστείτε αυτόν τον σύνδεσμο ξεχωριστά από άλλες λεπτομέρειες."
+    "text": "Για ασφάλεια, μοιραστείτε αυτόν τον σύνδεσμο ξεχωριστά από άλλες πληροφορίες."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Αντιγράφηκε στο πρόχειρο"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία εισερχόμενου"
   },
   "web.COMMON.faq_title": {
-    "text": "Συχνές Ερωτήσεις"
+    "text": "Συχνές ερωτήσεις"
   },
   "web.COMMON.verification_not_valid": {
     "text": "Η επαλήθευση δεν είναι έγκυρη"
@@ -276,94 +260,64 @@
     "text": "Δεν είναι δυνατή η επαλήθευση λογαριασμού όταν είστε ήδη συνδεδεμένοι"
   },
   "web.COMMON.show_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Εμφάνιση κωδικού"
   },
   "web.COMMON.hide_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απόκρυψη κωδικού"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες"
   },
   "web.COMMON.password_requirements": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οι κωδικοί δεν ταιριάζουν"
   },
   "web.COMMON.form_field_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτό το πεδίο είναι υποχρεωτικό"
   },
   "web.COMMON.form_processing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επεξεργασία του αιτήματός σας"
   },
   "web.COMMON.remember_me_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Να παραμείνω συνδεδεμένος για 30 ημέρες"
   },
   "web.COMMON.redirecting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ανακατεύθυνση..."
   },
   "web.COMMON.continue": {
     "text": "Συνέχεια"
   },
   "web.COMMON.are_you_sure": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Είστε σίγουροι;"
   },
   "web.COMMON.danger_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επικίνδυνη ζώνη"
   },
   "web.COMMON.caution_zone": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ζώνη προσοχής"
   },
   "web.COMMON.user_menu": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μενού χρήστη"
   },
   "web.COMMON.security": {
     "text": "Ασφάλεια"
   },
   "web.COMMON.manage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση"
   },
   "web.COMMON.loading": {
     "text": "Φόρτωση..."
   },
   "web.COMMON.save_changes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποθήκευση αλλαγών"
   },
   "web.COMMON.saving": {
     "text": "Αποθήκευση..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Προσθήκη..."
+    "text": "Προσθήκη"
   },
   "web.COMMON.e_g_example": {
     "text": "π.χ."
@@ -375,7 +329,7 @@
     "text": "Κατάσταση"
   },
   "web.COMMON.escape": {
-    "text": "Διαφυγή"
+    "text": "Escape"
   },
   "web.COMMON.active": {
     "text": "Ενεργό"
@@ -390,7 +344,7 @@
     "text": "Πατήστε ESC για κλείσιμο"
   },
   "web.COMMON.enter": {
-    "text": "Είσοδος"
+    "text": "Enter"
   },
   "web.COMMON.important": {
     "text": "Σημαντικό"
@@ -423,13 +377,13 @@
     "text": "Ετήσια"
   },
   "web.COMMON.go_on_then": {
-    "text": "Προχώρα λοιπόν."
+    "text": "Εντάξει, προχωρήστε."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Φόρτωση..."
   },
   "web.COMMON.not_received": {
-    "text": "ΔΕΝ ΕΛΗΦΘΗ"
+    "text": "ΔΕΝ ΠΑΡΑΛΗΦΘΗΚΕ"
   },
   "web.COMMON.confirm_password": {
     "text": "Επιβεβαίωση κωδικού πρόσβασης"
@@ -465,7 +419,7 @@
     "text": "Άλλο"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(ελάχιστο πλάτος: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -483,7 +437,7 @@
     "text": "Τιμή"
   },
   "web.COMMON.host": {
-    "text": "Κεντρικός Υπολογιστής"
+    "text": "Διακομιστής"
   },
   "web.COMMON.type": {
     "text": "Τύπος"
@@ -495,22 +449,22 @@
     "text": "Επόμενο"
   },
   "web.COMMON.password_strength": {
-    "text": "Ισχύς Κωδικού Πρόσβασης:"
+    "text": "Ισχύς κωδικού:"
   },
   "web.COMMON.great": {
-    "text": "Εξαιρετική"
+    "text": "Εξαιρετικός"
   },
   "web.COMMON.pretty_good": {
-    "text": "Αρκετά καλή"
+    "text": "Αρκετά καλός"
   },
   "web.COMMON.fair": {
-    "text": "Μέτρια"
+    "text": "Μέτριος"
   },
   "web.COMMON.meh": {
     "text": "Έτσι κι έτσι"
   },
   "web.COMMON.not_great": {
-    "text": "Όχι καλή"
+    "text": "Όχι καλός"
   },
   "web.COMMON.open_options": {
     "text": "Άνοιγμα επιλογών"
@@ -528,10 +482,10 @@
     "text": "Το μυστικό αντιγράφηκε στο πρόχειρο"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης"
+    "text": "Ελέγξτε ξανά τη φράση πρόσβασης"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Πατήστε το παρακάτω κουμπί αντιγραφής."
+    "text": "Πατήστε το κουμπί αντιγραφής παρακάτω."
   },
   "web.LABELS.view_toggle.show": {
     "text": "Εμφάνιση"
@@ -540,10 +494,10 @@
     "text": "Απόκρυψη"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Εμφάνιση Περισσότερων"
+    "text": "Περισσότερα"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Εμφάνιση Λιγότερων"
+    "text": "Λιγότερα"
   },
   "web.LABELS.enable": {
     "text": "Ενεργοποίηση"
@@ -558,10 +512,10 @@
     "text": "Χρονολόγιο"
   },
   "web.LABELS.lifespan": {
-    "text": "Διάρκεια Ζωής"
+    "text": "Διάρκεια ζωής"
   },
   "web.LABELS.expiration_time": {
-    "text": "Χρόνος Λήξης"
+    "text": "Χρόνος λήξης"
   },
   "web.LABELS.close": {
     "text": "Κλείσιμο"
@@ -582,7 +536,7 @@
     "text": "Αποθήκευση"
   },
   "web.LABELS.save_all": {
-    "text": "Αποθήκευση Όλων"
+    "text": "Αποθήκευση όλων"
   },
   "web.LABELS.details": {
     "text": "Λεπτομέρειες"
@@ -591,19 +545,19 @@
     "text": "Κρυπτογραφημένο"
   },
   "web.LABELS.secret_status": {
-    "text": "Κατάσταση Μυστικού"
+    "text": "Κατάσταση μυστικού"
   },
   "web.LABELS.need_help": {
     "text": "Χρειάζεστε βοήθεια;"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Δημιουργία Νέου Μυστικού"
+    "text": "Δημιουργία νέου μυστικού"
   },
   "web.LABELS.actions": {
     "text": "Ενέργειες"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Δεν Απαιτείται Φράση Πρόσβασης"
+    "text": "Δεν απαιτείται φράση πρόσβασης"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Αντιγραφή στο πρόχειρο"
@@ -615,19 +569,19 @@
     "text": "Κοινοποίηση"
   },
   "web.LABELS.secret_link": {
-    "text": "Μυστικός Σύνδεσμος"
+    "text": "Μυστικός σύνδεσμος"
   },
   "web.LABELS.dismiss": {
-    "text": "Παράβλεψη"
+    "text": "Απόρριψη"
   },
   "web.LABELS.security_details": {
-    "text": "Λεπτομέρειες Ασφαλείας"
+    "text": "Λεπτομέρειες ασφάλειας"
   },
   "web.LABELS.items_count": {
-    "text": "{count} Στοιχεία"
+    "text": "{count} στοιχεία"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} Παραλήπτες"
+    "text": "{count} παραλήπτες"
   },
   "web.LABELS.view": {
     "text": "Προβολή"
@@ -639,22 +593,22 @@
     "text": "φορές προβλήθηκε"
   },
   "web.LABELS.view_progress": {
-    "text": "Πρόοδος Προβολής"
+    "text": "Προβολή προόδου"
   },
   "web.LABELS.help_section": {
-    "text": "Ενότητα Βοήθειας"
+    "text": "Ενότητα βοήθειας"
   },
   "web.LABELS.passphrase_protected": {
     "text": "Προστατεύεται με φράση πρόσβασης"
   },
   "web.LABELS.feedback_received": {
-    "text": "Τα σχόλια ελήφθησαν."
+    "text": "Τα σχόλια παραλήφθηκαν."
   },
   "web.LABELS.sending_ellipses": {
     "text": "Αποστολή..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Πρόσφατα Μυστικά"
+    "text": "Πρόσφατα μυστικά"
   },
   "web.LABELS.pricing": {
     "text": "Τιμολόγηση"
@@ -669,21 +623,19 @@
     "text": "Μυστικοί σύνδεσμοι που δημιουργήθηκαν σε αυτή τη συνεδρία"
   },
   "web.LABELS.create_link_short": {
-    "text": "Δημιουργία Συνδέσμου"
+    "text": "Δημιουργία συνδέσμου"
   },
   "web.LABELS.create_link": {
-    "text": "Δημιουργία Μυστικού Συνδέσμου"
+    "text": "Δημιουργία μυστικού συνδέσμου"
   },
   "web.LABELS.create_request_short": {
-    "text": "Δημιουργία Αιτήματος"
+    "text": "Δημιουργία αιτήματος"
   },
   "web.LABELS.create_request": {
-    "text": "Δημιουργία Συνδέσμου Αιτήματος"
+    "text": "Δημιουργία συνδέσμου αιτήματος"
   },
   "web.LABELS.related_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σχετικές ρυθμίσεις"
   },
   "web.LABELS.creating_links_for": {
     "text": "Δημιουργία συνδέσμων για"
@@ -701,16 +653,16 @@
     "text": "Ο σύνδεσμος ανοίχτηκε"
   },
   "web.STATUS.received": {
-    "text": "Ελήφθη"
+    "text": "Παραλήφθηκε"
   },
   "web.STATUS.burned": {
-    "text": "Κάηκε"
+    "text": "Διαγράφηκε οριστικά"
   },
   "web.STATUS.destroyed": {
     "text": "Καταστράφηκε"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Λήγει Σύντομα"
+    "text": "Λήγει σύντομα"
   },
   "web.STATUS.created": {
     "text": "Δημιουργήθηκε"
@@ -725,40 +677,40 @@
     "text": "Ορφανό"
   },
   "web.STATUS.secured": {
-    "text": "Ασφαλίστηκε"
+    "text": "Ασφαλισμένο"
   },
   "web.STATUS.securing": {
-    "text": "Ασφαλίζεται"
+    "text": "Ασφάλιση"
   },
   "web.STATUS.copied": {
     "text": "Αντιγράφηκε"
   },
   "web.STATUS.time_remaining": {
-    "text": "Υπολειπόμενος Χρόνος"
+    "text": "Χρόνος που απομένει"
   },
   "web.STATUS.new_description": {
-    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει προβληθεί ακόμα"
+    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει ακόμα προβληθεί"
   },
   "web.STATUS.unread_description": {
     "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει προβληθεί"
   },
   "web.STATUS.viewed_description": {
-    "text": "Ο μυστικός σύνδεσμος έχει ανοιχτεί και είναι έτοιμος για προβολή"
+    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για προβολή"
   },
   "web.STATUS.received_description": {
     "text": "Το μυστικό αποκαλύφθηκε στον παραλήπτη"
   },
   "web.STATUS.burned_description": {
-    "text": "Το μυστικό κάηκε χειροκίνητα πριν προβληθεί"
+    "text": "Το μυστικό διαγράφηκε χειροκίνητα πριν προβληθεί"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Το μυστικό καταστράφηκε μόνιμα"
+    "text": "Το μυστικό καταστράφηκε οριστικά"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "Το μυστικό θα λήξει σύντομα"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Το μυστικό έχει μείνει ορφανό και θα καταστραφεί σύντομα"
+    "text": "Το μυστικό έχει γίνει ορφανό και θα καταστραφεί σύντομα"
   },
   "web.STATUS.expired_description": {
     "text": "Το μυστικό έληξε πριν προβληθεί"
@@ -770,7 +722,7 @@
     "text": "Παραδόθηκε"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Λανθασμένο DNS"
+    "text": "DNS λανθασμένο"
   },
   "web.STATUS.active": {
     "text": "Ενεργό"
@@ -779,13 +731,13 @@
     "text": "Ανενεργό"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Απεριόριστες Προβολές"
+    "text": "Απεριόριστες προβολές"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Επωνυμία αξιόπιστου domain"
+    "text": "Επωνυμία αξιόπιστου τομέα"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Κρυπτογραφημένο κατά τη μεταφορά και σε αδράνεια"
+    "text": "Κρυπτογραφημένο κατά τη μεταφορά και σε ηρεμία"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -806,19 +758,19 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} απομένουν"
+    "text": "Απομένουν {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "ημέρα απομένει | ημέρες απομένουν"
+    "text": "απομένει ημέρα | απομένουν ημέρες"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "ώρα απομένει | ώρες απομένουν"
+    "text": "απομένει ώρα | απομένουν ώρες"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "λεπτό απομένει | λεπτά απομένουν"
+    "text": "απομένει λεπτό | απομένουν λεπτά"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "δευτερόλεπτο απομένει | δευτερόλεπτα απομένουν"
+    "text": "απομένει δευτερόλεπτο | απομένουν δευτερόλεπτα"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
@@ -827,250 +779,228 @@
     "text": "Όριο {count} προβολών"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} Ημέρες Απομένουν"
+    "text": "Απομένουν {count} ημέρες"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} Ώρες Απομένουν"
+    "text": "Απομένουν {count} ώρες"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} Λεπτά Απομένουν"
+    "text": "Απομένουν {count} λεπτά"
   },
   "web.TITLES.incoming": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Εισερχόμενα μυστικά"
   },
   "web.TITLES.feedback": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σχόλια"
   },
   "web.TITLES.signin": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σύνδεση"
   },
   "web.TITLES.signup": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία λογαριασμού"
   },
   "web.TITLES.forgot_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ξεχάσατε τον κωδικό"
   },
   "web.TITLES.reset_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαναφορά κωδικού"
   },
   "web.TITLES.logout": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αποσύνδεση"
   },
   "web.TITLES.verify_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση λογαριασμού"
   },
   "web.TITLES.mfa_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση δύο παραγόντων"
   },
   "web.TITLES.email_login": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σύνδεση με email"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Αποδοχή Πρόσκλησης"
+    "text": "Αποδοχή πρόσκλησης"
   },
   "web.TITLES.secret": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μυστικό"
   },
   "web.TITLES.metadata": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Λεπτομέρειες μυστικού"
   },
   "web.TITLES.receipt": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απόδειξη μυστικού"
   },
   "web.TITLES.burn_secret": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οριστική διαγραφή μυστικού"
   },
   "web.TITLES.dashboard": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πίνακας ελέγχου"
   },
   "web.TITLES.recent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πρόσφατα μυστικά"
   },
   "web.TITLES.domains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προσαρμοσμένοι τομείς"
   },
   "web.TITLES.domain_add": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προσθήκη τομέα"
   },
   "web.TITLES.domain_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση τομέα"
   },
   "web.TITLES.domain_brand": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επωνυμία τομέα"
   },
   "web.TITLES.account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Λογαριασμός"
   },
   "web.TITLES.data_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Περιοχή δεδομένων"
   },
   "web.TITLES.current_region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τρέχουσα περιοχή"
   },
   "web.TITLES.available_regions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαθέσιμες περιοχές"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γιατί έχει σημασία η κυριαρχία δεδομένων"
   },
   "web.TITLES.profile_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις προφίλ"
   },
   "web.TITLES.preferences_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προτιμήσεις"
   },
   "web.TITLES.privacy_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απόρρητο"
   },
   "web.TITLES.notification_settings": {
     "text": "Ειδοποιήσεις"
   },
   "web.TITLES.change_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αλλαγή email"
   },
   "web.TITLES.security_overview": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ασφάλεια"
   },
   "web.TITLES.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αλλαγή κωδικού πρόσβασης"
   },
   "web.TITLES.mfa_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση δύο παραγόντων"
   },
   "web.TITLES.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργές συνεδρίες"
   },
   "web.TITLES.recovery_codes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κωδικοί ανάκτησης"
   },
   "web.TITLES.api_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις API"
   },
   "web.TITLES.advanced_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Προχωρημένες ρυθμίσεις"
   },
   "web.TITLES.system_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις συστήματος"
   },
   "web.TITLES.not_found": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η σελίδα δεν βρέθηκε"
   },
   "web.TITLES.organizations_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οργανισμοί"
   },
   "web.TITLES.organization_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ρυθμίσεις οργανισμού"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Η εστίαση βρίσκεται τώρα στην κύρια περιοχή κειμένου"
+    "text": "Η εστίαση είναι τώρα στην κύρια περιοχή κειμένου"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Οδηγίες Κοινοποίησης"
+    "text": "Οδηγίες κοινοποίησης"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Μοιραστείτε τον σύνδεσμο με τον προβλεπόμενο παραλήπτη"
+    "text": "Μοιραστείτε τον σύνδεσμο με τον επιθυμητό παραλήπτη"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Μοιραστείτε τη φράση πρόσβασης ξεχωριστά μέσω ενός ασφαλούς καναλιού"
+    "text": "Μοιραστείτε τη φράση πρόσβασης ξεχωριστά μέσω ασφαλούς καναλιού"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Χρησιμοποιήστε ένα διαφορετικό ασφαλές κανάλι για να μοιραστείτε ευαίσθητες πληροφορίες"
+    "text": "Χρησιμοποιήστε διαφορετικό ασφαλές κανάλι για να μοιραστείτε ευαίσθητες πληροφορίες"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του Onetime Secret. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το Onetime Secret για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγξτε τον τομέα πριν δημιουργήσετε νέους συνδέσμους."
   },
   "web.STATUS.previewed": {
-    "text": "Ο σύνδεσμος ανοίχτηκε"
+    "text": "Προεπισκόπηση"
   },
   "web.STATUS.revealed": {
     "text": "Αποκαλύφθηκε"
   },
   "web.STATUS.previewed_description": {
-    "text": "Ο μυστικός σύνδεσμος έχει ανοιχτεί και είναι έτοιμος για αποκάλυψη"
+    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για αποκάλυψη"
   },
   "web.STATUS.revealed_description": {
-    "text": "Το μυστικό περιεχόμενο αποκαλύφθηκε στον παραλήπτη"
+    "text": "Το περιεχόμενο του μυστικού αποκαλύφθηκε στον παραλήπτη"
+  },
+  "web.COMMON.not_set": {
+    "text": "Δεν έχει οριστεί"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Επεξεργασία"
+  },
+  "web.COMMON.word_save": {
+    "text": "Αποθήκευση"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Λήγει σε"
+  },
+  "web.LABELS.filter": {
+    "text": "Φίλτρο"
+  },
+  "web.LABELS.clear": {
+    "text": "Εκκαθάριση"
+  },
+  "web.LABELS.add_note": {
+    "text": "Προσθήκη σημείωσης..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Επεξεργασία σημείωσης"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Προσθήκη υπομνήματος..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Επεξεργασία υπομνήματος"
+  },
+  "web.TITLES.help": {
+    "text": "Βοήθεια"
+  },
+  "web.TITLES.pricing": {
+    "text": "Τιμολόγηση"
+  },
+  "web.pricing.title": {
+    "text": "Απλή, διαφανής τιμολόγηση"
+  },
+  "web.pricing.subtitle": {
+    "text": "Επιλέξτε το πλάνο που ταιριάζει στις ανάγκες σας. Όλα τα πλάνα περιλαμβάνουν απεριόριστη κοινοποίηση μυστικών και σχεδιασμό με προτεραιότητα στο απόρρητο."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Ξεκινήστε δωρεάν"
+  },
+  "web.pricing.start_trial": {
+    "text": "Ξεκινήστε"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Έχετε ήδη λογαριασμό;"
+  },
+  "web.pricing.sign_in": {
+    "text": "Σύνδεση"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Προτείνεται για εσάς"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Δημιουργήστε και μοιραστείτε μυστικά με βασικές λειτουργίες. Δεν απαιτείται πιστωτική κάρτα."
   }
 }

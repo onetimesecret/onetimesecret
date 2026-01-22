@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Το περιεχόμενο βοήθειας πηγαίνει εδώ."
+    "text": "Το περιεχόμενο βοήθειας τοποθετείται εδώ."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Ευχαριστούμε που βοηθάτε το Onetime Secret να βελτιωθεί. Σημαίνει πολλά."
@@ -39,9 +39,15 @@
     "text": "Άνοιγμα φόρμας σχολίων"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Εισαγάγετε τα σχόλιά σας"
+    "text": "Εισάγετε τα σχόλιά σας"
   },
   "web.feedback.send_feedback": {
     "text": "Αποστολή σχολίων"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Διαβάζω κάθε σχόλιο που έρχεται εδώ. Έτσι καταλαβαίνω σε τι πρέπει να αφιερώσω χρόνο."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Εάν κάτι δεν πάει καλά, ή έχετε ιδέες για το πώς θα έπρεπε να λειτουργεί, αυτό είναι το σωστό μέρος."
   }
 }
