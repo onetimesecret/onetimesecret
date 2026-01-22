@@ -305,7 +305,7 @@ GEM
     reverse_markdown (3.0.1)
       nokogiri
     rexml (3.4.4)
-    rhales (0.5.3)
+    rhales (0.5.4)
       json_schemer (~> 2.3)
       logger
       tilt (~> 2)
@@ -533,7 +533,7 @@ DEPENDENCIES
   redis (~> 5.4.0)
   reline
   rerun (~> 0.14)
-  rhales (~> 0.5.3)
+  rhales (~> 0.5.4)
   roda (~> 3.0)
   rodauth (~> 2.0)
   rodauth-tools (~> 0.3.1)
