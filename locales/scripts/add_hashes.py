@@ -26,7 +26,7 @@ def normalize_source_message(text: str) -> str:
     Strips leading/trailing whitespace and converts to lowercase.
     This ensures hash stability across minor formatting changes.
     """
-    return text.strip().lower()
+    return text.strip()  # don't modify case
 
 
 def compute_hash(text: str) -> str:
