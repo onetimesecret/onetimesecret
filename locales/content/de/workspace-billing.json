@@ -1,623 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "Upgrade erforderlich"
+    "text": "Upgrade erforderlich",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Tarife ansehen"
+    "text": "Tarife ansehen",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Team-Verwaltung erfordert Identity Plus oder höher"
+    "text": "Team-Verwaltung erfordert Identity Plus oder höher",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Eigene Domains erfordern Identity Plus oder höher"
+    "text": "Eigene Domains erfordern Identity Plus oder höher",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API-Zugang erfordert Identity Plus oder höher"
+    "text": "API-Zugang erfordert Identity Plus oder höher",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Audit-Protokolle erfordern Multi-Team-Tarif oder höher"
+    "text": "Audit-Protokolle erfordern Multi-Team-Tarif oder höher",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Verwalte dein Abonnement, deine Organisationen und deine Abrechnungseinstellungen"
+    "text": "Verwalte dein Abonnement, deine Organisationen und deine Abrechnungseinstellungen",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "Abrechnungsübersicht"
+    "text": "Abrechnungsübersicht",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Dein Abonnement und deine Zahlungsdetails ansehen und verwalten"
+    "text": "Dein Abonnement und deine Zahlungsdetails ansehen und verwalten",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Organisation auswählen"
   },
   "web.billing.overview.current_plan": {
-    "text": "Aktueller Tarif"
+    "text": "Aktueller Tarif",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Tarifmerkmale"
+    "text": "Tarifmerkmale",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "Zahlungsmethode"
+    "text": "Zahlungsmethode",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Nächstes Abrechnungsdatum"
+    "text": "Nächstes Abrechnungsdatum",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Schnellaktionen"
+    "text": "Schnellaktionen",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Abrechnung verwalten"
+    "text": "Abrechnung verwalten",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "Rechnungen ansehen"
+    "text": "Rechnungen ansehen",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Tarif upgraden"
+    "text": "Tarif upgraden",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Tarif wechseln"
+    "text": "Tarif wechseln",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Keine Zahlungsmethode hinterlegt"
+    "text": "Keine Zahlungsmethode hinterlegt",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Keine anstehende Abrechnung"
+    "text": "Keine anstehende Abrechnung",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "Tage verbleibend"
+    "text": "Tage verbleibend",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "Abrechnung am {date}"
+    "text": "Abrechnung am {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Tarife ansehen"
+    "text": "Tarife ansehen",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Vergleichen und upgraden"
+    "text": "Vergleichen und upgraden",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "Rechnungen ansehen"
+    "text": "Rechnungen ansehen",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Verlauf herunterladen"
+    "text": "Verlauf herunterladen",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Abrechnung verwalten"
+    "text": "Abrechnung verwalten",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Zahlungsdaten aktualisieren"
+    "text": "Zahlungsdaten aktualisieren",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "Keine Organisationen"
+    "text": "Keine Organisationen",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Erstelle eine Organisation, um deine Abrechnung und dein Abonnement zu verwalten"
+    "text": "Erstelle eine Organisation, um deine Abrechnung und dein Abonnement zu verwalten",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Nachrichten erstellen"
+    "text": "Nachrichten erstellen",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Quittungen ansehen"
+    "text": "Quittungen ansehen",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "API-Zugang"
+    "text": "API-Zugang",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Eigene Domains"
+    "text": "Eigene Domains",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Eigene Datenschutz-Standardwerte"
+    "text": "Eigene Datenschutz-Standardwerte",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Verlängertes Standard-Ablaufdatum"
+    "text": "Verlängertes Standard-Ablaufdatum",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Eigene E-Mail-Standardwerte"
+    "text": "Eigene E-Mail-Standardwerte",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Eigenes Branding"
+    "text": "Eigenes Branding",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Gebrandete Startseite"
+    "text": "Gebrandete Startseite",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Eingehende Nachrichten"
+    "text": "Eingehende Nachrichten",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Organisationen verwalten"
+    "text": "Organisationen verwalten",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Teams verwalten"
+    "text": "Teams verwalten",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Mitglieder verwalten"
+    "text": "Mitglieder verwalten",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Audit-Protokolle"
+    "text": "Audit-Protokolle",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On"
+    "text": "Single Sign-On",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "Prioritäts-Support"
+    "text": "Prioritäts-Support",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Service Level Agreement"
+    "text": "Service Level Agreement",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Funktionsdetails konnten nicht geladen werden"
+    "text": "Funktionsdetails konnten nicht geladen werden",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Keine Funktionen verfügbar"
+    "text": "Keine Funktionen verfügbar",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "Tarif auswählen"
+    "text": "Tarif auswählen",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Wähle den Tarif, der zu deinen Bedürfnissen passt"
+    "text": "Wähle den Tarif, der zu deinen Bedürfnissen passt",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Wähle den perfekten Tarif für deine Organisation"
+    "text": "Wähle den perfekten Tarif für deine Organisation",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Aktueller Tarif"
+    "text": "Aktueller Tarif",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "Aktuell"
+    "text": "Aktuell",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "Upgrade"
+    "text": "Upgrade",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Downgrade"
+    "text": "Downgrade",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "Monatlich"
+    "text": "Monatlich",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "Jährlich"
+    "text": "Jährlich",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "/Monat"
+    "text": "/Monat",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Spare {percent}% mit jährlicher Abrechnung"
+    "text": "Spare {percent}% mit jährlicher Abrechnung",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "Kostenlos"
+    "text": "Kostenlos",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Einzelteam"
+    "text": "Einzelteam",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi-Team"
+    "text": "Multi-Team",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "Einzelkonto"
+    "text": "Einzelkonto",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "Team-Konto"
+    "text": "Team-Konto",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Organisationskonto"
+    "text": "Organisationskonto",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Funktionen"
+    "text": "Funktionen",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Unbegrenzte Nachrichten"
+    "text": "Unbegrenzte Nachrichten",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "API-Zugang"
+    "text": "API-Zugang",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "Prioritäts-Support"
+    "text": "Prioritäts-Support",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Tarif auswählen"
+    "text": "Tarif auswählen",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Vertrieb kontaktieren"
+    "text": "Vertrieb kontaktieren",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Hast du Fragen oder benötigst etwas Individuelles?"
+    "text": "Hast du Fragen oder benötigst etwas Individuelles?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Wir freuen uns von dir zu hören. Sag uns, was du suchst."
+    "text": "Wir freuen uns von dir zu hören. Sag uns, was du suchst.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} Team | {count} Teams"
+    "text": "{count} Team | {count} Teams",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} Mitglied pro Team | {count} Mitglieder pro Team"
+    "text": "{count} Mitglied pro Team | {count} Mitglieder pro Team",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Unbegrenzte Teams"
+    "text": "Unbegrenzte Teams",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Unbegrenzte Mitglieder pro Team"
+    "text": "Unbegrenzte Mitglieder pro Team",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Am beliebtesten"
+    "text": "Am beliebtesten",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Empfohlen"
+    "text": "Empfohlen",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Enthält alles aus {plan}"
+    "text": "Enthält alles aus {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Derzeit keine {interval} Tarife verfügbar."
+    "text": "Derzeit keine {interval} Tarife verfügbar.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Dein Tarif wird sofort geändert."
+    "text": "Dein Tarif wird sofort geändert.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Aktueller Tarif:"
+    "text": "Aktueller Tarif:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Neuer Tarif:"
+    "text": "Neuer Tarif:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Guthaben für ungenutzte Zeit:"
+    "text": "Guthaben für ungenutzte Zeit:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Nächste Rechnung"
+    "text": "Nächste Rechnung",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Deine Funktionslimits werden sofort nach dem Tarifwechsel aktualisiert."
+    "text": "Deine Funktionslimits werden sofort nach dem Tarifwechsel aktualisiert.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Tarifwechsel fehlgeschlagen. Bitte versuche es erneut."
+    "text": "Tarifwechsel fehlgeschlagen. Bitte versuche es erneut.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Upgrade bestätigen"
+    "text": "Upgrade bestätigen",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Downgrade bestätigen"
+    "text": "Downgrade bestätigen",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Auf {plan} upgraden?"
+    "text": "Auf {plan} upgraden?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Auf {plan} downgraden?"
+    "text": "Auf {plan} downgraden?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "Abrechnungsverlauf"
+    "text": "Abrechnungsverlauf",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Zeige deinen Abrechnungsverlauf an und lade Rechnungen herunter"
+    "text": "Zeige deinen Abrechnungsverlauf an und lade Rechnungen herunter",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "Datum"
+    "text": "Datum",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "Betrag"
+    "text": "Betrag",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "Status"
+    "text": "Status",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Herunterladen"
+    "text": "Herunterladen",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Noch keine Rechnungen"
+    "text": "Noch keine Rechnungen",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "Bezahlt"
+    "text": "Bezahlt",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "Ausstehend"
+    "text": "Ausstehend",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Fehlgeschlagen"
+    "text": "Fehlgeschlagen",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "Rechnungen konnten nicht geladen werden"
+    "text": "Rechnungen konnten nicht geladen werden",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Die Abrechnung wird von {orgName} verwaltet"
+    "text": "Die Abrechnung wird von {orgName} verwaltet",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Organisationsabrechnung ansehen"
+    "text": "Organisationsabrechnung ansehen",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Du hast das Mitgliederlimit für dieses Team erreicht"
+    "text": "Du hast das Mitgliederlimit für dieses Team erreicht",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Upgrade, um weitere Mitglieder hinzuzufügen"
+    "text": "Upgrade, um weitere Mitglieder hinzuzufügen",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "Abonnement"
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "Abonnementstatus"
+    "text": "Abonnementstatus",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "Aktiv"
+    "text": "Aktiv",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "Inaktiv"
+    "text": "Inaktiv",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Überfällig"
+    "text": "Überfällig",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Gekündigt"
+    "text": "Gekündigt",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "Tarif"
+    "text": "Tarif",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "Abrechnungsportal"
+    "text": "Abrechnungsportal",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Verwalte dein Abonnement, deine Zahlungsmethoden und deinen Abrechnungsverlauf"
+    "text": "Verwalte dein Abonnement, deine Zahlungsmethoden und deinen Abrechnungsverlauf",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "Abrechnungsportal öffnen"
+    "text": "Abrechnungsportal öffnen",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "Weiterleitung zum Abrechnungsportal..."
+    "text": "Weiterleitung zum Abrechnungsportal...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Heute starten"
+    "text": "Heute starten",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Heute mit Identity Plus starten"
+    "text": "Heute mit Identity Plus starten",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "pro Monat"
+    "text": "pro Monat",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "Vollständiger API-Zugang"
+    "text": "Vollständiger API-Zugang",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Datenschutz an erster Stelle"
+    "text": "Datenschutz an erster Stelle",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Klicke auf diesen Blitz, um für benutzerdefinierte Domains zu upgraden"
+    "text": "Klicke auf diesen Blitz, um für benutzerdefinierte Domains zu upgraden",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "Vielleicht später"
+    "text": "Vielleicht später",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Konto upgraden"
+    "text": "Konto upgraden",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Upgrade auf Identity Plus"
+    "text": "Upgrade auf Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Upgrade für Teams"
+    "text": "Upgrade für Teams",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "Vorteile von"
+    "text": "Vorteile von",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Upgrade auf"
+    "text": "Upgrade auf",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Upgrade für secrets.deinedomain.com"
+    "text": "Upgrade für secrets.deinedomain.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Alle Pläne beinhalten Datenschutzfunktionen und unbegrenzte Teilkapazität"
+    "text": "Alle Pläne beinhalten Datenschutzfunktionen und unbegrenzte Teilkapazität",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Alle Tarife beinhalten die Wahl des Datenstandorts: {0} Regionen"
+    "text": "Alle Tarife beinhalten die Wahl des Datenstandorts: {0} Regionen",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "Loslegen"
+    "text": "Loslegen",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "{0} Abonnement"
+    "text": "{0} Abonnement",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Verbessere dein sicheres Teilen mit benutzerdefinierten Domains, unbegrenzter Kapazität und Funktionen auf Unternehmensniveau."
+    "text": "Verbessere dein sicheres Teilen mit benutzerdefinierten Domains, unbegrenzter Kapazität und Funktionen auf Unternehmensniveau.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Zahlungshäufigkeit"
+    "text": "Zahlungshäufigkeit",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Sichere deine Marke und baue Kundenvertrauen mit Links von deiner Domain auf. Perfekt für Unternehmen, die Wert auf Datenschutz und Professionalität legen."
+    "text": "Sichere deine Marke und baue Kundenvertrauen mit Links von deiner Domain auf. Perfekt für Unternehmen, die Wert auf Datenschutz und Professionalität legen.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Sichere Links, stärkere Verbindungen"
+    "text": "Sichere Links, stärkere Verbindungen",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Identity-Stufe nicht in den Produktstufen gefunden"
+    "text": "Identity-Stufe nicht in den Produktstufen gefunden",
+    "sha256": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Abonnement kündigen"
+    "text": "Abonnement kündigen",
+    "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Abonnement kündigen"
+    "text": "Abonnement kündigen",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Bist du sicher, dass du dein {plan}-Abonnement kündigen möchtest?"
+    "text": "Bist du sicher, dass du dein {plan}-Abonnement kündigen möchtest?",
+    "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Was passiert, wenn du kündigst:"
+    "text": "Was passiert, wenn du kündigst:",
+    "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Du behältst Zugriff auf alle Funktionen bis {date}"
+    "text": "Du behältst Zugriff auf alle Funktionen bis {date}",
+    "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Du behältst Zugriff bis zum Ende deines aktuellen Abrechnungszeitraums"
+    "text": "Du behältst Zugriff bis zum Ende deines aktuellen Abrechnungszeitraums",
+    "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Du wirst nicht erneut belastet"
+    "text": "Du wirst nicht erneut belastet",
+    "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Dein Konto wird auf den kostenlosen Tarif zurückgestuft"
+    "text": "Dein Konto wird auf den kostenlosen Tarif zurückgestuft",
+    "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Abonnement behalten"
+    "text": "Abonnement behalten",
+    "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Abonnement kündigen"
+    "text": "Abonnement kündigen",
+    "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Dein Abonnement wurde gekündigt. Du behältst Zugriff bis zum Ende deines Abrechnungszeitraums."
+    "text": "Dein Abonnement wurde gekündigt. Du behältst Zugriff bis zum Ende deines Abrechnungszeitraums.",
+    "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Abonnement konnte nicht gekündigt werden. Bitte versuche es erneut."
+    "text": "Abonnement konnte nicht gekündigt werden. Bitte versuche es erneut.",
+    "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Kündigung des Abonnements geplant"
+    "text": "Kündigung des Abonnements geplant",
+    "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Dein Abonnement bleibt bis {date} aktiv. Du hast bis dahin weiterhin vollen Zugriff auf alle Funktionen."
+    "text": "Dein Abonnement bleibt bis {date} aktiv. Du hast bis dahin weiterhin vollen Zugriff auf alle Funktionen.",
+    "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Hast du es dir anders überlegt? Du kannst dein Abonnement jederzeit vor dem Kündigungsdatum reaktivieren."
+    "text": "Hast du es dir anders überlegt? Du kannst dein Abonnement jederzeit vor dem Kündigungsdatum reaktivieren.",
+    "sha256": "c94d5527"
   },
   "web.billing.features.create_secrets": {
-    "text": "Nachrichten erstellen & teilen"
+    "text": "Nachrichten erstellen & teilen",
+    "sha256": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "API-Zugang"
+    "text": "API-Zugang",
+    "sha256": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Benutzerdefinierte Domains"
+    "text": "Benutzerdefinierte Domains",
+    "sha256": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 benutzerdefinierte Domain"
+    "text": "1 benutzerdefinierte Domain",
+    "sha256": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Unbegrenzte benutzerdefinierte Domains"
+    "text": "Unbegrenzte benutzerdefinierte Domains",
+    "sha256": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "Eigenes Branding"
+    "text": "Eigenes Branding",
+    "sha256": "237dabec"
   },
   "web.billing.features.branded_homepage": {
-    "text": "Gebrandete Startseite"
+    "text": "Gebrandete Startseite",
+    "sha256": "e355a396"
   },
   "web.billing.features.manage_teams": {
-    "text": "Teamverwaltung"
+    "text": "Teamverwaltung",
+    "sha256": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
-    "text": "Mitgliederverwaltung"
+    "text": "Mitgliederverwaltung",
+    "sha256": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "Audit-Protokolle"
+    "text": "Audit-Protokolle",
+    "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Single Sign-On (SSO)"
+    "text": "Single Sign-On (SSO)",
+    "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
-    "text": "Prioritäts-Support"
+    "text": "Prioritäts-Support",
+    "sha256": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Service Level Agreement"
+    "text": "Service Level Agreement",
+    "sha256": "436f2550"
   },
   "web.billing.features.centralized_billing": {
-    "text": "Zentrale Abrechnung"
+    "text": "Zentrale Abrechnung",
+    "sha256": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Audit-Trail"
+    "text": "Audit-Trail",
+    "sha256": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Aktivitätsstream"
+    "text": "Aktivitätsstream",
+    "sha256": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Übergabe-Workflows"
+    "text": "Übergabe-Workflows",
+    "sha256": "07202af3"
   },
   "web.billing.features.extended_retention": {
-    "text": "30 Tage Nachrichten-Aufbewahrung"
+    "text": "30 Tage Nachrichten-Aufbewahrung",
+    "sha256": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Startseiten-Nachrichten"
+    "text": "Startseiten-Nachrichten",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Eingehende Nachrichten"
+    "text": "Eingehende Nachrichten",
+    "sha256": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "Bis zu 5 Teammitglieder"
+    "text": "Bis zu 5 Teammitglieder",
+    "sha256": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "Bis zu 10 Teammitglieder"
+    "text": "Bis zu 10 Teammitglieder",
+    "sha256": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "Bis zu 25 Teammitglieder"
+    "text": "Bis zu 25 Teammitglieder",
+    "sha256": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "Bis zu 50 Teammitglieder"
+    "text": "Bis zu 50 Teammitglieder",
+    "sha256": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Unbegrenzte Teammitglieder"
+    "text": "Unbegrenzte Teammitglieder",
+    "sha256": "b7491ee9"
   },
   "web.billing.features.notifications": {
-    "text": "E-Mail-Benachrichtigungen"
+    "text": "E-Mail-Benachrichtigungen",
+    "sha256": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "IP-Zugriffsregeln"
+    "text": "IP-Zugriffsregeln",
+    "sha256": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Arbeitsbereich-Branding"
+    "text": "Arbeitsbereich-Branding",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
-    "text": "Dedizierte Infrastruktur"
+    "text": "Dedizierte Infrastruktur",
+    "sha256": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "Geteilte Workflows"
+    "text": "Geteilte Workflows",
+    "sha256": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "Abrechnung für diese Organisation"
+    "text": "Abrechnung für diese Organisation",
+    "sha256": "21806992"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Dein Tarif wurde erfolgreich aktualisiert"
+    "text": "Dein Tarif wurde erfolgreich aktualisiert",
+    "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Dein neuer Tarif ist jetzt aktiv. Vielen Dank für deinen Kauf."
+    "text": "Dein neuer Tarif ist jetzt aktiv. Vielen Dank für deinen Kauf.",
+    "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
-    "text": "Rechnungskontakt"
+    "text": "Rechnungskontakt",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Startseiten-Nachrichten"
+    "text": "Startseiten-Nachrichten",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
-    "text": "E-Mail-Benachrichtigungen"
+    "text": "E-Mail-Benachrichtigungen",
+    "sha256": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP-Zugriffsregeln"
+    "text": "IP-Zugriffsregeln",
+    "sha256": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Workspace-Branding"
+    "text": "Workspace-Branding",
+    "sha256": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
-    "text": "Heute fällig:"
+    "text": "Heute fällig:",
+    "sha256": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Nächste Abrechnung ({date}):"
+    "text": "Nächste Abrechnung ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Wie dein Guthaben angerechnet wird:"
+    "text": "Wie dein Guthaben angerechnet wird:",
+    "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Nächster Rechnungsbetrag:"
+    "text": "Nächster Rechnungsbetrag:",
+    "sha256": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Angerechnetes Guthaben:"
+    "text": "Angerechnetes Guthaben:",
+    "sha256": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Fälliger Betrag bei nächster Abrechnung:"
+    "text": "Fälliger Betrag bei nächster Abrechnung:",
+    "sha256": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Verbleibendes Kontoguthaben:"
+    "text": "Verbleibendes Kontoguthaben:",
+    "sha256": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Wird auf zukünftige Rechnungen angerechnet"
+    "text": "Wird auf zukünftige Rechnungen angerechnet",
+    "sha256": "5007add6"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Team-Nutzung"
+    "text": "Team-Nutzung",
+    "sha256": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{used} von {limit} Teams"
+    "text": "{used} von {limit} Teams",
+    "sha256": "1db6b53c"
   }
 }

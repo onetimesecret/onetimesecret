@@ -1,446 +1,594 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Ticket: %s]"
+    "text": "[Ticket: %s]",
+    "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Ein Kunde hat folgende Informationen gesendet"
+    "text": "Ein Kunde hat folgende Informationen gesendet",
+    "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} hat dir eine Nachricht gesendet"
+    "text": "%{sender_email} hat dir eine Nachricht gesendet",
+    "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "hat dir eine Nachricht gesendet:"
+    "text": "hat dir eine Nachricht gesendet:",
+    "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Wichtig:"
+    "text": "Wichtig:",
+    "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird die Nachricht dauerhaft gelöscht."
+    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird die Nachricht dauerhaft gelöscht.",
+    "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Gesendet über"
+    "text": "Gesendet über",
+    "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Willkommen bei %{product_name} - Bitte bestätige deine E-Mail-Adresse"
+    "text": "Willkommen bei %{product_name} - Bitte bestätige deine E-Mail-Adresse",
+    "sha256": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Willkommen bei %{product_name}!"
+    "text": "Willkommen bei %{product_name}!",
+    "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Bitte bestätige deine E-Mail-Adresse, indem du auf den folgenden Link klickst:"
+    "text": "Bitte bestätige deine E-Mail-Adresse, indem du auf den folgenden Link klickst:",
+    "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "E-Mail-Adresse bestätigen"
+    "text": "E-Mail-Adresse bestätigen",
+    "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Oder kopiere und füge diesen Link ein:"
+    "text": "Oder kopiere und füge diesen Link ein:",
+    "sha256": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet. Wenn du kein Konto erstellt hast, kannst du diese Nachricht ignorieren."
+    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet. Wenn du kein Konto erstellt hast, kannst du diese Nachricht ignorieren.",
+    "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Setze dein Passwort zurück (%{display_domain})"
+    "text": "Setze dein Passwort zurück (%{display_domain})",
+    "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Setze dein Passwort zurück"
+    "text": "Setze dein Passwort zurück",
+    "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Wir haben eine Anfrage erhalten, dein Passwort für %{product_name} zurückzusetzen."
+    "text": "Wir haben eine Anfrage erhalten, dein Passwort für %{product_name} zurückzusetzen.",
+    "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Passwort zurücksetzen"
+    "text": "Passwort zurücksetzen",
+    "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Oder kopiere diesen Link:"
+    "text": "Oder kopiere diesen Link:",
+    "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Wenn du kein Zurücksetzen des Passworts angefordert hast, kannst du diese E-Mail ignorieren."
+    "text": "Wenn du kein Zurücksetzen des Passworts angefordert hast, kannst du diese E-Mail ignorieren.",
+    "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet."
+    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet.",
+    "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Anmelden bei %{display_domain}"
+    "text": "Anmelden bei %{display_domain}",
+    "sha256": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Anmelden mit Magic Link"
+    "text": "Anmelden mit Magic Link",
+    "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Du hast einen Anmeldelink für dein %{product_name}-Konto angefordert."
+    "text": "Du hast einen Anmeldelink für dein %{product_name}-Konto angefordert.",
+    "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Anmelden"
+    "text": "Anmelden",
+    "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Oder kopiere diesen Link:"
+    "text": "Oder kopiere diesen Link:",
+    "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Dieser Link läuft in 15 Minuten ab."
+    "text": "Dieser Link läuft in 15 Minuten ab.",
+    "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Wenn du diesen Link nicht angefordert hast, kannst du diese E-Mail ignorieren."
+    "text": "Wenn du diesen Link nicht angefordert hast, kannst du diese E-Mail ignorieren.",
+    "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet."
+    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet.",
+    "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Du hast eine geheime Nachricht erhalten"
+    "text": "Du hast eine geheime Nachricht erhalten",
+    "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Du hast eine sichere Nachricht erhalten:"
+    "text": "Du hast eine sichere Nachricht erhalten:",
+    "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Notiz:"
+    "text": "Notiz:",
+    "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Jemand hat dir eine sichere Nachricht über %{display_domain} gesendet."
+    "text": "Jemand hat dir eine sichere Nachricht über %{display_domain} gesendet.",
+    "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Um diese Nachricht anzuzeigen, klicke auf den Link unten:"
+    "text": "Um diese Nachricht anzuzeigen, klicke auf den Link unten:",
+    "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Wichtig:"
+    "text": "Wichtig:",
+    "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird die Nachricht dauerhaft gelöscht."
+    "text": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird die Nachricht dauerhaft gelöscht.",
+    "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Gesendet über"
+    "text": "Gesendet über",
+    "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Deine Nachricht wurde angesehen"
+    "text": "Deine Nachricht wurde angesehen",
+    "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Deine Nachricht wurde angesehen"
+    "text": "Deine Nachricht wurde angesehen",
+    "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Deine Nachricht wurde am %{date} angesehen."
+    "text": "Deine Nachricht wurde am %{date} angesehen.",
+    "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Nachrichten-ID:"
+    "text": "Nachrichten-ID:",
+    "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Dies ist eine automatische Benachrichtigung. Es ist keine Aktion erforderlich."
+    "text": "Dies ist eine automatische Benachrichtigung. Es ist keine Aktion erforderlich.",
+    "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Benachrichtigungseinstellungen verwalten"
+    "text": "Benachrichtigungseinstellungen verwalten",
+    "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Um deine Benachrichtigungseinstellungen zu verwalten:"
+    "text": "Um deine Benachrichtigungseinstellungen zu verwalten:",
+    "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Dein Nachrichtenlink läuft bald ab"
+    "text": "Dein Nachrichtenlink läuft bald ab",
+    "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Dein Nachrichtenlink läuft in %{time_remaining} ab"
+    "text": "Dein Nachrichtenlink läuft in %{time_remaining} ab",
+    "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Nachricht ansehen, bevor sie abläuft"
+    "text": "Nachricht ansehen, bevor sie abläuft",
+    "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Erinnerung:"
+    "text": "Erinnerung:",
+    "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Nach Ablauf wird die Nachricht dauerhaft gelöscht und kann nicht wiederhergestellt werden."
+    "text": "Nach Ablauf wird die Nachricht dauerhaft gelöscht und kann nicht wiederhergestellt werden.",
+    "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Gesendet über"
+    "text": "Gesendet über",
+    "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Ansehen, bevor sie weg ist:"
+    "text": "Ansehen, bevor sie weg ist:",
+    "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Nach Ablauf wird die Nachricht dauerhaft gelöscht."
+    "text": "Nach Ablauf wird die Nachricht dauerhaft gelöscht.",
+    "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Feedback vom %{date} über %{display_domain} (%{strategy})"
+    "text": "Feedback vom %{date} über %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Benutzerfeedback"
+    "text": "Benutzerfeedback",
+    "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "Von:"
+    "text": "Von:",
+    "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domain:"
+    "text": "Domain:",
+    "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Strategie:"
+    "text": "Strategie:",
+    "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Nachricht:"
+    "text": "Nachricht:",
+    "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support"
+    "text": "Secret Support",
+    "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Du wurdest eingeladen, %{organization_name} beizutreten"
+    "text": "Du wurdest eingeladen, %{organization_name} beizutreten",
+    "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Du wurdest eingeladen, %{organization_name} beizutreten!"
+    "text": "Du wurdest eingeladen, %{organization_name} beizutreten!",
+    "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} hat dich eingeladen, \"%{organization_name}\" als %{role_description} beizutreten."
+    "text": "%{inviter_email} hat dich eingeladen, \"%{organization_name}\" als %{role_description} beizutreten.",
+    "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Einladung annehmen"
+    "text": "Einladung annehmen",
+    "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Oder kopiere diesen Link:"
+    "text": "Oder kopiere diesen Link:",
+    "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Diese Einladung läuft in %{days} Tagen ab."
+    "text": "Diese Einladung läuft in %{days} Tagen ab.",
+    "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Wenn du nicht beitreten möchtest, kannst du diese E-Mail einfach ignorieren oder die Einladung ablehnen."
+    "text": "Wenn du nicht beitreten möchtest, kannst du diese E-Mail einfach ignorieren oder die Einladung ablehnen.",
+    "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Diese E-Mail wurde an %{invited_email} gesendet. Wenn du diese Einladung nicht erwartet hast, kannst du diese Nachricht ignorieren."
+    "text": "P.S. Diese E-Mail wurde an %{invited_email} gesendet. Wenn du diese Einladung nicht erwartet hast, kannst du diese Nachricht ignorieren.",
+    "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "Mitglied"
+    "text": "Mitglied",
+    "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "Administrator"
+    "text": "Administrator",
+    "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Dein Passwort wurde geändert (%{display_domain})"
+    "text": "Dein Passwort wurde geändert (%{display_domain})",
+    "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Dein Passwort wurde geändert"
+    "text": "Dein Passwort wurde geändert",
+    "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Dein Passwort für %{product_name} wurde am %{date} um %{time} geändert."
+    "text": "Dein Passwort für %{product_name} wurde am %{date} um %{time} geändert.",
+    "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Wenn du diese Änderung nicht vorgenommen hast, sichere bitte sofort dein Konto, indem du dein Passwort zurücksetzt und den Support kontaktierst."
+    "text": "Wenn du diese Änderung nicht vorgenommen hast, sichere bitte sofort dein Konto, indem du dein Passwort zurücksetzt und den Support kontaktierst.",
+    "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Deine E-Mail-Adresse wurde geändert (%{display_domain})"
+    "text": "Deine E-Mail-Adresse wurde geändert (%{display_domain})",
+    "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Deine E-Mail-Adresse wurde geändert"
+    "text": "Deine E-Mail-Adresse wurde geändert",
+    "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Die E-Mail-Adresse für dein %{product_name}-Konto wurde am %{date} auf %{new_email_masked} geändert."
+    "text": "Die E-Mail-Adresse für dein %{product_name}-Konto wurde am %{date} auf %{new_email_masked} geändert.",
+    "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Wenn du diese Änderung nicht vorgenommen hast, kontaktiere bitte sofort den Support, da dein Konto möglicherweise kompromittiert wurde."
+    "text": "Wenn du diese Änderung nicht vorgenommen hast, kontaktiere bitte sofort den Support, da dein Konto möglicherweise kompromittiert wurde.",
+    "sha256": "f505b562"
   },
   "email.email_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Bestätige deine neue E-Mail-Adresse (%{display_domain})"
+    "text": "Bestätige deine neue E-Mail-Adresse (%{display_domain})",
+    "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Bestätige deine neue E-Mail-Adresse"
+    "text": "Bestätige deine neue E-Mail-Adresse",
+    "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Bitte bestätige diese E-Mail-Adresse, um die Änderung für dein %{product_name}-Konto abzuschließen."
+    "text": "Bitte bestätige diese E-Mail-Adresse, um die Änderung für dein %{product_name}-Konto abzuschließen.",
+    "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "E-Mail-Adresse bestätigen"
+    "text": "E-Mail-Adresse bestätigen",
+    "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Oder kopiere diesen Link:"
+    "text": "Oder kopiere diesen Link:",
+    "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
-    "text": "Zwei-Faktor-Authentifizierung aktiviert (%{display_domain})"
+    "text": "Zwei-Faktor-Authentifizierung aktiviert (%{display_domain})",
+    "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Zwei-Faktor-Authentifizierung aktiviert"
+    "text": "Zwei-Faktor-Authentifizierung aktiviert",
+    "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Die Zwei-Faktor-Authentifizierung wurde für dein %{product_name}-Konto am %{date} aktiviert."
+    "text": "Die Zwei-Faktor-Authentifizierung wurde für dein %{product_name}-Konto am %{date} aktiviert.",
+    "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Dein Konto ist jetzt sicherer. Du musst bei der Anmeldung einen Bestätigungscode aus deiner Authenticator-App eingeben."
+    "text": "Dein Konto ist jetzt sicherer. Du musst bei der Anmeldung einen Bestätigungscode aus deiner Authenticator-App eingeben.",
+    "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Zwei-Faktor-Authentifizierung deaktiviert (%{display_domain})"
+    "text": "Zwei-Faktor-Authentifizierung deaktiviert (%{display_domain})",
+    "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Zwei-Faktor-Authentifizierung deaktiviert"
+    "text": "Zwei-Faktor-Authentifizierung deaktiviert",
+    "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Die Zwei-Faktor-Authentifizierung wurde für dein %{product_name}-Konto am %{date} deaktiviert."
+    "text": "Die Zwei-Faktor-Authentifizierung wurde für dein %{product_name}-Konto am %{date} deaktiviert.",
+    "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Dein Konto ist jetzt weniger sicher. Wenn du diese Änderung nicht vorgenommen hast, sichere bitte sofort dein Konto."
+    "text": "Dein Konto ist jetzt weniger sicher. Wenn du diese Änderung nicht vorgenommen hast, sichere bitte sofort dein Konto.",
+    "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Neue Anmeldung bei deinem Konto (%{display_domain})"
+    "text": "Neue Anmeldung bei deinem Konto (%{display_domain})",
+    "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Neue Anmeldung erkannt"
+    "text": "Neue Anmeldung erkannt",
+    "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Eine neue Anmeldung bei deinem %{product_name}-Konto wurde am %{date} um %{time} erkannt."
+    "text": "Eine neue Anmeldung bei deinem %{product_name}-Konto wurde am %{date} um %{time} erkannt.",
+    "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Gerät:"
+    "text": "Gerät:",
+    "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Standort:"
+    "text": "Standort:",
+    "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IP-Adresse:"
+    "text": "IP-Adresse:",
+    "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Wenn das nicht du warst, könnte dein Konto kompromittiert sein."
+    "text": "Wenn das nicht du warst, könnte dein Konto kompromittiert sein.",
+    "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Dein Konto sichern"
+    "text": "Dein Konto sichern",
+    "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Du wurdest aus %{organization_name} entfernt"
+    "text": "Du wurdest aus %{organization_name} entfernt",
+    "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Du wurdest aus %{organization_name} entfernt"
+    "text": "Du wurdest aus %{organization_name} entfernt",
+    "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Du wurdest aus der Organisation \"%{organization_name}\" auf %{product_name} entfernt."
+    "text": "Du wurdest aus der Organisation \"%{organization_name}\" auf %{product_name} entfernt.",
+    "sha256": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Deine Rolle in %{organization_name} wurde geändert"
+    "text": "Deine Rolle in %{organization_name} wurde geändert",
+    "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Deine Rolle wurde geändert"
+    "text": "Deine Rolle wurde geändert",
+    "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Deine Rolle in \"%{organization_name}\" wurde von %{old_role} zu %{new_role} geändert."
+    "text": "Deine Rolle in \"%{organization_name}\" wurde von %{old_role} zu %{new_role} geändert.",
+    "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Organisation \"%{organization_name}\" wurde gelöscht"
+    "text": "Organisation \"%{organization_name}\" wurde gelöscht",
+    "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Organisation gelöscht"
+    "text": "Organisation gelöscht",
+    "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Die Organisation \"%{organization_name}\" wurde von %{product_name} gelöscht. Alle zugehörigen Daten wurden entfernt."
+    "text": "Die Organisation \"%{organization_name}\" wurde von %{product_name} gelöscht. Alle zugehörigen Daten wurden entfernt.",
+    "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Zahlungsbeleg für %{product_name}"
+    "text": "Zahlungsbeleg für %{product_name}",
+    "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Zahlungsbeleg"
+    "text": "Zahlungsbeleg",
+    "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Vielen Dank für deine Zahlung. Hier sind deine Zahlungsdetails:"
+    "text": "Vielen Dank für deine Zahlung. Hier sind deine Zahlungsdetails:",
+    "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Betrag:"
+    "text": "Betrag:",
+    "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "Datum:"
+    "text": "Datum:",
+    "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Tarif:"
+    "text": "Tarif:",
+    "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Rechnung ansehen"
+    "text": "Rechnung ansehen",
+    "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Zahlung für %{product_name} fehlgeschlagen"
+    "text": "Zahlung für %{product_name} fehlgeschlagen",
+    "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Zahlung fehlgeschlagen"
+    "text": "Zahlung fehlgeschlagen",
+    "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Wir konnten deine Zahlung für %{product_name} nicht verarbeiten. Bitte aktualisiere deine Zahlungsmethode, um eine Dienstunterbrechung zu vermeiden."
+    "text": "Wir konnten deine Zahlung für %{product_name} nicht verarbeiten. Bitte aktualisiere deine Zahlungsmethode, um eine Dienstunterbrechung zu vermeiden.",
+    "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Zahlungsmethode aktualisieren"
+    "text": "Zahlungsmethode aktualisieren",
+    "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Deine %{product_name} Testphase läuft in %{days_remaining} Tagen ab"
+    "text": "Deine %{product_name} Testphase läuft in %{days_remaining} Tagen ab",
+    "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Deine Testphase endet bald"
+    "text": "Deine Testphase endet bald",
+    "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Deine kostenlose Testphase von %{product_name} läuft in %{days_remaining} Tagen ab. Führe jetzt ein Upgrade durch, um weiterhin Zugriff auf alle Funktionen zu haben."
+    "text": "Deine kostenlose Testphase von %{product_name} läuft in %{days_remaining} Tagen ab. Führe jetzt ein Upgrade durch, um weiterhin Zugriff auf alle Funktionen zu haben.",
+    "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Jetzt upgraden"
+    "text": "Jetzt upgraden",
+    "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Dein %{product_name}-Abonnement wurde geändert"
+    "text": "Dein %{product_name}-Abonnement wurde geändert",
+    "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Abonnement geändert"
+    "text": "Abonnement geändert",
+    "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Dein %{product_name}-Abonnement wurde von %{old_plan} zu %{new_plan} geändert."
+    "text": "Dein %{product_name}-Abonnement wurde von %{old_plan} zu %{new_plan} geändert.",
+    "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Diese Änderung gilt ab dem %{date}."
+    "text": "Diese Änderung gilt ab dem %{date}.",
+    "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Hallo,"
+    "text": "Hallo,",
+    "sha256": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Danke,"
+    "text": "Danke,",
+    "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Abmelden"
+    "text": "Abmelden",
+    "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Im Browser anzeigen"
+    "text": "Im Browser anzeigen",
+    "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret"
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
   }
 }

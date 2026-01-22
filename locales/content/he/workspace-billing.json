@@ -1,434 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "נדרש שדרוג"
+    "text": "נדרש שדרוג",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "צפייה בתוכניות"
+    "text": "צפה בתוכניות",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "ניהול צוותים דורש Identity Plus או גבוה יותר"
+    "text": "ניהול צוותים דורש Identity Plus או גבוה יותר",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "דומיינים מותאמים אישית דורשים Identity Plus או גבוהה יותר"
+    "text": "דומיינים מותאמים אישית דורשים Identity Plus או גבוה יותר",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "גישת API דורשת תוכנית Multi-Team או גבוהה יותר"
+    "text": "גישה ל-API דורשת Identity Plus או גבוה יותר",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "לוגי ביקורת דורשים תוכנית Multi-Team או גבוהה יותר"
+    "text": "יומני ביקורת דורשים תוכנית Multi-Team או גבוה יותר",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "ניהול המנוי, הארגונים והגדרות החיוב שלכם"
+    "text": "ניהול המנוי, הארגונים והגדרות החיוב שלך",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "סקירת חיוב"
+    "text": "סקירת חיוב",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "צפייה וניהול המנוי ופרטי התשלום שלכם"
+    "text": "צפייה וניהול המנוי ופרטי התשלום שלך",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "בחירת ארגון"
   },
   "web.billing.overview.current_plan": {
-    "text": "תוכנית נוכחית"
+    "text": "תוכנית נוכחית",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "תכונות התוכנית"
+    "text": "תכונות התוכנית",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "אמצעי תשלום"
+    "text": "אמצעי תשלום",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "תאריך חיוב הבא"
+    "text": "תאריך החיוב הבא",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "פעולות מהירות"
+    "text": "פעולות מהירות",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "ניהול חיוב"
+    "text": "ניהול חיוב",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "צפייה בחשבוניות"
+    "text": "צפה בחשבוניות",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "שדרוג תוכנית"
+    "text": "שדרג תוכנית",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "שינוי תוכנית"
+    "text": "שנה תוכנית",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "אין אמצעי תשלום רשום"
+    "text": "אין אמצעי תשלום בקובץ",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "אין חיוב קרוב"
+    "text": "אין חיוב קרוב",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "ימים נותרו"
+    "text": "ימים נותרו",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "חיוב ב-{date}"
+    "text": "חיוב בתאריך {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "צפייה בתוכניות"
+    "text": "צפה בתוכניות",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "השוואה ושדרוג"
+    "text": "השווה ושדרג",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "צפייה בחשבוניות"
+    "text": "צפה בחשבוניות",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "הורדת היסטוריה"
+    "text": "היסטוריית הורדות",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "ניהול חיוב"
+    "text": "ניהול חיוב",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "עדכון מידע תשלום"
+    "text": "עדכן פרטי תשלום",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "אין ארגונים"
+    "text": "אין ארגונים",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "צרו ארגון כדי לנהל את החיוב והמנוי שלכם"
+    "text": "צור ארגון כדי לנהל את החיוב והמנוי שלך",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "יצירת סודות"
+    "text": "יצירת סודות",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "הצגת קבלות"
+    "text": "צפייה בקבלות",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "גישת API"
+    "text": "גישה ל-API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "דומיינים מותאמים אישית"
+    "text": "דומיינים מותאמים אישית",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "ברירות מחדל פרטיות מותאמות"
+    "text": "ברירות מחדל מותאמות לפרטיות",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "תפוגה מוגדלת ברירת מחדל"
+    "text": "פקיעת ברירת מחדל מורחבת",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "ברירות מחדל דואר מותאמות"
+    "text": "ברירות מחדל מותאמות לדואר",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "מיתוג מותאם אישית"
+    "text": "מיתוג מותאם אישית",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "דף בית ממותג"
+    "text": "דף בית ממותג",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "סודות נכנסים"
+    "text": "סודות נכנסים",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "ניהול ארגונים"
+    "text": "ניהול ארגונים",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "ניהול צוותים"
+    "text": "ניהול צוותים",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "ניהול חברים"
+    "text": "ניהול חברים",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "לוגי ביקורת"
+    "text": "יומני ביקורת",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "התחברות יחידה (SSO)"
+    "text": "התחברות יחידה",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "תמיכה עדיפה"
+    "text": "תמיכה בעדיפות",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "הסכם רמת שירות (SLA)"
+    "text": "הסכם רמת שירות",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "לא ניתן לטעון פרטי תכונות"
+    "text": "לא ניתן לטעון פרטי תכונות",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "אין תכונות זמינות"
+    "text": "אין תכונות זמינות",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "בחירת תוכנית"
+    "text": "בחר תוכנית",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "בחרו את התוכנית המתאימה לצרכים שלכם"
+    "text": "בחר את התוכנית שמתאימה לצרכים שלך",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "בחרו את התוכנית המושלמת עבור הארגון שלכם"
+    "text": "בחר את התוכנית המושלמת עבור הארגון שלך",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "תוכנית נוכחית"
+    "text": "תוכנית נוכחית",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "נוכחי"
+    "text": "נוכחי",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "שדרוג"
+    "text": "שדרג",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "הורדה"
+    "text": "שנמך",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "חודשי"
+    "text": "חודשי",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "שנתי"
+    "text": "שנתי",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "לחודש"
+    "text": "/חודש",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "חסכו {percent}% עם חיוב שנתי"
+    "text": "חסוך {percent}% עם חיוב שנתי",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "חינם"
+    "text": "חינם",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "צוות יחיד"
+    "text": "צוות יחיד",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "צוותים מרובים"
+    "text": "ריבוי צוותים",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "חשבון אישי"
+    "text": "חשבון אישי",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "חשבון צוות"
+    "text": "חשבון צוות",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "חשבון ארגוני"
+    "text": "חשבון ארגוני",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "תכונות"
+    "text": "תכונות",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "סודות בלתי מוגבלים"
+    "text": "סודות ללא הגבלה",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "גישת API"
+    "text": "גישה ל-API",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "תמיכה עדיפה"
+    "text": "תמיכה בעדיפות",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "בחירת תוכנית"
+    "text": "בחר תוכנית",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "יצירת קשר עם מכירות"
+    "text": "צור קשר עם מכירות",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "יש לכם שאלות או צריכים משהו מותאם אישית?"
+    "text": "יש שאלות או צריך משהו מותאם אישית?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "נשמח לשמוע מכם. ספרו לנו מה אתם מחפשים."
+    "text": "נשמח לשמוע ממך. ספר לנו מה אתה מחפש.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "צוות {count} | {count} צוותים"
+    "text": "{count} צוות | {count} צוותים",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} חבר לצוות | {count} חברים לצוות"
+    "text": "{count} חבר לצוות | {count} חברים לצוות",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "צוותים ללא הגבלה"
+    "text": "צוותים ללא הגבלה",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "חברים ללא הגבלה לכל צוות"
+    "text": "חברים ללא הגבלה לכל צוות",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "הפופולרי ביותר"
+    "text": "הכי פופולרי",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "מומלץ"
+    "text": "מומלץ",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "כל מה שיש ב-{plan}, בנוסף:"
+    "text": "כולל הכל ב-{plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "אין תוכניות {interval} זמינות כרגע."
+    "text": "אין תוכניות {interval} זמינות כרגע.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "התוכנית שלכם תשתנה באופן מיידי."
+    "text": "התוכנית שלך תשתנה מיד.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "תוכנית נוכחית:"
+    "text": "תוכנית נוכחית:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "תוכנית חדשה:"
+    "text": "תוכנית חדשה:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "זיכוי עבור זמן שלא נוצל:"
+    "text": "זיכוי עבור זמן שלא נוצל:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "חשבונית הבאה"
+    "text": "החשבונית הבאה",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "מגבלות התכונות יתעדכנו באופן מיידי לאחר שינוי התוכנית."
+    "text": "מגבלות התכונות שלך יתעדכנו מיד לאחר שינוי התוכנית.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "שינוי התוכנית נכשל. אנא נסו שוב."
+    "text": "שינוי התוכנית נכשל. אנא נסה שוב.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "אישור שדרוג"
+    "text": "אשר שדרוג",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "אישור שנמוך"
+    "text": "אשר שנמוך",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "שדרוג ל"
+    "text": "לשדרג ל-{plan}?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "לשנמך ל-{plan}?"
+    "text": "לשנמך ל-{plan}?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "היסטוריית חיוב"
+    "text": "היסטוריית חיוב",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "צפייה בהיסטוריית החיוב והורדת חשבוניות"
+    "text": "צפה בהיסטוריית החיוב שלך והורד חשבוניות",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "תאריך"
+    "text": "תאריך",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "סכום"
+    "text": "סכום",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "מצב"
+    "text": "סטטוס",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "הורדה"
+    "text": "הורדה",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "אין חשבוניות עדיין"
+    "text": "אין עדיין חשבוניות",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "שולם"
+    "text": "שולם",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "ממתין"
+    "text": "ממתין",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "נכשל"
+    "text": "נכשל",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "כשל בטעינת חשבוניות"
+    "text": "טעינת החשבוניות נכשלה",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "החיוב לצוות זה מנוהל על ידי {orgName}"
+    "text": "החיוב מנוהל על ידי {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "צפייה בחיוב הארגון"
+    "text": "צפייה בחיוב הארגון",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "הגעתם למגבלת החברים בצוות זה"
+    "text": "הגעת למגבלת החברים לצוות זה",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "שדרגו כדי להוסיף חברים נוספים"
+    "text": "שדרג כדי להוסיף עוד חברים",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "מנוי"
+    "text": "מנוי",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "מצב מנוי"
+    "text": "סטטוס מנוי",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "פעיל"
+    "text": "פעיל",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "לא פעיל"
+    "text": "לא פעיל",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "באיחור"
+    "text": "באיחור",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "בוטל"
+    "text": "בוטל",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "תוכנית"
+    "text": "תוכנית",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "פורטל חיוב"
+    "text": "פורטל חיוב",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "ניהול המנוי, אמצעי התשלום והיסטוריית החיוב שלכם"
+    "text": "ניהול המנוי, אמצעי התשלום והיסטוריית החיוב שלך",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "פתיחת פורטל חיוב"
+    "text": "פתח פורטל חיוב",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "מפנה לפורטל חיוב..."
+    "text": "מפנה לפורטל החיוב...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "התחילו היום"
+    "text": "התחל היום",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "התחילו היום עם Identity Plus"
+    "text": "התחל היום עם Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "לחודש"
+    "text": "לחודש",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "גישה מלאה ל-API"
+    "text": "גישה מלאה ל-API",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "עיצוב בעדיפות פרטיות"
+    "text": "עיצוב בעדיפות לפרטיות",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "לחצו על ברק זה לשדרוג לדומיינים מותאמים אישית"
+    "text": "לחצו על ברק זה לשדרוג לדומיינים מותאמים אישית",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "אולי מאוחר יותר"
+    "text": "אולי מאוחר יותר",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "שדרוג חשבון"
+    "text": "שדרג חשבון",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "שדרוג ל-Identity Plus"
+    "text": "שדרג ל-Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "שדרוג לצוותים"
+    "text": "שדרג לצוותים",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "יתרונות של"
+    "text": "היתרונות של",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "שדרוג ל"
+    "text": "שדרג ל-",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "שדרוג עבור secrets.yourdomain.com"
+    "text": "שדרג עבור secrets.yourdomain.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "כל התוכניות כוללות תכונות פרטיות וקיבולת שיתוף בלתי מוגבלת"
+    "text": "כל התוכניות כוללות תכונות פרטיות וקיבולת שיתוף בלתי מוגבלת",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "כל התוכניות כוללות בחירה של מיקום נתונים: {0} אזורים"
+    "text": "כל התוכניות כוללות בחירת מיקום נתונים: {0} אזורים",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "התחילו"
+    "text": "התחל",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "מנוי {0}"
+    "text": "מנוי {0}",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "הרימו את השיתוף המאובטח שלכם עם דומיינים מותאמים אישית, קיבולת בלתי מוגבלת ותכונות ברמת ארגון."
+    "text": "הרימו את השיתוף המאובטח שלכם עם דומיינים מותאמים אישית, קיבולת בלתי מוגבלת ותכונות ברמת ארגון.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "תדירות תשלום"
+    "text": "תדירות תשלום",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "אבטחו את המותג שלכם ובנו אמון לקוחות עם קישורים מהדומיין שלכם. מושלם לעסקים שמעריכים פרטיות ומקצועיות."
+    "text": "אבטחו את המותג שלכם ובנו אמון לקוחות עם קישורים מהדומיין שלכם. מושלם לעסקים שמעריכים פרטיות ומקצועיות.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "קישורים מאובטחים, קשרים חזקים יותר"
+    "text": "קישורים מאובטחים, קשרים חזקים יותר",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "רמת Identity לא נמצאה ברמות המוצר"
+    "text": "רמת Identity לא נמצאה ברמות המוצר",
+    "sha256": "d0204fc4"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "ביטול מנוי",
+    "sha256": "3f85967f"
+  },
+  "web.billing.cancel.title": {
+    "text": "ביטול מנוי",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "האם אתה בטוח שברצונך לבטל את מנוי ה-{plan} שלך?",
+    "sha256": "f4d1b6ee"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "מה קורה כשאתה מבטל:",
+    "sha256": "4d8f5751"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "תישמר לך גישה לכל התכונות עד {date}",
+    "sha256": "eab1efe3"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "תישמר לך גישה עד סוף תקופת החיוב הנוכחית",
+    "sha256": "1b07a54a"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "לא תחויב שוב",
+    "sha256": "a01cdc16"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "החשבון שלך יחזור לתוכנית החינמית",
+    "sha256": "e01b3fc3"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "שמור על המנוי",
+    "sha256": "31e80c41"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "בטל מנוי",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.success": {
+    "text": "המנוי שלך בוטל. תישמר לך גישה עד סוף תקופת החיוב.",
+    "sha256": "e18fd9d5"
+  },
+  "web.billing.cancel.error": {
+    "text": "ביטול המנוי נכשל. אנא נסה שוב.",
+    "sha256": "68e8bdde"
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "ביטול המנוי תוזמן",
+    "sha256": "1427d139"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "המנוי שלך יישאר פעיל עד {date}. תמשיך ליהנות מגישה מלאה לכל התכונות עד אז.",
+    "sha256": "aab4b1dc"
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "שינית את דעתך? ניתן להפעיל מחדש את המנוי שלך בכל עת לפני תאריך הביטול.",
+    "sha256": "c94d5527"
+  },
+  "web.billing.features.create_secrets": {
+    "text": "יצירה ושיתוף סודות",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "גישה ל-API",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "דומיינים מותאמים אישית",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "דומיין מותאם אישית אחד",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "דומיינים מותאמים אישית ללא הגבלה",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "מיתוג מותאם אישית",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "דף בית ממותג",
+    "sha256": "e355a396"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "ניהול צוותים",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "ניהול חברים",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "יומני ביקורת",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "התחברות יחידה (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "תמיכה בעדיפות",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "הסכם רמת שירות",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "חיוב מרכזי",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "מסלול ביקורת",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "זרימת פעילות",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "תהליכי מסירה",
+    "sha256": "07202af3"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "שמירת סודות ל-30 יום",
+    "sha256": "21d6d514"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "סודות בדף הבית",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "סודות נכנסים",
+    "sha256": "883dbca9"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "עד 5 חברי צוות",
+    "sha256": "e7518d07"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "עד 10 חברי צוות",
+    "sha256": "0c64c064"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "עד 25 חברי צוות",
+    "sha256": "bf3b84c8"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "עד 50 חברי צוות",
+    "sha256": "3c2d9a14"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "חברי צוות ללא הגבלה",
+    "sha256": "b7491ee9"
+  },
+  "web.billing.features.notifications": {
+    "text": "התראות דוא״ל",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "כללי גישה לפי IP",
+    "sha256": "db966d47"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "מיתוג סביבת עבודה",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "תשתית ייעודית",
+    "sha256": "0c10aea7"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "תהליכי עבודה משותפים",
+    "sha256": "158f558e"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "חיוב עבור ארגון זה",
+    "sha256": "21806992"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "התוכנית שלך שודרגה בהצלחה",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "התוכנית החדשה שלך פעילה כעת. תודה על הרכישה.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "איש קשר לחיוב",
+    "sha256": "8f782ad8"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "סודות בדף הבית",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "התראות דוא״ל",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "כללי גישה לפי IP",
+    "sha256": "db966d47"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "מיתוג סביבת עבודה",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.plans.due_today": {
+    "text": "לתשלום היום:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "החיוב הבא ({date}):",
+    "sha256": "a6846a85"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "כיצד הזיכוי שלך מוחל:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "סכום החשבון הבא:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "זיכוי שהוחל:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "סכום לתשלום בחיוב הבא:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "יתרת זיכוי חשבון:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "מוחל על חשבוניות עתידיות",
+    "sha256": "5007add6"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "שימוש בצוותים",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} מתוך {limit} צוותים",
+    "sha256": "1db6b53c"
   }
 }

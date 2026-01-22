@@ -161,17 +161,23 @@ def main():
         "--base-locale", default="en", help="Base locale (default: en)"
     )
     parser.add_argument("--base-dir", help="Base locale directory")
+    parser.add_argument(
+        "--create-missing",
+        action="store_true",
+        help="Create missing JSON files from base locale",
+    )
 
     args = parser.parse_args()
 
     # Determine directories
     script_dir = Path(__file__).parent
+    content_dir = script_dir.parent.parent / "content"  # locales/content/
     base_dir = (
         Path(args.base_dir)
         if args.base_dir
-        else script_dir / "../../../locales" / args.base_locale
+        else content_dir / args.base_locale
     )
-    locale_dir = script_dir / "../../../locales" / args.locale
+    locale_dir = content_dir / args.locale
 
     # Validate directories
     if not locale_dir.is_dir():
@@ -181,6 +187,19 @@ def main():
     if not base_dir.is_dir():
         print(f"Base locale directory not found: {base_dir}", file=sys.stderr)
         return 1
+
+    # Create missing files if requested
+    created_count = 0
+    if args.create_missing:
+        for base_file in sorted(base_dir.glob("*.json")):
+            locale_file = locale_dir / base_file.name
+            if not locale_file.exists():
+                # Create empty file - will be harmonized below
+                locale_file.write_text("{}\n", encoding="utf-8")
+                created_count += 1
+                if args.verbose:
+                    rel_path = get_relative_path(locale_file)
+                    print(f"Created {rel_path}")
 
     # Process files
     error_count = 0
@@ -227,7 +246,10 @@ def main():
 
     # Summary output
     if not args.quiet and not args.verbose:
-        print(f"Harmonized {success_count} file(s) for locale '{args.locale}'")
+        msg = f"Harmonized {success_count} file(s) for locale '{args.locale}'"
+        if created_count > 0:
+            msg += f" (created {created_count} new)"
+        print(msg)
 
     if error_count > 0:
         if not args.quiet:

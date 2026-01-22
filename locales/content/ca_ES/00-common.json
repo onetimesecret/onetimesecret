@@ -5,942 +5,1335 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Enllaços segurs que només funcionen una vegada"
+    "text": "Enllaços segurs que només funcionen una vegada",
+    "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Impulsat per"
+    "text": "Impulsat per",
+    "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/ca"
+    "text": "https://onetimesecret.com/ca",
+    "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Genera una contrasenya"
+    "text": "Generar contrasenya",
+    "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Genera una contrasenya està desactivat quan el formulari és vàlid"
+    "text": "Generar contrasenya està desactivat quan el formulari és vàlid",
+    "sha256": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "p. ex. tom{'@'}myspace.com"
+    "text": "p. ex. tom{'@'}myspace.com",
+    "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Introdueix la teva contrasenya"
+    "text": "Introdueix la teva contrasenya",
+    "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Dominis personalitzats"
+    "text": "Dominis personalitzats",
+    "sha256": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Enforteix les connexions i genera confiança amb els teus propis enllaços de marca."
+    "text": "Reforça les connexions i genera confiança amb els teus propis enllaços de secrets amb marca.",
+    "sha256": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Comença"
+    "text": "Comença",
+    "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Confirma la teva contrasenya"
+    "text": "Confirma la teva contrasenya",
+    "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
-    "text": "Configuració"
+    "text": "Configuració",
+    "sha256": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Envia"
+    "text": "Enviar",
+    "sha256": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Enviant..."
+    "text": "Enviant...",
+    "sha256": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Processant..."
+    "text": "Processant...",
+    "sha256": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Mantenir protegida la informació confidencial dels meus registres de xat i de correu electrònic. Comparteix un enllaç secret que està disponible sols una vegada."
+    "text": "Mantén la informació sensible fora dels registres de xat i correu electrònic. Comparteix un enllaç secret que només està disponible una vegada.",
+    "sha256": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Frase de contrasenya incorrecta"
+    "text": "Frase de contrasenya incorrecta",
+    "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "secret,generador de contrasenyes,comparteix un secret,una sola vegada"
+    "text": "secret,generador de contrasenyes,compartir un secret,onetime",
+    "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Crea un enllaç secret"
+    "text": "Crear un enllaç secret",
+    "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "O crea una contrasenya aleatòria"
+    "text": "O genera una contrasenya aleatòria",
+    "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Opcions de privadesa"
+    "text": "Opcions de privadesa",
+    "sha256": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Frase de contrasenya"
+    "text": "Frase de contrasenya",
+    "sha256": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Una paraula o frase difícil d'endevinar"
+    "text": "Una paraula o frase difícil d'endevinar",
+    "sha256": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Adreça del destinatari"
+    "text": "Adreça del destinatari",
+    "sha256": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "El contingut secret va aquí..."
+    "text": "El contingut del secret va aquí...",
+    "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Crea un compte"
+    "text": "Crear compte",
+    "sha256": "0dffe234"
   },
   "web.COMMON.header_about": {
-    "text": "Quant a"
+    "text": "Quant a",
+    "sha256": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Inicia sessió"
+    "text": "Iniciar sessió",
+    "sha256": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Tauler de control"
+    "text": "Compte",
+    "sha256": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Tanca la sessió"
+    "text": "Tancar sessió",
+    "sha256": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Secret"
+    "text": "Secret | Secrets",
+    "sha256": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Recent"
+    "text": "Recent",
+    "sha256": "690dbe9d"
   },
   "web.COMMON.received": {
-    "text": "Rebut"
+    "text": "Rebut",
+    "sha256": "49f19bee"
   },
   "web.COMMON.burn": {
-    "text": "Destrueix"
+    "text": "Destruir",
+    "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Destruït"
+    "text": "Destruït",
+    "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "Caduca en"
+    "text": "Caduca en",
+    "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Destrueix aquest secret"
+    "text": "Destruir aquest secret",
+    "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Destruir un secret l'eliminarà abans que s'hagi llegit (fes clic per confirmar)"
+    "text": "Destruir un secret l'eliminarà abans que hagi estat llegit (fes clic per confirmar)",
+    "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "La destrucció d'un secret és permanent i no es pot desfer"
+    "text": "Destruir un secret és permanent i no es pot desfer",
+    "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Comprova el correu electrònic"
+    "text": "Comprova el teu correu electrònic",
+    "sha256": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Fes clic per continuar →"
+    "text": "Fes clic per revelar →",
+    "sha256": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Continua per verificar el compte:"
+    "text": "Continua per verificar el teu compte:",
+    "sha256": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "No has proporcionat res a compartir"
+    "text": "No has proporcionat res per compartir",
+    "sha256": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Comprova doblement la frase de contrasenya"
+    "text": "Comprova la frase de contrasenya",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Introdueix la frase de contrasenya aquí"
+    "text": "Introdueix la frase de contrasenya aquí",
+    "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Mostra el secret"
+    "text": "Veure secret",
+    "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Compte: només ho mostrarem una vegada"
+    "text": "Atenció: només el mostrarem una vegada.",
+    "sha256": "d29e2820"
   },
   "web.COMMON.warning": {
-    "text": "Advertència"
+    "text": "Advertència",
+    "sha256": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Ups"
+    "text": "Ups!",
+    "sha256": "8344947a"
   },
   "web.COMMON.error": {
-    "text": "Error"
+    "text": "Error",
+    "sha256": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "S'ha produït un error inesperat. Torna-ho a provar."
+    "text": "S'ha produït un error inesperat. Si us plau, torna-ho a provar.",
+    "sha256": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "S'ha truncat el missatge perquè era massa llarg"
+    "text": "El missatge s'ha truncat",
+    "sha256": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Registra't per a més"
+    "text": "Registra't per a més",
+    "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Inicia sessió al teu compte"
+    "text": "Iniciar sessió al teu compte",
+    "sha256": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Enviat a:"
+    "text": "Enviat a:",
+    "sha256": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "Correu electrònic"
+    "text": "Correu electrònic",
+    "sha256": "969ccbd3"
   },
   "web.COMMON.field_password": {
-    "text": "Contrasenya"
+    "text": "Contrasenya",
+    "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Confirma la contrasenya"
+    "text": "Confirmar contrasenya",
+    "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Crea un compte"
+    "text": "Crear compte",
+    "sha256": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Comparteix un secret"
+    "text": "Compartir un secret",
+    "sha256": "5384461b"
   },
   "web.COMMON.title_home": {
-    "text": "Pàgina inicial"
+    "text": "Inici",
+    "sha256": "3a786953"
   },
   "web.COMMON.word_none": {
-    "text": "Cap"
+    "text": "Cap",
+    "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "destruït"
+    "text": "destruït",
+    "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "rebut"
+    "text": "rebut",
+    "sha256": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Confirma"
+    "text": "Confirmar",
+    "sha256": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Cancel·la"
+    "text": "Cancel·lar",
+    "sha256": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Continua"
+    "text": "Continuar",
+    "sha256": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Fet"
+    "text": "Fet",
+    "sha256": "11a6767d"
   },
   "web.COMMON.back": {
-    "text": "Enrere"
+    "text": "Enrere",
+    "sha256": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Tens cap demanda o comentari?"
+    "text": "Comparteix els teus pensaments, idees o experiències...",
+    "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Envia un comentari"
+    "text": "Enviar comentaris",
+    "sha256": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "S'ha enviat una verificació a"
+    "text": "S'ha enviat una verificació a",
+    "sha256": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Compte creat. Inicia sessió."
+    "text": "Compte creat. Si us plau, inicia sessió.",
+    "sha256": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Si existeix un compte amb aquest correu electrònic, rebràs un correu de verificació."
+    "text": "Si existeix un compte amb aquest correu electrònic, rebràs un correu de verificació.",
+    "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Destrueix aquest secret permanentment"
+    "text": "Destruir aquest secret permanentment",
+    "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Confirma l'acció"
+    "text": "Si us plau, confirma",
+    "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Estàs segur que vols destruir aquest secret? Aquesta acció no es pot desfer."
+    "text": "Estàs segur que vols destruir aquest secret? Aquesta acció no es pot desfer.",
+    "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Sí, destrueix aquest secret"
+    "text": "Sí, destruir aquest secret",
+    "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Destruir un secret l'eliminarà abans que hagi estat rebut."
+    "text": "Destruir un secret l'eliminarà abans que hagi estat rebut.",
+    "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Per seguretat, comparteix aquest enllaç separadament d'altres detalls."
+    "text": "Per seguretat, comparteix aquest enllaç per separat d'altres detalls.",
+    "sha256": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Copiat al porta-retalls"
+    "text": "Copiat al porta-retalls",
+    "sha256": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Crea una sol·licitud"
+    "text": "Crear entrant",
+    "sha256": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "Preguntes freqüents"
+    "text": "Preguntes freqüents",
+    "sha256": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "La verificació no és vàlida"
+    "text": "La verificació no és vàlida",
+    "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "No es pot verificar un compte quan ja has iniciat sessió"
+    "text": "No es pot verificar un compte quan ja has iniciat sessió",
+    "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Mostra la contrasenya"
+    "text": "Mostrar contrasenya",
+    "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Amaga la contrasenya"
+    "text": "Amagar contrasenya",
+    "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "La contrasenya ha de tenir com a mínim 8 caràcters"
+    "text": "La contrasenya ha de tenir almenys 8 caràcters",
+    "sha256": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "La contrasenya ha de tenir com a mínim 8 caràcters"
+    "text": "La contrasenya ha de tenir almenys 8 caràcters",
+    "sha256": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Les contrasenyes no coincideixen"
+    "text": "Les contrasenyes no coincideixen",
+    "sha256": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
-    "text": "Aquest camp és obligatori"
+    "text": "Aquest camp és obligatori",
+    "sha256": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Processant la teva sol·licitud"
+    "text": "Processant la teva sol·licitud",
+    "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Mantén-me connectat durant 30 dies"
+    "text": "Mantenir-me connectat durant 30 dies",
+    "sha256": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Redirigint..."
+    "text": "Redirigint...",
+    "sha256": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Continua"
+    "text": "Continuar",
+    "sha256": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Estàs segur?"
+    "text": "N'estàs segur?",
+    "sha256": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "Zona de perill"
+    "text": "Zona de perill",
+    "sha256": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Zona de consideració acurada"
+    "text": "Zona de consideració atenta",
+    "sha256": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
-    "text": "Menú d'usuari"
+    "text": "Menú d'usuari",
+    "sha256": "6fa25be1"
   },
   "web.COMMON.security": {
-    "text": "Seguretat"
+    "text": "Seguretat",
+    "sha256": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Gestiona"
+    "text": "Gestionar",
+    "sha256": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "Carregant..."
+    "text": "Carregant...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Desa els canvis"
+    "text": "Desar canvis",
+    "sha256": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Desant..."
+    "text": "Desant...",
+    "sha256": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Afegint"
+    "text": "Afegint",
+    "sha256": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "p. ex."
+    "text": "p. ex.",
+    "sha256": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "p. ex. {example}"
+    "text": "p. ex. {example}",
+    "sha256": "cc921aaa"
   },
   "web.COMMON.status": {
-    "text": "Estat"
+    "text": "Estat",
+    "sha256": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Escapa"
+    "text": "Escapament",
+    "sha256": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Actiu"
+    "text": "Actiu",
+    "sha256": "92340695"
   },
   "web.COMMON.preview": {
-    "text": "Vista prèvia"
+    "text": "Previsualització",
+    "sha256": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Elimina"
+    "text": "Eliminar",
+    "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Prem ESC per tancar"
+    "text": "Prem ESC per tancar",
+    "sha256": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Introdueix"
+    "text": "Intro",
+    "sha256": "dc8659db"
   },
   "web.COMMON.important": {
-    "text": "Important"
+    "text": "Important",
+    "sha256": "ddca9a57"
   },
   "web.COMMON.language": {
-    "text": "Idioma"
+    "text": "Idioma",
+    "sha256": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Tema"
+    "text": "Tema",
+    "sha256": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Aparença"
+    "text": "Aparença",
+    "sha256": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Fet"
+    "text": "Fet",
+    "sha256": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Fi"
+    "text": "Fi",
+    "sha256": "f4db1e48"
   },
   "web.COMMON.general": {
-    "text": "General"
+    "text": "General",
+    "sha256": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Nota"
+    "text": "Nota",
+    "sha256": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "Mensual"
+    "text": "Mensual",
+    "sha256": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "Anual"
+    "text": "Anual",
+    "sha256": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Endavant, doncs."
+    "text": "Endavant, doncs.",
+    "sha256": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Carregant..."
+    "text": "Carregant...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.not_received": {
-    "text": "NO REBUT"
+    "text": "NO REBUT",
+    "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Confirma la contrasenya"
+    "text": "Confirmar contrasenya",
+    "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "Contrasenya nova"
+    "text": "Nova contrasenya",
+    "sha256": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "Adreça de correu electrònic"
+    "text": "Adreça de correu electrònic",
+    "sha256": "f2488fd4"
   },
   "web.COMMON.switch": {
-    "text": "canvia"
+    "text": "canviar",
+    "sha256": "78b49fb2"
   },
   "web.COMMON.features": {
-    "text": "Característiques"
+    "text": "Funcions",
+    "sha256": "5697d03d"
   },
   "web.COMMON.not_found": {
-    "text": "No trobat"
+    "text": "No trobat",
+    "sha256": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
-    "text": "❌"
+    "text": "❌",
+    "sha256": "2b2966a5"
   },
   "web.COMMON.emoji_checkmark": {
-    "text": "✅"
+    "text": "✅",
+    "sha256": "1d456424"
   },
   "web.COMMON.supported": {
-    "text": "Compatible"
+    "text": "Compatible",
+    "sha256": "c1658000"
   },
   "web.COMMON.version": {
-    "text": "Versió"
+    "text": "Versió",
+    "sha256": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Altres"
+    "text": "Altre",
+    "sha256": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(amplada mínima: 1024px)"
+    "text": "(amplada-mín: 1024px)",
+    "sha256": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Ctrl + Intro"
+    "text": "Ctrl + Intro",
+    "sha256": "78192e6e"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Intro"
+    "text": "⌘ + Intro",
+    "sha256": "558acbab"
   },
   "web.COMMON.mac": {
-    "text": "Mac"
+    "text": "Mac",
+    "sha256": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Adreça de correu electrònic copiada al porta-retalls!"
+    "text": "Adreça de correu electrònic copiada al porta-retalls!",
+    "sha256": "23238b4e"
   },
   "web.COMMON.value": {
-    "text": "Valor"
+    "text": "Valor",
+    "sha256": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Amfitrió",
+    "sha256": "4a823118"
   },
   "web.COMMON.type": {
-    "text": "Tipus"
+    "text": "Tipus",
+    "sha256": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Anterior"
+    "text": "Anterior",
+    "sha256": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Següent"
+    "text": "Següent",
+    "sha256": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Força de la contrasenya:"
+    "text": "Seguretat de la contrasenya:",
+    "sha256": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Excel·lent"
+    "text": "Excel·lent",
+    "sha256": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Força bo"
+    "text": "Força bé",
+    "sha256": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Acceptable"
+    "text": "Acceptable",
+    "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Regular"
+    "text": "Regular",
+    "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "No gaire bo"
+    "text": "No gaire bé",
+    "sha256": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Obre les opcions"
+    "text": "Obrir opcions",
+    "sha256": "3dc08503"
   },
   "web.COMMON.inactive": {
-    "text": "Inactiu"
+    "text": "Inactiu",
+    "sha256": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "S'ha produït un error"
+    "text": "S'ha produït un error",
+    "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Copia el secret al porta-retalls"
+    "text": "Copiar secret al porta-retalls",
+    "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Secret copiat al porta-retalls"
+    "text": "Secret copiat al porta-retalls",
+    "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Comprova doblement aquesta frase de contrasenya"
+    "text": "Comprova la frase de contrasenya",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Prem el botó de copiar de sota."
+    "text": "Prem el botó de copiar a sota.",
+    "sha256": "77fcf6fb"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Mostra"
+    "text": "Mostrar",
+    "sha256": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Amaga"
+    "text": "Amagar",
+    "sha256": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Mostra més"
+    "text": "Mostrar més",
+    "sha256": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Mostra menys"
+    "text": "Mostrar menys",
+    "sha256": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Activa"
+    "text": "Activar",
+    "sha256": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Desactiva"
+    "text": "Desactivar",
+    "sha256": "b7e3e4aa"
   },
   "web.LABELS.stats": {
-    "text": "Estadístiques"
+    "text": "Estadístiques",
+    "sha256": "b4a73657"
   },
   "web.LABELS.timeline": {
-    "text": "Línia de temps"
+    "text": "Cronologia",
+    "sha256": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Durada de vida"
+    "text": "Durada",
+    "sha256": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Hora de caducitat"
+    "text": "Temps de caducitat",
+    "sha256": "c5db84a8"
   },
   "web.LABELS.close": {
-    "text": "Tanca"
+    "text": "Tancar",
+    "sha256": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "Carregant..."
+    "text": "Carregant...",
+    "sha256": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Cancel·la"
+    "text": "Cancel·lar",
+    "sha256": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Desant..."
+    "text": "Desant...",
+    "sha256": "dc85af8f"
   },
   "web.LABELS.saved": {
-    "text": "Desat"
+    "text": "Desat",
+    "sha256": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Desa"
+    "text": "Desar",
+    "sha256": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Desa-ho tot"
+    "text": "Desar tot",
+    "sha256": "d3c54e39"
   },
   "web.LABELS.details": {
-    "text": "Detalls"
+    "text": "Detalls",
+    "sha256": "45989de4"
   },
   "web.LABELS.encrypted": {
-    "text": "Xifrat"
+    "text": "Xifrat",
+    "sha256": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Estat del secret"
+    "text": "Estat del secret",
+    "sha256": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Necessites ajuda?"
+    "text": "Necessites ajuda?",
+    "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Crea un secret nou"
+    "text": "Crear nou secret",
+    "sha256": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "Accions"
+    "text": "Accions",
+    "sha256": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "No cal frase de contrasenya"
+    "text": "No es requereix frase de contrasenya",
+    "sha256": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Copia al porta-retalls"
+    "text": "Copiar al porta-retalls",
+    "sha256": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Rebuts"
+    "text": "Rebuts",
+    "sha256": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Comparteix"
+    "text": "Compartir",
+    "sha256": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Enllaç secret"
+    "text": "Enllaç secret",
+    "sha256": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Descarta"
+    "text": "Descartar",
+    "sha256": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Detalls de seguretat"
+    "text": "Detalls de seguretat",
+    "sha256": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} elements"
+    "text": "{count} Elements",
+    "sha256": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} destinataris"
+    "text": "{count} Destinataris",
+    "sha256": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Visualitza"
+    "text": "Veure",
+    "sha256": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Visualitzacions"
+    "text": "Visualitzacions",
+    "sha256": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "vegades visualitzat"
+    "text": "vegades visualitzat",
+    "sha256": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Progrés de visualització"
+    "text": "Veure progrés",
+    "sha256": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Secció d'ajuda"
+    "text": "Secció d'ajuda",
+    "sha256": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Protegit amb frase de contrasenya"
+    "text": "Protegit amb frase de contrasenya",
+    "sha256": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Comentaris rebuts."
+    "text": "Comentaris rebuts.",
+    "sha256": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Enviant..."
+    "text": "Enviant...",
+    "sha256": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Secrets recents"
+    "text": "Secrets recents",
+    "sha256": "0b907f8b"
   },
   "web.LABELS.pricing": {
-    "text": "Preus"
+    "text": "Preus",
+    "sha256": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Actualitza"
+    "text": "Refrescar",
+    "sha256": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Recarrega"
+    "text": "Recarregar",
+    "sha256": "bdc090ec"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Enllaços de secrets creats en aquesta sessió"
+    "text": "Enllaços de secrets creats en aquesta sessió",
+    "sha256": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Crea un enllaç"
+    "text": "Crear enllaç",
+    "sha256": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Crea un enllaç secret"
+    "text": "Crear enllaç secret",
+    "sha256": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Crea una sol·licitud"
+    "text": "Crear sol·licitud",
+    "sha256": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Crea un enllaç de sol·licitud"
+    "text": "Crear enllaç de sol·licitud",
+    "sha256": "190463dc"
   },
   "web.LABELS.related_settings": {
-    "text": "Configuració relacionada"
+    "text": "Configuració relacionada",
+    "sha256": "68574b20"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Creant enllaços per a"
+    "text": "Creant enllaços per a",
+    "sha256": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Creant secrets a {domain}"
+    "text": "Creant secrets a {domain}",
+    "sha256": "3bbed96b"
   },
   "web.STATUS.new": {
-    "text": "Nou"
+    "text": "Nou",
+    "sha256": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "No llegit"
+    "text": "No llegit",
+    "sha256": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Enllaç obert"
+    "text": "Enllaç obert",
+    "sha256": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Rebut"
+    "text": "Rebut",
+    "sha256": "49f19bee"
   },
   "web.STATUS.burned": {
-    "text": "Destruït"
+    "text": "Destruït",
+    "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Destruït"
+    "text": "Destruït",
+    "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Caduca aviat"
+    "text": "Caduca aviat",
+    "sha256": "0259442c"
   },
   "web.STATUS.created": {
-    "text": "Creat"
+    "text": "Creat",
+    "sha256": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "Caduca"
+    "text": "Caduca",
+    "sha256": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Caducat"
+    "text": "Caducat",
+    "sha256": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Orfe"
+    "text": "Orfe",
+    "sha256": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Segur"
+    "text": "Protegit",
+    "sha256": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Assegurant"
+    "text": "Protegint",
+    "sha256": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "Copiat"
+    "text": "Copiat",
+    "sha256": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Temps restant"
+    "text": "Temps restant",
+    "sha256": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "L'enllaç secret s'ha creat i encara no s'ha visualitzat"
+    "text": "L'enllaç del secret s'ha creat i encara no s'ha visualitzat",
+    "sha256": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "L'enllaç secret s'ha creat i no s'ha visualitzat"
+    "text": "L'enllaç del secret s'ha creat i no s'ha visualitzat",
+    "sha256": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "L'enllaç secret s'ha obert i està llest per visualitzar-se"
+    "text": "L'enllaç del secret s'ha obert i està llest per ser visualitzat",
+    "sha256": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "El secret s'ha revelat al destinatari"
+    "text": "El secret s'ha revelat al destinatari",
+    "sha256": "ceb756b4"
   },
   "web.STATUS.burned_description": {
-    "text": "El secret s'ha destruït manualment abans de ser visualitzat"
+    "text": "El secret s'ha destruït manualment abans de ser visualitzat",
+    "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "El secret s'ha destruït permanentment"
+    "text": "El secret s'ha destruït permanentment",
+    "sha256": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "El secret caducarà aviat"
+    "text": "El secret caducarà aviat",
+    "sha256": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "El secret ha quedat orfe i es destruirà aviat"
+    "text": "El secret ha quedat orfe i es destruirà aviat",
+    "sha256": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "El secret ha caducat abans de ser visualitzat"
+    "text": "El secret ha caducat abans de ser visualitzat",
+    "sha256": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Èxit"
+    "text": "Correcte",
+    "sha256": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Lliurat"
+    "text": "Lliurat",
+    "sha256": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS incorrecte"
+    "text": "DNS incorrecte",
+    "sha256": "7848d601"
   },
   "web.STATUS.active": {
-    "text": "Actiu"
+    "text": "Actiu",
+    "sha256": "92340695"
   },
   "web.STATUS.inactive": {
-    "text": "Inactiu"
+    "text": "Inactiu",
+    "sha256": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Visualitzacions il·limitades"
+    "text": "Visualitzacions il·limitades",
+    "sha256": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Marca de domini de confiança"
+    "text": "Marca amb domini de confiança",
+    "sha256": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Xifrat en trànsit i en repòs"
+    "text": "Xifrat en trànsit i en repòs",
+    "sha256": "314c7974"
   },
   "web.UNITS.ttl.duration": {
-    "text": "{count} {unit}"
+    "text": "{count} {unit}",
+    "sha256": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "dia | dies"
+    "text": "dia | dies",
+    "sha256": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "hora | hores"
+    "text": "hora | hores",
+    "sha256": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "minut | minuts"
+    "text": "minut | minuts",
+    "sha256": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "segon | segons"
+    "text": "segon | segons",
+    "sha256": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} restants"
+    "text": "{count} {unit} restants",
+    "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "dia restant | dies restants"
+    "text": "dia restant | dies restants",
+    "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "hora restant | hores restants"
+    "text": "hora restant | hores restants",
+    "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "minut restant | minuts restants"
+    "text": "minut restant | minuts restants",
+    "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "segon restant | segons restants"
+    "text": "segon restant | segons restants",
+    "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Límit de {count} visualitzacions"
+    "text": "Límit de {count} visualitzacions",
+    "sha256": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} dies restants"
+    "text": "{count} dies restants",
+    "sha256": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} hores restants"
+    "text": "{count} hores restants",
+    "sha256": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} minuts restants"
+    "text": "{count} minuts restants",
+    "sha256": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Secrets entrants"
+    "text": "Secrets entrants",
+    "sha256": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Comentaris"
+    "text": "Comentaris",
+    "sha256": "aac77df3"
   },
   "web.TITLES.signin": {
-    "text": "Inicia sessió"
+    "text": "Iniciar sessió",
+    "sha256": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Crea un compte"
+    "text": "Crear compte",
+    "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Has oblidat la contrasenya"
+    "text": "Contrasenya oblidada",
+    "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Restableix la contrasenya"
+    "text": "Restablir contrasenya",
+    "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Tancant la sessió"
+    "text": "Tancant sessió",
+    "sha256": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Verifica el compte"
+    "text": "Verificar compte",
+    "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Autenticació de dos factors"
+    "text": "Autenticació de dos factors",
+    "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Inici de sessió per correu electrònic"
+    "text": "Inici de sessió per correu electrònic",
+    "sha256": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Accepta la invitació"
+    "text": "Acceptar invitació",
+    "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
-    "text": "Secret"
+    "text": "Secret",
+    "sha256": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "Detalls del secret"
+    "text": "Detalls del secret",
+    "sha256": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Rebut del secret"
+    "text": "Rebut del secret",
+    "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Destrueix el secret"
+    "text": "Destruir secret",
+    "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
-    "text": "Tauler de control"
+    "text": "Tauler de control",
+    "sha256": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Secrets recents"
+    "text": "Secrets recents",
+    "sha256": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Dominis personalitzats"
+    "text": "Dominis personalitzats",
+    "sha256": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Afegeix un domini"
+    "text": "Afegir domini",
+    "sha256": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Verifica el domini"
+    "text": "Verificar domini",
+    "sha256": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Marca del domini"
+    "text": "Domini de marca",
+    "sha256": "35e4dfbe"
   },
   "web.TITLES.account": {
-    "text": "Configuració del compte"
+    "text": "Compte",
+    "sha256": "7e1b0d56"
   },
   "web.TITLES.data_region": {
-    "text": "Regió de dades"
+    "text": "Regió de dades",
+    "sha256": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Regió actual"
+    "text": "Regió actual",
+    "sha256": "b92e254d"
   },
   "web.TITLES.available_regions": {
-    "text": "Regions disponibles"
+    "text": "Regions disponibles",
+    "sha256": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Per què importa la sobirania de dades"
+    "text": "Per què la sobirania de dades és important",
+    "sha256": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
-    "text": "Configuració del perfil"
+    "text": "Configuració del perfil",
+    "sha256": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Preferències"
+    "text": "Preferències",
+    "sha256": "66962f72"
   },
   "web.TITLES.privacy_settings": {
-    "text": "Privadesa"
+    "text": "Privadesa",
+    "sha256": "54a57c31"
   },
   "web.TITLES.notification_settings": {
-    "text": "Notificacions"
+    "text": "Notificacions",
+    "sha256": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Canvia el correu electrònic"
+    "text": "Canviar correu electrònic",
+    "sha256": "18c3f2d5"
   },
   "web.TITLES.security_overview": {
-    "text": "Seguretat"
+    "text": "Seguretat",
+    "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Canvia la contrasenya"
+    "text": "Canviar contrasenya",
+    "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Autenticació de dos factors"
+    "text": "Autenticació de dos factors",
+    "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "Sessions actives"
+    "text": "Sessions actives",
+    "sha256": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Codis de recuperació"
+    "text": "Codis de recuperació",
+    "sha256": "579c7f4e"
   },
   "web.TITLES.api_settings": {
-    "text": "Configuració de l'API"
+    "text": "Configuració de l'API",
+    "sha256": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Configuració avançada"
+    "text": "Configuració avançada",
+    "sha256": "22d4f608"
   },
   "web.TITLES.system_settings": {
-    "text": "Configuració del sistema"
+    "text": "Configuració del sistema",
+    "sha256": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Pàgina no trobada"
+    "text": "Pàgina no trobada",
+    "sha256": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organitzacions"
+    "text": "Organitzacions",
+    "sha256": "2730183d"
   },
   "web.TITLES.organization_settings": {
-    "text": "Configuració de l'organització"
+    "text": "Configuració de l'organització",
+    "sha256": "cc1d9e61"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "El focus ara és a l'àrea de text principal"
+    "text": "El focus ara és a l'àrea de text principal",
+    "sha256": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Instruccions per compartir"
+    "text": "Instruccions per compartir",
+    "sha256": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Comparteix l'enllaç amb el destinatari previst"
+    "text": "Comparteix l'enllaç amb el destinatari previst",
+    "sha256": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Comparteix la frase de contrasenya per separat a través d'un canal segur"
+    "text": "Comparteix la frase de contrasenya per separat a través d'un canal segur",
+    "sha256": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Utilitza un canal segur diferent per compartir informació sensible"
+    "text": "Utilitza un canal segur diferent per compartir informació sensible",
+    "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifica sempre que estàs al lloc web oficial d'Onetime Secret. Els estafadors de vegades creen llocs web falsos que semblen exactament Onetime Secret per robar els teus secrets. Per evitar atacs de pesca electrònica, comprova el domini de la regió abans de crear nous enllaços."
+    "text": "Verifica sempre que estàs al lloc web oficial d'Onetime Secret. Els estafadors de vegades creen llocs web falsos que semblen exactament Onetime Secret per robar els teus secrets. Per evitar atacs de phishing, comprova el domini de la regió abans de crear nous enllaços.",
+    "sha256": "b588f5b2"
   },
   "web.STATUS.previewed": {
-    "text": "Enllaç obert"
+    "text": "Previsualitzat",
+    "sha256": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Revelat"
+    "text": "Revelat",
+    "sha256": "17376ee4"
   },
   "web.STATUS.previewed_description": {
-    "text": "L'enllaç secret s'ha obert i està llest per revelar-se"
+    "text": "L'enllaç del secret s'ha obert i està llest per ser revelat",
+    "sha256": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "El contingut secret s'ha revelat al destinatari"
+    "text": "El contingut del secret s'ha revelat al destinatari",
+    "sha256": "39b32f80"
+  },
+  "web.COMMON.not_set": {
+    "text": "No definit",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Editar",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Desar",
+    "sha256": "1509f561"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Caduca en",
+    "sha256": "de996752"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtre",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Esborrar",
+    "sha256": "83b12c22"
+  },
+  "web.LABELS.add_note": {
+    "text": "Afegir nota...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Editar nota",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Afegir memo...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Editar memo",
+    "sha256": "0ec1a5db"
+  },
+  "web.TITLES.help": {
+    "text": "Ajuda",
+    "sha256": "b79cac92"
+  },
+  "web.TITLES.pricing": {
+    "text": "Preus",
+    "sha256": "dfe95783"
+  },
+  "web.pricing.title": {
+    "text": "Preus simples i transparents",
+    "sha256": "97e283c7"
+  },
+  "web.pricing.subtitle": {
+    "text": "Tria el pla que s'adapti a les teves necessitats. Tots els plans inclouen compartició il·limitada de secrets i disseny que prioritza la privadesa.",
+    "sha256": "9204dff4"
+  },
+  "web.pricing.get_started_free": {
+    "text": "Comença gratis",
+    "sha256": "6bb5a4a7"
+  },
+  "web.pricing.start_trial": {
+    "text": "Comença",
+    "sha256": "983f3110"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Ja tens un compte?",
+    "sha256": "e77fea93"
+  },
+  "web.pricing.sign_in": {
+    "text": "Iniciar sessió",
+    "sha256": "bfd402b2"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Recomanat per a tu",
+    "sha256": "00093fbd"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Crea i comparteix secrets amb funcions bàsiques. No es requereix targeta de crèdit.",
+    "sha256": "3a4f2bc0"
   }
 }

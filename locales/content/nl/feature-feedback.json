@@ -1,27 +1,35 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Uw feedback"
+    "text": "Je feedback",
+    "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Alle feedback welkom!"
+    "text": "Alle feedback is welkom!",
+    "sha256": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Help ons verbeteren"
+    "text": "Help ons verbeteren",
+    "sha256": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Feedbackvenster sluiten"
+    "text": "Feedbackvenster sluiten",
+    "sha256": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Deel uw feedback"
+    "text": "Deel je feedback",
+    "sha256": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
-    "text": "Delano Mandelbaum"
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
   },
   "web.feedback.delano": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Hulpinhoud komt hier."
+    "text": "Helpinhoud komt hier.",
+    "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Bedankt voor uw hulp bij het verbeteren van Onetime Secret. Het betekent veel voor ons."
@@ -36,12 +44,23 @@
     "text": "Een bericht van Delano, oprichter van Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Open feedbackformulier"
+    "text": "Feedbackformulier openen",
+    "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Voer uw feedback in"
+    "text": "Voer je feedback in",
+    "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Feedback versturen"
+    "text": "Feedback verzenden",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Ik lees elk stukje feedback dat hier binnenkomt. Zo bepaal ik waar ik mijn tijd aan besteed.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Als er iets niet klopt, of je hebt ideeën over hoe het zou moeten werken, dan is dit de juiste plek.",
+    "sha256": "d4b8f073"
   }
 }

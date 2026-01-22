@@ -3,29 +3,28 @@
 Sync translations from content JSON to app-consumable JSON files.
 
 Reads from locales/content/{locale}/*.json (flat keys with text field)
-and writes to src/locales/{locale}/*.json (app format, nested JSON).
+and writes to generated/locales/{locale}.json (app format, nested JSON).
 
-Three-tier architecture:
+Two-tier architecture:
 - locales/content/{locale}/*.json - Version-controlled source of truth (flat keys)
-- src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
-- locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
+- generated/locales/{locale}.json - App-consumable merged JSON (nested, auto-generated)
 
 Only keys with a 'text' field are synced. Keys marked 'skip' or
 with empty text are excluded from app files.
 
 Usage:
-    python sync_to_src.py LOCALE [OPTIONS]
-    python sync_to_src.py --all [OPTIONS]
-    python sync_to_src.py --all --merged [OPTIONS]
+    python compile.py LOCALE [OPTIONS]
+    python compile.py --all [OPTIONS]
+    python compile.py --all --merged [OPTIONS]
 
 Examples:
-    python sync_to_src.py eo --dry-run
-    python sync_to_src.py eo --file auth.json
-    python sync_to_src.py eo
-    python sync_to_src.py --all
-    python sync_to_src.py eo --clobber  # Replace files instead of merging
-    python sync_to_src.py --all --merged  # Output single merged JSON per locale
-    python sync_to_src.py --all --merged --output-dir generated/locales
+    python compile.py eo --dry-run
+    python compile.py eo --file auth.json
+    python compile.py eo
+    python compile.py --all
+    python compile.py eo --clobber  # Replace files instead of merging
+    python compile.py --all --merged  # Output single merged JSON per locale
+    python compile.py --all --merged --output-dir generated/locales
 """
 
 import argparse
@@ -81,6 +80,50 @@ def get_translations_from_content(content: dict[str, Any]) -> dict[str, str]:
     return translations
 
 
+def _is_metadata_key(key: str) -> bool:
+    """Check if a key is metadata (has underscore-prefixed segment).
+
+    Keys like '_meta', 'web.auth._guidance', or 'web.auth._guidance.context'
+    are all metadata keys that should be excluded from translation counts.
+    """
+    return any(part.startswith("_") for part in key.split("."))
+
+
+def _get_source_keys(locale_dir: Path) -> set[str]:
+    """Get the set of valid translation keys for a locale.
+
+    Returns keys that have non-empty 'text', no 'skip' flag, and are not
+    metadata keys (no underscore-prefixed segments in the key path).
+
+    Args:
+        locale_dir: Path to locale content directory.
+
+    Returns:
+        Set of valid translation keys.
+    """
+    keys: set[str] = set()
+
+    if not locale_dir.exists():
+        return keys
+
+    for content_file in locale_dir.glob("*.json"):
+        content = load_json_file(content_file)
+        if not content:
+            continue
+
+        for key, entry in content.items():
+            if _is_metadata_key(key):
+                continue
+            if not isinstance(entry, dict):
+                continue
+            if entry.get("skip"):
+                continue
+            if entry.get("text", ""):
+                keys.add(key)
+
+    return keys
+
+
 def sync_locale(
     locale: str,
     file_filter: str | None = None,
@@ -88,7 +131,7 @@ def sync_locale(
     verbose: bool = False,
     clobber: bool = False,
 ) -> dict[str, int]:
-    """Sync translations from content JSON to src/locales.
+    """Sync translations from content JSON to generated/locales.
 
     Args:
         locale: Target locale code.
@@ -263,18 +306,18 @@ def sync_locale_merged(
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Sync translations from content JSON to src/locales.",
+        description="Sync translations from content JSON to generated/locales.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python sync_to_src.py eo --dry-run
-    python sync_to_src.py eo --file auth.json
-    python sync_to_src.py eo
-    python sync_to_src.py --all
-    python sync_to_src.py --all --dry-run
-    python sync_to_src.py eo --clobber       # Replace files instead of merging
-    python sync_to_src.py --all --merged     # Output single merged file per locale
-    python sync_to_src.py --all --merged --output-dir generated/locales
+    python compile.py eo --dry-run
+    python compile.py eo --file auth.json
+    python compile.py eo
+    python compile.py --all
+    python compile.py --all --dry-run
+    python compile.py eo --clobber       # Replace files instead of merging
+    python compile.py --all --merged     # Output single merged file per locale
+    python compile.py --all --merged --output-dir generated/locales
         """,
     )
 
@@ -377,28 +420,45 @@ Examples:
 
         # Summary for merged mode
         if args.all and all_key_counts and not args.dry_run:
-            # Get default locale key count for percentage calculation
-            default_keys = all_key_counts.get(default_locale, 0)
+            # Build set of English source keys (excluding skip/empty)
+            source_keys = _get_source_keys(CONTENT_DIR / default_locale)
+            source_key_count = len(source_keys)
 
-            # Sort by key count descending
-            sorted_locales = sorted(all_key_counts.items(), key=lambda x: x[1], reverse=True)
+            # Calculate completion stats for each locale
+            locale_stats: dict[str, tuple[int, int, bool]] = {}  # locale -> (translated, total, has_orphans)
+            for locale in all_key_counts:
+                locale_keys = _get_source_keys(CONTENT_DIR / locale)
+                translated = len(source_keys & locale_keys)  # Keys in both source and locale
+                has_orphans = bool(locale_keys - source_keys)  # Keys in locale but not in source
+                locale_stats[locale] = (translated, all_key_counts[locale], has_orphans)
+
+            # Sort by percentage descending (excluding source locale)
+            other_locales = [(loc, stats) for loc, stats in locale_stats.items() if loc != default_locale]
+            other_locales.sort(key=lambda x: x[1][0], reverse=True)
 
             print(f"\n{'='*60}")
             print(f"Locale sync complete ({len(all_key_counts)} locales)")
             print(f"{'='*60}")
 
+            # Show source locale first
+            if default_locale in locale_stats:
+                translated, total, _ = locale_stats[default_locale]
+                print(f"  {default_locale:8} {source_key_count:5} keys (100.0%)")
+                print()
+
+            # Show other locales sorted by completion percentage
             grand_total = sum(all_key_counts.values())
-            for locale, count in sorted_locales:
-                if default_keys > 0:
-                    pct = (count / default_keys) * 100
+            for locale, (translated, total, has_orphans) in other_locales:
+                if source_key_count > 0:
+                    pct = (translated / source_key_count) * 100
                     pct_str = f"{pct:5.1f}%"
                 else:
                     pct_str = "  N/A"
-                marker = " *" if locale == default_locale else ""
-                print(f"  {locale:8} {count:5} keys ({pct_str}){marker}")
+                marker = " *" if has_orphans else ""
+                print(f"  {locale:8} {translated:5} keys ({pct_str}){marker}")
 
             print(f"{'='*60}")
-            print(f"Total: {grand_total} keys  (* = default locale)")
+            print(f"Total: {grand_total} keys  (* = has orphaned keys not in source)")
 
         return 0
 

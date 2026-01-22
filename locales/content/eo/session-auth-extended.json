@@ -1,408 +1,543 @@
 {
   "web.auth.mfa_required": {
-    "text": "MFA-konfirmo necesas"
+    "text": "MFA-konfirmo necesas",
+    "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "MFA-konfirmo necesas por aliri vian konton"
+    "text": "MFA-konfirmo necesas por aliri vian konton",
+    "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Kompletigi MFA-Konfirmon"
+    "text": "Kompletigi MFA-Konfirmon",
+    "sha256": "0e681134"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Aŭtentikigo malsukcesis. Bonvolu kontroli viajn akreditaĵojn kaj reprovi."
+    "text": "Aŭtentikigo malsukcesis. Bonvolu kontroli viajn akreditaĵojn kaj reprovi.",
+    "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Tro multaj provoj. Bonvolu reprovi poste."
+    "text": "Tro multaj provoj. Bonvolu reprovi poste.",
+    "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Sesio eksvalidiĝis. Bonvolu ensaluti denove."
+    "text": "Sesio eksvalidiĝis. Bonvolu ensaluti denove.",
+    "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Reakirkodo ne trovita. Bonvolu kontroli ke vi enigis ĝin ĝuste."
+    "text": "Reakirkodo ne trovita. Bonvolu kontroli ke vi enigis ĝin ĝuste.",
+    "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Ĉi tiu reakirkodo jam estis uzita. Ĉiu kodo povas esti uzita nur unufoje."
+    "text": "Ĉi tiu reakirkodo jam estis uzita. Ĉiu kodo povas esti uzita nur unufoje.",
+    "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Reta eraro. Bonvolu kontroli vian konekton kaj reprovi."
+    "text": "Reta eraro. Bonvolu kontroli vian konekton kaj reprovi.",
+    "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Eraro okazis. Bonvolu reprovi."
+    "text": "Eraro okazis. Bonvolu reprovi.",
+    "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "Pasvorto"
+    "text": "Pasvorto",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "Retpoŝt-Ligilo"
+    "text": "Retpoŝt-Ligilo",
+    "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "Biometrio"
+    "text": "Biometrio",
+    "sha256": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "Ensaluti per Retpoŝto"
+    "text": "Ensaluti per Retpoŝto",
+    "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "Ni sendos al vi sekuran ensalut-ligilon"
+    "text": "Ni sendos al vi sekuran ensalut-ligilon",
+    "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Enigu vian retpoŝtadreson"
+    "text": "Enigu vian retpoŝtadreson",
+    "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Sendi Ensalut-Ligilon"
+    "text": "Sendi Ensalut-Ligilon",
+    "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Kontrolu vian retpoŝton"
+    "text": "Kontrolu vian retpoŝton",
+    "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Ni sendis ensalut-ligilon al {email}"
+    "text": "Ni sendis ensalut-ligilon al {email}",
+    "sha256": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Ĉi tiu ligilo eksvalidiĝos post 15 minutoj"
+    "text": "Ĉi tiu ligilo eksvalidiĝos post 15 minutoj",
+    "sha256": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Provu alian retpoŝtadreson"
+    "text": "Provu alian retpoŝtadreson",
+    "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Neniu pasvorto necesas — simple klaku la ligilon en via retpoŝto"
+    "text": "Neniu pasvorto necesas — simple klaku la ligilon en via retpoŝto",
+    "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Reta eraro. Bonvolu reprovi."
+    "text": "Reta eraro. Bonvolu reprovi.",
+    "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Malsukcesis sendi ensalut-ligilon. Bonvolu reprovi."
+    "text": "Malsukcesis sendi ensalut-ligilon. Bonvolu reprovi.",
+    "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Nevalida aŭ mankanta ensalut-ligilo"
+    "text": "Nevalida aŭ mankanta ensalut-ligilo",
+    "sha256": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Ensaluto malsukcesis. Bonvolu reprovi."
+    "text": "Ensaluto malsukcesis. Bonvolu reprovi.",
+    "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Ensalutigante vin..."
+    "text": "Ensalutigante vin...",
+    "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Bonvolu atendi dum ni kontrolas vian ligilon"
+    "text": "Bonvolu atendi dum ni kontrolas vian ligilon",
+    "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "Aŭtentikiga Eraro"
+    "text": "Aŭtentikiga Eraro",
+    "sha256": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Reen al Ensaluto"
+    "text": "Reen al Ensaluto",
+    "sha256": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Ensaluti per Face ID / Touch ID"
+    "text": "Ensaluti per Face ID / Touch ID",
+    "sha256": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "Agordi biometrian ensaluton"
+    "text": "Agordi biometrian ensaluton",
+    "sha256": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "Biometria aŭtentikigo ne estas subtenata en ĉi tiu folumilo"
+    "text": "Biometria aŭtentikigo ne estas subtenata en ĉi tiu folumilo",
+    "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Bonvolu uzi modernan folumilon kiu subtenas WebAuthn (Chrome, Safari, Firefox, aŭ Edge)"
+    "text": "Bonvolu uzi modernan folumilon kiu subtenas WebAuthn (Chrome, Safari, Firefox, aŭ Edge)",
+    "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "Biometria ensaluto estis aktivigita"
+    "text": "Biometria ensaluto estis aktivigita",
+    "sha256": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Malsukcesis agordi biometrian ensaluton"
+    "text": "Malsukcesis agordi biometrian ensaluton",
+    "sha256": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Biometria aŭtentikigo malsukcesis. Bonvolu reprovi."
+    "text": "Biometria aŭtentikigo malsukcesis. Bonvolu reprovi.",
+    "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "Aŭtentikigo estis nuligita"
+    "text": "Aŭtentikigo estis nuligita",
+    "sha256": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "Aŭtentikigante..."
+    "text": "Aŭtentikigante...",
+    "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Uzu vian fingropremon, vizaĝon, aŭ sekurec-ŝlosilon por ensaluti"
+    "text": "Uzu vian fingropremon, vizaĝon, aŭ sekurec-ŝlosilon por ensaluti",
+    "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Subtenas Face ID, Touch ID, Windows Hello, kaj sekurec-ŝlosilojn"
+    "text": "Subtenas Face ID, Touch ID, Windows Hello, kaj sekurec-ŝlosilojn",
+    "sha256": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Averto: {count} ensalut-provo(j) restanta(j)"
+    "text": "Averto: {count} ensalut-provo(j) restanta(j)",
+    "sha256": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Konto ŝlosita pro tro multaj malsukcesaj ensalut-provoj"
+    "text": "Konto ŝlosita pro tro multaj malsukcesaj ensalut-provoj",
+    "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "Via konto estas ŝlosita ĝis {time}"
+    "text": "Via konto estas ŝlosita ĝis {time}",
+    "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Kontaktu subtenon se vi bezonas tujan aliron"
+    "text": "Kontaktu subtenon se vi bezonas tujan aliron",
+    "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Vi povas restarigi vian pasvorton anstataŭe"
+    "text": "Vi povas restarigi vian pasvorton anstataŭe",
+    "sha256": "a98a3f9d"
   },
   "web.auth.sessions.title": {
-    "text": "Aktivaj Sesioj"
+    "text": "Aktivaj Sesioj",
+    "sha256": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "Aktuala Sesio"
+    "text": "Aktuala Sesio",
+    "sha256": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "Aliaj Sesioj"
+    "text": "Aliaj Sesioj",
+    "sha256": "8409f445"
   },
   "web.auth.sessions.device": {
-    "text": "Aparato"
+    "text": "Aparato",
+    "sha256": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "Loko"
+    "text": "Loko",
+    "sha256": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "IP-Adreso"
+    "text": "IP-Adreso",
+    "sha256": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "Laste Aktiva"
+    "text": "Laste Aktiva",
+    "sha256": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "Kreita"
+    "text": "Kreita",
+    "sha256": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "Forigi"
+    "text": "Forigi",
+    "sha256": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Elsaluti Ĉiujn Aliajn Sesiojn"
+    "text": "Elsaluti Ĉiujn Aliajn Sesiojn",
+    "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "Ĉu vi certas ke vi volas forigi ĉi tiun sesion?"
+    "text": "Ĉu vi certas ke vi volas forigi ĉi tiun sesion?",
+    "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Ĉi tio elsalutos vin el ĉiuj aliaj aparatoj. Ĉu vi certas?"
+    "text": "Ĉi tio elsalutos vin el ĉiuj aliaj aparatoj. Ĉu vi certas?",
+    "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "Neniuj aliaj aktivaj sesioj"
+    "text": "Neniuj aliaj aktivaj sesioj",
+    "sha256": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "Sesio sukcese forigita"
+    "text": "Sesio sukcese forigita",
+    "sha256": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Ĉiuj aliaj sesioj estis elsalutitaj"
+    "text": "Ĉiuj aliaj sesioj estis elsalutitaj",
+    "sha256": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "Aktivaj Sesioj"
+    "text": "Aktivaj Sesioj",
+    "sha256": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "Dufaktora Aŭtentikigo"
+    "text": "Dufaktora Aŭtentikigo",
+    "sha256": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "Dufaktora aŭtentikigo estas aktivigita"
+    "text": "Dufaktora aŭtentikigo estas aktivigita",
+    "sha256": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "Dufaktora aŭtentikigo estas malaktivigita"
+    "text": "Dufaktora aŭtentikigo estas malaktivigita",
+    "sha256": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "Aktivigi Dufaktoran Aŭtentikigon"
+    "text": "Aktivigi Dufaktoran Aŭtentikigon",
+    "sha256": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "Malaktivigi Dufaktoran Aŭtentikigon"
+    "text": "Malaktivigi Dufaktoran Aŭtentikigon",
+    "sha256": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Agordi Dufaktoran Aŭtentikigon"
+    "text": "Agordi Dufaktoran Aŭtentikigon",
+    "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Aldonu ekstran tavolon de sekureco al via konto"
+    "text": "Aldonu ekstran tavolon de sekureco al via konto",
+    "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Skanu QR-Kodon"
+    "text": "1. Skanu QR-Kodon",
+    "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Konfirmu Agordon"
+    "text": "2. Konfirmu Agordon",
+    "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Skanu ĉi tiun QR-kodon per via aŭtentikiga aplikaĵo"
+    "text": "Skanu ĉi tiun QR-kodon per via aŭtentikiga aplikaĵo",
+    "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Aŭ enigu ĉi tiun kodon mane"
+    "text": "Aŭ enigu ĉi tiun kodon mane",
+    "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Enigu la 6-ciferan kodon el via aplikaĵo"
+    "text": "Enigu la 6-ciferan kodon el via aplikaĵo",
+    "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Enigu aŭtentikigan kodon"
+    "text": "Enigu aŭtentikigan kodon",
+    "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "Konfirmi kaj Aktivigi"
+    "text": "Konfirmi kaj Aktivigi",
+    "sha256": "7c08f68d"
   },
   "web.auth.mfa.verify_login": {
-    "text": "Konfirmi"
+    "text": "Konfirmi",
+    "sha256": "eea2745e"
   },
   "web.auth.mfa.code_required": {
-    "text": "Aŭtentikiga kodo estas necesa"
+    "text": "Aŭtentikiga kodo estas necesa",
+    "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Nevalida kodo. Kodoj eksvalidiĝas ĉiun 30 sekundojn. Provu la plej novan kodon el via aŭtentikiga aplikaĵo."
+    "text": "Nevalida kodo. Kodoj eksvalidiĝas ĉiun 30 sekundojn. Provu la plej novan kodon el via aŭtentikiga aplikaĵo.",
+    "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "Dufaktora aŭtentikigo estis aktivigita"
+    "text": "Dufaktora aŭtentikigo estis aktivigita",
+    "sha256": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "Dufaktora aŭtentikigo estis malaktivigita"
+    "text": "Dufaktora aŭtentikigo estis malaktivigita",
+    "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Enigu vian pasvorton por malaktivigi 2FA"
+    "text": "Enigu vian pasvorton por malaktivigi 2FA",
+    "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "Pasvorto"
+    "text": "Pasvorto",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Konfirmu vian identecon por modifi dufaktorajn aŭtentikigajn agordojn"
+    "text": "Konfirmu vian identecon por modifi dufaktorajn aŭtentikigajn agordojn",
+    "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "Laste uzita: {time}"
+    "text": "Laste uzita: {time}",
+    "sha256": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "Neniam uzita"
+    "text": "Neniam uzita",
+    "sha256": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Uzu reakirkodo anstataŭe"
+    "text": "Uzu reakirkodo anstataŭe",
+    "sha256": "23d3441a"
   },
   "web.auth.mfa.use_recovery_code_short": {
-    "text": "Uzi reakirkodo"
+    "text": "Uzi reakirkodo",
+    "sha256": "50d5790d"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Reen al aŭtentikiga kodo"
+    "text": "Reen al aŭtentikiga kodo",
+    "sha256": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Nuligi kaj reveni al ensaluto"
+    "text": "Nuligi kaj reveni al ensaluto",
+    "sha256": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
-    "text": "Nuligi ensaluton"
+    "text": "Nuligi ensaluton",
+    "sha256": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Ŝarĝante MFA-staton..."
+    "text": "Ŝarĝante MFA-staton...",
+    "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Via konto estas protektata per dufaktora aŭtentikigo"
+    "text": "Via konto estas protektata per dufaktora aŭtentikigo",
+    "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Protektu vian konton per aldona tavolo de sekureco"
+    "text": "Protektu vian konton per aldona tavolo de sekureco",
+    "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Malhelpu neaŭtorizitan aliron eĉ se via pasvorto estas kompromitita"
+    "text": "Malhelpu neaŭtorizitan aliron eĉ se via pasvorto estas kompromitita",
+    "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Funkcias kun Google Authenticator, Authy, kaj aliaj TOTP-aplikaĵoj"
+    "text": "Funkcias kun Google Authenticator, Authy, kaj aliaj TOTP-aplikaĵoj",
+    "sha256": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Rezervaj reakirkodoj por urĝa aliro"
+    "text": "Rezervaj reakirkodoj por urĝa aliro",
+    "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "Enigu vian pasvorton"
+    "text": "Enigu vian pasvorton",
+    "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "Malaktivigas..."
+    "text": "Malaktivigas...",
+    "sha256": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "Malaktivigi 2FA"
+    "text": "Malaktivigi 2FA",
+    "sha256": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "Generante QR-kodon..."
+    "text": "Generante QR-kodon...",
+    "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Uzu Google Authenticator, Authy, aŭ iun ajn TOTP-aplikaĵon"
+    "text": "Uzu Google Authenticator, Authy, aŭ iun ajn TOTP-aplikaĵon",
+    "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Daŭrigi al Konfirmo"
+    "text": "Daŭrigi al Konfirmo",
+    "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Enigu la 6-ciferan kodon el via aŭtentikiga aplikaĵo"
+    "text": "Enigu la 6-ciferan kodon el via aŭtentikiga aplikaĵo",
+    "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Aktivigi MFA"
+    "text": "Aktivigi MFA",
+    "sha256": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Kompletigi Agordon"
+    "text": "Kompletigi Agordon",
+    "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Enigu unu el viaj reakirkodoj"
+    "text": "Enigu unu el viaj reakirkodoj",
+    "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "Reakirkodo"
+    "text": "Reakirkodo",
+    "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Enigu reakirkodo"
+    "text": "Enigu reakirkodo",
+    "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Konfirmi Reakirkodo"
+    "text": "Konfirmi Reakirkodo",
+    "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Enigu 6-ciferan aŭtentikigan kodon"
+    "text": "Enigu 6-ciferan aŭtentikigan kodon",
+    "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Reakirkoda reĝimo aktiva"
+    "text": "Reakirkoda reĝimo aktiva",
+    "sha256": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Aŭtentikig-koda reĝimo aktiva"
+    "text": "Aŭtentikig-koda reĝimo aktiva",
+    "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Bonvolu enigi ĉiujn 6 ciferojn por daŭrigi"
+    "text": "Bonvolu enigi ĉiujn 6 ciferojn por daŭrigi",
+    "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "Cifero {current} el {total}"
+    "text": "Cifero {current} el {total}",
+    "sha256": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "Reakirkodoj"
+    "text": "Reakirkodoj",
+    "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Konservu ĉi tiujn kodojn en sekura loko. Ĉiu povas esti uzita unufoje se vi perdas aliron al via aŭtentikilo."
+    "text": "Konservu ĉi tiujn kodojn en sekura loko. Ĉiu povas esti uzita unufoje se vi perdas aliron al via aŭtentikilo.",
+    "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Ĉi tiuj kodoj estos montrataj nur unufoje"
+    "text": "Ĉi tiuj kodoj estos montrataj nur unufoje",
+    "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Vi devas elŝuti aŭ kopii viajn reakirkodojn antaŭ ol kompletigi agordon."
+    "text": "Vi devas elŝuti aŭ kopii viajn reakirkodojn antaŭ ol kompletigi agordon.",
+    "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "Generi Novajn Kodojn"
+    "text": "Generi Novajn Kodojn",
+    "sha256": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Regeneri Kodojn"
+    "text": "Regeneri Kodojn",
+    "sha256": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Ĉi tio nevalidigos ĉiujn ekzistantajn reakirkodojn"
+    "text": "Ĉi tio nevalidigos ĉiujn ekzistantajn reakirkodojn",
+    "sha256": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Elŝuti Kodojn"
+    "text": "Elŝuti Kodojn",
+    "sha256": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Reakirkodoj elŝutitaj"
+    "text": "Reakirkodoj elŝutitaj",
+    "sha256": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "Presi Kodojn"
+    "text": "Presi Kodojn",
+    "sha256": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Kopii Ĉiujn Kodojn"
+    "text": "Kopii Ĉiujn Kodojn",
+    "sha256": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "Kodoj kopiitaj al tondujo"
+    "text": "Kodoj kopiitaj al tondujo",
+    "sha256": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Malsukcesis kopii kodojn al tondujo"
+    "text": "Malsukcesis kopii kodojn al tondujo",
+    "sha256": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "Uzita"
+    "text": "Uzita",
+    "sha256": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "Neuzita"
+    "text": "Neuzita",
+    "sha256": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} el {limit} reakirkodoj restantaj"
+    "text": "{count} el {limit} reakirkodoj restantaj",
+    "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Ĉiu kodo povas esti uzita nur unufoje. Regeneru kodojn se vi elĉerpiĝas."
+    "text": "Ĉiu kodo povas esti uzita nur unufoje. Regeneru kodojn se vi elĉerpiĝas.",
+    "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Neniuj reakirkodoj restantaj"
+    "text": "Neniuj reakirkodoj restantaj",
+    "sha256": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Novaj reakirkodoj estis generitaj"
+    "text": "Novaj reakirkodoj estis generitaj",
+    "sha256": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "Reakirkodoj"
+    "text": "Reakirkodoj",
+    "sha256": "579c7f4e"
   },
   "web.auth.security._guidance.context": {
     "text": "⚠️ SEKURECOKRITIKA: Mesaĝoj malhelpas informrevelon. Vidu src/locales/SECURITY-TRANSLATION-GUIDE.md"

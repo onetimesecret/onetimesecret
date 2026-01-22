@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "تم العرض"
+    "text": "مستلم",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "لم يتم العرض"
+    "text": "لم يُستلم",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "لا اسرار جديدة"
+    "text": "لا توجد أسرار حديثة",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "ابدأ بإنشاء سرك الأول."
+    "text": "ابدأ بإنشاء سرك الأول.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "تعذر تحميل الفرق"
+    "text": "تعذر تحميل البيانات",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "حدثت مشكلة أثناء تحميل الفرق. يرجى المحاولة مرة أخرى."
+    "text": "حدثت مشكلة في تحميل بياناتك. يرجى المحاولة مرة أخرى.",
+    "sha256": "ff0d904e"
   }
 }

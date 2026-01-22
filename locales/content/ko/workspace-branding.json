@@ -1,128 +1,170 @@
 {
   "web.branding.color_picker": {
-    "text": "색상 선택기"
+    "text": "색상 선택기",
+    "sha256": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "현재 {0}: {1}. 클릭하여 옵션을 순환합니다."
+    "text": "현재 {0}: {1}. 클릭하여 옵션을 순환합니다.",
+    "sha256": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "설정 사용"
+    "text": "설정 사용",
+    "sha256": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "글꼴"
+    "text": "글꼴 패밀리",
+    "sha256": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "모서리 스타일"
+    "text": "모서리 스타일",
+    "sha256": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "브랜드 색상"
+    "text": "브랜드 색상",
+    "sha256": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "수신자가 보안 링크에 접근할 때의 화면 미리보기"
+    "text": "수신자가 보안 링크에 접근할 때의 화면 미리보기",
+    "sha256": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "미리보기 및 맞춤설정"
+    "text": "미리보기 및 사용자 지정",
+    "sha256": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Safari 브라우저 보기로 전환"
+    "text": "Safari 브라우저 보기로 전환",
+    "sha256": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
-    "text": "Microsoft Edge"
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "창 최대화"
+    "text": "창 최대화",
+    "sha256": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "창 최소화"
+    "text": "창 최소화",
+    "sha256": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Edge 브라우저 보기로 전환"
+    "text": "Edge 브라우저 보기로 전환",
+    "sha256": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
-    "text": "{0}/500자"
+    "text": "{0}/500자",
+    "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "QR 코드를 스캔하려면 휴대폰을 사용하세요"
+    "text": "휴대폰으로 QR 코드를 스캔하세요",
+    "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "질문이 있으시면 onboarding{'@'}example.com으로 문의하세요"
+    "text": "질문이 있으시면 onboarding{'@'}example.com으로 연락해 주세요",
+    "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "이 지침은 수신자가 비밀 내용을 확인하기 전에 표시됩니다"
+    "text": "이 지침은 수신자가 비밀 내용을 확인하기 전에 표시됩니다",
+    "sha256": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "이 지침은 수신자가 비밀 내용을 확인한 후에 표시됩니다"
+    "text": "이 지침은 수신자가 비밀 내용을 확인한 후에 표시됩니다",
+    "sha256": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "공개 전 지침"
+    "text": "공개 전 지침",
+    "sha256": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "공개 후 지침"
+    "text": "공개 후 지침",
+    "sha256": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "지침"
+    "text": "지침",
+    "sha256": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "로고 제어"
+    "text": "로고 컨트롤",
+    "sha256": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "로고를 업로드하려면 클릭하세요. 권장 크기: 128x128 픽셀. 최대 파일 크기: 1MB. 지원 형식: PNG, JPG, SVG"
+    "text": "로고를 업로드하려면 클릭하세요. 권장 크기: 128x128 픽셀. 최대 파일 크기: 1MB. 지원 형식: PNG, JPG, SVG",
+    "sha256": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "로고 업로드"
+    "text": "로고 업로드",
+    "sha256": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "미리보기 로딩 중..."
+    "text": "미리보기 로딩 중...",
+    "sha256": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "\"비밀 메시지 보기\" 버튼을 테스트하여 수신자가 비밀 메시지를 어떻게 볼지 미리보기"
+    "text": "\"비밀 메시지 보기\" 버튼을 테스트하여 수신자가 비밀 메시지를 어떻게 볼지 미리보기",
+    "sha256": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "눈 아이콘"
+    "text": "눈 아이콘",
+    "sha256": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "아래 미리보기 이미지를 클릭하여 로고를 업데이트하세요 (최소 128x128 픽셀 권장, 최대 1MB)"
+    "text": "아래 미리보기 이미지를 클릭하여 로고를 업데이트하세요 (최소 128x128 픽셀 권장, 최대 1MB)",
+    "sha256": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "이미지 아이콘"
+    "text": "이미지 아이콘",
+    "sha256": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "위의 컨트롤을 사용하여 브랜드 색상, 스타일 및 수신자 지침을 맞춤설정하세요"
+    "text": "위의 컨트롤을 사용하여 브랜드 색상, 스타일 및 수신자 지침을 맞춤설정하세요",
+    "sha256": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "맞춤설정 아이콘"
+    "text": "사용자 지정 아이콘",
+    "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "저장되지 않은 변경사항이 있습니다. 계속하시겠습니까?"
+    "text": "저장되지 않은 변경사항이 있습니다. 계속하시겠습니까?",
+    "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "브랜드 설정을 로드하지 못했습니다"
+    "text": "브랜드 설정 로드 실패",
+    "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "이것은 수신자가 보안 메시지를 어떻게 볼지에 대한 대화형 미리보기입니다. 다음을 할 수 있습니다: - 위의 컨트롤을 사용하여 색상과 글꼴 맞춤설정 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - \"비밀 메시지 보기\" 버튼을 사용하여 미리보기 테스트"
+    "text": "수신자가 보안 메시지를 어떻게 볼지에 대한 대화형 미리보기입니다. - 위의 컨트롤을 사용하여 색상과 글꼴을 사용자 지정할 수 있습니다 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - '비밀 메시지 보기' 버튼을 사용하여 미리보기 테스트",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "이것은 수신자가 보안 메시지를 어떻게 볼지에 대한 대화형 미리보기입니다. 다음을 할 수 있습니다: - 위의 컨트롤을 사용하여 색상과 글꼴 맞춤설정 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - \"비밀 메시지 보기\" 버튼을 사용하여 미리보기 테스트"
+    "text": "이것은 수신자가 보안 메시지를 어떻게 볼지에 대한 대화형 미리보기입니다. 다음을 할 수 있습니다: - 위의 컨트롤을 사용하여 색상과 글꼴 맞춤설정 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - \"비밀 메시지 보기\" 버튼을 사용하여 미리보기 테스트",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "기본 로고 아이콘"
+    "text": "일본어 한자 '秘' (히미츠)는 '비밀' 또는 '기밀'을 의미합니다",
+    "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Onetime Secret 제공"
+    "text": "Onetime Secret 제공",
+    "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0} 로고"
+    "text": "{0} 로고",
+    "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
-    "text": "Edge"
+    "text": "Edge",
+    "sha256": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Edge 미리보기로 전환"
+    "text": "Edge 미리보기로 전환",
+    "sha256": "83883d84"
   },
   "web.branding.safari": {
-    "text": "Safari"
+    "text": "Safari",
+    "sha256": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Safari 미리보기로 전환"
+    "text": "Safari 미리보기로 전환",
+    "sha256": "f24ac447"
   }
 }

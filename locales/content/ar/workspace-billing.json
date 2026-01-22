@@ -1,434 +1,833 @@
 {
   "web.billing.upgrade.required": {
-    "text": "الترقية مطلوبة"
+    "text": "مطلوب ترقية",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "عرض الخطط"
+    "text": "عرض الخطط",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "إدارة الفرق تتطلب Identity Plus أو أعلى"
+    "text": "إدارة الفرق تتطلب Identity Plus أو أعلى",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "النطاقات المخصصة تتطلب Identity Plus أو أعلى"
+    "text": "النطاقات المخصصة تتطلب Identity Plus أو أعلى",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "الوصول إلى API يتطلب خطة Multi-Team أو أعلى"
+    "text": "الوصول إلى API يتطلب Identity Plus أو أعلى",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "سجلات المراجعة تتطلب خطة Multi-Team أو أعلى"
+    "text": "سجلات التدقيق تتطلب خطة فرق متعددة أو أعلى",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "إدارة اشتراكك ومنظماتك وإعدادات الفوترة"
+    "text": "إدارة اشتراكك والمؤسسات وإعدادات الفوترة",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "نظرة عامة على الفوترة"
+    "text": "نظرة عامة على الفوترة",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "عرض وإدارة تفاصيل اشتراكك ودفعك"
+    "text": "عرض وإدارة اشتراكك وتفاصيل الدفع",
+    "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "اختر المنظمة"
+  "web.billing.overview.billing_for_organization": {
+    "text": "الفوترة لهذه المؤسسة",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
-    "text": "الخطة الحالية"
+    "text": "الخطة الحالية",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "ميزات الخطة"
+    "text": "ميزات الخطة",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "طريقة الدفع"
+    "text": "طريقة الدفع",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "تاريخ الفوترة التالي"
+    "text": "تاريخ الفوترة القادم",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "إجراءات سريعة"
+    "text": "إجراءات سريعة",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "إدارة الفوترة"
+    "text": "إدارة الفوترة",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "عرض الفواتير"
+    "text": "عرض الفواتير",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "ترقية الخطة"
+    "text": "ترقية الخطة",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "تغيير الخطة"
+    "text": "تغيير الخطة",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "لا توجد طريقة دفع مسجلة"
+    "text": "لا توجد طريقة دفع مسجلة",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "لا توجد فوترة قادمة"
+    "text": "لا توجد فوترة قادمة",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "أيام متبقية"
+    "text": "أيام متبقية",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "الفوترة في {date}"
+    "text": "الفوترة في {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "عرض الخطط"
+    "text": "عرض الخطط",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "مقارنة والترقية"
+    "text": "قارن وقم بالترقية",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "عرض الفواتير"
+    "text": "عرض الفواتير",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "تنزيل السجل"
+    "text": "تنزيل السجل",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "إدارة الفوترة"
+    "text": "إدارة الفوترة",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "تحديث معلومات الدفع"
+    "text": "تحديث معلومات الدفع",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "لا توجد منظمات"
+    "text": "لا توجد مؤسسات",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "أنشئ منظمة لإدارة فوترتك واشتراكك"
+    "text": "أنشئ مؤسسة لإدارة فوترتك واشتراكك",
+    "sha256": "41e922d2"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "تمت ترقية خطتك بنجاح",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "خطتك الجديدة نشطة الآن. شكراً لشرائك.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "جهة اتصال الفوترة",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "إنشاء أسرار"
+    "text": "إنشاء الأسرار",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "عرض الإيصالات"
+    "text": "عرض الإيصالات",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "الوصول إلى API"
+    "text": "الوصول إلى API",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "نطاقات مخصصة"
+    "text": "النطاقات المخصصة",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "إعدادات خصوصية مخصصة"
+    "text": "إعدادات الخصوصية المخصصة الافتراضية",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "انتهاء صلاحية افتراضي ممتد"
+    "text": "انتهاء صلاحية افتراضي ممتد",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "إعدادات بريد مخصصة"
+    "text": "إعدادات البريد المخصصة الافتراضية",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "علامة تجارية مخصصة"
+    "text": "العلامة التجارية المخصصة",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "صفحة رئيسية بعلامة تجارية"
+    "text": "صفحة رئيسية بعلامتك التجارية",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "الأسرار الواردة"
+    "text": "الأسرار الواردة",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "إدارة المنظمات"
+    "text": "إدارة المؤسسات",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "إدارة الفرق"
+    "text": "إدارة الفرق",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "إدارة الأعضاء"
+    "text": "إدارة الأعضاء",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "سجلات المراجعة"
+    "text": "سجلات التدقيق",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "تسجيل الدخول الموحد"
+    "text": "تسجيل الدخول الموحد",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "دعم ذو أولوية"
+    "text": "دعم ذو أولوية",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "اتفاقية مستوى الخدمة"
+    "text": "اتفاقية مستوى الخدمة",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "تعذر تحميل تفاصيل الميزات"
+    "text": "تعذر تحميل تفاصيل الميزات",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "لا توجد ميزات متاحة"
+    "text": "لا توجد ميزات متاحة",
+    "sha256": "03d195e8"
+  },
+  "web.billing.features.create_secrets": {
+    "text": "إنشاء ومشاركة الأسرار",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "الوصول إلى API",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "النطاقات المخصصة",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "نطاق مخصص واحد",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "نطاقات مخصصة غير محدودة",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "العلامة التجارية المخصصة",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "صفحة رئيسية بعلامتك التجارية",
+    "sha256": "e355a396"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "إدارة الفرق",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "إدارة الأعضاء",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "سجلات التدقيق",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "تسجيل الدخول الموحد (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "دعم ذو أولوية",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "اتفاقية مستوى الخدمة",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "فوترة مركزية",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "مسار التدقيق",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "تدفق النشاط",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "سير عمل التسليم",
+    "sha256": "07202af3"
   },
   "web.billing.plans.title": {
-    "text": "اختر خطة"
+    "text": "اختر خطة",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "اختر الخطة التي تناسب احتياجاتك"
+    "text": "اختر الخطة التي تناسب احتياجاتك",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "اختر الخطة المثالية لمؤسستك"
+    "text": "اختر الخطة المثالية لمؤسستك",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "الخطة الحالية"
+    "text": "الخطة الحالية",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "الحالية"
+    "text": "الحالي",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "ترقية"
+    "text": "ترقية",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "خفض الدرجة"
+    "text": "تخفيض",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "شهرياً"
+    "text": "شهري",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "سنوياً"
+    "text": "سنوي",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "شهرياً"
+    "text": "/شهرياً",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "وفّر {percent}% مع الفوترة السنوية"
+    "text": "وفّر {percent}% مع الفوترة السنوية",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "مجاني"
+    "text": "مجاني",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "فريق واحد"
+    "text": "فريق واحد",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "فرق متعددة"
+    "text": "فرق متعددة",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "حساب فردي"
+    "text": "حساب فردي",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "حساب فريق"
+    "text": "حساب الفريق",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "حساب المؤسسة"
+    "text": "حساب المؤسسة",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "الميزات"
+    "text": "الميزات",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "أسرار غير محدودة"
+    "text": "أسرار غير محدودة",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "الوصول إلى API"
+    "text": "الوصول إلى API",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "دعم ذو أولوية"
+    "text": "دعم ذو أولوية",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "اختر الخطة"
+    "text": "اختر الخطة",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "تواصل مع المبيعات"
+    "text": "اتصل بالمبيعات",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "لديك أسئلة أو تحتاج شيئاً مخصصاً؟"
+    "text": "لديك أسئلة أو تحتاج شيئاً مخصصاً؟",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "يسعدنا سماع رأيك. أخبرنا بما تبحث عنه."
+    "text": "يسعدنا سماعك. أخبرنا بما تبحث عنه.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} فريق | {count} فرق"
+    "text": "{count} فريق | {count} فرق",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} عضو لكل فريق | {count} أعضاء لكل فريق"
+    "text": "{count} عضو لكل فريق | {count} أعضاء لكل فريق",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "فرق غير محدودة"
+    "text": "فرق غير محدودة",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "أعضاء غير محدودين لكل فريق"
+    "text": "أعضاء غير محدودين لكل فريق",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "الأكثر شيوعاً"
+    "text": "الأكثر شيوعاً",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "مقترحة"
+    "text": "مقترح",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "كل ما في {plan}، بالإضافة إلى:"
+    "text": "يتضمن كل شيء في {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "لا توجد خطط {interval} متاحة في الوقت الحالي."
+    "text": "لا توجد خطط {interval} متاحة في الوقت الحالي.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "ستتغير خطتك فوراً."
+    "text": "سيتم تغيير خطتك فوراً.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "الخطة الحالية:"
+    "text": "الخطة الحالية:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "الخطة الجديدة:"
+    "text": "الخطة الجديدة:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "رصيد الوقت غير المستخدم:"
+    "text": "رصيد الوقت غير المستخدم:",
+    "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "المستحق اليوم:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "الفوترة القادمة ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
-    "text": "الفاتورة التالية"
+    "text": "الفاتورة القادمة",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "سيتم تحديث حدود الميزات فوراً بعد تغيير الخطة."
+    "text": "ستتحدث حدود ميزاتك فوراً بعد تغيير الخطة.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "فشل تغيير الخطة. يرجى المحاولة مرة أخرى."
+    "text": "فشل تغيير الخطة. يرجى المحاولة مرة أخرى.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "تأكيد الترقية"
+    "text": "تأكيد الترقية",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "تأكيد التخفيض"
+    "text": "تأكيد التخفيض",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "الترقية إلى"
+    "text": "الترقية إلى {plan}؟",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "التخفيض إلى {plan}؟"
+    "text": "التخفيض إلى {plan}؟",
+    "sha256": "8eb8ea81"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "كيف يُطبق رصيدك:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "مبلغ الفاتورة القادمة:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "الرصيد المطبق:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "المبلغ المستحق في الفوترة القادمة:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "رصيد الحساب المتبقي:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "يُطبق على الفواتير المستقبلية",
+    "sha256": "5007add6"
   },
   "web.billing.invoices.title": {
-    "text": "سجل الفوترة"
+    "text": "سجل الفوترة",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "عرض سجل الفوترة وتنزيل الفواتير"
+    "text": "اعرض سجل الفوترة ونزّل الفواتير",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "التاريخ"
+    "text": "التاريخ",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "المبلغ"
+    "text": "المبلغ",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "الحالة"
+    "text": "الحالة",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "تنزيل"
+    "text": "تنزيل",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "لا توجد فواتير بعد"
+    "text": "لا توجد فواتير بعد",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "مدفوع"
+    "text": "مدفوع",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "قيد الانتظار"
+    "text": "قيد الانتظار",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "فشل"
+    "text": "فشل",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "فشل تحميل الفواتير"
+    "text": "فشل تحميل الفواتير",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "الفوترة لهذا الفريق تُدار من قبل {orgName}"
+    "text": "تتم إدارة الفوترة بواسطة {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "عرض فوترة المنظمة"
+    "text": "عرض فوترة المؤسسة",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "لقد وصلت إلى حد الأعضاء لهذا الفريق"
+    "text": "لقد وصلت إلى حد الأعضاء لهذا الفريق",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "قم بالترقية لإضافة المزيد من الأعضاء"
+    "text": "قم بالترقية لإضافة المزيد من الأعضاء",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "الاشتراك"
+    "text": "الاشتراك",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "حالة الاشتراك"
+    "text": "حالة الاشتراك",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "نشط"
+    "text": "نشط",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "غير نشط"
+    "text": "غير نشط",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "متأخر السداد"
+    "text": "متأخر الدفع",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "ملغى"
+    "text": "ملغى",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "الخطة"
+    "text": "الخطة",
+    "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "استخدام الفريق",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} من {limit} فرق",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
-    "text": "بوابة الفوترة"
+    "text": "بوابة الفوترة",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "إدارة اشتراكك وطرق الدفع وسجل الفوترة"
+    "text": "إدارة اشتراكك وطرق الدفع وسجل الفوترة",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "فتح بوابة الفوترة"
+    "text": "فتح بوابة الفوترة",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "جارٍ إعادة التوجيه إلى بوابة الفوترة..."
+    "text": "جاري إعادة التوجيه إلى بوابة الفوترة...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "ابدأ اليوم"
+    "text": "ابدأ اليوم",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "ابدأ اليوم مع Identity Plus"
+    "text": "ابدأ اليوم مع Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "شهرياً"
+    "text": "شهرياً",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "وصول كامل لـ API"
+    "text": "وصول كامل لـ API",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "تصميم يعطي الأولوية للخصوصية"
+    "text": "تصميم يضع الخصوصية أولاً",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "انقر على هذه الصاعقة للترقية للنطاقات المخصصة"
+    "text": "انقر على هذه الصاعقة للترقية للنطاقات المخصصة",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "ربما لاحقاً"
+    "text": "ربما لاحقاً",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "ترقية الحساب"
+    "text": "ترقية الحساب",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "الترقية إلى Identity Plus"
+    "text": "الترقية إلى Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "الترقية للفرق"
+    "text": "الترقية للفرق",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "مزايا"
+    "text": "مزايا",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "الترقية إلى"
+    "text": "الترقية إلى",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "الترقية لـ secrets.yourdomain.com"
+    "text": "الترقية لـ secrets.yourdomain.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "تتضمن جميع الخطط ميزات الخصوصية وسعة مشاركة غير محدودة"
+    "text": "تتضمن جميع الخطط ميزات الخصوصية وسعة مشاركة غير محدودة",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "تتضمن جميع الخطط اختيار موقع البيانات: {0} مناطق"
+    "text": "جميع الخطط تتضمن اختيار موقع البيانات: {0} مناطق",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "ابدأ الآن"
+    "text": "ابدأ الآن",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "اشتراك {0}"
+    "text": "اشتراك {0}",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "ارتق بمشاركتك الآمنة مع نطاقات مخصصة وسعة غير محدودة وميزات على مستوى المؤسسات."
+    "text": "ارتق بمشاركتك الآمنة مع نطاقات مخصصة وسعة غير محدودة وميزات على مستوى المؤسسات.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "تكرار الدفع"
+    "text": "تكرار الدفع",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "أمّن علامتك التجارية وابنِ ثقة العملاء بروابط من نطاقك. مثالي للشركات التي تقدّر الخصوصية والاحترافية."
+    "text": "أمّن علامتك التجارية وابنِ ثقة العملاء بروابط من نطاقك. مثالي للشركات التي تقدّر الخصوصية والاحترافية.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "روابط آمنة، اتصالات أقوى"
+    "text": "روابط آمنة، علاقات أقوى",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "لم يتم العثور على مستوى Identity في مستويات المنتج"
+    "text": "لم يتم العثور على مستوى Identity في مستويات المنتج",
+    "sha256": "d0204fc4"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "إلغاء الاشتراك",
+    "context": "",
+    "sha256": "3f85967f"
+  },
+  "web.billing.cancel.title": {
+    "text": "إلغاء الاشتراك",
+    "context": "",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "هل أنت متأكد من رغبتك في إلغاء اشتراكك في {plan}؟",
+    "sha256": "f4d1b6ee"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "ماذا يحدث عند الإلغاء:",
+    "sha256": "4d8f5751"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "ستحتفظ بالوصول إلى جميع الميزات حتى {date}",
+    "sha256": "eab1efe3"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "ستحتفظ بالوصول حتى نهاية فترة الفوترة الحالية",
+    "sha256": "1b07a54a"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "لن يتم تحصيل رسوم منك مرة أخرى",
+    "sha256": "a01cdc16"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "سيعود حسابك إلى الخطة المجانية",
+    "sha256": "e01b3fc3"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "الاحتفاظ بالاشتراك",
+    "context": "",
+    "sha256": "31e80c41"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "إلغاء الاشتراك",
+    "context": "",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.success": {
+    "text": "تم إلغاء اشتراكك. ستحتفظ بالوصول حتى نهاية فترة الفوترة.",
+    "sha256": "e18fd9d5"
+  },
+  "web.billing.cancel.error": {
+    "text": "فشل إلغاء الاشتراك. يرجى المحاولة مرة أخرى.",
+    "sha256": "68e8bdde"
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "تم جدولة إلغاء الاشتراك",
+    "context": "",
+    "sha256": "1427d139"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "سيبقى اشتراكك نشطاً حتى {date}. ستستمر في الوصول الكامل لجميع الميزات حتى ذلك الحين.",
+    "context": "",
+    "sha256": "aab4b1dc"
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "غيرت رأيك؟ يمكنك إعادة تفعيل اشتراكك في أي وقت قبل تاريخ الإلغاء.",
+    "context": "",
+    "sha256": "c94d5527"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "أسرار الصفحة الرئيسية",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "إشعارات البريد الإلكتروني",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "قواعد الوصول بـ IP",
+    "sha256": "db966d47"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "علامة مساحة العمل التجارية",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "احتفاظ بالأسرار لمدة 30 يوماً",
+    "sha256": "21d6d514"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "أسرار الصفحة الرئيسية",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "الأسرار الواردة",
+    "sha256": "883dbca9"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "حتى 5 أعضاء فريق",
+    "sha256": "e7518d07"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "حتى 10 أعضاء فريق",
+    "sha256": "0c64c064"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "حتى 25 عضو فريق",
+    "sha256": "bf3b84c8"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "حتى 50 عضو فريق",
+    "sha256": "3c2d9a14"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "أعضاء فريق غير محدودين",
+    "sha256": "b7491ee9"
+  },
+  "web.billing.features.notifications": {
+    "text": "إشعارات البريد الإلكتروني",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "قواعد الوصول بـ IP",
+    "sha256": "db966d47"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "علامة مساحة العمل التجارية",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "بنية تحتية مخصصة",
+    "sha256": "0c10aea7"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "سير العمل المشترك",
+    "sha256": "158f558e"
   }
 }

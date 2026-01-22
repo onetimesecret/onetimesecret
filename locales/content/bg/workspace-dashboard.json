@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "Получени"
+    "text": "Получена",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Неполучени"
+    "text": "Не е получена",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Няма последни тайни"
+    "text": "Няма скорошни тайни",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Започнете, като създадете първата си тайна."
+    "text": "Започнете, като създадете първата си тайна.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Неуспешно зареждане на екипите"
+    "text": "Неуспешно зареждане на данни",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Възникна проблем при зареждането на вашите екипи. Моля, опитайте отново."
+    "text": "Възникна проблем при зареждане на данните. Моля, опитайте отново.",
+    "sha256": "ff0d904e"
   }
 }

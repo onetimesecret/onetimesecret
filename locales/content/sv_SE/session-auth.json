@@ -1,194 +1,357 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Eller"
+    "text": "Behöver du ett konto?",
+    "sha256": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Behöver du ett konto?"
+    "text": "Registrera dig.",
+    "sha256": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Glömt lösenordet?"
+    "text": "Glömt ditt lösenord?",
+    "sha256": "afd25fdf"
   },
   "web.login.button_sign_in": {
-    "text": "Logga in"
+    "text": "Logga in",
+    "sha256": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Ange dina inloggningsuppgifter"
+    "text": "Ange dina uppgifter",
+    "sha256": "07e1c44e"
   },
   "web.login.remember_me": {
-    "text": "Kom ihåg mig"
+    "text": "Kom ihåg mig",
+    "sha256": "f93267aa"
   },
   "web.signup.create_your_account": {
-    "text": "Skapa ditt konto"
+    "text": "Skapa ditt konto",
+    "sha256": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Eller"
+    "text": "Har du redan ett konto?",
+    "sha256": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Eller logga in på ditt konto"
+    "text": "Logga in.",
+    "sha256": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "Registreringsfel"
+    "text": "Fel vid kontoskapande",
+    "sha256": "e380a0b6"
   },
   "web.signup.password_error": {
-    "text": "Lösenordet uppfyller inte kraven"
+    "text": "Lösenord",
+    "sha256": "e7cf3ef4"
   },
   "web.signup.email_error": {
-    "text": "Ogiltig e-postadress"
+    "text": "E-post",
+    "sha256": "969ccbd3"
   },
   "web.auth.verify.title": {
-    "text": "Verifiera din e-post"
+    "text": "Verifiera ditt konto",
+    "sha256": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "Din e-post har verifierats"
+    "text": "Ditt konto har verifierats",
+    "sha256": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "Ogiltig verifieringslänk"
+    "text": "Ogiltig eller utgången verifieringsnyckel",
+    "sha256": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Verifieringslänken har gått ut"
+    "text": "Denna verifieringslänk har gått ut. Vänligen begär en ny.",
+    "sha256": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Detta konto är redan verifierat"
+    "text": "Detta konto har redan verifierats. Du kan logga in nu.",
+    "sha256": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Kunde inte verifiera kontot"
+    "text": "Kunde inte verifiera kontot. Försök igen eller kontakta support.",
+    "sha256": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Kontrollera din e-post för verifieringslänken"
+    "text": "Kontrollera din e-post för en verifieringslänk",
+    "sha256": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Ett fel inträffade under verifiering"
+    "text": "Kontoverifiering misslyckades. Kontrollera din verifieringslänk eller begär en ny.",
+    "sha256": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "Verifieringsfel"
+    "text": "Verifiering misslyckades",
+    "sha256": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
-    "text": "Vad ska jag göra?"
+    "text": "Vad ska jag göra?",
+    "sha256": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Kontrollera din inkorg för ett e-postmeddelande från oss"
+    "text": "Kontrollera din e-post för den senaste verifieringslänken",
+    "sha256": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Kontrollera din skräppost om du inte hittar det"
+    "text": "Kontrollera din skräppost om du inte hittar e-postmeddelandet",
+    "sha256": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Kontakta support om problemet kvarstår"
+    "text": "Kontakta support om du fortsätter ha problem",
+    "sha256": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Verifieringsnyckel saknas"
+    "text": "Verifieringslänk krävs",
+    "sha256": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Ingen verifieringsnyckel hittades i länken"
+    "text": "Använd verifieringslänken som skickats till din e-postadress för att verifiera ditt konto.",
+    "sha256": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "Skapa ett nytt konto"
+    "text": "Skapa nytt konto",
+    "sha256": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "Ändra lösenord"
+    "text": "Ändra lösenord",
+    "sha256": "a949f462"
   },
   "web.auth.change_password.current_password": {
-    "text": "Nuvarande lösenord"
+    "text": "Nuvarande lösenord",
+    "sha256": "8ac76099"
   },
   "web.auth.change_password.new_password": {
-    "text": "Nytt lösenord"
+    "text": "Nytt lösenord",
+    "sha256": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Bekräfta lösenord"
+    "text": "Bekräfta nytt lösenord",
+    "sha256": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "Lösenordet har ändrats"
+    "text": "Ditt lösenord har ändrats",
+    "sha256": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Kunde inte ändra lösenord"
+    "text": "Lösenordsändring misslyckades. Vänligen verifiera ditt nuvarande lösenord och försök igen.",
+    "sha256": "1aa11b3f"
   },
   "web.auth.close_account.title": {
-    "text": "Stäng konto"
+    "text": "Stäng konto",
+    "sha256": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "Att stänga ditt konto är permanent och kan inte ångras"
+    "text": "Denna åtgärd kan inte ångras. Alla dina hemligheter kommer att raderas permanent.",
+    "sha256": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "Bekräfta kontostängning"
+    "text": "Jag förstår att denna åtgärd är permanent",
+    "sha256": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Ange ditt lösenord för att bekräfta"
+    "text": "Ange ditt lösenord för att bekräfta",
+    "sha256": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Stäng konto permanent"
+    "text": "Stäng konto permanent",
+    "sha256": "0713c012"
   },
   "web.auth.close_account.cancel": {
-    "text": "Avbryt"
+    "text": "Avbryt",
+    "sha256": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Begär återställning av lösenord"
+    "text": "Begär lösenordsåterställning",
+    "sha256": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Ange din e-postadress nedan så skickar vi en länk för att återställa ditt lösenord"
+    "text": "Ange din e-postadress nedan så skickar vi en länk för att återställa ditt lösenord",
+    "sha256": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Skicka återställningslänk"
+    "text": "Skicka återställningslänk",
+    "sha256": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "Välj ett nytt lösenord"
+    "text": "Välj ett nytt lösenord",
+    "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Ange ditt nya lösenord nedan. Se till att det är starkt och unikt för att skydda ditt konto."
+    "text": "Vänligen ange ditt nya lösenord nedan. Se till att det är starkt och unikt för att skydda ditt konto.",
+    "sha256": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Ett e-postmeddelande med instruktioner för att återställa ditt lösenord har skickats"
+    "text": "Ett e-postmeddelande har skickats till dig med en länk för att återställa lösenordet för ditt konto",
+    "sha256": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Jag godkänner"
+    "text": "Jag godkänner",
+    "sha256": "26a58d00"
   },
   "web.auth.account.title": {
-    "text": "Kontoöversikt"
+    "text": "Kontoinformation",
+    "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
-    "text": "E-post"
+    "text": "E-postadress",
+    "sha256": "09bf25ef"
   },
   "web.auth.account.created": {
-    "text": "Skapad"
+    "text": "Konto skapat",
+    "sha256": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "Verifierad"
+    "text": "E-post verifierad",
+    "sha256": "bc512ab0"
   },
   "web.auth.account.region": {
-    "text": "Region"
+    "text": "Region",
+    "sha256": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "Ej verifierad"
+    "text": "E-post ej verifierad",
+    "sha256": "53955e0e"
   },
   "web.auth.account.verify_email": {
-    "text": "Verifiera e-post"
+    "text": "Verifiera e-postadress",
+    "sha256": "d261b9df"
   },
   "web.auth.account.mfa_status": {
-    "text": "Tvåfaktorsautentisering"
+    "text": "Tvåfaktorsautentisering",
+    "sha256": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Aktiverad"
+    "text": "Aktiverad",
+    "sha256": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Inaktiverad"
+    "text": "Inaktiverad",
+    "sha256": "75081b59"
   },
   "web.auth.account.active_sessions": {
-    "text": "Aktiva sessioner"
+    "text": "Aktiva sessioner",
+    "sha256": "b58fa4e0"
   },
   "web.auth.account.session_count": {
-    "text": "{count} aktiv session | {count} aktiva sessioner"
+    "text": "{count} aktiv(a) session(er)",
+    "sha256": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
-    "text": "Snabbåtgärder"
+    "text": "Snabbåtgärder",
+    "sha256": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Hantera tvåfaktorsautentisering"
+    "text": "Hantera tvåfaktorsautentisering",
+    "sha256": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Hantera sessioner"
+    "text": "Hantera aktiva sessioner",
+    "sha256": "c5d54d87"
   },
   "web.auth.account.change_password": {
-    "text": "Ändra lösenord"
+    "text": "Ändra lösenord",
+    "sha256": "a949f462"
   },
   "web.auth.account.close_account": {
-    "text": "Stäng konto"
+    "text": "Stäng konto",
+    "sha256": "e1513814"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-postverifieringsflöde efter registrering"
+  },
+  "web.help.title": {
+    "text": "Hjälp och support",
+    "sha256": "1f8ecc24"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Felsökning vid inloggning",
+    "sha256": "a9a88a01"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Kommer inte magisk länk fram?",
+    "sha256": "6919ce70"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Kontrollera din skräppost",
+    "sha256": "813fe2d8"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Kontrollera att du angav din e-postadress korrekt",
+    "sha256": "5f319557"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Vänta några minuter - e-post kan ibland fördröjas",
+    "sha256": "884fc272"
+  },
+  "web.help.try_again": {
+    "text": "Försök begära en ny länk om det gått mer än 10 minuter",
+    "sha256": "68109f96"
+  },
+  "web.help.forgot_password": {
+    "text": "Glömt ditt lösenord?",
+    "sha256": "afd25fdf"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Använd alternativet Magisk länk för att logga in utan lösenord. När du är inloggad kan du ändra ditt lösenord i Kontoinställningar.",
+    "sha256": "2a058600"
+  },
+  "web.help.account_locked": {
+    "text": "Konto tillfälligt låst?",
+    "sha256": "ef1251c1"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Efter flera misslyckade inloggningsförsök låses konton tillfälligt av säkerhetsskäl. Vänta 15 minuter och försök igen, eller använd Magisk länk för att logga in.",
+    "sha256": "4b2cf891"
+  },
+  "web.help.still_need_help": {
+    "text": "Behöver du fortfarande hjälp?",
+    "sha256": "5ff7d19e"
+  },
+  "web.help.contact_us_description": {
+    "text": "Om du fortfarande har problem finns vi här för att hjälpa. Skicka oss ett meddelande så återkommer vi så snart som möjligt.",
+    "sha256": "d97c90fe"
+  },
+  "web.help.contact_support": {
+    "text": "Kontakta support",
+    "sha256": "f8d47b82"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Skicka inloggningslänk",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "En säker länk skickas till din e-post.",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "eller",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Logga in med lösenord",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "Använd lösenordsfri inloggning",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "Skapa konto",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "Tillbaka till startsidan",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "Lösenord",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magisk länk",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.need_help": {
+    "text": "Behöver du hjälp?",
+    "sha256": "c225cdfb"
   }
 }

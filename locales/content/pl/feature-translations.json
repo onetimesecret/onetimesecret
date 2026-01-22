@@ -1,71 +1,94 @@
 {
   "web.translations.welcomes_contributors_for_both_existing_and_new_": {
-    "text": "zaprasza współtwórców zarówno dla istniejących, jak i nowych języków."
+    "text": "zaprasza współtwórców zarówno dla istniejących, jak i nowych języków.",
+    "sha256": "87abcdeb"
   },
   "web.translations.our_github_project": {
-    "text": "nasz projekt na GitHubie"
+    "text": "nasz projekt na GitHub",
+    "sha256": "dabd28e2"
   },
   "web.translations.if_youre_interested_in_translation": {
-    "text": "Jeśli interesuje Cię tłumaczenie,"
+    "text": "Jeśli interesuje Cię tłumaczenie,",
+    "sha256": "10056bff"
   },
   "web.translations.whove_helped_with_translations_as_we_continue_to": {
-    "text": ", którzy pomogli w tłumaczeniach, podczas gdy my kontynuujemy rozwój nowych funkcji."
+    "text": ", którzy pomogli w tłumaczeniach, podczas gdy my kontynuujemy rozwój nowych funkcji.",
+    "sha256": "d629cc71"
   },
   "web.translations.25_contributors": {
-    "text": "ponad 25 współtwórców"
+    "text": "Ponad 25 współtwórców",
+    "sha256": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
-    "text": "Jesteśmy wdzięczni"
+    "text": "Jesteśmy wdzięczni",
+    "sha256": "cf446287"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
-    "text": "W miarę dodawania nowych funkcji nasze tłumaczenia stopniowo wymagają aktualizacji, aby pozostać aktualnymi. Dotyczy to zarówno onetimesecret.com, jak i tysięcy samodzielnie hostowanych instalacji na całym świecie."
+    "text": "W miarę dodawania nowych funkcji nasze tłumaczenia stopniowo wymagają aktualizacji, aby pozostać aktualnymi. Dotyczy to zarówno onetimesecret.com, jak i tysięcy samodzielnie hostowanych instalacji na całym świecie.",
+    "sha256": "c6fb1cf5"
   },
   "web.translations.remember_to_include_your_email_if_youre_not_logg": {
-    "text": "- pamiętaj o podaniu swojego adresu e-mail, jeśli nie jesteś zalogowany. Każde tłumaczenie pomaga większej liczbie osób bezpiecznie komunikować się."
+    "text": "- pamiętaj o podaniu swojego adresu e-mail, jeśli nie jesteś zalogowany. Każde tłumaczenie pomaga większej liczbie osób bezpiecznie komunikować się.",
+    "sha256": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
-    "text": "Skontaktuj się z nami"
+    "text": "Skontaktuj się z nami",
+    "sha256": "fee7dd79"
   },
   "web.translations.have_questions": {
-    "text": "Masz pytania?"
+    "text": "Masz pytania?",
+    "sha256": "75e4b61a"
   },
   "web.translations.send_translations_by_email_to": {
-    "text": "Wyślij tłumaczenia e-mailem na adres"
+    "text": "Wyślij tłumaczenia e-mailem na adres",
+    "sha256": "f96a59a1"
   },
   "web.translations.english_template": {
-    "text": "Szablon angielski"
+    "text": "Angielski szablon",
+    "sha256": "1a843644"
   },
   "web.translations.start_a_new_translation_from_our": {
-    "text": "Rozpocznij nowe tłumaczenie z naszego"
+    "text": "Rozpocznij nowe tłumaczenie od naszego",
+    "sha256": "b963b7e9"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {
-    "text": "Zaktualizuj język bezpośrednio przez nasz projekt na GitHubie"
+    "text": "Zaktualizuj język bezpośrednio przez nasz projekt na GitHubie",
+    "sha256": "449cde87"
   },
   "web.translations.review_existing_translations_using_the_language_": {
-    "text": "Przejrzyj istniejące tłumaczenia za pomocą selektora języka powyżej"
+    "text": "Przejrzyj istniejące tłumaczenia za pomocą selektora języka powyżej",
+    "sha256": "74ea57e9"
   },
   "web.translations.ready_to_help_some_ways_to_contribute": {
-    "text": "Gotowy do pomocy? Kilka sposobów na wkład:"
+    "text": "Gotowy do pomocy? Kilka sposobów na wkład:",
+    "sha256": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Następujące osoby poświęciły swój czas, aby pomóc poszerzyć zasięg Onetime Secret:"
+    "text": "Następujące osoby poświęciły swój czas, aby pomóc poszerzyć zasięg Onetime Secret:",
+    "sha256": "85a766af"
   },
   "web.translations.translations": {
-    "text": "Tłumaczenia"
+    "text": "Tłumaczenia",
+    "sha256": "266a41b9"
   },
   "web.translations.fork_on_github_and_submit_a_pr": {
-    "text": "Utwórz fork na GitHubie i prześlij PR"
+    "text": "Zrób fork na GitHub i wyślij PR",
+    "sha256": "bb60a45d"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
-    "text": "Twoje umiejętności językowe mogą pomóc poszerzyć dostęp do bezpiecznej komunikacji."
+    "text": "Twoje umiejętności językowe mogą pomóc poszerzyć dostęp do bezpiecznej komunikacji.",
+    "sha256": "ad22076b"
   },
   "web.translations.thanks_to_our_community_we_support_over_20_langu": {
-    "text": "Dzięki naszej społeczności obsługujemy dziś ponad 20 języków. Jednak przy naszym szybkim tempie rozwoju wiele tłumaczeń wymaga aktualizacji, aby pozostać na bieżąco. Dotyczy to zarówno onetimesecret.com, jak i tysięcy samodzielnie hostowanych instalacji na całym świecie."
+    "text": "Dzięki naszej społeczności obsługujemy dziś ponad 20 języków. Jednak przy naszym szybkim tempie rozwoju wiele tłumaczeń wymaga aktualizacji, aby pozostać na bieżąco. Dotyczy to zarówno onetimesecret.com, jak i tysięcy samodzielnie hostowanych instalacji na całym świecie.",
+    "sha256": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Od 2012 roku Onetime Secret zapewnia bezpieczny sposób udostępniania poufnych informacji na całym świecie. Użytkownicy pochodzą z regionów, w których angielski nie jest językiem podstawowym, dlatego dokładne tłumaczenia są niezbędne, aby bezpieczna komunikacja była dostępna dla wszystkich."
+    "text": "Od 2012 roku Onetime Secret zapewnia bezpieczny sposób udostępniania poufnych informacji na całym świecie. Użytkownicy pochodzą z regionów, w których angielski nie jest językiem podstawowym, dlatego dokładne tłumaczenia są niezbędne, aby bezpieczna komunikacja była dostępna dla wszystkich.",
+    "sha256": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Pomóż bezpiecznej komunikacji stać się globalną"
+    "text": "Pomóż bezpiecznej komunikacji dotrzeć na cały świat",
+    "sha256": "e94bdc8e"
   }
 }

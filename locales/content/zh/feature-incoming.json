@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "发送机密"
+    "text": "发送内容",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "安全地与我们的支持团队共享敏感信息"
+    "text": "与我们的支持团队安全分享敏感信息",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "加载中..."
+    "text": "加载中...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "加载配置失败"
+    "text": "加载配置失败",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "功能不可用"
+    "text": "功能不可用",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "此功能当前已禁用。请联系支持团队寻求帮助。"
+    "text": "此功能目前已禁用。请联系支持团队获取帮助。",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "备注"
+    "text": "备注",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "简要描述(例如:密码重置请求)"
+    "text": "简要说明（例如：密码重置请求）",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "帮助我们将您的消息发送给正确的人"
+    "text": "帮助我们将您的信息转给合适的人",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "发送至"
+    "text": "发送至",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "选择收件人"
+    "text": "选择接收者",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "为此机密选择收件人"
+    "text": "选择此内容的接收者",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "选择谁将收到此安全消息"
+    "text": "选择谁将收到此安全信息",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "没有可用的收件人"
+    "text": "没有可用的接收者",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "机密信息"
+    "text": "机密信息",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "在此粘贴敏感信息(密码、密钥等)"
+    "text": "在此粘贴敏感信息（密码、密钥等）",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "此信息将被加密,仅可查看一次"
+    "text": "此信息将被加密且只能查看一次",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "发送机密"
+    "text": "发送内容",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "发送机密"
+    "text": "发送内容",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "发送中..."
+    "text": "发送中...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "发送中..."
+    "text": "发送中...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "清除表单"
+    "text": "清除表单",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "清除表单"
+    "text": "清除表单",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "发送成功"
+    "text": "发送成功",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "您的安全消息已送达。"
+    "text": "您的安全信息已送达。",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "参考编号"
+    "text": "参考 ID",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "接下来会发生什么?"
+    "text": "接下来会发生什么？",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "收件人只能查看此机密一次。查看后,机密将被永久删除。"
+    "text": "接收者只能查看此内容一次。查看后，内容将被永久删除。",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "发送另一个机密"
+    "text": "发送另一条内容",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "安全地共享敏感信息"
+    "text": "安全分享敏感信息",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "将密码和私密数据远离电子邮件和聊天记录"
+    "text": "让密码和私密数据远离邮件和聊天记录",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "保存您的<a href='{receiptUrl}'>收据</a>以备记录。"
+    "text": "请保存您的{receipt}作为记录。",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "回执",
+    "sha256": "6f328609"
   }
 }

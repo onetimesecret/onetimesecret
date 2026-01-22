@@ -1,278 +1,402 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "了解有关 DNS 配置的更多信息"
+    "text": "了解更多关于 DNS 配置的信息",
+    "sha256": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "查看域名验证状态"
+    "text": "查看域名验证状态",
+    "sha256": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "此域名已在您的组织中注册"
+    "text": "此域名已在您的组织中注册",
+    "sha256": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "此域名已注册到其他组织。如果您认为这是错误，请联系支持。"
+    "text": "此域名已注册到另一个组织。如果您认为这是一个错误，请联系支持团队。",
+    "sha256": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "域名已成功认领并添加到您的组织"
+    "text": "域名已成功声明并添加到您的组织",
+    "sha256": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "隐私默认设置"
+    "text": "隐私默认值",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "为此域名下创建的内容设置默认隐私选项。这些设置将在创建新内容时自动填充。"
+    "text": "为此域名下创建的内容设置默认隐私选项。创建新内容时将预填这些设置。",
+    "sha256": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "隐私默认设置"
+    "text": "隐私默认值",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "隐私默认设置图标"
+    "text": "隐私默认值图标",
+    "sha256": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "默认有效期"
+    "text": "默认有效期",
+    "sha256": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "内容默认保持可访问的时长"
+    "text": "内容默认保持可访问的时间",
+    "sha256": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "要求口令"
+    "text": "需要口令",
+    "sha256": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "强制此域名下所有内容都需要口令"
+    "text": "使口令对此域名下的所有内容强制要求",
+    "sha256": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
-    "text": "启用通知"
+    "text": "启用通知",
+    "sha256": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "默认在内容被查看时发送邮件通知"
+    "text": "默认在内容被查看时启用邮件通知",
+    "sha256": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "使用全局默认"
+    "text": "使用全局默认",
+    "sha256": "a83c91e4"
   },
   "web.domains.global_default": {
-    "text": "全局"
+    "text": "全局",
+    "sha256": "a258b30f"
   },
   "web.domains.required": {
-    "text": "必需"
+    "text": "必需",
+    "sha256": "4850b174"
   },
   "web.domains.optional": {
-    "text": "可选"
+    "text": "可选",
+    "sha256": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "已启用"
+    "text": "已启用",
+    "sha256": "92c1cdfd"
   },
   "web.domains.disabled": {
-    "text": "已禁用"
+    "text": "已禁用",
+    "sha256": "75081b59"
   },
   "web.domains.custom": {
-    "text": "自定义"
+    "text": "自定义",
+    "sha256": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "编辑默认设置"
+    "text": "编辑默认值",
+    "sha256": "50f49b87"
   },
   "web.domains.ttl_short": {
-    "text": "有效期"
+    "text": "TTL",
+    "sha256": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "口令"
+    "text": "口令",
+    "sha256": "e7611f05"
   },
   "web.domains.notify_short": {
-    "text": "通知"
+    "text": "通知",
+    "sha256": "78801183"
   },
   "web.domains.scope_switch_label": {
-    "text": "切换域名范围"
+    "text": "切换域名范围",
+    "sha256": "c776f846"
   },
   "web.domains.switcher_locked": {
-    "text": "此页面不支持切换域名"
+    "text": "此页面不可切换域名",
+    "sha256": "ccd202fe"
   },
   "web.domains.scope_list_label": {
-    "text": "可用域名"
+    "text": "可用域名",
+    "sha256": "026552b3"
   },
   "web.domains.scope_header": {
-    "text": "域名"
+    "text": "域名",
+    "sha256": "ced67718"
   },
   "web.domains.add_domain": {
-    "text": "添加域名"
+    "text": "添加域名",
+    "sha256": "d86476ae"
   },
   "web.domains.domain_settings": {
-    "text": "域名设置"
+    "text": "域名设置",
+    "sha256": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "默认域名没有设置页面"
+    "text": "默认域名没有设置页面",
+    "sha256": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "请输入 {0} 域名"
+    "text": "请输入一个 {0} 域名",
+    "sha256": "167f2d19"
   },
   "web.domains.domain_name": {
-    "text": "域名"
+    "text": "域名",
+    "sha256": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "控制用户是否可以从您域名的主页创建一次性链接"
+    "text": "控制用户是否可以从您域名的主页创建一次性链接",
+    "sha256": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "主页访问"
+    "text": "主页访问",
+    "sha256": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "与状态"
+    "text": "和状态",
+    "sha256": "fe871d2c"
   },
   "web.domains.domain": {
-    "text": "域名"
+    "text": "域名",
+    "sha256": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "管理和配置您已验证的自定义域名"
+    "text": "管理和配置您已验证的自定义域名",
+    "sha256": "4e7f8311"
   },
   "web.domains.domains": {
-    "text": "域名"
+    "text": "域名",
+    "sha256": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "最后监控"
+    "text": "最后监控",
+    "sha256": "8d39d1d0"
   },
   "web.domains.ssl_status": {
-    "text": "SSL 状态"
+    "text": "SSL 状态",
+    "sha256": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL 续订"
+    "text": "SSL 续期",
+    "sha256": "c49a8cff"
   },
   "web.domains.dns_record": {
-    "text": "DNS 记录"
+    "text": "DNS 记录",
+    "sha256": "33cbb244"
   },
   "web.domains.target_address": {
-    "text": "目标地址"
+    "text": "目标地址",
+    "sha256": "5e812179"
   },
   "web.domains.domain_status": {
-    "text": "域名状态"
+    "text": "域名状态",
+    "sha256": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
-    "text": "自定义域名数量"
+    "text": "自定义域名数量",
+    "sha256": "a9929be0"
   },
   "web.domains.custom_domain": {
-    "text": "自定义域名"
+    "text": "自定义域名",
+    "sha256": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "在新标签页中打开域名"
+    "text": "在新标签页中打开域名",
+    "sha256": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "返回域名"
+    "text": "返回域名列表",
+    "sha256": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "返回域名列表"
+    "text": "返回域名列表",
+    "sha256": "c7632413"
   },
   "web.domains.verify_domain": {
-    "text": "验证域名"
+    "text": "验证域名",
+    "sha256": "b416f537"
   },
   "web.domains.manage_brand": {
-    "text": "管理品牌"
+    "text": "管理品牌",
+    "sha256": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
-    "text": "已添加 {0}"
+    "text": "已添加 {0}",
+    "sha256": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "添加您的域名"
+    "text": "添加您的域名",
+    "sha256": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "通过添加自定义域名开始使用。"
+    "text": "通过添加自定义域名开始使用。",
+    "sha256": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
-    "text": "未找到域名。"
+    "text": "未找到域名。",
+    "sha256": "574264df"
   },
   "web.domains.loading_domain_information": {
-    "text": "加载域名信息中"
+    "text": "正在加载域名信息...",
+    "sha256": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "为了连接您的域名，您需要在 DNS 中创建一个指向的 CNAME 记录"
+    "text": "为了连接您的域名，您需要在 DNS 中创建一个指向的 CNAME 记录",
+    "sha256": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "如果您已经为该地址创建了 CNAME 记录，请将其更改为指向"
+    "text": "如果您已经为该地址创建了 CNAME 记录，请将其更改为指向",
+    "sha256": "6f23e6db"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "text": "），不允许使用 CNAME 记录。相反，您需要创建 A 记录。有关如何执行此操作的详细信息将在页面下方提供。"
+    "text": "），不允许使用 CNAME 记录。相反，您需要创建 A 记录。有关如何执行此操作的详细信息将在页面下方提供。",
+    "sha256": "76d5ab5f"
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
-    "text": "并删除该确切地址的任何其他 A、AAAA 或 CNAME 记录。"
+    "text": "并删除该确切地址的任何其他 A、AAAA 或 CNAME 记录。",
+    "sha256": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": "，您需要完成这些步骤。"
+    "text": "，您需要完成以下步骤。",
+    "sha256": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "在我们可以为以下对象激活链接之前"
+    "text": "在我们为以下域名激活链接之前",
+    "sha256": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "请注意，对于顶级域名（例如"
+    "text": "请注意，对于顶级域名（例如",
+    "sha256": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "验证您的域名"
+    "text": "验证您的域名",
+    "sha256": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.example.com"
+    "text": "secrets.example.com",
+    "sha256": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "自定义您的域名品牌"
+    "text": "自定义您的域名品牌",
+    "sha256": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "text": "您的 SSL 证书可能需要几分钟才能生效。"
+    "text": "您的 SSL 证书可能需要几分钟才能生效。",
+    "sha256": "2e4f3179"
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
-    "text": "DNS 更改可能需要 60 秒到 24 小时才能生效。"
+    "text": "DNS 更改可能需要 60 秒到 24 小时才能生效。",
+    "sha256": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. 等待传播"
+    "text": "3. 等待传播",
+    "sha256": "3e6cf4e1"
   },
   "web.domains.value_2": {
-    "text": "值"
+    "text": "值",
+    "sha256": "8e37953d"
   },
   "web.domains.value_1": {
-    "text": "值"
+    "text": "值",
+    "sha256": "8e37953d"
   },
   "web.domains.host_1": {
-    "text": "主机"
+    "text": "主机",
+    "sha256": "4a823118"
   },
   "web.domains.type_2": {
-    "text": "类型"
+    "text": "类型",
+    "sha256": "baaddf70"
   },
   "web.domains.type_1": {
-    "text": "类型"
+    "text": "类型",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. 创建 CNAME 记录"
+    "text": "2. 创建 CNAME 记录",
+    "sha256": "781e438b"
   },
   "web.domains.value_0": {
-    "text": "值"
+    "text": "值",
+    "sha256": "8e37953d"
   },
   "web.domains.host_0": {
-    "text": "主机"
+    "text": "主机",
+    "sha256": "4a823118"
   },
   "web.domains.type_0": {
-    "text": "类型"
+    "text": "类型",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. 创建 A 记录"
+    "text": "2. 创建 A 记录",
+    "sha256": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "将此主机名添加到您的 DNS 配置："
+    "text": "将此主机名添加到您的 DNS 配置：",
+    "sha256": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. 创建 TXT 记录"
+    "text": "1. 创建 TXT 记录",
+    "sha256": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "按照以下步骤验证域名所有权并提升您的在线形象："
+    "text": "按照以下步骤验证域名所有权并提升您的在线形象：",
+    "sha256": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "域名验证步骤"
+    "text": "域名验证步骤",
+    "sha256": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "域名验证已成功启动。"
+    "text": "域名验证已成功启动。",
+    "sha256": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "您确定要删除此域名吗？此操作无法撤销。"
+    "text": "您确定要删除此域名吗？此操作无法撤销。",
+    "sha256": "403c6d3b"
   },
   "web.domains.remove_domain": {
-    "text": "删除域名"
+    "text": "移除域名",
+    "sha256": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "域名已成功删除"
+    "text": "域名移除成功",
+    "sha256": "2984d483"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "添加域名失败"
+    "text": "添加域名失败",
+    "sha256": "5fc4c4b3"
   },
   "web.domains.domain_added_successfully": {
-    "text": "域名已成功添加"
+    "text": "域名添加成功",
+    "sha256": "dd8180cf"
+  },
+  "web.domains.passphrase_set": {
+    "text": "已保护",
+    "sha256": "b0ed2633"
+  },
+  "web.domains.manage_domains": {
+    "text": "管理域名",
+    "sha256": "36dd9781"
+  },
+  "web.domains.global_defaults": {
+    "text": "全局默认值",
+    "sha256": "4526107f"
+  },
+  "web.domains.edit_ttl": {
+    "text": "编辑有效期设置",
+    "sha256": "ea8afd62"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "编辑口令要求",
+    "sha256": "0b5555b5"
+  },
+  "web.domains.edit_notify": {
+    "text": "编辑通知设置",
+    "sha256": "2e9e1ea0"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "配置 DNS 记录",
+    "sha256": "5932f0cb"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "使用下方工具自动检测您的 DNS 提供商，并获取配置域名的分步说明。",
+    "sha256": "91c1af2e"
   }
 }

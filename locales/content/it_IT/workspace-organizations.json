@@ -1,389 +1,578 @@
 {
   "web.organizations.title": {
-    "text": "Organizzazione"
+    "text": "Organizzazioni",
+    "sha256": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Organizzazione"
+    "text": "Organizzazione",
+    "sha256": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "Organizzazioni"
+    "text": "Organizzazioni",
+    "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Gestisci le tue organizzazioni"
+    "text": "Gestisci le tue organizzazioni",
+    "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Le mie organizzazioni"
+    "text": "Organizzazioni",
+    "sha256": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Gestisci organizzazioni"
+    "text": "Gestisci organizzazioni",
+    "sha256": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Nuova organizzazione"
+    "text": "Nuova organizzazione",
+    "sha256": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Ancora nessuna organizzazione"
+    "text": "Nessuna organizzazione ancora",
+    "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Le organizzazioni ti permettono di gestire team multipli con fatturazione e amministrazione unificate. Inizia creando la tua prima organizzazione"
+    "text": "Le organizzazioni forniscono fatturazione e amministrazione unificate. Inizia creando la tua prima organizzazione.",
+    "sha256": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Nessuna descrizione fornita"
+    "text": "Nessuna descrizione fornita",
+    "sha256": "41183d01"
   },
   "web.organizations.default": {
-    "text": "Predefinita"
+    "text": "Predefinita",
+    "sha256": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Crea organizzazione"
+    "text": "Crea organizzazione",
+    "sha256": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Crea la prima organizzazione"
+    "text": "Crea la prima organizzazione",
+    "sha256": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Crea una nuova organizzazione per raggruppare i tuoi team"
+    "text": "Crea una nuova organizzazione",
+    "sha256": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "Crea"
+    "text": "Crea",
+    "sha256": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Creazione organizzazione fallita"
+    "text": "Impossibile creare l'organizzazione",
+    "sha256": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Nome organizzazione"
+    "text": "Nome organizzazione",
+    "sha256": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "es. Acme Corporation"
+    "text": "es. Acme Corporation",
+    "sha256": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Nome organizzazione"
+    "text": "Nome organizzazione",
+    "sha256": "4cbd9073"
   },
   "web.organizations.description": {
-    "text": "Descrizione"
+    "text": "Descrizione",
+    "sha256": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "A cosa serve questa organizzazione?"
+    "text": "A cosa serve questa organizzazione?",
+    "sha256": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Email di fatturazione"
+    "text": "Email fatturazione",
+    "sha256": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Contatto principale per notifiche di fatturazione e amministrative"
+    "text": "Contatto principale per fatturazione e notifiche amministrative",
+    "sha256": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Seleziona un'organizzazione"
+    "text": "Seleziona un'organizzazione",
+    "sha256": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Cambio organizzazione non disponibile in questa pagina"
+    "text": "Cambio organizzazione non disponibile in questa pagina",
+    "sha256": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "Organizzazione non trovata"
+    "text": "Organizzazione non trovata",
+    "sha256": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "Caricamento organizzazione fallito"
+    "text": "Impossibile caricare l'organizzazione",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Caricamento organizzazione fallito"
+    "text": "Impossibile caricare l'organizzazione",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Caricamento organizzazioni fallito"
+    "text": "Impossibile caricare le organizzazioni",
+    "sha256": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Informazioni organizzazione"
+    "text": "Informazioni organizzazione",
+    "sha256": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Creata"
+    "text": "Creata",
+    "sha256": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Ultimo aggiornamento"
+    "text": "Ultimo aggiornamento",
+    "sha256": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Impostazioni organizzazione"
+    "text": "Impostazioni organizzazione",
+    "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aggiorna il nome e la descrizione della tua organizzazione"
+    "text": "Aggiorna nome e descrizione della tua organizzazione",
+    "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Impostazioni generali"
+    "text": "Impostazioni generali",
+    "sha256": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Fatturazione e abbonamento"
+    "text": "Fatturazione e abbonamento",
+    "sha256": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Salva modifiche"
+    "text": "Salva modifiche",
+    "sha256": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "Organizzazione aggiornata con successo"
+    "text": "Organizzazione aggiornata con successo",
+    "sha256": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Aggiornamento organizzazione fallito"
+    "text": "Impossibile aggiornare l'organizzazione",
+    "sha256": "bc2b59b8"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Integrazione fatturazione in arrivo"
+    "text": "Integrazione fatturazione in arrivo",
+    "sha256": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "La gestione unificata della fatturazione e degli abbonamenti per tutti i team di questa organizzazione sarà disponibile in una versione futura"
+    "text": "La gestione unificata di fatturazione e abbonamenti sarà disponibile in una versione futura.",
+    "sha256": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "Informazioni sulle organizzazioni"
+    "text": "Informazioni sulle organizzazioni",
+    "sha256": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Le organizzazioni forniscono fatturazione e amministrazione unificate per team multipli. Sono opzionali: i team possono esistere indipendentemente o essere raggruppati sotto un'organizzazione per la gestione centralizzata"
+    "text": "Le organizzazioni forniscono fatturazione e amministrazione unificate per una gestione centralizzata.",
+    "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Gestisci la tua organizzazione"
+    "text": "Gestisci la tua organizzazione",
+    "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Aggiorna il nome della tua azienda e i dettagli dell'organizzazione qui. Queste informazioni aiutano a personalizzare il tuo account e possono essere utilizzate per funzionalità di branding in futuro"
+    "text": "Aggiorna qui il nome della tua azienda e i dettagli dell'organizzazione. Queste informazioni aiutano a personalizzare il tuo account e possono essere usate per le funzionalità di branding in futuro.",
+    "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Iniziare con le organizzazioni"
+    "text": "Iniziare con le organizzazioni",
+    "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Crea la tua prima organizzazione per gestire le informazioni della tua azienda e prepararti per future funzionalità di collaborazione in team e branding"
+    "text": "Crea la tua prima organizzazione per gestire le informazioni della tua azienda e prepararti per le future funzionalità di branding.",
+    "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Gestisci le tue organizzazioni e i membri del team"
+    "text": "Gestisci le tue organizzazioni e i membri del team",
+    "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
-    "text": "Generale"
+    "text": "Impostazioni",
+    "sha256": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Branding aziendale"
+    "text": "Branding aziendale",
+    "sha256": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team"
+    "text": "Team",
+    "sha256": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Fatturazione"
+    "text": "Fatturazione",
+    "sha256": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
-    "text": "Zona pericolosa"
+    "text": "Zona pericolosa",
+    "sha256": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Elimina organizzazione"
+    "text": "Elimina organizzazione",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Questo eliminerà definitivamente l'organizzazione e tutti i team associati. Questa azione non può essere annullata"
+    "text": "Questo eliminerà permanentemente l'organizzazione. Questa azione non può essere annullata.",
+    "sha256": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "Elimina"
+    "text": "Elimina",
+    "sha256": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Elimina organizzazione"
+    "text": "Elimina organizzazione",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Sei sicuro di voler eliminare {name}? Questa azione non può essere annullata"
+    "text": "Sei sicuro di voler eliminare {name}? Questa azione non può essere annullata.",
+    "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Eliminazione organizzazione fallita"
+    "text": "Impossibile eliminare l'organizzazione",
+    "sha256": "a8e5bb28"
   },
   "web.organizations.members.title": {
-    "text": "Membri"
+    "text": "Membri",
+    "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Gestisci i membri dell'organizzazione e i loro ruoli"
+    "text": "Gestisci i membri dell'organizzazione e i loro ruoli",
+    "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Membri attuali"
+    "text": "Membri attuali",
+    "sha256": "cfc156ae"
   },
   "web.organizations.members.member": {
-    "text": "Membro"
+    "text": "Membro",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "membro",
+    "sha256": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "membri",
+    "sha256": "17373ca1"
   },
   "web.organizations.members.name": {
-    "text": "Nome"
+    "text": "Nome",
+    "sha256": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "Email"
+    "text": "Email",
+    "sha256": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Ruolo"
+    "text": "Ruolo",
+    "sha256": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Iscritto"
+    "text": "Iscritto",
+    "sha256": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "Azioni"
+    "text": "Azioni",
+    "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Nessun membro trovato"
+    "text": "Nessun membro ancora. Invita membri del team per iniziare.",
+    "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "Questa organizzazione non ha ancora membri."
+    "text": "Questa organizzazione non ha ancora membri.",
+    "sha256": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Ruolo del membro aggiornato con successo"
+    "text": "Ruolo del membro aggiornato con successo",
+    "sha256": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Aggiornamento del ruolo del membro fallito"
+    "text": "Impossibile aggiornare il ruolo del membro",
+    "sha256": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Membro rimosso dall'organizzazione"
+    "text": "Membro rimosso dall'organizzazione",
+    "sha256": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Rimozione del membro fallita"
+    "text": "Impossibile rimuovere il membro",
+    "sha256": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Rimuovi membro"
+    "text": "Rimuovi membro",
+    "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Sei sicuro di voler rimuovere {name} da questa organizzazione?"
+    "text": "Sei sicuro di voler rimuovere {name} da questa organizzazione?",
+    "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Non puoi modificare il tuo stesso ruolo"
+    "text": "Non puoi cambiare il tuo ruolo",
+    "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Non puoi rimuovere te stesso dall'organizzazione"
+    "text": "Non puoi rimuovere te stesso dall'organizzazione",
+    "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Non puoi rimuovere il proprietario dell'organizzazione"
+    "text": "Non puoi rimuovere il proprietario dell'organizzazione",
+    "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Non hai i permessi per gestire i membri"
+    "text": "Non hai i permessi per gestire i membri",
+    "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Proprietario"
+    "text": "Proprietario",
+    "sha256": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Amministratore"
+    "text": "Amministratore",
+    "sha256": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
-    "text": "Membro"
+    "text": "Membro",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Accesso completo a tutte le impostazioni dell'organizzazione e ai membri"
+    "text": "Accesso completo a tutte le impostazioni dell'organizzazione e ai membri",
+    "sha256": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Può gestire i membri e la maggior parte delle impostazioni dell'organizzazione"
+    "text": "Può gestire membri e la maggior parte delle impostazioni dell'organizzazione",
+    "sha256": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Accesso base alle risorse dell'organizzazione"
+    "text": "Accesso base alle risorse dell'organizzazione",
+    "sha256": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Inviti all'organizzazione"
+    "text": "Inviti organizzazione",
+    "sha256": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Invita membro"
+    "text": "Invita membro",
+    "sha256": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Invita nuovo membro"
+    "text": "Invita nuovo membro",
+    "sha256": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Inviti in attesa"
+    "text": "Inviti in sospeso",
+    "sha256": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Nessun invito in attesa"
+    "text": "Nessun invito in sospeso",
+    "sha256": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "Indirizzo email"
+    "text": "Indirizzo email",
+    "sha256": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "membro{'@'}esempio.com"
+    "text": "membro{'@'}example.com",
+    "sha256": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Ruolo"
+    "text": "Ruolo",
+    "sha256": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Invia invito"
+    "text": "Invia invito",
+    "sha256": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Invito inviato con successo"
+    "text": "Invito inviato con successo",
+    "sha256": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Invio dell'invito fallito"
+    "text": "Impossibile inviare l'invito",
+    "sha256": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Reinvia"
+    "text": "Reinvia",
+    "sha256": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Revoca"
+    "text": "Revoca",
+    "sha256": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Invito reinviato con successo"
+    "text": "Invito reinviato con successo",
+    "sha256": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Reinvio dell'invito fallito"
+    "text": "Impossibile reinviare l'invito",
+    "sha256": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Invito revocato con successo"
+    "text": "Invito revocato con successo",
+    "sha256": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Revoca dell'invito fallita"
+    "text": "Impossibile revocare l'invito",
+    "sha256": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Invitato da"
+    "text": "Invitato da",
+    "sha256": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Invitato"
+    "text": "Invitato",
+    "sha256": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Scade"
+    "text": "Scade",
+    "sha256": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Reinviato {count} volta"
+    "text": "Reinviato {count} volta",
+    "sha256": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Reinviato {count} volte"
+    "text": "Reinviato {count} volte",
+    "sha256": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "In attesa"
+    "text": "In sospeso",
+    "sha256": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Accettato"
+    "text": "Accettato",
+    "sha256": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Rifiutato"
+    "text": "Rifiutato",
+    "sha256": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Scaduto"
+    "text": "Scaduto",
+    "sha256": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro"
+    "text": "Membro",
+    "sha256": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Amministratore"
+    "text": "Amministratore",
+    "sha256": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Accetta invito"
+    "text": "Accetta invito",
+    "sha256": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Rifiuta invito"
+    "text": "Rifiuta invito",
+    "sha256": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Dettagli invito"
+    "text": "Dettagli invito",
+    "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Sei stato invitato a unirti"
+    "text": "Sei stato invitato a unirti a",
+    "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Sei stato invitato come"
+    "text": "Sei stato invitato come",
+    "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Invito accettato con successo"
+    "text": "Invito accettato con successo",
+    "sha256": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Accettazione dell'invito fallita"
+    "text": "Impossibile accettare l'invito",
+    "sha256": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Invito rifiutato"
+    "text": "Invito rifiutato",
+    "sha256": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Rifiuto dell'invito fallito"
+    "text": "Impossibile rifiutare l'invito",
+    "sha256": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Questo invito è scaduto"
+    "text": "Questo invito è scaduto",
+    "sha256": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Invito non valido o scaduto"
+    "text": "Invito non valido o scaduto",
+    "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Accedi per accettare questo invito"
+    "text": "Effettua l'accesso per accettare questo invito",
+    "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Caricamento dettagli invito"
+    "text": "Caricamento dettagli invito",
+    "sha256": "58884885"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Email fatturazione aggiornata con successo",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "L'email di fatturazione può essere modificata nella pagina Panoramica fatturazione",
+    "sha256": "8a131415"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro",
+    "sha256": "957b0b87"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} membro | {count} membri",
+    "sha256": "f652af0c"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} dominio | {count} domini",
+    "sha256": "09f52efa"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Aggiorna il tuo piano per invitare membri del team",
+    "sha256": "5e3f8df8"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Gli inviti ai membri del team richiedono un piano con gestione team. Aggiorna per aggiungere collaboratori alla tua organizzazione.",
+    "sha256": "cf10d623"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Account sbagliato",
+    "sha256": "80c8ffa7"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Questo invito è stato inviato a {invitedEmail}, ma sei connesso come {currentEmail}.",
+    "sha256": "937e08e7"
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Accedi con un altro account",
+    "sha256": "71b2bdf3"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}g rimanenti",
+    "sha256": "50ff6f2b"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h rimanenti",
+    "sha256": "ff56d105"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Scade presto",
+    "sha256": "a5dcfef9"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abbonamento",
+    "sha256": "4999c6c6"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domini",
+    "sha256": "ced67718"
   }
 }

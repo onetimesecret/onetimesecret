@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "Kua Tae"
+    "text": "Kua Whiwhia",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Kāore i Tae"
+    "text": "Kāore i Whiwhia",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Kāore he karere huna tata"
+    "text": "Kāore he karere huna tata nei",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Tīmatahia mā te waihanga i tō karere huna tuatahi."
+    "text": "Tīmata mā te waihanga i tō karere huna tuatahi.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Kāore i taea te uta i ngā rōpū"
+    "text": "Kāore e taea te uta i ngā raraunga",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "He raruraru i te wā e uta ana i ō rōpū. Tēnā koa whakamātau anō."
+    "text": "I puta he raru i te utanga o ō raraunga. Tēnā whakamātauria anō.",
+    "sha256": "ff0d904e"
   }
 }

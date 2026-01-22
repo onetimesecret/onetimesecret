@@ -2,16 +2,15 @@
 """
 Sync translations from app-consumable JSON back to content JSON files.
 
-Reads from src/locales/{locale}/*.json (app format, nested JSON)
+Reads from generated/locales/{locale}.json (app format, nested JSON)
 and writes to locales/content/{locale}/*.json (flat keys with text field).
 
-Three-tier architecture:
-- src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
+Two-tier architecture:
+- generated/locales/{locale}.json - App-consumable merged JSON (nested, auto-generated)
 - locales/content/{locale}/*.json - Version-controlled source of truth (flat keys)
-- locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
-This is the reverse of sync_to_src.py. Use this when you've edited
-src/locales directly and need to propagate changes back to content files.
+This is the reverse of compile.py. Use this when you've edited
+generated/locales directly and need to propagate changes back to content files.
 
 Existing metadata (context, skip, note) is preserved when updating keys.
 
@@ -19,16 +18,16 @@ IMPORTANT: Keys are NEVER removed from content files unless --remove is specifie
 This protects the source of truth from accidental data loss.
 
 Usage:
-    python sync_from_src.py LOCALE [OPTIONS]
-    python sync_from_src.py --all [OPTIONS]
+    python decompile.py LOCALE [OPTIONS]
+    python decompile.py --all [OPTIONS]
 
 Examples:
-    python sync_from_src.py en --dry-run
-    python sync_from_src.py en --file feature-organizations.json
-    python sync_from_src.py en
-    python sync_from_src.py --all
-    python sync_from_src.py en --report-orphans
-    python sync_from_src.py en --remove          # Also remove orphaned keys
+    python decompile.py en --dry-run
+    python decompile.py en --file feature-organizations.json
+    python decompile.py en
+    python decompile.py --all
+    python decompile.py en --report-orphans
+    python decompile.py en --remove          # Also remove orphaned keys
 """
 
 import argparse
@@ -59,7 +58,7 @@ def sync_locale(
     report_orphans: bool = False,
     remove_orphans: bool = False,
 ) -> dict[str, dict[str, int]]:
-    """Sync translations from src/locales to content JSON.
+    """Sync translations from generated/locales to content JSON.
 
     Args:
         locale: Target locale code.
@@ -203,15 +202,15 @@ def sync_locale(
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Sync translations from src/locales to content JSON.",
+        description="Sync translations from generated/locales to content JSON.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python sync_from_src.py en --dry-run
-    python sync_from_src.py en --file feature-organizations.json
-    python sync_from_src.py en
-    python sync_from_src.py --all
-    python sync_from_src.py en --report-orphans
+    python decompile.py en --dry-run
+    python decompile.py en --file feature-organizations.json
+    python decompile.py en
+    python decompile.py --all
+    python decompile.py en --report-orphans
         """,
     )
 
@@ -223,7 +222,7 @@ Examples:
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Sync all locales in src/locales directory",
+        help="Sync all locales in generated/locales directory",
     )
     parser.add_argument(
         "--file",

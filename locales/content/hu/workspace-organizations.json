@@ -1,389 +1,578 @@
 {
   "web.organizations.title": {
-    "text": "Szervezet"
+    "text": "Szervezetek",
+    "sha256": "2730183d"
   },
   "web.organizations.organization": {
-    "text": "Szervezet"
+    "text": "Szervezet",
+    "sha256": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "Szervezetek"
+    "text": "Szervezetek",
+    "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Szervezetek kezelése"
+    "text": "Szervezetek kezelése",
+    "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
-    "text": "Szervezeteim"
+    "text": "Szervezetek",
+    "sha256": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Szervezetek kezelése"
+    "text": "Szervezetek kezelése",
+    "sha256": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Új szervezet"
+    "text": "Új szervezet",
+    "sha256": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Még nincsenek szervezetek"
+    "text": "Még nincsenek szervezetek",
+    "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "A szervezetek lehetővé teszik több csapat kezelését egységes számlázással és adminisztrációval. Kezdje el első szervezete létrehozásával."
+    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak. Kezdje az első szervezetének létrehozásával.",
+    "sha256": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Nincs megadva leírás"
+    "text": "Nincs megadva leírás",
+    "sha256": "41183d01"
   },
   "web.organizations.default": {
-    "text": "Alapértelmezett"
+    "text": "Alapértelmezett",
+    "sha256": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Szervezet létrehozása"
+    "text": "Szervezet létrehozása",
+    "sha256": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Első szervezet létrehozása"
+    "text": "Első szervezet létrehozása",
+    "sha256": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Új szervezet létrehozása csapatok csoportosításához"
+    "text": "Új szervezet létrehozása",
+    "sha256": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "Létrehozás"
+    "text": "Létrehozás",
+    "sha256": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Nem sikerült létrehozni a szervezetet"
+    "text": "A szervezet létrehozása sikertelen",
+    "sha256": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Szervezet neve"
+    "text": "Szervezet neve",
+    "sha256": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "pl. Acme Corporation"
+    "text": "pl. Acme Kft.",
+    "sha256": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Szervezet neve"
+    "text": "Szervezet neve",
+    "sha256": "4cbd9073"
   },
   "web.organizations.description": {
-    "text": "Leírás"
+    "text": "Leírás",
+    "sha256": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Mire való ez a szervezet?"
+    "text": "Mire való ez a szervezet?",
+    "sha256": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Számlázási e-mail"
+    "text": "Számlázási e-mail",
+    "sha256": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Elsődleges kapcsolattartó a számlázási és adminisztratív értesítésekhez"
+    "text": "Elsődleges kapcsolattartó a számlázási és adminisztratív értesítésekhez",
+    "sha256": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Szervezet kiválasztása"
+    "text": "Válasszon szervezetet",
+    "sha256": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Szervezetváltás nem elérhető ezen az oldalon"
+    "text": "Szervezet váltás nem elérhető ezen az oldalon",
+    "sha256": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "Szervezet nem található"
+    "text": "Szervezet nem található",
+    "sha256": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "Nem sikerült betölteni a szervezetet"
+    "text": "A szervezet betöltése sikertelen",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Nem sikerült betölteni a szervezetet"
+    "text": "A szervezet betöltése sikertelen",
+    "sha256": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Nem sikerült betölteni a szervezeteket"
+    "text": "A szervezetek betöltése sikertelen",
+    "sha256": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Szervezet információk"
+    "text": "Szervezet információk",
+    "sha256": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Létrehozva"
+    "text": "Létrehozva",
+    "sha256": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Utoljára frissítve"
+    "text": "Utoljára frissítve",
+    "sha256": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Szervezet beállításai"
+    "text": "Szervezet beállítások",
+    "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Szervezet nevének és leírásának frissítése"
+    "text": "Szervezet nevének és leírásának frissítése",
+    "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Általános beállítások"
+    "text": "Általános beállítások",
+    "sha256": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Számlázás és előfizetés"
+    "text": "Számlázás és előfizetés",
+    "sha256": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Módosítások mentése"
+    "text": "Módosítások mentése",
+    "sha256": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "Szervezet sikeresen frissítve"
+    "text": "Szervezet sikeresen frissítve",
+    "sha256": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Nem sikerült frissíteni a szervezetet"
+    "text": "A szervezet frissítése sikertelen",
+    "sha256": "bc2b59b8"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Számlázási integráció hamarosan"
+    "text": "Számlázási integráció hamarosan",
+    "sha256": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Az egységes számlázás és előfizetés-kezelés a szervezet összes csapatához egy jövőbeli kiadásban lesz elérhető."
+    "text": "Az egységes számlázás és előfizetés kezelés egy későbbi kiadásban lesz elérhető.",
+    "sha256": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "A szervezetekről"
+    "text": "A szervezetekről",
+    "sha256": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak több csapat számára. Opcionálisak - a csapatok létezhetnek függetlenül vagy csoportosíthatók egy szervezet alatt központosított kezeléshez."
+    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak a központosított kezeléshez.",
+    "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Szervezet kezelése"
+    "text": "Szervezet kezelése",
+    "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Frissítse cége nevét és szervezeti részleteit itt. Ez az információ segít személyre szabni fiókját és használható lesz jövőbeli márkajelzési funkciókhoz."
+    "text": "Frissítse cégnevét és szervezeti adatait itt. Ezek az információk segítenek személyre szabni fiókját és a jövőben felhasználhatók a márkajelzési funkciókhoz.",
+    "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Kezdő lépések a szervezetekkel"
+    "text": "Kezdés a szervezetekkel",
+    "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Hozza létre első szervezetét cégének információinak kezeléséhez és készüljön fel a jövőbeli csapatmunkára és márkajelzési funkciókra."
+    "text": "Hozza létre első szervezetét a cégadatok kezeléséhez és a jövőbeli márkajelzési funkciókra való felkészüléshez.",
+    "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Szervezetek és csapattagok kezelése"
+    "text": "Szervezetek és csapattagok kezelése",
+    "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
-    "text": "Általános"
+    "text": "Beállítások",
+    "sha256": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Céges márkajelzés"
+    "text": "Céges márkajelzés",
+    "sha256": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Csapat"
+    "text": "Csapat",
+    "sha256": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Számlázás"
+    "text": "Számlázás",
+    "sha256": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
-    "text": "Veszélyzóna"
+    "text": "Veszélyes zóna",
+    "sha256": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Szervezet törlése"
+    "text": "Szervezet törlése",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Ez véglegesen törli a szervezetet és minden kapcsolódó csapatot. Ez a művelet nem vonható vissza."
+    "text": "Ez véglegesen törli a szervezetet. Ez a művelet nem vonható vissza.",
+    "sha256": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "Törlés"
+    "text": "Törlés",
+    "sha256": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Szervezet törlése"
+    "text": "Szervezet törlése",
+    "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Biztosan törölni szeretné a(z) {name} szervezetet? Ez a művelet nem vonható vissza."
+    "text": "Biztosan törölni szeretné a(z) {name} szervezetet? Ez a művelet nem vonható vissza.",
+    "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Nem sikerült törölni a szervezetet"
+    "text": "A szervezet törlése sikertelen",
+    "sha256": "a8e5bb28"
   },
   "web.organizations.members.title": {
-    "text": "Tagok"
+    "text": "Tagok",
+    "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Szervezeti tagok és szerepkörök kezelése"
+    "text": "Szervezet tagok és szerepköreik kezelése",
+    "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Jelenlegi tagok"
+    "text": "Jelenlegi tagok",
+    "sha256": "cfc156ae"
   },
   "web.organizations.members.member": {
-    "text": "Tag"
+    "text": "Tag",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "tag",
+    "sha256": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "tagok",
+    "sha256": "17373ca1"
   },
   "web.organizations.members.name": {
-    "text": "Név"
+    "text": "Név",
+    "sha256": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "E-mail"
+    "text": "E-mail",
+    "sha256": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Szerepkör"
+    "text": "Szerepkör",
+    "sha256": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Csatlakozott"
+    "text": "Csatlakozott",
+    "sha256": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "Műveletek"
+    "text": "Műveletek",
+    "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Nem találhatók tagok"
+    "text": "Még nincsenek tagok. Hívjon meg csapattagokat a kezdéshez.",
+    "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "Ennek a szervezetnek még nincsenek tagjai."
+    "text": "Ennek a szervezetnek még nincsenek tagjai.",
+    "sha256": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Tag szerepköre sikeresen frissítve"
+    "text": "Tag szerepköre sikeresen frissítve",
+    "sha256": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Nem sikerült frissíteni a tag szerepkörét"
+    "text": "A tag szerepkörének frissítése sikertelen",
+    "sha256": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Tag eltávolítva a szervezetből"
+    "text": "Tag eltávolítva a szervezetből",
+    "sha256": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Nem sikerült eltávolítani a tagot"
+    "text": "A tag eltávolítása sikertelen",
+    "sha256": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Tag eltávolítása"
+    "text": "Tag eltávolítása",
+    "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Biztosan el szeretné távolítani {name} nevű tagot ebből a szervezetből?"
+    "text": "Biztosan el szeretné távolítani {name} felhasználót ebből a szervezetből?",
+    "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Nem módosíthatja saját szerepkörét"
+    "text": "Nem módosíthatja saját szerepkörét",
+    "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Nem távolíthatja el magát a szervezetből"
+    "text": "Nem távolíthatja el önmagát a szervezetből",
+    "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Nem távolíthatja el a szervezet tulajdonosát"
+    "text": "A szervezet tulajdonosát nem távolíthatja el",
+    "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Nincs jogosultsága tagok kezeléséhez"
+    "text": "Nincs jogosultsága a tagok kezeléséhez",
+    "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Tulajdonos"
+    "text": "Tulajdonos",
+    "sha256": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Adminisztrátor"
+    "text": "Admin",
+    "sha256": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
-    "text": "Tag"
+    "text": "Tag",
+    "sha256": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Teljes hozzáférés az összes szervezeti beállításhoz és taghoz"
+    "text": "Teljes hozzáférés az összes szervezeti beállításhoz és taghoz",
+    "sha256": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Kezelheti a tagokat és a legtöbb szervezeti beállítást"
+    "text": "Kezelheti a tagokat és a legtöbb szervezeti beállítást",
+    "sha256": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Alapszintű hozzáférés a szervezeti erőforrásokhoz"
+    "text": "Alapvető hozzáférés a szervezet erőforrásaihoz",
+    "sha256": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Szervezeti meghívók"
+    "text": "Szervezeti meghívók",
+    "sha256": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Tag meghívása"
+    "text": "Tag meghívása",
+    "sha256": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Új tag meghívása"
+    "text": "Új tag meghívása",
+    "sha256": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Függő meghívók"
+    "text": "Függőben lévő meghívók",
+    "sha256": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Nincsenek függő meghívók"
+    "text": "Nincsenek függőben lévő meghívók",
+    "sha256": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "E-mail cím"
+    "text": "E-mail cím",
+    "sha256": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "tag{'@'}pelda.hu"
+    "text": "tag{'@'}example.com",
+    "sha256": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Szerepkör"
+    "text": "Szerepkör",
+    "sha256": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Meghívó küldése"
+    "text": "Meghívó küldése",
+    "sha256": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Meghívó sikeresen elküldve"
+    "text": "Meghívó sikeresen elküldve",
+    "sha256": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Nem sikerült elküldeni a meghívót"
+    "text": "A meghívó küldése sikertelen",
+    "sha256": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Újraküldés"
+    "text": "Újraküldés",
+    "sha256": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Visszavonás"
+    "text": "Visszavonás",
+    "sha256": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Meghívó sikeresen újraküldve"
+    "text": "Meghívó sikeresen újraküldve",
+    "sha256": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Nem sikerült újraküldeni a meghívót"
+    "text": "A meghívó újraküldése sikertelen",
+    "sha256": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Meghívó sikeresen visszavonva"
+    "text": "Meghívó sikeresen visszavonva",
+    "sha256": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Nem sikerült visszavonni a meghívót"
+    "text": "A meghívó visszavonása sikertelen",
+    "sha256": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Meghívta"
+    "text": "Meghívó",
+    "sha256": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Meghívás időpontja"
+    "text": "Meghívva",
+    "sha256": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Lejár"
+    "text": "Lejár",
+    "sha256": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Újraküldve {count} alkalommal"
+    "text": "Újraküldve {count} alkalommal",
+    "sha256": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Újraküldve {count} alkalommal"
+    "text": "Újraküldve {count} alkalommal",
+    "sha256": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Függőben"
+    "text": "Függőben",
+    "sha256": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "Elfogadva"
+    "text": "Elfogadva",
+    "sha256": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Elutasítva"
+    "text": "Elutasítva",
+    "sha256": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Lejárt"
+    "text": "Lejárt",
+    "sha256": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Tag"
+    "text": "Tag",
+    "sha256": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Adminisztrátor"
+    "text": "Admin",
+    "sha256": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Meghívó elfogadása"
+    "text": "Meghívó elfogadása",
+    "sha256": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Meghívó elutasítása"
+    "text": "Meghívó elutasítása",
+    "sha256": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Meghívó részletei"
+    "text": "Meghívó részletei",
+    "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Meghívást kapott a csatlakozásra"
+    "text": "Meghívást kapott a csatlakozásra:",
+    "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Ön a következő szerepkörben lett meghívva:"
+    "text": "Ön meghívást kapott mint",
+    "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Meghívó sikeresen elfogadva"
+    "text": "Meghívó sikeresen elfogadva",
+    "sha256": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Nem sikerült elfogadni a meghívót"
+    "text": "A meghívó elfogadása sikertelen",
+    "sha256": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Meghívó elutasítva"
+    "text": "Meghívó elutasítva",
+    "sha256": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Nem sikerült elutasítani a meghívót"
+    "text": "A meghívó elutasítása sikertelen",
+    "sha256": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Ez a meghívó lejárt"
+    "text": "Ez a meghívó lejárt",
+    "sha256": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Érvénytelen vagy lejárt meghívó"
+    "text": "Érvénytelen vagy lejárt meghívó",
+    "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Kérjük, jelentkezzen be a meghívó elfogadásához"
+    "text": "Kérjük, jelentkezzen be a meghívó elfogadásához",
+    "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Meghívó részleteinek betöltése"
+    "text": "Meghívó részleteinek betöltése",
+    "sha256": "58884885"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Számlázási e-mail sikeresen frissítve",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "A számlázási e-mail a Számlázási áttekintés oldalon módosítható",
+    "sha256": "8a131415"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro",
+    "sha256": "957b0b87"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} tag",
+    "sha256": "f652af0c"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domén",
+    "sha256": "09f52efa"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Frissítse csomagját a csapattagok meghívásához",
+    "sha256": "5e3f8df8"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "A csapattag meghívásokhoz csapatkezeléssel rendelkező csomag szükséges. Frissítsen, hogy munkatársakat adhasson a szervezetéhez.",
+    "sha256": "cf10d623"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Rossz fiók",
+    "sha256": "80c8ffa7"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Ez a meghívó a(z) {invitedEmail} címre lett küldve, de Ön jelenleg {currentEmail} fiókkal van bejelentkezve.",
+    "sha256": "937e08e7"
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Bejelentkezés másik fiókkal",
+    "sha256": "71b2bdf3"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days} nap van hátra",
+    "sha256": "50ff6f2b"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours} óra van hátra",
+    "sha256": "ff56d105"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Hamarosan lejár",
+    "sha256": "a5dcfef9"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Előfizetés",
+    "sha256": "4999c6c6"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domének",
+    "sha256": "ced67718"
   }
 }

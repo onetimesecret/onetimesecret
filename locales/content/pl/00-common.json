@@ -3,942 +3,1335 @@
     "text": "Ogłoszenie"
   },
   "web.COMMON.tagline": {
-    "text": "Bezpieczne linki, które działają tylko raz"
+    "text": "Bezpieczne linki, które działają tylko raz",
+    "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Wspierane przez"
+    "text": "Wspierane przez",
+    "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/pl"
+    "text": "https://onetimesecret.com/pl",
+    "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Generuj Hasło"
+    "text": "Wygeneruj hasło",
+    "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Generowanie hasła jest wyłączone, gdy formularz jest prawidłowy"
+    "text": "Generowanie hasła jest wyłączone, gdy formularz jest poprawny",
+    "sha256": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "np. tom{'@'}myspace.com"
+    "text": "np. jan{'@'}przyklad.pl",
+    "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Wpisz swoje hasło"
+    "text": "Wprowadź swoje hasło",
+    "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Domeny niestandardowe"
+    "text": "Domeny niestandardowe",
+    "sha256": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Wzmocnij relacje i buduj zaufanie dzięki własnym, markowym linkom do wiadomości."
+    "text": "Wzmocnij relacje i buduj zaufanie dzięki własnym markowym linkom do sekretów.",
+    "sha256": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Rozpocznij"
+    "text": "Rozpocznij",
+    "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Potwierdź swoje hasło"
+    "text": "Potwierdź swoje hasło",
+    "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
-    "text": "Ustawienia"
+    "text": "Ustawienia",
+    "sha256": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Wyślij"
+    "text": "Wyślij",
+    "sha256": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Wysyłanie..."
+    "text": "Wysyłanie...",
+    "sha256": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Przetwarzanie..."
+    "text": "Przetwarzanie...",
+    "sha256": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Bezpiecznie udostępniaj poufne informacje na czatach i pocztą e-mail. Udostępnij tajne łącze, które jest dostępne tylko jeden raz."
+    "text": "Chroń poufne informacje przed zapisaniem w historii czatu i e-mailach. Udostępnij link do sekretu, który jest dostępny tylko raz.",
+    "sha256": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Nieprawidłowa fraza dostępowa"
+    "text": "Nieprawidłowa fraza dostępowa",
+    "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "sekret,generator haseł,sekretne linki,jednorazowe,wiadomość,poufne"
+    "text": "sekret,generator haseł,udostępnij sekret,jednorazowy",
+    "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Utwórz link do wiadomości"
+    "text": "Utwórz link do sekretu",
+    "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Lub wygeneruj losowe hasło"
+    "text": "Lub wygeneruj losowe hasło",
+    "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Ustawienia prywatności"
+    "text": "Opcje prywatności",
+    "sha256": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Fraza dostępowa"
+    "text": "Fraza dostępowa",
+    "sha256": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Trudne do odgadnięcia słowo lub fraza chroniąca wiadomość"
+    "text": "Słowo lub fraza trudna do odgadnięcia",
+    "sha256": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Adres e-mail odbiorcy"
+    "text": "Adres odbiorcy",
+    "sha256": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Napisz wiadomość..."
+    "text": "Treść sekretu wpisz tutaj...",
+    "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Utwórz konto"
+    "text": "Utwórz konto",
+    "sha256": "0dffe234"
   },
   "web.COMMON.header_about": {
-    "text": "O nas"
+    "text": "O nas",
+    "sha256": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Zaloguj"
+    "text": "Zaloguj się",
+    "sha256": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Panel"
+    "text": "Konto",
+    "sha256": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Wyloguj"
+    "text": "Wyloguj",
+    "sha256": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Wiadomość"
+    "text": "Sekret | Sekrety",
+    "sha256": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Ostatnie"
+    "text": "Ostatnie",
+    "sha256": "690dbe9d"
   },
   "web.COMMON.received": {
-    "text": "Odebrane"
+    "text": "Odebrano",
+    "sha256": "49f19bee"
   },
   "web.COMMON.burn": {
-    "text": "Unieważnij"
+    "text": "Zniszcz",
+    "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Unieważniono"
+    "text": "Zniszczony",
+    "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "Wygasa za"
+    "text": "Wygasa za",
+    "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "unieważnij tę wiadomość"
+    "text": "Zniszcz ten sekret",
+    "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Unieważnienie spowoduje wygaśnięcie linku do wiadomości przed jego użyciem oraz bezpowrotne usunięcie wiadomości z serwera (kliknij, aby potwierdzić)"
+    "text": "Zniszczenie sekretu spowoduje jego usunięcie przed odczytaniem (kliknij, aby potwierdzić)",
+    "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Unieważnienie jest trwałe i nieodwracalne"
+    "text": "Zniszczenie sekretu jest trwałe i nie można tego cofnąć",
+    "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Sprawdź swoją skrzynkę e-mail"
+    "text": "Sprawdź swoją skrzynkę e-mail",
+    "sha256": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Kliknij aby kontynuować →"
+    "text": "Kliknij, aby wyświetlić →",
+    "sha256": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Kontynuuj weryfikację swojego konta:"
+    "text": "Kontynuuj, aby zweryfikować swoje konto:",
+    "sha256": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Nie podałeś niczego do udostępnienia"
+    "text": "Nie podano niczego do udostępnienia",
+    "sha256": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Nieprawidłowa fraza dostępowa, spróbuj jeszcze raz!"
+    "text": "Sprawdź ponownie frazę dostępową",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Wprowadź frazę dostępową tutaj"
+    "text": "Wprowadź frazę dostępową tutaj",
+    "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Wyświetl wiadomość"
+    "text": "Wyświetl sekret",
+    "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "uwaga: ta wiadomość wyświetli się tylko raz, a następnie ulegnie samozniszczeniu"
+    "text": "Uwaga: pokażemy to tylko raz.",
+    "sha256": "d29e2820"
   },
   "web.COMMON.warning": {
-    "text": "Ostrzeżenie"
+    "text": "Ostrzeżenie",
+    "sha256": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Ups!"
+    "text": "Ups!",
+    "sha256": "8344947a"
   },
   "web.COMMON.error": {
-    "text": "Błąd"
+    "text": "Błąd",
+    "sha256": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie."
+    "text": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.",
+    "sha256": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Wiadomość została obcięta ponieważ była dłuższa niż"
+    "text": "Wiadomość została skrócona",
+    "sha256": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Zarejestruj się, aby uzyskać więcej"
+    "text": "Zarejestruj się, aby uzyskać więcej",
+    "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Zaloguj się na swoje konto"
+    "text": "Zaloguj się na swoje konto",
+    "sha256": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Wyślij do: "
+    "text": "Wysłano do:",
+    "sha256": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "E-mail"
+    "text": "E-mail",
+    "sha256": "969ccbd3"
   },
   "web.COMMON.field_password": {
-    "text": "Hasło"
+    "text": "Hasło",
+    "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Potwierdź hasło"
+    "text": "Potwierdź hasło",
+    "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Utwórz Konto"
+    "text": "Utwórz konto",
+    "sha256": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Udostępnij wiadomość"
+    "text": "Udostępnij sekret",
+    "sha256": "5384461b"
   },
   "web.COMMON.title_home": {
-    "text": "Strona główna"
+    "text": "Strona główna",
+    "sha256": "3a786953"
   },
   "web.COMMON.word_none": {
-    "text": "Brak"
+    "text": "Brak",
+    "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "unieważnione"
+    "text": "zniszczony",
+    "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "odebrane"
+    "text": "odebrano",
+    "sha256": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Potwierdź"
+    "text": "Potwierdź",
+    "sha256": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Anuluj"
+    "text": "Anuluj",
+    "sha256": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Kontynuuj"
+    "text": "Kontynuuj",
+    "sha256": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Gotowe"
+    "text": "Gotowe",
+    "sha256": "11a6767d"
   },
   "web.COMMON.back": {
-    "text": "Wstecz"
+    "text": "Wstecz",
+    "sha256": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Masz pytanie lub komentarz?"
+    "text": "Podziel się swoimi przemyśleniami, pomysłami lub doświadczeniami...",
+    "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Wyślij Opinię"
+    "text": "Wyślij opinię",
+    "sha256": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Wysłano potwierdzenie na"
+    "text": "Wysłano weryfikację do",
+    "sha256": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Konto utworzone. Zaloguj się."
+    "text": "Konto utworzone. Zaloguj się.",
+    "sha256": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Jeśli istnieje konto z tym adresem e-mail, otrzymasz wiadomość weryfikacyjną."
+    "text": "Jeśli konto z tym adresem e-mail istnieje, otrzymasz e-mail weryfikacyjny.",
+    "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Unieważnij tę wiadomość na stałe"
+    "text": "Zniszcz ten sekret na zawsze",
+    "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Proszę potwierdzić"
+    "text": "Potwierdź",
+    "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Czy na pewno chcesz unieważnić tę wiadomość? Tej akcji nie można cofnąć."
+    "text": "Czy na pewno chcesz zniszczyć ten sekret? Tej operacji nie można cofnąć.",
+    "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Tak, unieważnij tę wiadomość"
+    "text": "Tak, zniszcz ten sekret",
+    "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Unieważnienie wiadomości spowoduje jej usunięcie, zanim zostanie odebrana."
+    "text": "Zniszczenie sekretu spowoduje jego usunięcie przed odebraniem.",
+    "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Ze względów bezpieczeństwa udostępnij ten link oddzielnie od innych szczegółów."
+    "text": "Ze względów bezpieczeństwa udostępnij ten link oddzielnie od innych informacji.",
+    "sha256": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Skopiowano do schowka"
+    "text": "Skopiowano do schowka",
+    "sha256": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Utwórz przychodzące"
+    "text": "Utwórz przychodzące",
+    "sha256": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "FAQ"
+    "text": "FAQ",
+    "sha256": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Weryfikacja jest nieprawidłowa"
+    "text": "Weryfikacja jest nieprawidłowa",
+    "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nie można zweryfikować konta, gdy jesteś już zalogowany"
+    "text": "Nie można zweryfikować konta, gdy jesteś już zalogowany",
+    "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Pokaż hasło"
+    "text": "Pokaż hasło",
+    "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Ukryj hasło"
+    "text": "Ukryj hasło",
+    "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Hasło musi mieć co najmniej 8 znaków"
+    "text": "Hasło musi mieć co najmniej 8 znaków",
+    "sha256": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "Hasło musi mieć co najmniej 8 znaków"
+    "text": "Hasło musi mieć co najmniej 8 znaków",
+    "sha256": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Hasła nie pasują do siebie"
+    "text": "Hasła nie są zgodne",
+    "sha256": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
-    "text": "To pole jest wymagane"
+    "text": "To pole jest wymagane",
+    "sha256": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Przetwarzanie żądania"
+    "text": "Przetwarzanie żądania",
+    "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Pozostaw mnie zalogowanym przez 30 dni"
+    "text": "Pozostań zalogowany przez 30 dni",
+    "sha256": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Przekierowywanie..."
+    "text": "Przekierowywanie...",
+    "sha256": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Kontynuuj"
+    "text": "Kontynuuj",
+    "sha256": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Czy na pewno?"
+    "text": "Czy na pewno?",
+    "sha256": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "Strefa niebezpieczeństwa"
+    "text": "Strefa zagrożenia",
+    "sha256": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Strefa rozważnej decyzji"
+    "text": "Strefa ostrożności",
+    "sha256": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
-    "text": "Menu użytkownika"
+    "text": "Menu użytkownika",
+    "sha256": "6fa25be1"
   },
   "web.COMMON.security": {
-    "text": "Bezpieczeństwo"
+    "text": "Bezpieczeństwo",
+    "sha256": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Zarządzaj"
+    "text": "Zarządzaj",
+    "sha256": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "Ładowanie..."
+    "text": "Ładowanie...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Zapisz zmiany"
+    "text": "Zapisz zmiany",
+    "sha256": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Zapisywanie..."
+    "text": "Zapisywanie...",
+    "sha256": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Dodawanie..."
+    "text": "Dodawanie",
+    "sha256": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "np."
+    "text": "np.",
+    "sha256": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "np. {example}"
+    "text": "np. {example}",
+    "sha256": "cc921aaa"
   },
   "web.COMMON.status": {
-    "text": "Status"
+    "text": "Status",
+    "sha256": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Escape"
+    "text": "Escape",
+    "sha256": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Aktywny"
+    "text": "Aktywny",
+    "sha256": "92340695"
   },
   "web.COMMON.preview": {
-    "text": "Podgląd"
+    "text": "Podgląd",
+    "sha256": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Usuń"
+    "text": "Usuń",
+    "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Naciśnij ESC, aby zamknąć"
+    "text": "Naciśnij ESC, aby zamknąć",
+    "sha256": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Wprowadź"
+    "text": "Enter",
+    "sha256": "dc8659db"
   },
   "web.COMMON.important": {
-    "text": "Ważne"
+    "text": "Ważne",
+    "sha256": "ddca9a57"
   },
   "web.COMMON.language": {
-    "text": "Język"
+    "text": "Język",
+    "sha256": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Motyw"
+    "text": "Motyw",
+    "sha256": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Wygląd"
+    "text": "Wygląd",
+    "sha256": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Gotowe"
+    "text": "Gotowe",
+    "sha256": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Koniec"
+    "text": "Koniec",
+    "sha256": "f4db1e48"
   },
   "web.COMMON.general": {
-    "text": "Ogólne"
+    "text": "Ogólne",
+    "sha256": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Uwaga"
+    "text": "Uwaga",
+    "sha256": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "Miesięcznie"
+    "text": "Miesięcznie",
+    "sha256": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "Rocznie"
+    "text": "Rocznie",
+    "sha256": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "No dalej."
+    "text": "No dobrze.",
+    "sha256": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Ładowanie..."
+    "text": "Ładowanie...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.not_received": {
-    "text": "NIE ODEBRANO"
+    "text": "NIE ODEBRANO",
+    "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Potwierdź hasło"
+    "text": "Potwierdź hasło",
+    "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "Nowe hasło"
+    "text": "Nowe hasło",
+    "sha256": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "Adres e-mail"
+    "text": "Adres e-mail",
+    "sha256": "f2488fd4"
   },
   "web.COMMON.switch": {
-    "text": "przełącz"
+    "text": "przełącz",
+    "sha256": "78b49fb2"
   },
   "web.COMMON.features": {
-    "text": "Funkcje"
+    "text": "Funkcje",
+    "sha256": "5697d03d"
   },
   "web.COMMON.not_found": {
-    "text": "Nie znaleziono"
+    "text": "Nie znaleziono",
+    "sha256": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
-    "text": "❌"
+    "text": "❌",
+    "sha256": "2b2966a5"
   },
   "web.COMMON.emoji_checkmark": {
-    "text": "✅"
+    "text": "✅",
+    "sha256": "1d456424"
   },
   "web.COMMON.supported": {
-    "text": "Obsługiwane"
+    "text": "Obsługiwane",
+    "sha256": "c1658000"
   },
   "web.COMMON.version": {
-    "text": "Wersja"
+    "text": "Wersja",
+    "sha256": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Inne"
+    "text": "Inne",
+    "sha256": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(min-width: 1024px)"
+    "text": "(min-width: 1024px)",
+    "sha256": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Ctrl + Enter"
+    "text": "Ctrl + Enter",
+    "sha256": "78192e6e"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Enter"
+    "text": "⌘ + Enter",
+    "sha256": "558acbab"
   },
   "web.COMMON.mac": {
-    "text": "Mac"
+    "text": "Mac",
+    "sha256": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Adres e-mail skopiowany do schowka!"
+    "text": "Adres e-mail skopiowany do schowka!",
+    "sha256": "23238b4e"
   },
   "web.COMMON.value": {
-    "text": "Wartość"
+    "text": "Wartość",
+    "sha256": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Host",
+    "sha256": "4a823118"
   },
   "web.COMMON.type": {
-    "text": "Typ"
+    "text": "Typ",
+    "sha256": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Poprzedni"
+    "text": "Poprzedni",
+    "sha256": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Następny"
+    "text": "Dalej",
+    "sha256": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Siła hasła:"
+    "text": "Siła hasła:",
+    "sha256": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Świetna"
+    "text": "Świetnie",
+    "sha256": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Całkiem dobra"
+    "text": "Całkiem dobrze",
+    "sha256": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Dostateczna"
+    "text": "W porządku",
+    "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Słaba"
+    "text": "Tak sobie",
+    "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Bardzo słaba"
+    "text": "Nie najlepiej",
+    "sha256": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Otwórz opcje"
+    "text": "Otwórz opcje",
+    "sha256": "3dc08503"
   },
   "web.COMMON.inactive": {
-    "text": "Nieaktywny"
+    "text": "Nieaktywny",
+    "sha256": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Wystąpił błąd"
+    "text": "Wystąpił błąd",
+    "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Kopiuj wiadomość do schowka"
+    "text": "Kopiuj sekret do schowka",
+    "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Wiadomość skopiowana do schowka"
+    "text": "Sekret skopiowany do schowka",
+    "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Sprawdź dokładnie tę frazę dostępową"
+    "text": "Sprawdź ponownie frazę dostępową",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Naciśnij przycisk kopiowania poniżej."
+    "text": "Naciśnij przycisk kopiowania poniżej.",
+    "sha256": "77fcf6fb"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Pokaż"
+    "text": "Pokaż",
+    "sha256": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Ukryj"
+    "text": "Ukryj",
+    "sha256": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Pokaż więcej"
+    "text": "Pokaż więcej",
+    "sha256": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Pokaż mniej"
+    "text": "Pokaż mniej",
+    "sha256": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Włącz"
+    "text": "Włącz",
+    "sha256": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Wyłącz"
+    "text": "Wyłącz",
+    "sha256": "b7e3e4aa"
   },
   "web.LABELS.stats": {
-    "text": "Statystyki"
+    "text": "Statystyki",
+    "sha256": "b4a73657"
   },
   "web.LABELS.timeline": {
-    "text": "Oś czasu"
+    "text": "Oś czasu",
+    "sha256": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Okres ważności"
+    "text": "Czas życia",
+    "sha256": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Czas wygaśnięcia"
+    "text": "Czas wygaśnięcia",
+    "sha256": "c5db84a8"
   },
   "web.LABELS.close": {
-    "text": "Zamknij"
+    "text": "Zamknij",
+    "sha256": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "Ładowanie..."
+    "text": "Ładowanie...",
+    "sha256": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Anuluj"
+    "text": "Anuluj",
+    "sha256": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Zapisywanie..."
+    "text": "Zapisywanie...",
+    "sha256": "dc85af8f"
   },
   "web.LABELS.saved": {
-    "text": "Zapisano"
+    "text": "Zapisano",
+    "sha256": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Zapisz"
+    "text": "Zapisz",
+    "sha256": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Zapisz wszystko"
+    "text": "Zapisz wszystko",
+    "sha256": "d3c54e39"
   },
   "web.LABELS.details": {
-    "text": "Szczegóły"
+    "text": "Szczegóły",
+    "sha256": "45989de4"
   },
   "web.LABELS.encrypted": {
-    "text": "Zaszyfrowane"
+    "text": "Zaszyfrowany",
+    "sha256": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Status wiadomości"
+    "text": "Status sekretu",
+    "sha256": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Potrzebujesz pomocy?"
+    "text": "Potrzebujesz pomocy?",
+    "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Utwórz nową wiadomość"
+    "text": "Utwórz nowy sekret",
+    "sha256": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "Akcje"
+    "text": "Akcje",
+    "sha256": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Fraza dostępowa nie jest wymagana"
+    "text": "Fraza dostępowa nie jest wymagana",
+    "sha256": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Kopiuj do schowka"
+    "text": "Kopiuj do schowka",
+    "sha256": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Potwierdzenia"
+    "text": "Potwierdzenia",
+    "sha256": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Udostępnij"
+    "text": "Udostępnij",
+    "sha256": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Link do wiadomości"
+    "text": "Link do sekretu",
+    "sha256": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Odrzuć"
+    "text": "Odrzuć",
+    "sha256": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Szczegóły bezpieczeństwa"
+    "text": "Szczegóły bezpieczeństwa",
+    "sha256": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} elementów"
+    "text": "{count} elementów",
+    "sha256": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} odbiorców"
+    "text": "{count} odbiorców",
+    "sha256": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Wyświetl"
+    "text": "Wyświetl",
+    "sha256": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Wyświetlenia"
+    "text": "Wyświetlenia",
+    "sha256": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "wyświetlono razy"
+    "text": "razy wyświetlono",
+    "sha256": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Postęp wyświetlania"
+    "text": "Zobacz postęp",
+    "sha256": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Sekcja pomocy"
+    "text": "Sekcja pomocy",
+    "sha256": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Chronione frazą dostępową"
+    "text": "Chronione frazą dostępową",
+    "sha256": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Otrzymano opinię."
+    "text": "Opinia otrzymana.",
+    "sha256": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Wysyłanie..."
+    "text": "Wysyłanie...",
+    "sha256": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Ostatnie wiadomości"
+    "text": "Ostatnie sekrety",
+    "sha256": "0b907f8b"
   },
   "web.LABELS.pricing": {
-    "text": "Cennik"
+    "text": "Cennik",
+    "sha256": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Odśwież"
+    "text": "Odśwież",
+    "sha256": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Załaduj ponownie"
+    "text": "Odśwież",
+    "sha256": "bdc090ec"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Linki do wiadomości utworzone w tej sesji"
+    "text": "Linki do sekretów utworzone w tej sesji",
+    "sha256": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Utwórz link"
+    "text": "Utwórz link",
+    "sha256": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Utwórz link do wiadomości"
+    "text": "Utwórz link do sekretu",
+    "sha256": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Utwórz żądanie"
+    "text": "Utwórz żądanie",
+    "sha256": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Utwórz link żądania"
+    "text": "Utwórz link żądania",
+    "sha256": "190463dc"
   },
   "web.LABELS.related_settings": {
-    "text": "Powiązane ustawienia"
+    "text": "Powiązane ustawienia",
+    "sha256": "68574b20"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Tworzenie linków dla"
+    "text": "Tworzenie linków dla",
+    "sha256": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Tworzenie sekretów w {domain}"
+    "text": "Tworzenie sekretów w {domain}",
+    "sha256": "3bbed96b"
   },
   "web.STATUS.new": {
-    "text": "Nowy"
+    "text": "Nowy",
+    "sha256": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Nieprzeczytane"
+    "text": "Nieprzeczytany",
+    "sha256": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Link otwarty"
+    "text": "Link otwarty",
+    "sha256": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Odebrane"
+    "text": "Odebrano",
+    "sha256": "49f19bee"
   },
   "web.STATUS.burned": {
-    "text": "Unieważnione"
+    "text": "Zniszczony",
+    "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Zniszczone"
+    "text": "Zniszczony",
+    "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Wygasa wkrótce"
+    "text": "Wkrótce wygasa",
+    "sha256": "0259442c"
   },
   "web.STATUS.created": {
-    "text": "Utworzono"
+    "text": "Utworzony",
+    "sha256": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "Wygasa"
+    "text": "Wygasa",
+    "sha256": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Wygasło"
+    "text": "Wygasły",
+    "sha256": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Osierocone"
+    "text": "Osierocony",
+    "sha256": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Zabezpieczone"
+    "text": "Zabezpieczony",
+    "sha256": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Zabezpieczanie"
+    "text": "Zabezpieczanie",
+    "sha256": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "Skopiowano"
+    "text": "Skopiowano",
+    "sha256": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Pozostały czas"
+    "text": "Pozostały czas",
+    "sha256": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Link do wiadomości został utworzony i jeszcze nie wyświetlony"
+    "text": "Link do sekretu został utworzony i jeszcze nie wyświetlony",
+    "sha256": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Link do wiadomości został utworzony i nie został wyświetlony"
+    "text": "Link do sekretu został utworzony i nie został jeszcze wyświetlony",
+    "sha256": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Link do wiadomości został otwarty i jest gotowy do wyświetlenia"
+    "text": "Link do sekretu został otwarty i jest gotowy do wyświetlenia",
+    "sha256": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Wiadomość została ujawniona odbiorcy"
+    "text": "Sekret został wyświetlony odbiorcy",
+    "sha256": "ceb756b4"
   },
   "web.STATUS.burned_description": {
-    "text": "Wiadomość została ręcznie unieważniona przed wyświetleniem"
+    "text": "Sekret został ręcznie zniszczony przed wyświetleniem",
+    "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Wiadomość została trwale zniszczona"
+    "text": "Sekret został trwale zniszczony",
+    "sha256": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Wiadomość wkrótce wygaśnie"
+    "text": "Sekret wkrótce wygaśnie",
+    "sha256": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Wiadomość została osierocona i wkrótce zostanie zniszczona"
+    "text": "Sekret został osierocony i wkrótce zostanie zniszczony",
+    "sha256": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Wiadomość wygasła przed wyświetleniem"
+    "text": "Sekret wygasł przed wyświetleniem",
+    "sha256": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Sukces"
+    "text": "Sukces",
+    "sha256": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Dostarczono"
+    "text": "Dostarczony",
+    "sha256": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Nieprawidłowy DNS"
+    "text": "DNS nieprawidłowy",
+    "sha256": "7848d601"
   },
   "web.STATUS.active": {
-    "text": "Aktywny"
+    "text": "Aktywny",
+    "sha256": "92340695"
   },
   "web.STATUS.inactive": {
-    "text": "Nieaktywny"
+    "text": "Nieaktywny",
+    "sha256": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Nieograniczone wyświetlenia"
+    "text": "Nieograniczona liczba wyświetleń",
+    "sha256": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Zaufany branding domeny"
+    "text": "Branding zaufanej domeny",
+    "sha256": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Szyfrowane podczas przesyłania i przechowywania"
+    "text": "Szyfrowanie podczas przesyłania i przechowywania",
+    "sha256": "314c7974"
   },
   "web.UNITS.ttl.duration": {
-    "text": "{count} {unit}"
+    "text": "{count} {unit}",
+    "sha256": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "dzień | dni | dni"
+    "text": "dzień | dni | dni",
+    "sha256": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "godzina | godziny | godzin"
+    "text": "godzina | godziny | godzin",
+    "sha256": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "minuta | minuty | minut"
+    "text": "minuta | minuty | minut",
+    "sha256": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "sekunda | sekundy | sekund"
+    "text": "sekunda | sekundy | sekund",
+    "sha256": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Pozostało {count} {unit}"
+    "text": "Pozostało {count} {unit}",
+    "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "pozostał dzień | pozostały dni | pozostało dni"
+    "text": "pozostał dzień | pozostały dni | pozostało dni",
+    "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "pozostała godzina | pozostały godziny | pozostało godzin"
+    "text": "pozostała godzina | pozostały godziny | pozostało godzin",
+    "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "pozostała minuta | pozostały minuty | pozostało minut"
+    "text": "pozostała minuta | pozostały minuty | pozostało minut",
+    "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "pozostała sekunda | pozostały sekundy | pozostało sekund"
+    "text": "pozostała sekunda | pozostały sekundy | pozostało sekund",
+    "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Limit {count} wyświetleń"
+    "text": "Limit {count} wyświetleń",
+    "sha256": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "Pozostało {count} dni"
+    "text": "Pozostało {count} dni",
+    "sha256": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Pozostało {count} godzin"
+    "text": "Pozostało {count} godzin",
+    "sha256": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Pozostało {count} minut"
+    "text": "Pozostało {count} minut",
+    "sha256": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Sekrety przychodzące"
+    "text": "Przychodzące sekrety",
+    "sha256": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Opinia"
+    "text": "Opinia",
+    "sha256": "aac77df3"
   },
   "web.TITLES.signin": {
-    "text": "Zaloguj się"
+    "text": "Zaloguj się",
+    "sha256": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Utwórz konto"
+    "text": "Utwórz konto",
+    "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Zapomniałeś hasła"
+    "text": "Zapomniałem hasła",
+    "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Zresetuj hasło"
+    "text": "Zresetuj hasło",
+    "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Wylogowywanie"
+    "text": "Wylogowywanie",
+    "sha256": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Zweryfikuj konto"
+    "text": "Zweryfikuj konto",
+    "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Uwierzytelnianie dwuskładnikowe"
+    "text": "Uwierzytelnianie dwuskładnikowe",
+    "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Logowanie e-mail"
+    "text": "Logowanie e-mail",
+    "sha256": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Zaakceptuj zaproszenie"
+    "text": "Zaakceptuj zaproszenie",
+    "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
-    "text": "Sekret"
+    "text": "Sekret",
+    "sha256": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "Szczegóły sekretu"
+    "text": "Szczegóły sekretu",
+    "sha256": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Potwierdzenie sekretu"
+    "text": "Potwierdzenie sekretu",
+    "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Unieważnij sekret"
+    "text": "Zniszcz sekret",
+    "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
-    "text": "Panel"
+    "text": "Panel",
+    "sha256": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Ostatnie"
+    "text": "Ostatnie sekrety",
+    "sha256": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Domeny niestandardowe"
+    "text": "Domeny niestandardowe",
+    "sha256": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Dodaj domenę"
+    "text": "Dodaj domenę",
+    "sha256": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Zweryfikuj domenę"
+    "text": "Zweryfikuj domenę",
+    "sha256": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Domena markowa"
+    "text": "Branding domeny",
+    "sha256": "35e4dfbe"
   },
   "web.TITLES.account": {
-    "text": "Ustawienia konta"
+    "text": "Konto",
+    "sha256": "7e1b0d56"
   },
   "web.TITLES.data_region": {
-    "text": "Region danych"
+    "text": "Region danych",
+    "sha256": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Bieżący region"
+    "text": "Bieżący region",
+    "sha256": "b92e254d"
   },
   "web.TITLES.available_regions": {
-    "text": "Dostępne regiony"
+    "text": "Dostępne regiony",
+    "sha256": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Dlaczego suwerenność danych ma znaczenie"
+    "text": "Dlaczego suwerenność danych ma znaczenie",
+    "sha256": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
-    "text": "Ustawienia profilu"
+    "text": "Ustawienia profilu",
+    "sha256": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Preferencje"
+    "text": "Preferencje",
+    "sha256": "66962f72"
   },
   "web.TITLES.privacy_settings": {
-    "text": "Prywatność"
+    "text": "Prywatność",
+    "sha256": "54a57c31"
   },
   "web.TITLES.notification_settings": {
-    "text": "Powiadomienia"
+    "text": "Powiadomienia",
+    "sha256": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Zmień e-mail"
+    "text": "Zmień e-mail",
+    "sha256": "18c3f2d5"
   },
   "web.TITLES.security_overview": {
-    "text": "Bezpieczeństwo"
+    "text": "Bezpieczeństwo",
+    "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Zmień hasło"
+    "text": "Zmień hasło",
+    "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Uwierzytelnianie dwuskładnikowe"
+    "text": "Uwierzytelnianie dwuskładnikowe",
+    "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "Aktywne sesje"
+    "text": "Aktywne sesje",
+    "sha256": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Kody odzyskiwania"
+    "text": "Kody odzyskiwania",
+    "sha256": "579c7f4e"
   },
   "web.TITLES.api_settings": {
-    "text": "Ustawienia API"
+    "text": "Ustawienia API",
+    "sha256": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Ustawienia zaawansowane"
+    "text": "Ustawienia zaawansowane",
+    "sha256": "22d4f608"
   },
   "web.TITLES.system_settings": {
-    "text": "Ustawienia systemowe"
+    "text": "Ustawienia systemowe",
+    "sha256": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Strona nie znaleziona"
+    "text": "Strona nie znaleziona",
+    "sha256": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organizacje"
+    "text": "Organizacje",
+    "sha256": "2730183d"
   },
   "web.TITLES.organization_settings": {
-    "text": "Ustawienia organizacji"
+    "text": "Ustawienia organizacji",
+    "sha256": "cc1d9e61"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Fokus znajduje się teraz w głównym obszarze tekstowym"
+    "text": "Fokus znajduje się teraz w głównym obszarze tekstu",
+    "sha256": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Instrukcje udostępniania"
+    "text": "Instrukcje udostępniania",
+    "sha256": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Udostępnij link docelowemu odbiorcy"
+    "text": "Udostępnij link zamierzonemu odbiorcy",
+    "sha256": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Udostępnij frazę dostępową oddzielnie przez bezpieczny kanał"
+    "text": "Udostępnij frazę dostępową oddzielnie, przez bezpieczny kanał",
+    "sha256": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Użyj innego bezpiecznego kanału do udostępniania poufnych informacji"
+    "text": "Użyj innego bezpiecznego kanału do udostępnienia poufnych informacji",
+    "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Zawsze sprawdzaj, czy jesteś na oficjalnej stronie Onetime Secret. Oszuści czasami tworzą fałszywe strony internetowe, które wyglądają dokładnie jak Onetime Secret, aby wykraść Twoje sekrety. Aby uniknąć ataków phishingowych, sprawdź domenę regionu przed utworzeniem nowych linków."
+    "text": "Zawsze sprawdzaj, czy znajdujesz się na oficjalnej stronie Onetime Secret. Oszuści czasami tworzą fałszywe strony wyglądające dokładnie jak Onetime Secret, aby wykraść Twoje sekrety. Aby uniknąć ataków phishingowych, sprawdź domenę regionalną przed utworzeniem nowych linków.",
+    "sha256": "b588f5b2"
   },
   "web.STATUS.previewed": {
-    "text": "Link otwarty"
+    "text": "Podglądnięty",
+    "sha256": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Ujawniono"
+    "text": "Wyświetlony",
+    "sha256": "17376ee4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Link do wiadomości został otwarty i jest gotowy do ujawnienia"
+    "text": "Link do sekretu został otwarty i jest gotowy do ujawnienia",
+    "sha256": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Tajna treść została ujawniona odbiorcy"
+    "text": "Treść sekretu została wyświetlona odbiorcy",
+    "sha256": "39b32f80"
+  },
+  "web.COMMON.not_set": {
+    "text": "Nie ustawiono",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Edytuj",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Zapisz",
+    "sha256": "1509f561"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Wygasa za",
+    "sha256": "de996752"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtruj",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Wyczyść",
+    "sha256": "83b12c22"
+  },
+  "web.LABELS.add_note": {
+    "text": "Dodaj notatkę...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Edytuj notatkę",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Dodaj notatkę...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Edytuj notatkę",
+    "sha256": "0ec1a5db"
+  },
+  "web.TITLES.help": {
+    "text": "Pomoc",
+    "sha256": "b79cac92"
+  },
+  "web.TITLES.pricing": {
+    "text": "Cennik",
+    "sha256": "dfe95783"
+  },
+  "web.pricing.title": {
+    "text": "Prosty, przejrzysty cennik",
+    "sha256": "97e283c7"
+  },
+  "web.pricing.subtitle": {
+    "text": "Wybierz plan odpowiedni dla Twoich potrzeb. Wszystkie plany obejmują nieograniczone udostępnianie sekretów i projektowanie z priorytetem prywatności.",
+    "sha256": "9204dff4"
+  },
+  "web.pricing.get_started_free": {
+    "text": "Rozpocznij za darmo",
+    "sha256": "6bb5a4a7"
+  },
+  "web.pricing.start_trial": {
+    "text": "Rozpocznij",
+    "sha256": "983f3110"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Masz już konto?",
+    "sha256": "e77fea93"
+  },
+  "web.pricing.sign_in": {
+    "text": "Zaloguj się",
+    "sha256": "bfd402b2"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Polecane dla Ciebie",
+    "sha256": "00093fbd"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Twórz i udostępniaj sekrety z podstawowymi funkcjami. Karta kredytowa nie jest wymagana.",
+    "sha256": "3a4f2bc0"
   }
 }

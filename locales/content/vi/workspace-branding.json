@@ -1,128 +1,170 @@
 {
   "web.branding.color_picker": {
-    "text": "Bộ chọn màu"
+    "text": "Bộ chọn màu",
+    "sha256": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "{0} hiện tại: {1}. Nhấp để chuyển đổi qua các tùy chọn."
+    "text": "{0} hiện tại: {1}. Nhấp để chuyển đổi qua các tùy chọn.",
+    "sha256": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Sử dụng cài đặt"
+    "text": "Sử dụng cài đặt",
+    "sha256": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Phông chữ"
+    "text": "Họ phông chữ",
+    "sha256": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Kiểu góc"
+    "text": "Kiểu góc",
+    "sha256": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Màu thương hiệu"
+    "text": "Màu thương hiệu",
+    "sha256": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Xem trước giao diện người nhận khi truy cập liên kết an toàn của bạn"
+    "text": "Xem trước giao diện người nhận khi truy cập liên kết an toàn của bạn",
+    "sha256": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Xem trước & Tùy chỉnh"
+    "text": "Xem trước & Tùy chỉnh",
+    "sha256": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Chuyển sang chế độ xem trình duyệt Safari"
+    "text": "Chuyển sang chế độ xem trình duyệt Safari",
+    "sha256": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
-    "text": "Microsoft Edge"
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Phóng to cửa sổ"
+    "text": "Phóng to cửa sổ",
+    "sha256": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Thu nhỏ cửa sổ"
+    "text": "Thu nhỏ cửa sổ",
+    "sha256": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Chuyển sang chế độ xem trình duyệt Edge"
+    "text": "Chuyển sang chế độ xem trình duyệt Edge",
+    "sha256": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
-    "text": "{0}/500 ký tự"
+    "text": "{0}/500 ký tự",
+    "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Sử dụng điện thoại của bạn để quét mã QR"
+    "text": "Sử dụng điện thoại để quét mã QR",
+    "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Liên hệ onboarding{'@'}example.com nếu có câu hỏi"
+    "text": "Liên hệ onboarding{'@'}example.com nếu có câu hỏi",
+    "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Hướng dẫn này sẽ được hiển thị cho người nhận trước khi họ xem nội dung bí mật"
+    "text": "Hướng dẫn này sẽ được hiển thị cho người nhận trước khi họ xem nội dung bí mật",
+    "sha256": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Hướng dẫn này sẽ được hiển thị cho người nhận sau khi họ xem bí mật"
+    "text": "Hướng dẫn này sẽ được hiển thị cho người nhận sau khi họ xem bí mật",
+    "sha256": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Hướng dẫn trước khi xem"
+    "text": "Hướng dẫn trước khi hiển thị",
+    "sha256": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Hướng dẫn sau khi xem"
+    "text": "Hướng dẫn sau khi hiển thị",
+    "sha256": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "Hướng dẫn"
+    "text": "Hướng dẫn",
+    "sha256": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Điều khiển logo"
+    "text": "Điều khiển logo",
+    "sha256": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Nhấp để tải lên logo. Kích thước đề xuất: 128x128 pixel. Kích thước tệp tối đa: 1MB. Định dạng được hỗ trợ: PNG, JPG, SVG"
+    "text": "Nhấp để tải lên logo. Kích thước đề xuất: 128x128 pixel. Kích thước tệp tối đa: 1MB. Định dạng được hỗ trợ: PNG, JPG, SVG",
+    "sha256": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Tải lên logo"
+    "text": "Tải lên logo",
+    "sha256": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Đang tải xem trước..."
+    "text": "Đang tải xem trước...",
+    "sha256": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Xem trước cách người nhận sẽ thấy bí mật của bạn bằng cách thử nghiệm nút \"Xem bí mật\""
+    "text": "Xem trước cách người nhận sẽ thấy bí mật của bạn bằng cách thử nghiệm nút \"Xem bí mật\"",
+    "sha256": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Biểu tượng mắt"
+    "text": "Biểu tượng mắt",
+    "sha256": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Nhấp vào hình ảnh xem trước bên dưới để cập nhật logo của bạn (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB)"
+    "text": "Nhấp vào hình ảnh xem trước bên dưới để cập nhật logo của bạn (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB)",
+    "sha256": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Biểu tượng hình ảnh"
+    "text": "Biểu tượng hình ảnh",
+    "sha256": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Sử dụng các điều khiển ở trên để tùy chỉnh màu thương hiệu, kiểu dáng và hướng dẫn cho người nhận"
+    "text": "Sử dụng các điều khiển ở trên để tùy chỉnh màu thương hiệu, kiểu dáng và hướng dẫn cho người nhận",
+    "sha256": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Biểu tượng tùy chỉnh"
+    "text": "Biểu tượng tùy chỉnh",
+    "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Bạn có thay đổi chưa lưu. Bạn có chắc chắn không?"
+    "text": "Bạn có thay đổi chưa lưu. Bạn có chắc chắn không?",
+    "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Không thể tải cài đặt thương hiệu"
+    "text": "Không thể tải cài đặt thương hiệu",
+    "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\""
+    "text": "Đây là bản xem trước tương tác cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (khuyến nghị tối thiểu 128x128 pixel, tối đa 1MB) - Thử xem trước bằng nút \"Xem bí mật\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\""
+    "text": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Chữ Hán Nhật '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'"
+    "text": "Chữ Hán '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'",
+    "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Được hỗ trợ bởi Onetime Secret"
+    "text": "Cung cấp bởi Onetime Secret",
+    "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "Logo {0}"
+    "text": "Logo {0}",
+    "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
-    "text": "Edge"
+    "text": "Edge",
+    "sha256": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Chuyển sang xem trước Edge"
+    "text": "Chuyển sang xem trước Edge",
+    "sha256": "83883d84"
   },
   "web.branding.safari": {
-    "text": "Safari"
+    "text": "Safari",
+    "sha256": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Chuyển sang xem trước Safari"
+    "text": "Chuyển sang xem trước Safari",
+    "sha256": "f24ac447"
   }
 }

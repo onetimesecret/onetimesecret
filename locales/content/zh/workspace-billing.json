@@ -1,434 +1,829 @@
 {
   "web.billing.upgrade.required": {
-    "text": "需要升级"
+    "text": "需要升级",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "查看套餐"
+    "text": "查看方案",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "团队管理需要 Identity Plus 或更高版本"
+    "text": "团队管理需要 Identity Plus 或更高版本",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "自定义域名需要 Identity Plus 或更高版本"
+    "text": "自定义域名需要 Identity Plus 或更高版本",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API 访问需要多团队套餐或更高版本"
+    "text": "API 访问需要 Identity Plus 或更高版本",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "审计日志需要多团队套餐或更高版本"
+    "text": "审计日志需要多团队方案或更高版本",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "管理您的订阅、组织和账单设置"
+    "text": "管理您的订阅、组织和账单设置",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "账单概览"
+    "text": "账单概览",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "查看和管理您的订阅和付款详情"
+    "text": "查看和管理您的订阅及支付详情",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "选择组织"
   },
   "web.billing.overview.current_plan": {
-    "text": "当前套餐"
+    "text": "当前方案",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "套餐功能"
+    "text": "方案功能",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "付款方式"
+    "text": "支付方式",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "下次账单日期"
+    "text": "下次计费日期",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "快速操作"
+    "text": "快捷操作",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "管理账单"
+    "text": "管理账单",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "查看发票"
+    "text": "查看发票",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "升级套餐"
+    "text": "升级方案",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "更改套餐"
+    "text": "更改方案",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "未保存付款方式"
+    "text": "未存档支付方式",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "无即将到来的账单"
+    "text": "无即将到来的账单",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "剩余天数"
+    "text": "剩余天数",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "{date} 账单"
+    "text": "计费日期 {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "查看套餐"
+    "text": "查看方案",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "比较和升级"
+    "text": "比较和升级",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "查看发票"
+    "text": "查看发票",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "下载历史记录"
+    "text": "下载历史记录",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "管理账单"
+    "text": "管理账单",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "更新付款信息"
+    "text": "更新支付信息",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "无组织"
+    "text": "没有组织",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "创建组织以管理您的账单和订阅"
+    "text": "创建组织以管理您的账单和订阅",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "创建内容"
+    "text": "创建内容",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "查看收据"
+    "text": "查看回执",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "API 访问"
+    "text": "API 访问",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "自定义域名"
+    "text": "自定义域名",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "自定义隐私默认设置"
+    "text": "自定义隐私默认值",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "延长默认过期时间"
+    "text": "延长默认过期时间",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "自定义邮件默认设置"
+    "text": "自定义邮件默认值",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "自定义品牌"
+    "text": "自定义品牌",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "品牌主页"
+    "text": "品牌主页",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "接收内容"
+    "text": "接收内容",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "管理组织"
+    "text": "管理组织",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "管理团队"
+    "text": "管理团队",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "管理成员"
+    "text": "管理成员",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "审计日志"
+    "text": "审计日志",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "单点登录"
+    "text": "单点登录",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "优先支持"
+    "text": "优先支持",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "服务等级协议"
+    "text": "服务等级协议",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "无法加载功能详情"
+    "text": "无法加载功能详情",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "无可用功能"
+    "text": "无可用功能",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "选择套餐"
+    "text": "选择方案",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "选择适合您需求的套餐"
+    "text": "选择适合您需求的方案",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "为您的组织选择完美的套餐"
+    "text": "为您的组织选择完美的方案",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "当前套餐"
+    "text": "当前方案",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "当前"
+    "text": "当前",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "升级"
+    "text": "升级",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "降级"
+    "text": "降级",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "按月"
+    "text": "月付",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "按年"
+    "text": "年付",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "每月"
+    "text": "/月",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "按年付费可节省 {percent}%"
+    "text": "年付节省 {percent}%",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "免费"
+    "text": "免费",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "单团队"
+    "text": "单团队",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "多团队"
+    "text": "多团队",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "个人账户"
+    "text": "个人账户",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "团队账户"
+    "text": "团队账户",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "组织账户"
+    "text": "组织账户",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "功能"
+    "text": "功能",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "无限内容"
+    "text": "无限内容",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "API 访问"
+    "text": "API 访问",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "优先支持"
+    "text": "优先支持",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "选择套餐"
+    "text": "选择方案",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "联系销售"
+    "text": "联系销售",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "有疑问或需要定制方案？"
+    "text": "有问题或需要定制方案？",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "我们很乐意听取您的意见。请告诉我们您的需求。"
+    "text": "我们很乐意听取您的意见。告诉我们您的需求。",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} 个团队"
+    "text": "{count} 个团队 | {count} 个团队",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "每个团队 {count} 名成员"
+    "text": "每团队 {count} 名成员 | 每团队 {count} 名成员",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "无限团队"
+    "text": "无限团队",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "每个团队的成员数无限"
+    "text": "每团队无限成员",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "最受欢迎"
+    "text": "最受欢迎",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "推荐"
+    "text": "推荐",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "{plan}的全部功能,加上:"
+    "text": "包含 {plan} 中的所有功能",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "目前没有可用的{interval}套餐。"
+    "text": "目前没有可用的 {interval} 方案。",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "您的套餐将立即更改。"
+    "text": "您的方案将立即更改。",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "当前套餐:"
+    "text": "当前方案：",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "新套餐:"
+    "text": "新方案：",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "未使用时间的余额:"
+    "text": "未使用时间的余额：",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "下一张账单"
+    "text": "下次发票",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "套餐更改后,您的功能限制将立即更新。"
+    "text": "您的功能限制将在方案更改后立即更新。",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "套餐更改失败。请重试。"
+    "text": "方案更改失败，请重试。",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "确认升级"
+    "text": "确认升级",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "确认降级"
+    "text": "确认降级",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "升级到"
+    "text": "升级至 {plan}？",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "降级到{plan}?"
+    "text": "降级至 {plan}？",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "账单历史"
+    "text": "账单历史",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "查看您的账单历史并下载发票"
+    "text": "查看您的账单历史并下载发票",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "日期"
+    "text": "日期",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "金额"
+    "text": "金额",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "状态"
+    "text": "状态",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "下载"
+    "text": "下载",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "暂无发票"
+    "text": "暂无发票",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "已付款"
+    "text": "已支付",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "待处理"
+    "text": "待处理",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "失败"
+    "text": "失败",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "加载发票失败"
+    "text": "加载发票失败",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "此团队的账单由 {orgName} 管理"
+    "text": "账单由 {orgName} 管理",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "查看组织账单"
+    "text": "查看组织账单",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "您已达到此团队的成员限制"
+    "text": "您已达到此团队的成员上限",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "升级以添加更多成员"
+    "text": "升级以添加更多成员",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "订阅"
+    "text": "订阅",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "订阅状态"
+    "text": "订阅状态",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "活跃"
+    "text": "活跃",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "未激活"
+    "text": "未激活",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "逾期"
+    "text": "逾期",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "已取消"
+    "text": "已取消",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "套餐"
+    "text": "方案",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "账单门户"
+    "text": "账单门户",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "管理您的订阅、付款方式和账单历史"
+    "text": "管理您的订阅、支付方式和账单历史",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "打开账单门户"
+    "text": "打开账单门户",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "正在跳转到账单门户"
+    "text": "正在跳转到账单门户...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "今天开始"
+    "text": "立即开始",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "今天就开始使用 Identity Plus"
+    "text": "立即开始使用 Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "每月"
+    "text": "每月",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "完整 API 访问"
+    "text": "完整 API 访问",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "隐私优先设计"
+    "text": "隐私优先设计",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "点击此闪电图标以升级获取自定义域名"
+    "text": "点击此闪电图标以升级获取自定义域名",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "稍后再说"
+    "text": "稍后再说",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "升级账户"
+    "text": "升级账户",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "升级到 Identity Plus"
+    "text": "升级至 Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "升级团队版"
+    "text": "为团队升级",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "优势"
+    "text": "的优势",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}：Identity Plus"
+    "text": "{0}：Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "升级到"
+    "text": "升级至",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "为 secrets.yourdomain.com 升级"
+    "text": "为 secrets.yourdomain.com 升级",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "所有套餐都包含隐私功能和无限分享容量"
+    "text": "所有套餐都包含隐私功能和无限分享容量",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "所有套餐都包含数据位置选择：{0} 个区域"
+    "text": "所有方案均包含数据区域选择：{0} 个区域",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "开始使用"
+    "text": "开始使用",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "{0} 订阅"
+    "text": "{0} 订阅",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "使用自定义域名、无限容量和企业级功能提升您的安全分享。"
+    "text": "使用自定义域名、无限容量和企业级功能提升您的安全分享。",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "付款频率"
+    "text": "付款频率",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "使用来自您域名的链接保护您的品牌并建立客户信任。非常适合重视隐私和专业性的企业。"
+    "text": "使用来自您域名的链接保护您的品牌并建立客户信任。非常适合重视隐私和专业性的企业。",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "安全链接，更强连接"
+    "text": "安全链接，更强连接",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "在产品层级中找不到 Identity 层级"
+    "text": "在产品层级中找不到 Identity 层级",
+    "sha256": "d0204fc4"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "取消订阅",
+    "sha256": "3f85967f"
+  },
+  "web.billing.cancel.title": {
+    "text": "取消订阅",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "确定要取消您的 {plan} 订阅吗？",
+    "sha256": "f4d1b6ee"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "取消后会发生什么：",
+    "sha256": "4d8f5751"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "您将保留对所有功能的访问直到 {date}",
+    "sha256": "eab1efe3"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "您将保留访问权限直到当前计费周期结束",
+    "sha256": "1b07a54a"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "您将不会再被收费",
+    "sha256": "a01cdc16"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "您的账户将恢复为免费方案",
+    "sha256": "e01b3fc3"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "保留订阅",
+    "sha256": "31e80c41"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "取消订阅",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.success": {
+    "text": "您的订阅已取消。您将保留访问权限直到计费周期结束。",
+    "sha256": "e18fd9d5"
+  },
+  "web.billing.cancel.error": {
+    "text": "取消订阅失败，请重试。",
+    "sha256": "68e8bdde"
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "订阅取消已安排",
+    "sha256": "1427d139"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "您的订阅将保持有效直到 {date}。届时前您将继续拥有所有功能的完整访问权限。",
+    "sha256": "aab4b1dc"
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "改变主意了？您可以在取消日期前随时重新激活订阅。",
+    "sha256": "c94d5527"
+  },
+  "web.billing.features.create_secrets": {
+    "text": "创建和分享内容",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "API 访问",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "自定义域名",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 个自定义域名",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "无限自定义域名",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "自定义品牌",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "品牌主页",
+    "sha256": "e355a396"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "团队管理",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "成员管理",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "审计日志",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "单点登录 (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "优先支持",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "服务等级协议",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "集中计费",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "审计追踪",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "活动流",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "交接工作流",
+    "sha256": "07202af3"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30 天内容保留",
+    "sha256": "21d6d514"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "主页内容",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "接收内容",
+    "sha256": "883dbca9"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "最多 5 名团队成员",
+    "sha256": "e7518d07"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "最多 10 名团队成员",
+    "sha256": "0c64c064"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "最多 25 名团队成员",
+    "sha256": "bf3b84c8"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "最多 50 名团队成员",
+    "sha256": "3c2d9a14"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "无限团队成员",
+    "sha256": "b7491ee9"
+  },
+  "web.billing.features.notifications": {
+    "text": "邮件通知",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP 访问规则",
+    "sha256": "db966d47"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "工作区品牌",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "专用基础设施",
+    "sha256": "0c10aea7"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "共享工作流",
+    "sha256": "158f558e"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "此组织的账单",
+    "sha256": "21806992"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "您的方案已成功升级",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "您的新方案现已生效。感谢您的购买。",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "账单联系人",
+    "sha256": "8f782ad8"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "主页内容",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "邮件通知",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP 访问规则",
+    "sha256": "db966d47"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "工作区品牌",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.plans.due_today": {
+    "text": "今日应付：",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "下次计费 ({date})：",
+    "sha256": "a6846a85"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "您的余额如何应用：",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "下次账单金额：",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "已应用余额：",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "下次计费应付金额：",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "剩余账户余额：",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "应用于未来发票",
+    "sha256": "5007add6"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "团队用量",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used}/{limit} 个团队",
+    "sha256": "1db6b53c"
   }
 }

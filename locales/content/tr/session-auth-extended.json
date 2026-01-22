@@ -1,652 +1,548 @@
 {
   "web.auth.mfa_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "MFA doğrulaması gerekli",
+    "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınıza erişmek için MFA doğrulaması gerekli",
+    "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "MFA Doğrulamasını Tamamlayın",
+    "sha256": "0e681134"
   },
   "web.auth.security.authentication_failed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kimlik doğrulama başarısız. Lütfen kimlik bilgilerinizi doğrulayıp tekrar deneyin.",
+    "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Çok fazla deneme. Lütfen daha sonra tekrar deneyin.",
+    "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oturum süresi doldu. Lütfen tekrar giriş yapın.",
+    "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma kodu bulunamadı. Lütfen doğru girdiğinizi doğrulayın.",
+    "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu kurtarma kodu zaten kullanıldı. Her kod yalnızca bir kez kullanılabilir.",
+    "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ağ hatası. Lütfen bağlantınızı kontrol edip tekrar deneyin.",
+    "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta Bağlantısı",
+    "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Biyometrik",
+    "sha256": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta ile Giriş Yap",
+    "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Size güvenli bir giriş bağlantısı göndereceğiz",
+    "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-posta adresinizi girin",
+    "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Giriş Bağlantısı Gönder",
+    "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-postanızı kontrol edin",
+    "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{email} adresine bir giriş bağlantısı gönderdik",
+    "sha256": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu bağlantının süresi 15 dakika içinde dolacak",
+    "sha256": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Farklı bir e-posta deneyin",
+    "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola gerekmez — sadece e-postanızdaki bağlantıya tıklayın",
+    "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ağ hatası. Lütfen tekrar deneyin.",
+    "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Giriş bağlantısı gönderilemedi. Lütfen tekrar deneyin.",
+    "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Geçersiz veya eksik giriş bağlantısı",
+    "sha256": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Giriş başarısız. Lütfen tekrar deneyin.",
+    "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Giriş yapılıyor...",
+    "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bağlantınız doğrulanırken lütfen bekleyin",
+    "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kimlik Doğrulama Hatası",
+    "sha256": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Giriş Sayfasına Dön",
+    "sha256": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Face ID / Touch ID ile giriş yap",
+    "sha256": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Biyometrik girişi ayarla",
+    "sha256": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Biyometrik kimlik doğrulama bu tarayıcıda desteklenmiyor",
+    "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Lütfen WebAuthn'u destekleyen modern bir tarayıcı kullanın (Chrome, Safari, Firefox veya Edge)",
+    "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Biyometrik giriş etkinleştirildi",
+    "sha256": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Biyometrik giriş ayarlanamadı",
+    "sha256": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Biyometrik kimlik doğrulama başarısız. Lütfen tekrar deneyin.",
+    "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kimlik doğrulama iptal edildi",
+    "sha256": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kimlik doğrulanıyor...",
+    "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Giriş yapmak için parmak izinizi, yüzünüzü veya güvenlik anahtarınızı kullanın",
+    "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Face ID, Touch ID, Windows Hello ve güvenlik anahtarlarını destekler",
+    "sha256": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Uyarı: {count} giriş denemesi kaldı",
+    "sha256": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Çok fazla başarısız giriş denemesi nedeniyle hesap kilitlendi",
+    "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınız {time} tarihine kadar kilitli",
+    "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Acil erişime ihtiyacınız varsa destekle iletişime geçin",
+    "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bunun yerine parolanızı sıfırlayabilirsiniz",
+    "sha256": "a98a3f9d"
   },
   "web.auth.sessions.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif Oturumlar",
+    "sha256": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mevcut Oturum",
+    "sha256": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Diğer Oturumlar",
+    "sha256": "8409f445"
   },
   "web.auth.sessions.device": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Cihaz",
+    "sha256": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Konum",
+    "sha256": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "IP Adresi",
+    "sha256": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Son Etkinlik",
+    "sha256": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oluşturuldu",
+    "sha256": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kaldır",
+    "sha256": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Diğer Tüm Oturumları Kapat",
+    "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu oturumu kaldırmak istediğinizden emin misiniz?",
+    "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu, diğer tüm cihazlardan çıkış yapmanıza neden olacaktır. Emin misiniz?",
+    "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Başka aktif oturum yok",
+    "sha256": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Oturum başarıyla kaldırıldı",
+    "sha256": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Diğer tüm oturumlardan çıkış yapıldı",
+    "sha256": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktif Oturumlar",
+    "sha256": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulama",
+    "sha256": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki faktörlü kimlik doğrulama etkinleştirildi",
+    "sha256": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki faktörlü kimlik doğrulama devre dışı",
+    "sha256": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulamayı Etkinleştir",
+    "sha256": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulamayı Devre Dışı Bırak",
+    "sha256": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki Faktörlü Kimlik Doğrulamayı Kur",
+    "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınıza ekstra bir güvenlik katmanı ekleyin",
+    "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "1. QR Kodu Tarayın",
+    "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "2. Kurulumu Doğrulayın",
+    "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu QR kodunu kimlik doğrulama uygulamanızla tarayın",
+    "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Veya bu kodu manuel olarak girin",
+    "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Uygulamanızdan 6 haneli kodu girin",
+    "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulama kodunu girin",
+    "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrula ve Etkinleştir",
+    "sha256": "7c08f68d"
   },
   "web.auth.mfa.code_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulama kodu gereklidir",
+    "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Geçersiz kod. Kodlar her 30 saniyede bir sona erer. Kimlik doğrulama uygulamanızdan en son kodu deneyin.",
+    "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki faktörlü kimlik doğrulama etkinleştirildi",
+    "sha256": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki faktörlü kimlik doğrulama devre dışı bırakıldı",
+    "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "2FA'yı devre dışı bırakmak için parolanızı girin",
+    "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parola",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İki faktörlü kimlik doğrulama ayarlarını değiştirmek için kimliğinizi onaylayın",
+    "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Son kullanım: {time}",
+    "sha256": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hiç kullanılmadı",
+    "sha256": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bunun yerine kurtarma kodu kullanın",
+    "sha256": "23d3441a"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulama koduna geri dön",
+    "sha256": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "İptal et ve giriş sayfasına dön",
+    "sha256": "83256742"
   },
   "web.auth.mfa.loading_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "MFA durumu yükleniyor...",
+    "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınız iki faktörlü kimlik doğrulama ile korunmaktadır",
+    "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hesabınızı ek bir güvenlik katmanıyla koruyun",
+    "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolanız ele geçirilse bile yetkisiz erişimi önleyin",
+    "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Google Authenticator, Authy ve diğer TOTP uygulamalarıyla çalışır",
+    "sha256": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Acil erişim için yedek kurtarma kodları",
+    "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Parolanızı girin",
+    "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Devre dışı bırakılıyor...",
+    "sha256": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "2FA'yı Devre Dışı Bırak",
+    "sha256": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "QR kodu oluşturuluyor...",
+    "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Google Authenticator, Authy veya herhangi bir TOTP uygulaması kullanın",
+    "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulamaya Devam Et",
+    "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kimlik doğrulama uygulamanızdan 6 haneli kodu girin",
+    "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "MFA'yı Etkinleştir",
+    "sha256": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurulumu Tamamla",
+    "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma kodlarınızdan birini girin",
+    "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma Kodu",
+    "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma kodunu girin",
+    "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma Kodunu Doğrula",
+    "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "6 haneli doğrulama kodunu girin",
+    "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma kodu modu aktif",
+    "sha256": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Doğrulama kodu modu aktif",
+    "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Devam etmek için lütfen 6 rakamın tümünü girin",
+    "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Rakam {current} / {total}",
+    "sha256": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma Kodları",
+    "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu kodları güvenli bir yerde saklayın. Kimlik doğrulama uygulamanıza erişiminizi kaybederseniz her biri bir kez kullanılabilir.",
+    "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu kodlar yalnızca bir kez gösterilecektir",
+    "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Kurulumu tamamlamadan önce kurtarma kodlarınızı indirmeli veya kopyalamalısınız."
+    "text": "Kurulumu tamamlamadan önce kurtarma kodlarınızı indirmeli veya kopyalamalısınız.",
+    "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni Kodlar Oluştur",
+    "sha256": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Kodları Yeniden Oluştur"
+    "text": "Kodları Yeniden Oluştur",
+    "sha256": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bu, mevcut tüm kurtarma kodlarını geçersiz kılacaktır",
+    "sha256": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kodları İndir",
+    "sha256": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Kurtarma kodları indirildi"
+    "text": "Kurtarma kodları indirildi",
+    "sha256": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kodları Yazdır",
+    "sha256": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tüm Kodları Kopyala",
+    "sha256": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kodlar panoya kopyalandı",
+    "sha256": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Kodlar panoya kopyalanamadı"
+    "text": "Kodlar panoya kopyalanamadı",
+    "sha256": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kullanıldı",
+    "sha256": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kullanılmadı",
+    "sha256": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{limit} kurtarma kodundan {count} tanesi kaldı",
+    "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Her kod yalnızca bir kez kullanılabilir. Azaldığında kodları yeniden oluşturun."
+    "text": "Her kod yalnızca bir kez kullanılabilir. Azaldığında kodları yeniden oluşturun.",
+    "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kalan kurtarma kodu yok",
+    "sha256": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Yeni kurtarma kodları oluşturuldu",
+    "sha256": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kurtarma Kodları",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Doğrula",
+    "sha256": "eea2745e"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Kurtarma kodu kullan",
+    "sha256": "50d5790d"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Girişi iptal et",
+    "sha256": "1bebad2f"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ GÜVENLİK-KRİTİK: Mesajlar bilgi ifşasını önler. Bkz. src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Kullanıcının oturum açmış cihazlarını/tarayıcılarını yönetme sayfası"
   }
 }

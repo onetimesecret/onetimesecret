@@ -1,398 +1,548 @@
 {
   "web.auth.mfa_required": {
-    "text": "Verifica MFA richiesta"
+    "text": "Verifica MFA richiesta",
+    "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Verifica MFA richiesta per accedere al tuo account"
+    "text": "Verifica MFA richiesta per accedere al tuo account",
+    "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Completa verifica MFA"
+    "text": "Completa la verifica MFA",
+    "sha256": "0e681134"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Autenticazione fallita. Verifica le tue credenziali e riprova"
+    "text": "Autenticazione fallita. Verifica le tue credenziali e riprova.",
+    "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Troppi tentativi. Riprova più tardi"
+    "text": "Troppi tentativi. Riprova più tardi.",
+    "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Sessione scaduta. Accedi nuovamente"
+    "text": "Sessione scaduta. Effettua nuovamente l'accesso.",
+    "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Codice di recupero non trovato. Verifica di averlo inserito correttamente"
+    "text": "Codice di recupero non trovato. Verifica di averlo inserito correttamente.",
+    "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Questo codice di recupero è già stato utilizzato. Ogni codice può essere usato una sola volta"
+    "text": "Questo codice di recupero è già stato usato. Ogni codice può essere usato una sola volta.",
+    "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Errore di rete. Controlla la connessione e riprova"
+    "text": "Errore di rete. Controlla la connessione e riprova.",
+    "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Si è verificato un errore. Riprova"
+    "text": "Si è verificato un errore. Riprova.",
+    "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "Password"
+    "text": "Password",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "Link via email"
+    "text": "Link via email",
+    "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "Biometrico"
+    "text": "Biometrico",
+    "sha256": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "Accedi con email"
+    "text": "Accedi con email",
+    "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "Ti invieremo un link di accesso sicuro"
+    "text": "Ti invieremo un link di accesso sicuro",
+    "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Inserisci la tua email"
+    "text": "Inserisci la tua email",
+    "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Invia link di accesso"
+    "text": "Invia link di accesso",
+    "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Controlla la tua email"
+    "text": "Controlla la tua email",
+    "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Abbiamo inviato un link di accesso a {email}"
+    "text": "Abbiamo inviato un link di accesso a {email}",
+    "sha256": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Questo link scadrà tra 15 minuti"
+    "text": "Questo link scadrà tra 15 minuti",
+    "sha256": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Prova un'email diversa"
+    "text": "Prova con un'altra email",
+    "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Nessuna password necessaria: basta cliccare il link nella tua email"
+    "text": "Nessuna password richiesta - clicca semplicemente il link nella tua email",
+    "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Errore di rete. Riprova"
+    "text": "Errore di rete. Riprova.",
+    "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Invio link di accesso fallito. Riprova"
+    "text": "Impossibile inviare il link di accesso. Riprova.",
+    "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Link di accesso non valido o mancante"
+    "text": "Link di accesso non valido o mancante",
+    "sha256": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Accesso fallito. Riprova"
+    "text": "Accesso fallito. Riprova.",
+    "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Accesso in corso..."
+    "text": "Accesso in corso...",
+    "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Attendere mentre verifichiamo il tuo link"
+    "text": "Attendere mentre verifichiamo il tuo link",
+    "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "Errore di autenticazione"
+    "text": "Errore di autenticazione",
+    "sha256": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Torna all'accesso"
+    "text": "Torna all'accesso",
+    "sha256": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Accedi con Face ID / Touch ID"
+    "text": "Accedi con Face ID / Touch ID",
+    "sha256": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "Configura accesso biometrico"
+    "text": "Configura accesso biometrico",
+    "sha256": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "L'autenticazione biometrica non è supportata in questo browser"
+    "text": "L'autenticazione biometrica non è supportata in questo browser",
+    "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Utilizza un browser moderno che supporta WebAuthn (Chrome, Safari, Firefox o Edge)"
+    "text": "Usa un browser moderno che supporta WebAuthn (Chrome, Safari, Firefox o Edge)",
+    "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "Accesso biometrico abilitato"
+    "text": "Accesso biometrico abilitato",
+    "sha256": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Configurazione accesso biometrico fallita"
+    "text": "Impossibile configurare l'accesso biometrico",
+    "sha256": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Autenticazione biometrica fallita. Riprova"
+    "text": "Autenticazione biometrica fallita. Riprova.",
+    "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "Autenticazione annullata"
+    "text": "Autenticazione annullata",
+    "sha256": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "Autenticazione in corso..."
+    "text": "Autenticazione...",
+    "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Usa la tua impronta digitale, il volto o la chiave di sicurezza per accedere"
+    "text": "Usa impronta digitale, riconoscimento facciale o chiave di sicurezza per accedere",
+    "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Supporta Face ID, Touch ID, Windows Hello e chiavi di sicurezza"
+    "text": "Supporta Face ID, Touch ID, Windows Hello e chiavi di sicurezza",
+    "sha256": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Attenzione: {count} tentativo/i di accesso rimanente/i"
+    "text": "Avviso: {count} tentativo/i di accesso rimanenti",
+    "sha256": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Account bloccato a causa di troppi tentativi di accesso falliti"
+    "text": "Account bloccato a causa di troppi tentativi di accesso falliti",
+    "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "Il tuo account è bloccato fino a {time}"
+    "text": "Il tuo account è bloccato fino alle {time}",
+    "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Contatta il supporto se hai bisogno di accesso immediato"
+    "text": "Contatta il supporto se hai bisogno di accesso immediato",
+    "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Puoi invece reimpostare la tua password"
+    "text": "Puoi reimpostare la password invece",
+    "sha256": "a98a3f9d"
   },
   "web.auth.sessions.title": {
-    "text": "Sessioni attive"
+    "text": "Sessioni attive",
+    "sha256": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "Sessione corrente"
+    "text": "Sessione attuale",
+    "sha256": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "Altre sessioni"
+    "text": "Altre sessioni",
+    "sha256": "8409f445"
   },
   "web.auth.sessions.device": {
-    "text": "Dispositivo"
+    "text": "Dispositivo",
+    "sha256": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "Posizione"
+    "text": "Posizione",
+    "sha256": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "Indirizzo IP"
+    "text": "Indirizzo IP",
+    "sha256": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "Ultima attività"
+    "text": "Ultima attività",
+    "sha256": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "Creata"
+    "text": "Creato",
+    "sha256": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "Rimuovi"
+    "text": "Rimuovi",
+    "sha256": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Disconnetti tutte le altre sessioni"
+    "text": "Disconnetti tutte le altre sessioni",
+    "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "Sei sicuro di voler rimuovere questa sessione?"
+    "text": "Sei sicuro di voler rimuovere questa sessione?",
+    "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Verrai disconnesso da tutti gli altri dispositivi. Sei sicuro?"
+    "text": "Questo ti disconnetterà da tutti gli altri dispositivi. Sei sicuro?",
+    "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "Nessuna altra sessione attiva"
+    "text": "Nessun'altra sessione attiva",
+    "sha256": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "Sessione rimossa con successo"
+    "text": "Sessione rimossa con successo",
+    "sha256": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Tutte le altre sessioni sono state disconnesse"
+    "text": "Tutte le altre sessioni sono state disconnesse",
+    "sha256": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "Sessioni attive"
+    "text": "Sessioni attive",
+    "sha256": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "Autenticazione a due fattori"
+    "text": "Autenticazione a due fattori",
+    "sha256": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "L'autenticazione a due fattori è abilitata"
+    "text": "Autenticazione a due fattori abilitata",
+    "sha256": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "L'autenticazione a due fattori è disabilitata"
+    "text": "Autenticazione a due fattori disabilitata",
+    "sha256": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "Abilita autenticazione a due fattori"
+    "text": "Abilita autenticazione a due fattori",
+    "sha256": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "Disabilita autenticazione a due fattori"
+    "text": "Disabilita autenticazione a due fattori",
+    "sha256": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Configura autenticazione a due fattori"
+    "text": "Configura autenticazione a due fattori",
+    "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Aggiungi un livello extra di sicurezza al tuo account"
+    "text": "Aggiungi un ulteriore livello di sicurezza al tuo account",
+    "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Scansiona il codice QR"
+    "text": "1. Scansiona codice QR",
+    "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Verifica la configurazione"
+    "text": "2. Verifica configurazione",
+    "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Scansiona questo codice QR con la tua app di autenticazione"
+    "text": "Scansiona questo codice QR con la tua app di autenticazione",
+    "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Oppure inserisci questo codice manualmente"
+    "text": "Oppure inserisci questo codice manualmente",
+    "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Inserisci il codice a 6 cifre dalla tua app"
+    "text": "Inserisci il codice a 6 cifre dalla tua app",
+    "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Inserisci il codice di autenticazione"
+    "text": "Inserisci codice di autenticazione",
+    "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "Verifica e abilita"
+    "text": "Verifica e abilita",
+    "sha256": "7c08f68d"
   },
   "web.auth.mfa.code_required": {
-    "text": "Il codice di autenticazione è obbligatorio"
+    "text": "Codice di autenticazione richiesto",
+    "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Codice non valido. I codici scadono ogni 30 secondi. Prova l'ultimo codice dalla tua app di autenticazione"
+    "text": "Codice non valido. I codici scadono ogni 30 secondi. Prova l'ultimo codice dalla tua app di autenticazione.",
+    "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "L'autenticazione a due fattori è stata abilitata"
+    "text": "Autenticazione a due fattori abilitata",
+    "sha256": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "L'autenticazione a due fattori è stata disabilitata"
+    "text": "Autenticazione a due fattori disabilitata",
+    "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Inserisci la tua password per disabilitare l'autenticazione a due fattori"
+    "text": "Inserisci la password per disabilitare 2FA",
+    "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "Password"
+    "text": "Password",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Conferma la tua identità per modificare le impostazioni dell'autenticazione a due fattori"
+    "text": "Conferma la tua identità per modificare le impostazioni di autenticazione a due fattori",
+    "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "Ultimo utilizzo: {time}"
+    "text": "Ultimo utilizzo: {time}",
+    "sha256": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "Mai utilizzata"
+    "text": "Mai usato",
+    "sha256": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Usa invece un codice di recupero"
+    "text": "Usa invece un codice di recupero",
+    "sha256": "23d3441a"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Torna al codice di autenticazione"
+    "text": "Torna al codice di autenticazione",
+    "sha256": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Annulla e torna all'accesso"
+    "text": "Annulla e torna all'accesso",
+    "sha256": "83256742"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Caricamento stato MFA..."
+    "text": "Caricamento stato MFA...",
+    "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Il tuo account è protetto con l'autenticazione a due fattori"
+    "text": "Il tuo account è protetto con autenticazione a due fattori",
+    "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Proteggi il tuo account con un livello aggiuntivo di sicurezza"
+    "text": "Proteggi il tuo account con un ulteriore livello di sicurezza",
+    "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Previeni l'accesso non autorizzato anche se la tua password viene compromessa"
+    "text": "Previeni accessi non autorizzati anche se la tua password viene compromessa",
+    "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Funziona con Google Authenticator, Authy e altre app TOTP"
+    "text": "Funziona con Google Authenticator, Authy e altre app TOTP",
+    "sha256": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Codici di recupero di backup per l'accesso di emergenza"
+    "text": "Codici di recupero di backup per accesso di emergenza",
+    "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "Inserisci la tua password"
+    "text": "Inserisci la tua password",
+    "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "Disabilitazione..."
+    "text": "Disabilitazione...",
+    "sha256": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "Disabilita autenticazione a due fattori"
+    "text": "Disabilita 2FA",
+    "sha256": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "Generazione codice QR..."
+    "text": "Generazione codice QR...",
+    "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Usa Google Authenticator, Authy o qualsiasi app TOTP"
+    "text": "Usa Google Authenticator, Authy o qualsiasi app TOTP",
+    "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Continua alla verifica"
+    "text": "Continua alla verifica",
+    "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Inserisci il codice a 6 cifre dalla tua app di autenticazione"
+    "text": "Inserisci il codice a 6 cifre dalla tua app di autenticazione",
+    "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Abilita MFA"
+    "text": "Abilita MFA",
+    "sha256": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Completa configurazione"
+    "text": "Completa configurazione",
+    "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Inserisci uno dei tuoi codici di recupero"
+    "text": "Inserisci uno dei tuoi codici di recupero",
+    "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "Codice di recupero"
+    "text": "Codice di recupero",
+    "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Inserisci il codice di recupero"
+    "text": "Inserisci codice di recupero",
+    "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Verifica codice di recupero"
+    "text": "Verifica codice di recupero",
+    "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Inserisci il codice di autenticazione a 6 cifre"
+    "text": "Inserisci codice di autenticazione a 6 cifre",
+    "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Modalità codice di recupero attiva"
+    "text": "Modalità codice di recupero attiva",
+    "sha256": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Modalità codice di autenticazione attiva"
+    "text": "Modalità codice di autenticazione attiva",
+    "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Inserisci tutte le 6 cifre per continuare"
+    "text": "Inserisci tutte le 6 cifre per continuare",
+    "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "Cifra {current} di {total}"
+    "text": "Cifra {current} di {total}",
+    "sha256": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "Codici di recupero"
+    "text": "Codici di recupero",
+    "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Salva questi codici in un luogo sicuro. Ognuno può essere usato una volta se perdi l'accesso al tuo autenticatore"
+    "text": "Salva questi codici in un posto sicuro. Ognuno può essere usato una volta se perdi l'accesso alla tua app di autenticazione.",
+    "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Questi codici verranno mostrati solo una volta"
+    "text": "Questi codici verranno mostrati una sola volta",
+    "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Devi scaricare o copiare i codici di recupero prima di completare la configurazione."
+    "text": "Devi scaricare o copiare i tuoi codici di recupero prima di completare la configurazione.",
+    "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "Genera nuovi codici"
+    "text": "Genera nuovi codici",
+    "sha256": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Rigenera codici"
+    "text": "Rigenera codici",
+    "sha256": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Questo invaliderà tutti i codici di recupero esistenti"
+    "text": "Questo invaliderà tutti i codici di recupero esistenti",
+    "sha256": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Scarica codici"
+    "text": "Scarica codici",
+    "sha256": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Codici di recupero scaricati"
+    "text": "Codici di recupero scaricati",
+    "sha256": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "Stampa codici"
+    "text": "Stampa codici",
+    "sha256": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Copia tutti i codici"
+    "text": "Copia tutti i codici",
+    "sha256": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "Codici copiati negli appunti"
+    "text": "Codici copiati negli appunti",
+    "sha256": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Copia dei codici negli appunti fallita"
+    "text": "Impossibile copiare i codici negli appunti",
+    "sha256": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "Utilizzato"
+    "text": "Usato",
+    "sha256": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "Non utilizzato"
+    "text": "Non usato",
+    "sha256": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} codice/i di recupero rimanente/i"
+    "text": "{count} di {limit} codici di recupero rimanenti",
+    "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Ogni codice può essere usato solo una volta. Rigenera i codici se ne rimangono pochi."
+    "text": "Ogni codice può essere usato una sola volta. Rigenera i codici se ne hai pochi.",
+    "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Nessun codice di recupero rimanente"
+    "text": "Nessun codice di recupero rimanente",
+    "sha256": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Nuovi codici di recupero generati"
+    "text": "Nuovi codici di recupero generati",
+    "sha256": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "Codici di recupero"
+    "text": "Codici di recupero",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Verifica",
+    "sha256": "eea2745e"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Usa codice di recupero",
+    "sha256": "50d5790d"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Annulla accesso",
+    "sha256": "1bebad2f"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SICUREZZA-CRITICA: I messaggi prevengono la divulgazione di informazioni. Vedi src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Pagina di gestione dispositivi/browser dell'utente connesso"
   }
 }

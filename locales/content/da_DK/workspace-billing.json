@@ -1,46 +1,39 @@
 {
   "web.billing.upgrade.required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgradering påkrævet",
+    "sha256": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se abonnementer",
+    "sha256": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Teamadministration kræver Identity Plus eller højere"
+    "text": "Teamadministration kræver Identity Plus eller højere",
+    "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brugerdefinerede domæner kræver Identity Plus eller højere",
+    "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-adgang kræver Identity Plus eller højere",
+    "sha256": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Revisionslogfiler kræver Multi-Team-abonnement eller højere",
+    "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dit abonnement, organisationer og faktureringsindstillinger",
+    "sha256": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faktureringsoversigt",
+    "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se og administrer dit abonnement og betalingsoplysninger",
+    "sha256": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "",
@@ -48,545 +41,791 @@
     "note": "empty"
   },
   "web.billing.overview.current_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende abonnement",
+    "sha256": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnementsfunktioner",
+    "sha256": "fbab9086"
   },
   "web.billing.overview.payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Betalingsmetode",
+    "sha256": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Næste fakturadato",
+    "sha256": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Hurtige handlinger",
+    "sha256": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer fakturering",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se fakturaer",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader abonnement",
+    "sha256": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift abonnement",
+    "sha256": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen betalingsmetode registreret",
+    "sha256": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen kommende fakturering",
+    "sha256": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "dage tilbage",
+    "sha256": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturering den {date}",
+    "sha256": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se abonnementer",
+    "sha256": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sammenlign og opgrader",
+    "sha256": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se fakturaer",
+    "sha256": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Download historik",
+    "sha256": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer fakturering",
+    "sha256": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater betalingsoplysninger",
+    "sha256": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen organisationer",
+    "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret en organisation for at administrere din fakturering og dit abonnement",
+    "sha256": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opret beskeder",
+    "sha256": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "Vis kvitteringer"
+    "text": "Se kvitteringer",
+    "sha256": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-adgang",
+    "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brugerdefinerede domæner",
+    "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Tilpassede privatlivsindstillinger"
+    "text": "Brugerdefinerede privatlivsstandarder",
+    "sha256": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Udvidet standardudløb"
+    "text": "Udvidet standardudløb",
+    "sha256": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Tilpassede e-mail-standarder"
+    "text": "Brugerdefinerede mailstandarder",
+    "sha256": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Tilpasset branding"
+    "text": "Brugerdefineret branding",
+    "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Branded hjemmeside"
+    "text": "Brandet hjemmeside",
+    "sha256": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Indkommende beskeder"
+    "text": "Indgående beskeder",
+    "sha256": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Administrer organisationer"
+    "text": "Administrer organisationer",
+    "sha256": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Administrer teams"
+    "text": "Administrer teams",
+    "sha256": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Administrer medlemmer"
+    "text": "Administrer medlemmer",
+    "sha256": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Revisionslogfiler",
+    "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On"
+    "text": "Single Sign-On",
+    "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Prioriteret support",
+    "sha256": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Serviceniveauaftale"
+    "text": "Serviceniveauaftale",
+    "sha256": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Kunne ikke indlæse funktionsdetaljer"
+    "text": "Kunne ikke indlæse funktionsdetaljer",
+    "sha256": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Ingen funktioner tilgængelige"
+    "text": "Ingen funktioner tilgængelige",
+    "sha256": "03d195e8"
   },
   "web.billing.plans.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg et abonnement",
+    "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg det abonnement, der passer til dine behov",
+    "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Vælg den perfekte plan til din organisation"
+    "text": "Vælg det perfekte abonnement til din organisation",
+    "sha256": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende abonnement",
+    "sha256": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "Nuværende"
+    "text": "Nuværende",
+    "sha256": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader",
+    "sha256": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nedgrader",
+    "sha256": "d955b7e8"
   },
   "web.billing.plans.monthly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Månedligt",
+    "sha256": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Årligt",
+    "sha256": "6e69b59e"
   },
   "web.billing.plans.per_month": {
-    "text": "per måned"
+    "text": "/måned",
+    "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Spar {percent}% med årlig fakturering",
+    "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gratis",
+    "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Enkelt team",
+    "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Multi-team",
+    "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
-    "text": "Individuel konto"
+    "text": "Individuel konto",
+    "sha256": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "Teamkonto"
+    "text": "Teamkonto",
+    "sha256": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Organisationskonto"
+    "text": "Organisationskonto",
+    "sha256": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Funktioner",
+    "sha256": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ubegrænsede beskeder",
+    "sha256": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-adgang",
+    "sha256": "923fd434"
   },
   "web.billing.plans.priority_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Prioriteret support",
+    "sha256": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg abonnement",
+    "sha256": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kontakt salg",
+    "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Har du spørgsmål eller brug for noget tilpasset?"
+    "text": "Har du spørgsmål eller brug for noget tilpasset?",
+    "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Vi vil gerne høre fra dig. Fortæl os, hvad du leder efter."
+    "text": "Vi vil gerne høre fra dig. Fortæl os, hvad du leder efter.",
+    "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} team | {count} teams"
+    "text": "{count} team | {count} teams",
+    "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} medlem pr. team | {count} medlemmer pr. team"
+    "text": "{count} medlem pr. team | {count} medlemmer pr. team",
+    "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Ubegrænsede teams"
+    "text": "Ubegrænsede teams",
+    "sha256": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Ubegrænset antal medlemmer pr. team"
+    "text": "Ubegrænsede medlemmer pr. team",
+    "sha256": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Mest populær"
+    "text": "Mest populær",
+    "sha256": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Anbefalet"
+    "text": "Anbefalet",
+    "sha256": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Alt i {plan}, plus:"
+    "text": "Inkluderer alt i {plan}",
+    "sha256": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Ingen {interval} planer tilgængelige i øjeblikket."
+    "text": "Ingen {interval} abonnementer tilgængelige på nuværende tidspunkt.",
+    "sha256": "d8454436"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Din plan ændres med det samme."
+    "text": "Dit abonnement ændres med det samme.",
+    "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Nuværende plan:"
+    "text": "Nuværende abonnement:",
+    "sha256": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Ny plan:"
+    "text": "Nyt abonnement:",
+    "sha256": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Kredit for ubrugt tid:"
+    "text": "Kredit for ubrugt tid:",
+    "sha256": "001e4901"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Næste faktura"
+    "text": "Næste faktura",
+    "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Dine funktionsgrænser opdateres med det samme efter planændringen."
+    "text": "Dine funktionsbegrænsninger opdateres med det samme efter abonnementsændringen.",
+    "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Planændring mislykkedes. Prøv venligst igen."
+    "text": "Abonnementsændring mislykkedes. Prøv venligst igen.",
+    "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Bekræft opgradering"
+    "text": "Bekræft opgradering",
+    "sha256": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Bekræft nedgradering"
+    "text": "Bekræft nedgradering",
+    "sha256": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Opgrader til"
+    "text": "Opgrader til {plan}?",
+    "sha256": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Nedgrader til {plan}?"
+    "text": "Nedgrader til {plan}?",
+    "sha256": "8eb8ea81"
   },
   "web.billing.invoices.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faktureringshistorik",
+    "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se din faktureringshistorik og download fakturaer",
+    "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dato",
+    "sha256": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Beløb",
+    "sha256": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Status",
+    "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Download",
+    "sha256": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen fakturaer endnu",
+    "sha256": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Betalt",
+    "sha256": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Afventer",
+    "sha256": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Mislykket",
+    "sha256": "031a8f0f"
   },
   "web.billing.invoices.load_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke indlæse fakturaer",
+    "sha256": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fakturering administreres af {orgName}",
+    "sha256": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se organisationens fakturering",
+    "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Du har nået medlemsgrænsen for dette team",
+    "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader for at tilføje flere medlemmer",
+    "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnementsstatus",
+    "sha256": "c7a08e1d"
   },
   "web.billing.subscription.active": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiv",
+    "sha256": "92340695"
   },
   "web.billing.subscription.inactive": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Inaktiv",
+    "sha256": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Forfaldent",
+    "sha256": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Annulleret",
+    "sha256": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Abonnement",
+    "sha256": "fa8ed0bd"
   },
   "web.billing.portal.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Faktureringsportal",
+    "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dit abonnement, betalingsmetoder og faktureringshistorik",
+    "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Åbn faktureringsportal",
+    "sha256": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Omdirigerer til faktureringsportal...",
+    "sha256": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Start i dag"
+    "text": "Start i dag",
+    "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Start i dag med Identity Plus"
+    "text": "Start i dag med Identity Plus",
+    "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "per måned"
+    "text": "pr. måned",
+    "sha256": "88b1d1a6"
   },
   "web.billing.full_api_access": {
-    "text": "Fuld API-adgang"
+    "text": "Fuld API-adgang",
+    "sha256": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Privacy-first-design"
+    "text": "Privatliv-først design",
+    "sha256": "587d738c"
   },
   "web.billing.identity_plus": {
-    "text": "Identity Plus"
+    "text": "Identity Plus",
+    "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Klik på dette lyn for at opgradere til brugerdefinerede domæner"
+    "text": "Klik på dette lyn for at opgradere til brugerdefinerede domæner",
+    "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
-    "text": "Måske senere"
+    "text": "Måske senere",
+    "sha256": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Opgrader konto"
+    "text": "Opgrader konto",
+    "sha256": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Opgrader til Identity Plus"
+    "text": "Opgrader til Identity Plus",
+    "sha256": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opgrader til teams",
+    "sha256": "90dfb533"
   },
   "web.billing.benefits_of": {
-    "text": "Fordele ved"
+    "text": "Fordele ved",
+    "sha256": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0}: Identity Plus"
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Opgrader til"
+    "text": "Opgrader til",
+    "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Opgrader til secrets.yourdomain.com"
+    "text": "Opgrader til secrets.yourdomain.com",
+    "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "Alle planer inkluderer privatlivsfunktioner og ubegrænset delingskapacitet"
+    "text": "Alle planer inkluderer privatlivsfunktioner og ubegrænset delingskapacitet",
+    "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Alle abonnementer inkluderer valg af datalokalitet: {0} regioner"
+    "text": "Alle abonnementer inkluderer valg af dataplacering: {0} regioner",
+    "sha256": "22a60b49"
   },
   "web.billing.get_started": {
-    "text": "Kom godt i gang"
+    "text": "Kom i gang",
+    "sha256": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
-    "text": "{0} abonnement"
+    "text": "{0} abonnement",
+    "sha256": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "Løft din sikre deling med brugerdefinerede domæner, ubegrænset kapacitet og funktioner i virksomhedsklasse."
+    "text": "Løft din sikre deling med brugerdefinerede domæner, ubegrænset kapacitet og funktioner i virksomhedsklasse.",
+    "sha256": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Betalingsfrekvens"
+    "text": "Betalingsfrekvens",
+    "sha256": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
-    "text": "Sikr dit brand, og opbyg kundernes tillid med links fra dit domæne. Perfekt til virksomheder, der værdsætter privatliv og professionalisme."
+    "text": "Sikr dit brand, og opbyg kundernes tillid med links fra dit domæne. Perfekt til virksomheder, der værdsætter privatliv og professionalisme.",
+    "sha256": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Sikre links, stærkere forbindelser"
+    "text": "Sikre links, stærkere forbindelser",
+    "sha256": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Identitetsniveau ikke fundet i produktniveauer"
+    "text": "Identity-niveau ikke fundet i produktniveauer",
+    "sha256": "d0204fc4"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Annuller abonnement",
+    "sha256": "3f85967f"
+  },
+  "web.billing.cancel.title": {
+    "text": "Annuller abonnement",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Er du sikker på, at du vil annullere dit {plan}-abonnement?",
+    "sha256": "f4d1b6ee"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Hvad sker der, når du annullerer:",
+    "sha256": "4d8f5751"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Du beholder adgang til alle funktioner indtil {date}",
+    "sha256": "eab1efe3"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Du beholder adgang indtil din nuværende faktureringsperiode slutter",
+    "sha256": "1b07a54a"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Du vil ikke blive opkrævet igen",
+    "sha256": "a01cdc16"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Din konto vil blive nedgraderet til det gratis abonnement",
+    "sha256": "e01b3fc3"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Behold abonnement",
+    "sha256": "31e80c41"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Annuller abonnement",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.success": {
+    "text": "Dit abonnement er blevet annulleret. Du beholder adgang indtil slutningen af din faktureringsperiode.",
+    "sha256": "e18fd9d5"
+  },
+  "web.billing.cancel.error": {
+    "text": "Kunne ikke annullere abonnement. Prøv venligst igen.",
+    "sha256": "68e8bdde"
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Abonnementsannullering planlagt",
+    "sha256": "1427d139"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Dit abonnement forbliver aktivt indtil {date}. Du vil fortsat have fuld adgang til alle funktioner indtil da.",
+    "sha256": "aab4b1dc"
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Ombestemt dig? Du kan genaktivere dit abonnement når som helst før annulleringsdatoen.",
+    "sha256": "c94d5527"
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Opret og del beskeder",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "API-adgang",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Brugerdefinerede domæner",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 brugerdefineret domæne",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Ubegrænsede brugerdefinerede domæner",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Brugerdefineret branding",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Brandet hjemmeside",
+    "sha256": "e355a396"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Teamadministration",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Medlemsadministration",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Revisionslogfiler",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "Single Sign-On (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Prioriteret support",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "Serviceniveauaftale",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Centraliseret fakturering",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Revisionsspor",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Aktivitetsstrøm",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Overleveringsarbejdsgange",
+    "sha256": "07202af3"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30-dages beskedopbevaring",
+    "sha256": "21d6d514"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Hjemmesidebeskeder",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Indgående beskeder",
+    "sha256": "883dbca9"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Op til 5 teammedlemmer",
+    "sha256": "e7518d07"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Op til 10 teammedlemmer",
+    "sha256": "0c64c064"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Op til 25 teammedlemmer",
+    "sha256": "bf3b84c8"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Op til 50 teammedlemmer",
+    "sha256": "3c2d9a14"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Ubegrænsede teammedlemmer",
+    "sha256": "b7491ee9"
+  },
+  "web.billing.features.notifications": {
+    "text": "E-mailnotifikationer",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP-adgangsregler",
+    "sha256": "db966d47"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Arbejdsområdebranding",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dedikeret infrastruktur",
+    "sha256": "0c10aea7"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Delte arbejdsgange",
+    "sha256": "158f558e"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Fakturering for denne organisation",
+    "sha256": "21806992"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Dit abonnement er blevet opgraderet",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Dit nye abonnement er nu aktivt. Tak for dit køb.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Faktureringskontakt",
+    "sha256": "8f782ad8"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Hjemmesidebeskeder",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-mailnotifikationer",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP-adgangsregler",
+    "sha256": "db966d47"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Arbejdsområdebranding",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Forfald i dag:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Næste fakturering ({date}):",
+    "sha256": "a6846a85"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Sådan anvendes din kredit:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Næste fakturabeløb:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Kredit anvendt:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Beløb til betaling ved næste fakturering:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Resterende kontokredit:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Anvendes på fremtidige fakturaer",
+    "sha256": "5007add6"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Teamforbrug",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} af {limit} teams",
+    "sha256": "1db6b53c"
   }
 }

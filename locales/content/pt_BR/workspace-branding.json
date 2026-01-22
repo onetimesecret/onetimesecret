@@ -1,128 +1,170 @@
 {
   "web.branding.color_picker": {
-    "text": "Seletor de Cores"
+    "text": "Seletor de Cores",
+    "sha256": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "{0} atual: {1}. Clique para alternar entre as opções."
+    "text": "{0} atual: {1}. Clique para alternar entre as opções.",
+    "sha256": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Usar configuração"
+    "text": "Usar configuração",
+    "sha256": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Família de Fonte"
+    "text": "Família de Fonte",
+    "sha256": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Estilo dos Cantos"
+    "text": "Estilo dos Cantos",
+    "sha256": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Cor da Marca"
+    "text": "Cor da Marca",
+    "sha256": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Visualização da página do destinatário ao acessar seu link seguro"
+    "text": "Visualização da página do destinatário ao acessar seu link seguro",
+    "sha256": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Visualizar e Personalizar"
+    "text": "Visualizar e Personalizar",
+    "sha256": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Mudar para visualização do navegador Safari"
+    "text": "Mudar para visualização do navegador Safari",
+    "sha256": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
-    "text": "Microsoft Edge"
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Maximizar janela"
+    "text": "Maximizar janela",
+    "sha256": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Minimizar janela"
+    "text": "Minimizar janela",
+    "sha256": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Mudar para visualização do navegador Edge"
+    "text": "Mudar para visualização do navegador Edge",
+    "sha256": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
-    "text": "{0}/500 caracteres"
+    "text": "{0}/500 caracteres",
+    "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Use seu celular para escanear o código QR"
+    "text": "Use seu celular para escanear o código QR",
+    "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Entre em contato com onboarding{'@'}example.com para qualquer dúvida"
+    "text": "Entre em contato com onboarding{'@'}example.com para qualquer dúvida",
+    "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Estas instruções serão mostradas aos destinatários antes de revelarem o conteúdo confidencial"
+    "text": "Estas instruções serão mostradas aos destinatários antes de revelarem o conteúdo confidencial",
+    "sha256": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Estas instruções serão mostradas aos destinatários após revelarem a mensagem"
+    "text": "Estas instruções serão mostradas aos destinatários após revelarem a mensagem",
+    "sha256": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruções Pré-revelação"
+    "text": "Instruções Pré-revelação",
+    "sha256": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruções Pós-revelação"
+    "text": "Instruções Pós-revelação",
+    "sha256": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "Instruções"
+    "text": "Instruções",
+    "sha256": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Controles do logo"
+    "text": "Controles do logo",
+    "sha256": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Clique para carregar um logo. Tamanho recomendado: 128x128 pixels. Tamanho máximo do arquivo: 1MB. Formatos suportados: PNG, JPG, SVG"
+    "text": "Clique para carregar um logo. Tamanho recomendado: 128x128 pixels. Tamanho máximo do arquivo: 1MB. Formatos suportados: PNG, JPG, SVG",
+    "sha256": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Enviar logo"
+    "text": "Enviar logo",
+    "sha256": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Carregando visualização..."
+    "text": "Carregando visualização...",
+    "sha256": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Pré-visualize como os destinatários verão suas mensagens testando o botão \"Visualizar Mensagem Confidencial\""
+    "text": "Pré-visualize como os destinatários verão suas mensagens testando o botão \"Visualizar Mensagem Confidencial\"",
+    "sha256": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Ícone de olho"
+    "text": "Ícone de olho",
+    "sha256": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Clique na imagem de visualização abaixo para atualizar seu logo (mínimo recomendado 128x128 pixels, máximo 1MB)"
+    "text": "Clique na imagem de visualização abaixo para atualizar seu logo (mínimo recomendado 128x128 pixels, máximo 1MB)",
+    "sha256": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Ícone de imagem"
+    "text": "Ícone de imagem",
+    "sha256": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Use os controles acima para personalizar a cor da marca, estilos e instruções para o destinatário"
+    "text": "Use os controles acima para personalizar a cor da marca, estilos e instruções para o destinatário",
+    "sha256": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Ícone de personalização"
+    "text": "Ícone de personalização",
+    "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Você tem alterações não salvas. Tem certeza?"
+    "text": "Você tem alterações não salvas. Tem certeza?",
+    "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Falha ao carregar configurações da marca"
+    "text": "Falha ao carregar configurações da marca",
+    "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Esta é uma visualização interativa de como os destinatários verão suas mensagens seguras. Você pode: - Personalizar cores e fontes usando os controles acima - Enviar um logo (mínimo recomendado 128x128 pixels, máximo 1MB) - Testar a visualização usando o botão \"Ver Mensagem Confidencial\""
+    "text": "Esta é uma visualização interativa de como os destinatários verão suas mensagens seguras. Você pode: - Personalizar cores e fontes usando os controles acima - Enviar um logo (mínimo recomendado 128x128 pixels, máximo 1MB) - Testar a visualização usando o botão \"Ver Mensagem Confidencial\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Esta é uma pré-visualização interativa de como os destinatários verão suas mensagens seguras. Você pode: - Personalizar cores e fontes usando os controles acima - Carregar um logo (mínimo 128x128 pixels recomendado, 1MB máx) - Testar a pré-visualização usando o botão \"Visualizar Mensagem Confidencial\""
+    "text": "Esta é uma pré-visualização interativa de como os destinatários verão suas mensagens seguras. Você pode: - Personalizar cores e fontes usando os controles acima - Carregar um logo (mínimo 128x128 pixels recomendado, 1MB máx) - Testar a pré-visualização usando o botão \"Visualizar Mensagem Confidencial\"",
+    "sha256": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Kanji japonês '秘' (himitsu) significando 'secreto' ou 'confidencial'"
+    "text": "Kanji japonês '秘' (himitsu) significando 'secreto' ou 'confidencial'",
+    "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Powered by Onetime Secret"
+    "text": "Powered by Onetime Secret",
+    "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "Logo {0}"
+    "text": "Logo {0}",
+    "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
-    "text": "Edge"
+    "text": "Edge",
+    "sha256": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Mudar para visualização do Edge"
+    "text": "Mudar para visualização do Edge",
+    "sha256": "83883d84"
   },
   "web.branding.safari": {
-    "text": "Safari"
+    "text": "Safari",
+    "sha256": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Mudar para visualização do Safari"
+    "text": "Mudar para visualização do Safari",
+    "sha256": "f24ac447"
   }
 }

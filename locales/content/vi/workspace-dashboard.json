@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "Đã nhận"
+    "text": "Đã nhận",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Chưa nhận"
+    "text": "Chưa nhận",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Không có bí mật nào ở đây cả"
+    "text": "Không có bí mật gần đây",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Bắt đầu bằng cách tạo bí mật đầu tiên của bạn."
+    "text": "Bắt đầu bằng cách tạo bí mật đầu tiên của bạn.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Không thể tải các nhóm"
+    "text": "Không thể tải dữ liệu",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Đã xảy ra sự cố khi tải các nhóm của bạn. Vui lòng thử lại."
+    "text": "Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại.",
+    "sha256": "ff0d904e"
   }
 }

@@ -1,668 +1,638 @@
 {
   "web.account.settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indstillinger",
+    "sha256": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift adgangskode",
+    "sha256": "a949f462"
   },
   "web.account.close_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Luk konto",
+    "sha256": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bekræft konto",
+    "sha256": "2f3ea760"
   },
   "web.account.subscription_title": {
-    "text": "Abonnement"
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Administrer abonnement"
+    "text": "Administrer abonnement",
+    "sha256": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Kundeoplysninger"
+    "text": "Kundeoplysninger",
+    "sha256": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "Kunde siden:"
+    "text": "Kunde siden:",
+    "sha256": "0b37cff3"
   },
   "web.account.email": {
-    "text": "E-mail:"
+    "text": "E-mail:",
+    "sha256": "17507dcf"
   },
   "web.account.region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Region",
+    "sha256": "d3a008ef"
   },
   "web.account.account_balance": {
-    "text": "Kontosaldo:"
+    "text": "Saldo:",
+    "sha256": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Standard betalingsmetode"
+    "text": "Standard betalingsmetode",
+    "sha256": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "slutter i"
+    "text": "slutter på",
+    "sha256": "0195bccf"
   },
   "web.account.subscriptions_title": {
-    "text": "Abonnementer"
+    "text": "Abonnementer",
+    "sha256": "a151f2e9"
   },
   "web.account.quantity": {
-    "text": "Mængde:"
+    "text": "Antal:",
+    "sha256": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Næste faktureringsdato:"
+    "text": "Næste fakturadato:",
+    "sha256": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
-    "text": "Brugernavn"
+    "text": "Brugernavn",
+    "sha256": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
-    "text": "Nuværende adgangskode"
+    "text": "Nuværende adgangskode",
+    "sha256": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
-    "text": "Ny adgangskode"
+    "text": "Ny adgangskode",
+    "sha256": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Bekræft"
+    "text": "Bekræft",
+    "sha256": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Opdater adgangskode"
+    "text": "Opdater adgangskode",
+    "sha256": "557be0da"
   },
   "web.account.changePassword.updating": {
-    "text": "Opdaterer ..."
+    "text": "Opdaterer...",
+    "sha256": "0a4e0b71"
   },
   "web.account.timezone": {
-    "text": "Tidszone"
+    "text": "Tidszone",
+    "sha256": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "Kunde-id"
+    "text": "Kunde-ID",
+    "sha256": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "Konto-ID"
+    "text": "Konto-ID",
+    "sha256": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "Oprettet {0} hemmeligheder siden {1}."
+    "text": "Oprettet {0} hemmeligheder siden {1}.",
+    "sha256": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Slet konto"
+    "text": "Slet konto",
+    "sha256": "c031bf99"
   },
   "web.account.api_key": {
-    "text": "API-nøgle"
+    "text": "API-nøgle",
+    "sha256": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
-    "text": "Kontotype: {0}"
+    "text": "Kontotype: {0}",
+    "sha256": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Din konto"
+    "text": "Din konto",
+    "sha256": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Supportoplysninger"
+    "text": "Supportoplysninger",
+    "sha256": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Tilbage til detaljer"
+    "text": "Tilbage til detaljer",
+    "sha256": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "Kunde-ID: {0}"
+    "text": "Kunde-ID: {0}",
+    "sha256": "7e2d4201"
   },
   "web.account.token_generated": {
-    "text": "Token genereret."
+    "text": "Token genereret.",
+    "sha256": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Hold dette token sikkert! Det giver fuld adgang til din konto."
+    "text": "🔐 Hold dette token sikkert! Det giver fuld adgang til din konto.",
+    "sha256": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Bekræft med din adgangskode"
+    "text": "Bekræft med din adgangskode",
+    "sha256": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
-    "text": "Er du sikker på, at du vil slette din konto permanent? Denne handling kan ikke fortrydes."
+    "text": "Er du sikker på, at du vil slette din konto permanent? Denne handling kan ikke fortrydes.",
+    "sha256": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Bekræft sletning af konto"
+    "text": "Bekræft sletning af konto",
+    "sha256": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Sletter {0}"
+    "text": "Sletter {0}",
+    "sha256": "81d21828"
   },
   "web.account.permanently_delete_account": {
-    "text": "Slet konto permanent"
+    "text": "Slet konto permanent",
+    "sha256": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "permanent og ikke-reversibel."
+    "text": "permanent og kan ikke fortrydes.",
+    "sha256": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "At slette din konto er"
+    "text": "Sletning af din konto er",
+    "sha256": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "brænd dem, før du fortsætter"
+    "text": "slet dem permanent, før du fortsætter",
+    "sha256": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Eventuelle hemmeligheder, du ønsker at fjerne"
+    "text": "Eventuelle beskeder, du ønsker at fjerne,",
+    "sha256": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Hemmeligheder vil forblive aktive, indtil de udløber."
+    "text": "Beskeder forbliver aktive, indtil de udløber.",
+    "sha256": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Vær opmærksom på:"
+    "text": "Vær opmærksom på:",
+    "sha256": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Konto slettet med succes."
+    "text": "Konto slettet.",
+    "sha256": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "Deaktiver"
+    "text": "Deaktiver",
+    "sha256": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Er du sikker på, at du vil deaktivere din konto? Alle dine data vil blive fjernet permanent fra vores servere for altid. Denne handling kan ikke fortrydes."
+    "text": "Er du sikker på, at du vil deaktivere din konto? Alle dine data vil blive fjernet permanent fra vores servere for altid. Denne handling kan ikke fortrydes.",
+    "sha256": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Deaktiver konto"
+    "text": "Deaktiver konto",
+    "sha256": "5e31b73d"
   },
   "web.settings.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indstillinger",
+    "sha256": "74a883a0"
   },
   "web.settings.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine kontoindstillinger og præferencer",
+    "sha256": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine kontoindstillinger og præferencer",
+    "sha256": "2ff0853c"
   },
   "web.settings.general": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Generelt",
+    "sha256": "c910d474"
   },
   "web.settings.preferences": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Præferencer",
+    "sha256": "66962f72"
   },
   "web.settings.appearance": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Udseende",
+    "sha256": "3907fa7f"
   },
   "web.settings.theme.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Tema",
+    "sha256": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg lyst eller mørkt tema",
+    "sha256": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg lyst eller mørkt tema",
+    "sha256": "ff0ae84f"
   },
   "web.settings.language.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sprog",
+    "sha256": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg dit foretrukne sprog",
+    "sha256": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vælg dit foretrukne sprog",
+    "sha256": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer godkendelse og kontosikkerhed",
+    "sha256": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine kontooplysninger",
+    "sha256": "4a23a29f"
   },
   "web.settings.profile.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Profil",
+    "sha256": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift e-mail",
+    "sha256": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende e-mail",
+    "sha256": "5f1cab64"
   },
   "web.settings.profile.current_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Nuværende adgangskode",
+    "sha256": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ny e-mail",
+    "sha256": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indtast din nuværende adgangskode",
+    "sha256": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din adgangskode er påkrævet af sikkerhedsmæssige årsager",
+    "sha256": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "En bekræftelsesmail vil blive sendt til den nye adresse",
+    "sha256": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater e-mail",
+    "sha256": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater e-mailadressen tilknyttet din konto",
+    "sha256": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Alle felter er påkrævede",
+    "sha256": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Indtast venligst en gyldig e-mailadresse",
+    "sha256": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ny e-mail skal være forskellig fra nuværende e-mail",
+    "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "E-mail opdateret. Tjek venligst din indbakke for at bekræfte din nye e-mailadresse.",
+    "sha256": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kunne ikke opdatere e-mail. Prøv venligst igen.",
+    "sha256": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktive sessioner",
+    "sha256": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine aktive sessioner",
+    "sha256": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine aktive sessioner",
+    "sha256": "e5646da4"
   },
   "web.settings.password.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Adgangskode",
+    "sha256": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater din kontoadgangskode",
+    "sha256": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Opdater din kontoadgangskode",
+    "sha256": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet konto",
+    "sha256": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet din konto og alle data permanent",
+    "sha256": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slet din konto og alle data permanent",
+    "sha256": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sikkerhedsscore",
+    "sha256": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Din overordnede kontosikkerhed",
+    "sha256": "cf20935e"
   },
   "web.settings.security.excellent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fremragende",
+    "sha256": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "God",
+    "sha256": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Rimelig",
+    "sha256": "f7b19afc"
   },
   "web.settings.security.weak": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Svag",
+    "sha256": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Forbedre din sikkerhed",
+    "sha256": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiver to-faktor-godkendelse for stærkere beskyttelse",
+    "sha256": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Generer gendannelseskoder som backup",
+    "sha256": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Konfigureret",
+    "sha256": "84aebc69"
   },
   "web.settings.security.change": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Skift",
+    "sha256": "c0bf75bd"
   },
   "web.settings.security.manage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer",
+    "sha256": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiver",
+    "sha256": "5342e09f"
   },
   "web.settings.security.codes_available": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{0} koder tilgængelige",
+    "sha256": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen koder genereret",
+    "sha256": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{0} aktiv session | {0} aktive sessioner",
+    "sha256": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bedste sikkerhedspraksis",
+    "sha256": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brug en stærk, unik adgangskode til din konto",
+    "sha256": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Aktiver to-faktor-godkendelse for ekstra beskyttelse",
+    "sha256": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gem dine gendannelseskoder et sikkert sted",
+    "sha256": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gennemgå og tilbagekald ubrugte sessioner regelmæssigt",
+    "sha256": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Se detaljer",
+    "sha256": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API og integrationer",
+    "sha256": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer API-nøgler og integrationer",
+    "sha256": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer API-nøgler og integrationer",
+    "sha256": "70976099"
   },
   "web.settings.api.documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "API-dokumentation",
+    "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Lær hvordan du integrerer Onetime Secret i dine applikationer",
+    "sha256": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "REST API-reference",
+    "sha256": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Komplet API-dokumentation og endpoints",
+    "sha256": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Kodeeksempler",
+    "sha256": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksempelkode og klientbiblioteker",
+    "sha256": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Bedste sikkerhedspraksis",
+    "sha256": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Commit aldrig API-nøgler til versionskontrol",
+    "sha256": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brug miljøvariabler til at gemme API-nøgler",
+    "sha256": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Roter API-nøgler regelmæssigt for sikkerhed",
+    "sha256": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Brug altid HTTPS ved API-forespørgsler",
+    "sha256": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Overvåg dit API-forbrug og opsæt advarsler",
+    "sha256": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Vigtig meddelelse",
+    "sha256": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Gendannelse af din API-nøgle vil ugyldiggøre den nuværende nøgle. Opdater alle applikationer, der bruger den gamle nøgle.",
+    "sha256": "ab168f83"
   },
   "web.settings.privacy.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Privatlivsindstillinger",
+    "sha256": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Administrer dine privatlivspræferencer",
+    "sha256": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dit privatliv",
+    "sha256": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ikke til forhandling",
+    "sha256": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ikke en indstilling",
+    "sha256": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ingen analyser. Ingen sporing. Punktum.",
+    "sha256": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dette er ikke en indstilling, fordi der ikke er noget at slå til eller fra. Dit privatliv er indbygget i måden, vi driver virksomhed på.",
+    "sha256": "ed943792"
   },
   "web.settings.notifications.title": {
-    "text": "Notifikationsindstillinger"
+    "text": "Notifikationsindstillinger",
+    "sha256": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Administrer hvordan du modtager notifikationer"
+    "text": "Administrer hvordan du modtager notifikationer",
+    "sha256": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Kunne ikke opdatere notifikationspræference. Prøv igen."
+    "text": "Kunne ikke opdatere notifikationspræference. Prøv venligst igen.",
+    "sha256": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Notifikationer ved visning af beskeder"
+    "text": "Notifikationer ved visning af besked",
+    "sha256": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Modtag en e-mail, når nogen ser din besked"
+    "text": "Modtag en e-mail, når nogen ser din besked",
+    "sha256": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Du vil få besked hver gang en modtager åbner en af dine beskeder"
+    "text": "Du får besked hver gang en modtager ser en af dine beskeder",
+    "sha256": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Notifikations-e-mails indeholder kun tidsstempel og besked-ID. Oplysninger om seeren inkluderes aldrig."
+    "text": "Notifikationsmails indeholder kun tidsstempel og besked-ID. Oplysninger om læser er aldrig inkluderet.",
+    "sha256": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Zone til omhyggelig overvejelse",
+    "sha256": "fe27a3a8"
   },
   "web.settings.caution.description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Avancerede indstillinger og datahåndtering",
+    "sha256": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Dataeksport",
+    "sha256": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksporter dine kontodata",
+    "sha256": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Anmod om en komplet kopi af dine kontodata i maskinlæsbart format",
+    "sha256": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Anmod om dataeksport",
+    "sha256": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksportbehandlingstid",
+    "sha256": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Eksporter behandles inden for 24 timer og sendes til din e-mailadresse",
+    "sha256": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Sletning af din konto vil:",
+    "sha256": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Slette alle dine beskeder permanent",
+    "sha256": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Fjerne alle beskedmetadata og historik",
+    "sha256": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ugyldiggør alle API-nøgler",
+    "sha256": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Denne handling kan ikke fortrydes",
+    "sha256": "02ccc074"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Sletter...",
+    "sha256": "685ecb98"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Tilbage til kontrolpanel",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fakturering",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avanceret",
+    "sha256": "9f088dbe"
   }
 }

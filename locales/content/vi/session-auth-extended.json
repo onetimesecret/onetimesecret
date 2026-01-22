@@ -1,398 +1,548 @@
 {
   "web.auth.mfa_required": {
-    "text": "Yêu cầu xác minh MFA"
+    "text": "Yêu cầu xác minh MFA",
+    "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Yêu cầu xác minh MFA để truy cập tài khoản của bạn"
+    "text": "Yêu cầu xác minh MFA để truy cập tài khoản",
+    "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Hoàn tất xác minh MFA"
+    "text": "Hoàn tất xác minh MFA",
+    "sha256": "0e681134"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Xác thực thất bại. Vui lòng xác minh thông tin đăng nhập và thử lại."
+    "text": "Xác thực thất bại. Vui lòng xác minh thông tin đăng nhập và thử lại.",
+    "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Quá nhiều lần thử. Vui lòng thử lại sau."
+    "text": "Quá nhiều lần thử. Vui lòng thử lại sau.",
+    "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Phiên đã hết hạn. Vui lòng đăng nhập lại."
+    "text": "Phiên đã hết hạn. Vui lòng đăng nhập lại.",
+    "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Không tìm thấy mã khôi phục. Vui lòng xác minh bạn đã nhập đúng."
+    "text": "Không tìm thấy mã khôi phục. Vui lòng xác minh bạn đã nhập đúng.",
+    "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Mã khôi phục này đã được sử dụng. Mỗi mã chỉ có thể sử dụng một lần."
+    "text": "Mã khôi phục này đã được sử dụng. Mỗi mã chỉ có thể sử dụng một lần.",
+    "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Lỗi mạng. Vui lòng kiểm tra kết nối và thử lại."
+    "text": "Lỗi mạng. Vui lòng kiểm tra kết nối và thử lại.",
+    "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Đã xảy ra lỗi. Vui lòng thử lại."
+    "text": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "Mật khẩu"
+    "text": "Mật khẩu",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "Liên kết email"
+    "text": "Liên kết email",
+    "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "Sinh trắc học"
+    "text": "Sinh trắc học",
+    "sha256": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "Đăng nhập bằng email"
+    "text": "Đăng nhập bằng email",
+    "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "Chúng tôi sẽ gửi cho bạn liên kết đăng nhập an toàn"
+    "text": "Chúng tôi sẽ gửi cho bạn liên kết đăng nhập an toàn",
+    "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Nhập email của bạn"
+    "text": "Nhập email của bạn",
+    "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Gửi liên kết đăng nhập"
+    "text": "Gửi liên kết đăng nhập",
+    "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Kiểm tra email của bạn"
+    "text": "Kiểm tra email của bạn",
+    "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Chúng tôi đã gửi liên kết đăng nhập tới {email}"
+    "text": "Chúng tôi đã gửi liên kết đăng nhập đến {email}",
+    "sha256": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Liên kết này sẽ hết hạn sau 15 phút"
+    "text": "Liên kết này sẽ hết hạn sau 15 phút",
+    "sha256": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Thử email khác"
+    "text": "Thử email khác",
+    "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Không cần mật khẩu — chỉ cần nhấp vào liên kết trong email của bạn"
+    "text": "Không cần mật khẩu — chỉ cần nhấp vào liên kết trong email",
+    "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Lỗi mạng. Vui lòng thử lại."
+    "text": "Lỗi mạng. Vui lòng thử lại.",
+    "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Không thể gửi liên kết đăng nhập. Vui lòng thử lại."
+    "text": "Không thể gửi liên kết đăng nhập. Vui lòng thử lại.",
+    "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Liên kết đăng nhập không hợp lệ hoặc bị thiếu"
+    "text": "Liên kết đăng nhập không hợp lệ hoặc bị thiếu",
+    "sha256": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Đăng nhập thất bại. Vui lòng thử lại."
+    "text": "Đăng nhập thất bại. Vui lòng thử lại.",
+    "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Đang đăng nhập..."
+    "text": "Đang đăng nhập...",
+    "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Vui lòng đợi trong khi chúng tôi xác minh liên kết của bạn"
+    "text": "Vui lòng đợi trong khi chúng tôi xác minh liên kết",
+    "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "Lỗi xác thực"
+    "text": "Lỗi xác thực",
+    "sha256": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Quay lại đăng nhập"
+    "text": "Quay lại đăng nhập",
+    "sha256": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Đăng nhập bằng Face ID / Touch ID"
+    "text": "Đăng nhập bằng Face ID / Touch ID",
+    "sha256": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "Thiết lập đăng nhập sinh trắc học"
+    "text": "Cài đặt đăng nhập sinh trắc học",
+    "sha256": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "Xác thực sinh trắc học không được hỗ trợ trong trình duyệt này"
+    "text": "Xác thực sinh trắc học không được hỗ trợ trong trình duyệt này",
+    "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Vui lòng sử dụng trình duyệt hiện đại hỗ trợ WebAuthn (Chrome, Safari, Firefox, hoặc Edge)"
+    "text": "Vui lòng sử dụng trình duyệt hiện đại hỗ trợ WebAuthn (Chrome, Safari, Firefox hoặc Edge)",
+    "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "Đăng nhập sinh trắc học đã được bật"
+    "text": "Đăng nhập sinh trắc học đã được bật",
+    "sha256": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Không thể thiết lập đăng nhập sinh trắc học"
+    "text": "Không thể cài đặt đăng nhập sinh trắc học",
+    "sha256": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Xác thực sinh trắc học thất bại. Vui lòng thử lại."
+    "text": "Xác thực sinh trắc học thất bại. Vui lòng thử lại.",
+    "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "Xác thực đã bị hủy"
+    "text": "Xác thực đã bị hủy",
+    "sha256": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "Đang xác thực..."
+    "text": "Đang xác thực...",
+    "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Sử dụng vân tay, khuôn mặt hoặc khóa bảo mật của bạn để đăng nhập"
+    "text": "Sử dụng vân tay, khuôn mặt hoặc khóa bảo mật để đăng nhập",
+    "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Hỗ trợ Face ID, Touch ID, Windows Hello và khóa bảo mật"
+    "text": "Hỗ trợ Face ID, Touch ID, Windows Hello và khóa bảo mật",
+    "sha256": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Cảnh báo: còn {count} lần thử đăng nhập"
+    "text": "Cảnh báo: Còn {count} lần thử đăng nhập",
+    "sha256": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Tài khoản bị khóa do quá nhiều lần đăng nhập thất bại"
+    "text": "Tài khoản bị khóa do quá nhiều lần đăng nhập thất bại",
+    "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "Tài khoản của bạn bị khóa đến {time}"
+    "text": "Tài khoản của bạn bị khóa đến {time}",
+    "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Liên hệ hỗ trợ nếu bạn cần truy cập ngay lập tức"
+    "text": "Liên hệ hỗ trợ nếu bạn cần truy cập ngay",
+    "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Bạn có thể đặt lại mật khẩu thay thế"
+    "text": "Bạn có thể đặt lại mật khẩu thay thế",
+    "sha256": "a98a3f9d"
   },
   "web.auth.sessions.title": {
-    "text": "Phiên hoạt động"
+    "text": "Phiên hoạt động",
+    "sha256": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "Phiên hiện tại"
+    "text": "Phiên hiện tại",
+    "sha256": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "Các phiên khác"
+    "text": "Phiên khác",
+    "sha256": "8409f445"
   },
   "web.auth.sessions.device": {
-    "text": "Thiết bị"
+    "text": "Thiết bị",
+    "sha256": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "Vị trí"
+    "text": "Vị trí",
+    "sha256": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "Địa chỉ IP"
+    "text": "Địa chỉ IP",
+    "sha256": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "Hoạt động lần cuối"
+    "text": "Hoạt động cuối",
+    "sha256": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "Đã tạo"
+    "text": "Đã tạo",
+    "sha256": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "Xóa"
+    "text": "Xóa",
+    "sha256": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Đăng xuất tất cả phiên khác"
+    "text": "Đăng xuất tất cả phiên khác",
+    "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "Bạn có chắc chắn muốn xóa phiên này?"
+    "text": "Bạn có chắc muốn xóa phiên này?",
+    "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Điều này sẽ đăng xuất bạn khỏi tất cả các thiết bị khác. Bạn có chắc chắn?"
+    "text": "Điều này sẽ đăng xuất bạn khỏi tất cả thiết bị khác. Bạn có chắc không?",
+    "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "Không có phiên hoạt động khác"
+    "text": "Không có phiên hoạt động nào khác",
+    "sha256": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "Phiên đã được xóa thành công"
+    "text": "Đã xóa phiên thành công",
+    "sha256": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Tất cả các phiên khác đã được đăng xuất"
+    "text": "Tất cả phiên khác đã được đăng xuất",
+    "sha256": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "Phiên hoạt động"
+    "text": "Phiên hoạt động",
+    "sha256": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "Xác thực hai yếu tố"
+    "text": "Xác thực hai yếu tố",
+    "sha256": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "Xác thực hai yếu tố đã được bật"
+    "text": "Xác thực hai yếu tố đã được bật",
+    "sha256": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "Xác thực hai yếu tố đã bị tắt"
+    "text": "Xác thực hai yếu tố đã bị tắt",
+    "sha256": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "Bật xác thực hai yếu tố"
+    "text": "Bật xác thực hai yếu tố",
+    "sha256": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "Tắt xác thực hai yếu tố"
+    "text": "Tắt xác thực hai yếu tố",
+    "sha256": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Thiết lập xác thực hai yếu tố"
+    "text": "Cài đặt xác thực hai yếu tố",
+    "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Thêm lớp bảo mật bổ sung cho tài khoản của bạn"
+    "text": "Thêm một lớp bảo mật cho tài khoản của bạn",
+    "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Quét mã QR"
+    "text": "1. Quét mã QR",
+    "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Xác minh thiết lập"
+    "text": "2. Xác minh cài đặt",
+    "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Quét mã QR này bằng ứng dụng xác thực của bạn"
+    "text": "Quét mã QR này bằng ứng dụng xác thực",
+    "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Hoặc nhập mã này thủ công"
+    "text": "Hoặc nhập mã này thủ công",
+    "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Nhập mã 6 chữ số từ ứng dụng của bạn"
+    "text": "Nhập mã 6 chữ số từ ứng dụng của bạn",
+    "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Nhập mã xác thực"
+    "text": "Nhập mã xác thực",
+    "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "Xác minh và bật"
+    "text": "Xác minh và bật",
+    "sha256": "7c08f68d"
   },
   "web.auth.mfa.code_required": {
-    "text": "Mã xác thực là bắt buộc"
+    "text": "Yêu cầu mã xác thực",
+    "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Mã không hợp lệ. Mã hết hạn mỗi 30 giây. Thử mã mới nhất từ ứng dụng xác thực của bạn."
+    "text": "Mã không hợp lệ. Mã hết hạn sau mỗi 30 giây. Thử mã mới nhất từ ứng dụng xác thực.",
+    "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "Xác thực hai yếu tố đã được bật"
+    "text": "Xác thực hai yếu tố đã được bật",
+    "sha256": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "Xác thực hai yếu tố đã bị tắt"
+    "text": "Xác thực hai yếu tố đã bị tắt",
+    "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Nhập mật khẩu của bạn để tắt 2FA"
+    "text": "Nhập mật khẩu để tắt 2FA",
+    "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "Mật khẩu"
+    "text": "Mật khẩu",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Xác nhận danh tính của bạn để sửa đổi cài đặt xác thực hai yếu tố"
+    "text": "Xác nhận danh tính để thay đổi cài đặt xác thực hai yếu tố",
+    "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "Sử dụng lần cuối: {time}"
+    "text": "Sử dụng lần cuối: {time}",
+    "sha256": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "Chưa sử dụng"
+    "text": "Chưa từng sử dụng",
+    "sha256": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Sử dụng mã khôi phục thay thế"
+    "text": "Sử dụng mã khôi phục thay thế",
+    "sha256": "23d3441a"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Quay lại mã xác thực"
+    "text": "Quay lại mã xác thực",
+    "sha256": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Hủy và quay lại đăng nhập"
+    "text": "Hủy và quay lại đăng nhập",
+    "sha256": "83256742"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Đang tải trạng thái MFA..."
+    "text": "Đang tải trạng thái MFA...",
+    "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Tài khoản của bạn được bảo vệ bằng xác thực hai yếu tố"
+    "text": "Tài khoản của bạn được bảo vệ bằng xác thực hai yếu tố",
+    "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Bảo vệ tài khoản của bạn với lớp bảo mật bổ sung"
+    "text": "Bảo vệ tài khoản với một lớp bảo mật bổ sung",
+    "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Ngăn chặn truy cập trái phép ngay cả khi mật khẩu của bạn bị xâm phạm"
+    "text": "Ngăn chặn truy cập trái phép ngay cả khi mật khẩu bị lộ",
+    "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Hoạt động với Google Authenticator, Authy và các ứng dụng TOTP khác"
+    "text": "Hoạt động với Google Authenticator, Authy và các ứng dụng TOTP khác",
+    "sha256": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Mã khôi phục dự phòng để truy cập khẩn cấp"
+    "text": "Mã khôi phục dự phòng cho truy cập khẩn cấp",
+    "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "Nhập mật khẩu của bạn"
+    "text": "Nhập mật khẩu của bạn",
+    "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "Đang tắt..."
+    "text": "Đang tắt...",
+    "sha256": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "Tắt 2FA"
+    "text": "Tắt 2FA",
+    "sha256": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "Đang tạo mã QR..."
+    "text": "Đang tạo mã QR...",
+    "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Sử dụng Google Authenticator, Authy hoặc bất kỳ ứng dụng TOTP nào"
+    "text": "Sử dụng Google Authenticator, Authy hoặc bất kỳ ứng dụng TOTP nào",
+    "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Tiếp tục xác minh"
+    "text": "Tiếp tục xác minh",
+    "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Nhập mã 6 chữ số từ ứng dụng xác thực của bạn"
+    "text": "Nhập mã 6 chữ số từ ứng dụng xác thực",
+    "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Bật MFA"
+    "text": "Bật MFA",
+    "sha256": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Hoàn tất thiết lập"
+    "text": "Hoàn tất cài đặt",
+    "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Nhập một trong các mã khôi phục của bạn"
+    "text": "Nhập một trong các mã khôi phục của bạn",
+    "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "Mã khôi phục"
+    "text": "Mã khôi phục",
+    "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Nhập mã khôi phục"
+    "text": "Nhập mã khôi phục",
+    "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Xác minh mã khôi phục"
+    "text": "Xác minh mã khôi phục",
+    "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Nhập mã xác thực 6 chữ số"
+    "text": "Nhập mã xác thực 6 chữ số",
+    "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Chế độ mã khôi phục đang hoạt động"
+    "text": "Chế độ mã khôi phục đang hoạt động",
+    "sha256": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Chế độ mã xác thực đang hoạt động"
+    "text": "Chế độ mã xác thực đang hoạt động",
+    "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Vui lòng nhập đủ 6 chữ số để tiếp tục"
+    "text": "Vui lòng nhập đủ 6 chữ số để tiếp tục",
+    "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "Chữ số {current} trong số {total}"
+    "text": "Chữ số {current} trong {total}",
+    "sha256": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "Mã khôi phục"
+    "text": "Mã khôi phục",
+    "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Lưu các mã này ở nơi an toàn. Mỗi mã có thể được sử dụng một lần nếu bạn mất quyền truy cập vào ứng dụng xác thực."
+    "text": "Lưu các mã này ở nơi an toàn. Mỗi mã có thể sử dụng một lần nếu bạn mất quyền truy cập vào ứng dụng xác thực.",
+    "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Các mã này chỉ được hiển thị một lần"
+    "text": "Các mã này chỉ được hiển thị một lần",
+    "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Bạn phải tải xuống hoặc sao chép mã khôi phục trước khi hoàn tất thiết lập."
+    "text": "Bạn phải tải xuống hoặc sao chép mã khôi phục trước khi hoàn tất cài đặt.",
+    "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "Tạo mã mới"
+    "text": "Tạo mã mới",
+    "sha256": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Tạo lại mã"
+    "text": "Tạo lại mã",
+    "sha256": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Điều này sẽ làm vô hiệu tất cả các mã khôi phục hiện có"
+    "text": "Điều này sẽ vô hiệu hóa tất cả mã khôi phục hiện có",
+    "sha256": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Tải mã"
+    "text": "Tải xuống mã",
+    "sha256": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Đã tải xuống mã khôi phục"
+    "text": "Đã tải xuống mã khôi phục",
+    "sha256": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "In mã"
+    "text": "In mã",
+    "sha256": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Sao chép tất cả mã"
+    "text": "Sao chép tất cả mã",
+    "sha256": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "Đã sao chép mã vào clipboard"
+    "text": "Đã sao chép mã vào clipboard",
+    "sha256": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Không thể sao chép mã vào clipboard"
+    "text": "Không thể sao chép mã vào clipboard",
+    "sha256": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "Đã sử dụng"
+    "text": "Đã sử dụng",
+    "sha256": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "Chưa sử dụng"
+    "text": "Chưa sử dụng",
+    "sha256": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "Còn {count} mã khôi phục"
+    "text": "Còn {count} trong {limit} mã khôi phục",
+    "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Mỗi mã chỉ có thể sử dụng một lần. Tạo lại mã nếu bạn sắp hết."
+    "text": "Mỗi mã chỉ có thể sử dụng một lần. Tạo lại mã nếu sắp hết.",
+    "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Không còn mã khôi phục"
+    "text": "Không còn mã khôi phục",
+    "sha256": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Đã tạo mã khôi phục mới"
+    "text": "Đã tạo mã khôi phục mới",
+    "sha256": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "Mã khôi phục"
+    "text": "Mã khôi phục",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Xác minh",
+    "sha256": "eea2745e"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Sử dụng mã khôi phục",
+    "sha256": "50d5790d"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Hủy đăng nhập",
+    "sha256": "1bebad2f"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ BẢO MẬT QUAN TRỌNG: Các thông báo ngăn chặn tiết lộ thông tin. Xem src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Trang quản lý thiết bị/trình duyệt đã đăng nhập của người dùng"
   }
 }

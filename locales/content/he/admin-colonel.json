@@ -1,237 +1,315 @@
 {
   "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
-    "text": "{0}/{1}/{2} [{3}]"
+    "text": "{0}/{1}/{2} [{3}]",
+    "sha256": "98ba1771"
   },
   "web.colonel.customer_verified_verified_not_verified_0": {
-    "text": "`+customer.verified ? `verified` : `not verified"
+    "text": "`+customer.verified ? `verified` : `not verified",
+    "sha256": "52e93cc0"
   },
   "web.colonel.customers_details_counts_recent_customer_count_o_0": {
-    "text": "לקוחות ({0} מתוך {1})"
+    "text": "לקוחות ({0} מתוך {1})",
+    "sha256": "eb88db1d"
   },
   "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
-    "text": "משוב משתמשים (סה״כ: {0})"
+    "text": "משוב משתמשים (סה״כ: {0})",
+    "sha256": "d4a80454"
   },
   "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "מטא-דאטה / סודות: {0}/{1} ({2}/{3}/{4} סה״כ)"
+    "text": "מטא-דאטה / סודות: {0}/{1} ({2}/{3}/{4} סה״כ)",
+    "sha256": "5a341707"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
-    "text": "סודות ({0})"
+    "text": "סודות ({0})",
+    "sha256": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(פעיל ב-5 הדקות האחרונות)"
+    "text": "(פעיל ב-5 הדקות האחרונות)",
+    "sha256": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
-    "text": "הגדרות"
+    "text": "הגדרות",
+    "sha256": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "עריכת הגדרות תצורת מערכת. השינויים חלים מיד לאחר השמירה."
+    "text": "ערוך הגדרות תצורת מערכת. השינויים חלים מיד לאחר השמירה.",
+    "sha256": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "JSON לא תקף במדור {section}"
+    "text": "JSON לא תקין במדור {section}",
+    "sha256": "a75ac7a3"
   },
   "web.colonel.validationError": {
-    "text": "שגיאת אימות"
+    "text": "שגיאת אימות",
+    "sha256": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "שגיאה בטעינת תצורה"
+    "text": "שגיאה בטעינת התצורה",
+    "sha256": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "שגיאה בשמירת תצורה"
+    "text": "שגיאה בשמירת התצורה",
+    "sha256": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "התצורה נשמרה בהצלחה"
+    "text": "התצורה נשמרה בהצלחה",
+    "sha256": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "התצורה חייבת להיות אובייקט JSON"
+    "text": "התצורה חייבת להיות אובייקט JSON",
+    "sha256": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "מספר מדורים כוללים שגיאות אימות: {sections}"
+    "text": "למספר מדורים יש שגיאות אימות: {sections}",
+    "sha256": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} כולל שגיאות אימות: {error}"
+    "text": "ל-{section} יש שגיאות אימות: {error}",
+    "sha256": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} נשמר בהצלחה"
+    "text": "{section} נשמר בהצלחה",
+    "sha256": "7be1d5d2"
   },
   "web.colonel.saveSection": {
-    "text": "שמירת {section}"
+    "text": "שמור {section}",
+    "sha256": "4a379f10"
   },
   "web.colonel.saveAll": {
-    "text": "שמירת הכל"
+    "text": "שמור הכל",
+    "sha256": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
-    "text": "שינויים שלא נשמרו"
+    "text": "שינויים לא שמורים",
+    "sha256": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "שגיאת אימות סכמה: {message} ({path})"
+    "text": "שגיאת אימות סכמה: {message} ({path})",
+    "sha256": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "שגיאת אימות לא ידועה: {error}"
+    "text": "שגיאת אימות לא ידועה: {error}",
+    "sha256": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "מדור {section} אינו מכיל ערכים מוגדרים"
+    "text": "למדור {section} אין ערכים מוגדרים",
+    "sha256": "efb63b77"
   },
   "web.colonel.dashboard": {
-    "text": "לוח בקרה"
+    "text": "לוח בקרה",
+    "sha256": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "ניהול"
+    "text": "ניהול",
+    "sha256": "c1c224b0"
   },
   "web.colonel.activity": {
-    "text": "פעילות"
+    "text": "פעילות",
+    "sha256": "38da1505"
   },
   "web.colonel.accounts": {
-    "text": "חשבונות"
+    "text": "חשבונות",
+    "sha256": "8a7c8b67"
   },
   "web.colonel.users": {
-    "text": "משתמשים"
+    "text": "משתמשים",
+    "sha256": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "ניהול חשבונות משתמש והרשאות"
+    "text": "ניהול חשבונות משתמשים והרשאות",
+    "sha256": "6cfc012c"
   },
   "web.colonel.domains": {
-    "text": "דומיינים"
+    "text": "דומיינים",
+    "sha256": "ced67718"
   },
   "web.colonel.settings": {
-    "text": "הגדרות"
+    "text": "הגדרות",
+    "sha256": "74a883a0"
   },
   "web.colonel.system": {
-    "text": "מערכת"
+    "text": "מערכת",
+    "sha256": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "ברוכים הבאים ל-Colonel"
+    "text": "ברוך הבא ל-Colonel",
+    "sha256": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "לוח בקרה ניהולי עבור OneTimeSecret"
+    "text": "לוח בקרה ניהולי עבור OneTimeSecret",
+    "sha256": "57c1e752"
   },
   "web.colonel.quickActions": {
-    "text": "פעולות מהירות"
+    "text": "פעולות מהירות",
+    "sha256": "2cc2b6f7"
   },
   "web.colonel.recentActivity": {
-    "text": "פעילות אחרונה"
+    "text": "פעילות אחרונה",
+    "sha256": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "צפייה בהכל"
+    "text": "צפה בהכל",
+    "sha256": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "נתוני פעילות יוצגו כאן"
+    "text": "נתוני הפעילות יוצגו כאן",
+    "sha256": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "סודות סה״כ"
+    "text": "סה״כ סודות",
+    "sha256": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "משתמשים פעילים"
+    "text": "משתמשים פעילים",
+    "sha256": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "סודות היום"
+    "text": "סודות היום",
+    "sha256": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "סודות שנוצרו"
+    "text": "סודות שנוצרו",
+    "sha256": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "סודות ששותפו"
+    "text": "סודות ששותפו",
+    "sha256": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "לקוחות סה״כ"
+    "text": "סה״כ משתמשים",
+    "sha256": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "הודעות דואר שנשלחו"
+    "text": "הודעות דוא״ל שנשלחו",
+    "sha256": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "בריאות המערכת"
+    "text": "בריאות המערכת",
+    "sha256": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "בריא"
+    "text": "תקין",
+    "sha256": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "צפייה בפעילות"
+    "text": "צפייה בפעילות",
+    "sha256": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "מעקב אחר פעילות ושימוש במערכת"
+    "text": "ניטור פעילות ושימוש במערכת",
+    "sha256": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "ניהול חשבונות"
+    "text": "ניהול חשבונות",
+    "sha256": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "ניהול חשבונות משתמש"
+    "text": "ניהול חשבונות משתמשים",
+    "sha256": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "הגדרת דומיינים"
+    "text": "הגדרת דומיינים",
+    "sha256": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "הגדרות דומיין ו-DNS"
+    "text": "הגדרות דומיין ו-DNS",
+    "sha256": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "הגדרות מערכת"
+    "text": "הגדרות מערכת",
+    "sha256": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "תצורת אפליקציה"
+    "text": "תצורת האפליקציה",
+    "sha256": "923dc672"
   },
   "web.colonel.backgroundJobs": {
-    "text": "משימות רקע"
+    "text": "משימות רקע",
+    "sha256": "48937049"
   },
   "web.colonel.queueStatus": {
-    "text": "מצב תור"
+    "text": "סטטוס התור",
+    "sha256": "3421ffa8"
   },
   "web.colonel.queueName": {
-    "text": "תור"
+    "text": "תור",
+    "sha256": "3b2fe03e"
   },
   "web.colonel.pendingMessages": {
-    "text": "ממתין"
+    "text": "ממתינים",
+    "sha256": "331551b0"
   },
   "web.colonel.consumers": {
-    "text": "צרכנים"
+    "text": "צרכנים",
+    "sha256": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "קצב/שנייה"
+    "text": "קצב/שנייה",
+    "sha256": "cfde439c"
   },
   "web.colonel.connectionStatus": {
-    "text": "מצב חיבור"
+    "text": "סטטוס חיבור",
+    "sha256": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "בריאות עובדים"
+    "text": "בריאות העובדים",
+    "sha256": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "עובדים פעילים"
+    "text": "עובדים פעילים",
+    "sha256": "ea68cfee"
   },
   "web.colonel.noQueueData": {
-    "text": "אין נתוני תור זמינים"
+    "text": "אין נתוני תור זמינים",
+    "sha256": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "טוען נתוני תור..."
+    "text": "טוען נתוני תור...",
+    "sha256": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "מצב בדיקת תוכנית"
+    "text": "מצב תוכנית בדיקה",
+    "sha256": "eba59223"
   },
   "web.colonel.testingAsPlan": {
-    "text": "בודק כ-{planName}"
+    "text": "בודק כ-{planName}",
+    "sha256": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "לחצו לאיפוס"
+    "text": "לחץ לאיפוס",
+    "sha256": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "בחרו תוכנית לבדיקה"
+    "text": "בחר תוכנית לבדיקה",
+    "sha256": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "איפוס לתוכנית בפועל"
+    "text": "איפוס לתוכנית בפועל",
+    "sha256": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
-    "text": "תוכנית נוכחית"
+    "text": "תוכנית נוכחית",
+    "sha256": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "תוכניות זמינות"
+    "text": "תוכניות זמינות",
+    "sha256": "20efa44d"
   },
   "web.colonel.activateTestMode": {
-    "text": "הפעלת מצב בדיקה"
+    "text": "הפעל מצב בדיקה",
+    "sha256": "0f469baa"
   },
   "web.colonel.testModeActive": {
-    "text": "מצב בדיקה פעיל"
+    "text": "מצב בדיקה פעיל",
+    "sha256": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "בדקו את האפליקציה עם הרשאות תוכנית שונות. השינויים זמניים ומשפיעים רק על הסשן שלכם."
+    "text": "בדוק את האפליקציה שלך עם הרשאות תוכנית שונות. השינויים זמניים ומשפיעים רק על הסשן שלך.",
+    "sha256": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "אתם בודקים עם הרשאות {planName} (עקיפת סשן זמנית)."
+    "text": "אתה בודק עם הרשאות {planName} (עקיפת סשן זמנית).",
+    "sha256": "1a8aecf1"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "כאשר תשלחו משוב, נראה:"
@@ -241,5 +319,329 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "שולח..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "כתובות IP חסומות",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "ניהול רשימת חסימת IP",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "דומיינים מותאמים אישית",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "ניהול דומיינים מותאמים אישית ומיתוג",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "שלח משוב",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "שולח...",
+    "sha256": "286a3af7"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "כאשר תשלח משוב, נראה:",
+    "sha256": "fe77172e"
+  },
+  "web.colonel.organizations.title": {
+    "text": "ארגונים",
+    "sha256": "2730183d"
+  },
+  "web.colonel.organizations.description": {
+    "text": "ניטור בריאות סנכרון חיוב ארגוני",
+    "sha256": "d8f4398b"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "ניטור בריאות חיוב",
+    "sha256": "9ef57da4"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} ארגונים",
+    "sha256": "bc2feb56"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} דורשים תשומת לב",
+    "sha256": "1c8e5840"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} לא ידועים",
+    "sha256": "b7bf2cf1"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "לא נמצאו ארגונים",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "בדוק",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "בודק...",
+    "sha256": "2e5f79bb"
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "חשבון",
+    "sha256": "7e1b0d56"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "חיוב",
+    "sha256": "3ac8bbca"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "סטטוס",
+    "sha256": "920e413c"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "שימוש",
+    "sha256": "8d59829c"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "נוצר",
+    "sha256": "d70b9e24"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "פרטים",
+    "sha256": "45989de4"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "בעלים",
+    "sha256": "4b1b8aa3"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "תוכנית",
+    "sha256": "fa8ed0bd"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "חברים",
+    "sha256": "1044a4c0"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "דומיינים",
+    "sha256": "ced67718"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "מנוי",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "סביבת עבודה ברירת מחדל",
+    "sha256": "53aa279e"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "יש חיוב",
+    "sha256": "db0628ed"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "לקוח",
+    "sha256": "bf376338"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "מנוי",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "מזהה ארגון",
+    "sha256": "5e6b9932"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "סטטוס סנכרון",
+    "sha256": "b3998276"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "מנוי",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "הכל",
+    "sha256": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "פוטנציאלית מיושן",
+    "sha256": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "לא ידוע",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "מסונכרן",
+    "sha256": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "פעיל",
+    "sha256": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "בתקופת ניסיון",
+    "sha256": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "באיחור",
+    "sha256": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "בוטל",
+    "sha256": "13ca2ee2"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "הבדיקה נכשלה",
+    "sha256": "193aa900"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "תוצאת הבדיקה",
+    "sha256": "2dbc5cc3"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "אומת כמסונכרן",
+    "sha256": "d92625c2"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "נמצאה אי התאמה",
+    "sha256": "361d22f3"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "לא ניתן להשוות",
+    "sha256": "64c822ee"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "פרטי מנוי Stripe",
+    "sha256": "53a7b0ea"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "סטטוס",
+    "sha256": "920e413c"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "מוצר",
+    "sha256": "fb9ef894"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "תוכנית שנפתרה",
+    "sha256": "17c5b37a"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "מזהה מחיר",
+    "sha256": "b39a8f3e"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "מקומי",
+    "sha256": "8c31e6e7"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe",
+    "sha256": "961a6062"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "ניהול חיוב ארגונים",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "ניהול ארגונים וניטור בריאות סנכרון חיוב ({total} סה״כ)",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "לא נמצאו ארגונים",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "פוטנציאלית מיושן",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "מיושן",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "לא ידוע",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "פעיל",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} חברים",
+    "sha256": "201eb3d9"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} דומיינים",
+    "sha256": "cf548c8c"
+  },
+  "web.colonel.secrets.title": {
+    "text": "סודות",
+    "sha256": "d8707d41"
+  },
+  "web.colonel.secrets.description": {
+    "text": "צפייה וניהול כל הסודות",
+    "sha256": "48f8052e"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "מערכת",
+    "sha256": "6725e7bb"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "הגדרות מערכת, מסדי נתונים ותצורה",
+    "sha256": "7690b296"
+  },
+  "web.colonel.titles.index": {
+    "text": "ניהול",
+    "sha256": "4b42c669"
+  },
+  "web.colonel.titles.users": {
+    "text": "ניהול משתמשים",
+    "sha256": "fe45f3a1"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "ניהול סודות",
+    "sha256": "af69773b"
+  },
+  "web.colonel.titles.domains": {
+    "text": "דומיינים מותאמים אישית",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.titles.system": {
+    "text": "מערכת",
+    "sha256": "6725e7bb"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "מסד נתונים ראשי",
+    "sha256": "c4545e98"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "מסד נתוני אימות",
+    "sha256": "c683c9a6"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "כתובות IP חסומות",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.titles.usage": {
+    "text": "ייצוא שימוש",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.titles.info": {
+    "text": "מידע מערכת",
+    "sha256": "8ad54ec1"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "ארגונים",
+    "sha256": "2730183d"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis",
+    "sha256": "a7f64157"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "ייצוא שימוש",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "ייצוא נתוני שימוש וסטטיסטיקות",
+    "sha256": "2fd0a2e2"
   }
 }

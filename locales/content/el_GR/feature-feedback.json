@@ -1,27 +1,35 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Τα σχόλιά σας"
+    "text": "Τα σχόλιά σας",
+    "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Όλα τα σχόλια είναι ευπρόσδεκτα!"
+    "text": "Όλα τα σχόλια είναι ευπρόσδεκτα!",
+    "sha256": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Βοηθήστε μας να βελτιωθούμε"
+    "text": "Βοηθήστε μας να βελτιωθούμε",
+    "sha256": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Κλείσιμο παραθύρου σχολίων"
+    "text": "Κλείσιμο παραθύρου σχολίων",
+    "sha256": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Μοιραστείτε τα σχόλιά σας"
+    "text": "Μοιραστείτε τα σχόλιά σας",
+    "sha256": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
-    "text": "Delano Mandelbaum"
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
   },
   "web.feedback.delano": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Το περιεχόμενο βοήθειας πηγαίνει εδώ."
+    "text": "Το περιεχόμενο βοήθειας τοποθετείται εδώ.",
+    "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Ευχαριστούμε που βοηθάτε το Onetime Secret να βελτιωθεί. Σημαίνει πολλά."
@@ -36,12 +44,23 @@
     "text": "Μια σημείωση από τον Delano, ιδρυτή του Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Άνοιγμα φόρμας σχολίων"
+    "text": "Άνοιγμα φόρμας σχολίων",
+    "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Εισαγάγετε τα σχόλιά σας"
+    "text": "Εισάγετε τα σχόλιά σας",
+    "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Αποστολή σχολίων"
+    "text": "Αποστολή σχολίων",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Διαβάζω κάθε σχόλιο που έρχεται εδώ. Έτσι καταλαβαίνω σε τι πρέπει να αφιερώσω χρόνο.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Εάν κάτι δεν πάει καλά, ή έχετε ιδέες για το πώς θα έπρεπε να λειτουργεί, αυτό είναι το σωστό μέρος.",
+    "sha256": "d4b8f073"
   }
 }

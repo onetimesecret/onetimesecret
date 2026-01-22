@@ -1,245 +1,334 @@
 {
   "web.footer.api_docs": {
-    "text": "توثيق API"
+    "text": "توثيق API",
+    "sha256": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "دليل العلامة التجارية"
+    "text": "دليل العلامة التجارية",
+    "sha256": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "تخصيص"
+    "text": "تخصيص",
+    "sha256": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "الخطط"
+    "text": "الخطط",
+    "sha256": "dfe8b2f0"
   },
   "web.footer.security": {
-    "text": "الأمان"
+    "text": "الأمان",
+    "sha256": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "تعرف على تدابيرنا الأمنية"
+    "text": "تعرف على إجراءات الأمان لدينا",
+    "sha256": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "عرض الشروط والأحكام"
+    "text": "عرض الشروط والأحكام",
+    "sha256": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "الشروط"
+    "text": "الشروط",
+    "sha256": "ede54899"
   },
   "web.footer.privacy": {
-    "text": "الخصوصية"
+    "text": "الخصوصية",
+    "sha256": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "التواصل"
+    "text": "اتصل بنا",
+    "sha256": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "الدعم"
+    "text": "الدعم",
+    "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "القانونية"
+    "text": "القانونية",
+    "sha256": "0a410c78"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "عند إرسال ملاحظاتك، سنرى:",
+    "sha256": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "اقرأ سياسة الخصوصية"
+    "text": "اقرأ سياسة الخصوصية لدينا",
+    "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "تحقق من حالة الخدمة"
+    "text": "تحقق من حالة خدمتنا",
+    "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "استكشف توثيق API"
+    "text": "استكشف توثيق API لدينا",
+    "sha256": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "التوثيق"
+    "text": "التوثيق",
+    "sha256": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "الوصول إلى توثيقنا"
+    "text": "الوصول إلى وثائقنا",
+    "sha256": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "عرض الكود المصدري على GitHub"
+    "text": "عرض الكود المصدري على GitHub",
+    "sha256": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "الموارد"
+    "text": "الموارد",
+    "sha256": "e89b30aa"
   },
   "web.footer.blog": {
-    "text": "المدونة"
+    "text": "المدونة",
+    "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "اقرأ أحدث منشورات مدونتنا"
+    "text": "اقرأ أحدث منشورات مدونتنا",
+    "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "عرض أسعار الاشتراك"
+    "text": "عرض أسعار الاشتراك",
+    "sha256": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "تعرف على شركتنا"
+    "text": "تعرف على شركتنا",
+    "sha256": "780e18cd"
   },
   "web.footer.company": {
-    "text": "الشركة"
+    "text": "الشركة",
+    "sha256": "de4743c8"
   },
   "web.navigation.billing": {
-    "text": "الفوترة"
+    "text": "الفوترة",
+    "sha256": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "نظرة عامة"
+    "text": "نظرة عامة",
+    "sha256": "d4b1ea57"
   },
   "web.navigation.organizations": {
-    "text": "المنظمات"
+    "text": "المؤسسات",
+    "sha256": "2730183d"
   },
   "web.site.website_version": {
-    "text": "إصدار الموقع"
+    "text": "إصدار الموقع",
+    "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "نجعل {onetime-secret} متاحاً بلغات متعددة. نظراً لأن هذه ميزة جديدة، قد تواجه أخطاء في الترجمة أو صياغة محرجة. ملاحظاتك تساعدنا على التحسين - إذا لاحظت أي مشاكل، يرجى {send-feedback}"
+    "text": "نجعل {onetime-secret} متاحاً بلغات متعددة. نظراً لأن هذه ميزة جديدة، قد تواجه أخطاء في الترجمة أو صياغة محرجة. ملاحظاتك تساعدنا على التحسين - إذا لاحظت أي مشاكل، يرجى {send-feedback}",
+    "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "الترجمات جديدة. لاحظت خطأ؟ {send-feedback}"
+    "text": "الترجمات جديدة. لاحظت خطأ؟ {send-feedback}",
+    "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "أضفنا الترجمات مؤخراً. لاحظت خطأ؟ {send-feedback}"
+    "text": "أضفنا الترجمات مؤخراً. لاحظت خطأً؟ {send-feedback}",
+    "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "يجب أن تكون الخصوصية والأمان متاحين للجميع، بغض النظر عن اللغة. نضيف ترجمات لمساعدة مستخدمينا ومستلمي رسائلهم على فهم أفضل لكيفية استخدام والوصول بأمان إلى الرسائل والروابط الآمنة. نظراً لأن هذه ميزة جديدة، قد تواجه بعض أخطاء الترجمة أو تعليمات غير واضحة. لمساعدتنا في تحسين وضوح ودقة ترجماتنا، خاصة للمحتوى الحساس أمنياً، يرجى {send-feedback} إذا لاحظت أي مشاكل"
+    "text": "يجب أن تكون الخصوصية والأمان متاحين للجميع، بغض النظر عن اللغة. نضيف ترجمات لمساعدة مستخدمينا ومستلمي رسائلهم على فهم أفضل لكيفية استخدام والوصول بأمان إلى الرسائل والروابط الآمنة. نظراً لأن هذه ميزة جديدة، قد تواجه بعض أخطاء الترجمة أو تعليمات غير واضحة. لمساعدتنا في تحسين وضوح ودقة ترجماتنا، خاصة للمحتوى الحساس أمنياً، يرجى {send-feedback} إذا لاحظت أي مشاكل",
+    "sha256": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "تعلم المزيد"
+    "text": "اعرف المزيد",
+    "sha256": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "ماذا أشاهد؟"
+    "text": "ما الذي أنظر إليه؟",
+    "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "تشاهد رسالة آمنة تمت مشاركتها معك عبر Onetime Secret. يُعرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا."
+    "text": "أنت تشاهد رسالة آمنة تمت مشاركتها معك عبر Onetime Secret. يتم عرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا.",
+    "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "هل يمكنني عرض هذا السر مرة أخرى لاحقاً؟"
+    "text": "هل يمكنني عرض هذا السر مرة أخرى لاحقاً؟",
+    "sha256": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "لا. لأسباب أمنية، هذا السر قابل للعرض مرة واحدة فقط. بعد إغلاق هذه الصفحة، سيتم حذف المحتوى نهائياً ولا يمكن استرداده من قبل أي شخص، بما في ذلك نحن."
+    "text": "لا. لأسباب أمنية، يمكن عرض هذا السر مرة واحدة فقط. بعد إغلاق هذه الصفحة، سيتم حذف المحتوى نهائياً ولن يتمكن أي شخص من استرداده، بما في ذلك نحن.",
+    "sha256": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "كيف أحفظ هذه المعلومات؟"
+    "text": "كيف يمكنني حفظ هذه المعلومات؟",
+    "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "استخدم زر 'نسخ إلى الحافظة' لنسخ السر بالكامل. للأسرار الطويلة، تأكد من التحقق من نسخ المحتوى الكامل قبل مغادرة هذه الصفحة."
+    "text": "استخدم زر 'نسخ إلى الحافظة' لنسخ السر بالكامل. للأسرار الأطول، تأكد من التحقق من نسخ المحتوى كاملاً قبل مغادرة هذه الصفحة.",
+    "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "هل يتم تتبع عرضي لهذا السر؟"
+    "text": "هل يتم تتبع مشاهدتي لهذا السر؟",
+    "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "سيتم إخطار المرسل بأن سره قد تم عرضه، ولكننا لا نتتبع من شاهده أو من أي موقع. خصوصيتك محمية."
+    "text": "سيتم إبلاغ المرسل بأن سره قد تم عرضه، لكننا لا نتتبع من شاهده أو من أي موقع. خصوصيتك محمية.",
+    "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "بمجرد مغادرة أو تحديث هذه الصفحة، سيتم حذف هذا السر نهائياً ولا يمكن استرداده من قبل أي شخص."
+    "text": "بمجرد مغادرة هذه الصفحة أو تحديثها، سيتم حذف هذا السر نهائياً ولن يتمكن أي شخص من استرداده.",
+    "sha256": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "العودة إلى الصفحة السابقة"
+    "text": "العودة إلى الصفحة السابقة",
+    "sha256": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "تذييل الموقع"
+    "text": "تذييل الموقع",
+    "sha256": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "تبديل الوضع الداكن"
+    "text": "تبديل الوضع الداكن",
+    "sha256": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "تقديم ملاحظات"
+    "text": "تقديم ملاحظات",
+    "sha256": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "شعار الشركة"
+    "text": "شعار الشركة",
+    "sha256": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "شعار العلامة التجارية"
+    "text": "شعار العلامة التجارية",
+    "sha256": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "التنقل في لوحة التحكم"
+    "text": "تنقل لوحة التحكم",
+    "sha256": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "التنقل على الجوال"
+    "text": "التنقل للجوال",
+    "sha256": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "التنقل الرئيسي"
+    "text": "التنقل الرئيسي",
+    "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} عناصر"
+    "text": "{count} عناصر",
+    "sha256": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "ملاحظات الإصدار"
+    "text": "ملاحظات الإصدار",
+    "sha256": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "جارٍ تحميل محتوى الإعدادات..."
+    "text": "جاري تحميل محتوى الإعدادات...",
+    "sha256": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "أقسام الإعدادات"
+    "text": "أقسام الإعدادات",
+    "sha256": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "إغلاق الإعدادات"
+    "text": "إغلاق الإعدادات",
+    "sha256": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "أقسام الإعدادات"
+    "text": "أقسام الإعدادات",
+    "sha256": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "تخصيص تفضيلات التطبيق والإعدادات"
+    "text": "تخصيص تفضيلات التطبيق والإعدادات",
+    "sha256": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "العودة إلى الصفحة الرئيسية"
+    "text": "العودة للرئيسية",
+    "sha256": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "العودة إلى الصفحة الرئيسية"
+    "text": "العودة إلى الصفحة الرئيسية",
+    "sha256": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "العودة إلى الصفحة الرئيسية"
+    "text": "العودة للرئيسية",
+    "sha256": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "عرض سياسة الخصوصية"
+    "text": "عرض سياسة الخصوصية",
+    "sha256": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "عرض شروط الخدمة"
+    "text": "عرض شروط الخدمة",
+    "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "زيارة الصفحة الرئيسية لـ Onetime Secret"
+    "text": "زيارة الصفحة الرئيسية لـ Onetime Secret",
+    "sha256": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "التنقل في التذييل"
+    "text": "تنقل التذييل",
+    "sha256": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "شروط الخدمة"
+    "text": "شروط الخدمة",
+    "sha256": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "سياسة الخصوصية"
+    "text": "سياسة الخصوصية",
+    "sha256": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "مكتبة الأيقونات"
+    "text": "مكتبة الأيقونات",
+    "sha256": "a73f4c07"
   },
   "web.layout.google_material": {
-    "text": "Google Material"
+    "text": "Google Material",
+    "sha256": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons"
+    "text": "Material Design Icons",
+    "sha256": "0fb27437"
   },
   "web.layout.heroicons": {
-    "text": "Heroicons"
+    "text": "Heroicons",
+    "sha256": "5e7cc07e"
   },
   "web.layout.carbon": {
-    "text": "Carbon"
+    "text": "Carbon",
+    "sha256": "694c87c2"
   },
   "web.layout.font_awesome_6": {
-    "text": "Font Awesome 6"
+    "text": "Font Awesome 6",
+    "sha256": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "عرض المصدر على GitHub"
+    "text": "عرض الكود المصدري على GitHub",
+    "sha256": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "إصدار الموقع: v{0}"
+    "text": "إصدار الموقع: v{0}",
+    "sha256": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "تغيير اللغة. اللغة الحالية هي {0}"
+    "text": "تغيير اللغة. اللغة الحالية هي {0}",
+    "sha256": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "تم تغيير اللغة إلى {0}"
+    "text": "تم تغيير اللغة إلى {0}",
+    "sha256": "1680f4fe"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "إعادة التعيين إلى {0}",
+    "sha256": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "التبديل إلى وضع {0}"
+    "text": "التبديل إلى وضع {0}",
+    "sha256": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "تم تمكين وضع {0}"
+    "text": "تم تفعيل وضع {0}",
+    "sha256": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "مساحة العمل"
+    "text": "مساحة العمل",
+    "sha256": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "سياق مساحة العمل"
+    "text": "سياق مساحة العمل",
+    "sha256": "dc6fa4f5"
   }
 }

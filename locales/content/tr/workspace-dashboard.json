@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "Alınan"
+    "text": "Alındı",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Alınmayan"
+    "text": "Alınmadı",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Yeni gizli mesaj yok"
+    "text": "Son gizli mesaj yok",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "İlk gizli mesajınızı oluşturarak başlayın."
+    "text": "İlk gizli mesajınızı oluşturarak başlayın.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Ekipler yüklenemedi"
+    "text": "Veriler yüklenemedi",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Ekipleriniz yüklenirken bir sorun oluştu. Lütfen tekrar deneyin."
+    "text": "Verileriniz yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.",
+    "sha256": "ff0d904e"
   }
 }

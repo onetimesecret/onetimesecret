@@ -1,245 +1,334 @@
 {
   "web.footer.api_docs": {
-    "text": "Documentació de l'API"
+    "text": "Documentació de l'API",
+    "sha256": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Guia de marca"
+    "text": "Guia de marca",
+    "sha256": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "Personalitza"
+    "text": "Personalitzar",
+    "sha256": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "Plans"
+    "text": "Plans",
+    "sha256": "dfe8b2f0"
   },
   "web.footer.security": {
-    "text": "Seguretat"
+    "text": "Seguretat",
+    "sha256": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Més informació sobre les nostres mesures de seguretat"
+    "text": "Coneix les nostres mesures de seguretat",
+    "sha256": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Consulta els nostres termes i condicions"
+    "text": "Consulta els nostres termes i condicions",
+    "sha256": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "Termes"
+    "text": "Termes",
+    "sha256": "ede54899"
   },
   "web.footer.privacy": {
-    "text": "Privadesa"
+    "text": "Privadesa",
+    "sha256": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "Contacte"
+    "text": "Contacte",
+    "sha256": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "Assistència"
+    "text": "Suport",
+    "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Aspectes legals"
+    "text": "Legals",
+    "sha256": "0a410c78"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Llegeix la nostra política de privadesa"
+    "text": "Llegeix la nostra política de privadesa",
+    "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Comprova l'estat del nostre servei"
+    "text": "Comprova l'estat del nostre servei",
+    "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Explora la nostra documentació de l'API"
+    "text": "Explora la documentació de la nostra API",
+    "sha256": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "Documentació"
+    "text": "Documentació",
+    "sha256": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Accedeix a la nostra documentació"
+    "text": "Accedeix a la nostra documentació",
+    "sha256": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Visualitza el nostre codi font a GitHub"
+    "text": "Consulta el nostre codi font a GitHub",
+    "sha256": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "Recursos"
+    "text": "Recursos",
+    "sha256": "e89b30aa"
   },
   "web.footer.blog": {
-    "text": "Blog"
+    "text": "Blog",
+    "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Llegeix les nostres últimes entrades del blog"
+    "text": "Llegeix les nostres últimes publicacions del blog",
+    "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Consulta els nostres preus de subscripció"
+    "text": "Consulta els preus de subscripció",
+    "sha256": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Més informació sobre la nostra empresa"
+    "text": "Coneix la nostra empresa",
+    "sha256": "780e18cd"
   },
   "web.footer.company": {
-    "text": "Empresa"
+    "text": "Empresa",
+    "sha256": "de4743c8"
   },
   "web.navigation.billing": {
-    "text": "Facturació"
+    "text": "Facturació",
+    "sha256": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "Resum"
+    "text": "Visió general",
+    "sha256": "d4b1ea57"
   },
   "web.navigation.organizations": {
-    "text": "Organitzacions"
+    "text": "Organitzacions",
+    "sha256": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Versió del lloc web"
+    "text": "Versió del lloc web",
+    "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Estem fent que {onetime-secret} estigui disponible en diversos idiomes. Com que aquesta és una funció nova, és possible que trobis errors de traducció o redacció estranya. Els teus comentaris ens ajuden a millorar: si detectes algun problema, {send-feedback}"
+    "text": "Estem fent que {onetime-secret} estigui disponible en diversos idiomes. Com que aquesta és una funció nova, és possible que trobis errors de traducció o redacció estranya. Els teus comentaris ens ajuden a millorar: si detectes algun problema, {send-feedback}",
+    "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "Les traduccions són noves. Has detectat un error? {send-feedback}"
+    "text": "Les traduccions són noves. Has detectat un error? {send-feedback}",
+    "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Recentment hem afegit traduccions. Has detectat un error? {send-feedback}"
+    "text": "Hem afegit traduccions recentment. Has detectat un error? {send-feedback}",
+    "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "La privadesa i la seguretat han de ser accessibles per a tothom, independentment de l'idioma. Estem afegint traduccions per ajudar tant els nostres usuaris com els destinataris dels seus missatges a entendre millor com utilitzar i accedir de manera segura als missatges i enllaços segurs. Com que aquesta és una funció nova, és possible que trobis alguns errors de traducció o instruccions poc clares. Per ajudar-nos a millorar la claredat i la precisió de les nostres traduccions, especialment per al contingut crític relacionat amb la seguretat, {send-feedback} si detectes algun problema"
+    "text": "La privadesa i la seguretat han de ser accessibles per a tothom, independentment de l'idioma. Estem afegint traduccions per ajudar tant els nostres usuaris com els destinataris dels seus missatges a entendre millor com utilitzar i accedir de manera segura als missatges i enllaços segurs. Com que aquesta és una funció nova, és possible que trobis alguns errors de traducció o instruccions poc clares. Per ajudar-nos a millorar la claredat i la precisió de les nostres traduccions, especialment per al contingut crític relacionat amb la seguretat, {send-feedback} si detectes algun problema",
+    "sha256": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Més informació"
+    "text": "Més informació",
+    "sha256": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Què estic veient?"
+    "text": "Què estic veient?",
+    "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Estàs visualitzant un missatge segur que s'ha compartit amb tu a través d'Onetime Secret. Aquest contingut es mostra només una vegada i després se suprimeix permanentment dels nostres servidors."
+    "text": "Estàs veient un missatge segur que s'ha compartit amb tu a través d'Onetime Secret. Aquest contingut es mostra només una vegada i després s'elimina permanentment dels nostres servidors.",
+    "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Puc tornar a veure aquest secret més tard?"
+    "text": "Puc veure aquest secret més tard?",
+    "sha256": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "No. Per motius de seguretat, aquest secret només es pot visualitzar una vegada. Després de tancar aquesta pàgina, el contingut se suprimirà permanentment i ningú el podrà recuperar, ni tan sols nosaltres."
+    "text": "No. Per motius de seguretat, aquest secret només es pot veure una vegada. Després de tancar aquesta pàgina, el contingut s'eliminarà permanentment i ningú el podrà recuperar, ni nosaltres mateixos.",
+    "sha256": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Com puc desar aquesta informació?"
+    "text": "Com puc desar aquesta informació?",
+    "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Utilitza el botó 'Copia al porta-retalls' per copiar el secret complet. Per a secrets més llargs, assegura't de verificar que has copiat el contingut complet abans de sortir d'aquesta pàgina."
+    "text": "Utilitza el botó 'Copiar al porta-retalls' per copiar tot el secret. Per a secrets més llargs, assegura't de verificar que has copiat el contingut complet abans de sortir d'aquesta pàgina.",
+    "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Es fa un seguiment de la meva visualització d'aquest secret?"
+    "text": "Es fa un seguiment de la meva visualització d'aquest secret?",
+    "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "El remitent serà notificat que el seu secret s'ha visualitzat, però no fem un seguiment de qui l'ha visualitzat ni des d'on. La teva privadesa està protegida."
+    "text": "El remitent rebrà una notificació que el seu secret s'ha visualitzat, però no fem un seguiment de qui l'ha vist ni des d'on. La teva privadesa està protegida.",
+    "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Una vegada que sortis o actualitzis aquesta pàgina, aquest secret se suprimirà permanentment i ningú el podrà recuperar."
+    "text": "Un cop surtis o refresquis aquesta pàgina, aquest secret s'eliminarà permanentment i ningú el podrà recuperar.",
+    "sha256": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Torna a la pàgina anterior"
+    "text": "Tornar a la pàgina anterior",
+    "sha256": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Peu del lloc"
+    "text": "Peu de pàgina",
+    "sha256": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Commuta el mode fosc"
+    "text": "Canviar mode fosc",
+    "sha256": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Proporciona comentaris"
+    "text": "Enviar comentaris",
+    "sha256": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "Logotip de l'empresa"
+    "text": "Logotip de l'empresa",
+    "sha256": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Logotip de la marca"
+    "text": "Logotip de la marca",
+    "sha256": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Navegació del tauler de control"
+    "text": "Navegació del tauler de control",
+    "sha256": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "Navegació mòbil"
+    "text": "Navegació mòbil",
+    "sha256": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Navegació principal"
+    "text": "Navegació principal",
+    "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} elements"
+    "text": "{count} elements",
+    "sha256": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Notes de la versió"
+    "text": "Notes de la versió",
+    "sha256": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Carregant el contingut de la configuració..."
+    "text": "Carregant contingut de configuració...",
+    "sha256": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Seccions de configuració"
+    "text": "Seccions de configuració",
+    "sha256": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "Tanca la configuració"
+    "text": "Tancar configuració",
+    "sha256": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Seccions de configuració"
+    "text": "Seccions de configuració",
+    "sha256": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Personalitza les preferències i la configuració de la teva aplicació"
+    "text": "Personalitza les preferències i la configuració de la teva aplicació",
+    "sha256": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Torna a casa"
+    "text": "Tornar a l'inici",
+    "sha256": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Torna a la pàgina inicial"
+    "text": "Tornar a la pàgina d'inici",
+    "sha256": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Torna a la pàgina inicial"
+    "text": "Tornar a l'inici",
+    "sha256": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Consulta la política de privadesa"
+    "text": "Veure política de privadesa",
+    "sha256": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Consulta els termes del servei"
+    "text": "Veure termes del servei",
+    "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visita la pàgina inicial d'Onetime Secret"
+    "text": "Visitar la pàgina d'inici d'Onetime Secret",
+    "sha256": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Navegació del peu"
+    "text": "Navegació del peu de pàgina",
+    "sha256": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Termes del servei"
+    "text": "Termes del servei",
+    "sha256": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "Política de privadesa"
+    "text": "Política de privadesa",
+    "sha256": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "Biblioteca d'icones"
+    "text": "Biblioteca d'icones",
+    "sha256": "a73f4c07"
   },
   "web.layout.google_material": {
-    "text": "Google Material"
+    "text": "Google Material",
+    "sha256": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons"
+    "text": "Material Design Icons",
+    "sha256": "0fb27437"
   },
   "web.layout.heroicons": {
-    "text": "Heroicons"
+    "text": "Heroicons",
+    "sha256": "5e7cc07e"
   },
   "web.layout.carbon": {
-    "text": "Carbon"
+    "text": "Carbon",
+    "sha256": "694c87c2"
   },
   "web.layout.font_awesome_6": {
-    "text": "Font Awesome 6"
+    "text": "Font Awesome 6",
+    "sha256": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Visualitza el codi font a GitHub"
+    "text": "Veure codi font a GitHub",
+    "sha256": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Versió del lloc web: v{0}"
+    "text": "Versió del lloc web: v{0}",
+    "sha256": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Canvia l'idioma. L'idioma actual és {0}"
+    "text": "Canviar idioma. L'idioma actual és {0}",
+    "sha256": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Idioma canviat a {0}"
+    "text": "Idioma canviat a {0}",
+    "sha256": "1680f4fe"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Canvia al mode {0}"
+    "text": "Canviar a mode {0}",
+    "sha256": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "Mode {0} activat"
+    "text": "Mode {0} activat",
+    "sha256": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Espai de treball"
+    "text": "Espai de treball",
+    "sha256": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Context de l'espai de treball"
+    "text": "Context de l'espai de treball",
+    "sha256": "dc6fa4f5"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quan enviïs comentaris, veurem:",
+    "sha256": "fe77172e"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Restablir a {0}",
+    "sha256": "c0cfa9b2"
   }
 }

@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "Mottagen"
+    "text": "Mottagen",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Ej mottagen"
+    "text": "Ej mottagen",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Du har inte haft några hemligheter nyligen"
+    "text": "Inga senaste hemligheter",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Kom igång genom att skapa din första hemlighet."
+    "text": "Kom igång genom att skapa din första hemlighet.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Kunde inte ladda team"
+    "text": "Kunde inte ladda data",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Det uppstod ett problem vid laddning av dina team. Försök igen."
+    "text": "Det uppstod ett problem vid laddning av din data. Försök igen.",
+    "sha256": "ff0d904e"
   }
 }

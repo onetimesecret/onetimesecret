@@ -5,942 +5,1335 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Безопасные ссылки, которые работают только один раз"
+    "text": "Безопасные ссылки, которые работают только один раз",
+    "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "При поддержке"
+    "text": "На основе",
+    "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/ru"
+    "text": "https://onetimesecret.com/ru",
+    "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Сгенерировать пароль"
+    "text": "Сгенерировать пароль",
+    "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Генерация пароля отключена, когда форма заполнена"
+    "text": "Генерация пароля отключена, когда форма заполнена",
+    "sha256": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "например tom{'@'}myspace.com"
+    "text": "напр. tom{'@'}myspace.com",
+    "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Введите ваш пароль"
+    "text": "Введите Ваш пароль",
+    "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Пользовательские домены"
+    "text": "Пользовательские домены",
+    "sha256": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Укрепляйте связи и завоёвывайте доверие с помощью фирменных ссылок на секреты."
+    "text": "Укрепляйте связи и доверие с помощью собственных брендированных секретных ссылок.",
+    "sha256": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Начать"
+    "text": "Начать",
+    "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Подтвердите ваш пароль"
+    "text": "Подтвердите Ваш пароль",
+    "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
-    "text": "Настройки"
+    "text": "Настройки",
+    "sha256": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Отправить"
+    "text": "Отправить",
+    "sha256": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Отправка..."
+    "text": "Отправка...",
+    "sha256": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Обработка..."
+    "text": "Обработка...",
+    "sha256": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Не пересылайте конфиденциальную информацию через беседы и эл-почту. Поделитесь ссылкой на тайну, доступную только один раз."
+    "text": "Держите конфиденциальную информацию вне логов чатов и электронной почты. Создайте секретную ссылку, доступную только один раз.",
+    "sha256": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Неверная кодовая фраза"
+    "text": "Неверная кодовая фраза",
+    "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "тайна,генератор паролей,поделиться тайной,одноразовый"
+    "text": "секрет,генератор паролей,поделиться секретом,одноразовый",
+    "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Создать ссылку на тайну"
+    "text": "Создать секретную ссылку",
+    "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Или сгенерировать одноразовый пароль"
+    "text": "Или сгенерировать случайный пароль",
+    "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Настройки приватности"
+    "text": "Параметры конфиденциальности",
+    "sha256": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Пароль"
+    "text": "Кодовая фраза",
+    "sha256": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Слово или фраза, которую сложно угадать"
+    "text": "Слово или фраза, которую сложно угадать",
+    "sha256": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Адрес получателя"
+    "text": "Адрес получателя",
+    "sha256": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Введите тайное содержимое сюда..."
+    "text": "Секретное содержимое...",
+    "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Создать учётную запись"
+    "text": "Создать аккаунт",
+    "sha256": "0dffe234"
   },
   "web.COMMON.header_about": {
-    "text": "О нас"
+    "text": "О сервисе",
+    "sha256": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Войти"
+    "text": "Войти",
+    "sha256": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Учётная запись"
+    "text": "Аккаунт",
+    "sha256": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Выйти"
+    "text": "Выйти",
+    "sha256": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Секрет"
+    "text": "Секрет | Секрета | Секретов",
+    "sha256": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Недавние"
+    "text": "Недавние",
+    "sha256": "690dbe9d"
   },
   "web.COMMON.received": {
-    "text": "Получено"
+    "text": "Получен",
+    "sha256": "49f19bee"
   },
   "web.COMMON.burn": {
-    "text": "Удалить окончательно"
+    "text": "Уничтожить",
+    "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Окончательно удалено"
+    "text": "Уничтожен",
+    "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "Истекает через"
+    "text": "Истекает через",
+    "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Окончательно удалить этот секрет"
+    "text": "Уничтожить секрет",
+    "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Окончательное удаление секрета удалит его до прочтения (нажмите здесь, чтобы подтвердить)"
+    "text": "Уничтожение секрета удалит его до прочтения (нажмите для подтверждения)",
+    "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Окончательное удаление секрета не может быть отменено"
+    "text": "Уничтожение секрета необратимо",
+    "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Проверьте вашу эл-почту"
+    "text": "Проверьте почту",
+    "sha256": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Щёлкните для продолжения →"
+    "text": "Нажмите, чтобы раскрыть →",
+    "sha256": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Продолжить, чтобы подтвердить вашу учётную запись:"
+    "text": "Продолжите, чтобы подтвердить аккаунт:",
+    "sha256": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Вы не предоставили ничего, чем можно поделиться"
+    "text": "Вы не предоставили данные для отправки",
+    "sha256": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Перепроверить этот пароль"
+    "text": "Проверьте кодовую фразу ещё раз",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Введите пароль"
+    "text": "Введите кодовую фразу",
+    "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Посмотреть сообщение"
+    "text": "Просмотреть секрет",
+    "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "внимание: оно будет показано только раз."
+    "text": "Внимание: секрет будет показан только один раз.",
+    "sha256": "d29e2820"
   },
   "web.COMMON.warning": {
-    "text": "Внимание"
+    "text": "Предупреждение",
+    "sha256": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Ой!"
+    "text": "Упс!",
+    "sha256": "8344947a"
   },
   "web.COMMON.error": {
-    "text": "Ошибка"
+    "text": "Ошибка",
+    "sha256": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова."
+    "text": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
+    "sha256": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Это сообщение было урезано, так как оно закончилось"
+    "text": "Сообщение было сокращено",
+    "sha256": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Подпишитесь для дополнительных возможностей"
+    "text": "Зарегистрируйтесь для большего",
+    "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Войдите в свою учётную запись"
+    "text": "Войдите в аккаунт",
+    "sha256": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Отправить: "
+    "text": "Отправлено:",
+    "sha256": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "эл-почта"
+    "text": "Электронная почта",
+    "sha256": "969ccbd3"
   },
   "web.COMMON.field_password": {
-    "text": "Пароль"
+    "text": "Пароль",
+    "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Подтвердите пароль"
+    "text": "Подтвердите пароль",
+    "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Создать учётную запись"
+    "text": "Создать аккаунт",
+    "sha256": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Поделиться тайной"
+    "text": "Поделиться секретом",
+    "sha256": "5384461b"
   },
   "web.COMMON.title_home": {
-    "text": "Домашняя"
+    "text": "Главная",
+    "sha256": "3a786953"
   },
   "web.COMMON.word_none": {
-    "text": "Ничего"
+    "text": "Нет",
+    "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "окончательно удалено"
+    "text": "уничтожен",
+    "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "получено"
+    "text": "получен",
+    "sha256": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Подтвердить"
+    "text": "Подтвердить",
+    "sha256": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Отменить"
+    "text": "Отмена",
+    "sha256": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Продолжить"
+    "text": "Продолжить",
+    "sha256": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Готово"
+    "text": "Готово",
+    "sha256": "11a6767d"
   },
   "web.COMMON.back": {
-    "text": "Назад"
+    "text": "Назад",
+    "sha256": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Есть вопрос или комментарий?"
+    "text": "Поделитесь своими мыслями, идеями или впечатлениями...",
+    "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Отправить отзыв"
+    "text": "Отправить отзыв",
+    "sha256": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Подтвреждение было отправлено на"
+    "text": "Письмо для подтверждения отправлено на",
+    "sha256": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Учётная запись создана. Пожалуйста, войдите."
+    "text": "Аккаунт создан. Пожалуйста, войдите.",
+    "sha256": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Если учётная запись с этим адресом существует, вы получите письмо для подтверждения."
+    "text": "Если аккаунт с этим адресом существует, Вы получите письмо для подтверждения.",
+    "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Окончательно удалить этот секрет"
+    "text": "Уничтожить секрет навсегда",
+    "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Пожалуйста, подтвердите"
+    "text": "Подтвердите действие",
+    "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Вы уверены, что хотите окончательно удалить этот секрет? Это действие не может быть отменено."
+    "text": "Вы уверены, что хотите уничтожить этот секрет? Это действие нельзя отменить.",
+    "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Да, окончательно удалить этот секрет"
+    "text": "Да, уничтожить секрет",
+    "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Окончательное удаление секрета удалит его до того, как он будет получен."
+    "text": "Уничтожение секрета удалит его до того, как он будет получен.",
+    "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Для безопасности делитесь этой ссылкой отдельно от других деталей."
+    "text": "В целях безопасности передавайте эту ссылку отдельно от других данных.",
+    "sha256": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Скопировано в буфер обмена"
+    "text": "Скопировано в буфер обмена",
+    "sha256": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Создать входящий запрос"
+    "text": "Создать входящий",
+    "sha256": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "Часто задаваемые вопросы"
+    "text": "Вопросы и ответы",
+    "sha256": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Подтверждение недействительно"
+    "text": "Проверка недействительна",
+    "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Невозможно подтвердить учётную запись, когда вы уже вошли в систему"
+    "text": "Невозможно подтвердить аккаунт, когда Вы уже вошли в систему",
+    "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Показать пароль"
+    "text": "Показать пароль",
+    "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Скрыть пароль"
+    "text": "Скрыть пароль",
+    "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Пароль должен содержать не менее 8 символов"
+    "text": "Пароль должен содержать не менее 8 символов",
+    "sha256": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "Пароль должен содержать не менее 8 символов"
+    "text": "Пароль должен содержать не менее 8 символов",
+    "sha256": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Пароли не совпадают"
+    "text": "Пароли не совпадают",
+    "sha256": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
-    "text": "Это поле обязательно для заполнения"
+    "text": "Это поле обязательно для заполнения",
+    "sha256": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Обработка вашего запроса"
+    "text": "Обработка запроса",
+    "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Оставаться в системе 30 дней"
+    "text": "Оставаться в системе 30 дней",
+    "sha256": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Перенаправление..."
+    "text": "Перенаправление...",
+    "sha256": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Продолжить"
+    "text": "Продолжить",
+    "sha256": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Вы уверены?"
+    "text": "Вы уверены?",
+    "sha256": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "Опасная зона"
+    "text": "Опасная зона",
+    "sha256": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Зона внимательного рассмотрения"
+    "text": "Зона осторожных решений",
+    "sha256": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
-    "text": "Меню пользователя"
+    "text": "Меню пользователя",
+    "sha256": "6fa25be1"
   },
   "web.COMMON.security": {
-    "text": "Безопасность"
+    "text": "Безопасность",
+    "sha256": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Управление"
+    "text": "Управление",
+    "sha256": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "Загрузка..."
+    "text": "Загрузка...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Сохранить изменения"
+    "text": "Сохранить изменения",
+    "sha256": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Сохранение..."
+    "text": "Сохранение...",
+    "sha256": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Добавление"
+    "text": "Добавление",
+    "sha256": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "напр."
+    "text": "напр.",
+    "sha256": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "напр. {example}"
+    "text": "напр. {example}",
+    "sha256": "cc921aaa"
   },
   "web.COMMON.status": {
-    "text": "Статус"
+    "text": "Статус",
+    "sha256": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Escape"
+    "text": "Escape",
+    "sha256": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Активный"
+    "text": "Активен",
+    "sha256": "92340695"
   },
   "web.COMMON.preview": {
-    "text": "Предпросмотр"
+    "text": "Предпросмотр",
+    "sha256": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Удалить"
+    "text": "Удалить",
+    "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Нажмите ESC для закрытия"
+    "text": "Нажмите ESC, чтобы закрыть",
+    "sha256": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Ввод"
+    "text": "Ввод",
+    "sha256": "dc8659db"
   },
   "web.COMMON.important": {
-    "text": "Важно"
+    "text": "Важно",
+    "sha256": "ddca9a57"
   },
   "web.COMMON.language": {
-    "text": "Язык"
+    "text": "Язык",
+    "sha256": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Тема"
+    "text": "Тема",
+    "sha256": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Внешний вид"
+    "text": "Внешний вид",
+    "sha256": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Готово"
+    "text": "Готово",
+    "sha256": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Конец"
+    "text": "Конец",
+    "sha256": "f4db1e48"
   },
   "web.COMMON.general": {
-    "text": "Общие"
+    "text": "Общие",
+    "sha256": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Примечание"
+    "text": "Примечание",
+    "sha256": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "Ежемесячно"
+    "text": "Ежемесячно",
+    "sha256": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "Ежегодно"
+    "text": "Ежегодно",
+    "sha256": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Тогда продолжайте."
+    "text": "Продолжим.",
+    "sha256": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Загрузка..."
+    "text": "Загрузка...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.not_received": {
-    "text": "НЕ ПОЛУЧЕНО"
+    "text": "НЕ ПОЛУЧЕН",
+    "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Подтвердите пароль"
+    "text": "Подтвердите пароль",
+    "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "Новый пароль"
+    "text": "Новый пароль",
+    "sha256": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "Адрес электронной почты"
+    "text": "Адрес электронной почты",
+    "sha256": "f2488fd4"
   },
   "web.COMMON.switch": {
-    "text": "переключить"
+    "text": "переключить",
+    "sha256": "78b49fb2"
   },
   "web.COMMON.features": {
-    "text": "Функции"
+    "text": "Возможности",
+    "sha256": "5697d03d"
   },
   "web.COMMON.not_found": {
-    "text": "Не найдено"
+    "text": "Не найдено",
+    "sha256": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
-    "text": "❌"
+    "text": "❌",
+    "sha256": "2b2966a5"
   },
   "web.COMMON.emoji_checkmark": {
-    "text": "✅"
+    "text": "✅",
+    "sha256": "1d456424"
   },
   "web.COMMON.supported": {
-    "text": "Поддерживается"
+    "text": "Поддерживается",
+    "sha256": "c1658000"
   },
   "web.COMMON.version": {
-    "text": "Версия"
+    "text": "Версия",
+    "sha256": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Другое"
+    "text": "Другое",
+    "sha256": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(минимальная ширина: 1024px)"
+    "text": "(min-width: 1024px)",
+    "sha256": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Ctrl + Enter"
+    "text": "Ctrl + Enter",
+    "sha256": "78192e6e"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Enter"
+    "text": "⌘ + Enter",
+    "sha256": "558acbab"
   },
   "web.COMMON.mac": {
-    "text": "Mac"
+    "text": "Mac",
+    "sha256": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Адрес электронной почты скопирован в буфер обмена"
+    "text": "Адрес электронной почты скопирован в буфер обмена!",
+    "sha256": "23238b4e"
   },
   "web.COMMON.value": {
-    "text": "Значение"
+    "text": "Значение",
+    "sha256": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "Хост"
+    "text": "Хост",
+    "sha256": "4a823118"
   },
   "web.COMMON.type": {
-    "text": "Тип"
+    "text": "Тип",
+    "sha256": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Предыдущий"
+    "text": "Назад",
+    "sha256": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Следующий"
+    "text": "Далее",
+    "sha256": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Надёжность пароля:"
+    "text": "Надёжность пароля:",
+    "sha256": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Отлично"
+    "text": "Отлично",
+    "sha256": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Довольно хорошо"
+    "text": "Неплохо",
+    "sha256": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Удовлетворительно"
+    "text": "Приемлемо",
+    "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Так себе"
+    "text": "Так себе",
+    "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Не очень"
+    "text": "Неважно",
+    "sha256": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Открыть параметры"
+    "text": "Открыть параметры",
+    "sha256": "3dc08503"
   },
   "web.COMMON.inactive": {
-    "text": "Неактивный"
+    "text": "Неактивен",
+    "sha256": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Произошла ошибка"
+    "text": "Произошла ошибка",
+    "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Скопировать секрет в буфер обмена"
+    "text": "Копировать секрет в буфер обмена",
+    "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Секрет скопирован в буфер обмена"
+    "text": "Секрет скопирован в буфер обмена",
+    "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Внимательно проверьте эту кодовую фразу"
+    "text": "Проверьте кодовую фразу ещё раз",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Нажмите кнопку копирования ниже."
+    "text": "Нажмите кнопку копирования ниже.",
+    "sha256": "77fcf6fb"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Показать"
+    "text": "Показать",
+    "sha256": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Скрыть"
+    "text": "Скрыть",
+    "sha256": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Показать больше"
+    "text": "Показать больше",
+    "sha256": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Показать меньше"
+    "text": "Показать меньше",
+    "sha256": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Включить"
+    "text": "Включить",
+    "sha256": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Отключить"
+    "text": "Отключить",
+    "sha256": "b7e3e4aa"
   },
   "web.LABELS.stats": {
-    "text": "Статистика"
+    "text": "Статистика",
+    "sha256": "b4a73657"
   },
   "web.LABELS.timeline": {
-    "text": "Временная шкала"
+    "text": "Хронология",
+    "sha256": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Срок действия"
+    "text": "Срок действия",
+    "sha256": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Время истечения"
+    "text": "Время истечения",
+    "sha256": "c5db84a8"
   },
   "web.LABELS.close": {
-    "text": "Закрыть"
+    "text": "Закрыть",
+    "sha256": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "Загрузка..."
+    "text": "Загрузка...",
+    "sha256": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Отменить"
+    "text": "Отмена",
+    "sha256": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Сохранение..."
+    "text": "Сохранение...",
+    "sha256": "dc85af8f"
   },
   "web.LABELS.saved": {
-    "text": "Сохранено"
+    "text": "Сохранено",
+    "sha256": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Сохранить"
+    "text": "Сохранить",
+    "sha256": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Сохранить всё"
+    "text": "Сохранить всё",
+    "sha256": "d3c54e39"
   },
   "web.LABELS.details": {
-    "text": "Подробности"
+    "text": "Подробности",
+    "sha256": "45989de4"
   },
   "web.LABELS.encrypted": {
-    "text": "Зашифровано"
+    "text": "Зашифровано",
+    "sha256": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Статус секрета"
+    "text": "Статус секрета",
+    "sha256": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Нужна помощь?"
+    "text": "Нужна помощь?",
+    "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Создать новый секрет"
+    "text": "Создать новый секрет",
+    "sha256": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "Действия"
+    "text": "Действия",
+    "sha256": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Кодовая фраза не требуется"
+    "text": "Кодовая фраза не требуется",
+    "sha256": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Копировать в буфер обмена"
+    "text": "Копировать в буфер обмена",
+    "sha256": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Квитанции"
+    "text": "Квитанции",
+    "sha256": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Поделиться"
+    "text": "Поделиться",
+    "sha256": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Ссылка на секрет"
+    "text": "Секретная ссылка",
+    "sha256": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Закрыть"
+    "text": "Скрыть",
+    "sha256": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Детали безопасности"
+    "text": "Детали безопасности",
+    "sha256": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} элементов"
+    "text": "{count} элементов",
+    "sha256": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} получателей"
+    "text": "{count} получателей",
+    "sha256": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Просмотр"
+    "text": "Просмотр",
+    "sha256": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Просмотры"
+    "text": "Просмотры",
+    "sha256": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "просмотров"
+    "text": "раз просмотрено",
+    "sha256": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Прогресс просмотра"
+    "text": "Просмотр прогресса",
+    "sha256": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Раздел помощи"
+    "text": "Раздел помощи",
+    "sha256": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Защищено кодовой фразой"
+    "text": "Защищено кодовой фразой",
+    "sha256": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Отзыв получен."
+    "text": "Отзыв получен.",
+    "sha256": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Отправка..."
+    "text": "Отправка...",
+    "sha256": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Недавние секреты"
+    "text": "Недавние секреты",
+    "sha256": "0b907f8b"
   },
   "web.LABELS.pricing": {
-    "text": "Тарифы"
+    "text": "Тарифы",
+    "sha256": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Обновить"
+    "text": "Обновить",
+    "sha256": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Перезагрузить"
+    "text": "Перезагрузить",
+    "sha256": "bdc090ec"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Ссылки на секреты, созданные в этом сеансе"
+    "text": "Секретные ссылки, созданные в этой сессии",
+    "sha256": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Создать ссылку"
+    "text": "Создать ссылку",
+    "sha256": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Создать ссылку на секрет"
+    "text": "Создать секретную ссылку",
+    "sha256": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Создать запрос"
+    "text": "Создать запрос",
+    "sha256": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Создать ссылку для запроса"
+    "text": "Создать ссылку-запрос",
+    "sha256": "190463dc"
   },
   "web.LABELS.related_settings": {
-    "text": "Связанные настройки"
+    "text": "Связанные настройки",
+    "sha256": "68574b20"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Создание ссылок для"
+    "text": "Создание ссылок для",
+    "sha256": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Создание секретов в {domain}"
+    "text": "Создание секретов в {domain}",
+    "sha256": "3bbed96b"
   },
   "web.STATUS.new": {
-    "text": "Новый"
+    "text": "Новый",
+    "sha256": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Непрочитано"
+    "text": "Не прочитан",
+    "sha256": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Ссылка открыта"
+    "text": "Ссылка открыта",
+    "sha256": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Получено"
+    "text": "Получен",
+    "sha256": "49f19bee"
   },
   "web.STATUS.burned": {
-    "text": "Окончательно удалено"
+    "text": "Уничтожен",
+    "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Уничтожено"
+    "text": "Удалён",
+    "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Скоро истекает"
+    "text": "Скоро истечёт",
+    "sha256": "0259442c"
   },
   "web.STATUS.created": {
-    "text": "Создано"
+    "text": "Создан",
+    "sha256": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "Истекает"
+    "text": "Истекает",
+    "sha256": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Истёк"
+    "text": "Истёк",
+    "sha256": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Осиротевший"
+    "text": "Осиротевший",
+    "sha256": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Защищено"
+    "text": "Защищён",
+    "sha256": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Защита"
+    "text": "Защита...",
+    "sha256": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "Скопировано"
+    "text": "Скопировано",
+    "sha256": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Осталось времени"
+    "text": "Осталось времени",
+    "sha256": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Ссылка на секрет создана и ещё не просмотрена"
+    "text": "Секретная ссылка создана и ещё не просмотрена",
+    "sha256": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Ссылка на секрет создана и не была просмотрена"
+    "text": "Секретная ссылка создана и не была просмотрена",
+    "sha256": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Ссылка на секрет открыта и готова к просмотру"
+    "text": "Секретная ссылка открыта и готова к просмотру",
+    "sha256": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Секрет раскрыт получателю"
+    "text": "Секрет был раскрыт получателю",
+    "sha256": "ceb756b4"
   },
   "web.STATUS.burned_description": {
-    "text": "Секрет был вручную окончательно удалён до просмотра"
+    "text": "Секрет был вручную уничтожен до просмотра",
+    "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Секрет был безвозвратно уничтожен"
+    "text": "Секрет был безвозвратно удалён",
+    "sha256": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Срок действия секрета скоро истечёт"
+    "text": "Срок действия секрета скоро истечёт",
+    "sha256": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Секрет осиротел и скоро будет уничтожен"
+    "text": "Секрет стал осиротевшим и скоро будет удалён",
+    "sha256": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Срок действия секрета истёк до просмотра"
+    "text": "Срок действия секрета истёк до просмотра",
+    "sha256": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Успешно"
+    "text": "Успешно",
+    "sha256": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Доставлено"
+    "text": "Доставлен",
+    "sha256": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS неверен"
+    "text": "DNS неверен",
+    "sha256": "7848d601"
   },
   "web.STATUS.active": {
-    "text": "Активный"
+    "text": "Активен",
+    "sha256": "92340695"
   },
   "web.STATUS.inactive": {
-    "text": "Неактивный"
+    "text": "Неактивен",
+    "sha256": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Неограниченные просмотры"
+    "text": "Неограниченные просмотры",
+    "sha256": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Брендинг доверенного домена"
+    "text": "Брендирование на доверенном домене",
+    "sha256": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Зашифровано при передаче и хранении"
+    "text": "Шифрование при передаче и хранении",
+    "sha256": "314c7974"
   },
   "web.UNITS.ttl.duration": {
-    "text": "{count} {unit}"
+    "text": "{count} {unit}",
+    "sha256": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "день | дня | дней"
+    "text": "день | дня | дней",
+    "sha256": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "час | часа | часов"
+    "text": "час | часа | часов",
+    "sha256": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "минута | минуты | минут"
+    "text": "минута | минуты | минут",
+    "sha256": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "секунда | секунды | секунд"
+    "text": "секунда | секунды | секунд",
+    "sha256": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "осталось {count} {unit}"
+    "text": "Осталось {count} {unit}",
+    "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "остался день | осталось дня | осталось дней"
+    "text": "день | дня | дней",
+    "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "остался час | осталось часа | осталось часов"
+    "text": "час | часа | часов",
+    "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "осталась минута | осталось минуты | осталось минут"
+    "text": "минута | минуты | минут",
+    "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "осталась секунда | осталось секунды | осталось секунд"
+    "text": "секунда | секунды | секунд",
+    "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "лимит {count} просмотров"
+    "text": "Лимит {count} просмотров",
+    "sha256": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "Осталось {count} дней"
+    "text": "Осталось {count} дней",
+    "sha256": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Осталось {count} часов"
+    "text": "Осталось {count} часов",
+    "sha256": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Осталось {count} минут"
+    "text": "Осталось {count} минут",
+    "sha256": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Входящие секреты"
+    "text": "Входящие секреты",
+    "sha256": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Обратная связь"
+    "text": "Обратная связь",
+    "sha256": "aac77df3"
   },
   "web.TITLES.signin": {
-    "text": "Войти"
+    "text": "Вход",
+    "sha256": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Создать учётную запись"
+    "text": "Создать аккаунт",
+    "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Забыли пароль"
+    "text": "Забыли пароль",
+    "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Сброс пароля"
+    "text": "Сбросить пароль",
+    "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Выход из системы"
+    "text": "Выход из системы",
+    "sha256": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Подтвердить учётную запись"
+    "text": "Подтвердить аккаунт",
+    "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Двухфакторная аутентификация"
+    "text": "Двухфакторная аутентификация",
+    "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Вход через электронную почту"
+    "text": "Вход по электронной почте",
+    "sha256": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Принять приглашение"
+    "text": "Принять приглашение",
+    "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
-    "text": "Секрет"
+    "text": "Секрет",
+    "sha256": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "Детали секрета"
+    "text": "Детали секрета",
+    "sha256": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Квитанция секрета"
+    "text": "Квитанция секрета",
+    "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Окончательное удаление секрета"
+    "text": "Уничтожить секрет",
+    "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
-    "text": "Панель управления"
+    "text": "Панель управления",
+    "sha256": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Недавние"
+    "text": "Недавние секреты",
+    "sha256": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Пользовательские домены"
+    "text": "Пользовательские домены",
+    "sha256": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Добавить домен"
+    "text": "Добавить домен",
+    "sha256": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Проверить домен"
+    "text": "Подтвердить домен",
+    "sha256": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Брендинг домена"
+    "text": "Брендирование домена",
+    "sha256": "35e4dfbe"
   },
   "web.TITLES.account": {
-    "text": "Настройки учётной записи"
+    "text": "Аккаунт",
+    "sha256": "7e1b0d56"
   },
   "web.TITLES.data_region": {
-    "text": "Регион данных"
+    "text": "Регион данных",
+    "sha256": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Текущий регион"
+    "text": "Текущий регион",
+    "sha256": "b92e254d"
   },
   "web.TITLES.available_regions": {
-    "text": "Доступные регионы"
+    "text": "Доступные регионы",
+    "sha256": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Почему важен суверенитет данных"
+    "text": "Почему суверенитет данных важен",
+    "sha256": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
-    "text": "Настройки профиля"
+    "text": "Настройки профиля",
+    "sha256": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Предпочтения"
+    "text": "Предпочтения",
+    "sha256": "66962f72"
   },
   "web.TITLES.privacy_settings": {
-    "text": "Конфиденциальность"
+    "text": "Конфиденциальность",
+    "sha256": "54a57c31"
   },
   "web.TITLES.notification_settings": {
-    "text": "Уведомления"
+    "text": "Уведомления",
+    "sha256": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Изменить электронную почту"
+    "text": "Изменить почту",
+    "sha256": "18c3f2d5"
   },
   "web.TITLES.security_overview": {
-    "text": "Безопасность"
+    "text": "Безопасность",
+    "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Изменить пароль"
+    "text": "Изменить пароль",
+    "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Двухфакторная аутентификация"
+    "text": "Двухфакторная аутентификация",
+    "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "Активные сеансы"
+    "text": "Активные сессии",
+    "sha256": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Коды восстановления"
+    "text": "Коды восстановления",
+    "sha256": "579c7f4e"
   },
   "web.TITLES.api_settings": {
-    "text": "Настройки API"
+    "text": "Настройки API",
+    "sha256": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Расширенные настройки"
+    "text": "Расширенные настройки",
+    "sha256": "22d4f608"
   },
   "web.TITLES.system_settings": {
-    "text": "Системные настройки"
+    "text": "Системные настройки",
+    "sha256": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Страница не найдена"
+    "text": "Страница не найдена",
+    "sha256": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Организации"
+    "text": "Организации",
+    "sha256": "2730183d"
   },
   "web.TITLES.organization_settings": {
-    "text": "Настройки организации"
+    "text": "Настройки организации",
+    "sha256": "cc1d9e61"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Фокус находится в основной текстовой области"
+    "text": "Фокус теперь в основной текстовой области",
+    "sha256": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Инструкции по обмену"
+    "text": "Инструкции по передаче",
+    "sha256": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Поделитесь ссылкой с предполагаемым получателем"
+    "text": "Отправьте ссылку предполагаемому получателю",
+    "sha256": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Поделитесь кодовой фразой отдельно через безопасный канал"
+    "text": "Передайте кодовую фразу отдельно через защищённый канал",
+    "sha256": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Используйте другой безопасный канал для обмена конфиденциальной информацией"
+    "text": "Используйте другой защищённый канал для передачи конфиденциальной информации",
+    "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Всегда проверяйте, что вы находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно так же, как Onetime Secret, чтобы украсть ваши секреты. Чтобы избежать фишинговых атак, проверьте доменное имя региона перед созданием новых ссылок."
+    "text": "Всегда проверяйте, что находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно как Onetime Secret, чтобы похитить Ваши секреты. Чтобы избежать фишинговых атак, проверяйте домен перед созданием новых ссылок.",
+    "sha256": "b588f5b2"
   },
   "web.STATUS.previewed": {
-    "text": "Ссылка открыта"
+    "text": "Предпросмотрен",
+    "sha256": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Раскрыто"
+    "text": "Раскрыт",
+    "sha256": "17376ee4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Ссылка на секрет открыта и готова к раскрытию"
+    "text": "Секретная ссылка открыта и готова к раскрытию",
+    "sha256": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Содержимое секрета было раскрыто получателю"
+    "text": "Содержимое секрета было раскрыто получателю",
+    "sha256": "39b32f80"
+  },
+  "web.COMMON.not_set": {
+    "text": "Не задано",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Редактировать",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Сохранить",
+    "sha256": "1509f561"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Истекает через",
+    "sha256": "de996752"
+  },
+  "web.LABELS.filter": {
+    "text": "Фильтр",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Очистить",
+    "sha256": "83b12c22"
+  },
+  "web.LABELS.add_note": {
+    "text": "Добавить заметку...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Редактировать заметку",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Добавить примечание...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Редактировать примечание",
+    "sha256": "0ec1a5db"
+  },
+  "web.TITLES.help": {
+    "text": "Помощь",
+    "sha256": "b79cac92"
+  },
+  "web.TITLES.pricing": {
+    "text": "Тарифы",
+    "sha256": "dfe95783"
+  },
+  "web.pricing.title": {
+    "text": "Простые и прозрачные тарифы",
+    "sha256": "97e283c7"
+  },
+  "web.pricing.subtitle": {
+    "text": "Выберите план, который подходит Вам. Все планы включают неограниченный обмен секретами и дизайн, ориентированный на конфиденциальность.",
+    "sha256": "9204dff4"
+  },
+  "web.pricing.get_started_free": {
+    "text": "Начать бесплатно",
+    "sha256": "6bb5a4a7"
+  },
+  "web.pricing.start_trial": {
+    "text": "Начать",
+    "sha256": "983f3110"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Уже есть аккаунт?",
+    "sha256": "e77fea93"
+  },
+  "web.pricing.sign_in": {
+    "text": "Войти",
+    "sha256": "bfd402b2"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Рекомендуется для Вас",
+    "sha256": "00093fbd"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Создавайте и делитесь секретами с базовыми функциями. Кредитная карта не требуется.",
+    "sha256": "3a4f2bc0"
   }
 }

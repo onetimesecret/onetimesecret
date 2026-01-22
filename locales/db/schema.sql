@@ -58,3 +58,48 @@ CREATE TABLE IF NOT EXISTS session_log (
 
 CREATE INDEX IF NOT EXISTS idx_session_locale ON session_log(locale);
 CREATE INDEX IF NOT EXISTS idx_session_date ON session_log(date);
+
+-- Translation issues: QC findings and messages requiring manual review
+-- Tracks quality issues found during automated or manual translation review
+CREATE TABLE IF NOT EXISTS translation_issues (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    locale TEXT NOT NULL,             -- 'de', 'ja', 'ar', etc.
+    file TEXT,                        -- 'secret-manage.json' or NULL for locale-wide issues
+    key_path TEXT,                    -- 'web.COMMON.broadcast' or NULL for file/locale-wide
+    issue_type TEXT NOT NULL
+        CHECK(issue_type IN (
+            'terminology',            -- Inconsistent or incorrect term usage
+            'grammar',                -- Grammar/agreement errors
+            'encoding',               -- Encoding errors, garbled text
+            'missing',                -- Missing translation
+            'truncated',              -- Incomplete/cut-off translation
+            'pluralization',          -- Incorrect plural forms
+            'formality',              -- Formal/informal register inconsistency
+            'rtl',                    -- RTL/bidirectional text issues
+            'placeholder',            -- Variable/placeholder problems
+            'tone',                   -- Tone/voice inconsistency
+            'cultural',               -- Cultural adaptation issues
+            'other'
+        )),
+    severity TEXT NOT NULL DEFAULT 'medium'
+        CHECK(severity IN ('critical', 'high', 'medium', 'low')),
+    status TEXT NOT NULL DEFAULT 'open'
+        CHECK(status IN ('open', 'in_review', 'resolved', 'wontfix')),
+    source_text TEXT,                 -- Original English text (for reference)
+    current_text TEXT,                -- Current translation with issue
+    suggested_text TEXT,              -- Suggested fix (if any)
+    description TEXT NOT NULL,        -- Description of the issue
+    detected_by TEXT,                 -- 'qc_agent', 'human', 'automated'
+    detected_at TEXT DEFAULT (datetime('now')),
+    resolved_at TEXT,
+    resolved_by TEXT,
+    resolution_notes TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_issues_locale ON translation_issues(locale);
+CREATE INDEX IF NOT EXISTS idx_issues_status ON translation_issues(status);
+CREATE INDEX IF NOT EXISTS idx_issues_severity ON translation_issues(severity);
+CREATE INDEX IF NOT EXISTS idx_issues_type ON translation_issues(issue_type);
+CREATE INDEX IF NOT EXISTS idx_issues_locale_status ON translation_issues(locale, status);

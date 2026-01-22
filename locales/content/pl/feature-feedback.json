@@ -1,27 +1,35 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Twoja opinia"
+    "text": "Twoja opinia",
+    "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Wszelkie opinie mile widziane!"
+    "text": "Każda opinia jest mile widziana!",
+    "sha256": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Pomóż nam ulepszyć"
+    "text": "Pomóż nam się doskonalić",
+    "sha256": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Zamknij okno opinii"
+    "text": "Zamknij okno opinii",
+    "sha256": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Podziel się swoją opinią"
+    "text": "Podziel się swoją opinią",
+    "sha256": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
-    "text": "Delano Mandelbaum"
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
   },
   "web.feedback.delano": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Treść pomocy pojawi się tutaj."
+    "text": "Treść pomocy pojawi się tutaj.",
+    "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Dziękujemy za pomoc w ulepszaniu Onetime Secret. To wiele znaczy."
@@ -36,12 +44,23 @@
     "text": "Notatka od Delano, założyciela Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Otwórz formularz opinii"
+    "text": "Otwórz formularz opinii",
+    "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Wprowadź swoją opinię"
+    "text": "Wprowadź swoją opinię",
+    "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Wyślij opinię"
+    "text": "Wyślij opinię",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Czytam każdą opinię, która tu trafia. W ten sposób określam, na co poświęcić czas.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Jeśli coś jest nie tak lub masz pomysły na to, jak to powinno działać, to jest właściwe miejsce.",
+    "sha256": "d4b8f073"
   }
 }

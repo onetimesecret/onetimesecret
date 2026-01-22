@@ -1,296 +1,357 @@
 {
   "web.login.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Χρειάζεστε λογαριασμό;",
+    "sha256": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Χρειάζεστε λογαριασμό;"
+    "text": "Εγγραφή.",
+    "sha256": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Ξεχάσατε το συνθηματικό σας;"
+    "text": "Ξεχάσατε τον κωδικό σας;",
+    "sha256": "afd25fdf"
   },
   "web.login.button_sign_in": {
-    "text": "Σύνδεση"
+    "text": "Σύνδεση",
+    "sha256": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Εισάγετε όνομα και κωδικό χρήστη"
+    "text": "Εισάγετε τα διαπιστευτήριά σας",
+    "sha256": "07e1c44e"
   },
   "web.login.remember_me": {
-    "text": "Να με θυμάσαι"
+    "text": "Να με θυμάσαι",
+    "sha256": "f93267aa"
   },
   "web.signup.create_your_account": {
-    "text": "Δημιουργήστε τον Λογαριασμό σας"
+    "text": "Δημιουργήστε τον λογαριασμό σας",
+    "sha256": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Έχετε ήδη λογαριασμό;",
+    "sha256": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Ή, συνδεθείτε στον λογαριασμό σας"
+    "text": "Σύνδεση.",
+    "sha256": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σφάλμα δημιουργίας λογαριασμού",
+    "sha256": "e380a0b6"
   },
   "web.signup.password_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κωδικός πρόσβασης",
+    "sha256": "e7cf3ef4"
   },
   "web.signup.email_error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Email",
+    "sha256": "969ccbd3"
   },
   "web.auth.verify.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση του λογαριασμού σας",
+    "sha256": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο λογαριασμός σας επαληθεύτηκε επιτυχώς",
+    "sha256": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Μη έγκυρο ή ληγμένο κλειδί επαλήθευσης",
+    "sha256": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτός ο σύνδεσμος επαλήθευσης έχει λήξει. Παρακαλώ ζητήστε νέο.",
+    "sha256": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτός ο λογαριασμός έχει ήδη επαληθευτεί. Μπορείτε να συνδεθείτε τώρα.",
+    "sha256": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αδύνατη η επαλήθευση λογαριασμού. Παρακαλώ προσπαθήστε ξανά ή επικοινωνήστε με την υποστήριξη.",
+    "sha256": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Παρακαλώ ελέγξτε το email σας για σύνδεσμο επαλήθευσης",
+    "sha256": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η επαλήθευση λογαριασμού απέτυχε. Παρακαλώ ελέγξτε τον σύνδεσμο επαλήθευσης ή ζητήστε νέο.",
+    "sha256": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η επαλήθευση απέτυχε",
+    "sha256": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τι πρέπει να κάνω;",
+    "sha256": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ελέγξτε το email σας για τον πιο πρόσφατο σύνδεσμο επαλήθευσης",
+    "sha256": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ελέγξτε τον φάκελο spam/ανεπιθύμητα αν δεν βρίσκετε το email",
+    "sha256": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επικοινωνήστε με την υποστήριξη αν συνεχίζετε να αντιμετωπίζετε προβλήματα",
+    "sha256": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απαιτείται σύνδεσμος επαλήθευσης",
+    "sha256": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Παρακαλώ χρησιμοποιήστε τον σύνδεσμο επαλήθευσης που στάλθηκε στη διεύθυνση email σας για να επαληθεύσετε τον λογαριασμό σας.",
+    "sha256": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Δημιουργία νέου λογαριασμού",
+    "sha256": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αλλαγή κωδικού πρόσβασης",
+    "sha256": "a949f462"
   },
   "web.auth.change_password.current_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Τρέχων κωδικός πρόσβασης",
+    "sha256": "8ac76099"
   },
   "web.auth.change_password.new_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Νέος κωδικός πρόσβασης",
+    "sha256": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επιβεβαίωση νέου κωδικού πρόσβασης",
+    "sha256": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ο κωδικός πρόσβασής σας άλλαξε επιτυχώς",
+    "sha256": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Η αλλαγή κωδικού πρόσβασης απέτυχε. Παρακαλώ επαληθεύστε τον τρέχοντα κωδικό πρόσβασής σας και δοκιμάστε ξανά.",
+    "sha256": "1aa11b3f"
   },
   "web.auth.close_account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κλείσιμο λογαριασμού",
+    "sha256": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Όλα τα μυστικά σας θα διαγραφούν οριστικά.",
+    "sha256": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κατανοώ ότι αυτή η ενέργεια είναι οριστική",
+    "sha256": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Εισάγετε τον κωδικό πρόσβασής σας για επιβεβαίωση",
+    "sha256": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Οριστικό κλείσιμο λογαριασμού",
+    "sha256": "0713c012"
   },
   "web.auth.close_account.cancel": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ακύρωση",
+    "sha256": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Αίτημα Επαναφοράς Κωδικού"
+    "text": "Αίτημα επαναφοράς κωδικού πρόσβασης",
+    "sha256": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Εισαγάγετε τη διεύθυνση email σας παρακάτω και θα σας στείλουμε έναν σύνδεσμο για να επαναφέρετε τον κωδικό σας"
+    "text": "Εισάγετε τη διεύθυνση email σας παρακάτω και θα σας στείλουμε σύνδεσμο για επαναφορά του κωδικού πρόσβασής σας",
+    "sha256": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Αποστολή Συνδέσμου Επαναφοράς"
+    "text": "Αποστολή συνδέσμου επαναφοράς",
+    "sha256": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "Επιλέξτε Νέο Κωδικό Πρόσβασης"
+    "text": "Επιλέξτε νέο κωδικό πρόσβασης",
+    "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Παρακαλώ εισαγάγετε τον νέο κωδικό πρόσβασής σας παρακάτω. Βεβαιωθείτε ότι είναι ισχυρός και μοναδικός για την προστασία του λογαριασμού σας."
+    "text": "Παρακαλώ εισάγετε τον νέο σας κωδικό πρόσβασης παρακάτω. Βεβαιωθείτε ότι είναι ισχυρός και μοναδικός για να προστατεύσετε τον λογαριασμό σας.",
+    "sha256": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Σας στάλθηκε email με σύνδεσμο για επαναφορά του κωδικού πρόσβασης του λογαριασμού σας",
+    "sha256": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Συμφωνώ με τους"
+    "text": "Συμφωνώ με",
+    "sha256": "26a58d00"
   },
   "web.auth.account.title": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Πληροφορίες λογαριασμού",
+    "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διεύθυνση email",
+    "sha256": "09bf25ef"
   },
   "web.auth.account.created": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Λογαριασμός δημιουργήθηκε",
+    "sha256": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Email επαληθευμένο",
+    "sha256": "bc512ab0"
   },
   "web.auth.account.region": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Περιοχή",
+    "sha256": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Email μη επαληθευμένο",
+    "sha256": "53955e0e"
   },
   "web.auth.account.verify_email": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Επαλήθευση διεύθυνσης email",
+    "sha256": "d261b9df"
   },
   "web.auth.account.mfa_status": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ταυτοποίηση δύο παραγόντων",
+    "sha256": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργοποιημένη",
+    "sha256": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Απενεργοποιημένη",
+    "sha256": "75081b59"
   },
   "web.auth.account.active_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Ενεργές συνεδρίες",
+    "sha256": "b58fa4e0"
   },
   "web.auth.account.session_count": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "{count} ενεργές συνεδρίες",
+    "sha256": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Γρήγορες ενέργειες",
+    "sha256": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση ταυτοποίησης δύο παραγόντων",
+    "sha256": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Διαχείριση ενεργών συνεδριών",
+    "sha256": "c5d54d87"
   },
   "web.auth.account.change_password": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Αλλαγή κωδικού πρόσβασης",
+    "sha256": "a949f462"
   },
   "web.auth.account.close_account": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "Κλείσιμο λογαριασμού",
+    "sha256": "e1513814"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Ροή επαλήθευσης email μετά την εγγραφή"
+  },
+  "web.help.title": {
+    "text": "Βοήθεια & Υποστήριξη",
+    "sha256": "1f8ecc24"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Αντιμετώπιση προβλημάτων σύνδεσης",
+    "sha256": "a9a88a01"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Δεν λαμβάνετε τον σύνδεσμο σύνδεσης;",
+    "sha256": "6919ce70"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Ελέγξτε τον φάκελο spam ή ανεπιθύμητα",
+    "sha256": "813fe2d8"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Επαληθεύστε ότι εισάγατε σωστά τη διεύθυνση email σας",
+    "sha256": "5f319557"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Περιμένετε λίγα λεπτά - τα email μπορεί μερικές φορές να καθυστερούν",
+    "sha256": "884fc272"
+  },
+  "web.help.try_again": {
+    "text": "Δοκιμάστε να ζητήσετε νέο σύνδεσμο αν έχουν περάσει περισσότερα από 10 λεπτά",
+    "sha256": "68109f96"
+  },
+  "web.help.forgot_password": {
+    "text": "Ξεχάσατε τον κωδικό πρόσβασής σας;",
+    "sha256": "afd25fdf"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Χρησιμοποιήστε την επιλογή Σύνδεσμος σύνδεσης για να συνδεθείτε χωρίς κωδικό πρόσβασης. Αφού συνδεθείτε, μπορείτε να αλλάξετε τον κωδικό πρόσβασής σας στις Ρυθμίσεις λογαριασμού.",
+    "sha256": "2a058600"
+  },
+  "web.help.account_locked": {
+    "text": "Ο λογαριασμός κλειδώθηκε προσωρινά;",
+    "sha256": "ef1251c1"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Μετά από πολλές αποτυχημένες προσπάθειες σύνδεσης, οι λογαριασμοί κλειδώνονται προσωρινά για λόγους ασφαλείας. Περιμένετε 15 λεπτά και δοκιμάστε ξανά, ή χρησιμοποιήστε τον σύνδεσμο σύνδεσης.",
+    "sha256": "4b2cf891"
+  },
+  "web.help.still_need_help": {
+    "text": "Χρειάζεστε ακόμα βοήθεια;",
+    "sha256": "5ff7d19e"
+  },
+  "web.help.contact_us_description": {
+    "text": "Αν εξακολουθείτε να αντιμετωπίζετε προβλήματα, είμαστε εδώ για να βοηθήσουμε. Στείλτε μας μήνυμα και θα σας απαντήσουμε το συντομότερο δυνατό.",
+    "sha256": "d97c90fe"
+  },
+  "web.help.contact_support": {
+    "text": "Επικοινωνία με την υποστήριξη",
+    "sha256": "f8d47b82"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Αποστολή συνδέσμου σύνδεσης",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Θα σταλεί ασφαλής σύνδεσμος στο email σας.",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "ή",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Σύνδεση με κωδικό πρόσβασης",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "Χρήση σύνδεσης χωρίς κωδικό",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "Δημιουργία λογαριασμού",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "Επιστροφή στην αρχική",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "Κωδικός πρόσβασης",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Σύνδεσμος σύνδεσης",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.need_help": {
+    "text": "Χρειάζεστε βοήθεια;",
+    "sha256": "c225cdfb"
   }
 }

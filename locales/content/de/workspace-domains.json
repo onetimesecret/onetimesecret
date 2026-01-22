@@ -1,302 +1,402 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Mehr über DNS-Konfiguration erfahren"
+    "text": "Mehr über DNS-Konfiguration erfahren",
+    "sha256": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Domain-Verifizierungsstatus ansehen"
+    "text": "Domain-Verifizierungsstatus ansehen",
+    "sha256": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Diese Domain ist bereits in deiner Organisation registriert"
+    "text": "Diese Domain ist bereits in deiner Organisation registriert",
+    "sha256": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktiere den Support, wenn du glaubst, dass dies ein Fehler ist."
+    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktiere den Support, wenn du glaubst, dass dies ein Fehler ist.",
+    "sha256": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domain erfolgreich beansprucht und zu deiner Organisation hinzugefügt"
+    "text": "Domain erfolgreich beansprucht und zu deiner Organisation hinzugefügt",
+    "sha256": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Datenschutz-Standardwerte"
+    "text": "Datenschutz-Standardwerte",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Lege Standard-Datenschutzoptionen für Nachrichten fest, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Nachrichten vorausgefüllt."
+    "text": "Lege Standard-Datenschutzoptionen für Nachrichten fest, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Nachrichten vorausgefüllt.",
+    "sha256": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "Datenschutz-Standardwerte"
+    "text": "Datenschutz-Standardwerte",
+    "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Datenschutz-Standardwerte-Symbol"
+    "text": "Datenschutz-Standardwerte-Symbol",
+    "sha256": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Standard-Gültigkeitsdauer"
+    "text": "Standard-Gültigkeitsdauer",
+    "sha256": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Wie lange Nachrichten standardmäßig zugänglich bleiben sollen"
+    "text": "Wie lange Nachrichten standardmäßig zugänglich bleiben sollen",
+    "sha256": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Passphrase erforderlich"
+    "text": "Passphrase erforderlich",
+    "sha256": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Mache Passphrase für alle Nachrichten in dieser Domain verpflichtend"
+    "text": "Mache Passphrase für alle Nachrichten in dieser Domain verpflichtend",
+    "sha256": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
-    "text": "Benachrichtigungen aktivieren"
+    "text": "Benachrichtigungen aktivieren",
+    "sha256": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Nachrichten angezeigt werden"
+    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Nachrichten angezeigt werden",
+    "sha256": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "Globalen Standard verwenden"
+    "text": "Globalen Standard verwenden",
+    "sha256": "a83c91e4"
   },
   "web.domains.global_default": {
-    "text": "Global"
+    "text": "Global",
+    "sha256": "a258b30f"
   },
   "web.domains.required": {
-    "text": "Erforderlich"
+    "text": "Erforderlich",
+    "sha256": "4850b174"
   },
   "web.domains.optional": {
-    "text": "Optional"
+    "text": "Optional",
+    "sha256": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Aktiviert"
+    "text": "Aktiviert",
+    "sha256": "92c1cdfd"
   },
   "web.domains.disabled": {
-    "text": "Deaktiviert"
+    "text": "Deaktiviert",
+    "sha256": "75081b59"
   },
   "web.domains.custom": {
-    "text": "Benutzerdefiniert"
+    "text": "Benutzerdefiniert",
+    "sha256": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Standardwerte bearbeiten"
+    "text": "Standardwerte bearbeiten",
+    "sha256": "50f49b87"
   },
   "web.domains.ttl_short": {
-    "text": "TTL"
+    "text": "TTL",
+    "sha256": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "Passphrase"
+    "text": "Passphrase",
+    "sha256": "e7611f05"
   },
   "web.domains.notify_short": {
-    "text": "Benachrichtigungen"
+    "text": "Benachrichtigungen",
+    "sha256": "78801183"
   },
   "web.domains.scope_switch_label": {
-    "text": "Domain-Bereich wechseln"
+    "text": "Domain-Bereich wechseln",
+    "sha256": "c776f846"
   },
   "web.domains.switcher_locked": {
-    "text": "Domain-Wechsel auf dieser Seite nicht verfügbar"
+    "text": "Domain-Wechsel auf dieser Seite nicht verfügbar",
+    "sha256": "ccd202fe"
   },
   "web.domains.scope_list_label": {
-    "text": "Verfügbare Domains"
+    "text": "Verfügbare Domains",
+    "sha256": "026552b3"
   },
   "web.domains.scope_header": {
-    "text": "Domains"
+    "text": "Domains",
+    "sha256": "ced67718"
   },
   "web.domains.add_domain": {
-    "text": "Domain hinzufügen"
+    "text": "Domain hinzufügen",
+    "sha256": "d86476ae"
   },
   "web.domains.domain_settings": {
-    "text": "Domain-Einstellungen"
+    "text": "Domain-Einstellungen",
+    "sha256": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Standard-Domain hat keine Einstellungsseite"
+    "text": "Standard-Domain hat keine Einstellungsseite",
+    "sha256": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Bitte gib einen {0} Domainnamen ein"
+    "text": "Bitte gib einen {0} Domainnamen ein",
+    "sha256": "167f2d19"
   },
   "web.domains.domain_name": {
-    "text": "Domainname"
+    "text": "Domainname",
+    "sha256": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Steuere, ob Benutzer geheime Links von der Startseite deiner Domain erstellen können"
+    "text": "Steuere, ob Benutzer geheime Links von der Startseite deiner Domain erstellen können",
+    "sha256": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Startseiten-Zugang"
+    "text": "Startseiten-Zugang",
+    "sha256": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "& Status"
+    "text": "& Status",
+    "sha256": "fe871d2c"
   },
   "web.domains.domain": {
-    "text": "Domain"
+    "text": "Domain",
+    "sha256": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Verwalte und konfiguriere deine verifizierten eigenen Domains"
+    "text": "Verwalte und konfiguriere deine verifizierten eigenen Domains",
+    "sha256": "4e7f8311"
   },
   "web.domains.domains": {
-    "text": "Domains"
+    "text": "Domains",
+    "sha256": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "Zuletzt überwacht"
+    "text": "Zuletzt überwacht",
+    "sha256": "8d39d1d0"
   },
   "web.domains.ssl_status": {
-    "text": "SSL-Status"
+    "text": "SSL-Status",
+    "sha256": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL-Verlängerung"
+    "text": "SSL-Verlängerung",
+    "sha256": "c49a8cff"
   },
   "web.domains.dns_record": {
-    "text": "DNS-Eintrag"
+    "text": "DNS-Eintrag",
+    "sha256": "33cbb244"
   },
   "web.domains.target_address": {
-    "text": "Zieladresse"
+    "text": "Zieladresse",
+    "sha256": "5e812179"
   },
   "web.domains.domain_status": {
-    "text": "Domain-Status"
+    "text": "Domain-Status",
+    "sha256": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
-    "text": "Anzahl eigener Domains"
+    "text": "Anzahl eigener Domains",
+    "sha256": "a9929be0"
   },
   "web.domains.custom_domain": {
-    "text": "Eigene Domain"
+    "text": "Eigene Domain",
+    "sha256": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Domain in neuem Tab öffnen"
+    "text": "Domain in neuem Tab öffnen",
+    "sha256": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "Zurück zu Domains"
+    "text": "Zurück zu Domains",
+    "sha256": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Zur Domainliste zurückkehren"
+    "text": "Zur Domainliste zurückkehren",
+    "sha256": "c7632413"
   },
   "web.domains.verify_domain": {
-    "text": "Domain verifizieren"
+    "text": "Domain verifizieren",
+    "sha256": "b416f537"
   },
   "web.domains.manage_brand": {
-    "text": "Marke verwalten"
+    "text": "Marke verwalten",
+    "sha256": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
-    "text": "Hinzugefügt {0}"
+    "text": "Hinzugefügt {0}",
+    "sha256": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "Deine Domain hinzufügen"
+    "text": "Deine Domain hinzufügen",
+    "sha256": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Beginne, indem du eine eigene Domain hinzufügst."
+    "text": "Beginne, indem du eine eigene Domain hinzufügst.",
+    "sha256": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
-    "text": "Keine Domains gefunden."
+    "text": "Keine Domains gefunden.",
+    "sha256": "574264df"
   },
   "web.domains.loading_domain_information": {
-    "text": "Domain-Informationen werden geladen..."
+    "text": "Domain-Informationen werden geladen...",
+    "sha256": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "Um deine Domain zu verbinden, musst du einen CNAME-Eintrag in deinem DNS haben, der zeigt auf"
+    "text": "Um deine Domain zu verbinden, musst du einen CNAME-Eintrag in deinem DNS erstellen, der auf folgende Adresse verweist:",
+    "sha256": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "Wenn du bereits einen CNAME-Eintrag für diese Adresse hast, ändere ihn bitte so, dass er zeigt auf"
+    "text": "Wenn du bereits einen CNAME-Eintrag für diese Adresse hast, ändere ihn bitte so, dass er auf folgende Adresse verweist:",
+    "sha256": "6f23e6db"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "text": "), ist ein CNAME-Eintrag nicht erlaubt. Stattdessen musst du einen A-Eintrag erstellen. Details dazu findest du weiter unten auf der Seite."
+    "text": "), ist ein CNAME-Eintrag nicht erlaubt. Stattdessen musst du einen A-Eintrag erstellen. Details dazu findest du weiter unten auf der Seite.",
+    "sha256": "76d5ab5f"
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
-    "text": "und entferne alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse."
+    "text": "und entferne alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse.",
+    "sha256": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", musst du diese Schritte abschließen."
+    "text": ", musst du diese Schritte abschließen.",
+    "sha256": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "Bevor wir Links aktivieren können für"
+    "text": "Bevor wir Links aktivieren können für",
+    "sha256": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Bitte beachte, dass bei Apex-Domains (z.B."
+    "text": "Bitte beachte, dass bei Apex-Domains (z.B.",
+    "sha256": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "Deine Domain verifizieren"
+    "text": "Deine Domain verifizieren",
+    "sha256": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.example.com"
+    "text": "secrets.example.com",
+    "sha256": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Passe dein Domain-Branding an"
+    "text": "Passe dein Domain-Branding an",
+    "sha256": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "text": "Es kann einige Minuten dauern, bis dein SSL-Zertifikat wirksam wird."
+    "text": "Es kann einige Minuten dauern, bis dein SSL-Zertifikat wirksam wird.",
+    "sha256": "2e4f3179"
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
-    "text": "DNS-Änderungen können nur 60 Sekunden dauern -- oder bis zu 24 Stunden -- um wirksam zu werden."
+    "text": "DNS-Änderungen können nur 60 Sekunden dauern -- oder bis zu 24 Stunden -- um wirksam zu werden.",
+    "sha256": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Auf Propagierung warten"
+    "text": "3. Auf Propagierung warten",
+    "sha256": "3e6cf4e1"
   },
   "web.domains.value_2": {
-    "text": "Wert"
+    "text": "Wert",
+    "sha256": "8e37953d"
   },
   "web.domains.value_1": {
-    "text": "Wert"
+    "text": "Wert",
+    "sha256": "8e37953d"
   },
   "web.domains.host_1": {
-    "text": "Host"
+    "text": "Host",
+    "sha256": "4a823118"
   },
   "web.domains.type_2": {
-    "text": "Typ"
+    "text": "Typ",
+    "sha256": "baaddf70"
   },
   "web.domains.type_1": {
-    "text": "Typ"
+    "text": "Typ",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Den CNAME-Eintrag erstellen"
+    "text": "2. Den CNAME-Eintrag erstellen",
+    "sha256": "781e438b"
   },
   "web.domains.value_0": {
-    "text": "Wert"
+    "text": "Wert",
+    "sha256": "8e37953d"
   },
   "web.domains.host_0": {
-    "text": "Host"
+    "text": "Host",
+    "sha256": "4a823118"
   },
   "web.domains.type_0": {
-    "text": "Typ"
+    "text": "Typ",
+    "sha256": "baaddf70"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Den A-Eintrag erstellen"
+    "text": "2. Den A-Eintrag erstellen",
+    "sha256": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Füge diesen Hostnamen zu deiner DNS-Konfiguration hinzu:"
+    "text": "Füge diesen Hostnamen zu deiner DNS-Konfiguration hinzu:",
+    "sha256": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Einen TXT-Eintrag erstellen"
+    "text": "1. Einen TXT-Eintrag erstellen",
+    "sha256": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "Befolge diese Schritte, um den Domainbesitz zu verifizieren und deine Online-Präsenz zu verbessern:"
+    "text": "Befolge diese Schritte, um den Domainbesitz zu verifizieren und deine Online-Präsenz zu verbessern:",
+    "sha256": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Domain-Verifizierungsschritte"
+    "text": "Domain-Verifizierungsschritte",
+    "sha256": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Domain-Verifizierung erfolgreich gestartet."
+    "text": "Domain-Verifizierung erfolgreich gestartet.",
+    "sha256": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "Bist du sicher, dass du diese Domain entfernen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
+    "text": "Bist du sicher, dass du diese Domain entfernen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "sha256": "403c6d3b"
   },
   "web.domains.remove_domain": {
-    "text": "Domain entfernen"
+    "text": "Domain entfernen",
+    "sha256": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "Domain erfolgreich entfernt"
+    "text": "Domain erfolgreich entfernt",
+    "sha256": "2984d483"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "Domain konnte nicht hinzugefügt werden"
+    "text": "Domain konnte nicht hinzugefügt werden",
+    "sha256": "5fc4c4b3"
   },
   "web.domains.domain_added_successfully": {
-    "text": "Domain erfolgreich hinzugefügt"
+    "text": "Domain erfolgreich hinzugefügt",
+    "sha256": "dd8180cf"
   },
   "web.domains.passphrase_set": {
-    "text": "Geschützt"
+    "text": "Geschützt",
+    "sha256": "b0ed2633"
   },
   "web.domains.manage_domains": {
-    "text": "Domains verwalten"
+    "text": "Domains verwalten",
+    "sha256": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "Globale Standardwerte"
+    "text": "Globale Standardwerte",
+    "sha256": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "Gültigkeitsdauer-Einstellung bearbeiten"
+    "text": "Gültigkeitsdauer-Einstellung bearbeiten",
+    "sha256": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "Passphrase-Anforderung bearbeiten"
+    "text": "Passphrase-Anforderung bearbeiten",
+    "sha256": "0b5555b5"
   },
   "web.domains.edit_notify": {
-    "text": "Benachrichtigungs-Einstellung bearbeiten"
+    "text": "Benachrichtigungs-Einstellung bearbeiten",
+    "sha256": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "DNS-Einträge konfigurieren"
+    "text": "DNS-Einträge konfigurieren",
+    "sha256": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Verwende das Tool unten, um deinen DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration deiner Domain zu erhalten."
+    "text": "Verwende das Tool unten, um deinen DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration deiner Domain zu erhalten.",
+    "sha256": "91c1af2e"
   }
 }

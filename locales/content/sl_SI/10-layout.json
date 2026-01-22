@@ -1,245 +1,334 @@
 {
   "web.footer.api_docs": {
-    "text": "API dokumentacija"
+    "text": "API dokumentacija",
+    "sha256": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Vodnik za blagovno znamko"
+    "text": "Vodnik blagovne znamke",
+    "sha256": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "Prilagodi"
+    "text": "Prilagodi",
+    "sha256": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "Paketi"
+    "text": "Načrti",
+    "sha256": "dfe8b2f0"
   },
   "web.footer.security": {
-    "text": "Varnost"
+    "text": "Varnost",
+    "sha256": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Več o naših varnostnih ukrepih"
+    "text": "Spoznajte naše varnostne ukrepe",
+    "sha256": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Oglejte si naše pogoje poslovanja"
+    "text": "Oglejte si naše pogoje uporabe",
+    "sha256": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "Pogoji"
+    "text": "Pogoji",
+    "sha256": "ede54899"
   },
   "web.footer.privacy": {
-    "text": "Zasebnost"
+    "text": "Zasebnost",
+    "sha256": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "Kontakt"
+    "text": "Kontakt",
+    "sha256": "2b5c3d26"
   },
   "web.footer.support": {
-    "text": "Podpora"
+    "text": "Podpora",
+    "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Pravno"
+    "text": "Pravne informacije",
+    "sha256": "0a410c78"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Preberite našo politiko zasebnosti"
+    "text": "Preberite našo politiko zasebnosti",
+    "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Preverite status naše storitve"
+    "text": "Preverite stanje naših storitev",
+    "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Raziščite našo dokumentacijo API"
+    "text": "Raziščite našo API dokumentacijo",
+    "sha256": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "Dokumentacija"
+    "text": "Dokumentacija",
+    "sha256": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Dostopajte do naše dokumentacije"
+    "text": "Dostopite do naše dokumentacije",
+    "sha256": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Oglejte si našo izvorno kodo na GitHub"
+    "text": "Oglejte si našo izvorno kodo na GitHubu",
+    "sha256": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "Viri"
+    "text": "Viri",
+    "sha256": "e89b30aa"
   },
   "web.footer.blog": {
-    "text": "Blog"
+    "text": "Blog",
+    "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Preberite naše najnovejše objave na blogu"
+    "text": "Preberite naše najnovejše objave na blogu",
+    "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Oglejte si naše cene naročnin"
+    "text": "Oglejte si cene naročnin",
+    "sha256": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Izvedite več o našem podjetju"
+    "text": "Spoznajte naše podjetje",
+    "sha256": "780e18cd"
   },
   "web.footer.company": {
-    "text": "Podjetje"
+    "text": "Podjetje",
+    "sha256": "de4743c8"
   },
   "web.navigation.billing": {
-    "text": "Plačila"
+    "text": "Obračun",
+    "sha256": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "Pregled"
+    "text": "Pregled",
+    "sha256": "d4b1ea57"
   },
   "web.navigation.organizations": {
-    "text": "Organizacije"
+    "text": "Organizacije",
+    "sha256": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Različica spletne strani"
+    "text": "Različica spletne strani",
+    "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Onetime Secret je na voljo v več jezikih. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nerodno izražanje. Vaše povratne informacije nam pomagajo izboljšati - če opazite težave, {send-feedback}"
+    "text": "Onetime Secret je na voljo v več jezikih. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nerodno izražanje. Vaše povratne informacije nam pomagajo izboljšati - če opazite težave, {send-feedback}",
+    "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "Prevodi so novi. Opazili ste napako? {send-feedback}"
+    "text": "Prevodi so novi. Opazili ste napako? {send-feedback}",
+    "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Nedavno smo dodali prevode. Opazili ste napako? {send-feedback}"
+    "text": "Pred kratkim smo dodali prevode. Opazili napako? {send-feedback}",
+    "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "Zasebnost in varnost bi morali biti dostopni vsem, ne glede na jezik. Dodajamo prevode, da našim uporabnikom in njihovim prejemnikom sporočil pomagamo bolje razumeti, kako varno uporabljati in dostopati do varnih sporočil in povezav. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nejasna navodila. Za pomoč pri izboljšanju jasnosti in točnosti naših prevodov, zlasti za kritično varnostno vsebino, {send-feedback}, če opazite težave"
+    "text": "Zasebnost in varnost bi morali biti dostopni vsem, ne glede na jezik. Dodajamo prevode, da našim uporabnikom in njihovim prejemnikom sporočil pomagamo bolje razumeti, kako varno uporabljati in dostopati do varnih sporočil in povezav. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nejasna navodila. Za pomoč pri izboljšanju jasnosti in točnosti naših prevodov, zlasti za kritično varnostno vsebino, {send-feedback}, če opazite težave",
+    "sha256": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Več informacij"
+    "text": "Več informacij",
+    "sha256": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Kaj gledam?"
+    "text": "Kaj gledam?",
+    "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Ogledujete si varno sporočilo, ki je bilo z vami deljeno preko Onetime Secret. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov."
+    "text": "Gledate varno sporočilo, ki vam je bilo posredovano prek Onetime Secret. Ta vsebina se prikaže samo enkrat in je nato trajno izbrisana z naših strežnikov.",
+    "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Ali lahko to skrivnost znova pogledam kasneje?"
+    "text": "Ali si lahko to skrivnost ogledam še kdaj?",
+    "sha256": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Ne. Iz varnostnih razlogov je ta skrivnost vidna samo enkrat. Po zaprtju te strani bo vsebina trajno izbrisana in je nihče, vključno z nami, ne bo mogel obnoviti."
+    "text": "Ne. Iz varnostnih razlogov si lahko to skrivnost ogledate samo enkrat. Ko zaprete to stran, bo vsebina trajno izbrisana in je nihče ne bo mogel obnoviti, niti mi.",
+    "sha256": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Kako shranim te informacije?"
+    "text": "Kako shranim te informacije?",
+    "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Uporabite gumb 'Kopiraj v odložišče' za kopiranje celotne skrivnosti. Za daljše skrivnosti se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran."
+    "text": "Uporabite gumb 'Kopiraj v odložišče' za kopiranje celotne skrivnosti. Pri daljših skrivnostih se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran.",
+    "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Ali se moj ogled te skrivnosti sledi?"
+    "text": "Ali se moj ogled te skrivnosti beleži?",
+    "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne sledimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena."
+    "text": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne beležimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena.",
+    "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče ne bo mogel obnoviti."
+    "text": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče več ne bo mogel obnoviti.",
+    "sha256": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Pojdi nazaj na prejšnjo stran"
+    "text": "Pojdite nazaj na prejšnjo stran",
+    "sha256": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Noga spletne strani"
+    "text": "Noga spletne strani",
+    "sha256": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Preklopi temni način"
+    "text": "Preklopi temni način",
+    "sha256": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Posredujte povratne informacije"
+    "text": "Podajte povratne informacije",
+    "sha256": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "Logotip podjetja"
+    "text": "Logotip podjetja",
+    "sha256": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Logotip blagovne znamke"
+    "text": "Logotip blagovne znamke",
+    "sha256": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Navigacija nadzorne plošče"
+    "text": "Navigacija nadzorne plošče",
+    "sha256": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "Mobilna navigacija"
+    "text": "Mobilna navigacija",
+    "sha256": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Glavna navigacija"
+    "text": "Glavna navigacija",
+    "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} elementov"
+    "text": "{count} elementov",
+    "sha256": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Opombe ob izdaji"
+    "text": "Opombe ob izdaji",
+    "sha256": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Nalagam vsebino nastavitev..."
+    "text": "Nalaganje vsebine nastavitev...",
+    "sha256": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Razdelki nastavitev"
+    "text": "Razdelki nastavitev",
+    "sha256": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "Zapri nastavitve"
+    "text": "Zapri nastavitve",
+    "sha256": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Razdelki nastavitev"
+    "text": "Razdelki nastavitev",
+    "sha256": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Prilagodite svoje preference in nastavitve aplikacije"
+    "text": "Prilagodite svoje preference in nastavitve aplikacije",
+    "sha256": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Vrni se domov"
+    "text": "Nazaj domov",
+    "sha256": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Vrni se na domačo stran"
+    "text": "Nazaj na domačo stran",
+    "sha256": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Vrni se domov"
+    "text": "Nazaj na domačo stran",
+    "sha256": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Oglejte si politiko zasebnosti"
+    "text": "Oglejte si politiko zasebnosti",
+    "sha256": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Oglejte si pogoje storitve"
+    "text": "Oglejte si pogoje uporabe",
+    "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Obiščite domačo stran Onetime Secret"
+    "text": "Obiščite domačo stran Onetime Secret",
+    "sha256": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Navigacija noge"
+    "text": "Navigacija v nogi",
+    "sha256": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Pogoji storitve"
+    "text": "Pogoji uporabe",
+    "sha256": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "Politika zasebnosti"
+    "text": "Politika zasebnosti",
+    "sha256": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "Knjižnica ikon"
+    "text": "Knjižnica ikon",
+    "sha256": "a73f4c07"
   },
   "web.layout.google_material": {
-    "text": "Google Material"
+    "text": "Google Material",
+    "sha256": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons"
+    "text": "Material Design Icons",
+    "sha256": "0fb27437"
   },
   "web.layout.heroicons": {
-    "text": "Heroicons"
+    "text": "Heroicons",
+    "sha256": "5e7cc07e"
   },
   "web.layout.carbon": {
-    "text": "Carbon"
+    "text": "Carbon",
+    "sha256": "694c87c2"
   },
   "web.layout.font_awesome_6": {
-    "text": "Font Awesome 6"
+    "text": "Font Awesome 6",
+    "sha256": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Oglejte si izvorno kodo na GitHub"
+    "text": "Oglejte si izvorno kodo na GitHubu",
+    "sha256": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Različica spletne strani: v{0}"
+    "text": "Različica spletne strani: v{0}",
+    "sha256": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Spremeni jezik. Trenutni jezik je {0}"
+    "text": "Spremeni jezik. Trenutni jezik je {0}",
+    "sha256": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Jezik spremenjen v {0}"
+    "text": "Jezik spremenjen na {0}",
+    "sha256": "1680f4fe"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Preklopi v {0} način"
+    "text": "Preklopi na način {0}",
+    "sha256": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0} način omogočen"
+    "text": "Način {0} omogočen",
+    "sha256": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Delovni prostor"
+    "text": "Delovni prostor",
+    "sha256": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Kontekst delovnega prostora"
+    "text": "Kontekst delovnega prostora",
+    "sha256": "dc6fa4f5"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Ko pošljete povratne informacije, bomo videli:",
+    "sha256": "fe77172e"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "Ponastavi na {0}",
+    "sha256": "c0cfa9b2"
   }
 }

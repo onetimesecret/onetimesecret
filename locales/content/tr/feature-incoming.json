@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "Sır gönder"
+    "text": "Gizli Mesaj Gönder",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Destek ekibimizle hassas bilgileri güvenli bir şekilde paylaşın"
+    "text": "Hassas bilgileri destek ekibimizle güvenli bir şekilde paylaşın",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Yükleniyor..."
+    "text": "Yükleniyor...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Yapılandırma yüklenemedi"
+    "text": "Yapılandırma yüklenemedi",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Özellik kullanılamıyor"
+    "text": "Özellik Kullanılamıyor",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Bu özellik şu anda devre dışı. Yardım için lütfen destekle iletişime geçin."
+    "text": "Bu özellik şu anda devre dışıdır. Yardım için lütfen destekle iletişime geçin.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Not"
+    "text": "Not",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Kısa açıklama (örn. Şifre sıfırlama talebi)"
+    "text": "Kısa açıklama (örn., Parola sıfırlama isteği)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Mesajınızı doğru kişiye yönlendirmemize yardımcı olun"
+    "text": "Mesajınızı doğru kişiye yönlendirmemize yardımcı olun",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Gönder"
+    "text": "Gönderilecek Kişi",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Alıcı seçin"
+    "text": "Bir alıcı seçin",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Bu sır için bir alıcı seçin"
+    "text": "Bu gizli mesaj için bir alıcı seçin",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Bu güvenli mesajı kimin alacağını seçin"
+    "text": "Bu güvenli mesajı kimin alacağını seçin",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Kullanılabilir alıcı yok"
+    "text": "Kullanılabilir alıcı yok",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Gizli bilgi"
+    "text": "Gizli Bilgi",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Hassas bilgileri buraya yapıştırın (şifreler, anahtarlar vb.)"
+    "text": "Hassas bilgileri buraya yapıştırın (parolalar, anahtarlar, vb.)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Bu bilgi şifrelenecek ve yalnızca bir kez görüntülenebilecek"
+    "text": "Bu bilgi şifrelenecek ve yalnızca bir kez görüntülenebilecektir",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Sır gönder"
+    "text": "Gizli Mesaj Gönder",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Sır gönder"
+    "text": "Gizli Mesaj Gönder",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Gönderiliyor..."
+    "text": "Gönderiliyor...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Gönderiliyor..."
+    "text": "Gönderiliyor...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Formu temizle"
+    "text": "Formu Temizle",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Formu temizle"
+    "text": "Formu Temizle",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Başarıyla gönderildi"
+    "text": "Başarıyla Gönderildi",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Güvenli mesajınız iletildi."
+    "text": "Güvenli mesajınız teslim edildi.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Referans kimliği"
+    "text": "Referans Kimliği",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Sırada ne var?"
+    "text": "Bundan sonra ne olacak?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Alıcı bu sırrı yalnızca bir kez görüntüleyebilecek. Görüntülendikten sonra sır kalıcı olarak silinecek."
+    "text": "Alıcı bu gizli mesajı yalnızca bir kez görüntüleyebilecektir. Görüntüledikten sonra gizli mesaj kalıcı olarak silinecektir.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Başka bir sır gönder"
+    "text": "Başka Bir Gizli Mesaj Gönder",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Hassas bilgileri güvenli bir şekilde paylaşın"
+    "text": "Hassas bilgileri güvenli bir şekilde paylaşın",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Şifreleri ve özel verileri e-posta ve sohbet kayıtlarından uzak tutun"
+    "text": "Parolaları ve özel verileri e-posta ve sohbet günlüklerinden uzak tutun",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Kayıtlarınız için <a href='{receiptUrl}'>makbuzunuzu</a> saklayın."
+    "text": "Kayıtlarınız için {receipt} dosyanızı saklayın.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "makbuz"
+    "text": "makbuz",
+    "sha256": "6f328609"
   }
 }

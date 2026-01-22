@@ -5,942 +5,1335 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Biztonságos hivatkozások, amelyek csak egyszer működnek"
+    "text": "Biztonságos linkek, amelyek csak egyszer működnek",
+    "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Szolgáltató:"
+    "text": "Szolgáltató",
+    "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/hu"
+    "text": "https://onetimesecret.com/hu",
+    "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Jelszó generálása"
+    "text": "Jelszó generálása",
+    "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "A jelszó generálása le van tiltva, amikor az űrlap érvényes"
+    "text": "A jelszógenerálás ki van kapcsolva, ha az űrlap érvényes",
+    "sha256": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "pl. kovacs{'@'}pelda.hu"
+    "text": "pl. tom{'@'}myspace.com",
+    "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Adja meg jelszavát"
+    "text": "Adja meg jelszavát",
+    "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Egyéni domének"
+    "text": "Egyéni domainek",
+    "sha256": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Erősítse meg kapcsolatait és építsen bizalmat saját márkás titok hivatkozásokkal."
+    "text": "Erősítse kapcsolatait és építsen bizalmat saját márkázott titkos linkjeivel.",
+    "sha256": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Kezdés"
+    "text": "Kezdés",
+    "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Erősítse meg jelszavát"
+    "text": "Erősítse meg jelszavát",
+    "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
-    "text": "Beállítások"
+    "text": "Beállítások",
+    "sha256": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Küldés"
+    "text": "Beküldés",
+    "sha256": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Küldés folyamatban..."
+    "text": "Beküldés...",
+    "sha256": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Feldolgozás..."
+    "text": "Feldolgozás...",
+    "sha256": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Tartsa távol az érzékeny információkat a csevegési naplókból és e-mailekből. Osszon meg egy titkos hivatkozást, amely csak egyszer érhető el."
+    "text": "Tartsa távol az érzékeny információkat a csevegési naplóktól és e-mailektől. Osszon meg egy titkos linket, amely csak egyszer érhető el.",
+    "sha256": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Helytelen hozzáférési mondat"
+    "text": "Helytelen hozzáférési mondat",
+    "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "titok,jelszógenerátor,titok megosztása,egyszer használatos"
+    "text": "titok,jelszógenerátor,titok megosztása,egyszer",
+    "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Titkos hivatkozás létrehozása"
+    "text": "Titkos link létrehozása",
+    "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Vagy generáljon véletlenszerű jelszót"
+    "text": "Vagy generáljon véletlenszerű jelszót",
+    "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Adatvédelmi beállítások"
+    "text": "Adatvédelmi beállítások",
+    "sha256": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Hozzáférési mondat"
+    "text": "Hozzáférési mondat",
+    "sha256": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Egy szó vagy kifejezés, amelyet nehéz kitalálni"
+    "text": "Egy nehezen kitalálható szó vagy kifejezés",
+    "sha256": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Címzett e-mail címe"
+    "text": "Címzett e-mail címe",
+    "sha256": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "A titkos tartalom ide kerül..."
+    "text": "A titkos tartalom ide kerül...",
+    "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Fiók létrehozása"
+    "text": "Fiók létrehozása",
+    "sha256": "0dffe234"
   },
   "web.COMMON.header_about": {
-    "text": "Rólunk"
+    "text": "Névjegy",
+    "sha256": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Bejelentkezés"
+    "text": "Bejelentkezés",
+    "sha256": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Fiók"
+    "text": "Fiók",
+    "sha256": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Kijelentkezés"
+    "text": "Kijelentkezés",
+    "sha256": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Titok | Titkok"
+    "text": "Titok | Titkok",
+    "sha256": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Legutóbbi"
+    "text": "Legutóbbi",
+    "sha256": "690dbe9d"
   },
   "web.COMMON.received": {
-    "text": "Megkapva"
+    "text": "Fogadva",
+    "sha256": "49f19bee"
   },
   "web.COMMON.burn": {
-    "text": "Végleges törlés"
+    "text": "Végleges törlés",
+    "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Véglegesen törölve"
+    "text": "Véglegesen törölve",
+    "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "Lejár"
+    "text": "Lejár",
+    "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Titok végleges törlése"
+    "text": "Titok végleges törlése",
+    "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "A titok végleges törlése megsemmisíti azt, mielőtt elolvasnák (kattintson a megerősítéshez)"
+    "text": "A végleges törlés törli a titkot, mielőtt elolvasnák (kattintson a megerősítéshez)",
+    "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "A titok végleges törlése visszavonhatatlan"
+    "text": "A titok végleges törlése visszavonhatatlan",
+    "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Ellenőrizze e-mailjét"
+    "text": "Ellenőrizze e-mailjeit",
+    "sha256": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Kattintson a felfedéshez →"
+    "text": "Kattintson a megjelenítéshez →",
+    "sha256": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Folytassa fiókja ellenőrzését:"
+    "text": "Folytassa a fiók ellenőrzéséhez:",
+    "sha256": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Nem adott meg semmit, amit megoszthatnánk"
+    "text": "Nem adott meg semmit megosztásra",
+    "sha256": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Ellenőrizze újra a hozzáférési mondatot"
+    "text": "Ellenőrizze a hozzáférési mondatot",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Adja meg a hozzáférési mondatot itt"
+    "text": "Adja meg a hozzáférési mondatot",
+    "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Titok megtekintése"
+    "text": "Titok megtekintése",
+    "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Figyelem: csak egyszer fogjuk megmutatni."
+    "text": "Vigyázat: csak egyszer fogjuk megjeleníteni.",
+    "sha256": "d29e2820"
   },
   "web.COMMON.warning": {
-    "text": "Figyelmeztetés"
+    "text": "Figyelmeztetés",
+    "sha256": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Hoppá!"
+    "text": "Hoppá!",
+    "sha256": "8344947a"
   },
   "web.COMMON.error": {
-    "text": "Hiba"
+    "text": "Hiba",
+    "sha256": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Váratlan hiba történt. Kérjük, próbálja újra."
+    "text": "Váratlan hiba történt. Kérjük, próbálja újra.",
+    "sha256": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Az üzenet lerövidítésre került"
+    "text": "Az üzenet le lett vágva",
+    "sha256": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Regisztráljon további lehetőségekért"
+    "text": "Regisztráljon a többért",
+    "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Jelentkezzen be fiókjába"
+    "text": "Jelentkezzen be fiókjába",
+    "sha256": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Elküldve: "
+    "text": "Elküldve:",
+    "sha256": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "E-mail"
+    "text": "E-mail",
+    "sha256": "969ccbd3"
   },
   "web.COMMON.field_password": {
-    "text": "Jelszó"
+    "text": "Jelszó",
+    "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Jelszó megerősítése"
+    "text": "Jelszó megerősítése",
+    "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Fiók létrehozása"
+    "text": "Fiók létrehozása",
+    "sha256": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Titok megosztása"
+    "text": "Titok megosztása",
+    "sha256": "5384461b"
   },
   "web.COMMON.title_home": {
-    "text": "Kezdőlap"
+    "text": "Kezdőlap",
+    "sha256": "3a786953"
   },
   "web.COMMON.word_none": {
-    "text": "Nincs"
+    "text": "Nincs",
+    "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "véglegesen törölve"
+    "text": "véglegesen törölve",
+    "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "megkapva"
+    "text": "fogadva",
+    "sha256": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Megerősítés"
+    "text": "Megerősítés",
+    "sha256": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Mégse"
+    "text": "Mégse",
+    "sha256": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Folytatás"
+    "text": "Folytatás",
+    "sha256": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Kész"
+    "text": "Kész",
+    "sha256": "11a6767d"
   },
   "web.COMMON.back": {
-    "text": "Vissza"
+    "text": "Vissza",
+    "sha256": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Ossza meg gondolatait, ötleteit vagy tapasztalatait..."
+    "text": "Ossza meg gondolatait, ötleteit vagy tapasztalatait...",
+    "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Visszajelzés küldése"
+    "text": "Visszajelzés küldése",
+    "sha256": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Ellenőrzést küldtünk a következő címre"
+    "text": "Megerősítő e-mail elküldve",
+    "sha256": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Fiók létrehozva. Kérjük, jelentkezzen be."
+    "text": "Fiók létrehozva. Kérjük, jelentkezzen be.",
+    "sha256": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Ha létezik fiók ezzel az e-mail címmel, küldünk egy ellenőrző e-mailt."
+    "text": "Ha létezik fiók ezzel az e-mail címmel, megerősítő e-mailt fog kapni.",
+    "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Titok végleges törlése"
+    "text": "Titok végleges törlése",
+    "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Kérjük, erősítse meg"
+    "text": "Kérjük, erősítse meg",
+    "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Biztosan véglegesen törölni szeretné ezt a titkot? Ez a művelet nem vonható vissza."
+    "text": "Biztosan véglegesen törölni szeretné ezt a titkot? Ez a művelet nem vonható vissza.",
+    "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Igen, törlöm véglegesen ezt a titkot"
+    "text": "Igen, törlöm véglegesen",
+    "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "A titok végleges törlése megsemmisíti azt, mielőtt fogadták volna."
+    "text": "A végleges törlés a titok törlését jelenti, mielőtt fogadnák.",
+    "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "A biztonság érdekében ossza meg ezt a hivatkozást külön a többi adattól."
+    "text": "Biztonsági okokból ossza meg ezt a linket a többi adattól elkülönítve.",
+    "sha256": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Vágólapra másolva"
+    "text": "Vágólapra másolva",
+    "sha256": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Bejövő létrehozása"
+    "text": "Bejövő létrehozása",
+    "sha256": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "G.Y.I.K."
+    "text": "GY.I.K.",
+    "sha256": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Az ellenőrzés nem érvényes"
+    "text": "Az ellenőrzés érvénytelen",
+    "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nem ellenőrizhet fiókot, amikor már be van jelentkezve"
+    "text": "Nem ellenőrizheti a fiókot, ha már be van jelentkezve",
+    "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Jelszó megjelenítése"
+    "text": "Jelszó megjelenítése",
+    "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Jelszó elrejtése"
+    "text": "Jelszó elrejtése",
+    "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "A jelszónak legalább 8 karakterből kell állnia"
+    "text": "A jelszónak legalább 8 karakter hosszúnak kell lennie",
+    "sha256": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "A jelszónak legalább 8 karakter hosszúnak kell lennie"
+    "text": "A jelszónak legalább 8 karakter hosszúnak kell lennie",
+    "sha256": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "A jelszavak nem egyeznek"
+    "text": "A jelszavak nem egyeznek",
+    "sha256": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
-    "text": "Ez a mező kötelező"
+    "text": "Ez a mező kötelező",
+    "sha256": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Kérése feldolgozása folyamatban"
+    "text": "Kérés feldolgozása",
+    "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Maradjak bejelentkezve 30 napig"
+    "text": "Maradjak bejelentkezve 30 napig",
+    "sha256": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Átirányítás..."
+    "text": "Átirányítás...",
+    "sha256": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Folytatás"
+    "text": "Folytatás",
+    "sha256": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Biztos benne?"
+    "text": "Biztos benne?",
+    "sha256": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "Veszélyzóna"
+    "text": "Veszélyzóna",
+    "sha256": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Óvatosan mérlegelendő zóna"
+    "text": "Körültekintést igénylő terület",
+    "sha256": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
-    "text": "Felhasználói menü"
+    "text": "Felhasználói menü",
+    "sha256": "6fa25be1"
   },
   "web.COMMON.security": {
-    "text": "Biztonság"
+    "text": "Biztonság",
+    "sha256": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Kezelés"
+    "text": "Kezelés",
+    "sha256": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "Betöltés..."
+    "text": "Betöltés...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Módosítások mentése"
+    "text": "Módosítások mentése",
+    "sha256": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Mentés..."
+    "text": "Mentés...",
+    "sha256": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Hozzáadás"
+    "text": "Hozzáadás",
+    "sha256": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "pl."
+    "text": "pl.",
+    "sha256": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "pl. {example}"
+    "text": "pl. {example}",
+    "sha256": "cc921aaa"
   },
   "web.COMMON.status": {
-    "text": "Állapot"
+    "text": "Állapot",
+    "sha256": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Kilépés"
+    "text": "Escape",
+    "sha256": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Aktív"
+    "text": "Aktív",
+    "sha256": "92340695"
   },
   "web.COMMON.preview": {
-    "text": "Előnézet"
+    "text": "Előnézet",
+    "sha256": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Eltávolítás"
+    "text": "Eltávolítás",
+    "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Nyomja meg az ESC-t a bezáráshoz"
+    "text": "Nyomja meg az ESC-et a bezáráshoz",
+    "sha256": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Enter"
+    "text": "Enter",
+    "sha256": "dc8659db"
   },
   "web.COMMON.important": {
-    "text": "Fontos"
+    "text": "Fontos",
+    "sha256": "ddca9a57"
   },
   "web.COMMON.language": {
-    "text": "Nyelv"
+    "text": "Nyelv",
+    "sha256": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Téma"
+    "text": "Téma",
+    "sha256": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Megjelenés"
+    "text": "Megjelenés",
+    "sha256": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Kész"
+    "text": "Kész",
+    "sha256": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Vége"
+    "text": "Vége",
+    "sha256": "f4db1e48"
   },
   "web.COMMON.general": {
-    "text": "Általános"
+    "text": "Általános",
+    "sha256": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Megjegyzés"
+    "text": "Megjegyzés",
+    "sha256": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "Havi"
+    "text": "Havi",
+    "sha256": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "Éves"
+    "text": "Éves",
+    "sha256": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Rendben, folytassa."
+    "text": "Rendben, mehet.",
+    "sha256": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Betöltés..."
+    "text": "Betöltés...",
+    "sha256": "47d2a515"
   },
   "web.COMMON.not_received": {
-    "text": "NEM KAPOTT MEG"
+    "text": "NEM ÉRKEZETT MEG",
+    "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Jelszó megerősítése"
+    "text": "Jelszó megerősítése",
+    "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "Új jelszó"
+    "text": "Új jelszó",
+    "sha256": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "E-mail cím"
+    "text": "E-mail cím",
+    "sha256": "f2488fd4"
   },
   "web.COMMON.switch": {
-    "text": "váltás"
+    "text": "váltás",
+    "sha256": "78b49fb2"
   },
   "web.COMMON.features": {
-    "text": "Funkciók"
+    "text": "Funkciók",
+    "sha256": "5697d03d"
   },
   "web.COMMON.not_found": {
-    "text": "Nem található"
+    "text": "Nem található",
+    "sha256": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
-    "text": "❌"
+    "text": "❌",
+    "sha256": "2b2966a5"
   },
   "web.COMMON.emoji_checkmark": {
-    "text": "✅"
+    "text": "✅",
+    "sha256": "1d456424"
   },
   "web.COMMON.supported": {
-    "text": "Támogatott"
+    "text": "Támogatott",
+    "sha256": "c1658000"
   },
   "web.COMMON.version": {
-    "text": "Verzió"
+    "text": "Verzió",
+    "sha256": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Egyéb"
+    "text": "Egyéb",
+    "sha256": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(min-szélesség: 1024px)"
+    "text": "(min-width: 1024px)",
+    "sha256": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Ctrl + Enter"
+    "text": "Ctrl + Enter",
+    "sha256": "78192e6e"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Enter"
+    "text": "⌘ + Enter",
+    "sha256": "558acbab"
   },
   "web.COMMON.mac": {
-    "text": "Mac"
+    "text": "Mac",
+    "sha256": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "E-mail cím vágólapra másolva!"
+    "text": "E-mail cím a vágólapra másolva!",
+    "sha256": "23238b4e"
   },
   "web.COMMON.value": {
-    "text": "Érték"
+    "text": "Érték",
+    "sha256": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "Host"
+    "text": "Gazdagép",
+    "sha256": "4a823118"
   },
   "web.COMMON.type": {
-    "text": "Típus"
+    "text": "Típus",
+    "sha256": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Előző"
+    "text": "Előző",
+    "sha256": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Következő"
+    "text": "Következő",
+    "sha256": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Jelszó erősség:"
+    "text": "Jelszó erőssége:",
+    "sha256": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Remek"
+    "text": "Kiváló",
+    "sha256": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Elég jó"
+    "text": "Elég jó",
+    "sha256": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Megfelelő"
+    "text": "Elfogadható",
+    "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Gyenge"
+    "text": "Közömbös",
+    "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Nem jó"
+    "text": "Nem túl jó",
+    "sha256": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Lehetőségek megnyitása"
+    "text": "Beállítások megnyitása",
+    "sha256": "3dc08503"
   },
   "web.COMMON.inactive": {
-    "text": "Inaktív"
+    "text": "Inaktív",
+    "sha256": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Hiba történt"
+    "text": "Hiba történt",
+    "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Titok másolása vágólapra"
+    "text": "Titok másolása a vágólapra",
+    "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Titok vágólapra másolva"
+    "text": "Titok a vágólapra másolva",
+    "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Ellenőrizze újra a hozzáférési mondatot"
+    "text": "Ellenőrizze a hozzáférési mondatot",
+    "sha256": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Nyomja meg az alábbi másolás gombot."
+    "text": "Nyomja meg a másolás gombot alább.",
+    "sha256": "77fcf6fb"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Megjelenítés"
+    "text": "Megjelenítés",
+    "sha256": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Elrejtés"
+    "text": "Elrejtés",
+    "sha256": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Több megjelenítése"
+    "text": "Több mutatása",
+    "sha256": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Kevesebb megjelenítése"
+    "text": "Kevesebb mutatása",
+    "sha256": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Engedélyezés"
+    "text": "Engedélyezés",
+    "sha256": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Letiltás"
+    "text": "Letiltás",
+    "sha256": "b7e3e4aa"
   },
   "web.LABELS.stats": {
-    "text": "Statisztikák"
+    "text": "Statisztikák",
+    "sha256": "b4a73657"
   },
   "web.LABELS.timeline": {
-    "text": "Idővonal"
+    "text": "Idővonal",
+    "sha256": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Élettartam"
+    "text": "Élettartam",
+    "sha256": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Lejárati idő"
+    "text": "Lejárati idő",
+    "sha256": "c5db84a8"
   },
   "web.LABELS.close": {
-    "text": "Bezárás"
+    "text": "Bezárás",
+    "sha256": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "Betöltés..."
+    "text": "Betöltés...",
+    "sha256": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Mégse"
+    "text": "Mégse",
+    "sha256": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Mentés..."
+    "text": "Mentés...",
+    "sha256": "dc85af8f"
   },
   "web.LABELS.saved": {
-    "text": "Mentve"
+    "text": "Mentve",
+    "sha256": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Mentés"
+    "text": "Mentés",
+    "sha256": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Összes mentése"
+    "text": "Összes mentése",
+    "sha256": "d3c54e39"
   },
   "web.LABELS.details": {
-    "text": "Részletek"
+    "text": "Részletek",
+    "sha256": "45989de4"
   },
   "web.LABELS.encrypted": {
-    "text": "Titkosított"
+    "text": "Titkosított",
+    "sha256": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Titok állapota"
+    "text": "Titok állapota",
+    "sha256": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Segítségre van szüksége?"
+    "text": "Segítségre van szüksége?",
+    "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Új titok létrehozása"
+    "text": "Új titok létrehozása",
+    "sha256": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "Műveletek"
+    "text": "Műveletek",
+    "sha256": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Nincs szükség hozzáférési mondatra"
+    "text": "Nem szükséges hozzáférési mondat",
+    "sha256": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Másolás vágólapra"
+    "text": "Másolás a vágólapra",
+    "sha256": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Nyugták"
+    "text": "Visszaigazolások",
+    "sha256": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Megosztás"
+    "text": "Megosztás",
+    "sha256": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Titkos hivatkozás"
+    "text": "Titkos link",
+    "sha256": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Elvetés"
+    "text": "Elvetés",
+    "sha256": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Biztonsági részletek"
+    "text": "Biztonsági részletek",
+    "sha256": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} elem"
+    "text": "{count} elem",
+    "sha256": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} címzett"
+    "text": "{count} címzett",
+    "sha256": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Megtekintés"
+    "text": "Megtekintés",
+    "sha256": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Megtekintések"
+    "text": "Megtekintések",
+    "sha256": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "alkalommal megtekintve"
+    "text": "alkalommal megtekintve",
+    "sha256": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Megtekintési előrehaladás"
+    "text": "Folyamat megtekintése",
+    "sha256": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Súgó"
+    "text": "Súgó",
+    "sha256": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Hozzáférési mondattal védett"
+    "text": "Hozzáférési mondattal védett",
+    "sha256": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Visszajelzés beérkezett."
+    "text": "Visszajelzés fogadva.",
+    "sha256": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Küldés..."
+    "text": "Küldés...",
+    "sha256": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Legutóbbi titkok"
+    "text": "Legutóbbi titkok",
+    "sha256": "0b907f8b"
   },
   "web.LABELS.pricing": {
-    "text": "Árak"
+    "text": "Árak",
+    "sha256": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Frissítés"
+    "text": "Frissítés",
+    "sha256": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Újratöltés"
+    "text": "Újratöltés",
+    "sha256": "bdc090ec"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Ebben a munkamenetben létrehozott titkos hivatkozások"
+    "text": "Ebben a munkamenetben létrehozott titkos linkek",
+    "sha256": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Hivatkozás létrehozása"
+    "text": "Link létrehozása",
+    "sha256": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Titkos hivatkozás létrehozása"
+    "text": "Titkos link létrehozása",
+    "sha256": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Kérés létrehozása"
+    "text": "Kérés létrehozása",
+    "sha256": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Kérési hivatkozás létrehozása"
+    "text": "Kérés link létrehozása",
+    "sha256": "190463dc"
   },
   "web.LABELS.related_settings": {
-    "text": "Kapcsolódó beállítások"
+    "text": "Kapcsolódó beállítások",
+    "sha256": "68574b20"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Hivatkozások létrehozása ehhez:"
+    "text": "Linkek létrehozása ehhez:",
+    "sha256": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Titkok létrehozása itt: {domain}"
+    "text": "Titkok létrehozása itt: {domain}",
+    "sha256": "3bbed96b"
   },
   "web.STATUS.new": {
-    "text": "Új"
+    "text": "Új",
+    "sha256": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Olvasatlan"
+    "text": "Olvasatlan",
+    "sha256": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Hivatkozás megnyitva"
+    "text": "Link megnyitva",
+    "sha256": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Megkapva"
+    "text": "Fogadva",
+    "sha256": "49f19bee"
   },
   "web.STATUS.burned": {
-    "text": "Véglegesen törölve"
+    "text": "Véglegesen törölve",
+    "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Megsemmisítve"
+    "text": "Megsemmisítve",
+    "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Hamarosan lejár"
+    "text": "Hamarosan lejár",
+    "sha256": "0259442c"
   },
   "web.STATUS.created": {
-    "text": "Létrehozva"
+    "text": "Létrehozva",
+    "sha256": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "Lejár"
+    "text": "Lejár",
+    "sha256": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Lejárt"
+    "text": "Lejárt",
+    "sha256": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Elárvulva"
+    "text": "Árva",
+    "sha256": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Biztonságossá téve"
+    "text": "Védett",
+    "sha256": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Biztonságossá tétel"
+    "text": "Védelem beállítása",
+    "sha256": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "Másolva"
+    "text": "Másolva",
+    "sha256": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Hátralévő idő"
+    "text": "Hátralévő idő",
+    "sha256": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "A titkos hivatkozás létrejött, de még nem tekintették meg"
+    "text": "A titkos link létrejött és még nem tekintették meg",
+    "sha256": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "A titkos hivatkozás létrejött, de még nem tekintették meg"
+    "text": "A titkos link létrejött és nem tekintették meg",
+    "sha256": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "A titkos hivatkozás meg lett nyitva és készen áll a megtekintésre"
+    "text": "A titkos linket megnyitották és készen áll a megtekintésre",
+    "sha256": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "A titok felfedésre került a címzett számára"
+    "text": "A titkot megjelenítették a címzettnek",
+    "sha256": "ceb756b4"
   },
   "web.STATUS.burned_description": {
-    "text": "A titkot manuálisan véglegesen törölték, mielőtt megtekintették volna"
+    "text": "A titkot manuálisan törölték, mielőtt megtekintették volna",
+    "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "A titok véglegesen megsemmisítésre került"
+    "text": "A titok véglegesen megsemmisült",
+    "sha256": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "A titok hamarosan lejár"
+    "text": "A titok hamarosan lejár",
+    "sha256": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "A titok elárvult és hamarosan megsemmisítésre kerül"
+    "text": "A titok árva lett és hamarosan megsemmisül",
+    "sha256": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "A titok lejárt, mielőtt megtekintették volna"
+    "text": "A titok lejárt, mielőtt megtekintették volna",
+    "sha256": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Sikeres"
+    "text": "Sikeres",
+    "sha256": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Kézbesítve"
+    "text": "Kézbesítve",
+    "sha256": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Helytelen DNS"
+    "text": "DNS hibás",
+    "sha256": "7848d601"
   },
   "web.STATUS.active": {
-    "text": "Aktív"
+    "text": "Aktív",
+    "sha256": "92340695"
   },
   "web.STATUS.inactive": {
-    "text": "Inaktív"
+    "text": "Inaktív",
+    "sha256": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Korlátlan megtekintések"
+    "text": "Korlátlan megtekintés",
+    "sha256": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Megbízható domén márkajelzés"
+    "text": "Megbízható domain arculat",
+    "sha256": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Átvitel és tárolás közben titkosítva"
+    "text": "Titkosítva szállítás és tárolás közben",
+    "sha256": "314c7974"
   },
   "web.UNITS.ttl.duration": {
-    "text": "{count} {unit}"
+    "text": "{count} {unit}",
+    "sha256": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "nap | nap"
+    "text": "nap | nap",
+    "sha256": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "óra | óra"
+    "text": "óra | óra",
+    "sha256": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "perc | perc"
+    "text": "perc | perc",
+    "sha256": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "másodperc | másodperc"
+    "text": "másodperc | másodperc",
+    "sha256": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} van hátra"
+    "text": "Még {count} {unit}",
+    "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "nap van hátra | nap van hátra"
+    "text": "nap van hátra | nap van hátra",
+    "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "óra van hátra | óra van hátra"
+    "text": "óra van hátra | óra van hátra",
+    "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "perc van hátra | perc van hátra"
+    "text": "perc van hátra | perc van hátra",
+    "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "másodperc van hátra | másodperc van hátra"
+    "text": "másodperc van hátra | másodperc van hátra",
+    "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
-    "text": "---"
+    "text": "---",
+    "sha256": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} megtekintési korlát"
+    "text": "{count} megtekintés limit",
+    "sha256": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} nap van hátra"
+    "text": "{count} nap van hátra",
+    "sha256": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} óra van hátra"
+    "text": "{count} óra van hátra",
+    "sha256": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} perc van hátra"
+    "text": "{count} perc van hátra",
+    "sha256": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Bejövő titkok"
+    "text": "Bejövő titkok",
+    "sha256": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Visszajelzés"
+    "text": "Visszajelzés",
+    "sha256": "aac77df3"
   },
   "web.TITLES.signin": {
-    "text": "Bejelentkezés"
+    "text": "Bejelentkezés",
+    "sha256": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Fiók létrehozása"
+    "text": "Fiók létrehozása",
+    "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Elfelejtett jelszó"
+    "text": "Elfelejtett jelszó",
+    "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Jelszó visszaállítása"
+    "text": "Jelszó visszaállítása",
+    "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Kijelentkezés folyamatban"
+    "text": "Kijelentkezés",
+    "sha256": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Fiók ellenőrzése"
+    "text": "Fiók ellenőrzése",
+    "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Kétfaktoros hitelesítés"
+    "text": "Kétfaktoros hitelesítés",
+    "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "E-mail bejelentkezés"
+    "text": "E-mail bejelentkezés",
+    "sha256": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Meghívó elfogadása"
+    "text": "Meghívó elfogadása",
+    "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
-    "text": "Titok"
+    "text": "Titok",
+    "sha256": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "Titok részletei"
+    "text": "Titok részletei",
+    "sha256": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Titok nyugta"
+    "text": "Titok visszaigazolás",
+    "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Titok végleges törlése"
+    "text": "Titok végleges törlése",
+    "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
-    "text": "Vezérlőpult"
+    "text": "Irányítópult",
+    "sha256": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Legutóbbi titkok"
+    "text": "Legutóbbi titkok",
+    "sha256": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Egyéni domének"
+    "text": "Egyéni domainek",
+    "sha256": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Domén hozzáadása"
+    "text": "Domain hozzáadása",
+    "sha256": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Domén ellenőrzése"
+    "text": "Domain ellenőrzése",
+    "sha256": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Domén márkajelzése"
+    "text": "Domain arculat",
+    "sha256": "35e4dfbe"
   },
   "web.TITLES.account": {
-    "text": "Fiókbeállítások"
+    "text": "Fiók",
+    "sha256": "7e1b0d56"
   },
   "web.TITLES.data_region": {
-    "text": "Adatrégió"
+    "text": "Adatrégió",
+    "sha256": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Jelenlegi régió"
+    "text": "Aktuális régió",
+    "sha256": "b92e254d"
   },
   "web.TITLES.available_regions": {
-    "text": "Elérhető régiók"
+    "text": "Elérhető régiók",
+    "sha256": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Miért fontos az adatszuverenitás"
+    "text": "Miért fontos az adatszuverenitás",
+    "sha256": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
-    "text": "Profilbeállítások"
+    "text": "Profil beállítások",
+    "sha256": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Preferenciák"
+    "text": "Beállítások",
+    "sha256": "66962f72"
   },
   "web.TITLES.privacy_settings": {
-    "text": "Adatvédelem"
+    "text": "Adatvédelem",
+    "sha256": "54a57c31"
   },
   "web.TITLES.notification_settings": {
-    "text": "Értesítések"
+    "text": "Értesítések",
+    "sha256": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "E-mail cím módosítása"
+    "text": "E-mail módosítása",
+    "sha256": "18c3f2d5"
   },
   "web.TITLES.security_overview": {
-    "text": "Biztonság"
+    "text": "Biztonság",
+    "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Jelszó módosítása"
+    "text": "Jelszó módosítása",
+    "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Kétfaktoros hitelesítés"
+    "text": "Kétfaktoros hitelesítés",
+    "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "Aktív munkamenetek"
+    "text": "Aktív munkamenetek",
+    "sha256": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Helyreállítási kódok"
+    "text": "Helyreállítási kódok",
+    "sha256": "579c7f4e"
   },
   "web.TITLES.api_settings": {
-    "text": "API beállítások"
+    "text": "API beállítások",
+    "sha256": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Speciális beállítások"
+    "text": "Speciális beállítások",
+    "sha256": "22d4f608"
   },
   "web.TITLES.system_settings": {
-    "text": "Rendszerbeállítások"
+    "text": "Rendszerbeállítások",
+    "sha256": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Az oldal nem található"
+    "text": "Az oldal nem található",
+    "sha256": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Szervezetek"
+    "text": "Szervezetek",
+    "sha256": "2730183d"
   },
   "web.TITLES.organization_settings": {
-    "text": "Szervezet beállításai"
+    "text": "Szervezeti beállítások",
+    "sha256": "cc1d9e61"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "A fókusz most a fő szövegmezőben van"
+    "text": "A fókusz most a fő szövegmezőben van",
+    "sha256": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Megosztási útmutató"
+    "text": "Megosztási útmutató",
+    "sha256": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Ossza meg a hivatkozást a kívánt címzettel"
+    "text": "Ossza meg a linket a címzettel",
+    "sha256": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Ossza meg a hozzáférési mondatot külön, biztonságos csatornán keresztül"
+    "text": "A hozzáférési mondatot külön, biztonságos csatornán ossza meg",
+    "sha256": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Használjon másik biztonságos csatornát az érzékeny információk megosztásához"
+    "text": "Használjon másik biztonságos csatornát az érzékeny információk megosztásához",
+    "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domént, mielőtt új hivatkozásokat hoz létre."
+    "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint a Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a domain-t új linkek létrehozása előtt.",
+    "sha256": "b588f5b2"
   },
   "web.STATUS.previewed": {
-    "text": "Hivatkozás megnyitva"
+    "text": "Előnézetben megtekintve",
+    "sha256": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Felfedve"
+    "text": "Megjelenítve",
+    "sha256": "17376ee4"
   },
   "web.STATUS.previewed_description": {
-    "text": "A titkos hivatkozás meg lett nyitva és készen áll a felfedésre"
+    "text": "A titkos linket megnyitották és készen áll a megjelenítésre",
+    "sha256": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "A titkos tartalom fel lett fedve a címzettnek"
+    "text": "A titok tartalmát megjelenítették a címzettnek",
+    "sha256": "39b32f80"
+  },
+  "web.COMMON.not_set": {
+    "text": "Nincs beállítva",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Szerkesztés",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Mentés",
+    "sha256": "1509f561"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Lejár",
+    "sha256": "de996752"
+  },
+  "web.LABELS.filter": {
+    "text": "Szűrés",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Törlés",
+    "sha256": "83b12c22"
+  },
+  "web.LABELS.add_note": {
+    "text": "Jegyzet hozzáadása...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Jegyzet szerkesztése",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Emlékeztető hozzáadása...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Emlékeztető szerkesztése",
+    "sha256": "0ec1a5db"
+  },
+  "web.TITLES.help": {
+    "text": "Súgó",
+    "sha256": "b79cac92"
+  },
+  "web.TITLES.pricing": {
+    "text": "Árak",
+    "sha256": "dfe95783"
+  },
+  "web.pricing.title": {
+    "text": "Egyszerű, átlátható árazás",
+    "sha256": "97e283c7"
+  },
+  "web.pricing.subtitle": {
+    "text": "Válassza az igényeinek megfelelő csomagot. Minden csomag korlátlan titokmegosztást és adatvédelem-központú tervezést tartalmaz.",
+    "sha256": "9204dff4"
+  },
+  "web.pricing.get_started_free": {
+    "text": "Ingyenes kezdés",
+    "sha256": "6bb5a4a7"
+  },
+  "web.pricing.start_trial": {
+    "text": "Kezdés",
+    "sha256": "983f3110"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Már van fiókja?",
+    "sha256": "e77fea93"
+  },
+  "web.pricing.sign_in": {
+    "text": "Bejelentkezés",
+    "sha256": "bfd402b2"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Önnek ajánlott",
+    "sha256": "00093fbd"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Hozzon létre és osszon meg titkokat alapfunkciókkal. Bankkártya nem szükséges.",
+    "sha256": "3a4f2bc0"
   }
 }

@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "Invia un segreto"
+    "text": "Invia un segreto",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Condividi informazioni sensibili in modo sicuro con il nostro team di supporto"
+    "text": "Condividi informazioni sensibili in modo sicuro con il nostro team di supporto",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Caricamento..."
+    "text": "Caricamento...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Impossibile caricare la configurazione"
+    "text": "Impossibile caricare la configurazione",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Funzionalità non disponibile"
+    "text": "Funzionalità non disponibile",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Questa funzionalità è attualmente disabilitata. Si prega di contattare il supporto per assistenza."
+    "text": "Questa funzionalità è attualmente disabilitata. Contatta il supporto per assistenza.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Promemoria"
+    "text": "Promemoria",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Breve descrizione (es. Richiesta di reimpostazione password)"
+    "text": "Breve descrizione (es. Richiesta reimpostazione password)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Aiutaci a inoltrare il tuo messaggio alla persona giusta"
+    "text": "Aiutaci a indirizzare il tuo messaggio alla persona giusta",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Invia a"
+    "text": "Invia a",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Seleziona un destinatario"
+    "text": "Seleziona un destinatario",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Seleziona un destinatario per questo segreto"
+    "text": "Seleziona un destinatario per questo segreto",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Scegli chi riceverà questo messaggio sicuro"
+    "text": "Scegli chi riceverà questo messaggio sicuro",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Nessun destinatario disponibile"
+    "text": "Nessun destinatario disponibile",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Informazioni riservate"
+    "text": "Informazioni segrete",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Incolla qui le informazioni sensibili (password, chiavi, ecc.)"
+    "text": "Incolla qui le informazioni sensibili (password, chiavi, ecc.)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Queste informazioni saranno crittografate e visualizzabili solo una volta"
+    "text": "Queste informazioni saranno crittografate e visualizzabili una sola volta",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Invia segreto"
+    "text": "Invia segreto",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Invia segreto"
+    "text": "Invia segreto",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Invio in corso..."
+    "text": "Invio...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Invio in corso..."
+    "text": "Invio...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Cancella modulo"
+    "text": "Cancella modulo",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Cancella modulo"
+    "text": "Cancella modulo",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Inviato con successo"
+    "text": "Inviato con successo",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Il tuo messaggio sicuro è stato consegnato."
+    "text": "Il tuo messaggio sicuro è stato consegnato.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "ID di riferimento"
+    "text": "ID riferimento",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Cosa succede ora?"
+    "text": "Cosa succede dopo?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Il destinatario potrà visualizzare questo segreto solo una volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente."
+    "text": "Il destinatario potrà visualizzare questo segreto una sola volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Invia un altro segreto"
+    "text": "Invia un altro segreto",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Condividi informazioni sensibili in modo sicuro"
+    "text": "Condividi informazioni sensibili in modo sicuro",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Mantieni password e dati privati fuori dalle email e dai registri delle chat"
+    "text": "Tieni password e dati privati fuori da email e log delle chat",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Salva la tua <a href='{receiptUrl}'>ricevuta</a> per i tuoi archivi."
+    "text": "Salva la tua {receipt} per i tuoi archivi.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "ricevuta",
+    "sha256": "6f328609"
   }
 }

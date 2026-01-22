@@ -1,20 +1,26 @@
 {
   "web.dashboard.title_received": {
-    "text": "התקבל"
+    "text": "התקבל",
+    "sha256": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "לא התקבל"
+    "text": "לא התקבל",
+    "sha256": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "אין סודות אחרונים"
+    "text": "אין סודות אחרונים",
+    "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "התחילו על ידי יצירת הסוד הראשון שלכם."
+    "text": "התחילו על ידי יצירת הסוד הראשון שלכם.",
+    "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "לא ניתן לטעון את הצוותים"
+    "text": "לא ניתן לטעון נתונים",
+    "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "אירעה בעיה בטעינת הצוותים שלך. אנא נסה שוב."
+    "text": "אירעה בעיה בטעינת הנתונים שלך. אנא נסה שוב.",
+    "sha256": "ff0d904e"
   }
 }

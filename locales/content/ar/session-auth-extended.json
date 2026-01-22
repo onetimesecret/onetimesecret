@@ -1,398 +1,596 @@
 {
+  "web.auth._guidance": {
+    "skip": "",
+    "_meta": {
+      "_purpose": "",
+      "authentication_failed": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "rate_limited": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "session_expired": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "recovery_code_not_found": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "recovery_code_used": {
+        "security_note": "",
+        "owasp_ref": ""
+      }
+    },
+    "_translation_guidelines": {
+      "DO_NOT_translate_as": "",
+      "MUST_translate_as": "",
+      "WHY": ""
+    },
+    "_safe_information": {
+      "format_requirements": "",
+      "expected_behavior": "",
+      "recovery_options": "",
+      "general_guidance": ""
+    }
+  },
   "web.auth.mfa_required": {
-    "text": "التحقق من المصادقة الثنائية مطلوب"
+    "text": "مطلوب التحقق بالمصادقة الثنائية",
+    "context": "",
+    "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "التحقق من المصادقة الثنائية مطلوب للوصول إلى حسابك"
+    "text": "مطلوب التحقق بالمصادقة الثنائية للوصول إلى حسابك",
+    "context": "",
+    "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "إكمال التحقق من المصادقة الثنائية"
+    "text": "إكمال التحقق بالمصادقة الثنائية",
+    "sha256": "0e681134"
+  },
+  "web.auth.security._guidance": {
+    "skip": "",
+    "context": ""
   },
   "web.auth.security.authentication_failed": {
-    "text": "فشلت المصادقة. يرجى التحقق من بيانات الاعتماد والمحاولة مرة أخرى."
+    "text": "فشلت المصادقة. يرجى التحقق من بيانات اعتمادك والمحاولة مرة أخرى.",
+    "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "محاولات كثيرة جداً. يرجى المحاولة لاحقاً."
+    "text": "الكثير من المحاولات. يرجى المحاولة مرة أخرى لاحقاً.",
+    "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى."
+    "text": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+    "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "رمز الاسترداد غير موجود. يرجى التحقق من إدخاله بشكل صحيح."
+    "text": "رمز الاسترداد غير موجود. يرجى التحقق من إدخاله بشكل صحيح.",
+    "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "تم استخدام رمز الاسترداد هذا بالفعل. كل رمز يمكن استخدامه مرة واحدة فقط."
+    "text": "رمز الاسترداد هذا مُستخدم بالفعل. كل رمز يمكن استخدامه مرة واحدة فقط.",
+    "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى."
+    "text": "خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
+    "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "حدث خطأ. يرجى المحاولة مرة أخرى."
+    "text": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "كلمة المرور"
+    "text": "كلمة المرور",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "رابط البريد الإلكتروني"
+    "text": "رابط البريد الإلكتروني",
+    "context": "",
+    "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "المقاييس الحيوية"
+    "text": "البصمة الحيوية",
+    "sha256": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "تسجيل الدخول بالبريد الإلكتروني"
+    "text": "تسجيل الدخول بالبريد الإلكتروني",
+    "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "سنرسل لك رابط تسجيل دخول آمن"
+    "text": "سنرسل لك رابط تسجيل دخول آمن",
+    "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "أدخل بريدك الإلكتروني"
+    "text": "أدخل بريدك الإلكتروني",
+    "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "إرسال رابط تسجيل الدخول"
+    "text": "إرسال رابط تسجيل الدخول",
+    "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "تحقق من بريدك الإلكتروني"
+    "text": "تحقق من بريدك الإلكتروني",
+    "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "أرسلنا رابط تسجيل دخول إلى {email}"
+    "text": "أرسلنا رابط تسجيل دخول إلى {email}",
+    "sha256": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "سينتهي هذا الرابط خلال 15 دقيقة"
+    "text": "ستنتهي صلاحية هذا الرابط خلال 15 دقيقة",
+    "sha256": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "جرّب بريد إلكتروني مختلف"
+    "text": "جرب بريداً إلكترونياً مختلفاً",
+    "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "لا حاجة لكلمة مرور — فقط انقر على الرابط في بريدك الإلكتروني"
+    "text": "لا حاجة لكلمة مرور - فقط انقر على الرابط في بريدك الإلكتروني",
+    "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "خطأ في الشبكة. يرجى المحاولة مرة أخرى."
+    "text": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+    "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "فشل إرسال رابط تسجيل الدخول. يرجى المحاولة مرة أخرى."
+    "text": "فشل إرسال رابط تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "رابط تسجيل دخول غير صالح أو مفقود"
+    "text": "رابط تسجيل دخول غير صالح أو مفقود",
+    "sha256": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى."
+    "text": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "جارٍ تسجيل الدخول..."
+    "text": "جاري تسجيل دخولك...",
+    "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "يرجى الانتظار بينما نتحقق من رابطك"
+    "text": "يرجى الانتظار بينما نتحقق من رابطك",
+    "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "خطأ في المصادقة"
+    "text": "خطأ في المصادقة",
+    "sha256": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "العودة إلى تسجيل الدخول"
+    "text": "العودة لتسجيل الدخول",
+    "sha256": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "تسجيل الدخول باستخدام Face ID / Touch ID"
+    "text": "تسجيل الدخول بـ Face ID / Touch ID",
+    "sha256": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "إعداد تسجيل الدخول بالمقاييس الحيوية"
+    "text": "إعداد تسجيل الدخول بالبصمة الحيوية",
+    "sha256": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "مصادقة المقاييس الحيوية غير مدعومة في هذا المتصفح"
+    "text": "المصادقة بالبصمة الحيوية غير مدعومة في هذا المتصفح",
+    "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "يرجى استخدام متصفح حديث يدعم WebAuthn (Chrome أو Safari أو Firefox أو Edge)"
+    "text": "يرجى استخدام متصفح حديث يدعم WebAuthn (Chrome أو Safari أو Firefox أو Edge)",
+    "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "تم تفعيل تسجيل الدخول بالمقاييس الحيوية"
+    "text": "تم تفعيل تسجيل الدخول بالبصمة الحيوية",
+    "sha256": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "فشل إعداد تسجيل الدخول بالمقاييس الحيوية"
+    "text": "فشل إعداد تسجيل الدخول بالبصمة الحيوية",
+    "sha256": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "فشلت مصادقة المقاييس الحيوية. يرجى المحاولة مرة أخرى."
+    "text": "فشلت المصادقة بالبصمة الحيوية. يرجى المحاولة مرة أخرى.",
+    "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "تم إلغاء المصادقة"
+    "text": "تم إلغاء المصادقة",
+    "sha256": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "جارٍ المصادقة..."
+    "text": "جاري المصادقة...",
+    "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "استخدم بصمة إصبعك أو وجهك أو مفتاح الأمان لتسجيل الدخول"
+    "text": "استخدم بصمة إصبعك أو وجهك أو مفتاح الأمان لتسجيل الدخول",
+    "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "يدعم Face ID و Touch ID و Windows Hello ومفاتيح الأمان"
+    "text": "يدعم Face ID و Touch ID و Windows Hello ومفاتيح الأمان",
+    "sha256": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "تحذير: {count} محاولة تسجيل دخول متبقية"
+    "text": "تحذير: متبقي {count} محاولة (محاولات) تسجيل دخول",
+    "sha256": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "الحساب مقفل بسبب محاولات تسجيل دخول فاشلة كثيرة"
+    "text": "تم قفل الحساب بسبب الكثير من محاولات تسجيل الدخول الفاشلة",
+    "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "حسابك مقفل حتى {time}"
+    "text": "حسابك مقفل حتى {time}",
+    "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "تواصل مع الدعم إذا كنت بحاجة لوصول فوري"
+    "text": "اتصل بالدعم إذا كنت بحاجة إلى وصول فوري",
+    "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "يمكنك إعادة تعيين كلمة المرور بدلاً من ذلك"
+    "text": "يمكنك إعادة تعيين كلمة المرور بدلاً من ذلك",
+    "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions._guidance": {
+    "skip": "",
+    "context": ""
   },
   "web.auth.sessions.title": {
-    "text": "الجلسات النشطة"
+    "text": "الجلسات النشطة",
+    "sha256": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "الجلسة الحالية"
+    "text": "الجلسة الحالية",
+    "sha256": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "جلسات أخرى"
+    "text": "الجلسات الأخرى",
+    "sha256": "8409f445"
   },
   "web.auth.sessions.device": {
-    "text": "الجهاز"
+    "text": "الجهاز",
+    "sha256": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "الموقع"
+    "text": "الموقع",
+    "sha256": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "عنوان IP"
+    "text": "عنوان IP",
+    "sha256": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "آخر نشاط"
+    "text": "آخر نشاط",
+    "sha256": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "تم الإنشاء"
+    "text": "تاريخ الإنشاء",
+    "sha256": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "إزالة"
+    "text": "إزالة",
+    "sha256": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "تسجيل الخروج من جميع الجلسات الأخرى"
+    "text": "تسجيل الخروج من جميع الجلسات الأخرى",
+    "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "هل أنت متأكد من إزالة هذه الجلسة؟"
+    "text": "هل أنت متأكد من رغبتك في إزالة هذه الجلسة؟",
+    "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "سيؤدي هذا إلى تسجيل خروجك من جميع الأجهزة الأخرى. هل أنت متأكد؟"
+    "text": "سيؤدي هذا إلى تسجيل خروجك من جميع الأجهزة الأخرى. هل أنت متأكد؟",
+    "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "لا توجد جلسات نشطة أخرى"
+    "text": "لا توجد جلسات نشطة أخرى",
+    "sha256": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "تمت إزالة الجلسة بنجاح"
+    "text": "تمت إزالة الجلسة بنجاح",
+    "sha256": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "تم تسجيل الخروج من جميع الجلسات الأخرى"
+    "text": "تم تسجيل الخروج من جميع الجلسات الأخرى",
+    "sha256": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "الجلسات النشطة"
+    "text": "الجلسات النشطة",
+    "sha256": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "المصادقة الثنائية"
+    "text": "المصادقة الثنائية",
+    "sha256": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "المصادقة الثنائية مفعّلة"
+    "text": "المصادقة الثنائية مفعلة",
+    "sha256": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "المصادقة الثنائية معطّلة"
+    "text": "المصادقة الثنائية معطلة",
+    "sha256": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "تفعيل المصادقة الثنائية"
+    "text": "تفعيل المصادقة الثنائية",
+    "sha256": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "تعطيل المصادقة الثنائية"
+    "text": "تعطيل المصادقة الثنائية",
+    "sha256": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "إعداد المصادقة الثنائية"
+    "text": "إعداد المصادقة الثنائية",
+    "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "أضف طبقة إضافية من الأمان لحسابك"
+    "text": "أضف طبقة أمان إضافية لحسابك",
+    "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. مسح رمز QR"
+    "text": "1. مسح رمز QR",
+    "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. التحقق من الإعداد"
+    "text": "2. التحقق من الإعداد",
+    "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "امسح رمز QR هذا باستخدام تطبيق المصادقة"
+    "text": "امسح رمز QR هذا بتطبيق المصادقة الخاص بك",
+    "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "أو أدخل هذا الرمز يدوياً"
+    "text": "أو أدخل هذا الرمز يدوياً",
+    "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "أدخل الرمز المكون من 6 أرقام من تطبيقك"
+    "text": "أدخل الرمز المكون من 6 أرقام من تطبيقك",
+    "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "أدخل رمز المصادقة"
+    "text": "أدخل رمز المصادقة",
+    "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "التحقق والتفعيل"
+    "text": "التحقق والتفعيل",
+    "sha256": "7c08f68d"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "تحقق",
+    "sha256": "eea2745e"
   },
   "web.auth.mfa.code_required": {
-    "text": "رمز المصادقة مطلوب"
+    "text": "رمز المصادقة مطلوب",
+    "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "رمز غير صالح. تنتهي صلاحية الرموز كل 30 ثانية. جرّب أحدث رمز من تطبيق المصادقة."
+    "text": "رمز غير صالح. تنتهي صلاحية الرموز كل 30 ثانية. جرب أحدث رمز من تطبيق المصادقة الخاص بك.",
+    "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "تم تفعيل المصادقة الثنائية"
+    "text": "تم تفعيل المصادقة الثنائية",
+    "sha256": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "تم تعطيل المصادقة الثنائية"
+    "text": "تم تعطيل المصادقة الثنائية",
+    "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "أدخل كلمة مرورك لتعطيل المصادقة الثنائية"
+    "text": "أدخل كلمة المرور لتعطيل المصادقة الثنائية",
+    "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "كلمة المرور"
+    "text": "كلمة المرور",
+    "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "أكد هويتك لتعديل إعدادات المصادقة الثنائية"
+    "text": "أكد هويتك لتعديل إعدادات المصادقة الثنائية",
+    "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "آخر استخدام: {time}"
+    "text": "آخر استخدام: {time}",
+    "sha256": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "لم يُستخدم أبداً"
+    "text": "لم يُستخدم أبداً",
+    "sha256": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "استخدم رمز استرداد بدلاً من ذلك"
+    "text": "استخدم رمز استرداد بدلاً من ذلك",
+    "sha256": "23d3441a"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "استخدام رمز الاسترداد",
+    "sha256": "50d5790d"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "العودة إلى رمز المصادقة"
+    "text": "العودة لرمز المصادقة",
+    "sha256": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "إلغاء والعودة إلى تسجيل الدخول"
+    "text": "إلغاء والعودة لتسجيل الدخول",
+    "sha256": "83256742"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "إلغاء تسجيل الدخول",
+    "sha256": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "جارٍ تحميل حالة المصادقة الثنائية..."
+    "text": "جاري تحميل حالة المصادقة الثنائية...",
+    "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "حسابك محمي بالمصادقة الثنائية"
+    "text": "حسابك محمي بالمصادقة الثنائية",
+    "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "احمِ حسابك بطبقة إضافية من الأمان"
+    "text": "احمِ حسابك بطبقة أمان إضافية",
+    "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "امنع الوصول غير المصرح به حتى لو تم اختراق كلمة مرورك"
+    "text": "منع الوصول غير المصرح به حتى لو تم اختراق كلمة المرور",
+    "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "يعمل مع Google Authenticator و Authy وتطبيقات TOTP الأخرى"
+    "text": "يعمل مع Google Authenticator و Authy وتطبيقات TOTP الأخرى",
+    "sha256": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "رموز استرداد احتياطية للوصول الطارئ"
+    "text": "رموز استرداد احتياطية للوصول في حالات الطوارئ",
+    "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "أدخل كلمة مرورك"
+    "text": "أدخل كلمة المرور",
+    "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "جارٍ التعطيل..."
+    "text": "جاري التعطيل...",
+    "sha256": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "تعطيل المصادقة الثنائية"
+    "text": "تعطيل المصادقة الثنائية",
+    "sha256": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "جارٍ إنشاء رمز QR..."
+    "text": "جاري توليد رمز QR...",
+    "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "استخدم Google Authenticator أو Authy أو أي تطبيق TOTP"
+    "text": "استخدم Google Authenticator أو Authy أو أي تطبيق TOTP",
+    "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "متابعة التحقق"
+    "text": "المتابعة للتحقق",
+    "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة"
+    "text": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة الخاص بك",
+    "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "تفعيل المصادقة الثنائية"
+    "text": "تفعيل المصادقة الثنائية",
+    "sha256": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "إكمال الإعداد"
+    "text": "إكمال الإعداد",
+    "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "أدخل أحد رموز الاسترداد"
+    "text": "أدخل أحد رموز الاسترداد الخاصة بك",
+    "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "رمز الاسترداد"
+    "text": "رمز الاسترداد",
+    "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "أدخل رمز الاسترداد"
+    "text": "أدخل رمز الاسترداد",
+    "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "التحقق من رمز الاسترداد"
+    "text": "التحقق من رمز الاسترداد",
+    "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "أدخل رمز المصادقة المكون من 6 أرقام"
+    "text": "أدخل رمز المصادقة المكون من 6 أرقام",
+    "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "وضع رمز الاسترداد نشط"
+    "text": "وضع رمز الاسترداد نشط",
+    "sha256": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "وضع رمز المصادقة نشط"
+    "text": "وضع رمز المصادقة نشط",
+    "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "يرجى إدخال جميع الأرقام الستة للمتابعة"
+    "text": "يرجى إدخال جميع الأرقام الستة للمتابعة",
+    "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "الرقم {current} من {total}"
+    "text": "الرقم {current} من {total}",
+    "sha256": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "رموز الاسترداد"
+    "text": "رموز الاسترداد",
+    "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "احفظ هذه الرموز في مكان آمن. يمكن استخدام كل واحد مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة."
+    "text": "احفظ هذه الرموز في مكان آمن. يمكن استخدام كل رمز مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة.",
+    "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "ستُعرض هذه الرموز مرة واحدة فقط"
+    "text": "ستُعرض هذه الرموز مرة واحدة فقط",
+    "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "يجب تنزيل أو نسخ رموز الاسترداد قبل إكمال الإعداد."
+    "text": "يجب تنزيل أو نسخ رموز الاسترداد الخاصة بك قبل إكمال الإعداد.",
+    "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "إنشاء رموز جديدة"
+    "text": "توليد رموز جديدة",
+    "sha256": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "إعادة إنشاء الرموز"
+    "text": "إعادة توليد الرموز",
+    "sha256": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "سيُبطل هذا جميع رموز الاسترداد الموجودة"
+    "text": "سيؤدي هذا إلى إبطال جميع رموز الاسترداد الحالية",
+    "sha256": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "تنزيل الرموز"
+    "text": "تنزيل الرموز",
+    "sha256": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "تم تنزيل رموز الاسترداد"
+    "text": "تم تنزيل رموز الاسترداد",
+    "sha256": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "طباعة الرموز"
+    "text": "طباعة الرموز",
+    "sha256": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "نسخ جميع الرموز"
+    "text": "نسخ جميع الرموز",
+    "sha256": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "تم نسخ الرموز إلى الحافظة"
+    "text": "تم نسخ الرموز إلى الحافظة",
+    "sha256": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "فشل نسخ الرموز إلى الحافظة"
+    "text": "فشل نسخ الرموز إلى الحافظة",
+    "sha256": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "مُستخدم"
+    "text": "مُستخدم",
+    "sha256": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "غير مُستخدم"
+    "text": "غير مُستخدم",
+    "sha256": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} رمز استرداد متبقي"
+    "text": "{count} من {limit} رموز استرداد متبقية",
+    "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "يمكن استخدام كل رمز مرة واحدة فقط. أعد إنشاء الرموز إذا كانت على وشك النفاد."
+    "text": "كل رمز يمكن استخدامه مرة واحدة فقط. أعد توليد الرموز إذا كانت تنفد.",
+    "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "لا توجد رموز استرداد متبقية"
+    "text": "لا توجد رموز استرداد متبقية",
+    "sha256": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "تم إنشاء رموز استرداد جديدة"
+    "text": "تم توليد رموز استرداد جديدة",
+    "sha256": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "رموز الاسترداد"
+    "text": "رموز الاسترداد",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ حرج أمنياً: الرسائل تمنع الكشف عن المعلومات. انظر src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "صفحة إدارة الأجهزة/المتصفحات المسجل دخولها للمستخدم"
   }
 }
