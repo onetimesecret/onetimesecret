@@ -6,25 +6,25 @@
     "text": "Переглянути плани"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Керування командами потребує Identity Plus або вище"
+    "text": "Керування командою потребує Identity Plus або вище"
   },
   "web.billing.upgrade.needCustomDomains": {
     "text": "Власні домени потребують Identity Plus або вище"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Доступ до API потребує плану Multi-Team або вище"
+    "text": "Доступ до API потребує Identity Plus або вище"
   },
   "web.billing.upgrade.needAuditLogs": {
     "text": "Журнали аудиту потребують плану Multi-Team або вище"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Керуйте вашою підпискою, організаціями та налаштуваннями виставлення рахунків"
+    "text": "Керуйте своєю підпискою, організаціями та налаштуваннями оплати"
   },
   "web.billing.overview.title": {
-    "text": "Огляд виставлення рахунків"
+    "text": "Огляд оплати"
   },
   "web.billing.overview.description": {
-    "text": "Переглядайте та керуйте деталями підписки та платежів"
+    "text": "Перегляньте та керуйте підпискою та платіжними даними"
   },
   "web.billing.overview.organization_selector": {
     "text": "Вибрати організацію"
@@ -39,13 +39,13 @@
     "text": "Спосіб оплати"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Наступна дата виставлення рахунку"
+    "text": "Наступна дата оплати"
   },
   "web.billing.overview.quick_actions": {
     "text": "Швидкі дії"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Керувати виставленням рахунків"
+    "text": "Керувати оплатою"
   },
   "web.billing.overview.view_invoices": {
     "text": "Переглянути рахунки"
@@ -60,13 +60,13 @@
     "text": "Спосіб оплати не вказано"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Немає майбутніх рахунків"
+    "text": "Немає майбутніх оплат"
   },
   "web.billing.overview.days_remaining": {
-    "text": "днів залишилося"
+    "text": "днів залишилось"
   },
   "web.billing.overview.billing_on": {
-    "text": "Виставлення рахунку {date}"
+    "text": "Оплата {date}"
   },
   "web.billing.overview.view_plans_action": {
     "text": "Переглянути плани"
@@ -81,7 +81,7 @@
     "text": "Завантажити історію"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Керувати рахунками"
+    "text": "Керувати оплатою"
   },
   "web.billing.overview.manage_billing_description": {
     "text": "Оновити платіжну інформацію"
@@ -90,13 +90,13 @@
     "text": "Немає організацій"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Створіть організацію для керування виставленням рахунків та підпискою"
+    "text": "Створіть організацію для керування оплатою та підпискою"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Створювати секрети"
+    "text": "Створення таємниць"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "View Receipts"
+    "text": "Перегляд квитанцій"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "Доступ до API"
@@ -105,19 +105,19 @@
     "text": "Власні домени"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Налаштування конфіденційності"
+    "text": "Власні налаштування конфіденційності"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Подовжений термін дії"
+    "text": "Подовжений термін дії за замовчуванням"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "Налаштування пошти"
+    "text": "Власні налаштування пошти"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Власний брендинг"
+    "text": "Власне брендування"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Брендована головна сторінка"
+    "text": "Брендована домашня сторінка"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Вхідні таємниці"
@@ -135,7 +135,7 @@
     "text": "Журнали аудиту"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Єдиний вхід (SSO)"
+    "text": "Єдиний вхід"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Пріоритетна підтримка"
@@ -153,22 +153,22 @@
     "text": "Виберіть план"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Виберіть план, який відповідає вашим потребам"
+    "text": "Виберіть план, який відповідає Вашим потребам"
   },
   "web.billing.plans.subtitle": {
-    "text": "Оберіть ідеальний план для вашої організації"
+    "text": "Виберіть ідеальний план для Вашої організації"
   },
   "web.billing.plans.current": {
     "text": "Поточний план"
   },
   "web.billing.plans.current_badge": {
-    "text": "Current"
+    "text": "Поточний"
   },
   "web.billing.plans.upgrade": {
     "text": "Оновити"
   },
   "web.billing.plans.downgrade": {
-    "text": "Понизити"
+    "text": "Знизити"
   },
   "web.billing.plans.monthly": {
     "text": "Щомісяця"
@@ -177,10 +177,10 @@
     "text": "Щорічно"
   },
   "web.billing.plans.per_month": {
-    "text": "на місяць"
+    "text": "/місяць"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Заощадьте {percent}% з щорічним виставленням рахунків"
+    "text": "Заощаджуйте {percent}% при річній оплаті"
   },
   "web.billing.plans.free_plan": {
     "text": "Безкоштовний"
@@ -198,13 +198,13 @@
     "text": "Командний обліковий запис"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Організаційний обліковий запис"
+    "text": "Обліковий запис організації"
   },
   "web.billing.plans.features": {
     "text": "Функції"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Необмежена кількість секретів"
+    "text": "Необмежена кількість таємниць"
   },
   "web.billing.plans.api_access": {
     "text": "Доступ до API"
@@ -219,16 +219,16 @@
     "text": "Зв'язатися з відділом продажів"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Маєте питання або потребуєте індивідуальне рішення?"
+    "text": "Маєте запитання або потрібно щось особливе?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Ми будемо раді почути від вас. Розкажіть, що ви шукаєте."
+    "text": "Ми будемо раді почути від Вас. Повідомте нам, що Ви шукаєте."
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} команда | {count} команди | {count} команд"
+    "text": "{count} команда | {count} команд"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} учасник на команду | {count} учасники на команду | {count} учасників на команду"
+    "text": "{count} учасник на команду | {count} учасників на команду"
   },
   "web.billing.plans.unlimited_teams": {
     "text": "Необмежена кількість команд"
@@ -243,10 +243,10 @@
     "text": "Рекомендовано"
   },
   "web.billing.plans.everything_in": {
-    "text": "Усе з {plan}, а також:"
+    "text": "Включає все з {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Наразі немає доступних {interval} планів."
+    "text": "Наразі плани {interval} недоступні."
   },
   "web.billing.plans.change_immediate": {
     "text": "Ваш план зміниться негайно."
@@ -273,19 +273,19 @@
     "text": "Підтвердити оновлення"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Підтвердити пониження"
+    "text": "Підтвердити зниження"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Оновити до"
+    "text": "Оновити до {plan}?"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Понизити до {plan}?"
+    "text": "Знизити до {plan}?"
   },
   "web.billing.invoices.title": {
-    "text": "Історія виставлення рахунків"
+    "text": "Історія оплат"
   },
   "web.billing.invoices.view_history": {
-    "text": "Переглядайте історію виставлення рахунків та завантажуйте рахунки"
+    "text": "Перегляньте історію оплат і завантажте рахунки"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Дата"
@@ -303,10 +303,10 @@
     "text": "Рахунків ще немає"
   },
   "web.billing.invoices.paid": {
-    "text": "Сплачено"
+    "text": "Оплачено"
   },
   "web.billing.invoices.pending": {
-    "text": "Очікування"
+    "text": "В очікуванні"
   },
   "web.billing.invoices.failed": {
     "text": "Не вдалося"
@@ -315,10 +315,10 @@
     "text": "Не вдалося завантажити рахунки"
   },
   "web.billing.notices.org_managed": {
-    "text": "Виставлення рахунків для цієї команди керується {orgName}"
+    "text": "Оплату керує {orgName}"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Переглянути виставлення рахунків організації"
+    "text": "Переглянути оплату організації"
   },
   "web.billing.limits.members_reached": {
     "text": "Ви досягли ліміту учасників для цієї команди"
@@ -348,19 +348,19 @@
     "text": "План"
   },
   "web.billing.portal.title": {
-    "text": "Портал виставлення рахунків"
+    "text": "Платіжний портал"
   },
   "web.billing.portal.description": {
-    "text": "Керуйте вашою підпискою, способами оплати та історією виставлення рахунків"
+    "text": "Керуйте підпискою, способами оплати та історією платежів"
   },
   "web.billing.portal.open_portal": {
-    "text": "Відкрити портал виставлення рахунків"
+    "text": "Відкрити платіжний портал"
   },
   "web.billing.portal.redirecting": {
-    "text": "Перенаправлення до порталу виставлення рахунків..."
+    "text": "Перенаправлення до платіжного порталу..."
   },
   "web.billing.start_today": {
-    "text": "Почніть сьогодні"
+    "text": "Почати сьогодні"
   },
   "web.billing.start_today_with_identity_plus": {
     "text": "Почніть сьогодні з Identity Plus"
@@ -372,7 +372,7 @@
     "text": "Повний доступ до API"
   },
   "web.billing.privacy_first_design": {
-    "text": "Дизайн, орієнтований на конфіденційність"
+    "text": "Дизайн із пріоритетом конфіденційності"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus"
@@ -390,7 +390,7 @@
     "text": "Оновити до Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Оновити для команд"
+    "text": "Оновлення для команд"
   },
   "web.billing.benefits_of": {
     "text": "Переваги"
@@ -408,7 +408,7 @@
     "text": "Усі плани включають функції конфіденційності та необмежену можливість обміну"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Усі плани включають вибір локальності даних: {0} регіонів"
+    "text": "Усі плани включають вибір локалізації даних: {0} регіонів"
   },
   "web.billing.get_started": {
     "text": "Почати"
@@ -420,7 +420,7 @@
     "text": "Покращуйте свій безпечний обмін за допомогою власних доменів, необмеженої ємності та функцій корпоративного рівня."
   },
   "web.billing.payment_frequency": {
-    "text": "Частота платежів"
+    "text": "Частота оплати"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
     "text": "Захистіть свій бренд та будуйте довіру клієнтів за допомогою посилань з вашого домену. Ідеально підходить для бізнесу, який цінує конфіденційність та професіоналізм."
@@ -429,6 +429,195 @@
     "text": "Безпечні посилання, міцніші зв'язки"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
-    "text": "Рівень Identity не знайдено серед рівнів продукту"
+    "text": "Рівень Identity не знайдено серед рівнів продуктів"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Скасувати підписку"
+  },
+  "web.billing.cancel.title": {
+    "text": "Скасувати підписку"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Ви впевнені, що хочете скасувати підписку {plan}?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Що відбувається при скасуванні:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Ви збережете доступ до всіх функцій до {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Ви збережете доступ до закінчення поточного розрахункового періоду"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "З Вас більше не стягуватимуться кошти"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Ваш обліковий запис повернеться до безкоштовного плану"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Зберегти підписку"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Скасувати підписку"
+  },
+  "web.billing.cancel.success": {
+    "text": "Вашу підписку скасовано. Ви збережете доступ до кінця розрахункового періоду."
+  },
+  "web.billing.cancel.error": {
+    "text": "Не вдалося скасувати підписку. Будь ласка, спробуйте ще раз."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Заплановано скасування підписки"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Ваша підписка залишатиметься активною до {date}. Ви продовжуватимете мати повний доступ до всіх функцій до цього часу."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Передумали? Ви можете повторно активувати підписку в будь-який час до дати скасування."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Створення та передача таємниць"
+  },
+  "web.billing.features.api_access": {
+    "text": "Доступ до API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Власні домени"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 власний домен"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Необмежена кількість власних доменів"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Власне брендування"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Брендована домашня сторінка"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Керування командою"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Керування учасниками"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Журнали аудиту"
+  },
+  "web.billing.features.sso": {
+    "text": "Єдиний вхід (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Пріоритетна підтримка"
+  },
+  "web.billing.features.sla": {
+    "text": "Угода про рівень обслуговування"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Централізована оплата"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Аудиторський слід"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Потік активності"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Робочі процеси передачі"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "Зберігання таємниць 30 днів"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Таємниці домашньої сторінки"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Вхідні таємниці"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "До 5 учасників команди"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "До 10 учасників команди"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "До 25 учасників команди"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "До 50 учасників команди"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Необмежена кількість учасників команди"
+  },
+  "web.billing.features.notifications": {
+    "text": "Сповіщення електронною поштою"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "Правила доступу за IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Брендування робочої області"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Виділена інфраструктура"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Спільні робочі процеси"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Оплата для цієї організації"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Ваш план успішно оновлено"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Ваш новий план тепер активний. Дякуємо за покупку."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Контакт для оплати"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Таємниці домашньої сторінки"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Сповіщення електронною поштою"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Правила доступу за IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Брендування робочої області"
+  },
+  "web.billing.plans.due_today": {
+    "text": "До сплати сьогодні:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Наступна оплата ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Як застосовується Ваш кредит:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Сума наступного рахунку:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Застосований кредит:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Сума до сплати при наступній оплаті:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Залишок кредиту облікового запису:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Застосовується до майбутніх рахунків"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Використання команди"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} з {limit} команд"
   }
 }

@@ -6,22 +6,22 @@
     "text": "Будь-який відгук вітається!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Допоможіть нам стати кращими"
+    "text": "Допоможіть нам покращитися"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Закрити модальне вікно відгуку"
+    "text": "Закрити вікно відгуку"
   },
   "web.feedback.share_your_feedback": {
     "text": "Поділіться своїм відгуком"
   },
   "web.feedback.delano_mandelbaum": {
-    "text": "Делано Мандельбаум"
+    "text": "Delano Mandelbaum"
   },
   "web.feedback.delano": {
-    "text": "Делано"
+    "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Тут буде довідковий контент."
+    "text": "Тут буде вміст довідки."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Дякуємо за допомогу у вдосконаленні Onetime Secret. Це багато значить."
@@ -39,9 +39,15 @@
     "text": "Відкрити форму відгуку"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Введіть ваш відгук"
+    "text": "Введіть свій відгук"
   },
   "web.feedback.send_feedback": {
     "text": "Надіслати відгук"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Я читаю кожен відгук, який надходить сюди. Це те, як я визначаю, на що витрачати час."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Якщо щось не так, або у Вас є ідеї про те, як це має працювати, це правильне місце."
   }
 }

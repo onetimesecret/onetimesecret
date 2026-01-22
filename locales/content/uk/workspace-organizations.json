@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "Організація"
+    "text": "Організації"
   },
   "web.organizations.organization": {
     "text": "Організація"
@@ -9,10 +9,10 @@
     "text": "Організації"
   },
   "web.organizations.organizations_description": {
-    "text": "Керуйте вашими організаціями"
+    "text": "Керуйте своїми організаціями"
   },
   "web.organizations.my_organizations": {
-    "text": "Мої організації"
+    "text": "Організації"
   },
   "web.organizations.manage_organizations": {
     "text": "Керувати організаціями"
@@ -24,7 +24,7 @@
     "text": "Організацій ще немає"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Організації дозволяють вам керувати декількома командами з єдиним виставленням рахунків та адмініструванням. Почніть зі створення вашої першої організації."
+    "text": "Організації забезпечують уніфіковану оплату та адміністрування. Почніть зі створення Вашої першої організації."
   },
   "web.organizations.no_description": {
     "text": "Опис не надано"
@@ -39,7 +39,7 @@
     "text": "Створити першу організацію"
   },
   "web.organizations.create_organization_description": {
-    "text": "Створіть нову організацію для групування ваших команд"
+    "text": "Створити нову організацію"
   },
   "web.organizations.create": {
     "text": "Створити"
@@ -63,13 +63,13 @@
     "text": "Для чого ця організація?"
   },
   "web.organizations.contact_email": {
-    "text": "Електронна пошта для рахунків"
+    "text": "Електронна адреса для оплати"
   },
   "web.organizations.contact_email_help": {
-    "text": "Основний контакт для виставлення рахунків та адміністративних сповіщень"
+    "text": "Основний контакт для сповіщень про оплату та адміністративних сповіщень"
   },
   "web.organizations.select_organization": {
-    "text": "Вибрати організацію"
+    "text": "Виберіть організацію"
   },
   "web.organizations.switcher_locked": {
     "text": "Перемикання організації недоступне на цій сторінці"
@@ -99,13 +99,13 @@
     "text": "Налаштування організації"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Оновіть назву та опис вашої організації"
+    "text": "Оновіть назву та опис Вашої організації"
   },
   "web.organizations.general_settings": {
     "text": "Загальні налаштування"
   },
   "web.organizations.billing_settings": {
-    "text": "Виставлення рахунків та підписка"
+    "text": "Оплата та підписка"
   },
   "web.organizations.save_changes": {
     "text": "Зберегти зміни"
@@ -117,43 +117,43 @@
     "text": "Не вдалося оновити організацію"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Інтеграція виставлення рахунків незабаром"
+    "text": "Інтеграція оплати незабаром"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Єдине виставлення рахунків та керування підпискою для всіх команд у цій організації буде доступне у майбутньому випуску."
+    "text": "Уніфіковане керування оплатою та підписками буде доступне в майбутньому випуску."
   },
   "web.organizations.about_title": {
     "text": "Про організації"
   },
   "web.organizations.about_description": {
-    "text": "Організації забезпечують єдине виставлення рахунків та адміністрування для декількох команд. Вони необов'язкові - команди можуть існувати незалежно або бути згруповані під організацією для централізованого керування."
+    "text": "Організації забезпечують уніфіковану оплату та адміністрування для централізованого керування."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Керуйте вашою організацією"
+    "text": "Керуйте Вашою організацією"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Оновіть назву вашої компанії та деталі організації тут. Ця інформація допомагає персоналізувати ваш обліковий запис та може бути використана для функцій брендингу в майбутньому."
+    "text": "Оновіть назву Вашої компанії та деталі організації тут. Ця інформація допомагає персоналізувати Ваш обліковий запис і може використовуватися для функцій брендування в майбутньому."
   },
   "web.organizations.getting_started_title": {
     "text": "Початок роботи з організаціями"
   },
   "web.organizations.getting_started_description": {
-    "text": "Створіть вашу першу організацію для керування інформацією вашої компанії та підготовки до майбутньої співпраці команди та функцій брендингу."
+    "text": "Створіть свою першу організацію, щоб керувати інформацією про компанію та підготуватися до майбутніх функцій брендування."
   },
   "web.organizations.page_description": {
-    "text": "Керуйте вашими організаціями та учасниками команди"
+    "text": "Керуйте своїми організаціями та учасниками команди"
   },
   "web.organizations.tabs.general": {
-    "text": "Загальні"
+    "text": "Налаштування"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Брендинг компанії"
+    "text": "Брендування компанії"
   },
   "web.organizations.tabs.members": {
     "text": "Команда"
   },
   "web.organizations.tabs.billing": {
-    "text": "Виставлення рахунків"
+    "text": "Оплата"
   },
   "web.organizations.danger_zone": {
     "text": "Небезпечна зона"
@@ -162,7 +162,7 @@
     "text": "Видалити організацію"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Це назавжди видалить організацію та всі пов'язані команди. Цю дію неможливо скасувати."
+    "text": "Це назавжди видалить організацію. Цю дію неможливо скасувати."
   },
   "web.organizations.delete": {
     "text": "Видалити"
@@ -180,7 +180,7 @@
     "text": "Учасники"
   },
   "web.organizations.members.description": {
-    "text": "Керування учасниками організації та їхніми ролями"
+    "text": "Керуйте учасниками організації та їхніми ролями"
   },
   "web.organizations.members.current_members": {
     "text": "Поточні учасники"
@@ -189,16 +189,16 @@
     "text": "Учасник"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "учасник"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "учасників"
   },
   "web.organizations.members.name": {
     "text": "Ім'я"
   },
   "web.organizations.members.email": {
-    "text": "Електронна пошта"
+    "text": "Електронна адреса"
   },
   "web.organizations.members.role": {
     "text": "Роль"
@@ -210,10 +210,10 @@
     "text": "Дії"
   },
   "web.organizations.members.no_members": {
-    "text": "Учасників не знайдено"
+    "text": "Учасників ще немає. Запросіть членів команди, щоб почати."
   },
   "web.organizations.members.no_members_description": {
-    "text": "Ця організація ще не має учасників."
+    "text": "У цій організації ще немає учасників."
   },
   "web.organizations.members.role_updated": {
     "text": "Роль учасника успішно оновлено"
@@ -243,7 +243,7 @@
     "text": "Ви не можете видалити власника організації"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "У вас немає дозволу керувати учасниками"
+    "text": "У Вас немає дозволу керувати учасниками"
   },
   "web.organizations.members.roles.owner": {
     "text": "Власник"
@@ -273,10 +273,10 @@
     "text": "Запросити нового учасника"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Очікувані запрошення"
+    "text": "Очікуючі запрошення"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Немає очікуваних запрошень"
+    "text": "Немає очікуючих запрошень"
   },
   "web.organizations.invitations.email_address": {
     "text": "Електронна адреса"
@@ -300,19 +300,19 @@
     "text": "Надіслати повторно"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Скасувати"
+    "text": "Відкликати"
   },
   "web.organizations.invitations.resend_success": {
     "text": "Запрошення успішно надіслано повторно"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Не вдалося надіслати запрошення повторно"
+    "text": "Не вдалося повторно надіслати запрошення"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Запрошення успішно скасовано"
+    "text": "Запрошення успішно відкликано"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Не вдалося скасувати запрошення"
+    "text": "Не вдалося відкликати запрошення"
   },
   "web.organizations.invitations.invited_by": {
     "text": "Запросив"
@@ -324,13 +324,13 @@
     "text": "Закінчується"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Надіслано повторно {count} раз"
+    "text": "Повторно надіслано {count} раз"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Надіслано повторно {count} разів"
+    "text": "Повторно надіслано {count} разів"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Очікується"
+    "text": "В очікуванні"
   },
   "web.organizations.invitations.status.accepted": {
     "text": "Прийнято"
@@ -339,7 +339,7 @@
     "text": "Відхилено"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Термін закінчився"
+    "text": "Прострочено"
   },
   "web.organizations.invitations.roles.member": {
     "text": "Учасник"
@@ -385,5 +385,50 @@
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Завантаження деталей запрошення"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Електронну адресу для оплати успішно оновлено"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Електронну адресу для оплати можна змінити на сторінці «Огляд оплати»"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} учасник | {count} учасників"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} домен | {count} доменів"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Оновіть свій план, щоб запрошувати учасників команди"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Запрошення учасників команди потребує плану з керуванням командою. Оновіть, щоб додати співробітників до Вашої організації."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Неправильний обліковий запис"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Це запрошення було надіслано на {invitedEmail}, але Ви увійшли як {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Увійти з іншим обліковим записом"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days} дн. залишилось"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours} год. залишилось"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Скоро закінчується"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Підписка"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Домени"
   }
 }

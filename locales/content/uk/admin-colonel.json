@@ -18,19 +18,19 @@
     "text": "Секрети ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(активний за останні 5 хвилин)"
+    "text": "(активні за останні 5 хвилин)"
   },
   "web.colonel.configEditorTitle": {
     "text": "Налаштування"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Редагувати налаштування системної конфігурації. Зміни застосовуються негайно після збереження."
+    "text": "Редагуйте налаштування конфігурації системи. Зміни застосовуються одразу після збереження."
   },
   "web.colonel.invalidJson": {
     "text": "Недійсний JSON у розділі {section}"
   },
   "web.colonel.validationError": {
-    "text": "Помилка перевірки"
+    "text": "Помилка валідації"
   },
   "web.colonel.errorFetchingConfig": {
     "text": "Помилка завантаження конфігурації"
@@ -45,10 +45,10 @@
     "text": "Конфігурація повинна бути об'єктом JSON"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Декілька розділів мають помилки перевірки: {sections}"
+    "text": "Декілька розділів мають помилки валідації: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} має помилки перевірки: {error}"
+    "text": "{section} має помилки валідації: {error}"
   },
   "web.colonel.sectionSaved": {
     "text": "{section} успішно збережено"
@@ -63,10 +63,10 @@
     "text": "Незбережені зміни"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Помилка перевірки схеми: {message} ({path})"
+    "text": "Помилка валідації схеми: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Невідома помилка перевірки: {error}"
+    "text": "Невідома помилка валідації: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
     "text": "Розділ {section} не має налаштованих значень"
@@ -99,55 +99,55 @@
     "text": "Система"
   },
   "web.colonel.welcome": {
-    "text": "Ласкаво просимо до Colonel"
+    "text": "Ласкаво просимо до Адміністратора"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Адміністративна панель керування для OneTimeSecret"
+    "text": "Панель адміністративного управління для OneTimeSecret"
   },
   "web.colonel.quickActions": {
     "text": "Швидкі дії"
   },
   "web.colonel.recentActivity": {
-    "text": "Недавня активність"
+    "text": "Нещодавня активність"
   },
   "web.colonel.viewAll": {
     "text": "Переглянути все"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Дані про активність будуть відображатися тут"
+    "text": "Тут будуть відображатися дані активності"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Всього секретів"
+    "text": "Всього таємниць"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Активні користувачі"
+    "text": "Активних користувачів"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Секретів сьогодні"
+    "text": "Таємниць сьогодні"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Секретів створено"
+    "text": "Створено таємниць"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Секретів поділено"
+    "text": "Поділено таємницями"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Всього клієнтів"
+    "text": "Всього користувачів"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Листів надіслано"
+    "text": "Надіслано листів"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Стан системи"
   },
   "web.colonel.stats.healthy": {
-    "text": "Здоровий"
+    "text": "Справна"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Переглянути активність"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Відстежувати активність та використання системи"
+    "text": "Моніторинг системної активності та використання"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Керувати обліковими записами"
@@ -159,7 +159,7 @@
     "text": "Налаштувати домени"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Налаштування доменів та DNS"
+    "text": "Налаштування домену та DNS"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Системні налаштування"
@@ -213,7 +213,7 @@
     "text": "Виберіть план для тестування"
   },
   "web.colonel.resetToActual": {
-    "text": "Скинути до поточного плану"
+    "text": "Скинути до фактичного плану"
   },
   "web.colonel.currentActualPlan": {
     "text": "Поточний план"
@@ -228,7 +228,7 @@
     "text": "Тестовий режим активний"
   },
   "web.colonel.testModeDescription": {
-    "text": "Тестуйте ваш додаток з різними правами плану. Зміни тимчасові та впливають лише на вашу сесію."
+    "text": "Тестуйте свій додаток з різними правами плану. Зміни тимчасові та впливають лише на Вашу сесію."
   },
   "web.colonel.warningTestMode": {
     "text": "Ви тестуєте з правами {planName} (тимчасове перевизначення сесії)."
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Надсилання..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Заблоковані IP"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Керування списком заблокованих IP"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Власні домени"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Керування власними доменами та брендуванням"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Надіслати відгук"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Надсилання..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Коли Ви надішлете відгук, ми побачимо:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Організації"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Моніторинг стану синхронізації платежів організацій"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Монітор стану платежів"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} організацій"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} потребують уваги"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} невідомо"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Організацій не знайдено"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Дослідити"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Перевірка..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Обліковий запис"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Оплата"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Статус"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Використання"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Створено"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Деталі"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Власник"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "План"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Учасники"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Домени"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Підписка"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Робоча область за замовчуванням"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Має оплату"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Клієнт"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Підписка"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID організації"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Статус синхронізації"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Підписка"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Всі"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Можливо застаріло"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Невідомо"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Синхронізовано"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Активна"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Пробний період"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Прострочено"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Скасовано"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Дослідження не вдалося"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Результат дослідження"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Підтверджено синхронізацію"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Знайдено невідповідність"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Неможливо порівняти"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Деталі підписки Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Статус"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Продукт"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Визначений план"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID ціни"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Локально"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Адміністрування оплати організацій"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Керування організаціями та моніторинг стану синхронізації оплати ({total} всього)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Організацій не знайдено"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "можливо застаріло"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Застаріло"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Невідомо"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "активна"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} учасників"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} доменів"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Таємниці"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Перегляд та керування всіма таємницями"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Система"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Системні налаштування, бази даних та конфігурація"
+  },
+  "web.colonel.titles.index": {
+    "text": "Адміністрування"
+  },
+  "web.colonel.titles.users": {
+    "text": "Керування користувачами"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Керування таємницями"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Власні домени"
+  },
+  "web.colonel.titles.system": {
+    "text": "Система"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Основна база даних"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "База даних автентифікації"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Заблоковані IP"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Експорт використання"
+  },
+  "web.colonel.titles.info": {
+    "text": "Інформація про систему"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Організації"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Експорт використання"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Експорт даних використання та статистики"
   }
 }

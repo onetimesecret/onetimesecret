@@ -5,10 +5,10 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Безпечні посилання, які працюють лише один раз"
+    "text": "Захищені посилання, які працюють лише один раз"
   },
   "web.COMMON.powered_by": {
-    "text": "Працює на"
+    "text": "На базі"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/uk"
@@ -17,25 +17,25 @@
     "text": "Згенерувати пароль"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Генерація пароля вимкнена, коли форма дійсна"
+    "text": "Генерація пароля вимкнена, коли форма заповнена правильно"
   },
   "web.COMMON.email_placeholder": {
     "text": "напр. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Введіть ваш пароль"
+    "text": "Введіть свій пароль"
   },
   "web.COMMON.custom_domains_title": {
     "text": "Власні домени"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Зміцнюйте зв'язки та будуйте довіру за допомогою власних брендованих секретних посилань."
+    "text": "Зміцніть зв'язки та побудуйте довіру за допомогою власних брендованих таємних посилань."
   },
   "web.COMMON.get_started_button": {
     "text": "Почати"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Підтвердіть ваш пароль"
+    "text": "Підтвердіть свій пароль"
   },
   "web.COMMON.header_settings": {
     "text": "Налаштування"
@@ -50,22 +50,22 @@
     "text": "Обробка..."
   },
   "web.COMMON.description": {
-    "text": "Тримайте конфіденційну інформацію поза своїми чатами та електронною поштою. Поділіться секретним посиланням, яке доступне лише один раз."
+    "text": "Тримайте конфіденційну інформацію подалі від журналів чатів та електронної пошти. Поділіться таємним посиланням, яке доступне лише один раз."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Неправильна парольна фраза"
   },
   "web.COMMON.keywords": {
-    "text": "секрет,генератор паролів,поділитися секретом,одноразовий"
+    "text": "таємниця,генератор паролів,поділитися таємницею,одноразовий"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Створити секретне посилання"
+    "text": "Створити таємне посилання"
   },
   "web.COMMON.button_generate_secret": {
     "text": "Або згенерувати випадковий пароль"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Налаштування конфіденційності"
+    "text": "Параметри конфіденційності"
   },
   "web.COMMON.secret_passphrase": {
     "text": "Парольна фраза"
@@ -74,10 +74,10 @@
     "text": "Слово або фраза, яку важко вгадати"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Адреса отримувача"
+    "text": "Адреса одержувача"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Секретний вміст пишеться тут..."
+    "text": "Введіть таємний вміст тут..."
   },
   "web.COMMON.header_create_account": {
     "text": "Створити обліковий запис"
@@ -95,10 +95,10 @@
     "text": "Вийти"
   },
   "web.COMMON.secret": {
-    "text": "Секрет"
+    "text": "Таємниця | Таємниці"
   },
   "web.COMMON.recent": {
-    "text": "Недавні"
+    "text": "Нещодавні"
   },
   "web.COMMON.received": {
     "text": "Отримано"
@@ -110,46 +110,46 @@
     "text": "Знищено"
   },
   "web.COMMON.expires_in": {
-    "text": "Закінчується через"
+    "text": "Термін дії закінчується через"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Знищити цей секрет"
+    "text": "Знищити цю таємницю"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Знищення секрету видалить його до того, як його прочитають (натисніть для підтвердження)"
+    "text": "Знищення таємниці видалить її до того, як вона буде прочитана (натисніть для підтвердження)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Знищення секрету є постійним і не може бути скасовано"
+    "text": "Знищення таємниці є остаточним і не може бути скасовано"
   },
   "web.COMMON.msg_check_email": {
     "text": "Перевірте свою електронну пошту"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Натисніть, щоб продовжити →"
+    "text": "Натисніть, щоб показати →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Продовжіть, щоб підтвердити ваш обліковий запис:"
+    "text": "Продовжіть для підтвердження облікового запису:"
   },
   "web.COMMON.error_secret": {
-    "text": "Ви не надали нічого для обміну"
+    "text": "Ви не надали нічого для передачі"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Перевірте ще раз цю парольну фразу"
+    "text": "Перевірте ще раз парольну фразу"
   },
   "web.COMMON.enter_passphrase_here": {
     "text": "Введіть парольну фразу тут"
   },
   "web.COMMON.view_secret": {
-    "text": "Переглянути секрет"
+    "text": "Переглянути таємницю"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "обережно: ми покажемо це лише один раз."
+    "text": "Увага: ми покажемо це лише один раз."
   },
   "web.COMMON.warning": {
     "text": "Попередження"
   },
   "web.COMMON.oops": {
-    "text": "Упс!"
+    "text": "Отакої!"
   },
   "web.COMMON.error": {
     "text": "Помилка"
@@ -158,31 +158,31 @@
     "text": "Сталася неочікувана помилка. Будь ласка, спробуйте ще раз."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Повідомлення було скорочено, оскільки воно перевищувало"
+    "text": "Повідомлення було скорочено"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Зареєструйтеся для більшого"
+    "text": "Зареєструйтесь для більшого"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Увійдіть у свій обліковий запис"
+    "text": "Увійдіть до свого облікового запису"
   },
   "web.COMMON.sent_to": {
-    "text": "Надіслано до: "
+    "text": "Надіслано:"
   },
   "web.COMMON.field_email": {
-    "text": "Електронна пошта"
+    "text": "Ел. пошта"
   },
   "web.COMMON.field_password": {
     "text": "Пароль"
   },
   "web.COMMON.field_password2": {
-    "text": "Підтвердити пароль"
+    "text": "Підтвердіть пароль"
   },
   "web.COMMON.button_create_account": {
     "text": "Створити обліковий запис"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Поділитися секретом"
+    "text": "Поділитися таємницею"
   },
   "web.COMMON.title_home": {
     "text": "Головна"
@@ -212,52 +212,52 @@
     "text": "Назад"
   },
   "web.COMMON.feedback_text": {
-    "text": "Маєте питання чи коментар?"
+    "text": "Поділіться своїми думками, ідеями або враженнями..."
   },
   "web.COMMON.button_send_feedback": {
     "text": "Надіслати відгук"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Підтвердження було надіслано на"
+    "text": "Підтвердження надіслано на"
   },
   "web.COMMON.autoverified_success": {
     "text": "Обліковий запис створено. Будь ласка, увійдіть."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Якщо обліковий запис з цією електронною адресою існує, ви отримаєте електронний лист для підтвердження."
+    "text": "Якщо обліковий запис з цією електронною адресою існує, Ви отримаєте лист для підтвердження."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Знищити цей секрет назавжди"
+    "text": "Знищити цю таємницю назавжди"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Будь ласка, підтвердьте"
+    "text": "Підтвердіть, будь ласка"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Ви впевнені, що хочете знищити цей секрет? Цю дію неможливо скасувати."
+    "text": "Ви впевнені, що хочете знищити цю таємницю? Цю дію неможливо скасувати."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Так, знищити цей секрет"
+    "text": "Так, знищити цю таємницю"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Знищення секрету видалить його до того, як його отримають."
+    "text": "Знищення таємниці видалить її до того, як вона буде отримана."
   },
   "web.COMMON.share_link_securely": {
-    "text": "З міркувань безпеки діліться цим посиланням окремо від інших деталей."
+    "text": "З міркувань безпеки, надсилайте це посилання окремо від інших даних."
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Скопійовано в буфер обміну"
+    "text": "Скопійовано до буфера обміну"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Створити вхідне повідомлення"
+    "text": "Створити вхідне"
   },
   "web.COMMON.faq_title": {
-    "text": "ЧаПи"
+    "text": "Запитання"
   },
   "web.COMMON.verification_not_valid": {
     "text": "Підтвердження недійсне"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Неможливо підтвердити обліковий запис, коли ви вже увійшли"
+    "text": "Неможливо підтвердити обліковий запис, коли Ви вже увійшли в систему"
   },
   "web.COMMON.show_password": {
     "text": "Показати пароль"
@@ -269,19 +269,19 @@
     "text": "Пароль має містити щонайменше 8 символів"
   },
   "web.COMMON.password_requirements": {
-    "text": "Пароль має бути щонайменше 8 символів завдовжки"
+    "text": "Пароль має містити щонайменше 8 символів"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Паролі не співпадають"
+    "text": "Паролі не збігаються"
   },
   "web.COMMON.form_field_required": {
-    "text": "Це поле обов'язкове"
+    "text": "Це поле є обов'язковим"
   },
   "web.COMMON.form_processing": {
-    "text": "Обробка вашого запиту"
+    "text": "Обробка Вашого запиту"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Залишити мене в системі на 30 днів"
+    "text": "Залишатися в системі 30 днів"
   },
   "web.COMMON.redirecting": {
     "text": "Перенаправлення..."
@@ -296,7 +296,7 @@
     "text": "Небезпечна зона"
   },
   "web.COMMON.caution_zone": {
-    "text": "Зона обережного рішення"
+    "text": "Зона обережності"
   },
   "web.COMMON.user_menu": {
     "text": "Меню користувача"
@@ -317,7 +317,7 @@
     "text": "Збереження..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Додавання..."
+    "text": "Додавання"
   },
   "web.COMMON.e_g_example": {
     "text": "напр."
@@ -329,7 +329,7 @@
     "text": "Статус"
   },
   "web.COMMON.escape": {
-    "text": "Esc"
+    "text": "Escape"
   },
   "web.COMMON.active": {
     "text": "Активний"
@@ -356,7 +356,7 @@
     "text": "Тема"
   },
   "web.COMMON.appearance": {
-    "text": "Вигляд"
+    "text": "Зовнішній вигляд"
   },
   "web.COMMON.done": {
     "text": "Готово"
@@ -365,7 +365,7 @@
     "text": "Кінець"
   },
   "web.COMMON.general": {
-    "text": "Загальні"
+    "text": "Загальне"
   },
   "web.COMMON.note": {
     "text": "Примітка"
@@ -377,7 +377,7 @@
     "text": "Щорічно"
   },
   "web.COMMON.go_on_then": {
-    "text": "Продовжуйте."
+    "text": "Гаразд, продовжуйте."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Завантаження..."
@@ -386,7 +386,7 @@
     "text": "НЕ ОТРИМАНО"
   },
   "web.COMMON.confirm_password": {
-    "text": "Підтвердити пароль"
+    "text": "Підтвердіть пароль"
   },
   "web.COMMON.new_password": {
     "text": "Новий пароль"
@@ -398,7 +398,7 @@
     "text": "перемкнути"
   },
   "web.COMMON.features": {
-    "text": "Функції"
+    "text": "Можливості"
   },
   "web.COMMON.not_found": {
     "text": "Не знайдено"
@@ -431,7 +431,7 @@
     "text": "Mac"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Адресу електронної пошти скопійовано в буфер обміну!"
+    "text": "Електронну адресу скопійовано до буфера обміну!"
   },
   "web.COMMON.value": {
     "text": "Значення"
@@ -443,10 +443,10 @@
     "text": "Тип"
   },
   "web.COMMON.previous": {
-    "text": "Попередній"
+    "text": "Назад"
   },
   "web.COMMON.next": {
-    "text": "Наступний"
+    "text": "Далі"
   },
   "web.COMMON.password_strength": {
     "text": "Надійність пароля:"
@@ -458,7 +458,7 @@
     "text": "Досить добре"
   },
   "web.COMMON.fair": {
-    "text": "Задовільно"
+    "text": "Непогано"
   },
   "web.COMMON.meh": {
     "text": "Так собі"
@@ -467,7 +467,7 @@
     "text": "Не дуже"
   },
   "web.COMMON.open_options": {
-    "text": "Відкрити опції"
+    "text": "Відкрити параметри"
   },
   "web.COMMON.inactive": {
     "text": "Неактивний"
@@ -476,13 +476,13 @@
     "text": "Сталася помилка"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Копіювати секрет в буфер обміну"
+    "text": "Копіювати таємницю до буфера обміну"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Секрет скопійовано в буфер обміну"
+    "text": "Таємницю скопійовано до буфера обміну"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Перевірте ще раз цю парольну фразу"
+    "text": "Перевірте ще раз парольну фразу"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "Натисніть кнопку копіювання нижче."
@@ -512,7 +512,7 @@
     "text": "Хронологія"
   },
   "web.LABELS.lifespan": {
-    "text": "Термін життя"
+    "text": "Термін дії"
   },
   "web.LABELS.expiration_time": {
     "text": "Час закінчення терміну дії"
@@ -545,13 +545,13 @@
     "text": "Зашифровано"
   },
   "web.LABELS.secret_status": {
-    "text": "Статус секрету"
+    "text": "Статус таємниці"
   },
   "web.LABELS.need_help": {
     "text": "Потрібна допомога?"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Створити новий секрет"
+    "text": "Створити нову таємницю"
   },
   "web.LABELS.actions": {
     "text": "Дії"
@@ -560,7 +560,7 @@
     "text": "Парольна фраза не потрібна"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Копіювати в буфер обміну"
+    "text": "Копіювати до буфера обміну"
   },
   "web.LABELS.receipts": {
     "text": "Квитанції"
@@ -569,10 +569,10 @@
     "text": "Поділитися"
   },
   "web.LABELS.secret_link": {
-    "text": "Секретне посилання"
+    "text": "Таємне посилання"
   },
   "web.LABELS.dismiss": {
-    "text": "Закрити"
+    "text": "Відхилити"
   },
   "web.LABELS.security_details": {
     "text": "Деталі безпеки"
@@ -581,10 +581,10 @@
     "text": "{count} елементів"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} отримувачів"
+    "text": "{count} одержувачів"
   },
   "web.LABELS.view": {
-    "text": "Перегляд"
+    "text": "Переглянути"
   },
   "web.LABELS.views": {
     "text": "Перегляди"
@@ -593,7 +593,7 @@
     "text": "разів переглянуто"
   },
   "web.LABELS.view_progress": {
-    "text": "Прогрес перегляду"
+    "text": "Переглянути прогрес"
   },
   "web.LABELS.help_section": {
     "text": "Розділ допомоги"
@@ -608,7 +608,7 @@
     "text": "Надсилання..."
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Недавні секрети"
+    "text": "Нещодавні таємниці"
   },
   "web.LABELS.pricing": {
     "text": "Ціни"
@@ -620,19 +620,19 @@
     "text": "Перезавантажити"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Секретні посилання, створені в цій сесії"
+    "text": "Посилання на таємниці, створені в цій сесії"
   },
   "web.LABELS.create_link_short": {
     "text": "Створити посилання"
   },
   "web.LABELS.create_link": {
-    "text": "Створити секретне посилання"
+    "text": "Створити таємне посилання"
   },
   "web.LABELS.create_request_short": {
     "text": "Створити запит"
   },
   "web.LABELS.create_request": {
-    "text": "Створити посилання на запит"
+    "text": "Створити посилання запиту"
   },
   "web.LABELS.related_settings": {
     "text": "Пов'язані налаштування"
@@ -644,10 +644,10 @@
     "text": "Створення таємниць у {domain}"
   },
   "web.STATUS.new": {
-    "text": "Новий"
+    "text": "Нова"
   },
   "web.STATUS.unread": {
-    "text": "Непрочитаний"
+    "text": "Непрочитана"
   },
   "web.STATUS.viewed": {
     "text": "Посилання відкрито"
@@ -656,25 +656,25 @@
     "text": "Отримано"
   },
   "web.STATUS.burned": {
-    "text": "Знищено"
+    "text": "Знищена"
   },
   "web.STATUS.destroyed": {
-    "text": "Видалено"
+    "text": "Знищено"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Термін дії скоро закінчиться"
+    "text": "Незабаром закінчується"
   },
   "web.STATUS.created": {
     "text": "Створено"
   },
   "web.STATUS.expires": {
-    "text": "Термін дії закінчується"
+    "text": "Закінчується"
   },
   "web.STATUS.expired": {
     "text": "Термін дії закінчився"
   },
   "web.STATUS.orphaned": {
-    "text": "Залишений"
+    "text": "Осиротіла"
   },
   "web.STATUS.secured": {
     "text": "Захищено"
@@ -686,55 +686,55 @@
     "text": "Скопійовано"
   },
   "web.STATUS.time_remaining": {
-    "text": "Час, що залишився"
+    "text": "Залишилося часу"
   },
   "web.STATUS.new_description": {
-    "text": "Секретне посилання створено, але ще не переглянуто"
+    "text": "Таємне посилання створено і ще не переглянуто"
   },
   "web.STATUS.unread_description": {
-    "text": "Секретне посилання створено і не було переглянуто"
+    "text": "Таємне посилання створено і ще не переглянуто"
   },
   "web.STATUS.viewed_description": {
-    "text": "Секретне посилання відкрито і готове до перегляду"
+    "text": "Таємне посилання відкрито і готове до перегляду"
   },
   "web.STATUS.received_description": {
-    "text": "Секрет було показано отримувачу"
+    "text": "Таємницю було розкрито одержувачу"
   },
   "web.STATUS.burned_description": {
-    "text": "Секрет було знищено вручну до перегляду"
+    "text": "Таємницю було вручну знищено до перегляду"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Секрет було назавжди видалено"
+    "text": "Таємницю було остаточно знищено"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Термін дії секрету скоро закінчиться"
+    "text": "Термін дії таємниці скоро закінчиться"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Секрет залишився без власника і незабаром буде видалено"
+    "text": "Таємниця осиротіла і буде знищена найближчим часом"
   },
   "web.STATUS.expired_description": {
-    "text": "Термін дії секрету закінчився до перегляду"
+    "text": "Термін дії таємниці закінчився до перегляду"
   },
   "web.STATUS.success": {
-    "text": "Успішно"
+    "text": "Успіх"
   },
   "web.STATUS.delivered": {
     "text": "Доставлено"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "Неправильний DNS"
+    "text": "DNS неправильний"
   },
   "web.STATUS.active": {
-    "text": "Активний"
+    "text": "Активна"
   },
   "web.STATUS.inactive": {
-    "text": "Неактивний"
+    "text": "Неактивна"
   },
   "web.FEATURES.unlimited_views": {
     "text": "Необмежена кількість переглядів"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Брендування довіреного домену"
+    "text": "Брендування на довіреному домені"
   },
   "web.FEATURES.encrypted_in_transit": {
     "text": "Шифрування під час передачі та зберігання"
@@ -758,43 +758,43 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Залишилося {count} {unit}"
+    "text": "Залишилось {count} {unit}"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "день залишився | дні залишилося | днів залишилося"
+    "text": "день | дні | днів"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "година залишилася | години залишилося | годин залишилося"
+    "text": "година | години | годин"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "хвилина залишилася | хвилини залишилося | хвилин залишилося"
+    "text": "хвилина | хвилини | хвилин"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "секунда залишилася | секунди залишилося | секунд залишилося"
+    "text": "секунда | секунди | секунд"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
   },
   "web.UNITS.limited_views": {
-    "text": "Ліміт {count} переглядів"
+    "text": "Обмеження: {count} переглядів"
   },
   "web.UNITS.days_remaining": {
-    "text": "Залишилося {count} днів"
+    "text": "Залишилось {count} днів"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Залишилося {count} годин"
+    "text": "Залишилось {count} годин"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Залишилося {count} хвилин"
+    "text": "Залишилось {count} хвилин"
   },
   "web.TITLES.incoming": {
     "text": "Вхідні таємниці"
   },
   "web.TITLES.feedback": {
-    "text": "Відгук"
+    "text": "Відгуки"
   },
   "web.TITLES.signin": {
-    "text": "Увійти"
+    "text": "Вхід"
   },
   "web.TITLES.signup": {
     "text": "Створити обліковий запис"
@@ -806,7 +806,7 @@
     "text": "Скинути пароль"
   },
   "web.TITLES.logout": {
-    "text": "Вихід"
+    "text": "Вихід із системи"
   },
   "web.TITLES.verify_account": {
     "text": "Підтвердити обліковий запис"
@@ -821,22 +821,22 @@
     "text": "Прийняти запрошення"
   },
   "web.TITLES.secret": {
-    "text": "Секрет"
+    "text": "Таємниця"
   },
   "web.TITLES.metadata": {
-    "text": "Деталі секрету"
+    "text": "Деталі таємниці"
   },
   "web.TITLES.receipt": {
-    "text": "Квитанція секрету"
+    "text": "Квитанція таємниці"
   },
   "web.TITLES.burn_secret": {
-    "text": "Знищити секрет"
+    "text": "Знищити таємницю"
   },
   "web.TITLES.dashboard": {
     "text": "Панель керування"
   },
   "web.TITLES.recent": {
-    "text": "Недавні"
+    "text": "Нещодавні таємниці"
   },
   "web.TITLES.domains": {
     "text": "Власні домени"
@@ -845,13 +845,13 @@
     "text": "Додати домен"
   },
   "web.TITLES.domain_verify": {
-    "text": "Верифікувати домен"
+    "text": "Підтвердити домен"
   },
   "web.TITLES.domain_brand": {
-    "text": "Брендувати домен"
+    "text": "Брендування домену"
   },
   "web.TITLES.account": {
-    "text": "Налаштування облікового запису"
+    "text": "Обліковий запис"
   },
   "web.TITLES.data_region": {
     "text": "Регіон даних"
@@ -863,7 +863,7 @@
     "text": "Доступні регіони"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Чому важлива суверенність даних"
+    "text": "Чому важливий суверенітет даних"
   },
   "web.TITLES.profile_settings": {
     "text": "Налаштування профілю"
@@ -917,30 +917,90 @@
     "text": "Фокус тепер у головній текстовій області"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Інструкції з обміну"
+    "text": "Інструкції з передачі"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Поділіться посиланням з призначеним отримувачем"
+    "text": "Поділіться посиланням із призначеним одержувачем"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Поділіться парольною фразою окремо через безпечний канал"
+    "text": "Поділіться парольною фразою окремо через захищений канал"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Використовуйте інший безпечний канал для обміну конфіденційною інформацією"
+    "text": "Використовуйте інший захищений канал для передачі конфіденційної інформації"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Завжди перевіряйте, що ви знаходитесь на офіційному веб-сайті Onetime Secret. Шахраї іноді створюють фальшиві веб-сайти, які виглядають точно як Onetime Secret, щоб викрасти ваші секрети. Щоб уникнути фішингових атак, перевіряйте доменне ім'я регіону перед створенням нових посилань."
+    "text": "Завжди перевіряйте, що Ви перебуваєте на офіційному вебсайті Onetime Secret. Шахраї іноді створюють підроблені вебсайти, які виглядають точно так само, як Onetime Secret, щоб викрасти Ваші таємниці. Щоб уникнути фішингових атак, перевірте домен регіону перед створенням нових посилань."
   },
   "web.STATUS.previewed": {
-    "text": "Посилання відкрито"
+    "text": "Попередній перегляд"
   },
   "web.STATUS.revealed": {
     "text": "Розкрито"
   },
   "web.STATUS.previewed_description": {
-    "text": "Секретне посилання відкрито і готове до розкриття"
+    "text": "Таємне посилання відкрито і готове до розкриття"
   },
   "web.STATUS.revealed_description": {
-    "text": "Секретний вміст було розкрито отримувачу"
+    "text": "Вміст таємниці було розкрито одержувачу"
+  },
+  "web.COMMON.not_set": {
+    "text": "Не встановлено"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Редагувати"
+  },
+  "web.COMMON.word_save": {
+    "text": "Зберегти"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Термін дії закінчується через"
+  },
+  "web.LABELS.filter": {
+    "text": "Фільтр"
+  },
+  "web.LABELS.clear": {
+    "text": "Очистити"
+  },
+  "web.LABELS.add_note": {
+    "text": "Додати нотатку..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Редагувати нотатку"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Додати нагадування..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Редагувати нагадування"
+  },
+  "web.TITLES.help": {
+    "text": "Допомога"
+  },
+  "web.TITLES.pricing": {
+    "text": "Ціни"
+  },
+  "web.pricing.title": {
+    "text": "Прості та прозорі ціни"
+  },
+  "web.pricing.subtitle": {
+    "text": "Виберіть план, який відповідає Вашим потребам. Усі плани включають необмежений обмін таємницями та дизайн із пріоритетом конфіденційності."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Почати безкоштовно"
+  },
+  "web.pricing.start_trial": {
+    "text": "Почати"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Вже маєте обліковий запис?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Увійти"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Рекомендовано для Вас"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Створюйте та діліться таємницями з базовими функціями. Кредитна картка не потрібна."
   }
 }

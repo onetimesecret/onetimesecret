@@ -1,27 +1,27 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Дізнатися більше про конфігурацію DNS"
+    "text": "Дізнатися більше про налаштування DNS"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Переглянути статус верифікації домену"
+    "text": "Переглянути статус підтвердження домену"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Цей домен вже зареєстровано у вашій організації"
+    "text": "Цей домен вже зареєстровано у Вашій організації"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Цей домен вже зареєстровано в іншій організації. Будь ласка, зв'яжіться з підтримкою, якщо ви вважаєте, що це помилка."
+    "text": "Цей домен вже зареєстровано в іншій організації. Будь ласка, зверніться до служби підтримки, якщо Ви вважаєте, що це помилка."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Домен успішно заявлено та додано до вашої організації"
+    "text": "Домен успішно підтверджено та додано до Вашої організації"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Налаштування конфіденційності за замовчуванням"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Встановіть параметри конфіденційності за замовчуванням для таємниць, створених під цим доменом. Ці налаштування будуть попередньо заповнені при створенні нових таємниць."
+    "text": "Встановіть налаштування конфіденційності за замовчуванням для таємниць, створених під цим доменом. Ці налаштування будуть попередньо заповнені при створенні нових таємниць."
   },
   "web.domains.privacy_defaults": {
-    "text": "Налаштування конфіденційності"
+    "text": "Налаштування конфіденційності за замовчуванням"
   },
   "web.domains.privacy_defaults_icon": {
     "text": "Іконка налаштувань конфіденційності"
@@ -30,7 +30,7 @@
     "text": "Термін дії за замовчуванням"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Як довго таємниці мають залишатися доступними за замовчуванням"
+    "text": "Як довго таємниці повинні залишатися доступними за замовчуванням"
   },
   "web.domains.passphrase_required_label": {
     "text": "Вимагати парольну фразу"
@@ -42,13 +42,13 @@
     "text": "Увімкнути сповіщення"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Увімкнути сповіщення електронною поштою за замовчуванням при перегляді таємниць"
+    "text": "Увімкнути сповіщення електронною поштою за замовчуванням, коли таємниці переглядаються"
   },
   "web.domains.use_global_default": {
-    "text": "Використовувати глобальне за замовчуванням"
+    "text": "Використовувати глобальне налаштування"
   },
   "web.domains.global_default": {
-    "text": "Глобальне"
+    "text": "Глобальний"
   },
   "web.domains.required": {
     "text": "Обов'язково"
@@ -63,13 +63,13 @@
     "text": "Вимкнено"
   },
   "web.domains.custom": {
-    "text": "Користувацьке"
+    "text": "Власний"
   },
   "web.domains.edit_defaults": {
-    "text": "Редагувати налаштування"
+    "text": "Редагувати налаштування за замовчуванням"
   },
   "web.domains.ttl_short": {
-    "text": "Термін дії"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
     "text": "Парольна фраза"
@@ -93,31 +93,31 @@
     "text": "Додати домен"
   },
   "web.domains.domain_settings": {
-    "text": "Domain settings"
+    "text": "Налаштування домену"
   },
   "web.domains.canonical_no_settings": {
     "text": "Домен за замовчуванням не має сторінки налаштувань"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Будь ласка, введіть ім'я домену {0}"
+    "text": "Будь ласка, введіть назву домену {0}"
   },
   "web.domains.domain_name": {
-    "text": "Ім'я домену"
+    "text": "Назва домену"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Керуйте можливістю користувачів створювати секретні посилання з головної сторінки вашого домену"
+    "text": "Керуйте можливістю користувачів створювати таємні посилання з домашньої сторінки Вашого домену"
   },
   "web.domains.homepage_access": {
-    "text": "Доступ до головної сторінки"
+    "text": "Доступ до домашньої сторінки"
   },
   "web.domains.and_status": {
-    "text": "та Статус"
+    "text": "та статус"
   },
   "web.domains.domain": {
     "text": "Домен"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Керуйте та налаштовуйте ваші верифіковані власні домени"
+    "text": "Керуйте та налаштовуйте підтверджені власні домени"
   },
   "web.domains.domains": {
     "text": "Домени"
@@ -129,10 +129,10 @@
     "text": "Статус SSL"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL поновлюється"
+    "text": "SSL оновлюється"
   },
   "web.domains.dns_record": {
-    "text": "Запис DNS"
+    "text": "DNS-запис"
   },
   "web.domains.target_address": {
     "text": "Цільова адреса"
@@ -144,7 +144,7 @@
     "text": "Кількість власних доменів"
   },
   "web.domains.custom_domain": {
-    "text": "Спеціальний домен"
+    "text": "Власний домен"
   },
   "web.domains.open_domain_in_new_tab": {
     "text": "Відкрити домен у новій вкладці"
@@ -156,7 +156,7 @@
     "text": "Повернутися до списку доменів"
   },
   "web.domains.verify_domain": {
-    "text": "Верифікувати домен"
+    "text": "Підтвердити домен"
   },
   "web.domains.manage_brand": {
     "text": "Керувати брендом"
@@ -189,7 +189,7 @@
     "text": "та видаліть будь-які інші записи A, AAAA або CNAME для цієї точної адреси."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", вам потрібно буде виконати ці кроки."
+    "text": ", Вам потрібно виконати ці кроки."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Перш ніж ми зможемо активувати посилання для"
@@ -198,13 +198,13 @@
     "text": "Зверніть увагу, що для кореневих доменів (напр.,"
   },
   "web.domains.verify_your_domain": {
-    "text": "Верифікуйте ваш домен"
+    "text": "Підтвердіть свій домен"
   },
   "web.domains.secrets_example_dot_com": {
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Налаштуйте брендування вашого домену"
+    "text": "Налаштуйте брендування Вашого домену"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Може знадобитися кілька хвилин, щоб ваш SSL-сертифікат набув чинності."
@@ -213,7 +213,7 @@
     "text": "Зміни DNS можуть набути чинності всього за 60 секунд -- або до 24 годин."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Зачекайте на розповсюдження"
+    "text": "3. Зачекайте на поширення"
   },
   "web.domains.value_2": {
     "text": "Значення"
@@ -231,7 +231,7 @@
     "text": "Тип"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Створіть запис CNAME"
+    "text": "2. Створіть CNAME-запис"
   },
   "web.domains.value_0": {
     "text": "Значення"
@@ -243,22 +243,22 @@
     "text": "Тип"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Створіть запис A"
+    "text": "2. Створіть A-запис"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Додайте це ім'я хоста до вашої конфігурації DNS:"
+    "text": "Додайте це ім'я хоста до Вашої конфігурації DNS:"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. Створіть запис TXT"
+    "text": "1. Створіть TXT-запис"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Виконайте ці кроки, щоб підтвердити право власності на домен та покращити свою присутність в Інтернеті:"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Кроки верифікації домену"
+    "text": "Кроки підтвердження домену"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Верифікацію домену успішно розпочато."
+    "text": "Підтвердження домену успішно розпочато."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Ви впевнені, що хочете видалити цей домен? Цю дію неможливо скасувати."
@@ -274,5 +274,29 @@
   },
   "web.domains.domain_added_successfully": {
     "text": "Домен успішно додано"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Захищено"
+  },
+  "web.domains.manage_domains": {
+    "text": "Керувати доменами"
+  },
+  "web.domains.global_defaults": {
+    "text": "Глобальні налаштування за замовчуванням"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Редагувати налаштування терміну дії"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Редагувати вимогу парольної фрази"
+  },
+  "web.domains.edit_notify": {
+    "text": "Редагувати налаштування сповіщень"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Налаштувати DNS-записи"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Використовуйте інструмент нижче, щоб автоматично визначити Вашого DNS-провайдера та отримати покрокові інструкції для налаштування Вашого домену."
   }
 }
