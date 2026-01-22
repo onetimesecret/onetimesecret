@@ -241,7 +241,7 @@
     "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Yıllık faturalandırma ile %{percent} tasarruf edin",
+    "text": "Yıllık faturalandırma ile {percent} tasarruf edin",
     "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {

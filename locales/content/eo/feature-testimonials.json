@@ -12,7 +12,7 @@
     "sha256": "a5bdbbd3"
   },
   "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
-    "text": "",
+    "text": "- {0}, {1}",
     "sha256": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
