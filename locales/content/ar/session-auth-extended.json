@@ -1,27 +1,70 @@
 {
+  "web.auth._guidance": {
+    "skip": "",
+    "_meta": {
+      "_purpose": "",
+      "authentication_failed": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "rate_limited": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "session_expired": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "recovery_code_not_found": {
+        "security_note": "",
+        "owasp_ref": ""
+      },
+      "recovery_code_used": {
+        "security_note": "",
+        "owasp_ref": ""
+      }
+    },
+    "_translation_guidelines": {
+      "DO_NOT_translate_as": "",
+      "MUST_translate_as": "",
+      "WHY": ""
+    },
+    "_safe_information": {
+      "format_requirements": "",
+      "expected_behavior": "",
+      "recovery_options": "",
+      "general_guidance": ""
+    }
+  },
   "web.auth.mfa_required": {
-    "text": "التحقق من المصادقة الثنائية مطلوب"
+    "text": "مطلوب التحقق بالمصادقة الثنائية",
+    "context": ""
   },
   "web.auth.mfa_verification_required": {
-    "text": "التحقق من المصادقة الثنائية مطلوب للوصول إلى حسابك"
+    "text": "مطلوب التحقق بالمصادقة الثنائية للوصول إلى حسابك",
+    "context": ""
   },
   "web.auth.complete_mfa_verification": {
-    "text": "إكمال التحقق من المصادقة الثنائية"
+    "text": "إكمال التحقق بالمصادقة الثنائية"
+  },
+  "web.auth.security._guidance": {
+    "skip": "",
+    "context": ""
   },
   "web.auth.security.authentication_failed": {
-    "text": "فشلت المصادقة. يرجى التحقق من بيانات الاعتماد والمحاولة مرة أخرى."
+    "text": "فشلت المصادقة. يرجى التحقق من بيانات اعتمادك والمحاولة مرة أخرى."
   },
   "web.auth.security.rate_limited": {
-    "text": "محاولات كثيرة جداً. يرجى المحاولة لاحقاً."
+    "text": "الكثير من المحاولات. يرجى المحاولة مرة أخرى لاحقاً."
   },
   "web.auth.security.session_expired": {
-    "text": "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى."
+    "text": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى."
   },
   "web.auth.security.recovery_code_not_found": {
     "text": "رمز الاسترداد غير موجود. يرجى التحقق من إدخاله بشكل صحيح."
   },
   "web.auth.security.recovery_code_used": {
-    "text": "تم استخدام رمز الاسترداد هذا بالفعل. كل رمز يمكن استخدامه مرة واحدة فقط."
+    "text": "رمز الاسترداد هذا مُستخدم بالفعل. كل رمز يمكن استخدامه مرة واحدة فقط."
   },
   "web.auth.security.network_error": {
     "text": "خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى."
@@ -33,10 +76,11 @@
     "text": "كلمة المرور"
   },
   "web.auth.methods.magicLink": {
-    "text": "رابط البريد الإلكتروني"
+    "text": "رابط البريد الإلكتروني",
+    "context": ""
   },
   "web.auth.methods.webauthn": {
-    "text": "المقاييس الحيوية"
+    "text": "البصمة الحيوية"
   },
   "web.auth.magicLink.title": {
     "text": "تسجيل الدخول بالبريد الإلكتروني"
@@ -57,13 +101,13 @@
     "text": "أرسلنا رابط تسجيل دخول إلى {email}"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "سينتهي هذا الرابط خلال 15 دقيقة"
+    "text": "ستنتهي صلاحية هذا الرابط خلال 15 دقيقة"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "جرّب بريد إلكتروني مختلف"
+    "text": "جرب بريداً إلكترونياً مختلفاً"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "لا حاجة لكلمة مرور — فقط انقر على الرابط في بريدك الإلكتروني"
+    "text": "لا حاجة لكلمة مرور - فقط انقر على الرابط في بريدك الإلكتروني"
   },
   "web.auth.magicLink.networkError": {
     "text": "خطأ في الشبكة. يرجى المحاولة مرة أخرى."
@@ -78,7 +122,7 @@
     "text": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى."
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "جارٍ تسجيل الدخول..."
+    "text": "جاري تسجيل دخولك..."
   },
   "web.auth.magicLink.pleaseWait": {
     "text": "يرجى الانتظار بينما نتحقق من رابطك"
@@ -87,34 +131,34 @@
     "text": "خطأ في المصادقة"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "العودة إلى تسجيل الدخول"
+    "text": "العودة لتسجيل الدخول"
   },
   "web.auth.webauthn.signIn": {
-    "text": "تسجيل الدخول باستخدام Face ID / Touch ID"
+    "text": "تسجيل الدخول بـ Face ID / Touch ID"
   },
   "web.auth.webauthn.setup": {
-    "text": "إعداد تسجيل الدخول بالمقاييس الحيوية"
+    "text": "إعداد تسجيل الدخول بالبصمة الحيوية"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "مصادقة المقاييس الحيوية غير مدعومة في هذا المتصفح"
+    "text": "المصادقة بالبصمة الحيوية غير مدعومة في هذا المتصفح"
   },
   "web.auth.webauthn.requiresModernBrowser": {
     "text": "يرجى استخدام متصفح حديث يدعم WebAuthn (Chrome أو Safari أو Firefox أو Edge)"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "تم تفعيل تسجيل الدخول بالمقاييس الحيوية"
+    "text": "تم تفعيل تسجيل الدخول بالبصمة الحيوية"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "فشل إعداد تسجيل الدخول بالمقاييس الحيوية"
+    "text": "فشل إعداد تسجيل الدخول بالبصمة الحيوية"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "فشلت مصادقة المقاييس الحيوية. يرجى المحاولة مرة أخرى."
+    "text": "فشلت المصادقة بالبصمة الحيوية. يرجى المحاولة مرة أخرى."
   },
   "web.auth.webauthn.cancelled": {
     "text": "تم إلغاء المصادقة"
   },
   "web.auth.webauthn.processing": {
-    "text": "جارٍ المصادقة..."
+    "text": "جاري المصادقة..."
   },
   "web.auth.webauthn.description": {
     "text": "استخدم بصمة إصبعك أو وجهك أو مفتاح الأمان لتسجيل الدخول"
@@ -123,19 +167,23 @@
     "text": "يدعم Face ID و Touch ID و Windows Hello ومفاتيح الأمان"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "تحذير: {count} محاولة تسجيل دخول متبقية"
+    "text": "تحذير: متبقي {count} محاولة (محاولات) تسجيل دخول"
   },
   "web.auth.lockout.account_locked": {
-    "text": "الحساب مقفل بسبب محاولات تسجيل دخول فاشلة كثيرة"
+    "text": "تم قفل الحساب بسبب الكثير من محاولات تسجيل الدخول الفاشلة"
   },
   "web.auth.lockout.locked_until": {
     "text": "حسابك مقفل حتى {time}"
   },
   "web.auth.lockout.contact_support": {
-    "text": "تواصل مع الدعم إذا كنت بحاجة لوصول فوري"
+    "text": "اتصل بالدعم إذا كنت بحاجة إلى وصول فوري"
   },
   "web.auth.lockout.try_password_reset": {
     "text": "يمكنك إعادة تعيين كلمة المرور بدلاً من ذلك"
+  },
+  "web.auth.sessions._guidance": {
+    "skip": "",
+    "context": ""
   },
   "web.auth.sessions.title": {
     "text": "الجلسات النشطة"
@@ -144,7 +192,7 @@
     "text": "الجلسة الحالية"
   },
   "web.auth.sessions.other": {
-    "text": "جلسات أخرى"
+    "text": "الجلسات الأخرى"
   },
   "web.auth.sessions.device": {
     "text": "الجهاز"
@@ -159,7 +207,7 @@
     "text": "آخر نشاط"
   },
   "web.auth.sessions.created": {
-    "text": "تم الإنشاء"
+    "text": "تاريخ الإنشاء"
   },
   "web.auth.sessions.remove": {
     "text": "إزالة"
@@ -168,7 +216,7 @@
     "text": "تسجيل الخروج من جميع الجلسات الأخرى"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "هل أنت متأكد من إزالة هذه الجلسة؟"
+    "text": "هل أنت متأكد من رغبتك في إزالة هذه الجلسة؟"
   },
   "web.auth.sessions.confirm_remove_all": {
     "text": "سيؤدي هذا إلى تسجيل خروجك من جميع الأجهزة الأخرى. هل أنت متأكد؟"
@@ -189,10 +237,10 @@
     "text": "المصادقة الثنائية"
   },
   "web.auth.mfa.enabled": {
-    "text": "المصادقة الثنائية مفعّلة"
+    "text": "المصادقة الثنائية مفعلة"
   },
   "web.auth.mfa.disabled": {
-    "text": "المصادقة الثنائية معطّلة"
+    "text": "المصادقة الثنائية معطلة"
   },
   "web.auth.mfa.enable": {
     "text": "تفعيل المصادقة الثنائية"
@@ -204,7 +252,7 @@
     "text": "إعداد المصادقة الثنائية"
   },
   "web.auth.mfa.setup_description": {
-    "text": "أضف طبقة إضافية من الأمان لحسابك"
+    "text": "أضف طبقة أمان إضافية لحسابك"
   },
   "web.auth.mfa.step_scan": {
     "text": "1. مسح رمز QR"
@@ -213,7 +261,7 @@
     "text": "2. التحقق من الإعداد"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "امسح رمز QR هذا باستخدام تطبيق المصادقة"
+    "text": "امسح رمز QR هذا بتطبيق المصادقة الخاص بك"
   },
   "web.auth.mfa.manual_entry": {
     "text": "أو أدخل هذا الرمز يدوياً"
@@ -227,11 +275,14 @@
   "web.auth.mfa.verify": {
     "text": "التحقق والتفعيل"
   },
+  "web.auth.mfa.verify_login": {
+    "text": "تحقق"
+  },
   "web.auth.mfa.code_required": {
     "text": "رمز المصادقة مطلوب"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "رمز غير صالح. تنتهي صلاحية الرموز كل 30 ثانية. جرّب أحدث رمز من تطبيق المصادقة."
+    "text": "رمز غير صالح. تنتهي صلاحية الرموز كل 30 ثانية. جرب أحدث رمز من تطبيق المصادقة الخاص بك."
   },
   "web.auth.mfa.success_enabled": {
     "text": "تم تفعيل المصادقة الثنائية"
@@ -240,7 +291,7 @@
     "text": "تم تعطيل المصادقة الثنائية"
   },
   "web.auth.mfa.require_password": {
-    "text": "أدخل كلمة مرورك لتعطيل المصادقة الثنائية"
+    "text": "أدخل كلمة المرور لتعطيل المصادقة الثنائية"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "كلمة المرور"
@@ -257,50 +308,56 @@
   "web.auth.mfa.use_recovery_code": {
     "text": "استخدم رمز استرداد بدلاً من ذلك"
   },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "استخدام رمز الاسترداد"
+  },
   "web.auth.mfa.back_to_code": {
-    "text": "العودة إلى رمز المصادقة"
+    "text": "العودة لرمز المصادقة"
   },
   "web.auth.mfa.cancel": {
-    "text": "إلغاء والعودة إلى تسجيل الدخول"
+    "text": "إلغاء والعودة لتسجيل الدخول"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "إلغاء تسجيل الدخول"
   },
   "web.auth.mfa.loading_status": {
-    "text": "جارٍ تحميل حالة المصادقة الثنائية..."
+    "text": "جاري تحميل حالة المصادقة الثنائية..."
   },
   "web.auth.mfa.protected_description": {
     "text": "حسابك محمي بالمصادقة الثنائية"
   },
   "web.auth.mfa.enable_description": {
-    "text": "احمِ حسابك بطبقة إضافية من الأمان"
+    "text": "احمِ حسابك بطبقة أمان إضافية"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "امنع الوصول غير المصرح به حتى لو تم اختراق كلمة مرورك"
+    "text": "منع الوصول غير المصرح به حتى لو تم اختراق كلمة المرور"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "يعمل مع Google Authenticator و Authy وتطبيقات TOTP الأخرى"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "رموز استرداد احتياطية للوصول الطارئ"
+    "text": "رموز استرداد احتياطية للوصول في حالات الطوارئ"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "أدخل كلمة مرورك"
+    "text": "أدخل كلمة المرور"
   },
   "web.auth.mfa.disabling": {
-    "text": "جارٍ التعطيل..."
+    "text": "جاري التعطيل..."
   },
   "web.auth.mfa.disable_button": {
     "text": "تعطيل المصادقة الثنائية"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "جارٍ إنشاء رمز QR..."
+    "text": "جاري توليد رمز QR..."
   },
   "web.auth.mfa.supported_apps": {
     "text": "استخدم Google Authenticator أو Authy أو أي تطبيق TOTP"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "متابعة التحقق"
+    "text": "المتابعة للتحقق"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة"
+    "text": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة الخاص بك"
   },
   "web.auth.mfa.enable_and_continue": {
     "text": "تفعيل المصادقة الثنائية"
@@ -309,7 +366,7 @@
     "text": "إكمال الإعداد"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "أدخل أحد رموز الاسترداد"
+    "text": "أدخل أحد رموز الاسترداد الخاصة بك"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "رمز الاسترداد"
@@ -339,22 +396,22 @@
     "text": "رموز الاسترداد"
   },
   "web.auth.recovery_codes.description": {
-    "text": "احفظ هذه الرموز في مكان آمن. يمكن استخدام كل واحد مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة."
+    "text": "احفظ هذه الرموز في مكان آمن. يمكن استخدام كل رمز مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة."
   },
   "web.auth.recovery_codes.warning": {
     "text": "ستُعرض هذه الرموز مرة واحدة فقط"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "يجب تنزيل أو نسخ رموز الاسترداد قبل إكمال الإعداد."
+    "text": "يجب تنزيل أو نسخ رموز الاسترداد الخاصة بك قبل إكمال الإعداد."
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "إنشاء رموز جديدة"
+    "text": "توليد رموز جديدة"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "إعادة إنشاء الرموز"
+    "text": "إعادة توليد الرموز"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "سيُبطل هذا جميع رموز الاسترداد الموجودة"
+    "text": "سيؤدي هذا إلى إبطال جميع رموز الاسترداد الحالية"
   },
   "web.auth.recovery_codes.download": {
     "text": "تنزيل الرموز"
@@ -381,18 +438,24 @@
     "text": "غير مُستخدم"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} رمز استرداد متبقي"
+    "text": "{count} من {limit} رموز استرداد متبقية"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "يمكن استخدام كل رمز مرة واحدة فقط. أعد إنشاء الرموز إذا كانت على وشك النفاد."
+    "text": "كل رمز يمكن استخدامه مرة واحدة فقط. أعد توليد الرموز إذا كانت تنفد."
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "لا توجد رموز استرداد متبقية"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "تم إنشاء رموز استرداد جديدة"
+    "text": "تم توليد رموز استرداد جديدة"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "رموز الاسترداد"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ حرج أمنياً: الرسائل تمنع الكشف عن المعلومات. انظر src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "صفحة إدارة الأجهزة/المتصفحات المسجل دخولها للمستخدم"
   }
 }

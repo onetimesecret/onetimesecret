@@ -12,7 +12,7 @@
     "text": "الذين ساعدوا في الترجمات بينما نستمر في تطوير ميزات جديدة."
   },
   "web.translations.25_contributors": {
-    "text": "أكثر من 25 مساهم"
+    "text": "أكثر من 25 مساهماً"
   },
   "web.translations.were_grateful_to_the": {
     "text": "نحن ممتنون لـ"
@@ -27,13 +27,13 @@
     "text": "تواصل معنا"
   },
   "web.translations.have_questions": {
-    "text": "هل لديك أسئلة؟"
+    "text": "لديك أسئلة؟"
   },
   "web.translations.send_translations_by_email_to": {
-    "text": "أرسل الترجمات عبر البريد الإلكتروني إلى"
+    "text": "أرسل الترجمات بالبريد الإلكتروني إلى"
   },
   "web.translations.english_template": {
-    "text": "النموذج الإنجليزي"
+    "text": "القالب الإنجليزي"
   },
   "web.translations.start_a_new_translation_from_our": {
     "text": "ابدأ ترجمة جديدة من"
@@ -54,7 +54,7 @@
     "text": "الترجمات"
   },
   "web.translations.fork_on_github_and_submit_a_pr": {
-    "text": "انسخ المشروع على GitHub وأرسل طلب دمج"
+    "text": "انسخ المشروع على GitHub وأرسل طلب سحب"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
     "text": "يمكن لمهاراتك اللغوية أن تساعد في توسيع الوصول إلى التواصل الآمن."
@@ -66,6 +66,6 @@
     "text": "منذ عام 2012، وفّر Onetime Secret طريقة آمنة لمشاركة المعلومات الحساسة في جميع أنحاء العالم. مع المستخدمين في المناطق التي لا تعتبر فيها الإنجليزية اللغة الأساسية، تعد الترجمات الدقيقة ضرورية لجعل التواصل الآمن متاحاً للجميع."
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "ساعد التواصل الآمن على أن يصبح عالمياً"
+    "text": "ساعد في نشر الاتصال الآمن عالمياً"
   }
 }

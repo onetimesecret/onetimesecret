@@ -18,13 +18,13 @@
     "text": "الأسرار ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(نشط في آخر 5 دقائق)"
+    "text": "(نشط في الدقائق الخمس الماضية)"
   },
   "web.colonel.configEditorTitle": {
     "text": "الإعدادات"
   },
   "web.colonel.configEditorDescription": {
-    "text": "تحرير إعدادات تكوين النظام. تُطبق التغييرات فوراً بعد الحفظ."
+    "text": "تعديل إعدادات تكوين النظام. تُطبق التغييرات فور الحفظ."
   },
   "web.colonel.invalidJson": {
     "text": "JSON غير صالح في قسم {section}"
@@ -33,22 +33,22 @@
     "text": "خطأ في التحقق"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "خطأ في تحميل التكوين"
+    "text": "خطأ في تحميل الإعدادات"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "خطأ في حفظ التكوين"
+    "text": "خطأ في حفظ الإعدادات"
   },
   "web.colonel.configSaved": {
-    "text": "تم حفظ التكوين بنجاح"
+    "text": "تم حفظ الإعدادات بنجاح"
   },
   "web.colonel.mustBeObject": {
-    "text": "يجب أن يكون التكوين كائن JSON"
+    "text": "يجب أن تكون الإعدادات كائن JSON"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "أقسام متعددة بها أخطاء تحقق: {sections}"
+    "text": "عدة أقسام تحتوي على أخطاء تحقق: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} به أخطاء تحقق: {error}"
+    "text": "{section} يحتوي على أخطاء تحقق: {error}"
   },
   "web.colonel.sectionSaved": {
     "text": "تم حفظ {section} بنجاح"
@@ -69,13 +69,13 @@
     "text": "خطأ تحقق غير معروف: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "قسم {section} لا يحتوي على قيم مكوّنة"
+    "text": "قسم {section} لا يحتوي على قيم مُعدَّة"
   },
   "web.colonel.dashboard": {
     "text": "لوحة التحكم"
   },
   "web.colonel.admin": {
-    "text": "الإدارة"
+    "text": "المسؤول"
   },
   "web.colonel.activity": {
     "text": "النشاط"
@@ -99,10 +99,10 @@
     "text": "النظام"
   },
   "web.colonel.welcome": {
-    "text": "مرحباً بك في Colonel"
+    "text": "مرحباً في Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "لوحة تحكم إدارية لـ OneTimeSecret"
+    "text": "لوحة التحكم الإدارية لـ OneTimeSecret"
   },
   "web.colonel.quickActions": {
     "text": "إجراءات سريعة"
@@ -126,28 +126,28 @@
     "text": "أسرار اليوم"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "الأسرار المُنشأة"
+    "text": "الأسرار المنشأة"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "الأسرار المُشاركة"
+    "text": "الأسرار المشاركة"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "إجمالي العملاء"
+    "text": "إجمالي المستخدمين"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "رسائل البريد المُرسلة"
+    "text": "الرسائل المرسلة"
   },
   "web.colonel.stats.systemHealth": {
     "text": "صحة النظام"
   },
   "web.colonel.stats.healthy": {
-    "text": "صحي"
+    "text": "سليم"
   },
   "web.colonel.actions.viewActivity": {
     "text": "عرض النشاط"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "مراقبة نشاط النظام والاستخدام"
+    "text": "مراقبة نشاط واستخدام النظام"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "إدارة الحسابات"
@@ -159,7 +159,7 @@
     "text": "تكوين النطاقات"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "إعدادات النطاقات و DNS"
+    "text": "إعدادات النطاق و DNS"
   },
   "web.colonel.actions.systemSettings": {
     "text": "إعدادات النظام"
@@ -168,7 +168,7 @@
     "text": "تكوين التطبيق"
   },
   "web.colonel.backgroundJobs": {
-    "text": "المهام الخلفية"
+    "text": "المهام في الخلفية"
   },
   "web.colonel.queueStatus": {
     "text": "حالة قائمة الانتظار"
@@ -198,7 +198,7 @@
     "text": "لا توجد بيانات قائمة انتظار متاحة"
   },
   "web.colonel.loadingQueueData": {
-    "text": "جارٍ تحميل بيانات قائمة الانتظار..."
+    "text": "جاري تحميل بيانات قائمة الانتظار..."
   },
   "web.colonel.testPlanMode": {
     "text": "وضع اختبار الخطة"
@@ -213,7 +213,7 @@
     "text": "اختر خطة للاختبار"
   },
   "web.colonel.resetToActual": {
-    "text": "إعادة التعيين إلى الخطة الفعلية"
+    "text": "إعادة التعيين للخطة الفعلية"
   },
   "web.colonel.currentActualPlan": {
     "text": "الخطة الحالية"
@@ -228,18 +228,252 @@
     "text": "وضع الاختبار نشط"
   },
   "web.colonel.testModeDescription": {
-    "text": "اختبر تطبيقك بميزات خطط مختلفة. التغييرات مؤقتة وتؤثر على جلستك فقط."
+    "text": "اختبر تطبيقك بصلاحيات خطط مختلفة. التغييرات مؤقتة وتؤثر على جلستك فقط."
   },
   "web.colonel.warningTestMode": {
-    "text": "أنت تختبر بميزات {planName} (تجاوز جلسة مؤقت)."
+    "text": "أنت تختبر بصلاحيات {planName} (تجاوز مؤقت للجلسة)."
   },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "عند إرسال الملاحظات، سنرى:"
+  "web.colonel.organizations.title": {
+    "text": "المؤسسات"
   },
-  "web.feedback.send_feedback": {
-    "text": "إرسال الملاحظات"
+  "web.colonel.organizations.description": {
+    "text": "مراقبة صحة مزامنة فوترة المؤسسات"
   },
-  "web.feedback.sending_ellipses": {
-    "text": "جارٍ الإرسال..."
+  "web.colonel.organizations.pageTitle": {
+    "text": "مراقب صحة الفوترة"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} مؤسسات"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} تحتاج انتباه"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} غير معروف"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "لم يتم العثور على مؤسسات"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "حالة المزامنة"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "الاشتراك"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "الكل"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "قد يكون قديماً"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "غير معروف"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "متزامن"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "نشط"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "فترة تجريبية"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "متأخر الدفع"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "ملغى"
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "الحساب"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "الفوترة"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "الحالة"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "الاستخدام"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "تاريخ الإنشاء"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "التفاصيل"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "المالك"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "الخطة"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "الأعضاء"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "النطاقات"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "الاشتراك"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "مساحة العمل الافتراضية"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "لديه فوترة"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "إدارة فوترة المؤسسات"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "إدارة المؤسسات ومراقبة صحة مزامنة الفوترة ({total} إجمالي)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "لم يتم العثور على مؤسسات"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "قد يكون قديماً"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "قديم"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "غير معروف"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "نشط"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "التحقيق"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "جاري التحقق..."
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "العميل"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "الاشتراك"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "معرف المؤسسة"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "فشل التحقيق"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "نتيجة التحقيق"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "تم التحقق من المزامنة"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "تم العثور على عدم تطابق"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "تعذرت المقارنة"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "تفاصيل اشتراك Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "الحالة"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "المنتج"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "الخطة المحددة"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "معرف السعر"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "محلي"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} أعضاء"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} نطاقات"
+  },
+  "web.colonel.secrets.title": {
+    "text": "الأسرار"
+  },
+  "web.colonel.secrets.description": {
+    "text": "عرض وإدارة جميع الأسرار"
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "عناوين IP المحظورة"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "إدارة قائمة حظر عناوين IP"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "تصدير الاستخدام"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "تصدير بيانات وإحصائيات الاستخدام"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "النظام"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "إعدادات النظام وقواعد البيانات والتكوين"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "النطاقات المخصصة"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "إدارة النطاقات المخصصة والعلامة التجارية"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "إرسال ملاحظات"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "جاري الإرسال..."
+  },
+  "web.colonel.titles.index": {
+    "text": "الإدارة"
+  },
+  "web.colonel.titles.users": {
+    "text": "إدارة المستخدمين"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "إدارة الأسرار"
+  },
+  "web.colonel.titles.domains": {
+    "text": "النطاقات المخصصة"
+  },
+  "web.colonel.titles.system": {
+    "text": "النظام"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "قاعدة البيانات الرئيسية"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "قاعدة بيانات المصادقة"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "عناوين IP المحظورة"
+  },
+  "web.colonel.titles.usage": {
+    "text": "تصدير الاستخدام"
+  },
+  "web.colonel.titles.info": {
+    "text": "معلومات النظام"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "المؤسسات"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "عند إرسال ملاحظاتك، سنرى:"
   }
 }

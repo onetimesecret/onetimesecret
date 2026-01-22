@@ -1,30 +1,60 @@
 {
   "web.login.alternate_prefix": {
-    "text": "بحاجة لحساب؟"
+    "text": "هل تحتاج حساباً؟"
   },
   "web.login.need_an_account": {
-    "text": "ترغب بحساب جديد؟"
+    "text": "سجّل."
   },
   "web.login.forgot_your_password": {
-    "text": "هل نسيت كلمة مرورك؟"
+    "text": "نسيت كلمة المرور؟"
   },
   "web.login.button_sign_in": {
     "text": "تسجيل الدخول"
   },
   "web.login.enter_your_credentials": {
-    "text": "ادخل بياناتك"
+    "text": "أدخل بيانات اعتمادك"
   },
   "web.login.remember_me": {
     "text": "تذكرني"
   },
+  "web.login.send_sign_in_link": {
+    "text": "إرسال رابط تسجيل الدخول"
+  },
+  "web.login.secure_link_helper": {
+    "text": "سيتم إرسال رابط آمن إلى بريدك الإلكتروني."
+  },
+  "web.login.or_divider": {
+    "text": "أو"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "تسجيل الدخول بكلمة المرور"
+  },
+  "web.login.use_passwordless": {
+    "text": "استخدم تسجيل الدخول بدون كلمة مرور"
+  },
+  "web.login.create_account": {
+    "text": "إنشاء حساب"
+  },
+  "web.login.return_home": {
+    "text": "العودة للرئيسية"
+  },
+  "web.login.tab_password": {
+    "text": "كلمة المرور"
+  },
+  "web.login.tab_magic_link": {
+    "text": "الرابط السحري"
+  },
+  "web.login.need_help": {
+    "text": "هل تحتاج مساعدة؟"
+  },
   "web.signup.create_your_account": {
-    "text": "قم بإنشاء حسابك"
+    "text": "أنشئ حسابك"
   },
   "web.signup.alternate_prefix": {
     "text": "لديك حساب بالفعل؟"
   },
   "web.signup.have_an_account": {
-    "text": "أو تسجيل الدخول إلى حسابك"
+    "text": "سجّل دخولك."
   },
   "web.signup.error_title": {
     "text": "خطأ في إنشاء الحساب"
@@ -35,50 +65,53 @@
   "web.signup.email_error": {
     "text": "البريد الإلكتروني"
   },
+  "web.auth.verify._guidance": {
+    "context": ""
+  },
   "web.auth.verify.title": {
-    "text": "تحقق من حسابك"
+    "text": "تأكيد حسابك"
   },
   "web.auth.verify.success": {
-    "text": "تم التحقق من حسابك بنجاح"
+    "text": "تم تأكيد حسابك بنجاح"
   },
   "web.auth.verify.invalid_key": {
-    "text": "مفتاح تحقق غير صالح أو منتهي الصلاحية"
+    "text": "مفتاح التحقق غير صالح أو منتهي الصلاحية"
   },
   "web.auth.verify.expired_key": {
     "text": "انتهت صلاحية رابط التحقق هذا. يرجى طلب رابط جديد."
   },
   "web.auth.verify.already_verified": {
-    "text": "تم التحقق من هذا الحساب بالفعل. يمكنك تسجيل الدخول الآن."
+    "text": "تم تأكيد هذا الحساب بالفعل. يمكنك تسجيل الدخول الآن."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "تعذر التحقق من الحساب. يرجى المحاولة مرة أخرى أو التواصل مع الدعم."
+    "text": "تعذر تأكيد الحساب. يرجى المحاولة مرة أخرى أو الاتصال بالدعم."
   },
   "web.auth.verify.check_email": {
     "text": "يرجى التحقق من بريدك الإلكتروني للحصول على رابط التحقق"
   },
   "web.auth.verify.error": {
-    "text": "فشل التحقق من الحساب. يرجى التحقق من رابط التحقق أو طلب رابط جديد."
+    "text": "فشل تأكيد الحساب. يرجى التحقق من رابط التحقق أو طلب رابط جديد."
   },
   "web.auth.verify.error_title": {
     "text": "فشل التحقق"
   },
   "web.auth.verify.what_to_do": {
-    "text": "ماذا علي أن أفعل؟"
+    "text": "ماذا يجب أن أفعل؟"
   },
   "web.auth.verify.check_email_help": {
     "text": "تحقق من بريدك الإلكتروني للحصول على أحدث رابط تحقق"
   },
   "web.auth.verify.check_spam": {
-    "text": "تحقق من مجلد البريد المزعج إذا لم تجد الرسالة"
+    "text": "تحقق من مجلد البريد العشوائي/غير المرغوب فيه إذا لم تجد البريد"
   },
   "web.auth.verify.contact_support": {
-    "text": "تواصل مع الدعم إذا استمرت المشكلة"
+    "text": "اتصل بالدعم إذا استمرت المشاكل"
   },
   "web.auth.verify.missing_key_title": {
     "text": "رابط التحقق مطلوب"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "يرجى استخدام رابط التحقق المرسل إلى عنوان بريدك الإلكتروني للتحقق من حسابك."
+    "text": "يرجى استخدام رابط التحقق المرسل إلى بريدك الإلكتروني لتأكيد حسابك."
   },
   "web.auth.verify.create_new_account": {
     "text": "إنشاء حساب جديد"
@@ -108,7 +141,7 @@
     "text": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع أسرارك نهائياً."
   },
   "web.auth.close_account.confirm": {
-    "text": "أفهم أن هذا الإجراء دائم"
+    "text": "أفهم أن هذا الإجراء نهائي"
   },
   "web.auth.close_account.password": {
     "text": "أدخل كلمة المرور للتأكيد"
@@ -123,58 +156,60 @@
     "text": "طلب إعادة تعيين كلمة المرور"
   },
   "web.auth.password_reset_request.description": {
-    "text": "أدخل عنوان بريدك الإلكتروني أدناه وسنرسل لك رابطاً لإعادة تعيين كلمة المرور"
+    "text": "أدخل بريدك الإلكتروني أدناه وسنرسل لك رابطاً لإعادة تعيين كلمة المرور"
   },
   "web.auth.password_reset_request.button": {
     "text": "إرسال رابط إعادة التعيين"
   },
   "web.auth.password_reset.title": {
-    "text": "اختر كلمة مرور جديدة"
+    "text": "اختر كلمة مرور جديدة",
+    "context": ""
   },
   "web.auth.password_reset.description": {
     "text": "يرجى إدخال كلمة المرور الجديدة أدناه. تأكد من أنها قوية وفريدة لحماية حسابك."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "تم إرسال رسالة إلكترونية إليك تحتوي على رابط لإعادة تعيين كلمة المرور لحسابك"
+    "text": "تم إرسال بريد إلكتروني إليك يحتوي على رابط لإعادة تعيين كلمة المرور لحسابك"
   },
   "web.auth.terms.agree_prefix": {
     "text": "أوافق على"
   },
   "web.auth.account.title": {
-    "text": "معلومات الحساب"
+    "text": "معلومات الحساب",
+    "context": ""
   },
   "web.auth.account.email": {
-    "text": "عنوان البريد الإلكتروني"
+    "text": "البريد الإلكتروني"
   },
   "web.auth.account.created": {
-    "text": "تم إنشاء الحساب"
+    "text": "تاريخ إنشاء الحساب"
   },
   "web.auth.account.verified": {
-    "text": "تم التحقق من البريد الإلكتروني"
+    "text": "البريد الإلكتروني موثق"
   },
   "web.auth.account.region": {
     "text": "المنطقة"
   },
   "web.auth.account.not_verified": {
-    "text": "لم يتم التحقق من البريد الإلكتروني"
+    "text": "البريد الإلكتروني غير موثق"
   },
   "web.auth.account.verify_email": {
-    "text": "التحقق من عنوان البريد الإلكتروني"
+    "text": "تأكيد البريد الإلكتروني"
   },
   "web.auth.account.mfa_status": {
     "text": "المصادقة الثنائية"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "مفعّلة"
+    "text": "مُفعّل"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "معطّلة"
+    "text": "مُعطّل"
   },
   "web.auth.account.active_sessions": {
     "text": "الجلسات النشطة"
   },
   "web.auth.account.session_count": {
-    "text": "{count} جلسة نشطة"
+    "text": "{count} جلسة (جلسات) نشطة"
   },
   "web.auth.account.quick_actions": {
     "text": "إجراءات سريعة"
@@ -190,5 +225,50 @@
   },
   "web.auth.account.close_account": {
     "text": "إغلاق الحساب"
+  },
+  "web.help.title": {
+    "text": "المساعدة والدعم"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "استكشاف مشاكل تسجيل الدخول"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "الرابط السحري لا يصل؟"
+  },
+  "web.help.check_spam_folder": {
+    "text": "تحقق من مجلد البريد العشوائي أو غير المرغوب فيه"
+  },
+  "web.help.check_email_spelling": {
+    "text": "تأكد من إدخال بريدك الإلكتروني بشكل صحيح"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "انتظر بضع دقائق - قد تتأخر رسائل البريد الإلكتروني أحياناً"
+  },
+  "web.help.try_again": {
+    "text": "حاول طلب رابط جديد إذا مرت أكثر من 10 دقائق"
+  },
+  "web.help.forgot_password": {
+    "text": "نسيت كلمة المرور؟"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "استخدم خيار الرابط السحري لتسجيل الدخول بدون كلمة مرور. بمجرد تسجيل الدخول، يمكنك تغيير كلمة المرور في إعدادات الحساب."
+  },
+  "web.help.account_locked": {
+    "text": "الحساب مقفل مؤقتاً؟"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "بعد عدة محاولات فاشلة لتسجيل الدخول، يتم قفل الحسابات مؤقتاً للأمان. انتظر 15 دقيقة وحاول مرة أخرى، أو استخدم الرابط السحري لتسجيل الدخول."
+  },
+  "web.help.still_need_help": {
+    "text": "هل لا تزال بحاجة إلى مساعدة؟"
+  },
+  "web.help.contact_us_description": {
+    "text": "إذا كنت لا تزال تواجه مشاكل، نحن هنا للمساعدة. أرسل لنا رسالة وسنرد عليك في أقرب وقت ممكن."
+  },
+  "web.help.contact_support": {
+    "text": "الاتصال بالدعم"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "مسار التحقق من البريد الإلكتروني بعد التسجيل"
   }
 }

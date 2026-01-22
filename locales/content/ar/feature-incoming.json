@@ -3,52 +3,52 @@
     "text": "إرسال سر"
   },
   "incoming.page_description": {
-    "text": "شارك المعلومات الحساسة بشكل آمن مع فريق الدعم لدينا"
+    "text": "شارك المعلومات الحساسة بأمان مع فريق الدعم لدينا"
   },
   "incoming.loading_config": {
     "text": "جاري التحميل..."
   },
   "incoming.config_error_title": {
-    "text": "فشل تحميل التكوين"
+    "text": "فشل تحميل الإعدادات"
   },
   "incoming.feature_disabled_title": {
     "text": "الميزة غير متاحة"
   },
   "incoming.feature_disabled_description": {
-    "text": "هذه الميزة معطلة حاليًا. يرجى الاتصال بالدعم للحصول على المساعدة."
+    "text": "هذه الميزة معطلة حالياً. يرجى الاتصال بالدعم للمساعدة."
   },
   "incoming.memo_label": {
-    "text": "مذكرة"
+    "text": "ملاحظة"
   },
   "incoming.memo_placeholder": {
-    "text": "وصف مختصر (مثل: طلب إعادة تعيين كلمة المرور)"
+    "text": "وصف موجز (مثال: طلب إعادة تعيين كلمة المرور)"
   },
   "incoming.memo_hint": {
-    "text": "ساعدنا في توجيه رسالتك إلى الشخص المناسب"
+    "text": "ساعدنا في توجيه رسالتك للشخص المناسب"
   },
   "incoming.recipient_label": {
     "text": "إرسال إلى"
   },
   "incoming.recipient_placeholder": {
-    "text": "اختر مستلمًا"
+    "text": "اختر مستلماً"
   },
   "incoming.recipient_aria_label": {
-    "text": "اختر مستلمًا لهذا السر"
+    "text": "اختر مستلماً لهذا السر"
   },
   "incoming.recipient_hint": {
-    "text": "اختر من سيستقبل هذه الرسالة الآمنة"
+    "text": "اختر من سيستلم هذه الرسالة الآمنة"
   },
   "incoming.no_recipients_available": {
     "text": "لا يوجد مستلمون متاحون"
   },
   "incoming.secret_content_label": {
-    "text": "معلومات سرية"
+    "text": "المعلومات السرية"
   },
   "incoming.secret_content_placeholder": {
-    "text": "الصق المعلومات الحساسة هنا (كلمات المرور، المفاتيح، إلخ)"
+    "text": "الصق المعلومات الحساسة هنا (كلمات المرور، المفاتيح، إلخ.)"
   },
   "incoming.secret_content_hint": {
-    "text": "سيتم تشفير هذه المعلومات ويمكن عرضها مرة واحدة فقط"
+    "text": "سيتم تشفير هذه المعلومات ولن تُعرض إلا مرة واحدة"
   },
   "incoming.submit_button": {
     "text": "إرسال السر"
@@ -75,25 +75,25 @@
     "text": "تم تسليم رسالتك الآمنة."
   },
   "incoming.reference_id": {
-    "text": "معرف المرجع"
+    "text": "رقم المرجع"
   },
   "incoming.success_info_title": {
     "text": "ماذا يحدث بعد ذلك؟"
   },
   "incoming.success_info_description": {
-    "text": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائيًا."
+    "text": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائياً."
   },
   "incoming.create_another": {
     "text": "إرسال سر آخر"
   },
   "incoming.tagline1": {
-    "text": "شارك المعلومات الحساسة بشكل آمن"
+    "text": "شارك المعلومات الحساسة بأمان"
   },
   "incoming.tagline2": {
-    "text": "احتفظ بكلمات المرور والبيانات الخاصة بعيدًا عن البريد الإلكتروني وسجلات الدردشة"
+    "text": "أبقِ كلمات المرور والبيانات الخاصة بعيدة عن البريد الإلكتروني وسجلات المحادثات"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "احفظ <a href='{receiptUrl}'>إيصالك</a> لسجلاتك."
+    "text": "احفظ {receipt} لسجلاتك."
   },
   "incoming.receipt_link_text": {
     "text": "الإيصال"

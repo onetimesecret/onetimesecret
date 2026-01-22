@@ -1,30 +1,30 @@
 {
   "web.organizations.title": {
-    "text": "المنظمة"
+    "text": "المؤسسات"
   },
   "web.organizations.organization": {
-    "text": "المنظمة"
+    "text": "المؤسسة"
   },
   "web.organizations.organization_plural": {
-    "text": "المنظمات"
+    "text": "المؤسسات"
   },
   "web.organizations.organizations_description": {
-    "text": "إدارة منظماتك"
+    "text": "إدارة مؤسساتك"
   },
   "web.organizations.my_organizations": {
-    "text": "منظماتي"
+    "text": "المؤسسات"
   },
   "web.organizations.manage_organizations": {
     "text": "إدارة المؤسسات"
   },
   "web.organizations.new_organization": {
-    "text": "منظمة جديدة"
+    "text": "مؤسسة جديدة"
   },
   "web.organizations.no_organizations": {
-    "text": "لا توجد منظمات بعد"
+    "text": "لا توجد مؤسسات بعد"
   },
   "web.organizations.no_organizations_description": {
-    "text": "تتيح لك المنظمات إدارة فرق متعددة مع فوترة وإدارة موحدة. ابدأ بإنشاء منظمتك الأولى."
+    "text": "توفر المؤسسات فوترة وإدارة موحدة. ابدأ بإنشاء أول مؤسسة لك."
   },
   "web.organizations.no_description": {
     "text": "لم يتم تقديم وصف"
@@ -33,73 +33,73 @@
     "text": "افتراضي"
   },
   "web.organizations.create_organization": {
-    "text": "إنشاء منظمة"
+    "text": "إنشاء مؤسسة"
   },
   "web.organizations.create_first_organization": {
-    "text": "إنشاء أول منظمة"
+    "text": "إنشاء أول مؤسسة"
   },
   "web.organizations.create_organization_description": {
-    "text": "إنشاء منظمة جديدة لتجميع فرقك"
+    "text": "إنشاء مؤسسة جديدة"
   },
   "web.organizations.create": {
     "text": "إنشاء"
   },
   "web.organizations.create_error": {
-    "text": "فشل إنشاء المنظمة"
+    "text": "فشل إنشاء المؤسسة"
   },
   "web.organizations.organization_name": {
-    "text": "اسم المنظمة"
+    "text": "اسم المؤسسة"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "مثال: شركة أكمي"
+    "text": "مثال: شركة Acme"
   },
   "web.organizations.display_name": {
-    "text": "اسم المنظمة"
+    "text": "اسم المؤسسة"
   },
   "web.organizations.description": {
     "text": "الوصف"
   },
   "web.organizations.description_placeholder": {
-    "text": "ما الغرض من هذه المنظمة؟"
+    "text": "ما الغرض من هذه المؤسسة؟"
   },
   "web.organizations.contact_email": {
-    "text": "البريد الإلكتروني للفوترة"
+    "text": "بريد الفوترة"
   },
   "web.organizations.contact_email_help": {
-    "text": "جهة الاتصال الأساسية للفوترة والإشعارات الإدارية"
+    "text": "جهة الاتصال الرئيسية للفوترة والإشعارات الإدارية"
   },
   "web.organizations.select_organization": {
-    "text": "اختر منظمة"
+    "text": "اختر مؤسسة"
   },
   "web.organizations.switcher_locked": {
     "text": "تبديل المؤسسة غير متاح في هذه الصفحة"
   },
   "web.organizations.not_found": {
-    "text": "المنظمة غير موجودة"
+    "text": "المؤسسة غير موجودة"
   },
   "web.organizations.load_error": {
-    "text": "فشل تحميل المنظمة"
+    "text": "فشل تحميل المؤسسة"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "فشل تحميل المنظمة"
+    "text": "فشل تحميل المؤسسة"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "فشل تحميل المنظمات"
+    "text": "فشل تحميل المؤسسات"
   },
   "web.organizations.organization_information": {
-    "text": "معلومات المنظمة"
+    "text": "معلومات المؤسسة"
   },
   "web.organizations.created": {
-    "text": "تم الإنشاء"
+    "text": "تاريخ الإنشاء"
   },
   "web.organizations.last_updated": {
     "text": "آخر تحديث"
   },
   "web.organizations.organization_settings": {
-    "text": "إعدادات المنظمة"
+    "text": "إعدادات المؤسسة"
   },
   "web.organizations.organization_settings_description": {
-    "text": "تحديث اسم ووصف منظمتك"
+    "text": "تحديث اسم ووصف مؤسستك"
   },
   "web.organizations.general_settings": {
     "text": "الإعدادات العامة"
@@ -111,40 +111,46 @@
     "text": "حفظ التغييرات"
   },
   "web.organizations.update_success": {
-    "text": "تم تحديث المنظمة بنجاح"
+    "text": "تم تحديث المؤسسة بنجاح"
   },
   "web.organizations.update_error": {
-    "text": "فشل تحديث المنظمة"
+    "text": "فشل تحديث المؤسسة"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "تم تحديث بريد الفوترة بنجاح"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "يمكن تغيير بريد الفوترة من صفحة نظرة عامة على الفوترة"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "التكامل مع الفوترة قريباً"
+    "text": "تكامل الفوترة قريباً"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "ستتوفر إدارة الفوترة والاشتراك الموحدة لجميع الفرق في هذه المنظمة في إصدار مستقبلي."
+    "text": "ستتوفر إدارة الفوترة والاشتراك الموحدة في إصدار مستقبلي."
   },
   "web.organizations.about_title": {
-    "text": "عن المنظمات"
+    "text": "حول المؤسسات"
   },
   "web.organizations.about_description": {
-    "text": "توفر المنظمات فوترة وإدارة موحدة لفرق متعددة. إنها اختيارية - يمكن أن توجد الفرق بشكل مستقل أو تُجمع تحت منظمة للإدارة المركزية."
+    "text": "توفر المؤسسات فوترة وإدارة موحدة للإدارة المركزية."
   },
   "web.organizations.single_user_info_title": {
-    "text": "إدارة منظمتك"
+    "text": "إدارة مؤسستك"
   },
   "web.organizations.single_user_info_description": {
-    "text": "قم بتحديث اسم شركتك وتفاصيل منظمتك هنا. تساعد هذه المعلومات في تخصيص حسابك ويمكن استخدامها لميزات العلامة التجارية في المستقبل."
+    "text": "حدّث اسم شركتك وتفاصيل المؤسسة هنا. تساعد هذه المعلومات في تخصيص حسابك ويمكن استخدامها لميزات العلامة التجارية في المستقبل."
   },
   "web.organizations.getting_started_title": {
-    "text": "البدء مع المنظمات"
+    "text": "البدء مع المؤسسات"
   },
   "web.organizations.getting_started_description": {
-    "text": "أنشئ منظمتك الأولى لإدارة معلومات شركتك والاستعداد للتعاون الجماعي المستقبلي وميزات العلامة التجارية."
+    "text": "أنشئ أول مؤسسة لك لإدارة معلومات شركتك والتحضير لميزات العلامة التجارية المستقبلية."
   },
   "web.organizations.page_description": {
     "text": "إدارة مؤسساتك وأعضاء الفريق"
   },
   "web.organizations.tabs.general": {
-    "text": "عام"
+    "text": "الإعدادات"
   },
   "web.organizations.tabs.company_branding": {
     "text": "العلامة التجارية للشركة"
@@ -155,32 +161,35 @@
   "web.organizations.tabs.billing": {
     "text": "الفوترة"
   },
+  "web.organizations.tabs.subscription": {
+    "text": "الاشتراك"
+  },
   "web.organizations.danger_zone": {
     "text": "منطقة الخطر"
   },
   "web.organizations.delete_organization": {
-    "text": "حذف المنظمة"
+    "text": "حذف المؤسسة"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "سيؤدي هذا إلى حذف المنظمة وجميع الفرق المرتبطة نهائياً. لا يمكن التراجع عن هذا الإجراء."
+    "text": "سيؤدي هذا إلى حذف المؤسسة نهائياً. لا يمكن التراجع عن هذا الإجراء."
   },
   "web.organizations.delete": {
     "text": "حذف"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "حذف المنظمة"
+    "text": "حذف المؤسسة"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "هل أنت متأكد من حذف {name}؟ لا يمكن التراجع عن هذا الإجراء."
+    "text": "هل أنت متأكد من رغبتك في حذف {name}؟ لا يمكن التراجع عن هذا الإجراء."
   },
   "web.organizations.delete_error": {
-    "text": "فشل حذف المنظمة"
+    "text": "فشل حذف المؤسسة"
   },
   "web.organizations.members.title": {
     "text": "الأعضاء"
   },
   "web.organizations.members.description": {
-    "text": "إدارة أعضاء المنظمة وأدوارهم"
+    "text": "إدارة أعضاء المؤسسة وأدوارهم"
   },
   "web.organizations.members.current_members": {
     "text": "الأعضاء الحاليون"
@@ -189,10 +198,10 @@
     "text": "عضو"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "عضو"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "أعضاء"
   },
   "web.organizations.members.name": {
     "text": "الاسم"
@@ -210,10 +219,10 @@
     "text": "الإجراءات"
   },
   "web.organizations.members.no_members": {
-    "text": "لم يتم العثور على أعضاء"
+    "text": "لا يوجد أعضاء بعد. ادعُ أعضاء الفريق للبدء."
   },
   "web.organizations.members.no_members_description": {
-    "text": "لا يوجد أعضاء في هذه المنظمة بعد."
+    "text": "هذه المؤسسة ليس لديها أعضاء بعد."
   },
   "web.organizations.members.role_updated": {
     "text": "تم تحديث دور العضو بنجاح"
@@ -222,25 +231,25 @@
     "text": "فشل تحديث دور العضو"
   },
   "web.organizations.members.member_removed": {
-    "text": "تمت إزالة العضو من المنظمة"
+    "text": "تمت إزالة العضو من المؤسسة"
   },
   "web.organizations.members.member_remove_error": {
     "text": "فشل إزالة العضو"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "إزالة العضو"
+    "text": "إزالة عضو"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "هل أنت متأكد من إزالة {name} من هذه المنظمة؟"
+    "text": "هل أنت متأكد من رغبتك في إزالة {name} من هذه المؤسسة؟"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "لا يمكنك تغيير دورك الخاص"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "لا يمكنك إزالة نفسك من المنظمة"
+    "text": "لا يمكنك إزالة نفسك من المؤسسة"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "لا يمكنك إزالة مالك المنظمة"
+    "text": "لا يمكنك إزالة مالك المؤسسة"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "ليس لديك صلاحية لإدارة الأعضاء"
@@ -249,22 +258,22 @@
     "text": "المالك"
   },
   "web.organizations.members.roles.admin": {
-    "text": "المسؤول"
+    "text": "مسؤول"
   },
   "web.organizations.members.roles.member": {
     "text": "عضو"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "وصول كامل إلى جميع إعدادات المنظمة والأعضاء"
+    "text": "وصول كامل لجميع إعدادات وأعضاء المؤسسة"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "يمكنه إدارة الأعضاء ومعظم إعدادات المنظمة"
+    "text": "يمكنه إدارة الأعضاء ومعظم إعدادات المؤسسة"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "وصول أساسي إلى موارد المنظمة"
+    "text": "وصول أساسي لموارد المؤسسة"
   },
   "web.organizations.invitations.title": {
-    "text": "دعوات المنظمة"
+    "text": "دعوات المؤسسة"
   },
   "web.organizations.invitations.invite_member": {
     "text": "دعوة عضو"
@@ -279,7 +288,7 @@
     "text": "لا توجد دعوات معلقة"
   },
   "web.organizations.invitations.email_address": {
-    "text": "عنوان البريد الإلكتروني"
+    "text": "البريد الإلكتروني"
   },
   "web.organizations.invitations.email_placeholder": {
     "text": "member{'@'}example.com"
@@ -303,7 +312,7 @@
     "text": "إلغاء"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "تم إعادة إرسال الدعوة بنجاح"
+    "text": "تمت إعادة إرسال الدعوة بنجاح"
   },
   "web.organizations.invitations.resend_error": {
     "text": "فشل إعادة إرسال الدعوة"
@@ -315,13 +324,13 @@
     "text": "فشل إلغاء الدعوة"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "دعوة من"
+    "text": "دُعي بواسطة"
   },
   "web.organizations.invitations.invited_at": {
     "text": "تاريخ الدعوة"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "تنتهي في"
+    "text": "تنتهي"
   },
   "web.organizations.invitations.resent_count": {
     "text": "أُعيد إرسالها {count} مرة"
@@ -330,16 +339,16 @@
     "text": "أُعيد إرسالها {count} مرات"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "معلقة"
+    "text": "قيد الانتظار"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "مقبولة"
+    "text": "مقبول"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "مرفوضة"
+    "text": "مرفوض"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "منتهية الصلاحية"
+    "text": "منتهي الصلاحية"
   },
   "web.organizations.invitations.roles.member": {
     "text": "عضو"
@@ -357,10 +366,10 @@
     "text": "تفاصيل الدعوة"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "لقد تمت دعوتك للانضمام إلى"
+    "text": "تمت دعوتك للانضمام إلى"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "لقد تمت دعوتك كـ"
+    "text": "تمت دعوتك بصفة"
   },
   "web.organizations.invitations.accept_success": {
     "text": "تم قبول الدعوة بنجاح"
@@ -384,6 +393,42 @@
     "text": "يرجى تسجيل الدخول لقبول هذه الدعوة"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "جارٍ تحميل تفاصيل الدعوة"
+    "text": "جاري تحميل تفاصيل الدعوة"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "قم بترقية خطتك لدعوة أعضاء الفريق"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "دعوات أعضاء الفريق تتطلب خطة مع إدارة الفرق. قم بالترقية لإضافة متعاونين إلى مؤسستك."
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} عضو | {count} أعضاء"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} نطاق | {count} نطاقات"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "النطاقات"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "حساب خاطئ"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "أُرسلت هذه الدعوة إلى {invitedEmail}، لكنك مسجل الدخول بـ {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "تسجيل الدخول بحساب مختلف"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days} يوم متبقي"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours} ساعة متبقية"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "تنتهي قريباً"
   }
 }

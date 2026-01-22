@@ -1,18 +1,18 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "تعلم المزيد عن تكوين DNS"
+    "text": "اعرف المزيد عن تكوين DNS"
   },
   "web.domains.view_domain_verification_status": {
     "text": "عرض حالة التحقق من النطاق"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "هذا النطاق مسجل بالفعل في منظمتك"
+    "text": "هذا النطاق مسجل بالفعل في مؤسستك"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "هذا النطاق مسجل بالفعل في منظمة أخرى. يرجى التواصل مع الدعم إذا كنت تعتقد أن هذا خطأ."
+    "text": "هذا النطاق مسجل بالفعل لمؤسسة أخرى. يرجى الاتصال بالدعم إذا كنت تعتقد أن هذا خطأ."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "تم المطالبة بالنطاق بنجاح وإضافته إلى منظمتك"
+    "text": "تم المطالبة بالنطاق بنجاح وإضافته لمؤسستك"
   },
   "web.domains.privacy_defaults_title": {
     "text": "إعدادات الخصوصية الافتراضية"
@@ -27,13 +27,13 @@
     "text": "أيقونة إعدادات الخصوصية الافتراضية"
   },
   "web.domains.default_ttl_label": {
-    "text": "مدة الصلاحية الافتراضية"
+    "text": "وقت الصلاحية الافتراضي"
   },
   "web.domains.default_ttl_hint": {
-    "text": "مدة بقاء الأسرار متاحة بشكل افتراضي"
+    "text": "كم من الوقت يجب أن تبقى الأسرار متاحة افتراضياً"
   },
   "web.domains.passphrase_required_label": {
-    "text": "عبارة المرور مطلوبة"
+    "text": "طلب عبارة مرور"
   },
   "web.domains.passphrase_required_hint": {
     "text": "جعل عبارة المرور إلزامية لجميع الأسرار في هذا النطاق"
@@ -45,7 +45,7 @@
     "text": "تفعيل إشعارات البريد الإلكتروني افتراضياً عند عرض الأسرار"
   },
   "web.domains.use_global_default": {
-    "text": "استخدام الإعداد العام الافتراضي"
+    "text": "استخدام الافتراضي العام"
   },
   "web.domains.global_default": {
     "text": "عام"
@@ -66,10 +66,10 @@
     "text": "مخصص"
   },
   "web.domains.edit_defaults": {
-    "text": "تعديل الإعدادات الافتراضية"
+    "text": "تعديل الافتراضيات"
   },
   "web.domains.ttl_short": {
-    "text": "مدة الصلاحية"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
     "text": "عبارة المرور"
@@ -96,7 +96,7 @@
     "text": "إعدادات النطاق"
   },
   "web.domains.canonical_no_settings": {
-    "text": "النطاق الافتراضي ليس له صفحة إعدادات"
+    "text": "النطاق الافتراضي ليس لديه صفحة إعدادات"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "يرجى إدخال اسم نطاق {0}"
@@ -144,16 +144,16 @@
     "text": "عدد النطاقات المخصصة"
   },
   "web.domains.custom_domain": {
-    "text": "مجال مخصص"
+    "text": "نطاق مخصص"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "فتح النطاق في علامة تبويب جديدة"
+    "text": "فتح النطاق في تبويب جديد"
   },
   "web.domains.back_to_domains": {
-    "text": "العودة إلى النطاقات"
+    "text": "العودة للنطاقات"
   },
   "web.domains.return_to_domains_list": {
-    "text": "العودة إلى قائمة النطاقات"
+    "text": "العودة لقائمة النطاقات"
   },
   "web.domains.verify_domain": {
     "text": "التحقق من النطاق"
@@ -174,7 +174,7 @@
     "text": "لم يتم العثور على نطاقات."
   },
   "web.domains.loading_domain_information": {
-    "text": "جارٍ تحميل معلومات النطاق..."
+    "text": "جاري تحميل معلومات النطاق..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "لربط نطاقك، ستحتاج إلى سجل CNAME في DNS يشير"
@@ -195,7 +195,7 @@
     "text": "قبل أن نتمكن من تفعيل الروابط لـ"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "يرجى ملاحظة أنه بالنسبة لنطاقات القمة (مثل"
+    "text": "يرجى ملاحظة أنه للنطاقات الرئيسية (مثل،"
   },
   "web.domains.verify_your_domain": {
     "text": "تحقق من نطاقك"
@@ -204,7 +204,7 @@
     "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "تخصيص علامة نطاقك التجارية"
+    "text": "تخصيص علامتك التجارية للنطاق"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "قد يستغرق الأمر بضع دقائق حتى تصبح شهادة SSL الخاصة بك سارية المفعول."
@@ -213,7 +213,7 @@
     "text": "يمكن أن تستغرق تغييرات DNS من 60 ثانية فقط إلى 24 ساعة حتى تصبح سارية المفعول."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. انتظر الانتشار"
+    "text": "3. انتظار الانتشار"
   },
   "web.domains.value_2": {
     "text": "القيمة"
@@ -270,9 +270,33 @@
     "text": "تمت إزالة النطاق بنجاح"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "فشل في إضافة النطاق"
+    "text": "فشل إضافة النطاق"
   },
   "web.domains.domain_added_successfully": {
     "text": "تمت إضافة النطاق بنجاح"
+  },
+  "web.domains.passphrase_set": {
+    "text": "محمي"
+  },
+  "web.domains.manage_domains": {
+    "text": "إدارة النطاقات"
+  },
+  "web.domains.global_defaults": {
+    "text": "الافتراضيات العامة"
+  },
+  "web.domains.edit_ttl": {
+    "text": "تعديل إعداد وقت الصلاحية"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "تعديل متطلب عبارة المرور"
+  },
+  "web.domains.edit_notify": {
+    "text": "تعديل إعداد الإشعارات"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "تكوين سجلات DNS"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "استخدم الأداة أدناه للكشف تلقائياً عن مزود DNS الخاص بك والحصول على تعليمات خطوة بخطوة لتكوين نطاقك."
   }
 }

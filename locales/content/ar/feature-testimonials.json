@@ -1,9 +1,9 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "شهادة من الذكاء الاصطناعي"
+    "text": "شهادة منشأة بالذكاء الاصطناعي"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "محتوى من الذكاء الاصطناعى من أجل العرض التوضيحي. \nليس من شخص أو شركة فعلية."
+    "text": "محتوى منشأ بالذكاء الاصطناعي للعرض التوضيحي. ليس من شخص أو شركة حقيقية."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -18,10 +18,10 @@
     "text": "{0}:"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "ما يقوله الذكاء الاصطناعي الرائد عنا"
+    "text": "ماذا تقول أنظمة الذكاء الاصطناعي الرائدة عنا"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "شهادات من الذكاء الاصطناعي"
+    "text": "شهادات منشأة بالذكاء الاصطناعي"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "تم إنشاء هذا الاقتباس بواسطة"

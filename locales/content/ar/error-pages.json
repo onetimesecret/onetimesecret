@@ -12,10 +12,10 @@
     "text": "اتصل بالشخص الذي أرسل لك هذا الرابط واطلب منه إنشاء سر جديد. أخبره أنك لم تتمكن من الوصول إلى المعلومات الأصلية."
   },
   "web.errors.warning_dismissed": {
-    "text": "تم إغلاق التحذير"
+    "text": "تم تجاهل التحذير"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "إغلاق تحذير الاقتطاع"
+    "text": "تجاهل تحذير الاقتطاع"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "عذراً! الصفحة التي تبحث عنها غير موجودة أو تم نقلها."
@@ -27,10 +27,10 @@
     "text": "404 - الصفحة غير موجودة"
   },
   "web.errors.dismiss_warning": {
-    "text": "إغلاق التحذير"
+    "text": "تجاهل التحذير"
   },
   "web.errors.dismiss_notification": {
-    "text": "إغلاق الإشعار"
+    "text": "تجاهل الإشعار"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "إذا لم تكن متأكداً مما يجب فعله بعد ذلك، يرجى المتابعة مع الشخص الذي أرسل لك هذا الرابط للحصول على مزيد من المعلومات."
@@ -45,7 +45,7 @@
     "text": "{0} حدث خطأ ما"
   },
   "web.errors.go_share_a_secret": {
-    "text": "اذهب وشارك سراً!"
+    "text": "اذهب لمشاركة سر!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها. لا تقلق، يحدث ذلك لأفضل منا!"

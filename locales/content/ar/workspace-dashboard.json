@@ -1,20 +1,20 @@
 {
   "web.dashboard.title_received": {
-    "text": "تم العرض"
+    "text": "مستلم"
   },
   "web.dashboard.title_not_received": {
-    "text": "لم يتم العرض"
+    "text": "لم يُستلم"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "لا اسرار جديدة"
+    "text": "لا توجد أسرار حديثة"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "ابدأ بإنشاء سرك الأول."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "تعذر تحميل الفرق"
+    "text": "تعذر تحميل البيانات"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "حدثت مشكلة أثناء تحميل الفرق. يرجى المحاولة مرة أخرى."
+    "text": "حدثت مشكلة في تحميل بياناتك. يرجى المحاولة مرة أخرى."
   }
 }

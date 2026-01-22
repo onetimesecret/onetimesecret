@@ -9,7 +9,7 @@
     "text": "استخدام الإعداد"
   },
   "web.branding.font_family": {
-    "text": "عائلة الخط"
+    "text": "نوع الخط"
   },
   "web.branding.corner_style": {
     "text": "نمط الزوايا"
@@ -24,7 +24,7 @@
     "text": "معاينة وتخصيص"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "التبديل إلى عرض متصفح Safari"
+    "text": "التبديل لعرض متصفح Safari"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge"
@@ -36,7 +36,7 @@
     "text": "تصغير النافذة"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "التبديل إلى عرض متصفح Edge"
+    "text": "التبديل لعرض متصفح Edge"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 حرف"
@@ -45,7 +45,7 @@
     "text": "استخدم هاتفك لمسح رمز QR"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "تواصل مع onboarding{'@'}example.com لأي استفسارات"
+    "text": "تواصل مع onboarding{'@'}example.com لأي أسئلة"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "ستُعرض هذه التعليمات للمستلمين قبل الكشف عن محتوى السر"
@@ -63,16 +63,16 @@
     "text": "التعليمات"
   },
   "web.branding.logo_controls": {
-    "text": "عناصر التحكم في الشعار"
+    "text": "عناصر التحكم بالشعار"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "انقر لتحميل شعار. الحجم الموصى به: 128×128 بكسل. الحد الأقصى لحجم الملف: 1 ميجابايت. التنسيقات المدعومة: PNG، JPG، SVG"
   },
   "web.branding.upload_logo": {
-    "text": "تحميل شعار"
+    "text": "رفع الشعار"
   },
   "web.branding.loading_preview": {
-    "text": "جارٍ تحميل المعاينة..."
+    "text": "جاري تحميل المعاينة..."
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "معاينة كيف سيرى المستلمون أسرارك باختبار زر \"عرض السر\""
@@ -99,13 +99,13 @@
     "text": "فشل تحميل إعدادات العلامة التجارية"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - تحميل شعار (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت) - اختبار المعاينة باستخدام زر \"عرض السر\""
+    "text": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - رفع شعار (يُنصح بحد أدنى 128×128 بكسل، الحد الأقصى 1 ميغابايت) - اختبار المعاينة باستخدام زر \"عرض السر\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - تحميل شعار (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت) - اختبار المعاينة باستخدام زر \"عرض السر\""
   },
   "web.branding.default_logo_icon": {
-    "text": "الكانجي الياباني '秘' (هيميتسو) بمعنى 'سري' أو 'سري'"
+    "text": "حرف كانجي ياباني '秘' (هيميتسو) يعني 'سر' أو 'سري'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "مدعوم بواسطة Onetime Secret"
@@ -117,12 +117,12 @@
     "text": "Edge"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "التبديل إلى معاينة Edge"
+    "text": "التبديل لمعاينة Edge"
   },
   "web.branding.safari": {
     "text": "Safari"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "التبديل إلى معاينة Safari"
+    "text": "التبديل لمعاينة Safari"
   }
 }
