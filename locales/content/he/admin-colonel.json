@@ -24,19 +24,19 @@
     "text": "הגדרות"
   },
   "web.colonel.configEditorDescription": {
-    "text": "עריכת הגדרות תצורת מערכת. השינויים חלים מיד לאחר השמירה."
+    "text": "ערוך הגדרות תצורת מערכת. השינויים חלים מיד לאחר השמירה."
   },
   "web.colonel.invalidJson": {
-    "text": "JSON לא תקף במדור {section}"
+    "text": "JSON לא תקין במדור {section}"
   },
   "web.colonel.validationError": {
     "text": "שגיאת אימות"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "שגיאה בטעינת תצורה"
+    "text": "שגיאה בטעינת התצורה"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "שגיאה בשמירת תצורה"
+    "text": "שגיאה בשמירת התצורה"
   },
   "web.colonel.configSaved": {
     "text": "התצורה נשמרה בהצלחה"
@@ -45,22 +45,22 @@
     "text": "התצורה חייבת להיות אובייקט JSON"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "מספר מדורים כוללים שגיאות אימות: {sections}"
+    "text": "למספר מדורים יש שגיאות אימות: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} כולל שגיאות אימות: {error}"
+    "text": "ל-{section} יש שגיאות אימות: {error}"
   },
   "web.colonel.sectionSaved": {
     "text": "{section} נשמר בהצלחה"
   },
   "web.colonel.saveSection": {
-    "text": "שמירת {section}"
+    "text": "שמור {section}"
   },
   "web.colonel.saveAll": {
-    "text": "שמירת הכל"
+    "text": "שמור הכל"
   },
   "web.colonel.unsavedChanges": {
-    "text": "שינויים שלא נשמרו"
+    "text": "שינויים לא שמורים"
   },
   "web.colonel.schemaValidationError": {
     "text": "שגיאת אימות סכמה: {message} ({path})"
@@ -69,7 +69,7 @@
     "text": "שגיאת אימות לא ידועה: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "מדור {section} אינו מכיל ערכים מוגדרים"
+    "text": "למדור {section} אין ערכים מוגדרים"
   },
   "web.colonel.dashboard": {
     "text": "לוח בקרה"
@@ -87,7 +87,7 @@
     "text": "משתמשים"
   },
   "web.colonel.usersDescription": {
-    "text": "ניהול חשבונות משתמש והרשאות"
+    "text": "ניהול חשבונות משתמשים והרשאות"
   },
   "web.colonel.domains": {
     "text": "דומיינים"
@@ -99,7 +99,7 @@
     "text": "מערכת"
   },
   "web.colonel.welcome": {
-    "text": "ברוכים הבאים ל-Colonel"
+    "text": "ברוך הבא ל-Colonel"
   },
   "web.colonel.welcomeDesc": {
     "text": "לוח בקרה ניהולי עבור OneTimeSecret"
@@ -111,13 +111,13 @@
     "text": "פעילות אחרונה"
   },
   "web.colonel.viewAll": {
-    "text": "צפייה בהכל"
+    "text": "צפה בהכל"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "נתוני פעילות יוצגו כאן"
+    "text": "נתוני הפעילות יוצגו כאן"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "סודות סה״כ"
+    "text": "סה״כ סודות"
   },
   "web.colonel.stats.activeUsers": {
     "text": "משתמשים פעילים"
@@ -132,28 +132,28 @@
     "text": "סודות ששותפו"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "לקוחות סה״כ"
+    "text": "סה״כ משתמשים"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "הודעות דואר שנשלחו"
+    "text": "הודעות דוא״ל שנשלחו"
   },
   "web.colonel.stats.systemHealth": {
     "text": "בריאות המערכת"
   },
   "web.colonel.stats.healthy": {
-    "text": "בריא"
+    "text": "תקין"
   },
   "web.colonel.actions.viewActivity": {
     "text": "צפייה בפעילות"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "מעקב אחר פעילות ושימוש במערכת"
+    "text": "ניטור פעילות ושימוש במערכת"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "ניהול חשבונות"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "ניהול חשבונות משתמש"
+    "text": "ניהול חשבונות משתמשים"
   },
   "web.colonel.actions.configureDomains": {
     "text": "הגדרת דומיינים"
@@ -165,19 +165,19 @@
     "text": "הגדרות מערכת"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "תצורת אפליקציה"
+    "text": "תצורת האפליקציה"
   },
   "web.colonel.backgroundJobs": {
     "text": "משימות רקע"
   },
   "web.colonel.queueStatus": {
-    "text": "מצב תור"
+    "text": "סטטוס התור"
   },
   "web.colonel.queueName": {
     "text": "תור"
   },
   "web.colonel.pendingMessages": {
-    "text": "ממתין"
+    "text": "ממתינים"
   },
   "web.colonel.consumers": {
     "text": "צרכנים"
@@ -186,10 +186,10 @@
     "text": "קצב/שנייה"
   },
   "web.colonel.connectionStatus": {
-    "text": "מצב חיבור"
+    "text": "סטטוס חיבור"
   },
   "web.colonel.workerHealth": {
-    "text": "בריאות עובדים"
+    "text": "בריאות העובדים"
   },
   "web.colonel.activeWorkers": {
     "text": "עובדים פעילים"
@@ -201,16 +201,16 @@
     "text": "טוען נתוני תור..."
   },
   "web.colonel.testPlanMode": {
-    "text": "מצב בדיקת תוכנית"
+    "text": "מצב תוכנית בדיקה"
   },
   "web.colonel.testingAsPlan": {
     "text": "בודק כ-{planName}"
   },
   "web.colonel.clickToReset": {
-    "text": "לחצו לאיפוס"
+    "text": "לחץ לאיפוס"
   },
   "web.colonel.selectTestPlan": {
-    "text": "בחרו תוכנית לבדיקה"
+    "text": "בחר תוכנית לבדיקה"
   },
   "web.colonel.resetToActual": {
     "text": "איפוס לתוכנית בפועל"
@@ -222,16 +222,16 @@
     "text": "תוכניות זמינות"
   },
   "web.colonel.activateTestMode": {
-    "text": "הפעלת מצב בדיקה"
+    "text": "הפעל מצב בדיקה"
   },
   "web.colonel.testModeActive": {
     "text": "מצב בדיקה פעיל"
   },
   "web.colonel.testModeDescription": {
-    "text": "בדקו את האפליקציה עם הרשאות תוכנית שונות. השינויים זמניים ומשפיעים רק על הסשן שלכם."
+    "text": "בדוק את האפליקציה שלך עם הרשאות תוכנית שונות. השינויים זמניים ומשפיעים רק על הסשן שלך."
   },
   "web.colonel.warningTestMode": {
-    "text": "אתם בודקים עם הרשאות {planName} (עקיפת סשן זמנית)."
+    "text": "אתה בודק עם הרשאות {planName} (עקיפת סשן זמנית)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "כאשר תשלחו משוב, נראה:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "שולח..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "כתובות IP חסומות"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "ניהול רשימת חסימת IP"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "דומיינים מותאמים אישית"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "ניהול דומיינים מותאמים אישית ומיתוג"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "שלח משוב"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "שולח..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "כאשר תשלח משוב, נראה:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "ארגונים"
+  },
+  "web.colonel.organizations.description": {
+    "text": "ניטור בריאות סנכרון חיוב ארגוני"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "ניטור בריאות חיוב"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} ארגונים"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} דורשים תשומת לב"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} לא ידועים"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "לא נמצאו ארגונים"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "בדוק"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "בודק..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "חשבון"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "חיוב"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "סטטוס"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "שימוש"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "נוצר"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "פרטים"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "בעלים"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "תוכנית"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "חברים"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "דומיינים"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "מנוי"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "סביבת עבודה ברירת מחדל"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "יש חיוב"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "לקוח"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "מנוי"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "מזהה ארגון"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "סטטוס סנכרון"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "מנוי"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "הכל"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "פוטנציאלית מיושן"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "לא ידוע"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "מסונכרן"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "פעיל"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "בתקופת ניסיון"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "באיחור"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "בוטל"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "הבדיקה נכשלה"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "תוצאת הבדיקה"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "אומת כמסונכרן"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "נמצאה אי התאמה"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "לא ניתן להשוות"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "פרטי מנוי Stripe"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "סטטוס"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "מוצר"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "תוכנית שנפתרה"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "מזהה מחיר"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "מקומי"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "ניהול חיוב ארגונים"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "ניהול ארגונים וניטור בריאות סנכרון חיוב ({total} סה״כ)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "לא נמצאו ארגונים"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "פוטנציאלית מיושן"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "מיושן"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "לא ידוע"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "פעיל"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} חברים"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} דומיינים"
+  },
+  "web.colonel.secrets.title": {
+    "text": "סודות"
+  },
+  "web.colonel.secrets.description": {
+    "text": "צפייה וניהול כל הסודות"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "מערכת"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "הגדרות מערכת, מסדי נתונים ותצורה"
+  },
+  "web.colonel.titles.index": {
+    "text": "ניהול"
+  },
+  "web.colonel.titles.users": {
+    "text": "ניהול משתמשים"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "ניהול סודות"
+  },
+  "web.colonel.titles.domains": {
+    "text": "דומיינים מותאמים אישית"
+  },
+  "web.colonel.titles.system": {
+    "text": "מערכת"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "מסד נתונים ראשי"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "מסד נתוני אימות"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "כתובות IP חסומות"
+  },
+  "web.colonel.titles.usage": {
+    "text": "ייצוא שימוש"
+  },
+  "web.colonel.titles.info": {
+    "text": "מידע מערכת"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "ארגונים"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "ייצוא שימוש"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "ייצוא נתוני שימוש וסטטיסטיקות"
   }
 }

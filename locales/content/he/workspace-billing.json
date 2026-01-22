@@ -3,28 +3,28 @@
     "text": "נדרש שדרוג"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "צפייה בתוכניות"
+    "text": "צפה בתוכניות"
   },
   "web.billing.upgrade.needTeams": {
     "text": "ניהול צוותים דורש Identity Plus או גבוה יותר"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "דומיינים מותאמים אישית דורשים Identity Plus או גבוהה יותר"
+    "text": "דומיינים מותאמים אישית דורשים Identity Plus או גבוה יותר"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "גישת API דורשת תוכנית Multi-Team או גבוהה יותר"
+    "text": "גישה ל-API דורשת Identity Plus או גבוה יותר"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "לוגי ביקורת דורשים תוכנית Multi-Team או גבוהה יותר"
+    "text": "יומני ביקורת דורשים תוכנית Multi-Team או גבוה יותר"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "ניהול המנוי, הארגונים והגדרות החיוב שלכם"
+    "text": "ניהול המנוי, הארגונים והגדרות החיוב שלך"
   },
   "web.billing.overview.title": {
     "text": "סקירת חיוב"
   },
   "web.billing.overview.description": {
-    "text": "צפייה וניהול המנוי ופרטי התשלום שלכם"
+    "text": "צפייה וניהול המנוי ופרטי התשלום שלך"
   },
   "web.billing.overview.organization_selector": {
     "text": "בחירת ארגון"
@@ -39,7 +39,7 @@
     "text": "אמצעי תשלום"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "תאריך חיוב הבא"
+    "text": "תאריך החיוב הבא"
   },
   "web.billing.overview.quick_actions": {
     "text": "פעולות מהירות"
@@ -48,16 +48,16 @@
     "text": "ניהול חיוב"
   },
   "web.billing.overview.view_invoices": {
-    "text": "צפייה בחשבוניות"
+    "text": "צפה בחשבוניות"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "שדרוג תוכנית"
+    "text": "שדרג תוכנית"
   },
   "web.billing.overview.change_plan": {
-    "text": "שינוי תוכנית"
+    "text": "שנה תוכנית"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "אין אמצעי תשלום רשום"
+    "text": "אין אמצעי תשלום בקובץ"
   },
   "web.billing.overview.no_upcoming_billing": {
     "text": "אין חיוב קרוב"
@@ -66,52 +66,52 @@
     "text": "ימים נותרו"
   },
   "web.billing.overview.billing_on": {
-    "text": "חיוב ב-{date}"
+    "text": "חיוב בתאריך {date}"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "צפייה בתוכניות"
+    "text": "צפה בתוכניות"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "השוואה ושדרוג"
+    "text": "השווה ושדרג"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "צפייה בחשבוניות"
+    "text": "צפה בחשבוניות"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "הורדת היסטוריה"
+    "text": "היסטוריית הורדות"
   },
   "web.billing.overview.manage_billing_action": {
     "text": "ניהול חיוב"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "עדכון מידע תשלום"
+    "text": "עדכן פרטי תשלום"
   },
   "web.billing.overview.no_organizations_title": {
     "text": "אין ארגונים"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "צרו ארגון כדי לנהל את החיוב והמנוי שלכם"
+    "text": "צור ארגון כדי לנהל את החיוב והמנוי שלך"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "יצירת סודות"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "הצגת קבלות"
+    "text": "צפייה בקבלות"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "גישת API"
+    "text": "גישה ל-API"
   },
   "web.billing.overview.entitlements.custom_domains": {
     "text": "דומיינים מותאמים אישית"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "ברירות מחדל פרטיות מותאמות"
+    "text": "ברירות מחדל מותאמות לפרטיות"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "תפוגה מוגדלת ברירת מחדל"
+    "text": "פקיעת ברירת מחדל מורחבת"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
-    "text": "ברירות מחדל דואר מותאמות"
+    "text": "ברירות מחדל מותאמות לדואר"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "מיתוג מותאם אישית"
@@ -132,16 +132,16 @@
     "text": "ניהול חברים"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "לוגי ביקורת"
+    "text": "יומני ביקורת"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "התחברות יחידה (SSO)"
+    "text": "התחברות יחידה"
   },
   "web.billing.overview.entitlements.priority_support": {
-    "text": "תמיכה עדיפה"
+    "text": "תמיכה בעדיפות"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "הסכם רמת שירות (SLA)"
+    "text": "הסכם רמת שירות"
   },
   "web.billing.overview.entitlements_load_error": {
     "text": "לא ניתן לטעון פרטי תכונות"
@@ -150,13 +150,13 @@
     "text": "אין תכונות זמינות"
   },
   "web.billing.plans.title": {
-    "text": "בחירת תוכנית"
+    "text": "בחר תוכנית"
   },
   "web.billing.plans.choose_plan": {
-    "text": "בחרו את התוכנית המתאימה לצרכים שלכם"
+    "text": "בחר את התוכנית שמתאימה לצרכים שלך"
   },
   "web.billing.plans.subtitle": {
-    "text": "בחרו את התוכנית המושלמת עבור הארגון שלכם"
+    "text": "בחר את התוכנית המושלמת עבור הארגון שלך"
   },
   "web.billing.plans.current": {
     "text": "תוכנית נוכחית"
@@ -165,10 +165,10 @@
     "text": "נוכחי"
   },
   "web.billing.plans.upgrade": {
-    "text": "שדרוג"
+    "text": "שדרג"
   },
   "web.billing.plans.downgrade": {
-    "text": "הורדה"
+    "text": "שנמך"
   },
   "web.billing.plans.monthly": {
     "text": "חודשי"
@@ -177,10 +177,10 @@
     "text": "שנתי"
   },
   "web.billing.plans.per_month": {
-    "text": "לחודש"
+    "text": "/חודש"
   },
   "web.billing.plans.save_yearly": {
-    "text": "חסכו {percent}% עם חיוב שנתי"
+    "text": "חסוך {percent}% עם חיוב שנתי"
   },
   "web.billing.plans.free_plan": {
     "text": "חינם"
@@ -189,7 +189,7 @@
     "text": "צוות יחיד"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "צוותים מרובים"
+    "text": "ריבוי צוותים"
   },
   "web.billing.plans.individual_account": {
     "text": "חשבון אישי"
@@ -204,28 +204,28 @@
     "text": "תכונות"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "סודות בלתי מוגבלים"
+    "text": "סודות ללא הגבלה"
   },
   "web.billing.plans.api_access": {
-    "text": "גישת API"
+    "text": "גישה ל-API"
   },
   "web.billing.plans.priority_support": {
-    "text": "תמיכה עדיפה"
+    "text": "תמיכה בעדיפות"
   },
   "web.billing.plans.select_plan": {
-    "text": "בחירת תוכנית"
+    "text": "בחר תוכנית"
   },
   "web.billing.plans.contact_sales": {
-    "text": "יצירת קשר עם מכירות"
+    "text": "צור קשר עם מכירות"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "יש לכם שאלות או צריכים משהו מותאם אישית?"
+    "text": "יש שאלות או צריך משהו מותאם אישית?"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "נשמח לשמוע מכם. ספרו לנו מה אתם מחפשים."
+    "text": "נשמח לשמוע ממך. ספר לנו מה אתה מחפש."
   },
   "web.billing.plans.teams_limit": {
-    "text": "צוות {count} | {count} צוותים"
+    "text": "{count} צוות | {count} צוותים"
   },
   "web.billing.plans.members_limit": {
     "text": "{count} חבר לצוות | {count} חברים לצוות"
@@ -237,19 +237,19 @@
     "text": "חברים ללא הגבלה לכל צוות"
   },
   "web.billing.plans.most_popular": {
-    "text": "הפופולרי ביותר"
+    "text": "הכי פופולרי"
   },
   "web.billing.plans.suggested": {
     "text": "מומלץ"
   },
   "web.billing.plans.everything_in": {
-    "text": "כל מה שיש ב-{plan}, בנוסף:"
+    "text": "כולל הכל ב-{plan}"
   },
   "web.billing.plans.no_plans_available": {
     "text": "אין תוכניות {interval} זמינות כרגע."
   },
   "web.billing.plans.change_immediate": {
-    "text": "התוכנית שלכם תשתנה באופן מיידי."
+    "text": "התוכנית שלך תשתנה מיד."
   },
   "web.billing.plans.current_plan_label": {
     "text": "תוכנית נוכחית:"
@@ -261,22 +261,22 @@
     "text": "זיכוי עבור זמן שלא נוצל:"
   },
   "web.billing.plans.next_invoice": {
-    "text": "חשבונית הבאה"
+    "text": "החשבונית הבאה"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "מגבלות התכונות יתעדכנו באופן מיידי לאחר שינוי התוכנית."
+    "text": "מגבלות התכונות שלך יתעדכנו מיד לאחר שינוי התוכנית."
   },
   "web.billing.plans.change_failed": {
-    "text": "שינוי התוכנית נכשל. אנא נסו שוב."
+    "text": "שינוי התוכנית נכשל. אנא נסה שוב."
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "אישור שדרוג"
+    "text": "אשר שדרוג"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "אישור שנמוך"
+    "text": "אשר שנמוך"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "שדרוג ל"
+    "text": "לשדרג ל-{plan}?"
   },
   "web.billing.plans.downgrade_to": {
     "text": "לשנמך ל-{plan}?"
@@ -285,7 +285,7 @@
     "text": "היסטוריית חיוב"
   },
   "web.billing.invoices.view_history": {
-    "text": "צפייה בהיסטוריית החיוב והורדת חשבוניות"
+    "text": "צפה בהיסטוריית החיוב שלך והורד חשבוניות"
   },
   "web.billing.invoices.invoice_date": {
     "text": "תאריך"
@@ -294,13 +294,13 @@
     "text": "סכום"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "מצב"
+    "text": "סטטוס"
   },
   "web.billing.invoices.invoice_download": {
     "text": "הורדה"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "אין חשבוניות עדיין"
+    "text": "אין עדיין חשבוניות"
   },
   "web.billing.invoices.paid": {
     "text": "שולם"
@@ -312,25 +312,25 @@
     "text": "נכשל"
   },
   "web.billing.invoices.load_error": {
-    "text": "כשל בטעינת חשבוניות"
+    "text": "טעינת החשבוניות נכשלה"
   },
   "web.billing.notices.org_managed": {
-    "text": "החיוב לצוות זה מנוהל על ידי {orgName}"
+    "text": "החיוב מנוהל על ידי {orgName}"
   },
   "web.billing.notices.view_org_billing": {
     "text": "צפייה בחיוב הארגון"
   },
   "web.billing.limits.members_reached": {
-    "text": "הגעתם למגבלת החברים בצוות זה"
+    "text": "הגעת למגבלת החברים לצוות זה"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "שדרגו כדי להוסיף חברים נוספים"
+    "text": "שדרג כדי להוסיף עוד חברים"
   },
   "web.billing.subscription.title": {
     "text": "מנוי"
   },
   "web.billing.subscription.status": {
-    "text": "מצב מנוי"
+    "text": "סטטוס מנוי"
   },
   "web.billing.subscription.active": {
     "text": "פעיל"
@@ -351,19 +351,19 @@
     "text": "פורטל חיוב"
   },
   "web.billing.portal.description": {
-    "text": "ניהול המנוי, אמצעי התשלום והיסטוריית החיוב שלכם"
+    "text": "ניהול המנוי, אמצעי התשלום והיסטוריית החיוב שלך"
   },
   "web.billing.portal.open_portal": {
-    "text": "פתיחת פורטל חיוב"
+    "text": "פתח פורטל חיוב"
   },
   "web.billing.portal.redirecting": {
-    "text": "מפנה לפורטל חיוב..."
+    "text": "מפנה לפורטל החיוב..."
   },
   "web.billing.start_today": {
-    "text": "התחילו היום"
+    "text": "התחל היום"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "התחילו היום עם Identity Plus"
+    "text": "התחל היום עם Identity Plus"
   },
   "web.billing.per_month": {
     "text": "לחודש"
@@ -372,7 +372,7 @@
     "text": "גישה מלאה ל-API"
   },
   "web.billing.privacy_first_design": {
-    "text": "עיצוב בעדיפות פרטיות"
+    "text": "עיצוב בעדיפות לפרטיות"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus"
@@ -384,34 +384,34 @@
     "text": "אולי מאוחר יותר"
   },
   "web.billing.upgrade_account": {
-    "text": "שדרוג חשבון"
+    "text": "שדרג חשבון"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "שדרוג ל-Identity Plus"
+    "text": "שדרג ל-Identity Plus"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "שדרוג לצוותים"
+    "text": "שדרג לצוותים"
   },
   "web.billing.benefits_of": {
-    "text": "יתרונות של"
+    "text": "היתרונות של"
   },
   "web.billing.t_benefits_of_identity_plus": {
     "text": "{0}: Identity Plus"
   },
   "web.billing.upgrade_to": {
-    "text": "שדרוג ל"
+    "text": "שדרג ל-"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "שדרוג עבור secrets.yourdomain.com"
+    "text": "שדרג עבור secrets.yourdomain.com"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "כל התוכניות כוללות תכונות פרטיות וקיבולת שיתוף בלתי מוגבלת"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "כל התוכניות כוללות בחירה של מיקום נתונים: {0} אזורים"
+    "text": "כל התוכניות כוללות בחירת מיקום נתונים: {0} אזורים"
   },
   "web.billing.get_started": {
-    "text": "התחילו"
+    "text": "התחל"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
     "text": "מנוי {0}"
@@ -430,5 +430,194 @@
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "רמת Identity לא נמצאה ברמות המוצר"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "ביטול מנוי"
+  },
+  "web.billing.cancel.title": {
+    "text": "ביטול מנוי"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "האם אתה בטוח שברצונך לבטל את מנוי ה-{plan} שלך?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "מה קורה כשאתה מבטל:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "תישמר לך גישה לכל התכונות עד {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "תישמר לך גישה עד סוף תקופת החיוב הנוכחית"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "לא תחויב שוב"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "החשבון שלך יחזור לתוכנית החינמית"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "שמור על המנוי"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "בטל מנוי"
+  },
+  "web.billing.cancel.success": {
+    "text": "המנוי שלך בוטל. תישמר לך גישה עד סוף תקופת החיוב."
+  },
+  "web.billing.cancel.error": {
+    "text": "ביטול המנוי נכשל. אנא נסה שוב."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "ביטול המנוי תוזמן"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "המנוי שלך יישאר פעיל עד {date}. תמשיך ליהנות מגישה מלאה לכל התכונות עד אז."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "שינית את דעתך? ניתן להפעיל מחדש את המנוי שלך בכל עת לפני תאריך הביטול."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "יצירה ושיתוף סודות"
+  },
+  "web.billing.features.api_access": {
+    "text": "גישה ל-API"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "דומיינים מותאמים אישית"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "דומיין מותאם אישית אחד"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "דומיינים מותאמים אישית ללא הגבלה"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "מיתוג מותאם אישית"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "דף בית ממותג"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "ניהול צוותים"
+  },
+  "web.billing.features.manage_members": {
+    "text": "ניהול חברים"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "יומני ביקורת"
+  },
+  "web.billing.features.sso": {
+    "text": "התחברות יחידה (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "תמיכה בעדיפות"
+  },
+  "web.billing.features.sla": {
+    "text": "הסכם רמת שירות"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "חיוב מרכזי"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "מסלול ביקורת"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "זרימת פעילות"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "תהליכי מסירה"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "שמירת סודות ל-30 יום"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "סודות בדף הבית"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "סודות נכנסים"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "עד 5 חברי צוות"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "עד 10 חברי צוות"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "עד 25 חברי צוות"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "עד 50 חברי צוות"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "חברי צוות ללא הגבלה"
+  },
+  "web.billing.features.notifications": {
+    "text": "התראות דוא״ל"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "כללי גישה לפי IP"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "מיתוג סביבת עבודה"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "תשתית ייעודית"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "תהליכי עבודה משותפים"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "חיוב עבור ארגון זה"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "התוכנית שלך שודרגה בהצלחה"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "התוכנית החדשה שלך פעילה כעת. תודה על הרכישה."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "איש קשר לחיוב"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "סודות בדף הבית"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "התראות דוא״ל"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "כללי גישה לפי IP"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "מיתוג סביבת עבודה"
+  },
+  "web.billing.plans.due_today": {
+    "text": "לתשלום היום:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "החיוב הבא ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "כיצד הזיכוי שלך מוחל:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "סכום החשבון הבא:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "זיכוי שהוחל:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "סכום לתשלום בחיוב הבא:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "יתרת זיכוי חשבון:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "מוחל על חשבוניות עתידיות"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "שימוש בצוותים"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} מתוך {limit} צוותים"
   }
 }

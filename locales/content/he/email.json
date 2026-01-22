@@ -1,9 +1,9 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[קריאה: %s]"
+    "text": "[פנייה: %s]"
   },
   "email.incomingsupport.body1": {
-    "text": "לקוח שלח את הפרטים הבאים"
+    "text": "לקוח שלח את המידע הבא"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} שלח לך סוד"
@@ -15,157 +15,157 @@
     "text": "חשוב:"
   },
   "email.secret_link.link_works_once": {
-    "text": "קישור זה יפעל רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות."
+    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות."
   },
   "email.secret_link.sent_via": {
-    "text": "נשלח דרך"
+    "text": "נשלח באמצעות"
   },
   "email.welcome.subject": {
-    "text": "אמתו את חשבון Onetime Secret שלכם"
+    "text": "ברוך הבא ל-%{product_name} - אנא אמת את הדוא״ל שלך"
   },
   "email.welcome.title": {
-    "text": "הוזמנתם להצטרף ל-%{product_name}!"
+    "text": "ברוך הבא ל-%{product_name}!"
   },
   "email.welcome.verify_prompt": {
-    "text": "אנא אמתו את כתובת הדוא״ל שלכם על ידי לחיצה על הקישור למטה:"
+    "text": "אנא אמת את כתובת הדוא״ל שלך על ידי לחיצה על הקישור למטה:"
   },
   "email.welcome.verify_button": {
-    "text": "אימות כתובת דוא״ל"
+    "text": "אמת כתובת דוא״ל"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "או העתיקו והדביקו את הקישור הזה:"
+    "text": "או העתק והדבק קישור זה:"
   },
   "email.welcome.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה אל %{email_address}. אם לא ציפיתם להזמנה זו, ניתן להתעלם בבטחה מהודעה זו."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}. אם לא יצרת חשבון, ניתן להתעלם מהודעה זו בבטחה."
   },
   "email.password_request.subject": {
-    "text": "איפוס הסיסמה שלכם (%{display_domain})"
+    "text": "איפוס הסיסמה שלך (%{display_domain})"
   },
   "email.password_request.title": {
-    "text": "איפוס הסיסמה שלכם"
+    "text": "איפוס הסיסמה שלך"
   },
   "email.password_request.request_notice": {
-    "text": "קיבלנו בקשה לאפס את הסיסמה שלכם עבור %{product_name}."
+    "text": "קיבלנו בקשה לאיפוס הסיסמה שלך עבור %{product_name}."
   },
   "email.password_request.reset_button": {
     "text": "איפוס סיסמה"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "או העתיקו והדביקו את הקישור הזה:"
+    "text": "או העתק והדבק קישור זה:"
   },
   "email.password_request.ignore_notice": {
-    "text": "אם לא ביקשתם איפוס סיסמה, תוכלו להתעלם מדוא״ל זה."
+    "text": "אם לא ביקשת איפוס סיסמה, ניתן להתעלם מהודעה זו בבטחה."
   },
   "email.password_request.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.password_request.postscript": {
-    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address}."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}."
   },
   "email.magic_link.subject": {
-    "text": "התחברות ל-%{display_domain}"
+    "text": "התחבר ל-%{display_domain}"
   },
   "email.magic_link.title": {
-    "text": "התחברות באמצעות קישור קסם"
+    "text": "התחבר עם קישור קסם"
   },
   "email.magic_link.request_notice": {
-    "text": "ביקשת קישור התחברות לחשבון ה-%{product_name} שלך."
+    "text": "ביקשת קישור התחברות לחשבון %{product_name} שלך."
   },
   "email.magic_link.login_button": {
-    "text": "התחברות"
+    "text": "התחבר"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "או העתק והדבק את הקישור הזה:"
+    "text": "או העתק והדבק קישור זה:"
   },
   "email.magic_link.expiration_notice": {
-    "text": "תוקף הקישור יפוג בעוד 15 דקות."
+    "text": "קישור זה יפוג בעוד 15 דקות."
   },
   "email.magic_link.ignore_notice": {
-    "text": "אם לא ביקשת קישור זה, אפשר להתעלם מהודעה זו."
+    "text": "אם לא ביקשת קישור זה, ניתן להתעלם מהודעה זו בבטחה."
   },
   "email.magic_link.signature": {
     "text": "Delano"
   },
   "email.magic_link.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה אל %{email_address}."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}."
   },
   "email.incoming_secret.subject": {
-    "text": "קיבלתם הודעה סודית"
+    "text": "קיבלת הודעה סודית"
   },
   "email.incoming_secret.received_message": {
-    "text": "קיבלתם הודעה מאובטחת:"
+    "text": "קיבלת הודעה מאובטחת:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "הערה:"
+    "text": "תזכורת:"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "מישהו שלח לכם הודעה מאובטחת דרך %{display_domain}."
+    "text": "מישהו שלח לך הודעה מאובטחת דרך %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "לצפייה בסוד זה, לחצו על הקישור למטה:"
+    "text": "כדי לצפות בסוד זה, לחץ על הקישור למטה:"
   },
   "email.incoming_secret.important_label": {
     "text": "חשוב:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "קישור זה יפעל רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות."
+    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות."
   },
   "email.incoming_secret.sent_via": {
-    "text": "נשלח דרך"
+    "text": "נשלח באמצעות"
   },
   "email.secret_revealed.subject": {
-    "text": "הסוד שלכם נצפה"
+    "text": "הסוד שלך נצפה"
   },
   "email.secret_revealed.title": {
-    "text": "הסוד שלכם נצפה"
+    "text": "הסוד שלך נצפה"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "הסוד שלכם נצפה ב-%{date}."
+    "text": "הסוד שלך נצפה בתאריך %{date}."
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "מזהה סוד:"
+    "text": "מזהה הסוד:"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "זוהי התראה אוטומטית. אין צורך בפעולה."
+    "text": "זוהי התראה אוטומטית. לא נדרשת פעולה."
   },
   "email.secret_revealed.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "ניהול העדפות התראה"
+    "text": "ניהול העדפות התראות"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "לניהול העדפות ההתראה שלכם:"
+    "text": "לניהול העדפות ההתראות שלך:"
   },
   "email.expiration_warning.subject": {
-    "text": "קישור הסוד שלכם יפוג בקרוב"
+    "text": "הקישור הסודי שלך יפוג בקרוב"
   },
   "email.expiration_warning.expires_in": {
-    "text": "קישור הסוד שלכם יפוג בעוד %{time_remaining}"
+    "text": "הקישור הסודי שלך יפוג בעוד %{time_remaining}"
   },
   "email.expiration_warning.view_button": {
-    "text": "צפו בסוד שלכם לפני שיפוג"
+    "text": "צפה בסוד שלך לפני שיפוג"
   },
   "email.expiration_warning.reminder_label": {
     "text": "תזכורת:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "לאחר התפוגה, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזרו."
+    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו."
   },
   "email.expiration_warning.sent_via": {
-    "text": "נשלח דרך"
+    "text": "נשלח באמצעות"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "צפו בו לפני שהוא נעלם:"
+    "text": "צפה בו לפני שייעלם:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "לאחר התפוגה, הסוד יימחק לצמיתות."
+    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות."
   },
   "email.feedback_email.subject": {
-    "text": "משוב מתאריך %{date} דרך %{display_domain} (%{strategy})"
+    "text": "משוב מתאריך %{date} באמצעות %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
     "text": "משוב משתמש"
@@ -186,31 +186,31 @@
     "text": "Secret Support"
   },
   "email.organization_invitation.subject": {
-    "text": "הוזמנתם להצטרף ל-%{organization_name}"
+    "text": "הוזמנת להצטרף ל-%{organization_name}"
   },
   "email.organization_invitation.title": {
-    "text": "הוזמנתם להצטרף ל-%{organization_name}!"
+    "text": "הוזמנת להצטרף ל-%{organization_name}!"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} הזמין/ה אתכם להצטרף ל-\"%{organization_name}\" בתור %{role_description}."
+    "text": "%{inviter_email} הזמין אותך להצטרף ל-\"%{organization_name}\" כ-%{role_description}."
   },
   "email.organization_invitation.accept_button": {
-    "text": "קבלת הזמנה"
+    "text": "קבל הזמנה"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "או העתיקו והדביקו קישור זה:"
+    "text": "או העתק והדבק קישור זה:"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "הזמנה זו תפוג בעוד %{days} ימים."
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "אם אינכם מעוניינים להצטרף, ניתן פשוט להתעלם מהודעה זו או לדחות את ההזמנה."
+    "text": "אם אינך רוצה להצטרף, ניתן פשוט להתעלם מהודעה זו או לדחות את ההזמנה."
   },
   "email.organization_invitation.signature": {
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה אל %{invited_email}. אם לא ציפיתם להזמנה זו, ניתן להתעלם בבטחה מהודעה זו."
+    "text": "נ.ב. הודעה זו נשלחה ל-%{invited_email}. אם לא ציפית להזמנה זו, ניתן להתעלם מהודעה זו בבטחה."
   },
   "email.organization_invitation.roles.member": {
     "text": "חבר"
@@ -219,52 +219,52 @@
     "text": "מנהל"
   },
   "email.password_changed.subject": {
-    "text": "הסיסמה שלכם שונתה (%{display_domain})"
+    "text": "הסיסמה שלך שונתה (%{display_domain})"
   },
   "email.password_changed.title": {
-    "text": "הסיסמה שלכם שונתה"
+    "text": "הסיסמה שלך שונתה"
   },
   "email.password_changed.body": {
-    "text": "הסיסמה שלכם עבור %{product_name} שונתה בתאריך %{date} בשעה %{time}."
+    "text": "הסיסמה שלך עבור %{product_name} שונתה בתאריך %{date} בשעה %{time}."
   },
   "email.password_changed.security_notice": {
-    "text": "אם לא ביצעתם שינוי זה, אנא אבטחו את החשבון שלכם מיד על ידי איפוס הסיסמה ויצירת קשר עם התמיכה."
+    "text": "אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד על ידי איפוס הסיסמה ויצירת קשר עם התמיכה."
   },
   "email.password_changed.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.email_changed.subject": {
-    "text": "כתובת הדוא״ל שלכם שונתה (%{display_domain})"
+    "text": "כתובת הדוא״ל שלך שונתה (%{display_domain})"
   },
   "email.email_changed.title": {
-    "text": "כתובת הדוא״ל שלכם שונתה"
+    "text": "כתובת הדוא״ל שלך שונתה"
   },
   "email.email_changed.body": {
-    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלכם שונתה ל-%{new_email_masked} בתאריך %{date}."
+    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked} בתאריך %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "אם לא ביצעתם שינוי זה, אנא צרו קשר עם התמיכה מיד מכיוון שהחשבון שלכם עשוי להיות מסוכן."
+    "text": "אם לא ביצעת שינוי זה, אנא צור קשר עם התמיכה מיד מכיוון שהחשבון שלך עשוי להיות פרוץ."
   },
   "email.email_changed.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.email_change_confirmation.subject": {
-    "text": "אימות כתובת הדוא״ל החדשה שלכם (%{display_domain})"
+    "text": "אמת את כתובת הדוא״ל החדשה שלך (%{display_domain})"
   },
   "email.email_change_confirmation.title": {
-    "text": "אימות כתובת הדוא״ל החדשה שלכם"
+    "text": "אמת את כתובת הדוא״ל החדשה שלך"
   },
   "email.email_change_confirmation.body": {
-    "text": "אנא אמתו את כתובת דוא״ל זו להשלמת השינוי עבור חשבון %{product_name} שלכם."
+    "text": "אנא אמת כתובת דוא״ל זו כדי להשלים את השינוי עבור חשבון %{product_name} שלך."
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "אימות כתובת דוא״ל"
+    "text": "אמת כתובת דוא״ל"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "או העתיקו והדביקו את הקישור הזה:"
+    "text": "או העתק והדבק קישור זה:"
   },
   "email.email_change_confirmation.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.mfa_enabled.subject": {
     "text": "אימות דו-שלבי הופעל (%{display_domain})"
@@ -273,13 +273,13 @@
     "text": "אימות דו-שלבי הופעל"
   },
   "email.mfa_enabled.body": {
-    "text": "אימות דו-שלבי הופעל עבור חשבון %{product_name} שלכם בתאריך %{date}."
+    "text": "אימות דו-שלבי הופעל עבור חשבון %{product_name} שלך בתאריך %{date}."
   },
   "email.mfa_enabled.security_notice": {
-    "text": "החשבון שלכם כעת מאובטח יותר. תצטרכו להזין קוד אימות מאפליקציית האימות שלכם בעת ההתחברות."
+    "text": "החשבון שלך כעת מאובטח יותר. תצטרך להזין קוד אימות מאפליקציית האימות שלך בעת ההתחברות."
   },
   "email.mfa_enabled.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.mfa_disabled.subject": {
     "text": "אימות דו-שלבי הושבת (%{display_domain})"
@@ -288,22 +288,22 @@
     "text": "אימות דו-שלבי הושבת"
   },
   "email.mfa_disabled.body": {
-    "text": "אימות דו-שלבי הושבת עבור חשבון %{product_name} שלכם בתאריך %{date}."
+    "text": "אימות דו-שלבי הושבת עבור חשבון %{product_name} שלך בתאריך %{date}."
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "החשבון שלכם כעת פחות מאובטח. אם לא ביצעתם שינוי זה, אנא אבטחו את החשבון שלכם מיד."
+    "text": "החשבון שלך כעת פחות מאובטח. אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד."
   },
   "email.mfa_disabled.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.new_login_alert.subject": {
-    "text": "התחברות חדשה לחשבון שלכם (%{display_domain})"
+    "text": "התחברות חדשה לחשבון שלך (%{display_domain})"
   },
   "email.new_login_alert.title": {
     "text": "זוהתה התחברות חדשה"
   },
   "email.new_login_alert.body": {
-    "text": "זוהתה התחברות חדשה לחשבון %{product_name} שלכם בתאריך %{date} בשעה %{time}."
+    "text": "זוהתה התחברות חדשה לחשבון %{product_name} שלך בתאריך %{date} בשעה %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "מכשיר:"
@@ -315,49 +315,49 @@
     "text": "כתובת IP:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "אם זה לא הייתם אתם, ייתכן שהחשבון שלכם נפרץ."
+    "text": "אם זה לא היית אתה, החשבון שלך עשוי להיות פרוץ."
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "אבטחת החשבון שלכם"
+    "text": "אבטח את החשבון שלך"
   },
   "email.new_login_alert.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.member_removed.subject": {
-    "text": "הוסרתם מ-%{organization_name}"
+    "text": "הוסרת מ-%{organization_name}"
   },
   "email.member_removed.title": {
-    "text": "הוסרתם מ-%{organization_name}"
+    "text": "הוסרת מ-%{organization_name}"
   },
   "email.member_removed.body": {
-    "text": "הוסרתם מהארגון \"%{organization_name}\" ב-%{product_name}."
+    "text": "הוסרת מהארגון \"%{organization_name}\" ב-%{product_name}."
   },
   "email.member_removed.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.role_changed.subject": {
-    "text": "התפקיד שלכם שונה ב-%{organization_name}"
+    "text": "התפקיד שלך שונה ב-%{organization_name}"
   },
   "email.role_changed.title": {
-    "text": "התפקיד שלכם שונה"
+    "text": "התפקיד שלך שונה"
   },
   "email.role_changed.body": {
-    "text": "התפקיד שלכם ב-\"%{organization_name}\" שונה מ-%{old_role} ל-%{new_role}."
+    "text": "התפקיד שלך ב-\"%{organization_name}\" שונה מ-%{old_role} ל-%{new_role}."
   },
   "email.role_changed.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.organization_deleted.subject": {
     "text": "הארגון \"%{organization_name}\" נמחק"
   },
   "email.organization_deleted.title": {
-    "text": "ארגון נמחק"
+    "text": "הארגון נמחק"
   },
   "email.organization_deleted.body": {
-    "text": "הארגון \"%{organization_name}\" נמחק מ-%{product_name}. כל הנתונים הקשורים הוסרו."
+    "text": "הארגון \"%{organization_name}\" נמחק מ-%{product_name}. כל הנתונים המשויכים הוסרו."
   },
   "email.organization_deleted.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.payment_receipt.subject": {
     "text": "קבלת תשלום עבור %{product_name}"
@@ -366,7 +366,7 @@
     "text": "קבלת תשלום"
   },
   "email.payment_receipt.body": {
-    "text": "תודה על התשלום שלכם. הנה פרטי התשלום שלכם:"
+    "text": "תודה על התשלום שלך. הנה פרטי התשלום:"
   },
   "email.payment_receipt.amount_label": {
     "text": "סכום:"
@@ -378,10 +378,10 @@
     "text": "תוכנית:"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "הצגת חשבונית"
+    "text": "צפה בחשבונית"
   },
   "email.payment_receipt.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.payment_failed.subject": {
     "text": "התשלום נכשל עבור %{product_name}"
@@ -390,43 +390,43 @@
     "text": "התשלום נכשל"
   },
   "email.payment_failed.body": {
-    "text": "לא הצלחנו לעבד את התשלום שלכם עבור %{product_name}. אנא עדכנו את אמצעי התשלום שלכם כדי למנוע הפרעה בשירות."
+    "text": "לא הצלחנו לעבד את התשלום שלך עבור %{product_name}. אנא עדכן את אמצעי התשלום שלך כדי למנוע הפסקת שירות."
   },
   "email.payment_failed.update_payment_button": {
-    "text": "עדכון אמצעי תשלום"
+    "text": "עדכן אמצעי תשלום"
   },
   "email.payment_failed.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.trial_expiring.subject": {
-    "text": "תקופת הניסיון של %{product_name} תפוג בעוד %{days_remaining} ימים"
+    "text": "תקופת הניסיון שלך ב-%{product_name} מסתיימת בעוד %{days_remaining} ימים"
   },
   "email.trial_expiring.title": {
-    "text": "תקופת הניסיון שלכם מסתיימת בקרוב"
+    "text": "תקופת הניסיון שלך מסתיימת בקרוב"
   },
   "email.trial_expiring.body": {
-    "text": "תקופת הניסיון החינמית של %{product_name} תפוג בעוד %{days_remaining} ימים. שדרגו עכשיו כדי לשמור על גישה לכל התכונות."
+    "text": "תקופת הניסיון החינמית שלך ב-%{product_name} תסתיים בעוד %{days_remaining} ימים. שדרג עכשיו כדי לשמור על גישה לכל התכונות."
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "שדרוג עכשיו"
+    "text": "שדרג עכשיו"
   },
   "email.trial_expiring.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.subscription_changed.subject": {
-    "text": "המנוי שלכם ל-%{product_name} שונה"
+    "text": "המנוי שלך ל-%{product_name} שונה"
   },
   "email.subscription_changed.title": {
     "text": "המנוי שונה"
   },
   "email.subscription_changed.body": {
-    "text": "המנוי שלכם ל-%{product_name} שונה מ-%{old_plan} ל-%{new_plan}."
+    "text": "המנוי שלך ל-%{product_name} שונה מ-%{old_plan} ל-%{new_plan}."
   },
   "email.subscription_changed.effective_date": {
-    "text": "שינוי זה תקף החל מ-%{date}."
+    "text": "שינוי זה ייכנס לתוקף ב-%{date}."
   },
   "email.subscription_changed.signature": {
-    "text": "דלאנו"
+    "text": "Delano"
   },
   "email.common.greeting": {
     "text": "שלום,"
@@ -435,10 +435,10 @@
     "text": "תודה,"
   },
   "email.common.unsubscribe": {
-    "text": "ביטול הרשמה"
+    "text": "הסרה מרשימת התפוצה"
   },
   "email.common.view_in_browser": {
-    "text": "צפייה בדפדפן"
+    "text": "צפה בדפדפן"
   },
   "email.common.onetime_secret": {
     "text": "Onetime Secret"

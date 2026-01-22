@@ -1,87 +1,87 @@
 {
   "web.auth.mfa_required": {
-    "text": "נדרש אימות MFA"
+    "text": "נדרש אימות דו-שלבי"
   },
   "web.auth.mfa_verification_required": {
-    "text": "נדרש אימות MFA לגישה לחשבון שלכם"
+    "text": "נדרש אימות דו-שלבי כדי לגשת לחשבון שלך"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "השלמת אימות MFA"
+    "text": "השלם אימות דו-שלבי"
   },
   "web.auth.security.authentication_failed": {
-    "text": "האימות נכשל. אנא אמתו את פרטי ההזדהות ונסו שוב."
+    "text": "האימות נכשל. אנא ודא את פרטי ההתחברות שלך ונסה שוב."
   },
   "web.auth.security.rate_limited": {
-    "text": "יותר מדי ניסיונות. אנא נסו שוב מאוחר יותר."
+    "text": "יותר מדי ניסיונות. אנא נסה שוב מאוחר יותר."
   },
   "web.auth.security.session_expired": {
-    "text": "הסשן פג תוקף. אנא התחברו שוב."
+    "text": "הסשן פג תוקף. אנא התחבר שוב."
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "קוד שחזור לא נמצא. אנא ודאו שהכנסתם אותו נכון."
+    "text": "קוד השחזור לא נמצא. אנא ודא שהזנת אותו נכון."
   },
   "web.auth.security.recovery_code_used": {
-    "text": "קוד שחזור זה כבר נעשה בו שימוש. כל קוד יכול לשמש רק פעם אחת."
+    "text": "קוד שחזור זה כבר נוצל. כל קוד ניתן לשימוש פעם אחת בלבד."
   },
   "web.auth.security.network_error": {
-    "text": "שגיאת רשת. אנא בדקו את החיבור ונסו שוב."
+    "text": "שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב."
   },
   "web.auth.security.internal_error": {
-    "text": "אירעה שגיאה. אנא נסו שוב."
+    "text": "אירעה שגיאה. אנא נסה שוב."
   },
   "web.auth.methods.password": {
     "text": "סיסמה"
   },
   "web.auth.methods.magicLink": {
-    "text": "קישור דואר אלקטרוני"
+    "text": "קישור דוא״ל"
   },
   "web.auth.methods.webauthn": {
     "text": "ביומטרי"
   },
   "web.auth.magicLink.title": {
-    "text": "התחברות עם דואר אלקטרוני"
+    "text": "התחבר עם דוא״ל"
   },
   "web.auth.magicLink.description": {
-    "text": "נשלח לכם קישור התחברות מאובטח"
+    "text": "נשלח לך קישור התחברות מאובטח"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "הכניסו את הדואר האלקטרוני"
+    "text": "הזן את הדוא״ל שלך"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "שליחת קישור התחברות"
+    "text": "שלח קישור התחברות"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "בדקו את הדואר האלקטרוני"
+    "text": "בדוק את הדוא״ל שלך"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "שלחנו קישור התחברות אל {email}"
+    "text": "שלחנו קישור התחברות ל-{email}"
   },
   "web.auth.magicLink.linkExpiresIn": {
     "text": "קישור זה יפוג בעוד 15 דקות"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "נסו דואר אלקטרוני אחר"
+    "text": "נסה דוא״ל אחר"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "אין צורך בסיסמה — רק לחצו על הקישור בדואר האלקטרוני"
+    "text": "לא צריך סיסמה — פשוט לחץ על הקישור בדוא״ל שלך"
   },
   "web.auth.magicLink.networkError": {
-    "text": "שגיאת רשת. אנא נסו שוב."
+    "text": "שגיאת רשת. אנא נסה שוב."
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "כשל בשליחת קישור התחברות. אנא נסו שוב."
+    "text": "שליחת קישור ההתחברות נכשלה. אנא נסה שוב."
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "קישור התחברות שגוי או חסר"
+    "text": "קישור התחברות לא תקין או חסר"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "ההתחברות נכשלה. אנא נסו שוב."
+    "text": "ההתחברות נכשלה. אנא נסה שוב."
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "מחבר אתכם..."
+    "text": "מחבר אותך..."
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "אנא המתינו בעוד אנו מאמתים את הקישור"
+    "text": "אנא המתן בזמן שאנחנו מאמתים את הקישור שלך"
   },
   "web.auth.magicLink.error": {
     "text": "שגיאת אימות"
@@ -90,25 +90,25 @@
     "text": "חזרה להתחברות"
   },
   "web.auth.webauthn.signIn": {
-    "text": "התחברות עם Face ID / Touch ID"
+    "text": "התחבר עם Face ID / Touch ID"
   },
   "web.auth.webauthn.setup": {
-    "text": "הגדרת התחברות ביומטרית"
+    "text": "הגדר התחברות ביומטרית"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "אימות ביומטרי אינו נתמך בדפדפן זה"
+    "text": "אימות ביומטרי לא נתמך בדפדפן זה"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "אנא השתמשו בדפדפן מודרני התומך ב-WebAuthn (Chrome, Safari, Firefox או Edge)"
+    "text": "אנא השתמש בדפדפן מודרני שתומך ב-WebAuthn (Chrome, Safari, Firefox או Edge)"
   },
   "web.auth.webauthn.setupSuccess": {
     "text": "התחברות ביומטרית הופעלה"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "כשל בהגדרת התחברות ביומטרית"
+    "text": "הגדרת התחברות ביומטרית נכשלה"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "אימות ביומטרי נכשל. אנא נסו שוב."
+    "text": "אימות ביומטרי נכשל. אנא נסה שוב."
   },
   "web.auth.webauthn.cancelled": {
     "text": "האימות בוטל"
@@ -117,7 +117,7 @@
     "text": "מאמת..."
   },
   "web.auth.webauthn.description": {
-    "text": "השתמשו בטביעת אצבע, פנים או מפתח אבטחה להתחברות"
+    "text": "השתמש בטביעת אצבע, פנים או מפתח אבטחה כדי להתחבר"
   },
   "web.auth.webauthn.supportedMethods": {
     "text": "תומך ב-Face ID, Touch ID, Windows Hello ומפתחות אבטחה"
@@ -129,13 +129,13 @@
     "text": "החשבון ננעל עקב יותר מדי ניסיונות התחברות כושלים"
   },
   "web.auth.lockout.locked_until": {
-    "text": "החשבון שלכם נעול עד {time}"
+    "text": "החשבון שלך נעול עד {time}"
   },
   "web.auth.lockout.contact_support": {
-    "text": "צרו קשר עם התמיכה אם אתם זקוקים לגישה מיידית"
+    "text": "צור קשר עם התמיכה אם אתה צריך גישה מיידית"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "ניתן לאפס את הסיסמה במקום"
+    "text": "ניתן לאפס את הסיסמה שלך במקום"
   },
   "web.auth.sessions.title": {
     "text": "סשנים פעילים"
@@ -156,22 +156,22 @@
     "text": "כתובת IP"
   },
   "web.auth.sessions.last_active": {
-    "text": "פעיל לאחרונה"
+    "text": "פעילות אחרונה"
   },
   "web.auth.sessions.created": {
     "text": "נוצר"
   },
   "web.auth.sessions.remove": {
-    "text": "הסרה"
+    "text": "הסר"
   },
   "web.auth.sessions.remove_all": {
-    "text": "התנתקות מכל הסשנים האחרים"
+    "text": "התנתק מכל הסשנים האחרים"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "האם אתם בטוחים שברצונכם להסיר סשן זה?"
+    "text": "האם אתה בטוח שברצונך להסיר סשן זה?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "זה ינתק אתכם מכל המכשירים האחרים. האם אתם בטוחים?"
+    "text": "פעולה זו תנתק אותך מכל המכשירים האחרים. האם אתה בטוח?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "אין סשנים פעילים אחרים"
@@ -195,43 +195,43 @@
     "text": "אימות דו-שלבי מושבת"
   },
   "web.auth.mfa.enable": {
-    "text": "הפעלת אימות דו-שלבי"
+    "text": "הפעל אימות דו-שלבי"
   },
   "web.auth.mfa.disable": {
-    "text": "השבתת אימות דו-שלבי"
+    "text": "השבת אימות דו-שלבי"
   },
   "web.auth.mfa.setup_title": {
     "text": "הגדרת אימות דו-שלבי"
   },
   "web.auth.mfa.setup_description": {
-    "text": "הוספת שכבת אבטחה נוספת לחשבון שלכם"
+    "text": "הוסף שכבת אבטחה נוספת לחשבון שלך"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. סריקת קוד QR"
+    "text": "1. סרוק קוד QR"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. אימות ההגדרה"
+    "text": "2. אמת הגדרה"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "סרקו קוד QR זה עם אפליקציית המאמת שלכם"
+    "text": "סרוק קוד QR זה עם אפליקציית האימות שלך"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "או הכניסו קוד זה באופן ידני"
+    "text": "או הזן קוד זה ידנית"
   },
   "web.auth.mfa.verify_code": {
-    "text": "הכניסו את הקוד בן 6 הספרות מהאפליקציה שלכם"
+    "text": "הזן את הקוד בן 6 הספרות מהאפליקציה שלך"
   },
   "web.auth.mfa.enter_code": {
-    "text": "הכניסו קוד אימות"
+    "text": "הזן קוד אימות"
   },
   "web.auth.mfa.verify": {
-    "text": "אימות והפעלה"
+    "text": "אמת והפעל"
   },
   "web.auth.mfa.code_required": {
-    "text": "קוד אימות נדרש"
+    "text": "נדרש קוד אימות"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "קוד לא תקף. קודים פגים כל 30 שניות. נסו את הקוד האחרון מאפליקציית המאמת שלכם."
+    "text": "קוד לא תקין. הקודים פוקעים כל 30 שניות. נסה את הקוד האחרון מאפליקציית האימות שלך."
   },
   "web.auth.mfa.success_enabled": {
     "text": "אימות דו-שלבי הופעל"
@@ -240,88 +240,88 @@
     "text": "אימות דו-שלבי הושבת"
   },
   "web.auth.mfa.require_password": {
-    "text": "הכניסו את הסיסמה כדי להשבית 2FA"
+    "text": "הזן את הסיסמה שלך כדי להשבית אימות דו-שלבי"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "סיסמה"
   },
   "web.auth.mfa.password_reason": {
-    "text": "אשרו את זהותכם כדי לשנות הגדרות אימות דו-שלבי"
+    "text": "אשר את הזהות שלך כדי לשנות הגדרות אימות דו-שלבי"
   },
   "web.auth.mfa.last_used": {
     "text": "שימוש אחרון: {time}"
   },
   "web.auth.mfa.never_used": {
-    "text": "מעולם לא נעשה שימוש"
+    "text": "לא נעשה שימוש"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "השתמשו בקוד שחזור במקום"
+    "text": "השתמש בקוד שחזור במקום"
   },
   "web.auth.mfa.back_to_code": {
     "text": "חזרה לקוד אימות"
   },
   "web.auth.mfa.cancel": {
-    "text": "ביטול וחזרה להתחברות"
+    "text": "בטל וחזור להתחברות"
   },
   "web.auth.mfa.loading_status": {
-    "text": "טוען מצב MFA..."
+    "text": "טוען סטטוס אימות דו-שלבי..."
   },
   "web.auth.mfa.protected_description": {
-    "text": "החשבון שלכם מוגן באמצעות אימות דו-שלבי"
+    "text": "החשבון שלך מוגן באימות דו-שלבי"
   },
   "web.auth.mfa.enable_description": {
-    "text": "הגנו על החשבון שלכם עם שכבת אבטחה נוספת"
+    "text": "הגן על החשבון שלך עם שכבת אבטחה נוספת"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "מניעת גישה לא מורשית גם אם הסיסמה שלכם נפגעה"
+    "text": "מנע גישה לא מורשית גם אם הסיסמה שלך נפרצה"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "עובד עם Google Authenticator, Authy ואפליקציות TOTP אחרות"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "קודי שחזור גיבוי לגישה חירום"
+    "text": "קודי שחזור לגישת חירום"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "הכניסו את הסיסמה"
+    "text": "הזן את הסיסמה שלך"
   },
   "web.auth.mfa.disabling": {
     "text": "משבית..."
   },
   "web.auth.mfa.disable_button": {
-    "text": "השבתת 2FA"
+    "text": "השבת אימות דו-שלבי"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "יוצר קוד QR..."
+    "text": "מייצר קוד QR..."
   },
   "web.auth.mfa.supported_apps": {
-    "text": "השתמשו ב-Google Authenticator, Authy או כל אפליקציית TOTP"
+    "text": "השתמש ב-Google Authenticator, Authy או כל אפליקציית TOTP"
   },
   "web.auth.mfa.continue_verification": {
     "text": "המשך לאימות"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "הכניסו את הקוד בן 6 הספרות מאפליקציית המאמת שלכם"
+    "text": "הזן את הקוד בן 6 הספרות מאפליקציית האימות שלך"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "הפעלת MFA"
+    "text": "הפעל אימות דו-שלבי"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "השלמת הגדרה"
+    "text": "השלם הגדרה"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "הכניסו אחד מקודי השחזור שלכם"
+    "text": "הזן אחד מקודי השחזור שלך"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "קוד שחזור"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "הכניסו קוד שחזור"
+    "text": "הזן קוד שחזור"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "אימות קוד שחזור"
+    "text": "אמת קוד שחזור"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "הכניסו קוד אימות בן 6 ספרות"
+    "text": "הזן קוד אימות בן 6 ספרות"
   },
   "web.auth.mfa.recovery_code_mode_active": {
     "text": "מצב קוד שחזור פעיל"
@@ -330,7 +330,7 @@
     "text": "מצב קוד אימות פעיל"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "אנא הכניסו את כל 6 הספרות כדי להמשיך"
+    "text": "אנא הזן את כל 6 הספרות כדי להמשיך"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "ספרה {current} מתוך {total}"
@@ -339,34 +339,34 @@
     "text": "קודי שחזור"
   },
   "web.auth.recovery_codes.description": {
-    "text": "שמרו קודים אלה במקום בטוח. כל אחד יכול לשמש פעם אחת אם תאבדו גישה למאמת שלכם."
+    "text": "שמור קודים אלה במקום בטוח. כל אחד יכול לשמש פעם אחת אם תאבד גישה לאפליקציית האימות שלך."
   },
   "web.auth.recovery_codes.warning": {
     "text": "קודים אלה יוצגו רק פעם אחת"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "עליכם להוריד או להעתיק את קודי השחזור לפני השלמת ההגדרה."
+    "text": "עליך להוריד או להעתיק את קודי השחזור שלך לפני השלמת ההגדרה."
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "יצירת קודים חדשים"
+    "text": "צור קודים חדשים"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "יצירת קודים מחדש"
+    "text": "צור קודים מחדש"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "זה יבטל את כל קודי השחזור הקיימים"
+    "text": "פעולה זו תבטל את כל קודי השחזור הקיימים"
   },
   "web.auth.recovery_codes.download": {
-    "text": "הורדת קודים"
+    "text": "הורד קודים"
   },
   "web.auth.recovery_codes.downloaded": {
     "text": "קודי השחזור הורדו"
   },
   "web.auth.recovery_codes.print": {
-    "text": "הדפסת קודים"
+    "text": "הדפס קודים"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "העתקת כל הקודים"
+    "text": "העתק את כל הקודים"
   },
   "web.auth.recovery_codes.copied": {
     "text": "הקודים הועתקו ללוח"
@@ -375,16 +375,16 @@
     "text": "העתקת הקודים ללוח נכשלה"
   },
   "web.auth.recovery_codes.code_used": {
-    "text": "בשימוש"
+    "text": "נוצל"
   },
   "web.auth.recovery_codes.code_unused": {
-    "text": "לא בשימוש"
+    "text": "לא נוצל"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "נותרו {count} קודי שחזור"
+    "text": "{count} מתוך {limit} קודי שחזור נותרו"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "כל קוד ניתן לשימוש פעם אחת בלבד. צרו קודים מחדש אם נגמרים לכם."
+    "text": "כל קוד ניתן לשימוש פעם אחת בלבד. צור קודים מחדש אם נגמרים לך."
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "לא נותרו קודי שחזור"
@@ -394,5 +394,20 @@
   },
   "web.auth.recovery_codes.link_title": {
     "text": "קודי שחזור"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "אמת"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "השתמש בקוד שחזור"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "בטל התחברות"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ קריטי לאבטחה: הודעות מונעות חשיפת מידע. ראה src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "דף ניהול מכשירים/דפדפנים מחוברים של המשתמש"
   }
 }

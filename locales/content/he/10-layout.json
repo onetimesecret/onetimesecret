@@ -15,10 +15,10 @@
     "text": "אבטחה"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "למדו על אמצעי האבטחה שלנו"
+    "text": "למד על אמצעי האבטחה שלנו"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "צפו בתנאים וההגבלות שלנו"
+    "text": "צפה בתנאים וההגבלות שלנו"
   },
   "web.footer.terms": {
     "text": "תנאים"
@@ -27,31 +27,31 @@
     "text": "פרטיות"
   },
   "web.footer.contact": {
-    "text": "יצירת קשר"
+    "text": "צור קשר"
   },
   "web.footer.support": {
     "text": "תמיכה"
   },
   "web.footer.legals": {
-    "text": "מסמכים משפטיים"
+    "text": "משפטי"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "קראו את מדיניות הפרטיות שלנו"
+    "text": "קרא את מדיניות הפרטיות שלנו"
   },
   "web.footer.check_our_service_status": {
-    "text": "בדקו את סטטוס השירות שלנו"
+    "text": "בדוק את סטטוס השירות שלנו"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "חקרו את תיעוד ה-API שלנו"
+    "text": "חקור את תיעוד ה-API שלנו"
   },
   "web.footer.docs": {
     "text": "תיעוד"
   },
   "web.footer.access_our_documentation": {
-    "text": "גישה לתיעוד שלנו"
+    "text": "גש לתיעוד שלנו"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "צפו בקוד המקור שלנו ב-GitHub"
+    "text": "צפה בקוד המקור שלנו ב-GitHub"
   },
   "web.footer.resources": {
     "text": "משאבים"
@@ -60,16 +60,16 @@
     "text": "בלוג"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "קראו את פוסטי הבלוג האחרונים שלנו"
+    "text": "קרא את הפוסטים האחרונים בבלוג שלנו"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "צפו בתמחור המנויים שלנו"
+    "text": "צפה בתמחור המנויים שלנו"
   },
   "web.footer.learn_about_our_company": {
-    "text": "למדו על החברה שלנו"
+    "text": "למד על החברה שלנו"
   },
   "web.footer.company": {
-    "text": "חברה"
+    "text": "החברה"
   },
   "web.navigation.billing": {
     "text": "חיוב"
@@ -81,7 +81,7 @@
     "text": "ארגונים"
   },
   "web.site.website_version": {
-    "text": "גרסת אתר"
+    "text": "גרסת האתר"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
     "text": "אנחנו הופכים את {onetime-secret} לזמין במספר שפות. מכיוון שמדובר בתכונה חדשה, ייתכן שתיתקלו בשגיאות תרגום או ניסוחים מסורבלים. המשוב שלכם עוזר לנו להשתפר - אם אתם מזהים בעיות, אנא {send-feedback}"
@@ -90,64 +90,64 @@
     "text": "התרגומים חדשים. זיהיתם שגיאה? {send-feedback}"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "הוספנו לאחרונה תרגומים. זיהיתם שגיאה? {send-feedback}"
+    "text": "הוספנו לאחרונה תרגומים. מצאת שגיאה? {send-feedback}"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "פרטיות ואבטחה צריכות להיות נגישות לכולם, ללא קשר לשפה. אנחנו מוסיפים תרגומים כדי לעזור גם למשתמשים שלנו וגם לנמעני ההודעות שלהם להבין טוב יותר כיצד להשתמש ולגשת בצורה בטוחה להודעות וקישורים מאובטחים. מכיוון שמדובר בתכונה חדשה, ייתכן שתיתקלו בשגיאות תרגום או הוראות לא ברורות. כדי לעזור לנו לשפר את הבהירות והדיוק של התרגומים שלנו, במיוחד עבור תוכן קריטי הקשור לאבטחה, אנא {send-feedback} אם אתם מזהים בעיות"
   },
   "web.help.learn_more": {
-    "text": "למדו עוד"
+    "text": "למד עוד"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "במה אני מסתכל?"
+    "text": "מה אני רואה כאן?"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "אתם צופים בהודעה מאובטחת ששותפה איתכם דרך Onetime Secret. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו."
+    "text": "אתה צופה בהודעה מאובטחת ששותפה איתך דרך Onetime Secret. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו."
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "האם אוכל לצפות בסוד הזה שוב מאוחר יותר?"
+    "text": "האם אוכל לצפות בסוד זה שוב מאוחר יותר?"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "לא. מסיבות אבטחה, סוד זה ניתן לצפייה פעם אחת בלבד. לאחר סגירת עמוד זה, התוכן יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד, כולל אנחנו."
+    "text": "לא. מסיבות אבטחה, סוד זה ניתן לצפייה פעם אחת בלבד. לאחר סגירת דף זה, התוכן יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד, כולל אנחנו."
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "איך אני שומר את המידע הזה?"
+    "text": "כיצד אני שומר מידע זה?"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "השתמשו בכפתור 'העתקה ללוח' כדי להעתיק את הסוד המלא. עבור סודות ארוכים יותר, וודאו שאימתתם שהעתקתם את התוכן המלא לפני שאתם עוזבים עמוד זה."
+    "text": "השתמש בכפתור 'העתק ללוח' כדי להעתיק את כל הסוד. עבור סודות ארוכים יותר, ודא שהעתקת את התוכן המלא לפני עזיבת הדף."
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "האם הצפייה שלי בסוד זה מעוקבת?"
+    "text": "האם הצפייה שלי בסוד זה מנוטרת?"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "השולח יקבל הודעה שהסוד שלו נצפה, אך אנחנו לא עוקבים מי צפה בו או ממיקום. הפרטיות שלכם מוגנת."
+    "text": "השולח יקבל הודעה שהסוד שלו נצפה, אך אנחנו לא עוקבים אחר מי צפה בו או מאיזה מיקום. הפרטיות שלך מוגנת."
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "ברגע שתעזבו או תרעננו עמוד זה, הסוד הזה יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד."
+    "text": "ברגע שתעזוב או תרענן דף זה, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד."
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "חזרה לעמוד הקודם"
+    "text": "חזרה לדף הקודם"
   },
   "web.layout.site_footer": {
-    "text": "כותרת תחתונה של אתר"
+    "text": "תחתית האתר"
   },
   "web.layout.toggle_dark_mode": {
     "text": "החלפת מצב כהה"
   },
   "web.layout.provide_feedback": {
-    "text": "מתן משוב"
+    "text": "ספק משוב"
   },
   "web.layout.company_logo": {
-    "text": "לוגו חברה"
+    "text": "לוגו החברה"
   },
   "web.layout.brand_logo": {
-    "text": "לוגו מותג"
+    "text": "לוגו המותג"
   },
   "web.layout.dashboard_navigation": {
-    "text": "ניווט לוח בקרה"
+    "text": "ניווט לוח הבקרה"
   },
   "web.layout.mobile_navigation": {
-    "text": "ניווט ניידים"
+    "text": "ניווט נייד"
   },
   "web.layout.main_navigation": {
     "text": "ניווט ראשי"
@@ -156,52 +156,52 @@
     "text": "{count} פריטים"
   },
   "web.layout.release_notes": {
-    "text": "הערות שחרור"
+    "text": "הערות גרסה"
   },
   "web.layout.loading_settings_content": {
     "text": "טוען תוכן הגדרות..."
   },
   "web.layout.settings_sections_0": {
-    "text": "קטעי הגדרות"
+    "text": "מדורי הגדרות"
   },
   "web.layout.close_settings": {
     "text": "סגירת הגדרות"
   },
   "web.layout.settings_sections": {
-    "text": "קטעי הגדרות"
+    "text": "מדורי הגדרות"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
     "text": "התאימו אישית את העדפות והגדרות האפליקציה שלכם"
   },
   "web.layout.return_home": {
-    "text": "חזרה לבית"
+    "text": "חזרה לדף הבית"
   },
   "web.layout.return_to_home_page": {
     "text": "חזרה לדף הבית"
   },
   "web.layout.return_to_home": {
-    "text": "חזרה לבית"
+    "text": "חזרה לדף הבית"
   },
   "web.layout.view_privacy_policy": {
-    "text": "צפייה במדיניות פרטיות"
+    "text": "צפייה במדיניות הפרטיות"
   },
   "web.layout.view_terms_of_service": {
-    "text": "צפייה בתנאי שירות"
+    "text": "צפייה בתנאי השימוש"
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "ביקור בדף הבית של Onetime Secret"
   },
   "web.layout.footer_navigation": {
-    "text": "ניווט כותרת תחתונה"
+    "text": "ניווט תחתון"
   },
   "web.layout.terms_of_service": {
-    "text": "תנאי שירות"
+    "text": "תנאי שימוש"
   },
   "web.layout.privacy_policy": {
     "text": "מדיניות פרטיות"
   },
   "web.layout.icon_library": {
-    "text": "ספריית סמלים"
+    "text": "ספריית אייקונים"
   },
   "web.layout.google_material": {
     "text": "Google Material"
@@ -219,10 +219,10 @@
     "text": "Font Awesome 6"
   },
   "web.layout.view_source_on_github": {
-    "text": "צפייה במקור ב-GitHub"
+    "text": "צפייה בקוד המקור ב-GitHub"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "גרסת אתר: v{0}"
+    "text": "גרסת האתר: v{0}"
   },
   "web.layout.current_language_is_currentlocal": {
     "text": "שינוי שפה. השפה הנוכחית היא {0}"
@@ -240,6 +240,12 @@
     "text": "סביבת עבודה"
   },
   "web.layout.workspace_context": {
-    "text": "הקשר סביבת עבודה"
+    "text": "הקשר סביבת העבודה"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "כאשר תשלח משוב, נראה:"
+  },
+  "web.layout.reset_to_default_language": {
+    "text": "איפוס ל-{0}"
   }
 }

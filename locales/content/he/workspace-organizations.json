@@ -1,6 +1,6 @@
 {
   "web.organizations.title": {
-    "text": "ארגון"
+    "text": "ארגונים"
   },
   "web.organizations.organization": {
     "text": "ארגון"
@@ -9,10 +9,10 @@
     "text": "ארגונים"
   },
   "web.organizations.organizations_description": {
-    "text": "נהלו את הארגונים שלכם"
+    "text": "ניהול הארגונים שלך"
   },
   "web.organizations.my_organizations": {
-    "text": "הארגונים שלי"
+    "text": "ארגונים"
   },
   "web.organizations.manage_organizations": {
     "text": "ניהול ארגונים"
@@ -21,10 +21,10 @@
     "text": "ארגון חדש"
   },
   "web.organizations.no_organizations": {
-    "text": "עדיין אין ארגונים"
+    "text": "אין עדיין ארגונים"
   },
   "web.organizations.no_organizations_description": {
-    "text": "ארגונים מאפשרים לכם לנהל מספר צוותים עם חיוב וניהול מאוחדים. התחילו על ידי יצירת הארגון הראשון שלכם."
+    "text": "ארגונים מספקים חיוב וניהול מאוחדים. התחל על ידי יצירת הארגון הראשון שלך."
   },
   "web.organizations.no_description": {
     "text": "לא סופק תיאור"
@@ -39,40 +39,40 @@
     "text": "יצירת ארגון ראשון"
   },
   "web.organizations.create_organization_description": {
-    "text": "צרו ארגון חדש כדי לקבץ את הצוותים שלכם"
+    "text": "יצירת ארגון חדש"
   },
   "web.organizations.create": {
-    "text": "יצירה"
+    "text": "צור"
   },
   "web.organizations.create_error": {
     "text": "יצירת הארגון נכשלה"
   },
   "web.organizations.organization_name": {
-    "text": "שם ארגון"
+    "text": "שם הארגון"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "לדוגמה חברת Acme"
+    "text": "לדוגמה Acme Corporation"
   },
   "web.organizations.display_name": {
-    "text": "שם ארגון"
+    "text": "שם הארגון"
   },
   "web.organizations.description": {
     "text": "תיאור"
   },
   "web.organizations.description_placeholder": {
-    "text": "למה נועד ארגון זה?"
+    "text": "מהי מטרת הארגון הזה?"
   },
   "web.organizations.contact_email": {
     "text": "דוא״ל לחיוב"
   },
   "web.organizations.contact_email_help": {
-    "text": "איש קשר ראשי להודעות חיוב וניהוליות"
+    "text": "איש קשר ראשי להתראות חיוב ומנהליות"
   },
   "web.organizations.select_organization": {
-    "text": "בחרו ארגון"
+    "text": "בחר ארגון"
   },
   "web.organizations.switcher_locked": {
-    "text": "החלפת ארגון אינה זמינה בעמוד זה"
+    "text": "החלפת ארגון לא זמינה בדף זה"
   },
   "web.organizations.not_found": {
     "text": "הארגון לא נמצא"
@@ -87,19 +87,19 @@
     "text": "טעינת הארגונים נכשלה"
   },
   "web.organizations.organization_information": {
-    "text": "מידע ארגון"
+    "text": "פרטי ארגון"
   },
   "web.organizations.created": {
     "text": "נוצר"
   },
   "web.organizations.last_updated": {
-    "text": "עדכון אחרון"
+    "text": "עודכן לאחרונה"
   },
   "web.organizations.organization_settings": {
     "text": "הגדרות ארגון"
   },
   "web.organizations.organization_settings_description": {
-    "text": "עדכנו את שם ותיאור הארגון שלכם"
+    "text": "עדכן את שם הארגון והתיאור שלו"
   },
   "web.organizations.general_settings": {
     "text": "הגדרות כלליות"
@@ -108,7 +108,7 @@
     "text": "חיוב ומנוי"
   },
   "web.organizations.save_changes": {
-    "text": "שמירת שינויים"
+    "text": "שמור שינויים"
   },
   "web.organizations.update_success": {
     "text": "הארגון עודכן בהצלחה"
@@ -120,31 +120,31 @@
     "text": "אינטגרציית חיוב בקרוב"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "ניהול חיוב ומנוי מאוחד לכל הצוותים בארגון זה יהיה זמין בגרסה עתידית."
+    "text": "ניהול חיוב ומנויים מאוחד יהיה זמין בגרסה עתידית."
   },
   "web.organizations.about_title": {
     "text": "אודות ארגונים"
   },
   "web.organizations.about_description": {
-    "text": "ארגונים מספקים חיוב וניהול מאוחד למספר צוותים. הם אופציונליים - צוותים יכולים להתקיים באופן עצמאי או להיות מקובצים תחת ארגון לניהול מרכזי."
+    "text": "ארגונים מספקים חיוב וניהול מאוחדים לניהול מרכזי."
   },
   "web.organizations.single_user_info_title": {
-    "text": "נהלו את הארגון שלכם"
+    "text": "ניהול הארגון שלך"
   },
   "web.organizations.single_user_info_description": {
-    "text": "עדכנו את שם החברה ופרטי הארגון שלכם כאן. מידע זה עוזר להתאים אישית את החשבון שלכם וניתן להשתמש בו לתכונות מיתוג בעתיד."
+    "text": "עדכן את שם החברה ופרטי הארגון שלך כאן. מידע זה עוזר להתאים אישית את החשבון שלך וניתן להשתמש בו לתכונות מיתוג בעתיד."
   },
   "web.organizations.getting_started_title": {
-    "text": "תחילת עבודה עם ארגונים"
+    "text": "תחילת העבודה עם ארגונים"
   },
   "web.organizations.getting_started_description": {
-    "text": "צרו את הארגון הראשון שלכם כדי לנהל את מידע החברה שלכם ולהתכונן לשיתוף פעולה צוותי עתידי ותכונות מיתוג."
+    "text": "צור את הארגון הראשון שלך כדי לנהל את מידע החברה שלך ולהתכונן לתכונות מיתוג עתידיות."
   },
   "web.organizations.page_description": {
-    "text": "ניהול הארגונים וחברי הצוות שלכם"
+    "text": "ניהול הארגונים וחברי הצוות שלך"
   },
   "web.organizations.tabs.general": {
-    "text": "כללי"
+    "text": "הגדרות"
   },
   "web.organizations.tabs.company_branding": {
     "text": "מיתוג חברה"
@@ -162,16 +162,16 @@
     "text": "מחיקת ארגון"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "פעולה זו תמחק לצמיתות את הארגון ואת כל הצוותים המשויכים. לא ניתן לבטל פעולה זו."
+    "text": "פעולה זו תמחק את הארגון לצמיתות. לא ניתן לבטל פעולה זו."
   },
   "web.organizations.delete": {
-    "text": "מחיקה"
+    "text": "מחק"
   },
   "web.organizations.delete_organization_confirm_title": {
     "text": "מחיקת ארגון"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "האם אתם בטוחים שברצונכם למחוק את {name}? לא ניתן לבטל פעולה זו."
+    "text": "האם אתה בטוח שברצונך למחוק את {name}? לא ניתן לבטל פעולה זו."
   },
   "web.organizations.delete_error": {
     "text": "מחיקת הארגון נכשלה"
@@ -180,7 +180,7 @@
     "text": "חברים"
   },
   "web.organizations.members.description": {
-    "text": "ניהול חברי ארגון ותפקידיהם"
+    "text": "ניהול חברי הארגון והתפקידים שלהם"
   },
   "web.organizations.members.current_members": {
     "text": "חברים נוכחיים"
@@ -189,10 +189,10 @@
     "text": "חבר"
   },
   "web.organizations.members.member_singular": {
-    "text": "member"
+    "text": "חבר"
   },
   "web.organizations.members.member_plural": {
-    "text": "members"
+    "text": "חברים"
   },
   "web.organizations.members.name": {
     "text": "שם"
@@ -210,7 +210,7 @@
     "text": "פעולות"
   },
   "web.organizations.members.no_members": {
-    "text": "לא נמצאו חברים"
+    "text": "אין עדיין חברים. הזמן חברי צוות להתחיל."
   },
   "web.organizations.members.no_members_description": {
     "text": "לארגון זה אין עדיין חברים."
@@ -231,19 +231,19 @@
     "text": "הסרת חבר"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "האם אתם בטוחים שברצונכם להסיר את {name} מארגון זה?"
+    "text": "האם אתה בטוח שברצונך להסיר את {name} מארגון זה?"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "אינכם יכולים לשנות את התפקיד שלכם"
+    "text": "לא ניתן לשנות את התפקיד של עצמך"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "אינכם יכולים להסיר את עצמכם מהארגון"
+    "text": "לא ניתן להסיר את עצמך מהארגון"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "אינכם יכולים להסיר את בעל הארגון"
+    "text": "לא ניתן להסיר את בעל הארגון"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "אין לכם הרשאה לנהל חברים"
+    "text": "אין לך הרשאה לנהל חברים"
   },
   "web.organizations.members.roles.owner": {
     "text": "בעלים"
@@ -264,13 +264,13 @@
     "text": "גישה בסיסית למשאבי הארגון"
   },
   "web.organizations.invitations.title": {
-    "text": "הזמנות ארגון"
+    "text": "הזמנות לארגון"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "הזמנת חבר"
+    "text": "הזמן חבר"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "הזמנת חבר חדש"
+    "text": "הזמן חבר חדש"
   },
   "web.organizations.invitations.pending_invitations": {
     "text": "הזמנות ממתינות"
@@ -288,7 +288,7 @@
     "text": "תפקיד"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "שליחת הזמנה"
+    "text": "שלח הזמנה"
   },
   "web.organizations.invitations.invite_sent": {
     "text": "ההזמנה נשלחה בהצלחה"
@@ -297,13 +297,13 @@
     "text": "שליחת ההזמנה נכשלה"
   },
   "web.organizations.invitations.resend": {
-    "text": "שליחה מחדש"
+    "text": "שלח שוב"
   },
   "web.organizations.invitations.revoke": {
-    "text": "ביטול"
+    "text": "בטל"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "ההזמנה נשלחה מחדש בהצלחה"
+    "text": "ההזמנה נשלחה שוב בהצלחה"
   },
   "web.organizations.invitations.resend_error": {
     "text": "שליחת ההזמנה מחדש נכשלה"
@@ -324,10 +324,10 @@
     "text": "פג תוקף"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "נשלח מחדש פעם {count}"
+    "text": "נשלח שוב {count} פעם"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "נשלח מחדש {count} פעמים"
+    "text": "נשלח שוב {count} פעמים"
   },
   "web.organizations.invitations.status.pending": {
     "text": "ממתין"
@@ -348,19 +348,19 @@
     "text": "מנהל"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "קבלת הזמנה"
+    "text": "קבל הזמנה"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "דחיית הזמנה"
+    "text": "דחה הזמנה"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "פרטי הזמנה"
+    "text": "פרטי ההזמנה"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "הוזמנתם להצטרף ל"
+    "text": "הוזמנת להצטרף ל-"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "הוזמנתם בתור"
+    "text": "הוזמנת בתפקיד"
   },
   "web.organizations.invitations.accept_success": {
     "text": "ההזמנה התקבלה בהצלחה"
@@ -375,15 +375,60 @@
     "text": "דחיית ההזמנה נכשלה"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "הזמנה זו פגה תוקפה"
+    "text": "הזמנה זו פגה תוקף"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "הזמנה לא תקפה או שפג תוקפה"
+    "text": "הזמנה לא תקינה או שפגה תוקף"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "אנא התחברו כדי לקבל הזמנה זו"
+    "text": "אנא התחבר כדי לקבל הזמנה זו"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "טוען פרטי הזמנה"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "דוא״ל החיוב עודכן בהצלחה"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "ניתן לשנות את דוא״ל החיוב בדף סקירת החיוב"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} חבר | {count} חברים"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} דומיין | {count} דומיינים"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "שדרג את התוכנית שלך כדי להזמין חברי צוות"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "הזמנות לחברי צוות דורשות תוכנית עם ניהול צוותים. שדרג כדי להוסיף משתפי פעולה לארגון שלך."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "חשבון לא נכון"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "הזמנה זו נשלחה ל-{invitedEmail}, אך אתה מחובר כ-{currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "התחבר עם חשבון אחר"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "נותרו {days} ימים"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "נותרו {hours} שעות"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "פג תוקף בקרוב"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "מנוי"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "דומיינים"
   }
 }

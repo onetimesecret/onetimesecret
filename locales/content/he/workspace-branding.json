@@ -6,10 +6,10 @@
     "text": "נוכחי {0}: {1}. לחצו למעבר בין אפשרויות."
   },
   "web.branding.use_setting": {
-    "text": "שימוש בהגדרה"
+    "text": "השתמש בהגדרה"
   },
   "web.branding.font_family": {
-    "text": "משפחת גופנים"
+    "text": "משפחת גופן"
   },
   "web.branding.corner_style": {
     "text": "סגנון פינות"
@@ -24,28 +24,28 @@
     "text": "תצוגה מקדימה והתאמה אישית"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "מעבר לתצוגת דפדפן Safari"
+    "text": "עבור לתצוגת דפדפן Safari"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge"
   },
   "web.branding.maximize_window": {
-    "text": "הגדלת חלון"
+    "text": "הגדל חלון"
   },
   "web.branding.minimize_window": {
-    "text": "מזעור חלון"
+    "text": "מזער חלון"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "מעבר לתצוגת דפדפן Edge"
+    "text": "עבור לתצוגת דפדפן Edge"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 תווים"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "השתמשו בטלפון שלכם לסריקת קוד QR"
+    "text": "השתמש בטלפון שלך כדי לסרוק את קוד ה-QR"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "צרו קשר עם onboarding{'@'}example.com עם כל שאלה"
+    "text": "צור קשר עם onboarding{'@'}example.com לכל שאלה"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "הוראות אלו יוצגו לנמענים לפני שיחשפו את תוכן הסוד"
@@ -54,22 +54,22 @@
     "text": "הוראות אלו יוצגו לנמענים לאחר שיחשפו את הסוד"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "הוראות טרום-חשיפה"
+    "text": "הוראות לפני חשיפה"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "הוראות לאחר-חשיפה"
+    "text": "הוראות לאחר חשיפה"
   },
   "web.branding.instructions": {
     "text": "הוראות"
   },
   "web.branding.logo_controls": {
-    "text": "בקרות לוגו"
+    "text": "פקדי לוגו"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "לחצו להעלאת לוגו. גודל מומלץ: 128x128 פיקסלים. גודל קובץ מקסימלי: 1MB. פורמטים נתמכים: PNG, JPG, SVG"
   },
   "web.branding.upload_logo": {
-    "text": "העלאת לוגו"
+    "text": "העלה לוגו"
   },
   "web.branding.loading_preview": {
     "text": "טוען תצוגה מקדימה..."
@@ -78,34 +78,34 @@
     "text": "צפו בתצוגה מקדימה כיצד נמענים יראו את הסודות שלכם על ידי בדיקת כפתור \"צפייה בסוד\""
   },
   "web.branding.eye_icon": {
-    "text": "סמל עין"
+    "text": "אייקון עין"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
     "text": "לחצו על תמונת התצוגה המקדימה למטה לעדכון הלוגו שלכם (מינימום 128x128 פיקסלים מומלץ, מקסימום 1MB)"
   },
   "web.branding.image_icon": {
-    "text": "סמל תמונה"
+    "text": "אייקון תמונה"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
     "text": "השתמשו בבקרות למעלה להתאמה אישית של צבע מותג, סגנונות והוראות נמענים"
   },
   "web.branding.customization_icon": {
-    "text": "סמל התאמה אישית"
+    "text": "אייקון התאמה אישית"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
     "text": "יש לכם שינויים שלא נשמרו. האם אתם בטוחים?"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "טעינת הגדרות מותג נכשלה"
+    "text": "טעינת הגדרות המותג נכשלה"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "זוהי תצוגה מקדימה אינטראקטיבית של האופן בו נמענים יראו את ההודעות המאובטחות שלכם. אתם יכולים: - להתאים אישית צבעים וגופנים באמצעות הבקרות למעלה - להעלות לוגו (מינימום 128x128 פיקסלים מומלץ, מקסימום 1MB) - לבדוק את התצוגה המקדימה באמצעות כפתור \"צפייה בסוד\""
+    "text": "זוהי תצוגה מקדימה אינטראקטיבית של איך נמענים יראו את ההודעות המאובטחות שלך. ניתן: - להתאים אישית צבעים וגופנים באמצעות הפקדים למעלה - להעלות לוגו (מומלץ מינימום 128x128 פיקסלים, מקסימום 1MB) - לבדוק את התצוגה המקדימה באמצעות כפתור \"צפה בסוד\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "זוהי תצוגה מקדימה אינטראקטיבית של האופן בו נמענים יראו את ההודעות המאובטחות שלכם. אתם יכולים: - להתאים אישית צבעים וגופנים באמצעות הבקרות למעלה - להעלות לוגו (מינימום 128x128 פיקסלים מומלץ, מקסימום 1MB) - לבדוק את התצוגה המקדימה באמצעות כפתור \"צפייה בסוד\""
   },
   "web.branding.default_logo_icon": {
-    "text": "קאנג'י יפני '秘' (himitsu) שמשמעותו 'סוד' או 'סודי'"
+    "text": "הקאנג'י היפני '秘' (himitsu) שמשמעותו 'סוד' או 'חסוי'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "מופעל על ידי Onetime Secret"
@@ -117,12 +117,12 @@
     "text": "Edge"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "מעבר לתצוגה מקדימה של Edge"
+    "text": "עבור לתצוגה מקדימה של Edge"
   },
   "web.branding.safari": {
     "text": "Safari"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "מעבר לתצוגה מקדימה של Safari"
+    "text": "עבור לתצוגה מקדימה של Safari"
   }
 }

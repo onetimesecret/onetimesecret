@@ -1,30 +1,30 @@
 {
   "web.login.alternate_prefix": {
-    "text": "צריכים חשבון?"
+    "text": "צריך חשבון?"
   },
   "web.login.need_an_account": {
-    "text": "הרשמו."
+    "text": "הירשם."
   },
   "web.login.forgot_your_password": {
-    "text": "שכחתם את הסיסמה?"
+    "text": "שכחת את הסיסמה שלך?"
   },
   "web.login.button_sign_in": {
-    "text": "התחברות"
+    "text": "התחבר"
   },
   "web.login.enter_your_credentials": {
-    "text": "הכניסו את פרטי ההזדהות"
+    "text": "הזן את פרטי ההתחברות שלך"
   },
   "web.login.remember_me": {
     "text": "זכור אותי"
   },
   "web.signup.create_your_account": {
-    "text": "יצירת החשבון שלכם"
+    "text": "יצירת החשבון שלך"
   },
   "web.signup.alternate_prefix": {
-    "text": "כבר יש לכם חשבון?"
+    "text": "כבר יש לך חשבון?"
   },
   "web.signup.have_an_account": {
-    "text": "התחברו."
+    "text": "התחבר."
   },
   "web.signup.error_title": {
     "text": "שגיאה ביצירת חשבון"
@@ -33,52 +33,52 @@
     "text": "סיסמה"
   },
   "web.signup.email_error": {
-    "text": "דואר אלקטרוני"
+    "text": "דוא״ל"
   },
   "web.auth.verify.title": {
-    "text": "אימות החשבון שלכם"
+    "text": "אמת את החשבון שלך"
   },
   "web.auth.verify.success": {
-    "text": "החשבון שלכם אומת בהצלחה"
+    "text": "החשבון שלך אומת בהצלחה"
   },
   "web.auth.verify.invalid_key": {
-    "text": "מפתח אימות שגוי או שפג תוקפו"
+    "text": "מפתח אימות לא תקין או שפג תוקפו"
   },
   "web.auth.verify.expired_key": {
-    "text": "קישור האימות פג תוקפו. אנא בקשו קישור חדש."
+    "text": "קישור האימות הזה פג תוקף. אנא בקש קישור חדש."
   },
   "web.auth.verify.already_verified": {
-    "text": "חשבון זה כבר אומת. ניתן להתחבר כעת."
+    "text": "חשבון זה כבר אומת. ניתן להתחבר עכשיו."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "לא ניתן לאמת חשבון. אנא נסו שוב או צרו קשר עם התמיכה."
+    "text": "לא ניתן לאמת את החשבון. אנא נסה שוב או צור קשר עם התמיכה."
   },
   "web.auth.verify.check_email": {
-    "text": "אנא בדקו את הדואר האלקטרוני לקישור אימות"
+    "text": "אנא בדוק את הדוא״ל שלך לקישור אימות"
   },
   "web.auth.verify.error": {
-    "text": "אימות החשבון נכשל. אנא בדקו את קישור האימות או בקשו קישור חדש."
+    "text": "אימות החשבון נכשל. אנא בדוק את קישור האימות שלך או בקש קישור חדש."
   },
   "web.auth.verify.error_title": {
     "text": "האימות נכשל"
   },
   "web.auth.verify.what_to_do": {
-    "text": "מה עלי לעשות?"
+    "text": "מה עליי לעשות?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "בדקו את הדואר האלקטרוני לקישור האימות האחרון"
+    "text": "בדוק את הדוא״ל שלך לקישור האימות האחרון"
   },
   "web.auth.verify.check_spam": {
-    "text": "בדקו את תיקיית הספאם/זבל אם אינכם מוצאים את ההודעה"
+    "text": "בדוק את תיקיית הספאם/זבל אם לא מוצא את ההודעה"
   },
   "web.auth.verify.contact_support": {
-    "text": "צרו קשר עם התמיכה אם אתם ממשיכים לחוות בעיות"
+    "text": "צור קשר עם התמיכה אם ממשיכות להיות בעיות"
   },
   "web.auth.verify.missing_key_title": {
     "text": "נדרש קישור אימות"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "אנא השתמשו בקישור האימות שנשלח לכתובת הדואר האלקטרוני שלכם כדי לאמת את החשבון."
+    "text": "אנא השתמש בקישור האימות שנשלח לכתובת הדוא״ל שלך כדי לאמת את החשבון."
   },
   "web.auth.verify.create_new_account": {
     "text": "יצירת חשבון חדש"
@@ -93,25 +93,25 @@
     "text": "סיסמה חדשה"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "אישור סיסמה חדשה"
+    "text": "אשר סיסמה חדשה"
   },
   "web.auth.change_password.success": {
-    "text": "הסיסמה שלכם שונתה בהצלחה"
+    "text": "הסיסמה שלך שונתה בהצלחה"
   },
   "web.auth.change_password.error": {
-    "text": "שינוי הסיסמה נכשל. אנא ודאו את הסיסמה הנוכחית ונסו שוב."
+    "text": "שינוי הסיסמה נכשל. אנא ודא את הסיסמה הנוכחית שלך ונסה שוב."
   },
   "web.auth.close_account.title": {
     "text": "סגירת חשבון"
   },
   "web.auth.close_account.warning": {
-    "text": "פעולה זו אינה ניתנת לביטול. כל הסודות שלכם יימחקו לצמיתות."
+    "text": "לא ניתן לבטל פעולה זו. כל הסודות שלך יימחקו לצמיתות."
   },
   "web.auth.close_account.confirm": {
     "text": "אני מבין שפעולה זו היא לצמיתות"
   },
   "web.auth.close_account.password": {
-    "text": "הכניסו את הסיסמה לאישור"
+    "text": "הזן את הסיסמה שלך לאישור"
   },
   "web.auth.close_account.button": {
     "text": "סגירת חשבון לצמיתות"
@@ -123,43 +123,43 @@
     "text": "בקשת איפוס סיסמה"
   },
   "web.auth.password_reset_request.description": {
-    "text": "הזינו את כתובת הדואר האלקטרוני שלכם למטה ונשלח לכם קישור לאיפוס הסיסמה"
+    "text": "הזן את כתובת הדוא״ל שלך למטה ונשלח לך קישור לאיפוס הסיסמה"
   },
   "web.auth.password_reset_request.button": {
-    "text": "שליחת קישור איפוס"
+    "text": "שלח קישור איפוס"
   },
   "web.auth.password_reset.title": {
-    "text": "בחירת סיסמה חדשה"
+    "text": "בחר סיסמה חדשה"
   },
   "web.auth.password_reset.description": {
-    "text": "אנא הזינו את הסיסמה החדשה למטה. וודאו שהיא חזקה וייחודית כדי להגן על החשבון שלכם."
+    "text": "אנא הזן את הסיסמה החדשה שלך למטה. ודא שהיא חזקה וייחודית כדי להגן על החשבון שלך."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "הודעה נשלחה אליכם עם קישור לאיפוס הסיסמה של החשבון שלכם"
+    "text": "נשלחה אליך הודעת דוא״ל עם קישור לאיפוס הסיסמה של החשבון שלך"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "אני מסכים/ה ל"
+    "text": "אני מסכים ל-"
   },
   "web.auth.account.title": {
-    "text": "מידע על החשבון"
+    "text": "פרטי חשבון"
   },
   "web.auth.account.email": {
-    "text": "כתובת דואר אלקטרוני"
+    "text": "כתובת דוא״ל"
   },
   "web.auth.account.created": {
     "text": "החשבון נוצר"
   },
   "web.auth.account.verified": {
-    "text": "דואר אלקטרוני אומת"
+    "text": "דוא״ל מאומת"
   },
   "web.auth.account.region": {
     "text": "אזור"
   },
   "web.auth.account.not_verified": {
-    "text": "דואר אלקטרוני לא אומת"
+    "text": "דוא״ל לא מאומת"
   },
   "web.auth.account.verify_email": {
-    "text": "אימות כתובת דואר אלקטרוני"
+    "text": "אמת כתובת דוא״ל"
   },
   "web.auth.account.mfa_status": {
     "text": "אימות דו-שלבי"
@@ -174,7 +174,7 @@
     "text": "סשנים פעילים"
   },
   "web.auth.account.session_count": {
-    "text": "{count} סשנים פעילים"
+    "text": "{count} סשן(ים) פעילים"
   },
   "web.auth.account.quick_actions": {
     "text": "פעולות מהירות"
@@ -190,5 +190,80 @@
   },
   "web.auth.account.close_account": {
     "text": "סגירת חשבון"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "תהליך אימות דוא״ל לאחר הרשמה"
+  },
+  "web.help.title": {
+    "text": "עזרה ותמיכה"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "פתרון בעיות התחברות"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "קישור הקסם לא מגיע?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "בדוק את תיקיית הספאם או הזבל שלך"
+  },
+  "web.help.check_email_spelling": {
+    "text": "ודא שהזנת את כתובת הדוא״ל שלך נכון"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "המתן כמה דקות - לפעמים יש עיכוב בהודעות דוא״ל"
+  },
+  "web.help.try_again": {
+    "text": "נסה לבקש קישור חדש אם עברו יותר מ-10 דקות"
+  },
+  "web.help.forgot_password": {
+    "text": "שכחת את הסיסמה שלך?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "השתמש באפשרות קישור הקסם כדי להתחבר ללא סיסמה. לאחר ההתחברות, תוכל לשנות את הסיסמה שלך בהגדרות החשבון."
+  },
+  "web.help.account_locked": {
+    "text": "החשבון ננעל זמנית?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "לאחר מספר ניסיונות התחברות כושלים, חשבונות ננעלים זמנית לצורכי אבטחה. המתן 15 דקות ונסה שוב, או השתמש בקישור הקסם כדי להתחבר."
+  },
+  "web.help.still_need_help": {
+    "text": "עדיין צריך עזרה?"
+  },
+  "web.help.contact_us_description": {
+    "text": "אם עדיין יש לך בעיות, אנחנו כאן לעזור. שלח לנו הודעה ונחזור אליך בהקדם האפשרי."
+  },
+  "web.help.contact_support": {
+    "text": "צור קשר עם התמיכה"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "שלח קישור התחברות"
+  },
+  "web.login.secure_link_helper": {
+    "text": "קישור מאובטח יישלח לתיבת הדוא״ל שלך."
+  },
+  "web.login.or_divider": {
+    "text": "או"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "התחבר עם סיסמה"
+  },
+  "web.login.use_passwordless": {
+    "text": "השתמש בהתחברות ללא סיסמה"
+  },
+  "web.login.create_account": {
+    "text": "יצירת חשבון"
+  },
+  "web.login.return_home": {
+    "text": "חזרה לדף הבית"
+  },
+  "web.login.tab_password": {
+    "text": "סיסמה"
+  },
+  "web.login.tab_magic_link": {
+    "text": "קישור קסם"
+  },
+  "web.login.need_help": {
+    "text": "צריך עזרה?"
   }
 }

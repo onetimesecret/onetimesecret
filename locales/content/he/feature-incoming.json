@@ -9,19 +9,19 @@
     "text": "טוען..."
   },
   "incoming.config_error_title": {
-    "text": "טעינת התצורה נכשלה"
+    "text": "נכשל בטעינת התצורה"
   },
   "incoming.feature_disabled_title": {
-    "text": "התכונה אינה זמינה"
+    "text": "התכונה לא זמינה"
   },
   "incoming.feature_disabled_description": {
-    "text": "תכונה זו מושבתת כרגע. אנא פנה לתמיכה לקבלת סיוע."
+    "text": "תכונה זו מושבתת כרגע. אנא צור קשר עם התמיכה לקבלת סיוע."
   },
   "incoming.memo_label": {
     "text": "תזכורת"
   },
   "incoming.memo_placeholder": {
-    "text": "תיאור קצר (לדוגמה: בקשה לאיפוס סיסמה)"
+    "text": "תיאור קצר (לדוגמה, בקשת איפוס סיסמה)"
   },
   "incoming.memo_hint": {
     "text": "עזור לנו לנתב את ההודעה שלך לאדם הנכון"
@@ -33,10 +33,10 @@
     "text": "בחר נמען"
   },
   "incoming.recipient_aria_label": {
-    "text": "בחר נמען עבור סוד זה"
+    "text": "בחר נמען לסוד זה"
   },
   "incoming.recipient_hint": {
-    "text": "בחר מי יקבל הודעה מאובטחת זו"
+    "text": "בחר מי יקבל את ההודעה המאובטחת הזו"
   },
   "incoming.no_recipients_available": {
     "text": "אין נמענים זמינים"
@@ -45,10 +45,10 @@
     "text": "מידע סודי"
   },
   "incoming.secret_content_placeholder": {
-    "text": "הדבק כאן מידע רגיש (סיסמאות, מפתחות וכו')"
+    "text": "הדבק מידע רגיש כאן (סיסמאות, מפתחות וכו׳)"
   },
   "incoming.secret_content_hint": {
-    "text": "מידע זה יוצפן וניתן יהיה לצפות בו פעם אחת בלבד"
+    "text": "מידע זה יוצפן וניתן יהיה לצפות בו רק פעם אחת"
   },
   "incoming.submit_button": {
     "text": "שלח סוד"
@@ -75,13 +75,13 @@
     "text": "ההודעה המאובטחת שלך נמסרה."
   },
   "incoming.reference_id": {
-    "text": "מזהה אסמכתא"
+    "text": "מספר אסמכתא"
   },
   "incoming.success_info_title": {
     "text": "מה קורה עכשיו?"
   },
   "incoming.success_info_description": {
-    "text": "הנמען יוכל לצפות בסוד זה פעם אחת בלבד. לאחר הצפייה, הסוד יימחק לצמיתות."
+    "text": "הנמען יוכל לצפות בסוד זה רק פעם אחת. לאחר שיצפה בו, הסוד יימחק לצמיתות."
   },
   "incoming.create_another": {
     "text": "שלח סוד נוסף"
@@ -90,10 +90,10 @@
     "text": "שתף מידע רגיש בצורה מאובטחת"
   },
   "incoming.tagline2": {
-    "text": "שמור על סיסמאות ונתונים פרטיים מחוץ לאימיילים ויומני צ'אט"
+    "text": "הרחק סיסמאות ונתונים פרטיים מיומני הדוא״ל והצ׳אט"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "שמור את <a href='{receiptUrl}'>האישור</a> שלך לרישומים שלך."
+    "text": "שמור את ה{receipt} שלך לרישומיך."
   },
   "incoming.receipt_link_text": {
     "text": "קבלה"

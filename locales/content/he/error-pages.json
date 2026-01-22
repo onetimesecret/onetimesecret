@@ -6,31 +6,31 @@
     "text": "סודות מתוכננים לצפייה פעם אחת בלבד. קישור זה אולי כבר נצפה, פג תוקפו, או נמחק ידנית על ידי השולח."
   },
   "web.errors.what_should_i_do_now": {
-    "text": "מה אני צריך לעשות עכשיו?"
+    "text": "מה עליי לעשות עכשיו?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
     "text": "צרו קשר עם האדם ששלח לכם קישור זה ובקשו ממנו ליצור סוד חדש. יידעו אותם שלא הצלחתם לגשת למידע המקורי."
   },
   "web.errors.warning_dismissed": {
-    "text": "האזהרה נדחתה"
+    "text": "האזהרה נסגרה"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "דחיית אזהרת קיצוץ"
+    "text": "סגור אזהרת קיצור"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "אופס! העמוד שאתם מחפשים לא קיים או הועבר."
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - העמוד לא נמצא"
+    "text": "404 - הדף לא נמצא"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - העמוד לא נמצא"
+    "text": "404 - הדף לא נמצא"
   },
   "web.errors.dismiss_warning": {
-    "text": "דחיית אזהרה"
+    "text": "סגור אזהרה"
   },
   "web.errors.dismiss_notification": {
-    "text": "דחיית הודעה"
+    "text": "סגור התראה"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "אם אינכם בטוחים מה לעשות הלאה, אנא צרו קשר עם האדם ששלח לכם קישור זה למידע נוסף."
@@ -45,7 +45,7 @@
     "text": "{0} משהו השתבש"
   },
   "web.errors.go_share_a_secret": {
-    "text": "לכו לשתף סוד!"
+    "text": "לך לשתף סוד!"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "העמוד שאתם מחפשים לא קיים או הועבר. אל דאגה, זה קורה לטובים שבנו!"

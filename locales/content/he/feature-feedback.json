@@ -1,18 +1,18 @@
 {
   "web.feedback.your_feedback": {
-    "text": "המשוב שלכם"
+    "text": "המשוב שלך"
   },
   "web.feedback.all_feedback_welcome": {
     "text": "כל משוב מתקבל בברכה!"
   },
   "web.feedback.help_us_improve": {
-    "text": "עזרו לנו להשתפר"
+    "text": "עזור לנו להשתפר"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "סגירת חלון משוב"
+    "text": "סגור חלון משוב"
   },
   "web.feedback.share_your_feedback": {
-    "text": "שתפו את המשוב שלכם"
+    "text": "שתף את המשוב שלך"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "תוכן עזרה נמצא כאן."
+    "text": "תוכן העזרה יופיע כאן."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "תודה על העזרה ב-Onetime Secret להשתפר. זה אומר הרבה."
@@ -36,12 +36,18 @@
     "text": "הערה מ-Delano, מייסד Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "פתיחת טופס משוב"
+    "text": "פתח טופס משוב"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "הזינו את המשוב שלכם"
+    "text": "הזן את המשוב שלך"
   },
   "web.feedback.send_feedback": {
-    "text": "שליחת משוב"
+    "text": "שלח משוב"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "אני קורא כל משוב שמגיע לכאן. כך אני מבין על מה להשקיע זמן."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "אם משהו לא בסדר, או שיש לך רעיונות איך זה צריך לעבוד, זה המקום הנכון."
   }
 }
