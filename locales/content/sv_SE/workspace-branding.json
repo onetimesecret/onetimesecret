@@ -12,7 +12,7 @@
     "text": "Teckensnittsfamilj"
   },
   "web.branding.corner_style": {
-    "text": "Hörnstil"
+    "text": "Hörnstyling"
   },
   "web.branding.brand_color": {
     "text": "Varumärkesfärg"
@@ -21,7 +21,7 @@
     "text": "Förhandsgranskning av mottagarens vy när de öppnar din säkra länk"
   },
   "web.branding.preview_and_customize": {
-    "text": "Förhandsgranska & Anpassa"
+    "text": "Förhandsgranska och anpassa"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Byt till Safari-webbläsarvy"
@@ -45,7 +45,7 @@
     "text": "Använd din telefon för att skanna QR-koden"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontakta onboarding{'@'}example.com med eventuella frågor"
+    "text": "Kontakta onboarding{'@'}example.com vid frågor"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Dessa instruktioner visas för mottagare innan de avslöjar hemlighetens innehåll"
@@ -54,10 +54,10 @@
     "text": "Dessa instruktioner visas för mottagare efter att de avslöjat hemligheten"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruktioner före avslöjande"
+    "text": "Instruktioner före visning"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruktioner efter avslöjande"
+    "text": "Instruktioner efter visning"
   },
   "web.branding.instructions": {
     "text": "Instruktioner"
@@ -72,13 +72,13 @@
     "text": "Ladda upp logotyp"
   },
   "web.branding.loading_preview": {
-    "text": "Laddar förhandsgranskning..."
+    "text": "Laddar förhandsvisning..."
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Förhandsgranska hur mottagare kommer att se dina hemligheter genom att testa knappen \"Visa hemlighet\""
   },
   "web.branding.eye_icon": {
-    "text": "Ögonikon"
+    "text": "Ögonikonen"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
     "text": "Klicka på förhandsgranskningsbilden nedan för att uppdatera din logotyp (minst 128x128 pixlar rekommenderas, max 1MB)"
@@ -99,30 +99,30 @@
     "text": "Kunde inte ladda varumärkesinställningar"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Detta är en interaktiv förhandsgranskning av hur mottagare kommer att se dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsgranskningen med knappen \"Visa hemlighet\""
+    "text": "Detta är en interaktiv förhandsvisning av hur mottagare ser dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsvisningen med knappen \"Visa hemlighet\""
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Detta är en interaktiv förhandsgranskning av hur mottagare kommer att se dina säkra meddelanden. Du kan: - Anpassa färger och teckensnitt med kontrollerna ovan - Ladda upp en logotyp (minst 128x128 pixlar rekommenderas, max 1MB) - Testa förhandsgranskningen med knappen \"Visa hemlighet\""
   },
   "web.branding.default_logo_icon": {
-    "text": "Standardlogotypikon"
+    "text": "Japanskt kanji '秘' (himitsu) som betyder 'hemlighet' eller 'konfidentiellt'"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Drivs av Onetime Secret"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Logotyp"
+    "text": "{0}-logotyp"
   },
   "web.branding.edge": {
     "text": "Edge"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Byt till Edge-förhandsgranskning"
+    "text": "Byt till Edge-förhandsvisning"
   },
   "web.branding.safari": {
     "text": "Safari"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Byt till Safari-förhandsgranskning"
+    "text": "Byt till Safari-förhandsvisning"
   }
 }

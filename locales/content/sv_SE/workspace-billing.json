@@ -9,22 +9,22 @@
     "text": "Teamhantering kräver Identity Plus eller högre"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Behöver du anpassade domäner?"
+    "text": "Egna domäner kräver Identity Plus eller högre"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Behöver du API-åtkomst?"
+    "text": "API-åtkomst kräver Identity Plus eller högre"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Behöver du granskningsloggar?"
+    "text": "Granskningsloggar kräver Multi-Team-plan eller högre"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Hantera prenumeration och fakturering"
+    "text": "Hantera din prenumeration, organisationer och faktureringsinställningar"
   },
   "web.billing.overview.title": {
     "text": "Faktureringsöversikt"
   },
   "web.billing.overview.description": {
-    "text": "Hantera din prenumeration och faktureringsuppgifter"
+    "text": "Visa och hantera din prenumeration och betalningsuppgifter"
   },
   "web.billing.overview.organization_selector": {
     "text": "Välj organisation"
@@ -54,7 +54,7 @@
     "text": "Uppgradera plan"
   },
   "web.billing.overview.change_plan": {
-    "text": "Byt plan"
+    "text": "Ändra plan"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Ingen betalningsmetod registrerad"
@@ -63,22 +63,22 @@
     "text": "Ingen kommande fakturering"
   },
   "web.billing.overview.days_remaining": {
-    "text": "{count} dagar kvar"
+    "text": "dagar kvar"
   },
   "web.billing.overview.billing_on": {
-    "text": "Faktureras den"
+    "text": "Fakturering {date}"
   },
   "web.billing.overview.view_plans_action": {
     "text": "Visa planer"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Jämför tillgängliga planer"
+    "text": "Jämför och uppgradera"
   },
   "web.billing.overview.view_invoices_action": {
     "text": "Visa fakturor"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Granska din faktureringshistorik"
+    "text": "Ladda ner historik"
   },
   "web.billing.overview.manage_billing_action": {
     "text": "Hantera fakturering"
@@ -90,7 +90,7 @@
     "text": "Inga organisationer"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Du har inte skapat några organisationer ännu"
+    "text": "Skapa en organisation för att hantera din fakturering och prenumeration"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Skapa hemligheter"
@@ -102,22 +102,22 @@
     "text": "API-åtkomst"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Anpassade domäner"
+    "text": "Egna domäner"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Anpassade sekretessinställningar"
+    "text": "Anpassade integritetsinställningar"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Förlängd standardutgång"
+    "text": "Förlängd standardutgångstid"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
     "text": "Anpassade e-postinställningar"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Anpassat varumärke"
+    "text": "Egen varumärkesprofil"
   },
   "web.billing.overview.entitlements.branded_homepage": {
-    "text": "Varumärkt hemsida"
+    "text": "Varumärkesprofilerad startsida"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Inkommande hemligheter"
@@ -135,7 +135,7 @@
     "text": "Granskningsloggar"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On"
+    "text": "Enkel inloggning"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Prioriterad support"
@@ -150,16 +150,16 @@
     "text": "Inga funktioner tillgängliga"
   },
   "web.billing.plans.title": {
-    "text": "Planer"
+    "text": "Välj en plan"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Välj plan"
+    "text": "Välj den plan som passar dina behov"
   },
   "web.billing.plans.subtitle": {
     "text": "Välj den perfekta planen för din organisation"
   },
   "web.billing.plans.current": {
-    "text": "Nuvarande"
+    "text": "Nuvarande plan"
   },
   "web.billing.plans.current_badge": {
     "text": "Nuvarande"
@@ -177,16 +177,16 @@
     "text": "Årligen"
   },
   "web.billing.plans.per_month": {
-    "text": "per månad"
+    "text": "/månad"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Spara med årlig betalning"
+    "text": "Spara {percent}% med årlig fakturering"
   },
   "web.billing.plans.free_plan": {
-    "text": "Gratis plan"
+    "text": "Gratis"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Enskilt team"
+    "text": "Ett team"
   },
   "web.billing.plans.multi_team_plan": {
     "text": "Flera team"
@@ -231,10 +231,10 @@
     "text": "{count} medlem per team | {count} medlemmar per team"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Obegränsat antal team"
+    "text": "Obegränsade team"
   },
   "web.billing.plans.unlimited_members": {
-    "text": "Obegränsat antal medlemmar per team"
+    "text": "Obegränsade medlemmar per team"
   },
   "web.billing.plans.most_popular": {
     "text": "Mest populär"
@@ -243,10 +243,10 @@
     "text": "Rekommenderad"
   },
   "web.billing.plans.everything_in": {
-    "text": "Allt i {plan}, plus:"
+    "text": "Inkluderar allt i {plan}"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Inga {interval} planer tillgängliga för tillfället."
+    "text": "Inga {interval}-planer tillgängliga just nu."
   },
   "web.billing.plans.change_immediate": {
     "text": "Din plan ändras omedelbart."
@@ -258,16 +258,16 @@
     "text": "Ny plan:"
   },
   "web.billing.plans.credit_label": {
-    "text": "Kredit för outnyttjad tid:"
+    "text": "Kredit för oanvänd tid:"
   },
   "web.billing.plans.next_invoice": {
     "text": "Nästa faktura"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Dina funktionsbegränsningar uppdateras omedelbart efter planbytet."
+    "text": "Dina funktionsgränser uppdateras omedelbart efter planändringen."
   },
   "web.billing.plans.change_failed": {
-    "text": "Planbytet misslyckades. Försök igen."
+    "text": "Planändring misslyckades. Försök igen."
   },
   "web.billing.plans.confirm_upgrade": {
     "text": "Bekräfta uppgradering"
@@ -276,19 +276,19 @@
     "text": "Bekräfta nedgradering"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Uppgradera till"
+    "text": "Uppgradera till {plan}?"
   },
   "web.billing.plans.downgrade_to": {
     "text": "Nedgradera till {plan}?"
   },
   "web.billing.invoices.title": {
-    "text": "Fakturor"
+    "text": "Faktureringshistorik"
   },
   "web.billing.invoices.view_history": {
-    "text": "Visa historik"
+    "text": "Visa din faktureringshistorik och ladda ner fakturor"
   },
   "web.billing.invoices.invoice_date": {
-    "text": "Fakturadatum"
+    "text": "Datum"
   },
   "web.billing.invoices.invoice_amount": {
     "text": "Belopp"
@@ -300,7 +300,7 @@
     "text": "Ladda ner"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "Inga fakturor hittades"
+    "text": "Inga fakturor ännu"
   },
   "web.billing.invoices.paid": {
     "text": "Betald"
@@ -309,28 +309,28 @@
     "text": "Väntande"
   },
   "web.billing.invoices.failed": {
-    "text": "Misslyckades"
+    "text": "Misslyckad"
   },
   "web.billing.invoices.load_error": {
     "text": "Kunde inte ladda fakturor"
   },
   "web.billing.notices.org_managed": {
-    "text": "Fakturering hanteras av din organisation"
+    "text": "Fakturering hanteras av {orgName}"
   },
   "web.billing.notices.view_org_billing": {
     "text": "Visa organisationens fakturering"
   },
   "web.billing.limits.members_reached": {
-    "text": "Medlemsgräns uppnådd"
+    "text": "Du har nått medlemsgränsen för detta team"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Uppgradera för fler medlemmar"
+    "text": "Uppgradera för att lägga till fler medlemmar"
   },
   "web.billing.subscription.title": {
     "text": "Prenumeration"
   },
   "web.billing.subscription.status": {
-    "text": "Status"
+    "text": "Prenumerationsstatus"
   },
   "web.billing.subscription.active": {
     "text": "Aktiv"
@@ -351,13 +351,13 @@
     "text": "Faktureringsportal"
   },
   "web.billing.portal.description": {
-    "text": "Hantera din prenumeration och betalningsuppgifter"
+    "text": "Hantera din prenumeration, betalningsmetoder och faktureringshistorik"
   },
   "web.billing.portal.open_portal": {
-    "text": "Öppna portal"
+    "text": "Öppna faktureringsportal"
   },
   "web.billing.portal.redirecting": {
-    "text": "Omdirigerar..."
+    "text": "Omdirigerar till faktureringsportalen..."
   },
   "web.billing.start_today": {
     "text": "Börja idag"
@@ -369,10 +369,10 @@
     "text": "per månad"
   },
   "web.billing.full_api_access": {
-    "text": "Fullständig API-åtkomst"
+    "text": "Full API-åtkomst"
   },
   "web.billing.privacy_first_design": {
-    "text": "Integritetsfokuserad design"
+    "text": "Integritet i första hand"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus"
@@ -402,13 +402,13 @@
     "text": "Uppgradera till"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Uppgradera för secrets.yourdomain.com"
+    "text": "Uppgradera för secrets.dindomän.se"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Alla planer inkluderar integritetsfunktioner och obegränsad delningskapacitet"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Alla planer inkluderar val av datalokalitet: {0} regioner"
+    "text": "Alla planer inkluderar val av dataplacering: {0} regioner"
   },
   "web.billing.get_started": {
     "text": "Kom igång"
@@ -426,9 +426,198 @@
     "text": "Säkra ditt varumärke och bygg kundförtroende med länkar från din domän. Perfekt för företag som värdesätter integritet och professionalism."
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Säkra länkar, starkare kopplingar"
+    "text": "Säkra länkar, starkare relationer"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "Identity-nivå hittades inte i produktnivåer"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Avsluta prenumeration"
+  },
+  "web.billing.cancel.title": {
+    "text": "Avsluta prenumeration"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Är du säker på att du vill avsluta din {plan}-prenumeration?"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Vad som händer när du avslutar:"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Du behåller åtkomst till alla funktioner till {date}"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Du behåller åtkomst till slutet av din nuvarande faktureringsperiod"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Du debiteras inte igen"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Ditt konto återgår till gratisplanen"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Behåll prenumeration"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Avsluta prenumeration"
+  },
+  "web.billing.cancel.success": {
+    "text": "Din prenumeration har avslutats. Du behåller åtkomst till slutet av din faktureringsperiod."
+  },
+  "web.billing.cancel.error": {
+    "text": "Kunde inte avsluta prenumeration. Försök igen."
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Avslutning av prenumeration schemalagd"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Din prenumeration förblir aktiv till {date}. Du fortsätter ha full åtkomst till alla funktioner till dess."
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Ångrat dig? Du kan återaktivera din prenumeration när som helst innan avslutningsdatumet."
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Skapa och dela hemligheter"
+  },
+  "web.billing.features.api_access": {
+    "text": "API-åtkomst"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Egna domäner"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 egen domän"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Obegränsade egna domäner"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Egen varumärkesprofil"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Varumärkesprofilerad startsida"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Teamhantering"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Medlemshantering"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Granskningsloggar"
+  },
+  "web.billing.features.sso": {
+    "text": "Enkel inloggning (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Prioriterad support"
+  },
+  "web.billing.features.sla": {
+    "text": "Servicenivåavtal"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Centraliserad fakturering"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Granskningsspår"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Aktivitetsflöde"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Överlämningsarbetsflöden"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30 dagars hemlighetslagring"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Startsidehemligheter"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Inkommande hemligheter"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Upp till 5 teammedlemmar"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Upp till 10 teammedlemmar"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Upp till 25 teammedlemmar"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Upp till 50 teammedlemmar"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Obegränsat antal teammedlemmar"
+  },
+  "web.billing.features.notifications": {
+    "text": "E-postaviseringar"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP-åtkomstregler"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Arbetsytans varumärkesprofil"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dedikerad infrastruktur"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Delade arbetsflöden"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Fakturering för denna organisation"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Din plan har uppgraderats"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Din nya plan är nu aktiv. Tack för ditt köp."
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Faktureringskontakt"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Startsidehemligheter"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-postaviseringar"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP-åtkomstregler"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Arbetsytans varumärkesprofil"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Att betala idag:"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Nästa fakturering ({date}):"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Hur din kredit tillämpas:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Nästa fakturabelopp:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Tillgodokredit:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Belopp att betala vid nästa fakturering:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Återstående kontokredit:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Tillämpas på framtida fakturor"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Teamanvändning"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} av {limit} team"
   }
 }

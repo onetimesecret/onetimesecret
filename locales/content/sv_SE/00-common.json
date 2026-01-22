@@ -3,15 +3,13 @@
     "text": "Sändning"
   },
   "web.COMMON.tagline": {
-    "text": "Dela säkert, en gång."
+    "text": "Säkra länkar som bara fungerar en gång"
   },
   "web.COMMON.powered_by": {
     "text": "Drivs av"
   },
   "web.COMMON.website_url": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+    "text": "https://onetimesecret.com/sv"
   },
   "web.COMMON.button_generate_secret_short": {
     "text": "Generera lösenord"
@@ -20,7 +18,7 @@
     "text": "Generera lösenord är inaktiverat när formuläret är giltigt"
   },
   "web.COMMON.email_placeholder": {
-    "text": "t.ex. tom{'@'}example.com"
+    "text": "t.ex. tom{'@'}myspace.com"
   },
   "web.COMMON.password_placeholder": {
     "text": "Ange ditt lösenord"
@@ -50,34 +48,34 @@
     "text": "Bearbetar..."
   },
   "web.COMMON.description": {
-    "text": "Håll känslig information borta från dina e-post- och chattloggar. Dela en hemlig länk som bara fungerar en gång."
+    "text": "Håll känslig information borta från dina chattloggar och e-post. Dela en hemlig länk som bara är tillgänglig en gång."
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Felaktig lösenfras"
   },
   "web.COMMON.keywords": {
-    "text": "hemlighet, generera slumpmässigt lösenord, dela en hemlighet, engångs"
+    "text": "hemlighet,lösenordsgenerator,dela en hemlighet,engångs"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Skapa hemlig länk"
+    "text": "Skapa en hemlig länk"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "eller generera slumpmässigt lösenord"
+    "text": "Eller generera ett slumpmässigt lösenord"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "Sekretessalternativ"
+    "text": "Integritetsalternativ"
   },
   "web.COMMON.secret_passphrase": {
     "text": "Lösenfras"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "En lösenfras som är svår att gissa"
+    "text": "Ett ord eller en fras som är svår att gissa"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Mottagarens adress"
+    "text": "Mottagaradress"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Skriv din hemlighet här..."
+    "text": "Hemligt innehåll skrivs här..."
   },
   "web.COMMON.header_create_account": {
     "text": "Skapa konto"
@@ -89,13 +87,13 @@
     "text": "Logga in"
   },
   "web.COMMON.header_dashboard": {
-    "text": "Instrumentpanel"
+    "text": "Konto"
   },
   "web.COMMON.header_logout": {
     "text": "Logga ut"
   },
   "web.COMMON.secret": {
-    "text": "Hemlighet"
+    "text": "Hemlighet | Hemligheter"
   },
   "web.COMMON.recent": {
     "text": "Senaste"
@@ -104,37 +102,37 @@
     "text": "Mottagen"
   },
   "web.COMMON.burn": {
-    "text": "Bränn"
+    "text": "Radera permanent"
   },
   "web.COMMON.burned": {
-    "text": "Bränd"
+    "text": "Raderad permanent"
   },
   "web.COMMON.expires_in": {
-    "text": "Utgår om"
+    "text": "Går ut om"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Bränn denna hemlighet"
+    "text": "Radera denna hemlighet permanent"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Att bränna en hemlighet raderar den innan någon har hunnit läsa den (klicka igen om du är säker)."
+    "text": "Permanent radering kommer att ta bort hemligheten innan den har lästs (klicka för att bekräfta)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Att bränna en hemlighet är oåterkalleligt och kan inte ångras."
+    "text": "Permanent radering kan inte ångras"
   },
   "web.COMMON.msg_check_email": {
     "text": "Kontrollera din e-post"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klicka för att fortsätta →"
+    "text": "Klicka för att visa →"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Klicka för att verifiera ditt konto"
+    "text": "Fortsätt för att verifiera ditt konto:"
   },
   "web.COMMON.error_secret": {
-    "text": "Du har inte angett någon hemlighet"
+    "text": "Du angav inget att dela"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Något är fel med lösenfrasen, försök igen"
+    "text": "Dubbelkolla den lösenfrasen"
   },
   "web.COMMON.enter_passphrase_here": {
     "text": "Ange lösenfrasen här"
@@ -143,7 +141,7 @@
     "text": "Visa hemlighet"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Var försiktig, du kan bara se detta EN GÅNG."
+    "text": "Var försiktig: vi visar den bara en gång."
   },
   "web.COMMON.warning": {
     "text": "Varning"
@@ -152,25 +150,25 @@
     "text": "Hoppsan!"
   },
   "web.COMMON.error": {
-    "text": "Ett fel uppstod"
+    "text": "Fel"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Ett oväntat fel inträffade. Försök igen."
+    "text": "Ett oväntat fel uppstod. Vänligen försök igen."
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "det här meddelandet är trunkerat eftersom det var för långt"
+    "text": "Meddelandet blev avkortat"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Registrera dig för fler funktioner"
+    "text": "Registrera dig för mer"
   },
   "web.COMMON.login_to_your_account": {
     "text": "Logga in på ditt konto"
   },
   "web.COMMON.sent_to": {
-    "text": "Skickat till: "
+    "text": "Skickad till:"
   },
   "web.COMMON.field_email": {
-    "text": "E-postadress"
+    "text": "E-post"
   },
   "web.COMMON.field_password": {
     "text": "Lösenord"
@@ -191,10 +189,10 @@
     "text": "Ingen"
   },
   "web.COMMON.word_burned": {
-    "text": "Bränd"
+    "text": "raderad permanent"
   },
   "web.COMMON.word_received": {
-    "text": "Mottagen"
+    "text": "mottagen"
   },
   "web.COMMON.word_confirm": {
     "text": "Bekräfta"
@@ -206,49 +204,49 @@
     "text": "Fortsätt"
   },
   "web.COMMON.word_done": {
-    "text": "Klart"
+    "text": "Klar"
   },
   "web.COMMON.back": {
     "text": "Tillbaka"
   },
   "web.COMMON.feedback_text": {
-    "text": "Har du en fråga eller feedback?"
+    "text": "Dela dina tankar, idéer eller erfarenheter..."
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Skicka feedback"
+    "text": "Skicka återkoppling"
   },
   "web.COMMON.verification_sent_to": {
     "text": "En verifiering skickades till"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Ditt konto har verifierats."
+    "text": "Konto skapat. Vänligen logga in."
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Ditt konto har skapats."
+    "text": "Om ett konto med denna e-postadress finns kommer du att få ett verifieringsmeddelande."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Bränn denna hemlighet permanent"
+    "text": "Radera denna hemlighet permanent"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Vänligen bekräfta"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Är du säker på att du vill bränna denna hemlighet? Denna åtgärd kan inte ångras."
+    "text": "Är du säker på att du vill radera denna hemlighet permanent? Denna åtgärd kan inte ångras."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ja, bränn denna hemlighet"
+    "text": "Ja, radera denna hemlighet permanent"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Att bränna en hemlighet raderar den innan den har mottagits."
+    "text": "Permanent radering kommer att ta bort hemligheten innan den har mottagits."
   },
   "web.COMMON.share_link_securely": {
-    "text": "Av säkerhetsskäl, dela denna länk separat från andra detaljer."
+    "text": "Dela denna länk separat från andra uppgifter av säkerhetsskäl."
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Kopierat till urklipp"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Skapa inkommande hemlighet"
+    "text": "Skapa inkommande"
   },
   "web.COMMON.faq_title": {
     "text": "Vanliga frågor"
@@ -266,10 +264,10 @@
     "text": "Dölj lösenord"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Minst 8 tecken"
+    "text": "Lösenordet måste vara minst 8 tecken"
   },
   "web.COMMON.password_requirements": {
-    "text": "Lösenordet måste vara minst 8 tecken"
+    "text": "Lösenordet måste vara minst 8 tecken långt"
   },
   "web.COMMON.passwords_do_not_match": {
     "text": "Lösenorden matchar inte"
@@ -278,10 +276,10 @@
     "text": "Detta fält är obligatoriskt"
   },
   "web.COMMON.form_processing": {
-    "text": "Bearbetar..."
+    "text": "Bearbetar din förfrågan"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Håll mig inloggad på denna enhet"
+    "text": "Håll mig inloggad i 30 dagar"
   },
   "web.COMMON.redirecting": {
     "text": "Omdirigerar..."
@@ -293,10 +291,10 @@
     "text": "Är du säker?"
   },
   "web.COMMON.danger_zone": {
-    "text": "Farlig zon"
+    "text": "Riskzon"
   },
   "web.COMMON.caution_zone": {
-    "text": "Försiktighetszon"
+    "text": "Zon för noggrant övervägande"
   },
   "web.COMMON.user_menu": {
     "text": "Användarmeny"
@@ -317,7 +315,7 @@
     "text": "Sparar..."
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Lägger till..."
+    "text": "Lägger till"
   },
   "web.COMMON.e_g_example": {
     "text": "t.ex."
@@ -329,13 +327,13 @@
     "text": "Status"
   },
   "web.COMMON.escape": {
-    "text": "Avbryt"
+    "text": "Escape"
   },
   "web.COMMON.active": {
     "text": "Aktiv"
   },
   "web.COMMON.preview": {
-    "text": "Förhandsgranska"
+    "text": "Förhandsgranskning"
   },
   "web.COMMON.remove": {
     "text": "Ta bort"
@@ -344,7 +342,7 @@
     "text": "Tryck ESC för att stänga"
   },
   "web.COMMON.enter": {
-    "text": "Ange"
+    "text": "Enter"
   },
   "web.COMMON.important": {
     "text": "Viktigt"
@@ -374,10 +372,10 @@
     "text": "Månadsvis"
   },
   "web.COMMON.yearly": {
-    "text": "Årligen"
+    "text": "Årlig"
   },
   "web.COMMON.go_on_then": {
-    "text": "Kör på då."
+    "text": "Fortsätt då."
   },
   "web.COMMON.loading_ellipses": {
     "text": "Laddar..."
@@ -395,7 +393,7 @@
     "text": "E-postadress"
   },
   "web.COMMON.switch": {
-    "text": "växla"
+    "text": "byt"
   },
   "web.COMMON.features": {
     "text": "Funktioner"
@@ -419,7 +417,7 @@
     "text": "Annat"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(min-bredd: 1024px)"
+    "text": "(min-width: 1024px)"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter"
@@ -458,7 +456,7 @@
     "text": "Ganska bra"
   },
   "web.COMMON.fair": {
-    "text": "Hyfsad"
+    "text": "Acceptabel"
   },
   "web.COMMON.meh": {
     "text": "Sådär"
@@ -473,7 +471,7 @@
     "text": "Inaktiv"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Ett fel inträffade"
+    "text": "Ett fel uppstod"
   },
   "web.COMMON.copy_secret_to_clipboard": {
     "text": "Kopiera hemlighet till urklipp"
@@ -515,7 +513,7 @@
     "text": "Livslängd"
   },
   "web.LABELS.expiration_time": {
-    "text": "Giltighetstid"
+    "text": "Utgångstid"
   },
   "web.LABELS.close": {
     "text": "Stäng"
@@ -593,7 +591,7 @@
     "text": "gånger visad"
   },
   "web.LABELS.view_progress": {
-    "text": "Visningsförlopp"
+    "text": "Visa förlopp"
   },
   "web.LABELS.help_section": {
     "text": "Hjälpavsnitt"
@@ -602,7 +600,7 @@
     "text": "Skyddad med lösenfras"
   },
   "web.LABELS.feedback_received": {
-    "text": "Feedback mottagen."
+    "text": "Återkoppling mottagen."
   },
   "web.LABELS.sending_ellipses": {
     "text": "Skickar..."
@@ -620,7 +618,7 @@
     "text": "Ladda om"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Hemliga länkar skapade i denna session"
+    "text": "Hemliga länkar skapade under denna session"
   },
   "web.LABELS.create_link_short": {
     "text": "Skapa länk"
@@ -656,19 +654,19 @@
     "text": "Mottagen"
   },
   "web.STATUS.burned": {
-    "text": "Bränd"
+    "text": "Raderad permanent"
   },
   "web.STATUS.destroyed": {
     "text": "Förstörd"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Utgår snart"
+    "text": "Går ut snart"
   },
   "web.STATUS.created": {
     "text": "Skapad"
   },
   "web.STATUS.expires": {
-    "text": "Utgår"
+    "text": "Går ut"
   },
   "web.STATUS.expired": {
     "text": "Utgången"
@@ -701,19 +699,19 @@
     "text": "Hemligheten har avslöjats för mottagaren"
   },
   "web.STATUS.burned_description": {
-    "text": "Hemligheten brändes manuellt innan den visades"
+    "text": "Hemligheten raderades manuellt permanent innan den visades"
   },
   "web.STATUS.destroyed_description": {
     "text": "Hemligheten har förstörts permanent"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Hemligheten kommer snart att utgå"
+    "text": "Hemligheten går ut snart"
   },
   "web.STATUS.orphaned_description": {
     "text": "Hemligheten har övergivits och kommer snart att förstöras"
   },
   "web.STATUS.expired_description": {
-    "text": "Hemligheten utgick innan den visades"
+    "text": "Hemligheten har gått ut innan den visades"
   },
   "web.STATUS.success": {
     "text": "Lyckades"
@@ -731,13 +729,13 @@
     "text": "Inaktiv"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Obegränsade visningar"
+    "text": "Obegränsat antal visningar"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Varumärkesskydd med betrodd domän"
+    "text": "Varumärkning med betrodd domän"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Krypterad under överföring och i vila"
+    "text": "Krypterad under överföring och vid lagring"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}"
@@ -758,19 +756,19 @@
     "text": "---"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} återstår"
+    "text": "{count} {unit} kvar"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "dag återstår | dagar återstår"
+    "text": "dag kvar | dagar kvar"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "timme återstår | timmar återstår"
+    "text": "timme kvar | timmar kvar"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "minut återstår | minuter återstår"
+    "text": "minut kvar | minuter kvar"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "sekund återstår | sekunder återstår"
+    "text": "sekund kvar | sekunder kvar"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---"
@@ -788,10 +786,10 @@
     "text": "{count} minuter kvar"
   },
   "web.TITLES.incoming": {
-    "text": "Inkommande hemlighet"
+    "text": "Inkommande hemligheter"
   },
   "web.TITLES.feedback": {
-    "text": "Feedback"
+    "text": "Återkoppling"
   },
   "web.TITLES.signin": {
     "text": "Logga in"
@@ -806,13 +804,13 @@
     "text": "Återställ lösenord"
   },
   "web.TITLES.logout": {
-    "text": "Logga ut"
+    "text": "Loggar ut"
   },
   "web.TITLES.verify_account": {
     "text": "Verifiera konto"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Verifiera tvåfaktorsautentisering"
+    "text": "Tvåfaktorsautentisering"
   },
   "web.TITLES.email_login": {
     "text": "E-postinloggning"
@@ -824,22 +822,22 @@
     "text": "Hemlighet"
   },
   "web.TITLES.metadata": {
-    "text": "Metadata"
+    "text": "Hemlighetsdetaljer"
   },
   "web.TITLES.receipt": {
-    "text": "Kvitto"
+    "text": "Hemlighetskvitto"
   },
   "web.TITLES.burn_secret": {
-    "text": "Bränn hemlighet"
+    "text": "Radera hemlighet permanent"
   },
   "web.TITLES.dashboard": {
     "text": "Instrumentpanel"
   },
   "web.TITLES.recent": {
-    "text": "Senaste"
+    "text": "Senaste hemligheter"
   },
   "web.TITLES.domains": {
-    "text": "Domäner"
+    "text": "Anpassade domäner"
   },
   "web.TITLES.domain_add": {
     "text": "Lägg till domän"
@@ -848,7 +846,7 @@
     "text": "Verifiera domän"
   },
   "web.TITLES.domain_brand": {
-    "text": "Domänvarumärke"
+    "text": "Varumärkesdomän"
   },
   "web.TITLES.account": {
     "text": "Konto"
@@ -863,16 +861,16 @@
     "text": "Tillgängliga regioner"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Varför datasuveränitet"
+    "text": "Varför datasuveränitet är viktigt"
   },
   "web.TITLES.profile_settings": {
     "text": "Profilinställningar"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Preferensinställningar"
+    "text": "Inställningar"
   },
   "web.TITLES.privacy_settings": {
-    "text": "Sekretessinställningar"
+    "text": "Integritet"
   },
   "web.TITLES.notification_settings": {
     "text": "Aviseringar"
@@ -881,13 +879,13 @@
     "text": "Ändra e-post"
   },
   "web.TITLES.security_overview": {
-    "text": "Säkerhetsöversikt"
+    "text": "Säkerhet"
   },
   "web.TITLES.change_password": {
     "text": "Ändra lösenord"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Inställningar för tvåfaktorsautentisering"
+    "text": "Tvåfaktorsautentisering"
   },
   "web.TITLES.active_sessions": {
     "text": "Aktiva sessioner"
@@ -905,10 +903,10 @@
     "text": "Systeminställningar"
   },
   "web.TITLES.not_found": {
-    "text": "Hittades inte"
+    "text": "Sidan hittades inte"
   },
   "web.TITLES.organizations_settings": {
-    "text": "Organisationsinställningar"
+    "text": "Organisationer"
   },
   "web.TITLES.organization_settings": {
     "text": "Organisationsinställningar"
@@ -929,10 +927,10 @@
     "text": "Använd en annan säker kanal för att dela känslig information"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Var försiktig med oväntade meddelanden. Dela aldrig personlig information om du inte är säker på avsändarens identitet."
+    "text": "Verifiera alltid att du är på den officiella Onetime Secret-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som Onetime Secret för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera regiondomänen innan du skapar nya länkar."
   },
   "web.STATUS.previewed": {
-    "text": "Länk öppnad"
+    "text": "Förhandsgranskad"
   },
   "web.STATUS.revealed": {
     "text": "Avslöjad"
@@ -942,5 +940,65 @@
   },
   "web.STATUS.revealed_description": {
     "text": "Hemligt innehåll har avslöjats för mottagaren"
+  },
+  "web.COMMON.not_set": {
+    "text": "Ej inställt"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Redigera"
+  },
+  "web.COMMON.word_save": {
+    "text": "Spara"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Går ut om"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtrera"
+  },
+  "web.LABELS.clear": {
+    "text": "Rensa"
+  },
+  "web.LABELS.add_note": {
+    "text": "Lägg till anteckning..."
+  },
+  "web.LABELS.edit_note": {
+    "text": "Redigera anteckning"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Lägg till memo..."
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Redigera memo"
+  },
+  "web.TITLES.help": {
+    "text": "Hjälp"
+  },
+  "web.TITLES.pricing": {
+    "text": "Prissättning"
+  },
+  "web.pricing.title": {
+    "text": "Enkel, transparent prissättning"
+  },
+  "web.pricing.subtitle": {
+    "text": "Välj den plan som passar dina behov. Alla planer inkluderar obegränsad hemlighetsdelning och integritetsfokuserad design."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Kom igång gratis"
+  },
+  "web.pricing.start_trial": {
+    "text": "Kom igång"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Har du redan ett konto?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Logga in"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Rekommenderat för dig"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Skapa och dela hemligheter med grundläggande funktioner. Inget kreditkort krävs."
   }
 }

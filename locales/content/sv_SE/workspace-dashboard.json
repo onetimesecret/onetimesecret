@@ -6,15 +6,15 @@
     "text": "Ej mottagen"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Du har inte haft några hemligheter nyligen"
+    "text": "Inga senaste hemligheter"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "Kom igång genom att skapa din första hemlighet."
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Kunde inte ladda team"
+    "text": "Kunde inte ladda data"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Det uppstod ett problem vid laddning av dina team. Försök igen."
+    "text": "Det uppstod ett problem vid laddning av din data. Försök igen."
   }
 }

@@ -1,18 +1,18 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Datasuveränitet"
+    "text": "Datasuveränitet och regional isolering"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Din data stannar i den region du väljer"
+    "text": "Dina data finns uteslutande i din valda region och överförs aldrig mellan regioner"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Varje region är en helt separat miljö"
+    "text": "Varje region fungerar som en helt oberoende miljö med egen infrastruktur, krypteringsnycklar och datalagring"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Ingen data överförs mellan regioner"
+    "text": "Vi upprätthåller en strikt policy: kunddata överförs aldrig mellan regioner under några omständigheter"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Att byta region skapar ett nytt konto"
+    "text": "Viktigt: Att byta till en annan region skapar ett nytt konto. Dina data stannar i din ursprungliga region."
   },
   "web.regions.your_region": {
     "text": "Din region"
@@ -24,34 +24,34 @@
     "text": "Aktiv"
   },
   "web.regions.explore_other_regions": {
-    "text": "Utforska andra regioner"
+    "text": "Utforska andra tillgängliga regioner"
   },
   "web.regions.why_it_matters": {
-    "text": "Varför det spelar roll"
+    "text": "Varför datasuveränitet är viktigt"
   },
   "web.regions.trust_title": {
-    "text": "Förtroende"
+    "text": "Transparens och kontroll"
   },
   "web.regions.trust_description": {
-    "text": "Din data hanteras enligt lokala lagar och förordningar"
+    "text": "Veta exakt var dina data finns och vilka lagar som styr dess skydd."
   },
   "web.regions.privacy_title": {
-    "text": "Integritet"
+    "text": "Integritetsrättigheter"
   },
   "web.regions.privacy_description": {
-    "text": "Data stannar inom juridiska gränser du förstår"
+    "text": "Säkerställ att din personliga information hanteras enligt ditt lands integritetslagar och förordningar, vilket förhindrar obehörig åtkomst eller missbruk."
   },
   "web.regions.compliance_title": {
-    "text": "Efterlevnad"
+    "text": "Regelefterlevnad"
   },
   "web.regions.compliance_description": {
-    "text": "Uppfyll regulatoriska krav för din bransch"
+    "text": "Uppfyll GDPR, HIPAA, CCPA och andra regionala dataskyddskrav"
   },
   "web.regions.performance_title": {
-    "text": "Prestanda"
+    "text": "Snabbare åtkomst"
   },
   "web.regions.performance_description": {
-    "text": "Snabbare åtkomst från datacenter nära dig"
+    "text": "Data lagrad närmare dig innebär lägre latens och bättre prestanda."
   },
   "web.regions.regions": {
     "text": "Regioner"
@@ -96,7 +96,7 @@
     "text": "Okänd jurisdiktion"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Serverar dig från"
+    "text": "Betjänar dig från"
   },
   "web.regions.continue_to_jurisdiction_domain": {
     "text": "Fortsätt till {0}"

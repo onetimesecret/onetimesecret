@@ -3,31 +3,31 @@
     "text": "Läs mer om DNS-konfiguration"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Visa status för domänverifiering"
+    "text": "Visa domänverifieringsstatus"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Domänen finns redan i din organisation"
+    "text": "Denna domän är redan registrerad i din organisation"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Domänen tillhör en annan organisation"
+    "text": "Denna domän är redan registrerad av en annan organisation. Kontakta support om du tror att detta är fel."
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domänen har registrerats"
+    "text": "Domän framgångsrikt hämtad och tillagd i din organisation"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Sekretessinställningar"
+    "text": "Integritetsstandard"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Ställ in standardsekretessalternativ för hemligheter som skapas under denna domän. Dessa inställningar förifylls när nya hemligheter skapas."
+    "text": "Ange standardintegritetsalternativ för hemligheter skapade under denna domän. Dessa inställningar fylls i automatiskt när nya hemligheter skapas."
   },
   "web.domains.privacy_defaults": {
-    "text": "Sekretessinställningar"
+    "text": "Integritetsstandard"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Ikon för sekretessinställningar"
+    "text": "Ikon för integritetsstandard"
   },
   "web.domains.default_ttl_label": {
-    "text": "Standard livslängd"
+    "text": "Standardlivslängd"
   },
   "web.domains.default_ttl_hint": {
     "text": "Hur länge hemligheter ska vara tillgängliga som standard"
@@ -66,10 +66,10 @@
     "text": "Anpassad"
   },
   "web.domains.edit_defaults": {
-    "text": "Redigera standardvärden"
+    "text": "Redigera standardinställningar"
   },
   "web.domains.ttl_short": {
-    "text": "Livslängd"
+    "text": "TTL"
   },
   "web.domains.passphrase_short": {
     "text": "Lösenfras"
@@ -81,7 +81,7 @@
     "text": "Byt domänomfång"
   },
   "web.domains.switcher_locked": {
-    "text": "Domänbyte är inte tillgängligt på denna sida"
+    "text": "Domänbyte ej tillgängligt på denna sida"
   },
   "web.domains.scope_list_label": {
     "text": "Tillgängliga domäner"
@@ -96,7 +96,7 @@
     "text": "Domäninställningar"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Standarddomänen har ingen inställningssida"
+    "text": "Standarddomän har ingen inställningssida"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "Ange ett {0} domännamn"
@@ -108,10 +108,10 @@
     "text": "Kontrollera om användare kan skapa hemliga länkar från din domäns hemsida"
   },
   "web.domains.homepage_access": {
-    "text": "Hemsidesåtkomst"
+    "text": "Startsideåtkomst"
   },
   "web.domains.and_status": {
-    "text": "& Status"
+    "text": "och status"
   },
   "web.domains.domain": {
     "text": "Domän"
@@ -141,10 +141,10 @@
     "text": "Domänstatus"
   },
   "web.domains.custom_domains_count": {
-    "text": "Antal anpassade domäner"
+    "text": "Antal egna domäner"
   },
   "web.domains.custom_domain": {
-    "text": "Anpassad domän"
+    "text": "Egen domän"
   },
   "web.domains.open_domain_in_new_tab": {
     "text": "Öppna domän i ny flik"
@@ -189,22 +189,22 @@
     "text": "och ta bort alla andra A-, AAAA- eller CNAME-poster för exakt den adressen."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", måste du slutföra dessa steg."
+    "text": " måste du slutföra dessa steg."
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Innan vi kan aktivera länkar för"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Observera att för apex-domäner (t.ex.,"
+    "text": "Observera att för apex-domäner (t.ex."
   },
   "web.domains.verify_your_domain": {
     "text": "Verifiera din domän"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "hemligheter.example.com"
+    "text": "secrets.example.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Anpassa din domäns varumärke"
+    "text": "Anpassa ditt domänvarumärke"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Det kan ta några minuter för ditt SSL-certifikat att träda i kraft."
@@ -213,7 +213,7 @@
     "text": "DNS-ändringar kan ta så lite som 60 sekunder -- eller upp till 24 timmar -- att träda i kraft."
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Vänta på propagering"
+    "text": "3. Vänta på spridning"
   },
   "web.domains.value_2": {
     "text": "Värde"
@@ -267,12 +267,36 @@
     "text": "Ta bort domän"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "Domän borttagen."
+    "text": "Domän borttagen"
   },
   "web.domains.failed_to_add_domain": {
     "text": "Kunde inte lägga till domän"
   },
   "web.domains.domain_added_successfully": {
-    "text": "Domän tillagd."
+    "text": "Domän tillagd"
+  },
+  "web.domains.passphrase_set": {
+    "text": "Skyddad"
+  },
+  "web.domains.manage_domains": {
+    "text": "Hantera domäner"
+  },
+  "web.domains.global_defaults": {
+    "text": "Globala standardinställningar"
+  },
+  "web.domains.edit_ttl": {
+    "text": "Redigera livslängdsinställning"
+  },
+  "web.domains.edit_passphrase": {
+    "text": "Redigera lösenfrasskrav"
+  },
+  "web.domains.edit_notify": {
+    "text": "Redigera aviseringsinställning"
+  },
+  "web.domains.configure_dns_records": {
+    "text": "Konfigurera DNS-poster"
+  },
+  "web.domains.dns_widget_description": {
+    "text": "Använd verktyget nedan för att automatiskt upptäcka din DNS-leverantör och få steg-för-steg-instruktioner för att konfigurera din domän."
   }
 }

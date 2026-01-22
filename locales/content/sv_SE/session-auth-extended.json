@@ -1,51 +1,51 @@
 {
   "web.auth.mfa_required": {
-    "text": "Tvåfaktorsautentisering krävs"
+    "text": "MFA-verifiering krävs"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Ange din verifieringskod för att fortsätta"
+    "text": "MFA-verifiering krävs för att komma åt ditt konto"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Slutför verifiering"
+    "text": "Slutför MFA-verifiering"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Autentiseringen misslyckades. Kontrollera dina inloggningsuppgifter och försök igen."
+    "text": "Autentisering misslyckades. Vänligen verifiera dina uppgifter och försök igen."
   },
   "web.auth.security.rate_limited": {
-    "text": "För många försök. Vänligen vänta innan du försöker igen."
+    "text": "För många försök. Vänligen försök igen senare."
   },
   "web.auth.security.session_expired": {
-    "text": "Din session har gått ut. Logga in igen."
+    "text": "Sessionen har gått ut. Vänligen logga in igen."
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Återställningskoden kunde inte verifieras. Kontrollera koden och försök igen."
+    "text": "Återställningskod hittades inte. Vänligen verifiera att du angav den korrekt."
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Denna återställningskod har redan använts. Använd en annan kod."
+    "text": "Denna återställningskod har redan använts. Varje kod kan bara användas en gång."
   },
   "web.auth.security.network_error": {
-    "text": "Ett nätverksfel inträffade. Kontrollera din anslutning och försök igen."
+    "text": "Nätverksfel. Vänligen kontrollera din anslutning och försök igen."
   },
   "web.auth.security.internal_error": {
-    "text": "Ett internt fel inträffade. Försök igen senare."
+    "text": "Ett fel uppstod. Vänligen försök igen."
   },
   "web.auth.methods.password": {
     "text": "Lösenord"
   },
   "web.auth.methods.magicLink": {
-    "text": "Magisk länk"
+    "text": "E-postlänk"
   },
   "web.auth.methods.webauthn": {
-    "text": "Säkerhetsnyckel"
+    "text": "Biometrisk"
   },
   "web.auth.magicLink.title": {
-    "text": "Logga in med e-postlänk"
+    "text": "Logga in med e-post"
   },
   "web.auth.magicLink.description": {
-    "text": "Vi skickar en säker inloggningslänk till din e-post"
+    "text": "Vi skickar dig en säker inloggningslänk"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Ange din e-postadress"
+    "text": "Ange din e-post"
   },
   "web.auth.magicLink.sendLink": {
     "text": "Skicka inloggningslänk"
@@ -54,88 +54,88 @@
     "text": "Kontrollera din e-post"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Länk skickad till"
+    "text": "Vi skickade en inloggningslänk till {email}"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Länken går ut om {time}"
+    "text": "Denna länk går ut om 15 minuter"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Prova annan e-postadress"
+    "text": "Prova en annan e-post"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Inget lösenord behövs"
+    "text": "Inget lösenord behövs — klicka bara på länken i din e-post"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Nätverksfel. Kontrollera din anslutning."
+    "text": "Nätverksfel. Vänligen försök igen."
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Kunde inte skicka länk. Försök igen."
+    "text": "Det gick inte att skicka inloggningslänk. Vänligen försök igen."
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Ogiltig eller utgången länk"
+    "text": "Ogiltig eller saknad inloggningslänk"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Inloggningen misslyckades. Försök igen."
+    "text": "Inloggningen misslyckades. Vänligen försök igen."
   },
   "web.auth.magicLink.signingYouIn": {
     "text": "Loggar in dig..."
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Vänta..."
+    "text": "Vänligen vänta medan vi verifierar din länk"
   },
   "web.auth.magicLink.error": {
-    "text": "Ett fel inträffade"
+    "text": "Autentiseringsfel"
   },
   "web.auth.magicLink.back_to_signin": {
     "text": "Tillbaka till inloggning"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Logga in med säkerhetsnyckel"
+    "text": "Logga in med Face ID / Touch ID"
   },
   "web.auth.webauthn.setup": {
-    "text": "Konfigurera säkerhetsnyckel"
+    "text": "Konfigurera biometrisk inloggning"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "Säkerhetsnycklar stöds inte av denna webbläsare"
+    "text": "Biometrisk autentisering stöds inte i denna webbläsare"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Kräver en modern webbläsare"
+    "text": "Vänligen använd en modern webbläsare som stöder WebAuthn (Chrome, Safari, Firefox eller Edge)"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "Säkerhetsnyckel konfigurerad"
+    "text": "Biometrisk inloggning har aktiverats"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Kunde inte konfigurera säkerhetsnyckel"
+    "text": "Det gick inte att konfigurera biometrisk inloggning"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Autentisering misslyckades"
+    "text": "Biometrisk autentisering misslyckades. Vänligen försök igen."
   },
   "web.auth.webauthn.cancelled": {
-    "text": "Autentisering avbruten"
+    "text": "Autentisering avbröts"
   },
   "web.auth.webauthn.processing": {
-    "text": "Bearbetar..."
+    "text": "Autentiserar..."
   },
   "web.auth.webauthn.description": {
-    "text": "Använd en säkerhetsnyckel för lösenordsfri inloggning"
+    "text": "Använd ditt fingeravtryck, ansikte eller säkerhetsnyckel för att logga in"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Stödda metoder: USB-nyckel, fingeravtryck, ansiktsigenkänning"
+    "text": "Stöder Face ID, Touch ID, Windows Hello och säkerhetsnycklar"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Försök kvar"
+    "text": "Varning: {count} inloggningsförsök kvar"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Kontot är tillfälligt låst"
+    "text": "Kontot är låst på grund av för många misslyckade inloggningsförsök"
   },
   "web.auth.lockout.locked_until": {
-    "text": "Låst till"
+    "text": "Ditt konto är låst till {time}"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Kontakta support för hjälp"
+    "text": "Kontakta supporten om du behöver omedelbar åtkomst"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Prova att återställa ditt lösenord"
+    "text": "Du kan återställa ditt lösenord istället"
   },
   "web.auth.sessions.title": {
     "text": "Aktiva sessioner"
@@ -165,13 +165,13 @@
     "text": "Ta bort"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Ta bort alla"
+    "text": "Logga ut alla andra sessioner"
   },
   "web.auth.sessions.confirm_remove": {
     "text": "Är du säker på att du vill ta bort denna session?"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Är du säker på att du vill ta bort alla andra sessioner?"
+    "text": "Detta kommer att logga ut dig från alla andra enheter. Är du säker?"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Inga andra aktiva sessioner"
@@ -180,37 +180,37 @@
     "text": "Session borttagen"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Alla sessioner borttagna"
+    "text": "Alla andra sessioner har loggats ut"
   },
   "web.auth.sessions.link_title": {
-    "text": "Hantera sessioner"
+    "text": "Aktiva sessioner"
   },
   "web.auth.mfa.title": {
     "text": "Tvåfaktorsautentisering"
   },
   "web.auth.mfa.enabled": {
-    "text": "Aktiverad"
+    "text": "Tvåfaktorsautentisering är aktiverad"
   },
   "web.auth.mfa.disabled": {
-    "text": "Inaktiverad"
+    "text": "Tvåfaktorsautentisering är inaktiverad"
   },
   "web.auth.mfa.enable": {
-    "text": "Aktivera"
+    "text": "Aktivera tvåfaktorsautentisering"
   },
   "web.auth.mfa.disable": {
-    "text": "Inaktivera"
+    "text": "Inaktivera tvåfaktorsautentisering"
   },
   "web.auth.mfa.setup_title": {
     "text": "Konfigurera tvåfaktorsautentisering"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Lägg till ett extra säkerhetslager till ditt konto"
+    "text": "Lägg till ett extra säkerhetslager på ditt konto"
   },
   "web.auth.mfa.step_scan": {
-    "text": "Skanna QR-koden"
+    "text": "1. Skanna QR-kod"
   },
   "web.auth.mfa.step_verify": {
-    "text": "Verifiera koden"
+    "text": "2. Verifiera konfiguration"
   },
   "web.auth.mfa.scan_qr": {
     "text": "Skanna denna QR-kod med din autentiseringsapp"
@@ -219,67 +219,67 @@
     "text": "Eller ange denna kod manuellt"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Verifiera kod"
+    "text": "Ange den 6-siffriga koden från din app"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Ange kod"
+    "text": "Ange autentiseringskod"
   },
   "web.auth.mfa.verify": {
-    "text": "Verifiera"
+    "text": "Verifiera och aktivera"
   },
   "web.auth.mfa.code_required": {
-    "text": "Kod krävs"
+    "text": "Autentiseringskod krävs"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Ogiltig kod. Försök igen."
+    "text": "Ogiltig kod. Koder går ut var 30:e sekund. Prova den senaste koden från din autentiseringsapp."
   },
   "web.auth.mfa.success_enabled": {
-    "text": "Tvåfaktorsautentisering aktiverad"
+    "text": "Tvåfaktorsautentisering har aktiverats"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "Tvåfaktorsautentisering inaktiverad"
+    "text": "Tvåfaktorsautentisering har inaktiverats"
   },
   "web.auth.mfa.require_password": {
-    "text": "Ange ditt lösenord"
+    "text": "Ange ditt lösenord för att inaktivera 2FA"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "Lösenordsbekräftelse"
+    "text": "Lösenord"
   },
   "web.auth.mfa.password_reason": {
-    "text": "För din säkerhet, ange ditt lösenord för att fortsätta"
+    "text": "Bekräfta din identitet för att ändra inställningar för tvåfaktorsautentisering"
   },
   "web.auth.mfa.last_used": {
-    "text": "Senast använd"
+    "text": "Senast använd: {time}"
   },
   "web.auth.mfa.never_used": {
     "text": "Aldrig använd"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Använd återställningskod"
+    "text": "Använd en återställningskod istället"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Tillbaka till kod"
+    "text": "Tillbaka till autentiseringskod"
   },
   "web.auth.mfa.cancel": {
-    "text": "Avbryt"
+    "text": "Avbryt och återgå till inloggning"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Laddar status..."
+    "text": "Laddar MFA-status..."
   },
   "web.auth.mfa.protected_description": {
     "text": "Ditt konto är skyddat med tvåfaktorsautentisering"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Aktivera tvåfaktorsautentisering för extra säkerhet"
+    "text": "Skydda ditt konto med ett extra säkerhetslager"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Förhindra obehörig åtkomst"
+    "text": "Förhindra obehörig åtkomst även om ditt lösenord är komprometterat"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Fungerar med vanliga autentiseringsappar"
+    "text": "Fungerar med Google Authenticator, Authy och andra TOTP-appar"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Återställningskoder för nödsituationer"
+    "text": "Återställningskoder för nödåtkomst"
   },
   "web.auth.mfa.password_placeholder": {
     "text": "Ange ditt lösenord"
@@ -288,49 +288,49 @@
     "text": "Inaktiverar..."
   },
   "web.auth.mfa.disable_button": {
-    "text": "Inaktivera tvåfaktorsautentisering"
+    "text": "Inaktivera 2FA"
   },
   "web.auth.mfa.generating_qr": {
     "text": "Genererar QR-kod..."
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Stödda appar: Google Authenticator, Authy, 1Password"
+    "text": "Använd Google Authenticator, Authy eller någon TOTP-app"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Fortsätt med verifiering"
+    "text": "Fortsätt till verifiering"
   },
   "web.auth.mfa.enter_code_description": {
     "text": "Ange den 6-siffriga koden från din autentiseringsapp"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Aktivera och fortsätt"
+    "text": "Aktivera MFA"
   },
   "web.auth.mfa.complete_setup": {
     "text": "Slutför konfiguration"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Ange återställningskod"
+    "text": "Ange en av dina återställningskoder"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "Återställningskod"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Ange din återställningskod"
+    "text": "Ange återställningskod"
   },
   "web.auth.mfa.verify_recovery_code": {
     "text": "Verifiera återställningskod"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "6-siffrig kod"
+    "text": "Ange 6-siffrig autentiseringskod"
   },
   "web.auth.mfa.recovery_code_mode_active": {
     "text": "Återställningskodläge aktivt"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Kodläge aktivt"
+    "text": "Autentiseringskodläge aktivt"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Ange alla siffror"
+    "text": "Vänligen ange alla 6 siffror för att fortsätta"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "Siffra {current} av {total}"
@@ -339,10 +339,10 @@
     "text": "Återställningskoder"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Återställningskoder kan användas för att logga in om du förlorar åtkomst till din autentiseringsapp"
+    "text": "Spara dessa koder på en säker plats. Varje kan användas en gång om du förlorar åtkomst till din autentiseringsapp."
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Spara dessa koder på ett säkert ställe. Varje kod kan endast användas en gång."
+    "text": "Dessa koder visas bara en gång"
   },
   "web.auth.recovery_codes.save_required": {
     "text": "Du måste ladda ner eller kopiera dina återställningskoder innan du slutför konfigurationen."
@@ -351,28 +351,28 @@
     "text": "Generera nya koder"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Generera nya koder"
+    "text": "Regenerera koder"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Att generera nya koder ogiltigförklarar alla befintliga koder"
+    "text": "Detta kommer att ogiltigförklara alla befintliga återställningskoder"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Ladda ner"
+    "text": "Ladda ner koder"
   },
   "web.auth.recovery_codes.downloaded": {
     "text": "Återställningskoder nedladdade"
   },
   "web.auth.recovery_codes.print": {
-    "text": "Skriv ut"
+    "text": "Skriv ut koder"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Kopiera"
+    "text": "Kopiera alla koder"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "Kopierad"
+    "text": "Koder kopierade till urklipp"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Kunde inte kopiera koder till urklipp"
+    "text": "Det gick inte att kopiera koder till urklipp"
   },
   "web.auth.recovery_codes.code_used": {
     "text": "Använd"
@@ -381,18 +381,33 @@
     "text": "Oanvänd"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} återstående"
+    "text": "{count} av {limit} återställningskoder kvar"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Varje kod kan bara användas en gång. Generera nya koder om du har få kvar."
+    "text": "Varje kod kan bara användas en gång. Regenerera koder om du har få kvar."
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Inga koder återstår"
+    "text": "Inga återställningskoder kvar"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Nya återställningskoder genererade"
+    "text": "Nya återställningskoder har genererats"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "Hantera återställningskoder"
+    "text": "Återställningskoder"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Verifiera"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Använd återställningskod"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Avbryt inloggning"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SÄKERHETSKRITISKT: Meddelanden förhindrar informationsläckage. Se src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Hanteringssida för användarens inloggade enheter/webbläsare"
   }
 }

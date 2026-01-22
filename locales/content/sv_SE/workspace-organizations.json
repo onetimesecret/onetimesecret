@@ -9,10 +9,10 @@
     "text": "Organisationer"
   },
   "web.organizations.organizations_description": {
-    "text": "Hantera dina organisationer och teammedlemmar"
+    "text": "Hantera dina organisationer"
   },
   "web.organizations.my_organizations": {
-    "text": "Mina organisationer"
+    "text": "Organisationer"
   },
   "web.organizations.manage_organizations": {
     "text": "Hantera organisationer"
@@ -21,13 +21,13 @@
     "text": "Ny organisation"
   },
   "web.organizations.no_organizations": {
-    "text": "Inga organisationer"
+    "text": "Inga organisationer ännu"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Du har inte skapat några organisationer ännu"
+    "text": "Organisationer ger enhetlig fakturering och administration. Kom igång genom att skapa din första organisation."
   },
   "web.organizations.no_description": {
-    "text": "Ingen beskrivning"
+    "text": "Ingen beskrivning angiven"
   },
   "web.organizations.default": {
     "text": "Standard"
@@ -36,10 +36,10 @@
     "text": "Skapa organisation"
   },
   "web.organizations.create_first_organization": {
-    "text": "Skapa din första organisation"
+    "text": "Skapa första organisationen"
   },
   "web.organizations.create_organization_description": {
-    "text": "Organisationer hjälper dig att hantera team och fakturering"
+    "text": "Skapa en ny organisation"
   },
   "web.organizations.create": {
     "text": "Skapa"
@@ -51,28 +51,28 @@
     "text": "Organisationsnamn"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "Ange organisationsnamn"
+    "text": "t.ex. Acme Corporation"
   },
   "web.organizations.display_name": {
-    "text": "Visningsnamn"
+    "text": "Organisationsnamn"
   },
   "web.organizations.description": {
     "text": "Beskrivning"
   },
   "web.organizations.description_placeholder": {
-    "text": "Kort beskrivning av organisationen"
+    "text": "Vad är denna organisation för?"
   },
   "web.organizations.contact_email": {
-    "text": "Kontakt-e-post"
+    "text": "Faktureringsmejl"
   },
   "web.organizations.contact_email_help": {
-    "text": "E-post för faktureringsaviseringar"
+    "text": "Primär kontakt för fakturering och administrativa aviseringar"
   },
   "web.organizations.select_organization": {
-    "text": "Välj organisation"
+    "text": "Välj en organisation"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organisationsbyte är inte tillgängligt på denna sida"
+    "text": "Organisationsbyte ej tillgängligt på denna sida"
   },
   "web.organizations.not_found": {
     "text": "Organisation hittades inte"
@@ -81,10 +81,10 @@
     "text": "Kunde inte ladda organisation"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Kunde inte hämta organisation"
+    "text": "Kunde inte ladda organisation"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Kunde inte hämta organisationer"
+    "text": "Kunde inte ladda organisationer"
   },
   "web.organizations.organization_information": {
     "text": "Organisationsinformation"
@@ -99,13 +99,13 @@
     "text": "Organisationsinställningar"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Hantera inställningar för din organisation"
+    "text": "Uppdatera ditt organisationsnamn och beskrivning"
   },
   "web.organizations.general_settings": {
     "text": "Allmänna inställningar"
   },
   "web.organizations.billing_settings": {
-    "text": "Faktureringsinställningar"
+    "text": "Fakturering och prenumeration"
   },
   "web.organizations.save_changes": {
     "text": "Spara ändringar"
@@ -117,34 +117,34 @@
     "text": "Kunde inte uppdatera organisation"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Fakturering kommer snart"
+    "text": "Faktureringsintegration kommer snart"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Teamfakturering kommer snart att finnas tillgänglig"
+    "text": "Enhetlig fakturerings- och prenumerationshantering blir tillgänglig i en framtida version."
   },
   "web.organizations.about_title": {
     "text": "Om organisationer"
   },
   "web.organizations.about_description": {
-    "text": "Organisationer låter dig hantera team, fakturering och delad konfiguration"
+    "text": "Organisationer ger enhetlig fakturering och administration för centraliserad hantering."
   },
   "web.organizations.single_user_info_title": {
-    "text": "Enskild användare"
+    "text": "Hantera din organisation"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Du kan skapa en organisation för att börja samarbeta med ditt team"
+    "text": "Uppdatera ditt företagsnamn och organisationsdetaljer här. Denna information hjälper till att personalisera ditt konto och kan användas för varumärkesfunktioner i framtiden."
   },
   "web.organizations.getting_started_title": {
-    "text": "Kom igång"
+    "text": "Kom igång med organisationer"
   },
   "web.organizations.getting_started_description": {
-    "text": "Skapa din första organisation för att låsa upp teamfunktioner"
+    "text": "Skapa din första organisation för att hantera din företagsinformation och förbereda för framtida varumärkesfunktioner."
   },
   "web.organizations.page_description": {
     "text": "Hantera dina organisationer och teammedlemmar"
   },
   "web.organizations.tabs.general": {
-    "text": "Allmänt"
+    "text": "Inställningar"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Företagsvarumärke"
@@ -156,25 +156,25 @@
     "text": "Fakturering"
   },
   "web.organizations.danger_zone": {
-    "text": "Farlig zon"
+    "text": "Farozon"
   },
   "web.organizations.delete_organization": {
-    "text": "Ta bort organisation"
+    "text": "Radera organisation"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Att ta bort en organisation är permanent och kan inte ångras"
+    "text": "Detta raderar organisationen permanent. Denna åtgärd kan inte ångras."
   },
   "web.organizations.delete": {
-    "text": "Ta bort"
+    "text": "Radera"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Bekräfta borttagning"
+    "text": "Radera organisation"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Är du säker på att du vill ta bort denna organisation? Alla teammedlemmar kommer att förlora åtkomst."
+    "text": "Är du säker på att du vill radera {name}? Denna åtgärd kan inte ångras."
   },
   "web.organizations.delete_error": {
-    "text": "Kunde inte ta bort organisation"
+    "text": "Kunde inte radera organisation"
   },
   "web.organizations.members.title": {
     "text": "Medlemmar"
@@ -210,19 +210,19 @@
     "text": "Åtgärder"
   },
   "web.organizations.members.no_members": {
-    "text": "Inga medlemmar hittades"
+    "text": "Inga medlemmar ännu. Bjud in teammedlemmar för att komma igång."
   },
   "web.organizations.members.no_members_description": {
     "text": "Denna organisation har inga medlemmar ännu."
   },
   "web.organizations.members.role_updated": {
-    "text": "Medlemsrollen uppdaterades"
+    "text": "Medlemsroll uppdaterad"
   },
   "web.organizations.members.role_update_error": {
     "text": "Kunde inte uppdatera medlemsroll"
   },
   "web.organizations.members.member_removed": {
-    "text": "Medlem borttagen från organisationen"
+    "text": "Medlem borttagen från organisation"
   },
   "web.organizations.members.member_remove_error": {
     "text": "Kunde inte ta bort medlem"
@@ -240,7 +240,7 @@
     "text": "Du kan inte ta bort dig själv från organisationen"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Du kan inte ta bort organisationens ägare"
+    "text": "Du kan inte ta bort organisationsägaren"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "Du har inte behörighet att hantera medlemmar"
@@ -261,7 +261,7 @@
     "text": "Kan hantera medlemmar och de flesta organisationsinställningar"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Grundläggande åtkomst till organisationens resurser"
+    "text": "Grundläggande åtkomst till organisationsresurser"
   },
   "web.organizations.invitations.title": {
     "text": "Organisationsinbjudningar"
@@ -303,13 +303,13 @@
     "text": "Återkalla"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Inbjudan skickades igen"
+    "text": "Inbjudan skickad igen"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Kunde inte skicka inbjudan igen"
+    "text": "Kunde inte skicka om inbjudan"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Inbjudan återkallades"
+    "text": "Inbjudan återkallad"
   },
   "web.organizations.invitations.revoke_error": {
     "text": "Kunde inte återkalla inbjudan"
@@ -321,13 +321,13 @@
     "text": "Inbjuden"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Upphör"
+    "text": "Går ut"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Skickades igen {count} gång"
+    "text": "Skickad igen {count} gång"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Skickades igen {count} gånger"
+    "text": "Skickad igen {count} gånger"
   },
   "web.organizations.invitations.status.pending": {
     "text": "Väntande"
@@ -339,7 +339,7 @@
     "text": "Avböjd"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Upphörd"
+    "text": "Utgången"
   },
   "web.organizations.invitations.roles.member": {
     "text": "Medlem"
@@ -363,27 +363,72 @@
     "text": "Du har blivit inbjuden som"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "Inbjudan accepterades"
+    "text": "Inbjudan accepterad"
   },
   "web.organizations.invitations.accept_error": {
     "text": "Kunde inte acceptera inbjudan"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Inbjudan avböjdes"
+    "text": "Inbjudan avböjd"
   },
   "web.organizations.invitations.decline_error": {
     "text": "Kunde inte avböja inbjudan"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Denna inbjudan har upphört"
+    "text": "Denna inbjudan har gått ut"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Ogiltig eller upphörd inbjudan"
+    "text": "Ogiltig eller utgången inbjudan"
   },
   "web.organizations.invitations.must_sign_in": {
     "text": "Vänligen logga in för att acceptera denna inbjudan"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Laddar inbjudningsdetaljer"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Faktureringsmejl uppdaterad"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Faktureringsmejl kan ändras på sidan Faktureringsöversikt"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} medlem | {count} medlemmar"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domän | {count} domäner"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Uppgradera din plan för att bjuda in teammedlemmar"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Inbjudningar av teammedlemmar kräver en plan med teamhantering. Uppgradera för att lägga till samarbetspartners i din organisation."
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Fel konto"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Denna inbjudan skickades till {invitedEmail}, men du är inloggad som {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Logga in med annat konto"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}d kvar"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}t kvar"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Går snart ut"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Prenumeration"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domäner"
   }
 }

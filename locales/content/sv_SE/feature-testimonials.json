@@ -3,7 +3,7 @@
     "text": "AI-genererat omdöme"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "AI-genererat innehåll för demonstration. Inte från en verklig person eller företag."
+    "text": "AI-genererat innehåll för demonstration. Inte från en faktisk person eller företag."
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5"
@@ -30,7 +30,7 @@
     "text": "Det baserades på innehållet på sidan och representerar inte en verklig person eller företag."
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Artificiell feedback"
+    "text": "Artificiell återkoppling"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
     "text": "Detta innehåll är AI-genererat baserat på innehållet på denna sida och representerar inte en verklig person eller företag."

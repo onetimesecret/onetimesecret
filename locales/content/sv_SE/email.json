@@ -6,25 +6,25 @@
     "text": "En kund har skickat följande information"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} skickade en hemlighet till dig"
+    "text": "%{sender_email} skickade dig en hemlighet"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "skickade en hemlighet till dig:"
+    "text": "skickade dig en hemlighet:"
   },
   "email.secret_link.important_label": {
     "text": "Viktigt:"
   },
   "email.secret_link.link_works_once": {
-    "text": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent."
+    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent."
   },
   "email.secret_link.sent_via": {
-    "text": "Skickat via"
+    "text": "Skickad via"
   },
   "email.welcome.subject": {
-    "text": "Verifiera ditt Onetime Secret-konto"
+    "text": "Välkommen till %{product_name} - Vänligen verifiera din e-post"
   },
   "email.welcome.title": {
-    "text": "Du har blivit inbjuden att gå med i %{product_name}!"
+    "text": "Välkommen till %{product_name}!"
   },
   "email.welcome.verify_prompt": {
     "text": "Vänligen verifiera din e-postadress genom att klicka på länken nedan:"
@@ -39,7 +39,7 @@
     "text": "Delano"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}. Om du inte skapade ett konto kan du lugnt ignorera detta meddelande."
   },
   "email.password_request.subject": {
     "text": "Återställ ditt lösenord (%{display_domain})"
@@ -48,7 +48,7 @@
     "text": "Återställ ditt lösenord"
   },
   "email.password_request.request_notice": {
-    "text": "Vi har mottagit en begäran om att återställa ditt lösenord för %{product_name}."
+    "text": "Vi mottog en begäran om att återställa ditt lösenord för %{product_name}."
   },
   "email.password_request.reset_button": {
     "text": "Återställ lösenord"
@@ -57,7 +57,7 @@
     "text": "Eller kopiera och klistra in denna länk:"
   },
   "email.password_request.ignore_notice": {
-    "text": "Om du inte begärde en lösenordsåterställning kan du ignorera detta e-postmeddelande."
+    "text": "Om du inte begärde en lösenordsåterställning kan du lugnt ignorera detta e-postmeddelande."
   },
   "email.password_request.signature": {
     "text": "Delano"
@@ -84,7 +84,7 @@
     "text": "Denna länk går ut om 15 minuter."
   },
   "email.magic_link.ignore_notice": {
-    "text": "Om du inte begärde denna länk kan du ignorera detta e-postmeddelande."
+    "text": "Om du inte begärde denna länk kan du lugnt ignorera detta e-postmeddelande."
   },
   "email.magic_link.signature": {
     "text": "Delano"
@@ -93,28 +93,28 @@
     "text": "P.S. Detta e-postmeddelande skickades till %{email_address}."
   },
   "email.incoming_secret.subject": {
-    "text": "Du har fått ett hemligt meddelande"
+    "text": "Du har mottagit ett hemligt meddelande"
   },
   "email.incoming_secret.received_message": {
-    "text": "Du har fått ett säkert meddelande:"
+    "text": "Du har mottagit ett säkert meddelande:"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Anteckning:"
+    "text": "Memo:"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Någon har skickat dig ett säkert meddelande via %{display_domain}."
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Klicka på länken nedan för att visa hemligheten:"
+    "text": "För att visa denna hemlighet, klicka på länken nedan:"
   },
   "email.incoming_secret.important_label": {
     "text": "Viktigt:"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent."
+    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent."
   },
   "email.incoming_secret.sent_via": {
-    "text": "Skickat via"
+    "text": "Skickad via"
   },
   "email.secret_revealed.subject": {
     "text": "Din hemlighet har visats"
@@ -141,7 +141,7 @@
     "text": "För att hantera dina aviseringsinställningar:"
   },
   "email.expiration_warning.subject": {
-    "text": "Din hemliga länk går snart ut"
+    "text": "Din hemliga länk går ut snart"
   },
   "email.expiration_warning.expires_in": {
     "text": "Din hemliga länk går ut om %{time_remaining}"
@@ -153,22 +153,22 @@
     "text": "Påminnelse:"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Efter utgångsdatumet raderas hemligheten permanent och kan inte återställas."
+    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent och kan inte återställas."
   },
   "email.expiration_warning.sent_via": {
-    "text": "Skickat via"
+    "text": "Skickad via"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "Visa den innan den försvinner:"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Efter utgångsdatumet raderas hemligheten permanent."
+    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent."
   },
   "email.feedback_email.subject": {
-    "text": "Feedback den %{date} via %{display_domain} (%{strategy})"
+    "text": "Återkoppling den %{date} via %{display_domain} (%{strategy})"
   },
   "email.feedback_email.title": {
-    "text": "Användarfeedback"
+    "text": "Användaråterkoppling"
   },
   "email.feedback_email.from_label": {
     "text": "Från:"
@@ -186,10 +186,10 @@
     "text": "Secret Support"
   },
   "email.organization_invitation.subject": {
-    "text": "Du har blivit inbjuden att gå med i %{organization_name}"
+    "text": "Du har bjudits in att gå med i %{organization_name}"
   },
   "email.organization_invitation.title": {
-    "text": "Du har blivit inbjuden att gå med i %{organization_name}!"
+    "text": "Du har bjudits in att gå med i %{organization_name}!"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} har bjudit in dig att gå med i \"%{organization_name}\" som %{role_description}."
@@ -201,7 +201,7 @@
     "text": "Eller kopiera och klistra in denna länk:"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Denna inbjudan upphör att gälla om %{days} dagar."
+    "text": "Denna inbjudan går ut om %{days} dagar."
   },
   "email.organization_invitation.decline_instruction": {
     "text": "Om du inte vill gå med kan du helt enkelt ignorera detta e-postmeddelande eller avböja inbjudan."
@@ -210,13 +210,13 @@
     "text": "Delano"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+    "text": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du lugnt ignorera detta meddelande."
   },
   "email.organization_invitation.roles.member": {
-    "text": "en medlem"
+    "text": "medlem"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "en administratör"
+    "text": "administratör"
   },
   "email.password_changed.subject": {
     "text": "Ditt lösenord har ändrats (%{display_domain})"
@@ -225,7 +225,7 @@
     "text": "Ditt lösenord har ändrats"
   },
   "email.password_changed.body": {
-    "text": "Ditt lösenord för %{product_name} ändrades den %{date} kl. %{time}."
+    "text": "Ditt lösenord för %{product_name} ändrades den %{date} klockan %{time}."
   },
   "email.password_changed.security_notice": {
     "text": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta supporten."
@@ -243,7 +243,7 @@
     "text": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked} den %{date}."
   },
   "email.email_changed.security_notice": {
-    "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan ha komprometterats."
+    "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan vara komprometterat."
   },
   "email.email_changed.signature": {
     "text": "Delano"
@@ -297,13 +297,13 @@
     "text": "Delano"
   },
   "email.new_login_alert.subject": {
-    "text": "Ny inloggning till ditt konto (%{display_domain})"
+    "text": "Ny inloggning på ditt konto (%{display_domain})"
   },
   "email.new_login_alert.title": {
     "text": "Ny inloggning upptäckt"
   },
   "email.new_login_alert.body": {
-    "text": "En ny inloggning till ditt %{product_name}-konto upptäcktes den %{date} kl. %{time}."
+    "text": "En ny inloggning på ditt %{product_name}-konto upptäcktes den %{date} klockan %{time}."
   },
   "email.new_login_alert.device_label": {
     "text": "Enhet:"
@@ -315,7 +315,7 @@
     "text": "IP-adress:"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Om det inte var du kan ditt konto ha komprometterats."
+    "text": "Om detta inte var du kan ditt konto vara komprometterat."
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Säkra ditt konto"
@@ -348,7 +348,7 @@
     "text": "Delano"
   },
   "email.organization_deleted.subject": {
-    "text": "Organisationen \"%{organization_name}\" har raderats"
+    "text": "Organisationen \"%{organization_name}\" raderades"
   },
   "email.organization_deleted.title": {
     "text": "Organisation raderad"
@@ -402,7 +402,7 @@
     "text": "Din %{product_name}-provperiod går ut om %{days_remaining} dagar"
   },
   "email.trial_expiring.title": {
-    "text": "Din provperiod går snart ut"
+    "text": "Din provperiod avslutas snart"
   },
   "email.trial_expiring.body": {
     "text": "Din kostnadsfria provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner."

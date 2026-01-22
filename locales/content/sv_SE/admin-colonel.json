@@ -18,43 +18,43 @@
     "text": "Hemligheter ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(aktiv under de senaste 5 minuterna)"
+    "text": "(aktiv de senaste 5 minuterna)"
   },
   "web.colonel.configEditorTitle": {
-    "text": "Konfigurationsredigerare"
+    "text": "Inställningar"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Redigera systemkonfiguration"
+    "text": "Redigera systemkonfigurationsinställningar. Ändringar tillämpas omedelbart efter sparning."
   },
   "web.colonel.invalidJson": {
-    "text": "Ogiltig JSON-syntax"
+    "text": "Ogiltig JSON i {section}-sektionen"
   },
   "web.colonel.validationError": {
     "text": "Valideringsfel"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Kunde inte hämta konfiguration"
+    "text": "Fel vid laddning av konfiguration"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Kunde inte spara konfiguration"
+    "text": "Fel vid sparning av konfiguration"
   },
   "web.colonel.configSaved": {
-    "text": "Konfiguration sparad"
+    "text": "Konfiguration sparades"
   },
   "web.colonel.mustBeObject": {
-    "text": "Måste vara ett objekt"
+    "text": "Konfiguration måste vara ett JSON-objekt"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Flera sektioner har ogiltigt innehåll"
+    "text": "Flera sektioner har valideringsfel: {sections}"
   },
   "web.colonel.sectionHasError": {
-    "text": "Sektion har fel"
+    "text": "{section} har valideringsfel: {error}"
   },
   "web.colonel.sectionSaved": {
-    "text": "Sektion sparad"
+    "text": "{section} sparades"
   },
   "web.colonel.saveSection": {
-    "text": "Spara sektion"
+    "text": "Spara {section}"
   },
   "web.colonel.saveAll": {
     "text": "Spara alla"
@@ -63,10 +63,10 @@
     "text": "Osparade ändringar"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Schemavalideringsfel"
+    "text": "Schemavalideringsfel: {message} ({path})"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Okänt valideringsfel"
+    "text": "Okänt valideringsfel: {error}"
   },
   "web.colonel.sectionEffectivelyEmpty": {
     "text": "{section}-sektionen har inga konfigurerade värden"
@@ -102,7 +102,7 @@
     "text": "Välkommen till Colonel"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Administrera och övervaka ditt Onetime Secret-system"
+    "text": "Administrativ kontrollpanel för OneTimeSecret"
   },
   "web.colonel.quickActions": {
     "text": "Snabbåtgärder"
@@ -114,7 +114,7 @@
     "text": "Visa alla"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Ingen aktivitet att visa"
+    "text": "Aktivitetsdata kommer att visas här"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Totalt antal hemligheter"
@@ -126,46 +126,46 @@
     "text": "Hemligheter idag"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Hemligheter skapade"
+    "text": "Skapade hemligheter"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Hemligheter delade"
+    "text": "Delade hemligheter"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Totalt antal kunder"
+    "text": "Totalt antal användare"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "E-postmeddelanden skickade"
+    "text": "E-post skickade"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Systemhälsa"
   },
   "web.colonel.stats.healthy": {
-    "text": "Friskt"
+    "text": "Felfri"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Visa aktivitet"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Övervaka systemaktivitet och loggar"
+    "text": "Övervaka systemaktivitet och användning"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Hantera konton"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Visa och hantera användarkonton"
+    "text": "Användarkontoadministration"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Konfigurera domäner"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Hantera anpassade domäner"
+    "text": "Domän- och DNS-inställningar"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Systeminställningar"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "Konfigurera systemparametrar"
+    "text": "Applikationskonfiguration"
   },
   "web.colonel.backgroundJobs": {
     "text": "Bakgrundsjobb"
@@ -183,7 +183,7 @@
     "text": "Konsumenter"
   },
   "web.colonel.processingRate": {
-    "text": "Hastighet/sek"
+    "text": "Takt/sek"
   },
   "web.colonel.connectionStatus": {
     "text": "Anslutningsstatus"
@@ -228,10 +228,10 @@
     "text": "Testläge aktivt"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testa din applikation med olika planbehörigheter. Ändringar är tillfälliga och påverkar endast din session."
+    "text": "Testa din applikation med olika planrättigheter. Ändringar är tillfälliga och påverkar endast din session."
   },
   "web.colonel.warningTestMode": {
-    "text": "Du testar med {planName}-behörigheter (tillfällig sessionsåsidosättning)."
+    "text": "Du testar med {planName}-rättigheter (tillfällig sessionsåsidosättning)."
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "När du skickar feedback ser vi:"
@@ -241,5 +241,248 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Skickar..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Blockerade IP-adresser"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Hantera IP-blockeringslista"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Anpassade domäner"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Hantera anpassade domäner och varumärkesprofilering"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Skicka återkoppling"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Skickar..."
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "När du skickar återkoppling ser vi:"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organisationer"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Övervaka synkroniseringshälsa för organisationsfakturering"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Faktureringshälsoövervakare"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organisationer"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} behöver uppmärksamhet"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} okända"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Inga organisationer hittades"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Undersök"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Kontrollerar..."
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Konto"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Fakturering"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Användning"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Skapad"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Detaljer"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Ägare"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Plan"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Medlemmar"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domäner"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Prenumeration"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Standardarbetsyta"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Har fakturering"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Kund"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Prenumeration"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "Org-ID"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Synkroniseringsstatus"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Prenumeration"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Alla"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potentiellt inaktuell"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Okänd"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Synkroniserad"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktiv"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Provperiod"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Förfallen"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Avbruten"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Utredning misslyckades"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Utredningsresultat"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Verifierad synkroniserad"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Avvikelse hittad"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Kan inte jämföra"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe prenumerationsdetaljer"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Produkt"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Bestämd plan"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "Pris-ID"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Lokal"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Organisationers faktureringsadmin"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Hantera organisationer och övervaka faktureringsynkroniseringshälsa ({total} totalt)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Inga organisationer hittades"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potentiellt inaktuell"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Inaktuell"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Okänd"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktiv"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} medlemmar"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domäner"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Hemligheter"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Visa och hantera alla hemligheter"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "System"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Systeminställningar, databaser och konfiguration"
+  },
+  "web.colonel.titles.index": {
+    "text": "Administration"
+  },
+  "web.colonel.titles.users": {
+    "text": "Användarhantering"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Hemlighetshantering"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Anpassade domäner"
+  },
+  "web.colonel.titles.system": {
+    "text": "System"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Huvuddatabas"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Autentiseringsdatabas"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Blockerade IP-adresser"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Användningsexport"
+  },
+  "web.colonel.titles.info": {
+    "text": "Systeminformation"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organisationer"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Användningsexport"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Exportera användningsdata och statistik"
   }
 }

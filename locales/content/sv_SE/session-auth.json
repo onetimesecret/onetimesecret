@@ -1,18 +1,18 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Eller"
-  },
-  "web.login.need_an_account": {
     "text": "Behöver du ett konto?"
   },
+  "web.login.need_an_account": {
+    "text": "Registrera dig."
+  },
   "web.login.forgot_your_password": {
-    "text": "Glömt lösenordet?"
+    "text": "Glömt ditt lösenord?"
   },
   "web.login.button_sign_in": {
     "text": "Logga in"
   },
   "web.login.enter_your_credentials": {
-    "text": "Ange dina inloggningsuppgifter"
+    "text": "Ange dina uppgifter"
   },
   "web.login.remember_me": {
     "text": "Kom ihåg mig"
@@ -21,67 +21,67 @@
     "text": "Skapa ditt konto"
   },
   "web.signup.alternate_prefix": {
-    "text": "Eller"
+    "text": "Har du redan ett konto?"
   },
   "web.signup.have_an_account": {
-    "text": "Eller logga in på ditt konto"
+    "text": "Logga in."
   },
   "web.signup.error_title": {
-    "text": "Registreringsfel"
+    "text": "Fel vid kontoskapande"
   },
   "web.signup.password_error": {
-    "text": "Lösenordet uppfyller inte kraven"
+    "text": "Lösenord"
   },
   "web.signup.email_error": {
-    "text": "Ogiltig e-postadress"
+    "text": "E-post"
   },
   "web.auth.verify.title": {
-    "text": "Verifiera din e-post"
+    "text": "Verifiera ditt konto"
   },
   "web.auth.verify.success": {
-    "text": "Din e-post har verifierats"
+    "text": "Ditt konto har verifierats"
   },
   "web.auth.verify.invalid_key": {
-    "text": "Ogiltig verifieringslänk"
+    "text": "Ogiltig eller utgången verifieringsnyckel"
   },
   "web.auth.verify.expired_key": {
-    "text": "Verifieringslänken har gått ut"
+    "text": "Denna verifieringslänk har gått ut. Vänligen begär en ny."
   },
   "web.auth.verify.already_verified": {
-    "text": "Detta konto är redan verifierat"
+    "text": "Detta konto har redan verifierats. Du kan logga in nu."
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Kunde inte verifiera kontot"
+    "text": "Kunde inte verifiera kontot. Försök igen eller kontakta support."
   },
   "web.auth.verify.check_email": {
-    "text": "Kontrollera din e-post för verifieringslänken"
+    "text": "Kontrollera din e-post för en verifieringslänk"
   },
   "web.auth.verify.error": {
-    "text": "Ett fel inträffade under verifiering"
+    "text": "Kontoverifiering misslyckades. Kontrollera din verifieringslänk eller begär en ny."
   },
   "web.auth.verify.error_title": {
-    "text": "Verifieringsfel"
+    "text": "Verifiering misslyckades"
   },
   "web.auth.verify.what_to_do": {
     "text": "Vad ska jag göra?"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Kontrollera din inkorg för ett e-postmeddelande från oss"
+    "text": "Kontrollera din e-post för den senaste verifieringslänken"
   },
   "web.auth.verify.check_spam": {
-    "text": "Kontrollera din skräppost om du inte hittar det"
+    "text": "Kontrollera din skräppost om du inte hittar e-postmeddelandet"
   },
   "web.auth.verify.contact_support": {
-    "text": "Kontakta support om problemet kvarstår"
+    "text": "Kontakta support om du fortsätter ha problem"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Verifieringsnyckel saknas"
+    "text": "Verifieringslänk krävs"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Ingen verifieringsnyckel hittades i länken"
+    "text": "Använd verifieringslänken som skickats till din e-postadress för att verifiera ditt konto."
   },
   "web.auth.verify.create_new_account": {
-    "text": "Skapa ett nytt konto"
+    "text": "Skapa nytt konto"
   },
   "web.auth.change_password.title": {
     "text": "Ändra lösenord"
@@ -93,22 +93,22 @@
     "text": "Nytt lösenord"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Bekräfta lösenord"
+    "text": "Bekräfta nytt lösenord"
   },
   "web.auth.change_password.success": {
-    "text": "Lösenordet har ändrats"
+    "text": "Ditt lösenord har ändrats"
   },
   "web.auth.change_password.error": {
-    "text": "Kunde inte ändra lösenord"
+    "text": "Lösenordsändring misslyckades. Vänligen verifiera ditt nuvarande lösenord och försök igen."
   },
   "web.auth.close_account.title": {
     "text": "Stäng konto"
   },
   "web.auth.close_account.warning": {
-    "text": "Att stänga ditt konto är permanent och kan inte ångras"
+    "text": "Denna åtgärd kan inte ångras. Alla dina hemligheter kommer att raderas permanent."
   },
   "web.auth.close_account.confirm": {
-    "text": "Bekräfta kontostängning"
+    "text": "Jag förstår att denna åtgärd är permanent"
   },
   "web.auth.close_account.password": {
     "text": "Ange ditt lösenord för att bekräfta"
@@ -120,7 +120,7 @@
     "text": "Avbryt"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Begär återställning av lösenord"
+    "text": "Begär lösenordsåterställning"
   },
   "web.auth.password_reset_request.description": {
     "text": "Ange din e-postadress nedan så skickar vi en länk för att återställa ditt lösenord"
@@ -132,34 +132,34 @@
     "text": "Välj ett nytt lösenord"
   },
   "web.auth.password_reset.description": {
-    "text": "Ange ditt nya lösenord nedan. Se till att det är starkt och unikt för att skydda ditt konto."
+    "text": "Vänligen ange ditt nya lösenord nedan. Se till att det är starkt och unikt för att skydda ditt konto."
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Ett e-postmeddelande med instruktioner för att återställa ditt lösenord har skickats"
+    "text": "Ett e-postmeddelande har skickats till dig med en länk för att återställa lösenordet för ditt konto"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Jag godkänner"
   },
   "web.auth.account.title": {
-    "text": "Kontoöversikt"
+    "text": "Kontoinformation"
   },
   "web.auth.account.email": {
-    "text": "E-post"
+    "text": "E-postadress"
   },
   "web.auth.account.created": {
-    "text": "Skapad"
+    "text": "Konto skapat"
   },
   "web.auth.account.verified": {
-    "text": "Verifierad"
+    "text": "E-post verifierad"
   },
   "web.auth.account.region": {
     "text": "Region"
   },
   "web.auth.account.not_verified": {
-    "text": "Ej verifierad"
+    "text": "E-post ej verifierad"
   },
   "web.auth.account.verify_email": {
-    "text": "Verifiera e-post"
+    "text": "Verifiera e-postadress"
   },
   "web.auth.account.mfa_status": {
     "text": "Tvåfaktorsautentisering"
@@ -174,7 +174,7 @@
     "text": "Aktiva sessioner"
   },
   "web.auth.account.session_count": {
-    "text": "{count} aktiv session | {count} aktiva sessioner"
+    "text": "{count} aktiv(a) session(er)"
   },
   "web.auth.account.quick_actions": {
     "text": "Snabbåtgärder"
@@ -183,12 +183,87 @@
     "text": "Hantera tvåfaktorsautentisering"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Hantera sessioner"
+    "text": "Hantera aktiva sessioner"
   },
   "web.auth.account.change_password": {
     "text": "Ändra lösenord"
   },
   "web.auth.account.close_account": {
     "text": "Stäng konto"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-postverifieringsflöde efter registrering"
+  },
+  "web.help.title": {
+    "text": "Hjälp och support"
+  },
+  "web.help.signin_troubleshooting": {
+    "text": "Felsökning vid inloggning"
+  },
+  "web.help.magic_link_not_arriving": {
+    "text": "Kommer inte magisk länk fram?"
+  },
+  "web.help.check_spam_folder": {
+    "text": "Kontrollera din skräppost"
+  },
+  "web.help.check_email_spelling": {
+    "text": "Kontrollera att du angav din e-postadress korrekt"
+  },
+  "web.help.wait_few_minutes": {
+    "text": "Vänta några minuter - e-post kan ibland fördröjas"
+  },
+  "web.help.try_again": {
+    "text": "Försök begära en ny länk om det gått mer än 10 minuter"
+  },
+  "web.help.forgot_password": {
+    "text": "Glömt ditt lösenord?"
+  },
+  "web.help.use_magic_link_instead": {
+    "text": "Använd alternativet Magisk länk för att logga in utan lösenord. När du är inloggad kan du ändra ditt lösenord i Kontoinställningar."
+  },
+  "web.help.account_locked": {
+    "text": "Konto tillfälligt låst?"
+  },
+  "web.help.account_locked_explanation": {
+    "text": "Efter flera misslyckade inloggningsförsök låses konton tillfälligt av säkerhetsskäl. Vänta 15 minuter och försök igen, eller använd Magisk länk för att logga in."
+  },
+  "web.help.still_need_help": {
+    "text": "Behöver du fortfarande hjälp?"
+  },
+  "web.help.contact_us_description": {
+    "text": "Om du fortfarande har problem finns vi här för att hjälpa. Skicka oss ett meddelande så återkommer vi så snart som möjligt."
+  },
+  "web.help.contact_support": {
+    "text": "Kontakta support"
+  },
+  "web.login.send_sign_in_link": {
+    "text": "Skicka inloggningslänk"
+  },
+  "web.login.secure_link_helper": {
+    "text": "En säker länk skickas till din e-post."
+  },
+  "web.login.or_divider": {
+    "text": "eller"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Logga in med lösenord"
+  },
+  "web.login.use_passwordless": {
+    "text": "Använd lösenordsfri inloggning"
+  },
+  "web.login.create_account": {
+    "text": "Skapa konto"
+  },
+  "web.login.return_home": {
+    "text": "Tillbaka till startsidan"
+  },
+  "web.login.tab_password": {
+    "text": "Lösenord"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magisk länk"
+  },
+  "web.login.need_help": {
+    "text": "Behöver du hjälp?"
   }
 }

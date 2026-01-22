@@ -27,10 +27,10 @@
     "text": "E-post:"
   },
   "web.account.region": {
-    "text": "Region:"
+    "text": "Region"
   },
   "web.account.account_balance": {
-    "text": "Kontosaldo:"
+    "text": "Saldo:"
   },
   "web.account.default_payment_method": {
     "text": "Standardbetalningsmetod"
@@ -78,7 +78,7 @@
     "text": "Skapat {0} hemligheter sedan {1}."
   },
   "web.account.delete_account": {
-    "text": "Ta bort konto"
+    "text": "Radera konto"
   },
   "web.account.api_key": {
     "text": "API-nyckel"
@@ -90,7 +90,7 @@
     "text": "Ditt konto"
   },
   "web.account.support_details": {
-    "text": "Supportdetaljer"
+    "text": "Supportinformation"
   },
   "web.account.back_to_details": {
     "text": "Tillbaka till detaljer"
@@ -111,34 +111,34 @@
     "text": "Är du säker på att du vill ta bort ditt konto permanent? Denna åtgärd kan inte ångras."
   },
   "web.account.confirm_account_deletion": {
-    "text": "Bekräfta borttagning av konto"
+    "text": "Bekräfta kontoradering"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Tar bort {0}"
+    "text": "Raderar {0}"
   },
   "web.account.permanently_delete_account": {
-    "text": "Ta bort konto permanent"
+    "text": "Radera konto permanent"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "permanent och oåterkallelig."
+    "text": "permanent och kan inte ångras."
   },
   "web.account.deleting_your_account_is": {
-    "text": "Att ta bort ditt konto är"
+    "text": "Att radera ditt konto är"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "bränn dem innan du fortsätter"
+    "text": "radera dem permanent innan du fortsätter"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Eventuella hemligheter du vill ta bort,"
+    "text": "Alla hemligheter du vill ta bort,"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "Hemligheter förblir aktiva tills de går ut."
   },
   "web.account.please_be_advised": {
-    "text": "Vänligen observera:"
+    "text": "Observera:"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Konto borttaget."
+    "text": "Kontot har raderats."
   },
   "web.account.deactivate": {
     "text": "Inaktivera"
@@ -162,7 +162,7 @@
     "text": "Allmänt"
   },
   "web.settings.preferences": {
-    "text": "Preferenser"
+    "text": "Inställningar"
   },
   "web.settings.appearance": {
     "text": "Utseende"
@@ -171,7 +171,7 @@
     "text": "Tema"
   },
   "web.settings.theme.description": {
-    "text": "Anpassa utseendet på applikationen"
+    "text": "Välj ljust eller mörkt tema"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
     "text": "Välj ljust eller mörkt tema"
@@ -186,10 +186,10 @@
     "text": "Välj ditt föredragna språk"
   },
   "web.settings.security_settings_description": {
-    "text": "Hantera lösenord, tvåfaktorsautentisering och sessioner"
+    "text": "Hantera autentisering och kontosäkerhet"
   },
   "web.settings.profile_settings_description": {
-    "text": "Uppdatera din profilinformation"
+    "text": "Hantera din kontoinformation"
   },
   "web.settings.profile.title": {
     "text": "Profil"
@@ -207,43 +207,43 @@
     "text": "Ny e-post"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Ange lösenord för att bekräfta"
+    "text": "Ange ditt nuvarande lösenord"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Lösenord krävs av säkerhetsskäl"
+    "text": "Ditt lösenord krävs av säkerhetsskäl"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Ett verifieringsmeddelande skickas till din nya e-post"
+    "text": "Ett verifieringsmejl skickas till den nya adressen"
   },
   "web.settings.profile.update_email": {
     "text": "Uppdatera e-post"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Ändra e-postadressen kopplad till ditt konto"
+    "text": "Uppdatera e-postadressen kopplad till ditt konto"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Alla fält är obligatoriska"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Ogiltig e-postadress"
+    "text": "Ange en giltig e-postadress"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Ny e-post är samma som nuvarande"
+    "text": "Ny e-post måste skilja sig från nuvarande e-post"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-post ändrad. Kontrollera din inkorg för verifiering."
+    "text": "E-post uppdaterad. Kontrollera din inkorg för att verifiera din nya e-postadress."
   },
   "web.settings.profile.email_change_error": {
-    "text": "Kunde inte ändra e-post"
+    "text": "Kunde inte uppdatera e-post. Försök igen."
   },
   "web.settings.sessions.title": {
-    "text": "Sessioner"
+    "text": "Aktiva sessioner"
   },
   "web.settings.sessions.description": {
-    "text": "Hantera dina aktiva inloggningar"
+    "text": "Hantera dina aktiva sessioner"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Hantera aktiva sessioner"
+    "text": "Hantera dina aktiva sessioner"
   },
   "web.settings.password.title": {
     "text": "Lösenord"
@@ -252,22 +252,22 @@
     "text": "Uppdatera ditt kontolösenord"
   },
   "web.settings.password.update_account_password": {
-    "text": "Uppdatera kontolösenord"
+    "text": "Uppdatera ditt kontolösenord"
   },
   "web.settings.delete_account.title": {
-    "text": "Ta bort konto"
+    "text": "Radera konto"
   },
   "web.settings.delete_account.description": {
-    "text": "Ta bort ditt konto permanent"
+    "text": "Radera ditt konto och all data permanent"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Ta bort ditt konto permanent"
+    "text": "Radera ditt konto och all data permanent"
   },
   "web.settings.security.security_score": {
     "text": "Säkerhetspoäng"
   },
   "web.settings.security.score_description": {
-    "text": "Din kontosäkerhetsstatus"
+    "text": "Din övergripande kontosäkerhetsstatus"
   },
   "web.settings.security.excellent": {
     "text": "Utmärkt"
@@ -276,16 +276,16 @@
     "text": "Bra"
   },
   "web.settings.security.fair": {
-    "text": "Hyfsad"
+    "text": "Godtagbar"
   },
   "web.settings.security.weak": {
     "text": "Svag"
   },
   "web.settings.security.improve_security": {
-    "text": "Förbättra säkerhet"
+    "text": "Förbättra din säkerhet"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Aktivera tvåfaktorsautentisering för bättre skydd"
+    "text": "Aktivera tvåfaktorsautentisering för starkare skydd"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Generera återställningskoder för nödsituationer"
@@ -303,88 +303,88 @@
     "text": "Aktivera"
   },
   "web.settings.security.codes_available": {
-    "text": "{count} koder tillgängliga"
+    "text": "{0} koder tillgängliga"
   },
   "web.settings.security.no_codes": {
     "text": "Inga koder genererade"
   },
   "web.settings.security.active_sessions": {
-    "text": "Aktiva sessioner"
+    "text": "{0} aktiv session | {0} aktiva sessioner"
   },
   "web.settings.security.best_practices": {
-    "text": "Bästa praxis"
+    "text": "Säkerhetsrekommendationer"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Använd ett starkt, unikt lösenord"
+    "text": "Använd ett starkt, unikt lösenord för ditt konto"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Aktivera tvåfaktorsautentisering för skydd"
+    "text": "Aktivera tvåfaktorsautentisering för ytterligare skydd"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Spara återställningskoder säkert"
+    "text": "Spara dina återställningskoder på en säker plats"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Granska sessioner regelbundet"
+    "text": "Granska och återkalla oanvända sessioner regelbundet"
   },
   "web.settings.security.view_details": {
     "text": "Visa detaljer"
   },
   "web.settings.api.title": {
-    "text": "API"
+    "text": "API och integrationer"
   },
   "web.settings.api.description": {
-    "text": "Hantera API-åtkomst och nycklar"
+    "text": "Hantera API-nycklar och integrationer"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Hantera API-nycklar"
+    "text": "Hantera API-nycklar och integrationer"
   },
   "web.settings.api.documentation": {
-    "text": "Dokumentation"
+    "text": "API-dokumentation"
   },
   "web.settings.api.documentation_description": {
-    "text": "Lär dig hur du använder vårt API"
+    "text": "Lär dig integrera Onetime Secret i dina applikationer"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API-referens"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Komplett API-dokumentation"
+    "text": "Fullständig API-dokumentation och endpoints"
   },
   "web.settings.api.code_examples": {
     "text": "Kodexempel"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Exempelkod och bibliotek"
+    "text": "Exempelkod och klientbibliotek"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Säkerhetspraxis"
+    "text": "Säkerhetsrekommendationer"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Committa aldrig API-nycklar till källkod"
+    "text": "Checka aldrig in API-nycklar i versionshantering"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Använd miljövariabler för nycklar"
+    "text": "Använd miljövariabler för att lagra API-nycklar"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rotera nycklar regelbundet"
+    "text": "Rotera API-nycklar regelbundet för säkerhet"
   },
   "web.settings.api.use_https_only": {
-    "text": "Använd endast HTTPS"
+    "text": "Använd alltid HTTPS vid API-anrop"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Övervaka API-användning"
+    "text": "Övervaka din API-användning och ställ in varningar"
   },
   "web.settings.api.important_notice": {
     "text": "Viktigt meddelande"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Att generera en ny nyckel ogiltigförklarar den befintliga nyckeln"
+    "text": "Att återskapa din API-nyckel ogiltigförklarar den nuvarande nyckeln. Uppdatera alla applikationer som använder den gamla nyckeln."
   },
   "web.settings.privacy.title": {
-    "text": "Integritet"
+    "text": "Integritetsinställningar"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Hantera sekretessinställningar"
+    "text": "Hantera dina integritetsinställningar"
   },
   "web.settings.privacy.your_privacy": {
     "text": "Din integritet"
@@ -396,10 +396,10 @@
     "text": "Inte en inställning"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Vi använder ingen spårning eller analys"
+    "text": "Ingen analys. Ingen spårning. Punkt."
   },
   "web.settings.privacy.explanation": {
-    "text": "Din integritet är vår prioritet. Vi samlar inte in personlig data utöver vad som krävs för tjänsten."
+    "text": "Detta är inte en inställning eftersom det inte finns något att slå på eller av. Din integritet är inbyggd i hur vi arbetar."
   },
   "web.settings.notifications.title": {
     "text": "Aviseringsinställningar"
@@ -408,10 +408,10 @@
     "text": "Hantera hur du får aviseringar"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Kunde inte uppdatera aviseringsinställningen. Försök igen."
+    "text": "Kunde inte uppdatera aviseringsinställning. Försök igen."
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Aviseringar när hemligheter visas"
+    "text": "Aviseringar vid visning av hemlighet"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Få ett e-postmeddelande när någon visar din hemlighet"
@@ -420,45 +420,60 @@
     "text": "Du får en avisering varje gång en mottagare visar en av dina hemligheter"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Aviseringar via e-post innehåller endast tidsstämpeln och hemlighetens ID. Information om vem som visade hemligheten inkluderas aldrig."
+    "text": "Aviseringsmejl inkluderar endast tidsstämpel och hemlighets-ID. Information om läsare inkluderas aldrig."
   },
   "web.settings.caution.title": {
-    "text": "Försiktighet"
+    "text": "Zon för noggrann övervägning"
   },
   "web.settings.caution.description": {
-    "text": "Känsliga kontoinställningar"
+    "text": "Avancerade inställningar och datahantering"
   },
   "web.settings.caution.data_export": {
     "text": "Dataexport"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exportera din data"
+    "text": "Exportera din kontodata"
   },
   "web.settings.caution.export_description": {
-    "text": "Ladda ner en kopia av din kontodata"
+    "text": "Begär en komplett kopia av din kontodata i maskinläsbart format"
   },
   "web.settings.caution.request_data_export": {
     "text": "Begär dataexport"
   },
   "web.settings.caution.export_info": {
-    "text": "Exportinformation"
+    "text": "Exportbearbetningstid"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Exporten inkluderar din kontoinformation och metadata"
+    "text": "Exporter bearbetas inom 24 timmar och skickas till din e-postadress"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Varning om borttagning"
+    "text": "Att radera ditt konto kommer att:"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Aktiva hemligheter förblir tillgängliga tills de går ut"
+    "text": "Permanent radera alla dina hemligheter"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "All metadata kommer att raderas"
+    "text": "Ta bort all hemlighetsmetedata och historik"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Alla API-nycklar kommer att ogiltigförklaras"
+    "text": "Ogiltigförklarar alla API-nycklar"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Denna åtgärd är permanent och kan inte ångras"
+    "text": "Denna åtgärd kan inte ångras"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Raderar..."
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Tillbaka till instrumentpanelen"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fakturering"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avancerat"
   }
 }

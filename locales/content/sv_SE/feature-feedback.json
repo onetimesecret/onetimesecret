@@ -1,18 +1,18 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Din feedback"
+    "text": "Din återkoppling"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "All feedback välkommen!"
+    "text": "All återkoppling är välkommen!"
   },
   "web.feedback.help_us_improve": {
-    "text": "Hjälp oss att förbättra"
+    "text": "Hjälp oss förbättra"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Stäng feedback-modal"
+    "text": "Stäng återkopplingsmodal"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Dela din feedback"
+    "text": "Dela din återkoppling"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum"
@@ -21,7 +21,7 @@
     "text": "Delano"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Hjälpinnehåll kommer här."
+    "text": "Hjälpinnehåll placeras här."
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Tack för att du hjälper Onetime Secret att förbättras. Det betyder mycket."
@@ -36,12 +36,18 @@
     "text": "En notering från Delano, grundare av Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Öppna feedbackformulär"
+    "text": "Öppna återkopplingsformulär"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Ange din feedback"
+    "text": "Ange din återkoppling"
   },
   "web.feedback.send_feedback": {
-    "text": "Skicka feedback"
+    "text": "Skicka återkoppling"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Jag läser varje återkoppling som kommer in här. Det är så jag tar reda på vad jag ska lägga tid på."
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Om något inte stämmer, eller om du har idéer om hur det borde fungera, är detta rätt ställe."
   }
 }

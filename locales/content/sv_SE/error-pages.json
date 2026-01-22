@@ -1,9 +1,9 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Varför är denna hemlighet otillgänglig?"
+    "text": "Varför är denna hemlighet inte tillgänglig?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "Hemligheter är utformade för att endast ses en gång. Denna länk kan redan ha använts, gått ut eller raderats manuellt av avsändaren."
+    "text": "Hemligheter är utformade för att endast visas en gång. Denna länk kan redan ha öppnats, gått ut eller raderats manuellt av avsändaren."
   },
   "web.errors.what_should_i_do_now": {
     "text": "Vad ska jag göra nu?"
@@ -15,7 +15,7 @@
     "text": "Varning avfärdad"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Avfärda trunkeringsvarning"
+    "text": "Avfärda avkortningsvarning"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Hoppsan! Sidan du letar efter finns inte eller har flyttats."
