@@ -51,7 +51,7 @@
     "text": "Diese Anweisungen werden Empfängern angezeigt, bevor sie den geheimen Inhalt enthüllen"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Diese Anweisungen werden Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben"
+    "text": "Diese Anweisungen werden Empfängern angezeigt, nachdem sie die Nachricht enthüllt haben"
   },
   "web.branding.pre_reveal_instructions": {
     "text": "Anleitung vor dem Anzeigen"

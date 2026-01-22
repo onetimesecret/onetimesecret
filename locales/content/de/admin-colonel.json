@@ -12,7 +12,7 @@
     "text": "Benutzerfeedback (Gesamt: {0})"
   },
   "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "Metadaten / Geheimnisse: {0}/{1} ({2}/{3}/{4} gesamt)"
+    "text": "Metadaten / Nachrichten: {0}/{1} ({2}/{3}/{4} gesamt)"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
     "text": "Nachrichten ({0})"

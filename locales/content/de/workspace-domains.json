@@ -177,10 +177,10 @@
     "text": "Domain-Informationen werden geladen..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "Um deine Domain zu verbinden, musst du einen CNAME-Eintrag in deinem DNS haben, der zeigt auf"
+    "text": "Um deine Domain zu verbinden, musst du einen CNAME-Eintrag in deinem DNS erstellen, der auf folgende Adresse verweist:"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "Wenn du bereits einen CNAME-Eintrag für diese Adresse hast, ändere ihn bitte so, dass er zeigt auf"
+    "text": "Wenn du bereits einen CNAME-Eintrag für diese Adresse hast, ändere ihn bitte so, dass er auf folgende Adresse verweist:"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
     "text": "), ist ein CNAME-Eintrag nicht erlaubt. Stattdessen musst du einen A-Eintrag erstellen. Details dazu findest du weiter unten auf der Seite."

@@ -3,13 +3,13 @@
     "text": "Warum ist diese Nachricht nicht verfügbar?"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht."
+    "text": "Nachrichten sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht."
   },
   "web.errors.what_should_i_do_now": {
     "text": "Was soll ich jetzt tun?"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "Kontaktiere die Person, die dir diesen Link gesendet hat, und bitte sie, ein neues Geheimnis zu erstellen. Lass sie wissen, dass du auf die ursprünglichen Informationen nicht zugreifen konntest."
+    "text": "Kontaktiere die Person, die dir diesen Link gesendet hat, und bitte sie, eine neue Nachricht zu erstellen. Lass sie wissen, dass du auf die ursprünglichen Informationen nicht zugreifen konntest."
   },
   "web.errors.warning_dismissed": {
     "text": "Warnung ausgeblendet"

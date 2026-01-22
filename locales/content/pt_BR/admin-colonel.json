@@ -12,10 +12,10 @@
     "text": "Feedback do Usuário (Total: {0})"
   },
   "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "Metadados / Segredos: {0}/{1} ({2}/{3}/{4} total)"
+    "text": "Metadados / Mensagens Confidenciais: {0}/{1} ({2}/{3}/{4} total)"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
-    "text": "Segredos ({0})"
+    "text": "Mensagens Confidenciais ({0})"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
     "text": "(ativo nos últimos 5 minutos)"

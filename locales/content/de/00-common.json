@@ -929,7 +929,7 @@
     "text": "Verwende einen anderen sicheren Kanal, um sensible Informationen zu teilen"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Überprüfe immer, ob du auf der offiziellen Onetime Secret-Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst."
+    "text": "Überprüfe immer, ob du auf der offiziellen Onetime Secret-Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Nachrichten zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst."
   },
   "web.STATUS.previewed": {
     "text": "Vorschau angezeigt"

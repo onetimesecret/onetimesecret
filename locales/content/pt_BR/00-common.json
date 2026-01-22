@@ -104,22 +104,22 @@
     "text": "Recebido"
   },
   "web.COMMON.burn": {
-    "text": "Queimar"
+    "text": "Destruir"
   },
   "web.COMMON.burned": {
-    "text": "Queimado"
+    "text": "Destruído"
   },
   "web.COMMON.expires_in": {
     "text": "Expira em"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Queimar esta mensagem confidencial"
+    "text": "Destruir esta mensagem confidencial"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Queimar uma mensagem confidencial irá excluí-la antes de ser lida (clique para confirmar)"
+    "text": "Destruir uma mensagem confidencial irá excluí-la antes de ser lida (clique para confirmar)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Queimar uma mensagem confidencial é permanente e não pode ser desfeito"
+    "text": "Destruir uma mensagem confidencial é permanente e não pode ser desfeito"
   },
   "web.COMMON.msg_check_email": {
     "text": "Verifique seu e-mail"
@@ -191,7 +191,7 @@
     "text": "Nenhum"
   },
   "web.COMMON.word_burned": {
-    "text": "queimado"
+    "text": "destruído"
   },
   "web.COMMON.word_received": {
     "text": "recebido"
@@ -227,19 +227,19 @@
     "text": "Se uma conta com este e-mail existir, você receberá um e-mail de verificação."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Queimar esta mensagem confidencial permanentemente"
+    "text": "Destruir esta mensagem confidencial permanentemente"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Por favor, confirme"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Tem certeza de que deseja queimar esta mensagem confidencial? Esta ação não pode ser desfeita."
+    "text": "Tem certeza de que deseja destruir esta mensagem confidencial? Esta ação não pode ser desfeita."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Sim, queimar esta mensagem confidencial"
+    "text": "Sim, destruir esta mensagem confidencial"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Queimar uma mensagem confidencial irá excluí-la antes de ser recebida."
+    "text": "Destruir uma mensagem confidencial irá excluí-la antes de ser recebida."
   },
   "web.COMMON.share_link_securely": {
     "text": "Por segurança, compartilhe este link separadamente de outros detalhes."
@@ -656,7 +656,7 @@
     "text": "Recebido"
   },
   "web.STATUS.burned": {
-    "text": "Queimado"
+    "text": "Destruído"
   },
   "web.STATUS.destroyed": {
     "text": "Destruído"
@@ -701,7 +701,7 @@
     "text": "A mensagem confidencial foi revelada ao destinatário"
   },
   "web.STATUS.burned_description": {
-    "text": "A mensagem confidencial foi queimada manualmente antes de ser visualizada"
+    "text": "A mensagem confidencial foi destruída manualmente antes de ser visualizada"
   },
   "web.STATUS.destroyed_description": {
     "text": "A mensagem confidencial foi destruída permanentemente"
@@ -830,7 +830,7 @@
     "text": "Recibo da mensagem confidencial"
   },
   "web.TITLES.burn_secret": {
-    "text": "Queimar mensagem confidencial"
+    "text": "Destruir mensagem confidencial"
   },
   "web.TITLES.dashboard": {
     "text": "Painel"

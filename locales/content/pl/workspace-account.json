@@ -309,7 +309,7 @@
     "text": "Brak wygenerowanych kodów"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} aktywna sesja | {0} aktywnych sesji"
+    "text": "{0} aktywna sesja | {0} aktywne sesje | {0} aktywnych sesji"
   },
   "web.settings.security.best_practices": {
     "text": "Najlepsze praktyki bezpieczeństwa"

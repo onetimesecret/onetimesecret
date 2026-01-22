@@ -105,7 +105,7 @@
     "text": "Domeinnaam"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Bepaal of gebruikers geheime links kunnen maken vanaf de homepage van uw domein"
+    "text": "Bepaal of gebruikers geheime links kunnen maken vanaf de homepage van je domein"
   },
   "web.domains.homepage_access": {
     "text": "Homepage-toegang"
@@ -117,7 +117,7 @@
     "text": "Domein"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Beheer en configureer uw geverifieerde aangepaste domeinen"
+    "text": "Beheer en configureer je geverifieerde aangepaste domeinen"
   },
   "web.domains.domains": {
     "text": "Domeinen"
@@ -177,13 +177,13 @@
     "text": "Domeininformatie laden..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "Om uw domein te verbinden, moet u een CNAME-record in uw DNS hebben dat verwijst"
+    "text": "Om je domein te verbinden, moet je een CNAME-record in je DNS hebben dat verwijst"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "Als u al een CNAME-record heeft voor dat adres, wijzig het dan om te verwijzen naar"
+    "text": "Als je al een CNAME-record hebt voor dat adres, wijzig het dan om te verwijzen naar"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "text": "), is een CNAME-record niet toegestaan. In plaats daarvan moet u een A-record maken. Details over hoe u dit kunt doen, worden verderop op de pagina gegeven."
+    "text": "), is een CNAME-record niet toegestaan. In plaats daarvan moet je een A-record maken. Details over hoe je dit kunt doen, worden verderop op de pagina gegeven."
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
     "text": "en verwijder alle andere A-, AAAA- of CNAME-records voor dat exacte adres."
@@ -207,7 +207,7 @@
     "text": "Pas je domeinbranding aan"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "text": "Het kan enkele minuten duren voordat uw SSL-certificaat van kracht wordt."
+    "text": "Het kan enkele minuten duren voordat je SSL-certificaat van kracht wordt."
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
     "text": "DNS-wijzigingen kunnen zo weinig als 60 seconden - of tot 24 uur - duren om van kracht te worden."
@@ -246,13 +246,13 @@
     "text": "2. Maak het A-record aan"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Voeg deze hostnaam toe aan uw DNS-configuratie:"
+    "text": "Voeg deze hostnaam toe aan je DNS-configuratie:"
   },
   "web.domains.1_create_a_txt_record": {
     "text": "1. Maak een TXT-record aan"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "Volg deze stappen om domeineigendom te verifiëren en uw online aanwezigheid te verbeteren:"
+    "text": "Volg deze stappen om domeineigendom te verifiëren en je online aanwezigheid te verbeteren:"
   },
   "web.domains.domain_verification_steps": {
     "text": "Domeinverificatiestappen"
@@ -261,7 +261,7 @@
     "text": "Domeinverificatie succesvol gestart."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "Weet u zeker dat u dit domein wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+    "text": "Weet je zeker dat je dit domein wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
   },
   "web.domains.remove_domain": {
     "text": "Domein verwijderen"

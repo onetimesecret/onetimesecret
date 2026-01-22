@@ -102,13 +102,13 @@
     "text": "Token gegenereerd."
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Houd dit token veilig! Het geeft volledige toegang tot uw account."
+    "text": "🔐 Houd dit token veilig! Het geeft volledige toegang tot je account."
   },
   "web.account.confirm_with_your_password": {
     "text": "Bevestig met je wachtwoord"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
-    "text": "Weet u zeker dat u uw account permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+    "text": "Weet je zeker dat je jouw account permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
   },
   "web.account.confirm_account_deletion": {
     "text": "Bevestig accountverwijdering"
@@ -144,7 +144,7 @@
     "text": "Deactiveren"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Weet u zeker dat u uw account wilt deactiveren? Al uw gegevens worden permanent van onze servers verwijderd. Deze actie kan niet ongedaan worden gemaakt."
+    "text": "Weet je zeker dat je jouw account wilt deactiveren? Al je gegevens worden permanent van onze servers verwijderd. Deze actie kan niet ongedaan worden gemaakt."
   },
   "web.account.deactivate_account": {
     "text": "Account deactiveren"

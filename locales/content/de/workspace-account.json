@@ -75,7 +75,7 @@
     "text": "Konto-ID"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "{0} Geheimnisse seit {1} erstellt."
+    "text": "{0} Nachrichten seit {1} erstellt."
   },
   "web.account.delete_account": {
     "text": "Konto löschen"

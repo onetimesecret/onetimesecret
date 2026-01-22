@@ -104,22 +104,22 @@
     "text": "Ontvangen"
   },
   "web.COMMON.burn": {
-    "text": "Verbranden"
+    "text": "Vernietigen"
   },
   "web.COMMON.burned": {
-    "text": "Verbrand"
+    "text": "Vernietigd"
   },
   "web.COMMON.expires_in": {
     "text": "Verloopt over"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Dit bericht verbranden"
+    "text": "Dit bericht vernietigen"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Een bericht verbranden verwijdert het voordat het is gelezen (klik om te bevestigen)"
+    "text": "Een bericht vernietigen verwijdert het voordat het is gelezen (klik om te bevestigen)"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Een bericht verbranden is permanent en kan niet ongedaan worden gemaakt"
+    "text": "Een bericht vernietigen is permanent en kan niet ongedaan worden gemaakt"
   },
   "web.COMMON.msg_check_email": {
     "text": "Controleer je e-mail"
@@ -191,7 +191,7 @@
     "text": "Geen"
   },
   "web.COMMON.word_burned": {
-    "text": "verbrand"
+    "text": "vernietigd"
   },
   "web.COMMON.word_received": {
     "text": "ontvangen"
@@ -227,19 +227,19 @@
     "text": "Als er een account met dit e-mailadres bestaat, ontvang je een verificatie-e-mail."
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Dit bericht permanent verbranden"
+    "text": "Dit bericht permanent vernietigen"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Bevestig alsjeblieft"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Weet je zeker dat je dit bericht wilt verbranden? Deze actie kan niet ongedaan worden gemaakt."
+    "text": "Weet je zeker dat je dit bericht wilt vernietigen? Deze actie kan niet ongedaan worden gemaakt."
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ja, dit bericht verbranden"
+    "text": "Ja, dit bericht vernietigen"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Een bericht verbranden verwijdert het voordat het is ontvangen."
+    "text": "Een bericht vernietigen verwijdert het voordat het is ontvangen."
   },
   "web.COMMON.share_link_securely": {
     "text": "Deel deze link voor de veiligheid apart van andere gegevens."
@@ -656,7 +656,7 @@
     "text": "Ontvangen"
   },
   "web.STATUS.burned": {
-    "text": "Verbrand"
+    "text": "Vernietigd"
   },
   "web.STATUS.destroyed": {
     "text": "Vernietigd"
@@ -701,7 +701,7 @@
     "text": "Bericht is onthuld aan de ontvanger"
   },
   "web.STATUS.burned_description": {
-    "text": "Bericht is handmatig verbrand voordat het werd bekeken"
+    "text": "Bericht is handmatig vernietigd voordat het werd bekeken"
   },
   "web.STATUS.destroyed_description": {
     "text": "Bericht is permanent vernietigd"
@@ -830,7 +830,7 @@
     "text": "Berichtontvangstbewijs"
   },
   "web.TITLES.burn_secret": {
-    "text": "Bericht verbranden"
+    "text": "Bericht vernietigen"
   },
   "web.TITLES.dashboard": {
     "text": "Dashboard"

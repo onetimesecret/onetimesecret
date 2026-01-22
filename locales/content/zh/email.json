@@ -6,10 +6,10 @@
     "text": "客户发送了以下信息"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} 向您发送了一条加密信息"
+    "text": "%{sender_email} 向您发送了一条机密信息"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "向您发送了一条加密信息："
+    "text": "向您发送了一条机密信息："
   },
   "email.secret_link.important_label": {
     "text": "重要："
@@ -93,7 +93,7 @@
     "text": "附：此邮件已发送至 %{email_address}。"
   },
   "email.incoming_secret.subject": {
-    "text": "您收到了一条加密信息"
+    "text": "您收到了一条机密信息"
   },
   "email.incoming_secret.received_message": {
     "text": "您收到了一条安全信息："
