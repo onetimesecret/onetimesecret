@@ -350,6 +350,26 @@
     "text": "Магическа връзка",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Ключ за достъп",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Или продължете с",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Влезте чрез SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Пренасочване към доставчик на идентичност...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO влизането е неуспешно. Моля, опитайте отново.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Нуждаете се от помощ?",
     "sha256": "c225cdfb"

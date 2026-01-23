@@ -76,6 +76,10 @@ module Auth::Config::Features
       auth.omniauth_verify_account? true
 
       # Auto-create accounts for new SSO users
+      #
+      # NOTE: omniauth_create_account? true allows any IdP user to create accounts. If the
+      # IdP has many users, consider adding domain validation in account_from_omniauth hook.
+      #
       auth.omniauth_create_account? true
 
       # Register OpenID Connect provider
@@ -84,10 +88,21 @@ module Auth::Config::Features
     end
 
     def self.configure_oidc_provider(auth)
+      # NOTE: No explicit state parameter (though rodauth-omniauth should handle this).
       issuer        = ENV.fetch('OIDC_ISSUER', nil)
       client_id     = ENV.fetch('OIDC_CLIENT_ID', nil)
+
+      # NOTE: Client secret can be empty for PKCE-only flows, but ensure the IdP
+      # actually supports PKCE-only.
       client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '') # Optional for PKCE-only flows
       redirect_uri  = ENV.fetch('OIDC_REDIRECT_URI', nil)
+
+      # Issue: The provider name is configurable via OIDC_PROVIDER_NAME env var. If someone sets
+      #        OIDC_PROVIDER_NAME=google, the route becomes /auth/sso/google, but the frontend hardcodes /auth/sso/oidc.
+
+      #        Recommendation: Either:
+      #        - Expose the provider name via bootstrap state, or
+      #        - Document that OIDC_PROVIDER_NAME must stay oidc for frontend compatibility
       provider_name = ENV.fetch('OIDC_PROVIDER_NAME', 'oidc').to_sym
 
       # Validate required configuration - check for empty strings too

@@ -350,6 +350,26 @@
     "text": "Magic Link",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Passkey",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Oppure continua con",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Accedi con SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Reindirizzamento al provider di identità...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Accesso SSO fallito. Riprova.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Hai bisogno di aiuto?",
     "sha256": "c225cdfb"

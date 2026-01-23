@@ -350,6 +350,26 @@
     "text": "Magiczny link",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Klucz dostępu",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Lub kontynuuj przez",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Zaloguj się przez SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Przekierowanie do dostawcy tożsamości...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Logowanie SSO nie powiodło się. Spróbuj ponownie.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Potrzebujesz pomocy?",
     "sha256": "c225cdfb"

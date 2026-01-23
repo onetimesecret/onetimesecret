@@ -187,6 +187,8 @@ export interface BootstrapPayload {
     email_auth?: boolean;
     /** WebAuthn/passkey authentication */
     webauthn?: boolean;
+    /** OmniAuth/SSO authentication via external identity providers */
+    omniauth?: boolean;
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;
   };

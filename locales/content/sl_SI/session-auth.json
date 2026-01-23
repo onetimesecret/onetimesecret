@@ -350,6 +350,26 @@
     "text": "Čarobna povezava",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Dostopni ključ",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Ali nadaljujte z",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Prijava z SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Preusmerjanje k ponudniku identitete...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Prijava SSO ni uspela. Poskusite znova.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Potrebujete pomoč?",
     "sha256": "c225cdfb"

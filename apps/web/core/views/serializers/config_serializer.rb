@@ -108,6 +108,7 @@ module Core
             'mfa' => Onetime.auth_config.mfa_enabled?,
             'email_auth' => Onetime.auth_config.email_auth_enabled?,
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
+            'omniauth' => Onetime.auth_config.omniauth_enabled?,
           }
         end
       end

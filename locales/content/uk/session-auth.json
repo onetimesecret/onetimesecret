@@ -350,6 +350,26 @@
     "text": "Магічне посилання",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Ключ доступу",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Або продовжити через",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Увійти через SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Перенаправлення до провайдера ідентифікації...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Помилка входу через SSO. Будь ласка, спробуйте ще раз.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Потрібна допомога?",
     "sha256": "c225cdfb"

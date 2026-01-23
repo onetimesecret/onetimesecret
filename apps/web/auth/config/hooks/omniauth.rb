@@ -53,6 +53,10 @@
 module Auth::Config::Hooks
   module OmniAuth
     def self.configure(auth)
+      # NOTE: Missing: No account_from_omniauth override. Rodauth-omniauth's default
+      # looks up by email from omniauth_email but may need customization if the
+      # accounts table has different email handling.
+
       # ========================================================================
       # HOOK: Before OmniAuth Callback Route
       # ========================================================================
