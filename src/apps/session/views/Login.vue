@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
 import { useLanguageStore } from '@/shared/stores/languageStore';
-import { isMagicLinksEnabled } from '@/utils/features';
+import { hasPasswordlessMethods } from '@/utils/features';
 import { ref, computed, type ComponentPublicInstance } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -13,7 +13,9 @@ const { t } = useI18n();
 const route = useRoute();
 
 const languageStore = useLanguageStore();
-const magicLinksEnabled = isMagicLinksEnabled();
+
+// Check if any passwordless methods are enabled (magic links or webauthn)
+const passwordlessEnabled = hasPasswordlessMethods();
 
 // Build signup link with preserved query params (email, redirect)
 const signupLink = computed(() => {
@@ -30,11 +32,13 @@ const signupLink = computed(() => {
   return '/signup';
 });
 
+type AuthMode = 'passkey' | 'passwordless' | 'password';
+
 // Reference to AuthMethodSelector (kept for potential future use)
-const authMethodSelectorRef = ref<ComponentPublicInstance<{ currentMode: 'passwordless' | 'password' }> | null>(null);
+const authMethodSelectorRef = ref<ComponentPublicInstance<{ currentMode: AuthMode }> | null>(null);
 
 // Mode change handler (kept for potential future use)
-const handleModeChange = (_mode: 'passwordless' | 'password') => {
+const handleModeChange = (_mode: AuthMode) => {
   // Footer is now consistent across modes, no need to track
 };
 </script>
@@ -57,8 +61,8 @@ const handleModeChange = (_mode: 'passwordless' | 'password') => {
       <nav
         aria-label="Additional sign-in options"
         class="flex items-center justify-center gap-2 text-sm">
-        <!-- Consistent footer for all modes when magic links enabled -->
-        <template v-if="magicLinksEnabled">
+        <!-- Consistent footer for all modes when passwordless methods enabled -->
+        <template v-if="passwordlessEnabled">
           <router-link
             to="/help"
             class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
@@ -71,7 +75,7 @@ const handleModeChange = (_mode: 'passwordless' | 'password') => {
             {{ t('web.login.create_account') }}
           </router-link>
         </template>
-        <!-- Password-only mode (magic links disabled): original footer -->
+        <!-- Password-only mode (no passwordless methods enabled): original footer -->
         <template v-else>
           <span class="text-gray-600 dark:text-gray-400">
             {{ t('web.login.alternate_prefix') }}

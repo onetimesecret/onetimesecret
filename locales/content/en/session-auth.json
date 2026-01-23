@@ -59,6 +59,10 @@
     "text": "Magic Link",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Passkey",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Need help?",
     "sha256": "c225cdfb"

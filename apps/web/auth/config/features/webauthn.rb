@@ -40,7 +40,8 @@ module Auth::Config::Features
 
       # Routes (relative to /auth mount point)
       auth.webauthn_setup_route 'webauthn-setup'
-      auth.webauthn_auth_route 'webauthn-auth'
+      auth.webauthn_auth_route 'webauthn-auth'       # MFA route (requires prior session)
+      auth.webauthn_login_route 'webauthn-login'     # Passwordless login route (no session required)
       auth.webauthn_remove_route 'webauthn-remove'
 
       # JSON API response configuration
