@@ -100,6 +100,36 @@ class LegacyDataDetector < Onetime::Initializers::DetectLegacyDataAndWarn
   end
 end
 
+# Test helper class that allows stubbing Familia.with_isolated_dbclient
+# for testing the actual scan_database_for_legacy_data method
+class ScanMethodTester < Onetime::Initializers::DetectLegacyDataAndWarn
+  attr_accessor :mock_data, :raise_error
+
+  def initialize
+    @mock_data = {}
+    @raise_error = nil
+  end
+
+  # Test the scan method with stubbed Familia
+  def test_scan(db_num, legacy_mappings, current_dbs, legacy_locations)
+    original_method = Familia.method(:with_isolated_dbclient)
+    mock_data_ref = @mock_data
+    raise_error_ref = @raise_error
+
+    # Replace with our stub
+    Familia.define_singleton_method(:with_isolated_dbclient) do |db, &client_block|
+      raise raise_error_ref if raise_error_ref
+      mock_client = MockRedisClient.new(mock_data_ref[db] || {})
+      client_block.call(mock_client)
+    end
+
+    send(:scan_database_for_legacy_data, db_num, legacy_mappings, current_dbs, legacy_locations)
+  ensure
+    # Restore original method
+    Familia.define_singleton_method(:with_isolated_dbclient, original_method)
+  end
+end
+
 ## Clean installation returns empty results
 @mock_redis = {
   0 => {
@@ -259,3 +289,108 @@ result[:legacy_locations]['secret'].first[:sample_keys].length
 @result = @detector.test_detect_legacy_data(@mock_redis)
 @result[:needs_auto_config]
 #=> false
+
+## scan_database_for_legacy_data returns 0 when database exists but has no legacy data
+@tester = ScanMethodTester.new
+@tester.mock_data = { 1 => {} }
+@legacy_mappings = { 'session' => [1], 'customer' => [6] }
+@current_dbs = {}
+@legacy_locations = {}
+@tester.test_scan(1, @legacy_mappings, @current_dbs, @legacy_locations)
+#=> 0
+
+## scan_database_for_legacy_data finds legacy data and returns count of model types
+@tester = ScanMethodTester.new
+@tester.mock_data = {
+  1 => {
+    'session:abc123' => 'data',
+    'session:def456' => 'data'
+  }
+}
+@legacy_mappings = { 'session' => [1], 'customer' => [6] }
+@current_dbs = {}
+@legacy_locations = {}
+@tester.test_scan(1, @legacy_mappings, @current_dbs, @legacy_locations)
+#=> 1
+
+## scan_database_for_legacy_data populates legacy_locations correctly
+@legacy_locations.keys
+#=> ['session']
+
+## scan_database_for_legacy_data records correct database number
+@legacy_locations['session'].first[:database]
+#=> 1
+
+## scan_database_for_legacy_data records correct key count
+@legacy_locations['session'].first[:key_count]
+#=> 2
+
+## scan_database_for_legacy_data returns 0 when RedisClient::CommandError has "DB index is out of range"
+@tester = ScanMethodTester.new
+@tester.raise_error = RedisClient::CommandError.new("ERR DB index is out of range")
+@legacy_mappings = { 'session' => [1] }
+@current_dbs = {}
+@legacy_locations = {}
+@tester.test_scan(10, @legacy_mappings, @current_dbs, @legacy_locations)
+#=> 0
+
+## scan_database_for_legacy_data does not populate legacy_locations on DB out of range
+@legacy_locations.empty?
+#=> true
+
+## scan_database_for_legacy_data re-raises RedisClient::CommandError with different message
+@tester = ScanMethodTester.new
+@tester.raise_error = RedisClient::CommandError.new("ERR unknown command 'SCAN'")
+@legacy_mappings = { 'session' => [1] }
+@current_dbs = {}
+@legacy_locations = {}
+begin
+  @tester.test_scan(1, @legacy_mappings, @current_dbs, @legacy_locations)
+  'should have raised'
+rescue RedisClient::CommandError => ex
+  ex.message
+end
+#=> "ERR unknown command 'SCAN'"
+
+## scan_database_for_legacy_data handles multiple model types in same database
+@tester = ScanMethodTester.new
+@tester.mock_data = {
+  6 => {
+    'customer:user1' => 'data',
+    'customdomain:example.com' => 'data'
+  }
+}
+@legacy_mappings = { 'customer' => [6], 'customdomain' => [6] }
+@current_dbs = {}
+@legacy_locations = {}
+@tester.test_scan(6, @legacy_mappings, @current_dbs, @legacy_locations)
+#=> 2
+
+## scan_database_for_legacy_data skips models already detected in another database
+@tester = ScanMethodTester.new
+@tester.mock_data = {
+  2 => {
+    'session:another123' => 'data'
+  }
+}
+@legacy_mappings = { 'session' => [1] }
+@current_dbs = {}
+# Pre-populate legacy_locations as if session was already found
+@legacy_locations = { 'session' => [{ database: 1, key_count: 5 }] }
+# Should return 0 since session was already detected
+@tester.test_scan(2, @legacy_mappings, @current_dbs, @legacy_locations)
+#=> 0
+
+## scan_database_for_legacy_data skips models configured to be in current database
+@tester = ScanMethodTester.new
+@tester.mock_data = {
+  1 => {
+    'session:test123' => 'data'
+  }
+}
+@legacy_mappings = { 'session' => [1] }
+@current_dbs = { 'session' => 1 }  # Session configured for DB 1
+@legacy_locations = {}
+# Should return 0 since session is configured to use DB 1
+@tester.test_scan(1, @legacy_mappings, @current_dbs, @legacy_locations)
+#=> 0
