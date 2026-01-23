@@ -45,7 +45,7 @@ The feature loads automatically when `ENABLE_OMNIAUTH=true`.
 | `OIDC_CLIENT_ID` | Yes | OAuth client ID from IdP |
 | `OIDC_CLIENT_SECRET` | Yes | OAuth client secret from IdP |
 | `OIDC_REDIRECT_URI` | Yes | Callback URL registered with IdP |
-| `OIDC_PROVIDER_NAME` | No | Provider name in routes (default: `oidc`) |
+| `OIDC_PROVIDER_NAME` | No | Provider name in routes (default: `oidc`). **Must remain `oidc` for frontend compatibility.** |
 
 ## Routes
 
@@ -201,6 +201,44 @@ curl https://your-issuer/.well-known/openid-configuration
 ### Account not created
 
 Check application logs for errors during `after_omniauth_create_account` hook. Ensure Redis is accessible for Customer creation.
+
+## Deployment Modes
+
+### Standalone/Self-hosted
+
+The current implementation supports a single OIDC provider configured via environment variables. This is ideal for:
+- Single-organization deployments
+- Self-hosted instances with one IdP
+- Development and testing
+
+**Constraint:** The frontend hardcodes `/auth/sso/oidc` as the SSO endpoint. Do not change `OIDC_PROVIDER_NAME` from its default value `oidc`.
+
+### Multi-tenant (Future)
+
+Per-organization SSO (BYOIDC) is not yet implemented. When needed, this would require:
+- Organization SSO config stored in maindb (PostgreSQL)
+- Dynamic OmniAuth setup based on organization context
+- URL pattern like `/auth/sso/org/:org_extid/oidc`
+- Self-service admin UI for IdP configuration
+
+See industry patterns: WorkOS Organizations, Auth0 Organizations, Stripe Organizations.
+
+#### Recommended architecture for Multi-tenant
+
+```
+Customer A (Okta) ──┐
+                    ├──► Zitadel ──► OIDC ──► Onetime Secret
+Customer B (Azure) ─┘
+```
+
+Rather than:
+
+```
+Customer A (Okta)  ──► SAML ──► Onetime Secret
+Customer B (Azure) ──► OIDC ──► Onetime Secret
+```
+
+The Zitadel-as-broker approach is one protocol in your app, federation complexity handled by the IdP.
 
 ## Security Notes
 
