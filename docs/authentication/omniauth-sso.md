@@ -46,6 +46,7 @@ The feature loads automatically when `ENABLE_OMNIAUTH=true`.
 | `OIDC_CLIENT_SECRET` | Yes | OAuth client secret from IdP |
 | `OIDC_REDIRECT_URI` | Yes | Callback URL registered with IdP |
 | `OIDC_PROVIDER_NAME` | No | Provider name in routes (default: `oidc`). **Must remain `oidc` for frontend compatibility.** |
+| `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated list of allowed email domains for SSO signup (see Domain Restrictions) |
 
 ## Routes
 
@@ -144,21 +145,58 @@ export OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 
 ## Frontend Integration
 
-Add an SSO button to your login form:
+The SSO button is integrated into the signin page when OmniAuth is enabled. The feature flag `isOmniAuthEnabled()` controls visibility.
+
+### Vue Component
+
+The `SsoButton.vue` component handles SSO initiation:
+
+```vue
+<!-- src/apps/session/components/SsoButton.vue -->
+<script setup>
+const handleSsoLogin = () => {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/auth/sso/oidc';
+
+  // CSRF token (required)
+  const csrfInput = document.createElement('input');
+  csrfInput.type = 'hidden';
+  csrfInput.name = 'shrimp';  // Project uses 'shrimp' as CSRF param name
+  csrfInput.value = csrfStore.shrimp;
+  form.appendChild(csrfInput);
+
+  document.body.appendChild(form);
+  form.submit();
+};
+</script>
+```
+
+### CSRF Protection
+
+**Important:** All POST requests to `/auth/sso/oidc` require a valid CSRF token.
+
+- Parameter name: `shrimp` (configured in `lib/onetime/middleware/security.rb`)
+- Token source: `window.__BOOTSTRAP_STATE__.shrimp` or `csrfStore.shrimp`
+- Without valid token: 403 Forbidden
+
+### Feature Flag
+
+The SSO button only appears when:
+1. `ENABLE_OMNIAUTH=true` is set
+2. The bootstrap payload includes `features.omniauth: true`
+
+Check in Vue: `isOmniAuthEnabled()` from `src/utils/features.ts`
+
+### Static HTML (Custom Integrations)
+
+For non-Vue integrations, include the CSRF token:
 
 ```html
 <form method="POST" action="/auth/sso/oidc">
+  <input type="hidden" name="shrimp" value="<%= session[:csrf] %>">
   <button type="submit">Login with SSO</button>
 </form>
-```
-
-Or use a link with JavaScript:
-
-```html
-<a href="#" onclick="document.getElementById('sso-form').submit()">
-  Login with SSO
-</a>
-<form id="sso-form" method="POST" action="/auth/sso/oidc" style="display:none"></form>
 ```
 
 ## Database Schema
@@ -240,20 +278,133 @@ Customer B (Azure) ──► OIDC ──► Onetime Secret
 
 The Zitadel-as-broker approach is one protocol in your app, federation complexity handled by the IdP.
 
+## Domain Restrictions
+
+Optionally restrict which email domains can create accounts via SSO. Uses the same configuration as regular signup.
+
+### Configuration
+
+```bash
+# Single domain
+export ALLOWED_SIGNUP_DOMAIN=company.com
+
+# Multiple domains
+export ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,partner.org
+```
+
+### Behavior
+
+| Configuration | Behavior |
+|--------------|----------|
+| Not set or empty | All domains allowed (default) |
+| Single domain | Only that domain can create accounts |
+| Multiple domains | Any listed domain can create accounts |
+
+### Security Considerations
+
+- **Generic error messages:** Users from unauthorized domains see "Your email domain is not authorized for SSO signup" - the allowed domains are never revealed.
+- **Audit logging:** Rejected attempts are logged with event `omniauth_domain_rejected` including the obscured email and domain for security review.
+- **Case-insensitive:** Domain matching is case-insensitive (`COMPANY.COM` matches `company.com`).
+- **Subdomains not matched:** `sub.company.com` does NOT match `company.com` - add each subdomain explicitly if needed.
+- **Existing accounts:** Domain restrictions only apply to new account creation. Existing accounts with linked SSO identities can still log in regardless of domain restrictions.
+
+### Example: Enterprise Deployment
+
+```bash
+# Only employees from company.com can use SSO
+export ALLOWED_SIGNUP_DOMAIN=company.com
+
+# Include subsidiary and contractor domains
+export ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,contractors.company.com
+```
+
+### Troubleshooting Domain Restrictions
+
+**"Your email domain is not authorized for SSO signup"**
+
+1. Verify the user's email domain is in `ALLOWED_SIGNUP_DOMAIN`
+2. Check for typos (e.g., `comapny.com` vs `company.com`)
+3. Remember subdomains must be listed explicitly
+4. Check logs for `omniauth_domain_rejected` events
+
+**Existing user can't log in after domain restriction added**
+
+Domain restrictions only affect NEW account creation. If the user already has an account with a linked SSO identity, they can still log in. To block existing users, remove their account or unlink their SSO identity.
+
 ## Security Notes
 
 - PKCE is enabled by default for enhanced security
 - Discovery document is fetched from issuer URL
 - Email from IdP is trusted (no additional verification)
 - Sessions use same security settings as password auth
+- Domain restrictions validated before account creation
 
 ## Files
 
-- `apps/web/auth/config/features/omniauth.rb` - Feature configuration
-- `apps/web/auth/config/hooks/omniauth.rb` - Callback hooks
-- `apps/web/auth/migrations/006_omniauth_identities.rb` - Database migration
-- `lib/onetime/auth_config.rb` - Feature flag (`omniauth_enabled?`)
-- `etc/defaults/auth.defaults.yaml` - Default configuration
+### Backend
+
+| File | Purpose |
+|------|---------|
+| `apps/web/auth/config/features/omniauth.rb` | Rodauth feature configuration (routes, OIDC settings) |
+| `apps/web/auth/config/hooks/omniauth.rb` | Callback hooks (domain validation, account creation) |
+| `apps/web/auth/migrations/006_omniauth_identities.rb` | Database migration for identity linking |
+| `lib/onetime/auth_config.rb` | Feature flag method (`omniauth_enabled?`) |
+| `etc/defaults/auth.defaults.yaml` | Default configuration |
+| `apps/web/core/views/serializers/config_serializer.rb` | Exposes `omniauth` flag to frontend |
+
+### Frontend
+
+| File | Purpose |
+|------|---------|
+| `src/apps/session/components/SsoButton.vue` | SSO login button component |
+| `src/apps/session/components/AuthMethodSelector.vue` | Integrates SSO with other auth methods |
+| `src/utils/features.ts` | `isOmniAuthEnabled()` feature detection |
+| `src/types/declarations/bootstrap.d.ts` | TypeScript types for `features.omniauth` |
+
+### Tests
+
+| File | Coverage |
+|------|----------|
+| `apps/web/auth/spec/integration/omniauth_csrf_spec.rb` | CSRF token validation |
+| `apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb` | Domain restriction logic |
+| `src/tests/apps/session/components/SsoButton.spec.ts` | Frontend component tests |
+| `src/tests/apps/session/components/AuthMethodSelector.spec.ts` | Integration with auth selector |
+
+## Testing
+
+### Manual Testing Checklist
+
+1. **Feature flag disabled:**
+   - [ ] SSO button should NOT appear on signin page
+   - [ ] POST to `/auth/sso/oidc` returns 404
+
+2. **Feature flag enabled (no IdP configured):**
+   - [ ] SSO button appears on signin page
+   - [ ] Clicking button shows configuration error
+
+3. **Fully configured:**
+   - [ ] SSO button redirects to IdP
+   - [ ] Successful auth creates account and redirects to dashboard
+   - [ ] Session is properly authenticated
+
+4. **Domain restrictions:**
+   - [ ] Allowed domain: account created successfully
+   - [ ] Disallowed domain: 403 error, generic message
+   - [ ] Check logs for `omniauth_domain_rejected` event
+
+### Running Tests
+
+```bash
+# Backend unit tests (no Valkey required)
+bundle exec rspec apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb
+
+# Backend integration tests (requires Valkey)
+bundle exec rspec apps/web/auth/spec/integration/omniauth_csrf_spec.rb
+
+# Frontend tests
+pnpm test src/tests/apps/session/components/SsoButton.spec.ts
+pnpm test src/tests/apps/session/components/AuthMethodSelector.spec.ts
+```
 
 ## See Also
 
