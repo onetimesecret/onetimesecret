@@ -868,6 +868,10 @@
     "text": "Related Settings",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Benefits",
+    "context": "Section header for listing benefits"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Creating links for",
     "sha256": "57db069e"
@@ -1231,6 +1235,10 @@
   "web.TITLES.recovery_codes": {
     "text": "Recovery Codes",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Passkeys",
+    "context": "Page title for passkey management"
   },
   "web.TITLES.api_settings": {
     "text": "API Settings",

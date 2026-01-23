@@ -304,6 +304,7 @@ export const accountInfoResponseSchema = z.object({
   email_verified: z.boolean(),
   mfa_enabled: z.boolean(),
   recovery_codes_count: z.number(),
+  passkeys_count: z.number().optional(),
 });
 export type AccountInfoResponse = z.infer<typeof accountInfoResponseSchema>;
 

@@ -63,6 +63,7 @@ export interface AccountInfo {
   mfa_enabled: boolean;
   recovery_codes_count: number;
   active_sessions_count?: number;
+  passkeys_count?: number;
 }
 
 /**

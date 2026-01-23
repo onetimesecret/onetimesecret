@@ -5,12 +5,15 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
+  import { isWebAuthnEnabled } from '@/utils/features';
+  import type { AccountInfo } from '@/types/auth';
   import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
 
   // Feature toggles
   const showSessionsCard = ref(false);
+  const webAuthnEnabled = ref(isWebAuthnEnabled());
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   interface SecurityCard {
@@ -45,10 +48,9 @@
     return { label: t('web.settings.security.weak'), color: 'red' };
   });
 
-  const securityCards = computed<SecurityCard[]>(() => {
-    if (!accountInfo.value) return [];
-
-    const cards: SecurityCard[] = [
+  // Helper to build core security cards
+  function buildCoreCards(info: AccountInfo): SecurityCard[] {
+    return [
       {
         id: 'password',
         icon: { collection: 'heroicons', name: 'lock-closed-solid' },
@@ -66,14 +68,12 @@
         icon: { collection: 'heroicons', name: 'key-solid' },
         title: t('web.auth.mfa.title'),
         description: t('web.auth.mfa.setup_description'),
-        status: accountInfo.value.mfa_enabled ? 'active' : 'warning',
-        statusText: accountInfo.value.mfa_enabled
+        status: info.mfa_enabled ? 'active' : 'warning',
+        statusText: info.mfa_enabled
           ? t('web.auth.account.mfa_enabled')
           : t('web.auth.account.mfa_disabled'),
         action: {
-          label: accountInfo.value.mfa_enabled
-            ? t('web.settings.security.manage')
-            : t('web.settings.security.enable'),
+          label: info.mfa_enabled ? t('web.settings.security.manage') : t('web.settings.security.enable'),
           to: '/account/settings/security/mfa',
         },
       },
@@ -82,10 +82,10 @@
         icon: { collection: 'heroicons', name: 'document-text-solid' },
         title: t('web.auth.recovery_codes.title'),
         description: t('web.auth.recovery_codes.description'),
-        status: accountInfo.value.recovery_codes_count > 0 ? 'active' : 'inactive',
+        status: info.recovery_codes_count > 0 ? 'active' : 'inactive',
         statusText:
-          accountInfo.value.recovery_codes_count > 0
-            ? t('web.settings.security.codes_available', [accountInfo.value.recovery_codes_count])
+          info.recovery_codes_count > 0
+            ? t('web.settings.security.codes_available', [info.recovery_codes_count])
             : t('web.settings.security.no_codes'),
         action: {
           label: t('web.settings.security.manage'),
@@ -93,22 +93,55 @@
         },
       },
     ];
+  }
+
+  // Helper to build passkey card
+  function buildPasskeyCard(info: AccountInfo): SecurityCard {
+    const passkeyCount = info.passkeys_count ?? 0;
+    return {
+      id: 'passkeys',
+      icon: { collection: 'heroicons', name: 'finger-print-solid' },
+      title: t('web.auth.passkeys.title'),
+      description: t('web.auth.passkeys.description'),
+      status: passkeyCount > 0 ? 'active' : 'inactive',
+      statusText:
+        passkeyCount > 0
+          ? t('web.auth.passkeys.count', { count: passkeyCount }, passkeyCount)
+          : t('web.auth.passkeys.not_configured'),
+      action: {
+        label: passkeyCount > 0 ? t('web.settings.security.manage') : t('web.settings.security.enable'),
+        to: '/account/settings/security/passkeys',
+      },
+    };
+  }
+
+  // Helper to build sessions card
+  function buildSessionsCard(info: AccountInfo): SecurityCard {
+    return {
+      id: 'sessions',
+      icon: { collection: 'heroicons', name: 'computer-desktop-solid' },
+      title: t('web.auth.sessions.title'),
+      description: t('web.settings.sessions.manage_active_sessions'),
+      status: 'active',
+      statusText: t('web.settings.security.active_sessions', [info.active_sessions_count || 1]),
+      action: {
+        label: t('web.settings.security.manage'),
+        to: '/account/settings/security/sessions',
+      },
+    };
+  }
+
+  const securityCards = computed<SecurityCard[]>(() => {
+    if (!accountInfo.value) return [];
+
+    const cards = buildCoreCards(accountInfo.value);
+
+    if (webAuthnEnabled.value) {
+      cards.push(buildPasskeyCard(accountInfo.value));
+    }
 
     if (showSessionsCard.value) {
-      cards.push({
-        id: 'sessions',
-        icon: { collection: 'heroicons', name: 'computer-desktop-solid' },
-        title: t('web.auth.sessions.title'),
-        description: t('web.settings.sessions.manage_active_sessions'),
-        status: 'active',
-        statusText: t('web.settings.security.active_sessions', [
-          accountInfo.value.active_sessions_count || 1,
-        ]),
-        action: {
-          label: t('web.settings.security.manage'),
-          to: '/account/settings/security/sessions',
-        },
-      });
+      cards.push(buildSessionsCard(accountInfo.value));
     }
 
     return cards;
