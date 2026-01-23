@@ -77,6 +77,65 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
+      # HOOK: Before OmniAuth Account Creation - Domain Validation
+      # ========================================================================
+      #
+      # USER JOURNEY CONTEXT:
+      # This hook fires BEFORE Rodauth creates a new account for an SSO user.
+      # Used to enforce domain restrictions for SSO signups.
+      #
+      # CONFIGURATION:
+      # Uses the same `allowed_signup_domains` config as regular signup.
+      # Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated).
+      #
+      # Example: ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com
+      #
+      auth.before_omniauth_create_account do
+        allowed_domains = OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
+
+        # No restrictions configured - allow all domains
+        next if allowed_domains.nil? || allowed_domains.empty?
+
+        # Extract and validate domain from email
+        email       = omniauth_email.to_s.strip.downcase
+        email_parts = email.split('@')
+
+        # Reject malformed emails
+        if email_parts.length != 2 || email_parts.last.to_s.empty?
+          Auth::Logging.log_auth_event(
+            :omniauth_invalid_email,
+            level: :warn,
+            email: OT::Utils.obscure_email(email),
+            provider: omniauth_provider,
+          )
+          throw_error_status(400, 'invalid_email', 'Invalid email address from identity provider')
+        end
+
+        email_domain = email_parts.last
+
+        # Check if domain is allowed (case-insensitive)
+        normalized_domains = allowed_domains.compact.map(&:downcase)
+        unless normalized_domains.include?(email_domain)
+          Auth::Logging.log_auth_event(
+            :omniauth_domain_rejected,
+            level: :warn,
+            email: OT::Utils.obscure_email(email),
+            domain: email_domain,
+            provider: omniauth_provider,
+          )
+          # Generic error message - don't reveal which domains are allowed
+          throw_error_status(403, 'domain_not_allowed', 'Your email domain is not authorized for SSO signup')
+        end
+
+        Auth::Logging.log_auth_event(
+          :omniauth_domain_validated,
+          level: :debug,
+          email: OT::Utils.obscure_email(email),
+          provider: omniauth_provider,
+        )
+      end
+
+      # ========================================================================
       # HOOK: After OmniAuth Account Creation
       # ========================================================================
       #
