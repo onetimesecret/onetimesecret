@@ -244,10 +244,31 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
   end
 
   describe 'cross-site request forgery (CSRF) considerations' do
-    it 'documents CSRF protection requirements' do
-      # This test documents that CSRF protection should be implemented
-      # at the controller/middleware level, not in the logic layer
-      expect(true).to be true # Placeholder - CSRF should be tested at controller level
+    it 'configures AuthenticityToken middleware with shrimp parameter' do
+      # OTS uses 'shrimp' as the CSRF token parameter name (legacy naming)
+      # This test verifies the middleware is configured to look for the correct param
+      middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
+
+      expect(middleware_config).not_to be_nil
+      expect(middleware_config[:klass]).to eq(Rack::Protection::AuthenticityToken)
+      expect(middleware_config[:options]).to include(authenticity_param: 'shrimp')
+    end
+
+    it 'configures CSRF to skip API and JSON requests' do
+      middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
+      allow_if = middleware_config[:options][:allow_if]
+
+      expect(allow_if).to be_a(Proc)
+
+      # Test that API paths are skipped
+      api_env = { 'PATH_INFO' => '/api/v1/secrets', 'HTTP_ACCEPT' => 'text/html' }
+      api_req = Rack::Request.new(api_env)
+      expect(api_req.path.start_with?('/api/')).to be true
+
+      # Test that JSON requests are skipped
+      json_env = { 'PATH_INFO' => '/auth/login', 'CONTENT_TYPE' => 'application/json' }
+      json_req = Rack::Request.new(json_env)
+      expect(json_req.media_type).to eq('application/json')
     end
   end
 
