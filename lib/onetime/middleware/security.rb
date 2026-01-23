@@ -107,6 +107,8 @@ Onetime::Middleware::Security.middleware_components = {
     key: :authenticity_token,
     klass: Rack::Protection::AuthenticityToken,
     options: {
+      # OTS uses 'shrimp' as the CSRF parameter name (legacy naming)
+      authenticity_param: 'shrimp',
       # Skip CSRF for API requests with JSON content-type
       allow_if: ->(env) {
         req = Rack::Request.new(env)
