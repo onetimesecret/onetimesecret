@@ -27,7 +27,17 @@ const handleSsoLogin = () => {
   form.method = 'POST';
   form.action = '/auth/sso/oidc';
 
-  // Add CSRF token
+  /**
+   * Add CSRF token for Rack::Protection::AuthenticityToken validation.
+   *
+   * The field is named 'shrimp' for historical/project-specific reasons.
+   * The backend Rack::Protection::AuthenticityToken middleware is configured
+   * with `authenticity_param: 'shrimp'` to accept this field name instead
+   * of the default 'authenticity_token'.
+   *
+   * The value comes from session[:csrf] on the backend, which is serialized
+   * into the page's bootstrap state and loaded into csrfStore on page load.
+   */
   const csrfInput = document.createElement('input');
   csrfInput.type = 'hidden';
   csrfInput.name = 'shrimp';

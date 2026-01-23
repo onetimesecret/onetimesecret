@@ -179,6 +179,15 @@ describe('SsoButton', () => {
     });
   });
 
+  /**
+   * Form Submission Tests
+   *
+   * The SSO button creates a form POST to /auth/sso/oidc which initiates the
+   * OmniAuth flow. The form includes a CSRF token field named 'shrimp' - this
+   * is a project-specific naming convention where the backend Rack::Protection
+   * is configured with authenticity_param: 'shrimp' instead of the default
+   * 'authenticity_token'. The value comes from session[:csrf] on the backend.
+   */
   describe('Form Submission', () => {
     it('creates form with POST method on click', async () => {
       wrapper = mountComponent();
@@ -199,6 +208,17 @@ describe('SsoButton', () => {
       expect(form?.getAttribute('method')).toBe('POST');
     });
 
+    it('form action is correct for OmniAuth OIDC initiation', async () => {
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/oidc"]');
+      expect(form).not.toBeNull();
+      // The /auth/sso/oidc endpoint is handled by OmniAuth and redirects to the IdP
+      expect(form?.getAttribute('action')).toBe('/auth/sso/oidc');
+    });
+
     it('includes CSRF token in form submission', async () => {
       mockShrimp.value = 'my-csrf-token';
       wrapper = mountComponent();
@@ -209,6 +229,32 @@ describe('SsoButton', () => {
       const csrfInput = form?.querySelector('input[name="shrimp"]') as HTMLInputElement;
       expect(csrfInput).not.toBeNull();
       expect(csrfInput?.value).toBe('my-csrf-token');
+    });
+
+    // The field is named 'shrimp' because Rack::Protection::AuthenticityToken
+    // is configured with authenticity_param: 'shrimp' on the backend
+    it('CSRF input field has correct name attribute (shrimp)', async () => {
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/oidc"]');
+      const csrfInput = form?.querySelector('input[type="hidden"]') as HTMLInputElement;
+      expect(csrfInput).not.toBeNull();
+      expect(csrfInput?.name).toBe('shrimp');
+    });
+
+    it('CSRF input value matches csrfStore.shrimp value', async () => {
+      const expectedToken = 'csrf-store-token-12345';
+      mockShrimp.value = expectedToken;
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/oidc"]');
+      const csrfInput = form?.querySelector('input[name="shrimp"]') as HTMLInputElement;
+      expect(csrfInput?.value).toBe(expectedToken);
+      expect(csrfInput?.value).toBe(mockShrimp.value);
     });
 
     it('submits the form after creating it', async () => {
