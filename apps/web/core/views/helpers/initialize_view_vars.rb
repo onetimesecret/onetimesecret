@@ -102,6 +102,29 @@ module Core
         # The frontend will show minimal MFA prompt using email from session
         session_email = sess&.[]('email')
 
+        # ====================================================================
+        # Bridge Rodauth flash messages to Core app messages
+        # ====================================================================
+        #
+        # When Rodauth sets flash messages (e.g., SSO failure), they are stored
+        # in session['_flash'] by Roda's flash plugin. We read these and convert
+        # them to the Core app's messages format, then clear them (standard flash
+        # behavior - messages shown once).
+        #
+        # Flash keys from Rodauth:
+        # - :error - Error messages (e.g., "SSO authentication failed")
+        # - :notice - Success/info messages
+        #
+        messages   = []
+        flash_data = sess&.delete('_flash') || sess&.delete(:_flash)
+        if flash_data.is_a?(Hash)
+          error_msg  = flash_data[:error] || flash_data['error']
+          notice_msg = flash_data[:notice] || flash_data['notice']
+
+          messages << { 'type' => 'error', 'content' => error_msg } if error_msg
+          messages << { 'type' => 'info', 'content' => notice_msg } if notice_msg
+        end
+
         # Extract values from rack request object
         nonce           = req.env.fetch('onetime.nonce', nil)
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)

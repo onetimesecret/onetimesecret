@@ -58,6 +58,23 @@ module Auth::Config::Hooks
       # accounts table has different email handling.
 
       # ========================================================================
+      # JSON Mode Override for OmniAuth
+      # ========================================================================
+      #
+      # Disable JSON-only mode for OmniAuth routes. OmniAuth flow uses browser
+      # redirects from the identity provider, not JSON API responses. When IdP
+      # redirects back to /auth/sso/oidc/callback, we need:
+      # - Real HTTP redirects (302) instead of JSON responses
+      # - Flash messages stored in session for Core app to display
+      #
+      # Without this override, Rodauth's JSON feature intercepts set_redirect_error_flash
+      # and stores the message in json_response[:error] which is lost on redirect.
+      #
+      auth.only_json? do
+        !request.path.start_with?(omniauth_prefix)
+      end
+
+      # ========================================================================
       # HOOK: Before OmniAuth Callback Route
       # ========================================================================
       #
