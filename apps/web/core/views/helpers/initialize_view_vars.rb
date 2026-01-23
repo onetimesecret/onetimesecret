@@ -189,7 +189,7 @@ module Core
           'homepage_mode' => homepage_mode,
           'keywords' => keywords,
           'locale' => locale,
-          'messages' => nil,
+          'messages' => messages.empty? ? nil : messages,
           'no_cache' => no_cache,
           'nonce' => nonce,
           'organization' => organization,

@@ -339,6 +339,62 @@ Domain restrictions only affect NEW account creation. If the user already has an
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
 
+## Error Handling
+
+### Error Display Flow
+
+SSO errors (authentication failures, domain rejections, etc.) are displayed via the following flow:
+
+```
+OmniAuth failure callback
+    │
+    ▼
+Rodauth sets flash[:error] via Roda flash plugin
+    │
+    ▼
+Redirect to /signin
+    │
+    ▼
+Core app bridges flash to bootstrap messages (ViewHelpers#flash_messages)
+    │
+    ▼
+Frontend displays via notifications system
+```
+
+### Why Flash-Based Errors
+
+OmniAuth callbacks are browser redirects from the IdP, not JSON API calls. This requires:
+
+1. **Session-based flash messages** - The `only_json?` method is overridden for OmniAuth routes to enable proper redirects with flash messages instead of JSON responses.
+
+2. **Security** - Flash messages in session are more secure than URL query parameters. Error details in URLs can be logged by proxies, CDNs, and browser history.
+
+### Customizing Error Messages
+
+The `omniauth_failure_error_flash` configuration controls error messages:
+
+```ruby
+# apps/web/auth/config/features/omniauth.rb
+omniauth_failure_error_flash do |error|
+  case error
+  when :csrf_detected
+    "Security validation failed. Please try again."
+  when :access_denied
+    "Access was denied by the identity provider."
+  else
+    "Authentication failed. Please try again."
+  end
+end
+```
+
+Custom error handlers can set flash messages directly:
+
+```ruby
+# In callback hooks
+flash[:error] = "Your email domain is not authorized for SSO signup."
+redirect omniauth_failure_redirect
+```
+
 ## Files
 
 ### Backend
