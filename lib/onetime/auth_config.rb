@@ -112,6 +112,12 @@ module Onetime
       feature_enabled?('webauthn', default: false)
     end
 
+    # Whether OmniAuth (external identity providers via OIDC) is enabled
+    # Default: false
+    def omniauth_enabled?
+      feature_enabled?('omniauth', default: false)
+    end
+
     # DEPRECATED: Use hardening_enabled?, active_sessions_enabled?, remember_me_enabled?
     def security_features_enabled?
       hardening_enabled? && active_sessions_enabled? && remember_me_enabled?
