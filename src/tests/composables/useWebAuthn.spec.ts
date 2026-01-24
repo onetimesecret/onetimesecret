@@ -369,7 +369,7 @@ describe('useWebAuthn', () => {
 
       expect(isLoading.value).toBe(false);
 
-      const result = await registerWebAuthn();
+      const result = await registerWebAuthn('testpassword');
 
       expect(result).toBe(true);
       expect(error.value).toBeNull();
@@ -377,11 +377,19 @@ describe('useWebAuthn', () => {
       expect(startRegistrationMock).toHaveBeenCalledWith(challengeOptions);
     });
 
+    it('returns false when password is not provided', async () => {
+      const { registerWebAuthn, error } = useWebAuthn();
+      const result = await registerWebAuthn('');
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('web.auth.webauthn.passwordRequired');
+    });
+
     it('handles invalid setup challenge response', async () => {
       axiosMock.onPost('/auth/webauthn-setup').reply(200, {});
 
       const { registerWebAuthn, error } = useWebAuthn();
-      const result = await registerWebAuthn();
+      const result = await registerWebAuthn('testpassword');
 
       expect(result).toBe(false);
       expect(error.value).toBe('Invalid challenge response');
@@ -403,7 +411,7 @@ describe('useWebAuthn', () => {
       startRegistrationMock.mockRejectedValue(cancelError);
 
       const { registerWebAuthn, error } = useWebAuthn();
-      const result = await registerWebAuthn();
+      const result = await registerWebAuthn('testpassword');
 
       expect(result).toBe(false);
       expect(error.value).toBe('web.auth.webauthn.cancelled');
@@ -426,7 +434,7 @@ describe('useWebAuthn', () => {
       });
 
       const { registerWebAuthn, error } = useWebAuthn();
-      const result = await registerWebAuthn();
+      const result = await registerWebAuthn('testpassword');
 
       expect(result).toBe(false);
       expect(error.value).toBe('Registration failed');
@@ -438,7 +446,7 @@ describe('useWebAuthn', () => {
       });
 
       const { registerWebAuthn, error } = useWebAuthn();
-      const result = await registerWebAuthn();
+      const result = await registerWebAuthn('testpassword');
 
       expect(result).toBe(false);
       expect(error.value).toBe('Forbidden');
@@ -459,7 +467,7 @@ describe('useWebAuthn', () => {
       startRegistrationMock.mockRejectedValue(new Error());
 
       const { registerWebAuthn, error } = useWebAuthn();
-      const result = await registerWebAuthn();
+      const result = await registerWebAuthn('testpassword');
 
       expect(result).toBe(false);
       expect(error.value).toBe('web.auth.webauthn.setupFailed');

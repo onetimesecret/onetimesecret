@@ -198,6 +198,10 @@
     "text": "Failed to set up biometric login",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "Password is required to set up a passkey",
+    "sha256": ""
+  },
   "web.auth.webauthn.authFailed": {
     "text": "Biometric authentication failed. Please try again.",
     "sha256": "626b9ece"

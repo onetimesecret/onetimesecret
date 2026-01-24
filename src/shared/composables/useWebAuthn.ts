@@ -67,12 +67,19 @@ export function useWebAuthn() {
 
   /**
    * Registers a new WebAuthn credential (setup flow)
+   * Requires password confirmation for security
    *
+   * @param password - User's current password for verification
    * @returns true if registration successful
    */
-  async function registerWebAuthn(): Promise<boolean> {
+  async function registerWebAuthn(password: string): Promise<boolean> {
     if (!supported.value) {
       error.value = t('web.auth.webauthn.notSupported');
+      return false;
+    }
+
+    if (!password) {
+      error.value = t('web.auth.webauthn.passwordRequired');
       return false;
     }
 
@@ -80,8 +87,9 @@ export function useWebAuthn() {
     isLoading.value = true;
 
     try {
-      // 1. Get registration challenge from server
+      // 1. Get registration challenge from server (requires password)
       const challengeResp = await $api.post<WebAuthnChallengeResponse>('/auth/webauthn-setup', {
+        password,
         shrimp: csrfStore.shrimp,
       });
 
@@ -102,6 +110,7 @@ export function useWebAuthn() {
         webauthn_setup: btoa(JSON.stringify(credential)),
         webauthn_setup_challenge: challengeData.webauthn_setup_challenge,
         webauthn_setup_challenge_hmac: challengeData.webauthn_setup_challenge_hmac,
+        password,
         shrimp: csrfStore.shrimp,
       });
 

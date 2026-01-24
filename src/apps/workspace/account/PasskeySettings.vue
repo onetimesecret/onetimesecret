@@ -4,8 +4,9 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import PasswordConfirmModal from '@/shared/components/modals/PasswordConfirmModal.vue';
   import { useWebAuthn } from '@/shared/composables/useWebAuthn';
-  import { onMounted, ref } from 'vue';
+  import { onMounted, ref, watch } from 'vue';
 
   const { t } = useI18n();
   const { supported, isLoading, error, registerWebAuthn, clearError } = useWebAuthn();
@@ -13,6 +14,8 @@
   // Local state
   const isRegistering = ref(false);
   const successMessage = ref<string | null>(null);
+  const showPasswordModal = ref(false);
+  const passwordError = ref<string | null>(null);
 
   // Passkey list - would be populated from API in full implementation
   // For now, we show the registration flow
@@ -31,20 +34,45 @@
     // await fetchPasskeys();
   });
 
-  // Register new passkey
-  const handleRegisterPasskey = async () => {
+  // Sync error from composable to modal
+  watch(error, (newError) => {
+    if (newError && showPasswordModal.value) {
+      passwordError.value = newError;
+    }
+  });
+
+  // Show password confirmation modal
+  const handleAddPasskeyClick = () => {
     clearError();
     successMessage.value = null;
+    passwordError.value = null;
+    showPasswordModal.value = true;
+  };
+
+  // Handle password confirmation and register passkey
+  const handlePasswordConfirm = async (password: string) => {
+    passwordError.value = null;
     isRegistering.value = true;
 
-    const success = await registerWebAuthn();
+    const success = await registerWebAuthn(password);
 
     if (success) {
+      showPasswordModal.value = false;
       successMessage.value = t('web.auth.passkeys.registered_success');
       // TODO: Refresh passkeys list when API is available
+    } else {
+      // Error is set by the composable, sync to modal
+      passwordError.value = error.value;
     }
 
     isRegistering.value = false;
+  };
+
+  // Handle modal cancel
+  const handlePasswordCancel = () => {
+    showPasswordModal.value = false;
+    passwordError.value = null;
+    clearError();
   };
 
   // Clear messages
@@ -195,18 +223,11 @@
 
             <!-- Add passkey button -->
             <button
-              @click="handleRegisterPasskey"
+              @click="handleAddPasskeyClick"
               type="button"
-              :disabled="isLoading || isRegistering"
+              :disabled="isLoading"
               class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
               <OIcon
-                v-if="isRegistering"
-                collection="heroicons"
-                name="arrow-path"
-                class="size-4 animate-spin"
-                aria-hidden="true" />
-              <OIcon
-                v-else
                 collection="heroicons"
                 name="plus"
                 class="size-4"
@@ -333,6 +354,24 @@
           </div>
         </div>
       </div>
+
+      <!-- Password Confirmation Modal for Passkey Setup -->
+      <PasswordConfirmModal
+        v-model:open="showPasswordModal"
+        :title="t('web.auth.passkeys.add_passkey')"
+        :description="t('web.COMMON.password_required_for_action')"
+        :loading="isRegistering"
+        :error="passwordError"
+        @confirm="handlePasswordConfirm"
+        @cancel="handlePasswordCancel">
+        <template #icon>
+          <OIcon
+            collection="heroicons"
+            name="finger-print"
+            class="size-6 text-brand-600 dark:text-brand-400"
+            aria-hidden="true" />
+        </template>
+      </PasswordConfirmModal>
     </div>
   </SettingsLayout>
 </template>
