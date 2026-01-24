@@ -86,30 +86,23 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
-      # CSRF Validation Override for OmniAuth
+      # CSRF Protection for OmniAuth Routes
       # ========================================================================
       #
-      # Skip Roda's route_csrf validation for OmniAuth request phase.
+      # OmniAuth routes (/auth/sso/*) use OAuth's state parameter for CSRF
+      # protection instead of traditional form tokens. This is configured at
+      # the middleware level in lib/onetime/middleware/security.rb where
+      # Rack::Protection::AuthenticityToken skips /auth/sso/* routes.
       #
-      # The application has TWO CSRF systems:
-      # 1. Rack::Protection::AuthenticityToken (middleware, 'shrimp' param)
-      # 2. Roda::RodaPlugins::RouteCsrf (Rodauth's default)
+      # The OAuth state parameter provides CSRF protection by:
+      # 1. Request phase: OmniAuth generates a random state value, stores it
+      #    in session, and includes it in the authorization URL
+      # 2. Callback phase: Provider returns the state; OmniAuth validates it
+      #    matches the stored value before processing the response
       #
-      # These use incompatible token formats. The SsoButton submits a form with
-      # 'shrimp' token (Rack::Protection format), which Rack::Protection validates
-      # in middleware BEFORE the request reaches Rodauth. Route_csrf then tries
-      # to validate the same token as its own format and fails with InvalidToken.
+      # This is the standard approach for OAuth flows and avoids conflicts
+      # between form-based CSRF tokens and OAuth's built-in protection.
       #
-      # Solution: Skip route_csrf for OmniAuth since Rack::Protection already
-      # validated the request. OmniAuth also has its own state parameter for
-      # CSRF protection during the OAuth callback phase.
-      #
-      auth.omniauth_request_validation_phase do
-        # Intentionally empty - skip route_csrf check.
-        # Rack::Protection::AuthenticityToken validates 'shrimp' in middleware.
-        # OmniAuth's state parameter provides callback phase CSRF protection.
-      end
-
       # ========================================================================
       # HOOK: Before OmniAuth Callback Route
       # ========================================================================

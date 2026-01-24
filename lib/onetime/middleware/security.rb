@@ -109,11 +109,11 @@ Onetime::Middleware::Security.middleware_components = {
     options: {
       # OTS uses 'shrimp' as the CSRF parameter name (legacy naming)
       authenticity_param: 'shrimp',
-      # Skip CSRF for API requests with JSON content-type
+      # Skip CSRF for specific routes
       allow_if: ->(env) {
         req = Rack::Request.new(env)
         # Skip for API endpoints or JSON requests
-        req.path.start_with?('/api/') ||
+        req.path.start_with?('/api/', '/auth/sso/') ||
           req.media_type == 'application/json' ||
           req.get_header('HTTP_ACCEPT')&.include?('application/json')
       },
