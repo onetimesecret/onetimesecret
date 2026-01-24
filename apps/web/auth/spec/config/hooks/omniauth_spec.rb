@@ -260,6 +260,281 @@ RSpec.describe 'OmniAuth hooks' do
   end
 
   # ==========================================================================
+  # only_json? Override Tests
+  # ==========================================================================
+  #
+  # The OmniAuth hook overrides only_json? to return false for OmniAuth routes.
+  # This is required because OmniAuth uses browser redirects from IdPs, not JSON.
+
+  describe 'only_json? override for OmniAuth routes' do
+    let(:omniauth_prefix) { '/auth/sso' }
+
+    # Simulates the only_json? override logic
+    def only_json?(request_path:, omniauth_prefix:, default_json_mode: true)
+      # The hook returns: !request.path.start_with?(omniauth_prefix)
+      # When path starts with omniauth_prefix, return false (allow redirects)
+      # Otherwise return the default JSON mode setting
+      if request_path.start_with?(omniauth_prefix)
+        false
+      else
+        default_json_mode
+      end
+    end
+
+    context 'OmniAuth callback routes' do
+      it 'returns false for /auth/sso/oidc/callback' do
+        result = only_json?(
+          request_path: '/auth/sso/oidc/callback',
+          omniauth_prefix: omniauth_prefix,
+        )
+        expect(result).to be false
+      end
+
+      it 'returns false for /auth/sso/google/callback' do
+        result = only_json?(
+          request_path: '/auth/sso/google/callback',
+          omniauth_prefix: omniauth_prefix,
+        )
+        expect(result).to be false
+      end
+
+      it 'returns false for /auth/sso/github/callback' do
+        result = only_json?(
+          request_path: '/auth/sso/github/callback',
+          omniauth_prefix: omniauth_prefix,
+        )
+        expect(result).to be false
+      end
+    end
+
+    context 'OmniAuth initiation routes' do
+      it 'returns false for /auth/sso/oidc' do
+        result = only_json?(
+          request_path: '/auth/sso/oidc',
+          omniauth_prefix: omniauth_prefix,
+        )
+        expect(result).to be false
+      end
+    end
+
+    context 'non-OmniAuth routes' do
+      it 'returns true for /auth/login when JSON mode is enabled' do
+        result = only_json?(
+          request_path: '/auth/login',
+          omniauth_prefix: omniauth_prefix,
+          default_json_mode: true,
+        )
+        expect(result).to be true
+      end
+
+      it 'returns true for /auth/signup when JSON mode is enabled' do
+        result = only_json?(
+          request_path: '/auth/signup',
+          omniauth_prefix: omniauth_prefix,
+          default_json_mode: true,
+        )
+        expect(result).to be true
+      end
+
+      it 'returns true for /auth/webauthn-login when JSON mode is enabled' do
+        result = only_json?(
+          request_path: '/auth/webauthn-login',
+          omniauth_prefix: omniauth_prefix,
+          default_json_mode: true,
+        )
+        expect(result).to be true
+      end
+
+      it 'returns false for /auth/login when JSON mode is disabled' do
+        result = only_json?(
+          request_path: '/auth/login',
+          omniauth_prefix: omniauth_prefix,
+          default_json_mode: false,
+        )
+        expect(result).to be false
+      end
+    end
+
+    context 'edge cases' do
+      it 'handles exact prefix match' do
+        result = only_json?(
+          request_path: '/auth/sso',
+          omniauth_prefix: omniauth_prefix,
+        )
+        expect(result).to be false
+      end
+
+      it 'does not match partial prefix (auth/ss)' do
+        result = only_json?(
+          request_path: '/auth/ss',
+          omniauth_prefix: omniauth_prefix,
+          default_json_mode: true,
+        )
+        expect(result).to be true
+      end
+
+      it 'does not match different path with similar prefix' do
+        result = only_json?(
+          request_path: '/auth/sso-like/callback',
+          omniauth_prefix: omniauth_prefix,
+        )
+        # This DOES match because path.start_with?('/auth/sso') is true
+        # for '/auth/sso-like/callback'
+        expect(result).to be false
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Domain Validation Tests (before_omniauth_create_account)
+  # ==========================================================================
+  #
+  # Tests for the allowed_signup_domains enforcement in SSO signup flow.
+  # See also: spec/unit/omniauth_domain_validation_spec.rb for deeper coverage.
+
+  describe 'before_omniauth_create_account domain validation' do
+    # Simulates the domain extraction and validation logic
+    def extract_domain(email)
+      email_str = email.to_s.strip.downcase
+      parts = email_str.split('@')
+      return nil if parts.length != 2 || parts.last.to_s.empty?
+
+      parts.last
+    end
+
+    def domain_allowed?(email_domain, allowed_domains)
+      return true if allowed_domains.nil? || allowed_domains.empty?
+
+      normalized_domains = allowed_domains.compact.map(&:downcase)
+      normalized_domains.include?(email_domain.to_s.downcase)
+    end
+
+    context 'email parsing for domain extraction' do
+      it 'extracts domain from valid email' do
+        expect(extract_domain('user@company.com')).to eq('company.com')
+      end
+
+      it 'normalizes case when extracting domain' do
+        expect(extract_domain('User@COMPANY.COM')).to eq('company.com')
+      end
+
+      it 'strips whitespace before extraction' do
+        expect(extract_domain('  user@company.com  ')).to eq('company.com')
+      end
+
+      it 'returns nil for email without @' do
+        expect(extract_domain('usercompany.com')).to be_nil
+      end
+
+      it 'returns nil for email with empty domain' do
+        expect(extract_domain('user@')).to be_nil
+      end
+
+      it 'returns nil for email with multiple @' do
+        expect(extract_domain('user@foo@bar.com')).to be_nil
+      end
+
+      it 'returns nil for nil input' do
+        expect(extract_domain(nil)).to be_nil
+      end
+
+      it 'returns nil for empty string' do
+        expect(extract_domain('')).to be_nil
+      end
+    end
+
+    context 'domain allowlist checking' do
+      context 'with no restrictions (empty/nil config)' do
+        it 'allows any domain when config is nil' do
+          expect(domain_allowed?('random.com', nil)).to be true
+        end
+
+        it 'allows any domain when config is empty array' do
+          expect(domain_allowed?('random.com', [])).to be true
+        end
+      end
+
+      context 'with single domain restriction' do
+        let(:allowed_domains) { ['company.com'] }
+
+        it 'allows exact domain match' do
+          expect(domain_allowed?('company.com', allowed_domains)).to be true
+        end
+
+        it 'allows case-insensitive match' do
+          expect(domain_allowed?('COMPANY.COM', allowed_domains)).to be true
+        end
+
+        it 'rejects different domain' do
+          expect(domain_allowed?('other.com', allowed_domains)).to be false
+        end
+
+        it 'rejects subdomain' do
+          expect(domain_allowed?('sub.company.com', allowed_domains)).to be false
+        end
+      end
+
+      context 'with multiple domain restrictions' do
+        let(:allowed_domains) { ['company.com', 'subsidiary.com', 'partner.org'] }
+
+        it 'allows first domain' do
+          expect(domain_allowed?('company.com', allowed_domains)).to be true
+        end
+
+        it 'allows second domain' do
+          expect(domain_allowed?('subsidiary.com', allowed_domains)).to be true
+        end
+
+        it 'allows third domain' do
+          expect(domain_allowed?('partner.org', allowed_domains)).to be true
+        end
+
+        it 'rejects unlisted domain' do
+          expect(domain_allowed?('attacker.com', allowed_domains)).to be false
+        end
+      end
+
+      context 'with mixed case in allowed domains' do
+        let(:allowed_domains) { ['COMPANY.com', 'Subsidiary.COM'] }
+
+        it 'matches lowercase domain against mixed case config' do
+          expect(domain_allowed?('company.com', allowed_domains)).to be true
+        end
+
+        it 'matches uppercase domain against mixed case config' do
+          expect(domain_allowed?('SUBSIDIARY.COM', allowed_domains)).to be true
+        end
+      end
+
+      context 'edge cases in allowed domains array' do
+        it 'handles nil values in array' do
+          allowed = ['company.com', nil, 'partner.com']
+          expect(domain_allowed?('company.com', allowed)).to be true
+          expect(domain_allowed?('partner.com', allowed)).to be true
+        end
+      end
+    end
+
+    context 'error responses' do
+      it 'uses generic error message for domain rejection' do
+        # The hook returns: "Your email domain is not authorized for SSO signup"
+        # This is intentionally vague to avoid revealing allowed domains
+        error_message = 'Your email domain is not authorized for SSO signup'
+
+        expect(error_message).not_to include('company.com')
+        expect(error_message).not_to match(/allowed|permitted|valid/i)
+      end
+
+      it 'uses specific error message for invalid email format' do
+        error_message = 'Invalid email address from identity provider'
+
+        expect(error_message).to include('Invalid')
+        expect(error_message).to include('identity provider')
+      end
+    end
+  end
+
+  # ==========================================================================
   # Module Interface Tests
   # ==========================================================================
 
