@@ -55,16 +55,22 @@
   // Authenticated users: fetch fresh data from API
   // Guest users: refresh statuses from server to sync local storage
   // Throttled to prevent excessive requests on rapid tab switching
+  // Errors are silently ignored - this is a background refresh, not user-initiated
   const handleVisibilityChange = async () => {
     if (document.visibilityState === 'visible') {
       const now = Date.now();
       if (now - lastRefreshTime < REFRESH_THROTTLE_MS) return;
       lastRefreshTime = now;
 
-      if (isAuthenticated.value) {
-        await fetch();
-      } else {
-        await refreshStatuses();
+      try {
+        if (isAuthenticated.value) {
+          await fetch({ silent: true });
+        } else {
+          await refreshStatuses({ silent: true });
+        }
+      } catch {
+        // Silently ignore errors on background refresh (e.g., server unavailable)
+        // User didn't initiate this action, so don't show error toasts
       }
     }
   };

@@ -16,6 +16,8 @@ export interface FetchListOptions {
   scope?: 'org' | 'domain';
   /** Required when scope is 'domain' - the external ID of the custom domain */
   domainExtid?: string;
+  /** If true, errors will not trigger user notifications (for background refreshes) */
+  silent?: boolean;
 }
 
 /**
