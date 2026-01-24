@@ -4,24 +4,30 @@
 # Analyzes Redis keyspace to discover unique key patterns and hash field structures.
 # Usage: ruby scripts/analyze_keyspace.rb [database_number]
 #
-# Output: JSON with key patterns, field structures, and sample keys
+# Output: JSON with key patterns, field structures, index stats, and sample keys
 
 require 'redis'
 require 'json'
 
 class KeyspaceAnalyzer
-  # Patterns to detect variable segments in keys
+  # Known Familia class prefixes - preserve these as literals
+  KNOWN_PREFIXES = Set.new(
+    %w[
+      session customer customdomain secret metadata
+      emailreceipt feedback onetime
+    ],
+  ).freeze
+
+  # Patterns to detect variable segments in keys (order matters - checked sequentially)
   ID_PATTERNS = {
-    uuid: /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i,
-    sha256: /\b[0-9a-f]{64}\b/i,
-    sha1_or_token: /\b[0-9a-f]{40}\b/i,
-    md5_or_short_hash: /\b[0-9a-f]{32}\b/i,
-    short_token: /\b[0-9a-f]{16,31}\b/i,
-    objid: /\b[0-9a-z]{12,16}\b/,  # Familia-style object IDs
-    numeric_id: /\b\d{6,}\b/,
-    timestamp: /\b\d{10,13}\b/,
-    email_like: /\b[^:@\s]+@[^:@\s]+\.[^:@\s]+\b/,
-    domain_like: /\b[a-z0-9][-a-z0-9]*\.[a-z]{2,}\b/i,
+    email: /\A[^:@\s]+@[^:@\s]+\.[^:@\s]+\z/,
+    uuid: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i,
+    sha256: /\A[0-9a-f]{64}\z/i,
+    sha1: /\A[0-9a-f]{40}\z/i,
+    md5: /\A[0-9a-f]{32}\z/i,
+    objid: /\A[0-9a-f]{20}\z/i,  # Familia 20-char hex identifiers
+    token: /\A[0-9a-f]{16,31}\z/i,
+    numeric: /\A\d+\z/,
   }.freeze
 
   HASH_SAMPLE_SIZE = 5  # Number of hash keys to sample per pattern
@@ -31,11 +37,13 @@ class KeyspaceAnalyzer
     @redis = Redis.new(url: "#{redis_url}/#{db_number}")
     @patterns = Hash.new { |h, k| h[k] = { count: 0, samples: [], types: Set.new } }
     @hash_fields = Hash.new { |h, k| h[k] = { samples: [], field_sets: [] } }
+    @index_stats = {}  # zset index name => { member_count, sample_members }
   end
 
   def analyze
     scan_keys
     sample_hash_fields
+    analyze_indexes
     build_report
   end
 
@@ -68,19 +76,15 @@ class KeyspaceAnalyzer
   def normalize_part(part)
     return part if part.empty?
 
+    # Preserve known class prefixes as literals
+    return part if KNOWN_PREFIXES.include?(part.downcase)
+
+    # Check against ID patterns
     ID_PATTERNS.each do |type, regex|
-      if part.match?(regex)
-        # Check if the entire part is the pattern or just contains it
-        if part.match?(/\A#{regex.source}\z/i)
-          return "{#{type}}"
-        end
-      end
+      return "{#{type}}" if part.match?(regex)
     end
 
-    # Check for pure numeric
-    return '{numeric}' if part.match?(/\A\d+\z/)
-
-    # Check for mixed alphanumeric that looks like an ID (not a word)
+    # Fallback: mixed alphanumeric that looks like an ID (8+ chars, not pure letters)
     return '{id}' if part.match?(/\A[a-z0-9]{8,}\z/i) && !part.match?(/\A[a-z]+\z/i)
 
     part
@@ -96,7 +100,24 @@ class KeyspaceAnalyzer
         @hash_fields[pattern][:field_sets] << fields.keys.sort
         @hash_fields[pattern][:samples] << {
           key: key,
-          fields: fields.transform_values { |v| truncate_value(v) }
+          fields: fields.transform_values { |v| truncate_value(v) },
+        }
+      end
+    end
+  end
+
+  def analyze_indexes
+    @patterns.each do |pattern, data|
+      next unless data[:types].include?('zset')
+
+      # Familia indexes are typically singleton zsets like "onetime:customer"
+      data[:samples].each do |key|
+        member_count = @redis.zcard(key)
+        sample_members = @redis.zrange(key, 0, 4)  # First 5 members
+
+        @index_stats[key] = {
+          member_count: member_count,
+          sample_members: sample_members,
         }
       end
     end
@@ -122,19 +143,18 @@ class KeyspaceAnalyzer
       summary: {
         total_keys: @patterns.values.sum { |p| p[:count] },
         unique_patterns: @patterns.size,
-        types_found: @patterns.values.flat_map { |p| p[:types].to_a }.uniq.sort
+        types_found: @patterns.values.flat_map { |p| p[:types].to_a }.uniq.sort,
       },
       patterns: @patterns.map do |pattern, data|
         entry = {
           pattern: pattern,
           count: data[:count],
           types: data[:types].to_a,
-          sample_keys: data[:samples]
+          sample_keys: data[:samples],
         }
 
         if @hash_fields.key?(pattern)
           field_data = @hash_fields[pattern]
-          # Find common fields across all samples
           all_field_sets = field_data[:field_sets]
           common_fields = all_field_sets.reduce { |a, b| a & b } || []
           all_fields = all_field_sets.flatten.uniq.sort
@@ -143,12 +163,13 @@ class KeyspaceAnalyzer
             common_fields: common_fields,
             all_fields_seen: all_fields,
             field_variance: all_field_sets.uniq.size > 1,
-            sample_data: field_data[:samples]
+            sample_data: field_data[:samples],
           }
         end
 
         entry
-      end.sort_by { |p| -p[:count] }
+      end.sort_by { |p| -p[:count] },
+      indexes: @index_stats,
     }
   end
 end
