@@ -214,7 +214,9 @@ module Auth::Config::Hooks
       auth.omniauth_failure_error_flash 'SSO authentication failed. Please try again or use password login.'
 
       auth.omniauth_failure_redirect do
-        login_path
+        # login_path returns relative path (/login), but browser redirect needs
+        # full path including the Auth app mount point (/auth/login)
+        "#{Auth::Application.uri_prefix}#{login_path}"
       end
     end
   end

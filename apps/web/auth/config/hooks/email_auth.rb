@@ -117,7 +117,8 @@ module Auth::Config::Hooks
           msg = 'The email authentication token is missing.'
           Onetime.get_logger('Auth').error msg
           set_error_flash msg
-          redirect login_path  # Send user back to login page
+          # login_path returns relative path, need full path for browser redirect
+          redirect "#{Auth::Application.uri_prefix}#{login_path}"
         end
 
         # Token present - Rodauth will now verify validity and expiration
