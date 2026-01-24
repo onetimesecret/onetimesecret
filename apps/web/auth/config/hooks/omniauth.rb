@@ -86,6 +86,31 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
+      # CSRF Validation Override for OmniAuth
+      # ========================================================================
+      #
+      # Skip Roda's route_csrf validation for OmniAuth request phase.
+      #
+      # The application has TWO CSRF systems:
+      # 1. Rack::Protection::AuthenticityToken (middleware, 'shrimp' param)
+      # 2. Roda::RodaPlugins::RouteCsrf (Rodauth's default)
+      #
+      # These use incompatible token formats. The SsoButton submits a form with
+      # 'shrimp' token (Rack::Protection format), which Rack::Protection validates
+      # in middleware BEFORE the request reaches Rodauth. Route_csrf then tries
+      # to validate the same token as its own format and fails with InvalidToken.
+      #
+      # Solution: Skip route_csrf for OmniAuth since Rack::Protection already
+      # validated the request. OmniAuth also has its own state parameter for
+      # CSRF protection during the OAuth callback phase.
+      #
+      auth.omniauth_request_validation_phase do
+        # Intentionally empty - skip route_csrf check.
+        # Rack::Protection::AuthenticityToken validates 'shrimp' in middleware.
+        # OmniAuth's state parameter provides callback phase CSRF protection.
+      end
+
+      # ========================================================================
       # HOOK: Before OmniAuth Callback Route
       # ========================================================================
       #
@@ -213,10 +238,50 @@ module Auth::Config::Hooks
       #
       auth.omniauth_failure_error_flash 'SSO authentication failed. Please try again or use password login.'
 
+      # ========================================================================
+      # HOOK: OmniAuth Failure Handler
+      # ========================================================================
+      #
+      # Override to add debug logging before redirecting on failure.
+      # The omniauth_error_type and omniauth_error are populated by rodauth-omniauth
+      # from OmniAuth's env['omniauth.error.type'] and env['omniauth.error'].
+      #
+      auth.omniauth_on_failure do
+        error_type  = begin
+                       omniauth_error_type
+        rescue StandardError
+                       :unknown
+        end
+        error_msg   = begin
+                      omniauth_error&.message
+        rescue StandardError
+                      'No error message'
+        end
+        error_class = begin
+                        omniauth_error&.class&.name
+        rescue StandardError
+                        'Unknown'
+        end
+
+        # Debug: write to stderr so it shows in overmind/terminal
+        warn "[OmniAuth FAILURE] type=#{error_type} class=#{error_class} msg=#{error_msg} path=#{request.path}"
+
+        Auth::Logging.log_auth_event(
+          :omniauth_failure,
+          level: :warn,
+          error_type: error_type,
+          error_message: error_msg,
+          path: request.path,
+          ip: request.ip,
+        )
+
+        redirect omniauth_failure_redirect
+      end
+
       auth.omniauth_failure_redirect do
-        # login_path returns relative path (/login), but browser redirect needs
-        # full path including the Auth app mount point (/auth/login)
-        "#{Auth::Application.uri_prefix}#{login_path}"
+        # Redirect to Vue frontend login page with error indicator.
+        # Query param allows frontend to display appropriate error message.
+        '/signin?auth_error=sso_failed'
       end
     end
   end

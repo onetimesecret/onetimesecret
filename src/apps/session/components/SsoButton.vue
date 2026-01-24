@@ -42,13 +42,9 @@ const handleSsoLogin = () => {
   /**
    * Add CSRF token for Rack::Protection::AuthenticityToken validation.
    *
-   * The field is named 'shrimp' for historical/project-specific reasons.
-   * The backend Rack::Protection::AuthenticityToken middleware is configured
-   * with `authenticity_param: 'shrimp'` to accept this field name instead
-   * of the default 'authenticity_token'.
-   *
-   * The value comes from session[:csrf] on the backend, which is serialized
-   * into the page's bootstrap state and loaded into csrfStore on page load.
+   * The middleware validates this token before the request reaches Rodauth.
+   * Rodauth's route_csrf is explicitly skipped for OmniAuth routes (see
+   * apps/web/auth/config/hooks/omniauth.rb) to avoid token format conflicts.
    */
   const csrfInput = document.createElement('input');
   csrfInput.type = 'hidden';
