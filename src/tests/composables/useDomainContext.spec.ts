@@ -36,7 +36,7 @@ function setMockDomains(domains: string[]) {
 }
 
 describe('useDomainContext', () => {
-  const mockLocalStorage = (() => {
+  const mockSessionStorage = (() => {
     let store: Record<string, string> = {};
     return {
       getItem: (key: string) => store[key] || null,
@@ -79,10 +79,10 @@ describe('useDomainContext', () => {
     vi.resetModules();
     vi.clearAllMocks();
 
-    // Reset localStorage mock
-    mockLocalStorage.clear();
-    Object.defineProperty(window, 'localStorage', {
-      value: mockLocalStorage,
+    // Reset sessionStorage mock
+    mockSessionStorage.clear();
+    Object.defineProperty(window, 'sessionStorage', {
+      value: mockSessionStorage,
       writable: true,
       configurable: true,
     });
@@ -158,8 +158,8 @@ describe('useDomainContext', () => {
       expect(hasMultipleContexts.value).toBe(true);
     });
 
-    it('initializes with saved domain from localStorage if valid', async () => {
-      mockLocalStorage.setItem('domainContext', 'widgets.example.com');
+    it('initializes with saved domain from sessionStorage if valid', async () => {
+      mockSessionStorage.setItem('domainContext', 'widgets.example.com');
 
       setupBootstrapStore({
         domains_enabled: true,
@@ -180,8 +180,8 @@ describe('useDomainContext', () => {
       expect(currentContext.value.isCanonical).toBe(false);
     });
 
-    it('ignores invalid saved domain from localStorage', async () => {
-      mockLocalStorage.setItem('domainContext', 'invalid.example.com');
+    it('ignores invalid saved domain from sessionStorage', async () => {
+      mockSessionStorage.setItem('domainContext', 'invalid.example.com');
 
       setupBootstrapStore({
         domains_enabled: true,
@@ -363,7 +363,7 @@ describe('useDomainContext', () => {
       expect(currentContext.value.domain).toBe('widgets.example.com');
     });
 
-    it('saves domain to localStorage', async () => {
+    it('saves domain to sessionStorage', async () => {
       setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -381,7 +381,7 @@ describe('useDomainContext', () => {
 
       setContext('acme.example.com');
 
-      expect(mockLocalStorage.getItem('domainContext')).toBe('acme.example.com');
+      expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
     });
 
     it('ignores invalid domain', async () => {
@@ -405,7 +405,7 @@ describe('useDomainContext', () => {
       setContext('invalid.example.com');
 
       expect(currentContext.value.domain).toBe(initialDomain);
-      expect(mockLocalStorage.getItem('domainContext')).toBeNull();
+      expect(mockSessionStorage.getItem('domainContext')).toBeNull();
     });
 
     it('can switch to canonical domain', async () => {
@@ -458,7 +458,7 @@ describe('useDomainContext', () => {
       expect(currentContext.value.isCanonical).toBe(true);
     });
 
-    it('removes domainContext from localStorage', async () => {
+    it('removes domainContext from sessionStorage', async () => {
       setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -475,10 +475,10 @@ describe('useDomainContext', () => {
       await new Promise((r) => setTimeout(r, 10));
 
       setContext('acme.example.com');
-      expect(mockLocalStorage.getItem('domainContext')).toBe('acme.example.com');
+      expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
 
       resetContext();
-      expect(mockLocalStorage.getItem('domainContext')).toBeNull();
+      expect(mockSessionStorage.getItem('domainContext')).toBeNull();
     });
   });
 

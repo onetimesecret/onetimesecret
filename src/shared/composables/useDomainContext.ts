@@ -154,18 +154,18 @@ function createDomainFetcher(
 
 /**
  * Select the best domain from available options.
- * Priority: server preference > localStorage > preferred domain (first custom or canonical)
+ * Priority: server preference > sessionStorage > preferred domain (first custom or canonical)
  */
 function selectBestDomain(available: string[]): string {
   const { serverDomainContext } = getConfig();
-  const localContext = localStorage.getItem('domainContext');
+  const localContext = sessionStorage.getItem('domainContext');
 
   if (serverDomainContext && available.includes(serverDomainContext)) {
     // Server-side preference takes priority
-    localStorage.setItem('domainContext', serverDomainContext); // Sync localStorage
+    sessionStorage.setItem('domainContext', serverDomainContext); // Sync sessionStorage
     return serverDomainContext;
   } else if (localContext && available.includes(localContext)) {
-    // Fall back to localStorage if valid
+    // Fall back to sessionStorage if valid
     return localContext;
   } else {
     // Fall back to preferred domain (first custom domain or canonical)
@@ -278,7 +278,7 @@ export function useDomainContext() {
   const setContext = async (domain: string, skipBackendSync = false): Promise<void> => {
     if (!availableDomains.value.includes(domain)) return;
     currentDomain.value = domain;
-    localStorage.setItem('domainContext', domain);
+    sessionStorage.setItem('domainContext', domain);
     if (!skipBackendSync) {
       await syncDomainContextToServer($api, domain);
     }
@@ -294,7 +294,7 @@ export function useDomainContext() {
     resetContext: () => {
       const { canonicalDomain } = getConfig();
       currentDomain.value = canonicalDomain || '';
-      localStorage.removeItem('domainContext');
+      sessionStorage.removeItem('domainContext');
     },
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,

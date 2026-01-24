@@ -23,7 +23,7 @@ export function useDomainDropdown() {
 
   // Initialize selectedDomain only if it hasn't been set
   if (!selectedDomain.value) {
-    const savedDomain = localStorage.getItem('selectedDomain');
+    const savedDomain = sessionStorage.getItem('selectedDomain');
     selectedDomain.value =
       savedDomain && availableDomains.value.includes(savedDomain)
         ? savedDomain
@@ -32,7 +32,7 @@ export function useDomainDropdown() {
 
   const updateSelectedDomain = (domain: string) => {
     selectedDomain.value = domain;
-    localStorage.setItem('selectedDomain', domain);
+    sessionStorage.setItem('selectedDomain', domain);
   };
 
   const addDomain = (domain: string) => {
