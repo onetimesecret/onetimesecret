@@ -115,9 +115,10 @@ describe('useWebAuthn', () => {
       const startAuthenticationMock = vi.mocked(startAuthentication);
 
       // Mock challenge response (passwordless login uses webauthn_login fields)
+      // Rodauth JSON API returns credential options as raw JSON objects (not base64)
       const challengeOptions = { challenge: 'test-challenge', rpId: 'localhost' };
       const challengeResponse = {
-        webauthn_login: btoa(JSON.stringify(challengeOptions)),
+        webauthn_login: challengeOptions, // Raw JSON object, not base64
         webauthn_login_challenge: 'challenge-data',
         webauthn_login_challenge_hmac: 'hmac-data',
       };
@@ -151,7 +152,8 @@ describe('useWebAuthn', () => {
       expect(result).toBe(true);
       expect(error.value).toBeNull();
       expect(isLoading.value).toBe(false);
-      expect(startAuthenticationMock).toHaveBeenCalledWith(challengeOptions);
+      // @simplewebauthn/browser v10+ uses { optionsJSON } wrapper
+      expect(startAuthenticationMock).toHaveBeenCalledWith({ optionsJSON: challengeOptions });
       expect(mockRouterPush).toHaveBeenCalledWith('/');
     });
 
@@ -172,7 +174,7 @@ describe('useWebAuthn', () => {
 
       const challengeOptions = { challenge: 'test', rpId: 'localhost' };
       axiosMock.onPost('/auth/webauthn-login').reply(200, {
-        webauthn_login: btoa(JSON.stringify(challengeOptions)),
+        webauthn_login: challengeOptions, // Raw JSON object
         webauthn_login_challenge: 'challenge',
         webauthn_login_challenge_hmac: 'hmac',
       });
@@ -198,7 +200,7 @@ describe('useWebAuthn', () => {
 
       // First call: challenge
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
-        webauthn_login: btoa(JSON.stringify(challengeOptions)),
+        webauthn_login: challengeOptions, // Raw JSON object
         webauthn_login_challenge: 'challenge',
         webauthn_login_challenge_hmac: 'hmac',
       });
@@ -239,7 +241,7 @@ describe('useWebAuthn', () => {
 
       const challengeOptions = { challenge: 'test', rpId: 'localhost' };
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
-        webauthn_login: btoa(JSON.stringify(challengeOptions)),
+        webauthn_login: challengeOptions, // Raw JSON object
         webauthn_login_challenge: 'challenge',
         webauthn_login_challenge_hmac: 'hmac',
       });
@@ -280,7 +282,7 @@ describe('useWebAuthn', () => {
       startAuthenticationMock.mockResolvedValue({ id: 'cred' } as any);
 
       axiosMock.onPost('/auth/webauthn-auth').replyOnce(200, {
-        webauthn_auth: btoa(JSON.stringify(challengeOptions)),
+        webauthn_auth: challengeOptions, // Raw JSON object
         webauthn_auth_challenge: 'challenge',
         webauthn_auth_challenge_hmac: 'hmac',
       });
@@ -354,9 +356,9 @@ describe('useWebAuthn', () => {
 
       startRegistrationMock.mockResolvedValue(mockCredential as any);
 
-      // Mock setup challenge
+      // Mock setup challenge (Rodauth returns raw JSON objects)
       axiosMock.onPost('/auth/webauthn-setup').replyOnce(200, {
-        webauthn_setup: btoa(JSON.stringify(challengeOptions)),
+        webauthn_setup: challengeOptions, // Raw JSON object, not base64
         webauthn_setup_challenge: 'setup-challenge',
         webauthn_setup_challenge_hmac: 'setup-hmac',
       });
@@ -374,7 +376,8 @@ describe('useWebAuthn', () => {
       expect(result).toBe(true);
       expect(error.value).toBeNull();
       expect(isLoading.value).toBe(false);
-      expect(startRegistrationMock).toHaveBeenCalledWith(challengeOptions);
+      // @simplewebauthn/browser v10+ uses { optionsJSON } wrapper
+      expect(startRegistrationMock).toHaveBeenCalledWith({ optionsJSON: challengeOptions });
     });
 
     it('returns false when password is not provided', async () => {
@@ -401,7 +404,7 @@ describe('useWebAuthn', () => {
 
       const challengeOptions = { challenge: 'test', rp: { name: 'Test' } };
       axiosMock.onPost('/auth/webauthn-setup').reply(200, {
-        webauthn_setup: btoa(JSON.stringify(challengeOptions)),
+        webauthn_setup: challengeOptions, // Raw JSON object
         webauthn_setup_challenge: 'challenge',
         webauthn_setup_challenge_hmac: 'hmac',
       });
@@ -425,7 +428,7 @@ describe('useWebAuthn', () => {
       startRegistrationMock.mockResolvedValue({ id: 'cred' } as any);
 
       axiosMock.onPost('/auth/webauthn-setup').replyOnce(200, {
-        webauthn_setup: btoa(JSON.stringify(challengeOptions)),
+        webauthn_setup: challengeOptions, // Raw JSON object
         webauthn_setup_challenge: 'challenge',
         webauthn_setup_challenge_hmac: 'hmac',
       });
@@ -458,7 +461,7 @@ describe('useWebAuthn', () => {
 
       const challengeOptions = { challenge: 'test', rp: { name: 'Test' } };
       axiosMock.onPost('/auth/webauthn-setup').reply(200, {
-        webauthn_setup: btoa(JSON.stringify(challengeOptions)),
+        webauthn_setup: challengeOptions, // Raw JSON object
         webauthn_setup_challenge: 'challenge',
         webauthn_setup_challenge_hmac: 'hmac',
       });
@@ -519,7 +522,7 @@ describe('useWebAuthn', () => {
 
       const challengeOptions = { challenge: 'test', rpId: 'localhost' };
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
-        webauthn_login: btoa(JSON.stringify(challengeOptions)),
+        webauthn_login: challengeOptions, // Raw JSON object
         webauthn_login_challenge: 'challenge',
         webauthn_login_challenge_hmac: 'hmac',
       });
