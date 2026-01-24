@@ -6,9 +6,11 @@
 # TEST TYPE: Integration
 # =============================================================================
 #
-# Tests CSRF validation for OmniAuth SSO endpoints. The OTS application uses
-# 'shrimp' as the CSRF parameter name, which must be configured in
-# Rack::Protection::AuthenticityToken via authenticity_param option.
+# Tests CSRF configuration for OmniAuth SSO endpoints.
+#
+# OmniAuth routes (/auth/sso/*) use OAuth's state parameter for CSRF protection
+# instead of form tokens. Rack::Protection is configured to skip these routes
+# (see lib/onetime/middleware/security.rb).
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -24,32 +26,104 @@
 require_relative '../spec_helper'
 require 'json'
 
-RSpec.describe 'OmniAuth CSRF Validation' do
-  # Unit tests for middleware configuration (no app boot required)
-  describe 'CSRF token parameter naming' do
-    it 'uses shrimp as the CSRF parameter name' do
-      # Verify the middleware configuration uses the correct parameter name
-      middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
+RSpec.describe 'OmniAuth CSRF Configuration' do
+  describe 'Rack::Protection middleware configuration' do
+    let(:middleware_config) do
+      Onetime::Middleware::Security.middleware_components['AuthenticityToken']
+    end
 
+    it 'uses shrimp as the CSRF parameter name' do
       expect(middleware_config).not_to be_nil
       expect(middleware_config[:options]).to include(authenticity_param: 'shrimp')
     end
 
-    it 'configures allow_if callback for API/JSON bypass' do
-      middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
+    it 'configures allow_if callback' do
       expect(middleware_config[:options][:allow_if]).to be_a(Proc)
+    end
+
+    describe 'allow_if bypass rules' do
+      let(:allow_if) { middleware_config[:options][:allow_if] }
+
+      def mock_env(path:, media_type: nil, accept: nil)
+        env = {
+          'PATH_INFO' => path,
+          'REQUEST_METHOD' => 'POST',
+          'rack.input' => StringIO.new(''),
+        }
+        env['CONTENT_TYPE'] = media_type if media_type
+        env['HTTP_ACCEPT'] = accept if accept
+        env
+      end
+
+      it 'skips CSRF for API routes' do
+        env = mock_env(path: '/api/v1/secrets')
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'skips CSRF for OmniAuth SSO routes' do
+        env = mock_env(path: '/auth/sso/oidc')
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'skips CSRF for OmniAuth callback routes' do
+        env = mock_env(path: '/auth/sso/oidc/callback')
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'skips CSRF for JSON content-type requests' do
+        env = mock_env(path: '/some/path', media_type: 'application/json')
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'skips CSRF for JSON accept header requests' do
+        env = mock_env(path: '/some/path', accept: 'application/json')
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'does NOT skip CSRF for regular form posts' do
+        env = mock_env(path: '/signin', media_type: 'application/x-www-form-urlencoded')
+        # Returns nil/false when CSRF should be validated (falsy = don't skip)
+        expect(allow_if.call(env)).to be_falsey
+      end
+
+      it 'does NOT skip CSRF for non-SSO auth routes' do
+        env = mock_env(path: '/auth/login')
+        expect(allow_if.call(env)).to be_falsey
+      end
+
+      # Edge cases for path matching
+      it 'skips CSRF for provider-specific SSO paths' do
+        env = mock_env(path: '/auth/sso/github')
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'does NOT skip CSRF for paths that look similar but differ' do
+        # /auth/sso-other does not start with /auth/sso/
+        env = mock_env(path: '/auth/sso-other')
+        expect(allow_if.call(env)).to be_falsey
+      end
+
+      it 'skips CSRF for /auth/login with JSON content-type (JSON bypass)' do
+        # JSON routes bypass CSRF regardless of path
+        env = mock_env(path: '/auth/login', media_type: 'application/json')
+        expect(allow_if.call(env)).to be true
+      end
+
+      it 'handles mixed conditions correctly' do
+        # API path takes precedence
+        env = mock_env(path: '/api/v1/auth', media_type: 'text/html')
+        expect(allow_if.call(env)).to be true
+      end
     end
   end
 
-  # Integration tests requiring full app boot
-  describe 'POST /auth/sso/oidc', type: :integration do
+  describe 'OAuth state parameter protection', type: :integration do
     include Rack::Test::Methods
 
     def app
       Onetime::Application::Registry.generate_rack_url_map
     end
 
-    # Boot the application once for all tests in this describe block
     before(:all) do
       Onetime.boot! :test
     end
@@ -58,67 +132,49 @@ RSpec.describe 'OmniAuth CSRF Validation' do
 
     context 'when OmniAuth is configured' do
       before do
-        # Skip tests if OmniAuth is not configured
         skip 'OmniAuth not configured (OIDC_ISSUER not set)' if ENV['OIDC_ISSUER'].to_s.empty?
       end
 
-      context 'without CSRF token' do
-        it 'returns 403 Forbidden' do
-          post sso_path
-          expect(last_response.status).to eq(403)
-        end
+      it 'accepts POST without shrimp token (CSRF skipped for SSO routes)' do
+        # OmniAuth routes bypass Rack::Protection CSRF
+        # The request should proceed to OmniAuth, which will redirect to IdP
+        post sso_path
 
-        it 'rejects the request for CSRF protection' do
-          post sso_path, {}
-          # Should be rejected by Rack::Protection::AuthenticityToken
-          expect([400, 403]).to include(last_response.status)
+        # Should NOT be 403 (CSRF rejection)
+        # Will be 302 (redirect to IdP) or 500 (if OIDC misconfigured)
+        expect(last_response.status).not_to eq(403)
+      end
+
+      it 'redirects to identity provider on valid request' do
+        post sso_path
+
+        # OmniAuth should initiate OAuth flow with redirect
+        if last_response.status == 302
+          location = last_response.headers['Location']
+          # Should redirect to OIDC issuer, not back to app
+          expect(location).to include(ENV['OIDC_ISSUER']) if ENV['OIDC_ISSUER']
         end
       end
 
-      context 'with invalid CSRF token' do
-        it 'returns 403 Forbidden' do
-          post sso_path, { shrimp: 'invalid_csrf_token_12345' }
-          expect([400, 403]).to include(last_response.status)
-        end
+      it 'includes state parameter in authorization URL' do
+        post sso_path
 
-        it 'rejects manipulated tokens' do
-          post sso_path, { shrimp: 'manipulated_token' }
-          expect([400, 403]).to include(last_response.status)
-        end
-      end
-
-      context 'with valid CSRF token (shrimp parameter)' do
-        # To get a valid CSRF token, we need to first establish a session
-        # and retrieve the token from the session
-        it 'accepts the request with valid session token' do
-          # First, make a GET request to establish session and get CSRF token
-          get '/'
-
-          # The session should now have a CSRF token
-          # For OmniAuth, the request should not return 403 if the token is valid
-          # Note: The actual redirect to the IdP will fail without proper OIDC setup,
-          # but the CSRF check should pass
-
-          # Check that session cookie was set
-          session_cookie = last_response.headers['Set-Cookie']
-          expect(session_cookie).not_to be_nil if last_response.status == 200
-
-          # This test verifies the CSRF middleware configuration is correct
-          # The actual SSO flow requires a properly configured OIDC provider
+        if last_response.status == 302
+          location = last_response.headers['Location']
+          # OAuth state parameter provides CSRF protection
+          expect(location).to include('state=')
         end
       end
     end
 
     context 'when OmniAuth is not configured' do
       before do
-        # Only run these tests if OmniAuth is NOT configured
-        skip 'OmniAuth is configured - testing unconfigured scenario not applicable' unless ENV['OIDC_ISSUER'].to_s.empty?
+        skip 'OmniAuth is configured' unless ENV['OIDC_ISSUER'].to_s.empty?
       end
 
       it 'returns 404 when OmniAuth routes are not registered' do
         post sso_path
-        # When OmniAuth is not configured, the route should not exist
-        expect([404, 403]).to include(last_response.status)
+        expect(last_response.status).to eq(404)
       end
     end
   end
