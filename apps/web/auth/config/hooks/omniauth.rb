@@ -76,8 +76,13 @@ module Auth::Config::Hooks
       # Without this override, Rodauth's JSON feature intercepts set_redirect_error_flash
       # and stores the message in json_response[:error] which is lost on redirect.
       #
+      # NOTE: request.path returns the full path (e.g., /auth/sso/oidc), but
+      # omniauth_prefix is relative to Rodauth routes (e.g., /sso). We must
+      # combine the Auth app's mount path with omniauth_prefix for comparison.
+      #
       auth.only_json? do
-        !request.path.start_with?(omniauth_prefix)
+        full_sso_prefix = "#{Auth::Application.uri_prefix}#{omniauth_prefix}"
+        !request.path.start_with?(full_sso_prefix)
       end
 
       # ========================================================================
