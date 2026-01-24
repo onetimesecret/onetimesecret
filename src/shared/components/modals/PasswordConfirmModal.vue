@@ -224,7 +224,7 @@ watch(
                       @click="togglePasswordVisibility">
                       <OIcon
                         collection="heroicons"
-                        :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
+                        :name="showPassword ? 'solid-eye' : 'outline-eye-off'"
                         size="5"
                         class="text-gray-400 dark:text-gray-500"
                         aria-hidden="true" />
