@@ -1343,5 +1343,13 @@
   "web.pricing.free_tier_description": {
     "text": "Create and share secrets with basic features. No credit card required.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Enter your password to continue",
+    "context": "Prompt for password confirmation modal"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "Your password is required to complete this action",
+    "context": "Description for password confirmation modal"
   }
 }
