@@ -114,10 +114,9 @@ module Auth::Config::Hooks
 
         # Validate token presence before continuing to Rodauth verification
         if auth_token.nil? || auth_token.to_s.empty?
-          msg = 'The email authentication token is missing.'
-          Onetime.get_logger('Auth').error msg
-          set_error_flash msg
+          Onetime.get_logger('Auth').error 'The email authentication token is missing.'
           # Redirect to Vue frontend login page with error indicator
+          # (Vue reads auth_error query param; flash not used by frontend)
           redirect '/signin?auth_error=token_missing'
         end
 

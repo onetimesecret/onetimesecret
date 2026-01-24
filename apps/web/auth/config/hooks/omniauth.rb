@@ -240,21 +240,11 @@ module Auth::Config::Hooks
       # from OmniAuth's env['omniauth.error.type'] and env['omniauth.error'].
       #
       auth.omniauth_on_failure do
-        error_type  = begin
-                       omniauth_error_type
-        rescue StandardError
-                       :unknown
-        end
-        error_msg   = begin
-                      omniauth_error&.message
-        rescue StandardError
-                      'No error message'
-        end
-        error_class = begin
-                        omniauth_error&.class&.name
-        rescue StandardError
-                        'Unknown'
-        end
+        # Extract error details with safe fallbacks for logging.
+        # Use safe navigation and || fallbacks to avoid exceptions.
+        error_type  = (omniauth_error_type if respond_to?(:omniauth_error_type)) || :unknown
+        error_msg   = omniauth_error&.message || 'No error message'
+        error_class = omniauth_error&.class&.name || 'Unknown'
 
         # Debug: write to stderr so it shows in overmind/terminal
         warn "[OmniAuth FAILURE] type=#{error_type} class=#{error_class} msg=#{error_msg} path=#{request.path}"
