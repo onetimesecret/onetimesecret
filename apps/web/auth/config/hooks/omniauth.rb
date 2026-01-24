@@ -53,9 +53,15 @@
 module Auth::Config::Hooks
   module OmniAuth
     def self.configure(auth)
-      # NOTE: Missing: No account_from_omniauth override. Rodauth-omniauth's default
-      # looks up by email from omniauth_email but may need customization if the
-      # accounts table has different email handling.
+      # Normalize email for case-insensitive account lookup.
+      # Required because:
+      # - SQLite (dev/test) uses case-sensitive string comparison
+      # - Redis Customer records require exact email match
+      # - IdPs may return emails with different casing than stored
+      auth.define_method(:_account_from_omniauth) do
+        normalized_email = omniauth_email.to_s.strip.downcase
+        _account_from_login(normalized_email)
+      end
 
       # ========================================================================
       # JSON Mode Override for OmniAuth
