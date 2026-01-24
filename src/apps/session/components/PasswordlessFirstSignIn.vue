@@ -308,18 +308,18 @@ data-testid="passkey-panel">
               {{ t('web.auth.webauthn.description') }}
             </p>
 
-            <!-- Optional email field for credential autofill -->
+            <!-- Email field for passkey account lookup -->
             <div>
               <label
                 for="webauthn-email"
                 class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.COMMON.field_email') }}
-                <span class="text-gray-500 dark:text-gray-400">({{ t('web.COMMON.optional') || 'optional' }})</span>
               </label>
               <input
                 id="webauthn-email"
                 name="email"
                 type="email"
+                required
                 autocomplete="username webauthn"
                 :disabled="isLoading"
                 class="block w-full appearance-none rounded-md
