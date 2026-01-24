@@ -4,13 +4,26 @@
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
-import { ref } from 'vue';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { ref, computed } from 'vue';
 
 const { t } = useI18n();
 const csrfStore = useCsrfStore();
+const bootstrapStore = useBootstrapStore();
 
 const isLoading = ref(false);
-const error = ref<string | null>(null);
+
+/**
+ * SSO provider display name from server configuration.
+ * Falls back to null if not configured (uses generic "SSO" label).
+ */
+const providerName = computed(() => {
+  const omniauth = bootstrapStore.features?.omniauth;
+  if (typeof omniauth === 'object' && omniauth !== null) {
+    return omniauth.provider_name || null;
+  }
+  return null;
+});
 
 /**
  * Initiates SSO login by submitting a form to the OIDC endpoint.
@@ -19,7 +32,6 @@ const error = ref<string | null>(null);
  */
 const handleSsoLogin = () => {
   isLoading.value = true;
-  error.value = null;
 
   // Create and submit a form to POST to the SSO endpoint
   // This needs to be a form submission (not fetch) because it redirects to the IdP
@@ -53,19 +65,7 @@ const handleSsoLogin = () => {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- Error message -->
-    <div
-      v-if="error"
-      class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true">
-      <p class="text-sm text-red-800 dark:text-red-200">
-        {{ error }}
-      </p>
-    </div>
-
+  <div>
     <!-- SSO Button -->
     <button
       type="button"
@@ -109,7 +109,8 @@ const handleSsoLogin = () => {
           size="5"
           class="text-gray-500 dark:text-gray-400"
           aria-hidden="true" />
-        {{ t('web.login.sign_in_with_sso') }}
+        <!-- Use provider-specific name if configured, otherwise generic SSO label -->
+        {{ providerName ? t('web.login.sign_in_with_provider', { provider: providerName }) : t('web.login.sign_in_with_sso') }}
       </template>
     </button>
   </div>

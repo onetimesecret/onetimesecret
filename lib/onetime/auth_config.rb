@@ -118,6 +118,16 @@ module Onetime
       feature_enabled?('omniauth', default: false)
     end
 
+    # OmniAuth provider display name (e.g., "Zitadel", "Okta", "Azure AD")
+    # Used for "Sign in with X" button text
+    # Returns nil if not configured (frontend will use generic "SSO")
+    def omniauth_provider_name
+      return nil unless omniauth_enabled?
+
+      name = features['omniauth_provider_name']
+      name.to_s.strip.empty? ? nil : name
+    end
+
     # DEPRECATED: Use hardening_enabled?, active_sessions_enabled?, remember_me_enabled?
     def security_features_enabled?
       hardening_enabled? && active_sessions_enabled? && remember_me_enabled?

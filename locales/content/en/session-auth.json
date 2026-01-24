@@ -75,6 +75,10 @@
     "text": "Sign in with SSO",
     "sha256": ""
   },
+  "web.login.sign_in_with_provider": {
+    "text": "Sign in with {provider}",
+    "sha256": ""
+  },
   "web.auth.sso.signing_in": {
     "text": "Redirecting to identity provider...",
     "sha256": ""

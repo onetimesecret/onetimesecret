@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import MonotoneJapaneseSecretButton from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
-import { type LogoConfig } from '@/types/ui/layouts';
+  import { type LogoConfig } from '@/types/ui/layouts';
   import { computed } from 'vue';
 
   /**

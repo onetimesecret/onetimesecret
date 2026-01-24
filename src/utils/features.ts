@@ -41,7 +41,10 @@ export function isOmniAuthEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
   const features = getBootstrapValue('features');
-  return features?.omniauth === true;
+  // omniauth can be boolean (false) or object with enabled property
+  const omniauth = features?.omniauth;
+  if (typeof omniauth === 'boolean') return omniauth;
+  return omniauth?.enabled === true;
 }
 
 /**

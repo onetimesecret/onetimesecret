@@ -61,6 +61,52 @@ config.instance_variable_get(:@config)['mode'] = 'full'
 config.webauthn_enabled?
 #=> false
 
+## omniauth_enabled? returns false with test config
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+config.omniauth_enabled?
+#=> false
+
+## omniauth_provider_name returns nil when omniauth is disabled
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+config.omniauth_provider_name
+#=> nil
+
+## omniauth_provider_name returns nil for empty string when omniauth enabled
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+features = config.instance_variable_get(:@config)['full']['features']
+features['omniauth'] = true
+features['omniauth_provider_name'] = ''
+result = config.omniauth_provider_name
+features['omniauth'] = false
+result
+#=> nil
+
+## omniauth_provider_name returns nil for whitespace-only string when omniauth enabled
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+features = config.instance_variable_get(:@config)['full']['features']
+features['omniauth'] = true
+features['omniauth_provider_name'] = '   '
+result = config.omniauth_provider_name
+features['omniauth'] = false
+result
+#=> nil
+
+## omniauth_provider_name returns the name when configured
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+features = config.instance_variable_get(:@config)['full']['features']
+features['omniauth'] = true
+features['omniauth_provider_name'] = 'Zitadel'
+result = config.omniauth_provider_name
+features['omniauth'] = false
+features['omniauth_provider_name'] = ''
+result
+#=> "Zitadel"
+
 ## verify_account_enabled? returns false in test config (disabled for tests)
 config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
@@ -74,9 +120,22 @@ config.instance_variable_get(:@config)['mode'] = 'simple'
   config.hardening_enabled?,
   config.mfa_enabled?,
   config.email_auth_enabled?,
-  config.webauthn_enabled?
+  config.webauthn_enabled?,
+  config.omniauth_enabled?
 ]
-#=> [false, false, false, false]
+#=> [false, false, false, false, false]
+
+## omniauth_provider_name returns nil in simple mode even if configured
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'simple'
+features = config.instance_variable_get(:@config)['full']['features']
+features['omniauth'] = true
+features['omniauth_provider_name'] = 'Okta'
+result = config.omniauth_provider_name
+features['omniauth'] = false
+features['omniauth_provider_name'] = ''
+result
+#=> nil
 
 ## magic_links_enabled? is deprecated alias for email_auth_enabled?
 config = Onetime::AuthConfig.instance

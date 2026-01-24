@@ -58,7 +58,7 @@ module Auth::Config::Hooks
       # - SQLite (dev/test) uses case-sensitive string comparison
       # - Redis Customer records require exact email match
       # - IdPs may return emails with different casing than stored
-      auth.define_method(:_account_from_omniauth) do
+      auth.auth.send(:define_method, :_account_from_omniauth) do
         normalized_email = omniauth_email.to_s.strip.downcase
         _account_from_login(normalized_email)
       end

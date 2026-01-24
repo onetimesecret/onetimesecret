@@ -219,8 +219,9 @@
     </template>
 
     <template #footer>
-
-      <WorkspaceFooter class="pb-32 mb-16" v-bind="layoutProps" />
+      <div class="pb-32 mb-16">
+        <WorkspaceFooter v-bind="layoutProps" />
+      </div>
     </template>
   </BaseLayout>
 </template>

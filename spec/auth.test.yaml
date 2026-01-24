@@ -28,6 +28,8 @@ full:
     mfa: false
     email_auth: false
     webauthn: false
+    omniauth: false
+    omniauth_provider_name: ''
 
   # Security settings
   security:

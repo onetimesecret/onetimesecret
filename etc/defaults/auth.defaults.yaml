@@ -83,3 +83,7 @@ full:
     # OmniAuth: external identity providers via OIDC (default: OFF)
     # Requires OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET env vars
     omniauth: <%= ENV['ENABLE_OMNIAUTH'] == 'true' %>
+
+    # OmniAuth provider display name (shown on "Sign in with X" button)
+    # If not set, generic "SSO" is used
+    omniauth_provider_name: <%= ENV.fetch('OMNIAUTH_PROVIDER_NAME', '') %>

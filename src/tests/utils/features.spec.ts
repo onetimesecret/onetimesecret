@@ -190,45 +190,119 @@ describe('features utility', () => {
   });
 
   describe('isOmniAuthEnabled', () => {
-    it('returns true when omniauth feature is enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ omniauth: true });
+    describe('boolean form', () => {
+      it('returns true when omniauth feature is enabled (boolean true)', () => {
+        getBootstrapValueMock.mockReturnValue({ omniauth: true });
 
-      const result = isOmniAuthEnabled();
+        const result = isOmniAuthEnabled();
 
-      expect(result).toBe(true);
-      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+        expect(result).toBe(true);
+        expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+      });
+
+      it('returns false when omniauth feature is disabled (boolean false)', () => {
+        getBootstrapValueMock.mockReturnValue({ omniauth: false });
+
+        const result = isOmniAuthEnabled();
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when omniauth is truthy but not exactly true', () => {
+        getBootstrapValueMock.mockReturnValue({ omniauth: 'yes' });
+
+        const result = isOmniAuthEnabled();
+
+        expect(result).toBe(false);
+      });
     });
 
-    it('returns false when omniauth feature is disabled', () => {
-      getBootstrapValueMock.mockReturnValue({ omniauth: false });
+    describe('object form', () => {
+      it('returns true when omniauth is object with enabled: true', () => {
+        getBootstrapValueMock.mockReturnValue({
+          omniauth: { enabled: true },
+        });
 
-      const result = isOmniAuthEnabled();
+        const result = isOmniAuthEnabled();
 
-      expect(result).toBe(false);
+        expect(result).toBe(true);
+      });
+
+      it('returns true when omniauth is object with enabled: true and provider_name', () => {
+        getBootstrapValueMock.mockReturnValue({
+          omniauth: { enabled: true, provider_name: 'Okta' },
+        });
+
+        const result = isOmniAuthEnabled();
+
+        expect(result).toBe(true);
+      });
+
+      it('returns false when omniauth is object with enabled: false', () => {
+        getBootstrapValueMock.mockReturnValue({
+          omniauth: { enabled: false },
+        });
+
+        const result = isOmniAuthEnabled();
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when omniauth is object with enabled: false and provider_name', () => {
+        getBootstrapValueMock.mockReturnValue({
+          omniauth: { enabled: false, provider_name: 'Okta' },
+        });
+
+        const result = isOmniAuthEnabled();
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when omniauth is object without enabled property', () => {
+        getBootstrapValueMock.mockReturnValue({
+          omniauth: { provider_name: 'Okta' },
+        });
+
+        const result = isOmniAuthEnabled();
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when omniauth is empty object', () => {
+        getBootstrapValueMock.mockReturnValue({
+          omniauth: {},
+        });
+
+        const result = isOmniAuthEnabled();
+
+        expect(result).toBe(false);
+      });
     });
 
-    it('returns false when omniauth feature is undefined', () => {
-      getBootstrapValueMock.mockReturnValue({});
+    describe('edge cases', () => {
+      it('returns false when omniauth feature is undefined', () => {
+        getBootstrapValueMock.mockReturnValue({});
 
-      const result = isOmniAuthEnabled();
+        const result = isOmniAuthEnabled();
 
-      expect(result).toBe(false);
-    });
+        expect(result).toBe(false);
+      });
 
-    it('returns false when features object is undefined', () => {
-      getBootstrapValueMock.mockReturnValue(undefined);
+      it('returns false when features object is undefined', () => {
+        getBootstrapValueMock.mockReturnValue(undefined);
 
-      const result = isOmniAuthEnabled();
+        const result = isOmniAuthEnabled();
 
-      expect(result).toBe(false);
-    });
+        expect(result).toBe(false);
+      });
 
-    it('returns false when omniauth is truthy but not exactly true', () => {
-      getBootstrapValueMock.mockReturnValue({ omniauth: 'yes' });
+      it('returns false when omniauth is null', () => {
+        getBootstrapValueMock.mockReturnValue({ omniauth: null });
 
-      const result = isOmniAuthEnabled();
+        const result = isOmniAuthEnabled();
 
-      expect(result).toBe(false);
+        expect(result).toBe(false);
+      });
     });
   });
 
@@ -290,6 +364,38 @@ describe('features utility', () => {
         magicLinksEnabled: false,
         webauthnEnabled: false,
         omniAuthEnabled: true,
+      });
+    });
+
+    it('returns correct object with omniauth as object with enabled: true', () => {
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: false,
+        magic_links: false,
+        omniauth: { enabled: true, provider_name: 'Zitadel' },
+      });
+
+      const result = getAuthFeatures();
+
+      expect(result).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        omniAuthEnabled: true,
+      });
+    });
+
+    it('returns correct object with omniauth as object with enabled: false', () => {
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: true,
+        magic_links: true,
+        omniauth: { enabled: false },
+      });
+
+      const result = getAuthFeatures();
+
+      expect(result).toEqual({
+        magicLinksEnabled: true,
+        webauthnEnabled: true,
+        omniAuthEnabled: false,
       });
     });
   });

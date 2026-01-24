@@ -130,7 +130,7 @@ module Auth::Config::Hooks
     #
     # @return [void]
     def self.define_capture_method(auth)
-      auth.define_method(:capture_plan_selection) do
+      auth.auth.send(:define_method, :capture_plan_selection) do
         product  = param_or_nil('product')
         interval = param_or_nil('interval')
 
@@ -157,7 +157,7 @@ module Auth::Config::Hooks
     #
     # @return [void]
     def self.define_redirect_method(auth)
-      auth.define_method(:add_billing_redirect_to_response) do
+      auth.auth.send(:define_method, :add_billing_redirect_to_response) do
         product  = session[SESSION_KEY_PRODUCT]
         interval = session[SESSION_KEY_INTERVAL]
 
@@ -190,7 +190,7 @@ module Auth::Config::Hooks
     #
     # @return [void]
     def self.define_build_method(auth)
-      auth.define_method(:build_billing_redirect_info) do |product, interval|
+      auth.auth.send(:define_method, :build_billing_redirect_info) do |product, interval|
         # Require billing to be enabled
         unless billing_enabled?
           return {
@@ -236,7 +236,7 @@ module Auth::Config::Hooks
     #
     # @return [void]
     def self.define_billing_enabled_method(auth)
-      auth.define_method(:billing_enabled?) do
+      auth.auth.send(:define_method, :billing_enabled?) do
         Onetime.conf.dig('billing', 'enabled').to_s == 'true'
       end
     end

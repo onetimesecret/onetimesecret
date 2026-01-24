@@ -108,8 +108,23 @@ module Core
             'mfa' => Onetime.auth_config.mfa_enabled?,
             'email_auth' => Onetime.auth_config.email_auth_enabled?,
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
-            'omniauth' => Onetime.auth_config.omniauth_enabled?,
+            'omniauth' => build_omniauth_config,
           }
+        end
+
+        # Build OmniAuth configuration for frontend
+        #
+        # Returns false if disabled, or a hash with enabled status and
+        # optional provider name for display customization.
+        #
+        # @return [Boolean, Hash] false if disabled, otherwise config hash
+        def build_omniauth_config
+          return false unless Onetime.auth_config.omniauth_enabled?
+
+          config                  = { 'enabled' => true }
+          provider_name           = Onetime.auth_config.omniauth_provider_name
+          config['provider_name'] = provider_name if provider_name
+          config
         end
       end
 

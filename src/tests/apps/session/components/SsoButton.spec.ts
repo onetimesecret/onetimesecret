@@ -23,6 +23,17 @@ vi.mock('@/shared/stores/csrfStore', () => ({
   }),
 }));
 
+// Mock bootstrapStore with configurable features
+const mockFeatures = ref<{
+  omniauth?: boolean | { enabled: boolean; provider_name?: string };
+}>({});
+
+vi.mock('@/shared/stores/bootstrapStore', () => ({
+  useBootstrapStore: () => ({
+    features: mockFeatures.value,
+  }),
+}));
+
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -36,6 +47,7 @@ const i18n = createI18n({
         },
         login: {
           sign_in_with_sso: 'Sign in with SSO',
+          sign_in_with_provider: 'Sign in with {provider}',
         },
       },
     },
@@ -46,25 +58,35 @@ const i18n = createI18n({
  * SsoButton Component Tests
  *
  * Tests the SSO login button that:
- * - Renders with correct button text
+ * - Renders with correct button text (generic or provider-specific)
  * - Creates and submits a form to /auth/sso/oidc
  * - Includes CSRF token in form submission
  * - Shows loading state during submission
- * - Displays error messages when needed
+ * - Reads provider_name from bootstrapStore.features.omniauth
  */
 describe('SsoButton', () => {
   let wrapper: VueWrapper;
 
-  // SsoButton stub representing the component interface
+  /**
+   * SsoButton implementation matching the actual component behavior.
+   * Uses bootstrapStore for features and csrfStore for CSRF token.
+   */
   const SsoButtonStub = defineComponent({
     name: 'SsoButton',
     setup() {
       const isLoading = ref(false);
-      const error = ref<string | null>(null);
+
+      // Provider name computed from features (matches actual component)
+      const providerName = (() => {
+        const omniauth = mockFeatures.value?.omniauth;
+        if (typeof omniauth === 'object' && omniauth !== null) {
+          return omniauth.provider_name || null;
+        }
+        return null;
+      })();
 
       const handleSsoLogin = () => {
         isLoading.value = true;
-        error.value = null;
 
         // Create and submit form
         const form = document.createElement('form');
@@ -81,19 +103,10 @@ describe('SsoButton', () => {
         form.submit();
       };
 
-      return { isLoading, error, handleSsoLogin };
+      return { isLoading, providerName, handleSsoLogin };
     },
     template: `
-      <div class="space-y-4">
-        <div
-          v-if="error"
-          class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true">
-          <p class="text-sm text-red-800 dark:text-red-200">{{ error }}</p>
-        </div>
-
+      <div>
         <button
           type="button"
           @click="handleSsoLogin"
@@ -108,7 +121,7 @@ describe('SsoButton', () => {
           </span>
           <template v-else>
             <span class="o-icon" data-icon="solid-building-office"></span>
-            Sign in with SSO
+            {{ providerName ? 'Sign in with ' + providerName : 'Sign in with SSO' }}
           </template>
         </button>
       </div>
@@ -118,6 +131,7 @@ describe('SsoButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockShrimp.value = 'test-csrf-token';
+    mockFeatures.value = {};
 
     // Mock form.submit to prevent actual navigation
     HTMLFormElement.prototype.submit = vi.fn();
@@ -151,7 +165,23 @@ describe('SsoButton', () => {
       expect(button.exists()).toBe(true);
     });
 
-    it('displays correct button text when not loading', () => {
+    it('displays generic SSO text when no provider_name is configured', () => {
+      mockFeatures.value = { omniauth: true };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with SSO');
+    });
+
+    it('displays generic SSO text when omniauth is boolean true', () => {
+      mockFeatures.value = { omniauth: true };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with SSO');
+      expect(wrapper.text()).not.toContain('Sign in with Okta');
+    });
+
+    it('displays generic SSO text when omniauth is object without provider_name', () => {
+      mockFeatures.value = { omniauth: { enabled: true } };
       wrapper = mountComponent();
 
       expect(wrapper.text()).toContain('Sign in with SSO');
@@ -176,6 +206,77 @@ describe('SsoButton', () => {
 
       const button = wrapper.find('[data-testid="sso-button"]');
       expect(button.attributes('disabled')).toBeUndefined();
+    });
+  });
+
+  describe('Provider Name Display', () => {
+    it('displays provider name when configured in omniauth object', () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, provider_name: 'Okta' },
+      };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with Okta');
+      expect(wrapper.text()).not.toContain('Sign in with SSO');
+    });
+
+    it('displays provider name for Zitadel', () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, provider_name: 'Zitadel' },
+      };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with Zitadel');
+    });
+
+    it('displays provider name for Azure AD', () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, provider_name: 'Azure AD' },
+      };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with Azure AD');
+    });
+
+    it('displays provider name for Google Workspace', () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, provider_name: 'Google Workspace' },
+      };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with Google Workspace');
+    });
+
+    it('falls back to SSO when provider_name is empty string', () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, provider_name: '' },
+      };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with SSO');
+    });
+
+    it('falls back to SSO when provider_name is null', () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, provider_name: undefined },
+      };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with SSO');
+    });
+
+    it('falls back to SSO when omniauth is boolean false', () => {
+      mockFeatures.value = { omniauth: false };
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with SSO');
+    });
+
+    it('falls back to SSO when omniauth is undefined', () => {
+      mockFeatures.value = {};
+      wrapper = mountComponent();
+
+      expect(wrapper.text()).toContain('Sign in with SSO');
     });
   });
 
@@ -309,73 +410,6 @@ describe('SsoButton', () => {
 
       const button = wrapper.find('[data-testid="sso-button"]');
       expect(button.attributes('disabled')).toBeDefined();
-    });
-  });
-
-  describe('Error Display', () => {
-    it('does not show error by default', () => {
-      wrapper = mountComponent();
-
-      const errorDiv = wrapper.find('[role="alert"]');
-      expect(errorDiv.exists()).toBe(false);
-    });
-
-    it('has correct accessibility attributes on error container', async () => {
-      // Create a component with error state
-      const SsoButtonWithError = defineComponent({
-        name: 'SsoButtonWithError',
-        setup() {
-          const isLoading = ref(false);
-          const error = ref<string | null>('Test error message');
-          return { isLoading, error };
-        },
-        template: `
-          <div class="space-y-4">
-            <div
-              v-if="error"
-              class="rounded-md bg-red-50 p-4"
-              role="alert"
-              aria-live="assertive"
-              aria-atomic="true">
-              <p class="text-sm text-red-800">{{ error }}</p>
-            </div>
-            <button type="button" class="sso-button" data-testid="sso-button">Sign in</button>
-          </div>
-        `,
-      });
-
-      wrapper = mount(SsoButtonWithError, {
-        global: { plugins: [i18n] },
-      });
-
-      const errorDiv = wrapper.find('[role="alert"]');
-      expect(errorDiv.exists()).toBe(true);
-      expect(errorDiv.attributes('aria-live')).toBe('assertive');
-      expect(errorDiv.attributes('aria-atomic')).toBe('true');
-    });
-
-    it('displays error message text', async () => {
-      const SsoButtonWithError = defineComponent({
-        name: 'SsoButtonWithError',
-        setup() {
-          return {
-            isLoading: ref(false),
-            error: ref<string | null>('SSO provider unavailable'),
-          };
-        },
-        template: `
-          <div>
-            <div v-if="error" role="alert" class="error-message">{{ error }}</div>
-            <button type="button" data-testid="sso-button">Sign in</button>
-          </div>
-        `,
-      });
-
-      wrapper = mount(SsoButtonWithError, {
-        global: { plugins: [i18n] },
-      });
-
-      expect(wrapper.text()).toContain('SSO provider unavailable');
     });
   });
 
