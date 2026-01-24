@@ -58,11 +58,109 @@ module Auth::Config::Hooks
       require_relative '../../../billing/models/plan'
       require_relative '../../../billing/lib/plan_resolver'
 
-      # Define helper methods on the Rodauth instance
-      define_capture_method(auth)
-      define_redirect_method(auth)
-      define_build_method(auth)
-      define_billing_enabled_method(auth)
+      # Define helper methods on the Rodauth Auth class using auth_class_eval
+      # This is the recommended Rodauth approach for custom method definitions
+      # rubocop:disable Lint/NestedMethodDefinition -- auth_class_eval evaluates in Auth class context
+      auth.auth_class_eval do
+        # Captures plan selection from request params into session.
+        # Called by before_login_attempt and before_create_account hooks.
+        def capture_plan_selection
+          product  = param_or_nil('product')
+          interval = param_or_nil('interval')
+
+          return unless product || interval
+
+          # Store whatever params were provided (validation happens later)
+          session[SESSION_KEY_PRODUCT]  = product  if product
+          session[SESSION_KEY_INTERVAL] = interval if interval
+
+          Auth::Logging.log_auth_event(
+            :billing_plan_captured,
+            level: :debug,
+            product: product,
+            interval: interval,
+            correlation_id: session[:auth_correlation_id],
+          )
+        end
+
+        # Adds billing redirect information to JSON response.
+        # Called by after_login, after_create_account, and after_two_factor_authentication hooks.
+        def add_billing_redirect_to_response
+          product  = session[SESSION_KEY_PRODUCT]
+          interval = session[SESSION_KEY_INTERVAL]
+
+          # No plan selection params stored
+          return unless product || interval
+
+          # Build redirect info
+          redirect_info = build_billing_redirect_info(product, interval)
+
+          # Add to JSON response for frontend
+          json_response[:billing_redirect] = redirect_info
+
+          Auth::Logging.log_auth_event(
+            :billing_redirect_added,
+            level: :info,
+            product: product,
+            interval: interval,
+            valid: redirect_info[:valid],
+            error: redirect_info[:error],
+            correlation_id: session[:auth_correlation_id],
+          )
+
+          # Clear session keys after use (one-time redirect)
+          session.delete(SESSION_KEY_PRODUCT)
+          session.delete(SESSION_KEY_INTERVAL)
+        end
+
+        # Builds billing redirect info hash for JSON response.
+        def build_billing_redirect_info(product, interval)
+          # Require billing to be enabled
+          unless billing_enabled?
+            return {
+              product: product,
+              interval: interval,
+              valid: false,
+              error: 'Billing not enabled',
+            }
+          end
+
+          # Validate params are present
+          unless product && interval
+            return {
+              product: product,
+              interval: interval,
+              valid: false,
+              error: 'Missing product or interval',
+            }
+          end
+
+          # Validate plan exists in catalog (checkout endpoint will resolve details)
+          result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
+
+          if result.success?
+            # Return minimal info - checkout endpoint resolves plan details
+            {
+              product: product,
+              interval: interval,
+              valid: true,
+            }
+          else
+            {
+              product: product,
+              interval: interval,
+              valid: false,
+              error: result.error,
+            }
+          end
+        end
+
+        # Checks if billing is enabled.
+        def billing_enabled?
+          Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+        end
+      end
+      # rubocop:enable Lint/NestedMethodDefinition
 
       # ========================================================================
       # HOOK: Before Login Attempt - Capture Plan Selection
@@ -120,124 +218,6 @@ module Auth::Config::Hooks
       #
       auth.after_two_factor_authentication do
         add_billing_redirect_to_response if json_request?
-      end
-    end
-
-    # Captures plan selection from request params into session
-    #
-    # Called by before_login_attempt and before_create_account hooks.
-    # Runs in the Rodauth context (self is the Rodauth instance).
-    #
-    # @return [void]
-    def self.define_capture_method(auth)
-      auth.auth.send(:define_method, :capture_plan_selection) do
-        product  = param_or_nil('product')
-        interval = param_or_nil('interval')
-
-        return unless product || interval
-
-        # Store whatever params were provided (validation happens later)
-        session[SESSION_KEY_PRODUCT]  = product  if product
-        session[SESSION_KEY_INTERVAL] = interval if interval
-
-        Auth::Logging.log_auth_event(
-          :billing_plan_captured,
-          level: :debug,
-          product: product,
-          interval: interval,
-          correlation_id: session[:auth_correlation_id],
-        )
-      end
-    end
-
-    # Adds billing redirect information to JSON response
-    #
-    # Called by after_login, after_create_account, and after_two_factor_authentication hooks.
-    # Validates the plan and includes redirect info for the frontend.
-    #
-    # @return [void]
-    def self.define_redirect_method(auth)
-      auth.auth.send(:define_method, :add_billing_redirect_to_response) do
-        product  = session[SESSION_KEY_PRODUCT]
-        interval = session[SESSION_KEY_INTERVAL]
-
-        # No plan selection params stored
-        return unless product || interval
-
-        # Build redirect info
-        redirect_info = build_billing_redirect_info(product, interval)
-
-        # Add to JSON response for frontend
-        json_response[:billing_redirect] = redirect_info
-
-        Auth::Logging.log_auth_event(
-          :billing_redirect_added,
-          level: :info,
-          product: product,
-          interval: interval,
-          valid: redirect_info[:valid],
-          error: redirect_info[:error],
-          correlation_id: session[:auth_correlation_id],
-        )
-
-        # Clear session keys after use (one-time redirect)
-        session.delete(SESSION_KEY_PRODUCT)
-        session.delete(SESSION_KEY_INTERVAL)
-      end
-    end
-
-    # Builds billing redirect info hash for JSON response
-    #
-    # @return [void]
-    def self.define_build_method(auth)
-      auth.auth.send(:define_method, :build_billing_redirect_info) do |product, interval|
-        # Require billing to be enabled
-        unless billing_enabled?
-          return {
-            product: product,
-            interval: interval,
-            valid: false,
-            error: 'Billing not enabled',
-          }
-        end
-
-        # Validate params are present
-        unless product && interval
-          return {
-            product: product,
-            interval: interval,
-            valid: false,
-            error: 'Missing product or interval',
-          }
-        end
-
-        # Validate plan exists in catalog (checkout endpoint will resolve details)
-        result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
-
-        if result.success?
-          # Return minimal info - checkout endpoint resolves plan details
-          {
-            product: product,
-            interval: interval,
-            valid: true,
-          }
-        else
-          {
-            product: product,
-            interval: interval,
-            valid: false,
-            error: result.error,
-          }
-        end
-      end
-    end
-
-    # Checks if billing is enabled
-    #
-    # @return [void]
-    def self.define_billing_enabled_method(auth)
-      auth.auth.send(:define_method, :billing_enabled?) do
-        Onetime.conf.dig('billing', 'enabled').to_s == 'true'
       end
     end
   end
