@@ -87,6 +87,22 @@
     "text": "SSO sign-in failed. Please try again.",
     "sha256": ""
   },
+  "web.login.errors.sso_failed": {
+    "text": "SSO authentication failed. Please try again or use password login.",
+    "sha256": ""
+  },
+  "web.login.errors.token_missing": {
+    "text": "The authentication link is incomplete. Please request a new sign-in link.",
+    "sha256": ""
+  },
+  "web.login.errors.token_expired": {
+    "text": "This sign-in link has expired. Please request a new one.",
+    "sha256": ""
+  },
+  "web.login.errors.token_invalid": {
+    "text": "This sign-in link is invalid. Please request a new one.",
+    "sha256": ""
+  },
   "web.signup.create_your_account": {
     "text": "Create Your Account",
     "sha256": "5f4c33d7"

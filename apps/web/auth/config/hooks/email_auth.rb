@@ -117,8 +117,8 @@ module Auth::Config::Hooks
           msg = 'The email authentication token is missing.'
           Onetime.get_logger('Auth').error msg
           set_error_flash msg
-          # login_path returns relative path, need full path for browser redirect
-          redirect "#{Auth::Application.uri_prefix}#{login_path}"
+          # Redirect to Vue frontend login page with error indicator
+          redirect '/signin?auth_error=token_missing'
         end
 
         # Token present - Rodauth will now verify validity and expiration
