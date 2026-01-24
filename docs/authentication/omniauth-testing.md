@@ -61,7 +61,7 @@ curl -s $OIDC_ISSUER/.well-known/openid-configuration | jq '.authorization_endpo
 | New user login | Account created, redirected to dashboard |
 | Existing user login | Logged in via linked identity |
 | Domain restriction | Redirected to `/signin?auth_error=sso_failed` |
-| CSRF missing | 403 Forbidden (Rack::Protection rejects) |
+| OAuth state mismatch | OmniAuth rejects callback (CSRF protection) |
 | IdP denies access | Redirected to `/signin?auth_error=sso_failed` |
 
 ## Automated Tests
@@ -82,8 +82,7 @@ bundle exec rspec apps/web/auth/spec/
 # Look for: [OmniAuth FAILURE] type=... class=... msg=...
 
 # Common issues:
-# - "CSRF detected" → shrimp token missing or invalid (Rack::Protection)
-# - "InvalidToken" → route_csrf mismatch (should be bypassed for OmniAuth)
+# - "csrf_detected" → OAuth state parameter mismatch (session expired or manipulated)
 # - "Discovery failed" → OIDC_ISSUER URL incorrect or unreachable
 # - "Callback mismatch" → OIDC_REDIRECT_URI doesn't match IdP config
 # - "Errors.App.NotFound" → Client ID doesn't match IdP configuration

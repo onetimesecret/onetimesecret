@@ -174,13 +174,13 @@ const handleSsoLogin = () => {
 
 ### CSRF Protection
 
-**Important:** All POST requests to `/auth/sso/oidc` require a valid CSRF token.
+OmniAuth routes (`/auth/sso/*`) use OAuth's built-in state parameter for CSRF protection instead of form tokens.
 
-- Parameter name: `shrimp` (configured in `lib/onetime/middleware/security.rb`)
-- Token source: `window.__BOOTSTRAP_STATE__.shrimp` or `csrfStore.shrimp`
-- Without valid token: 403 Forbidden
+**How it works:**
+1. **Request phase:** OmniAuth generates a random `state` value, stores it in session, and includes it in the authorization URL
+2. **Callback phase:** The IdP returns the `state`; OmniAuth validates it matches before processing
 
-**Implementation note:** The application has two CSRF systems (Rack::Protection and Roda's route_csrf) with incompatible token formats. The `omniauth_request_validation_phase` hook in `apps/web/auth/config/hooks/omniauth.rb` skips route_csrf validation for OmniAuth routes since Rack::Protection validates the `shrimp` token in middleware before the request reaches Rodauth. OmniAuth's OAuth `state` parameter provides additional CSRF protection during the callback phase.
+**Implementation note:** Rack::Protection is configured to skip `/auth/sso/*` routes (see `lib/onetime/middleware/security.rb`). The frontend still includes the `shrimp` token for consistency, but it is not validated for SSO routes. This avoids conflicts between form-based CSRF and OAuth's built-in protection.
 
 ### Feature Flag
 
@@ -192,14 +192,15 @@ Check in Vue: `isOmniAuthEnabled()` from `src/utils/features.ts`
 
 ### Static HTML (Custom Integrations)
 
-For non-Vue integrations, include the CSRF token:
+For non-Vue integrations:
 
 ```html
 <form method="POST" action="/auth/sso/oidc">
-  <input type="hidden" name="shrimp" value="<%= session[:csrf] %>">
   <button type="submit">Login with SSO</button>
 </form>
 ```
+
+Note: No CSRF token is required for SSO routes. OAuth's state parameter handles CSRF protection.
 
 ## Database Schema
 
