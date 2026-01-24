@@ -40,11 +40,11 @@ const handleSsoLogin = () => {
   form.action = '/auth/sso/oidc';
 
   /**
-   * Add CSRF token for Rack::Protection::AuthenticityToken validation.
+   * Include CSRF token in form submission for consistency.
    *
-   * The middleware validates this token before the request reaches Rodauth.
-   * Rodauth's route_csrf is explicitly skipped for OmniAuth routes (see
-   * apps/web/auth/config/hooks/omniauth.rb) to avoid token format conflicts.
+   * Note: Rack::Protection skips /auth/sso/* routes (see security.rb).
+   * OmniAuth's OAuth state parameter provides CSRF protection instead.
+   * The shrimp token is included but not validated for these routes.
    */
   const csrfInput = document.createElement('input');
   csrfInput.type = 'hidden';
