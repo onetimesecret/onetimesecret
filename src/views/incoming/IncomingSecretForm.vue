@@ -2,12 +2,12 @@
 
 <script setup lang="ts">
   import { onMounted, ref } from 'vue';
-  import { useIncomingSecret } from '@/composables/useIncomingSecret';
-  import IncomingMemoInput from '@/components/incoming/IncomingMemoInput.vue';
-  import IncomingRecipientDropdown from '@/components/incoming/IncomingRecipientDropdown.vue';
-  import SecretContentInputArea from '@/components/secrets/form/SecretContentInputArea.vue';
-  import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
-  import EmptyState from '@/components/EmptyState.vue';
+  import { useIncomingSecret } from '@/shared/composables/useIncomingSecret';
+  import IncomingMemoInput from '@/apps/secret/components/incoming/IncomingMemoInput.vue';
+  import IncomingRecipientDropdown from '@/apps/secret/components/incoming/IncomingRecipientDropdown.vue';
+  import SecretContentInputArea from '@/apps/secret/components/form/SecretContentInputArea.vue';
+  import LoadingOverlay from '@/shared/components/common/LoadingOverlay.vue';
+  import EmptyState from '@/shared/components/ui/EmptyState.vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
