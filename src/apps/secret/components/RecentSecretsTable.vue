@@ -68,9 +68,11 @@
         } else {
           await refreshStatuses({ silent: true });
         }
-      } catch {
+      } catch (e) {
         // Silently ignore errors on background refresh (e.g., server unavailable)
         // User didn't initiate this action, so don't show error toasts
+        // Log for debugging in development
+        console.debug('Background refresh failed:', e);
       }
     }
   };

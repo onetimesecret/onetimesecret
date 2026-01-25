@@ -61,9 +61,9 @@ const tabs = computed<TabConfig[]>(() => {
 const selectedTabIndex = ref(0);
 
 // Prefill email from query param (e.g., from invitation flow)
+// Single email ref shared across all auth tabs for consistent UX
 const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
 const email = ref(emailFromQuery);
-const webauthnEmail = ref(emailFromQuery);
 
 // Current mode derived from tab index
 const currentMode = computed<AuthMode>(() => tabs.value[selectedTabIndex.value]?.id ?? 'password');
@@ -137,7 +137,7 @@ const handleMagicLinkSubmit = async () => {
 };
 
 const handleWebAuthnSubmit = async () => {
-  await authenticateWebAuthn(webauthnEmail.value || undefined);
+  await authenticateWebAuthn(email.value || undefined);
 };
 
 const handleTryAgain = () => {
@@ -331,7 +331,7 @@ data-testid="passkey-panel">
                        dark:placeholder:text-gray-400 dark:focus:border-brand-500
                        dark:focus:ring-brand-500"
                 :placeholder="t('web.COMMON.email_placeholder')"
-                v-model="webauthnEmail"
+                v-model="email"
                 data-testid="webauthn-email-input" />
             </div>
 
