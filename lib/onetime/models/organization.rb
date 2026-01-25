@@ -46,6 +46,10 @@ module Onetime
     feature :with_organization_billing
     feature :with_entitlements
 
+    # Migration features - REMOVE after v1→v2 migration complete
+    feature :with_migration_fields
+    feature :organization_migration_fields
+
     identifier_field :objid
 
     # Unique index for contact email (prevents duplicates, enables fast lookups)
@@ -57,6 +61,10 @@ module Onetime
     field :owner_id       # custid of organization owner (internal objid of Customer)
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
+
+    # Use for storing data germaine to organization but not warranting own field
+    # e.g. pre or post migration metadata
+    jsonkey :caboose
 
     hashkey :urls
 

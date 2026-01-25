@@ -17,6 +17,10 @@ module Onetime
     feature :required_fields
     feature :deprecated_fields
 
+    # Migration features - REMOVE after v1→v2 migration complete
+    feature :with_migration_fields
+    feature :receipt_migration_fields
+
     default_expiration 14.days # by default 2x Secret.default_expiration
     prefix :receipt
 
