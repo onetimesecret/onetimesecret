@@ -1,0 +1,344 @@
+// src/tests/stores/languageStore.spec.ts
+
+import { ApplicationError } from '@/schemas';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { SESSION_STORAGE_KEY, useLanguageStore } from '@/shared/stores/languageStore';
+import type { AxiosInstance } from 'axios';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { setupTestPinia } from '../setup';
+
+describe('Language Store', () => {
+  let axiosMock: AxiosMockAdapter | null;
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
+
+  beforeEach(async () => {
+    // Setup testing environment with all needed components
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock;
+
+    vi.useFakeTimers();
+
+    // Mock sessionStorage
+    const sessionStorageMock = {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      clear: vi.fn(),
+    };
+
+    Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
+
+    // Get bootstrap store and set up supported locales
+    bootstrapStore = useBootstrapStore();
+    bootstrapStore.update({
+      supported_locales: ['en', 'fr', 'es'],
+    });
+  });
+
+  afterEach(() => {
+    if (axiosMock) axiosMock.reset();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    bootstrapStore.$reset();
+  });
+
+  describe('Initialization', () => {
+    it('initializes correctly', () => {
+      const store = useLanguageStore();
+
+      store.init();
+      expect(store.currentLocale).toBe('en'); // Should be 'en' after init, not null
+      expect(store.getCurrentLocale).toBe('en');
+    });
+
+    it('initializes with deviceLocale', () => {
+      const store = useLanguageStore();
+      store.init({
+        deviceLocale: 'en-US',
+      });
+      expect(store.currentLocale).toBe('en');
+      expect(store.getCurrentLocale).toBe('en');
+    });
+
+    it('initializes with deviceLocale (es-ES)', () => {
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es'],
+      });
+
+      // Mock sessionStorage to return null to ensure deviceLocale is used
+      vi.spyOn(sessionStorage, 'getItem').mockReturnValue(null);
+
+      const store = useLanguageStore();
+      store.init({
+        deviceLocale: 'es-ES',
+      });
+      expect(store.currentLocale).toBe('es');
+    });
+
+    it('initializes with deviceLocale (de)', () => {
+      // Update bootstrap store with supported locales including 'de'
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es', 'de'],
+      });
+
+      // Mock sessionStorage to return null to ensure deviceLocale is used
+      vi.spyOn(sessionStorage, 'getItem').mockReturnValue(null);
+
+      const store = useLanguageStore();
+      store.init({
+        deviceLocale: 'de',
+      });
+      expect(store.currentLocale).toBe('de');
+    });
+
+    it('initializes with stored locale', () => {
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es'],
+      });
+
+      const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('fr');
+      const store = useLanguageStore();
+      store.init();
+      expect(store.currentLocale).toBe('fr');
+      expect(sessionGetItemSpy).toBeCalled();
+    });
+  });
+
+  describe('Language Updates', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr'],
+      });
+
+      store = useLanguageStore();
+      store.supportedLocales = ['en', 'fr'];
+    });
+
+    afterEach(() => {
+      if (store.$dispose) store.$dispose();
+    });
+
+    it('should set current locale correctly', () => {
+      // Ensure supported locales is set correctly
+      store.supportedLocales = ['en', 'fr'];
+
+      // First verify that setting 'fr' works
+      store.setCurrentLocale('fr');
+      expect(store.currentLocale).toBe('fr');
+      expect(sessionStorage.setItem).toHaveBeenCalledWith(SESSION_STORAGE_KEY, 'fr');
+
+      // Test unsupported locale - should not change from 'fr'
+      const consoleSpy = vi.spyOn(console, 'warn');
+      store.setCurrentLocale('invalid');
+      expect(store.currentLocale).toBe('fr'); // Should not change from 'fr'
+      expect(consoleSpy).toHaveBeenCalled();
+    });
+
+    it('should determine locale correctly', () => {
+      store.supportedLocales = ['en', 'fr'];
+
+      // Set current locale to 'en' first so we have a baseline
+      store.setCurrentLocale('en');
+
+      expect(store.determineLocale('fr-FR')).toBe('fr');
+      expect(store.determineLocale('invalid')).toBe('en'); // Should return current locale (en)
+      expect(store.determineLocale('fr')).toBe('fr');
+    });
+
+    it('should handle updateLanguage correctly', async () => {
+      axiosMock.onPost('/api/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('fr');
+      expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'fr' }));
+    });
+
+    describe('Error Handling', () => {
+      it.skip('server should not allow two-part locales updateLanguage', async () => {
+        const locale = 'en-US';
+
+        // Setup axiosMock with 404 response
+        axiosMock.onPost('/api/account/update-locale', { locale }).reply(400); // TODO: Not correct
+
+        let caughtError: ApplicationError;
+        try {
+          await store.updateLanguage(locale);
+          throw new Error('Failed testcase: expected error not thrown');
+        } catch (err) {
+          caughtError = err as ApplicationError;
+        }
+
+        // // Verify specific error properties
+        expect(caughtError).toBeDefined();
+        expect(caughtError.type).toBe('technical');
+        expect(caughtError.severity).toBe('error');
+
+        // Verify API was called with correct parameters
+        expect(axiosMock.history.post).toHaveLength(1);
+        expect(axiosMock.history.post[0].url).toBe('/api/account/update-locale');
+        expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
+      });
+
+      it('should handle network errors in updateLanguage', async () => {
+        const locale = 'fr';
+
+        // Setup axiosMock
+        axiosMock.onPost('/api/account/update-locale', { locale }).networkError();
+
+        // Expect raw AxiosError, not ApplicationError
+        await expect(store.updateLanguage(locale)).rejects.toThrow();
+
+        // Verify API was called with correct parameters
+        expect(axiosMock.history.post).toHaveLength(1);
+        expect(axiosMock.history.post[0].url).toBe('/api/account/update-locale');
+        expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
+      });
+
+      it('should handle server errors in updateLanguage', async () => {
+        const locale = 'fr';
+
+        // Setup axiosMock with 500 response
+        axiosMock
+          .onPost('/api/account/update-locale', { locale })
+          .reply(500, { message: 'Internal Server Error' });
+
+        // Expect raw AxiosError, not ApplicationError
+        await expect(store.updateLanguage(locale)).rejects.toThrow();
+
+        // Verify API was called correctly
+        expect(axiosMock.history.post).toHaveLength(1);
+        expect(axiosMock.history.post[0].url).toBe('/api/account/update-locale');
+        expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
+      });
+
+      it('should handle invalid locale validation', async () => {
+        const locale = 'invalid!';
+
+        // Expect validation error, not ApplicationError
+        await expect(store.updateLanguage(locale)).rejects.toThrow();
+
+        // Verify no API call was made
+        expect(axiosMock.history.post).toHaveLength(0);
+      });
+    });
+  });
+
+  describe('Locale Normalization', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      // Update bootstrap store with locales that include region variants
+      bootstrapStore.update({
+        supported_locales: ['en', 'it_IT', 'fr_FR', 'fr_CA', 'de', 'de_AT'],
+      });
+
+      store = useLanguageStore();
+      store.supportedLocales = ['en', 'it_IT', 'fr_FR', 'fr_CA', 'de', 'de_AT'];
+    });
+
+    it('should handle exact match with underscores (it_IT)', () => {
+      store.setCurrentLocale('it_IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should handle case-insensitive exact match (IT_IT -> it_IT)', () => {
+      store.setCurrentLocale('IT_IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should normalize hyphen to underscore (it-IT -> it_IT)', () => {
+      store.setCurrentLocale('it-IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should handle simple locale (en)', () => {
+      store.setCurrentLocale('en');
+      expect(store.currentLocale).toBe('en');
+    });
+
+    it('should handle exact match with different case (fr-ca -> fr_CA)', () => {
+      store.setCurrentLocale('fr-ca');
+      expect(store.currentLocale).toBe('fr_CA');
+    });
+
+    it('should fallback to primary language match (de-CH -> de)', () => {
+      // de-CH not in list, but 'de' is, so should match to 'de'
+      store.setCurrentLocale('de-CH');
+      expect(store.currentLocale).toBe('de');
+    });
+
+    it('should prefer exact match over primary match when both exist (fr_CA)', () => {
+      // Both fr_CA and fr_FR exist, fr_CA should match exactly
+      store.setCurrentLocale('fr_CA');
+      expect(store.currentLocale).toBe('fr_CA');
+    });
+
+    it('should handle updateLanguage with region locales', async () => {
+      axiosMock.onPost('/api/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('it_IT');
+      expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'it_IT' }));
+    });
+
+    it('should handle updateLanguage with hyphenated input (it-IT -> it_IT)', async () => {
+      axiosMock.onPost('/api/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('it-IT');
+      // Should normalize to it_IT before sending to server
+      expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'it_IT' }));
+    });
+
+    it('should reject unsupported locale', async () => {
+      // 'ja' not in supportedLocales
+      await expect(store.updateLanguage('ja')).rejects.toThrow('Unsupported locale: ja');
+    });
+  });
+
+  describe('Language Headers', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es'],
+      });
+
+      store = useLanguageStore();
+      store.init();
+    });
+
+    it('should return array of unique languages', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
+      store.setCurrentLocale('en');
+      expect(store.acceptLanguages).toEqual(['en', 'uk-UA']); // Should include navigator.language
+
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguages).toEqual(['fr', 'uk-UA']);
+    });
+
+    it('should handle matching browser and selected languages', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('fr');
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguages).toEqual(['fr']);
+    });
+
+    it('should format header string correctly', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
+      store.setCurrentLocale('fr');
+      expect(store.acceptLanguageHeader).toBe('fr,uk-UA');
+    });
+
+    it('should maintain selected language as primary', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('de-DE');
+      store.setCurrentLocale('es');
+      const languages = store.acceptLanguages;
+      expect(languages[0]).toBe('es');
+      expect(languages).toContain('de-DE');
+    });
+  });
+});

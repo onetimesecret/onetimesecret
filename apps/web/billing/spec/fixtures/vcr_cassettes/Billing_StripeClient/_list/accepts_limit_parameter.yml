@@ -1,0 +1,141 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/customers?limit=2
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_iItOJnZUTCtBRl","request_duration_ms":932}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Mon, 29 Dec 2025 05:33:17 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '1674'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=x_RtyOCPD8CAPgenrVsqbvPuGktjwbegNeWp4CAExEUGxAfEk-hvUuM2MF1a2INMjwGXsvbsdvJ67UBF
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "cus_TgwnJ26GInfrkZ",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766985682,
+              "currency": "usd",
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "invoice-pagination-2@example.com",
+              "invoice_prefix": "NKMM0FGS",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_Tgwnw3M5FsOtgj",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766985680,
+              "currency": "usd",
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "invoice-pagination-1@example.com",
+              "invoice_prefix": "APA9ELQZ",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            }
+          ],
+          "has_more": true,
+          "url": "/v1/customers"
+        }
+  recorded_at: Mon, 29 Dec 2025 05:33:17 GMT
+recorded_with: VCR 6.3.1

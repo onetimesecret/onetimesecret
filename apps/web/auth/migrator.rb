@@ -1,0 +1,320 @@
+# apps/web/auth/migrator.rb
+#
+# frozen_string_literal: true
+
+# Auto-migration module for Rodauth authentication database
+#
+# This module provides automatic database migration capabilities
+# for the auth service when running in full mode. It checks
+# if migrations are needed and runs them transparently during
+# application startup.
+#
+# Concurrent Process Safety (PostgreSQL):
+#   When multiple processes boot simultaneously (e.g., backend + worker),
+#   PostgreSQL advisory locks prevent migration races. The first process
+#   to acquire the lock runs migrations; others receive AdvisoryLockError
+#   and continue booting without error (the lock holder completes migrations).
+#
+# SQLite Limitation:
+#   SQLite does not support advisory locks. Single-instance deployments only.
+
+require 'sequel'
+require 'logger'
+
+require_relative '../../../lib/onetime/logger_methods'
+require_relative 'database'
+
+module Auth
+  module Migrator
+    extend Onetime::LoggerMethods
+
+    class << self
+      # Run migrations if needed (called during warmup in full mode)
+      #
+      # Sequel::Migrator.run automatically skips already-run migrations.
+      # For PostgreSQL, advisory locks ensure only one process runs migrations
+      # at a time. If another process holds the lock, this method logs an info
+      # message and returns successfully (no error raised).
+      #
+      # @return [void]
+      # @raise [Sequel::Migrator::Error] if migrations fail (not lock contention)
+      def run_if_needed
+        return unless database_connection
+
+        log_skip_reason unless database_connection
+
+        using_elevated_url, migrations_url = determine_migration_connection
+        log_migration_start(using_elevated_url, migrations_url)
+
+        Sequel.extension :migration
+
+        adapter_scheme = test_database_connection(using_elevated_url, migrations_url)
+        log_context    = build_log_context(adapter_scheme)
+
+        return unless migrations_available?(log_context)
+
+        current_version = get_schema_version(using_elevated_url)
+        migration_files = Dir.glob(File.join(migrations_dir, '*.rb'))
+
+        sequel_logger.info 'Starting database migration check',
+          **log_context,
+          migration_files_count: migration_files.count,
+          current_schema_version: current_version
+
+        start_time = Onetime.now_in_μs
+
+        Onetime.auth_logger.debug 'Database migrations starting'
+        run_migrations
+        Onetime.auth_logger.debug 'Database migrations have run'
+
+        elapsed_μs  = Onetime.now_in_μs - start_time
+        new_version = get_schema_version(using_elevated_url)
+
+        log_migration_result(log_context, current_version, new_version, elapsed_μs)
+      rescue Sequel::AdvisoryLockError => ex
+        # Another process is already running migrations - this is expected
+        # when multiple processes boot simultaneously (e.g., backend + worker)
+        sequel_logger.info 'Migrations already in progress (advisory lock held by another process)',
+          **log_context,
+          status: 'skipped',
+          reason: 'advisory_lock_held',
+          lock_info: ex.message
+        # Don't raise - the other process will complete the migrations
+      rescue Sequel::Migrator::Error => ex
+        elapsed_μs = Onetime.now_in_μs - start_time if start_time
+
+        sequel_logger.error 'Database migration failed',
+          **log_context,
+          status: 'error',
+          error_class: ex.class.name,
+          error_message: ex.message,
+          error_backtrace: ex.backtrace&.first(5),
+          schema_version: current_version,
+          elapsed_μs: elapsed_μs
+
+        raise
+      end
+
+      # Force run all migrations (useful for manual execution)
+      def run!
+        return unless database_connection
+
+        Sequel.extension :migration
+
+        sequel_logger.info 'Running auth database migrations...'
+        run_migrations
+        sequel_logger.info 'Auth database migrations completed'
+      end
+
+      private
+
+      def database_connection
+        @database_connection ||= Auth::Database.connection
+      end
+
+      def migrations_dir
+        File.join(__dir__, 'migrations')
+      end
+
+      def log_skip_reason
+        sequel_logger.debug 'Skipping migrations - no database connection',
+          full_mode_enabled: Onetime.auth_config&.full_enabled?,
+          database_url_present: !Onetime.auth_config&.database_url.nil?
+      end
+
+      def determine_migration_connection
+        migrations_url     = Onetime.auth_config.database_url_migrations
+        using_elevated_url = migrations_url && migrations_url != Onetime.auth_config.database_url
+
+        if using_elevated_url && adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
+          sequel_logger.warn 'Adapter mismatch between database_url and database_url_migrations',
+            database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+            migrations_url: migrations_url&.sub(/:[^:@]+@/, ':***@'),
+            action: 'using database_url for migrations'
+          using_elevated_url = false
+        end
+
+        [using_elevated_url, migrations_url]
+      end
+
+      def log_migration_start(using_elevated_url, migrations_url)
+        sequel_logger.info 'Auth migrations initializer running',
+          database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+          migrations_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : nil,
+          using_elevated_credentials: using_elevated_url
+      end
+
+      def test_database_connection(using_elevated_url, migrations_url)
+        test_conn = using_elevated_url ? migration_connection : database_connection
+        test_conn.adapter_scheme
+      rescue StandardError => ex
+        sequel_logger.error 'Failed to connect to auth database',
+          error: ex.message,
+          error_class: ex.class.name,
+          database_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+          using_elevated_url: using_elevated_url
+        raise
+      ensure
+        # Disconnect if we created a separate elevated connection. Previously
+        # checked `test_conn != database_connection` but object comparison is
+        # unreliable due to connection pooling; the flag is authoritative.
+        test_conn&.disconnect if using_elevated_url
+      end
+
+      def build_log_context(adapter_scheme)
+        {
+          migrations_dir: OT::Utils.pretty_path(migrations_dir).to_s,
+          db_adapter: adapter_scheme,
+          rack_env: Onetime.env,
+        }
+      end
+
+      def migrations_available?(log_context)
+        unless Dir.exist?(migrations_dir)
+          sequel_logger.debug 'Migrations directory not found',
+            **log_context,
+            action: 'skip',
+            reason: 'directory_missing'
+          return false
+        end
+
+        migration_files = Dir.glob(File.join(migrations_dir, '*.rb'))
+        if migration_files.empty?
+          sequel_logger.debug 'No migration files present',
+            **log_context,
+            action: 'skip',
+            reason: 'no_files'
+          return false
+        end
+
+        true
+      end
+
+      def get_schema_version(using_elevated_url)
+        schema_conn = using_elevated_url ? migration_connection : database_connection
+        schema_conn[:schema_info].first&.fetch(:version, 0)
+      rescue Sequel::DatabaseError
+        0
+      ensure
+        # Disconnect if we created a separate elevated connection. Previously
+        # checked `schema_conn != database_connection` but object comparison is
+        # unreliable due to connection pooling; the flag is authoritative.
+        schema_conn.disconnect if using_elevated_url
+      end
+
+      def log_migration_result(log_context, current_version, new_version, elapsed_μs)
+        migrations_applied = new_version - current_version
+
+        if migrations_applied > 0
+          sequel_logger.info 'Database migrations completed',
+            **log_context,
+            status: 'success',
+            migrations_applied: migrations_applied,
+            schema_version_before: current_version,
+            schema_version_after: new_version,
+            elapsed_μs: elapsed_μs
+        else
+          sequel_logger.info 'Database schema already current',
+            **log_context,
+            status: 'success',
+            migrations_applied: 0,
+            schema_version: current_version,
+            elapsed_μs: elapsed_μs
+        end
+      end
+
+      # Create a dedicated connection for migrations using database_url_migrations config
+      # This allows using a superuser/admin account for schema changes while the
+      # application runs with restricted privileges
+      def migration_connection
+        database_url = Onetime.auth_config.database_url_migrations
+
+        sequel_logger.debug 'Creating migration database connection',
+          url_type: database_url == Onetime.auth_config.database_url ? 'standard' : 'elevated'
+
+        Sequel.connect(
+          database_url,
+          logger: Onetime.get_logger('Sequel'),
+          sql_log_level: :trace,
+        )
+      end
+
+      def run_migrations
+        Sequel.extension :migration
+
+        migrations_url = Onetime.auth_config.database_url_migrations
+
+        # Use dedicated migration connection only if:
+        # 1. database_url_migrations is explicitly configured
+        # 2. It differs from the main database_url
+        # 3. Both URLs use the same adapter (no mismatch)
+        use_elevated = migrations_url &&
+                       migrations_url != Onetime.auth_config.database_url &&
+                       !adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
+
+        conn = use_elevated ? migration_connection : database_connection
+
+        begin
+          # Suppress confusing "no such table" errors during migration checks
+          # Sequel's create_table? checks existence by attempting a SELECT,
+          # which logs an error before being caught. This is expected behavior.
+          suppress_table_check_errors(conn) do
+            Sequel::Migrator.run(
+              conn,
+              migrations_dir,
+              use_transactions: true,
+              # PostgreSQL: Use advisory locks to prevent concurrent migration races.
+              # When lock is held by another process, raises AdvisoryLockError
+              # which is caught gracefully in run_if_needed (see rescue block).
+              # SQLite: No advisory lock support (single-instance deployments only).
+              use_advisory_lock: conn.adapter_scheme == :postgres,
+            )
+          end
+        ensure
+          # Disconnect if we created a separate elevated connection. Previously
+          # checked `conn != database_connection` but object comparison is
+          # unreliable due to connection pooling; the flag is authoritative.
+          conn.disconnect if use_elevated
+        end
+      end
+
+      # Temporarily suppress Sequel's logger to prevent confusing error logs
+      # during table existence checks in migrations
+      def suppress_table_check_errors(conn)
+        original_loggers = conn.loggers.dup
+        conn.loggers.clear
+        yield
+      ensure
+        conn.loggers.clear
+        original_loggers.each { |logger| conn.loggers << logger }
+      end
+
+      # Detect if two database URLs use different adapters (e.g., sqlite vs postgres)
+      # Returns true if there's a mismatch, false if they match or can't be determined
+      def adapter_mismatch?(url1, url2)
+        return false if url1.nil? || url2.nil?
+
+        adapter1 = extract_adapter(url1)
+        adapter2 = extract_adapter(url2)
+
+        return false if adapter1.nil? || adapter2.nil?
+
+        adapter1 != adapter2
+      end
+
+      # Extract adapter name from a database URL
+      # Examples: "sqlite::memory:" -> "sqlite", "postgresql://..." -> "postgresql"
+      def extract_adapter(url)
+        return nil if url.nil? || url.empty?
+
+        # Handle standard URL format: adapter://...
+        if url.include?('://')
+          url.split('://').first
+        # Handle SQLite memory format: sqlite::memory:
+        elsif url.start_with?('sqlite:')
+          'sqlite'
+        end
+      end
+    end
+  end
+end

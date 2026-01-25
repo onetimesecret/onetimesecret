@@ -1,0 +1,26 @@
+#!/command/execlineb -P
+
+foreground { s6-echo "[config-check] Validating configuration..." }
+
+# Check for v0.24.0 migration requirement
+# Only run migration check if both config and migration script exist
+if { test -f /app/etc/config.yaml }
+if { test -f /app/migrations/20250727-1523_01_convert_symbol_keys.rb }
+
+# Check if migration is needed (symbol-style keys present)
+backtick -n NEEDS_MIGRATION {
+  pipeline { s6-cat /app/etc/config.yaml }
+  pipeline { grep "^[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" }
+  head -1
+}
+
+importas -u NEEDS_MIGRATION NEEDS_MIGRATION
+
+ifelse { test -n "${NEEDS_MIGRATION}" } {
+  foreground { s6-echo "[config-check] ✗ ERROR: Migration required for v0.24.0" }
+  foreground { s6-echo "[config-check]   Run: bin/ots migrate 20250727-1523_01_convert_symbol_keys.rb --run" }
+  /bin/false
+}
+
+foreground { s6-echo "[config-check] ✓ Configuration valid" }
+/bin/true

@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Warum ist diese Nachricht nicht verfügbar?",
+    "sha256": "bd545472"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Nachrichten sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht.",
+    "sha256": "44c54ed2"
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Was soll ich jetzt tun?",
+    "sha256": "fbf3e67f"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Kontaktiere die Person, die dir diesen Link gesendet hat, und bitte sie, eine neue Nachricht zu erstellen. Lass sie wissen, dass du auf die ursprünglichen Informationen nicht zugreifen konntest.",
+    "sha256": "d9f4f41a"
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Warnung ausgeblendet",
+    "sha256": "e6d67409"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Kürzungswarnung ausblenden",
+    "sha256": "79e02fe6"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Ups! Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "sha256": "78207a09"
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Seite nicht gefunden",
+    "sha256": "27595daa"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Seite nicht gefunden",
+    "sha256": "27595daa"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Warnung ausblenden",
+    "sha256": "9f6e4da3"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Benachrichtigung ausblenden",
+    "sha256": "b7bb3f34"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Wenn du unsicher bist, was als Nächstes zu tun ist, wende dich bitte an die Person, die dir diesen Link gesendet hat, um weitere Informationen zu erhalten.",
+    "sha256": "0df00d3f"
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Informationen, die über unseren Dienst geteilt werden, können nur einmal abgerufen werden. Nach dem Ansehen wird der Inhalt dauerhaft von unseren Servern gelöscht, um die Vertraulichkeit zu gewährleisten. Dieser Ansatz hilft, deine sensiblen Daten zu schützen, indem ihre Exposition begrenzt und unbefugter Zugriff verhindert wird.",
+    "sha256": "a3fd8283"
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Es tut uns leid, aber bei der Verarbeitung deiner Anfrage ist ein unerwarteter Fehler aufgetreten. Unser Team wurde benachrichtigt und wir arbeiten daran, ihn zu beheben.",
+    "sha256": "f3b50965"
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Etwas ist schiefgelaufen",
+    "sha256": "93529f24"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Teile jetzt eine Nachricht!",
+    "sha256": "04c04b1a"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Die gesuchte Seite existiert nicht oder wurde verschoben. Keine Sorge, das passiert den Besten!",
+    "sha256": "e26522de"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Daten konnten aufgrund von Datenformatproblemen nicht geladen werden. Bitte versuche es später erneut.",
+    "sha256": "a7b6f998"
+  }
+}

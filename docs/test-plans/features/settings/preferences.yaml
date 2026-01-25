@@ -1,0 +1,176 @@
+# docs/test-plans/preferences.yaml
+---
+# LLM-Optimized Test Cases: User Preferences & Settings
+# Schema version: 1.0.0
+
+suite:
+  id: preferences-settings
+  name: User Preferences and Settings
+  feature: ProfileSettings, NotificationSettings, ChangePassword components
+  tags: [settings, preferences, theme, language, notifications, password, accessibility]
+
+definitions:
+  users:
+    authenticated:
+      auth: logged_in
+      description: Standard authenticated user
+
+tests:
+  - id: PREF-001
+    intent: User changes language preference via language toggle dropdown
+    setup:
+      auth: logged_in
+    target: /account/settings/profile/preferences
+    action:
+      type: click
+      element: Language toggle dropdown button
+      selector: '[data-testid="language-toggle-button"]'
+      data:
+        select_locale: es
+    verify:
+      - description: Language dropdown opens showing available locales
+        selector: '[data-testid="language-dropdown-menu"]'
+        assertion: visible
+      - description: Each locale shows name and code
+        selector: '[data-testid="language-option"]'
+        assertion: count_gt(0)
+      - description: Current locale has checkmark indicator
+        selector: '[data-testid="language-option-selected"] [data-testid="checkmark-icon"]'
+        assertion: visible
+      - description: After selection, UI text updates to new language
+        selector: '[data-testid="settings-page-title"]'
+        assertion: text_matches("Configuración|Preferencias")
+      - description: Screen reader announces language change
+        selector: '[role="status"][aria-live="polite"]'
+        assertion: text_contains("idioma")
+      - description: Locale persists in localStorage
+        script: "window.localStorage.getItem('ots-locale')"
+        assertion: equals("es")
+    priority: high
+    type: functional
+    covers: [LanguageToggle.vue, useLanguage, languageStore]
+    notes: |
+      Language toggle only visible when i18n_enabled is true in bootstrap store.
+      Test should verify the setting persists across page reload.
+
+  - id: PREF-002
+    intent: User toggles email notifications for secret reveals
+    setup:
+      auth: logged_in
+    target: /account/settings/profile/notifications
+    action:
+      type: click
+      element: Notify on reveal toggle switch
+      selector: '[data-testid="notify-on-reveal-toggle"]'
+    verify:
+      - description: Toggle switch visible with proper ARIA attributes
+        selector: '[data-testid="notify-on-reveal-toggle"]'
+        assertion: has_attribute("role", "switch")
+      - description: Clicking toggle changes visual state
+        selector: '[data-testid="notify-on-reveal-toggle"]'
+        assertion: has_class("bg-brand-600")
+      - description: aria-checked attribute updates to reflect new state
+        selector: '[data-testid="notify-on-reveal-toggle"]'
+        assertion: has_attribute("aria-checked", "true")
+      - description: API call updates notify_on_reveal preference
+        api: GET /api/v2/account/cust/preferences
+        assertion: json_path("$.notify_on_reveal", true)
+      - description: No error message appears on successful update
+        selector: '[data-testid="notification-error"]'
+        assertion: not_visible
+      - description: Setting persists after page reload
+        action: reload
+        api: GET /api/v2/account/cust/preferences
+        assertion: json_path("$.notify_on_reveal", true)
+    priority: high
+    type: functional
+    covers: [NotificationSettings.vue, accountStore.updateNotificationPreference]
+    notes: |
+      Toggle switch uses Tailwind classes for visual state.
+      Enabled: bg-brand-600, Disabled: bg-gray-200
+
+  - id: PREF-003
+    intent: User changes password with valid current password and matching new passwords
+    setup:
+      auth: logged_in
+      state:
+        current_password: currentPassword123
+    target: /account/settings/security/password
+    action:
+      type: submit
+      element: Change password form
+      selector: '[data-testid="change-password-form"]'
+      data:
+        current_password: currentPassword123
+        new_password: newSecurePassword456
+        confirm_password: newSecurePassword456
+    verify:
+      - description: Form displays three password fields with visibility toggles
+        selector: '[data-testid="change-password-form"] input[type="password"]'
+        assertion: count(3)
+      - description: Submit button enabled only when all fields valid
+        selector: '[data-testid="change-password-submit"]'
+        assertion: not_disabled
+      - description: On success, form fields are cleared
+        selectors:
+          - selector: '[data-testid="current-password-input"]'
+            assertion: value_equals("")
+          - selector: '[data-testid="new-password-input"]'
+            assertion: value_equals("")
+          - selector: '[data-testid="confirm-password-input"]'
+            assertion: value_equals("")
+      - description: No error messages displayed
+        selector: '[data-testid="password-change-error"]'
+        assertion: not_visible
+      - description: User can login with new password
+        action: logout_then_login
+        data:
+          email: "{{current_user_email}}"
+          password: newSecurePassword456
+        assertion: redirect_to("/dashboard")
+    priority: critical
+    type: functional
+    covers: [ChangePassword.vue, useAuth.changePassword]
+    notes: |
+      Password requirements: minimum 8 characters.
+      New password and confirm must match.
+      Current password must be verified server-side.
+
+  - id: PREF-004
+    intent: User toggles between dark and light theme modes
+    setup:
+      auth: logged_in
+    target: /account/settings/profile/preferences
+    action:
+      type: click
+      element: Theme toggle button
+      selector: '[data-testid="theme-toggle-button"]'
+    verify:
+      - description: Theme toggle button visible with sun/moon icon
+        selector: '[data-testid="theme-toggle-button"] svg'
+        assertion: visible
+      - description: Button has aria-pressed attribute reflecting current state
+        selector: '[data-testid="theme-toggle-button"]'
+        assertion: has_attribute("aria-pressed", "true")
+      - description: Clicking toggles between dark and light modes
+        selector: '[data-testid="theme-toggle-button"]'
+        assertion: has_attribute("aria-pressed")
+      - description: Dark mode adds dark class to document element
+        selector: 'html'
+        assertion: has_class("dark")
+      - description: Icon changes (sun for light, moon for dark)
+        selector: '[data-testid="theme-icon-moon"]'
+        assertion: visible
+      - description: Screen reader announces theme change
+        selector: '[role="status"][aria-live="polite"]'
+        assertion: text_contains("dark mode")
+      - description: Theme persists in localStorage across page reload
+        action: reload
+        script: "window.localStorage.getItem('ots-theme')"
+        assertion: equals("dark")
+    priority: high
+    type: functional
+    covers: [ThemeToggle.vue, useTheme]
+    notes: |
+      Theme toggle uses aria-pressed for accessibility,
+      localStorage for persistence, and live region for screen readers.

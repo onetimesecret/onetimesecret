@@ -1,0 +1,32 @@
+<!-- src/apps/secret/components/layout/MicroFooter.vue -->
+
+<script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
+  import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/apps/secret/components/layout/SecretFooterControls.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
+  import type { LayoutProps } from '@/types/ui/layouts';
+
+const { t } = useI18n();
+
+  withDefaults(defineProps<LayoutProps>(), {});
+
+  const bootstrapStore = useBootstrapStore();
+  const { site_host: siteHost } = storeToRefs(bootstrapStore);
+</script>
+<template>
+  <footer
+    class="w-full min-w-[320px] bg-gray-100 py-8 transition-colors duration-300 dark:bg-gray-800"
+    :aria-label="t('web.layout.site_footer')">
+    <div class="flex flex-col items-center space-y-8 py-8">
+      <div class="flex items-center justify-center">
+        <FooterControls :show-language="true" />
+      </div>
+      <FooterAttribution
+        :site-host="siteHost"
+        :show-nav="false"
+        :show-terms="false" />
+    </div>
+  </footer>
+</template>

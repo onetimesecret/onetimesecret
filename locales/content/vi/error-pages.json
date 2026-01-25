@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Tại sao bí mật này không khả dụng?",
+    "sha256": "bd545472"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Bí mật được thiết kế để chỉ xem một lần. Liên kết này có thể đã được truy cập, hết hạn hoặc bị người gửi xóa thủ công.",
+    "sha256": "44c54ed2"
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Tôi nên làm gì bây giờ?",
+    "sha256": "fbf3e67f"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Liên hệ với người đã gửi cho bạn liên kết này và yêu cầu họ tạo một bí mật mới. Cho họ biết bạn không thể truy cập thông tin ban đầu.",
+    "sha256": "d9f4f41a"
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Đã bỏ qua cảnh báo",
+    "sha256": "e6d67409"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Bỏ qua cảnh báo cắt ngắn",
+    "sha256": "79e02fe6"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Rất tiếc! Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.",
+    "sha256": "78207a09"
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Không tìm thấy trang",
+    "sha256": "27595daa"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Không tìm thấy trang",
+    "sha256": "27595daa"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Bỏ qua cảnh báo",
+    "sha256": "9f6e4da3"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Bỏ qua thông báo",
+    "sha256": "b7bb3f34"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Nếu bạn không chắc phải làm gì tiếp theo, vui lòng liên hệ lại với người đã gửi cho bạn liên kết này để biết thêm thông tin.",
+    "sha256": "0df00d3f"
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Thông tin được chia sẻ qua dịch vụ của chúng tôi chỉ có thể được truy cập một lần. Sau khi xem, nội dung sẽ bị xóa vĩnh viễn khỏi máy chủ của chúng tôi để đảm bảo tính bảo mật. Cách tiếp cận này giúp bảo vệ dữ liệu nhạy cảm của bạn bằng cách hạn chế tiếp xúc và ngăn chặn truy cập trái phép.",
+    "sha256": "a3fd8283"
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Chúng tôi xin lỗi, nhưng đã xảy ra lỗi không mong muốn trong khi xử lý yêu cầu của bạn. Nhóm của chúng tôi đã được thông báo và chúng tôi đang làm việc để khắc phục.",
+    "sha256": "f3b50965"
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Đã xảy ra lỗi",
+    "sha256": "93529f24"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Đi chia sẻ bí mật!",
+    "sha256": "04c04b1a"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển. Đừng lo lắng, điều này xảy ra với những người giỏi nhất trong chúng ta!",
+    "sha256": "e26522de"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Không thể tải dữ liệu do vấn đề định dạng dữ liệu. Vui lòng thử lại sau.",
+    "sha256": "a7b6f998"
+  }
+}

@@ -1,7 +1,8 @@
-
+# lib/onetime/errors.rb
+#
+# frozen_string_literal: true
 
 module Onetime
-
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
   # RuntimeError is used for errors that are typically caused by the program's logic
@@ -13,7 +14,7 @@ module Onetime
     attr_accessor :message
 
     def initialize(message = nil)
-      super(message)
+      super
       @message = message
     end
   end
@@ -26,6 +27,9 @@ module Onetime
   class ConfigError < Problem
   end
 
+  class MigrationError < Problem
+  end
+
   class RecordNotFound < Problem
   end
 
@@ -33,21 +37,37 @@ module Onetime
   end
 
   class FormError < Problem
-    attr_accessor :form_fields
+    attr_accessor :form_fields, :field, :error_type
+
+    def initialize(message = nil, field: nil, error_type: nil)
+      super(message)
+      @field      = field
+      @error_type = error_type
+    end
+
+    def to_h
+      {
+        error: error_type || 'FormError',
+        message: message,
+        field: field,
+      }.compact
+    end
   end
 
   class BadShrimp < Problem
     attr_reader :path, :user, :got, :wanted
 
     def initialize(path, user, got, wanted)
-      @path = path
-      @user = user
-      @got = got.to_s
+      @path   = path
+      @user   = user
+      @got    = got.to_s
       @wanted = wanted.to_s
     end
 
     def report
-      "BAD SHRIMP FOR #{@path}: #{@user}: #{got.shorten(16)}/#{wanted.shorten(16)}"
+      got_display    = got.size <= 16 ? got : got[0, 16] + '...'
+      wanted_display = wanted.size <= 16 ? wanted : wanted[0, 16] + '...'
+      "BAD SHRIMP FOR #{@path}: #{@user}: #{got_display}/#{wanted_display}"
     end
 
     def message
@@ -55,29 +75,64 @@ module Onetime
     end
   end
 
-  class LimitExceeded < RuntimeError
-    attr_accessor :event, :message, :cust
-    attr_reader :identifier, :event, :count
+  class Unauthorized < RuntimeError
+  end
 
-    def initialize(identifier, event, count)
-      @identifier = identifier
-      @event = event
-      @count = count
-    end
+  class Forbidden < RuntimeError
+    attr_reader :message
 
-    def message
-      "[limit-exceeded] #{identifier} for #{event} (#{count})"
+    def initialize(message = 'Forbidden')
+      super
+      @message = message
     end
   end
 
-  class Unauthorized < RuntimeError
+  # Raised when a user lacks the required entitlement for an action.
+  # Contains upgrade path information for the API response.
+  class EntitlementRequired < Forbidden
+    attr_reader :entitlement, :current_plan, :upgrade_to
+
+    def initialize(entitlement, current_plan: nil, upgrade_to: nil, message: nil)
+      @entitlement  = entitlement
+      @current_plan = current_plan
+      @upgrade_to   = upgrade_to
+      super(message || "Feature requires #{entitlement.to_s.tr('_', ' ')} entitlement")
+    end
+
+    def to_h
+      {
+        error: message,
+        entitlement: entitlement,
+        current_plan: current_plan,
+        upgrade_to: upgrade_to,
+      }.compact
+    end
   end
 
   class Redirect < RuntimeError
     attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
+
+    def initialize(l, s = 302)
+      @location = l
+      @status   = s
     end
   end
 
+  # Raised when guest API routes are disabled or a specific guest operation is disabled.
+  # Contains an error code for the API response.
+  class GuestRoutesDisabled < Forbidden
+    attr_reader :code
+
+    def initialize(message = 'Guest API access is disabled', code: 'GUEST_ROUTES_DISABLED')
+      super(message)
+      @code = code
+    end
+
+    def to_h
+      {
+        message: message,
+        code: code,
+      }
+    end
+  end
 end

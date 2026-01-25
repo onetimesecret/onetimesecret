@@ -1,39 +1,47 @@
 // src/router/guards.routes.ts
 
-import { WindowService } from '@/services/window.service';
-import { useAuthStore } from '@/stores/authStore';
-import { useLanguageStore } from '@/stores/languageStore';
+import { loggingService } from '@/services/logging.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { usePageTitle } from '@/shared/composables/usePageTitle';
+import { useAuthStore } from '@/shared/stores/authStore';
+import { useLanguageStore } from '@/shared/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
+
 import { processQueryParams } from './queryParams.handler';
 
 export async function setupRouterGuards(router: Router): Promise<void> {
+  const { setTitle } = usePageTitle();
+  let currentTitle: string | null = null;
+
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
 
+    logNavigation(to, authStore);
     processQueryParams(to.query as Record<string, string>);
 
-    if (to.name === 'NotFound') {
-      return true;
-    }
+    if (to.name === 'NotFound') return true;
+
+    // Handle MFA requirement checks
+    const mfaRedirect = handleMfaAccess(to, authStore);
+    if (mfaRedirect) return mfaRedirect;
 
 
     // Handle root path redirect
-    if (to.path === '/') {
-      return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
-    }
+    if (to.path === '/') return authStore.isFullyAuthenticated ? { name: 'Dashboard' } : true;
 
-    // Redirect authenticated users away from auth routes
-    if (isAuthRoute(to) && authStore.isAuthenticated) {
-      return { name: 'Dashboard' };
+    // Redirect fully authenticated users away from auth routes (respect redirect param)
+    // MFA pending users should still access auth routes like /mfa-verify
+    if (isAuthRoute(to) && authStore.isFullyAuthenticated) {
+      const redirectParam = to.query.redirect as string | undefined;
+      const isValidRedirect = redirectParam?.startsWith('/') && !redirectParam.startsWith('//');
+      return isValidRedirect ? { path: redirectParam } : { name: 'Dashboard' };
     }
 
     // Validate authentication for protected routes
     if (requiresAuthentication(to)) {
       const isAuthenticated = await validateAuthentication(authStore, to);
-      if (!isAuthenticated) {
-        return redirectToSignIn(to);
-      }
+      if (!isAuthenticated) return redirectToSignIn(to);
 
       const userPreferences = await fetchCustomerPreferences();
       if (userPreferences.locale) {
@@ -42,6 +50,31 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     }
 
     return true; // Always return true for non-auth routes
+  });
+
+  // Update page title after navigation completes
+  router.afterEach((to: RouteLocationNormalized) => {
+    // Find the title from the matched routes, starting from the most specific
+    // This handles nested routes properly by inheriting from parent routes
+    const nearestWithTitle = to.matched
+      .slice()
+      .reverse()
+      .find((r) => r.meta && r.meta.title);
+
+    let newTitle: string | null = null;
+
+    if (nearestWithTitle) {
+      newTitle = nearestWithTitle.meta.title as string;
+    } else if (to.name && typeof to.name === 'string') {
+      // Fallback to route name if no title is specified in the route hierarchy
+      newTitle = to.name;
+    }
+
+    // Only update title if it has changed
+    if (newTitle !== currentTitle) {
+      currentTitle = newTitle;
+      setTitle(newTitle);
+    }
   });
 }
 
@@ -53,11 +86,70 @@ function isAuthRoute(route: RouteLocationNormalized): boolean {
   return !!route.meta?.isAuthRoute;
 }
 
+/**
+ * Handle MFA verification access control
+ * @param to - Target route
+ * @param authStore - Auth store with awaitingMfa and isFullyAuthenticated getters
+ * @returns Redirect object or null if no redirect needed
+ */
+function handleMfaAccess(
+  to: RouteLocationNormalized,
+  authStore: {
+    awaitingMfa: boolean;
+    isFullyAuthenticated: boolean;
+    isAuthenticated: boolean | null;
+  }
+) {
+  const { awaitingMfa, isFullyAuthenticated, isAuthenticated } = authStore;
+
+  // DEBUG: Log MFA state on every navigation
+  loggingService.debug('[MFA Guard] State check:', {
+    targetPath: to.path,
+    targetName: to.name,
+    awaitingMfa,
+    isAuthenticated,
+    isFullyAuthenticated,
+  });
+
+  // Redirect to MFA verification if awaiting second factor
+  if (awaitingMfa && to.path !== '/mfa-verify') {
+    loggingService.debug('[MFA Guard] Redirecting to /mfa-verify (awaiting MFA)');
+    return { path: '/mfa-verify' };
+  }
+
+  // Prevent access to MFA verify page when not awaiting MFA
+  if (to.path === '/mfa-verify' && !awaitingMfa) {
+    // Use isFullyAuthenticated to determine redirect target
+    const redirect = isFullyAuthenticated ? { name: 'Dashboard' } : { path: '/signin' };
+    loggingService.debug('[MFA Guard] Redirecting from /mfa-verify:', {
+      redirect,
+      reason: 'not awaiting MFA',
+    });
+    return redirect;
+  }
+
+  return null;
+}
+
 function redirectToSignIn(from: RouteLocationNormalized) {
   return {
     path: '/signin',
     query: { redirect: from.fullPath },
   };
+}
+
+/** Debug logging helper for navigation guard */
+function logNavigation(to: RouteLocationNormalized, authStore: AuthValidator) {
+  loggingService.debug('[RouterGuard] Navigation to:', {
+    path: to.path,
+    name: to.name,
+    requiresAuth: to.meta?.requiresAuth,
+    isAuthRoute: to.meta?.isAuthRoute,
+    authStoreState: {
+      isAuthenticated: authStore.isAuthenticated,
+      needsCheck: authStore.needsCheck,
+    },
+  });
 }
 
 /**
@@ -88,7 +180,7 @@ function redirectToSignIn(from: RouteLocationNormalized) {
 interface AuthValidator {
   needsCheck: boolean;
   isAuthenticated: boolean | null;
-  checkAuthStatus: () => Promise<boolean | null>;
+  checkWindowStatus: () => Promise<boolean | null>;
 }
 
 /**
@@ -106,12 +198,27 @@ async function validateAuthentication(
   store: AuthValidator, // tried AuthStore, etc
   route: RouteLocationNormalized
 ): Promise<boolean> {
-  if (!requiresAuthentication(route)) return true;
+  if (!requiresAuthentication(route)) {
+    loggingService.debug('[validateAuthentication] Public route, skipping auth check');
+    return true;
+  }
+
+  loggingService.debug('[validateAuthentication] Checking auth for protected route:', {
+    path: route.path,
+    needsCheck: store.needsCheck,
+    isAuthenticated: store.isAuthenticated,
+  });
 
   if (store.needsCheck) {
-    const authStatus = await store.checkAuthStatus();
-    return authStatus ?? false; // Coalesce null to false
+    loggingService.debug('[validateAuthentication] needsCheck=true, calling checkWindowStatus');
+    const authStatus = await store.checkWindowStatus();
+    loggingService.debug('[validateAuthentication] checkWindowStatus returned:', { authStatus });
+    return authStatus ?? false;
   }
+
+  loggingService.debug('[validateAuthentication] Using cached auth state:', {
+    isAuthenticated: store.isAuthenticated,
+  });
   return store.isAuthenticated ?? false;
 }
 
@@ -123,14 +230,15 @@ async function validateAuthentication(
  * allow us to drop-in a request to the server when we need to.
  */
 async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
-  const cust = WindowService.get('cust');
+  const bootstrapStore = useBootstrapStore();
   // Explicitly handle null case and type narrow
-  const locale = cust?.locale ?? undefined;
+  const locale = bootstrapStore.cust?.locale ?? undefined;
   return { locale };
 }
 
+export type { AuthValidator };
+
 export {
-  AuthValidator,
   fetchCustomerPreferences,
   isAuthRoute,
   redirectToSignIn,

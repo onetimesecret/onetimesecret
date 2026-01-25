@@ -1,5 +1,6 @@
-import type { Plugin } from 'rollup';
+// src/types/declarations/vite-env.d.ts
 
+import type { Plugin } from 'rollup';
 
 /**
  * This file is here because:
@@ -36,6 +37,15 @@ import type { Plugin } from 'rollup';
 /// <reference types="vite/client" />
 
 /**
+ * Extend Vite's ImportMetaEnv interface to include our custom environment variables
+ * Note: Vite already provides BASE_URL, MODE, DEV, PROD, SSR in ImportMeta.env
+ */
+interface ImportMetaEnv {
+  readonly VITE_AUTH_URL?: string
+  readonly VITE_APP_TITLE?: string
+}
+
+/**
  * This part tells TypeScript how to understand .vue files.
  * It's like teaching TypeScript a new language (Vue).
  */
@@ -65,7 +75,6 @@ declare module '*.vue' {
    */
   export default component
 }
-
 
 // src/build/plugins/addTrailingNewline.d.ts
 export declare function addTrailingNewline(): Plugin;

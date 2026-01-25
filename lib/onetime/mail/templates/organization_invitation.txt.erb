@@ -1,0 +1,16 @@
+<%= t('email.organization_invitation.title', organization_name: organization_name) %>
+
+<%= t('email.organization_invitation.body', inviter_email: inviter_email, organization_name: organization_name, role_description: role_description) %>
+
+<%= t('email.organization_invitation.link_instruction') %>
+
+<%= baseuri %><%= invite_uri %>
+
+<%= t('email.organization_invitation.expiry_notice', days: expires_in_days) %>
+
+<%= t('email.organization_invitation.decline_instruction') %>
+
+<%= t('email.organization_invitation.signature') %>
+<%= baseuri %>
+
+<%= t('email.organization_invitation.postscript', invited_email: invited_email) %>

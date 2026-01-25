@@ -11,9 +11,8 @@
 # comments, and formatting.
 #
 # Usage:
-#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --dry-run  # Preview changes
-#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --run      # Execute migration
-#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --check    # Exit 1 if needed, 0 if not
+#   bin/ots migrate 20250727-1523_01_convert_symbol_keys.rb           # Preview changes
+#   bin/ots migrate --run 20250727-1523_01_convert_symbol_keys.rb     # Execute migration
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml
@@ -25,10 +24,6 @@
 #   - Nested:     `  :key:` → `  key:`
 #   - Array items: `- :key:` → `- key:`
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
-require 'onetime'
 require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
@@ -36,7 +31,7 @@ require 'fileutils'
 module Onetime
   class Migration < BaseMigration
     def prepare
-      @base_path = BASE_PATH
+      @base_path = OT::HOME
       @config_file = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
       @findings = []  # Store findings for consolidated output

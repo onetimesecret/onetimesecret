@@ -1,4 +1,6 @@
 # apps/web/core/views/serializers/authentication_serializer.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/utils'
 
@@ -12,20 +14,44 @@ module Core
       # Serializes authentication data from view variables
       #
       # @param view_vars [Hash] The view variables containing authentication state
-      # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized authentication data including customer information
-      def self.serialize(view_vars, i18n)
-        output = self.output_template
+      def self.serialize(view_vars)
+        output = output_template
 
-        output[:authenticated] = view_vars[:authenticated]
-        cust = view_vars[:cust] || V2::Customer.anonymous
+        output['authenticated'] = view_vars['authenticated']
+        output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
+        cust                    = view_vars['cust'] || Onetime::Customer.anonymous
 
-        output[:cust] = cust.safe_dump
+        output['cust'] = cust.safe_dump
 
-        if output[:authenticated]
-          output[:custid] = cust.custid
-          output[:email] = cust.email
-          output[:customer_since] = OT::TimeUtils.epochdom(cust.created)
+        # Check if there was a valid session at the time of this response
+        # This is crucial for error pages where authenticated=false but the user
+        # had a valid session. The frontend uses this to avoid incorrect logouts.
+        # A valid session has 'external_id' present (customer identifier in session)
+        sess                        = view_vars['sess']
+        output['had_valid_session'] = !!(sess && !sess.empty? && !sess['external_id'].to_s.empty?)
+
+        # When authenticated, provide full customer data
+        if output['authenticated']
+          output['custid']         = cust.custid
+          output['email']          = cust.email
+          output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
+
+          # Add entitlement test mode state for colonels
+          if cust.role?(:colonel) && sess[:entitlement_test_planid]
+            test_planid    = sess[:entitlement_test_planid]
+            test_plan_name = resolve_test_plan_name(test_planid)
+
+            if test_plan_name
+              output['entitlement_test_planid']    = test_planid
+              output['entitlement_test_plan_name'] = test_plan_name
+            end
+          end
+
+        # When awaiting MFA, provide minimal data from session (no customer access yet)
+        elsif output['awaiting_mfa']
+          output['email'] = view_vars['session_email']  # From session, not customer
+          # Do NOT provide custid or customer object - user doesn't have access yet
         end
 
         output
@@ -37,12 +63,28 @@ module Core
         # @return [Hash] Template with all possible authentication output fields
         def output_template
           {
-            authenticated: nil,
-            custid: nil,
-            cust: nil,
-            email: nil,
-            customer_since: nil,
+            'authenticated' => nil,
+            'awaiting_mfa' => false,
+            'had_valid_session' => false,
+            'custid' => nil,
+            'cust' => nil,
+            'email' => nil,
+            'customer_since' => nil,
+            'entitlement_test_planid' => nil,
+            'entitlement_test_plan_name' => nil,
           }
+        end
+
+        # Resolve test plan name from Billing::Plan cache or config
+        #
+        # Uses centralized fallback loader to try Stripe cache first,
+        # then billing.yaml config for development/standalone environments.
+        #
+        # @param test_planid [String] Plan ID to resolve
+        # @return [String, nil] Plan name or nil if not found
+        def resolve_test_plan_name(test_planid)
+          result = ::Billing::Plan.load_with_fallback(test_planid)
+          result[:plan]&.name || result[:config]&.dig(:name)
         end
       end
 

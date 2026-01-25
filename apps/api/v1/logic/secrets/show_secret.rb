@@ -1,7 +1,11 @@
 # apps/api/v1/logic/secrets/show_secret.rb
+#
+# frozen_string_literal: true
 
 module V1::Logic
   module Secrets
+
+    using Familia::Refinements::TimeLiterals
 
     class ShowSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
@@ -11,14 +15,14 @@ module V1::Logic
                   :secret_key, :share_domain
 
       def process_params
-        @key = params[:key].to_s
-        @secret = V1::Secret.load key
-        @passphrase = params[:passphrase].to_s
-        @continue = params[:continue].to_s == 'true'
+        @key = sanitize_identifier(params['key'].to_s)
+        @secret = Onetime::Secret.load key
+        @passphrase = params['passphrase'].to_s
+        @continue = params['continue'].to_s == 'true'
       end
 
       def raise_concerns
-        limit_action :show_secret
+
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
@@ -26,7 +30,7 @@ module V1::Logic
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
-        @secret_key = @secret.key
+        @secret_key = @secret.identifier # Use identifier, not deprecated .key field
 
         owner = secret.load_customer
 
@@ -41,16 +45,17 @@ module V1::Logic
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified! "true"
               sess.destroy!
-              secret.received!
+              secret.revealed!
             else
               raise_form_error "You can't verify an account when you're already logged in."
             end
           else
 
             owner.increment_field :secrets_shared unless owner.anonymous?
-            V1::Customer.global.increment_field :secrets_shared
+            # TODO:
+            # Onetime::Customer.global.increment_field :secrets_shared
 
-            # Immediately mark the secret as viewed, so that it
+            # Immediately mark the secret as revealed, so that it
             # can't be shown again. If there's a network failure
             # that prevents the client from receiving the response,
             # we're not able to show it again. This is a feature
@@ -61,13 +66,12 @@ module V1::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            secret.received!
+            secret.revealed!
 
-            V1::Logic.stathat_count("Viewed Secrets", 1)
           end
 
         elsif continue && secret.has_passphrase? && !correct_passphrase
-          limit_action :failed_passphrase
+
         end
 
         domain = if domains_enabled && !secret.share_domain.to_s.empty?
@@ -82,7 +86,7 @@ module V1::Logic
         @is_owner = secret.owner?(cust)
         @one_liner = one_liner
 
-        secret.viewed! if secret.state?(:new)
+        secret.previewed! if secret.state?(:new)
       end
 
       def success_data

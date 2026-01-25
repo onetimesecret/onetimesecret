@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'json'
+require 'familia/json_serializer'
 
 module Onetime
   module VERSION
@@ -17,7 +17,7 @@ module Onetime
       version
     end
 
-    def self.inspect
+    def self.details
       load_config
       build = (@version || {}).fetch(:BUILD, nil).to_s
       build.empty? ? to_s : "#{self} (#{build})"
@@ -28,7 +28,7 @@ module Onetime
 
       # Load version from package.json
       package_json_path = File.join(Onetime::HOME, 'package.json')
-      package_json      = JSON.parse(File.read(package_json_path))
+      package_json      = Familia::JsonSerializer.parse(File.read(package_json_path))
 
       # Split the version string into main version and pre-release parts
       version_parts      = package_json['version'].split('-')
@@ -44,15 +44,32 @@ module Onetime
     end
 
     def self.get_build_info
-      # Get the commit hash from .commit_hash.txt
+      # Get the commit hash from .commit_hash.txt or git directly
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
-      commit_hash      = 'pristine'
+      commit_hash      = nil
+
+      # Try reading from file first
       if File.exist?(commit_hash_file)
-        commit_hash = File.read(commit_hash_file).strip
-      else
-        warn "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
+        file_content = File.read(commit_hash_file).strip
+        # Use file content only if it's a real commit hash (not a fallback value)
+        commit_hash  = file_content unless %w[dev pristine].include?(file_content)
       end
-      commit_hash
+
+      # If no valid hash from file, try git directly (works in local development)
+      if commit_hash.nil? || commit_hash.empty?
+        commit_hash = `git rev-parse --short HEAD 2>/dev/null`.strip
+        commit_hash = nil if commit_hash.empty? || !$?.success?
+      end
+
+      # Final fallback for non-git environments (e.g., Docker without git)
+      commit_hash || 'dev'
+    end
+
+    # HTTP User-Agent string for outbound requests (webhooks, etc.)
+    # Format: OnetimeWorker/VERSION (Ruby/RUBY_VERSION)
+    # @return [String] User-Agent header value
+    def self.user_agent
+      "OnetimeWorker/#{self} (Ruby/#{RUBY_VERSION})"
     end
   end
 end

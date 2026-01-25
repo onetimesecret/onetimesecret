@@ -1,4 +1,6 @@
 # apps/api/v1/controllers/settings.rb
+#
+# frozen_string_literal: true
 
 module V1
 

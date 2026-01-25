@@ -1,0 +1,115 @@
+// src/apps/workspace/routes/billing.ts
+
+import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import type { RouteRecordRaw } from 'vue-router';
+
+const standardLayoutProps = {
+  displayMasthead: true,
+  displayNavigation: true,
+  displayFooterLinks: true,
+  displayFeedback: false,
+  displayPoweredBy: false,
+  displayVersion: true,
+  showSidebar: false,
+} as const;
+
+/**
+ * Guard to check if billing is enabled before accessing billing routes.
+ * Redirects to dashboard if billing is disabled.
+ */
+function checkBillingEnabled() {
+  const bootstrapStore = useBootstrapStore();
+  const billingEnabled = bootstrapStore.billing_enabled;
+
+  if (!billingEnabled) {
+    return { name: 'Dashboard' };
+  }
+
+  return true;
+}
+
+/**
+ * Creates a guard to redirect to /billing/:extid/:targetPage using the current org.
+ */
+function createBillingRedirect(targetPage: string) {
+  return async () => {
+    const organizationStore = useOrganizationStore();
+
+    if (organizationStore.organizations.length === 0) {
+      await organizationStore.fetchOrganizations();
+    }
+
+    const org = organizationStore.currentOrganization || organizationStore.organizations[0];
+    return { path: `/billing/${org.extid}/${targetPage}` };
+  };
+}
+
+const routes: Array<RouteRecordRaw> = [
+  // Redirect /billing to default org's billing page
+  {
+    path: '/billing',
+    beforeEnter: [checkBillingEnabled, createBillingRedirect('overview')],
+    component: () => import('@/apps/workspace/billing/BillingOverview.vue'),
+  },
+  // Redirect /billing/plans to default org's plans page
+  {
+    path: '/billing/plans',
+    beforeEnter: [checkBillingEnabled, createBillingRedirect('plans')],
+    component: () => import('@/apps/workspace/billing/PlanSelector.vue'),
+  },
+  {
+    path: '/billing/:extid/overview',
+    name: 'Billing Overview',
+    beforeEnter: checkBillingEnabled,
+    component: () => import('@/apps/workspace/billing/BillingOverview.vue'),
+    meta: {
+      title: 'web.billing.overview.title',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'hide',
+        onOrgSwitch: 'same',
+      },
+    },
+  },
+  {
+    path: '/billing/:extid/plans',
+    name: 'Billing Plans',
+    beforeEnter: checkBillingEnabled,
+    component: () => import('@/apps/workspace/billing/PlanSelector.vue'),
+    meta: {
+      title: 'web.billing.plans.title',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'hide',
+        onOrgSwitch: 'same',
+      },
+    },
+  },
+  {
+    path: '/billing/:extid/invoices',
+    name: 'Billing Invoices',
+    beforeEnter: checkBillingEnabled,
+    component: () => import('@/apps/workspace/billing/InvoiceList.vue'),
+    meta: {
+      title: 'web.billing.invoices.title',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'hide',
+        onOrgSwitch: 'same',
+      },
+    },
+  },
+];
+
+export default routes;

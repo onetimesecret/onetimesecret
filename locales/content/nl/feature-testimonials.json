@@ -1,0 +1,50 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "AI-gegenereerde getuigenis",
+    "sha256": "ff4d6634"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "AI-gegenereerde inhoud ter demonstratie. Niet van een echte persoon of bedrijf.",
+    "sha256": "d7093de7"
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5",
+    "sha256": "a5bdbbd3"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}",
+    "sha256": "a06d9daa"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\"",
+    "sha256": "7a27d02b"
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:",
+    "sha256": "14159dd9"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Wat toonaangevende AI over ons zegt",
+    "sha256": "f46a8839"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "AI-gegenereerde getuigenissen",
+    "sha256": "947cd6b4"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Dit citaat is gegenereerd door",
+    "sha256": "7879a747"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "Het was gebaseerd op de inhoud van de pagina en vertegenwoordigt geen echte persoon of bedrijf.",
+    "sha256": "8b290e9a"
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Kunstmatige feedback",
+    "sha256": "4c8d20ba"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Deze inhoud is door AI gegenereerd op basis van de inhoud van deze pagina en vertegenwoordigt geen echte persoon of bedrijf.",
+    "sha256": "03c16436"
+  }
+}

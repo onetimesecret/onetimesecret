@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Ricevuto",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Non ricevuto",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Nessun segreto recente",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Inizia creando il tuo primo segreto",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Impossibile caricare i dati",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Si è verificato un problema nel caricamento dei dati. Riprova.",
+    "sha256": "ff0d904e"
+  }
+}

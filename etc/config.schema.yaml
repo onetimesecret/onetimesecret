@@ -17,10 +17,10 @@ features: include('features')
 redis: include('redis')
 emailer: include('emailer')
 mail: include('mail')
+billing: include('billing')
 internationalization: include('internationalization')
 diagnostics: include('diagnostics')
 logging: include('logging', required=False)
-limits: include('limits')
 development: include('development')
 experimental: include('experimental')
 
@@ -32,7 +32,6 @@ site:
   interface:
     ui:
       enabled: any(bool(), str())
-      homepage: include('homepage', required=False)
       header: include('header', required=False)
       footer_links: include('footer_links', required=False)
     api:
@@ -41,10 +40,10 @@ site:
         enabled: any(bool(), str())
         conceal: any(bool(), str())
         generate: any(bool(), str())
-        show: any(bool(), str())
         reveal: any(bool(), str())
-        receipt: any(bool(), str())
         burn: any(bool(), str())
+        show: any(bool(), str())
+        receipt: any(bool(), str())
   secret_options:
     default_ttl: any(str(), int())
     ttl_options: str()
@@ -67,18 +66,14 @@ site:
     signin: any()
     autoverify: any()
     required: any()
-    colonels: list(str(), required=True)  # Remove this line
     allowed_signup_domains: list(str(), required=False)
   authenticity:
     type: any(str(), int())
     secret_key: any(str(), int())
   support:
     host: str(required=False)
-  plans:
-    enabled: any()
-    stripe_key: str(required=False)
-    webook_signing_secret: str(required=False)
-    payment_links: any(required=False)
+
+features:
   regions:
     enabled: any(str(), bool())
     current_jurisdiction: str(required=False)
@@ -86,17 +81,19 @@ site:
   domains:
     enabled: any()
     default: str(required=False)
-    cluster:
-      type: str(required=False)
+    validation_strategy: str(required=False)
+    strict_strategy: bool(required=False)
+    approximated:
       api_key: str(required=False)
-      cluster_ip: str(required=False)
-      cluster_host: str(required=False)
-      cluster_name: str(required=False)
+      proxy_ip: str(required=False)
+      proxy_host: str(required=False)
+      proxy_name: str(required=False)
       vhost_target: str(required=False)
+    acme:
+      enabled: any(str(), bool(), required=False)
+      listen_address: str(required=False)
+      port: any(str(), int(), required=False)
 
-features:
-  stathat: map(required=False)
-  incoming: include('incoming', required=False)
 
 redis:
   uri: str()
@@ -106,7 +103,9 @@ emailer:
   mode: str()
   region: str(required=False)
   from: str()
-  fromname: str()
+  from_name: str()
+  # Deprecated: use from_name (since v0.23)
+  fromname: str(required=False)
   host: str()
   port: any()
   user: str()
@@ -138,6 +137,12 @@ mail:
     smtp_error_body_pattern: str(required=False)
     logger: map()
 
+billing:
+  enabled: any()
+  stripe_key: str(required=False)
+  webhook_signing_secret: str(required=False)
+  payment_links: any(required=False)
+
 internationalization:
   enabled: any(str(), bool())
   default_locale: str()
@@ -162,47 +167,11 @@ diagnostics:
 logging:
   http_requests: any(str(), bool())
 
-limits:
-  create_secret: int()
-  create_account: int()
-  update_account: int()
-  email_recipient: int()
-  send_feedback: int()
-  authenticate_session: int()
-  get_page: int()
-  dashboard: int()
-  failed_passphrase: int()
-  show_metadata: int()
-  show_secret: int()
-  burn_secret: int()
-  destroy_account: int()
-  forgot_password_request: int()
-  forgot_password_reset: int()
-  generate_apitoken: int()
-  add_domain: int()
-  remove_domain: int()
-  list_domains: int()
-  get_domain: int()
-  verify_domain: int()
-  report_exception: int()
-  attempt_secret_access: int()
-  check_status: int()
-  update_branding: int()
-  destroy_session: int()
-  get_domain_brand: int()
-  get_domain_logo: int()
-  get_image: int()
-  remove_domain_logo: int()
-  show_account: int()
-  stripe_webhook: int()
-  update_domain_brand: int()
-  view_colonel: int()
-  external_redirect: int()
-  update_colonel_settings: int()
 development:
   enabled: any()
   debug: any()
   frontend_host: str()
+  domain_context_enabled: any(bool(), str(), required=False)
 
 experimental: map(required=False)
 
@@ -252,22 +221,3 @@ header_logo:
 
 header_navigation:
   enabled: any(bool(), str())
-
-homepage:
-  mode: str(required=False)
-  matching_cidrs: any(list(str()), str(), required=False)
-  mode_header: str(required=False)
-  default_mode: str(required=False)
-  trusted_proxy_depth: any(int(), str(), required=False)
-  trusted_ip_header: str(required=False)
-
-incoming:
-  enabled: any(bool(), str())
-  memo_max_length: any(int(), str())
-  default_passphrase: any(str(), required=False)
-  default_ttl: any(int(), str())
-  recipients: list(include('incoming_recipient'))
-
-incoming_recipient:
-  email: str()
-  name: str()

@@ -1,3 +1,5 @@
+// src/sources/testimonials.ts
+
 export interface Testimonial {
   quote: string;
   name: string;

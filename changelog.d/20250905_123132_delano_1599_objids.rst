@@ -1,0 +1,46 @@
+.. A new scriv changelog fragment.
+..
+.. Uncomment the section that is right (remove the leading dots).
+.. For top level release notes, leave all the headers commented out.
+..
+.. Added
+.. -----
+..
+.. - A bullet item for the Added category.
+..
+.. Changed
+.. -------
+..
+.. - A bullet item for the Changed category.
+..
+.. Deprecated
+.. ----------
+..
+.. - A bullet item for the Deprecated category.
+..
+.. Removed
+.. -------
+..
+.. - A bullet item for the Removed category.
+..
+Fixed
+-----
+
+- Fixed NameError in ShowSecretStatus API logic where `@realttl` instance variable was referenced as undefined `current_expiration` method
+- Fixed syntax errors in Team and Organization models where double dots (`team..to_s`, `org..to_s`) caused parsing failures
+..
+.. Security
+.. --------
+..
+.. - A bullet item for the Security category.
+..
+.. Documentation
+.. -------------
+..
+.. - A bullet item for the Documentation category.
+..
+AI Assistance
+-------------
+
+- Automated PR review feedback analysis identified critical runtime errors that were systematically fixed
+..

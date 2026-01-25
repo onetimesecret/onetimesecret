@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Bu gizli mesaj neden kullanılamıyor?",
+    "sha256": "bd545472"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Mesajlar yalnızca bir kez görüntülenecek şekilde tasarlanmıştır. Bu bağlantıya zaten erişilmiş, süresi dolmuş veya gönderen tarafından manuel olarak silinmiş olabilir.",
+    "sha256": "44c54ed2"
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Şimdi ne yapmalıyım?",
+    "sha256": "fbf3e67f"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Size bu bağlantıyı gönderen kişiyle iletişime geçin ve yeni bir mesaj oluşturmalarını isteyin. Orijinal bilgilere erişemediğinizi bildirin.",
+    "sha256": "d9f4f41a"
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Uyarı kapatıldı",
+    "sha256": "e6d67409"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Kesme uyarısını kapat",
+    "sha256": "79e02fe6"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Hay aksi! Aradığınız sayfa mevcut değil veya taşınmış.",
+    "sha256": "78207a09"
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Sayfa Bulunamadı",
+    "sha256": "27595daa"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Sayfa Bulunamadı",
+    "sha256": "27595daa"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Uyarıyı kapat",
+    "sha256": "9f6e4da3"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Bildirimi kapat",
+    "sha256": "b7bb3f34"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Sırada ne yapacağınızdan emin değilseniz, lütfen daha fazla bilgi için size bu bağlantıyı gönderen kişiyle iletişime geçin.",
+    "sha256": "0df00d3f"
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Hizmetimiz aracılığıyla paylaşılan bilgilere yalnızca bir kez erişilebilir. Görüntülendikten sonra, içerik gizliliği sağlamak için sunucularımızdan kalıcı olarak silinir. Bu yaklaşım, hassas verilerinizi maruz kalmasını sınırlayarak ve yetkisiz erişimi önleyerek korumaya yardımcı olur.",
+    "sha256": "a3fd8283"
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Üzgünüz, ancak isteğinizi işlerken beklenmeyen bir hata oluştu. Ekibimiz bilgilendirildi ve düzeltmek için çalışıyoruz.",
+    "sha256": "f3b50965"
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Bir şeyler ters gitti",
+    "sha256": "93529f24"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Gizli mesaj paylaşın!",
+    "sha256": "04c04b1a"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Aradığınız sayfa mevcut değil veya taşınmış. Endişelenmeyin, en iyilerimizin başına gelir!",
+    "sha256": "e26522de"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Veri biçimi sorunları nedeniyle veri yüklenemiyor. Lütfen daha sonra tekrar deneyin.",
+    "sha256": "a7b6f998"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "web": {
+    "login": {
+      "button_sign_in": "Sign In",
+      "enter_your_credentials": "Enter your credentials",
+    }
+  }
+}

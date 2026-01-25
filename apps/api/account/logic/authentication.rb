@@ -1,0 +1,15 @@
+# apps/api/account/logic/authentication.rb
+#
+# frozen_string_literal: true
+
+require_relative 'base'
+
+module AccountAPI
+  module Logic
+    module Authentication
+    end
+  end
+end
+
+require_relative 'authentication/reset_password_request'
+require_relative 'authentication/reset_password'

@@ -11,18 +11,15 @@
 #   UI_HOMEPAGE_MODE=internal
 #   UI_HOMEPAGE_MATCHING_CIDRS="10.0.0.0/8,192.168.0.0/16"
 #   UI_HOMEPAGE_MODE_HEADER="O-Homepage-Mode"
-#   UI_HOMEPAGE_DEFAULT_MODE=external
 #   UI_HOMEPAGE_TRUSTED_PROXY_DEPTH=1
 #   UI_HOMEPAGE_TRUSTED_IP_HEADER="X-Forwarded-For"  # or "Forwarded" or "Both"
 
 # =============================================================================
-# Example 1: Internal Mode for Office Networks with External Default
+# Example 1: Internal Mode for Office Networks (Behind Reverse Proxy)
 # =============================================================================
 # Show full homepage with secret creation for users on trusted networks
-# and restricted homepage for all other visitors
 #
-# Use case: Employees on office network get full access, everyone else
-#           gets restricted homepage without secret creation
+# Use case: Employees and partners on known networks get full access
 # IMPORTANT: Set trusted_proxy_depth > 0 when behind reverse proxy
 #
 site:
@@ -35,7 +32,6 @@ site:
           - "192.168.0.0/16"     # Local network (Class C)
           - "203.0.113.0/24"     # Office public IP range (example)
           - "198.51.100.0/24"    # Partner network (example)
-        default_mode: external   # Apply to IPs that don't match CIDRs
         mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 1   # Trust single reverse proxy (nginx, Caddy, etc.)
 
@@ -147,54 +143,16 @@ site:
 #    - Value must match configured mode
 #    - Only checked if CIDR doesn't match
 #
-# 3. Default Mode (New Feature)
-#    - Applied when no CIDR or header matches
-#    - Configured via default_mode option
-#    - If not set, returns nil (default homepage)
-#
-#
-# =============================================================================
-# default_mode Configuration
-# =============================================================================
-#
-# The default_mode option allows you to specify what mode should apply
-# when an IP address doesn't match any configured CIDR ranges and no
-# matching header is found.
-#
-# Common Use Cases:
-#
-# 1. Office → Internal, Everyone Else → External
-#    mode: internal
-#    matching_cidrs: ["203.0.113.0/24"]  # Office network
-#    default_mode: external               # Public visitors
-#
-# 2. Restricted Network → External, Everyone Else → Internal
-#    mode: external
-#    matching_cidrs: ["198.51.100.0/24"] # Restricted IPs
-#    default_mode: internal               # All others
-#
-# 3. No Default (Backward Compatible)
-#    mode: internal
-#    matching_cidrs: ["10.0.0.0/8"]
-#    # default_mode not set → returns nil when no match
-#
-# Values:
-#   - 'internal': Apply internal mode for non-matches
-#   - 'external': Apply external mode for non-matches
-#   - Not set: Return nil (default homepage behavior)
-#
 #
 # =============================================================================
 # Privacy Enforcement
 # =============================================================================
 #
 # CIDR blocks are validated for privacy:
-#   - IPv4: Minimum /24 prefix length required (allows /8-/24, rejects /25-/32)
-#     Example: /24 accepted (254 hosts), /32 rejected (1 host)
-#   - IPv6: Minimum /48 prefix length required (allows /:0-/48, rejects /49-/128)
-#   - Prevents targeting individual IPs or small groups
+#   - IPv4: Minimum /24 prefix (max 254 hosts)
+#   - IPv6: Minimum /48 prefix
+#   - Prevents targeting individual IPs
 #   - Invalid CIDRs are logged and rejected
-#   - Validation uses >= comparison: prefix must be 24 or larger (broader network)
 #
 # =============================================================================
 # trusted_proxy_depth Explained
@@ -211,9 +169,6 @@ site:
 # How trusted_proxy_depth Works:
 #   - Removes the last N proxy IPs from the X-Forwarded-For chain
 #   - Returns the rightmost remaining IP (the real client)
-#   - IMPORTANT: Extracted IPs are validated to reject private/reserved ranges
-#   - If extracted IP is private (10.x, 172.16.x, 192.168.x, etc.), falls back to REMOTE_ADDR
-#   - This prevents spoofed private IPs in headers from bypassing security
 #
 # trusted_proxy_depth Values:
 #   0 = Don't trust X-Forwarded-For, use REMOTE_ADDR

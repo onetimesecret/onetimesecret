@@ -1,3 +1,5 @@
+// src/sources/productTiers.ts
+
 export interface PaymentFrequency {
   value: string;
   label: string;

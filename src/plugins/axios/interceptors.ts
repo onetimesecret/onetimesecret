@@ -1,25 +1,25 @@
 // src/plugins/axios/interceptors.ts
-import type { ApiErrorResponse } from '@/schemas/api';
-import { useLanguageStore } from '@/stores';
-import { useCsrfStore } from '@/stores/csrfStore';
+
+import { useLanguageStore } from '@/shared/stores';
+import { useCsrfStore } from '@/shared/stores/csrfStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 /**
  * CSRF Token Interceptors
  *
- * A comprehensive system for managing CSRF (Cross-Site Request Forgery)
- * tokens, referred to as "shrimp" in this implementation.
+ * Manages CSRF (Cross-Site Request Forgery) tokens using Rack::Protection.
  *
  * Key Features:
- * - Automatic token management in headers
- * - Token validation and updates
- * - Detailed debug logging
+ * - Automatic token management in X-CSRF-Token header
+ * - Token validation and updates from server responses
  * - Error handling with token preservation
  *
  * Flow:
- * 1. Request: Attaches current token to headers
- * 2. Response: Updates token if new one is provided
+ * 1. Request: Attaches current token to X-CSRF-Token header
+ * 2. Response: Updates token if new one is provided in response.data.shrimp
  * 3. Error: Preserves token updates even in error cases
+ *
+ * The token is stored in session[:csrf] by Rack::Protection::JsonCsrf middleware.
  */
 
 /**
@@ -29,6 +29,26 @@ import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axio
  */
 const isValidShrimp = (shrimp: unknown): shrimp is string =>
   typeof shrimp === 'string' && shrimp.length > 0;
+
+/**
+ * Domain Context Override header name.
+ * Used for persona-based testing in development mode.
+ */
+const DOMAIN_CONTEXT_HEADER = 'O-Domain-Context';
+const DOMAIN_CONTEXT_STORAGE_KEY = 'domainContext';
+
+/**
+ * Gets the domain context override from sessionStorage.
+ * @returns The domain context value or null if not set
+ */
+const getDomainContext = (): string | null => {
+  try {
+    return sessionStorage.getItem(DOMAIN_CONTEXT_STORAGE_KEY);
+  } catch {
+    // sessionStorage may not be available (SSR, private browsing, etc.)
+    return null;
+  }
+};
 
 /**
  * Request interceptor that adds the CSRF token to outgoing requests
@@ -45,10 +65,21 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   //   baseURL: config.baseURL,
   // });
 
-  // Set CSRF token in headers
+  // Set CSRF token in headers (Rack::Protection::JsonCsrf expects X-CSRF-Token)
   config.headers = config.headers || {};
-  config.headers['O-Shrimp'] = csrfStore.shrimp;
+  config.headers['X-CSRF-Token'] = csrfStore.shrimp;
   config.headers['Accept-Language'] = languageStore.getCurrentLocale;
+
+  // Add domain context override header if set (development feature)
+  const domainContext = getDomainContext();
+  if (domainContext) {
+    config.headers[DOMAIN_CONTEXT_HEADER] = domainContext;
+  }
+
+  // For FormData uploads, delete Content-Type so Axios sets it with the boundary
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
 
   return config;
 };
@@ -60,7 +91,8 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
  */
 export const responseInterceptor = (response: AxiosResponse) => {
   const csrfStore = useCsrfStore();
-  const responseShrimp = response.data?.shrimp;
+  // Read CSRF token from response header (industry standard)
+  const responseShrimp = response.headers['x-csrf-token'];
 
   if (isValidShrimp(responseShrimp)) {
     csrfStore.updateShrimp(responseShrimp);
@@ -76,14 +108,14 @@ export const responseInterceptor = (response: AxiosResponse) => {
  */
 export const errorInterceptor = (error: AxiosError) => {
   const csrfStore = useCsrfStore();
-  const responseData = error.response?.data as ApiErrorResponse | undefined;
-  const responseShrimp = responseData?.shrimp;
+  // Read CSRF token from response header even in error cases
+  const responseShrimp = error.response?.headers['x-csrf-token'];
 
   // console.error('[errorInterceptor] ', {
   //   url: error.config?.url,
   //   method: error.config?.method,
   //   status: error.response?.status,
-  //   hasShrimp: responseData?.shrimp ? true : false,
+  //   hasShrimp: responseShrimp ? true : false,
   //   shrimp: createLoggableShrimp(responseShrimp),
   //   error: error.message,
   //   name: error.name,

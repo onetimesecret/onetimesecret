@@ -1,3 +1,5 @@
+// src/types/ui/forms.ts
+
 import type { z } from 'zod';
 
 export type FormSubmissionOptions<ResponseSchema extends z.ZodType = z.ZodAny> = {

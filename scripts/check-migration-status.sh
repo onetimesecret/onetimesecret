@@ -3,7 +3,7 @@
 # scripts/check-migration-status.sh
 
 ##
-# MIGRATION STATUS CHECK SCRIPT (2025-11-27)
+# MIGRATION STATUS CHECK SCRIPT
 #
 # Checks if migrations are needed by delegating to the migration
 # scripts themselves (single source of truth). Runs migrations in
@@ -48,6 +48,19 @@ config_is_writable() {
 # Returns 0 (true) if migration is needed, 1 (false) if not
 needs_migration() {
   local migration="$1"
+
+  # Guard for Ruby/Bundler prerequisites
+  if ! command -v bundle >/dev/null 2>&1 || ! command -v ruby >/dev/null 2>&1; then
+    >&2 echo "SKIP: Requires Ruby and Bundler to check migrations"
+    return 1
+  fi
+
+  # Fast-fail for yq-required migrations
+  if grep -q "which yq" "$migration" && ! command -v yq >/dev/null 2>&1; then
+    >&2 echo "SKIP: Migration requires yq - install with: brew install yq"
+    return 1
+  fi
+
   bundle exec ruby "$migration" --check >/dev/null 2>&1
   [ $? -eq 1 ]
 }

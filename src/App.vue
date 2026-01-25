@@ -1,12 +1,13 @@
 <!-- src/App.vue -->
+
 <script setup lang="ts">
-  import StatusBar from '@/components/StatusBar.vue';
-  import QuietLayout from '@/layouts/QuietLayout.vue';
-  import CriticalSprites from '@/components/icons/sprites/CriticalSprites.vue';
-  import { iconLibraryComponents } from '@/components/icons/sprites';
+  import { useI18n } from 'vue-i18n';
+  import { iconLibraryComponents } from '@/shared/components/icons/sprites';
+  import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
+  import StatusBar from '@/shared/components/ui/StatusBar.vue';
+  import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, type Component, markRaw } from 'vue';
-  import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
 
   const { locale } = useI18n();
@@ -24,9 +25,7 @@
   };
 
   // Bring the layout and route together
-  const layout = computed(() => {
-    return route.meta.layout || QuietLayout;
-  });
+  const layout = computed(() => route.meta.layout || QuietLayout);
   const layoutProps = computed(() => ({
     ...defaultProps,
     ...(route.meta.layoutProps ?? {}),

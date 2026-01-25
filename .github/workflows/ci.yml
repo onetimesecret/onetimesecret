@@ -1,0 +1,817 @@
+# .github/workflows/ci.yml
+---
+name: CI
+
+# Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
+# tests using Vitest and validation steps (linting, type-checking).
+#
+# Architecture (Phase 5 - Composite Actions):
+# - Tier 0: Path filtering to skip irrelevant jobs
+# - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
+# - Tier 2: Unit tests (ruby-unit, typescript-unit)
+# - Tier 3: Integration tests by auth mode (parallel: simple, full, disabled)
+# - Tier 4: Container validation uses pre-built assets
+#
+# Composite Actions:
+# - setup-ruby-test-env: Ruby environment, artifacts, config, secrets
+# - setup-node-env: Node.js, pnpm, caching
+# - run-ruby-tests: Parameterized RSpec/Tryouts execution
+#
+# Path Filtering:
+# - Ruby-only changes skip TypeScript jobs
+# - TypeScript-only changes skip Ruby jobs
+# - Workflow file changes (.github/**) run all jobs
+# - Use [ci-all] in commit message to force all jobs
+# - Use [ci-skip] in commit message to skip CI entirely
+#
+# Debug Logging (Repository Variables):
+# - ACTIONS_STEP_DEBUG=true    Enable purple debug output for all steps
+# - ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
+# - Set in Settings → Secrets and variables → Actions → Variables
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - 'rel/*'
+      - 'feature/*'
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled'
+        required: false
+        default: false
+      run_all:
+        type: boolean
+        description: 'Run all CI jobs (skip path filtering)'
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # TIER 0: PATH FILTERING (~5s)
+  # ============================================================================
+
+  changes:
+    name: T0 · Detect Changes
+    runs-on: &runs-on ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      ruby: ${{ steps.compute.outputs.ruby }}
+      typescript: ${{ steps.compute.outputs.typescript }}
+      frontend: ${{ steps.compute.outputs.frontend }}
+      oci: ${{ steps.compute.outputs.oci }}
+      ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
+    steps:
+      - &checkout-step
+        name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Check for CI flags
+        id: check-flags
+        run: |
+          DISPATCH_RUN_ALL="${{ github.event_name == 'workflow_dispatch' && inputs.run_all == true }}"
+          ./.github/scripts/detect-ci-flags.sh "$DISPATCH_RUN_ALL"
+
+      - name: Detect file changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            ruby:
+              - '**/*.rb'
+              - 'Gemfile'
+              - 'Gemfile.lock'
+              - '.rubocop.yml'
+              - '.rubocop_todo.yml'
+              - '.ruby-version'
+              - '.rspec'
+              - 'spec/**'
+              - 'try/**'
+              - 'apps/**'
+              - 'lib/**'
+              - 'bin/**'
+              - 'config.ru'
+            typescript:
+              - 'src/**/*.ts'
+              - 'src/**/*.vue'
+              - 'src/**/*.tsx'
+              - 'src/**/*.js'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'tsconfig.json'
+              - 'tsconfig.*.json'
+              - 'vite.config.ts'
+              - 'vitest.config.ts'
+              - 'tailwind.config.ts'
+              - 'eslint.config.ts'
+              - '.eslintrc*'
+              - '.nvmrc'
+              - '.node-version'
+              - 'tests/**'
+            frontend:
+              - 'src/**'
+              - 'public/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'vite.config.ts'
+              - 'tailwind.config.ts'
+              - 'postcss.config.*'
+            oci:
+              - 'Dockerfile*'
+              - 'docker/**'
+              - 'scripts/entrypoint.sh'
+              - 'etc/**'
+              - 'config.ru'
+            ga_workflow_files:
+              - '.github/workflows/**'
+              - '.github/actions/**'
+
+      - name: Compute final outputs
+        id: compute
+        env:
+          SKIP_CI: ${{ steps.check-flags.outputs.skip_ci }}
+          RUN_ALL: ${{ steps.check-flags.outputs.run_all }}
+          GA_WORKFLOWS: ${{ steps.filter.outputs.ga_workflow_files }}
+          FILTER_RUBY: ${{ steps.filter.outputs.ruby }}
+          FILTER_TYPESCRIPT: ${{ steps.filter.outputs.typescript }}
+          FILTER_FRONTEND: ${{ steps.filter.outputs.frontend }}
+          FILTER_OCI: ${{ steps.filter.outputs.oci }}
+        run: ./.github/scripts/compute-path-filter-outputs.sh
+
+      - name: Generate job summary
+        run: |
+          echo "## Path Filter Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Category | Final |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby | ${{ steps.compute.outputs.ruby }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| OCI | ${{ steps.compute.outputs.oci }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # TIER 1: LINT & BUILD JOBS (~30-45s)
+  # ============================================================================
+
+  ruby-lint:
+    name: T1 · Ruby Lint
+    timeout-minutes: 5
+    runs-on: *runs-on
+    needs: [changes]
+    if: needs.changes.outputs.ruby == 'true'
+    steps:
+      - *checkout-step
+
+      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Run Rubocop
+        run: |
+          mkdir -p tmp
+          bundle exec rubocop --config .rubocop.yml \
+            --format progress \
+            --format json --out tmp/rubocop_results.json \
+            --fail-level warning
+
+      - name: Upload Rubocop results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rubocop-results
+          path: tmp/rubocop_results.json
+          retention-days: 7
+
+  typescript-lint:
+    name: T1 · TypeScript Lint
+    timeout-minutes: 5
+    runs-on: *runs-on
+    needs: [changes]
+    if: needs.changes.outputs.typescript == 'true'
+    steps:
+      - *checkout-step
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Run type checking
+        run: pnpm type-check
+
+      - name: Run linting
+        run: pnpm lint
+
+  i18n-validate:
+    name: T1 · i18n Validation
+    timeout-minutes: 2
+    runs-on: *runs-on
+    needs: [changes]
+    if: needs.changes.outputs.typescript == 'true'
+    steps:
+      - *checkout-step
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run variable audit
+        run: |
+          echo "## i18n Variable Audit" >> $GITHUB_STEP_SUMMARY
+          python3 src/scripts/locales/audit/audit-variables.py --summary | tee -a $GITHUB_STEP_SUMMARY
+          ISSUES=$?
+          if [ $ISSUES -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Found $ISSUES variable discrepancies across locales" >> $GITHUB_STEP_SUMMARY
+          fi
+          # Don't fail build - report only (remove 'exit 0' to enforce)
+          exit 0
+
+  build-assets:
+    name: T1 · Build Frontend Assets
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes]
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true'
+    steps:
+      - *checkout-step
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Build assets
+        run: pnpm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: public/web/dist/
+          retention-days: 1
+          if-no-files-found: error
+
+  # ============================================================================
+  # TIER 2: UNIT TESTS (~30-45s)
+  # ============================================================================
+
+  ruby-unit:
+    name: T2 · Ruby Unit Tests
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: |
+      always() &&
+      needs.changes.outputs.ruby == 'true' &&
+      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
+
+    services:
+      redis: &valkey-service
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2121:6379
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: unit
+          auth-mode: simple
+          results-file: 'rspec_unit_results.json'
+          debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+  typescript-unit:
+    name: T2 · TypeScript Unit Tests
+    timeout-minutes: 15
+    runs-on: *runs-on
+    needs: [changes, typescript-lint]
+    if: |
+      always() &&
+      needs.changes.outputs.typescript == 'true' &&
+      (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
+    steps:
+      - *checkout-step
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run TypeScript tests
+        run: pnpm test
+
+      - name: Run type checking tests
+        continue-on-error: true
+        run: pnpm type-check:tests
+
+  # ============================================================================
+  # TIER 3: INTEGRATION TESTS (~45-90s each, run in parallel)
+  # ============================================================================
+
+  smoke-test:
+    name: T3 · Smoke Test
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, build-assets, ruby-unit, typescript-unit]
+    if: |
+      always() &&
+      needs.changes.outputs.ruby == 'true' &&
+      needs.changes.outputs.typescript == 'true' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    services:
+      redis: *valkey-service
+    steps:
+      - *checkout-step
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run smoke test
+        shell: bash
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+        run: pnpm test:smoke
+
+  ruby-integration-simple:
+    name: T3 · Ruby Integration (Simple Mode)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-unit]
+    if: &if-ruby-integration |
+      always() &&
+      needs.changes.outputs.ruby == 'true' &&
+      needs.ruby-unit.result == 'success' &&
+      !contains(needs.*.result, 'cancelled')
+
+    services:
+      redis: *valkey-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: simple
+          results-file: 'rspec_simple_results.json'
+
+  ruby-integration-full-sqlite:
+    name: T3 · Ruby Integration (Full Mode - SQLite)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-unit]
+    if: *if-ruby-integration
+
+    services:
+      redis: *valkey-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: full
+          auth-database-url: 'sqlite::memory:'
+          results-file: 'rspec_full_sqlite_results.json'
+
+  ruby-integration-full-postgres:
+    name: T3 · Ruby Integration (Full Mode - PostgreSQL)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-unit]
+    if: *if-ruby-integration
+
+    services:
+      redis: *valkey-service
+      postgres:
+        image: postgres:17@sha256:929190a12e0833c89276f78c7cf665aaaa62b5930e6f852e9f733f8b737d3f8f
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: onetime_auth_test
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Setup PostgreSQL users
+        env:
+          PGPASSWORD: postgres
+        run: |
+          # Create application user (limited privileges)
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_user') THEN
+                CREATE USER onetime_user WITH PASSWORD 'testpass';
+              END IF;
+            END
+            \$\$;
+          "
+
+          # Create migration user (elevated privileges)
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator') THEN
+                CREATE USER onetime_migrator WITH PASSWORD 'migratepass' CREATEDB;
+              END IF;
+            END
+            \$\$;
+          "
+
+          # Grant permissions with proper privilege separation
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_user;
+            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_migrator;
+            GRANT ALL ON SCHEMA public TO onetime_user;
+            GRANT ALL ON SCHEMA public TO onetime_migrator;
+
+            -- Tables created by onetime_migrator are accessible to onetime_user for DML only
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT USAGE, SELECT ON SEQUENCES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT EXECUTE ON FUNCTIONS TO onetime_user;
+          "
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: full
+          auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+          auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+          rspec-tag: 'postgres_database'
+          results-file: 'rspec_full_postgres_results.json'
+
+  ruby-integration-disabled:
+    name: T3 · Ruby Integration (Disabled Mode)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-unit]
+    if: *if-ruby-integration
+
+    services:
+      redis: *valkey-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: disabled
+          results-file: 'rspec_disabled_results.json'
+
+  # ============================================================================
+  # TIER 4: CONTAINER VALIDATION (~2-3 min)
+  # ============================================================================
+
+  check-oci-image:
+    name: T4 · Container Validation
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs:
+      [
+        changes,
+        ruby-integration-simple,
+        ruby-integration-full-sqlite,
+        ruby-integration-full-postgres,
+        ruby-integration-disabled,
+        typescript-unit,
+      ]
+    if: |
+      always() &&
+      (needs.changes.outputs.oci == 'true' || needs.changes.outputs.frontend == 'true') &&
+      (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
+      (needs.ruby-integration-full-sqlite.result == 'success' || needs.ruby-integration-full-sqlite.result == 'skipped') &&
+      (needs.ruby-integration-full-postgres.result == 'success' || needs.ruby-integration-full-postgres.result == 'skipped') &&
+      (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
+      (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
+      !contains(needs.*.result, 'failure')
+
+    services:
+      redis: *valkey-service
+
+    steps:
+      - *checkout-step
+
+      - name: Download frontend assets
+        id: download-assets
+        uses: ./.github/actions/download-frontend-assets
+        continue-on-error: true
+
+      # Build assets inline if artifact doesn't exist (OCI-only changes)
+      - name: Setup Node.js for inline build
+        if: steps.download-assets.outcome == 'failure'
+        uses: ./.github/actions/setup-node-env
+
+      - name: Build frontend assets inline
+        if: steps.download-assets.outcome == 'failure'
+        run: pnpm run build
+
+      - name: Build Container image
+        run: docker build -t onetime-test .
+
+      - name: Generate random secrets for container
+        uses: ./.github/actions/generate-test-secrets
+
+      - name: Test container
+        uses: ./.github/actions/test-docker-container
+        with:
+          image-name: 'onetime-test'
+          container-name: 'onetime-test-container'
+          port: '3000'
+          redis-url: 'redis://host.docker.internal:2121/0'
+          environment-vars: |
+            SESSION_SECRET=${{ env.SESSION_SECRET }}
+            HMAC_SECRET=${{ env.HMAC_SECRET }}
+            SECRET=${{ env.SECRET }}
+          test-endpoints: |
+            /
+          max-wait-attempts: '30'
+          wait-interval: '2'
+
+  # ============================================================================
+  # TIER 5: TEST AGGREGATION & CI METRICS (runs last)
+  # ============================================================================
+
+  aggregate-test-results:
+    name: T5 · Aggregate Test Results
+    runs-on: *runs-on
+    timeout-minutes: 5
+    needs:
+      - ruby-unit
+      - ruby-integration-simple
+      - ruby-integration-full-sqlite
+      - ruby-integration-full-postgres
+      - ruby-integration-disabled
+      - typescript-unit
+      - smoke-test
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Download all test result artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: '*-results'
+          path: test-results/
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: List downloaded artifacts
+        run: |
+          echo "::group::Downloaded test results"
+          if [ -d "test-results" ]; then
+            find test-results -type f -name "*.json" | head -20
+          else
+            echo "No test-results directory found"
+          fi
+          echo "::endgroup::"
+
+      - name: Generate unified test report
+        id: aggregate
+        run: ./.github/scripts/aggregate-test-results.sh test-results
+
+      - name: Generate job summary
+        if: always()
+        run: ./.github/scripts/generate-test-summary.sh test-results/unified-report.json
+
+      - name: Upload unified test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-test-report
+          path: test-results/unified-report.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  ci-metrics:
+    name: T5 · CI Metrics
+    runs-on: *runs-on
+    timeout-minutes: 2
+    # List ALL jobs to ensure this runs last (after all complete/skip/fail)
+    needs:
+      - changes
+      - ruby-lint
+      - typescript-lint
+      - i18n-validate
+      - build-assets
+      - ruby-unit
+      - typescript-unit
+      - ruby-integration-simple
+      - ruby-integration-full-sqlite
+      - ruby-integration-full-postgres
+      - ruby-integration-disabled
+      - smoke-test
+      - check-oci-image
+      - aggregate-test-results
+    # always() ensures this runs even if some jobs failed/skipped
+    if: always()
+    # Permissions for posting PR comments
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - *checkout-step
+
+      - name: Check CI metrics
+        id: metrics
+        uses: ./.github/actions/check-ci-metrics
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.run_id }}
+
+      - name: Report job outcomes
+        run: |
+          echo "## Job Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Detect Changes | ${{ needs.changes.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Lint | ${{ needs.ruby-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Lint | ${{ needs.typescript-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| i18n Validation | ${{ needs.i18n-validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Assets | ${{ needs.build-assets.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full - SQLite) | ${{ needs.ruby-integration-full-sqlite.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full - PostgreSQL) | ${{ needs.ruby-integration-full-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      # Post CI metrics summary as PR comment (PRs only)
+      - name: Post metrics to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const script = require('./.github/scripts/post-pr-metrics.cjs');
+            await script({
+              github,
+              context,
+              core,
+              tierData: {
+                tier1Seconds: '${{ steps.metrics.outputs.tier1-seconds }}',
+                tier2Seconds: '${{ steps.metrics.outputs.tier2-seconds }}',
+                tier3Seconds: '${{ steps.metrics.outputs.tier3-seconds }}',
+                tier4Seconds: '${{ steps.metrics.outputs.tier4-seconds }}',
+                tier1Target: 60,
+                tier2Target: 120,
+                tier3Target: 210,
+                tier4Target: 400,
+              },
+            });

@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Ricevita",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Ne ricevita",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Neniuj lastaj sekretoj",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Komencu kreante vian unuan sekreton.",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Ne eblas ŝargi datumojn",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Estis problemo ŝargante viajn datumojn. Bonvolu reprovi.",
+    "sha256": "ff0d904e"
+  }
+}

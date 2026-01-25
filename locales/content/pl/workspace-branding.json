@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "text": "Próbnik kolorów",
+    "sha256": "ba42602c"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Bieżący {0}: {1}. Kliknij, aby przełączać opcje.",
+    "sha256": "84bf49e6"
+  },
+  "web.branding.use_setting": {
+    "text": "Użyj ustawienia",
+    "sha256": "8a18d118"
+  },
+  "web.branding.font_family": {
+    "text": "Rodzina czcionek",
+    "sha256": "f81339da"
+  },
+  "web.branding.corner_style": {
+    "text": "Styl narożników",
+    "sha256": "fcb3ecdf"
+  },
+  "web.branding.brand_color": {
+    "text": "Kolor marki",
+    "sha256": "db3183e3"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Podgląd widoku odbiorcy podczas uzyskiwania dostępu do Twojego bezpiecznego linku",
+    "sha256": "199c165f"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Podgląd i dostosowywanie",
+    "sha256": "215d3659"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Przełącz na widok przeglądarki Safari",
+    "sha256": "6e0fe791"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
+  },
+  "web.branding.maximize_window": {
+    "text": "Maksymalizuj okno",
+    "sha256": "45d23969"
+  },
+  "web.branding.minimize_window": {
+    "text": "Minimalizuj okno",
+    "sha256": "5cd54386"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Przełącz na widok przeglądarki Edge",
+    "sha256": "a8fcd82d"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 znaków",
+    "sha256": "e36598ef"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Użyj telefonu, aby zeskanować kod QR",
+    "sha256": "99ecf59f"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Skontaktuj się z onboarding{'@'}example.com w razie pytań",
+    "sha256": "bee120a7"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Te instrukcje zostaną pokazane odbiorcom, zanim ujawnią treść wiadomości",
+    "sha256": "9d5a6334"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Te instrukcje zostaną pokazane odbiorcom po ujawnieniu przez nich wiadomości",
+    "sha256": "9f82bd94"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Instrukcje przed wyświetleniem",
+    "sha256": "a299422e"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Instrukcje po wyświetleniu",
+    "sha256": "72ecc23a"
+  },
+  "web.branding.instructions": {
+    "text": "Instrukcje",
+    "sha256": "934652dc"
+  },
+  "web.branding.logo_controls": {
+    "text": "Kontrolki logo",
+    "sha256": "43e9a2d7"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Kliknij, aby przesłać logo. Zalecany rozmiar: 128x128 pikseli. Maksymalny rozmiar pliku: 1MB. Obsługiwane formaty: PNG, JPG, SVG",
+    "sha256": "a35452bf"
+  },
+  "web.branding.upload_logo": {
+    "text": "Prześlij logo",
+    "sha256": "c3330082"
+  },
+  "web.branding.loading_preview": {
+    "text": "Ładowanie podglądu...",
+    "sha256": "c02130fa"
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Zobacz podgląd, jak odbiorcy zobaczą Twoje wiadomości, testując przycisk \"Wyświetl wiadomość\"",
+    "sha256": "3b58a297"
+  },
+  "web.branding.eye_icon": {
+    "text": "Ikona oka",
+    "sha256": "7f605d3c"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Kliknij obraz podglądu poniżej, aby zaktualizować logo (zalecane minimum 128x128 pikseli, maks. 1MB)",
+    "sha256": "77a19049"
+  },
+  "web.branding.image_icon": {
+    "text": "Ikona obrazu",
+    "sha256": "b0d64fcf"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Użyj kontrolek powyżej, aby dostosować kolor marki, style i instrukcje dla odbiorcy",
+    "sha256": "d6287134"
+  },
+  "web.branding.customization_icon": {
+    "text": "Ikona dostosowywania",
+    "sha256": "bde04d31"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Masz niezapisane zmiany. Czy na pewno?",
+    "sha256": "184b6a83"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Nie udało się załadować ustawień marki",
+    "sha256": "a7a1575e"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "To interaktywny podgląd, jak odbiorcy zobaczą Twoje bezpieczne wiadomości. Możesz: - Dostosować kolory i czcionki za pomocą kontrolek powyżej - Przesłać logo (zalecane minimum 128x128 pikseli, maks. 1MB) - Przetestować podgląd za pomocą przycisku \"Wyświetl sekret\"",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "To jest interaktywny podgląd tego, jak odbiorcy zobaczą Twoje bezpieczne wiadomości. Możesz: - Dostosować kolory i czcionki za pomocą kontrolek powyżej - Przesłać logo (zalecane minimum 128x128 pikseli, maks. 1MB) - Przetestować podgląd za pomocą przycisku \"Wyświetl wiadomość\"",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Japoński znak kanji '秘' (himitsu) oznaczający 'sekret' lub 'poufny'",
+    "sha256": "1e04ba2e"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Wspierane przez Onetime Secret",
+    "sha256": "935442d0"
+  },
+  "web.branding.heading_logo": {
+    "text": "Logo {0}",
+    "sha256": "3a3c98ed"
+  },
+  "web.branding.edge": {
+    "text": "Edge",
+    "sha256": "0f82fe72"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Przełącz na podgląd Edge",
+    "sha256": "83883d84"
+  },
+  "web.branding.safari": {
+    "text": "Safari",
+    "sha256": "5f033039"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Przełącz na podgląd Safari",
+    "sha256": "f24ac447"
+  }
+}

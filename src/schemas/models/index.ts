@@ -10,12 +10,11 @@ export * from './feedback';
 export * from './jurisdiction';
 export * from './public';
 export * from './secret';
-export * from './plan';
 
 /**
  * Secondary models have a relation to primaries.
  *
  */
-export * from '../api/endpoints/account';
+export * from '../api/account/endpoints/account';
 export * from './domain/index';
-export * from './metadata';
+export * from './receipt';

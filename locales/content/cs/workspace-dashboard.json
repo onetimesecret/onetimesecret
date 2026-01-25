@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Přijato",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Nepřijato",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Žádná nedávná tajemství",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Začni vytvořením svého prvního tajemství.",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Nelze načíst data",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Při načítání vašich dat došlo k problému. Zkuste to prosím znovu.",
+    "sha256": "ff0d904e"
+  }
+}

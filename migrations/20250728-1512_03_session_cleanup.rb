@@ -1,8 +1,7 @@
-# .purgatory/migrations/core/20250728-1512_03_session_cleanup.rb
+# migrations/20250728-1512_03_session_cleanup.rb
 #
 # frozen_string_literal: true
 
-#
 # Session Cleanup - Remove test user sessions
 #
 # Purpose: Removes session records with no expiration
@@ -15,13 +14,13 @@
 #   bin/ots migrate 1512_03_session_cleanup.rb # Preview changes
 #   bin/ots migrate --run 1512_03_session_cleanup.rb
 #
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
+require 'familia/refinements/time_utils'
 
 module Onetime
   class Migration < PipelineMigration
+    using Familia::Refinements::TimeLiterals
 
     def prepare
       @model_class = V2::Session
@@ -77,8 +76,8 @@ module Onetime
   end
 end
 
-# If this script is run directly
+# Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
+  exit(Onetime::Migration.cli_run)
 end

@@ -1,0 +1,578 @@
+{
+  "web.organizations.title": {
+    "text": "Organitzacions",
+    "sha256": "2730183d"
+  },
+  "web.organizations.organization": {
+    "text": "Organització",
+    "sha256": "d764d425"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Organitzacions",
+    "sha256": "2730183d"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Gestiona les teves organitzacions",
+    "sha256": "dbaa4f92"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Organitzacions",
+    "sha256": "2730183d"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Gestionar organitzacions",
+    "sha256": "be0fe4c3"
+  },
+  "web.organizations.new_organization": {
+    "text": "Nova organització",
+    "sha256": "4876e647"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Encara no hi ha organitzacions",
+    "sha256": "5b7a7cbd"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Les organitzacions proporcionen facturació i administració unificades. Comença creant la teva primera organització.",
+    "sha256": "deab4304"
+  },
+  "web.organizations.no_description": {
+    "text": "Cap descripció proporcionada",
+    "sha256": "41183d01"
+  },
+  "web.organizations.default": {
+    "text": "Predeterminat",
+    "sha256": "21b111cb"
+  },
+  "web.organizations.create_organization": {
+    "text": "Crear organització",
+    "sha256": "e27f4540"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Crear la primera organització",
+    "sha256": "27bae486"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Crear una nova organització",
+    "sha256": "67cd5950"
+  },
+  "web.organizations.create": {
+    "text": "Crear",
+    "sha256": "4759498a"
+  },
+  "web.organizations.create_error": {
+    "text": "No s'ha pogut crear l'organització",
+    "sha256": "f2204373"
+  },
+  "web.organizations.organization_name": {
+    "text": "Nom de l'organització",
+    "sha256": "4cbd9073"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "p. ex. Acme Corporation",
+    "sha256": "ac1c804b"
+  },
+  "web.organizations.display_name": {
+    "text": "Nom de l'organització",
+    "sha256": "4cbd9073"
+  },
+  "web.organizations.description": {
+    "text": "Descripció",
+    "sha256": "526e0087"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "Per a què serveix aquesta organització?",
+    "sha256": "27d7edae"
+  },
+  "web.organizations.contact_email": {
+    "text": "Correu de facturació",
+    "sha256": "513332d3"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Contacte principal per a notificacions de facturació i administratives",
+    "sha256": "ee81c03d"
+  },
+  "web.organizations.select_organization": {
+    "text": "Selecciona una organització",
+    "sha256": "48326f52"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "El canvi d'organització no està disponible en aquesta pàgina",
+    "sha256": "da0cf810"
+  },
+  "web.organizations.not_found": {
+    "text": "Organització no trobada",
+    "sha256": "00c50f7a"
+  },
+  "web.organizations.load_error": {
+    "text": "No s'ha pogut carregar l'organització",
+    "sha256": "6b5fa342"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "No s'ha pogut carregar l'organització",
+    "sha256": "6b5fa342"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "No s'han pogut carregar les organitzacions",
+    "sha256": "03b30208"
+  },
+  "web.organizations.organization_information": {
+    "text": "Informació de l'organització",
+    "sha256": "85274cee"
+  },
+  "web.organizations.created": {
+    "text": "Creat",
+    "sha256": "d70b9e24"
+  },
+  "web.organizations.last_updated": {
+    "text": "Última actualització",
+    "sha256": "048c7f2e"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Configuració de l'organització",
+    "sha256": "cc1d9e61"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Actualitza el nom i la descripció de la teva organització",
+    "sha256": "2d8b5b2b"
+  },
+  "web.organizations.general_settings": {
+    "text": "Configuració general",
+    "sha256": "de322f87"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Facturació i subscripció",
+    "sha256": "896913f0"
+  },
+  "web.organizations.save_changes": {
+    "text": "Desar canvis",
+    "sha256": "35322b5b"
+  },
+  "web.organizations.update_success": {
+    "text": "Organització actualitzada correctament",
+    "sha256": "af39d0f3"
+  },
+  "web.organizations.update_error": {
+    "text": "No s'ha pogut actualitzar l'organització",
+    "sha256": "bc2b59b8"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Integració de facturació pròximament",
+    "sha256": "d3e0ec75"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "La gestió unificada de facturació i subscripcions estarà disponible en una futura versió.",
+    "sha256": "8836108f"
+  },
+  "web.organizations.about_title": {
+    "text": "Sobre les organitzacions",
+    "sha256": "2f3e2ad8"
+  },
+  "web.organizations.about_description": {
+    "text": "Les organitzacions proporcionen facturació i administració unificades per a una gestió centralitzada.",
+    "sha256": "910f97a8"
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Gestiona la teva organització",
+    "sha256": "810a6c86"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Actualitza el nom de la teva empresa i els detalls de l'organització aquí. Aquesta informació ajuda a personalitzar el teu compte i es pot utilitzar per a funcions de marca en el futur.",
+    "sha256": "96b2e4b5"
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Començar amb les organitzacions",
+    "sha256": "2871e738"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Crea la teva primera organització per gestionar la informació de la teva empresa i preparar-te per a futures funcions de marca.",
+    "sha256": "0487f33a"
+  },
+  "web.organizations.page_description": {
+    "text": "Gestiona les teves organitzacions i membres de l'equip",
+    "sha256": "2d026be4"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Configuració",
+    "sha256": "74a883a0"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Marca de l'empresa",
+    "sha256": "7ecc5d35"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Equip",
+    "sha256": "5985039f"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Facturació",
+    "sha256": "3ac8bbca"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Zona perillosa",
+    "sha256": "3c1c01b4"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Eliminar organització",
+    "sha256": "54b2edc7"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Això eliminarà permanentment l'organització. Aquesta acció no es pot desfer.",
+    "sha256": "ab2d2c05"
+  },
+  "web.organizations.delete": {
+    "text": "Eliminar",
+    "sha256": "e2d0a549"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Eliminar organització",
+    "sha256": "54b2edc7"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Estàs segur que vols eliminar {name}? Aquesta acció no es pot desfer.",
+    "sha256": "db7e1f9d"
+  },
+  "web.organizations.delete_error": {
+    "text": "No s'ha pogut eliminar l'organització",
+    "sha256": "a8e5bb28"
+  },
+  "web.organizations.members.title": {
+    "text": "Membres",
+    "sha256": "1044a4c0"
+  },
+  "web.organizations.members.description": {
+    "text": "Gestiona els membres de l'organització i els seus rols",
+    "sha256": "1353774c"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Membres actuals",
+    "sha256": "cfc156ae"
+  },
+  "web.organizations.members.member": {
+    "text": "Membre",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "membre",
+    "sha256": "e31ab643"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "membres",
+    "sha256": "17373ca1"
+  },
+  "web.organizations.members.name": {
+    "text": "Nom",
+    "sha256": "dcd1d522"
+  },
+  "web.organizations.members.email": {
+    "text": "Correu electrònic",
+    "sha256": "969ccbd3"
+  },
+  "web.organizations.members.role": {
+    "text": "Rol",
+    "sha256": "14736a2e"
+  },
+  "web.organizations.members.joined": {
+    "text": "Unit",
+    "sha256": "69318b0c"
+  },
+  "web.organizations.members.actions": {
+    "text": "Accions",
+    "sha256": "ff8059dc"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Encara no hi ha membres. Convida membres de l'equip per començar.",
+    "sha256": "6cbc5271"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Aquesta organització encara no té membres.",
+    "sha256": "61dd2085"
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Rol del membre actualitzat correctament",
+    "sha256": "d0d332c6"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "No s'ha pogut actualitzar el rol del membre",
+    "sha256": "17d5ca66"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Membre eliminat de l'organització",
+    "sha256": "210a187b"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "No s'ha pogut eliminar el membre",
+    "sha256": "1cff79b7"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Eliminar membre",
+    "sha256": "2b98b194"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Estàs segur que vols eliminar {name} d'aquesta organització?",
+    "sha256": "36695d98"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "No pots canviar el teu propi rol",
+    "sha256": "0d874f75"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "No pots eliminar-te de l'organització",
+    "sha256": "ab358307"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "No pots eliminar el propietari de l'organització",
+    "sha256": "c92ed0f4"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "No tens permís per gestionar membres",
+    "sha256": "d6239f33"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Propietari",
+    "sha256": "4b1b8aa3"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Administrador",
+    "sha256": "c1c224b0"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Membre",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Accés complet a totes les configuracions i membres de l'organització",
+    "sha256": "d49381bf"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Pot gestionar membres i la majoria de configuracions de l'organització",
+    "sha256": "3d7ade92"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Accés bàsic als recursos de l'organització",
+    "sha256": "0ddca91a"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Invitacions d'organització",
+    "sha256": "0289d92d"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Convidar membre",
+    "sha256": "8e8a0b88"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Convidar nou membre",
+    "sha256": "0bfb50ed"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Invitacions pendents",
+    "sha256": "b327e8a8"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Cap invitació pendent",
+    "sha256": "275814da"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "Adreça de correu electrònic",
+    "sha256": "09bf25ef"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "membre{'@'}exemple.com",
+    "sha256": "7fd425f7"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Rol",
+    "sha256": "14736a2e"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Enviar invitació",
+    "sha256": "d076aa0f"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Invitació enviada correctament",
+    "sha256": "81facbe6"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "No s'ha pogut enviar la invitació",
+    "sha256": "cedbf507"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Reenviar",
+    "sha256": "1f948437"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Revocar",
+    "sha256": "87e6d00b"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Invitació reenviada correctament",
+    "sha256": "099eb255"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "No s'ha pogut reenviar la invitació",
+    "sha256": "82750487"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Invitació revocada correctament",
+    "sha256": "4ce1262c"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "No s'ha pogut revocar la invitació",
+    "sha256": "9dbd2a60"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Convidat per",
+    "sha256": "c7a6f156"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Convidat",
+    "sha256": "63b17bec"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Caduca",
+    "sha256": "f6725f3a"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Reenviat {count} vegada",
+    "sha256": "e71d1c6d"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Reenviat {count} vegades",
+    "sha256": "e58d803d"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Pendent",
+    "sha256": "331551b0"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Acceptat",
+    "sha256": "a00fb0c5"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Rebutjat",
+    "sha256": "dce083a2"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Caducat",
+    "sha256": "424a2551"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Membre",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Administrador",
+    "sha256": "c1c224b0"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Acceptar invitació",
+    "sha256": "ce7cfeaf"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Rebutjar invitació",
+    "sha256": "f6e06ada"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Detalls de la invitació",
+    "sha256": "59936259"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Has estat convidat a unir-te a",
+    "sha256": "60e635c6"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Has estat convidat com a",
+    "sha256": "f9809eae"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Invitació acceptada correctament",
+    "sha256": "7eb6b234"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "No s'ha pogut acceptar la invitació",
+    "sha256": "3ecc8b0f"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Invitació rebutjada",
+    "sha256": "31bffdcb"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "No s'ha pogut rebutjar la invitació",
+    "sha256": "2bccbd56"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "Aquesta invitació ha caducat",
+    "sha256": "b72770d7"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Invitació no vàlida o caducada",
+    "sha256": "6c0fc3de"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Inicia sessió per acceptar aquesta invitació",
+    "sha256": "469fc705"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Carregant detalls de la invitació",
+    "sha256": "58884885"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Correu de facturació actualitzat correctament",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "El correu de facturació es pot canviar a la pàgina de resum de facturació",
+    "sha256": "8a131415"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro",
+    "sha256": "957b0b87"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} membre | {count} membres",
+    "sha256": "f652af0c"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domini | {count} dominis",
+    "sha256": "09f52efa"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Millora el teu pla per convidar membres de l'equip",
+    "sha256": "5e3f8df8"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Les invitacions de membres de l'equip requereixen un pla amb gestió d'equips. Millora per afegir col·laboradors a la teva organització.",
+    "sha256": "cf10d623"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Compte incorrecte",
+    "sha256": "80c8ffa7"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Aquesta invitació s'ha enviat a {invitedEmail}, però has iniciat sessió com a {currentEmail}.",
+    "sha256": "937e08e7"
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Iniciar sessió amb un compte diferent",
+    "sha256": "71b2bdf3"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}d restants",
+    "sha256": "50ff6f2b"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h restants",
+    "sha256": "ff56d105"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Caduca aviat",
+    "sha256": "a5dcfef9"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Subscripció",
+    "sha256": "4999c6c6"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Dominis",
+    "sha256": "ced67718"
+  }
+}

@@ -4,7 +4,7 @@
   "bracketSpacing": true,
   "embeddedLanguageFormatting": "auto",
   "endOfLine": "lf",
-  "htmlWhitespaceSensitivity": "strict",
+  "htmlWhitespaceSensitivity": "css",
   "jsxSingleQuote": false,
   "overrides": [
     {
@@ -13,6 +13,10 @@
         "parser": "ruby",
         "printWidth": 80
       }
+    },
+    {
+      "files": "*.sql",
+      "options": { "parser": "sql-cst" }
     },
     {
       "files": "*.svg",
@@ -26,8 +30,9 @@
       "options": {
         "parser": "vue",
         "vueIndentScriptAndStyle": true,
-        "htmlWhitespaceSensitivity": "strict",
-        "printWidth": 100
+        "htmlWhitespaceSensitivity": "css",
+        "printWidth": 100,
+        "singleAttributePerLine": true
       }
     }
   ],

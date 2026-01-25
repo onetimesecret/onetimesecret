@@ -1,0 +1,8 @@
+# Database files (ephemeral, regenerated on demand)
+db/*.db
+db/tasks.sql
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/

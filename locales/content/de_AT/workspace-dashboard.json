@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Empfangen",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Nicht empfangen",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Keine aktuellen Geheimnisse",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Leg los, indem du dein erstes Geheimnis erstellst.",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Daten konnten nicht geladen werden",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Beim Laden deiner Daten ist ein Problem aufgetreten. Bitte versuche es erneut.",
+    "sha256": "ff0d904e"
+  }
+}

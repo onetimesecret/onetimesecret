@@ -1,0 +1,66 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "המשוב שלך",
+    "sha256": "cdb1c0a5"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "כל משוב מתקבל בברכה!",
+    "sha256": "c57d3006"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "עזור לנו להשתפר",
+    "sha256": "f35439c4"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "סגור חלון משוב",
+    "sha256": "41689bb4"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "שתף את המשוב שלך",
+    "sha256": "6d62dfbd"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
+  },
+  "web.feedback.delano": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "תוכן העזרה יופיע כאן.",
+    "sha256": "796979ea"
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "תודה על העזרה ב-Onetime Secret להשתפר. זה אומר הרבה."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "בנינו כלי זה כדי לעזור לכם לשתף מידע רגיש בצורה מאובטחת, והניסיון שלכם בעולם האמיתי חיוני למיקוד המאמצים שלנו. זה עוזר לנו להבין על מה לעבוד בהמשך וכיצד להפוך את השירות לטוב יותר עבור כולם."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "היי, תודה שעצרתם בעמוד המשוב שלנו. הקלט שלכם לא רק מתקבל בברכה - הוא קריטי."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "הערה מ-Delano, מייסד Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "פתח טופס משוב",
+    "sha256": "acd8409b"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "הזן את המשוב שלך",
+    "sha256": "1bb310f4"
+  },
+  "web.feedback.send_feedback": {
+    "text": "שלח משוב",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "אני קורא כל משוב שמגיע לכאן. כך אני מבין על מה להשקיע זמן.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "אם משהו לא בסדר, או שיש לך רעיונות איך זה צריך לעבוד, זה המקום הנכון.",
+    "sha256": "d4b8f073"
+  }
+}

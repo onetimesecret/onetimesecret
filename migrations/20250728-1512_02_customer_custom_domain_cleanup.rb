@@ -1,8 +1,7 @@
-# .purgatory/migrations/core/20250728-1512_02_customer_custom_domain_cleanup.rb
+# migrations/20250728-1512_02_customer_custom_domain_cleanup.rb
 #
 # frozen_string_literal: true
 
-#
 # Custom Domain Cleanup - Remove test user domains
 #
 # Purpose: Removes custom domain records for test users:
@@ -14,15 +13,12 @@
 #   bin/ots migrate --run 1512_02_custom_domain_cleanup.rb
 #
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'onetime/migration'
 
 module Onetime
   class Migration < ModelMigration
     def prepare
-      @model_class  = V2::Customer
+      @model_class  = Onetime::Customer
       @batch_size   = 1000
       @scan_pattern = "#{@model_class.prefix}:*:custom_domain"
 
@@ -34,7 +30,7 @@ module Onetime
     # records which are orphans, meaning they don't have customer object records
     # associated to them. They are defined as:
     #     `Customer.sorted_set :custom_domains, suffix: 'custom_domain'
-    # Their only model association is via V2::Customer which is why this is
+    # Their only model association is  via Onetime::Customer which is why this is
     # a customer data migration, customized for these orphan records.
     #
     def load_from_key(key)
@@ -98,8 +94,8 @@ module Onetime
   end
 end
 
-# If this script is run directly
+# Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
+  exit(Onetime::Migration.cli_run)
 end

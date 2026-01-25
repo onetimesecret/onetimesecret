@@ -1,0 +1,638 @@
+{
+  "web.account.settings": {
+    "text": "الإعدادات",
+    "sha256": "74a883a0"
+  },
+  "web.account.change_password": {
+    "text": "تغيير كلمة المرور",
+    "sha256": "a949f462"
+  },
+  "web.account.close_account": {
+    "text": "إغلاق الحساب",
+    "sha256": "e1513814"
+  },
+  "web.account.verify_account": {
+    "text": "تأكيد الحساب",
+    "sha256": "2f3ea760"
+  },
+  "web.account.subscription_title": {
+    "text": "الاشتراك",
+    "sha256": "4999c6c6"
+  },
+  "web.account.manage_subscription": {
+    "text": "إدارة الاشتراك",
+    "sha256": "cbc4ef92"
+  },
+  "web.account.customer_information": {
+    "text": "معلومات العميل",
+    "sha256": "8258db6d"
+  },
+  "web.account.customer_since": {
+    "text": "عميل منذ:",
+    "sha256": "0b37cff3"
+  },
+  "web.account.email": {
+    "text": "البريد الإلكتروني:",
+    "sha256": "17507dcf"
+  },
+  "web.account.region": {
+    "text": "المنطقة",
+    "sha256": "d3a008ef"
+  },
+  "web.account.account_balance": {
+    "text": "الرصيد:",
+    "sha256": "e0351221"
+  },
+  "web.account.default_payment_method": {
+    "text": "طريقة الدفع الافتراضية",
+    "sha256": "c60f014b"
+  },
+  "web.account.card_ending": {
+    "text": "ينتهي بـ",
+    "sha256": "0195bccf"
+  },
+  "web.account.subscriptions_title": {
+    "text": "الاشتراكات",
+    "sha256": "a151f2e9"
+  },
+  "web.account.quantity": {
+    "text": "الكمية:",
+    "sha256": "d4b2cb96"
+  },
+  "web.account.next_billing_date": {
+    "text": "تاريخ الفوترة القادم:",
+    "sha256": "8e6f9cfe"
+  },
+  "web.account.changePassword.username": {
+    "text": "اسم المستخدم",
+    "sha256": "e3b89e9d"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "كلمة المرور الحالية",
+    "sha256": "8ac76099"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "كلمة المرور الجديدة",
+    "sha256": "7c451e0f"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "تأكيد",
+    "sha256": "eebdd24a"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "تحديث كلمة المرور",
+    "sha256": "557be0da"
+  },
+  "web.account.changePassword.updating": {
+    "text": "جاري التحديث...",
+    "sha256": "0a4e0b71"
+  },
+  "web.account.timezone": {
+    "text": "المنطقة الزمنية",
+    "sha256": "4ceca1d5"
+  },
+  "web.account.customer_id": {
+    "text": "معرف العميل",
+    "sha256": "62566c64"
+  },
+  "web.account.account_id_customerid": {
+    "text": "معرف الحساب",
+    "sha256": "919bb4cb"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "تم إنشاء {0} أسرار منذ {1}.",
+    "sha256": "8cb99810"
+  },
+  "web.account.delete_account": {
+    "text": "حذف الحساب",
+    "sha256": "c031bf99"
+  },
+  "web.account.api_key": {
+    "text": "مفتاح API",
+    "sha256": "23189d55"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "نوع الحساب: {0}",
+    "sha256": "617bfe67"
+  },
+  "web.account.your_account": {
+    "text": "حسابك",
+    "sha256": "89e60bfb"
+  },
+  "web.account.support_details": {
+    "text": "تفاصيل الدعم",
+    "sha256": "cbad8751"
+  },
+  "web.account.back_to_details": {
+    "text": "العودة للتفاصيل",
+    "sha256": "f6f841b9"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "معرف العميل: {0}",
+    "sha256": "7e2d4201"
+  },
+  "web.account.token_generated": {
+    "text": "تم توليد الرمز.",
+    "sha256": "05986d95"
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 احتفظ بهذا الرمز آمناً! إنه يوفر وصولاً كاملاً إلى حسابك.",
+    "sha256": "8839aa4d"
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "أكد بكلمة المرور الخاصة بك",
+    "sha256": "ff2147fd"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "هل أنت متأكد من أنك تريد حذف حسابك نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+    "sha256": "4fa3e4b8"
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "تأكيد حذف الحساب",
+    "sha256": "bb3fc7e5"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "جاري حذف {0}",
+    "sha256": "81d21828"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "جاري الحذف...",
+    "sha256": "685ecb98"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "حذف الحساب نهائياً",
+    "sha256": "f894e42c"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "نهائي ولا يمكن التراجع عنه.",
+    "sha256": "6121225e"
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "حذف حسابك هو إجراء",
+    "sha256": "ec31577b"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "احذفها نهائياً قبل المتابعة",
+    "sha256": "f89a5794"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "أي أسرار ترغب في إزالتها،",
+    "sha256": "b45e2dd5"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "ستبقى الأسرار نشطة حتى تنتهي صلاحيتها.",
+    "sha256": "ddb4e2b5"
+  },
+  "web.account.please_be_advised": {
+    "text": "يرجى الانتباه:",
+    "sha256": "086020fd"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "تم حذف الحساب بنجاح.",
+    "sha256": "afcfdd58"
+  },
+  "web.account.deactivate": {
+    "text": "إلغاء التنشيط",
+    "sha256": "fb1e6fa5"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "هل أنت متأكد من أنك تريد تعطيل حسابك؟ ستتم إزالة جميع بياناتك نهائياً من خوادمنا إلى الأبد. لا يمكن التراجع عن هذا الإجراء.",
+    "sha256": "4940e20a"
+  },
+  "web.account.deactivate_account": {
+    "text": "إلغاء تنشيط الحساب",
+    "sha256": "5e31b73d"
+  },
+  "web.settings.title": {
+    "text": "الإعدادات",
+    "sha256": "74a883a0"
+  },
+  "web.settings.description": {
+    "text": "إدارة إعدادات وتفضيلات حسابك",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "إدارة إعدادات وتفضيلات حسابك",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "العودة للوحة التحكم",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "الحساب",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "الفوترة",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "متقدم",
+    "sha256": "9f088dbe"
+  },
+  "web.settings.general": {
+    "text": "عام",
+    "sha256": "c910d474"
+  },
+  "web.settings.preferences": {
+    "text": "التفضيلات",
+    "sha256": "66962f72"
+  },
+  "web.settings.appearance": {
+    "text": "المظهر",
+    "sha256": "3907fa7f"
+  },
+  "web.settings.theme.title": {
+    "text": "المظهر",
+    "sha256": "efb52e71"
+  },
+  "web.settings.theme.description": {
+    "text": "اختر المظهر الفاتح أو الداكن",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "اختر المظهر الفاتح أو الداكن",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.language.title": {
+    "text": "اللغة",
+    "sha256": "a4fe6526"
+  },
+  "web.settings.language.description": {
+    "text": "اختر لغتك المفضلة",
+    "sha256": "475bba7a"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "اختر لغتك المفضلة",
+    "sha256": "475bba7a"
+  },
+  "web.settings.security_settings_description": {
+    "text": "إدارة المصادقة وأمان الحساب",
+    "sha256": "945109d1"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "إدارة معلومات حسابك",
+    "sha256": "4a23a29f"
+  },
+  "web.settings.profile.title": {
+    "text": "الملف الشخصي",
+    "sha256": "d696a35b"
+  },
+  "web.settings.profile.change_email": {
+    "text": "تغيير البريد الإلكتروني",
+    "sha256": "18c3f2d5"
+  },
+  "web.settings.profile.current_email": {
+    "text": "البريد الإلكتروني الحالي",
+    "sha256": "5f1cab64"
+  },
+  "web.settings.profile.current_password": {
+    "text": "كلمة المرور الحالية",
+    "sha256": "8ac76099"
+  },
+  "web.settings.profile.new_email": {
+    "text": "البريد الإلكتروني الجديد",
+    "sha256": "5bafb4be"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "أدخل كلمة المرور الحالية",
+    "sha256": "27814c03"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "كلمة المرور مطلوبة لأغراض أمنية",
+    "sha256": "d18f62f2"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "سيتم إرسال بريد تحقق إلى العنوان الجديد",
+    "sha256": "575082a1"
+  },
+  "web.settings.profile.update_email": {
+    "text": "تحديث البريد الإلكتروني",
+    "sha256": "6ec61b2e"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "تحديث البريد الإلكتروني المرتبط بحسابك",
+    "sha256": "636abb16"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "جميع الحقول مطلوبة",
+    "sha256": "04814271"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "يرجى إدخال بريد إلكتروني صالح",
+    "sha256": "b00f7e3a"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "يجب أن يكون البريد الإلكتروني الجديد مختلفاً عن الحالي",
+    "sha256": "f7cfed6e"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "تم تحديث البريد الإلكتروني بنجاح. يرجى التحقق من صندوق الوارد لتأكيد بريدك الإلكتروني الجديد.",
+    "sha256": "58de2536"
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "فشل تحديث البريد الإلكتروني. يرجى المحاولة مرة أخرى.",
+    "sha256": "aeba6591"
+  },
+  "web.settings.sessions.title": {
+    "text": "الجلسات النشطة",
+    "sha256": "b58fa4e0"
+  },
+  "web.settings.sessions.description": {
+    "text": "إدارة جلساتك النشطة",
+    "sha256": "e5646da4"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "إدارة جلساتك النشطة",
+    "sha256": "e5646da4"
+  },
+  "web.settings.password.title": {
+    "text": "كلمة المرور",
+    "sha256": "e7cf3ef4"
+  },
+  "web.settings.password.description": {
+    "text": "تحديث كلمة مرور حسابك",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "تحديث كلمة مرور حسابك",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.delete_account.title": {
+    "text": "حذف الحساب",
+    "sha256": "c031bf99"
+  },
+  "web.settings.delete_account.description": {
+    "text": "حذف حسابك وجميع البيانات نهائياً",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "حذف حسابك وجميع البيانات نهائياً",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.security.security_score": {
+    "text": "درجة الأمان",
+    "sha256": "02d2f374"
+  },
+  "web.settings.security.score_description": {
+    "text": "صحة أمان حسابك الإجمالية",
+    "sha256": "cf20935e"
+  },
+  "web.settings.security.excellent": {
+    "text": "ممتاز",
+    "sha256": "0dc8ee55"
+  },
+  "web.settings.security.good": {
+    "text": "جيد",
+    "sha256": "c939327c"
+  },
+  "web.settings.security.fair": {
+    "text": "مقبول",
+    "sha256": "f7b19afc"
+  },
+  "web.settings.security.weak": {
+    "text": "ضعيف",
+    "sha256": "8d6cea25"
+  },
+  "web.settings.security.improve_security": {
+    "text": "حسّن أمانك",
+    "sha256": "c38bcbf5"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "فعّل المصادقة الثنائية لحماية أقوى",
+    "sha256": "6beda528"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "أنشئ رموز الاسترداد كنسخة احتياطية",
+    "sha256": "eb5f3ebd"
+  },
+  "web.settings.security.configured": {
+    "text": "مُعدّ",
+    "sha256": "84aebc69"
+  },
+  "web.settings.security.change": {
+    "text": "تغيير",
+    "sha256": "c0bf75bd"
+  },
+  "web.settings.security.manage": {
+    "text": "إدارة",
+    "sha256": "5a234448"
+  },
+  "web.settings.security.enable": {
+    "text": "تفعيل",
+    "sha256": "5342e09f"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0} رموز متاحة",
+    "sha256": "76d6236d"
+  },
+  "web.settings.security.no_codes": {
+    "text": "لم يتم توليد رموز",
+    "sha256": "3b2eae20"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0} جلسة نشطة | {0} جلسات نشطة",
+    "sha256": "30737484"
+  },
+  "web.settings.security.best_practices": {
+    "text": "أفضل ممارسات الأمان",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "استخدم كلمة مرور قوية وفريدة لحسابك",
+    "sha256": "5fc8cbf4"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "فعّل المصادقة الثنائية لحماية إضافية",
+    "sha256": "107e4898"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "احفظ رموز الاسترداد في مكان آمن",
+    "sha256": "605513fc"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "راجع وأبطل الجلسات غير المستخدمة بانتظام",
+    "sha256": "efe59445"
+  },
+  "web.settings.security.view_details": {
+    "text": "عرض التفاصيل",
+    "sha256": "d1bf045b"
+  },
+  "web.settings.api.title": {
+    "text": "API والتكاملات",
+    "sha256": "21fc84f3"
+  },
+  "web.settings.api.description": {
+    "text": "إدارة مفاتيح API والتكاملات",
+    "sha256": "70976099"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "إدارة مفاتيح API والتكاملات",
+    "sha256": "70976099"
+  },
+  "web.settings.api.documentation": {
+    "text": "توثيق API",
+    "sha256": "1cc77e60"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "تعرف على كيفية دمج Onetime Secret في تطبيقاتك",
+    "sha256": "6e8f910f"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "مرجع REST API",
+    "sha256": "26a5af61"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "توثيق API الكامل ونقاط النهاية",
+    "sha256": "c1c87ad8"
+  },
+  "web.settings.api.code_examples": {
+    "text": "أمثلة الكود",
+    "sha256": "216d28e4"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "أمثلة الكود ومكتبات العميل",
+    "sha256": "61c5956f"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "أفضل ممارسات الأمان",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "لا تقم أبداً بإرسال مفاتيح API إلى التحكم بالإصدارات",
+    "sha256": "cc8c327e"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "استخدم متغيرات البيئة لتخزين مفاتيح API",
+    "sha256": "c05e8802"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "قم بتدوير مفاتيح API بانتظام للأمان",
+    "sha256": "eda6a5db"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "استخدم دائماً HTTPS عند إجراء طلبات API",
+    "sha256": "b3f405ef"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "راقب استخدام API الخاص بك وقم بإعداد التنبيهات",
+    "sha256": "abb08beb"
+  },
+  "web.settings.api.important_notice": {
+    "text": "ملاحظة مهمة",
+    "sha256": "03d3ba93"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "إعادة توليد مفتاح API الخاص بك سيبطل المفتاح الحالي. قم بتحديث جميع التطبيقات التي تستخدم المفتاح القديم.",
+    "sha256": "ab168f83"
+  },
+  "web.settings.privacy.title": {
+    "text": "إعدادات الخصوصية",
+    "sha256": "eefad6ba"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "إدارة تفضيلات الخصوصية الخاصة بك",
+    "sha256": "add087da"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "خصوصيتك",
+    "sha256": "cad972db"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "غير قابل للتفاوض",
+    "sha256": "ad090a29"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "ليس إعداداً",
+    "sha256": "41278ece"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "لا تحليلات. لا تتبع. نقطة.",
+    "sha256": "3e154b1c"
+  },
+  "web.settings.privacy.explanation": {
+    "text": "هذا ليس إعداداً لأنه لا يوجد شيء لتشغيله أو إيقافه. خصوصيتك مدمجة في طريقة عملنا.",
+    "sha256": "ed943792"
+  },
+  "web.settings.notifications.title": {
+    "text": "إعدادات الإشعارات",
+    "sha256": "07a063ca"
+  },
+  "web.settings.notifications.description": {
+    "text": "إدارة كيفية تلقي الإشعارات",
+    "sha256": "148c5ff6"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "فشل تحديث تفضيل الإشعارات. يرجى المحاولة مرة أخرى.",
+    "sha256": "c08abc04"
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "إشعارات كشف السر",
+    "sha256": "c0fb2e25"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "تلقي بريد إلكتروني عندما يشاهد شخص ما سرك",
+    "sha256": "a3a67095"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "سيتم إعلامك في كل مرة يكشف فيها مستلم أحد أسرارك",
+    "sha256": "ba93106d"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "رسائل الإشعارات تتضمن فقط الطابع الزمني ومعرف السر. لا يتم تضمين معلومات المشاهد أبداً.",
+    "sha256": "7aac282f"
+  },
+  "web.settings.caution.title": {
+    "text": "منطقة تتطلب الحذر",
+    "sha256": "fe27a3a8"
+  },
+  "web.settings.caution.description": {
+    "text": "الإعدادات المتقدمة وإدارة البيانات",
+    "sha256": "223ee55d"
+  },
+  "web.settings.caution.data_export": {
+    "text": "تصدير البيانات",
+    "sha256": "bdcea052"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "تصدير بيانات حسابك",
+    "sha256": "dc5ffcb0"
+  },
+  "web.settings.caution.export_description": {
+    "text": "اطلب نسخة كاملة من بيانات حسابك بتنسيق قابل للقراءة آلياً",
+    "sha256": "369c3391"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "طلب تصدير البيانات",
+    "sha256": "902394be"
+  },
+  "web.settings.caution.export_info": {
+    "text": "وقت معالجة التصدير",
+    "sha256": "2ebb2d44"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "تتم معالجة التصدير خلال 24 ساعة ويُرسل إلى بريدك الإلكتروني",
+    "sha256": "a2f81e3b"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "حذف حسابك سيؤدي إلى:",
+    "sha256": "17a8a676"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "حذف جميع أسرارك نهائياً",
+    "sha256": "974ccdb9"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "إزالة جميع البيانات الوصفية للأسرار والسجل",
+    "sha256": "ec4ee372"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "إبطال جميع مفاتيح API",
+    "sha256": "7581333b"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "لا يمكن التراجع عن هذا الإجراء",
+    "sha256": "02ccc074"
+  }
+}

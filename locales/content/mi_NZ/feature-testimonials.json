@@ -1,0 +1,50 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "Whakaaturanga AI-Hanga",
+    "sha256": "ff4d6634"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "He ihirangi AI-hanga hei whakaatu. Ehara i tētahi tangata tūturu, i tētahi kamupene tūturu rānei.",
+    "sha256": "d7093de7"
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5",
+    "sha256": "a5bdbbd3"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}",
+    "sha256": "a06d9daa"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\"",
+    "sha256": "7a27d02b"
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:",
+    "sha256": "14159dd9"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "He aha tā AI mō mātou",
+    "sha256": "f46a8839"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "Ngā Whakaaturanga AI-Hanga",
+    "sha256": "947cd6b4"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "I hangaia tēnei kōrero e",
+    "sha256": "7879a747"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "I hāngai ki te ihirangi o te whārangi, ā, kāore i te tohu i tētahi tangata, kamupene rānei tūturu.",
+    "sha256": "8b290e9a"
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Urupare Hangarau",
+    "sha256": "4c8d20ba"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Ko tēnei ihirangi he ai-hangaia i runga i te ihirangi o tēnei whārangi, ā, kāore i te tohu i tētahi tangata, kamupene rānei tūturu.",
+    "sha256": "03c16436"
+  }
+}

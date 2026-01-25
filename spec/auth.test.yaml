@@ -1,0 +1,40 @@
+# spec/auth.test.yaml
+#
+# Authentication Configuration for OneTimeSecret - TEST ENVIRONMENT
+# Controls the authentication mode and related settings
+---
+# Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
+# Defaults to 'simple' unless AUTHENTICATION_MODE env var is set
+mode: <%= ENV.fetch('AUTHENTICATION_MODE', 'simple') %>
+
+# Simple mode settings (Redis-only authentication)
+simple:
+  password_hash_cost: 12
+  session_timeout: 86400 # 24 hours
+
+# Full mode settings (Rodauth-based application)
+full:
+  # Database connection for Full mode
+  # Uses in-memory SQLite for tests to avoid file persistence issues
+  database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
+
+  # Optional Rodauth features (matches auth.defaults.yaml format)
+  # For tests, hardening/sessions enabled by default; others disabled
+  features:
+    hardening: true
+    active_sessions: true
+    remember_me: true
+    verify_account: false  # Disabled in test mode
+    mfa: false
+    email_auth: false
+    webauthn: false
+    omniauth: false
+    omniauth_provider_name: ''
+
+  # Security settings
+  security:
+    password_minimum_length: 8
+    max_invalid_logins: 5
+    lockout_expiration: 3600 # 1 hour
+    session_expire_after: 86400 # 24 hours
+    require_email_confirmation: false # Set to true when email is configured

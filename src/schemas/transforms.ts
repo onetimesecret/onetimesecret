@@ -1,3 +1,5 @@
+// src/schemas/transforms.ts
+
 import { ttlToNaturalLanguage } from '@/utils/format/index';
 import { parseBoolean, parseDateValue, parseNumber, parseNestedObject } from '@/utils/parse/index';
 import { z } from 'zod';
@@ -26,16 +28,11 @@ export const transforms = {
     dateNullable: z.preprocess(parseDateValue, z.date().nullable()),
     date: z.preprocess(
       parseDateValue,
-      z.date().refine((val) => val !== null, {
-        message: 'Valid date is required',
-      })
+      z.date().refine((val): val is Date => val !== null, 'Valid date is required')
     ),
     number: z.preprocess(parseNumber, z.number().nullable()),
     boolean: z.preprocess(parseBoolean, z.boolean()),
-    ttlToNaturalLanguage: z.preprocess(
-      ttlToNaturalLanguage,
-      z.string().nullable()
-    ),
+    ttlToNaturalLanguage: z.preprocess(ttlToNaturalLanguage, z.string().nullable()),
 
     /**
      * Transforms empty strings to undefined for optional email fields
@@ -43,7 +40,7 @@ export const transforms = {
      * Input: "test@example.com" -> "test@example.com"
      * Input: "invalid" -> ZodError
      */
-    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.string().email().optional()),
+    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.email().optional()),
   },
 
   fromNumber: {

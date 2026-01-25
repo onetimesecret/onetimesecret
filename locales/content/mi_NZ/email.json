@@ -1,0 +1,594 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Tīkiti: %s]",
+    "sha256": "9e2074ae"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Kua tukuna e te kiritaki ngā mōhiohio e whai ake nei",
+    "sha256": "9c965ab8"
+  },
+  "email.secret_link.subject": {
+    "text": "I tuku a %{sender_email} i tētahi karere huna ki a koe",
+    "sha256": "3156abde"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "i tuku ki a koe he karere huna:",
+    "sha256": "c0571266"
+  },
+  "email.secret_link.important_label": {
+    "text": "Hira:",
+    "sha256": "496d6960"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Kotahi noa te wā e mahi ai tēnei hononga. Whai muri i te tirohanga, ka mukua pūmau te karere huna.",
+    "sha256": "fecaf0a1"
+  },
+  "email.secret_link.sent_via": {
+    "text": "I tukuna mā",
+    "sha256": "d01479b3"
+  },
+  "email.welcome.subject": {
+    "text": "Nau mai ki %{product_name} - Tēnā manatoko i tō īmēra",
+    "sha256": "96008c17"
+  },
+  "email.welcome.title": {
+    "text": "Nau mai ki %{product_name}!",
+    "sha256": "77e7dda4"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Tēnā manatoko i tō wāhitau īmēra mā te pāwhiri i te hononga i raro:",
+    "sha256": "e373dcee"
+  },
+  "email.welcome.verify_button": {
+    "text": "Manatoko Wāhitau Īmēra",
+    "sha256": "d261b9df"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "sha256": "88c72144"
+  },
+  "email.welcome.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}. Mēnā kāore koe i waihanga pūkete, ka taea e koe te waiho i tēnei karere.",
+    "sha256": "05709148"
+  },
+  "email.password_request.subject": {
+    "text": "Tautuhi anō tō kupuhipa (%{display_domain})",
+    "sha256": "a9882af1"
+  },
+  "email.password_request.title": {
+    "text": "Tautuhi Anō Tō Kupuhipa",
+    "sha256": "0568c7b0"
+  },
+  "email.password_request.request_notice": {
+    "text": "Kua riro i a mātou tētahi tono ki te tautuhi anō i tō kupuhipa mō %{product_name}.",
+    "sha256": "4ad3b5cd"
+  },
+  "email.password_request.reset_button": {
+    "text": "Tautuhi Anō Kupuhipa",
+    "sha256": "4e70f1fd"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "sha256": "88c72144"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Mēnā kāore koe i tono i te tautuhi anō kupuhipa, ka taea e koe te waiho i tēnei īmēra.",
+    "sha256": "fbb7eb2d"
+  },
+  "email.password_request.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}.",
+    "sha256": "8ab1dbea"
+  },
+  "email.magic_link.subject": {
+    "text": "Takiuru ki %{display_domain}",
+    "sha256": "2967293e"
+  },
+  "email.magic_link.title": {
+    "text": "Takiuru mā te Hononga Mana",
+    "sha256": "0b84879b"
+  },
+  "email.magic_link.request_notice": {
+    "text": "I tono koe i tētahi hononga takiuru mō tō pūkete %{product_name}.",
+    "sha256": "3a34aa1f"
+  },
+  "email.magic_link.login_button": {
+    "text": "Takiuru",
+    "sha256": "bcc0bcc9"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "sha256": "88c72144"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Ka pau tēnei hononga i roto i ngā meneti 15.",
+    "sha256": "a6967fa7"
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Mēnā kāore koe i tono i tēnei hononga, ka taea e koe te waiho i tēnei īmēra.",
+    "sha256": "1863f5be"
+  },
+  "email.magic_link.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}.",
+    "sha256": "8ab1dbea"
+  },
+  "email.incoming_secret.subject": {
+    "text": "Kua riro i a koe he karere huna",
+    "sha256": "c7c36a80"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Kua riro i a koe he karere haumaru:",
+    "sha256": "7d3cd4cb"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Memo:",
+    "sha256": "8bab5066"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Kua tukuna e tētahi he karere haumaru ki a koe mā %{display_domain}.",
+    "sha256": "12ac0a81"
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Ki te tiro i tēnei karere huna, pāwhiri i te hononga i raro:",
+    "sha256": "1dcdc014"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Hira:",
+    "sha256": "496d6960"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Kotahi noa te wā e mahi ai tēnei hononga. Whai muri i te tirohanga, ka mukua pūmau te karere huna.",
+    "sha256": "fecaf0a1"
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "I tukuna mā",
+    "sha256": "d01479b3"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Kua tirohia tō karere huna",
+    "sha256": "0767ae45"
+  },
+  "email.secret_revealed.title": {
+    "text": "Kua Tirohia Tō Karere Huna",
+    "sha256": "6a530d71"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "I tirohia tō karere huna i te %{date}.",
+    "sha256": "6a3d346c"
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID Karere Huna:",
+    "sha256": "ab567438"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "He whakamōhiotanga aunoa tēnei. Kāore he mahi e hiahiatia ana.",
+    "sha256": "3f6b45dd"
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Whakahaere manakohanga whakamōhiotanga",
+    "sha256": "a76d7ce0"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Ki te whakahaere i ō manakohanga whakamōhiotanga:",
+    "sha256": "83cbd163"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Ka pau tata tō hononga huna",
+    "sha256": "74813c5f"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Ka pau tō hononga huna i roto i %{time_remaining}",
+    "sha256": "e7bb47f6"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Tirohia tō karere huna i mua i te paunga",
+    "sha256": "9e7d7396"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Whakamahara:",
+    "sha256": "e945d640"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Whai muri i te paunga, ka mukua pūmau te karere huna, kāore e taea te whakahoki.",
+    "sha256": "deb92a01"
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "I tukuna mā",
+    "sha256": "d01479b3"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Tirohia i mua i te ngaro:",
+    "sha256": "30342c04"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Whai muri i te paunga, ka mukua pūmau te karere huna.",
+    "sha256": "bd0a9bee"
+  },
+  "email.feedback_email.subject": {
+    "text": "Urupare i te %{date} mā %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
+  },
+  "email.feedback_email.title": {
+    "text": "Urupare Kaiwhakamahi",
+    "sha256": "47296999"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Mai i:",
+    "sha256": "dc45d36f"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Rohe:",
+    "sha256": "a4c7de06"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Rautaki:",
+    "sha256": "8132ec6b"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Karere:",
+    "sha256": "f5394f72"
+  },
+  "email.feedback_email.signature": {
+    "text": "Tautoko Huna",
+    "sha256": "f6a6c90f"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Kua pōhiritia koe ki te hono atu ki %{organization_name}",
+    "sha256": "58591e00"
+  },
+  "email.organization_invitation.title": {
+    "text": "Kua pōhiritia koe ki te hono atu ki %{organization_name}!",
+    "sha256": "19548dfd"
+  },
+  "email.organization_invitation.body": {
+    "text": "Kua pōhiri a %{inviter_email} i a koe ki te hono atu ki \"%{organization_name}\" hei %{role_description}.",
+    "sha256": "e4d3fb65"
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Whakaae Pōhiri",
+    "sha256": "ce7cfeaf"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "sha256": "88c72144"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Ka pau tēnei pōhiri i roto i ngā rā %{days}.",
+    "sha256": "dabc54d5"
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Mēnā kāore koe e hiahia ki te hono atu, ka taea e koe te waiho i tēnei īmēra, te whakakāhore rānei i te pōhiri.",
+    "sha256": "734882d2"
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Mēnā kāore koe i te tūmanako ki tēnei pōhiri, ka taea e koe te waiho i tēnei karere.",
+    "sha256": "608e2b40"
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "he mema",
+    "sha256": "efdef688"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "he kaiwhakahaere",
+    "sha256": "603fd5c3"
+  },
+  "email.password_changed.subject": {
+    "text": "Kua hurihia tō kupuhipa (%{display_domain})",
+    "sha256": "b030deff"
+  },
+  "email.password_changed.title": {
+    "text": "Kua Hurihia Tō Kupuhipa",
+    "sha256": "adb1f471"
+  },
+  "email.password_changed.body": {
+    "text": "Kua hurihia tō kupuhipa mō %{product_name} i te %{date} i te %{time}.",
+    "sha256": "21f5117c"
+  },
+  "email.password_changed.security_notice": {
+    "text": "Mēnā ehara i a koe i huri i tēnei, tēnā haumarutia tō pūkete ināianei tonu mā te tautuhi anō i tō kupuhipa me te whakapā atu ki te tautoko.",
+    "sha256": "be92cff3"
+  },
+  "email.password_changed.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_changed.subject": {
+    "text": "Kua hurihia tō wāhitau īmēra (%{display_domain})",
+    "sha256": "d68d2f4c"
+  },
+  "email.email_changed.title": {
+    "text": "Kua Hurihia Tō Wāhitau Īmēra",
+    "sha256": "62b07299"
+  },
+  "email.email_changed.body": {
+    "text": "Kua hurihia te wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email_masked} i te %{date}.",
+    "sha256": "6f3419d1"
+  },
+  "email.email_changed.security_notice": {
+    "text": "Mēnā ehara i a koe i huri i tēnei, tēnā whakapā tere ki te tautoko nā te mea tērā pea kua whakaekea tō pūkete.",
+    "sha256": "f505b562"
+  },
+  "email.email_changed.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Manatoko tō wāhitau īmēra hou (%{display_domain})",
+    "sha256": "6caae414"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Manatoko Tō Wāhitau Īmēra Hou",
+    "sha256": "0ec73977"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Tēnā manatoko i tēnei wāhitau īmēra hei whakaoti i te huringa mō tō pūkete %{product_name}.",
+    "sha256": "4df742ab"
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Manatoko Wāhitau Īmēra",
+    "sha256": "d261b9df"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "sha256": "88c72144"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Kua whakahohea te manatoko rua-āhuatanga (%{display_domain})",
+    "sha256": "c067e466"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Kua Whakahohea te Manatoko Rua-Āhuatanga",
+    "sha256": "2398ed9e"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Kua whakahohea te manatoko rua-āhuatanga mō tō pūkete %{product_name} i te %{date}.",
+    "sha256": "9f6be43f"
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Kua haumaru ake tō pūkete ināianei. Me whakauru koe i tētahi waehere manatoko mai i tō taupānga manatoko i te wā e takiuru ana.",
+    "sha256": "e7c11bb0"
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Kua monokia te manatoko rua-āhuatanga (%{display_domain})",
+    "sha256": "228a686a"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Kua Monokia te Manatoko Rua-Āhuatanga",
+    "sha256": "372d577a"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Kua monokia te manatoko rua-āhuatanga mō tō pūkete %{product_name} i te %{date}.",
+    "sha256": "0248389d"
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Kua iti iho te haumaru o tō pūkete ināianei. Mēnā ehara i a koe i huri i tēnei, tēnā haumarutia tō pūkete ināianei tonu.",
+    "sha256": "97ef0a3e"
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Takiuru hou ki tō pūkete (%{display_domain})",
+    "sha256": "a704f0bb"
+  },
+  "email.new_login_alert.title": {
+    "text": "Kua Kitea He Takiuru Hou",
+    "sha256": "61172ee4"
+  },
+  "email.new_login_alert.body": {
+    "text": "Kua kitea he takiuru hou ki tō pūkete %{product_name} i te %{date} i te %{time}.",
+    "sha256": "040f8f48"
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Pūrere:",
+    "sha256": "9f8d3539"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Wāhi:",
+    "sha256": "bbdffe25"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "Wāhitau IP:",
+    "sha256": "a2cb73e4"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Mēnā ehara tēnei i a koe, tērā pea kua whakaekea tō pūkete.",
+    "sha256": "e2f819c9"
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Haumarutia Tō Pūkete",
+    "sha256": "450c54c5"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.member_removed.subject": {
+    "text": "Kua tangohia koe mai i %{organization_name}",
+    "sha256": "9e35b86b"
+  },
+  "email.member_removed.title": {
+    "text": "Kua Tangohia Koe Mai i %{organization_name}",
+    "sha256": "6cf4ee6a"
+  },
+  "email.member_removed.body": {
+    "text": "Kua tangohia koe mai i te whakahaere \"%{organization_name}\" i runga i %{product_name}.",
+    "sha256": "d442beed"
+  },
+  "email.member_removed.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.role_changed.subject": {
+    "text": "Kua hurihia tō tūranga i %{organization_name}",
+    "sha256": "f987a7ad"
+  },
+  "email.role_changed.title": {
+    "text": "Kua Hurihia Tō Tūranga",
+    "sha256": "8f892809"
+  },
+  "email.role_changed.body": {
+    "text": "Kua hurihia tō tūranga i \"%{organization_name}\" mai i %{old_role} ki %{new_role}.",
+    "sha256": "c2280c0c"
+  },
+  "email.role_changed.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Kua mukua te whakahaere \"%{organization_name}\"",
+    "sha256": "056a9921"
+  },
+  "email.organization_deleted.title": {
+    "text": "Kua Mukua te Whakahaere",
+    "sha256": "41cff705"
+  },
+  "email.organization_deleted.body": {
+    "text": "Kua mukua te whakahaere \"%{organization_name}\" mai i %{product_name}. Kua tangohia ngā raraunga katoa e pā ana.",
+    "sha256": "7095fc69"
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Rihīti utu mō %{product_name}",
+    "sha256": "a1b5cc04"
+  },
+  "email.payment_receipt.title": {
+    "text": "Rihīti Utu",
+    "sha256": "7e677ab8"
+  },
+  "email.payment_receipt.body": {
+    "text": "Ngā mihi mō tō utu. Anei ngā taipitopito utu:",
+    "sha256": "a1fb6502"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Tapeke:",
+    "sha256": "cdf45632"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Rā:",
+    "sha256": "b51489bd"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Mahere:",
+    "sha256": "c6c28dbb"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Tiro Pire",
+    "sha256": "36008943"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.payment_failed.subject": {
+    "text": "I rahua te utu mō %{product_name}",
+    "sha256": "77f18a23"
+  },
+  "email.payment_failed.title": {
+    "text": "I Rahua te Utu",
+    "sha256": "a287ab86"
+  },
+  "email.payment_failed.body": {
+    "text": "Kāore i taea e mātou te tukatuka tō utu mō %{product_name}. Tēnā whakahōu tō tikanga utu kia karo i te whakatarunga ratonga.",
+    "sha256": "6496ef22"
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Whakahōu Tikanga Utu",
+    "sha256": "926406b1"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Ka pau tō whakamātautau %{product_name} i roto i ngā rā %{days_remaining}",
+    "sha256": "82114f95"
+  },
+  "email.trial_expiring.title": {
+    "text": "Ka Pau Tata Tō Whakamātautau",
+    "sha256": "36200518"
+  },
+  "email.trial_expiring.body": {
+    "text": "Ka pau tō whakamātautau utukore o %{product_name} i roto i ngā rā %{days_remaining}. Whakapikia ināianei kia pupuri i te uru ki ngā āhuatanga katoa.",
+    "sha256": "17fc32dd"
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Whakapiki Ināianei",
+    "sha256": "66a1419e"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Kua hurihia tō ohaurunga %{product_name}",
+    "sha256": "c9b61a4d"
+  },
+  "email.subscription_changed.title": {
+    "text": "Kua Hurihia te Ohaurunga",
+    "sha256": "7523a022"
+  },
+  "email.subscription_changed.body": {
+    "text": "Kua hurihia tō ohaurunga %{product_name} mai i %{old_plan} ki %{new_plan}.",
+    "sha256": "72f81a65"
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Ka mahi tēnei huringa mai i te %{date}.",
+    "sha256": "5a96ae38"
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.common.greeting": {
+    "text": "Kia ora,",
+    "sha256": "dafe7694"
+  },
+  "email.common.thanks": {
+    "text": "Ngā mihi,",
+    "sha256": "11dfba8f"
+  },
+  "email.common.unsubscribe": {
+    "text": "Whakakorea ohaurunga",
+    "sha256": "3e92efb7"
+  },
+  "email.common.view_in_browser": {
+    "text": "Tiro i te pūtirotiro",
+    "sha256": "be843876"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
+  }
+}

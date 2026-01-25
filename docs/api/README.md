@@ -1,5 +1,8 @@
 # Onetime Secret - API Definition
 
+> [!NOTE]
+> These docs are a WIP -- Jan 2026
+
 This directory contains the API definition for the Onetime Secret API in OpenAPI 3.0 format.
 
 ## Overview

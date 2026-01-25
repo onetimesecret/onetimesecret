@@ -1,0 +1,243 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://onetimesecret.com/schemas/billing.schema.json",
+  "title": "Billing Configuration",
+  "description": "Schema for etc/billing.yaml - unified flat-structure billing configuration",
+  "type": "object",
+  "required": ["schema_version", "app_identifier", "entitlements", "plans"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version identifier",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "app_identifier": {
+      "type": "string",
+      "description": "Application identifier for Stripe metadata matching",
+      "minLength": 1
+    },
+    "match_fields": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "default": ["plan_id"],
+      "description": "Fields used to build composite match key for Stripe product identification (e.g., ['plan_id', 'region'])"
+    },
+    "region": {
+      "type": "string",
+      "description": "Region filter for this catalog instance. When set, only Stripe products with matching region metadata are visible"
+    },
+    "entitlements": {
+      "type": "object",
+      "description": "System-wide entitlement definitions",
+      "additionalProperties": {
+        "$ref": "#/definitions/EntitlementDefinition"
+      }
+    },
+    "plans": {
+      "type": "object",
+      "description": "Plan definitions by plan_id",
+      "additionalProperties": {
+        "$ref": "#/definitions/PlanDefinition"
+      }
+    },
+    "stripe_metadata_schema": {
+      "type": "object",
+      "description": "Stripe product metadata schema definition",
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        },
+        "optional": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "EntitlementCategory": {
+      "type": "string",
+      "enum": ["core", "collaboration", "infrastructure", "branding", "advanced", "support"],
+      "description": "Entitlement category for grouping"
+    },
+    "EntitlementDefinition": {
+      "type": "object",
+      "required": ["category", "description"],
+      "properties": {
+        "category": {
+          "$ref": "#/definitions/EntitlementCategory"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable description of the entitlement"
+        }
+      }
+    },
+    "BillingTier": {
+      "type": "string",
+      "enum": ["free", "single_account", "single_team", "multi_team"],
+      "description": "Hierarchical plan tier"
+    },
+    "TenancyType": {
+      "type": "string",
+      "enum": ["multi", "dedicated"],
+      "description": "Infrastructure isolation level"
+    },
+    "BillingInterval": {
+      "type": "string",
+      "enum": ["month", "year"],
+      "description": "Subscription billing frequency"
+    },
+    "CurrencyCode": {
+      "type": "string",
+      "enum": ["usd", "eur", "cad", "nzd"],
+      "description": "ISO 4217 currency code"
+    },
+    "LimitValue": {
+      "oneOf": [
+        { "type": "integer", "minimum": -1, "description": "-1 = unlimited, positive = specific limit" },
+        { "type": "null", "description": "To be determined" }
+      ]
+    },
+    "PlanLimits": {
+      "type": "object",
+      "required": ["organizations", "members_per_team", "custom_domains", "secret_lifetime"],
+      "properties": {
+        "organizations": {
+          "$ref": "#/definitions/LimitValue",
+          "description": "Maximum number of organizations"
+        },
+        "members_per_team": {
+          "$ref": "#/definitions/LimitValue",
+          "description": "Maximum members per team"
+        },
+        "custom_domains": {
+          "$ref": "#/definitions/LimitValue",
+          "description": "Maximum custom domains"
+        },
+        "secret_lifetime": {
+          "$ref": "#/definitions/LimitValue",
+          "description": "Maximum secret lifetime in seconds"
+        },
+        "secrets_per_day": {
+          "$ref": "#/definitions/LimitValue",
+          "description": "Daily secret creation limit"
+        }
+      }
+    },
+    "PlanPrice": {
+      "type": "object",
+      "required": ["interval", "amount", "currency"],
+      "properties": {
+        "interval": {
+          "$ref": "#/definitions/BillingInterval"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Amount in cents (e.g., 2900 = $29.00)"
+        },
+        "currency": {
+          "$ref": "#/definitions/CurrencyCode"
+        }
+      }
+    },
+    "PlanDefinition": {
+      "type": "object",
+      "required": ["name", "entitlements", "limits", "prices"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display name for the plan"
+        },
+        "tier": {
+          "$ref": "#/definitions/BillingTier",
+          "description": "Billing tier (optional for draft plans)"
+        },
+        "tenancy": {
+          "$ref": "#/definitions/TenancyType",
+          "description": "Tenancy type (optional for draft plans)"
+        },
+        "region": {
+          "type": "string",
+          "description": "Region identifier for composite matching (e.g., 'EU', 'US')"
+        },
+        "stripe_product_id": {
+          "type": "string",
+          "pattern": "^prod_",
+          "description": "Direct Stripe product ID binding (escape hatch for matching issues)"
+        },
+        "plan_name_label": {
+          "type": "string",
+          "description": "i18n key for plan category label"
+        },
+        "display_order": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Sort order on plans page (higher = earlier)"
+        },
+        "show_on_plans_page": {
+          "type": "boolean",
+          "description": "Visibility on public plans page"
+        },
+        "includes_plan": {
+          "type": "string",
+          "description": "Plan ID this plan includes (for 'Includes everything in X' display)"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Plan description for documentation"
+        },
+        "legacy": {
+          "type": "boolean",
+          "description": "Marks plan as legacy/grandfathered (no longer offered)"
+        },
+        "grandfathered_until": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "ISO date until which plan is grandfathered (YYYY-MM-DD)"
+        },
+        "entitlements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Array of entitlement IDs"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Array of i18n feature keys for UI display"
+        },
+        "limits": {
+          "$ref": "#/definitions/PlanLimits"
+        },
+        "prices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PlanPrice"
+          },
+          "description": "Available pricing options"
+        }
+      }
+    }
+  }
+}

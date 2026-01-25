@@ -1,0 +1,66 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Вашата обратна връзка",
+    "sha256": "cdb1c0a5"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Всякаква обратна връзка е добре дошла!",
+    "sha256": "c57d3006"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Помогнете ни да се подобрим",
+    "sha256": "f35439c4"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Затвори прозореца за обратна връзка",
+    "sha256": "41689bb4"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Споделете обратната си връзка",
+    "sha256": "6d62dfbd"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
+  },
+  "web.feedback.delano": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Съдържанието за помощ се въвежда тук.",
+    "sha256": "796979ea"
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Благодарим ви за помощта в усъвършенстването на Onetime Secret. Това е важно за нас."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Създадохме този инструмент, за да ви помогнем да споделяте чувствителна информация сигурно, и вашите реални преживявания са важни за фокусирането на нашите усилия. Помага ни да определим по какво да работим по-нататък и как да усъвършенстваме услугата за всички."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Здравейте, благодарим ви, че посетихте страницата ни за обратна връзка. Вашите мнения са не просто добре дошли, а са от съществено значение."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Бележка от Делано, основателят на Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Отвори формуляра за обратна връзка",
+    "sha256": "acd8409b"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Въведете обратната си връзка",
+    "sha256": "1bb310f4"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Изпрати обратна връзка",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Чета всяка обратна връзка, която идва тук. Така разбирам върху какво да отделя време.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Ако нещо не е наред или имате идеи как трябва да работи, това е точното място.",
+    "sha256": "d4b8f073"
+  }
+}

@@ -1,0 +1,131 @@
+// src/shared/stores/brandStore.ts
+
+import { responseSchemas } from '@/schemas/api/v3';
+import type { BrandSettings, ImageProps } from '@/schemas/models';
+import { AxiosInstance } from 'axios';
+import { defineStore } from 'pinia';
+import { inject, ref } from 'vue';
+
+const defaultBranding: BrandSettings = {
+  primary_color: '#dc4a22',
+  font_family: 'sans',
+  corner_style: 'rounded',
+  button_text_light: true,
+  instructions_pre_reveal: '',
+  instructions_post_reveal: '',
+  instructions_reveal: '',
+  allow_public_api: false,
+  allow_public_homepage: false,
+};
+
+/* eslint max-lines-per-function: off */
+export const useBrandStore = defineStore('brand', () => {
+  const $api = inject('api') as AxiosInstance;
+  const settings = ref<Record<string, BrandSettings>>({});
+  const logos = ref<Record<string, ImageProps>>({});
+  const _initialized = ref(false);
+
+  /* Reset primaryColor by passing undefined through primary_color field validator
+   * This triggers Zod schema's default value if defined
+   * schema.shape provides access to individual field validators
+   * See https://zod.dev/ for schema parsing docs
+   * See https://pinia.vuejs.org/core-concepts/state.html for Pinia state management
+   */
+  // primaryColor.value = brandSettingschema.shape.primary_color.parse(undefined);
+
+  function init() {
+    if (_initialized.value) return;
+    _initialized.value = true;
+  }
+
+  async function fetchSettings(domainId: string): Promise<BrandSettings> {
+    const response = await $api.get(`/api/domains/${domainId}/brand`);
+    const validated = responseSchemas.brandSettings.parse(response.data);
+    settings.value[domainId] = validated.record;
+    return validated.record;
+  }
+
+  async function updateSettings(domainId: string, updates: Partial<BrandSettings>) {
+    const formattedUpdates = {
+      ...updates,
+      primary_color: updates.primary_color?.toLowerCase(),
+    };
+
+    const response = await $api.put(`/api/domains/${domainId}/brand`, {
+      brand: formattedUpdates,
+    });
+    const validated = responseSchemas.brandSettings.parse(response.data);
+    // Merge the response with existing settings instead of overwriting
+    settings.value[domainId] = {
+      ...settings.value[domainId],
+      ...validated.record,
+    };
+
+    return settings.value[domainId];
+  }
+
+  async function fetchLogo(domainId: string) {
+    const response = await $api.get(`/api/domains/${domainId}/logo`);
+    const validated = responseSchemas.imageProps.parse(response.data);
+    logos.value[domainId] = validated.record;
+    return validated.record;
+  }
+
+  async function uploadLogo(domainId: string, file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+    // Don't set Content-Type manually - Axios sets it with the correct boundary
+    const response = await $api.post(`/api/domains/${domainId}/logo`, formData);
+    const validated = responseSchemas.imageProps.parse(response.data);
+    logos.value[domainId] = validated.record;
+    return validated.record;
+  }
+
+  async function removeLogo(domainId: string) {
+    await $api.delete(`/api/domains/${domainId}/logo`);
+    delete logos.value[domainId];
+  }
+
+  function getSettings(domainId: string): BrandSettings {
+    return {
+      ...defaultBranding,
+      ...settings.value[domainId],
+    };
+  }
+
+  function getLogo(domainId: string): ImageProps | null {
+    return logos.value[domainId] || null;
+  }
+
+  function compareSettings(domainId: string, newSettings: BrandSettings) {
+    return isEqual(settings.value[domainId], newSettings);
+  }
+
+  return {
+    init,
+    fetchSettings,
+    updateSettings,
+    compareSettings,
+    uploadLogo,
+    removeLogo,
+    getSettings,
+    fetchLogo,
+    getLogo,
+  };
+});
+
+function isEqual(a: BrandSettings, b: BrandSettings): boolean {
+  const keys: (keyof BrandSettings)[] = [
+    'primary_color',
+    'font_family',
+    'corner_style',
+    'button_text_light',
+    'instructions_pre_reveal',
+    'instructions_post_reveal',
+    'instructions_reveal',
+    'allow_public_api',
+    'allow_public_homepage',
+  ];
+
+  return keys.every((key) => a[key] === b[key]);
+}

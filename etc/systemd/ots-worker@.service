@@ -1,0 +1,66 @@
+[Unit]
+Description=Onetime Secret Worker %i
+Documentation=https://docs.onetimesecret.com
+After=network-online.target rabbitmq-server.service redis.service
+Wants=network-online.target
+PartOf=ots.target
+
+[Service]
+Type=simple
+User=onetime
+Group=onetime
+WorkingDirectory=/opt/onetime
+
+# Environment
+Environment="RACK_ENV=production"
+Environment="ONETIME_HOME=/opt/onetime"
+EnvironmentFile=-/etc/onetime/environment
+EnvironmentFile=-/opt/onetime/.env
+
+# Worker-specific configuration via instance name
+# Example: ots-worker@email.service would set WORKER_QUEUES=email
+Environment="WORKER_QUEUES=%i"
+
+# Start command
+ExecStart=/opt/onetime/bin/ots worker --queues ${WORKER_QUEUES} --concurrency 10 --environment production
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=5min
+StartLimitBurst=3
+
+# Graceful shutdown
+TimeoutStopSec=90
+KillMode=mixed
+SuccessExitStatus=0 143
+
+# Resource limits
+MemoryMax=512M
+MemoryHigh=384M
+TasksMax=50
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/onetime/tmp
+ReadWritePaths=/opt/onetime/log
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ots-worker-%i
+
+[Install]
+WantedBy=ots.target

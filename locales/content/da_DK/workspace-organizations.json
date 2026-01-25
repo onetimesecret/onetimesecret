@@ -1,0 +1,578 @@
+{
+  "web.organizations.title": {
+    "text": "Organisationer",
+    "sha256": "2730183d"
+  },
+  "web.organizations.organization": {
+    "text": "Organisation",
+    "sha256": "d764d425"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Organisationer",
+    "sha256": "2730183d"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Administrer dine organisationer",
+    "sha256": "dbaa4f92"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Organisationer",
+    "sha256": "2730183d"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Administrer organisationer",
+    "sha256": "be0fe4c3"
+  },
+  "web.organizations.new_organization": {
+    "text": "Ny organisation",
+    "sha256": "4876e647"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Ingen organisationer endnu",
+    "sha256": "5b7a7cbd"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Organisationer giver samlet fakturering og administration. Kom i gang ved at oprette din første organisation.",
+    "sha256": "deab4304"
+  },
+  "web.organizations.no_description": {
+    "text": "Ingen beskrivelse angivet",
+    "sha256": "41183d01"
+  },
+  "web.organizations.default": {
+    "text": "Standard",
+    "sha256": "21b111cb"
+  },
+  "web.organizations.create_organization": {
+    "text": "Opret organisation",
+    "sha256": "e27f4540"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Opret første organisation",
+    "sha256": "27bae486"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Opret en ny organisation",
+    "sha256": "67cd5950"
+  },
+  "web.organizations.create": {
+    "text": "Opret",
+    "sha256": "4759498a"
+  },
+  "web.organizations.create_error": {
+    "text": "Kunne ikke oprette organisation",
+    "sha256": "f2204373"
+  },
+  "web.organizations.organization_name": {
+    "text": "Organisationsnavn",
+    "sha256": "4cbd9073"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "f.eks. Acme Corporation",
+    "sha256": "ac1c804b"
+  },
+  "web.organizations.display_name": {
+    "text": "Organisationsnavn",
+    "sha256": "4cbd9073"
+  },
+  "web.organizations.description": {
+    "text": "Beskrivelse",
+    "sha256": "526e0087"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "Hvad bruges denne organisation til?",
+    "sha256": "27d7edae"
+  },
+  "web.organizations.contact_email": {
+    "text": "Fakturerings-e-mail",
+    "sha256": "513332d3"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Primær kontakt for fakturering og administrative notifikationer",
+    "sha256": "ee81c03d"
+  },
+  "web.organizations.select_organization": {
+    "text": "Vælg en organisation",
+    "sha256": "48326f52"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Organisationsskift ikke tilgængeligt på denne side",
+    "sha256": "da0cf810"
+  },
+  "web.organizations.not_found": {
+    "text": "Organisation ikke fundet",
+    "sha256": "00c50f7a"
+  },
+  "web.organizations.load_error": {
+    "text": "Kunne ikke indlæse organisation",
+    "sha256": "6b5fa342"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Kunne ikke indlæse organisation",
+    "sha256": "6b5fa342"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Kunne ikke indlæse organisationer",
+    "sha256": "03b30208"
+  },
+  "web.organizations.organization_information": {
+    "text": "Organisationsoplysninger",
+    "sha256": "85274cee"
+  },
+  "web.organizations.created": {
+    "text": "Oprettet",
+    "sha256": "d70b9e24"
+  },
+  "web.organizations.last_updated": {
+    "text": "Sidst opdateret",
+    "sha256": "048c7f2e"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Organisationsindstillinger",
+    "sha256": "cc1d9e61"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Opdater dit organisationsnavn og beskrivelse",
+    "sha256": "2d8b5b2b"
+  },
+  "web.organizations.general_settings": {
+    "text": "Generelle indstillinger",
+    "sha256": "de322f87"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Fakturering og abonnement",
+    "sha256": "896913f0"
+  },
+  "web.organizations.save_changes": {
+    "text": "Gem ændringer",
+    "sha256": "35322b5b"
+  },
+  "web.organizations.update_success": {
+    "text": "Organisation opdateret",
+    "sha256": "af39d0f3"
+  },
+  "web.organizations.update_error": {
+    "text": "Kunne ikke opdatere organisation",
+    "sha256": "bc2b59b8"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Faktureringsintegration kommer snart",
+    "sha256": "d3e0ec75"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Samlet fakturering og abonnementshåndtering vil være tilgængelig i en fremtidig version.",
+    "sha256": "8836108f"
+  },
+  "web.organizations.about_title": {
+    "text": "Om organisationer",
+    "sha256": "2f3e2ad8"
+  },
+  "web.organizations.about_description": {
+    "text": "Organisationer giver samlet fakturering og administration til centraliseret styring.",
+    "sha256": "910f97a8"
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Administrer din organisation",
+    "sha256": "810a6c86"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Opdater dit firmanavn og organisationsoplysninger her. Disse oplysninger hjælper med at personliggøre din konto og kan bruges til brandingfunktioner i fremtiden.",
+    "sha256": "96b2e4b5"
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Kom i gang med organisationer",
+    "sha256": "2871e738"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Opret din første organisation for at administrere dine virksomhedsoplysninger og forberede fremtidige brandingfunktioner.",
+    "sha256": "0487f33a"
+  },
+  "web.organizations.page_description": {
+    "text": "Administrer dine organisationer og teammedlemmer",
+    "sha256": "2d026be4"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Indstillinger",
+    "sha256": "74a883a0"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Virksomhedsbranding",
+    "sha256": "7ecc5d35"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Team",
+    "sha256": "5985039f"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Fakturering",
+    "sha256": "3ac8bbca"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Farezone",
+    "sha256": "3c1c01b4"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Slet organisation",
+    "sha256": "54b2edc7"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Dette vil permanent slette organisationen. Denne handling kan ikke fortrydes.",
+    "sha256": "ab2d2c05"
+  },
+  "web.organizations.delete": {
+    "text": "Slet",
+    "sha256": "e2d0a549"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Slet organisation",
+    "sha256": "54b2edc7"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Er du sikker på, at du vil slette {name}? Denne handling kan ikke fortrydes.",
+    "sha256": "db7e1f9d"
+  },
+  "web.organizations.delete_error": {
+    "text": "Kunne ikke slette organisation",
+    "sha256": "a8e5bb28"
+  },
+  "web.organizations.members.title": {
+    "text": "Medlemmer",
+    "sha256": "1044a4c0"
+  },
+  "web.organizations.members.description": {
+    "text": "Administrer organisationsmedlemmer og deres roller",
+    "sha256": "1353774c"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Nuværende medlemmer",
+    "sha256": "cfc156ae"
+  },
+  "web.organizations.members.member": {
+    "text": "Medlem",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "medlem",
+    "sha256": "e31ab643"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "medlemmer",
+    "sha256": "17373ca1"
+  },
+  "web.organizations.members.name": {
+    "text": "Navn",
+    "sha256": "dcd1d522"
+  },
+  "web.organizations.members.email": {
+    "text": "E-mail",
+    "sha256": "969ccbd3"
+  },
+  "web.organizations.members.role": {
+    "text": "Rolle",
+    "sha256": "14736a2e"
+  },
+  "web.organizations.members.joined": {
+    "text": "Deltog",
+    "sha256": "69318b0c"
+  },
+  "web.organizations.members.actions": {
+    "text": "Handlinger",
+    "sha256": "ff8059dc"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Ingen medlemmer endnu. Inviter teammedlemmer for at komme i gang.",
+    "sha256": "6cbc5271"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Denne organisation har ingen medlemmer endnu.",
+    "sha256": "61dd2085"
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Medlemsrolle opdateret",
+    "sha256": "d0d332c6"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Kunne ikke opdatere medlemsrolle",
+    "sha256": "17d5ca66"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Medlem fjernet fra organisation",
+    "sha256": "210a187b"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Kunne ikke fjerne medlem",
+    "sha256": "1cff79b7"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Fjern medlem",
+    "sha256": "2b98b194"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Er du sikker på, at du vil fjerne {name} fra denne organisation?",
+    "sha256": "36695d98"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "Du kan ikke ændre din egen rolle",
+    "sha256": "0d874f75"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "Du kan ikke fjerne dig selv fra organisationen",
+    "sha256": "ab358307"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "Du kan ikke fjerne organisationsejeren",
+    "sha256": "c92ed0f4"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "Du har ikke tilladelse til at administrere medlemmer",
+    "sha256": "d6239f33"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Ejer",
+    "sha256": "4b1b8aa3"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Administrator",
+    "sha256": "c1c224b0"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Medlem",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Fuld adgang til alle organisationsindstillinger og medlemmer",
+    "sha256": "d49381bf"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Kan administrere medlemmer og de fleste organisationsindstillinger",
+    "sha256": "3d7ade92"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Grundlæggende adgang til organisationsressourcer",
+    "sha256": "0ddca91a"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Organisationsinvitationer",
+    "sha256": "0289d92d"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Inviter medlem",
+    "sha256": "8e8a0b88"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Inviter nyt medlem",
+    "sha256": "0bfb50ed"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Afventende invitationer",
+    "sha256": "b327e8a8"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Ingen afventende invitationer",
+    "sha256": "275814da"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "E-mailadresse",
+    "sha256": "09bf25ef"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "medlem{'@'}example.com",
+    "sha256": "7fd425f7"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Rolle",
+    "sha256": "14736a2e"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Send invitation",
+    "sha256": "d076aa0f"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Invitation sendt",
+    "sha256": "81facbe6"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Kunne ikke sende invitation",
+    "sha256": "cedbf507"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Send igen",
+    "sha256": "1f948437"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Tilbagekald",
+    "sha256": "87e6d00b"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Invitation sendt igen",
+    "sha256": "099eb255"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Kunne ikke sende invitation igen",
+    "sha256": "82750487"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Invitation tilbagekaldt",
+    "sha256": "4ce1262c"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Kunne ikke tilbagekalde invitation",
+    "sha256": "9dbd2a60"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Inviteret af",
+    "sha256": "c7a6f156"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Inviteret",
+    "sha256": "63b17bec"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Udløber",
+    "sha256": "f6725f3a"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Sendt igen {count} gang",
+    "sha256": "e71d1c6d"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Sendt igen {count} gange",
+    "sha256": "e58d803d"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Afventer",
+    "sha256": "331551b0"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Accepteret",
+    "sha256": "a00fb0c5"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Afvist",
+    "sha256": "dce083a2"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Udløbet",
+    "sha256": "424a2551"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Medlem",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Administrator",
+    "sha256": "c1c224b0"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Accepter invitation",
+    "sha256": "ce7cfeaf"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Afvis invitation",
+    "sha256": "f6e06ada"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Invitationsdetaljer",
+    "sha256": "59936259"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Du er blevet inviteret til at deltage i",
+    "sha256": "60e635c6"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Du er blevet inviteret som",
+    "sha256": "f9809eae"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Invitation accepteret",
+    "sha256": "7eb6b234"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Kunne ikke acceptere invitation",
+    "sha256": "3ecc8b0f"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Invitation afvist",
+    "sha256": "31bffdcb"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Kunne ikke afvise invitation",
+    "sha256": "2bccbd56"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "Denne invitation er udløbet",
+    "sha256": "b72770d7"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Ugyldig eller udløbet invitation",
+    "sha256": "6c0fc3de"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Log venligst ind for at acceptere denne invitation",
+    "sha256": "469fc705"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Indlæser invitationsdetaljer",
+    "sha256": "58884885"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Fakturerings-e-mail opdateret",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Fakturerings-e-mail kan ændres på faktureringsoversigt-siden",
+    "sha256": "8a131415"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro",
+    "sha256": "957b0b87"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} medlem | {count} medlemmer",
+    "sha256": "f652af0c"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domæne | {count} domæner",
+    "sha256": "09f52efa"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Opgrader dit abonnement for at invitere teammedlemmer",
+    "sha256": "5e3f8df8"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Teammedlemsinvitationer kræver et abonnement med teamadministration. Opgrader for at tilføje samarbejdspartnere til din organisation.",
+    "sha256": "cf10d623"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Forkert konto",
+    "sha256": "80c8ffa7"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Denne invitation blev sendt til {invitedEmail}, men du er logget ind som {currentEmail}.",
+    "sha256": "937e08e7"
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Log ind med en anden konto",
+    "sha256": "71b2bdf3"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}d tilbage",
+    "sha256": "50ff6f2b"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}t tilbage",
+    "sha256": "ff56d105"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Udløber snart",
+    "sha256": "a5dcfef9"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domæner",
+    "sha256": "ced67718"
+  }
+}

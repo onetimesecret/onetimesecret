@@ -1,20 +1,44 @@
 # lib/onetime/initializers.rb
+#
+# frozen_string_literal: true
 
-require_relative 'initializers/boot'
-require_relative 'initializers/set_global_secret'   # TODO: Combine into
-require_relative 'initializers/set_rotated_secrets' # set_secrets
+# Load core boot initializers
+#
+# These are system-level initializers that set up the fundamental
+# infrastructure (logging, config, database) required by the application.
+#
+# Each initializer is a class that auto-registers via inherited hook.
+# Dependencies are declared via class instance variables.
+
+# Load the initializer base class and registry first
+require_relative 'boot/initializer_registry'
+
+# Core initializers (no dependencies)
 require_relative 'initializers/load_locales'
-require_relative 'initializers/check_redis_url'
-require_relative 'initializers/connect_databases'
-require_relative 'initializers/prepare_emailers'
-require_relative 'initializers/load_fortunes'
-require_relative 'initializers/check_global_banner'
-require_relative 'initializers/load_plans'
-require_relative 'initializers/configure_truemail'
+require_relative 'initializers/setup_i18n'        # requires: [:i18n]
+require_relative 'initializers/setup_loggers'
+require_relative 'initializers/set_secrets'
 require_relative 'initializers/configure_domains'
-require_relative 'initializers/setup_authentication'
-require_relative 'initializers/setup_diagnostics'
-require_relative 'initializers/setup_incoming_recipients'
-require_relative 'initializers/setup_system_settings'
-require_relative 'initializers/detect_legacy_data_and_warn'
-require_relative 'initializers/print_log_banner'
+require_relative 'initializers/configure_truemail'
+require_relative 'initializers/configure_rhales'
+require_relative 'initializers/load_fortunes'
+
+# Dependent initializers
+require_relative 'initializers/setup_diagnostics'      # depends_on: [:logging]
+require_relative 'initializers/setup_database_logging' # depends_on: [:logging]
+require_relative 'initializers/setup_auth_database'    # depends_on: [:logging], fork-sensitive
+require_relative 'initializers/setup_rabbitmq'         # depends_on: [:logging]
+require_relative 'initializers/configure_familia'      # depends_on: [:logging]
+require_relative 'initializers/detect_legacy_data_and_warn' # depends_on: [:familia_config]
+require_relative 'initializers/setup_connection_pool'  # depends_on: [:legacy_check]
+require_relative 'initializers/check_global_banner'    # depends_on: [:database]
+require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
+
+# Auto-discover app initializers from apps/*/*/initializers/*.rb
+#
+# App initializers follow the same pattern as core initializers but live
+# alongside their respective Rack applications (e.g., apps/web/billing/initializers/).
+# They auto-register via the inherited hook when required.
+Dir[File.expand_path('../../apps/*/*/initializers/*.rb', __dir__)].each do |file|
+  require file
+end

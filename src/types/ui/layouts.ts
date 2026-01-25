@@ -1,4 +1,4 @@
-// types/ui/layouts.ts
+// src/types/ui/layouts.ts
 
 /**
  * Logo configuration for masthead and other layout components
@@ -22,6 +22,8 @@ export interface LogoConfig {
   ariaLabel?: string;
   /** Whether to identify that we are in the colonel area */
   isColonelArea?: boolean;
+  /** Whether a user is present (logged in partially or fully) */
+  isUserPresent: boolean;
 }
 
 /**
@@ -31,6 +33,7 @@ export interface LayoutDisplay {
   displayGlobalBroadcast: boolean;
   displayMasthead: boolean;
   displayNavigation: boolean;
+  displayPrimaryNav: boolean;
   displayFooterLinks: boolean;
   displayFeedback: boolean;
   displayVersion: boolean;
@@ -47,4 +50,14 @@ export interface LayoutProps extends Partial<LayoutDisplay> {
   logo?: LogoConfig;
   /** Colonel mode enables admin features */
   colonel?: boolean;
+}
+
+/**
+ * Extended layout properties for ImprovedLayout component
+ */
+export interface ImprovedLayoutProps extends LayoutProps {
+  /** Whether to show the sidebar */
+  showSidebar?: boolean;
+  /** Sidebar position */
+  sidebarPosition?: 'left' | 'right';
 }

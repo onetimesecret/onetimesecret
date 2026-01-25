@@ -1,40 +1,79 @@
 # lib/onetime/mail.rb
+#
+# frozen_string_literal: true
 
-require_relative 'mail/views'
-
-require_relative 'mail/mailer/base_mailer'
-require_relative 'mail/mailer/smtp_mailer'
-require_relative 'mail/mailer/sendgrid_mailer'
-require_relative 'mail/mailer/ses_mailer'
+# Unified email system for Onetime Secret.
+#
+# Supports multiple delivery backends:
+#   - SMTP (via mail gem)
+#   - AWS SES (via aws-sdk-sesv2)
+#   - SendGrid (via REST API)
+#   - Logger (for development/testing)
+#
+# Templates use ERB and support both text and HTML formats.
+# Designed for future ruby-i18n integration.
+#
+# Configuration is read from OT.conf['emailer'] or environment variables.
+#
+# Example config (etc/config.yaml):
+#   emailer:
+#     mode: smtp  # smtp, ses, sendgrid, or logger
+#     from: noreply@example.com
+#     from_name: Onetime Secret
+#     host: smtp.example.com
+#     port: 587
+#     user: username
+#     pass: password
+#     tls: true
+#
+# Example usage:
+#   require 'onetime/mail'
+#
+#   # Send using named template
+#   Onetime::Mail::Mailer.deliver(:secret_link,
+#     secret: secret,
+#     recipient: "user@example.com",
+#     sender_email: "sender@example.com"
+#   )
+#
+#   # Or use template class directly
+#   template = Onetime::Mail::Templates::SecretLink.new(...)
+#   Onetime::Mail::Mailer.deliver_template(template)
+#
+require_relative 'mail/mailer'
 
 module Onetime
   module Mail
-    @mailer = nil
+    # Exception raised when email delivery fails.
+    # Used to distinguish mail-specific errors from other failures
+    # and enable appropriate retry/rejection logic in workers.
+    class DeliveryError < StandardError
+      attr_reader :original_error, :transient
 
-    # Returns the configured mailer instance
-    def self.mailer
-      @mailer ||= begin
-        provider = OT.conf[:emailer][:provider] || 'smtp'
-        from = OT.conf[:emailer][:from]
-        fromname = OT.conf[:emailer][:fromname]
+      # @param message [String] Error message
+      # @param original_error [Exception, nil] The underlying error
+      # @param transient [Boolean] Whether the error is likely transient (retry-able)
+      def initialize(message, original_error: nil, transient: false)
+        super(message)
+        @original_error = original_error
+        @transient      = transient
+      end
 
-        case provider.to_s.downcase
-        when 'sendgrid'
-          Mailer::SendGridMailer.setup
-          Mailer::SendGridMailer.new(from, fromname)
-        when 'ses'
-          Mailer::SESMailer.setup
-          Mailer::SESMailer.new(from, fromname)
-        else # default to smtp
-          Mailer::SMTPMailer.setup
-          Mailer::SMTPMailer.new(from, fromname)
-        end
+      def transient?
+        @transient
       end
     end
 
-    # Reset the mailer (useful for testing)
-    def self.reset_mailer
-      @mailer = nil
+    # Convenience method for delivering emails
+    # @see Mailer.deliver
+    def self.deliver(template_name, data = {}, locale: 'en')
+      Mailer.deliver(template_name, data, locale: locale)
+    end
+
+    # Convenience method for delivering raw emails
+    # @see Mailer.deliver_raw
+    def self.deliver_raw(email)
+      Mailer.deliver_raw(email)
     end
   end
 end

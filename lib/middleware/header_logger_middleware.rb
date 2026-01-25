@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'logger'
+require_relative 'logging'
 
 # Rack::HeaderLoggerMiddleware
 #
@@ -30,10 +30,11 @@ require 'logger'
 #     use HeaderLoggerMiddleware
 #
 class Rack::HeaderLoggerMiddleware
+  include Middleware::Logging
 
   def initialize(app, logger: nil)
     @app           = app
-    @custom_logger = logger || Logger.new($stdout)
+    @custom_logger = logger
   end
 
   def call(env)

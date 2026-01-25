@@ -1,0 +1,243 @@
+# lib/onetime/logger_methods.rb
+#
+# frozen_string_literal: true
+
+require 'reline' # stdlib
+
+module Onetime
+  # Category-aware logging support for Onetime classes and modules.
+  #
+  # Provides access to SemanticLogger instances scoped to strategic categories:
+  # Auth, Bunny, Familia, HTTP, Jobs, Otto, Rhales, Secret, Session, App (default).
+  #
+  # Usage in classes:
+  #   class MyAuthController
+  #     include Onetime::LoggerMethods
+  #
+  #     def login
+  #       auth_logger.info "Login attempt", email: email, ip: request.ip
+  #       # ...
+  #     end
+  #   end
+  #
+  # Usage with automatic category detection:
+  #   class AccountAPI::Logic::Authentication::AuthenticateSession
+  #     include Onetime::LoggerMethods
+  #
+  #     def perform
+  #       logger.debug "Validating credentials"  # Uses 'Authentication' logger
+  #       # ...
+  #     end
+  #   end
+  #
+  # Thread-local category override:
+  #   def handle_request
+  #     with_log_category('HTTP') do
+  #       logger.info "Processing request"  # Uses 'HTTP' logger
+  #     end
+  #   end
+  #
+  module LoggerMethods
+    # Returns a SemanticLogger instance scoped to the current class.
+    # Attempts to extract a meaningful category from the class name,
+    # falling back to 'App' if no match found.
+    #
+    # @return [SemanticLogger] Logger instance for this class
+    #
+    def logger
+      category = Thread.current[:log_category] || infer_category
+
+      # During early boot before Initializers is extended, get_logger won't exist yet
+      # Fall back to uncached logger for early logging, switch to cached after boot
+      Onetime.get_logger(category)
+    end
+
+    # Access a cached logger instance by name.
+    # Returns the pre-configured logger with the correct level from SetupLoggers.
+    # Falls back to creating uncached logger during early boot.
+    #
+    # @param name [String, Symbol] Logger category name
+    # @return [SemanticLogger::Logger] Cached logger instance
+    #
+    def get_logger(name)
+      cached = Onetime::Runtime.infrastructure&.cached_loggers
+      cached&.[](name.to_s) || SemanticLogger[name.to_s]
+    end
+
+    # Box drawing helper for formatted log output.
+    #
+    # Creates visually distinct boxed messages using Unicode box-drawing characters.
+    # Automatically handles line width calculations and padding for clean alignment.
+    #
+    # @param lines [Array<String>] Lines to display in the box (excluding border)
+    # @param width [Integer] Total internal width of the box (default: 56)
+    # @param logger_method [Symbol] Logger method to use (:li, :ld, :lw, :le)
+    #
+    # @example Simple box
+    #   Onetime.log_box(['Hello, world!'])
+    #   # ╔════════════════════════════════════════════════════════╗
+    #   # ║ Hello, world!                                          ║
+    #   # ╚════════════════════════════════════════════════════════╝
+    #
+    # @example Multi-line with custom width
+    #   Onetime.log_box([
+    #     '✅ DATABASE: Connected 7 models to Redis',
+    #     '   Location: redis:6379/0'
+    #   ])
+    #
+    # @example Different log levels
+    #   Onetime.log_box(['⚠️  Warning message'], logger_method: :lw)
+    #   Onetime.log_box(['Debug info'], logger_method: :ld)
+    #
+    def log_box(lines, width: 52, logger_method: :boot_logger, level: :info)
+      # Box drawing characters
+      top_left     = '╭'  # or: ┏ ┌ ┍ ┎ ┱ ┲ ╒ ╓ ╭ ╔
+      top_right    = '╮'  # or: ┓ ┐ ┑ ┒ ┳ ┴ ╕ ╖ ╮ ╗
+      bottom_left  = '╰'  # or: ┗ └ ┕ ┖ ┹ ┺ ╘ ╙ ╰ ╚
+      bottom_right = '╯'  # or: ┛ ┘ ┙ ┚ ┻ ┼ ╛ ╜ ╯ ╝
+      horizontal   = '─'  # or: ─ ━ ┄ ┅ ┈ ┉ ╌ ╍ ═ ═
+      vertical     = '│'  # or: │ ┃ ┆ ┇ ┊ ┋ ╎ ╏ ║ ║
+
+      # Build the box
+      top_border    = top_left + (horizontal * width) + top_right
+      bottom_border = bottom_left + (horizontal * width) + bottom_right
+      lager         = send(logger_method)
+
+      # Output the box (note: no protection against overly long lines)
+      lager.send(level, top_border)
+      lines.each do |line|
+        padding = width - Reline::Unicode.calculate_width(line) - 2
+        padding = 0 if padding.negative?
+        lager.send(level, "#{vertical} #{line}#{' ' * (padding)} #{vertical}")
+      end
+      lager.send(level, bottom_border)
+    end
+
+    # Category-specific logger accessors
+    #
+    # Uses cached logger instances from Onetime::Initializers to preserve level
+    # settings. Falls back to uncached loggers during early boot before
+    # get_logger is available. Add new categories to logging.yaml.
+    def app_logger
+      Onetime.get_logger('App')
+    end
+
+    def billing_logger
+      Onetime.get_logger('Billing')
+    end
+
+    def boot_logger
+      Onetime.get_logger('Boot')
+    end
+
+    def bunny_logger
+      Onetime.get_logger('Bunny')
+    end
+
+    def auth_logger
+      Onetime.get_logger('Auth')
+    end
+
+    def familia_logger
+      Onetime.get_logger('Familia')
+    end
+
+    def http_logger
+      Onetime.get_logger('HTTP')
+    end
+
+    def otto_logger
+      Onetime.get_logger('Otto')
+    end
+
+    def rhales_logger
+      Onetime.get_logger('Rhales')
+    end
+
+    def scheduler_logger
+      Onetime.get_logger('Scheduler')
+    end
+
+    def secret_logger
+      Onetime.get_logger('Secret')
+    end
+
+    def session_logger
+      Onetime.get_logger('Session')
+    end
+
+    def sequel_logger
+      Onetime.get_logger('Sequel')
+    end
+
+    def workers_logger
+      Onetime.get_logger('Workers')
+    end
+
+    # Execute block with a specific log category via thread-local variable.
+    #
+    # Enables shared utilities and cross-cutting concerns to log under
+    # appropriate operational categories without coupling to specific loggers.
+    # Thread-safe - each request/thread maintains independent category context.
+    #
+    # @param category [String, Symbol] The log category to use
+    # @yield Block to execute with the specified category
+    #
+    # @example Cross-cutting concerns logging under appropriate categories
+    #   class RequestProcessor
+    #     def handle_auth_request
+    #       with_log_category('Auth') do
+    #         logger.info "Processing authentication"  # → Auth logs
+    #       end
+    #     end
+    #
+    #     def handle_session_request
+    #       with_log_category('Session') do
+    #         logger.info "Processing session"  # → Session logs
+    #       end
+    #     end
+    #   end
+    #
+    def with_log_category(category)
+      old_category                  = Thread.current[:log_category]
+      Thread.current[:log_category] = category.to_s
+      yield
+    ensure
+      Thread.current[:log_category] = old_category
+    end
+
+    private
+
+    # Infer log category from class name by checking for known patterns.
+    #
+    # Maps class names to strategic operational categories, enabling automatic
+    # log categorization without manual wiring. Supports monitoring, debugging,
+    # and compliance requirements by routing logs to appropriate operational
+    # contexts.
+    #
+    # @return [String] The inferred category name ('App' if no pattern matches)
+    #
+    def infer_category
+      class_name = self.class.name
+
+      # Check for strategic category patterns in class name
+      category_patterns = {
+        /Authentication|Auth(?!or)/i => 'Auth',
+        /Familia/i => 'Familia',
+        /HTTP|Request|Response|Controller/i => 'HTTP',
+        /Jobs|Worker|Publisher|Scheduler/i => 'Jobs',
+        /Otto/i => 'Otto',
+        /Rhales/i => 'Rhales',
+        /Secret|Metadata/i => 'Secret',
+        /Sequel/i => 'Sequel',
+        /Session/i => 'Session',
+      }
+
+      category_patterns.each do |pattern, category|
+        return category if class_name.match?(pattern)
+      end
+
+      'App' # default fallback
+    end
+  end
+end

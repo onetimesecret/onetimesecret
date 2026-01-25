@@ -1,3 +1,5 @@
+// src/schemas/errors/wrapper.ts
+
 import type { ApplicationError, ErrorSeverity, ErrorType } from './types';
 import { applicationErrorSchema } from './types';
 

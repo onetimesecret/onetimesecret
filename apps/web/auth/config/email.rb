@@ -1,0 +1,40 @@
+# apps/web/auth/config/email.rb
+#
+# frozen_string_literal: true
+
+require 'onetime/mail'
+
+# Load email submodules
+require_relative 'email/helpers'
+require_relative 'email/verify_account'
+require_relative 'email/reset_password'
+require_relative 'email/email_auth'
+require_relative 'email/delivery'
+
+module Auth::Config::Email
+  def self.configure(auth)
+    # Configure Rodauth email settings (shared across all email operations)
+    auth.email_from Onetime::Mail::Mailer.from_address
+    auth.email_subject_prefix ''  # Templates handle their own prefixes
+
+    # Load sub-configurations in dependency order:
+    # 1. Helpers must be first: defines methods used by template blocks
+    Helpers.configure(auth)
+
+    # 2. Email templates (use helper methods)
+    # Only configure verify_account email if the feature is enabled
+    # (verify_account is disabled in test mode via YAML config)
+    if Onetime.auth_config.verify_account_enabled?
+      VerifyAccount.configure(auth)
+    end
+    ResetPassword.configure(auth)
+
+    # NOTE: email_auth email template is configured in features/email_auth.rb
+    # after the :email_auth feature is enabled (the method requires the feature)
+
+    # 3. Delivery mechanism (intercepts all email sending)
+    Delivery.configure(auth)
+
+    OT.info '[email] Email templates and delivery configured'
+  end
+end

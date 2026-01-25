@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "text": "Selettore colore",
+    "sha256": "ba42602c"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Corrente {0}: {1}. Fare clic per scorrere le opzioni",
+    "sha256": "84bf49e6"
+  },
+  "web.branding.use_setting": {
+    "text": "Usa impostazione",
+    "sha256": "8a18d118"
+  },
+  "web.branding.font_family": {
+    "text": "Famiglia font",
+    "sha256": "f81339da"
+  },
+  "web.branding.corner_style": {
+    "text": "Stile angoli",
+    "sha256": "fcb3ecdf"
+  },
+  "web.branding.brand_color": {
+    "text": "Colore brand",
+    "sha256": "db3183e3"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Anteprima della vista del destinatario quando accede al vostro link sicuro",
+    "sha256": "199c165f"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Anteprima e personalizzazione",
+    "sha256": "215d3659"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Passa alla visualizzazione browser Safari",
+    "sha256": "6e0fe791"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
+  },
+  "web.branding.maximize_window": {
+    "text": "Massimizza finestra",
+    "sha256": "45d23969"
+  },
+  "web.branding.minimize_window": {
+    "text": "Riduci finestra",
+    "sha256": "5cd54386"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Passa alla visualizzazione browser Edge",
+    "sha256": "a8fcd82d"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 caratteri",
+    "sha256": "e36598ef"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Usa il telefono per scansionare il codice QR",
+    "sha256": "99ecf59f"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Contatta onboarding{'@'}example.com per qualsiasi domanda",
+    "sha256": "bee120a7"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Queste istruzioni saranno mostrate ai destinatari prima che rivelino il contenuto segreto",
+    "sha256": "9d5a6334"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Queste istruzioni saranno mostrate ai destinatari dopo la rivelazione del contenuto segreto",
+    "sha256": "9f82bd94"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Istruzioni pre-visualizzazione",
+    "sha256": "a299422e"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Istruzioni post-visualizzazione",
+    "sha256": "72ecc23a"
+  },
+  "web.branding.instructions": {
+    "text": "Istruzioni",
+    "sha256": "934652dc"
+  },
+  "web.branding.logo_controls": {
+    "text": "Controlli logo",
+    "sha256": "43e9a2d7"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Clicca per caricare un logo. Dimensione consigliata: 128x128 pixel. Dimensione massima del file: 1MB. Formati supportati: PNG, JPG, SVG",
+    "sha256": "a35452bf"
+  },
+  "web.branding.upload_logo": {
+    "text": "Carica logo",
+    "sha256": "c3330082"
+  },
+  "web.branding.loading_preview": {
+    "text": "Caricamento anteprima...",
+    "sha256": "c02130fa"
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Anteprima di come i destinatari vedranno i vostri segreti testando il pulsante \"Visualizza segreti\"",
+    "sha256": "3b58a297"
+  },
+  "web.branding.eye_icon": {
+    "text": "Icona occhio",
+    "sha256": "7f605d3c"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Clicca sull'immagine di anteprima qui sotto per aggiornare il tuo logo (si consiglia un minimo di 128x128 pixel, 1MB max)",
+    "sha256": "77a19049"
+  },
+  "web.branding.image_icon": {
+    "text": "Icona immagine",
+    "sha256": "b0d64fcf"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Utilizzare i controlli in alto per personalizzare il colore del marchio, gli stili e le istruzioni per i destinatari",
+    "sha256": "d6287134"
+  },
+  "web.branding.customization_icon": {
+    "text": "Icona personalizzazione",
+    "sha256": "bde04d31"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Le modifiche non sono state salvate. Sei sicuro?",
+    "sha256": "184b6a83"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Impossibile caricare le impostazioni del brand",
+    "sha256": "a7a1575e"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i tuoi messaggi sicuri. Puoi: - Personalizzare colori e font usando i controlli sopra - Caricare un logo (dimensione minima consigliata 128x128 pixel, max 1MB) - Testare l'anteprima usando il pulsante \"Visualizza segreto\"",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i vostri messaggi protetti. È possibile: - Personalizzare i colori e i caratteri utilizzando i controlli in alto - Caricare un logo (si consiglia un minimo di 128x128 pixel, 1MB al massimo) - Testare l'anteprima utilizzando il pulsante \"Visualizza segreto\"",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Kanji giapponese '秘' (himitsu) che significa 'segreto' o 'confidenziale'",
+    "sha256": "1e04ba2e"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Powered by Onetime Secret",
+    "sha256": "935442d0"
+  },
+  "web.branding.heading_logo": {
+    "text": "Logo {0}",
+    "sha256": "3a3c98ed"
+  },
+  "web.branding.edge": {
+    "text": "Edge",
+    "sha256": "0f82fe72"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Passa all'anteprima Edge",
+    "sha256": "83883d84"
+  },
+  "web.branding.safari": {
+    "text": "Safari",
+    "sha256": "5f033039"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Passa all'anteprima Safari",
+    "sha256": "f24ac447"
+  }
+}

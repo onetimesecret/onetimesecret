@@ -1,69 +1,79 @@
+# Services
 
-### Service vs. Utility
+This directory contains service modules that provide consistent interfaces for
+interacting with external resources and encapsulating complex logic.
 
-#### What Makes This a "Service" vs. a Utility?
+## Bootstrap State Architecture
 
-1. **Service Characteristics**:
-   - Stateless (typically)
-   - Encapsulates complex logic
-   - Provides a consistent interface for interacting with external resources
-   - Often represents a domain-specific abstraction
-   - Can be easily mocked/tested in isolation
+Server-injected state is accessed through a two-phase architecture:
 
-2. **Utility Characteristics**:
-   - Pure functions
-   - Typically stateless
-   - Simple, direct transformations
-   - No complex logic or side effects
+### Phase 0: Pre-Pinia Access (`bootstrap.service.ts`)
+
+For code that runs before Pinia is initialized (e.g., router guards, early
+initialization), use the bootstrap service:
 
 ```typescript
-// Service (more robust implementation)
-export const WindowService = {
-  get(key: string) { /* complex logic */ },
-  has(key: string) { /* additional checks */ },
-  getMultiple(keys: string[]) { /* aggregation logic */ }
-};
+import { getBootstrapValue, getBootstrapSnapshot } from '@/services/bootstrap.service';
 
-// Utility (just a function)
-function getSafeWindowProperty(key: string) {
-  return window[key];
-}
+// Get a single value
+const locale = getBootstrapValue('locale');
+
+// Get the full snapshot
+const snapshot = getBootstrapSnapshot();
 ```
 
-#### Why Use a Service in Vue 3?
+### Phase 1: Pinia Store Access (`bootstrapStore.ts`)
 
-1. **Separation of Concerns**
-   ```typescript
-   // Without service
-   const language = typeof window !== 'undefined' ? window.language : 'en';
+Once Pinia is initialized, use the bootstrap store for reactive state:
 
-   // With WindowService
-   const language = WindowService.get('language') ?? 'en';
-   ```
+```typescript
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 
-2. **Testability**
-   ```typescript
-   // Easy to mock in tests
-   jest.mock('./window-service', () => ({
-     get: jest.fn().mockReturnValue('test-language')
-   }));
-   ```
+const bootstrap = useBootstrapStore();
+const { authenticated, locale, cust } = storeToRefs(bootstrap);
 
-3. **Cross-Cutting Concerns**
-   - Consistent interface
-   - SSR compatibility
-   - Error handling
-   - Logging
-   - Type safety
+// Update after API calls
+await bootstrap.refresh();
+```
 
+## API Endpoint
 
-### Conclusion
+The bootstrap state is refreshed via `/bootstrap/me` endpoint. This
+endpoint returns the current user's authentication state, configuration, and
+feature flags.
 
-While the WindowService might seem like a utility at first glance, it provides a
-more robust, flexible, and type-safe approach to window object interaction. It's
-not just about accessing properties, but creating a consistent, testable, and
-extensible interface.
+## Migration Notes
 
-The service pattern allows for future enhancements like logging, more complex
-retrieval logic, and easier mocking in tests, which a simple utility function
-wouldn't easily support.
+The `WindowService` (`window.service.ts`) was deprecated and removed as part of
+the bootstrap store migration (Issue #2365). All access to server-injected state
+should now go through:
+
+1. `bootstrap.service.ts` - For pre-Pinia access (Phase 0)
+2. `bootstrapStore.ts` - For reactive Pinia access (Phase 1)
+
+Direct access to `window.__BOOTSTRAP_STATE__` is prohibited by ESLint rule.
+The ESLint configuration includes exceptions for:
+- `bootstrap.service.ts` (the only authorized accessor)
+- Type declaration files (`global.d.ts`, `window.d.ts`)
+
+## Service vs. Utility
+
+### Service Characteristics
+- Stateless (typically)
+- Encapsulates complex logic
+- Provides a consistent interface for interacting with external resources
+- Often represents a domain-specific abstraction
+- Can be easily mocked/tested in isolation
+
+### Utility Characteristics
+- Pure functions
+- Typically stateless
+- Simple, direct transformations
+- No complex logic or side effects
+
+### Why Use Services in Vue 3?
+
+1. **Separation of Concerns** - Decouple business logic from components
+2. **Testability** - Easy to mock in tests
+3. **Cross-Cutting Concerns** - Consistent interface, SSR compatibility, error handling, logging, type safety

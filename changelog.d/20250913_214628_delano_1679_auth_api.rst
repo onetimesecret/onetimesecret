@@ -1,0 +1,11 @@
+.. A new scriv changelog fragment.
+..
+.. Uncomment the section that is right (remove the leading dots).
+.. For top level release notes, leave all the headers commented out.
+..
+
+Changed
+-------
+
+- Updated authentication configuration structure with unified session settings and mode-specific configurations for basic and advanced auth modes.
+- Enhanced AuthConfig class to support environment variable overrides and improved error handling with detailed configuration guidance.

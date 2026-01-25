@@ -1,8 +1,9 @@
+# lib/middleware/handle_invalid_percent_encoding.rb
+#
+# frozen_string_literal: true
 
-require 'json'
-require 'logger'
 require 'rack'
-
+require_relative 'logging'
 
 # Rack::HandleInvalidPercentEncoding
 #
@@ -22,6 +23,8 @@ require 'rack'
 # https://stackoverflow.com/questions/24648206/ruby-on-rails-invalid-byte-sequence-in-utf-8-due-to-bot/24727310#24727310
 #
 class Rack::HandleInvalidPercentEncoding
+  include Middleware::Logging
+
   @default_content_type = 'application/json'
   @default_charset      = 'utf-8'
 
@@ -29,12 +32,15 @@ class Rack::HandleInvalidPercentEncoding
     attr_reader :default_content_type, :default_charset
   end
 
-  attr_reader :logger
-
-  def initialize(app, io: $stdout, check_enabled: nil)
-    @app = app
-    @logger = Logger.new(io, level: :info)
+  def initialize(app, logger: nil, check_enabled: nil)
+    @app           = app
+    @custom_logger = logger
     @check_enabled = check_enabled  # override the check_enabled? method
+  end
+
+  # Override logger to allow custom logger injection
+  def logger
+    @custom_logger || super
   end
 
   def call(env)
@@ -59,13 +65,11 @@ class Rack::HandleInvalidPercentEncoding
       # See https://github.com/rack/rack/issues/337#issuecomment-46453404
       #
       request.params
+    rescue ArgumentError => ex
+      raise ex unless ex.message =~ /invalid %-encoding/
 
-    rescue ArgumentError => e
-      raise e unless e.message =~ /invalid %-encoding/
-
-      return handle_exception(env, e)
+      handle_exception(env, ex)
     else
-
       @app.call(env)
     end
   end
@@ -78,14 +82,15 @@ class Rack::HandleInvalidPercentEncoding
   def check_enabled?(app)
     return true if @check_enabled
     return false unless defined?(Otto) && app.is_a?(Otto)
-    name, route = app.route_definitions.first
+
+    name, route     = app.route_definitions.first
     setting_enabled = route.klass.respond_to?(:check_uri_encoding) && route.klass.check_uri_encoding
     logger.debug "[handle-invalid-uri-encoding] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
-    return setting_enabled
+    setting_enabled
   end
 
   def handle_exception(env, exception)
-    rack_input = env['rack.input']&.read || ''
+    env['rack.input']&.read || ''
     env['rack.input'].rewind
 
     errmsg = exception.message
@@ -95,9 +100,9 @@ class Rack::HandleInvalidPercentEncoding
     status = 400
     body   = { error: 'Bad Request', message: errmsg }.to_json
 
-    cls = self.class
+    cls     = self.class
     headers = {
-      'Content-Type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
+      'content-type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
       'Content-Length': body.bytesize.to_s,
     }
 

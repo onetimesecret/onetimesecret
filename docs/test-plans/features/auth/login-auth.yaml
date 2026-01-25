@@ -1,0 +1,259 @@
+# docs/test-plans/login-auth.yaml
+---
+# LLM-Optimized Test Cases: Login and Authentication
+# Schema version: 1.0.0
+
+suite:
+  id: login-auth
+  name: Login and Authentication Flow
+  feature: User authentication via SignInForm component
+  tags: [auth, login, mfa, session, security]
+
+definitions:
+  users:
+    anonymous:
+      auth: logged_out
+      description: Unauthenticated user on login page
+    valid_credentials:
+      auth: logged_out
+      description: User with valid test credentials
+    mfa_enabled:
+      auth: logged_out
+      description: User with MFA enabled on account
+
+tests:
+  - id: TC-LA-001
+    intent: Valid credentials successfully authenticate user and redirect to home page
+    setup:
+      auth: logged_out
+      state:
+        test_email: testuser@example.com
+        test_password: validPassword123
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: testuser@example.com
+        password: validPassword123
+    verify:
+      - User is redirected to home page after successful login
+      - url:
+          pattern: "^/$"
+          description: Redirected to home page
+      - No error message is displayed
+      - selector: "#signin-error"
+        assertion: hidden
+      - User menu or authenticated UI elements are visible
+      - selector: "[data-testid='header-dashboard-link']"
+        assertion: visible
+        description: Dashboard link visible in user menu indicates authenticated state
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: true
+    priority: critical
+    severity: blocker
+    type: functional
+    covers: [SignInForm, useAuth.login, authStore]
+
+  - id: TC-LA-002
+    intent: Invalid password shows generic error without revealing email existence
+    setup:
+      auth: logged_out
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: testuser@example.com
+        password: wrongPassword123
+    verify:
+      - Error message is displayed in alert container
+      - Error message is generic (does not reveal if email exists)
+      - selector: "[role='alert']"
+        assertion: visible
+      - Form remains on login page (no redirect)
+      - url:
+          pattern: "^/signin"
+          description: URL still on signin page
+      - Password field is available for re-entry
+      - selector: "input#password"
+        assertion: visible
+        state: enabled
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: false
+    priority: critical
+    severity: blocker
+    type: error
+    covers: [SignInForm, useAuth.login, security]
+    notes: Error message must not distinguish between email not found and wrong password
+
+  - id: TC-LA-003
+    intent: User with MFA enabled is redirected to MFA verification after valid credentials
+    setup:
+      auth: logged_out
+      state:
+        mfa_enabled: true
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: mfa-user@example.com
+        password: validPassword123
+    verify:
+      - User is redirected to /mfa-verify
+      - url:
+          pattern: "^/mfa-verify"
+          description: Redirected to MFA verification page
+      - MFA verification form is displayed
+      - selector: "#mfa-verify-heading"
+        assertion: visible
+        description: MFA verification heading present
+      - selector: "#otp-instructions"
+        assertion: visible
+        description: OTP input instructions displayed
+      - No error message shown (credentials were valid)
+      - selector: "#otp-error"
+        assertion: hidden
+      - User is not fully authenticated yet
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: false
+            awaiting_mfa: true
+    postconditions:
+      - bootstrapStore.awaiting_mfa is true
+      - bootstrapStore.authenticated is false
+    priority: critical
+    severity: blocker
+    type: functional
+    covers: [SignInForm, useAuth.login, MFA flow, bootstrapStore]
+    notes: Login succeeds but returns mfa_required flag triggering redirect to /mfa-verify
+
+  - id: TC-LA-004
+    intent: User with pending plan selection is redirected to billing after login
+    setup:
+      auth: logged_out
+      state:
+        pending_plan_selection: true
+    target: /signin?plan=identity&interval=month
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: newuser@example.com
+        password: validPassword123
+    verify:
+      - User is redirected to billing plans page after successful login
+      - url:
+          pattern: "^/billing/[^/]+/plans"
+          description: Redirected to billing plans page with org extid
+      - URL contains billing path with plan parameters preserved
+      - url:
+          query_params:
+            plan: identity
+            interval: month
+          description: Plan parameters preserved in redirect
+      - Plan selection UI is displayed
+      - selector: "[data-testid='plan-selector'], .plan-card, [aria-label*='plan']"
+        assertion: visible
+        description: Plan selection UI component rendered
+    priority: high
+    severity: major
+    type: functional
+    covers: [SignInForm, useAuth.login, handleBillingRedirect, extractBillingParams]
+    notes: Billing params from query string are passed through login and trigger post-auth redirect
+
+  - id: TC-LA-005
+    intent: Remember me checkbox extends session duration across browser restarts
+    setup:
+      auth: logged_out
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: testuser@example.com
+        password: validPassword123
+        remember_me: true
+    verify:
+      - User is authenticated after login
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: true
+      - Remember me checkbox was checked before submit
+      - selector: "input#remember-me"
+        assertion: checked
+      - Session cookie has extended expiration (not session-only)
+      - cookie:
+          name: rack.session
+          assert:
+            expires: not_session_only
+          description: Cookie should have expiry date, not be session-only
+      - User remains logged in on page reload
+      - action: reload
+      - api:
+          endpoint: GET /bootstrap/me
+          assert:
+            authenticated: true
+          description: Still authenticated after page reload
+    priority: high
+    severity: major
+    type: functional
+    covers: [SignInForm, useAuth.login, session persistence]
+    notes: Full test requires simulating browser restart; partial test verifies checkbox state and cookie type
+
+  - id: TC-LA-006
+    intent: Unverified account receives appropriate feedback during login attempt
+    setup:
+      auth: logged_out
+      state:
+        account_verified: false
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: unverified@example.com
+        password: validPassword123
+    verify:
+      - Appropriate message about email verification is displayed
+      - selector: "[role='alert']"
+        assertion: visible
+        text_contains: ["verify", "verification", "confirm"]
+        description: Alert message contains verification-related text
+      - User is either blocked from login or shown verification prompt
+      - branching:
+          - condition: blocked
+            verify:
+              - url:
+                  pattern: "^/signin"
+                  description: Remains on signin page
+              - api:
+                  endpoint: GET /bootstrap/me
+                  assert:
+                    authenticated: false
+          - condition: allowed_with_warning
+            verify:
+              - selector: "[data-testid='verification-warning'], .verification-banner"
+                assertion: visible
+                description: Verification warning banner displayed
+              - api:
+                  endpoint: GET /bootstrap/me
+                  assert:
+                    authenticated: true
+                    verified: false
+      - Path to request new verification email is available or indicated
+      - selector: "a[href*='verify'], a[href*='resend'], button:has-text('resend')"
+        assertion: visible
+        description: Link or button to resend verification email
+    priority: high
+    severity: major
+    type: error
+    covers: [SignInForm, useAuth.login, account verification]
+    notes: Behavior depends on site configuration - may allow login with warning or block until verified

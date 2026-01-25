@@ -1,0 +1,488 @@
+# .github/actions/check-ci-metrics/action.yml
+---
+# ==============================================================================
+# Check CI Metrics - Composite Action
+# ==============================================================================
+# Version: 2.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Validates CI pipeline performance against established tier-based targets and
+# generates a summary report. Runs as the final job to capture timing from all
+# prior jobs.
+#
+# Tier Structure (maps to ci.yml job tiers):
+#   - Tier 1: Lint & Build (Ruby Lint, TypeScript Lint, Build Frontend Assets)
+#   - Tier 2: Unit Tests (Ruby Unit Tests, TypeScript Unit Tests)
+#   - Tier 3: Integration Tests (Simple, Full, Disabled auth modes)
+#   - Tier 4: Container Validation
+#
+# Performance Targets (cumulative from workflow start, revised 2025-12):
+#   - Tier 1: <60s   (lint + build complete)
+#   - Tier 2: <120s  (unit tests complete)
+#   - Tier 3: <210s  (integration tests complete)
+#   - Tier 4: <400s  (container validated, full pipeline)
+#
+# Outputs:
+#   - GitHub Step Summary with timing breakdown by tier
+#   - Warning annotations when targets exceeded
+#   - Failure on critical threshold violations (optional)
+#
+# Manual Re-evaluation:
+#   To recalculate targets based on recent runs:
+#
+#   1. List recent successful CI runs:
+#      gh run list --workflow=ci.yml --limit 10 --json databaseId,conclusion \
+#        --jq '.[] | select(.conclusion == "success") | .databaseId'
+#
+#   2. Get job timing for a run (shows ISO timestamps):
+#      gh run view $run_id --json jobs --jq '.jobs[] |
+#        "\(.name): started=\(.startedAt) completed=\(.completedAt)"'
+#
+#   3. Calculate duration using jq (cross-platform):
+#      gh run view $run_id --json jobs --jq '
+#        .jobs[] | select(.name == "Ruby Lint") |
+#        ((.completedAt | fromdateiso8601) - (.startedAt | fromdateiso8601)) as $dur |
+#        "\(.name): \($dur)s"'
+#
+#   4. Collect data from 3-5 runs and average per tier
+#
+#   5. Update targets below based on: avg + 20% buffer
+#
+# ==============================================================================
+
+name: Check CI Metrics
+description: Validate CI job timing against tier-based performance targets
+
+inputs:
+  # GitHub context inputs (required for API calls)
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+  repository:
+    description: 'Repository in owner/repo format'
+    required: true
+  run-id:
+    description: 'Workflow run ID'
+    required: true
+
+  # Target thresholds (seconds, cumulative from workflow start)
+  target-tier1:
+    description: 'Target seconds for Tier 1 (Lint & Build)'
+    required: false
+    default: '60'
+  target-tier2:
+    description: 'Target seconds for Tier 2 (Unit Tests)'
+    required: false
+    default: '120'
+  target-tier3:
+    description: 'Target seconds for Tier 3 (Integration Tests)'
+    required: false
+    default: '210'
+  target-tier4:
+    description: 'Target seconds for Tier 4 (Container / Full Pipeline)'
+    required: false
+    default: '400'
+
+  # Behavior
+  fail-on-violation:
+    description: 'Fail the job if critical thresholds exceeded'
+    required: false
+    default: 'false'
+  warning-buffer-percent:
+    description: 'Percent over target to trigger warning (vs failure)'
+    required: false
+    default: '20'
+
+outputs:
+  tier1-seconds:
+    description: 'Seconds to Tier 1 complete'
+    value: ${{ steps.calculate.outputs.tier1 }}
+  tier2-seconds:
+    description: 'Seconds to Tier 2 complete'
+    value: ${{ steps.calculate.outputs.tier2 }}
+  tier3-seconds:
+    description: 'Seconds to Tier 3 complete'
+    value: ${{ steps.calculate.outputs.tier3 }}
+  tier4-seconds:
+    description: 'Seconds to Tier 4 complete (full pipeline)'
+    value: ${{ steps.calculate.outputs.tier4 }}
+  status:
+    description: 'Overall status: pass, incomplete, warning, fail, or unknown'
+    value: ${{ steps.evaluate.outputs.status }}
+
+runs:
+  using: composite
+  steps:
+    - name: Fetch tier completion times from GitHub API
+      id: timing
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        # gh CLI is pre-installed on GitHub-hosted runners
+        # GH_TOKEN provides authentication for API calls
+
+        REPOSITORY="${{ inputs.repository }}"
+        RUN_ID="${{ inputs.run-id }}"
+
+        # Fetch workflow run start time
+        WORKFLOW_START=$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}" --jq '.run_started_at' 2>/dev/null)
+        if [ -z "$WORKFLOW_START" ]; then
+          echo "::warning::Failed to fetch workflow start time from API"
+        fi
+        echo "workflow_start=$WORKFLOW_START" >> $GITHUB_OUTPUT
+
+        # Fetch job data for current workflow run
+        if ! JOBS_JSON=$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs" --jq '.jobs' 2>/dev/null); then
+          echo "::warning::Failed to fetch job data from API, metrics will show N/A"
+          echo "tier1=" >> $GITHUB_OUTPUT
+          echo "tier2=" >> $GITHUB_OUTPUT
+          echo "tier3=" >> $GITHUB_OUTPUT
+          echo "tier4=" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Validate expected job names exist (warns if job names change)
+        EXPECTED_JOBS=(
+          "T1 · Ruby Lint"
+          "T1 · TypeScript Lint"
+          "T1 · Build Frontend Assets"
+          "T2 · Ruby Unit Tests"
+          "T2 · TypeScript Unit Tests"
+          "T3 · Ruby Integration (Simple Mode)"
+          "T3 · Ruby Integration (Full Mode - SQLite)"
+          "T3 · Ruby Integration (Full Mode - PostgreSQL)"
+          "T3 · Ruby Integration (Disabled Mode)"
+          "T4 · Container Validation"
+          "T5 · Aggregate Test Results"
+        )
+        ACTUAL_JOBS=$(echo "$JOBS_JSON" | jq -r '.[].name')
+        for job in "${EXPECTED_JOBS[@]}"; do
+          if ! echo "$ACTUAL_JOBS" | grep -qF "$job"; then
+            echo "::debug::Expected job '$job' not found in workflow. Job names may have changed."
+          fi
+        done
+
+        # Tier 1: Lint & Build - latest completion of all Tier 1 jobs
+        TIER1_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(
+              .name == "T1 · Ruby Lint" or
+              .name == "T1 · TypeScript Lint" or
+              .name == "T1 · Build Frontend Assets"
+            )
+            | select(.completed_at != null) | .completed_at]
+          | sort | last // empty
+        ')
+
+        # Tier 2: Unit Tests - latest completion of all Tier 2 jobs
+        TIER2_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(
+              .name == "T2 · Ruby Unit Tests" or
+              .name == "T2 · TypeScript Unit Tests"
+            )
+            | select(.completed_at != null) | .completed_at]
+          | sort | last // empty
+        ')
+
+        # Tier 3: Integration Tests - latest completion of all Tier 3 jobs
+        TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(
+              .name == "T3 · Ruby Integration (Simple Mode)" or
+              .name == "T3 · Ruby Integration (Full Mode - SQLite)" or
+              .name == "T3 · Ruby Integration (Full Mode - PostgreSQL)" or
+              .name == "T3 · Ruby Integration (Disabled Mode)"
+            )
+            | select(.completed_at != null) | .completed_at]
+          | sort | last // empty
+        ')
+
+        # Tier 4: Container Validation
+        TIER4_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(.name == "T4 · Container Validation")
+            | select(.completed_at != null) | .completed_at]
+          | first // empty
+        ')
+
+        echo "::debug::Tier 1 complete: $TIER1_COMPLETE"
+        echo "::debug::Tier 2 complete: $TIER2_COMPLETE"
+        echo "::debug::Tier 3 complete: $TIER3_COMPLETE"
+        echo "::debug::Tier 4 complete: $TIER4_COMPLETE"
+
+        echo "tier1=$TIER1_COMPLETE" >> $GITHUB_OUTPUT
+        echo "tier2=$TIER2_COMPLETE" >> $GITHUB_OUTPUT
+        echo "tier3=$TIER3_COMPLETE" >> $GITHUB_OUTPUT
+        echo "tier4=$TIER4_COMPLETE" >> $GITHUB_OUTPUT
+
+    - name: Calculate timing metrics
+      id: calculate
+      shell: bash
+      run: |
+        # Convert ISO 8601 to epoch seconds (portable)
+        iso_to_epoch() {
+          local ts="$1"
+          if [ -z "$ts" ]; then
+            echo ""
+            return
+          fi
+          # Use uname for reliable OS detection
+          if [[ "$(uname)" == "Darwin" ]]; then
+            # BSD date (macOS)
+            date -jf "%Y-%m-%dT%H:%M:%SZ" "$ts" +%s 2>/dev/null || echo ""
+          else
+            # GNU date (Linux)
+            date -d "$ts" +%s 2>/dev/null || echo ""
+          fi
+        }
+
+        WORKFLOW_START="${{ steps.timing.outputs.workflow_start }}"
+        TIER1_COMPLETE="${{ steps.timing.outputs.tier1 }}"
+        TIER2_COMPLETE="${{ steps.timing.outputs.tier2 }}"
+        TIER3_COMPLETE="${{ steps.timing.outputs.tier3 }}"
+        TIER4_COMPLETE="${{ steps.timing.outputs.tier4 }}"
+        NOW_EPOCH=$(date +%s)
+
+        echo "::debug::Workflow start: $WORKFLOW_START"
+        echo "::debug::Tier 1 complete: $TIER1_COMPLETE"
+        echo "::debug::Tier 2 complete: $TIER2_COMPLETE"
+        echo "::debug::Tier 3 complete: $TIER3_COMPLETE"
+        echo "::debug::Tier 4 complete: $TIER4_COMPLETE"
+
+        START_EPOCH=$(iso_to_epoch "$WORKFLOW_START")
+
+        # Validate workflow start time - required for all calculations
+        if [ -z "$WORKFLOW_START" ] || [ -z "$START_EPOCH" ]; then
+          echo "::notice::SKIP: Missing or unparseable workflow start time; CI metrics evaluation skipped"
+          echo "tier1=N/A" >> $GITHUB_OUTPUT
+          echo "tier2=N/A" >> $GITHUB_OUTPUT
+          echo "tier3=N/A" >> $GITHUB_OUTPUT
+          echo "tier4=N/A" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Calculate duration for each tier (cumulative from workflow start)
+        calc_duration() {
+          local complete_time="$1"
+          if [ -n "$complete_time" ] && [ -n "$START_EPOCH" ]; then
+            local complete_epoch=$(iso_to_epoch "$complete_time")
+            if [ -n "$complete_epoch" ]; then
+              echo $((complete_epoch - START_EPOCH))
+              return
+            fi
+          fi
+          echo ""
+        }
+
+        TIER1_DURATION=$(calc_duration "$TIER1_COMPLETE")
+        TIER2_DURATION=$(calc_duration "$TIER2_COMPLETE")
+        TIER3_DURATION=$(calc_duration "$TIER3_COMPLETE")
+        TIER4_DURATION=$(calc_duration "$TIER4_COMPLETE")
+
+        # If Tier 4 not provided, use current time (for full pipeline)
+        if [ -z "$TIER4_DURATION" ] && [ -n "$START_EPOCH" ]; then
+          TIER4_DURATION=$((NOW_EPOCH - START_EPOCH))
+        fi
+
+        echo "tier1=${TIER1_DURATION:-N/A}" >> $GITHUB_OUTPUT
+        echo "tier2=${TIER2_DURATION:-N/A}" >> $GITHUB_OUTPUT
+        echo "tier3=${TIER3_DURATION:-N/A}" >> $GITHUB_OUTPUT
+        echo "tier4=${TIER4_DURATION:-N/A}" >> $GITHUB_OUTPUT
+
+        # Export for next step
+        echo "TIER1_DURATION=$TIER1_DURATION" >> $GITHUB_ENV
+        echo "TIER2_DURATION=$TIER2_DURATION" >> $GITHUB_ENV
+        echo "TIER3_DURATION=$TIER3_DURATION" >> $GITHUB_ENV
+        echo "TIER4_DURATION=$TIER4_DURATION" >> $GITHUB_ENV
+
+    - name: Evaluate against targets
+      id: evaluate
+      shell: bash
+      run: |
+        TARGET_TIER1="${{ inputs.target-tier1 }}"
+        TARGET_TIER2="${{ inputs.target-tier2 }}"
+        TARGET_TIER3="${{ inputs.target-tier3 }}"
+        TARGET_TIER4="${{ inputs.target-tier4 }}"
+        BUFFER="${{ inputs.warning-buffer-percent }}"
+        FAIL_ON_VIOLATION="${{ inputs.fail-on-violation }}"
+
+        STATUS="pass"
+        VIOLATIONS=""
+        METRICS_WITH_DATA=0
+        TOTAL_METRICS=4
+
+        check_metric() {
+          local name="$1"
+          local actual="$2"
+          local target="$3"
+
+          if [ -z "$actual" ] || [ "$actual" = "N/A" ]; then
+            echo "::notice::$name: No data available"
+            return
+          fi
+
+          # We have valid data for this metric
+          METRICS_WITH_DATA=$((METRICS_WITH_DATA + 1))
+
+          local warning_threshold=$((target + target * BUFFER / 100))
+          local critical_threshold=$((target * 2))
+
+          if [ "$actual" -gt "$critical_threshold" ]; then
+            echo "::error::$name: ${actual}s exceeds critical threshold (${critical_threshold}s, 2x target)"
+            STATUS="fail"
+            VIOLATIONS="$VIOLATIONS $name"
+          elif [ "$actual" -gt "$warning_threshold" ]; then
+            echo "::warning::$name: ${actual}s exceeds warning threshold (${warning_threshold}s, target+${BUFFER}%)"
+            if [ "$STATUS" != "fail" ]; then
+              STATUS="warning"
+            fi
+          elif [ "$actual" -gt "$target" ]; then
+            echo "::notice::$name: ${actual}s slightly over target (${target}s)"
+          else
+            echo "::notice::$name: ${actual}s within target (${target}s)"
+          fi
+        }
+
+        check_metric "Tier 1 (Lint & Build)" "$TIER1_DURATION" "$TARGET_TIER1"
+        check_metric "Tier 2 (Unit Tests)" "$TIER2_DURATION" "$TARGET_TIER2"
+        check_metric "Tier 3 (Integration)" "$TIER3_DURATION" "$TARGET_TIER3"
+        check_metric "Tier 4 (Container)" "$TIER4_DURATION" "$TARGET_TIER4"
+
+        # If we have no data at all, status should reflect that
+        if [ "$METRICS_WITH_DATA" -eq 0 ]; then
+          echo "::warning::No timing data available for any tier"
+          STATUS="unknown"
+        elif [ "$METRICS_WITH_DATA" -lt "$TOTAL_METRICS" ] && [ "$STATUS" = "pass" ]; then
+          # Some data missing but what we have is passing
+          STATUS="incomplete"
+        fi
+
+        echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+        if [ "$FAIL_ON_VIOLATION" = "true" ] && [ "$STATUS" = "fail" ]; then
+          echo "::error::CI metrics exceeded critical thresholds:$VIOLATIONS"
+          exit 1
+        fi
+
+    - name: Generate summary report
+      shell: bash
+      run: |
+        TARGET_TIER1="${{ inputs.target-tier1 }}"
+        TARGET_TIER2="${{ inputs.target-tier2 }}"
+        TARGET_TIER3="${{ inputs.target-tier3 }}"
+        TARGET_TIER4="${{ inputs.target-tier4 }}"
+        BUFFER="${{ inputs.warning-buffer-percent }}"
+        STATUS="${{ steps.evaluate.outputs.status }}"
+
+        format_duration() {
+          local seconds="$1"
+          if [ -z "$seconds" ] || [ "$seconds" = "N/A" ]; then
+            echo "N/A"
+            return
+          fi
+          if [ "$seconds" -ge 60 ]; then
+            local mins=$((seconds / 60))
+            local secs=$((seconds % 60))
+            echo "${mins}m ${secs}s"
+          else
+            echo "${seconds}s"
+          fi
+        }
+
+        status_icon() {
+          local actual="$1"
+          local target="$2"
+          if [ -z "$actual" ] || [ "$actual" = "N/A" ]; then
+            echo ":grey_question:"
+            return
+          fi
+          local warning=$((target + target * BUFFER / 100))
+          if [ "$actual" -le "$target" ]; then
+            echo ":white_check_mark:"
+          elif [ "$actual" -le "$warning" ]; then
+            echo ":warning:"
+          else
+            echo ":x:"
+          fi
+        }
+
+        T1_FORMATTED=$(format_duration "$TIER1_DURATION")
+        T2_FORMATTED=$(format_duration "$TIER2_DURATION")
+        T3_FORMATTED=$(format_duration "$TIER3_DURATION")
+        T4_FORMATTED=$(format_duration "$TIER4_DURATION")
+
+        T1_ICON=$(status_icon "$TIER1_DURATION" "$TARGET_TIER1")
+        T2_ICON=$(status_icon "$TIER2_DURATION" "$TARGET_TIER2")
+        T3_ICON=$(status_icon "$TIER3_DURATION" "$TARGET_TIER3")
+        T4_ICON=$(status_icon "$TIER4_DURATION" "$TARGET_TIER4")
+
+        cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+        ## CI Performance Metrics
+
+        | Tier | Jobs | Actual | Target | Status |
+        |------|------|--------|--------|--------|
+        EOF
+
+        echo "| Tier 1 | Lint & Build | $T1_FORMATTED | <${TARGET_TIER1}s | $T1_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tier 2 | Unit Tests | $T2_FORMATTED | <${TARGET_TIER2}s | $T2_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tier 3 | Integration Tests | $T3_FORMATTED | <${TARGET_TIER3}s | $T3_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tier 4 | Container Validation | $T4_FORMATTED | <${TARGET_TIER4}s | $T4_ICON |" >> $GITHUB_STEP_SUMMARY
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        case "$STATUS" in
+          pass)
+            echo "> **Status**: All tiers within targets :rocket:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          incomplete)
+            echo "> **Status**: Partial data - available tiers within targets :white_check_mark:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          warning)
+            echo "> **Status**: Some tiers near threshold :warning:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          fail)
+            echo "> **Status**: Critical thresholds exceeded :x:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          unknown)
+            echo "> **Status**: No timing data available :grey_question:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          *)
+            echo "> **Status**: $STATUS" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac
+
+        cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+
+        <details>
+        <summary>Tier Details</summary>
+
+        **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, Build Frontend Assets
+        **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
+        **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
+        **Tier 4 - Container Validation**: Docker build and health check
+        **Tier 5 - CI Metrics**: Performance validation and reporting
+
+        Times are cumulative from workflow start.
+
+        </details>
+
+        <details>
+        <summary>Re-evaluation Instructions</summary>
+
+        To recalculate targets based on recent runs:
+
+        ```bash
+        # 1. List recent successful CI runs
+        gh run list --workflow=ci.yml --limit 10 --json databaseId,conclusion \
+          --jq '.[] | select(.conclusion == "success") | .databaseId'
+
+        # 2. Get job timing for a run
+        gh run view <RUN_ID> --json jobs --jq '.jobs[] |
+          "\(.name): started=\(.startedAt) completed=\(.completedAt)"'
+
+        # 3. Collect data from 3-5 runs, calculate averages per tier
+        # 4. Update targets in check-ci-metrics/action.yml (add 20% buffer)
+        ```
+
+        Current targets set 2025-12 based on Phase 5 completion data.
+
+        </details>
+        EOF

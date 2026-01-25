@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSRF Protection Test - SameSite=Lax Verification</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; }
+    .test { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+    button { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px 0; }
+    code { background: #e5e5e5; padding: 2px 6px; border-radius: 3px; }
+    .expected { color: #059669; font-weight: bold; }
+    h3 { margin-top: 0; }
+    .endpoint { font-family: monospace; background: #dbeafe; padding: 4px 8px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>CSRF Protection Test</h1>
+  <p>
+    This page tests that <code>SameSite=Lax</code> blocks session cookies on cross-site POST requests.
+    Open this file from a different origin (e.g., <code>file://</code> or another localhost port).
+  </p>
+
+  <h2>Form POST Tests (Cross-Site)</h2>
+
+  <div class="test">
+    <h3>V1 API: <span class="endpoint">POST /api/v1/share</span></h3>
+    <form action="https://dev.onetime.dev/api/v1/share" method="POST">
+      <input type="hidden" name="secret" value="csrf-test-v1">
+      <input type="hidden" name="ttl" value="3600">
+      <button type="submit">Submit to V1</button>
+    </form>
+    <p class="expected">Expected: 401 Unauthorized (no session cookie sent)</p>
+  </div>
+
+  <div class="test">
+    <h3>V2 API: <span class="endpoint">POST /api/v2/secret/conceal</span></h3>
+    <form action="https://dev.onetime.dev/api/v2/secret/conceal" method="POST">
+      <input type="hidden" name="secret" value="csrf-test-v2">
+      <input type="hidden" name="ttl" value="3600">
+      <button type="submit">Submit to V2</button>
+    </form>
+    <p class="expected">Expected: 401 Unauthorized (no session cookie sent)</p>
+  </div>
+
+  <div class="test">
+    <h3>V3 API (Auth): <span class="endpoint">POST /api/v3/secret/conceal</span></h3>
+    <form action="https://dev.onetime.dev/api/v3/secret/conceal" method="POST">
+      <input type="hidden" name="secret" value="csrf-test-v3">
+      <input type="hidden" name="ttl" value="3600">
+      <button type="submit">Submit to V3 (Auth Required)</button>
+    </form>
+    <p class="expected">Expected: 401 Unauthorized (requires session auth)</p>
+  </div>
+
+  <div class="test">
+    <h3>V3 Guest API: <span class="endpoint">POST /api/v3/guest/secret/conceal</span></h3>
+    <form action="https://dev.onetime.dev/api/v3/guest/secret/conceal" method="POST">
+      <input type="hidden" name="secret" value="csrf-test-v3-guest">
+      <input type="hidden" name="ttl" value="3600">
+      <button type="submit">Submit to V3 Guest</button>
+    </form>
+    <p class="expected">Expected: 200 OK or CSRF rejection (guest endpoint allows anonymous)</p>
+  </div>
+
+  <h2>JavaScript Fetch Tests (CORS)</h2>
+
+  <div class="test">
+    <h3>Fetch with Credentials</h3>
+    <p>Tests all API versions via JavaScript fetch with <code>credentials: 'include'</code>.</p>
+    <button onclick="testFetch('v1', '/api/v1/share')">Test V1</button>
+    <button onclick="testFetch('v2', '/api/v2/secret/conceal')">Test V2</button>
+    <button onclick="testFetch('v3', '/api/v3/secret/conceal')">Test V3</button>
+    <button onclick="testFetch('v3-guest', '/api/v3/guest/secret/conceal')">Test V3 Guest</button>
+    <pre id="result">Click a button to run test...</pre>
+    <p class="expected">Expected: CORS error (origin not allowed) or 401/403</p>
+  </div>
+
+  <script>
+    async function testFetch(version, endpoint) {
+      const result = document.getElementById('result');
+      result.textContent = `Testing ${version}...`;
+      try {
+        const response = await fetch('https://dev.onetime.dev' + endpoint, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secret: 'csrf-test-' + version, ttl: 3600 })
+        });
+        result.textContent = `${version}: Status ${response.status} ${response.statusText}`;
+      } catch (error) {
+        result.textContent = `${version}: Blocked - ${error.message}`;
+      }
+    }
+  </script>
+
+  <h2>What This Verifies</h2>
+  <ul>
+    <li><strong>SameSite=Lax</strong>: Cookies NOT sent on cross-site POST (these tests)</li>
+    <li><strong>SameSite=Lax</strong>: Cookies ARE sent on cross-site GET redirects (Stripe checkout)</li>
+    <li><strong>CORS</strong>: Server rejects requests from unauthorized origins</li>
+    <li><strong>Rack::Protection</strong>: Additional CSRF token and Origin header validation</li>
+  </ul>
+
+  <h2>API Endpoint Reference</h2>
+  <table style="width:100%; border-collapse: collapse;">
+    <tr style="background:#e5e5e5;"><th style="padding:8px;text-align:left;">Version</th><th style="padding:8px;text-align:left;">Endpoint</th><th style="padding:8px;text-align:left;">Auth</th></tr>
+    <tr><td style="padding:8px;">V1</td><td style="padding:8px;"><code>POST /api/v1/share</code></td><td style="padding:8px;">Session</td></tr>
+    <tr><td style="padding:8px;">V2</td><td style="padding:8px;"><code>POST /api/v2/secret/conceal</code></td><td style="padding:8px;">noauth (but CSRF protected)</td></tr>
+    <tr><td style="padding:8px;">V3</td><td style="padding:8px;"><code>POST /api/v3/secret/conceal</code></td><td style="padding:8px;">Session required</td></tr>
+    <tr><td style="padding:8px;">V3 Guest</td><td style="padding:8px;"><code>POST /api/v3/guest/secret/conceal</code></td><td style="padding:8px;">noauth (anonymous allowed)</td></tr>
+  </table>
+</body>
+</html>

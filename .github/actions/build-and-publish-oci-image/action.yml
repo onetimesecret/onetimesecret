@@ -1,0 +1,207 @@
+# .github/actions/build-and-publish-oci-image/action.yml
+---
+# ==============================================================================
+# Build and Publish OCI Image - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Builds and publishes OCI images to Docker Hub and GitHub Container Registry.
+# Handles multi-platform builds, metadata extraction, and proper tagging.
+#
+# Migration Note:
+#   Converted from .github/workflows/.build-and-publish-oci-images-reusable.yml
+#   to align with the composite action pattern used in ci.yml
+#
+# Usage:
+#   - uses: ./.github/actions/build-and-publish-oci-image
+#     with:
+#       image-suffix: '-lite'
+#       dockerfile: 'Dockerfile-lite'
+#       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+#       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+#       github-token: ${{ secrets.GITHUB_TOKEN }}
+#
+# Changelog:
+#   1.0.0 - Initial release from reusable workflow conversion
+# ==============================================================================
+
+name: Build and Publish OCI Image
+description: |
+  Builds and publishes OCI images to Docker Hub and GHCR.
+  Supports multi-platform builds (amd64/arm64) and automatic tagging.
+
+inputs:
+  image-suffix:
+    description: 'Suffix to append to image name (e.g., "-lite")'
+    required: false
+    default: ''
+  dockerfile:
+    description: 'Dockerfile to use for the build'
+    required: false
+    default: 'Dockerfile'
+  build-target:
+    description: 'Build target for multi-stage Dockerfiles (e.g., "final-s6")'
+    required: false
+    default: ''
+  image-tags:
+    description: 'Docker metadata tags configuration'
+    required: false
+    default: ''
+  platforms:
+    description: 'Target platforms for multi-arch build'
+    required: false
+    default: 'linux/amd64,linux/arm64'
+  push:
+    description: 'Whether to push the image after building'
+    required: false
+    default: 'true'
+  # Registry credentials (must be passed from secrets)
+  dockerhub-username:
+    description: 'Docker Hub username'
+    required: true
+  dockerhub-token:
+    description: 'Docker Hub token'
+    required: true
+  github-token:
+    description: 'GitHub token for GHCR'
+    required: true
+
+outputs:
+  image-digest:
+    description: 'The digest of the built image'
+    value: ${{ steps.build-and-push.outputs.digest }}
+  image-metadata:
+    description: 'The metadata of the built image'
+    value: ${{ steps.meta.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    # Validate platforms input early to fail fast
+    - name: Validate platforms input
+      shell: bash
+      run: |
+        PLATFORMS="${{ inputs.platforms }}"
+        VALID_PLATFORMS="linux/amd64 linux/arm64"
+
+        echo "::group::Platform Validation"
+        echo "Requested platforms: $PLATFORMS"
+
+        # Check each platform in the comma-separated list
+        IFS=',' read -ra PLATFORM_ARRAY <<< "$PLATFORMS"
+        for platform in "${PLATFORM_ARRAY[@]}"; do
+          # Trim whitespace
+          platform=$(echo "$platform" | xargs)
+          if [[ ! " $VALID_PLATFORMS " =~ " $platform " ]]; then
+            echo "::error::Invalid platform '$platform'. Supported platforms: $VALID_PLATFORMS"
+            exit 1
+          fi
+        done
+
+        # Warn about multi-platform builds (some services like Fly.io only accept single-arch)
+        if [[ "${#PLATFORM_ARRAY[@]}" -gt 1 ]]; then
+          echo "::warning::Multi-platform build requested (${#PLATFORM_ARRAY[@]} platforms). Some deployment targets (e.g., Fly.io) only accept single-architecture images."
+        fi
+
+        echo "Platform validation passed: $PLATFORMS"
+        echo "::endgroup::"
+
+    # Generate .commit_hash.txt in the build context and export short hash
+    - name: Generate commit hash
+      id: commit
+      shell: bash
+      run: |
+        SHORT_SHA="${GITHUB_SHA:0:7}"
+        echo "${SHORT_SHA}" > .commit_hash.txt
+        echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        echo "Commit hash recorded: ${SHORT_SHA}"
+
+    - name: Update package.json version from tag
+      if: startsWith(github.ref, 'refs/tags/v')
+      shell: bash
+      run: ./scripts/update-version.sh
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+      with:
+        platforms: arm64
+
+    - name: Setup Docker buildx
+      uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+      with:
+        platforms: ${{ inputs.platforms }}
+
+    - name: Login to Docker Hub
+      if: inputs.push == 'true'
+      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+      with:
+        username: ${{ inputs.dockerhub-username }}
+        password: ${{ inputs.dockerhub-token }}
+
+    - name: Log into GitHub Container Registry
+      if: inputs.push == 'true'
+      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.github-token }}
+
+    - name: Get Version
+      id: package_version
+      shell: bash
+      run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+      env:
+        DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+      with:
+        github-token: ${{ inputs.github-token }}
+        tags: |
+          ${{ inputs.image-tags != '' && inputs.image-tags || 'type=ref,event=branch' }}
+        images: |
+          ghcr.io/${{ github.repository }}${{ inputs.image-suffix }}
+          ${{ github.repository }}${{ inputs.image-suffix }}
+        flavor: |
+          latest=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-rc') }}
+        labels: |
+          org.opencontainers.image.title=Onetime Secret
+          org.opencontainers.image.description=Onetime Secret is a web application to share sensitive information securely and temporarily.
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.licenses=MIT
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.version=${{ steps.package_version.outputs.version }}
+
+    - name: Build and push Docker image
+      id: build-and-push
+      uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6.16.0
+      env:
+        RACK_ENV: production
+      with:
+        context: .
+        file: ${{ inputs.dockerfile }}
+        target: ${{ inputs.build-target }}
+        push: ${{ inputs.push == 'true' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        annotations: ${{ steps.meta.outputs.annotations }}
+        platforms: ${{ inputs.platforms }}
+        build-args: |
+          VERSION=${{ steps.package_version.outputs.version }}
+          COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
+
+    - name: Output image info
+      shell: bash
+      run: |
+        echo "## OCI Image Build Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Dockerfile:** ${{ inputs.dockerfile }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Platforms:** ${{ inputs.platforms }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ steps.package_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Tags" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY

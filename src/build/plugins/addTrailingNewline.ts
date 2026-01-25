@@ -1,3 +1,5 @@
+// src/build/plugins/addTrailingNewline.ts
+
 import fs from 'fs/promises';
 import path from 'path';
 import type { OutputBundle, OutputOptions, Plugin } from 'rollup';

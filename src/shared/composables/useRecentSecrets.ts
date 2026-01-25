@@ -1,0 +1,437 @@
+// src/shared/composables/useRecentSecrets.ts
+
+import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
+import type { ApplicationError } from '@/schemas/errors';
+import { useAuthStore } from '@/shared/stores/authStore';
+import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
+import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+import { useReceiptListStore, type FetchListOptions } from '@/shared/stores/receiptListStore';
+import type { LocalReceipt } from '@/types/ui/local-receipt';
+import { storeToRefs } from 'pinia';
+import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
+
+import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
+
+/**
+ * Unified record type for recent secrets display.
+ * Abstracts differences between local (LocalReceipt) and API (ReceiptRecords) sources.
+ *
+ * Uses canonical terminology matching backend Receipt model:
+ * - isPreviewed: secret link was accessed (confirmation page shown)
+ * - isRevealed: secret content was decrypted/consumed
+ * - isBurned: secret was manually destroyed before being revealed
+ */
+export interface RecentSecretRecord {
+  /** Unique identifier for the record */
+  id: string;
+  /** External ID for URL routing (metadata identifier) */
+  extid: string;
+  /** Short ID for display (truncated version) */
+  shortid: string;
+  /** Secret identifier for the secret link */
+  secretExtid: string;
+  /** Whether the secret has a passphrase */
+  hasPassphrase: boolean;
+  /** TTL in seconds */
+  ttl: number;
+  /** Creation timestamp */
+  createdAt: Date;
+  /** Domain for share URL construction */
+  shareDomain?: string;
+  /** Whether the secret link has been accessed (confirmation page shown) */
+  isPreviewed: boolean;
+  /** Whether the secret content has been revealed (decrypted/consumed) */
+  isRevealed: boolean;
+  /** Whether the secret has been burned (manually destroyed) */
+  isBurned: boolean;
+  /** Whether the secret has expired */
+  isExpired: boolean;
+  /** Whether any of revealed, burned, expired are true (no longer accessible) */
+  isDestroyed: boolean;
+  /** Original source data for advanced usage */
+  source: 'local' | 'api';
+  /** Original record for type-specific operations */
+  originalRecord: LocalReceipt | ReceiptRecords;
+  /** Optional user-defined memo for identifying the secret */
+  memo?: string;
+}
+
+/**
+ * Return type for useRecentSecrets composable
+ */
+export interface UseRecentSecretsReturn {
+  /** Unified list of recent secret records */
+  records: ComputedRef<RecentSecretRecord[]>;
+  /** Loading state */
+  isLoading: Ref<boolean>;
+  /** Error state */
+  error: Ref<ApplicationError | null>;
+  /** Whether any records exist */
+  hasRecords: ComputedRef<boolean>;
+  /** Fetch/refresh records from source */
+  fetch: (options?: FetchListOptions) => Promise<void>;
+  /** Refresh receipt statuses from server (local mode only, updates isReceived/isBurned) */
+  refreshStatuses: (options?: { silent?: boolean }) => Promise<void>;
+  /** Clear all records */
+  clear: () => void;
+  /** Update memo for a record (local mode only for now) */
+  updateMemo: (id: string, memo: string) => void;
+  /** Workspace mode toggle state (local mode only, always false for API mode) */
+  workspaceMode: ComputedRef<boolean>;
+  /** Toggle workspace mode (no-op for API mode) */
+  toggleWorkspaceMode: () => void;
+  /** Whether using authenticated API source */
+  isAuthenticated: ComputedRef<boolean>;
+  /** Current scope being displayed (org, domain, or undefined for customer) */
+  currentScope: ComputedRef<FetchListOptions['scope']>;
+  /** Label for the current scope (org name or domain name) */
+  scopeLabel: ComputedRef<string | null>;
+}
+
+/**
+ * Transform a LocalReceipt (local storage) to unified RecentSecretRecord
+ */
+function transformLocalRecord(receipt: LocalReceipt): RecentSecretRecord {
+  const isPreviewed = receipt.isPreviewed ?? false;
+  const isRevealed = receipt.isRevealed ?? false;
+  const isBurned = receipt.isBurned ?? false;
+  const isExpired = receipt.createdAt + receipt.ttl * 1000 < Date.now();
+  // isDestroyed means the secret is no longer accessible (revealed, burned, or expired)
+  const isDestroyed = isRevealed || isBurned || isExpired;
+
+  return {
+    id: receipt.id,
+    extid: receipt.receiptExtid,
+    // Display uses secretShortid (the secret's ID) for user-facing links,
+    // while receiptExtid (the receipt's ID) is used for API lookups.
+    // This intentional mismatch allows showing the secret link while tracking via receipt.
+    shortid: receipt.secretShortid,
+    secretExtid: receipt.secretExtid,
+    hasPassphrase: receipt.hasPassphrase,
+    ttl: receipt.ttl,
+    createdAt: new Date(receipt.createdAt),
+    shareDomain: receipt.shareDomain ?? undefined,
+    isPreviewed,
+    isRevealed,
+    isBurned,
+    isExpired,
+    isDestroyed,
+    source: 'local',
+    originalRecord: receipt,
+    memo: receipt.memo,
+  };
+}
+
+/**
+ * Extract identifier fields from API record with defaults
+ */
+function extractApiRecordIds(record: ReceiptRecords) {
+  // Use full identifier for API operations, shortid for display
+  const id = record.identifier ?? record.shortid ?? '';
+  const secretId = record.secret_identifier ?? record.secret_shortid ?? '';
+  const extid = record.identifier ?? id;
+  const shortid = record.secret_shortid ?? '';
+  return { id, secretId, extid, shortid };
+}
+
+/**
+ * Transform a ReceiptRecords (API) to unified RecentSecretRecord
+ */
+function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
+  const { id, secretId, extid, shortid } = extractApiRecordIds(record);
+  const createdAt = record.created instanceof Date ? record.created : new Date();
+  // NOTE: is_destroyed is true for revealed, burned, expired, or orphaned states.
+  // Use is_burned specifically for the burned state - don't combine with is_destroyed.
+  const isBurned = Boolean(record.is_burned);
+  const isDestroyed = Boolean(record.is_destroyed);
+
+  return {
+    id,
+    extid,
+    shortid,
+    secretExtid: secretId,
+    hasPassphrase: record.has_passphrase ?? false,
+    ttl: record.secret_ttl ?? 0,
+    createdAt,
+    shareDomain: record.share_domain ?? undefined,
+    isPreviewed: record.is_previewed ?? false,
+    isRevealed: record.is_revealed ?? false,
+    isBurned,
+    isExpired: record.is_expired ?? false,
+    isDestroyed,
+    source: 'api',
+    originalRecord: record,
+    memo: record.memo ?? undefined,
+  };
+}
+
+/**
+ * Internal composable for local storage source (guests/unauthenticated users)
+ */
+function useLocalRecentSecrets() {
+  const store = useLocalReceiptStore();
+  const { localReceipts, workspaceMode, hasReceipts } = storeToRefs(store);
+
+  // Transform local messages to unified format
+  const records = computed<RecentSecretRecord[]>(() =>
+    localReceipts.value.map(transformLocalRecord)
+  );
+
+  const hasRecords = computed(() => hasReceipts.value);
+
+  const fetch = async (_options: FetchListOptions = {}) => {
+    // Local storage is synchronous, no fetch needed
+    // Initialize store if not already done
+    // Note: options.silent has no effect for local storage (no network calls)
+    if (!store.isInitialized) {
+      store.init();
+    }
+  };
+
+  const clear = () => {
+    store.clearReceipts();
+  };
+
+  const toggleWorkspaceMode = () => {
+    store.toggleWorkspaceMode();
+  };
+
+  const updateMemo = (id: string, memo: string) => {
+    store.updateMemo(id, memo);
+  };
+
+  const refreshStatuses = async (_options: { silent?: boolean } = {}) => {
+    // Note: local storage refresh doesn't make network calls,
+    // so silent option has no effect but we accept it for interface consistency
+    await store.refreshReceiptStatuses();
+  };
+
+  return {
+    records,
+    hasRecords,
+    workspaceMode,
+    fetch,
+    refreshStatuses,
+    clear,
+    toggleWorkspaceMode,
+    updateMemo,
+  };
+}
+
+/**
+ * Internal composable for API source (authenticated users)
+ */
+function useApiRecentSecrets(
+  wrap: <T>(operation: () => Promise<T>) => Promise<T | undefined>,
+  wrapSilent: <T>(operation: () => Promise<T>) => Promise<T | undefined>
+) {
+  const store = useReceiptListStore();
+  const { records: storeRecords, currentScope, scopeLabel } = storeToRefs(store);
+
+  // Transform API records to unified format
+  // Filter out records with missing secret_shortid to prevent broken share links
+  const records = computed<RecentSecretRecord[]>(() => {
+    if (!storeRecords.value) return [];
+    return storeRecords.value.filter((record) => !!record.secret_shortid).map(transformApiRecord);
+  });
+
+  const hasRecords = computed(() => records.value.length > 0);
+
+  // Workspace mode is not applicable for API source
+  const workspaceMode = computed(() => false);
+
+  const fetch = async (options: FetchListOptions = {}) => {
+    const wrapper = options.silent ? wrapSilent : wrap;
+    await wrapper(async () => {
+      await store.fetchList(options);
+    });
+  };
+
+  const clear = () => {
+    store.$reset();
+  };
+
+  const toggleWorkspaceMode = () => {
+    // No-op for API mode - workspace mode is a local-only feature
+  };
+
+  const updateMemo = async (id: string, memo: string) => {
+    await wrap(async () => {
+      await store.updateMemo(id, memo);
+    });
+  };
+
+  const refreshStatuses = async (options: { silent?: boolean } = {}) => {
+    // For API mode, re-fetch fresh data from the server
+    await fetch({ silent: options.silent });
+  };
+
+  return {
+    records,
+    hasRecords,
+    workspaceMode,
+    fetch,
+    refreshStatuses,
+    clear,
+    toggleWorkspaceMode,
+    updateMemo,
+    currentScope,
+    scopeLabel,
+  };
+}
+
+/**
+ * Composable for managing recent secrets display.
+ *
+ * Abstracts the data source based on authentication state:
+ * - Guest users: Uses sessionStorage via localReceiptStore
+ * - Authenticated users: Uses API via receiptListStore
+ *
+ * Security: When authenticated, data is always fetched from the API.
+ * This is more secure than local storage as the server enforces access controls.
+ *
+ * @example
+ * ```ts
+ * const {
+ *   records,
+ *   isLoading,
+ *   hasRecords,
+ *   fetch,
+ *   clear,
+ *   workspaceMode,
+ *   toggleWorkspaceMode,
+ * } = useRecentSecrets();
+ *
+ * // Fetch on mount
+ * onMounted(() => fetch());
+ *
+ * // Use in template
+ * // <div v-for="record in records" :key="record.id">
+ * //   {{ record.extid }}
+ * // </div>
+ * ```
+ */
+// eslint-disable-next-line max-lines-per-function
+export function useRecentSecrets(): UseRecentSecretsReturn {
+  const authStore = useAuthStore();
+  const notifications = useNotificationsStore();
+
+  // Local state for async handling
+  const isLoading = ref(false);
+  const error = ref<ApplicationError | null>(null);
+
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: (message, severity) => notifications.show(message, severity),
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
+  };
+
+  // Silent handler for background refreshes - no notifications
+  const silentAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: false,
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
+  };
+
+  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
+  const { wrap: wrapSilent } = useAsyncHandler(silentAsyncHandlerOptions);
+
+  // Determine authentication state
+  const isAuthenticated = computed(() => authStore.isFullyAuthenticated);
+
+  // Initialize both internal composables
+  // Only one will be active based on auth state
+  const local = useLocalRecentSecrets();
+  const api = useApiRecentSecrets(wrap, wrapSilent);
+
+  // Clear local storage on auth state changes to prevent:
+  // - Stale guest data mixing with authenticated API data on login
+  // - Old secrets lingering after logout (unsettling UX)
+  // flush: 'sync' ensures clearing happens immediately, not deferred
+  watch(
+    isAuthenticated,
+    () => {
+      local.clear();
+    },
+    { flush: 'sync' }
+  );
+
+  // Unified interface that switches based on auth state
+  const records = computed<RecentSecretRecord[]>(() =>
+    isAuthenticated.value ? api.records.value : local.records.value
+  );
+
+  const hasRecords = computed(() =>
+    isAuthenticated.value ? api.hasRecords.value : local.hasRecords.value
+  );
+
+  const workspaceMode = computed(() =>
+    isAuthenticated.value ? api.workspaceMode.value : local.workspaceMode.value
+  );
+
+  const fetch = async (options: FetchListOptions = {}) => {
+    error.value = null;
+    if (isAuthenticated.value) {
+      await api.fetch(options);
+    } else {
+      await local.fetch();
+    }
+  };
+
+  const clear = () => {
+    if (isAuthenticated.value) {
+      api.clear();
+    } else {
+      local.clear();
+    }
+  };
+
+  const toggleWorkspaceMode = () => {
+    if (isAuthenticated.value) {
+      api.toggleWorkspaceMode();
+    } else {
+      local.toggleWorkspaceMode();
+    }
+  };
+
+  const updateMemo = (id: string, memo: string) => {
+    if (isAuthenticated.value) {
+      api.updateMemo(id, memo);
+    } else {
+      local.updateMemo(id, memo);
+    }
+  };
+
+  const refreshStatuses = async (options: { silent?: boolean } = {}) => {
+    if (isAuthenticated.value) {
+      await api.refreshStatuses(options);
+    } else {
+      await local.refreshStatuses(options);
+    }
+  };
+
+  // Scope properties (only relevant for authenticated users)
+  const currentScope = computed(() =>
+    isAuthenticated.value ? api.currentScope.value : undefined
+  );
+
+  const scopeLabel = computed(() =>
+    isAuthenticated.value ? api.scopeLabel.value : null
+  );
+
+  return {
+    records,
+    isLoading,
+    error,
+    hasRecords,
+    fetch,
+    refreshStatuses,
+    clear,
+    updateMemo,
+    workspaceMode,
+    toggleWorkspaceMode,
+    isAuthenticated,
+    currentScope,
+    scopeLabel,
+  };
+}

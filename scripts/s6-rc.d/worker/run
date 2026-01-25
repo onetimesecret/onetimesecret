@@ -1,0 +1,14 @@
+#!/command/execlineb -P
+
+# Change to app directory
+cd /app
+
+# Preserve environment variables
+with-contenv
+
+foreground { s6-echo "[worker] Starting job worker..." }
+
+# Set RUBY_UNBUFFERED for immediate output
+export RUBY_UNBUFFERED 1
+
+exec bin/ots worker

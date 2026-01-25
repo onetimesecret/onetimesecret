@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Ontvangen",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Niet ontvangen",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Geen recente berichten",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Begin door uw eerste bericht aan te maken.",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Kan gegevens niet laden",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Er was een probleem bij het laden van je gegevens. Probeer het opnieuw.",
+    "sha256": "ff0d904e"
+  }
+}

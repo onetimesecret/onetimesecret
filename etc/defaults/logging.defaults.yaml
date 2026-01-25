@@ -1,0 +1,99 @@
+# etc/defaults/logging.defaults.yaml
+---
+# Onetime Secret - Logging Configuration
+#
+# Strategic categories for debugging and operational instrumentation:
+#   App       - Default fallback for application-level logging
+#   Auth      - Authentication/authorization flows
+#   Bunny     - RabbitMQ AMQP client (connection, heartbeats)
+#   Familia   - Redis operations via Familia ORM
+#   HTTP      - HTTP requests, responses, and middleware
+#   Otto      - Otto framework operations
+#   Rhales    - Rhales template rendering (future)
+#   Scheduler - Scheduled/recurring background jobs (rufus-scheduler)
+#   Secret    - Core business value (create/view/burn)
+#   Sequel    - Database queries and operations
+#   Session   - Session lifecycle management
+#   Workers   - RabbitMQ worker message processing and orchestration
+#
+# Environment variable overrides:
+#   LOG_LEVEL=debug                       - Set global log level
+#   DEBUG_LOGGERS=Auth:debug,Secret:trace - Set specific logger levels
+#
+# Application category quick flags:
+#   DEBUG_AUTH=1                          - Quick debug flag for Auth
+#   DEBUG_BUNNY=1                         - Quick debug flag for Bunny (RabbitMQ)
+#   DEBUG_HTTP=1                          - Quick debug flag for HTTP
+#   DEBUG_SCHEDULER=1                     - Quick debug flag for Scheduler
+#   DEBUG_SECRET=1                        - Quick debug flag for Secret
+#   DEBUG_SESSION=1                       - Quick debug flag for Session
+#   DEBUG_WORKERS=1                       - Quick debug flag for Workers
+#
+# External library debug flags (use library's own flags):
+#   FAMILIA_DEBUG=1                       - Familia's built-in debug flag
+#   FAMILIA_SAMPLE_RATE=0.01              - Familia command sampling (0.0-1.0)
+#
+# For libraries without built-in flags, use DEBUG_LOGGERS:
+#   DEBUG_LOGGERS=Sequel:debug,Rhales:trace
+
+# Global default log level
+# Options: trace, debug, info, warn, error, fatal
+default_level: <%= ENV['DEFAULT_LOG_LEVEL'] || 'warn' %>
+
+# Output formatter
+# Options: color, json, default
+# - color: Human-readable with ANSI colors, timestamps, PID/thread (recommended)
+# - json: Structured JSON for production log shipping
+# - default: Plain text without colors
+formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>
+
+# Named logger levels
+# Each category can be configured independently. Loggers added here are
+# made available by the setup_loggers initializer.
+loggers:
+  App: info       # Default application logger
+  Auth: info      # Authentication/authorization flows
+  Billing: info   # Only used when billing.enabled=true
+  Boot: info      # During initialization
+  Bunny: info     # RabbitMQ client (heartbeats at debug level)
+  CLI: info       # Command-line interface operations
+  Familia: info   # Redis/Familia main database operations
+  HTTP: info      # HTTP requests and middleware operations
+  Otto: info      # Otto framework operations
+  Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
+  Scheduler: info # Scheduled/recurring background jobs
+  Secret: info    # Secret lifecycle (create, view, burn)
+  Sequel: info    # Database queries and operations (SQL logged at :trace level)
+  Session: info   # Session lifecycle (create, update, destroy)
+  Workers: info   # RabbitMQ worker message processing and orchestration
+
+# HTTP request logging configuration
+http:
+  # Set LOG_HTTP_REQUESTS=false to disable. Useful when running a reverse proxy
+  # which already logs requests and you consolidate logs into one stream to
+  # avoid redundant information.
+  enabled: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
+  # Overrides loggers.HTTP level for requests
+  level: <%= ENV['LOG_HTTP_REQUESTS_LEVEL'] || nil %>
+
+  # Capture mode determines what data is logged per request
+  # Options: minimal, standard, debug
+  #   minimal:  method, path, status, duration
+  #   standard: + request_id, ip
+  #   debug:    + params, headers, session_id
+  capture: <%= ENV['LOG_HTTP_CAPTURE'] || 'minimal' %>
+
+  # Threshold for logging slow requests as warnings (milliseconds)
+  slow_request_ms: <%= ENV['LOG_HTTP_SLOW_REQUEST_MS'] || 1000 %>
+
+  # Paths to ignore (glob patterns)
+  ignore_paths:
+    - /api/v1/status
+    - /api/v2/status
+    - /api/v3/status
+    - /health
+    - /healthcheck
+    - /favicon.ico
+    - /_vite/*
+    - /assets/*
+    - /dist/*

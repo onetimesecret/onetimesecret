@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "text": "Sendi Sekreton",
+    "sha256": "f83b6303"
+  },
+  "incoming.page_description": {
+    "text": "Kunhavigu sentemajn informojn sekure kun nia subtena teamo",
+    "sha256": "08beca74"
+  },
+  "incoming.loading_config": {
+    "text": "Ŝargante...",
+    "sha256": "47d2a515"
+  },
+  "incoming.config_error_title": {
+    "text": "Malsukcesis ŝargi agordojn",
+    "sha256": "6410ad42"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funkcio Ne Disponebla",
+    "sha256": "bfd624f7"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Ĉi tiu funkcio estas nune malŝaltita. Bonvolu kontakti subtenon por helpo.",
+    "sha256": "f13fbf2b"
+  },
+  "incoming.memo_label": {
+    "text": "Noto",
+    "sha256": "64cecb8a"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Mallonga priskribo (ekz., Peto pri pasvorta restarigo)",
+    "sha256": "16bf83fd"
+  },
+  "incoming.memo_hint": {
+    "text": "Helpu nin direkti vian mesaĝon al la ĝusta persono",
+    "sha256": "185a207e"
+  },
+  "incoming.recipient_label": {
+    "text": "Sendi al",
+    "sha256": "9bcbb3bc"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Elektu ricevonton",
+    "sha256": "4eb1ed54"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Elektu ricevonton por ĉi tiu sekreto",
+    "sha256": "c98ac75f"
+  },
+  "incoming.recipient_hint": {
+    "text": "Elektu kiu ricevos ĉi tiun sekuran mesaĝon",
+    "sha256": "0dfafc45"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Neniuj ricevontoj disponeblas",
+    "sha256": "62834334"
+  },
+  "incoming.secret_content_label": {
+    "text": "Sekreta Informo",
+    "sha256": "b4f8c120"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Algluu sentemajn informojn ĉi tie (pasvortoj, ŝlosiloj, ktp.)",
+    "sha256": "7d7abb48"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Ĉi tiu informo estos ĉifrita kaj rigardata nur unufoje",
+    "sha256": "f9151d61"
+  },
+  "incoming.submit_button": {
+    "text": "Sendi Sekreton",
+    "sha256": "2a09f5e0"
+  },
+  "incoming.submit_secret": {
+    "text": "Sendi Sekreton",
+    "sha256": "2a09f5e0"
+  },
+  "incoming.submitting_button": {
+    "text": "Sendante...",
+    "sha256": "286a3af7"
+  },
+  "incoming.submitting": {
+    "text": "Sendante...",
+    "sha256": "286a3af7"
+  },
+  "incoming.reset_button": {
+    "text": "Vakigi Formularon",
+    "sha256": "f6c2bb83"
+  },
+  "incoming.reset_form": {
+    "text": "Vakigi Formularon",
+    "sha256": "f6c2bb83"
+  },
+  "incoming.success_title": {
+    "text": "Sendita Sukcese",
+    "sha256": "261e9a7e"
+  },
+  "incoming.success_description": {
+    "text": "Via sekura mesaĝo estis liverita.",
+    "sha256": "e1538e3e"
+  },
+  "incoming.reference_id": {
+    "text": "Referenca ID",
+    "sha256": "293aba9f"
+  },
+  "incoming.success_info_title": {
+    "text": "Kio okazos poste?",
+    "sha256": "c72895ba"
+  },
+  "incoming.success_info_description": {
+    "text": "La ricevonto povos rigardi ĉi tiun sekreton nur unufoje. Post kiam ili rigardos ĝin, la sekreto estos porĉiam forigita.",
+    "sha256": "8120bd40"
+  },
+  "incoming.create_another": {
+    "text": "Sendi Alian Sekreton",
+    "sha256": "8a61d95c"
+  },
+  "incoming.tagline1": {
+    "text": "Kunhavigu sentemajn informojn sekure",
+    "sha256": "099ff0c7"
+  },
+  "incoming.tagline2": {
+    "text": "Tenu pasvortojn kaj privatajn datumojn ekster retpoŝto kaj babilaj protokoloj",
+    "sha256": "55566199"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Konservu vian {receipt} por viaj registroj.",
+    "sha256": "db3d9c98"
+  },
+  "incoming.receipt_link_text": {
+    "text": "kvitanco",
+    "sha256": "6f328609"
+  }
+}

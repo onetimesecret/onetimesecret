@@ -1,8 +1,7 @@
-# .purgatory/migrations/core/20250728-1512_00_customer_objid.rb
+# migrations/20250728-1512_00_customer_objid.rb
 #
 # frozen_string_literal: true
 
-#
 # Customer Object ID (and External ID) Migration - Pipeline
 #
 # Purpose: Populates objid field for all existing Customer records. The extid
@@ -19,9 +18,6 @@
 #   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --run
 #
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'onetime/migration'
 require 'onetime/refinements/uuidv7_refinements'
 
@@ -30,7 +26,7 @@ module Onetime
     using Onetime::UUIDv7Refinements
 
     def prepare
-      @model_class = V2::Customer
+      @model_class = Onetime::Customer
       @batch_size  = 100  # Smaller batches for pipeline
     end
 
@@ -66,7 +62,7 @@ module Tools
   # A standalone implementation of the logic that Familia v2.0.0-pre12 uses
   # to derive an external ID from a UUIDv7. We use this separate implementation
   # to allow this migration to transcend time and space.
-  def self.derive_extid_from_uuid(uuid_string, prefix: 'ur')
+  def self.derive_extid_from_uuid(uuid_string, prefix: 'ext')
     # Normalize UUID to hex (remove hyphens)
     normalized_hex = uuid_string.delete('-')
 
@@ -82,12 +78,12 @@ module Tools
     # Encode as base36 string
     external_part = random_bytes.unpack1('H*').to_i(16).to_s(36).rjust(25, '0')
 
-    "#{prefix}#{external_part}"
+    "#{prefix}_#{external_part}"
   end
 end
 
-# If this script is run directly
+# Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
+  exit(Onetime::Migration.cli_run)
 end

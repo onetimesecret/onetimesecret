@@ -1,0 +1,417 @@
+# apps/web/billing/try/plan_helpers_try.rb
+#
+# frozen_string_literal: true
+
+require_relative '../../../../try/support/test_helpers'
+
+# Billing Entitlements System Tests
+#
+# Tests entitlement-based authorization system including:
+# - Organization entitlement checking (can?)
+# - Entitlement listing from plan definitions
+# - Limit checking (limit_for, at_limit?)
+# - Upgrade path recommendations
+# - Plan version support (legacy vs current)
+# - Fail-safe behavior (unknown plans)
+
+## Setup: Load models and billing modules
+require 'lib/onetime/models/organization'
+require 'apps/web/billing/plan_helpers'
+require 'apps/web/billing/models/plan'
+
+## Setup: Enable billing for these entitlement tests
+# The WithEntitlements module returns STANDALONE_ENTITLEMENTS when billing is disabled.
+# For these tests to validate plan-specific entitlements, we need billing enabled.
+BillingTestHelpers.restore_billing!(enabled: true)
+
+## Setup: Populate Plan cache with test data (replaces hardcoded PLAN_DEFINITIONS)
+Billing::Plan.clear_cache
+
+## Free plan
+@free_plan                               = Billing::Plan.new(
+  plan_id: 'free',
+  name: 'Free',
+  tier: 'free',
+  interval: 'month',
+  region: 'us-east',
+)
+@free_plan.entitlements.add('api_access')
+@free_plan.entitlements.add('custom_privacy_defaults')
+@free_plan.entitlements.add('extended_default_expiration')
+@free_plan.limits['secrets_per_day.max'] = '10'
+@free_plan.limits['secret_lifetime.max'] = '604800'
+@free_plan.show_on_plans_page = true
+@free_plan.save
+
+## Identity Plus v1
+@identity_plan                                = Billing::Plan.new(
+  plan_id: 'identity_v1',
+  name: 'Identity Plus',
+  tier: 'single_team',
+  interval: 'month',
+  region: 'us-east',
+)
+@identity_plan.entitlements.add('api_access')
+@identity_plan.entitlements.add('custom_privacy_defaults')
+@identity_plan.entitlements.add('extended_default_expiration')
+@identity_plan.entitlements.add('manage_teams')
+@identity_plan.entitlements.add('custom_domains')
+@identity_plan.entitlements.add('incoming_secrets')
+@identity_plan.entitlements.add('custom_mail_defaults')
+@identity_plan.limits['teams.max']            = '1'
+@identity_plan.limits['members_per_team.max'] = 'unlimited'
+@identity_plan.limits['custom_domains.max']   = 'unlimited'
+@identity_plan.limits['secret_lifetime.max']  = '2592000'
+@identity_plan.show_on_plans_page = true
+@identity_plan.save
+
+## Multi-Team v1
+@multi_plan                                = Billing::Plan.new(
+  plan_id: 'multi_team_v1',
+  name: 'Multi-Team',
+  tier: 'multi_team',
+  interval: 'month',
+  region: 'us-east',
+)
+@multi_plan.entitlements.add('api_access')
+@multi_plan.entitlements.add('custom_privacy_defaults')
+@multi_plan.entitlements.add('extended_default_expiration')
+@multi_plan.entitlements.add('manage_orgs')
+@multi_plan.entitlements.add('manage_teams')
+@multi_plan.entitlements.add('manage_members')
+@multi_plan.entitlements.add('custom_domains')
+@multi_plan.entitlements.add('custom_branding')
+@multi_plan.entitlements.add('branded_homepage')
+@multi_plan.entitlements.add('incoming_secrets')
+@multi_plan.entitlements.add('custom_mail_defaults')
+@multi_plan.entitlements.add('audit_logs')
+@multi_plan.limits['teams.max']            = 'unlimited'
+@multi_plan.limits['members_per_team.max'] = 'unlimited'
+@multi_plan.limits['custom_domains.max']   = 'unlimited'
+@multi_plan.limits['api_rate_limit.max']   = '10000'
+@multi_plan.limits['secret_lifetime.max']  = '7776000'
+@multi_plan.show_on_plans_page = true
+@multi_plan.save
+
+## Legacy Identity v0 (for testing legacy plan support)
+@legacy_plan                                = Billing::Plan.new(
+  plan_id: 'identity_v0',
+  tier: 'single_team',
+  interval: 'month',
+  region: 'us-east',
+)
+@legacy_plan.entitlements.add('api_access')
+@legacy_plan.entitlements.add('custom_privacy_defaults')
+@legacy_plan.entitlements.add('extended_default_expiration')
+@legacy_plan.entitlements.add('manage_teams')
+@legacy_plan.entitlements.add('incoming_secrets')
+@legacy_plan.limits['teams.max']            = '1'
+@legacy_plan.limits['members_per_team.max'] = '10'
+@legacy_plan.limits['secret_lifetime.max']  = '1209600'
+@legacy_plan.show_on_plans_page = false
+@legacy_plan.save
+
+## Create unique test ID suffix to avoid collisions
+@test_suffix = Time.now.to_i.to_s[-6..]
+@test_suffix.class
+#=> String
+
+## Create free plan organization
+@free_org = Onetime::Organization.new(
+  display_name: 'Free Org',
+  owner_id: 'cust_test_001',
+  contact_email: "free-#{@test_suffix}@example.com",
+  planid: 'free',
+)
+@free_org.save
+@free_org.planid
+#=> 'free'
+
+## Create Identity Plus v1 organization
+@identity_org = Onetime::Organization.new(
+  display_name: 'Identity Org',
+  owner_id: 'cust_test_002',
+  contact_email: "identity-#{@test_suffix}@example.com",
+  planid: 'identity_v1',
+)
+@identity_org.save
+@identity_org.planid
+#=> 'identity_v1'
+
+## Create Multi-Team v1 organization
+@multi_org = Onetime::Organization.new(
+  display_name: 'Multi Org',
+  owner_id: 'cust_test_003',
+  contact_email: "multi-#{@test_suffix}@example.com",
+  planid: 'multi_team_v1',
+)
+@multi_org.save
+@multi_org.planid
+#=> 'multi_team_v1'
+
+## Create Legacy Identity v0 organization (grandfathered)
+@legacy_org = Onetime::Organization.new(
+  display_name: 'Legacy Org',
+  owner_id: 'cust_test_004',
+  contact_email: "legacy-#{@test_suffix}@example.com",
+  planid: 'identity_v0',
+)
+@legacy_org.save
+@legacy_org.planid
+#=> 'identity_v0'
+
+## Test: Free plan entitlements
+@free_org.entitlements.sort
+#=> ["api_access", "custom_privacy_defaults", "extended_default_expiration"]
+
+## Test: Free plan has api_access
+@free_org.can?('api_access')
+#=> true
+
+## Test: Free plan cannot manage teams
+@free_org.can?('manage_teams')
+#=> false
+
+## Test: Free plan cannot access custom domains
+@free_org.can?('custom_domains')
+#=> false
+
+## Test: Identity Plus v1 can manage teams
+@identity_org.can?('manage_teams')
+#=> true
+
+## Test: Identity Plus v1 has custom domains
+@identity_org.can?('custom_domains')
+#=> true
+
+## Test: Identity Plus v1 does not have custom branding
+@identity_org.can?('custom_branding')
+#=> false
+
+## Test: Identity Plus v1 does not have audit logs
+@identity_org.can?('audit_logs')
+#=> false
+
+## Test: Multi-Team can manage orgs
+@multi_org.can?('manage_orgs')
+#=> true
+
+## Test: Multi-Team has custom branding
+@multi_org.can?('custom_branding')
+#=> true
+
+## Test: Multi-Team has audit logs
+@multi_org.can?('audit_logs')
+#=> true
+
+## Test: Multi-Team has branded homepage
+@multi_org.can?('branded_homepage')
+#=> true
+
+## Test: Legacy plan can manage teams
+@legacy_org.can?('manage_teams')
+#=> true
+
+## Test: Legacy plan does NOT have custom domains
+@legacy_org.can?('custom_domains')
+#=> false
+
+## Test: Free plan secret per day limit
+@free_org.limit_for('secrets_per_day')
+#=> 10
+
+## Test: Free plan secret lifetime limit
+@free_org.limit_for('secret_lifetime')
+#=> 604800
+
+## Test: Identity Plus teams limit
+@identity_org.limit_for('teams')
+#=> 1
+
+## Test: Identity Plus members_per_team is unlimited
+@identity_org.limit_for('members_per_team')
+#=> Float::INFINITY
+
+## Test: Multi-Team teams is unlimited
+@multi_org.limit_for('teams')
+#=> Float::INFINITY
+
+## Test: Legacy plan has old member limit
+@legacy_org.limit_for('members_per_team')
+#=> 10
+
+## Test: Unknown resource defaults to 0 (fail-closed for security)
+@identity_org.limit_for('unknown_resource')
+#=> 0
+
+## Test: at_limit? check when at limit
+@identity_org.at_limit?('teams', 1)
+#=> true
+
+## Test: at_limit? check when under limit
+@identity_org.at_limit?('teams', 0)
+#=> false
+
+## Test: at_limit? never true for unlimited resources
+@multi_org.at_limit?('teams', 999_999)
+#=> false
+
+## Test: check_entitlement returns not allowed for missing entitlement
+@result = @free_org.check_entitlement('custom_domains')
+@result[:allowed]
+#=> false
+
+## Test: check_entitlement shows upgrade needed
+@result[:upgrade_needed]
+#=> true
+
+## Test: check_entitlement shows entitlement name
+@result[:entitlement]
+#=> "custom_domains"
+
+## Test: check_entitlement shows current plan
+@result[:current_plan]
+#=> "free"
+
+## Test: check_entitlement includes upgrade path
+@result[:upgrade_to]
+#=> "identity_v1"
+
+## Test: check_entitlement for allowed entitlement shows allowed
+@allowed_result = @identity_org.check_entitlement('custom_domains')
+@allowed_result[:allowed]
+#=> true
+
+## Test: check_entitlement for allowed shows no upgrade needed
+@allowed_result[:upgrade_needed]
+#=> false
+
+## Test: Upgrade path from free to custom_domains is identity
+Billing::PlanHelpers.upgrade_path_for('custom_domains', 'free')
+#=> "identity_v1"
+
+## Test: Upgrade path from Identity to custom_branding is multi_team
+Billing::PlanHelpers.upgrade_path_for('custom_branding', 'identity_v1')
+#=> "multi_team_v1"
+
+## Test: Upgrade path for nonexistent entitlement returns nil
+Billing::PlanHelpers.upgrade_path_for('nonexistent_entitlement', 'free')
+#=> nil
+
+## Test: Plan name for free
+Billing::PlanHelpers.plan_name('free')
+#=> "Free"
+
+## Test: Plan name for identity_v1
+Billing::PlanHelpers.plan_name('identity_v1')
+#=> "Identity Plus"
+
+## Test: Plan name for multi_team_v1
+Billing::PlanHelpers.plan_name('multi_team_v1')
+#=> "Multi-Team"
+
+## Test: Legacy plan detection for v0 (pattern matching)
+Billing::PlanHelpers.legacy_plan?('identity_v0')
+#=> true
+
+## Test: Legacy plan detection for v1 (not legacy)
+Billing::PlanHelpers.legacy_plan?('identity_v1')
+#=> false
+
+## Test: Legacy plan detection via config flag (identity has legacy: true in billing.yaml)
+Billing::PlanHelpers.legacy_plan?('identity')
+#=> true
+
+## Test: Legacy plan detection with monthly interval suffix
+Billing::PlanHelpers.legacy_plan?('identity_monthly')
+#=> true
+
+## Test: Legacy plan detection with yearly interval suffix
+Billing::PlanHelpers.legacy_plan?('identity_yearly')
+#=> true
+
+## Test: Non-legacy plan with interval suffix
+Billing::PlanHelpers.legacy_plan?('identity_plus_v1_monthly')
+#=> false
+
+## Test: Empty plan_id returns false
+Billing::PlanHelpers.legacy_plan?('')
+#=> false
+
+## Test: Cached plans returns hash
+Billing::PlanHelpers.cached_plans.is_a?(Hash)
+#=> true
+
+## Test: Cached plans includes identity plan
+Billing::PlanHelpers.cached_plans.key?('identity')
+#=> true
+
+## Test: Clear cache resets cached plans
+Billing::PlanHelpers.clear_cache!
+Billing::PlanHelpers.instance_variable_get(:@cached_plans).nil?
+#=> true
+
+## Test: Available plans includes identity_v1
+Billing::PlanHelpers.available_plans.include?('identity_v1')
+#=> true
+
+## Test: Available plans excludes legacy identity_v0
+Billing::PlanHelpers.available_plans.include?('identity_v0')
+#=> false
+
+## Test: Fail-safe for nil planid returns FREE_TIER_ENTITLEMENTS
+# When billing is enabled but planid is nil, user gets basic free tier access
+@no_plan_org        = Onetime::Organization.new(
+  display_name: 'No Plan',
+  owner_id: 'cust_test_888',
+  contact_email: "noplan-#{@test_suffix}@example.com",
+)
+@no_plan_org.planid = nil
+@no_plan_org.entitlements.sort
+#=> ["api_access", "create_secrets", "view_receipt"]
+
+## Test: Fail-safe for nil planid allows api_access (free tier)
+@no_plan_org.can?('api_access')
+#=> true
+
+## Test: Fail-safe for nil planid returns free tier limit (0 teams)
+@no_plan_org.limit_for('teams')
+#=> 0
+
+## Test: Fail-safe for empty planid returns FREE_TIER_ENTITLEMENTS
+# Empty string planid treated same as nil - gets free tier access
+@empty_plan_org        = Onetime::Organization.new(
+  display_name: 'Empty Plan',
+  owner_id: 'cust_test_777',
+  contact_email: "empty-#{@test_suffix}@example.com",
+)
+@empty_plan_org.planid = ''
+@empty_plan_org.entitlements.sort
+#=> ["api_access", "create_secrets", "view_receipt"]
+
+## Test: New organization defaults to free plan
+@new_org = Onetime::Organization.new(
+  display_name: 'New Org',
+  owner_id: 'cust_test_555',
+  contact_email: "new-#{@test_suffix}@example.com",
+)
+@new_org.planid
+#=> 'free'
+
+## Test: New organization has api_access
+@new_org.can?('api_access')
+#=> true
+
+## Teardown: Clean up test organizations
+[@free_org, @identity_org, @multi_org, @legacy_org, @no_plan_org, @empty_plan_org, @new_org].each do |org|
+    org&.destroy!
+rescue StandardError
+    nil
+end
+true
+#=> true
+
+## Teardown: Restore billing state
+BillingTestHelpers.cleanup_billing_state!
+true
+#=> true

@@ -2,7 +2,6 @@
 #
 # frozen_string_literal: true
 
-#
 # Customer Cleanup - Remove anonymous, known test users - Pipeline
 #
 # Purpose: Removes Customer records based on the following criteria:
@@ -15,15 +14,12 @@
 #   bin/ots migrate --run 1512_customer_cleanup.rb
 #
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'onetime/migration'
 
 module Onetime
   class Migration < PipelineMigration
     def prepare
-      @model_class = V2::Customer
+      @model_class = Onetime::Customer
       @batch_size  = 1000
     end
 
@@ -95,8 +91,8 @@ module Onetime
   end
 end
 
-# If this script is run directly
+# Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
+  exit(Onetime::Migration.cli_run)
 end

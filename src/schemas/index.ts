@@ -1,3 +1,5 @@
+// src/schemas/index.ts
+
 /**
  * Schema System Architecture
  *
@@ -49,7 +51,7 @@
 
 // Exports organized by architectural layer
 // Base schemas and utilities
-export * from './api/base';
+export * from './api/v3/base';
 export * from './models/base';
 
 // Error Flynn
@@ -58,12 +60,15 @@ export * from './errors/index';
 // Core domain models
 export * from './models/customer';
 export * from './models/feedback';
-export * from './models/metadata';
+export * from './models/receipt';
 export * from './models/secret';
 
+// Configuration schemas
+export * from './config';
+
 // Domain-specific models and endpoints
-export * from './api/endpoints';
-export * from './api/endpoints/colonel';
+export * from './api/v3/endpoints';
+export * from './api/account/endpoints/colonel';
 export * from './models/domain/index';
 
 // API response types
@@ -72,18 +77,18 @@ export type {
   ApiErrorResponse,
   ApiRecordResponse,
   ApiRecordsResponse,
-} from './api/base';
+} from './api/v3/base';
 
 export type {
   AccountResponse,
   ApiTokenResponse,
-  MetadataResponse,
+  ReceiptResponse,
   SecretResponse,
-} from './api/responses';
+} from './api/v3/responses';
 
-export type { ColonelInfoDetails } from './api/endpoints/colonel';
+export type { ColonelInfoDetails } from './api/account/endpoints/colonel';
 
 // Core model types
-export type { BaseModel, CustomDomain, Customer, Feedback, Metadata, Secret } from './models';
+export type { BaseModel, CustomDomain, Customer, Feedback, Receipt, Secret } from './models';
 
 export * from './i18n';

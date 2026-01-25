@@ -1,0 +1,30 @@
+# apps/api/organizations/routes
+#
+# Otto Routes - Organization API (Site-Only Endpoints)
+# Using direct Logic class routing with authentication strategies
+#
+# Organization API handles organization management endpoints.
+# These endpoints are not part of the public API and don't need versioning.
+# All endpoints require authentication (session or basic).
+
+# Organization Management
+# Uses extid (external ID) in URLs for security; objid (internal ID) is for internal use only
+GET    /                                    OrganizationAPI::Logic::Organizations::ListOrganizations response=json auth=sessionauth
+POST   /                                    OrganizationAPI::Logic::Organizations::CreateOrganization response=json auth=sessionauth
+GET    /:extid                              OrganizationAPI::Logic::Organizations::GetOrganization response=json auth=sessionauth
+PUT    /:extid                              OrganizationAPI::Logic::Organizations::UpdateOrganization response=json auth=sessionauth
+DELETE /:extid                              OrganizationAPI::Logic::Organizations::DeleteOrganization response=json auth=sessionauth
+
+# Organization Invitations
+# Invite management for organization owners/admins
+GET    /:extid/invitations                  OrganizationAPI::Logic::Invitations::ListInvitations response=json auth=sessionauth
+POST   /:extid/invitations                  OrganizationAPI::Logic::Invitations::CreateInvitation response=json auth=sessionauth
+POST   /:extid/invitations/:token/resend    OrganizationAPI::Logic::Invitations::ResendInvitation response=json auth=sessionauth
+DELETE /:extid/invitations/:token           OrganizationAPI::Logic::Invitations::RevokeInvitation response=json auth=sessionauth
+
+# Organization Members
+# Member and role management for organization owners/admins
+# Role hierarchy: owner > admin > member
+GET    /:extid/members                      OrganizationAPI::Logic::Members::ListMembers response=json auth=sessionauth
+PATCH  /:extid/members/:member_extid/role   OrganizationAPI::Logic::Members::UpdateMemberRole response=json auth=sessionauth
+DELETE /:extid/members/:member_extid        OrganizationAPI::Logic::Members::RemoveMember response=json auth=sessionauth

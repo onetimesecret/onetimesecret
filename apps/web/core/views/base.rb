@@ -1,10 +1,12 @@
 # apps/web/core/views/base.rb
+#
+# frozen_string_literal: true
 
-require 'chimera'
+require 'rhales'
 
 require 'onetime/middleware'
 
-require 'v2/models/customer'
+require 'onetime/models'
 
 require_relative 'helpers'
 require_relative 'serializers'
@@ -19,62 +21,57 @@ require_relative 'serializers'
 #
 module Core
   module Views
-    class BaseView < Chimera
+    class BaseView
       extend Core::Views::InitializeViewVars
       include Core::Views::SanitizerHelpers
-      include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
-      include Onetime::TimeUtils
+      include Onetime::Utils::TimeUtils
 
-      self.template_path = './templates/web'
-      self.template_extension = 'html'
-      self.view_namespace = Core::Views
-      self.view_path = './app/web/views'
+      TEMPLATE_PATH = File.join(__dir__, '..', 'templates')
 
-      attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
-      attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
+      attr_accessor :req, :form_fields, :pagename, :strategy_result, :locale, :sess, :cust
+      attr_reader :view_vars, :serialized_data, :messages
 
-      def initialize req, sess=nil, cust=nil, locale_override=nil, *args
-        @req = req
-        @sess = sess
-        @cust = cust || V2::Customer.anonymous
+      # Initialize a new view with the given request
+      #
+      # All other data (session, customer, locale) is extracted from req automatically:
+      # - Session: req.env['otto.strategy_result'].session or req.session
+      # - Customer: req.env['otto.strategy_result'].user or anonymous
+      # - Locale: req.env['otto.locale'] or default
+      #
+      # @param req [Rack::Request] The current request object
+      def initialize(req)
+        @req             = req
+        @strategy_result = req.env['otto.strategy_result']
 
-        # We determine locale here because it's used for i18n. Otherwise we couldn't
-        # determine the i18n messages until inside or after initialize_view_vars.
-        #
-        # Determine locale with this priority:
-        # 1. Explicitly provided locale
-        # 2. Locale from request environment (if available)
-        # 3. Application default locale as set in yaml configuration
-        @locale = if locale_override
-                    locale_override
-                  elsif !req.nil? && req.env['ots.locale']
-                    req.env['ots.locale']
-                  else
-                    OT.default_locale
-                  end
+        # Extract session and customer from strategy_result or use fallback values
+        if @strategy_result
+          @sess = @strategy_result.session
+          @cust = @strategy_result.user || Onetime::Customer.anonymous
+        else
+          # Error recovery: Otto didn't run, use direct session access
+          @sess = begin
+            req.session
+          rescue StandardError
+            {}
+          end
+          @cust = Onetime::Customer.anonymous
+        end
 
-        @i18n_instance = self.i18n
+        # Extract locale from request environment
+        @locale = req.env.fetch('otto.locale', OT.default_locale)
+
         @messages = []
 
-        update_view_vars
+        # Initialize view variables, passing pre-resolved sess/cust
+        # to avoid re-extraction (eliminates duplication)
+        @view_vars = self.class.initialize_view_vars(req, @sess, @cust)
 
-        init(*args) if respond_to?(:init)
+        # Call subclass init hook if defined
+        init if respond_to?(:init)
 
-        update_serialized_data
-      end
-
-      def update_serialized_data
-        @serialized_data = self.run_serializers
-      end
-
-      def update_view_vars
-        @view_vars = self.class.initialize_view_vars(req, sess, cust, locale, i18n_instance)
-
-        # Make the view-relevant variables available to the view and HTML template
-        @view_vars.each do |key, value|
-          self[key] = value
-        end
+        # Run serializers to prepare data for frontend
+        @serialized_data = run_serializers
       end
 
       # Add notification message to be displayed in StatusBar component
@@ -82,15 +79,15 @@ module Core
       # @param msg [String] Message content to be displayed
       # @param type [String] Type of message, one of: info, error, success, warning
       # @return [Array<Hash>] Array containing all message objects
-      def add_message msg, type='info'
-        messages << {type: type, content: msg}
+      def add_message(msg, type = 'info')
+        messages << { 'type' => type, 'content' => msg }
       end
 
       # Add error message to be displayed in StatusBar component
       #
       # @param msg [String] error message content to be displayed
       # @return [Array<Hash>] array containing all message objects
-      def add_error msg
+      def add_error(msg)
         add_message(msg, 'error')
       end
 
@@ -102,7 +99,44 @@ module Core
       #
       # @return [Hash] The serialized data
       def run_serializers
-        SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
+        SerializerRegistry.run(self.class.serializers, view_vars)
+      end
+
+      # Render the view using Rhales
+      #
+      # Separates data into two categories:
+      # 1. Window state (serialized_data) - goes into window.__BOOTSTRAP_STATE__
+      # 2. Template vars - used for HTML rendering only
+      #
+      # @param template_name [String] Optional template name (defaults to 'index')
+      # @return [String] Rendered HTML
+      def render(template_name = 'index')
+        # Template-only variables (NOT serialized to window.__BOOTSTRAP_STATE__)
+        # These are available in templates via {{variable}} but won't reach the client
+        template_vars = {
+          'page_title' => view_vars['page_title'],
+          'description' => view_vars['description'],
+          'keywords' => view_vars['keywords'],
+          'baseuri' => view_vars['baseuri'],
+          'site_host' => view_vars['site_host'],
+          'no_cache' => view_vars['no_cache'],
+          'vite_assets_html' => vite_assets(
+            nonce: view_vars['nonce'],
+            development: view_vars['frontend_development'],
+          ),
+        }
+
+        # Create Rhales view with separated data
+        # - client: Data from serializers that goes to window.__BOOTSTRAP_STATE__
+        # - server: Template-only variables that don't get serialized to client
+        rhales_view = Rhales::View.new(
+          req,
+          client: serialized_data,      # Only this goes to window state
+          server: template_vars,        # Available in templates, NOT serialized
+          config: Rhales.configuration,
+        )
+
+        rhales_view.render(template_name)
       end
 
       class << self
@@ -110,14 +144,7 @@ module Core
         # provides the locale strings specifically for this view. For that to
         # work, the view being used has a matching name in the locales file.
         def pagename
-          # NOTE: There's some speculation that setting a class instance variable
-          # inside the class method could present a race condition in between the
-          # check for nil and running the expression to set it. It's possible but
-          # every thread will produce the same result. Winning by technicality is
-          # one thing but the reality of software development is another. Process
-          # is more important than clever design. Instead, a safer practice is to
-          # set the class instance variable here in the class definition.
-          @pagename ||= self.name.split('::').last.downcase.to_sym
+          @pagename ||= name.split('::').last.downcase.to_sym
         end
 
         # Class-level serializers list
@@ -137,7 +164,6 @@ module Core
           end
         end
       end
-
     end
   end
 end

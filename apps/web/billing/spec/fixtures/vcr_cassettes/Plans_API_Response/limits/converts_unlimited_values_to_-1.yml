@@ -1,0 +1,55 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://catch.onetimesecret.com/api/2/envelope/
+    body:
+      encoding: UTF-8
+      string: |-
+        {"event_id":"8de88b8c46f54f43ad46e59a85048fce","dsn":"https://e4f0e05ca113560573e15f5e52428419@catch.onetimesecret.com/2","sdk":{"name":"sentry.ruby","version":"6.1.0"},"sent_at":"2025-12-30T21:10:09Z","trace":{"trace_id":"a10fb9f4757f4466ac5815d0afb61957","sample_rate":"0.1","sample_rand":"0.082308","sampled":"true","environment":"dev.onetime.dev (development)","release":"0.0.0-rc0 (1482b9578)","public_key":"e4f0e05ca113560573e15f5e52428419"}}
+        {"type":"transaction","content_type":"application/json"}
+        {"event_id":"8de88b8c46f54f43ad46e59a85048fce","level":"error","timestamp":1767129009.494806,"release":"0.0.0-rc0 (1482b9578)","environment":"dev.onetime.dev (development)","server_name":"Tundra.local","modules":{"rake":"12.3.3","public_suffix":"6.0.2","addressable":"2.8.7","amq-protocol":"2.3.4","android_key_attestation":"0.3.0","ffi":"1.17.2","ffi-compiler":"1.3.2","argon2":"2.3.2","ast":"2.4.3","aws-eventstream":"1.4.0","aws-partitions":"1.1182.0","aws-sigv4":"1.12.1","base64":"0.3.0","bigdecimal":"3.3.1","jmespath":"1.6.2","logger":"1.7.0","aws-sdk-core":"3.237.0","aws-sdk-sesv2":"1.87.0","bcrypt":"3.1.20","benchmark":"0.5.0","bindata":"2.5.1","bundler":"2.7.2","rbtree":"0.4.6","set":"1.1.2","sorted_set":"1.0.3","bunny":"2.24.0","bunny-mock":"1.7.0","cbor":"0.5.10.1","chunky_png":"1.4.0","climate_control":"1.2.0","concurrent-ruby":"1.3.5","connection_pool":"2.5.5","openssl":"3.3.2","openssl-signature_algorithm":"1.3.0","cose":"1.3.1","rexml":"3.4.4","crack":"1.0.1","crass":"1.0.6","csv":"3.3.5","daemons":"1.4.1","database_cleaner-core":"2.0.1","sequel":"5.98.0","database_cleaner-sequel":"2.0.2","date":"3.5.0","prettyprint":"0.2.0","pp":"0.6.3","erb":"6.0.0","stringio":"3.1.8","psych":"5.2.6","tsort":"0.2.0","rdoc":"6.15.1","io-console":"0.8.1","reline":"0.6.3","irb":"1.15.3","debug":"1.11.0","diff-lcs":"1.6.2","docile":"1.4.1","dry-cli":"1.3.0","dry-inflector":"1.2.0","encryptor":"1.1.3","tzinfo":"2.0.6","et-orbi":"1.4.0","eventmachine":"1.2.7","facets":"3.1.0","i18n":"1.14.7","faker":"3.5.2","ostruct":"0.6.3","oj":"3.16.12","redis-client":"0.26.1","redis":"5.4.1","uri-valkey":"1.4.0","familia":"2.0.0.pre23","fastimage":"2.4.0","raabro":"1.4.0","fugit":"1.12.1","hana":"1.3.7","hashdiff":"1.2.1","mini_mime":"1.1.5","multi_xml":"0.7.2","httparty":"0.23.2","ipaddr":"1.2.7","json":"2.16.0","regexp_parser":"2.11.3","simpleidn":"0.2.3","json_schemer":"2.4.0","jwt":"3.1.2","sigdump":"0.2.5","serverengine":"2.1.1","thor":"1.4.0","kicks":"3.2.0","language_server-protocol":"3.17.0.5","lint_roller":"1.1.0","rb-fsevent":"0.11.2","rb-inotify":"0.11.1","listen":"3.9.0","racc":"1.8.1","nokogiri":"1.18.10","loofah":"2.24.1","timeout":"0.4.4","net-protocol":"0.2.2","net-imap":"0.5.12","net-pop":"0.1.2","net-smtp":"0.5.1","mail":"2.9.0","minitest":"5.26.1","mustache":"1.1.1","nio4r":"2.7.5","rack":"3.2.4","rack-parser":"0.7.0","otto":"2.0.0.pre10","parallel":"1.27.0","parser":"3.3.10.0","tty-color":"0.6.0","pastel":"0.8.0","pg":"1.6.2","prettier_print":"1.2.1","prism":"1.6.0","puma":"7.1.0","rack-contrib":"2.5.0","rack-protection":"4.2.1","rack-proxy":"0.7.7","rack-session":"2.1.1","rack-test":"2.2.0","rack-utf8_sanitizer":"1.10.1","rackup":"2.2.1","rainbow":"3.1.1","rbs":"3.9.5","rerun":"0.14.0","tilt":"2.6.1","rhales":"0.5.3","roda":"3.98.0","rodauth":"2.41.0","rodauth-tools":"0.3.1","rotp":"6.3.0","rqrcode_core":"2.0.0","rqrcode":"3.1.0","rspec-support":"4.0.0.pre","rspec-core":"4.0.0.pre","rspec-expectations":"4.0.0.pre","rspec-mocks":"4.0.0.pre","rspec":"4.0.0.pre","rubocop-ast":"1.48.0","ruby-progressbar":"1.13.0","unicode-emoji":"4.1.0","unicode-display_width":"3.2.0","rubocop":"1.81.7","rubocop-performance":"1.26.1","rubocop-rspec":"3.8.0","rubocop-sequel":"0.4.1","rubocop-thread_safety":"0.7.3","ruby-lsp":"0.26.3","ruby_http_client":"3.5.5","rufus-scheduler":"3.9.2","safety_net_attestation":"0.5.0","semantic_logger":"4.17.0","sendgrid-ruby":"6.7.0","sentry-ruby":"6.1.0","simplecov-html":"0.13.2","simplecov_json_formatter":"0.1.4","simplecov":"0.22.0","sqlite3":"2.8.0","stackprof":"0.2.27","stripe":"17.2.0","syntax_tree":"6.3.0","thin":"2.0.1","timecop":"0.9.10","tpm-key_attestation":"0.14.1","truemail":"3.3.1","tty-cursor":"0.7.1","tty-screen":"0.8.2","tryouts":"3.7.1","vcr":"6.3.1","webauthn":"3.4.3","webmock":"3.26.1","cgi":"0.4.2","delegate":"0.4.0","did_you_mean":"2.0.0","digest":"3.2.0","english":"0.8.0","error_highlight":"0.7.0","etc":"1.4.6","fcntl":"1.2.0","fiddle":"1.1.6","fileutils":"1.7.3","find":"0.2.0","forwardable":"1.3.3","io-nonblock":"0.3.2","io-wait":"0.3.2","net-http":"0.6.0","open-uri":"0.5.0","open3":"0.2.1","optparse":"0.6.0","pathname":"0.4.0","pstore":"0.1.4","readline":"0.0.4","resolv":"0.6.2","ruby2_keywords":"0.0.5","securerandom":"0.4.1","shellwords":"0.2.2","singleton":"0.3.0","strscan":"3.1.2","syntax_suggest":"2.0.2","tempfile":"0.3.1","time":"0.4.1","tmpdir":"0.3.1","un":"0.3.0","uri":"1.0.4","weakref":"0.1.3","yaml":"0.4.0","zlib":"3.2.1"},"message":"","user":{},"tags":{"request_id":"3aunx156tri1w"},"contexts":{"os":{"name":"Darwin","version":"Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST 2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020","build":"25.3.0","kernel_version":"Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST 2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020","machine":"arm64"},"runtime":{"name":"ruby","version":"ruby 3.4.8 (2025-12-17 revision 995b59f666) +YJIT +PRISM [arm64-darwin25]"},"trace":{"trace_id":"a10fb9f4757f4466ac5815d0afb61957","span_id":"cfb0c36e72534223","parent_span_id":null,"description":null,"op":"http.server","status":"ok","origin":"auto.http.rack","data":{"http.response.status_code":200}}},"extra":{},"fingerprint":[],"breadcrumbs":{"values":[]},"transaction":"/api/plans","transaction_info":{"source":"url"},"platform":"ruby","sdk":{"name":"sentry.ruby","version":"6.1.0"},"type":"transaction","request":{"url":"http://example.org/billing/api/plans","method":"GET","headers":{"Host":"example.org","X-Request-Id":"3aunx156tri1w","User-Agent":"","Referer":""},"env":{"SERVER_NAME":"example.org","SERVER_PORT":"80"}},"spans":[{"trace_id":"a10fb9f4757f4466ac5815d0afb61957","span_id":"bb58847041a84bc3","parent_span_id":"cfb0c36e72534223","start_timestamp":1767129009.4931898,"timestamp":1767129009.494462,"description":"ZRANGE billing_plan:instances","op":"db.redis","status":null,"tags":{},"data":{"db.system":"redis","db.name":0,"server.address":"redis","server.port":2525},"origin":"auto.db.redis"}],"start_timestamp":1767129009.492772,"measurements":{}}
+    headers:
+      Content-Type:
+      - application/x-sentry-envelope
+      Content-Encoding:
+      - ''
+      User-Agent:
+      - sentry-ruby/6.1.0
+      X-Sentry-Auth:
+      - Sentry sentry_version=7, sentry_client=sentry-ruby/6.1.0, sentry_timestamp=1767129009,
+        sentry_key=e4f0e05ca113560573e15f5e52428419
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Tue, 30 Dec 2025 21:10:10 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '41'
+      Vary:
+      - origin, access-control-request-method, access-control-request-headers
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - x-sentry-error,x-sentry-rate-limits,retry-after
+      Cross-Origin-Resource-Policy:
+      - cross-origin
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: '{"id":"8de88b8c46f54f43ad46e59a85048fce"}'
+  recorded_at: Tue, 30 Dec 2025 21:10:10 GMT
+recorded_with: VCR 6.3.1

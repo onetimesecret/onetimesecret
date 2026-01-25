@@ -1,0 +1,13 @@
+{
+  "email": {
+    "welcome": {
+      "subject": "Bienvenue sur %{product_name} - Veuillez vérifier votre e-mail",
+      "title": "Bienvenue sur %{product_name} !",
+      "postscript": "P.S. Cet e-mail a été envoyé à %{email_address}."
+    },
+    "magic_link": {
+      "subject": "Connectez-vous à %{display_domain}",
+      "request_notice": "Vous avez demandé un lien de connexion pour votre compte %{product_name}."
+    }
+  }
+}
