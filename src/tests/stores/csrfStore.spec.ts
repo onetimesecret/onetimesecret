@@ -1,13 +1,11 @@
 // src/tests/stores/csrfStore.spec.ts
 
 import { setupTestPinia } from '../setup';
-import { mockVisibility } from '../setupDocument';
 import { setupWindowState } from '../setupWindow';
 
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { nextTick, ref } from 'vue';
 import type { ComponentPublicInstance } from 'vue';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import type { AxiosInstance } from 'axios';
@@ -40,6 +38,16 @@ describe('CSRF Store', () => {
     if (axiosMock) axiosMock?.reset();
   });
 
+  /**
+   * Initialization Tests
+   *
+   * The CSRF token (shrimp) originates from session[:csrf] on the Ruby backend.
+   * It is serialized into the page's bootstrap state and loaded into the
+   * bootstrapStore on page load. The csrfStore then synchronizes with this
+   * value during initialization.
+   *
+   * Flow: Backend session[:csrf] -> window.__BOOTSTRAP_STATE__.shrimp -> bootstrapStore -> csrfStore
+   */
   describe('Initialization', () => {
     it('initializes with empty shrimp when bootstrap.shrimp is not available', () => {
       // bootstrapStore defaults to empty shrimp
@@ -61,6 +69,27 @@ describe('CSRF Store', () => {
       store.init();
 
       expect(store.shrimp).toBe('yum');
+    });
+
+    /**
+     * Integration test: Verifies the shrimp value from bootstrap (which
+     * originates from session[:csrf] on the backend) is correctly loaded
+     * and made available through the csrfStore for form submissions.
+     */
+    it('loads shrimp from bootstrap for use in form CSRF protection', () => {
+      // Simulate the bootstrap state that would be set by the backend
+      // The backend serializes session[:csrf] into the page's bootstrap JSON
+      const backendCsrfToken = 'backend-session-csrf-token-abc123';
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: backendCsrfToken });
+
+      const store = useCsrfStore();
+      store.init();
+
+      // The csrfStore.shrimp should match what was bootstrapped from the backend
+      expect(store.shrimp).toBe(backendCsrfToken);
+      // This value is used by components like SsoButton when submitting forms
+      // with the 'shrimp' field for Rack::Protection::AuthenticityToken validation
     });
 
     it('preserves bootstrap.shrimp through store reset', () => {
@@ -109,7 +138,8 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       expect(store.shrimp).toBe(newShrimp); // Shrimp should update
-      expect(window.__BOOTSTRAP_STATE__.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
+      const bootstrapState = (window as Window & { __BOOTSTRAP_STATE__?: { shrimp?: string } }).__BOOTSTRAP_STATE__;
+      expect(bootstrapState?.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
       expect(store.isValid).toBe(initialValidity); // Validity should not change
     });
 
@@ -137,7 +167,8 @@ describe('CSRF Store', () => {
       // Mock the API response - focus on behavior rather than implementation details
       axiosMock?.onPost('/api/v3/validate-shrimp').reply((config) => {
         // Verify that the shrimp token is included in the request (test behavior)
-        const shrimpHeader = config.headers?.get ? config.headers.get('O-Shrimp') : config.headers?.['O-Shrimp'];
+        const headers = config.headers as Record<string, string> | undefined;
+        const shrimpHeader = headers?.['O-Shrimp'];
         expect(shrimpHeader).toBe('initial-shrimp');
 
         // Return successful response
@@ -176,7 +207,8 @@ describe('CSRF Store', () => {
 
       // Verify the request was made with correct shrimp token (behavior-focused)
       const request = axiosMock?.history.post[0];
-      const shrimpHeader = request.headers?.get ? request.headers.get('O-Shrimp') : request.headers?.['O-Shrimp'];
+      const headers = request?.headers as Record<string, string> | undefined;
+      const shrimpHeader = headers?.['O-Shrimp'];
       expect(shrimpHeader).toBe('initial-shrimp');
     });
 

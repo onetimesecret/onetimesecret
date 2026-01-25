@@ -350,6 +350,26 @@
     "text": "Σύνδεσμος σύνδεσης",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Κλειδί πρόσβασης",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Ή συνεχίστε με",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Σύνδεση με SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Ανακατεύθυνση στον πάροχο ταυτότητας...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Η σύνδεση SSO απέτυχε. Δοκιμάστε ξανά.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Χρειάζεστε βοήθεια;",
     "sha256": "c225cdfb"

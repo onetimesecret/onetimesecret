@@ -9,13 +9,8 @@
 require 'spec_helper'
 
 RSpec.describe 'PostgreSQL Mode Test Infrastructure', :postgres_database, type: :integration do
-  before(:all) do
-    require 'onetime'
-    require 'onetime/config'
-    Onetime.boot! :test
-    require 'onetime/auth_config'
-    require 'auth/database'
-  end
+  # NOTE: The :postgres_database tag triggers PostgresModeSuiteDatabase.setup! which
+  # handles booting and database setup. No explicit before(:all) boot needed here.
 
   describe 'PostgresModeSuiteDatabase' do
     it 'provides a test_db' do
@@ -58,34 +53,38 @@ RSpec.describe 'PostgreSQL Mode Test Infrastructure', :postgres_database, type: 
   end
 
   describe 'AuthAccountFactory with PostgreSQL' do
+    # Note: Uses setup_db (elevated connection) for INSERT operations.
+    # In production, accounts are created via Rodauth APIs, not direct SQL.
+    # These tests verify the factory works for other infrastructure tests.
+
     describe '#create_verified_account' do
       it 'creates an account with verified status' do
         test_email = "postgres-test-#{SecureRandom.hex(4)}@example.com"
-        account = create_verified_account(db: test_db, email: test_email)
+        account = create_verified_account(db: setup_db, email: test_email)
         expect(account[:status_id]).to eq(AuthAccountFactory::STATUS_VERIFIED)
         expect(account[:email]).to eq(test_email)
 
         # Cleanup
-        cleanup_account(db: test_db, account_id: account[:id])
+        cleanup_account(db: setup_db, account_id: account[:id])
       end
 
       it 'creates a password hash' do
         test_email = "postgres-test-#{SecureRandom.hex(4)}@example.com"
-        account = create_verified_account(db: test_db, email: test_email)
-        hash_row = test_db[:account_password_hashes].where(id: account[:id]).first
+        account = create_verified_account(db: setup_db, email: test_email)
+        hash_row = setup_db[:account_password_hashes].where(id: account[:id]).first
         expect(hash_row).not_to be_nil
         expect(hash_row[:password_hash]).to start_with('$2')
 
         # Cleanup
-        cleanup_account(db: test_db, account_id: account[:id])
+        cleanup_account(db: setup_db, account_id: account[:id])
       end
 
       it 'generates random email when not provided' do
-        account = create_verified_account(db: test_db)
+        account = create_verified_account(db: setup_db)
         expect(account[:email]).to match(/test-[a-f0-9]+@example\.com/)
 
         # Cleanup
-        cleanup_account(db: test_db, account_id: account[:id])
+        cleanup_account(db: setup_db, account_id: account[:id])
       end
     end
   end
@@ -152,10 +151,10 @@ RSpec.describe 'PostgreSQL Mode Test Infrastructure', :postgres_database, type: 
 
   describe 'Database cleanup' do
     it 'can truncate tables successfully' do
-      # Create a test account
-      account = create_verified_account(db: test_db)
+      # Create a test account using elevated connection
+      account = create_verified_account(db: setup_db)
 
-      # Verify it exists
+      # Verify it exists (can query with regular connection)
       expect(test_db[:accounts].where(id: account[:id]).count).to eq(1)
 
       # Clean tables

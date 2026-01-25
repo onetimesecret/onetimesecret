@@ -350,6 +350,26 @@
     "text": "매직 링크",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "패스키",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "또는 다음으로 계속",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "SSO로 로그인",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "ID 공급자로 리디렉션 중...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO 로그인 실패. 다시 시도해 주세요.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "도움이 필요하세요?",
     "sha256": "c225cdfb"

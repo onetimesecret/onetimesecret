@@ -27,8 +27,10 @@
   <!-- Modern favicon strategy -->
   <link nonce="{{app.nonce}}" rel="icon" href="/favicon.ico" sizes="32x32">
   <link nonce="{{app.nonce}}" rel="icon" type="image/svg+xml" href="/img/favicon.svg">
-  <link nonce="{{app.nonce}}" rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <!--<link nonce="{{app.nonce}}" rel="apple-touch-icon" href="/apple-touch-icon.png">-->
   <link nonce="{{app.nonce}}" rel="mask-icon" href="/safari-pinned-tab.svg" color="#dc4a22">
+
+
 
   {{#if no_cache}}
     <meta http-equiv="pragma" content="no-cache">

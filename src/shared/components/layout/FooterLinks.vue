@@ -31,7 +31,7 @@
       gap-y-8 px-4
       [@media(min-width:1024px)]:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]
       [@media(min-width:640px)]:grid-cols-[repeat(auto-fit,minmax(140px,1fr))]
-      [@media(min-width:640px)]:items-start [@media(min-width:640px)]:justify-items-center [@media(min-width:768px)]:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">
+      [@media(min-width:640px)]:items-start [@media(min-width:640px)]:justify-items-start [@media(min-width:768px)]:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">
       <div
         v-for="(group, groupIndex) in linkGroups"
         :key="group.name || `group-${groupIndex}`"

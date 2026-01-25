@@ -44,6 +44,7 @@ module Auth::Config::Hooks
   require_relative 'hooks/login'
   require_relative 'hooks/logout'
   require_relative 'hooks/mfa'
+  require_relative 'hooks/omniauth'
   require_relative 'hooks/password'
   require_relative 'hooks/email_auth'
   require_relative 'hooks/webauthn'

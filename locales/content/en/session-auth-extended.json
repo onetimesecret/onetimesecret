@@ -198,6 +198,10 @@
     "text": "Failed to set up biometric login",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "Password is required to set up a passkey",
+    "sha256": ""
+  },
   "web.auth.webauthn.authFailed": {
     "text": "Biometric authentication failed. Please try again.",
     "sha256": "626b9ece"
@@ -217,6 +221,90 @@
   "web.auth.webauthn.supportedMethods": {
     "text": "Supports Face ID, Touch ID, Windows Hello, and security keys",
     "sha256": "3ea1c1a2"
+  },
+  "web.auth.passkeys.title": {
+    "text": "Passkeys",
+    "context": "Title for passkey management section"
+  },
+  "web.auth.passkeys.description": {
+    "text": "Sign in with Face ID, Touch ID, Windows Hello, or security key",
+    "context": "Description of passkey authentication"
+  },
+  "web.auth.passkeys.setup_description": {
+    "text": "Passkeys let you sign in securely without a password",
+    "context": "Setup page description"
+  },
+  "web.auth.passkeys.not_configured": {
+    "text": "Not configured",
+    "context": "Status when no passkeys are registered"
+  },
+  "web.auth.passkeys.count": {
+    "text": "{count} passkey registered | {count} passkeys registered",
+    "context": "Number of registered passkeys"
+  },
+  "web.auth.passkeys.add_passkey": {
+    "text": "Add Passkey",
+    "context": "Button to add a new passkey"
+  },
+  "web.auth.passkeys.register_passkey": {
+    "text": "Register Passkey",
+    "context": "Button to register a new passkey"
+  },
+  "web.auth.passkeys.remove_passkey": {
+    "text": "Remove Passkey",
+    "context": "Button to remove a passkey"
+  },
+  "web.auth.passkeys.confirm_remove": {
+    "text": "Are you sure you want to remove this passkey? You will no longer be able to sign in with it.",
+    "context": "Confirmation message for passkey removal"
+  },
+  "web.auth.passkeys.removed_success": {
+    "text": "Passkey removed successfully",
+    "context": "Success message after removing passkey"
+  },
+  "web.auth.passkeys.registered_success": {
+    "text": "Passkey registered successfully",
+    "context": "Success message after registering passkey"
+  },
+  "web.auth.passkeys.no_passkeys": {
+    "text": "No passkeys registered",
+    "context": "Empty state when no passkeys exist"
+  },
+  "web.auth.passkeys.no_passkeys_description": {
+    "text": "Add a passkey to sign in more securely without entering a password",
+    "context": "Description for empty state"
+  },
+  "web.auth.passkeys.name": {
+    "text": "Passkey Name",
+    "context": "Label for passkey name field"
+  },
+  "web.auth.passkeys.created": {
+    "text": "Created",
+    "context": "Label for creation date"
+  },
+  "web.auth.passkeys.last_used": {
+    "text": "Last used: {time}",
+    "context": "Last used timestamp"
+  },
+  "web.auth.passkeys.never_used": {
+    "text": "Never used",
+    "context": "Status when passkey has not been used"
+  },
+  "web.auth.passkeys.benefit_secure": {
+    "text": "More secure than passwords - resistant to phishing attacks",
+    "context": "Passkey benefit"
+  },
+  "web.auth.passkeys.benefit_fast": {
+    "text": "Fast and easy - just use your fingerprint, face, or security key",
+    "context": "Passkey benefit"
+  },
+  "web.auth.passkeys.benefit_synced": {
+    "text": "Synced across your devices when using platform authenticators",
+    "context": "Passkey benefit"
+  },
+  "web.auth.passkeys.link_title": {
+    "text": "Passkeys",
+    "context": "Navigation link title"
   },
   "web.auth.lockout.attempts_remaining": {
     "text": "Warning: {count} login attempt(s) remaining",

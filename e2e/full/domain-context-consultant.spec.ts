@@ -54,7 +54,7 @@ import { test, expect } from '@playwright/test';
  * ## Current Implementation Status
  *
  * As of Phase 4, the following are implemented:
- * - useDomainContext composable with localStorage persistence
+ * - useDomainContext composable with sessionStorage persistence
  * - Domain context indicator in SecretForm
  * - Reactive context updates in form
  * - DomainContextSwitcher component (not yet implemented)
@@ -127,8 +127,8 @@ test.describe('Domain Context - Consultant Workflow', () => {
 
   test.skip('persists domain context selection across page navigation', async ({ page }) => {
     /**
-     * Validates that domain context persists in localStorage and survives
-     * page navigation.
+     * Validates that domain context persists in sessionStorage and survives
+     * page navigation within the same browser session.
      *
      * SKIP REASON: Requires backend setup and context switcher component.
      */
@@ -137,14 +137,14 @@ test.describe('Domain Context - Consultant Workflow', () => {
     await page.goto('/');
 
     // Get initial context
-    const initialContext = await page.evaluate(() => localStorage.getItem('domainContext'));
+    const initialContext = await page.evaluate(() => sessionStorage.getItem('domainContext'));
 
     // Navigate away and back
     await page.goto('/dashboard'); // Adjust route as needed
     await page.goto('/'); // Back to secret creation
 
     // Verify context persisted
-    const persistedContext = await page.evaluate(() => localStorage.getItem('domainContext'));
+    const persistedContext = await page.evaluate(() => sessionStorage.getItem('domainContext'));
 
     expect(persistedContext).toBe(initialContext);
   });
@@ -207,20 +207,20 @@ test.describe('Domain Context - Consultant Workflow', () => {
     await expect(contextIndicator).not.toBeVisible();
   });
 
-  test('localStorage domainContext key is used correctly', async ({ page }) => {
+  test('sessionStorage domainContext key is used correctly', async ({ page }) => {
     /**
-     * Validates that the composable uses localStorage with the correct key.
+     * Validates that the composable uses sessionStorage with the correct key.
      */
 
     await page.goto('/');
 
-    // Check that localStorage key exists (if user has custom domains)
+    // Check that sessionStorage key exists (if user has custom domains)
     const hasDomainContext = await page.evaluate(() => {
       const customDomains = window.__BOOTSTRAP_STATE__?.custom_domains || [];
       const hasCustomDomains = customDomains.length > 0;
 
       if (hasCustomDomains) {
-        const storedDomain = localStorage.getItem('domainContext');
+        const storedDomain = sessionStorage.getItem('domainContext');
         return storedDomain !== null;
       }
 
@@ -256,8 +256,8 @@ test.describe('Domain Context - Consultant Workflow', () => {
     const contextIndicator = page.locator('[role="status"][aria-label*="context"]');
     await expect(contextIndicator).toContainText('widgets.example.com');
 
-    // Verify localStorage updated
-    const storedDomain = await page.evaluate(() => localStorage.getItem('domainContext'));
+    // Verify sessionStorage updated
+    const storedDomain = await page.evaluate(() => sessionStorage.getItem('domainContext'));
     expect(storedDomain).toBe('widgets.example.com');
   });
 

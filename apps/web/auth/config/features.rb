@@ -10,6 +10,7 @@ module Auth::Config::Features
   require_relative 'features/email_auth'
   require_relative 'features/hardening'
   require_relative 'features/mfa'
+  require_relative 'features/omniauth'
   require_relative 'features/remember_me'
   require_relative 'features/webauthn'
 end

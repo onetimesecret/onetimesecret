@@ -350,6 +350,26 @@
     "text": "魔法链接",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "通行密钥",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "或继续使用",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "使用 SSO 登录",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "正在跳转到身份提供商...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO 登录失败。请重试。",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "需要帮助？",
     "sha256": "c225cdfb"

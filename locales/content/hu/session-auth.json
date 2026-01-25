@@ -350,6 +350,26 @@
     "text": "Mágikus hivatkozás",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Hozzáférési kulcs",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Vagy folytassa a következővel",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Bejelentkezés SSO-val",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Átirányítás az identitásszolgáltatóhoz...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO bejelentkezés sikertelen. Próbálja újra.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Segítségre van szüksége?",
     "sha256": "c225cdfb"

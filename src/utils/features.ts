@@ -11,6 +11,7 @@ import { getBootstrapValue } from '@/services/bootstrap.service';
 export interface AuthFeatures {
   magicLinksEnabled: boolean;
   webauthnEnabled: boolean;
+  omniAuthEnabled: boolean;
 }
 
 /**
@@ -34,12 +35,26 @@ export function isWebAuthnEnabled(): boolean {
 }
 
 /**
+ * Checks if OmniAuth/SSO authentication is enabled
+ */
+export function isOmniAuthEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  // omniauth can be boolean (false) or object with enabled property
+  const omniauth = features?.omniauth;
+  if (typeof omniauth === 'boolean') return omniauth;
+  return omniauth?.enabled === true;
+}
+
+/**
  * Gets all enabled authentication features
  */
 export function getAuthFeatures(): AuthFeatures {
   return {
     magicLinksEnabled: isMagicLinksEnabled(),
     webauthnEnabled: isWebAuthnEnabled(),
+    omniAuthEnabled: isOmniAuthEnabled(),
   };
 }
 

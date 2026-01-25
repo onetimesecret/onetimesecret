@@ -350,6 +350,26 @@
     "text": "Enllaç màgic",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Clau d'accés",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "O continuar amb",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Inicia sessió amb SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Redirigint al proveïdor d'identitat...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Error en iniciar sessió amb SSO. Si us plau, torna-ho a provar.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Necessites ajuda?",
     "sha256": "c225cdfb"

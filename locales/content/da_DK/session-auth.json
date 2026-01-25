@@ -350,6 +350,26 @@
     "text": "Magisk link",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Adgangsnøgle",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "Eller fortsæt med",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Log ind med SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Omdirigerer til identitetsudbyder...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO-login mislykkedes. Prøv venligst igen.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Brug for hjælp?",
     "sha256": "c225cdfb"

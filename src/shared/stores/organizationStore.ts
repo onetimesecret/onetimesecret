@@ -25,17 +25,18 @@ import { computed, inject, ref, watch } from 'vue';
 import { useBootstrapStore } from './bootstrapStore';
 
 /**
- * localStorage key for persisting selected organization across sessions.
+ * sessionStorage key for persisting selected organization within the session.
  * Used internally by the store for persistence.
+ * Using sessionStorage ensures data is cleared on logout and doesn't leak between users.
  */
 export const SELECTED_ORG_STORAGE_KEY = 'selectedOrganizationId';
 
 /**
- * Load persisted organization ID from localStorage with error handling.
+ * Load persisted organization ID from sessionStorage with error handling.
  */
 function loadPersistedOrgId(): string | null {
   try {
-    return localStorage.getItem(SELECTED_ORG_STORAGE_KEY);
+    return sessionStorage.getItem(SELECTED_ORG_STORAGE_KEY);
   } catch (error) {
     loggingService.error(new Error(`Failed to load persisted organization: ${error}`));
     return null;
@@ -43,14 +44,14 @@ function loadPersistedOrgId(): string | null {
 }
 
 /**
- * Persist organization ID to localStorage with error handling.
+ * Persist organization ID to sessionStorage with error handling.
  */
 function persistOrgId(orgId: string | null): void {
   try {
     if (orgId) {
-      localStorage.setItem(SELECTED_ORG_STORAGE_KEY, orgId);
+      sessionStorage.setItem(SELECTED_ORG_STORAGE_KEY, orgId);
     } else {
-      localStorage.removeItem(SELECTED_ORG_STORAGE_KEY);
+      sessionStorage.removeItem(SELECTED_ORG_STORAGE_KEY);
     }
   } catch (error) {
     loggingService.error(new Error(`Failed to persist organization selection: ${error}`));
@@ -407,9 +408,9 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Restore persisted organization selection from localStorage.
+   * Restore persisted organization selection from sessionStorage.
    * Returns the restored organization or null if not found.
-   * Priority: localStorage saved org > default org > first org
+   * Priority: sessionStorage saved org > default org > first org
    */
   function restorePersistedSelection(): Organization | null {
     if (organizations.value.length === 0) return null;
@@ -426,7 +427,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     return organizations.value.find((o) => o.is_default) ?? organizations.value[0] ?? null;
   }
 
-  // Watch currentOrganization and persist to localStorage
+  // Watch currentOrganization and persist to sessionStorage
   watch(
     () => currentOrganization.value?.id,
     (newOrgId) => {

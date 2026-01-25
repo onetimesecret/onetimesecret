@@ -59,9 +59,49 @@
     "text": "Magic Link",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Passkey",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "Need help?",
     "sha256": "c225cdfb"
+  },
+  "web.login.or_continue_with": {
+    "text": "Or continue with",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Sign in with SSO",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "Sign in with {provider}",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Redirecting to identity provider...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO sign-in failed. Please try again.",
+    "sha256": ""
+  },
+  "web.login.errors.sso_failed": {
+    "text": "SSO authentication failed. Please try again or use password login.",
+    "sha256": ""
+  },
+  "web.login.errors.token_missing": {
+    "text": "The authentication link is incomplete. Please request a new sign-in link.",
+    "sha256": ""
+  },
+  "web.login.errors.token_expired": {
+    "text": "This sign-in link has expired. Please request a new one.",
+    "sha256": ""
+  },
+  "web.login.errors.token_invalid": {
+    "text": "This sign-in link is invalid. Please request a new one.",
+    "sha256": ""
   },
   "web.signup.create_your_account": {
     "text": "Create Your Account",

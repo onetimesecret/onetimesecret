@@ -350,6 +350,26 @@
     "text": "Enlace mágico",
     "sha256": "7a9ba11a"
   },
+  "web.login.tab_passkey": {
+    "text": "Clave de acceso",
+    "sha256": ""
+  },
+  "web.login.or_continue_with": {
+    "text": "O continuar con",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Iniciar sesión con SSO",
+    "sha256": ""
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Redirigiendo al proveedor de identidad...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Error en el inicio de sesión con SSO. Por favor, inténtalo de nuevo.",
+    "sha256": ""
+  },
   "web.login.need_help": {
     "text": "¿Necesitas ayuda?",
     "sha256": "c225cdfb"
