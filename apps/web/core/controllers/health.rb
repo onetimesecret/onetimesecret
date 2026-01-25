@@ -64,7 +64,7 @@ module Core
         return { status: 'not_configured' } if amqp_url.nil? || amqp_url.empty?
 
         require 'bunny'
-        conn = Bunny.new(amqp_url)
+        conn = Bunny.new(amqp_url, connection_timeout: 5, read_timeout: 5)
         conn.start
 
         {
