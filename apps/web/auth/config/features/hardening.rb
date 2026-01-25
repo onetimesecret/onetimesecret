@@ -6,7 +6,7 @@ module Auth::Config::Features
   # Hardening features: attack prevention via brute force protection
   # and password requirements.
   #
-  # ENV: ENABLE_HARDENING (default: enabled, set to 'false' to disable)
+  # ENV: AUTH_HARDENING_ENABLED (default: enabled, set to 'false' to disable)
   #
   module Hardening
     def self.configure(auth)

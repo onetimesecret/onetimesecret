@@ -48,7 +48,7 @@ RSpec.describe 'ENV-conditional feature loading' do
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: enabled unless explicitly 'false'
-    if ENV['ENABLE_HARDENING'] != 'false'
+    if ENV['AUTH_HARDENING_ENABLED'] != 'false'
       features += [:lockout, :login_password_requirements_base]
     end
 
@@ -64,7 +64,7 @@ RSpec.describe 'ENV-conditional feature loading' do
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: enabled unless explicitly 'false'
-    if ENV['ENABLE_ACTIVE_SESSIONS'] != 'false'
+    if ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false'
       features += [:active_sessions]
     end
 
@@ -81,7 +81,7 @@ RSpec.describe 'ENV-conditional feature loading' do
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: enabled unless explicitly 'false'
-    if ENV['ENABLE_REMEMBER_ME'] != 'false'
+    if ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false'
       features += [:remember]
     end
 
@@ -95,7 +95,7 @@ RSpec.describe 'ENV-conditional feature loading' do
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: disabled unless explicitly 'true'
-    if ENV['ENABLE_MFA'] == 'true'
+    if ENV['AUTH_MFA_ENABLED'] == 'true'
       features += [:two_factor_base, :otp, :recovery_codes]
     end
 
@@ -113,7 +113,7 @@ RSpec.describe 'ENV-conditional feature loading' do
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: disabled unless explicitly 'true'
-    if ENV['ENABLE_EMAIL_AUTH'] == 'true'
+    if ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true'
       features += [:email_auth]
     end
 
@@ -130,7 +130,7 @@ RSpec.describe 'ENV-conditional feature loading' do
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: disabled unless explicitly 'true'
-    if ENV['ENABLE_WEBAUTHN'] == 'true'
+    if ENV['AUTH_WEBAUTHN_ENABLED'] == 'true'
       features += [:webauthn, :webauthn_login]
     end
 
@@ -142,10 +142,10 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_HARDENING' do
+  describe 'AUTH_HARDENING_ENABLED' do
     context 'when not set (default - enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_HARDENING' => nil) do
+        ClimateControl.modify('AUTH_HARDENING_ENABLED' => nil) do
           example.run
         end
       end
@@ -158,7 +158,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "false" (disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_HARDENING' => 'false') do
+        ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'false') do
           example.run
         end
       end
@@ -177,7 +177,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "true" (explicitly enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_HARDENING' => 'true') do
+        ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'true') do
           example.run
         end
       end
@@ -189,10 +189,10 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_ACTIVE_SESSIONS' do
+  describe 'AUTH_ACTIVE_SESSIONS_ENABLED' do
     context 'when not set (default - enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_ACTIVE_SESSIONS' => nil) do
+        ClimateControl.modify('AUTH_ACTIVE_SESSIONS_ENABLED' => nil) do
           example.run
         end
       end
@@ -205,7 +205,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "false" (disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_ACTIVE_SESSIONS' => 'false') do
+        ClimateControl.modify('AUTH_ACTIVE_SESSIONS_ENABLED' => 'false') do
           example.run
         end
       end
@@ -217,10 +217,10 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_REMEMBER_ME' do
+  describe 'AUTH_REMEMBER_ME_ENABLED' do
     context 'when not set (default - enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_REMEMBER_ME' => nil) do
+        ClimateControl.modify('AUTH_REMEMBER_ME_ENABLED' => nil) do
           example.run
         end
       end
@@ -233,7 +233,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "false" (disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_REMEMBER_ME' => 'false') do
+        ClimateControl.modify('AUTH_REMEMBER_ME_ENABLED' => 'false') do
           example.run
         end
       end
@@ -245,10 +245,10 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_MFA' do
+  describe 'AUTH_MFA_ENABLED' do
     context 'when not set (default - disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_MFA' => nil) do
+        ClimateControl.modify('AUTH_MFA_ENABLED' => nil) do
           example.run
         end
       end
@@ -271,7 +271,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "true" (enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_MFA' => 'true') do
+        ClimateControl.modify('AUTH_MFA_ENABLED' => 'true') do
           example.run
         end
       end
@@ -294,7 +294,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "false" (explicitly disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_MFA' => 'false') do
+        ClimateControl.modify('AUTH_MFA_ENABLED' => 'false') do
           example.run
         end
       end
@@ -306,10 +306,10 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_EMAIL_AUTH' do
+  describe 'AUTH_EMAIL_AUTH_ENABLED' do
     context 'when not set (default - disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_EMAIL_AUTH' => nil) do
+        ClimateControl.modify('AUTH_EMAIL_AUTH_ENABLED' => nil) do
           example.run
         end
       end
@@ -322,7 +322,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "true" (enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_EMAIL_AUTH' => 'true') do
+        ClimateControl.modify('AUTH_EMAIL_AUTH_ENABLED' => 'true') do
           example.run
         end
       end
@@ -339,10 +339,10 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_WEBAUTHN' do
+  describe 'AUTH_WEBAUTHN_ENABLED' do
     context 'when not set (default - disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_WEBAUTHN' => nil) do
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => nil) do
           example.run
         end
       end
@@ -355,7 +355,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "true" (enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_WEBAUTHN' => 'true') do
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => 'true') do
           example.run
         end
       end
@@ -376,12 +376,12 @@ RSpec.describe 'ENV-conditional feature loading' do
     context 'all features enabled' do
       around do |example|
         ClimateControl.modify(
-          'ENABLE_HARDENING' => 'true',
-          'ENABLE_ACTIVE_SESSIONS' => 'true',
-          'ENABLE_REMEMBER_ME' => 'true',
-          'ENABLE_MFA' => 'true',
-          'ENABLE_EMAIL_AUTH' => 'true',
-          'ENABLE_WEBAUTHN' => 'true',
+          'AUTH_HARDENING_ENABLED' => 'true',
+          'AUTH_ACTIVE_SESSIONS_ENABLED' => 'true',
+          'AUTH_REMEMBER_ME_ENABLED' => 'true',
+          'AUTH_MFA_ENABLED' => 'true',
+          'AUTH_EMAIL_AUTH_ENABLED' => 'true',
+          'AUTH_WEBAUTHN_ENABLED' => 'true',
         ) do
           example.run
         end
@@ -415,8 +415,8 @@ RSpec.describe 'ENV-conditional feature loading' do
     context 'hardening disabled but MFA enabled' do
       around do |example|
         ClimateControl.modify(
-          'ENABLE_HARDENING' => 'false',
-          'ENABLE_MFA' => 'true',
+          'AUTH_HARDENING_ENABLED' => 'false',
+          'AUTH_MFA_ENABLED' => 'true',
         ) do
           example.run
         end
@@ -439,12 +439,12 @@ RSpec.describe 'ENV-conditional feature loading' do
     context 'minimal configuration (only core features)' do
       around do |example|
         ClimateControl.modify(
-          'ENABLE_HARDENING' => 'false',
-          'ENABLE_ACTIVE_SESSIONS' => 'false',
-          'ENABLE_REMEMBER_ME' => 'false',
-          'ENABLE_MFA' => 'false',
-          'ENABLE_EMAIL_AUTH' => 'false',
-          'ENABLE_WEBAUTHN' => 'false',
+          'AUTH_HARDENING_ENABLED' => 'false',
+          'AUTH_ACTIVE_SESSIONS_ENABLED' => 'false',
+          'AUTH_REMEMBER_ME_ENABLED' => 'false',
+          'AUTH_MFA_ENABLED' => 'false',
+          'AUTH_EMAIL_AUTH_ENABLED' => 'false',
+          'AUTH_WEBAUTHN_ENABLED' => 'false',
         ) do
           example.run
         end

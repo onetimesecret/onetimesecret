@@ -22,22 +22,22 @@ OT.boot! :test, false
 
 # Helper to modify features temporarily
 # Must also set mode to 'full' so omniauth_enabled? returns true (since it checks full_enabled?)
-def with_omniauth_config(enabled:, provider_name: '')
+def with_omniauth_config(enabled:, display_name: '')
   config = Onetime.auth_config.instance_variable_get(:@config)
   original_mode = config['mode']
   config['mode'] = 'full'
 
   features = config['full']['features']
   original_omniauth = features['omniauth']
-  original_provider = features['omniauth_provider_name']
+  original_provider = features['sso_display_name']
 
   features['omniauth'] = enabled
-  features['omniauth_provider_name'] = provider_name
+  features['sso_display_name'] = display_name
   yield
 ensure
   config['mode'] = original_mode
   features['omniauth'] = original_omniauth
-  features['omniauth_provider_name'] = original_provider
+  features['sso_display_name'] = original_provider
 end
 
 ## build_omniauth_config returns false when omniauth is disabled
@@ -53,32 +53,32 @@ end
 result['enabled']
 #=> true
 
-## build_omniauth_config omits provider_name when not configured
-result = with_omniauth_config(enabled: true, provider_name: '') do
+## build_omniauth_config omits display_name when not configured
+result = with_omniauth_config(enabled: true, display_name: '') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-result.key?('provider_name')
+result.key?('display_name')
 #=> false
 
-## build_omniauth_config omits provider_name when whitespace-only
-result = with_omniauth_config(enabled: true, provider_name: '   ') do
+## build_omniauth_config omits display_name when whitespace-only
+result = with_omniauth_config(enabled: true, display_name: '   ') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-result.key?('provider_name')
+result.key?('display_name')
 #=> false
 
-## build_omniauth_config includes provider_name when configured
-result = with_omniauth_config(enabled: true, provider_name: 'Zitadel') do
+## build_omniauth_config includes display_name when configured
+result = with_omniauth_config(enabled: true, display_name: 'Zitadel') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-result['provider_name']
+result['display_name']
 #=> "Zitadel"
 
 ## build_omniauth_config returns correct structure with provider name
-result = with_omniauth_config(enabled: true, provider_name: 'Okta') do
+result = with_omniauth_config(enabled: true, display_name: 'Okta') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-[result['enabled'], result['provider_name']]
+[result['enabled'], result['display_name']]
 #=> [true, "Okta"]
 
 ## build_feature_flags includes omniauth as false when disabled
@@ -89,8 +89,8 @@ result['omniauth']
 #=> false
 
 ## build_feature_flags includes omniauth hash when enabled
-result = with_omniauth_config(enabled: true, provider_name: 'Azure AD') do
+result = with_omniauth_config(enabled: true, display_name: 'Azure AD') do
   Core::Views::ConfigSerializer.send(:build_feature_flags)
 end
-[result['omniauth']['enabled'], result['omniauth']['provider_name']]
+[result['omniauth']['enabled'], result['omniauth']['display_name']]
 #=> [true, "Azure AD"]

@@ -115,16 +115,16 @@ module Core
         # Build OmniAuth configuration for frontend
         #
         # Returns false if disabled, or a hash with enabled status and
-        # optional provider name for display customization.
+        # optional display name for UI customization.
         #
         # @return [Boolean, Hash] false if disabled, otherwise config hash
         def build_omniauth_config
           return false unless Onetime.auth_config.omniauth_enabled?
 
-          config                  = { 'enabled' => true }
-          provider_name           = Onetime.auth_config.omniauth_provider_name
-          config['provider_name'] = provider_name if provider_name
-          config['route_name']    = Onetime.auth_config.omniauth_route_name
+          config                 = { 'enabled' => true }
+          display_name           = Onetime.auth_config.sso_display_name
+          config['display_name'] = display_name if display_name
+          config['route_name']   = Onetime.auth_config.omniauth_route_name
           config
         end
       end

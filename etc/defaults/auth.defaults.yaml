@@ -60,30 +60,30 @@ full:
   #
   features:
     # Attack prevention: brute force lockout, password requirements (default: ON)
-    hardening: <%= ENV['ENABLE_HARDENING'] != 'false' %>
+    hardening: <%= ENV['AUTH_HARDENING_ENABLED'] != 'false' %>
 
     # Session tracking: view and manage active sessions (default: ON)
-    active_sessions: <%= ENV['ENABLE_ACTIVE_SESSIONS'] != 'false' %>
+    active_sessions: <%= ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false' %>
 
     # Remember me: persistent login across browser sessions (default: ON)
-    remember_me: <%= ENV['ENABLE_REMEMBER_ME'] != 'false' %>
+    remember_me: <%= ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false' %>
 
     # Email verification: require email verification on signup (default: ON, OFF in test)
-    verify_account: <%= ENV['ENABLE_VERIFY_ACCOUNT'] != 'false' && ENV['RACK_ENV'] != 'test' %>
+    verify_account: <%= ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] != 'false' && ENV['RACK_ENV'] != 'test' %>
 
     # MFA: TOTP codes and recovery codes (default: OFF)
-    mfa: <%= ENV['ENABLE_MFA'] == 'true' %>
+    mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
 
     # Email auth: passwordless login via email links, aka magic links (default: OFF)
-    email_auth: <%= ENV['ENABLE_EMAIL_AUTH'] == 'true' %>
+    email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
 
     # WebAuthn: biometrics and security keys (default: OFF)
-    webauthn: <%= ENV['ENABLE_WEBAUTHN'] == 'true' %>
+    webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
 
     # OmniAuth: external identity providers via OIDC (default: OFF)
     # Requires OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET env vars
-    omniauth: <%= ENV['ENABLE_OMNIAUTH'] == 'true' %>
+    omniauth: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 
-    # OmniAuth provider display name (shown on "Sign in with X" button)
+    # SSO display name (shown on "Sign in with X" button)
     # If not set, generic "SSO" is used
-    omniauth_provider_name: <%= ENV.fetch('OMNIAUTH_PROVIDER_NAME', '') %>
+    sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>

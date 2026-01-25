@@ -118,23 +118,28 @@ module Onetime
       feature_enabled?('omniauth', default: false)
     end
 
-    # OmniAuth provider display name (e.g., "Zitadel", "Okta", "Azure AD")
+    # SSO display name (e.g., "Zitadel", "Okta", "Azure AD")
     # Used for "Sign in with X" button text
     # Returns nil if not configured (frontend will use generic "SSO")
-    def omniauth_provider_name
+    def sso_display_name
       return nil unless omniauth_enabled?
 
-      name = features['omniauth_provider_name']
+      name = features['sso_display_name']
       name.to_s.strip.empty? ? nil : name
     end
 
+    # DEPRECATED: Use sso_display_name
+    def omniauth_provider_name
+      sso_display_name
+    end
+
     # OmniAuth route name for building the SSO callback URL
-    # Defaults to 'oidc' if OIDC_PROVIDER_NAME is not set
+    # Defaults to 'oidc' if OIDC_ROUTE_NAME is not set
     # Used by frontend to construct /auth/sso/{route_name} paths
     def omniauth_route_name
       return nil unless omniauth_enabled?
 
-      ENV.fetch('OIDC_PROVIDER_NAME', 'oidc')
+      ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
     end
 
     # DEPRECATED: Use hardening_enabled?, active_sessions_enabled?, remember_me_enabled?

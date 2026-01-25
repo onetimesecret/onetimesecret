@@ -6,7 +6,7 @@ module Auth::Config::Features
   # Email Auth feature: passwordless login via email links (aka magic links).
   # Users receive a time-limited link to sign in without a password.
   #
-  # ENV: ENABLE_EMAIL_AUTH (default: disabled, set to 'true' to enable)
+  # ENV: AUTH_EMAIL_AUTH_ENABLED (default: disabled, set to 'true' to enable)
   #
   module EmailAuth
     using Familia::Refinements::TimeLiterals

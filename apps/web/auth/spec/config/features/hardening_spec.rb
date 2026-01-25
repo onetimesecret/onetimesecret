@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Tests for ENABLE_HARDENING ENV variable
+# Tests for AUTH_HARDENING_ENABLED ENV variable
 #
 # Verifies that hardening features (lockout, password_requirements) are:
 # - Enabled by default (when ENV not set or != 'false')
-# - Disabled when ENV['ENABLE_HARDENING'] == 'false'
+# - Disabled when ENV['AUTH_HARDENING_ENABLED'] == 'false'
 #
 # Reference: apps/web/auth/config/features/hardening.rb
 
@@ -15,7 +15,7 @@ require_relative '../../spec_helper'
 RSpec.describe 'Auth::Config::Features::Hardening' do
   let(:db) { create_test_database }
 
-  describe 'when ENABLE_HARDENING is enabled (default)' do
+  describe 'when AUTH_HARDENING_ENABLED is enabled (default)' do
     let(:app) do
       create_rodauth_app(
         db: db,
@@ -63,7 +63,7 @@ RSpec.describe 'Auth::Config::Features::Hardening' do
     end
   end
 
-  describe 'when ENABLE_HARDENING=false (disabled)' do
+  describe 'when AUTH_HARDENING_ENABLED=false (disabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,

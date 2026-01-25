@@ -78,7 +78,7 @@ config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
 features = config.instance_variable_get(:@config)['full']['features']
 features['omniauth'] = true
-features['omniauth_provider_name'] = ''
+features['sso_display_name'] = ''
 result = config.omniauth_provider_name
 features['omniauth'] = false
 result
@@ -89,7 +89,7 @@ config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
 features = config.instance_variable_get(:@config)['full']['features']
 features['omniauth'] = true
-features['omniauth_provider_name'] = '   '
+features['sso_display_name'] = '   '
 result = config.omniauth_provider_name
 features['omniauth'] = false
 result
@@ -100,10 +100,10 @@ config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
 features = config.instance_variable_get(:@config)['full']['features']
 features['omniauth'] = true
-features['omniauth_provider_name'] = 'Zitadel'
+features['sso_display_name'] = 'Zitadel'
 result = config.omniauth_provider_name
 features['omniauth'] = false
-features['omniauth_provider_name'] = ''
+features['sso_display_name'] = ''
 result
 #=> "Zitadel"
 
@@ -130,10 +130,10 @@ config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'simple'
 features = config.instance_variable_get(:@config)['full']['features']
 features['omniauth'] = true
-features['omniauth_provider_name'] = 'Okta'
+features['sso_display_name'] = 'Okta'
 result = config.omniauth_provider_name
 features['omniauth'] = false
-features['omniauth_provider_name'] = ''
+features['sso_display_name'] = ''
 result
 #=> nil
 
@@ -147,26 +147,26 @@ config.omniauth_route_name
 config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
 features = config.instance_variable_get(:@config)['full']['features']
-original_env = ENV['OIDC_PROVIDER_NAME']
-ENV.delete('OIDC_PROVIDER_NAME')
+original_env = ENV['OIDC_ROUTE_NAME']
+ENV.delete('OIDC_ROUTE_NAME')
 features['omniauth'] = true
 result = config.omniauth_route_name
 features['omniauth'] = false
-ENV['OIDC_PROVIDER_NAME'] = original_env if original_env
+ENV['OIDC_ROUTE_NAME'] = original_env if original_env
 result
 #=> "oidc"
 
-## omniauth_route_name returns OIDC_PROVIDER_NAME env var when set
+## omniauth_route_name returns OIDC_ROUTE_NAME env var when set
 config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
 features = config.instance_variable_get(:@config)['full']['features']
-original_env = ENV['OIDC_PROVIDER_NAME']
-ENV['OIDC_PROVIDER_NAME'] = 'zitadel'
+original_env = ENV['OIDC_ROUTE_NAME']
+ENV['OIDC_ROUTE_NAME'] = 'zitadel'
 features['omniauth'] = true
 result = config.omniauth_route_name
 features['omniauth'] = false
-ENV['OIDC_PROVIDER_NAME'] = original_env if original_env
-ENV.delete('OIDC_PROVIDER_NAME') unless original_env
+ENV['OIDC_ROUTE_NAME'] = original_env if original_env
+ENV.delete('OIDC_ROUTE_NAME') unless original_env
 result
 #=> "zitadel"
 

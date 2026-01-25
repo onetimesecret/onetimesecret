@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Tests for ENABLE_MFA ENV variable
+# Tests for AUTH_MFA_ENABLED ENV variable
 #
 # Verifies that MFA features (two_factor_base, otp, recovery_codes) are:
 # - Disabled by default (when ENV not set)
-# - Enabled when ENV['ENABLE_MFA'] == 'true'
+# - Enabled when ENV['AUTH_MFA_ENABLED'] == 'true'
 #
 # Reference: apps/web/auth/config/features/mfa.rb
 
@@ -18,7 +18,7 @@ include AuthTestConstants
 RSpec.describe 'Auth::Config::Features::MFA' do
   let(:db) { create_test_database }
 
-  describe 'when ENABLE_MFA=true (enabled)' do
+  describe 'when AUTH_MFA_ENABLED=true (enabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,
@@ -114,7 +114,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
     end
   end
 
-  describe 'when ENABLE_MFA is not set (disabled by default)' do
+  describe 'when AUTH_MFA_ENABLED is not set (disabled by default)' do
     let(:app) do
       create_rodauth_app(
         db: db,
