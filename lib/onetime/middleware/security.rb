@@ -103,6 +103,17 @@ Onetime::Middleware::Security.middleware_components = {
     options: { sanitize_null_bytes: true },
   },
   # CSRF Protection via authenticity tokens
+  #
+  # ⚠️  NOTE: This is ONE of TWO CSRF systems in the application.
+  # Rodauth also loads Roda's route_csrf plugin separately.
+  #
+  # For OmniAuth/SSO routes (/auth/sso/*):
+  #   - This middleware is SKIPPED (via allow_if below)
+  #   - Rodauth's route_csrf is ALSO skipped (via omniauth_request_validation_phase hook)
+  #   - OAuth state parameter provides CSRF protection instead
+  #
+  # See: apps/web/auth/config/hooks/omniauth.rb for the Rodauth-side bypass
+  #
   'AuthenticityToken' => {
     key: :authenticity_token,
     klass: Rack::Protection::AuthenticityToken,
@@ -110,6 +121,7 @@ Onetime::Middleware::Security.middleware_components = {
       # OTS uses 'shrimp' as the CSRF parameter name (legacy naming)
       authenticity_param: 'shrimp',
       # Skip CSRF for specific routes
+      # ⚠️  /auth/sso/ bypass is REQUIRED - OAuth uses state param for CSRF
       allow_if: ->(env) {
         req = Rack::Request.new(env)
         # Skip for API endpoints or JSON requests

@@ -86,33 +86,44 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
-      # CSRF Protection for OmniAuth Routes
+      # ⚠️  CRITICAL: CSRF Bypass for OmniAuth Routes - DO NOT REMOVE
       # ========================================================================
       #
-      # OmniAuth routes (/auth/sso/*) use OAuth's state parameter for CSRF
-      # protection instead of traditional form tokens. This is configured at
-      # the middleware level in lib/onetime/middleware/security.rb where
-      # Rack::Protection::AuthenticityToken skips /auth/sso/* routes.
+      # This application has TWO separate CSRF protection systems:
       #
-      # The OAuth state parameter provides CSRF protection by:
-      # 1. Request phase: OmniAuth generates a random state value, stores it
-      #    in session, and includes it in the authorization URL
-      # 2. Callback phase: Provider returns the state; OmniAuth validates it
-      #    matches the stored value before processing the response
+      #   1. Rack::Protection::AuthenticityToken (middleware layer)
+      #      - Configured in: lib/onetime/middleware/security.rb
+      #      - Uses 'shrimp' parameter name
+      #      - Skipped for /auth/sso/* via allow_if callback
       #
-      # This is the standard approach for OAuth flows and avoids conflicts
-      # between form-based CSRF tokens and OAuth's built-in protection.
+      #   2. Roda's route_csrf plugin (Rodauth layer)
+      #      - Auto-loaded by Rodauth when plugin :rodauth is called
+      #      - Uses different token format than Rack::Protection
+      #      - Runs during omniauth_request_validation_phase
       #
-      # IMPORTANT: Rodauth's route_csrf plugin is still active and would try
-      # to validate tokens during OmniAuth's request validation phase. We must
-      # override omniauth_request_validation_phase to skip this check since:
-      # 1. Rack::Protection is already skipped for /auth/sso/* in middleware
-      # 2. OAuth state parameter provides CSRF protection for the flow
-      # 3. route_csrf expects tokens in a different format than Rack::Protection
+      # WHY THIS HOOK EXISTS:
+      # The default omniauth_request_validation_phase calls `check_csrf if check_csrf?`
+      # which invokes route_csrf validation. This FAILS because:
+      #   - Rack::Protection is skipped → no token in session[:csrf]
+      #   - route_csrf tries to decode nil → "encoded token is not a string"
+      #
+      # OAuth's state parameter provides CSRF protection for the SSO flow:
+      #   1. Request phase: OmniAuth generates random state, stores in session
+      #   2. Callback phase: Provider returns state, OmniAuth validates match
+      #
+      # WHAT HAPPENS IF YOU REMOVE THIS HOOK:
+      # SSO login breaks immediately with error:
+      #   "Roda::RodaPlugins::RouteCsrf::InvalidToken: encoded token is not a string"
+      #
+      # See: https://github.com/janko/rodauth-omniauth (request validation docs)
+      # See: lib/onetime/middleware/security.rb (Rack::Protection config)
       #
       auth.omniauth_request_validation_phase do
-        # Intentionally empty - skip route_csrf check for OmniAuth routes.
-        # OAuth's state parameter provides CSRF protection during the flow.
+        # ⚠️  INTENTIONALLY EMPTY - DO NOT ADD CODE HERE
+        #
+        # This empty block skips Roda's route_csrf validation.
+        # OAuth state parameter provides CSRF protection instead.
+        # Removing this block breaks SSO with "encoded token is not a string".
       end
 
       # ========================================================================
