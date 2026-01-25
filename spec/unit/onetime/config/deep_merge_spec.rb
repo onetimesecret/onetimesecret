@@ -6,13 +6,11 @@ require 'spec_helper'
 
 RSpec.describe Onetime::Config do
   # Since deep_merge is private, we need to use send to test it directly
-  # Note: deep_merge now returns an IndifferentHash with string keys internally.
-  # We use a helper to compare values regardless of key type.
+  # Note: deep_merge returns a Hash that preserves input key types.
   describe '#deep_merge' do
     let(:subject) { described_class }
 
-    # Helper to compare IndifferentHash result with expected values
-    # IndifferentHash stores string keys internally, so we compare values via symbol access
+    # Helper to compare hash result with expected values
     def values_match?(result, expected)
       return result == expected unless expected.is_a?(Hash)
       return false unless result.is_a?(Hash)
@@ -33,11 +31,10 @@ RSpec.describe Onetime::Config do
         original = { a: 1, b: 2 }
         other = { b: 3, c: 4 }
         result = subject.send(:deep_merge, original, other)
-        # IndifferentHash allows access via both symbol and string
+        # Returns regular Hash with symbol keys preserved
         expect(result[:a]).to eq(1)
         expect(result[:b]).to eq(3)
         expect(result[:c]).to eq(4)
-        expect(result['a']).to eq(1)  # String access should also work
       end
 
       it 'handles nil values in the second hash' do
@@ -257,51 +254,43 @@ RSpec.describe Onetime::Config do
 
         result = subject.send(:deep_merge, original, other)
 
-        # Verify the merged structure using indifferent access
-        expect(result[:site][:authentication][:enabled]).to eq(true)
-        expect(result[:site][:authentication][:methods]).to eq(['password', 'saml'])
-        expect(result[:site][:authentication][:password][:min_length]).to eq(12)
-        expect(result[:site][:authentication][:password][:require_special]).to eq(true)
-        expect(result[:site][:authentication][:password][:max_age]).to eq(90)
-        expect(result[:site][:authentication][:saml][:idp_url]).to eq('https://example.com/saml')
-        expect(result[:site][:ssl][:enabled]).to eq(true)
-        expect(result[:site][:ssl][:protocols]).to eq(['TLSv1.3'])
-        expect(result[:site][:cors][:enabled]).to eq(true)
-        expect(result[:site][:cors][:allowed_origins]).to eq(['example.com'])
+        # Verify the merged structure using string keys (matching input)
+        expect(result['site']['authentication']['enabled']).to eq(true)
+        expect(result['site']['authentication']['methods']).to eq(['password', 'saml'])
+        expect(result['site']['authentication']['password']['min_length']).to eq(12)
+        expect(result['site']['authentication']['password']['require_special']).to eq(true)
+        expect(result['site']['authentication']['password']['max_age']).to eq(90)
+        expect(result['site']['authentication']['saml']['idp_url']).to eq('https://example.com/saml')
+        expect(result['site']['ssl']['enabled']).to eq(true)
+        expect(result['site']['ssl']['protocols']).to eq(['TLSv1.3'])
+        expect(result['site']['cors']['enabled']).to eq(true)
+        expect(result['site']['cors']['allowed_origins']).to eq(['example.com'])
       end
     end
 
-    context 'returns IndifferentHash' do
-      it 'returns an IndifferentHash instance' do
+    context 'returns Hash' do
+      it 'returns a Hash instance' do
         original = { a: 1, b: 2 }
         other = { b: 3, c: 4 }
         result = subject.send(:deep_merge, original, other)
-        expect(result).to be_a(Onetime::IndifferentHash)
+        expect(result).to be_a(Hash)
       end
 
-      it 'nested hashes are also IndifferentHash' do
+      it 'nested hashes are also Hash' do
         original = { a: { x: 1 } }
         other = { a: { y: 2 } }
         result = subject.send(:deep_merge, original, other)
-        expect(result[:a]).to be_a(Onetime::IndifferentHash)
+        expect(result[:a]).to be_a(Hash)
       end
 
-      it 'supports both symbol and string access on result' do
+      it 'preserves symbol keys from input' do
         original = { site: { host: 'example.com' } }
         other = { site: { port: 3000 } }
         result = subject.send(:deep_merge, original, other)
 
-        # Symbol access
+        # Symbol access (keys are preserved as symbols)
         expect(result[:site][:host]).to eq('example.com')
         expect(result[:site][:port]).to eq(3000)
-
-        # String access
-        expect(result['site']['host']).to eq('example.com')
-        expect(result['site']['port']).to eq(3000)
-
-        # Mixed access
-        expect(result[:site]['host']).to eq('example.com')
-        expect(result['site'][:port]).to eq(3000)
       end
     end
   end
