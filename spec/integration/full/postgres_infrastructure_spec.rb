@@ -9,13 +9,8 @@
 require 'spec_helper'
 
 RSpec.describe 'PostgreSQL Mode Test Infrastructure', :postgres_database, type: :integration do
-  before(:all) do
-    require 'onetime'
-    require 'onetime/config'
-    Onetime.boot! :test
-    require 'onetime/auth_config'
-    require 'auth/database'
-  end
+  # NOTE: The :postgres_database tag triggers PostgresModeSuiteDatabase.setup! which
+  # handles booting and database setup. No explicit before(:all) boot needed here.
 
   describe 'PostgresModeSuiteDatabase' do
     it 'provides a test_db' do

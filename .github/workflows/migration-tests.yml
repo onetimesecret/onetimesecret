@@ -259,7 +259,9 @@ jobs:
 
           # Verify migrations can run with elevated connection
           bundle exec ruby -e "
+            \\\$LOAD_PATH.unshift(File.expand_path('lib', Dir.pwd))
             require 'bundler/setup'
+            require_relative 'lib/onetime'
             require_relative 'apps/web/auth/database'
 
             # This should use AUTH_DATABASE_URL_MIGRATIONS for migrations
@@ -363,12 +365,14 @@ jobs:
           for i in {1..5}; do
             (
               bundle exec ruby -e "
+                \\\$LOAD_PATH.unshift(File.expand_path('lib', Dir.pwd))
                 require 'bundler/setup'
+                require_relative 'lib/onetime'
                 require_relative 'apps/web/auth/database'
 
-                puts \"Instance $i: Starting boot\"
+                puts 'Instance $i: Starting boot'
                 Auth::Database.ensure_migrations!
-                puts \"Instance $i: Boot complete\"
+                puts 'Instance $i: Boot complete'
               " 2>&1 | sed "s/^/[Instance $i] /"
             ) &
             PIDS+=($!)
@@ -394,14 +398,19 @@ jobs:
       - name: Verify migration idempotency
         env:
           PGPASSWORD: postgres
+          RACK_ENV: test
+          AUTHENTICATION_MODE: full
           AUTH_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/onetime_auth_test_concurrent
+          REDIS_URL: redis://127.0.0.1:2121/0
         run: |
           echo "### Migration Idempotency Test" >> $GITHUB_STEP_SUMMARY
 
           # Run migrations 3 times - should be idempotent
           for i in {1..3}; do
             bundle exec ruby -e "
+              \\\$LOAD_PATH.unshift(File.expand_path('lib', Dir.pwd))
               require 'bundler/setup'
+              require_relative 'lib/onetime'
               require_relative 'apps/web/auth/database'
               Auth::Database.ensure_migrations!
             "
