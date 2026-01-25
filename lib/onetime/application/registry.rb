@@ -26,7 +26,7 @@ module Onetime
 
         def register_application_class(app_class)
           @application_classes << app_class unless @application_classes.include?(app_class)
-          OT.ld "[registry] Registered application: #{app_class}"
+          Onetime.ld "[registry] Registered application: #{app_class}"
 
           if Onetime.conf.nil?
             msg = "[register_application_class] Registering #{app_class} with nil config is probably not what you want"
@@ -201,7 +201,7 @@ module Onetime
         # Maps all discovered application classes to their URL routes
         # @return [Array<Class>] Registered application classes
         def create_mount_mappings
-          OT.li "[registry] Mapping #{application_classes.size} application(s) to routes"
+          Onetime.li "[registry] Mapping #{application_classes.size} application(s) to routes"
 
           application_classes.each_with_index do |app_class, idx|
             # Skip abstract base classes

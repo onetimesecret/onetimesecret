@@ -157,8 +157,22 @@ RSpec.describe "Experimental config settings" do
         # Enable fallback mechanism
         @context_config['experimental']['allow_nil_global_secret'] = true
 
-        # We need to know exactly what encryption key was used during encryption
-        # So we can return it during the mock of encryption_key_v2_with_nil
+        # The wrong key that will be used for primary decryption attempt
+        wrong_key = Onetime::Secret.encryption_key(nil, secret.identifier, passphrase)
+
+        # Stub Encryptor.decrypt to fail deterministically on wrong key.
+        # CBC mode only raises CipherError on padding failures, which is non-deterministic
+        # (~1/256 chance of valid padding with wrong key). This ensures the fallback
+        # mechanism is always exercised.
+        allow(Encryptor).to receive(:decrypt).and_wrap_original do |method, *args|
+          opts = args.last.is_a?(Hash) ? args.last : {}
+          if opts[:key] == wrong_key
+            raise OpenSSL::Cipher::CipherError.new("wrong key - simulated for test")
+          end
+          method.call(*args)
+        end
+
+        # Return the correct encryption key for the fallback attempt
         allow(secret).to receive(:encryption_key_v2_with_nil).and_return(encryption_key)
 
         # The decryption should work via the fallback mechanism
