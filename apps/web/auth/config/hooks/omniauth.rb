@@ -103,6 +103,18 @@ module Auth::Config::Hooks
       # This is the standard approach for OAuth flows and avoids conflicts
       # between form-based CSRF tokens and OAuth's built-in protection.
       #
+      # IMPORTANT: Rodauth's route_csrf plugin is still active and would try
+      # to validate tokens during OmniAuth's request validation phase. We must
+      # override omniauth_request_validation_phase to skip this check since:
+      # 1. Rack::Protection is already skipped for /auth/sso/* in middleware
+      # 2. OAuth state parameter provides CSRF protection for the flow
+      # 3. route_csrf expects tokens in a different format than Rack::Protection
+      #
+      auth.omniauth_request_validation_phase do
+        # Intentionally empty - skip route_csrf check for OmniAuth routes.
+        # OAuth's state parameter provides CSRF protection during the flow.
+      end
+
       # ========================================================================
       # HOOK: Before OmniAuth Callback Route
       # ========================================================================
