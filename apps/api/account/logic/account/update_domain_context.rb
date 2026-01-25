@@ -79,7 +79,7 @@ module AccountAPI::Logic
           {
             old_domain_context: old_domain_context,
             new_domain_context: new_domain_context,
-            customer_id: cust.custid,
+            customer_id: cust.extid,
           }
 
         sess['domain_context'] = new_domain_context
@@ -107,7 +107,7 @@ module AccountAPI::Logic
       def log_update
         app_logger.info 'Domain context updated',
           {
-            customer_id: cust.custid,
+            customer_id: cust.extid,
             session_id: session_sid,
             old_domain_context: old_domain_context,
             new_domain_context: new_domain_context,
