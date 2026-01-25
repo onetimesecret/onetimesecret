@@ -128,6 +128,15 @@ module Onetime
       name.to_s.strip.empty? ? nil : name
     end
 
+    # OmniAuth route name for building the SSO callback URL
+    # Defaults to 'oidc' if OIDC_PROVIDER_NAME is not set
+    # Used by frontend to construct /auth/sso/{route_name} paths
+    def omniauth_route_name
+      return nil unless omniauth_enabled?
+
+      ENV.fetch('OIDC_PROVIDER_NAME', 'oidc')
+    end
+
     # DEPRECATED: Use hardening_enabled?, active_sessions_enabled?, remember_me_enabled?
     def security_features_enabled?
       hardening_enabled? && active_sessions_enabled? && remember_me_enabled?

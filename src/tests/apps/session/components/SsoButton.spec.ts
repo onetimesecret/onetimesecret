@@ -25,7 +25,7 @@ vi.mock('@/shared/stores/csrfStore', () => ({
 
 // Mock bootstrapStore with configurable features
 const mockFeatures = ref<{
-  omniauth?: boolean | { enabled: boolean; provider_name?: string };
+  omniauth?: boolean | { enabled: boolean; provider_name?: string; route_name?: string };
 }>({});
 
 vi.mock('@/shared/stores/bootstrapStore', () => ({
@@ -89,13 +89,22 @@ describe('SsoButton', () => {
         return null;
       })();
 
+      // SSO route computed from features (matches actual component)
+      const ssoRoute = (() => {
+        const omniauth = mockFeatures.value?.omniauth;
+        if (typeof omniauth === 'object' && omniauth !== null) {
+          return `/auth/sso/${omniauth.route_name || 'oidc'}`;
+        }
+        return '/auth/sso/oidc';
+      })();
+
       const handleSsoLogin = () => {
         isLoading.value = true;
 
         // Create and submit form
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/auth/sso/oidc';
+        form.action = ssoRoute;
 
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
@@ -146,7 +155,7 @@ describe('SsoButton', () => {
       wrapper.unmount();
     }
     // Clean up any forms added to body
-    document.querySelectorAll('form[action="/auth/sso/oidc"]').forEach((form) => form.remove());
+    document.querySelectorAll('form[action^="/auth/sso/"]').forEach((form) => form.remove());
   });
 
   const mountComponent = () =>
@@ -281,6 +290,75 @@ describe('SsoButton', () => {
       wrapper = mountComponent();
 
       expect(wrapper.text()).toContain('Sign in with SSO');
+    });
+  });
+
+  describe('Dynamic Route Name', () => {
+    it('uses default oidc route when route_name is not configured', async () => {
+      mockFeatures.value = { omniauth: { enabled: true } };
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/oidc"]');
+      expect(form).not.toBeNull();
+    });
+
+    it('uses custom route_name when configured', async () => {
+      mockFeatures.value = { omniauth: { enabled: true, route_name: 'saml' } };
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/saml"]');
+      expect(form).not.toBeNull();
+    });
+
+    it('supports google_oauth2 route name', async () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, route_name: 'google_oauth2', provider_name: 'Google' },
+      };
+      wrapper = mountComponent();
+
+      // Check button text before clicking (click triggers loading state)
+      expect(wrapper.text()).toContain('Sign in with Google');
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/google_oauth2"]');
+      expect(form).not.toBeNull();
+    });
+
+    it('supports azure_activedirectory_v2 route name', async () => {
+      mockFeatures.value = {
+        omniauth: { enabled: true, route_name: 'azure_activedirectory_v2', provider_name: 'Azure AD' },
+      };
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/azure_activedirectory_v2"]');
+      expect(form).not.toBeNull();
+    });
+
+    it('falls back to oidc when omniauth is boolean true', async () => {
+      mockFeatures.value = { omniauth: true };
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/oidc"]');
+      expect(form).not.toBeNull();
+    });
+
+    it('falls back to oidc when route_name is empty string', async () => {
+      mockFeatures.value = { omniauth: { enabled: true, route_name: '' } };
+      wrapper = mountComponent();
+
+      await wrapper.find('[data-testid="sso-button"]').trigger('click');
+
+      const form = document.querySelector('form[action="/auth/sso/oidc"]');
+      expect(form).not.toBeNull();
     });
   });
 

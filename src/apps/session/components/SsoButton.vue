@@ -26,6 +26,19 @@ const providerName = computed(() => {
 });
 
 /**
+ * SSO route path from server configuration.
+ * Allows the backend to specify which OmniAuth strategy to use.
+ * Falls back to 'oidc' if not configured.
+ */
+const ssoRoute = computed(() => {
+  const omniauth = bootstrapStore.features?.omniauth;
+  if (typeof omniauth === 'object' && omniauth !== null) {
+    return `/auth/sso/${omniauth.route_name || 'oidc'}`;
+  }
+  return '/auth/sso/oidc';
+});
+
+/**
  * Initiates SSO login by submitting a form to the OIDC endpoint.
  * This creates a traditional form POST to /auth/sso/oidc which triggers
  * the OmniAuth flow and redirects to the identity provider.
@@ -37,7 +50,7 @@ const handleSsoLogin = () => {
   // This needs to be a form submission (not fetch) because it redirects to the IdP
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = '/auth/sso/oidc';
+  form.action = ssoRoute.value;
 
   /**
    * Include CSRF token in form submission for consistency.

@@ -124,6 +124,7 @@ module Core
           config                  = { 'enabled' => true }
           provider_name           = Onetime.auth_config.omniauth_provider_name
           config['provider_name'] = provider_name if provider_name
+          config['route_name']    = Onetime.auth_config.omniauth_route_name
           config
         end
       end

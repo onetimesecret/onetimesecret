@@ -137,6 +137,49 @@ features['omniauth_provider_name'] = ''
 result
 #=> nil
 
+## omniauth_route_name returns nil when omniauth is disabled
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+config.omniauth_route_name
+#=> nil
+
+## omniauth_route_name returns 'oidc' by default when omniauth is enabled
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+features = config.instance_variable_get(:@config)['full']['features']
+original_env = ENV['OIDC_PROVIDER_NAME']
+ENV.delete('OIDC_PROVIDER_NAME')
+features['omniauth'] = true
+result = config.omniauth_route_name
+features['omniauth'] = false
+ENV['OIDC_PROVIDER_NAME'] = original_env if original_env
+result
+#=> "oidc"
+
+## omniauth_route_name returns OIDC_PROVIDER_NAME env var when set
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+features = config.instance_variable_get(:@config)['full']['features']
+original_env = ENV['OIDC_PROVIDER_NAME']
+ENV['OIDC_PROVIDER_NAME'] = 'zitadel'
+features['omniauth'] = true
+result = config.omniauth_route_name
+features['omniauth'] = false
+ENV['OIDC_PROVIDER_NAME'] = original_env if original_env
+ENV.delete('OIDC_PROVIDER_NAME') unless original_env
+result
+#=> "zitadel"
+
+## omniauth_route_name returns nil in simple mode even if configured
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'simple'
+features = config.instance_variable_get(:@config)['full']['features']
+features['omniauth'] = true
+result = config.omniauth_route_name
+features['omniauth'] = false
+result
+#=> nil
+
 ## magic_links_enabled? is deprecated alias for email_auth_enabled?
 config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'

@@ -195,6 +195,8 @@ export interface BootstrapPayload {
       enabled: boolean;
       /** Display name for the provider (e.g., "Zitadel", "Okta") */
       provider_name?: string;
+      /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
+      route_name?: string;
     };
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;
