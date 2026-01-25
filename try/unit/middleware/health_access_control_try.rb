@@ -271,3 +271,72 @@ Otto::Privacy::IPPrivacy.private_or_localhost?('not_an_ip')
 @status, @headers, @body = @middleware.call(@env)
 @status
 #=> 200
+
+# =================================================================
+# call - X-Forwarded-For header spoofing protection
+# =================================================================
+#
+# Rack::Request.ip has built-in protection against X-Forwarded-For spoofing:
+# - If REMOTE_ADDR is a public IP (direct connection), it returns REMOTE_ADDR
+#   and ignores X-Forwarded-For entirely
+# - Only consults X-Forwarded-For when REMOTE_ADDR is a private/localhost IP
+#   (indicating the request came through a trusted proxy)
+#
+# These tests document the expected security behavior.
+
+## call - Blocks when public REMOTE_ADDR spoofs X-Forwarded-For as localhost
+# An attacker with direct access cannot bypass by adding X-Forwarded-For header
+@env = create_env('/health', '8.8.8.8')
+@env['HTTP_X_FORWARDED_FOR'] = '127.0.0.1'
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 403
+
+## call - Blocks when public REMOTE_ADDR spoofs X-Forwarded-For as private IP
+@env = create_env('/health', '203.0.113.50')
+@env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1'
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 403
+
+## call - Blocks when public REMOTE_ADDR has multiple spoofed X-Forwarded-For entries
+@env = create_env('/health', '1.1.1.1')
+@env['HTTP_X_FORWARDED_FOR'] = '127.0.0.1, 10.0.0.1, 192.168.1.1'
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 403
+
+## call - Blocks public client via proxy with private REMOTE_ADDR
+# When behind a load balancer (private REMOTE_ADDR), Rack trusts X-Forwarded-For
+# and returns the real client IP. This correctly blocks public clients.
+@env = create_env('/health', '127.0.0.1')
+@env['HTTP_X_FORWARDED_FOR'] = '8.8.8.8'
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 403
+
+## call - Blocks public client via load balancer
+# Load balancer (10.0.0.1) forwards request from public client (203.0.113.50)
+# Rack correctly extracts the public client IP from X-Forwarded-For
+@env = create_env('/health', '10.0.0.1')
+@env['HTTP_X_FORWARDED_FOR'] = '203.0.113.50'
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 403
+
+## call - Allows internal client via proxy
+# Internal monitoring system (10.0.0.5) through load balancer (10.0.0.1)
+# Both IPs are private, so access is allowed
+@env = create_env('/health', '10.0.0.1')
+@env['HTTP_X_FORWARDED_FOR'] = '10.0.0.5'
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 200
+
+## call - Allows localhost client via proxy
+# Localhost client through localhost proxy - both trusted
+@env = create_env('/health', '127.0.0.1')
+@env['HTTP_X_FORWARDED_FOR'] = '127.0.0.2'
+@status, @headers, @body = @middleware.call(@env)
+@status
+#=> 200
