@@ -94,3 +94,17 @@ result = with_omniauth_config(enabled: true, display_name: 'Azure AD') do
 end
 [result['omniauth']['enabled'], result['omniauth']['display_name']]
 #=> [true, "Azure AD"]
+
+## build_omniauth_config includes provider_name for backwards compatibility
+result = with_omniauth_config(enabled: true, display_name: 'Okta') do
+  Core::Views::ConfigSerializer.send(:build_omniauth_config)
+end
+result['provider_name']
+#=> "Okta"
+
+## build_omniauth_config sends both display_name and provider_name with same value
+result = with_omniauth_config(enabled: true, display_name: 'Zitadel') do
+  Core::Views::ConfigSerializer.send(:build_omniauth_config)
+end
+[result['display_name'], result['provider_name']]
+#=> ["Zitadel", "Zitadel"]

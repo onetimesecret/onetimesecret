@@ -121,10 +121,17 @@ module Core
         def build_omniauth_config
           return false unless Onetime.auth_config.omniauth_enabled?
 
-          config                 = { 'enabled' => true }
-          display_name           = Onetime.auth_config.sso_display_name
-          config['display_name'] = display_name if display_name
-          config['route_name']   = Onetime.auth_config.omniauth_route_name
+          config               = { 'enabled' => true }
+          display_name         = Onetime.auth_config.sso_display_name
+          config['route_name'] = Onetime.auth_config.omniauth_route_name
+
+          # Send both keys for frontend compatibility during transition
+          # Frontend currently reads provider_name, will migrate to display_name
+          if display_name
+            config['display_name']  = display_name
+            config['provider_name'] = display_name
+          end
+
           config
         end
       end
