@@ -20,17 +20,20 @@ module Core
         to_json_script(data, id: element_id, nonce: nonce)
       end
 
+      # Valid CSP nonce format: base64 characters only (alphanumeric, +, /, =)
+      VALID_NONCE_PATTERN = %r{\A[A-Za-z0-9+/=]+\z}
+
       # Converts data to a script tag with sanitized JSON content.
       #
       # @param data [Hash, Array] Data to convert to JSON
       # @param id [String, nil] Optional ID attribute for the script tag
-      # @param nonce [String, nil] Optional Content Security Policy nonce
+      # @param nonce [String, nil] Optional Content Security Policy nonce (must be base64 format)
       # @return [String] HTML script tag with sanitized JSON
       def to_json_script(data, id: nil, nonce: nil)
         sanitized_json = to_sanitized_json(data)
         attributes     = ['type="application/json"']
         attributes << %(id="#{Rack::Utils.escape_html(id)}") if id
-        attributes << %(nonce="#{nonce}") if nonce
+        attributes << %(nonce="#{nonce}") if nonce&.match?(VALID_NONCE_PATTERN)
 
         "<script #{attributes.join(' ')}>#{sanitized_json}</script>"
       end
