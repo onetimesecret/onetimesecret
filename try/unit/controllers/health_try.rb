@@ -168,11 +168,11 @@ end
 @result['checks'].key?('authdb')
 #=> true
 
-## Health#advanced includes timestamp
+## Health#advanced includes timestamp as float
 @controller = MockHealthController.new
 @controller.advanced
 @result = JSON.parse(@controller.res.body)
-@result['timestamp'].is_a?(Integer)
+@result['timestamp'].is_a?(Float)
 #=> true
 
 ## Health#advanced includes version
