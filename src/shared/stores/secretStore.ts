@@ -106,7 +106,7 @@ export const useSecretStore = defineStore('secrets', () => {
     const response = await $api.get(getEndpoint(`/secret/${secretIdentifier}`));
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details as any;
+    details.value = validated.details ?? null;
 
     return validated;
   }
@@ -166,7 +166,7 @@ export const useSecretStore = defineStore('secrets', () => {
 
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details as any;
+    details.value = validated.details ?? null;
 
     // Update local storage status for non-authenticated users only
     // The secretIdentifier is the secretExtid we stored when creating the secret

@@ -142,7 +142,7 @@ export const useReceiptStore = defineStore('receipt', () => {
     const response = await $api.get(endpoint);
     const validated = responseSchemas.receipt.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details as any;
+    details.value = validated.details ?? null;
     return validated;
   }
 
@@ -170,7 +170,7 @@ export const useReceiptStore = defineStore('receipt', () => {
 
     const validated = responseSchemas.receipt.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details as any;
+    details.value = validated.details ?? null;
 
     return validated;
   }
