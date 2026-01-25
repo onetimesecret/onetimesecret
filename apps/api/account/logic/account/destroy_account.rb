@@ -12,7 +12,7 @@ module AccountAPI::Logic
       def process_params
         return if params.nil?
 
-        OT.ld "[DestroyAccount#process_params] params: #{params.inspect}"
+        OT.ld "[DestroyAccount#process_params] param keys: #{params.keys.sort}"
         @confirmation = self.class.normalize_password(params['confirmation'])
       end
 

@@ -90,7 +90,7 @@ module OrganizationAPI::Logic
 
       def success_data
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           record: @invitation.safe_dump,
         }
       end

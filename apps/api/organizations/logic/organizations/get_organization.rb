@@ -47,7 +47,7 @@ module OrganizationAPI::Logic
         end
 
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           record: record,
         }
       end

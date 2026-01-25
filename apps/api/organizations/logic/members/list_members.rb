@@ -41,11 +41,13 @@ module OrganizationAPI::Logic
       end
 
       def success_data
+        records = @memberships.map { |m| serialize_membership(m) }.compact
+
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           organization_id: @organization.extid,
-          records: @memberships.map { |m| serialize_membership(m) },
-          count: @memberships.size,
+          records: records,
+          count: records.size,
         }
       end
 

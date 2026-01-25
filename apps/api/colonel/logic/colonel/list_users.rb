@@ -52,7 +52,7 @@ module ColonelAPI
             next if cust.anonymous?
 
             {
-              user_id: cust.objid,
+              user_id: cust.extid,
               extid: cust.extid,
               email: cust.obscure_email,
               role: cust.role,

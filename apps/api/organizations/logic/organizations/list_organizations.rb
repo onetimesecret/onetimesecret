@@ -36,7 +36,7 @@ module OrganizationAPI::Logic
 
       def success_data
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           records: organizations.map { |org| serialize_organization(org) },
           count: organizations.length,
         }

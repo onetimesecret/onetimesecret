@@ -20,14 +20,12 @@ module AccountAPI::Logic
       def raise_concerns; end
 
       def process
-        return unless billing_enabled
-
         success_data
       end
 
       def success_data
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           record: {
             apitoken: cust.apitoken,
             cust: cust.safe_dump,
