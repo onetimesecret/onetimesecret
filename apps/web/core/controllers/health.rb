@@ -44,16 +44,17 @@ module Core
 
       def check_keydb
         # Key-value database (Redis/Valkey) - test connection with PING
-        result = Familia.dbclient.ping
+        keydb_url = Familia.uri.to_s
+        result    = Familia.dbclient.ping
 
         {
           status: result == 'PONG' ? 'ok' : 'error',
-          url: mask_url(Familia.uri.to_s),
+          url: mask_url(keydb_url),
         }
       rescue StandardError => ex
         {
           status: 'error',
-          url: mask_url(Familia.uri.to_s),
+          url: mask_url(keydb_url),
           error: ex.message,
         }
       end
@@ -101,6 +102,7 @@ module Core
       rescue StandardError => ex
         {
           status: 'error',
+          url: mask_url(db_url),
           error: ex.message,
         }
       end
