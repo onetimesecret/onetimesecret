@@ -1,7 +1,8 @@
-# tests/unit/ruby/rspec/onetime/helpers/homepage_mode_helpers_spec.rb
+# spec/unit/onetime/helpers/homepage_mode_helpers_spec.rb
+#
 # frozen_string_literal: true
 
-require_relative '../../spec_helper'
+require 'spec_helper'
 require 'ipaddr'
 
 # Test class that includes the module for testing
