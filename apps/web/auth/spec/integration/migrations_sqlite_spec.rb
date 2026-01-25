@@ -34,9 +34,9 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
       Sequel.extension :migration
       Sequel::Migrator.run(test_db, migrations_dir, use_transactions: true)
 
-      # Verify schema version is at latest (5 migrations)
-      version = verify_schema_version(db: test_db, expected: 5)
-      expect(version).to eq(5)
+      # Verify schema version is at latest (6 migrations)
+      version = verify_schema_version(db: test_db, expected: 6)
+      expect(version).to eq(6)
 
       # Verify all core tables exist
       expect(verify_core_tables_exist(db: test_db)).to be true
@@ -107,8 +107,8 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
       # Run full migration
       Sequel::Migrator.run(test_db, migrations_dir)
 
-      # Should now be at version 5
-      expect(verify_schema_version(db: test_db, expected: 5)).to eq(5)
+      # Should now be at version 6
+      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
       expect(verify_core_tables_exist(db: test_db)).to be true
     end
 
@@ -118,7 +118,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
 
       Sequel::Migrator.run(test_db, migrations_dir)
 
-      expect(verify_schema_version(db: test_db, expected: 5)).to eq(5)
+      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
     end
 
     it 'maintains data integrity when completing migrations' do
@@ -138,7 +138,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
       # Verify data survived
       account = test_db[:accounts].where(id: account_id).first
       expect(account[:email]).to eq('partial@example.com')
-      expect(get_schema_version(db: test_db)).to eq(5)
+      expect(get_schema_version(db: test_db)).to eq(6)
     end
   end
 
@@ -174,18 +174,18 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
     it 'increments version for each migration' do
       versions = []
 
-      (1..5).each do |target_version|
+      (1..6).each do |target_version|
         Sequel::Migrator.run(test_db, migrations_dir, target: target_version)
         versions << get_schema_version(db: test_db)
       end
 
-      expect(versions).to eq([1, 2, 3, 4, 5])
+      expect(versions).to eq([1, 2, 3, 4, 5, 6])
     end
 
     it 'allows rollback to previous version' do
       # Run all migrations
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(5)
+      expect(get_schema_version(db: test_db)).to eq(6)
 
       # Rollback to version 3
       Sequel::Migrator.run(test_db, migrations_dir, target: 3)
@@ -193,7 +193,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
 
       # Run forward again
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(5)
+      expect(get_schema_version(db: test_db)).to eq(6)
     end
   end
 
@@ -220,7 +220,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
     it 'applies database-specific features for SQLite' do
       # SQLite doesn't have functions/triggers/views like PostgreSQL
       # but we can verify the migration ran without error
-      expect(get_schema_version(db: test_db)).to eq(5)
+      expect(get_schema_version(db: test_db)).to eq(6)
 
       # Verify SQLite-specific constraints work
       expect do
@@ -268,17 +268,17 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
     it 'runs migrations idempotently' do
       # First run
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(5)
+      expect(get_schema_version(db: test_db)).to eq(6)
 
       # Second run should be no-op
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(5)
+      expect(get_schema_version(db: test_db)).to eq(6)
     end
 
     it 'uses transactions for migration safety' do
       # Verify migrations run in transaction context
       Sequel::Migrator.run(test_db, migrations_dir, use_transactions: true)
-      expect(get_schema_version(db: test_db)).to eq(5)
+      expect(get_schema_version(db: test_db)).to eq(6)
     end
   end
 end

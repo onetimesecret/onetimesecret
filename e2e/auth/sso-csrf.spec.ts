@@ -1,26 +1,28 @@
 // e2e/auth/sso-csrf.spec.ts
 //
-// E2E tests for SSO button CSRF protection flow.
-// Verifies that the SsoButton component correctly includes CSRF tokens (shrimp)
-// in form submissions to the OmniAuth endpoint.
+// E2E tests for SSO button form submission flow.
+// Verifies that the SsoButton component correctly submits forms to the OmniAuth
+// endpoint. Note: SSO routes skip Rack::Protection CSRF validation - CSRF
+// protection is handled by OAuth's state parameter during the IdP redirect flow.
+// The shrimp token is still included for form consistency but is not validated.
 
 import { test, expect } from '@playwright/test';
 
 /**
- * SSO CSRF Protection E2E Tests
+ * SSO Form Submission E2E Tests
  *
  * These tests validate that:
  * 1. The SSO button appears when OmniAuth is enabled
- * 2. Form submissions include the 'shrimp' CSRF parameter
- * 3. The shrimp value is sourced from bootstrap state
+ * 2. Form submissions include the 'shrimp' field (for form consistency)
+ * 3. The form targets the correct OmniAuth endpoint
  *
  * Background:
- * OTS uses 'shrimp' as the CSRF parameter name (legacy naming).
- * Rack::Protection::AuthenticityToken is configured with `authenticity_param: 'shrimp'`
- * in lib/onetime/middleware/security.rb. The SsoButton creates a form with a hidden
- * input named 'shrimp' containing the CSRF token from the csrfStore.
+ * SSO routes (/auth/sso/*) skip Rack::Protection CSRF validation because OAuth's
+ * state parameter provides CSRF protection during the IdP redirect flow. The shrimp
+ * field is still included for consistency with other forms but is not validated
+ * server-side for SSO requests.
  */
-test.describe('SSO CSRF Protection', () => {
+test.describe('SSO Form Submission', () => {
   test.beforeEach(async ({ page }) => {
     // Extended timeout for page load
     page.setDefaultTimeout(15000);
@@ -64,7 +66,7 @@ test.describe('SSO CSRF Protection', () => {
     await expect(ssoButton).toContainText(/SSO/i);
   });
 
-  test('SSO form submission includes shrimp CSRF token', async ({ page }) => {
+  test('SSO form submission includes shrimp field', async ({ page }) => {
     await page.goto('/signin');
     await page.waitForLoadState('networkidle');
 
@@ -118,7 +120,7 @@ test.describe('SSO CSRF Protection', () => {
     expect(formSubmission?.action).toContain('/auth/sso/oidc');
     expect(formSubmission?.method?.toUpperCase()).toBe('POST');
 
-    // CRITICAL: Verify shrimp CSRF token is present and non-empty
+    // Verify shrimp field is present (for form consistency, not validated for SSO)
     expect(formSubmission?.shrimp).not.toBeNull();
     expect(formSubmission?.shrimp).not.toBe('');
     expect(typeof formSubmission?.shrimp).toBe('string');
@@ -214,7 +216,7 @@ test.describe('SSO CSRF Protection', () => {
   });
 });
 
-test.describe('SSO CSRF - Security Validation', () => {
+test.describe('SSO Form - Structure Validation', () => {
   test('form action points to correct OmniAuth endpoint', async ({ page }) => {
     await page.goto('/signin');
     await page.waitForLoadState('networkidle');
@@ -252,9 +254,9 @@ test.describe('SSO CSRF - Security Validation', () => {
     expect(formAction).toMatch(/\/auth\/sso\/oidc$/);
   });
 
-  test('shrimp parameter uses correct field name', async ({ page }) => {
+  test('shrimp field uses correct name attribute', async ({ page }) => {
     // This test verifies the frontend uses 'shrimp' (not 'authenticity_token')
-    // which must match Rack::Protection::AuthenticityToken config
+    // for consistency with other forms in the app
 
     await page.goto('/signin');
     await page.waitForLoadState('networkidle');
@@ -295,7 +297,7 @@ test.describe('SSO CSRF - Security Validation', () => {
     expect(shrimpInput).toBeDefined();
     expect(shrimpInput?.type).toBe('hidden');
 
-    // Verify there's NO input named 'authenticity_token' (wrong name would fail CSRF check)
+    // Verify there's NO input named 'authenticity_token' (using wrong name for consistency)
     const wrongInput = formInputs.find((input) => input.name === 'authenticity_token');
     expect(wrongInput).toBeUndefined();
   });

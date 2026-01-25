@@ -21,14 +21,23 @@ OT.boot! :test, false
 @original_features = Onetime.auth_config.features.dup
 
 # Helper to modify features temporarily
+# Must also set mode to 'full' so omniauth_enabled? returns true (since it checks full_enabled?)
 def with_omniauth_config(enabled:, provider_name: '')
-  features = Onetime.auth_config.instance_variable_get(:@config)['full']['features']
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  original_mode = config['mode']
+  config['mode'] = 'full'
+
+  features = config['full']['features']
+  original_omniauth = features['omniauth']
+  original_provider = features['omniauth_provider_name']
+
   features['omniauth'] = enabled
   features['omniauth_provider_name'] = provider_name
   yield
 ensure
-  features['omniauth'] = false
-  features['omniauth_provider_name'] = ''
+  config['mode'] = original_mode
+  features['omniauth'] = original_omniauth
+  features['omniauth_provider_name'] = original_provider
 end
 
 ## build_omniauth_config returns false when omniauth is disabled

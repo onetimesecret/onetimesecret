@@ -60,9 +60,13 @@ const i18n = createI18n({
  * Tests the SSO login button that:
  * - Renders with correct button text (generic or provider-specific)
  * - Creates and submits a form to /auth/sso/oidc
- * - Includes CSRF token in form submission
+ * - Includes shrimp token in form submission (for consistency with other forms)
  * - Shows loading state during submission
  * - Reads provider_name from bootstrapStore.features.omniauth
+ *
+ * Note: SSO routes (/auth/sso/*) skip Rack::Protection CSRF validation.
+ * CSRF protection is handled by OAuth's state parameter instead.
+ * The shrimp token is still included for form consistency but is not validated.
  */
 describe('SsoButton', () => {
   let wrapper: VueWrapper;
@@ -284,10 +288,12 @@ describe('SsoButton', () => {
    * Form Submission Tests
    *
    * The SSO button creates a form POST to /auth/sso/oidc which initiates the
-   * OmniAuth flow. The form includes a CSRF token field named 'shrimp' - this
-   * is a project-specific naming convention where the backend Rack::Protection
-   * is configured with authenticity_param: 'shrimp' instead of the default
-   * 'authenticity_token'. The value comes from session[:csrf] on the backend.
+   * OmniAuth flow. The form includes a shrimp field for consistency with other
+   * forms, but SSO routes skip Rack::Protection CSRF validation - CSRF protection
+   * is instead handled by OAuth's state parameter during the IdP redirect flow.
+   *
+   * The shrimp field uses the project-specific naming convention (not
+   * 'authenticity_token') and the value comes from session[:csrf] on the backend.
    */
   describe('Form Submission', () => {
     it('creates form with POST method on click', async () => {
@@ -320,7 +326,7 @@ describe('SsoButton', () => {
       expect(form?.getAttribute('action')).toBe('/auth/sso/oidc');
     });
 
-    it('includes CSRF token in form submission', async () => {
+    it('includes shrimp token in form submission', async () => {
       mockShrimp.value = 'my-csrf-token';
       wrapper = mountComponent();
 
@@ -332,9 +338,9 @@ describe('SsoButton', () => {
       expect(csrfInput?.value).toBe('my-csrf-token');
     });
 
-    // The field is named 'shrimp' because Rack::Protection::AuthenticityToken
-    // is configured with authenticity_param: 'shrimp' on the backend
-    it('CSRF input field has correct name attribute (shrimp)', async () => {
+    // The field is named 'shrimp' for consistency with other forms in the app.
+    // Note: SSO routes skip CSRF validation; OAuth state param provides protection.
+    it('shrimp input field has correct name attribute', async () => {
       wrapper = mountComponent();
 
       await wrapper.find('[data-testid="sso-button"]').trigger('click');
@@ -345,7 +351,7 @@ describe('SsoButton', () => {
       expect(csrfInput?.name).toBe('shrimp');
     });
 
-    it('CSRF input value matches csrfStore.shrimp value', async () => {
+    it('shrimp input value matches csrfStore.shrimp value', async () => {
       const expectedToken = 'csrf-store-token-12345';
       mockShrimp.value = expectedToken;
       wrapper = mountComponent();

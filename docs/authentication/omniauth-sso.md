@@ -174,11 +174,13 @@ const handleSsoLogin = () => {
 
 ### CSRF Protection
 
-**Important:** All POST requests to `/auth/sso/oidc` require a valid CSRF token.
+OmniAuth routes (`/auth/sso/*`) use OAuth's built-in state parameter for CSRF protection instead of form tokens.
 
-- Parameter name: `shrimp` (configured in `lib/onetime/middleware/security.rb`)
-- Token source: `window.__BOOTSTRAP_STATE__.shrimp` or `csrfStore.shrimp`
-- Without valid token: 403 Forbidden
+**How it works:**
+1. **Request phase:** OmniAuth generates a random `state` value, stores it in session, and includes it in the authorization URL
+2. **Callback phase:** The IdP returns the `state`; OmniAuth validates it matches before processing
+
+**Implementation note:** Rack::Protection is configured to skip `/auth/sso/*` routes (see `lib/onetime/middleware/security.rb`). The frontend still includes the `shrimp` token for consistency, but it is not validated for SSO routes. This avoids conflicts between form-based CSRF and OAuth's built-in protection.
 
 ### Feature Flag
 
@@ -190,14 +192,15 @@ Check in Vue: `isOmniAuthEnabled()` from `src/utils/features.ts`
 
 ### Static HTML (Custom Integrations)
 
-For non-Vue integrations, include the CSRF token:
+For non-Vue integrations:
 
 ```html
 <form method="POST" action="/auth/sso/oidc">
-  <input type="hidden" name="shrimp" value="<%= session[:csrf] %>">
   <button type="submit">Login with SSO</button>
 </form>
 ```
+
+Note: No CSRF token is required for SSO routes. OAuth's state parameter handles CSRF protection.
 
 ## Database Schema
 
@@ -349,51 +352,44 @@ SSO errors (authentication failures, domain rejections, etc.) are displayed via 
 OmniAuth failure callback
     │
     ▼
-Rodauth sets flash[:error] via Roda flash plugin
+omniauth_on_failure hook logs error to stderr and Auth::Logging
     │
     ▼
-Redirect to /signin
+Redirect to /signin?auth_error=sso_failed
     │
     ▼
-Core app bridges flash to bootstrap messages (ViewHelpers#flash_messages)
+Frontend Login.vue reads query param, displays localized error
     │
     ▼
-Frontend displays via notifications system
+Query param cleared from URL (prevents error on refresh)
 ```
 
-### Why Flash-Based Errors
+The `auth_error` query param approach was chosen over flash messages because:
+- Vue frontend doesn't read server-side flash messages directly
+- Query params work reliably across the OAuth redirect chain
+- Error codes map to i18n keys for localized messages
 
-OmniAuth callbacks are browser redirects from the IdP, not JSON API calls. This requires:
+### Error Codes
 
-1. **Session-based flash messages** - The `only_json?` method is overridden for OmniAuth routes to enable proper redirects with flash messages instead of JSON responses.
+The `auth_error` query parameter maps to i18n keys in `locales/content/en/session-auth.json`:
 
-2. **Security** - Flash messages in session are more secure than URL query parameters. Error details in URLs can be logged by proxies, CDNs, and browser history.
+| Code | i18n Key | Meaning |
+|------|----------|---------|
+| `sso_failed` | `web.login.errors.sso_failed` | General SSO authentication failure |
+| `token_missing` | `web.login.errors.token_missing` | Magic link token not in URL |
+| `token_expired` | `web.login.errors.token_expired` | Magic link expired |
+| `token_invalid` | `web.login.errors.token_invalid` | Magic link token invalid |
 
 ### Customizing Error Messages
 
-The `omniauth_failure_error_flash` configuration controls error messages:
+The `omniauth_failure_error_flash` configuration sets a default message (used for logging):
 
 ```ruby
-# apps/web/auth/config/features/omniauth.rb
-omniauth_failure_error_flash do |error|
-  case error
-  when :csrf_detected
-    "Security validation failed. Please try again."
-  when :access_denied
-    "Access was denied by the identity provider."
-  else
-    "Authentication failed. Please try again."
-  end
-end
+# apps/web/auth/config/hooks/omniauth.rb
+auth.omniauth_failure_error_flash 'SSO authentication failed. Please try again or use password login.'
 ```
 
-Custom error handlers can set flash messages directly:
-
-```ruby
-# In callback hooks
-flash[:error] = "Your email domain is not authorized for SSO signup."
-redirect omniauth_failure_redirect
-```
+The actual user-facing message comes from the frontend i18n system based on the `auth_error` query param.
 
 ## Files
 

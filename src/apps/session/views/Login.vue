@@ -6,13 +6,33 @@ import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue
 import AuthView from '@/apps/session/components/AuthView.vue';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { hasPasswordlessMethods } from '@/utils/features';
-import { ref, computed, type ComponentPublicInstance } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 
 const languageStore = useLanguageStore();
+
+// Handle auth errors passed via query params (from SSO/magic link failures)
+const authError = ref<string | null>(null);
+
+const authErrorMessages: Record<string, string> = {
+  sso_failed: 'web.login.errors.sso_failed',
+  token_missing: 'web.login.errors.token_missing',
+  token_expired: 'web.login.errors.token_expired',
+  token_invalid: 'web.login.errors.token_invalid',
+};
+
+onMounted(() => {
+  const errorCode = route.query.auth_error;
+  if (typeof errorCode === 'string' && errorCode in authErrorMessages) {
+    authError.value = t(authErrorMessages[errorCode]);
+    // Clear the query param to prevent showing error on refresh
+    router.replace({ query: { ...route.query, auth_error: undefined } });
+  }
+});
 
 // Check if any passwordless methods are enabled (magic links or webauthn)
 const passwordlessEnabled = hasPasswordlessMethods();
@@ -52,6 +72,14 @@ const handleModeChange = (_mode: AuthMode) => {
     :hide-background-icon="false"
     :show-return-home="false">
     <template #form>
+      <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
+      <div
+        v-if="authError"
+        role="alert"
+        class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        {{ authError }}
+      </div>
+
       <AuthMethodSelector
         ref="authMethodSelectorRef"
         :locale="languageStore.currentLocale ?? ''"

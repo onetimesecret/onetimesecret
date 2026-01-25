@@ -6,6 +6,8 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 import type {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/browser';
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
@@ -15,16 +17,17 @@ import { useRouter } from 'vue-router';
 // Response types
 type WebAuthnSuccessResponse = { success: string };
 type WebAuthnErrorResponse = { error: string; 'field-error'?: [string, string] };
+// Rodauth JSON API returns credential options as raw objects (via as_json)
 type WebAuthnChallengeResponse = {
-  webauthn_setup?: string;
+  webauthn_setup?: PublicKeyCredentialCreationOptionsJSON;
   webauthn_setup_challenge?: string;
   webauthn_setup_challenge_hmac?: string;
   // MFA route (webauthn-auth)
-  webauthn_auth?: string;
+  webauthn_auth?: PublicKeyCredentialRequestOptionsJSON;
   webauthn_auth_challenge?: string;
   webauthn_auth_challenge_hmac?: string;
   // Passwordless login route (webauthn-login)
-  webauthn_login?: string;
+  webauthn_login?: PublicKeyCredentialRequestOptionsJSON;
   webauthn_login_challenge?: string;
   webauthn_login_challenge_hmac?: string;
 };
@@ -99,15 +102,16 @@ export function useWebAuthn() {
         throw new Error('Invalid challenge response');
       }
 
-      // Parse base64-encoded WebAuthn options
-      const options = JSON.parse(atob(challengeData.webauthn_setup));
+      // Rodauth JSON API returns credential options as raw JSON objects
+      const optionsJSON = challengeData.webauthn_setup;
 
       // 2. Trigger browser WebAuthn registration flow
-      const credential: RegistrationResponseJSON = await startRegistration(options);
+      const credential: RegistrationResponseJSON = await startRegistration({ optionsJSON });
 
       // 3. Send credential to server for verification
+      // Rodauth expects raw JSON, not base64-encoded
       const verifyResp = await $api.post<WebAuthnResponse>('/auth/webauthn-setup', {
-        webauthn_setup: btoa(JSON.stringify(credential)),
+        webauthn_setup: credential,
         webauthn_setup_challenge: challengeData.webauthn_setup_challenge,
         webauthn_setup_challenge_hmac: challengeData.webauthn_setup_challenge_hmac,
         password,
@@ -166,15 +170,16 @@ export function useWebAuthn() {
         throw new Error('Invalid challenge response');
       }
 
-      // Parse base64-encoded WebAuthn options
-      const options = JSON.parse(atob(challengeData.webauthn_login));
+      // Rodauth JSON API returns credential options as raw JSON objects
+      const optionsJSON = challengeData.webauthn_login;
 
       // 2. Trigger browser WebAuthn authentication
-      const assertion: AuthenticationResponseJSON = await startAuthentication(options);
+      const assertion: AuthenticationResponseJSON = await startAuthentication({ optionsJSON });
 
       // 3. Send assertion to server for verification
+      // Rodauth expects raw JSON, not base64-encoded
       const verifyResp = await $api.post<WebAuthnResponse>('/auth/webauthn-login', {
-        webauthn_login: btoa(JSON.stringify(assertion)),
+        webauthn_login: assertion,
         webauthn_login_challenge: challengeData.webauthn_login_challenge,
         webauthn_login_challenge_hmac: challengeData.webauthn_login_challenge_hmac,
         shrimp: csrfStore.shrimp,
@@ -233,15 +238,16 @@ export function useWebAuthn() {
         throw new Error('Invalid challenge response');
       }
 
-      // Parse base64-encoded WebAuthn options
-      const options = JSON.parse(atob(challengeData.webauthn_auth));
+      // Rodauth JSON API returns credential options as raw JSON objects
+      const optionsJSON = challengeData.webauthn_auth;
 
       // 2. Trigger browser WebAuthn authentication
-      const assertion: AuthenticationResponseJSON = await startAuthentication(options);
+      const assertion: AuthenticationResponseJSON = await startAuthentication({ optionsJSON });
 
       // 3. Send assertion to server for verification
+      // Rodauth expects raw JSON, not base64-encoded
       const verifyResp = await $api.post<WebAuthnResponse>('/auth/webauthn-auth', {
-        webauthn_auth: btoa(JSON.stringify(assertion)),
+        webauthn_auth: assertion,
         webauthn_auth_challenge: challengeData.webauthn_auth_challenge,
         webauthn_auth_challenge_hmac: challengeData.webauthn_auth_challenge_hmac,
         shrimp: csrfStore.shrimp,
