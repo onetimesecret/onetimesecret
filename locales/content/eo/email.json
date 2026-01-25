@@ -1,446 +1,594 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Bileto: %s]"
+    "text": "[Bileto: %s]",
+    "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Kliento sendis la jenajn informojn"
+    "text": "Kliento sendis la sekvan informon",
+    "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} sendis al vi sekreton"
+    "text": "%{sender_email} sendis al vi sekreton",
+    "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "sendis al vi sekreton:"
+    "text": "sendis al vi sekreton:",
+    "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Grava:"
+    "text": "Grava:",
+    "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Cxi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos permanente forigita."
+    "text": "Ĉi tiu ligilo funkcios nur unufoje. Post rigardo, la sekreto estos porĉiam forigita.",
+    "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Sendita per"
+    "text": "Sendita per",
+    "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Bonvenon al %{product_name} - Bonvolu konfirmi vian retadreso"
+    "text": "Bonvenon al %{product_name} - Bonvolu konfirmi vian retpoŝton",
+    "sha256": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Bonvenon al %{product_name}!"
+    "text": "Bonvenon al %{product_name}!",
+    "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Bonvolu konfirmi vian retadreson alklakante la ligilon sube:"
+    "text": "Bonvolu konfirmi vian retpoŝtan adreson per klako sur la suba ligilo:",
+    "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Konfirmi Retadreson"
+    "text": "Konfirmi Retpoŝtan Adreson",
+    "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+    "text": "Aŭ kopiu kaj algluu ĉi tiun ligilon:",
+    "sha256": "88c72144"
   },
   "email.welcome.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Cxi tiu retposxto estis sendita al %{email_address}. Se vi ne kreis konton, vi povas sekure ignori cxi tiun mesagxon."
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address}. Se vi ne kreis konton, vi povas sekure ignori ĉi tiun mesaĝon.",
+    "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Restarigi vian pasvorton (%{display_domain})"
+    "text": "Restarigi vian pasvorton (%{display_domain})",
+    "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Restarigi Vian Pasvorton"
+    "text": "Restarigi Vian Pasvorton",
+    "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Ni ricevis peton por restarigi vian pasvorton por %{product_name}."
+    "text": "Ni ricevis peton restarigi vian pasvorton por %{product_name}.",
+    "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Restarigi Pasvorton"
+    "text": "Restarigi Pasvorton",
+    "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+    "text": "Aŭ kopiu kaj algluu ĉi tiun ligilon:",
+    "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Se vi ne petis pasvortan restarigon, vi povas sekure ignori cxi tiun retposxton."
+    "text": "Se vi ne petis restarigi pasvorton, vi povas sekure ignori ĉi tiun retpoŝton.",
+    "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Cxi tiu retposxto estis sendita al %{email_address}."
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Ensaluti al %{display_domain}"
+    "text": "Ensaluti al %{display_domain}",
+    "sha256": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Ensaluti per Magia Ligilo"
+    "text": "Ensaluti per Magia Ligilo",
+    "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Vi petis ensalutan ligilon por via %{product_name} konto."
+    "text": "Vi petis ensalutan ligilon por via %{product_name}-konto.",
+    "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Ensaluti"
+    "text": "Ensaluti",
+    "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+    "text": "Aŭ kopiu kaj algluu ĉi tiun ligilon:",
+    "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Cxi tiu ligilo senvalidigas post 15 minutoj."
+    "text": "Ĉi tiu ligilo eksvalidiĝos post 15 minutoj.",
+    "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Se vi ne petis cxi tiun ligilon, vi povas sekure ignori cxi tiun retposxton."
+    "text": "Se vi ne petis ĉi tiun ligilon, vi povas sekure ignori ĉi tiun retpoŝton.",
+    "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Cxi tiu retposxto estis sendita al %{email_address}."
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address}.",
+    "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Vi ricevis sekretan mesagxon"
+    "text": "Vi ricevis sekretan mesaĝon",
+    "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Vi ricevis sekuran mesagxon:"
+    "text": "Vi ricevis sekuran mesaĝon:",
+    "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memoro:"
+    "text": "Noto:",
+    "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Iu sendis al vi sekuran mesagxon per %{display_domain}."
+    "text": "Iu sendis al vi sekuran mesaĝon per %{display_domain}.",
+    "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Por vidi cxi tiun sekreton, alklaku la ligilon sube:"
+    "text": "Por vidi ĉi tiun sekreton, klaku la suban ligilon:",
+    "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Grava:"
+    "text": "Grava:",
+    "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Cxi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos permanente forigita."
+    "text": "Ĉi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos definitive forigita.",
+    "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Sendita per"
+    "text": "Sendita per",
+    "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Via sekreto estis vidata"
+    "text": "Via sekreto estis rigardita",
+    "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Via Sekreto Estis Vidata"
+    "text": "Via Sekreto Estis Rigardita",
+    "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Via sekreto estis vidata je %{date}."
+    "text": "Via sekreto estis rigardita je %{date}.",
+    "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Sekreta ID:"
+    "text": "Sekreta ID:",
+    "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Cxi tio estas auxtomata sciigo. Neniu ago estas bezonata."
+    "text": "Ĉi tio estas aŭtomata sciigo. Neniu ago bezonatas.",
+    "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Administri sciigajn preferojn"
+    "text": "Administri sciigajn preferojn",
+    "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Por administri viajn sciigajn preferojn:"
+    "text": "Por administri viajn sciigajn preferojn:",
+    "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Via sekreta ligilo baldaux senvalidigas"
+    "text": "Via sekreta ligilo baldaŭ eksvalidiĝos",
+    "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Via sekreta ligilo senvalidigas post %{time_remaining}"
+    "text": "Via sekreta ligilo eksvalidiĝos post %{time_remaining}",
+    "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Vidi vian sekreton antaux ol gxi senvalidigas"
+    "text": "Vidi vian sekreton antaŭ eksvalidiĝo",
+    "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Memorigilo:"
+    "text": "Memorigo:",
+    "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Post senvalidigxo, la sekreto estos permanente forigita kaj ne reakireblaj."
+    "text": "Post eksvalidiĝo, la sekreto estos permanente forigita kaj ne reakireble.",
+    "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Sendita per"
+    "text": "Sendita per",
+    "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Vidu gxin antaux ol gxi forigas:"
+    "text": "Vidu ĝin antaŭ ol ĝi malaperos:",
+    "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Post senvalidigxo, la sekreto estos permanente forigita."
+    "text": "Post eksvalidiĝo, la sekreto estos permanente forigita.",
+    "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Retrosciigxo je %{date} per %{display_domain} (%{strategy})"
+    "text": "Reago je %{date} per %{display_domain} (%{strategy})",
+    "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Uzanta Retrosciigxo"
+    "text": "Uzanta Reago",
+    "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "De:"
+    "text": "De:",
+    "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domajno:"
+    "text": "Domajno:",
+    "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Strategio:"
+    "text": "Strategio:",
+    "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Mesagxo:"
+    "text": "Mesaĝo:",
+    "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Sekreta Subteno"
+    "text": "Sekreta Subteno",
+    "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Vi estas invitita aligxi al %{organization_name}"
+    "text": "Vi estas invitita aliĝi al %{organization_name}",
+    "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Vi estas invitita aligxi al %{organization_name}!"
+    "text": "Vi estas invitita aliĝi al %{organization_name}!",
+    "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} invitis vin aligxi al \"%{organization_name}\" kiel %{role_description}."
+    "text": "%{inviter_email} invitis vin aliĝi al \"%{organization_name}\" kiel %{role_description}.",
+    "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Akcepti Inviton"
+    "text": "Akcepti Inviton",
+    "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+    "text": "Aŭ kopiu kaj algluu ĉi tiun ligilon:",
+    "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Cxi tiu invito senvalidigas post %{days} tagoj."
+    "text": "Ĉi tiu invito eksvalidiĝos post %{days} tagoj.",
+    "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Se vi ne volas aligxi, vi povas simple ignori cxi tiun retposxton aux malakcepti la inviton."
+    "text": "Se vi ne volas aliĝi, vi povas simple ignori ĉi tiun retpoŝton aŭ malakcepti la inviton.",
+    "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Cxi tiu retposxto estis sendita al %{invited_email}. Se vi ne atendis cxi tiun inviton, vi povas sekure ignori cxi tiun mesagxon."
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{invited_email}. Se vi ne atendis ĉi tiun inviton, vi povas sekure ignori ĉi tiun mesaĝon.",
+    "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "membro"
+    "text": "membro",
+    "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "administranto"
+    "text": "administranto",
+    "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Via pasvorto estis sxangxita (%{display_domain})"
+    "text": "Via pasvorto estis ŝanĝita (%{display_domain})",
+    "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Via Pasvorto Estis Sxangxita"
+    "text": "Via Pasvorto Estis Ŝanĝita",
+    "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Via pasvorto por %{product_name} estis sxangxita je %{date} je %{time}."
+    "text": "Via pasvorto por %{product_name} estis ŝanĝita je %{date} je %{time}.",
+    "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Se vi ne faris cxi tiun sxangxon, bonvolu tuj sekurigi vian konton per restarigado de via pasvorto kaj kontaktante subtenon."
+    "text": "Se vi ne faris ĉi tiun ŝanĝon, bonvolu sekurigi vian konton tuj restarigante vian pasvorton kaj kontaktante subtenon.",
+    "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Via retadreso estis sxangxita (%{display_domain})"
+    "text": "Via retpoŝta adreso estis ŝanĝita (%{display_domain})",
+    "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Via Retadreso Estis Sxangxita"
+    "text": "Via retpoŝta adreso estis ŝanĝita",
+    "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "La retadreso por via %{product_name} konto estis sxangxita al %{new_email_masked} je %{date}."
+    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked} je %{date}.",
+    "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Se vi ne faris cxi tiun sxangxon, bonvolu tuj kontakti subtenon, cxar via konto eble estas kompromitita."
+    "text": "Se vi ne faris ĉi tiun ŝanĝon, bonvolu tuj kontakti subtenon ĉar via konto eble estas kompromitita.",
+    "sha256": "f505b562"
   },
   "email.email_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Konfirmu vian novan retadreson (%{display_domain})"
+    "text": "Kontrolu vian novan retpoŝtan adreson (%{display_domain})",
+    "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Konfirmu Vian Novan Retadreson"
+    "text": "Kontrolu vian novan retpoŝtan adreson",
+    "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Bonvolu konfirmi cxi tiun retadreson por kompletigi la sxangxon por via %{product_name} konto."
+    "text": "Bonvolu kontroli ĉi tiun retpoŝtan adreson por kompletigi la ŝanĝon por via konto %{product_name}.",
+    "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Konfirmi Retadreson"
+    "text": "Kontroli retpoŝtan adreson",
+    "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+    "text": "Aŭ kopiu kaj algluu ĉi tiun ligilon:",
+    "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
-    "text": "Dufaktora auxtentigxo ebligita (%{display_domain})"
+    "text": "Du-faktora aŭtentikigo ŝaltita (%{display_domain})",
+    "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Dufaktora Auxtentigxo Ebligita"
+    "text": "Du-Faktora Aŭtentikigo Ŝaltita",
+    "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Dufaktora auxtentigxo estis ebligita por via %{product_name} konto je %{date}."
+    "text": "Du-faktora aŭtentikigo estis ŝaltita por via %{product_name}-konto je %{date}.",
+    "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Via konto nun estas pli sekura. Vi bezonos enigi konfirmokodon de via auxtentigxilo-aplikajxo kiam vi ensalutas."
+    "text": "Via konto estas nun pli sekura. Vi devos enigi kontrolkodon de via aŭtentikilo-aplikaĵo kiam vi ensalutas.",
+    "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Dufaktora auxtentigxo malebligita (%{display_domain})"
+    "text": "Du-faktora aŭtentikigo malŝaltita (%{display_domain})",
+    "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Dufaktora Auxtentigxo Malebligita"
+    "text": "Du-Faktora Aŭtentikigo Malŝaltita",
+    "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Dufaktora auxtentigxo estis malebligita por via %{product_name} konto je %{date}."
+    "text": "Du-faktora aŭtentikigo estis malŝaltita por via %{product_name}-konto je %{date}.",
+    "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Via konto nun estas malpli sekura. Se vi ne faris cxi tiun sxangxon, bonvolu tuj sekurigi vian konton."
+    "text": "Via konto estas nun malpli sekura. Se vi ne faris ĉi tiun ŝanĝon, bonvolu sekurigi vian konton tuj.",
+    "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Nova ensaluto al via konto (%{display_domain})"
+    "text": "Nova ensaluto al via konto (%{display_domain})",
+    "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Nova Ensaluto Detektita"
+    "text": "Nova Ensaluto Detektita",
+    "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Nova ensaluto al via %{product_name} konto estis detektita je %{date} je %{time}."
+    "text": "Nova ensaluto al via %{product_name}-konto estis detektita je %{date} je %{time}.",
+    "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Aparato:"
+    "text": "Aparato:",
+    "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Loko:"
+    "text": "Loko:",
+    "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IP-Adreso:"
+    "text": "IP-Adreso:",
+    "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Se cxi tio ne estis vi, via konto eble estas kompromitita."
+    "text": "Se ĉi tio ne estis vi, via konto eble estas kompromitita.",
+    "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Sekurigi Vian Konton"
+    "text": "Sekurigi Vian Konton",
+    "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Vi estis forigita el %{organization_name}"
+    "text": "Vi estis forigita el %{organization_name}",
+    "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Vi Estis Forigita el %{organization_name}"
+    "text": "Vi Estis Forigita el %{organization_name}",
+    "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Vi estis forigita el la organizo \"%{organization_name}\" cxe %{product_name}."
+    "text": "Vi estis forigita el la organizaĵo \"%{organization_name}\" sur %{product_name}.",
+    "sha256": "d442beed"
   },
   "email.member_removed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Via rolo estis sxangxita en %{organization_name}"
+    "text": "Via rolo estis ŝanĝita en %{organization_name}",
+    "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Via Rolo Estis Sxangxita"
+    "text": "Via Rolo Estis Ŝanĝita",
+    "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Via rolo en \"%{organization_name}\" estis sxangxita de %{old_role} al %{new_role}."
+    "text": "Via rolo en \"%{organization_name}\" estis ŝanĝita de %{old_role} al %{new_role}.",
+    "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Organizo \"%{organization_name}\" estis forigita"
+    "text": "Organizaĵo \"%{organization_name}\" estis forigita",
+    "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Organizo Forigita"
+    "text": "Organizaĵo Forigita",
+    "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "La organizo \"%{organization_name}\" estis forigita el %{product_name}. Cxiuj rilataj datumoj estis forigitaj."
+    "text": "La organizaĵo \"%{organization_name}\" estis forigita el %{product_name}. Ĉiuj asociitaj datumoj estis forigitaj.",
+    "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Paga kvitanco por %{product_name}"
+    "text": "Pagkvitanco por %{product_name}",
+    "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Paga Kvitanco"
+    "text": "Pagkvitanco",
+    "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Dankon pro via pago. Jen viaj pagaj detaloj:"
+    "text": "Dankon pro via pago. Jen viaj pagdetaloj:",
+    "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Sumo:"
+    "text": "Sumo:",
+    "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "Dato:"
+    "text": "Dato:",
+    "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Plano:"
+    "text": "Plano:",
+    "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Vidi Fakturon"
+    "text": "Vidi Fakturon",
+    "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Pago malsukcesis por %{product_name}"
+    "text": "Pago malsukcesis por %{product_name}",
+    "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Pago Malsukcesis"
+    "text": "Pago Malsukcesis",
+    "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Ni ne povis procezi vian pagon por %{product_name}. Bonvolu auxdatigi vian pagmetodon por eviti servointerrompon."
+    "text": "Ni ne povis procesi vian pagon por %{product_name}. Bonvolu ĝisdatigi vian pagmetodon por eviti interrompon de servo.",
+    "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Auxdatigi Pagmetodon"
+    "text": "Ĝisdatigi Pagmetodon",
+    "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Via %{product_name} provo senvalidigas post %{days_remaining} tagoj"
+    "text": "Via prova periodo de %{product_name} finiĝos post %{days_remaining} tagoj",
+    "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Via Provo Baldaux Finigxas"
+    "text": "Via Prova Periodo Baldaŭ Finiĝos",
+    "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Via senpaga provo de %{product_name} senvalidigas post %{days_remaining} tagoj. Auxgradu nun por konservi aliron al cxiuj funkcioj."
+    "text": "Via senpaga prova periodo de %{product_name} finiĝos post %{days_remaining} tagoj. Ĝisdatigu nun por konservi aliron al ĉiuj funkcioj.",
+    "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Auxgradi Nun"
+    "text": "Ĝisdatigu Nun",
+    "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Via %{product_name} abono estis sxangxita"
+    "text": "Via abono de %{product_name} estis ŝanĝita",
+    "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Abono Sxangxita"
+    "text": "Abono Ŝanĝita",
+    "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Via %{product_name} abono estis sxangxita de %{old_plan} al %{new_plan}."
+    "text": "Via abono de %{product_name} estis ŝanĝita de %{old_plan} al %{new_plan}.",
+    "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Cxi tiu sxangxo efikas ekde %{date}."
+    "text": "Ĉi tiu ŝanĝo efektiviĝas je %{date}.",
+    "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Saluton,"
+    "text": "Saluton,",
+    "sha256": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Dankon,"
+    "text": "Dankon,",
+    "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Malaboni"
+    "text": "Malaboni",
+    "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Vidi en retumilo"
+    "text": "Vidi en retumilo",
+    "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret"
+    "text": "Onetime Secret",
+    "sha256": "1cd0194a"
   }
 }

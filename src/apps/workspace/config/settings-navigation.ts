@@ -1,6 +1,7 @@
 // src/apps/workspace/config/settings-navigation.ts
 
 import type { ComposerTranslation } from 'vue-i18n';
+import { isWebAuthnEnabled } from '@/utils/features';
 
 /**
  * Icon configuration for navigation items
@@ -103,6 +104,13 @@ function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
         to: '/account/settings/security/recovery-codes',
         icon: { collection: 'heroicons', name: 'document-text-solid' },
         label: t('web.auth.recovery_codes.title'),
+      },
+      {
+        id: 'passkeys',
+        to: '/account/settings/security/passkeys',
+        icon: { collection: 'heroicons', name: 'finger-print-solid' },
+        label: t('web.auth.passkeys.title'),
+        visible: () => isWebAuthnEnabled(),
       },
     ],
   };

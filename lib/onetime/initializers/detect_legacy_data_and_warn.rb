@@ -165,11 +165,12 @@ module Onetime
         models_found = 0
 
         # Use isolated connection to avoid affecting application's database connections
-        Familia.with_isolated_dbclient(db_num) do |client|
-          # Quick connectivity check
-          client.ping
+        begin
+          Familia.with_isolated_dbclient(db_num) do |client|
+            # Quick connectivity check
+            client.ping
 
-          legacy_mappings.each do |model_name, expected_dbs|
+            legacy_mappings.each do |model_name, expected_dbs|
             # Skip if this model already has legacy data detected in another database
             if legacy_locations.key?(model_name)
               OT.ld "[scan_database_for_legacy_data] Skipping #{model_name} (already detected in another database)"
@@ -213,10 +214,18 @@ module Onetime
             }
 
             OT.ld "[init] Detect legacy data: Found #{keys.length} #{model_name} keys in DB #{db_num} (expected DB #{current_db})"
+            end
           end
+        rescue RedisClient::CommandError => ex
+          # Handle "ERR DB index is out of range" when Redis/Valkey is configured
+          # with fewer databases than we're scanning. Safe to assume no legacy data.
+          if ex.message.include?('DB index is out of range')
+            OT.ld "[init] Detect legacy data: Database #{db_num} does not exist, skipping"
+            return 0
+          end
+          raise
         end
 
-        # NOTE: We intentionally allow raised errors to propagate to the calling code.
         models_found
       end
 

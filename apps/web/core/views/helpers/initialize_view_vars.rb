@@ -81,9 +81,13 @@ module Core
           authenticated   = strategy_result&.authenticated? || false
         end
 
-        # Rack::Protection::AuthenticityToken stores CSRF token in session[:csrf]
-        # It generates the token on first access if not present
-        shrimp = sess&.[](:csrf) || sess&.[]('csrf')
+        # Generate masked CSRF token using Rack::Protection::AuthenticityToken.
+        # The raw token is stored in session[:csrf], but forms must submit the
+        # MASKED version which is different on each request (mitigates BREACH).
+        # AuthenticityToken.token() handles both token generation and masking.
+        shrimp = if sess
+                   Rack::Protection::AuthenticityToken.token(sess)
+                 end
 
         awaiting_mfa  = sess&.[]('awaiting_mfa') || false
 
@@ -101,6 +105,29 @@ module Core
         # Do NOT load customer from Redis - they don't have access yet
         # The frontend will show minimal MFA prompt using email from session
         session_email = sess&.[]('email')
+
+        # ====================================================================
+        # Bridge Rodauth flash messages to Core app messages
+        # ====================================================================
+        #
+        # When Rodauth sets flash messages (e.g., SSO failure), they are stored
+        # in session['_flash'] by Roda's flash plugin. We read these and convert
+        # them to the Core app's messages format, then clear them (standard flash
+        # behavior - messages shown once).
+        #
+        # Flash keys from Rodauth:
+        # - :error - Error messages (e.g., "SSO authentication failed")
+        # - :notice - Success/info messages
+        #
+        messages   = []
+        flash_data = sess&.delete('_flash') || sess&.delete(:_flash)
+        if flash_data.is_a?(Hash)
+          error_msg  = flash_data[:error] || flash_data['error']
+          notice_msg = flash_data[:notice] || flash_data['notice']
+
+          messages << { 'type' => 'error', 'content' => error_msg } if error_msg
+          messages << { 'type' => 'info', 'content' => notice_msg } if notice_msg
+        end
 
         # Extract values from rack request object
         nonce           = req.env.fetch('onetime.nonce', nil)
@@ -166,7 +193,7 @@ module Core
           'homepage_mode' => homepage_mode,
           'keywords' => keywords,
           'locale' => locale,
-          'messages' => nil,
+          'messages' => messages.empty? ? nil : messages,
           'no_cache' => no_cache,
           'nonce' => nonce,
           'organization' => organization,

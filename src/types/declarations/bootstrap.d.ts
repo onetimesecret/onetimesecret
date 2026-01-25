@@ -187,6 +187,17 @@ export interface BootstrapPayload {
     email_auth?: boolean;
     /** WebAuthn/passkey authentication */
     webauthn?: boolean;
+    /**
+     * OmniAuth/SSO authentication via external identity providers.
+     * Can be boolean (false when disabled) or object with config when enabled.
+     */
+    omniauth?: boolean | {
+      enabled: boolean;
+      /** Display name for the provider (e.g., "Zitadel", "Okta") */
+      provider_name?: string;
+      /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
+      route_name?: string;
+    };
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;
   };

@@ -95,10 +95,17 @@ module Onetime
         # @return [Array<Hash, Boolean>] Tuple of [translations_hash, keys_symbolized]
         #
         def load_json(filename)
-          data = JSON.parse(File.read(filename))
+          # Defense in depth: validate path before reading to prevent traversal
+          locales_dir   = File.join(Onetime::HOME, 'generated', 'locales')
+          expanded_path = File.expand_path(filename)
+          unless expanded_path.start_with?(locales_dir + File::SEPARATOR)
+            raise I18n::InvalidLocaleData.new(filename, 'path outside allowed locales directory')
+          end
+
+          data = JSON.parse(File.read(expanded_path))
 
           # Infer locale from filename: generated/locales/en.json -> "en"
-          locale = File.basename(filename, '.json')
+          locale = File.basename(expanded_path, '.json')
 
           # If data doesn't have locale key at top level, wrap it
           wrapped = !data.key?(locale)

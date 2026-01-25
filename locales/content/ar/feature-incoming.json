@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "إرسال سر"
+    "text": "إرسال سر",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "شارك المعلومات الحساسة بشكل آمن مع فريق الدعم لدينا"
+    "text": "شارك المعلومات الحساسة بأمان مع فريق الدعم لدينا",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "جاري التحميل..."
+    "text": "جاري التحميل...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "فشل تحميل التكوين"
+    "text": "فشل تحميل الإعدادات",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "الميزة غير متاحة"
+    "text": "الميزة غير متاحة",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "هذه الميزة معطلة حاليًا. يرجى الاتصال بالدعم للحصول على المساعدة."
+    "text": "هذه الميزة معطلة حالياً. يرجى الاتصال بالدعم للمساعدة.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "مذكرة"
+    "text": "ملاحظة",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "وصف مختصر (مثل: طلب إعادة تعيين كلمة المرور)"
+    "text": "وصف موجز (مثال: طلب إعادة تعيين كلمة المرور)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "ساعدنا في توجيه رسالتك إلى الشخص المناسب"
+    "text": "ساعدنا في توجيه رسالتك للشخص المناسب",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "إرسال إلى"
+    "text": "إرسال إلى",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "اختر مستلمًا"
+    "text": "اختر مستلماً",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "اختر مستلمًا لهذا السر"
+    "text": "اختر مستلماً لهذا السر",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "اختر من سيستقبل هذه الرسالة الآمنة"
+    "text": "اختر من سيستلم هذه الرسالة الآمنة",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "لا يوجد مستلمون متاحون"
+    "text": "لا يوجد مستلمون متاحون",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "معلومات سرية"
+    "text": "المعلومات السرية",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "الصق المعلومات الحساسة هنا (كلمات المرور، المفاتيح، إلخ)"
+    "text": "الصق المعلومات الحساسة هنا (كلمات المرور، المفاتيح، إلخ.)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "سيتم تشفير هذه المعلومات ويمكن عرضها مرة واحدة فقط"
+    "text": "سيتم تشفير هذه المعلومات ولن تُعرض إلا مرة واحدة",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "إرسال السر"
+    "text": "إرسال السر",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "إرسال السر"
+    "text": "إرسال السر",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "جاري الإرسال..."
+    "text": "جاري الإرسال...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "جاري الإرسال..."
+    "text": "جاري الإرسال...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "مسح النموذج"
+    "text": "مسح النموذج",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "مسح النموذج"
+    "text": "مسح النموذج",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "تم الإرسال بنجاح"
+    "text": "تم الإرسال بنجاح",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "تم تسليم رسالتك الآمنة."
+    "text": "تم تسليم رسالتك الآمنة.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "معرف المرجع"
+    "text": "رقم المرجع",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "ماذا يحدث بعد ذلك؟"
+    "text": "ماذا يحدث بعد ذلك؟",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائيًا."
+    "text": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائياً.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "إرسال سر آخر"
+    "text": "إرسال سر آخر",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "شارك المعلومات الحساسة بشكل آمن"
+    "text": "شارك المعلومات الحساسة بأمان",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "احتفظ بكلمات المرور والبيانات الخاصة بعيدًا عن البريد الإلكتروني وسجلات الدردشة"
+    "text": "أبقِ كلمات المرور والبيانات الخاصة بعيدة عن البريد الإلكتروني وسجلات المحادثات",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "احفظ <a href='{receiptUrl}'>إيصالك</a> لسجلاتك."
+    "text": "احفظ {receipt} لسجلاتك.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "الإيصال"
+    "text": "الإيصال",
+    "sha256": "6f328609"
   }
 }

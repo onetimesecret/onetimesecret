@@ -1,0 +1,647 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]",
+    "sha256": "98ba1771"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+cliente.verificato? `verificato` : `non verificato",
+    "sha256": "52e93cc0"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Clienti ({0} di {1})",
+    "sha256": "eb88db1d"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Feedback degli utenti (totale: {0})",
+    "sha256": "d4a80454"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metadati / Segreti: {0}/{1} ({2}/{3}/{4} totale)",
+    "sha256": "5a341707"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Segreti ({0})",
+    "sha256": "dd1c471a"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(attivo negli ultimi 5 minuti)",
+    "sha256": "a2b19058"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Impostazioni",
+    "sha256": "74a883a0"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Modifica le impostazioni di configurazione del sistema. Le modifiche vengono applicate immediatamente dopo il salvataggio.",
+    "sha256": "6025d269"
+  },
+  "web.colonel.invalidJson": {
+    "text": "JSON non valido nella sezione {section}",
+    "sha256": "a75ac7a3"
+  },
+  "web.colonel.validationError": {
+    "text": "Errore di validazione",
+    "sha256": "2aa2d0b4"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Errore nel caricamento della configurazione",
+    "sha256": "08baf6d2"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Errore nel salvataggio della configurazione",
+    "sha256": "48df54c7"
+  },
+  "web.colonel.configSaved": {
+    "text": "Configurazione salvata con successo",
+    "sha256": "93b3d3e4"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "La configurazione deve essere un oggetto JSON",
+    "sha256": "74e8897e"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Più sezioni hanno errori di validazione: {sections}",
+    "sha256": "71fdaea1"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section} ha errori di validazione: {error}",
+    "sha256": "e5e01aa0"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section} salvato con successo",
+    "sha256": "7be1d5d2"
+  },
+  "web.colonel.saveSection": {
+    "text": "Salva {section}",
+    "sha256": "4a379f10"
+  },
+  "web.colonel.saveAll": {
+    "text": "Salva tutto",
+    "sha256": "d3c54e39"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Modifiche non salvate",
+    "sha256": "a710c2b9"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Errore di validazione schema: {message} ({path})",
+    "sha256": "5f838cb2"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Errore di validazione sconosciuto: {error}",
+    "sha256": "b6cf56ca"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "La sezione {section} non ha valori configurati",
+    "sha256": "efb63b77"
+  },
+  "web.colonel.dashboard": {
+    "text": "Dashboard",
+    "sha256": "67b69646"
+  },
+  "web.colonel.admin": {
+    "text": "Amministrazione",
+    "sha256": "c1c224b0"
+  },
+  "web.colonel.activity": {
+    "text": "Attività",
+    "sha256": "38da1505"
+  },
+  "web.colonel.accounts": {
+    "text": "Account",
+    "sha256": "8a7c8b67"
+  },
+  "web.colonel.users": {
+    "text": "Utenti",
+    "sha256": "6b0cc904"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Gestisci account utente e permessi",
+    "sha256": "6cfc012c"
+  },
+  "web.colonel.domains": {
+    "text": "Domini",
+    "sha256": "ced67718"
+  },
+  "web.colonel.settings": {
+    "text": "Impostazioni",
+    "sha256": "74a883a0"
+  },
+  "web.colonel.system": {
+    "text": "Sistema",
+    "sha256": "6725e7bb"
+  },
+  "web.colonel.welcome": {
+    "text": "Benvenuto in Colonel",
+    "sha256": "7881ca9e"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Pannello di controllo amministrativo per OneTimeSecret",
+    "sha256": "57c1e752"
+  },
+  "web.colonel.quickActions": {
+    "text": "Azioni rapide",
+    "sha256": "2cc2b6f7"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Attività recente",
+    "sha256": "9ef7d438"
+  },
+  "web.colonel.viewAll": {
+    "text": "Visualizza tutto",
+    "sha256": "ff5573a6"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "I dati dell'attività verranno visualizzati qui",
+    "sha256": "aaf9e948"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Segreti totali",
+    "sha256": "e17a5459"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Utenti attivi",
+    "sha256": "5639b9f1"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Segreti oggi",
+    "sha256": "aefbd2db"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Segreti creati",
+    "sha256": "a97ee479"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Segreti condivisi",
+    "sha256": "5deb082c"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Utenti totali",
+    "sha256": "0ca3aa44"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Email inviate",
+    "sha256": "87cfb3ab"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "Stato del sistema",
+    "sha256": "c3d66242"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Funzionante",
+    "sha256": "7f1e323b"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "Visualizza attività",
+    "sha256": "9c28f55c"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Monitora attività e utilizzo del sistema",
+    "sha256": "f88e9eda"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Gestisci account",
+    "sha256": "9d114268"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "Amministrazione account utente",
+    "sha256": "d73af927"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Configura domini",
+    "sha256": "74402af9"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Impostazioni dominio e DNS",
+    "sha256": "1f712094"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "Impostazioni di sistema",
+    "sha256": "1f87f883"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Configurazione applicazione",
+    "sha256": "923dc672"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Processi in background",
+    "sha256": "48937049"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Stato coda",
+    "sha256": "3421ffa8"
+  },
+  "web.colonel.queueName": {
+    "text": "Coda",
+    "sha256": "3b2fe03e"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "In attesa",
+    "sha256": "331551b0"
+  },
+  "web.colonel.consumers": {
+    "text": "Consumatori",
+    "sha256": "212b350d"
+  },
+  "web.colonel.processingRate": {
+    "text": "Freq/sec",
+    "sha256": "cfde439c"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Stato connessione",
+    "sha256": "3693e288"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Stato dei worker",
+    "sha256": "52be3ac1"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "worker attivi",
+    "sha256": "ea68cfee"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Nessun dato coda disponibile",
+    "sha256": "331ffa6b"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Caricamento dati coda...",
+    "sha256": "a3762a00"
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Modalità piano di test",
+    "sha256": "eba59223"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Test come {planName}",
+    "sha256": "b3032f1a"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Clicca per reimpostare",
+    "sha256": "4b25034d"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Seleziona un piano da testare",
+    "sha256": "9e6e12fe"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Reimposta al piano attuale",
+    "sha256": "2cea3f92"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Piano attuale",
+    "sha256": "37ca715f"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Piani disponibili",
+    "sha256": "20efa44d"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Attiva modalità test",
+    "sha256": "0f469baa"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Modalità test attiva",
+    "sha256": "ae2c8dd9"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Testa la tua applicazione con diverse funzionalità dei piani. Le modifiche sono temporanee e influiscono solo sulla tua sessione.",
+    "sha256": "be03a409"
+  },
+  "web.colonel.warningTestMode": {
+    "text": "Stai testando con le funzionalità di {planName} (override temporaneo della sessione).",
+    "sha256": "1a8aecf1"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quando invii un feedback, vediamo:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Invia un feedback"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Invio..."
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "IP bannati",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Gestisci lista IP bannati",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Domini personalizzati",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Gestisci domini personalizzati e branding",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Invia feedback",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Invio...",
+    "sha256": "286a3af7"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quando invii un feedback, vedremo:",
+    "sha256": "fe77172e"
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organizzazioni",
+    "sha256": "2730183d"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Monitora stato sincronizzazione fatturazione",
+    "sha256": "d8f4398b"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Monitor stato fatturazione",
+    "sha256": "9ef57da4"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organizzazioni",
+    "sha256": "bc2feb56"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} richiedono attenzione",
+    "sha256": "1c8e5840"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} sconosciuti",
+    "sha256": "b7bf2cf1"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "Nessuna organizzazione trovata",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Analizza",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Verifica...",
+    "sha256": "2e5f79bb"
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Account",
+    "sha256": "7e1b0d56"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Fatturazione",
+    "sha256": "3ac8bbca"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Stato",
+    "sha256": "920e413c"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Utilizzo",
+    "sha256": "8d59829c"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Creato",
+    "sha256": "d70b9e24"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Dettagli",
+    "sha256": "45989de4"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Proprietario",
+    "sha256": "4b1b8aa3"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Piano",
+    "sha256": "fa8ed0bd"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Membri",
+    "sha256": "1044a4c0"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domini",
+    "sha256": "ced67718"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Abbonamento",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Area di lavoro predefinita",
+    "sha256": "53aa279e"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Ha fatturazione",
+    "sha256": "db0628ed"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Cliente",
+    "sha256": "bf376338"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Abbonamento",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "ID Org",
+    "sha256": "5e6b9932"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Stato sincronizzazione",
+    "sha256": "b3998276"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Abbonamento",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Tutti",
+    "sha256": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potenzialmente obsoleto",
+    "sha256": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Sconosciuto",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Sincronizzato",
+    "sha256": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Attivo",
+    "sha256": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "In prova",
+    "sha256": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Scaduto",
+    "sha256": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Annullato",
+    "sha256": "13ca2ee2"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Analisi fallita",
+    "sha256": "193aa900"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Risultato analisi",
+    "sha256": "2dbc5cc3"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Sincronizzazione verificata",
+    "sha256": "d92625c2"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Discrepanza trovata",
+    "sha256": "361d22f3"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Impossibile confrontare",
+    "sha256": "64c822ee"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Dettagli abbonamento Stripe",
+    "sha256": "53a7b0ea"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Stato",
+    "sha256": "920e413c"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Prodotto",
+    "sha256": "fb9ef894"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Piano risolto",
+    "sha256": "17c5b37a"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "ID prezzo",
+    "sha256": "b39a8f3e"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Locale",
+    "sha256": "8c31e6e7"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe",
+    "sha256": "961a6062"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Amministrazione fatturazione organizzazioni",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Gestisci organizzazioni e monitora lo stato di sincronizzazione della fatturazione ({total} totali)",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Nessuna organizzazione trovata",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potenzialmente obsoleto",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Obsoleto",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Sconosciuto",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "attivo",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} membri",
+    "sha256": "201eb3d9"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domini",
+    "sha256": "cf548c8c"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Segreti",
+    "sha256": "d8707d41"
+  },
+  "web.colonel.secrets.description": {
+    "text": "Visualizza e gestisci tutti i segreti",
+    "sha256": "48f8052e"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "Sistema",
+    "sha256": "6725e7bb"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "Impostazioni di sistema, database e configurazione",
+    "sha256": "7690b296"
+  },
+  "web.colonel.titles.index": {
+    "text": "Amministrazione",
+    "sha256": "4b42c669"
+  },
+  "web.colonel.titles.users": {
+    "text": "Gestione utenti",
+    "sha256": "fe45f3a1"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Gestione segreti",
+    "sha256": "af69773b"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Domini personalizzati",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.titles.system": {
+    "text": "Sistema",
+    "sha256": "6725e7bb"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Database principale",
+    "sha256": "c4545e98"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Database autenticazione",
+    "sha256": "c683c9a6"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "IP bannati",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Esportazione utilizzo",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.titles.info": {
+    "text": "Informazioni di sistema",
+    "sha256": "8ad54ec1"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organizzazioni",
+    "sha256": "2730183d"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis",
+    "sha256": "a7f64157"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Esportazione utilizzo",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Esporta dati di utilizzo e statistiche",
+    "sha256": "2fd0a2e2"
+  }
+}

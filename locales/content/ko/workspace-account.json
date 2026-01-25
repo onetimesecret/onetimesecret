@@ -1,0 +1,638 @@
+{
+  "web.account.settings": {
+    "text": "설정",
+    "sha256": "74a883a0"
+  },
+  "web.account.change_password": {
+    "text": "비밀번호 변경",
+    "sha256": "a949f462"
+  },
+  "web.account.close_account": {
+    "text": "계정 폐쇄",
+    "sha256": "e1513814"
+  },
+  "web.account.verify_account": {
+    "text": "계정 인증",
+    "sha256": "2f3ea760"
+  },
+  "web.account.subscription_title": {
+    "text": "구독",
+    "sha256": "4999c6c6"
+  },
+  "web.account.manage_subscription": {
+    "text": "구독 관리",
+    "sha256": "cbc4ef92"
+  },
+  "web.account.customer_information": {
+    "text": "고객 정보",
+    "sha256": "8258db6d"
+  },
+  "web.account.customer_since": {
+    "text": "가입일:",
+    "sha256": "0b37cff3"
+  },
+  "web.account.email": {
+    "text": "이메일:",
+    "sha256": "17507dcf"
+  },
+  "web.account.region": {
+    "text": "지역",
+    "sha256": "d3a008ef"
+  },
+  "web.account.account_balance": {
+    "text": "잔액:",
+    "sha256": "e0351221"
+  },
+  "web.account.default_payment_method": {
+    "text": "기본 결제 방법",
+    "sha256": "c60f014b"
+  },
+  "web.account.card_ending": {
+    "text": "끝자리",
+    "sha256": "0195bccf"
+  },
+  "web.account.subscriptions_title": {
+    "text": "구독",
+    "sha256": "a151f2e9"
+  },
+  "web.account.quantity": {
+    "text": "수량:",
+    "sha256": "d4b2cb96"
+  },
+  "web.account.next_billing_date": {
+    "text": "다음 결제일:",
+    "sha256": "8e6f9cfe"
+  },
+  "web.account.changePassword.username": {
+    "text": "사용자 이름",
+    "sha256": "e3b89e9d"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "현재 비밀번호",
+    "sha256": "8ac76099"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "새 비밀번호",
+    "sha256": "7c451e0f"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "확인",
+    "sha256": "eebdd24a"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "비밀번호 업데이트",
+    "sha256": "557be0da"
+  },
+  "web.account.changePassword.updating": {
+    "text": "업데이트 중...",
+    "sha256": "0a4e0b71"
+  },
+  "web.account.timezone": {
+    "text": "시간대",
+    "sha256": "4ceca1d5"
+  },
+  "web.account.customer_id": {
+    "text": "고객 ID",
+    "sha256": "62566c64"
+  },
+  "web.account.account_id_customerid": {
+    "text": "계정 ID",
+    "sha256": "919bb4cb"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "{1} 이후 {0}개의 비밀 메시지를 생성했습니다.",
+    "sha256": "8cb99810"
+  },
+  "web.account.delete_account": {
+    "text": "계정 삭제",
+    "sha256": "c031bf99"
+  },
+  "web.account.api_key": {
+    "text": "API 키",
+    "sha256": "23189d55"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "계정 유형: {0}",
+    "sha256": "617bfe67"
+  },
+  "web.account.your_account": {
+    "text": "내 계정",
+    "sha256": "89e60bfb"
+  },
+  "web.account.support_details": {
+    "text": "지원 세부정보",
+    "sha256": "cbad8751"
+  },
+  "web.account.back_to_details": {
+    "text": "세부정보로 돌아가기",
+    "sha256": "f6f841b9"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "고객 ID: {0}",
+    "sha256": "7e2d4201"
+  },
+  "web.account.token_generated": {
+    "text": "토큰이 생성되었습니다.",
+    "sha256": "05986d95"
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 이 토큰을 안전하게 보관하세요! 계정에 대한 전체 접근 권한을 제공합니다.",
+    "sha256": "8839aa4d"
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "비밀번호로 확인",
+    "sha256": "ff2147fd"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "계정을 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+    "sha256": "4fa3e4b8"
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "계정 삭제 확인",
+    "sha256": "bb3fc7e5"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "{0} 삭제 중",
+    "sha256": "81d21828"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "계정 영구 삭제",
+    "sha256": "f894e42c"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "영구적이며 되돌릴 수 없습니다.",
+    "sha256": "6121225e"
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "계정 삭제는",
+    "sha256": "ec31577b"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "계속하기 전에 소각하세요",
+    "sha256": "f89a5794"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "제거하고 싶은 비밀 메시지가 있다면,",
+    "sha256": "b45e2dd5"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "비밀 메시지는 만료될 때까지 활성 상태로 유지됩니다.",
+    "sha256": "ddb4e2b5"
+  },
+  "web.account.please_be_advised": {
+    "text": "주의사항:",
+    "sha256": "086020fd"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "계정이 성공적으로 삭제되었습니다.",
+    "sha256": "afcfdd58"
+  },
+  "web.account.deactivate": {
+    "text": "비활성화",
+    "sha256": "fb1e6fa5"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "계정을 비활성화하시겠습니까? 모든 데이터가 서버에서 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
+    "sha256": "4940e20a"
+  },
+  "web.account.deactivate_account": {
+    "text": "계정 비활성화",
+    "sha256": "5e31b73d"
+  },
+  "web.settings.title": {
+    "text": "설정",
+    "sha256": "74a883a0"
+  },
+  "web.settings.description": {
+    "text": "계정 설정 및 환경설정 관리",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "계정 설정 및 환경설정을 관리합니다",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.general": {
+    "text": "일반",
+    "sha256": "c910d474"
+  },
+  "web.settings.preferences": {
+    "text": "환경설정",
+    "sha256": "66962f72"
+  },
+  "web.settings.appearance": {
+    "text": "화면 설정",
+    "sha256": "3907fa7f"
+  },
+  "web.settings.theme.title": {
+    "text": "테마",
+    "sha256": "efb52e71"
+  },
+  "web.settings.theme.description": {
+    "text": "라이트 또는 다크 테마 선택",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "라이트 또는 다크 테마 선택",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.language.title": {
+    "text": "언어",
+    "sha256": "a4fe6526"
+  },
+  "web.settings.language.description": {
+    "text": "선호하는 언어 선택",
+    "sha256": "475bba7a"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "선호하는 언어 선택",
+    "sha256": "475bba7a"
+  },
+  "web.settings.security_settings_description": {
+    "text": "인증 및 계정 보안 관리",
+    "sha256": "945109d1"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "계정 정보 관리",
+    "sha256": "4a23a29f"
+  },
+  "web.settings.profile.title": {
+    "text": "프로필",
+    "sha256": "d696a35b"
+  },
+  "web.settings.profile.change_email": {
+    "text": "이메일 변경",
+    "sha256": "18c3f2d5"
+  },
+  "web.settings.profile.current_email": {
+    "text": "현재 이메일",
+    "sha256": "5f1cab64"
+  },
+  "web.settings.profile.current_password": {
+    "text": "현재 비밀번호",
+    "sha256": "8ac76099"
+  },
+  "web.settings.profile.new_email": {
+    "text": "새 이메일",
+    "sha256": "5bafb4be"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "현재 비밀번호를 입력하세요",
+    "sha256": "27814c03"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "보안상의 이유로 비밀번호가 필요합니다",
+    "sha256": "d18f62f2"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "새 주소로 인증 이메일이 발송됩니다",
+    "sha256": "575082a1"
+  },
+  "web.settings.profile.update_email": {
+    "text": "이메일 업데이트",
+    "sha256": "6ec61b2e"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "계정에 연결된 이메일 주소 업데이트",
+    "sha256": "636abb16"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "모든 필드는 필수입니다",
+    "sha256": "04814271"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "유효한 이메일 주소를 입력해 주세요",
+    "sha256": "b00f7e3a"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "새 이메일은 현재 이메일과 달라야 합니다",
+    "sha256": "f7cfed6e"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "이메일이 성공적으로 업데이트되었습니다. 새 이메일 주소를 인증하려면 받은 편지함을 확인해 주세요.",
+    "sha256": "58de2536"
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "이메일 업데이트 실패. 다시 시도해 주세요.",
+    "sha256": "aeba6591"
+  },
+  "web.settings.sessions.title": {
+    "text": "활성 세션",
+    "sha256": "b58fa4e0"
+  },
+  "web.settings.sessions.description": {
+    "text": "활성 세션 관리",
+    "sha256": "e5646da4"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "활성 세션 관리",
+    "sha256": "e5646da4"
+  },
+  "web.settings.password.title": {
+    "text": "비밀번호",
+    "sha256": "e7cf3ef4"
+  },
+  "web.settings.password.description": {
+    "text": "계정 비밀번호 업데이트",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "계정 비밀번호 업데이트",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.delete_account.title": {
+    "text": "계정 삭제",
+    "sha256": "c031bf99"
+  },
+  "web.settings.delete_account.description": {
+    "text": "계정과 모든 데이터를 영구적으로 삭제",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "계정과 모든 데이터를 영구적으로 삭제",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.security.security_score": {
+    "text": "보안 점수",
+    "sha256": "02d2f374"
+  },
+  "web.settings.security.score_description": {
+    "text": "전체 계정 보안 상태",
+    "sha256": "cf20935e"
+  },
+  "web.settings.security.excellent": {
+    "text": "우수",
+    "sha256": "0dc8ee55"
+  },
+  "web.settings.security.good": {
+    "text": "좋음",
+    "sha256": "c939327c"
+  },
+  "web.settings.security.fair": {
+    "text": "보통",
+    "sha256": "f7b19afc"
+  },
+  "web.settings.security.weak": {
+    "text": "약함",
+    "sha256": "8d6cea25"
+  },
+  "web.settings.security.improve_security": {
+    "text": "보안 향상",
+    "sha256": "c38bcbf5"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "더 강력한 보호를 위해 2단계 인증 활성화",
+    "sha256": "6beda528"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "백업으로 복구 코드를 생성하세요",
+    "sha256": "eb5f3ebd"
+  },
+  "web.settings.security.configured": {
+    "text": "설정됨",
+    "sha256": "84aebc69"
+  },
+  "web.settings.security.change": {
+    "text": "변경",
+    "sha256": "c0bf75bd"
+  },
+  "web.settings.security.manage": {
+    "text": "관리",
+    "sha256": "5a234448"
+  },
+  "web.settings.security.enable": {
+    "text": "활성화",
+    "sha256": "5342e09f"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0}개 코드 사용 가능",
+    "sha256": "76d6236d"
+  },
+  "web.settings.security.no_codes": {
+    "text": "생성된 코드 없음",
+    "sha256": "3b2eae20"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0}개 활성 세션 | {0}개 활성 세션",
+    "sha256": "30737484"
+  },
+  "web.settings.security.best_practices": {
+    "text": "보안 모범 사례",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "계정에 강력하고 고유한 비밀번호 사용",
+    "sha256": "5fc8cbf4"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "추가 보호를 위해 2단계 인증 활성화",
+    "sha256": "107e4898"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "복구 코드를 안전한 곳에 저장",
+    "sha256": "605513fc"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "정기적으로 세션을 검토하고 사용하지 않는 세션 해제",
+    "sha256": "efe59445"
+  },
+  "web.settings.security.view_details": {
+    "text": "세부정보 보기",
+    "sha256": "d1bf045b"
+  },
+  "web.settings.api.title": {
+    "text": "API 및 통합",
+    "sha256": "21fc84f3"
+  },
+  "web.settings.api.description": {
+    "text": "API 키 및 통합 관리",
+    "sha256": "70976099"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "API 키 및 통합 관리",
+    "sha256": "70976099"
+  },
+  "web.settings.api.documentation": {
+    "text": "API 문서",
+    "sha256": "1cc77e60"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "Onetime Secret을 애플리케이션에 통합하는 방법 알아보기",
+    "sha256": "6e8f910f"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "REST API 참조",
+    "sha256": "26a5af61"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "전체 API 문서 및 엔드포인트",
+    "sha256": "c1c87ad8"
+  },
+  "web.settings.api.code_examples": {
+    "text": "코드 예제",
+    "sha256": "216d28e4"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "예제 코드 및 클라이언트 라이브러리",
+    "sha256": "61c5956f"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "보안 모범 사례",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "API 키를 버전 관리에 커밋하지 마세요",
+    "sha256": "cc8c327e"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "환경 변수를 사용하여 API 키를 저장하세요",
+    "sha256": "c05e8802"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "보안을 위해 정기적으로 API 키를 교체하세요",
+    "sha256": "eda6a5db"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "API 요청 시 항상 HTTPS를 사용하세요",
+    "sha256": "b3f405ef"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "API 사용량을 모니터링하고 알림을 설정하세요",
+    "sha256": "abb08beb"
+  },
+  "web.settings.api.important_notice": {
+    "text": "중요 공지",
+    "sha256": "03d3ba93"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "API 키를 재생성하면 현재 키가 무효화됩니다. 이전 키를 사용하는 모든 애플리케이션을 업데이트하세요.",
+    "sha256": "ab168f83"
+  },
+  "web.settings.privacy.title": {
+    "text": "개인정보 보호 설정",
+    "sha256": "eefad6ba"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "개인정보 보호 설정 관리",
+    "sha256": "add087da"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "귀하의 개인정보",
+    "sha256": "cad972db"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "타협 불가",
+    "sha256": "ad090a29"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "설정 아님",
+    "sha256": "41278ece"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "분석 없음. 추적 없음. 끝.",
+    "sha256": "3e154b1c"
+  },
+  "web.settings.privacy.explanation": {
+    "text": "켜거나 끌 것이 없기 때문에 이것은 설정이 아닙니다. 귀하의 개인정보 보호는 우리가 운영하는 방식에 내장되어 있습니다.",
+    "sha256": "ed943792"
+  },
+  "web.settings.notifications.title": {
+    "text": "알림 설정",
+    "sha256": "07a063ca"
+  },
+  "web.settings.notifications.description": {
+    "text": "알림 수신 방법 관리",
+    "sha256": "148c5ff6"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "알림 설정 업데이트 실패. 다시 시도해 주세요.",
+    "sha256": "c08abc04"
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "비밀 메시지 공개 알림",
+    "sha256": "c0fb2e25"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "누군가 비밀 메시지를 조회할 때 이메일 수신",
+    "sha256": "a3a67095"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "수신자가 비밀 메시지 중 하나를 공개할 때마다 알림을 받습니다",
+    "sha256": "ba93106d"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "알림 이메일에는 타임스탬프와 비밀 메시지 ID만 포함됩니다. 조회자 정보는 포함되지 않습니다.",
+    "sha256": "7aac282f"
+  },
+  "web.settings.caution.title": {
+    "text": "신중한 고려 구역",
+    "sha256": "fe27a3a8"
+  },
+  "web.settings.caution.description": {
+    "text": "고급 설정 및 데이터 관리",
+    "sha256": "223ee55d"
+  },
+  "web.settings.caution.data_export": {
+    "text": "데이터 내보내기",
+    "sha256": "bdcea052"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "계정 데이터 내보내기",
+    "sha256": "dc5ffcb0"
+  },
+  "web.settings.caution.export_description": {
+    "text": "기계 판독 가능한 형식으로 계정 데이터의 전체 사본 요청",
+    "sha256": "369c3391"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "데이터 내보내기 요청",
+    "sha256": "902394be"
+  },
+  "web.settings.caution.export_info": {
+    "text": "내보내기 처리 시간",
+    "sha256": "2ebb2d44"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "내보내기는 24시간 이내에 처리되어 이메일 주소로 발송됩니다",
+    "sha256": "a2f81e3b"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "계정을 삭제하면:",
+    "sha256": "17a8a676"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "모든 비밀 메시지 영구 삭제",
+    "sha256": "974ccdb9"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "모든 비밀 메시지 메타데이터 및 기록 제거",
+    "sha256": "ec4ee372"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "모든 API 키 무효화",
+    "sha256": "7581333b"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "이 작업은 취소할 수 없습니다",
+    "sha256": "02ccc074"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "삭제 중...",
+    "sha256": "685ecb98"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "대시보드로 돌아가기",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "계정",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "결제",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "고급",
+    "sha256": "9f088dbe"
+  }
+}

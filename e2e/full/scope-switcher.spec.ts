@@ -667,7 +667,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       }
     });
 
-    test('TC-SS-032: Domain scope persists to localStorage', async ({ page }) => {
+    test('TC-SS-032: Domain scope persists to sessionStorage', async ({ page }) => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 
@@ -681,8 +681,8 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       const firstItem = menuItems.first();
       await firstItem.click();
 
-      // Check localStorage
-      const storedDomain = await page.evaluate(() => localStorage.getItem('domainContext'));
+      // Check sessionStorage
+      const storedDomain = await page.evaluate(() => sessionStorage.getItem('domainContext'));
       expect(storedDomain).toBeTruthy();
     });
 
@@ -971,7 +971,7 @@ test.describe('Scope Switcher - State Persistence', () => {
     expect(newDomainName).toBe(domainName);
   });
 
-  test('TC-SS-062: Domain scope stored in localStorage', async ({ page }) => {
+  test('TC-SS-062: Domain scope stored in sessionStorage', async ({ page }) => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
@@ -983,7 +983,7 @@ test.describe('Scope Switcher - State Persistence', () => {
     const menuItem = page.locator('[role="menuitem"]').first();
     await menuItem.click();
 
-    const storedValue = await page.evaluate(() => localStorage.getItem('domainContext'));
+    const storedValue = await page.evaluate(() => sessionStorage.getItem('domainContext'));
     expect(storedValue).toBeTruthy();
   });
 });
@@ -1118,7 +1118,7 @@ test.describe('Scope Switcher - Accessibility', () => {
  * | TC-SS-024  | Manage Organizations link works                    | Medium   | Automated  |
  * | TC-SS-030  | Domain dropdown opens on click                     | High     | Automated  |
  * | TC-SS-031  | Selecting domain updates scope                     | Critical | Automated  |
- * | TC-SS-032  | Domain scope persists to localStorage              | High     | Automated  |
+ * | TC-SS-032  | Domain scope persists to sessionStorage            | High     | Automated  |
  * | TC-SS-033  | Add Domain link navigates                          | Medium   | Automated  |
  * | TC-SS-040  | Locked org switcher not clickable                  | High     | Automated  |
  * | TC-SS-041  | Locked switcher has ARIA attributes                | Medium   | Automated  |
@@ -1130,7 +1130,7 @@ test.describe('Scope Switcher - Accessibility', () => {
  * | TC-SS-054  | Org switch resets unavailable domain scope         | High     | Automated  |
  * | TC-SS-060  | Org selection persists across navigation           | High     | Automated  |
  * | TC-SS-061  | Domain scope persists across navigation            | High     | Automated  |
- * | TC-SS-062  | Domain scope in localStorage                       | Medium   | Automated  |
+ * | TC-SS-062  | Domain scope in sessionStorage                     | Medium   | Automated  |
  * | TC-SS-070  | Org switcher ARIA labels                           | Medium   | Automated  |
  * | TC-SS-071  | Domain switcher ARIA labels                        | Medium   | Automated  |
  * | TC-SS-072  | Menu has role="menu"                               | Medium   | Automated  |

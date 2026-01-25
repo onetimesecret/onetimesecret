@@ -192,6 +192,18 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/account/settings/security/passkeys',
+    name: 'Passkeys',
+    component: () => import('@/apps/workspace/account/PasskeySettings.vue'),
+    meta: {
+      title: 'web.TITLES.passkeys',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  {
     path: '/account/settings/api',
     name: 'API Settings',
     component: () => import('@/apps/workspace/account/settings/ApiSettings.vue'),

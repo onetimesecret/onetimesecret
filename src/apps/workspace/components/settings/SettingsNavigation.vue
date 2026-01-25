@@ -24,6 +24,9 @@ const visibleSections = computed(() =>
 const getVisibleItems = (items: SettingsNavigationItem[]): SettingsNavigationItem[] =>
   items.filter((item) => (item.visible ? item.visible() : true));
 
+const getVisibleChildren = (item: SettingsNavigationItem): SettingsNavigationItem[] =>
+  item.children ? getVisibleItems(item.children) : [];
+
 const isActiveRoute = (path: string): boolean =>
   route.path === path || route.path.startsWith(path + '/');
 
@@ -97,10 +100,10 @@ const isParentActive = (item: SettingsNavigationItem): boolean => {
 
           <!-- Child items -->
           <div
-            v-if="item.children && isParentActive(item)"
+            v-if="item.children && getVisibleChildren(item).length > 0 && isParentActive(item)"
             class="ml-4 mt-1 space-y-1 border-l-2 border-gray-200 pl-4 dark:border-gray-700">
             <router-link
-              v-for="child in item.children"
+              v-for="child in getVisibleChildren(item)"
               :key="child.id"
               :to="child.to"
               :class="[

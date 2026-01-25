@@ -1,0 +1,548 @@
+{
+  "web.auth.mfa_required": {
+    "text": "MFA-verifiering krävs",
+    "sha256": "e93fd3a4"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "MFA-verifiering krävs för att komma åt ditt konto",
+    "sha256": "3cff3311"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Slutför MFA-verifiering",
+    "sha256": "0e681134"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "Autentisering misslyckades. Vänligen verifiera dina uppgifter och försök igen.",
+    "sha256": "b0eeece9"
+  },
+  "web.auth.security.rate_limited": {
+    "text": "För många försök. Vänligen försök igen senare.",
+    "sha256": "282db6f3"
+  },
+  "web.auth.security.session_expired": {
+    "text": "Sessionen har gått ut. Vänligen logga in igen.",
+    "sha256": "f6f51186"
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "Återställningskod hittades inte. Vänligen verifiera att du angav den korrekt.",
+    "sha256": "f5f1bd09"
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Denna återställningskod har redan använts. Varje kod kan bara användas en gång.",
+    "sha256": "b51d6820"
+  },
+  "web.auth.security.network_error": {
+    "text": "Nätverksfel. Vänligen kontrollera din anslutning och försök igen.",
+    "sha256": "31f2678d"
+  },
+  "web.auth.security.internal_error": {
+    "text": "Ett fel uppstod. Vänligen försök igen.",
+    "sha256": "9c170dda"
+  },
+  "web.auth.methods.password": {
+    "text": "Lösenord",
+    "sha256": "e7cf3ef4"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "E-postlänk",
+    "sha256": "1b6ffed2"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Biometrisk",
+    "sha256": "ab2ba7db"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Logga in med e-post",
+    "sha256": "79a864df"
+  },
+  "web.auth.magicLink.description": {
+    "text": "Vi skickar dig en säker inloggningslänk",
+    "sha256": "5d75aeb0"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Ange din e-post",
+    "sha256": "2837f6fa"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Skicka inloggningslänk",
+    "sha256": "f5f52392"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Kontrollera din e-post",
+    "sha256": "77322879"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Vi skickade en inloggningslänk till {email}",
+    "sha256": "d9193f59"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Denna länk går ut om 15 minuter",
+    "sha256": "91b5f027"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Prova en annan e-post",
+    "sha256": "98657c0b"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "Inget lösenord behövs — klicka bara på länken i din e-post",
+    "sha256": "5f539b97"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Nätverksfel. Vänligen försök igen.",
+    "sha256": "9ff8cfaf"
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "Det gick inte att skicka inloggningslänk. Vänligen försök igen.",
+    "sha256": "4c685e97"
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Ogiltig eller saknad inloggningslänk",
+    "sha256": "d726c0da"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "Inloggningen misslyckades. Vänligen försök igen.",
+    "sha256": "c95b4875"
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Loggar in dig...",
+    "sha256": "9d432ef1"
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Vänligen vänta medan vi verifierar din länk",
+    "sha256": "81e4efed"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Autentiseringsfel",
+    "sha256": "797b4f03"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Tillbaka till inloggning",
+    "sha256": "ee9eb75e"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Logga in med Face ID / Touch ID",
+    "sha256": "46f75469"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Konfigurera biometrisk inloggning",
+    "sha256": "7593dd46"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "Biometrisk autentisering stöds inte i denna webbläsare",
+    "sha256": "fe2a2c2b"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Vänligen använd en modern webbläsare som stöder WebAuthn (Chrome, Safari, Firefox eller Edge)",
+    "sha256": "fd9752eb"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "Biometrisk inloggning har aktiverats",
+    "sha256": "63407e97"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "Det gick inte att konfigurera biometrisk inloggning",
+    "sha256": "290cca44"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "Biometrisk autentisering misslyckades. Vänligen försök igen.",
+    "sha256": "626b9ece"
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "Autentisering avbröts",
+    "sha256": "57461b04"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Autentiserar...",
+    "sha256": "1f6087c2"
+  },
+  "web.auth.webauthn.description": {
+    "text": "Använd ditt fingeravtryck, ansikte eller säkerhetsnyckel för att logga in",
+    "sha256": "f02f0427"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "Stöder Face ID, Touch ID, Windows Hello och säkerhetsnycklar",
+    "sha256": "3ea1c1a2"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Varning: {count} inloggningsförsök kvar",
+    "sha256": "151dcb5e"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "Kontot är låst på grund av för många misslyckade inloggningsförsök",
+    "sha256": "5247f389"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "Ditt konto är låst till {time}",
+    "sha256": "1a8f382e"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Kontakta supporten om du behöver omedelbar åtkomst",
+    "sha256": "23d82e46"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Du kan återställa ditt lösenord istället",
+    "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions.title": {
+    "text": "Aktiva sessioner",
+    "sha256": "b58fa4e0"
+  },
+  "web.auth.sessions.current": {
+    "text": "Nuvarande session",
+    "sha256": "386c7932"
+  },
+  "web.auth.sessions.other": {
+    "text": "Andra sessioner",
+    "sha256": "8409f445"
+  },
+  "web.auth.sessions.device": {
+    "text": "Enhet",
+    "sha256": "6ba0bdec"
+  },
+  "web.auth.sessions.location": {
+    "text": "Plats",
+    "sha256": "15b61974"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "IP-adress",
+    "sha256": "3c3de0c9"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Senast aktiv",
+    "sha256": "b6dc1b95"
+  },
+  "web.auth.sessions.created": {
+    "text": "Skapad",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Ta bort",
+    "sha256": "c3812fc4"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Logga ut alla andra sessioner",
+    "sha256": "412bb9e2"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Är du säker på att du vill ta bort denna session?",
+    "sha256": "ef12c1ba"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Detta kommer att logga ut dig från alla andra enheter. Är du säker?",
+    "sha256": "4a1a73e9"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "Inga andra aktiva sessioner",
+    "sha256": "b83317f2"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "Session borttagen",
+    "sha256": "6d27d44a"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "Alla andra sessioner har loggats ut",
+    "sha256": "1b49e75c"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Aktiva sessioner",
+    "sha256": "b58fa4e0"
+  },
+  "web.auth.mfa.title": {
+    "text": "Tvåfaktorsautentisering",
+    "sha256": "bc074b60"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "Tvåfaktorsautentisering är aktiverad",
+    "sha256": "d27a70c6"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "Tvåfaktorsautentisering är inaktiverad",
+    "sha256": "0af18e50"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Aktivera tvåfaktorsautentisering",
+    "sha256": "9b83e658"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Inaktivera tvåfaktorsautentisering",
+    "sha256": "c9698815"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Konfigurera tvåfaktorsautentisering",
+    "sha256": "04e05601"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Lägg till ett extra säkerhetslager på ditt konto",
+    "sha256": "d47240b9"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. Skanna QR-kod",
+    "sha256": "efd0134a"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Verifiera konfiguration",
+    "sha256": "59bba5f7"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Skanna denna QR-kod med din autentiseringsapp",
+    "sha256": "65752db3"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "Eller ange denna kod manuellt",
+    "sha256": "3ea15b3e"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Ange den 6-siffriga koden från din app",
+    "sha256": "38f61733"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Ange autentiseringskod",
+    "sha256": "186a582a"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Verifiera och aktivera",
+    "sha256": "7c08f68d"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "Autentiseringskod krävs",
+    "sha256": "217de0fc"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Ogiltig kod. Koder går ut var 30:e sekund. Prova den senaste koden från din autentiseringsapp.",
+    "sha256": "94b58889"
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "Tvåfaktorsautentisering har aktiverats",
+    "sha256": "e5aff73d"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "Tvåfaktorsautentisering har inaktiverats",
+    "sha256": "4fd6b4b4"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Ange ditt lösenord för att inaktivera 2FA",
+    "sha256": "c384b93c"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Lösenord",
+    "sha256": "e7cf3ef4"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Bekräfta din identitet för att ändra inställningar för tvåfaktorsautentisering",
+    "sha256": "09a96c07"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Senast använd: {time}",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Aldrig använd",
+    "sha256": "24d3236c"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Använd en återställningskod istället",
+    "sha256": "23d3441a"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Tillbaka till autentiseringskod",
+    "sha256": "6fa090b4"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Avbryt och återgå till inloggning",
+    "sha256": "83256742"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Laddar MFA-status...",
+    "sha256": "01919f0e"
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "Ditt konto är skyddat med tvåfaktorsautentisering",
+    "sha256": "02b9d169"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Skydda ditt konto med ett extra säkerhetslager",
+    "sha256": "06d9123b"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Förhindra obehörig åtkomst även om ditt lösenord är komprometterat",
+    "sha256": "61d99c71"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Fungerar med Google Authenticator, Authy och andra TOTP-appar",
+    "sha256": "6ee8ab12"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Återställningskoder för nödåtkomst",
+    "sha256": "747917bb"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Ange ditt lösenord",
+    "sha256": "c06bf967"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Inaktiverar...",
+    "sha256": "e4080e19"
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "Inaktivera 2FA",
+    "sha256": "1c3193f3"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "Genererar QR-kod...",
+    "sha256": "8eab9da9"
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Använd Google Authenticator, Authy eller någon TOTP-app",
+    "sha256": "a8eaef9d"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Fortsätt till verifiering",
+    "sha256": "4da96e87"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Ange den 6-siffriga koden från din autentiseringsapp",
+    "sha256": "a160dee6"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Aktivera MFA",
+    "sha256": "37c8090d"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Slutför konfiguration",
+    "sha256": "30e87601"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Ange en av dina återställningskoder",
+    "sha256": "91ab44cf"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Återställningskod",
+    "sha256": "cf25d0fc"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Ange återställningskod",
+    "sha256": "586d719c"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Verifiera återställningskod",
+    "sha256": "c244c7bd"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "Ange 6-siffrig autentiseringskod",
+    "sha256": "36a438ba"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Återställningskodläge aktivt",
+    "sha256": "c895f08b"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Autentiseringskodläge aktivt",
+    "sha256": "8c44a306"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Vänligen ange alla 6 siffror för att fortsätta",
+    "sha256": "7914f7b2"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "Siffra {current} av {total}",
+    "sha256": "879df41a"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Återställningskoder",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Spara dessa koder på en säker plats. Varje kan användas en gång om du förlorar åtkomst till din autentiseringsapp.",
+    "sha256": "87aebdfb"
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Dessa koder visas bara en gång",
+    "sha256": "d13f2877"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Du måste ladda ner eller kopiera dina återställningskoder innan du slutför konfigurationen.",
+    "sha256": "6b97bc6d"
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Generera nya koder",
+    "sha256": "4025779e"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Regenerera koder",
+    "sha256": "aa652d21"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Detta kommer att ogiltigförklara alla befintliga återställningskoder",
+    "sha256": "9795a175"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Ladda ner koder",
+    "sha256": "9c23dbba"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Återställningskoder nedladdade",
+    "sha256": "10486340"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Skriv ut koder",
+    "sha256": "ff940182"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Kopiera alla koder",
+    "sha256": "ee956b2b"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "Koder kopierade till urklipp",
+    "sha256": "06ebb466"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Det gick inte att kopiera koder till urklipp",
+    "sha256": "e8be6a51"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Använd",
+    "sha256": "ae7d8dfa"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "Oanvänd",
+    "sha256": "231aedff"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "{count} av {limit} återställningskoder kvar",
+    "sha256": "b5d484e7"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Varje kod kan bara användas en gång. Regenerera koder om du har få kvar.",
+    "sha256": "737a7702"
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "Inga återställningskoder kvar",
+    "sha256": "9ae26d68"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "Nya återställningskoder har genererats",
+    "sha256": "831cb1aa"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Återställningskoder",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Verifiera",
+    "sha256": "eea2745e"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Använd återställningskod",
+    "sha256": "50d5790d"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Avbryt inloggning",
+    "sha256": "1bebad2f"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SÄKERHETSKRITISKT: Meddelanden förhindrar informationsläckage. Se src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Hanteringssida för användarens inloggade enheter/webbläsare"
+  }
+}

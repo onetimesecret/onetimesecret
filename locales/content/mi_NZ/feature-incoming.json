@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "Tukuna he mea huna"
+    "text": "Tuku Karere Huna",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Tohaina ngā kōrero ngaro ki tō mātou rōpū tautoko"
+    "text": "Tohatoha mōhiohio hira mā te haumaru ki tō mātou rōpū tautoko",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "E uta ana..."
+    "text": "E uta ana...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "I rahua te uta whirihoranga"
+    "text": "I rahua te uta whirihoranga",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Kāore i wātea te āhuatanga"
+    "text": "Kāore te Āhuatanga e Wātea",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Kei te monokia tēnei āhuatanga i tēnei wā. Pā mai ki te tautoko mō te āwhina."
+    "text": "Kua monokia tēnei āhuatanga i tēnei wā. Tēnā whakapā atu ki te tautoko mō te āwhina.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Pūrongo"
+    "text": "Memo",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "He whakamārama poto (hei tauira, Tono tautuhi kupuhipa anō)"
+    "text": "Whakamārama poto (hei tauira, Tono tautuhi anō kupuhipa)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Āwhina mātou ki te tuku i tō karere ki te tangata tika"
+    "text": "Āwhinatia mātou ki te tuku tō karere ki te tangata tika",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Tuku ki"
+    "text": "Tukuna ki",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Kōwhiria he kaiwhiwhi"
+    "text": "Kōwhiria he kaiwhiwhi",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Kōwhiria he kaiwhiwhi mō tēnei mea huna"
+    "text": "Kōwhiria he kaiwhiwhi mō tēnei karere huna",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Kōwhiria ko wai ka whiwhi i tēnei karere haumaru"
+    "text": "Kōwhiria ko wai hei whiwhi i tēnei karere haumaru",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Kāore he kaiwhiwhi e wātea ana"
+    "text": "Kāore he kaiwhiwhi e wātea ana",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Kōrero ngaro"
+    "text": "Mōhiohio Huna",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Whakapiri kōrero ngaro ki konei (kupuhipa, kī, me ērā atu)"
+    "text": "Whakapiri mōhiohio hira ki konei (kupuhipa, kī, me ērā atu)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Ka whakamunaina ēnei kōrero, kotahi noa te wā ka kitea"
+    "text": "Ka whakamuhumuhu tēnei mōhiohio, kotahi noa te wā e taea ai te tiro",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Tukuna te mea huna"
+    "text": "Tuku Karere Huna",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Tukuna te mea huna"
+    "text": "Tuku Karere Huna",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "E tuku ana..."
+    "text": "E tuku ana...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "E tuku ana..."
+    "text": "E tuku ana...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Whakawātea puka"
+    "text": "Ūkui Puka",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Whakawātea puka"
+    "text": "Ūkui Puka",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "I angitu te tuku"
+    "text": "Kua Tukuna",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Kua tukuna tō karere haumaru."
+    "text": "Kua tukuna tō karere haumaru.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Tautuhi tohutoro"
+    "text": "ID Tohutoro",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "He aha te mea e pā mai ana?"
+    "text": "He aha te mea ka tū?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Ka taea e te kaiwhiwhi te tiro i tēnei mea huna kotahi noa te wā. I muri i te tiro, ka mukua tūturu te mea huna."
+    "text": "Ka taea e te kaiwhiwhi te tiro i tēnei karere huna kotahi noa te wā. Whai muri i tā rātou tirohanga, ka mukua pūmau te karere huna.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Tukuna anō he mea huna"
+    "text": "Tuku Karere Huna Anō",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Tohaina ngā kōrero ngaro haumaru"
+    "text": "Tohatoha mōhiohio hira mā te haumaru",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Kia tawhiti atu ngā kupuhipa me ngā raraunga tūmataiti i te īmēra me ngā rārangi kōrerorero"
+    "text": "Pupuri i ngā kupuhipa me ngā raraunga tūmataiti kia kaua e puta i ngā pūrongo īmēra me te kōrerorero",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Tiakina tō <a href='{receiptUrl}'>rīhīti</a> mō ō rēkōtanga."
+    "text": "Tiakina tō {receipt} mō ō tuhinga.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "rīhīti"
+    "text": "rihīti",
+    "sha256": "6f328609"
   }
 }

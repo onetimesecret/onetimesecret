@@ -1,27 +1,35 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Tus comentarios"
+    "text": "Tu opinión",
+    "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "¡Todos los comentarios son bienvenidos!"
+    "text": "¡Toda opinión es bienvenida!",
+    "sha256": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Ayúdanos a mejorar"
+    "text": "Ayúdanos a mejorar",
+    "sha256": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Cerrar modal de comentarios"
+    "text": "Cerrar modal de opinión",
+    "sha256": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Comparte tus comentarios"
+    "text": "Comparte tu opinión",
+    "sha256": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
-    "text": "Delano Mandelbaum"
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
   },
   "web.feedback.delano": {
-    "text": "Delano"
+    "text": "Delano",
+    "sha256": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "El contenido de ayuda va aquí."
+    "text": "El contenido de ayuda va aquí.",
+    "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Gracias por ayudar a mejorar Onetime Secret. Significa mucho."
@@ -36,12 +44,23 @@
     "text": "Una nota de Delano, fundador de Onetime Secret"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Abrir formulario de comentarios"
+    "text": "Abrir formulario de opinión",
+    "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Introduce tus comentarios"
+    "text": "Escribe tu opinión",
+    "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Enviar comentarios"
+    "text": "Enviar opinión",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Leo cada opinión que llega por aquí. Es como decido en qué invertir mi tiempo.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Si algo no funciona bien, o tienes ideas sobre cómo debería funcionar, este es el lugar indicado.",
+    "sha256": "d4b8f073"
   }
 }

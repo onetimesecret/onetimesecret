@@ -43,7 +43,7 @@ Locale files are synced to `generated/locales/{locale}.json` for consumption by 
 pnpm run locales:sync
 
 # Or directly
-python locales/scripts/sync_to_src.py --all --merged
+python locales/scripts/build/compile.py --all --merged
 ```
 
 The sync script merges all content files for each locale into a single nested JSON file.

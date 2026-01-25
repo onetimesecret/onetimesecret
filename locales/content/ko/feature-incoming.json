@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "비밀 전송"
+    "text": "비밀 메시지 보내기",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "지원 팀과 민감한 정보를 안전하게 공유하세요"
+    "text": "지원팀과 민감한 정보를 안전하게 공유하세요",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "로딩 중..."
+    "text": "로딩 중...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "구성을 불러오지 못했습니다"
+    "text": "설정 로드 실패",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "기능을 사용할 수 없음"
+    "text": "기능 사용 불가",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "이 기능은 현재 비활성화되어 있습니다. 지원팀에 문의하여 도움을 받으세요."
+    "text": "이 기능은 현재 비활성화되어 있습니다. 도움이 필요하시면 고객 지원에 문의해 주세요.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "메모"
+    "text": "메모",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "간단한 설명 (예: 비밀번호 재설정 요청)"
+    "text": "간단한 설명 (예: 비밀번호 재설정 요청)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "메시지를 적절한 담당자에게 전달할 수 있도록 도와주세요"
+    "text": "메시지를 적절한 담당자에게 전달하는 데 도움이 됩니다",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "받는 사람"
+    "text": "수신자",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "받는 사람 선택"
+    "text": "수신자 선택",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "이 비밀의 받는 사람을 선택하세요"
+    "text": "이 비밀 메시지의 수신자를 선택하세요",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "이 보안 메시지를 받을 사람을 선택하세요"
+    "text": "이 보안 메시지를 받을 사람을 선택하세요",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "사용 가능한 받는 사람이 없습니다"
+    "text": "사용 가능한 수신자가 없습니다",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "기밀 정보"
+    "text": "비밀 정보",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "민감한 정보를 여기에 붙여넣으세요 (비밀번호, 키 등)"
+    "text": "민감한 정보를 여기에 붙여넣으세요 (비밀번호, 키 등)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "이 정보는 암호화되며 한 번만 볼 수 있습니다"
+    "text": "이 정보는 암호화되며 한 번만 볼 수 있습니다",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "비밀 전송"
+    "text": "비밀 메시지 보내기",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "비밀 전송"
+    "text": "비밀 메시지 보내기",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "전송 중..."
+    "text": "전송 중...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "전송 중..."
+    "text": "전송 중...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "양식 지우기"
+    "text": "양식 지우기",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "양식 지우기"
+    "text": "양식 지우기",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "성공적으로 전송됨"
+    "text": "성공적으로 전송됨",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "보안 메시지가 전달되었습니다."
+    "text": "보안 메시지가 전달되었습니다.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "참조 ID"
+    "text": "참조 ID",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "다음에는 무엇이 일어날까요?"
+    "text": "다음 단계는?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "받는 사람은 이 비밀을 한 번만 볼 수 있습니다. 확인 후 비밀은 영구적으로 삭제됩니다."
+    "text": "수신자는 이 비밀 메시지를 한 번만 볼 수 있습니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "다른 비밀 전송"
+    "text": "다른 비밀 메시지 보내기",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "민감한 정보를 안전하게 공유하세요"
+    "text": "민감한 정보를 안전하게 공유하세요",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "비밀번호와 개인 데이터를 이메일 및 채팅 기록에서 보호하세요"
+    "text": "비밀번호와 개인 데이터를 이메일 및 채팅 기록에서 보호하세요",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "기록을 위해 <a href='{receiptUrl}'>영수증</a>을 저장하세요."
+    "text": "{receipt}을(를) 기록용으로 저장하세요.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "수신확인",
+    "sha256": "6f328609"
   }
 }

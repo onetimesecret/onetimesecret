@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "text": "Farbauswahl",
+    "sha256": "ba42602c"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Aktuell {0}: {1}. Klicke, um durch die Optionen zu wechseln.",
+    "sha256": "84bf49e6"
+  },
+  "web.branding.use_setting": {
+    "text": "Einstellung verwenden",
+    "sha256": "8a18d118"
+  },
+  "web.branding.font_family": {
+    "text": "Schriftart",
+    "sha256": "f81339da"
+  },
+  "web.branding.corner_style": {
+    "text": "Eckenstil",
+    "sha256": "fcb3ecdf"
+  },
+  "web.branding.brand_color": {
+    "text": "Markenfarbe",
+    "sha256": "db3183e3"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Vorschau der Ansicht für Empfänger beim Zugriff auf deinen sicheren Link",
+    "sha256": "199c165f"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Vorschau & Anpassen",
+    "sha256": "215d3659"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Zur Safari-Browseransicht wechseln",
+    "sha256": "6e0fe791"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
+  },
+  "web.branding.maximize_window": {
+    "text": "Fenster maximieren",
+    "sha256": "45d23969"
+  },
+  "web.branding.minimize_window": {
+    "text": "Fenster minimieren",
+    "sha256": "5cd54386"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Zur Edge-Browseransicht wechseln",
+    "sha256": "a8fcd82d"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 Zeichen",
+    "sha256": "e36598ef"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Scanne den QR-Code mit deinem Handy",
+    "sha256": "99ecf59f"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Bei Fragen kontaktiere onboarding{'@'}example.com",
+    "sha256": "bee120a7"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Diese Anweisungen werden Empfängern angezeigt, bevor sie den geheimen Inhalt enthüllen",
+    "sha256": "9d5a6334"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Diese Anweisungen werden Empfängern angezeigt, nachdem sie die Nachricht enthüllt haben",
+    "sha256": "9f82bd94"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Anleitung vor dem Anzeigen",
+    "sha256": "a299422e"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Anleitung nach dem Anzeigen",
+    "sha256": "72ecc23a"
+  },
+  "web.branding.instructions": {
+    "text": "Anleitungen",
+    "sha256": "934652dc"
+  },
+  "web.branding.logo_controls": {
+    "text": "Logo-Steuerung",
+    "sha256": "43e9a2d7"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Klicken, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG",
+    "sha256": "a35452bf"
+  },
+  "web.branding.upload_logo": {
+    "text": "Logo hochladen",
+    "sha256": "c3330082"
+  },
+  "web.branding.loading_preview": {
+    "text": "Vorschau wird geladen...",
+    "sha256": "c02130fa"
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Vorschau, wie Empfänger deine Nachrichten sehen, indem du den \"Nachricht anzeigen\"-Button testest",
+    "sha256": "3b58a297"
+  },
+  "web.branding.eye_icon": {
+    "text": "Augen-Symbol",
+    "sha256": "7f605d3c"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Klicke auf das Vorschaubild unten, um dein Logo zu aktualisieren (mindestens 128x128 Pixel empfohlen, max. 1MB)",
+    "sha256": "77a19049"
+  },
+  "web.branding.image_icon": {
+    "text": "Bild-Symbol",
+    "sha256": "b0d64fcf"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Verwende die Steuerelemente oben, um Markenfarbe, Stile und Empfängeranweisungen anzupassen",
+    "sha256": "d6287134"
+  },
+  "web.branding.customization_icon": {
+    "text": "Anpassungs-Symbol",
+    "sha256": "bde04d31"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Du hast ungespeicherte Änderungen. Bist du sicher?",
+    "sha256": "184b6a83"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Markeneinstellungen konnten nicht geladen werden",
+    "sha256": "a7a1575e"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1MB) - Die Vorschau mit dem \"Nachricht anzeigen\"-Button testen",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriftarten mit den Steuerelementen oben anpassen - Ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1MB) - Die Vorschau mit dem \"Nachricht anzeigen\"-Button testen",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Japanisches Kanji '秘' (himitsu), bedeutet 'geheim' oder 'vertraulich'",
+    "sha256": "1e04ba2e"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Powered by Onetime Secret",
+    "sha256": "935442d0"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Logo",
+    "sha256": "3a3c98ed"
+  },
+  "web.branding.edge": {
+    "text": "Edge",
+    "sha256": "0f82fe72"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Zur Edge-Vorschau wechseln",
+    "sha256": "83883d84"
+  },
+  "web.branding.safari": {
+    "text": "Safari",
+    "sha256": "5f033039"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Zur Safari-Vorschau wechseln",
+    "sha256": "f24ac447"
+  }
+}

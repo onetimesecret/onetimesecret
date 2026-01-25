@@ -89,15 +89,30 @@ module MigrationTestHelpers
 
   # Drop all Rodauth tables from the database (clean slate)
   #
+  # For PostgreSQL with dual-user setup (CI environment), this method uses
+  # the elevated migration connection to drop/recreate the schema, ensuring
+  # proper ownership and default privileges are maintained.
+  #
   # @param db [Sequel::Database] Database connection
   def drop_all_tables(db:)
-    # For PostgreSQL: drop and recreate public schema (fastest, most thorough)
-    # Removes tables, views, functions, triggers, extensions - everything
     if db.database_type == :postgres
-      db.run 'DROP SCHEMA IF EXISTS public CASCADE'
-      db.run 'CREATE SCHEMA public'
-      db.run 'GRANT ALL ON SCHEMA public TO postgres'
-      db.run 'GRANT ALL ON SCHEMA public TO public'
+      # For PostgreSQL: drop and recreate public schema (fastest, most thorough)
+      # Removes tables, views, functions, triggers, extensions - everything
+      #
+      # Use elevated connection if available to handle CI permission model
+      migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+      use_elevated = migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
+
+      if use_elevated
+        elevated_db = Sequel.connect(migration_url)
+        begin
+          drop_and_recreate_postgres_schema(elevated_db)
+        ensure
+          elevated_db.disconnect
+        end
+      else
+        drop_and_recreate_postgres_schema(db)
+      end
     else
       # For SQLite: drop tables individually (no schema support)
       tables = %i[
@@ -124,6 +139,7 @@ module MigrationTestHelpers
         account_password_hashes
         accounts
         account_statuses
+        account_identities
         schema_info
       ]
 
@@ -137,6 +153,51 @@ module MigrationTestHelpers
   rescue Sequel::DatabaseError => e
     warn "[MigrationTestHelpers] Failed to drop tables: #{e.message}"
     # Continue - tests may fail but at least we tried
+  end
+
+  private
+
+  # Drop and recreate PostgreSQL public schema with proper grants
+  def drop_and_recreate_postgres_schema(db)
+    db.run 'DROP SCHEMA IF EXISTS public CASCADE'
+    db.run 'CREATE SCHEMA public'
+    db.run 'GRANT ALL ON SCHEMA public TO postgres'
+    db.run 'GRANT ALL ON SCHEMA public TO public'
+
+    # Re-apply grants for CI test users if they exist
+    apply_ci_schema_grants(db)
+  end
+
+  # Apply schema grants for CI environment test users
+  def apply_ci_schema_grants(db)
+    # Check if onetime_migrator role exists (CI environment)
+    migrator_exists = db.fetch(
+      "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
+    ).any?
+
+    return unless migrator_exists
+
+    # Re-apply schema grants
+    db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
+    db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
+
+    # Re-apply default privileges so tables created by onetime_migrator
+    # are automatically accessible to onetime_user
+    db.run <<~SQL
+      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
+    SQL
+    db.run <<~SQL
+      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+        GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
+    SQL
+    db.run <<~SQL
+      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+        GRANT EXECUTE ON FUNCTIONS TO onetime_user
+    SQL
+  rescue Sequel::DatabaseError
+    # Ignore if grants fail - may not have permission or roles don't exist
+    nil
   end
 
   # Simulate concurrent process boot by running migrations in parallel threads

@@ -1,0 +1,829 @@
+{
+  "web.billing.upgrade.required": {
+    "text": "Upgrade vereist",
+    "sha256": "16487236"
+  },
+  "web.billing.upgrade.viewPlans": {
+    "text": "Plannen bekijken",
+    "sha256": "a865d424"
+  },
+  "web.billing.upgrade.needTeams": {
+    "text": "Teambeheer vereist Identity Plus of hoger",
+    "sha256": "95bdda65"
+  },
+  "web.billing.upgrade.needCustomDomains": {
+    "text": "Aangepaste domeinen vereisen Identity Plus of hoger",
+    "sha256": "e8af8484"
+  },
+  "web.billing.upgrade.needApiAccess": {
+    "text": "API-toegang vereist Identity Plus of hoger",
+    "sha256": "ab8be865"
+  },
+  "web.billing.upgrade.needAuditLogs": {
+    "text": "Auditlogs vereisen Multi-Team plan of hoger",
+    "sha256": "91df96b0"
+  },
+  "web.billing.manage_subscription_and_billing": {
+    "text": "Beheer je abonnement, organisaties en factureringsinstellingen",
+    "sha256": "3995095c"
+  },
+  "web.billing.overview.title": {
+    "text": "Factureringsoverzicht",
+    "sha256": "479a3c4c"
+  },
+  "web.billing.overview.description": {
+    "text": "Bekijk en beheer je abonnement en betalingsgegevens",
+    "sha256": "60e5a00e"
+  },
+  "web.billing.overview.organization_selector": {
+    "text": "Selecteer organisatie"
+  },
+  "web.billing.overview.current_plan": {
+    "text": "Huidig plan",
+    "sha256": "5d856320"
+  },
+  "web.billing.overview.plan_features": {
+    "text": "Planfuncties",
+    "sha256": "fbab9086"
+  },
+  "web.billing.overview.payment_method": {
+    "text": "Betaalmethode",
+    "sha256": "f89a4e17"
+  },
+  "web.billing.overview.next_billing_date": {
+    "text": "Volgende factuurdatum",
+    "sha256": "3d1df54e"
+  },
+  "web.billing.overview.quick_actions": {
+    "text": "Snelle acties",
+    "sha256": "2cc2b6f7"
+  },
+  "web.billing.overview.manage_billing": {
+    "text": "Facturering beheren",
+    "sha256": "6d3a16f5"
+  },
+  "web.billing.overview.view_invoices": {
+    "text": "Facturen bekijken",
+    "sha256": "cfc0404e"
+  },
+  "web.billing.overview.upgrade_plan": {
+    "text": "Plan upgraden",
+    "sha256": "17787ab7"
+  },
+  "web.billing.overview.change_plan": {
+    "text": "Plan wijzigen",
+    "sha256": "2d0b195b"
+  },
+  "web.billing.overview.no_payment_method": {
+    "text": "Geen betaalmethode geregistreerd",
+    "sha256": "77f71037"
+  },
+  "web.billing.overview.no_upcoming_billing": {
+    "text": "Geen aankomende facturering",
+    "sha256": "746314de"
+  },
+  "web.billing.overview.days_remaining": {
+    "text": "dagen resterend",
+    "sha256": "385438a3"
+  },
+  "web.billing.overview.billing_on": {
+    "text": "Facturering op {date}",
+    "sha256": "40dcb7cf"
+  },
+  "web.billing.overview.view_plans_action": {
+    "text": "Plannen bekijken",
+    "sha256": "a865d424"
+  },
+  "web.billing.overview.view_plans_description": {
+    "text": "Vergelijk en upgrade",
+    "sha256": "40e02bff"
+  },
+  "web.billing.overview.view_invoices_action": {
+    "text": "Facturen bekijken",
+    "sha256": "cfc0404e"
+  },
+  "web.billing.overview.view_invoices_description": {
+    "text": "Geschiedenis downloaden",
+    "sha256": "b8ff5cac"
+  },
+  "web.billing.overview.manage_billing_action": {
+    "text": "Facturering beheren",
+    "sha256": "6d3a16f5"
+  },
+  "web.billing.overview.manage_billing_description": {
+    "text": "Betalingsgegevens bijwerken",
+    "sha256": "1f981aaf"
+  },
+  "web.billing.overview.no_organizations_title": {
+    "text": "Geen organisaties",
+    "sha256": "12420110"
+  },
+  "web.billing.overview.no_organizations_description": {
+    "text": "Maak een organisatie aan om je facturering en abonnement te beheren",
+    "sha256": "41e922d2"
+  },
+  "web.billing.overview.entitlements.create_secrets": {
+    "text": "Berichten aanmaken",
+    "sha256": "0320541d"
+  },
+  "web.billing.overview.entitlements.view_receipt": {
+    "text": "Ontvangstbewijzen bekijken",
+    "sha256": "6c664c31"
+  },
+  "web.billing.overview.entitlements.api_access": {
+    "text": "API-toegang",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.overview.entitlements.custom_domains": {
+    "text": "Aangepaste domeinen",
+    "sha256": "6170ab94"
+  },
+  "web.billing.overview.entitlements.custom_privacy_defaults": {
+    "text": "Aangepaste privacystandaarden",
+    "sha256": "e677e27d"
+  },
+  "web.billing.overview.entitlements.extended_default_expiration": {
+    "text": "Uitgebreide standaardverlooptijd",
+    "sha256": "19b19637"
+  },
+  "web.billing.overview.entitlements.custom_mail_defaults": {
+    "text": "Aangepaste e-mailstandaarden",
+    "sha256": "95aebfb9"
+  },
+  "web.billing.overview.entitlements.custom_branding": {
+    "text": "Aangepaste branding",
+    "sha256": "237dabec"
+  },
+  "web.billing.overview.entitlements.branded_homepage": {
+    "text": "Merkgebonden homepage",
+    "sha256": "e355a396"
+  },
+  "web.billing.overview.entitlements.incoming_secrets": {
+    "text": "Inkomende berichten",
+    "sha256": "883dbca9"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Organisaties beheren",
+    "sha256": "be0fe4c3"
+  },
+  "web.billing.overview.entitlements.manage_teams": {
+    "text": "Teams beheren",
+    "sha256": "2a52d5b4"
+  },
+  "web.billing.overview.entitlements.manage_members": {
+    "text": "Leden beheren",
+    "sha256": "af812b01"
+  },
+  "web.billing.overview.entitlements.audit_logs": {
+    "text": "Auditlogs",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.overview.entitlements.sso": {
+    "text": "Single Sign-On",
+    "sha256": "cf7cd744"
+  },
+  "web.billing.overview.entitlements.priority_support": {
+    "text": "Prioriteitsondersteuning",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.overview.entitlements.sla": {
+    "text": "Service Level Agreement",
+    "sha256": "436f2550"
+  },
+  "web.billing.overview.entitlements_load_error": {
+    "text": "Kan functiedetails niet laden",
+    "sha256": "c350973c"
+  },
+  "web.billing.overview.no_entitlements": {
+    "text": "Geen functies beschikbaar",
+    "sha256": "03d195e8"
+  },
+  "web.billing.plans.title": {
+    "text": "Selecteer een plan",
+    "sha256": "79506c82"
+  },
+  "web.billing.plans.choose_plan": {
+    "text": "Kies het plan dat bij je past",
+    "sha256": "5f039cb9"
+  },
+  "web.billing.plans.subtitle": {
+    "text": "Kies het perfecte plan voor je organisatie",
+    "sha256": "308076f2"
+  },
+  "web.billing.plans.current": {
+    "text": "Huidig plan",
+    "sha256": "5d856320"
+  },
+  "web.billing.plans.current_badge": {
+    "text": "Huidig",
+    "sha256": "e0d1b682"
+  },
+  "web.billing.plans.upgrade": {
+    "text": "Upgraden",
+    "sha256": "7ec0261b"
+  },
+  "web.billing.plans.downgrade": {
+    "text": "Downgraden",
+    "sha256": "d955b7e8"
+  },
+  "web.billing.plans.monthly": {
+    "text": "Maandelijks",
+    "sha256": "9b11f6b7"
+  },
+  "web.billing.plans.yearly": {
+    "text": "Jaarlijks",
+    "sha256": "6e69b59e"
+  },
+  "web.billing.plans.per_month": {
+    "text": "/maand",
+    "sha256": "eec5d08b"
+  },
+  "web.billing.plans.save_yearly": {
+    "text": "Bespaar {percent}% met jaarlijkse facturering",
+    "sha256": "88c451f2"
+  },
+  "web.billing.plans.free_plan": {
+    "text": "Gratis",
+    "sha256": "f411a1fb"
+  },
+  "web.billing.plans.single_team_plan": {
+    "text": "Single Team",
+    "sha256": "267ad4cf"
+  },
+  "web.billing.plans.multi_team_plan": {
+    "text": "Multi Team",
+    "sha256": "ffc73d2c"
+  },
+  "web.billing.plans.individual_account": {
+    "text": "Individueel account",
+    "sha256": "324221e2"
+  },
+  "web.billing.plans.team_account": {
+    "text": "Teamaccount",
+    "sha256": "44e90aad"
+  },
+  "web.billing.plans.multi_team_account": {
+    "text": "Organisatie-account",
+    "sha256": "86e3a165"
+  },
+  "web.billing.plans.features": {
+    "text": "Functies",
+    "sha256": "5697d03d"
+  },
+  "web.billing.plans.unlimited_secrets": {
+    "text": "Onbeperkt berichten",
+    "sha256": "0f077568"
+  },
+  "web.billing.plans.api_access": {
+    "text": "API-toegang",
+    "sha256": "923fd434"
+  },
+  "web.billing.plans.priority_support": {
+    "text": "Prioriteitsondersteuning",
+    "sha256": "acea4b40"
+  },
+  "web.billing.plans.select_plan": {
+    "text": "Plan selecteren",
+    "sha256": "8709f894"
+  },
+  "web.billing.plans.contact_sales": {
+    "text": "Neem contact op met sales",
+    "sha256": "484aa053"
+  },
+  "web.billing.plans.custom_needs_title": {
+    "text": "Heb je vragen of iets specifieks nodig?",
+    "sha256": "2f68484c"
+  },
+  "web.billing.plans.custom_needs_description": {
+    "text": "We horen graag van je. Laat ons weten wat je zoekt.",
+    "sha256": "a6b7f407"
+  },
+  "web.billing.plans.teams_limit": {
+    "text": "{count} team | {count} teams",
+    "sha256": "a83641bc"
+  },
+  "web.billing.plans.members_limit": {
+    "text": "{count} lid per team | {count} leden per team",
+    "sha256": "54fb2b4b"
+  },
+  "web.billing.plans.unlimited_teams": {
+    "text": "Onbeperkt teams",
+    "sha256": "6d9fde65"
+  },
+  "web.billing.plans.unlimited_members": {
+    "text": "Onbeperkt leden per team",
+    "sha256": "728ecef0"
+  },
+  "web.billing.plans.most_popular": {
+    "text": "Meest populair",
+    "sha256": "9e1006a4"
+  },
+  "web.billing.plans.suggested": {
+    "text": "Aanbevolen",
+    "sha256": "93b63bab"
+  },
+  "web.billing.plans.everything_in": {
+    "text": "Bevat alles in {plan}",
+    "sha256": "1c73c298"
+  },
+  "web.billing.plans.no_plans_available": {
+    "text": "Geen {interval} plannen beschikbaar op dit moment.",
+    "sha256": "d8454436"
+  },
+  "web.billing.plans.change_immediate": {
+    "text": "Je plan wordt direct gewijzigd.",
+    "sha256": "889d13be"
+  },
+  "web.billing.plans.current_plan_label": {
+    "text": "Huidig plan:",
+    "sha256": "648a0ab2"
+  },
+  "web.billing.plans.new_plan_label": {
+    "text": "Nieuw plan:",
+    "sha256": "edb868c4"
+  },
+  "web.billing.plans.credit_label": {
+    "text": "Tegoed voor ongebruikte tijd:",
+    "sha256": "001e4901"
+  },
+  "web.billing.plans.next_invoice": {
+    "text": "Volgende factuur",
+    "sha256": "5670e027"
+  },
+  "web.billing.plans.limits_update_notice": {
+    "text": "Je functielimieten worden direct bijgewerkt na de planwijziging.",
+    "sha256": "9cb09f73"
+  },
+  "web.billing.plans.change_failed": {
+    "text": "Planwijziging mislukt. Probeer het opnieuw.",
+    "sha256": "a4e86372"
+  },
+  "web.billing.plans.confirm_upgrade": {
+    "text": "Upgrade bevestigen",
+    "sha256": "71a4ab02"
+  },
+  "web.billing.plans.confirm_downgrade": {
+    "text": "Downgrade bevestigen",
+    "sha256": "deaf8189"
+  },
+  "web.billing.plans.upgrade_to": {
+    "text": "Upgraden naar {plan}?",
+    "sha256": "b1e4e88c"
+  },
+  "web.billing.plans.downgrade_to": {
+    "text": "Downgraden naar {plan}?",
+    "sha256": "8eb8ea81"
+  },
+  "web.billing.invoices.title": {
+    "text": "Factureringsgeschiedenis",
+    "sha256": "5ade0861"
+  },
+  "web.billing.invoices.view_history": {
+    "text": "Bekijk je factureringsgeschiedenis en download facturen",
+    "sha256": "eb72573c"
+  },
+  "web.billing.invoices.invoice_date": {
+    "text": "Datum",
+    "sha256": "99c40ab4"
+  },
+  "web.billing.invoices.invoice_amount": {
+    "text": "Bedrag",
+    "sha256": "49e96d7c"
+  },
+  "web.billing.invoices.invoice_status": {
+    "text": "Status",
+    "sha256": "920e413c"
+  },
+  "web.billing.invoices.invoice_download": {
+    "text": "Downloaden",
+    "sha256": "d6eafe82"
+  },
+  "web.billing.invoices.no_invoices": {
+    "text": "Nog geen facturen",
+    "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.paid": {
+    "text": "Betaald",
+    "sha256": "fb81b961"
+  },
+  "web.billing.invoices.pending": {
+    "text": "In afwachting",
+    "sha256": "331551b0"
+  },
+  "web.billing.invoices.failed": {
+    "text": "Mislukt",
+    "sha256": "031a8f0f"
+  },
+  "web.billing.invoices.load_error": {
+    "text": "Facturen laden mislukt",
+    "sha256": "0b0cb3f7"
+  },
+  "web.billing.notices.org_managed": {
+    "text": "Facturering wordt beheerd door {orgName}",
+    "sha256": "6cfe0fb4"
+  },
+  "web.billing.notices.view_org_billing": {
+    "text": "Organisatiefacturering bekijken",
+    "sha256": "2ae16262"
+  },
+  "web.billing.limits.members_reached": {
+    "text": "Je hebt de ledenlimiet voor dit team bereikt",
+    "sha256": "ce8f2a24"
+  },
+  "web.billing.limits.members_upgrade": {
+    "text": "Upgrade om meer leden toe te voegen",
+    "sha256": "602bdef4"
+  },
+  "web.billing.subscription.title": {
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
+  },
+  "web.billing.subscription.status": {
+    "text": "Abonnementsstatus",
+    "sha256": "c7a08e1d"
+  },
+  "web.billing.subscription.active": {
+    "text": "Actief",
+    "sha256": "92340695"
+  },
+  "web.billing.subscription.inactive": {
+    "text": "Inactief",
+    "sha256": "ac7c949f"
+  },
+  "web.billing.subscription.past_due": {
+    "text": "Achterstallig",
+    "sha256": "2bda1c7b"
+  },
+  "web.billing.subscription.canceled": {
+    "text": "Geannuleerd",
+    "sha256": "13ca2ee2"
+  },
+  "web.billing.subscription.catalog_name": {
+    "text": "Plan",
+    "sha256": "fa8ed0bd"
+  },
+  "web.billing.portal.title": {
+    "text": "Factureringsportaal",
+    "sha256": "9baaf69e"
+  },
+  "web.billing.portal.description": {
+    "text": "Beheer je abonnement, betaalmethoden en factureringsgeschiedenis",
+    "sha256": "1a8f3c19"
+  },
+  "web.billing.portal.open_portal": {
+    "text": "Factureringsportaal openen",
+    "sha256": "23fbfa2b"
+  },
+  "web.billing.portal.redirecting": {
+    "text": "Doorverwijzen naar factureringsportaal...",
+    "sha256": "b6f47df3"
+  },
+  "web.billing.start_today": {
+    "text": "Vandaag beginnen",
+    "sha256": "80e73fc7"
+  },
+  "web.billing.start_today_with_identity_plus": {
+    "text": "Vandaag beginnen met Identity Plus",
+    "sha256": "cce4c7d7"
+  },
+  "web.billing.per_month": {
+    "text": "per maand",
+    "sha256": "88b1d1a6"
+  },
+  "web.billing.full_api_access": {
+    "text": "Volledige API-toegang",
+    "sha256": "f5bedf1c"
+  },
+  "web.billing.privacy_first_design": {
+    "text": "Privacy-eerst ontwerp",
+    "sha256": "587d738c"
+  },
+  "web.billing.identity_plus": {
+    "text": "Identity Plus",
+    "sha256": "bb273516"
+  },
+  "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
+    "text": "Klik op deze bliksemschicht om te upgraden voor aangepaste domeinen",
+    "sha256": "84cb4258"
+  },
+  "web.billing.maybe_later": {
+    "text": "Misschien later",
+    "sha256": "166b26ab"
+  },
+  "web.billing.upgrade_account": {
+    "text": "Account upgraden",
+    "sha256": "4799b02e"
+  },
+  "web.billing.upgrade_to_identity_plus": {
+    "text": "Upgraden naar Identity Plus",
+    "sha256": "272d3c80"
+  },
+  "web.billing.upgrade_for_teams": {
+    "text": "Upgrade voor teams",
+    "sha256": "90dfb533"
+  },
+  "web.billing.benefits_of": {
+    "text": "Voordelen van",
+    "sha256": "75403743"
+  },
+  "web.billing.t_benefits_of_identity_plus": {
+    "text": "{0}: Identity Plus",
+    "sha256": "f13e5f3e"
+  },
+  "web.billing.upgrade_to": {
+    "text": "Upgraden naar",
+    "sha256": "2ecdd437"
+  },
+  "web.billing.upgrade_for_yourdomain": {
+    "text": "Upgraden voor secrets.jouwdomein.com",
+    "sha256": "8e4d766a"
+  },
+  "web.billing.includes_all_features_and_unlimited_sharing_capa": {
+    "text": "Inclusief alle functies en onbeperkte deelmogelijkheden",
+    "sha256": "e728e4e1"
+  },
+  "web.billing.includes_all_data_locality_options": {
+    "text": "Alle plannen omvatten keuze uit datalocatie: {0} regio's",
+    "sha256": "22a60b49"
+  },
+  "web.billing.get_started": {
+    "text": "Aan de slag",
+    "sha256": "61e8d44a"
+  },
+  "web.billing.frequency_value_annually_annual_monthly_subscrip": {
+    "text": "{0} abonnement",
+    "sha256": "eaf5e2ef"
+  },
+  "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
+    "text": "Verbeter uw veilige delen met aangepaste domeinen, onbeperkte capaciteit en functies op bedrijfsniveau.",
+    "sha256": "db458d30"
+  },
+  "web.billing.payment_frequency": {
+    "text": "Betalingsfrequentie",
+    "sha256": "b2c87e39"
+  },
+  "web.billing.secure_your_brand_and_build_customer_trust_with_": {
+    "text": "Beveilig uw merk en bouw klantenvertrouwen op met links vanaf uw domein. Perfect voor bedrijven die privacy en professionaliteit waarderen.",
+    "sha256": "c07cd25c"
+  },
+  "web.billing.secure_links_stronger_connections": {
+    "text": "Beveiligde links, sterkere verbindingen",
+    "sha256": "dd8dae5d"
+  },
+  "web.billing.identity_tier_not_found_in_product_tiers": {
+    "text": "Identity-niveau niet gevonden in productniveaus",
+    "sha256": "d0204fc4"
+  },
+  "web.billing.cancel.link_text": {
+    "text": "Abonnement annuleren",
+    "sha256": "3f85967f"
+  },
+  "web.billing.cancel.title": {
+    "text": "Abonnement annuleren",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.confirmation": {
+    "text": "Weet je zeker dat je je {plan}-abonnement wilt annuleren?",
+    "sha256": "f4d1b6ee"
+  },
+  "web.billing.cancel.what_happens": {
+    "text": "Wat er gebeurt wanneer je annuleert:",
+    "sha256": "4d8f5751"
+  },
+  "web.billing.cancel.access_until": {
+    "text": "Je behoudt toegang tot alle functies tot {date}",
+    "sha256": "eab1efe3"
+  },
+  "web.billing.cancel.access_until_period_end": {
+    "text": "Je behoudt toegang tot het einde van je huidige factureringsperiode",
+    "sha256": "1b07a54a"
+  },
+  "web.billing.cancel.no_future_charges": {
+    "text": "Je wordt niet meer in rekening gebracht",
+    "sha256": "a01cdc16"
+  },
+  "web.billing.cancel.downgrade_to_free": {
+    "text": "Je account wordt teruggezet naar het gratis plan",
+    "sha256": "e01b3fc3"
+  },
+  "web.billing.cancel.keep_subscription": {
+    "text": "Abonnement behouden",
+    "sha256": "31e80c41"
+  },
+  "web.billing.cancel.confirm_cancel": {
+    "text": "Abonnement annuleren",
+    "sha256": "882e0c83"
+  },
+  "web.billing.cancel.success": {
+    "text": "Je abonnement is geannuleerd. Je behoudt toegang tot het einde van je factureringsperiode.",
+    "sha256": "e18fd9d5"
+  },
+  "web.billing.cancel.error": {
+    "text": "Abonnement annuleren mislukt. Probeer het opnieuw.",
+    "sha256": "68e8bdde"
+  },
+  "web.billing.cancel.scheduled_title": {
+    "text": "Abonnementsannulering gepland",
+    "sha256": "1427d139"
+  },
+  "web.billing.cancel.scheduled_description": {
+    "text": "Je abonnement blijft actief tot {date}. Je hebt tot dan volledige toegang tot alle functies.",
+    "sha256": "aab4b1dc"
+  },
+  "web.billing.cancel.scheduled_note": {
+    "text": "Van gedachten veranderd? Je kunt je abonnement op elk moment vóór de annuleringsdatum opnieuw activeren.",
+    "sha256": "c94d5527"
+  },
+  "web.billing.features.create_secrets": {
+    "text": "Berichten maken en delen",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "API-toegang",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Aangepaste domeinen",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 aangepast domein",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Onbeperkt aangepaste domeinen",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Aangepaste branding",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.branded_homepage": {
+    "text": "Merkgebonden homepage",
+    "sha256": "e355a396"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Teambeheer",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Ledenbeheer",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Auditlogs",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "Single Sign-On (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Prioriteitsondersteuning",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "Service Level Agreement",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Gecentraliseerde facturering",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Audittrail",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Activiteitenstroom",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Overdrachtsworkflows",
+    "sha256": "07202af3"
+  },
+  "web.billing.features.extended_retention": {
+    "text": "30 dagen berichtretentie",
+    "sha256": "21d6d514"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Homepage-berichten",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.incoming_secrets": {
+    "text": "Inkomende berichten",
+    "sha256": "883dbca9"
+  },
+  "web.billing.features.team_members_5": {
+    "text": "Tot 5 teamleden",
+    "sha256": "e7518d07"
+  },
+  "web.billing.features.team_members_10": {
+    "text": "Tot 10 teamleden",
+    "sha256": "0c64c064"
+  },
+  "web.billing.features.team_members_25": {
+    "text": "Tot 25 teamleden",
+    "sha256": "bf3b84c8"
+  },
+  "web.billing.features.team_members_50": {
+    "text": "Tot 50 teamleden",
+    "sha256": "3c2d9a14"
+  },
+  "web.billing.features.unlimited_members": {
+    "text": "Onbeperkt teamleden",
+    "sha256": "b7491ee9"
+  },
+  "web.billing.features.notifications": {
+    "text": "E-mailmeldingen",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.features.ip_access_rules": {
+    "text": "IP-toegangsregels",
+    "sha256": "db966d47"
+  },
+  "web.billing.features.workspace_branding": {
+    "text": "Werkruimte-branding",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.features.dedicated_infrastructure": {
+    "text": "Dedicated infrastructuur",
+    "sha256": "0c10aea7"
+  },
+  "web.billing.features.shared_workflows": {
+    "text": "Gedeelde workflows",
+    "sha256": "158f558e"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "text": "Facturering voor deze organisatie",
+    "sha256": "21806992"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Je plan is succesvol geüpgraded",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Je nieuwe plan is nu actief. Bedankt voor je aankoop.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Factureringscontact",
+    "sha256": "8f782ad8"
+  },
+  "web.billing.overview.entitlements.homepage_secrets": {
+    "text": "Homepage-berichten",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-mailmeldingen",
+    "sha256": "04e0f1e9"
+  },
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP-toegangsregels",
+    "sha256": "db966d47"
+  },
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Werkruimte-branding",
+    "sha256": "e7acbf6f"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Vandaag verschuldigd:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Volgende facturering ({date}):",
+    "sha256": "a6846a85"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Hoe je tegoed wordt toegepast:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Volgend factuurbedrag:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Tegoed toegepast:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Verschuldigd bedrag bij volgende facturering:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Resterend accounttegoed:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Toegepast op toekomstige facturen",
+    "sha256": "5007add6"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Teamgebruik",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} van {limit} teams",
+    "sha256": "1db6b53c"
+  }
+}

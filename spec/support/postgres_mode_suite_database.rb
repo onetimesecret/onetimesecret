@@ -51,7 +51,7 @@ require_relative 'factories/auth_account_factory'
 #
 module PostgresModeSuiteDatabase
   class << self
-    attr_reader :database
+    attr_reader :database, :migration_database
 
     # Check if PostgreSQL is available for testing
     # @return [Boolean] true if AUTH_DATABASE_URL is set to a PostgreSQL URL
@@ -131,6 +131,8 @@ module PostgresModeSuiteDatabase
     def teardown!
       return unless @setup_complete
 
+      @migration_database&.disconnect
+      @migration_database = nil
       @database&.disconnect
       @database = nil
 
@@ -154,22 +156,83 @@ module PostgresModeSuiteDatabase
       @setup_complete == true
     end
 
-    # Clean database for initial setup by dropping and recreating the public schema
-    # This ensures a completely clean state, removing tables, functions, views, and extensions
+    # Clean database for initial setup
+    #
+    # Uses elevated connection if available to handle CI permission model where
+    # onetime_migrator owns tables and onetime_user has limited privileges.
+    #
+    # Strategy: Drop and recreate schema to ensure clean state, but do this
+    # with the migration connection (if available) to preserve permission model.
     def clean_database_for_setup
-      return unless @database
+      # Use migration connection if available (has superuser-like privileges)
+      # Otherwise fall back to regular connection
+      migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+      use_elevated = migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
 
-      # Drop and recreate public schema (removes all objects)
-      @database.run 'DROP SCHEMA IF EXISTS public CASCADE'
-      @database.run 'CREATE SCHEMA public'
-      @database.run 'GRANT ALL ON SCHEMA public TO postgres'
-      @database.run 'GRANT ALL ON SCHEMA public TO public'
+      if use_elevated
+        # Create temporary elevated connection for schema cleanup
+        elevated_db = Sequel.connect(migration_url)
+        begin
+          clean_schema_with_connection(elevated_db)
+        ensure
+          elevated_db.disconnect
+        end
+      elsif @database
+        # Use regular connection (works when running as database owner)
+        clean_schema_with_connection(@database)
+      end
     rescue Sequel::DatabaseError => e
       warn "[PostgresModeSuiteDatabase] Failed to clean database: #{e.message}"
       # Continue - migrations may still succeed if database is actually clean
     end
 
+    # Perform the actual schema drop/recreate with the given connection
+    def clean_schema_with_connection(db)
+      # Drop and recreate public schema (removes all objects)
+      db.run 'DROP SCHEMA IF EXISTS public CASCADE'
+      db.run 'CREATE SCHEMA public'
+      db.run 'GRANT ALL ON SCHEMA public TO postgres'
+      db.run 'GRANT ALL ON SCHEMA public TO public'
+
+      # Re-apply grants for test users after schema recreation
+      apply_schema_grants_with_connection(db)
+    end
+
+    # Apply schema-level grants using the given connection
+    def apply_schema_grants_with_connection(db)
+      # Check if onetime_migrator role exists (CI environment)
+      migrator_exists = db.fetch(
+        "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
+      ).any?
+
+      return unless migrator_exists
+
+      # Re-apply schema grants
+      db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
+      db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
+
+      # Re-apply default privileges so tables created by onetime_migrator
+      # are automatically accessible to onetime_user
+      db.run <<~SQL
+        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+          GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
+      SQL
+      db.run <<~SQL
+        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+          GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
+      SQL
+      db.run <<~SQL
+        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+          GRANT EXECUTE ON FUNCTIONS TO onetime_user
+      SQL
+    rescue Sequel::DatabaseError => e
+      warn "[PostgresModeSuiteDatabase] Failed to apply schema grants: #{e.message}"
+      # Continue - may not have permission or roles don't exist
+    end
+
+
     # Run migrations using elevated connection if available
+    # Also stores migration connection for test data setup (infrastructure tests)
     def run_migrations
       migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
 
@@ -178,32 +241,32 @@ module PostgresModeSuiteDatabase
       migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
 
       if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
-        # Use separate elevated connection for migrations only
-        migration_db = Sequel.connect(migration_url)
-        begin
-          Sequel::Migrator.run(migration_db, migrations_path)
-        ensure
-          migration_db.disconnect
-        end
+        # Use separate elevated connection for migrations
+        # Keep it open for test data setup (infrastructure tests need INSERT privileges)
+        @migration_database = Sequel.connect(migration_url)
+        Sequel::Migrator.run(@migration_database, migrations_path)
       else
         # Run migrations with standard connection
         Sequel::Migrator.run(@database, migrations_path)
+        @migration_database = nil
       end
     end
 
     # Clean all Rodauth tables using TRUNCATE CASCADE
     # This is faster than DELETE and resets sequences
+    # Uses migration_database if available (has TRUNCATE privileges)
     def clean_tables!
-      return unless @database
+      db = @migration_database || @database
+      return unless db
 
       # Disable foreign key checks for cleaning
       # PostgreSQL uses TRUNCATE CASCADE which handles dependencies
       AuthAccountFactory::RODAUTH_TABLES.each do |table|
-        next unless @database.table_exists?(table)
+        next unless db.table_exists?(table)
 
         begin
           # Use Sequel's truncate method with cascade option for safe identifier handling
-          @database[table].truncate(cascade: true)
+          db[table].truncate(cascade: true)
         rescue Sequel::DatabaseError => e
           # Log but don't fail - some tables may have dependencies
           warn "Failed to truncate #{table}: #{e.message}"
@@ -215,7 +278,7 @@ module PostgresModeSuiteDatabase
       begin
         # Fetch all sequence names for tables with serial columns using Sequel's DSL
         table_names = AuthAccountFactory::RODAUTH_TABLES.map(&:to_s)
-        sequences_to_reset = @database[:information_schema__columns]
+        sequences_to_reset = db[:information_schema__columns]
           .select { Sequel.function(:pg_get_serial_sequence, :table_name, :column_name).as(:sequence_name) }
           .distinct
           .where(table_schema: 'public')
@@ -232,7 +295,7 @@ module PostgresModeSuiteDatabase
           alter_commands = sequence_names.map do |seq_name|
             "ALTER SEQUENCE #{Sequel.literal(Sequel.identifier(seq_name))} RESTART WITH 1"
           end
-          @database.run(alter_commands.join('; '))
+          db.run(alter_commands.join('; '))
         end
       rescue Sequel::DatabaseError
         # Ignore if there's an issue - this is a cleanup optimization
@@ -283,9 +346,17 @@ RSpec.configure do |config|
   config.include AuthAccountFactory, :postgres_database
 
   # Provide test_db helper method for :postgres_database specs
+  # test_db: Regular connection for querying (matches application runtime)
+  # setup_db: Elevated connection for test data setup (has INSERT privileges)
   config.include(Module.new {
     def test_db
       PostgresModeSuiteDatabase.database
+    end
+
+    # Returns elevated connection for test data setup, falls back to test_db
+    # Use this for creating test accounts and other setup operations
+    def setup_db
+      PostgresModeSuiteDatabase.migration_database || PostgresModeSuiteDatabase.database
     end
   }, :postgres_database)
 end

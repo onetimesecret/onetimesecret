@@ -1,59 +1,78 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Waarom is dit geheim niet beschikbaar?"
+    "text": "Waarom is dit bericht niet beschikbaar?",
+    "sha256": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "Geheimen zijn ontworpen om slechts één keer bekeken te worden. Deze link is mogelijk al geopend, verlopen of handmatig verwijderd door de afzender."
+    "text": "Geheimen zijn ontworpen om slechts één keer bekeken te worden. Deze link is mogelijk al geopend, verlopen of handmatig verwijderd door de afzender.",
+    "sha256": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Wat moet ik nu doen?"
+    "text": "Wat moet ik nu doen?",
+    "sha256": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "Neem contact op met de persoon die je deze link heeft gestuurd en vraag om een nieuw geheim aan te maken. Laat hen weten dat je geen toegang had tot de oorspronkelijke informatie."
+    "text": "Neem contact op met de persoon die je deze link heeft gestuurd en vraag om een nieuw geheim aan te maken. Laat hen weten dat je geen toegang had tot de oorspronkelijke informatie.",
+    "sha256": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Waarschuwing genegeerd"
+    "text": "Waarschuwing gesloten",
+    "sha256": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Afkortingswaarschuwing negeren"
+    "text": "Afkappingswaarschuwing sluiten",
+    "sha256": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Oeps! De pagina die u zoekt bestaat niet of is verplaatst."
+    "text": "Oeps! De pagina die u zoekt bestaat niet of is verplaatst.",
+    "sha256": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Pagina niet gevonden"
+    "text": "404 - Pagina niet gevonden",
+    "sha256": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Pagina niet gevonden"
+    "text": "404 - Pagina niet gevonden",
+    "sha256": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Waarschuwing negeren"
+    "text": "Waarschuwing sluiten",
+    "sha256": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Melding negeren"
+    "text": "Melding sluiten",
+    "sha256": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
-    "text": "Als u niet zeker weet wat u nu moet doen, neem dan contact op met de persoon die u deze link heeft gestuurd voor meer informatie."
+    "text": "Als u niet zeker weet wat u nu moet doen, neem dan contact op met de persoon die u deze link heeft gestuurd voor meer informatie.",
+    "sha256": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
-    "text": "Informatie die via onze service wordt gedeeld, kan slechts één keer worden bekeken. Na het bekijken wordt de inhoud permanent verwijderd van onze servers om vertrouwelijkheid te waarborgen. Deze aanpak helpt uw gevoelige gegevens te beschermen door de blootstelling ervan te beperken en ongeautoriseerde toegang te voorkomen."
+    "text": "Informatie die via onze service wordt gedeeld, kan slechts één keer worden bekeken. Na het bekijken wordt de inhoud permanent verwijderd van onze servers om vertrouwelijkheid te waarborgen. Deze aanpak helpt uw gevoelige gegevens te beschermen door de blootstelling ervan te beperken en ongeautoriseerde toegang te voorkomen.",
+    "sha256": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
-    "text": "Het spijt ons, maar er is een onverwachte fout opgetreden tijdens het verwerken van uw verzoek. Ons team is op de hoogte gebracht en we werken aan een oplossing."
+    "text": "Het spijt ons, maar er is een onverwachte fout opgetreden tijdens het verwerken van uw verzoek. Ons team is op de hoogte gebracht en we werken aan een oplossing.",
+    "sha256": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} Er is iets misgegaan"
+    "text": "{0} Er is iets misgegaan",
+    "sha256": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Ga een bericht delen!"
+    "text": "Ga een bericht delen!",
+    "sha256": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
-    "text": "De pagina die u zoekt bestaat niet of is verplaatst. Maak u geen zorgen, dit gebeurt bij de besten!"
+    "text": "De pagina die u zoekt bestaat niet of is verplaatst. Maak u geen zorgen, dit gebeurt bij de besten!",
+    "sha256": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
-    "text": "{0} 404"
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
-    "text": "Kan gegevens niet laden vanwege problemen met gegevensformaat. Probeer het later opnieuw."
+    "text": "Kan gegevens niet laden vanwege problemen met gegevensformaat. Probeer het later opnieuw.",
+    "sha256": "a7b6f998"
   }
 }

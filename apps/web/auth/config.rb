@@ -123,6 +123,12 @@ module Auth
         Hooks::WebAuthn.configure(self)
       end
 
+      # OmniAuth: external identity providers (SSO via OIDC)
+      if Onetime.auth_config.omniauth_enabled?
+        Features::OmniAuth.configure(self)
+        Hooks::OmniAuth.configure(self)
+      end
+
       # Billing: plan selection carry-through for checkout flow
       if Onetime.conf.dig('billing', 'enabled').to_s == 'true'
         Hooks::Billing.configure(self)

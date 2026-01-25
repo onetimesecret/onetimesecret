@@ -105,7 +105,8 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
-      boot_guard!
+      # boot_guard! returns false if boot should be skipped (already complete in test mode)
+      return nil unless boot_guard!
 
       starting!
 
@@ -303,15 +304,19 @@ module Onetime
 
     private
 
+    # Returns true if boot should proceed, false if already complete (idempotent in test mode)
+    # @return [Boolean] whether boot! should continue execution
+    # @raise [OT::Problem] if boot cannot proceed (already complete in prod, or invalid state)
     def boot_guard!
       # Kubernetes-style state guard with pattern matching (Ruby 3.0+)
       # Handles all four states explicitly to prevent ambiguity
       case [boot_state, OT.testing?]
-      in [BOOT_STARTED, true]
-        # Idempotent in test mode
+      in [BOOT_STARTED | BOOT_STARTING, true]
+        # Idempotent in test mode - skip re-execution (handles re-entrant calls)
+        return false
       in [BOOT_STARTED, false]
         raise OT::Problem, 'Boot already completed'
-      in [BOOT_STARTING, _]
+      in [BOOT_STARTING, false]
         raise OT::Problem, 'Boot already in progress'
       in [BOOT_FAILED, true]
         reset_ready!  # Allow retry in test mode
@@ -322,6 +327,7 @@ module Onetime
       else
         raise OT::Problem, "Unknown boot state: #{boot_state}"
       end
+      true
     end
 
     def ssl_enabled?

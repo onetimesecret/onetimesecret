@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "受信済み",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "未受信",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "最近のシークレットはありません",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "最初のシークレットを作成して始めましょう。",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "データを読み込めません",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "データの読み込み中に問題が発生しました。もう一度お試しください。",
+    "sha256": "ff0d904e"
+  }
+}

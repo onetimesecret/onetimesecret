@@ -1,0 +1,638 @@
+{
+  "web.account.settings": {
+    "text": "Inställningar",
+    "sha256": "74a883a0"
+  },
+  "web.account.change_password": {
+    "text": "Ändra lösenord",
+    "sha256": "a949f462"
+  },
+  "web.account.close_account": {
+    "text": "Stäng konto",
+    "sha256": "e1513814"
+  },
+  "web.account.verify_account": {
+    "text": "Verifiera konto",
+    "sha256": "2f3ea760"
+  },
+  "web.account.subscription_title": {
+    "text": "Prenumeration",
+    "sha256": "4999c6c6"
+  },
+  "web.account.manage_subscription": {
+    "text": "Hantera prenumeration",
+    "sha256": "cbc4ef92"
+  },
+  "web.account.customer_information": {
+    "text": "Kundinformation",
+    "sha256": "8258db6d"
+  },
+  "web.account.customer_since": {
+    "text": "Kund sedan:",
+    "sha256": "0b37cff3"
+  },
+  "web.account.email": {
+    "text": "E-post:",
+    "sha256": "17507dcf"
+  },
+  "web.account.region": {
+    "text": "Region",
+    "sha256": "d3a008ef"
+  },
+  "web.account.account_balance": {
+    "text": "Saldo:",
+    "sha256": "e0351221"
+  },
+  "web.account.default_payment_method": {
+    "text": "Standardbetalningsmetod",
+    "sha256": "c60f014b"
+  },
+  "web.account.card_ending": {
+    "text": "slutar på",
+    "sha256": "0195bccf"
+  },
+  "web.account.subscriptions_title": {
+    "text": "Prenumerationer",
+    "sha256": "a151f2e9"
+  },
+  "web.account.quantity": {
+    "text": "Antal:",
+    "sha256": "d4b2cb96"
+  },
+  "web.account.next_billing_date": {
+    "text": "Nästa faktureringsdatum:",
+    "sha256": "8e6f9cfe"
+  },
+  "web.account.changePassword.username": {
+    "text": "Användarnamn",
+    "sha256": "e3b89e9d"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "Nuvarande lösenord",
+    "sha256": "8ac76099"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "Nytt lösenord",
+    "sha256": "7c451e0f"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "Bekräfta",
+    "sha256": "eebdd24a"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "Uppdatera lösenord",
+    "sha256": "557be0da"
+  },
+  "web.account.changePassword.updating": {
+    "text": "Uppdaterar...",
+    "sha256": "0a4e0b71"
+  },
+  "web.account.timezone": {
+    "text": "Tidszon",
+    "sha256": "4ceca1d5"
+  },
+  "web.account.customer_id": {
+    "text": "Kund-ID",
+    "sha256": "62566c64"
+  },
+  "web.account.account_id_customerid": {
+    "text": "Konto-ID",
+    "sha256": "919bb4cb"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "Skapat {0} hemligheter sedan {1}.",
+    "sha256": "8cb99810"
+  },
+  "web.account.delete_account": {
+    "text": "Radera konto",
+    "sha256": "c031bf99"
+  },
+  "web.account.api_key": {
+    "text": "API-nyckel",
+    "sha256": "23189d55"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "Kontotyp: {0}",
+    "sha256": "617bfe67"
+  },
+  "web.account.your_account": {
+    "text": "Ditt konto",
+    "sha256": "89e60bfb"
+  },
+  "web.account.support_details": {
+    "text": "Supportinformation",
+    "sha256": "cbad8751"
+  },
+  "web.account.back_to_details": {
+    "text": "Tillbaka till detaljer",
+    "sha256": "f6f841b9"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "Kund-ID: {0}",
+    "sha256": "7e2d4201"
+  },
+  "web.account.token_generated": {
+    "text": "Token genererad.",
+    "sha256": "05986d95"
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 Håll denna token säker! Den ger full åtkomst till ditt konto.",
+    "sha256": "8839aa4d"
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "Bekräfta med ditt lösenord",
+    "sha256": "ff2147fd"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "Är du säker på att du vill ta bort ditt konto permanent? Denna åtgärd kan inte ångras.",
+    "sha256": "4fa3e4b8"
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "Bekräfta kontoradering",
+    "sha256": "bb3fc7e5"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "Raderar {0}",
+    "sha256": "81d21828"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "Radera konto permanent",
+    "sha256": "f894e42c"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "permanent och kan inte ångras.",
+    "sha256": "6121225e"
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "Att radera ditt konto är",
+    "sha256": "ec31577b"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "radera dem permanent innan du fortsätter",
+    "sha256": "f89a5794"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "Alla hemligheter du vill ta bort,",
+    "sha256": "b45e2dd5"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "Hemligheter förblir aktiva tills de går ut.",
+    "sha256": "ddb4e2b5"
+  },
+  "web.account.please_be_advised": {
+    "text": "Observera:",
+    "sha256": "086020fd"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "Kontot har raderats.",
+    "sha256": "afcfdd58"
+  },
+  "web.account.deactivate": {
+    "text": "Inaktivera",
+    "sha256": "fb1e6fa5"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "Är du säker på att du vill inaktivera ditt konto? All din data kommer att tas bort permanent från våra servrar för alltid. Denna åtgärd kan inte ångras.",
+    "sha256": "4940e20a"
+  },
+  "web.account.deactivate_account": {
+    "text": "Inaktivera konto",
+    "sha256": "5e31b73d"
+  },
+  "web.settings.title": {
+    "text": "Inställningar",
+    "sha256": "74a883a0"
+  },
+  "web.settings.description": {
+    "text": "Hantera dina kontoinställningar och preferenser",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "Hantera dina kontoinställningar och preferenser",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.general": {
+    "text": "Allmänt",
+    "sha256": "c910d474"
+  },
+  "web.settings.preferences": {
+    "text": "Inställningar",
+    "sha256": "66962f72"
+  },
+  "web.settings.appearance": {
+    "text": "Utseende",
+    "sha256": "3907fa7f"
+  },
+  "web.settings.theme.title": {
+    "text": "Tema",
+    "sha256": "efb52e71"
+  },
+  "web.settings.theme.description": {
+    "text": "Välj ljust eller mörkt tema",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "Välj ljust eller mörkt tema",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.language.title": {
+    "text": "Språk",
+    "sha256": "a4fe6526"
+  },
+  "web.settings.language.description": {
+    "text": "Välj ditt föredragna språk",
+    "sha256": "475bba7a"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "Välj ditt föredragna språk",
+    "sha256": "475bba7a"
+  },
+  "web.settings.security_settings_description": {
+    "text": "Hantera autentisering och kontosäkerhet",
+    "sha256": "945109d1"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "Hantera din kontoinformation",
+    "sha256": "4a23a29f"
+  },
+  "web.settings.profile.title": {
+    "text": "Profil",
+    "sha256": "d696a35b"
+  },
+  "web.settings.profile.change_email": {
+    "text": "Ändra e-post",
+    "sha256": "18c3f2d5"
+  },
+  "web.settings.profile.current_email": {
+    "text": "Nuvarande e-post",
+    "sha256": "5f1cab64"
+  },
+  "web.settings.profile.current_password": {
+    "text": "Nuvarande lösenord",
+    "sha256": "8ac76099"
+  },
+  "web.settings.profile.new_email": {
+    "text": "Ny e-post",
+    "sha256": "5bafb4be"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "Ange ditt nuvarande lösenord",
+    "sha256": "27814c03"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "Ditt lösenord krävs av säkerhetsskäl",
+    "sha256": "d18f62f2"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "Ett verifieringsmejl skickas till den nya adressen",
+    "sha256": "575082a1"
+  },
+  "web.settings.profile.update_email": {
+    "text": "Uppdatera e-post",
+    "sha256": "6ec61b2e"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "Uppdatera e-postadressen kopplad till ditt konto",
+    "sha256": "636abb16"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "Alla fält är obligatoriska",
+    "sha256": "04814271"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "Ange en giltig e-postadress",
+    "sha256": "b00f7e3a"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "Ny e-post måste skilja sig från nuvarande e-post",
+    "sha256": "f7cfed6e"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "E-post uppdaterad. Kontrollera din inkorg för att verifiera din nya e-postadress.",
+    "sha256": "58de2536"
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "Kunde inte uppdatera e-post. Försök igen.",
+    "sha256": "aeba6591"
+  },
+  "web.settings.sessions.title": {
+    "text": "Aktiva sessioner",
+    "sha256": "b58fa4e0"
+  },
+  "web.settings.sessions.description": {
+    "text": "Hantera dina aktiva sessioner",
+    "sha256": "e5646da4"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "Hantera dina aktiva sessioner",
+    "sha256": "e5646da4"
+  },
+  "web.settings.password.title": {
+    "text": "Lösenord",
+    "sha256": "e7cf3ef4"
+  },
+  "web.settings.password.description": {
+    "text": "Uppdatera ditt kontolösenord",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "Uppdatera ditt kontolösenord",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.delete_account.title": {
+    "text": "Radera konto",
+    "sha256": "c031bf99"
+  },
+  "web.settings.delete_account.description": {
+    "text": "Radera ditt konto och all data permanent",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "Radera ditt konto och all data permanent",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.security.security_score": {
+    "text": "Säkerhetspoäng",
+    "sha256": "02d2f374"
+  },
+  "web.settings.security.score_description": {
+    "text": "Din övergripande kontosäkerhetsstatus",
+    "sha256": "cf20935e"
+  },
+  "web.settings.security.excellent": {
+    "text": "Utmärkt",
+    "sha256": "0dc8ee55"
+  },
+  "web.settings.security.good": {
+    "text": "Bra",
+    "sha256": "c939327c"
+  },
+  "web.settings.security.fair": {
+    "text": "Godtagbar",
+    "sha256": "f7b19afc"
+  },
+  "web.settings.security.weak": {
+    "text": "Svag",
+    "sha256": "8d6cea25"
+  },
+  "web.settings.security.improve_security": {
+    "text": "Förbättra din säkerhet",
+    "sha256": "c38bcbf5"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "Aktivera tvåfaktorsautentisering för starkare skydd",
+    "sha256": "6beda528"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "Generera återställningskoder för nödsituationer",
+    "sha256": "eb5f3ebd"
+  },
+  "web.settings.security.configured": {
+    "text": "Konfigurerad",
+    "sha256": "84aebc69"
+  },
+  "web.settings.security.change": {
+    "text": "Ändra",
+    "sha256": "c0bf75bd"
+  },
+  "web.settings.security.manage": {
+    "text": "Hantera",
+    "sha256": "5a234448"
+  },
+  "web.settings.security.enable": {
+    "text": "Aktivera",
+    "sha256": "5342e09f"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0} koder tillgängliga",
+    "sha256": "76d6236d"
+  },
+  "web.settings.security.no_codes": {
+    "text": "Inga koder genererade",
+    "sha256": "3b2eae20"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0} aktiv session | {0} aktiva sessioner",
+    "sha256": "30737484"
+  },
+  "web.settings.security.best_practices": {
+    "text": "Säkerhetsrekommendationer",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "Använd ett starkt, unikt lösenord för ditt konto",
+    "sha256": "5fc8cbf4"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "Aktivera tvåfaktorsautentisering för ytterligare skydd",
+    "sha256": "107e4898"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "Spara dina återställningskoder på en säker plats",
+    "sha256": "605513fc"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "Granska och återkalla oanvända sessioner regelbundet",
+    "sha256": "efe59445"
+  },
+  "web.settings.security.view_details": {
+    "text": "Visa detaljer",
+    "sha256": "d1bf045b"
+  },
+  "web.settings.api.title": {
+    "text": "API och integrationer",
+    "sha256": "21fc84f3"
+  },
+  "web.settings.api.description": {
+    "text": "Hantera API-nycklar och integrationer",
+    "sha256": "70976099"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "Hantera API-nycklar och integrationer",
+    "sha256": "70976099"
+  },
+  "web.settings.api.documentation": {
+    "text": "API-dokumentation",
+    "sha256": "1cc77e60"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "Lär dig integrera Onetime Secret i dina applikationer",
+    "sha256": "6e8f910f"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "REST API-referens",
+    "sha256": "26a5af61"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "Fullständig API-dokumentation och endpoints",
+    "sha256": "c1c87ad8"
+  },
+  "web.settings.api.code_examples": {
+    "text": "Kodexempel",
+    "sha256": "216d28e4"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "Exempelkod och klientbibliotek",
+    "sha256": "61c5956f"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "Säkerhetsrekommendationer",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "Checka aldrig in API-nycklar i versionshantering",
+    "sha256": "cc8c327e"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "Använd miljövariabler för att lagra API-nycklar",
+    "sha256": "c05e8802"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "Rotera API-nycklar regelbundet för säkerhet",
+    "sha256": "eda6a5db"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "Använd alltid HTTPS vid API-anrop",
+    "sha256": "b3f405ef"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "Övervaka din API-användning och ställ in varningar",
+    "sha256": "abb08beb"
+  },
+  "web.settings.api.important_notice": {
+    "text": "Viktigt meddelande",
+    "sha256": "03d3ba93"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "Att återskapa din API-nyckel ogiltigförklarar den nuvarande nyckeln. Uppdatera alla applikationer som använder den gamla nyckeln.",
+    "sha256": "ab168f83"
+  },
+  "web.settings.privacy.title": {
+    "text": "Integritetsinställningar",
+    "sha256": "eefad6ba"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "Hantera dina integritetsinställningar",
+    "sha256": "add087da"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "Din integritet",
+    "sha256": "cad972db"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "Icke-förhandlingsbar",
+    "sha256": "ad090a29"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "Inte en inställning",
+    "sha256": "41278ece"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "Ingen analys. Ingen spårning. Punkt.",
+    "sha256": "3e154b1c"
+  },
+  "web.settings.privacy.explanation": {
+    "text": "Detta är inte en inställning eftersom det inte finns något att slå på eller av. Din integritet är inbyggd i hur vi arbetar.",
+    "sha256": "ed943792"
+  },
+  "web.settings.notifications.title": {
+    "text": "Aviseringsinställningar",
+    "sha256": "07a063ca"
+  },
+  "web.settings.notifications.description": {
+    "text": "Hantera hur du får aviseringar",
+    "sha256": "148c5ff6"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "Kunde inte uppdatera aviseringsinställning. Försök igen.",
+    "sha256": "c08abc04"
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "Aviseringar vid visning av hemlighet",
+    "sha256": "c0fb2e25"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "Få ett e-postmeddelande när någon visar din hemlighet",
+    "sha256": "a3a67095"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "Du får en avisering varje gång en mottagare visar en av dina hemligheter",
+    "sha256": "ba93106d"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "Aviseringsmejl inkluderar endast tidsstämpel och hemlighets-ID. Information om läsare inkluderas aldrig.",
+    "sha256": "7aac282f"
+  },
+  "web.settings.caution.title": {
+    "text": "Zon för noggrann övervägning",
+    "sha256": "fe27a3a8"
+  },
+  "web.settings.caution.description": {
+    "text": "Avancerade inställningar och datahantering",
+    "sha256": "223ee55d"
+  },
+  "web.settings.caution.data_export": {
+    "text": "Dataexport",
+    "sha256": "bdcea052"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "Exportera din kontodata",
+    "sha256": "dc5ffcb0"
+  },
+  "web.settings.caution.export_description": {
+    "text": "Begär en komplett kopia av din kontodata i maskinläsbart format",
+    "sha256": "369c3391"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "Begär dataexport",
+    "sha256": "902394be"
+  },
+  "web.settings.caution.export_info": {
+    "text": "Exportbearbetningstid",
+    "sha256": "2ebb2d44"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "Exporter bearbetas inom 24 timmar och skickas till din e-postadress",
+    "sha256": "a2f81e3b"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "Att radera ditt konto kommer att:",
+    "sha256": "17a8a676"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "Permanent radera alla dina hemligheter",
+    "sha256": "974ccdb9"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "Ta bort all hemlighetsmetedata och historik",
+    "sha256": "ec4ee372"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "Ogiltigförklarar alla API-nycklar",
+    "sha256": "7581333b"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "Denna åtgärd kan inte ångras",
+    "sha256": "02ccc074"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Raderar...",
+    "sha256": "685ecb98"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Tillbaka till instrumentpanelen",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fakturering",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avancerat",
+    "sha256": "9f088dbe"
+  }
+}

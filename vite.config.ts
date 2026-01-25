@@ -95,7 +95,7 @@ export default defineConfig({
     /**
      * Vue I18n Plugin - Handles internationalization
      * ------------------------------------------------
-     * Locales are pre-merged by Python script (locales/scripts/sync_to_src.py)
+     * Locales are pre-merged by Python script (locales/scripts/build/compile.py)
      * into single JSON files per locale in generated/locales/{locale}.json.
      * The src/i18n.ts module loads these pre-merged files directly.
      */

@@ -74,7 +74,7 @@ def db_connection_with_data(hydrated_db_with_data: Path):
 
 
 # ============================================================================
-# Locale fixtures for generate_tasks.py tests
+# Locale fixtures for tasks/create.py tests
 # ============================================================================
 
 @pytest.fixture

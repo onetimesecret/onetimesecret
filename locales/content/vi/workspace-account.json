@@ -1,0 +1,638 @@
+{
+  "web.account.settings": {
+    "text": "Cài đặt",
+    "sha256": "74a883a0"
+  },
+  "web.account.change_password": {
+    "text": "Đổi mật khẩu",
+    "sha256": "a949f462"
+  },
+  "web.account.close_account": {
+    "text": "Đóng tài khoản",
+    "sha256": "e1513814"
+  },
+  "web.account.verify_account": {
+    "text": "Xác minh tài khoản",
+    "sha256": "2f3ea760"
+  },
+  "web.account.subscription_title": {
+    "text": "Đăng ký",
+    "sha256": "4999c6c6"
+  },
+  "web.account.manage_subscription": {
+    "text": "Quản lý đăng ký",
+    "sha256": "cbc4ef92"
+  },
+  "web.account.customer_information": {
+    "text": "Thông tin khách hàng",
+    "sha256": "8258db6d"
+  },
+  "web.account.customer_since": {
+    "text": "Khách hàng từ:",
+    "sha256": "0b37cff3"
+  },
+  "web.account.email": {
+    "text": "Email:",
+    "sha256": "17507dcf"
+  },
+  "web.account.region": {
+    "text": "Vùng",
+    "sha256": "d3a008ef"
+  },
+  "web.account.account_balance": {
+    "text": "Số dư:",
+    "sha256": "e0351221"
+  },
+  "web.account.default_payment_method": {
+    "text": "Phương thức thanh toán mặc định",
+    "sha256": "c60f014b"
+  },
+  "web.account.card_ending": {
+    "text": "kết thúc bằng",
+    "sha256": "0195bccf"
+  },
+  "web.account.subscriptions_title": {
+    "text": "Đăng ký",
+    "sha256": "a151f2e9"
+  },
+  "web.account.quantity": {
+    "text": "Số lượng:",
+    "sha256": "d4b2cb96"
+  },
+  "web.account.next_billing_date": {
+    "text": "Ngày thanh toán tiếp theo:",
+    "sha256": "8e6f9cfe"
+  },
+  "web.account.changePassword.username": {
+    "text": "Tên đăng nhập",
+    "sha256": "e3b89e9d"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "Mật khẩu hiện tại",
+    "sha256": "8ac76099"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "Mật khẩu mới",
+    "sha256": "7c451e0f"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "Xác nhận",
+    "sha256": "eebdd24a"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "Cập nhật mật khẩu",
+    "sha256": "557be0da"
+  },
+  "web.account.changePassword.updating": {
+    "text": "Đang cập nhật...",
+    "sha256": "0a4e0b71"
+  },
+  "web.account.timezone": {
+    "text": "Múi giờ",
+    "sha256": "4ceca1d5"
+  },
+  "web.account.customer_id": {
+    "text": "ID khách hàng",
+    "sha256": "62566c64"
+  },
+  "web.account.account_id_customerid": {
+    "text": "ID tài khoản",
+    "sha256": "919bb4cb"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "Đã tạo {0} bí mật kể từ {1}.",
+    "sha256": "8cb99810"
+  },
+  "web.account.delete_account": {
+    "text": "Xóa tài khoản",
+    "sha256": "c031bf99"
+  },
+  "web.account.api_key": {
+    "text": "Khóa API",
+    "sha256": "23189d55"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "Loại tài khoản: {0}",
+    "sha256": "617bfe67"
+  },
+  "web.account.your_account": {
+    "text": "Tài khoản của bạn",
+    "sha256": "89e60bfb"
+  },
+  "web.account.support_details": {
+    "text": "Chi tiết hỗ trợ",
+    "sha256": "cbad8751"
+  },
+  "web.account.back_to_details": {
+    "text": "Quay lại chi tiết",
+    "sha256": "f6f841b9"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "ID khách hàng: {0}",
+    "sha256": "7e2d4201"
+  },
+  "web.account.token_generated": {
+    "text": "Đã tạo token.",
+    "sha256": "05986d95"
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 Giữ token này an toàn! Nó cung cấp quyền truy cập đầy đủ vào tài khoản của bạn.",
+    "sha256": "8839aa4d"
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "Xác nhận bằng mật khẩu",
+    "sha256": "ff2147fd"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của mình không? Hành động này không thể hoàn tác.",
+    "sha256": "4fa3e4b8"
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "Xác nhận xóa tài khoản",
+    "sha256": "bb3fc7e5"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "Đang xóa {0}",
+    "sha256": "81d21828"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "Xóa tài khoản vĩnh viễn",
+    "sha256": "f894e42c"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "vĩnh viễn và không thể hoàn tác.",
+    "sha256": "6121225e"
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "Xóa tài khoản của bạn là",
+    "sha256": "ec31577b"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "xóa vĩnh viễn chúng trước khi tiếp tục",
+    "sha256": "f89a5794"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "Bất kỳ bí mật nào bạn muốn xóa,",
+    "sha256": "b45e2dd5"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "Bí mật sẽ vẫn hoạt động cho đến khi hết hạn.",
+    "sha256": "ddb4e2b5"
+  },
+  "web.account.please_be_advised": {
+    "text": "Xin lưu ý:",
+    "sha256": "086020fd"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "Đã xóa tài khoản thành công.",
+    "sha256": "afcfdd58"
+  },
+  "web.account.deactivate": {
+    "text": "Vô hiệu hóa",
+    "sha256": "fb1e6fa5"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "Bạn có chắc chắn muốn vô hiệu hóa tài khoản của mình không? Tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn khỏi máy chủ của chúng tôi mãi mãi. Hành động này không thể hoàn tác.",
+    "sha256": "4940e20a"
+  },
+  "web.account.deactivate_account": {
+    "text": "Vô hiệu hóa tài khoản",
+    "sha256": "5e31b73d"
+  },
+  "web.settings.title": {
+    "text": "Cài đặt",
+    "sha256": "74a883a0"
+  },
+  "web.settings.description": {
+    "text": "Quản lý cài đặt và tùy chọn tài khoản",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "Quản lý cài đặt và tùy chọn tài khoản của bạn",
+    "sha256": "2ff0853c"
+  },
+  "web.settings.general": {
+    "text": "Chung",
+    "sha256": "c910d474"
+  },
+  "web.settings.preferences": {
+    "text": "Tùy chọn",
+    "sha256": "66962f72"
+  },
+  "web.settings.appearance": {
+    "text": "Giao diện",
+    "sha256": "3907fa7f"
+  },
+  "web.settings.theme.title": {
+    "text": "Giao diện",
+    "sha256": "efb52e71"
+  },
+  "web.settings.theme.description": {
+    "text": "Chọn giao diện sáng hoặc tối",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "Chọn giao diện sáng hoặc tối",
+    "sha256": "ff0ae84f"
+  },
+  "web.settings.language.title": {
+    "text": "Ngôn ngữ",
+    "sha256": "a4fe6526"
+  },
+  "web.settings.language.description": {
+    "text": "Chọn ngôn ngữ ưa thích",
+    "sha256": "475bba7a"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "Chọn ngôn ngữ ưa thích",
+    "sha256": "475bba7a"
+  },
+  "web.settings.security_settings_description": {
+    "text": "Quản lý xác thực và bảo mật tài khoản",
+    "sha256": "945109d1"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "Quản lý thông tin tài khoản",
+    "sha256": "4a23a29f"
+  },
+  "web.settings.profile.title": {
+    "text": "Hồ sơ",
+    "sha256": "d696a35b"
+  },
+  "web.settings.profile.change_email": {
+    "text": "Đổi email",
+    "sha256": "18c3f2d5"
+  },
+  "web.settings.profile.current_email": {
+    "text": "Email hiện tại",
+    "sha256": "5f1cab64"
+  },
+  "web.settings.profile.current_password": {
+    "text": "Mật khẩu hiện tại",
+    "sha256": "8ac76099"
+  },
+  "web.settings.profile.new_email": {
+    "text": "Email mới",
+    "sha256": "5bafb4be"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "Nhập mật khẩu hiện tại",
+    "sha256": "27814c03"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "Mật khẩu của bạn được yêu cầu vì lý do bảo mật",
+    "sha256": "d18f62f2"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "Email xác minh sẽ được gửi đến địa chỉ mới",
+    "sha256": "575082a1"
+  },
+  "web.settings.profile.update_email": {
+    "text": "Cập nhật email",
+    "sha256": "6ec61b2e"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "Cập nhật địa chỉ email liên kết với tài khoản",
+    "sha256": "636abb16"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "Tất cả các trường là bắt buộc",
+    "sha256": "04814271"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "Vui lòng nhập địa chỉ email hợp lệ",
+    "sha256": "b00f7e3a"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "Email mới phải khác với email hiện tại",
+    "sha256": "f7cfed6e"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "Đã cập nhật email thành công. Vui lòng kiểm tra hộp thư để xác minh địa chỉ email mới.",
+    "sha256": "58de2536"
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "Không thể cập nhật email. Vui lòng thử lại.",
+    "sha256": "aeba6591"
+  },
+  "web.settings.sessions.title": {
+    "text": "Phiên hoạt động",
+    "sha256": "b58fa4e0"
+  },
+  "web.settings.sessions.description": {
+    "text": "Quản lý các phiên hoạt động",
+    "sha256": "e5646da4"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "Quản lý các phiên hoạt động",
+    "sha256": "e5646da4"
+  },
+  "web.settings.password.title": {
+    "text": "Mật khẩu",
+    "sha256": "e7cf3ef4"
+  },
+  "web.settings.password.description": {
+    "text": "Cập nhật mật khẩu tài khoản",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "Cập nhật mật khẩu tài khoản",
+    "sha256": "cb3ae40b"
+  },
+  "web.settings.delete_account.title": {
+    "text": "Xóa tài khoản",
+    "sha256": "c031bf99"
+  },
+  "web.settings.delete_account.description": {
+    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu",
+    "sha256": "7a3a6da2"
+  },
+  "web.settings.security.security_score": {
+    "text": "Điểm bảo mật",
+    "sha256": "02d2f374"
+  },
+  "web.settings.security.score_description": {
+    "text": "Sức khỏe bảo mật tổng thể của tài khoản",
+    "sha256": "cf20935e"
+  },
+  "web.settings.security.excellent": {
+    "text": "Xuất sắc",
+    "sha256": "0dc8ee55"
+  },
+  "web.settings.security.good": {
+    "text": "Tốt",
+    "sha256": "c939327c"
+  },
+  "web.settings.security.fair": {
+    "text": "Tạm được",
+    "sha256": "f7b19afc"
+  },
+  "web.settings.security.weak": {
+    "text": "Yếu",
+    "sha256": "8d6cea25"
+  },
+  "web.settings.security.improve_security": {
+    "text": "Cải thiện bảo mật",
+    "sha256": "c38bcbf5"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "Bật xác thực hai yếu tố để bảo vệ mạnh hơn",
+    "sha256": "6beda528"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "Tạo mã khôi phục làm bản sao lưu",
+    "sha256": "eb5f3ebd"
+  },
+  "web.settings.security.configured": {
+    "text": "Đã cấu hình",
+    "sha256": "84aebc69"
+  },
+  "web.settings.security.change": {
+    "text": "Đổi",
+    "sha256": "c0bf75bd"
+  },
+  "web.settings.security.manage": {
+    "text": "Quản lý",
+    "sha256": "5a234448"
+  },
+  "web.settings.security.enable": {
+    "text": "Bật",
+    "sha256": "5342e09f"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0} mã khả dụng",
+    "sha256": "76d6236d"
+  },
+  "web.settings.security.no_codes": {
+    "text": "Chưa tạo mã",
+    "sha256": "3b2eae20"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0} phiên hoạt động | {0} phiên hoạt động",
+    "sha256": "30737484"
+  },
+  "web.settings.security.best_practices": {
+    "text": "Thực hành bảo mật tốt nhất",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "Sử dụng mật khẩu mạnh, độc nhất cho tài khoản",
+    "sha256": "5fc8cbf4"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "Bật xác thực hai yếu tố để bảo vệ thêm",
+    "sha256": "107e4898"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "Lưu mã khôi phục ở vị trí an toàn",
+    "sha256": "605513fc"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "Xem xét và thu hồi các phiên không sử dụng thường xuyên",
+    "sha256": "efe59445"
+  },
+  "web.settings.security.view_details": {
+    "text": "Xem chi tiết",
+    "sha256": "d1bf045b"
+  },
+  "web.settings.api.title": {
+    "text": "API & Tích hợp",
+    "sha256": "21fc84f3"
+  },
+  "web.settings.api.description": {
+    "text": "Quản lý khóa API và tích hợp",
+    "sha256": "70976099"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "Quản lý khóa API và tích hợp",
+    "sha256": "70976099"
+  },
+  "web.settings.api.documentation": {
+    "text": "Tài liệu API",
+    "sha256": "1cc77e60"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "Tìm hiểu cách tích hợp Onetime Secret vào ứng dụng của bạn",
+    "sha256": "6e8f910f"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "Tham khảo REST API",
+    "sha256": "26a5af61"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "Tài liệu API đầy đủ và các endpoint",
+    "sha256": "c1c87ad8"
+  },
+  "web.settings.api.code_examples": {
+    "text": "Ví dụ mã",
+    "sha256": "216d28e4"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "Mã ví dụ và thư viện client",
+    "sha256": "61c5956f"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "Thực hành bảo mật tốt nhất",
+    "sha256": "fd71b2da"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "Không bao giờ commit khóa API vào version control",
+    "sha256": "cc8c327e"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "Sử dụng biến môi trường để lưu khóa API",
+    "sha256": "c05e8802"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "Xoay khóa API thường xuyên để bảo mật",
+    "sha256": "eda6a5db"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "Luôn sử dụng HTTPS khi gọi API",
+    "sha256": "b3f405ef"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "Giám sát mức sử dụng API và thiết lập cảnh báo",
+    "sha256": "abb08beb"
+  },
+  "web.settings.api.important_notice": {
+    "text": "Thông báo quan trọng",
+    "sha256": "03d3ba93"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "Tạo lại khóa API sẽ vô hiệu hóa khóa hiện tại. Cập nhật tất cả ứng dụng đang sử dụng khóa cũ.",
+    "sha256": "ab168f83"
+  },
+  "web.settings.privacy.title": {
+    "text": "Cài đặt quyền riêng tư",
+    "sha256": "eefad6ba"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "Quản lý tùy chọn quyền riêng tư",
+    "sha256": "add087da"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "Quyền riêng tư của bạn",
+    "sha256": "cad972db"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "Không thể thương lượng",
+    "sha256": "ad090a29"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "Không phải cài đặt",
+    "sha256": "41278ece"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "Không phân tích. Không theo dõi. Chấm hết.",
+    "sha256": "3e154b1c"
+  },
+  "web.settings.privacy.explanation": {
+    "text": "Đây không phải cài đặt vì không có gì để bật hoặc tắt. Quyền riêng tư của bạn được tích hợp vào cách chúng tôi hoạt động.",
+    "sha256": "ed943792"
+  },
+  "web.settings.notifications.title": {
+    "text": "Cài đặt thông báo",
+    "sha256": "07a063ca"
+  },
+  "web.settings.notifications.description": {
+    "text": "Quản lý cách bạn nhận thông báo",
+    "sha256": "148c5ff6"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "Không thể cập nhật tùy chọn thông báo. Vui lòng thử lại.",
+    "sha256": "c08abc04"
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "Thông báo hiển thị bí mật",
+    "sha256": "c0fb2e25"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "Nhận email khi ai đó xem bí mật của bạn",
+    "sha256": "a3a67095"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "Bạn sẽ được thông báo mỗi khi người nhận hiển thị một trong các bí mật của bạn",
+    "sha256": "ba93106d"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "Email thông báo chỉ bao gồm thời gian và ID bí mật. Thông tin người xem không bao giờ được bao gồm.",
+    "sha256": "7aac282f"
+  },
+  "web.settings.caution.title": {
+    "text": "Vùng cần cân nhắc kỹ",
+    "sha256": "fe27a3a8"
+  },
+  "web.settings.caution.description": {
+    "text": "Cài đặt nâng cao và quản lý dữ liệu",
+    "sha256": "223ee55d"
+  },
+  "web.settings.caution.data_export": {
+    "text": "Xuất dữ liệu",
+    "sha256": "bdcea052"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "Xuất dữ liệu tài khoản",
+    "sha256": "dc5ffcb0"
+  },
+  "web.settings.caution.export_description": {
+    "text": "Yêu cầu bản sao đầy đủ dữ liệu tài khoản ở định dạng máy đọc được",
+    "sha256": "369c3391"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "Yêu cầu xuất dữ liệu",
+    "sha256": "902394be"
+  },
+  "web.settings.caution.export_info": {
+    "text": "Thời gian xử lý xuất",
+    "sha256": "2ebb2d44"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "Xuất được xử lý trong vòng 24 giờ và gửi đến địa chỉ email của bạn",
+    "sha256": "a2f81e3b"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "Xóa tài khoản sẽ:",
+    "sha256": "17a8a676"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "Xóa vĩnh viễn tất cả bí mật của bạn",
+    "sha256": "974ccdb9"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "Xóa tất cả metadata và lịch sử bí mật",
+    "sha256": "ec4ee372"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "Vô hiệu hóa tất cả khóa API",
+    "sha256": "7581333b"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "Hành động này không thể hoàn tác",
+    "sha256": "02ccc074"
+  },
+  "web.account.deleting_ellipsis": {
+    "text": "Đang xóa...",
+    "sha256": "685ecb98"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Quay lại bảng điều khiển",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Tài khoản",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Thanh toán",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Nâng cao",
+    "sha256": "9f088dbe"
+  }
+}

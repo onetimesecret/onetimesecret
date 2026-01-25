@@ -1,38 +1,50 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "AI 생성 추천사"
+    "text": "AI 생성 후기",
+    "sha256": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "시연을 위한 AI 생성 콘텐츠. 실제 개인이나 회사의 의견이 아닙니다."
+    "text": "시연용 AI 생성 콘텐츠입니다. 실제 개인이나 회사의 것이 아닙니다.",
+    "sha256": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
-    "text": "{0}/5"
+    "text": "{0}/5",
+    "sha256": "a5bdbbd3"
   },
   "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
-    "text": "- {0}, {1}"
+    "text": "- {0}, {1}",
+    "sha256": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "\"{0}\""
+    "text": "\"{0}\"",
+    "sha256": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
-    "text": "{0}:"
+    "text": "{0}:",
+    "sha256": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "주요 AI가 저희에 대해 말하는 것"
+    "text": "주요 AI가 우리에 대해 말하는 것",
+    "sha256": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "AI 생성 추천사"
+    "text": "AI 생성 후기",
+    "sha256": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "이 인용문은 다음에 의해 생성되었습니다"
+    "text": "이 인용문은 다음에 의해 생성되었습니다:",
+    "sha256": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
-    "text": "페이지 내용을 기반으로 생성되었으며 실제 개인이나 회사를 대표하지 않습니다."
+    "text": "페이지 내용을 기반으로 생성되었으며 실제 개인이나 회사를 대표하지 않습니다.",
+    "sha256": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "인공 피드백"
+    "text": "인공 피드백",
+    "sha256": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
-    "text": "이 콘텐츠는 이 페이지의 내용을 기반으로 AI가 생성한 것이며 실제 개인이나 회사를 대표하지 않습니다."
+    "text": "이 콘텐츠는 이 페이지의 내용을 기반으로 AI가 생성한 것이며 실제 개인이나 회사를 대표하지 않습니다.",
+    "sha256": "03c16436"
   }
 }

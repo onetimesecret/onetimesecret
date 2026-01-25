@@ -1,101 +1,134 @@
 {
   "incoming.page_title": {
-    "text": "Wyślij sekret"
+    "text": "Wyślij sekret",
+    "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Bezpiecznie udostępnij poufne informacje naszemu zespołowi wsparcia"
+    "text": "Bezpieczne udostępnianie poufnych informacji naszemu zespołowi wsparcia",
+    "sha256": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Ładowanie..."
+    "text": "Ładowanie...",
+    "sha256": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Nie udało się załadować konfiguracji"
+    "text": "Nie udało się załadować konfiguracji",
+    "sha256": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Funkcja niedostępna"
+    "text": "Funkcja niedostępna",
+    "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ta funkcja jest obecnie wyłączona. Skontaktuj się z pomocą techniczną w celu uzyskania pomocy."
+    "text": "Ta funkcja jest obecnie wyłączona. Skontaktuj się z pomocą techniczną, aby uzyskać pomoc.",
+    "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Notatka"
+    "text": "Notatka",
+    "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Krótki opis (np. Żądanie resetowania hasła)"
+    "text": "Krótki opis (np. prośba o zresetowanie hasła)",
+    "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Pomóż nam skierować Twoją wiadomość do właściwej osoby"
+    "text": "Pomóż nam skierować Twoją wiadomość do właściwej osoby",
+    "sha256": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Wyślij do"
+    "text": "Wyślij do",
+    "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Wybierz odbiorcę"
+    "text": "Wybierz odbiorcę",
+    "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Wybierz odbiorcę dla tego sekretu"
+    "text": "Wybierz odbiorcę dla tego sekretu",
+    "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Wybierz, kto otrzyma tę bezpieczną wiadomość"
+    "text": "Wybierz, kto otrzyma tę bezpieczną wiadomość",
+    "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Brak dostępnych odbiorców"
+    "text": "Brak dostępnych odbiorców",
+    "sha256": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Informacje poufne"
+    "text": "Poufne informacje",
+    "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Wklej tutaj poufne informacje (hasła, klucze itp.)"
+    "text": "Wklej poufne informacje tutaj (hasła, klucze itp.)",
+    "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Te informacje zostaną zaszyfrowane i będą widoczne tylko raz"
+    "text": "Te informacje zostaną zaszyfrowane i będą dostępne do wyświetlenia tylko raz",
+    "sha256": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Wyślij sekret"
+    "text": "Wyślij sekret",
+    "sha256": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Wyślij sekret"
+    "text": "Wyślij sekret",
+    "sha256": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Wysyłanie..."
+    "text": "Wysyłanie...",
+    "sha256": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Wysyłanie..."
+    "text": "Wysyłanie...",
+    "sha256": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Wyczyść formularz"
+    "text": "Wyczyść formularz",
+    "sha256": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Wyczyść formularz"
+    "text": "Wyczyść formularz",
+    "sha256": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Wysłano pomyślnie"
+    "text": "Wysłano pomyślnie",
+    "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Twoja bezpieczna wiadomość została dostarczona."
+    "text": "Twoja bezpieczna wiadomość została dostarczona.",
+    "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Numer referencyjny"
+    "text": "ID referencyjny",
+    "sha256": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Co dalej?"
+    "text": "Co się dzieje dalej?",
+    "sha256": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Odbiorca będzie mógł wyświetlić ten sekret tylko raz. Po wyświetleniu sekret zostanie trwale usunięty."
+    "text": "Odbiorca będzie mógł wyświetlić ten sekret tylko raz. Po wyświetleniu sekret zostanie trwale usunięty.",
+    "sha256": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Wyślij kolejny sekret"
+    "text": "Wyślij kolejny sekret",
+    "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Bezpiecznie udostępniaj poufne informacje"
+    "text": "Bezpieczne udostępnianie poufnych informacji",
+    "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Trzymaj hasła i dane prywatne z dala od e-maili i dzienników czatów"
+    "text": "Chroń hasła i prywatne dane przed zapisaniem w e-mailach i czatach",
+    "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Zapisz <a href='{receiptUrl}'>potwierdzenie</a> dla swoich zapisów."
+    "text": "Zapisz swoje {receipt} dla swoich archiwów.",
+    "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "receipt"
+    "text": "potwierdzenie",
+    "sha256": "6f328609"
   }
 }

@@ -1,59 +1,78 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "¿Por qué no está disponible este secreto?"
+    "text": "¿Por qué este secreto no está disponible?",
+    "sha256": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
-    "text": "Los secretos están diseñados para ser vistos solo una vez. Es posible que este enlace ya haya sido accedido, haya expirado o haya sido eliminado manualmente por el remitente."
+    "text": "Los secretos están diseñados para ser vistos solo una vez. Es posible que este enlace ya haya sido accedido, haya expirado o haya sido eliminado manualmente por el remitente.",
+    "sha256": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "¿Qué debo hacer ahora?"
+    "text": "¿Qué debo hacer ahora?",
+    "sha256": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
-    "text": "Contacta a la persona que te envió este enlace y pídele que cree un nuevo secreto. Hazle saber que no pudiste acceder a la información original."
+    "text": "Contacta a la persona que te envió este enlace y pídele que cree un nuevo secreto. Hazle saber que no pudiste acceder a la información original.",
+    "sha256": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Advertencia descartada"
+    "text": "Advertencia descartada",
+    "sha256": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Descartar advertencia de truncamiento"
+    "text": "Descartar advertencia de truncamiento",
+    "sha256": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "¡Ups! La página que buscas no existe o ha sido movida."
+    "text": "¡Ups! La página que buscas no existe o ha sido movida.",
+    "sha256": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Página no encontrada"
+    "text": "404 - Página no encontrada",
+    "sha256": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Página no encontrada"
+    "text": "404 - Página no encontrada",
+    "sha256": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Descartar advertencia"
+    "text": "Descartar advertencia",
+    "sha256": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Descartar notificación"
+    "text": "Descartar notificación",
+    "sha256": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
-    "text": "Si no estás seguro de qué hacer a continuación, por favor contacta a la persona que te envió este enlace para obtener más información."
+    "text": "Si no estás seguro de qué hacer a continuación, por favor contacta a la persona que te envió este enlace para obtener más información.",
+    "sha256": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
-    "text": "La información compartida a través de nuestro servicio solo se puede acceder una vez. Una vez vista, el contenido se elimina permanentemente de nuestros servidores para garantizar la confidencialidad. Este enfoque ayuda a proteger tus datos sensibles limitando su exposición y previniendo el acceso no autorizado."
+    "text": "La información compartida a través de nuestro servicio solo se puede acceder una vez. Una vez vista, el contenido se elimina permanentemente de nuestros servidores para garantizar la confidencialidad. Este enfoque ayuda a proteger tus datos sensibles limitando su exposición y previniendo el acceso no autorizado.",
+    "sha256": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
-    "text": "Lo sentimos, pero ocurrió un error inesperado al procesar tu solicitud. Nuestro equipo ha sido notificado y estamos trabajando para solucionarlo."
+    "text": "Lo sentimos, pero ocurrió un error inesperado al procesar tu solicitud. Nuestro equipo ha sido notificado y estamos trabajando para solucionarlo.",
+    "sha256": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
-    "text": "{0} Algo salió mal"
+    "text": "{0} Algo salió mal",
+    "sha256": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "¡Ve a compartir un secreto!"
+    "text": "Ve a compartir un secreto",
+    "sha256": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
-    "text": "La página que buscas no existe o ha sido movida. ¡No te preocupes, le pasa a los mejores!"
+    "text": "La página que buscas no existe o ha sido movida. ¡No te preocupes, le pasa a los mejores!",
+    "sha256": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
-    "text": "{0} 404"
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
-    "text": "No se pueden cargar los datos debido a problemas de formato. Por favor, inténtalo de nuevo más tarde."
+    "text": "No se pueden cargar los datos debido a problemas de formato. Por favor, inténtalo de nuevo más tarde.",
+    "sha256": "a7b6f998"
   }
 }

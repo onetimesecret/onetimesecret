@@ -39,6 +39,7 @@ module Auth
     plugin :json, parser: true  # Parse incoming JSON request bodies
     plugin :halt
     plugin :status_handler
+    plugin :flash  # Required for Rodauth flash messages on browser redirects (e.g., OmniAuth)
 
     # plugin :sessions,
     #   key: 'onetime.session',

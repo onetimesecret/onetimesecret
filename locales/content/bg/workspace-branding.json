@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "text": "Избор на цвят",
+    "sha256": "ba42602c"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Текущ {0}: {1}. Кликнете, за да преминете през опциите.",
+    "sha256": "84bf49e6"
+  },
+  "web.branding.use_setting": {
+    "text": "Използвай настройка",
+    "sha256": "8a18d118"
+  },
+  "web.branding.font_family": {
+    "text": "Шрифт",
+    "sha256": "f81339da"
+  },
+  "web.branding.corner_style": {
+    "text": "Стил на ъглите",
+    "sha256": "fcb3ecdf"
+  },
+  "web.branding.brand_color": {
+    "text": "Цвят на марката",
+    "sha256": "db3183e3"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Преглед на изгледа на получателя при достъп до вашата сигурна връзка",
+    "sha256": "199c165f"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Преглед и персонализиране",
+    "sha256": "215d3659"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Превключи към изглед на Safari браузър",
+    "sha256": "6e0fe791"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
+  },
+  "web.branding.maximize_window": {
+    "text": "Максимизирай прозореца",
+    "sha256": "45d23969"
+  },
+  "web.branding.minimize_window": {
+    "text": "Минимизирай прозореца",
+    "sha256": "5cd54386"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Превключи към изглед на Edge браузър",
+    "sha256": "a8fcd82d"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 символа",
+    "sha256": "e36598ef"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Използвайте телефона си, за да сканирате QR кода",
+    "sha256": "99ecf59f"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Свържете се с onboarding{'@'}example.com при въпроси",
+    "sha256": "bee120a7"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Тези инструкции ще бъдат показани на получателите, преди да разкрият тайното съдържание",
+    "sha256": "9d5a6334"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Тези инструкции ще бъдат показани на получателите, след като разкрият тайната",
+    "sha256": "9f82bd94"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Инструкции преди разкриване",
+    "sha256": "a299422e"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Инструкции след разкриване",
+    "sha256": "72ecc23a"
+  },
+  "web.branding.instructions": {
+    "text": "Инструкции",
+    "sha256": "934652dc"
+  },
+  "web.branding.logo_controls": {
+    "text": "Контроли за лого",
+    "sha256": "43e9a2d7"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Кликнете, за да качите лого. Препоръчителен размер: 128x128 пиксела. Максимален размер на файла: 1MB. Поддържани формати: PNG, JPG, SVG",
+    "sha256": "a35452bf"
+  },
+  "web.branding.upload_logo": {
+    "text": "Качи лого",
+    "sha256": "c3330082"
+  },
+  "web.branding.loading_preview": {
+    "text": "Зареждане на преглед...",
+    "sha256": "c02130fa"
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Прегледайте как получателите ще виждат вашите тайни, като тествате бутона \"Преглед на тайната\"",
+    "sha256": "3b58a297"
+  },
+  "web.branding.eye_icon": {
+    "text": "Икона око",
+    "sha256": "7f605d3c"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Кликнете върху изображението за преглед по-долу, за да актуализирате логото си (препоръчителен минимален размер 128x128 пиксела, макс. 1MB)",
+    "sha256": "77a19049"
+  },
+  "web.branding.image_icon": {
+    "text": "Икона изображение",
+    "sha256": "b0d64fcf"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Използвайте контролите по-горе, за да персонализирате цвета на марката, стиловете и инструкциите за получателя",
+    "sha256": "d6287134"
+  },
+  "web.branding.customization_icon": {
+    "text": "Икона за персонализиране",
+    "sha256": "bde04d31"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Имате незапазени промени. Сигурни ли сте?",
+    "sha256": "184b6a83"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Неуспешно зареждане на настройките за марката",
+    "sha256": "a7a1575e"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Това е интерактивен преглед на това как получателите ще видят защитените ви съобщения. Можете да: - Персонализирате цветове и шрифтове с контролите по-горе - Качите лого (препоръчват се минимум 128x128 пиксела, максимум 1MB) - Тествате прегледа с бутона \"Виж тайната\"",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Това е интерактивен преглед на това как получателите ще виждат вашите сигурни съобщения. Можете да: - Персонализирате цветове и шрифтове, използвайки контролите по-горе - Качите лого (препоръчителен минимален размер 128x128 пиксела, макс. 1MB) - Тествате прегледа, използвайки бутона \"Преглед на тайната\"",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Японски йероглиф '秘' (himitsu), означаващ 'тайна' или 'поверително'",
+    "sha256": "1e04ba2e"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Предоставено от Onetime Secret",
+    "sha256": "935442d0"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Лого",
+    "sha256": "3a3c98ed"
+  },
+  "web.branding.edge": {
+    "text": "Edge",
+    "sha256": "0f82fe72"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Превключи към Edge преглед",
+    "sha256": "83883d84"
+  },
+  "web.branding.safari": {
+    "text": "Safari",
+    "sha256": "5f033039"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Превключи към Safari преглед",
+    "sha256": "f24ac447"
+  }
+}

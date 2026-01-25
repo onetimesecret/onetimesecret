@@ -19,10 +19,14 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.0.0.pre10'
-gem 'rhales', '~> 0.5.3'
+gem 'rhales', '~> 0.5.4'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
+gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.3.1'
+
+# OmniAuth providers (SSO via OIDC)
+gem 'omniauth_openid_connect', '~> 0.8'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'

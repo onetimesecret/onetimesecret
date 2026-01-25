@@ -5,28 +5,10 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
     applied_at TEXT DEFAULT (datetime('now'))
 );
 
--- Legacy per-key task table (used by hydrate_from_json for historical data)
-CREATE TABLE IF NOT EXISTS translation_tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    batch TEXT NOT NULL,              -- '2026-01-11' groups related work
-    locale TEXT NOT NULL,
-    file TEXT NOT NULL,               -- 'auth.json'
-    key TEXT NOT NULL,                -- 'web.auth.security.rate_limited'
-    source TEXT,                      -- Source language text (NULL when status=source)
-    text TEXT,                        -- Message content (translation, or source text when status=source)
-    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'completed', 'skipped', 'error', 'source')),
-    notes TEXT,                       -- translator notes, errors
-    created_at TEXT DEFAULT (datetime('now')),
-    completed_at TEXT,
-    UNIQUE(locale, file, key)
-);
-
-CREATE INDEX IF NOT EXISTS idx_locale_status ON translation_tasks(locale, status);
-CREATE INDEX IF NOT EXISTS idx_batch ON translation_tasks(batch);
-
--- Level-based task table (groups sibling keys by parent path)
+-- Translation tasks table (groups sibling keys by parent path)
 -- A "level" is a parent path, e.g., web.COMMON.buttons groups submit, cancel, etc.
-CREATE TABLE IF NOT EXISTS level_tasks (
+-- This consolidates the former level_tasks table as the primary workflow table.
+CREATE TABLE IF NOT EXISTS translation_tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     file TEXT NOT NULL,               -- 'auth.json'
     level_path TEXT NOT NULL,         -- 'web.COMMON.buttons' (parent path)
@@ -41,8 +23,8 @@ CREATE TABLE IF NOT EXISTS level_tasks (
     UNIQUE(file, level_path, locale)
 );
 
-CREATE INDEX IF NOT EXISTS idx_level_locale_status ON level_tasks(locale, status);
-CREATE INDEX IF NOT EXISTS idx_level_file ON level_tasks(file);
+CREATE INDEX IF NOT EXISTS idx_tasks_locale_status ON translation_tasks(locale, status);
+CREATE INDEX IF NOT EXISTS idx_tasks_file ON translation_tasks(file);
 
 -- Glossary table: translation decisions and terminology for each locale
 -- Captures choices made during translation sessions for consistency
@@ -76,3 +58,48 @@ CREATE TABLE IF NOT EXISTS session_log (
 
 CREATE INDEX IF NOT EXISTS idx_session_locale ON session_log(locale);
 CREATE INDEX IF NOT EXISTS idx_session_date ON session_log(date);
+
+-- Translation issues: QC findings and messages requiring manual review
+-- Tracks quality issues found during automated or manual translation review
+CREATE TABLE IF NOT EXISTS translation_issues (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    locale TEXT NOT NULL,             -- 'de', 'ja', 'ar', etc.
+    file TEXT,                        -- 'secret-manage.json' or NULL for locale-wide issues
+    key_path TEXT,                    -- 'web.COMMON.broadcast' or NULL for file/locale-wide
+    issue_type TEXT NOT NULL
+        CHECK(issue_type IN (
+            'terminology',            -- Inconsistent or incorrect term usage
+            'grammar',                -- Grammar/agreement errors
+            'encoding',               -- Encoding errors, garbled text
+            'missing',                -- Missing translation
+            'truncated',              -- Incomplete/cut-off translation
+            'pluralization',          -- Incorrect plural forms
+            'formality',              -- Formal/informal register inconsistency
+            'rtl',                    -- RTL/bidirectional text issues
+            'placeholder',            -- Variable/placeholder problems
+            'tone',                   -- Tone/voice inconsistency
+            'cultural',               -- Cultural adaptation issues
+            'other'
+        )),
+    severity TEXT NOT NULL DEFAULT 'medium'
+        CHECK(severity IN ('critical', 'high', 'medium', 'low')),
+    status TEXT NOT NULL DEFAULT 'open'
+        CHECK(status IN ('open', 'in_review', 'resolved', 'wontfix')),
+    source_text TEXT,                 -- Original English text (for reference)
+    current_text TEXT,                -- Current translation with issue
+    suggested_text TEXT,              -- Suggested fix (if any)
+    description TEXT NOT NULL,        -- Description of the issue
+    detected_by TEXT,                 -- 'qc_agent', 'human', 'automated'
+    detected_at TEXT DEFAULT (datetime('now')),
+    resolved_at TEXT,
+    resolved_by TEXT,
+    resolution_notes TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_issues_locale ON translation_issues(locale);
+CREATE INDEX IF NOT EXISTS idx_issues_status ON translation_issues(status);
+CREATE INDEX IF NOT EXISTS idx_issues_severity ON translation_issues(severity);
+CREATE INDEX IF NOT EXISTS idx_issues_type ON translation_issues(issue_type);
+CREATE INDEX IF NOT EXISTS idx_issues_locale_status ON translation_issues(locale, status);

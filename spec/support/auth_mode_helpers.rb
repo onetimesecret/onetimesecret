@@ -32,6 +32,8 @@ module AuthModeHelpers
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
+      @omniauth_enabled = options.fetch(:omniauth_enabled, false)  # OmniAuth disabled by default in tests
+      @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
 
     def full_enabled?
@@ -73,6 +75,16 @@ module AuthModeHelpers
 
     def webauthn_enabled?
       @webauthn_enabled
+    end
+
+    def omniauth_enabled?
+      @omniauth_enabled
+    end
+
+    def omniauth_provider_name
+      return nil unless omniauth_enabled?
+
+      @omniauth_provider_name
     end
 
     # DEPRECATED: Forwards to new methods for backward compatibility

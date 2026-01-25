@@ -70,6 +70,10 @@ inputs:
     description: 'Auth database URL (for full mode)'
     required: false
     default: ''
+  auth-database-url-migrations:
+    description: 'Auth database URL for migrations (elevated privileges)'
+    required: false
+    default: ''
   rspec-tag:
     description: 'RSpec tag for special cases (e.g., postgres_database)'
     required: false
@@ -129,6 +133,7 @@ runs:
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
+        AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
       run: |
         set -e
         echo "Running rake ${{ steps.rake-tasks.outputs.tryouts-task }}..."
@@ -141,6 +146,7 @@ runs:
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
+        AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
         RSPEC_OUTPUT_FILE: tmp/${{ inputs.results-file }}
       run: |
         set -e

@@ -71,7 +71,7 @@ export interface UseRecentSecretsReturn {
   /** Fetch/refresh records from source */
   fetch: (options?: FetchListOptions) => Promise<void>;
   /** Refresh receipt statuses from server (local mode only, updates isReceived/isBurned) */
-  refreshStatuses: () => Promise<void>;
+  refreshStatuses: (options?: { silent?: boolean }) => Promise<void>;
   /** Clear all records */
   clear: () => void;
   /** Update memo for a record (local mode only for now) */
@@ -179,9 +179,10 @@ function useLocalRecentSecrets() {
 
   const hasRecords = computed(() => hasReceipts.value);
 
-  const fetch = async () => {
+  const fetch = async (_options: FetchListOptions = {}) => {
     // Local storage is synchronous, no fetch needed
     // Initialize store if not already done
+    // Note: options.silent has no effect for local storage (no network calls)
     if (!store.isInitialized) {
       store.init();
     }
@@ -199,7 +200,9 @@ function useLocalRecentSecrets() {
     store.updateMemo(id, memo);
   };
 
-  const refreshStatuses = async () => {
+  const refreshStatuses = async (_options: { silent?: boolean } = {}) => {
+    // Note: local storage refresh doesn't make network calls,
+    // so silent option has no effect but we accept it for interface consistency
     await store.refreshReceiptStatuses();
   };
 
@@ -218,7 +221,10 @@ function useLocalRecentSecrets() {
 /**
  * Internal composable for API source (authenticated users)
  */
-function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T | undefined>) {
+function useApiRecentSecrets(
+  wrap: <T>(operation: () => Promise<T>) => Promise<T | undefined>,
+  wrapSilent: <T>(operation: () => Promise<T>) => Promise<T | undefined>
+) {
   const store = useReceiptListStore();
   const { records: storeRecords, currentScope, scopeLabel } = storeToRefs(store);
 
@@ -235,7 +241,8 @@ function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T
   const workspaceMode = computed(() => false);
 
   const fetch = async (options: FetchListOptions = {}) => {
-    await wrap(async () => {
+    const wrapper = options.silent ? wrapSilent : wrap;
+    await wrapper(async () => {
       await store.fetchList(options);
     });
   };
@@ -254,9 +261,9 @@ function useApiRecentSecrets(wrap: <T>(operation: () => Promise<T>) => Promise<T
     });
   };
 
-  const refreshStatuses = async () => {
+  const refreshStatuses = async (options: { silent?: boolean } = {}) => {
     // For API mode, re-fetch fresh data from the server
-    await fetch();
+    await fetch({ silent: options.silent });
   };
 
   return {
@@ -319,7 +326,15 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     onError: (err) => (error.value = err),
   };
 
+  // Silent handler for background refreshes - no notifications
+  const silentAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: false,
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
+  };
+
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
+  const { wrap: wrapSilent } = useAsyncHandler(silentAsyncHandlerOptions);
 
   // Determine authentication state
   const isAuthenticated = computed(() => authStore.isFullyAuthenticated);
@@ -327,7 +342,7 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
   // Initialize both internal composables
   // Only one will be active based on auth state
   const local = useLocalRecentSecrets();
-  const api = useApiRecentSecrets(wrap);
+  const api = useApiRecentSecrets(wrap, wrapSilent);
 
   // Clear local storage on auth state changes to prevent:
   // - Stale guest data mixing with authenticated API data on login
@@ -387,11 +402,11 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     }
   };
 
-  const refreshStatuses = async () => {
+  const refreshStatuses = async (options: { silent?: boolean } = {}) => {
     if (isAuthenticated.value) {
-      await api.refreshStatuses();
+      await api.refreshStatuses(options);
     } else {
-      await local.refreshStatuses();
+      await local.refreshStatuses(options);
     }
   };
 

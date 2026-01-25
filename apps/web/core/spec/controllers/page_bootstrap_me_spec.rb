@@ -120,17 +120,20 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       expect(data).to have_key('shrimp')
     end
 
-    it 'returns consistent shrimp across requests with same session' do
+    it 'returns different masked shrimp tokens on each request (BREACH mitigation)' do
       # First request establishes session
       get '/bootstrap/me'
       first_shrimp = JSON.parse(last_response.body)['shrimp']
 
-      # Second request with cookies should have same CSRF token
+      # Second request with cookies should have different masked token
+      # (same underlying session token, but masked differently each time)
       get '/bootstrap/me'
       second_shrimp = JSON.parse(last_response.body)['shrimp']
 
-      # Both should be equal (whether nil or a token value)
-      expect(first_shrimp).to eq(second_shrimp)
+      # Masked tokens should differ (BREACH mitigation), but both should be non-nil
+      expect(first_shrimp).not_to be_nil
+      expect(second_shrimp).not_to be_nil
+      expect(first_shrimp).not_to eq(second_shrimp)
     end
   end
 

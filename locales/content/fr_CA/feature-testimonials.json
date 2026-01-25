@@ -1,38 +1,50 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Témoignage généré par l'IA"
+    "text": "Témoignage généré par IA",
+    "sha256": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Contenu généré par l'AI pour la démonstration. \nPas d'une personne ou d'une entreprise."
+    "text": "Contenu généré par IA à des fins de démonstration. Ne provient pas d'une personne ou entreprise réelle.",
+    "sha256": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
-    "text": "{0}/5"
+    "text": "{0}/5",
+    "sha256": "a5bdbbd3"
   },
   "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
-    "text": "- {0}, {1}"
+    "text": "- {0}, {1}",
+    "sha256": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "\"{0}\""
+    "text": "« {0} »",
+    "sha256": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
-    "text": "{0}:"
+    "text": "{0} :",
+    "sha256": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Ce que l'IA de pointe dit de nous"
+    "text": "Ce que les principales IA disent de nous",
+    "sha256": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Témoignages générés par l'IA"
+    "text": "Témoignages générés par IA",
+    "sha256": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Cette citation a été générée par"
+    "text": "Cette citation a été générée par",
+    "sha256": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
-    "text": "Elle est basée sur le contenu de la page et ne représente pas une personne ou une entreprise réelle."
+    "text": "Elle est basée sur le contenu de la page et ne représente pas une personne ou une entreprise réelle.",
+    "sha256": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Retour d'information artificiel"
+    "text": "Commentaires artificiels",
+    "sha256": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
-    "text": "Ce contenu est généré par l'IA sur la base du contenu de cette page et ne représente pas une personne ou une entreprise réelle."
+    "text": "Ce contenu est généré par l'IA sur la base du contenu de cette page et ne représente pas une personne ou une entreprise réelle.",
+    "sha256": "03c16436"
   }
 }

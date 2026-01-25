@@ -233,5 +233,59 @@ module Auth
         sql_log_level: :trace,
       )
     end
+
+    # Ensure database migrations are up to date.
+    #
+    # This is a convenience method that can work in two modes:
+    #
+    # 1. **Standalone mode** (CI/scripts): When called without full app boot,
+    #    reads AUTH_DATABASE_URL from environment and runs migrations directly.
+    #    This is useful for CI scripts that just need to run migrations.
+    #
+    # 2. **Application mode**: When Onetime.auth_config is available, delegates
+    #    to Auth::Migrator.run_if_needed which handles advisory locks, elevated
+    #    credentials, and proper logging.
+    #
+    # Concurrent safety:
+    # - PostgreSQL: Uses advisory locks to prevent migration races
+    # - SQLite: No advisory lock support (single-instance only)
+    #
+    # @return [void]
+    # @raise [Sequel::Migrator::Error] if migrations fail
+    #
+    def self.ensure_migrations!
+      Sequel.extension :migration
+
+      # Check if we have full app context or running standalone
+      if defined?(Onetime) && Onetime.respond_to?(:auth_config) && Onetime.auth_config&.full_enabled?
+        # Full app mode - delegate to Migrator with all its features
+        Auth::Migrator.run_if_needed
+      else
+        # Standalone mode - read from environment directly
+        database_url = ENV.fetch('AUTH_DATABASE_URL', nil)
+        raise 'AUTH_DATABASE_URL environment variable not set' unless database_url
+
+        migrations_dir = File.join(__dir__, 'migrations')
+        raise "Migrations directory not found: #{migrations_dir}" unless Dir.exist?(migrations_dir)
+
+        conn = Sequel.connect(database_url)
+        begin
+          # Use advisory locks for PostgreSQL to handle concurrent boots
+          use_advisory_lock = conn.adapter_scheme == :postgres
+
+          Sequel::Migrator.run(
+            conn,
+            migrations_dir,
+            use_transactions: true,
+            use_advisory_lock: use_advisory_lock,
+          )
+        rescue Sequel::AdvisoryLockError
+          # Another process is running migrations - this is expected and OK
+          puts '[Auth::Database] Migrations already in progress (advisory lock held by another process)'
+        ensure
+          conn.disconnect
+        end
+      end
+    end
   end
 end
