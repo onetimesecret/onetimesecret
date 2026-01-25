@@ -17,9 +17,18 @@ require 'onetime'
 
 OT.boot! :test, false
 
+# Require auth database before using Auth::Database
+require 'auth/database'
 require_relative '../../operations/close_account'
 
 @db = Auth::Database.connection
+
+# Skip this test file gracefully if auth database is not available.
+# This happens when running tests without a PostgreSQL database configured.
+unless @db
+  warn "[SKIP] close_account_try.rb: Auth database not configured (full auth mode requires database)"
+  exit 0
+end
 
 # Create a test account directly in the auth database
 @test_email = generate_unique_test_email("closeaccount")
