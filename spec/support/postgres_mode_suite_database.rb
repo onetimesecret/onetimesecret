@@ -51,7 +51,7 @@ require_relative 'factories/auth_account_factory'
 #
 module PostgresModeSuiteDatabase
   class << self
-    attr_reader :database
+    attr_reader :database, :migration_database
 
     # Check if PostgreSQL is available for testing
     # @return [Boolean] true if AUTH_DATABASE_URL is set to a PostgreSQL URL
@@ -131,6 +131,8 @@ module PostgresModeSuiteDatabase
     def teardown!
       return unless @setup_complete
 
+      @migration_database&.disconnect
+      @migration_database = nil
       @database&.disconnect
       @database = nil
 
@@ -170,6 +172,7 @@ module PostgresModeSuiteDatabase
     end
 
     # Run migrations using elevated connection if available
+    # Also stores migration connection for test data setup (infrastructure tests)
     def run_migrations
       migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
 
@@ -178,32 +181,32 @@ module PostgresModeSuiteDatabase
       migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
 
       if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
-        # Use separate elevated connection for migrations only
-        migration_db = Sequel.connect(migration_url)
-        begin
-          Sequel::Migrator.run(migration_db, migrations_path)
-        ensure
-          migration_db.disconnect
-        end
+        # Use separate elevated connection for migrations
+        # Keep it open for test data setup (infrastructure tests need INSERT privileges)
+        @migration_database = Sequel.connect(migration_url)
+        Sequel::Migrator.run(@migration_database, migrations_path)
       else
         # Run migrations with standard connection
         Sequel::Migrator.run(@database, migrations_path)
+        @migration_database = nil
       end
     end
 
     # Clean all Rodauth tables using TRUNCATE CASCADE
     # This is faster than DELETE and resets sequences
+    # Uses migration_database if available (has TRUNCATE privileges)
     def clean_tables!
-      return unless @database
+      db = @migration_database || @database
+      return unless db
 
       # Disable foreign key checks for cleaning
       # PostgreSQL uses TRUNCATE CASCADE which handles dependencies
       AuthAccountFactory::RODAUTH_TABLES.each do |table|
-        next unless @database.table_exists?(table)
+        next unless db.table_exists?(table)
 
         begin
           # Use Sequel's truncate method with cascade option for safe identifier handling
-          @database[table].truncate(cascade: true)
+          db[table].truncate(cascade: true)
         rescue Sequel::DatabaseError => e
           # Log but don't fail - some tables may have dependencies
           warn "Failed to truncate #{table}: #{e.message}"
@@ -215,7 +218,7 @@ module PostgresModeSuiteDatabase
       begin
         # Fetch all sequence names for tables with serial columns using Sequel's DSL
         table_names = AuthAccountFactory::RODAUTH_TABLES.map(&:to_s)
-        sequences_to_reset = @database[:information_schema__columns]
+        sequences_to_reset = db[:information_schema__columns]
           .select { Sequel.function(:pg_get_serial_sequence, :table_name, :column_name).as(:sequence_name) }
           .distinct
           .where(table_schema: 'public')
@@ -232,7 +235,7 @@ module PostgresModeSuiteDatabase
           alter_commands = sequence_names.map do |seq_name|
             "ALTER SEQUENCE #{Sequel.literal(Sequel.identifier(seq_name))} RESTART WITH 1"
           end
-          @database.run(alter_commands.join('; '))
+          db.run(alter_commands.join('; '))
         end
       rescue Sequel::DatabaseError
         # Ignore if there's an issue - this is a cleanup optimization
@@ -283,9 +286,17 @@ RSpec.configure do |config|
   config.include AuthAccountFactory, :postgres_database
 
   # Provide test_db helper method for :postgres_database specs
+  # test_db: Regular connection for querying (matches application runtime)
+  # setup_db: Elevated connection for test data setup (has INSERT privileges)
   config.include(Module.new {
     def test_db
       PostgresModeSuiteDatabase.database
+    end
+
+    # Returns elevated connection for test data setup, falls back to test_db
+    # Use this for creating test accounts and other setup operations
+    def setup_db
+      PostgresModeSuiteDatabase.migration_database || PostgresModeSuiteDatabase.database
     end
   }, :postgres_database)
 end

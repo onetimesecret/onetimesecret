@@ -54,12 +54,12 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
     before do
       # Create verified account for login tests
-      @account = create_verified_account(db: test_db, email: test_email, password: test_password)
+      @account = create_verified_account(db: setup_db, email: test_email, password: test_password)
     end
 
     after do
       # Clean up test data
-      cleanup_account(db: test_db, account_id: @account[:id]) if @account
+      cleanup_account(db: setup_db, account_id: @account[:id]) if @account
     end
 
     context 'HTTP login flow' do
@@ -167,7 +167,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
         messages.each_with_index do |message, index|
           # Create fresh account for each test
-          account = create_verified_account(db: test_db)
+          account = create_verified_account(db: setup_db)
 
           test_db[:account_authentication_audit_logs].insert(
             account_id: account[:id],
@@ -179,7 +179,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
           expect(activity).not_to be_nil, "Trigger failed for message: #{message}"
 
           # Cleanup
-          cleanup_account(db: test_db, account_id: account[:id])
+          cleanup_account(db: setup_db, account_id: account[:id])
         end
       end
 
@@ -244,11 +244,11 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
     let(:test_email) { "trigger-cleanup-#{SecureRandom.hex(8)}@example.com" }
 
     before do
-      @account = create_verified_account(db: test_db, email: test_email, password: test_password)
+      @account = create_verified_account(db: setup_db, email: test_email, password: test_password)
     end
 
     after do
-      cleanup_account(db: test_db, account_id: @account[:id]) if @account
+      cleanup_account(db: setup_db, account_id: @account[:id]) if @account
     end
 
     context 'JWT refresh token cleanup' do
@@ -374,7 +374,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
           # Insert multiple expired email auth keys (different accounts to avoid PK conflict)
           expired_email_accounts = 3.times.map do
-            account = create_verified_account(db: test_db)
+            account = create_verified_account(db: setup_db)
             key = SecureRandom.hex(32)
             test_db[:account_email_auth_keys].insert(
               id: account[:id],
@@ -416,7 +416,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
           # Cleanup test accounts
           expired_email_accounts.each do |data|
-            cleanup_account(db: test_db, account_id: data[:account][:id])
+            cleanup_account(db: setup_db, account_id: data[:account][:id])
           end
         ensure
           # Always re-enable trigger
@@ -471,11 +471,11 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       let(:test_email) { "security-summary-#{SecureRandom.hex(8)}@example.com" }
 
       before do
-        @account = create_verified_account(db: test_db, email: test_email, password: test_password)
+        @account = create_verified_account(db: setup_db, email: test_email, password: test_password)
       end
 
       after do
-        cleanup_account(db: test_db, account_id: @account[:id]) if @account
+        cleanup_account(db: setup_db, account_id: @account[:id]) if @account
       end
 
       it 'returns security summary for account with password only' do
@@ -546,7 +546,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
     context 'citext column handling' do
       it 'performs case-insensitive email lookups' do
         test_email = "CaseTest-#{SecureRandom.hex(8)}@Example.COM"
-        account = create_verified_account(db: test_db, email: test_email)
+        account = create_verified_account(db: setup_db, email: test_email)
 
         # Lookup with different case variations
         variations = [
@@ -562,7 +562,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         end
 
         # Cleanup
-        cleanup_account(db: test_db, account_id: account[:id])
+        cleanup_account(db: setup_db, account_id: account[:id])
       end
     end
   end
@@ -573,7 +573,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       # by actually firing the triggers. If trigger SQL references non-existent columns
       # (like NEW.account_id when table has 'id'), PostgreSQL will throw an error.
 
-      account = create_verified_account(db: test_db)
+      account = create_verified_account(db: setup_db)
 
       # Exercise update_last_login_time function/trigger
       expect {
