@@ -15,7 +15,7 @@ OT.conf.key?('site')
 
 ## Load basic configuration and check secret_options exists
 OT.conf['site']['secret_options'].class
-#=> Onetime::IndifferentHash
+#=> Hash
 
 ## Check if passphrase config exists
 OT.conf['site']['secret_options'].key?('passphrase')

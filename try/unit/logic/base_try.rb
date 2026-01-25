@@ -53,7 +53,7 @@ end
 
 ## Settings are processed during initialization
 [@obj.site, @obj.authentication, @obj.domains_enabled].map(&:class)
-#=> [Onetime::IndifferentHash, Onetime::IndifferentHash, FalseClass]
+#=> [Hash, Hash, FalseClass]
 
 ## Email validation works for invalid addresses
 @obj.valid_email?('notanemail')
