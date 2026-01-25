@@ -2,14 +2,11 @@
 
 <script setup lang="ts">
   import DisabledHomepageTaglines from '@/components/DisabledHomepageTaglines.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
-  const windowProps = WindowService.getMultiple([
-    'authenticated',
-    'authentication',
-    'ui',
-  ]);
-
+  const bootstrapStore = useBootstrapStore();
+  const { ui } = storeToRefs(bootstrapStore);
 </script>
 
 <template>
@@ -36,7 +33,7 @@
       <DisabledHomepageTaglines
         :tagline1="$t('web.homepage.disabled.tagline1')"
         :tagline2="$t('web.homepage.disabled.tagline2')"
-        v-unless="windowProps.ui?.enabled"
+        v-unless="ui?.enabled"
         class="mb-6" />
 
       <!-- Space divider -->
