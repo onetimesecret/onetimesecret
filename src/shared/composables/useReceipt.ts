@@ -34,10 +34,6 @@ export function useReceipt(receiptIdentifier: string, options?: ReceiptOptions) 
   const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
   store.setApiMode(usePublicApi ? 'public' : 'authenticated');
 
-  // Auto-detect guest mode based on auth state unless explicitly overridden
-  const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
-  store.setApiMode(usePublicApi ? 'public' : 'authenticated');
-
   // The `StoreGeneric` type assertion helps bridge the gap between the specific
   // store type and the generic store. This is a known issue when using
   // `storeToRefs` with stores that have complex types.
