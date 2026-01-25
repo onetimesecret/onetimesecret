@@ -515,12 +515,55 @@ jobs:
       - name: Generate locale files
         run: pnpm run locales:sync
 
+      - name: Setup PostgreSQL users
+        env:
+          PGPASSWORD: postgres
+        run: |
+          # Create application user (limited privileges)
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_user') THEN
+                CREATE USER onetime_user WITH PASSWORD 'testpass';
+              END IF;
+            END
+            \$\$;
+          "
+
+          # Create migration user (elevated privileges)
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator') THEN
+                CREATE USER onetime_migrator WITH PASSWORD 'migratepass' CREATEDB;
+              END IF;
+            END
+            \$\$;
+          "
+
+          # Grant permissions with proper privilege separation
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_user;
+            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_migrator;
+            GRANT ALL ON SCHEMA public TO onetime_user;
+            GRANT ALL ON SCHEMA public TO onetime_migrator;
+
+            -- Tables created by onetime_migrator are accessible to onetime_user for DML only
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT USAGE, SELECT ON SEQUENCES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT EXECUTE ON FUNCTIONS TO onetime_user;
+          "
+
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
         with:
           test-type: integration
           auth-mode: full
-          auth-database-url: 'postgresql://postgres:postgres@localhost:5432/onetime_auth_test'
+          auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+          auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
           rspec-tag: 'postgres_database'
           results-file: 'rspec_full_postgres_results.json'
 

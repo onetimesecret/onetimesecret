@@ -634,24 +634,11 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
     # Validates that the regular database user (test_db / onetime_user) cannot
     # perform privileged DDL operations. This ensures proper security boundaries
     # between application-level database access and administrative operations.
-    #
-    # Note: These tests require separate database users (onetime_user vs onetime_migrator).
-    # In CI environments using a single superuser (postgres:postgres), these tests are skipped.
 
     let(:test_table) { :account_jwt_refresh_keys }
     let(:test_trigger) { :trigger_cleanup_expired_tokens_extended }
 
-    # Check if test_db has superuser privileges (skip privilege tests if so)
-    let(:test_db_is_superuser) do
-      result = test_db.fetch('SELECT usesuper FROM pg_user WHERE usename = current_user').first
-      result && result[:usesuper]
-    end
-
-    context 'trigger manipulation restrictions', if: -> { !test_db_is_superuser } do
-      before do
-        skip 'Requires non-superuser test_db (separate onetime_user role)' if test_db_is_superuser
-      end
-
+    context 'trigger manipulation restrictions' do
       it 'test_db cannot disable triggers (requires table ownership)' do
         expect {
           test_db.run("ALTER TABLE #{test_table} DISABLE TRIGGER #{test_trigger}")
