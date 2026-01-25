@@ -1,4 +1,5 @@
 // src/tests/schemas/models/public.spec.ts
+
 //
 // Tests for publicSecretOptionsSchema covering various configurations
 // that may be encountered from different deployment environments.

@@ -1,4 +1,5 @@
 <!-- src/apps/colonel/views/ColonelOrganizations.vue -->
+
 <!--
   Billing Health Monitor - Admin view for identifying organizations with billing sync issues.
   Design principles:

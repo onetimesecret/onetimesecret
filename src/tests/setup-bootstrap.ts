@@ -1,4 +1,5 @@
 // src/tests/setup-bootstrap.ts
+
 //
 // Test utilities for bootstrap state mocking.
 // Provides a unified approach using createTestingPinia and typed fixtures.

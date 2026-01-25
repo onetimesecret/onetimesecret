@@ -1,4 +1,5 @@
 <!-- src/apps/secret/components/SecretLinksTableRowSlotMachine.vue -->
+
 <!--
   Slot Machine variant: The entire row takes on the character of its state.
   Each row is a card with state-specific border and background treatment.

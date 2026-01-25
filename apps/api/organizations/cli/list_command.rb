@@ -1,5 +1,7 @@
 # apps/api/organizations/cli/list_command.rb
 #
+# frozen_string_literal: true
+
 # CLI command for listing and inspecting organizations.
 #
 # Usage:
@@ -8,7 +10,6 @@
 #   bin/ots organizations --customer cus_xxx       # Find org by Stripe customer ID
 #   bin/ots organizations --subscription sub_xxx   # Find org by Stripe subscription ID
 #
-# frozen_string_literal: true
 
 module Onetime
   module CLI

@@ -1,3 +1,5 @@
+# spec/unit/onetime/initializers/load_locales_spec.rb
+#
 # frozen_string_literal: true
 
 require 'spec_helper'

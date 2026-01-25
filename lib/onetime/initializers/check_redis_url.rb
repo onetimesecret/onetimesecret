@@ -1,4 +1,6 @@
 # lib/onetime/initializers/check_redis_url.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

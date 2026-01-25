@@ -1,5 +1,7 @@
 # lib/onetime/cli/customers_command.rb
 #
+# frozen_string_literal: true
+
 # CLI command for managing customer records including creation, listing, and validation.
 #
 # Usage:
@@ -8,7 +10,6 @@
 #   bin/ots customers --create user@example.com --role colonel  # Create admin
 #   bin/ots customers --check                          # Check for mismatches
 #
-# frozen_string_literal: true
 
 module Onetime
   module CLI

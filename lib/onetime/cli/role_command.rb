@@ -1,5 +1,7 @@
 # lib/onetime/cli/role_command.rb
 #
+# frozen_string_literal: true
+
 # CLI command for managing customer roles. This replaces the legacy config-based
 # colonel assignment with explicit role management via command line.
 #
@@ -9,8 +11,6 @@
 #   bin/ots role demote user@example.com               # Demote to customer
 #   bin/ots role list                                  # List all colonels
 #   bin/ots role list --role admin                     # List users with specific role
-#
-# frozen_string_literal: true
 
 module Onetime
   module CLI

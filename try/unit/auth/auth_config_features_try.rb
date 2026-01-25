@@ -1,8 +1,5 @@
 # try/unit/auth/auth_config_features_try.rb
 #
-# Tests for AuthConfig feature flag methods that read from YAML config.
-# Verifies the ENV → YAML → AuthConfig pipeline works correctly.
-#
 # frozen_string_literal: true
 
 require_relative '../../../lib/onetime'

@@ -1,4 +1,5 @@
 <!-- src/apps/secret/components/SecretLinksTableRowTimeline.vue -->
+
 <!--
   Timeline variant: Feed item for recent secrets with consistent layout across all states.
   States are communicated through status badges and subtle visual cues

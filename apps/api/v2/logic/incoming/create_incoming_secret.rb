@@ -1,23 +1,24 @@
 # apps/api/v2/logic/incoming/create_incoming_secret.rb
+#
+# frozen_string_literal: true
 
 require_relative '../base'
 
 module V2::Logic
   module Incoming
     class CreateIncomingSecret < V2::Logic::Base
-      attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase
-      attr_reader :metadata, :secret, :greenlighted
+      attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :metadata, :secret, :greenlighted
 
       def process_params
         # All parameters are passed in the :secret hash like other V2 endpoints
         @payload = params[:secret] || {}
-        raise_form_error "Incorrect payload format" if @payload.is_a?(String)
+        raise_form_error 'Incorrect payload format' if @payload.is_a?(String)
 
         incoming_config = OT.conf.dig(:features, :incoming) || {}
 
         # Extract and validate memo
         memo_max = incoming_config[:memo_max_length] || 50
-        @memo = @payload[:memo].to_s.strip[0...memo_max]
+        @memo    = @payload[:memo].to_s.strip[0...memo_max]
 
         # Extract secret value
         @secret_value = @payload[:secret].to_s
@@ -41,22 +42,22 @@ module V2::Logic
         # Check if feature is enabled
         incoming_config = OT.conf.dig(:features, :incoming) || {}
         unless incoming_config[:enabled]
-          raise_form_error "Incoming secrets feature is not enabled"
+          raise_form_error 'Incoming secrets feature is not enabled'
         end
 
         # Validate required fields (memo is optional)
-        raise_form_error "Secret content is required" if secret_value.empty?
-        raise_form_error "Recipient is required" if @recipient_hash.to_s.empty?
+        raise_form_error 'Secret content is required' if secret_value.empty?
+        raise_form_error 'Recipient is required' if @recipient_hash.to_s.empty?
 
         # Validate recipient hash exists and maps to valid email
         if @recipient_email.nil?
           OT.warn "[IncomingSecret] Invalid recipient hash attempted: #{@recipient_hash}"
-          raise_form_error "Invalid recipient"
+          raise_form_error 'Invalid recipient'
         end
 
         unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
           OT.le "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
-          raise_form_error "Invalid recipient configuration"
+          raise_form_error 'Invalid recipient configuration'
         end
 
         # Apply rate limits
@@ -106,7 +107,7 @@ module V2::Logic
         @metadata, @secret = V2::Secret.spawn_pair cust.custid, nil
 
         # Store incoming-specific fields
-        metadata.memo = memo
+        metadata.memo       = memo
         metadata.recipients = recipient_email
 
         # Apply passphrase if configured
@@ -119,11 +120,11 @@ module V2::Logic
         secret.encrypt_value secret_value, size: plan.options[:size]
 
         # Set TTLs
-        metadata.ttl = ttl * 2
-        secret.ttl = ttl
-        metadata.lifespan = metadata.ttl.to_i
+        metadata.ttl        = ttl * 2
+        secret.ttl          = ttl
+        metadata.lifespan   = metadata.ttl.to_i
         metadata.secret_ttl = secret.ttl.to_i
-        secret.lifespan = secret.ttl.to_i
+        secret.lifespan     = secret.ttl.to_i
 
         # Store shortkey in metadata
         metadata.secret_shortkey = secret.shortkey
@@ -142,7 +143,7 @@ module V2::Logic
 
         # Update global stats
         V2::Customer.global.increment_field :secrets_created
-        V2::Logic.stathat_count("Secrets", 1)
+        V2::Logic.stathat_count('Secrets', 1)
       end
 
       def send_recipient_notification
@@ -160,8 +161,8 @@ module V2::Logic
         metadata.deliver_by_email(anon_cust, locale, secret, recipient_email, klass)
 
         OT.info "[IncomingSecret] Email notification sent to #{OT::Utils.obscure_email(recipient_email)} for secret #{secret.key}"
-      rescue => e
-        OT.le "[IncomingSecret] Failed to send email notification: #{e.message}"
+      rescue StandardError => ex
+        OT.le "[IncomingSecret] Failed to send email notification: #{ex.message}"
         # Don't raise - email failure shouldn't prevent secret creation
       end
     end

@@ -1,4 +1,5 @@
 // src/tests/apps/workspace/components/forms/PrivacyOptionsBar.spec.ts
+
 //
 // Note: Workspace mode toggle tests moved to WorkspaceSecretForm.spec.ts
 // as the toggle was relocated to be near the Create Link button.

@@ -1,4 +1,5 @@
 // src/tests/shared/components/ui/SplitButton.spec.ts
+
 //
 // Tests for SplitButton.vue keyboard shortcut functionality:
 // - Keyboard hint visibility and platform-specific text

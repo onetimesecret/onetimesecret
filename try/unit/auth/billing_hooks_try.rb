@@ -1,7 +1,7 @@
 # try/unit/auth/billing_hooks_try.rb
 #
-# Tryouts for Auth::Config::Hooks::Billing
-#
+# frozen_string_literal: true
+
 # Tests the billing hooks that capture plan selection during auth flows
 # and build billing redirect info for JSON responses.
 #

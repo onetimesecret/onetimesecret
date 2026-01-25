@@ -1,7 +1,7 @@
-# apps/web/billing/lib/plan_resolver_try.rb
+# try/unit/billing/plan_resolver_try.rb
 #
-# Tryouts for Billing::PlanResolver
-#
+# frozen_string_literal: true
+
 # Tests plan resolution from URL params to checkout params.
 #
 # Run: bundle exec try apps/web/billing/lib/plan_resolver_try.rb
