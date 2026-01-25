@@ -358,7 +358,8 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
     context 'multiple expired tokens' do
       it 'cleans up all expired tokens in a single trigger execution' do
         # Disable trigger during setup to accumulate expired tokens
-        test_db.run('ALTER TABLE account_jwt_refresh_keys DISABLE TRIGGER trigger_cleanup_expired_tokens_extended')
+        # Use setup_db (elevated connection) since ALTER TABLE requires table ownership
+        setup_db.run('ALTER TABLE account_jwt_refresh_keys DISABLE TRIGGER trigger_cleanup_expired_tokens_extended')
 
         begin
           # Insert multiple expired JWT tokens
@@ -394,7 +395,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
           end
 
           # Re-enable trigger before inserting new token
-          test_db.run('ALTER TABLE account_jwt_refresh_keys ENABLE TRIGGER trigger_cleanup_expired_tokens_extended')
+          setup_db.run('ALTER TABLE account_jwt_refresh_keys ENABLE TRIGGER trigger_cleanup_expired_tokens_extended')
 
           # Insert new token to trigger cleanup
           new_key = SecureRandom.hex(32)
@@ -420,7 +421,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
           end
         ensure
           # Always re-enable trigger
-          test_db.run('ALTER TABLE account_jwt_refresh_keys ENABLE TRIGGER trigger_cleanup_expired_tokens_extended')
+          setup_db.run('ALTER TABLE account_jwt_refresh_keys ENABLE TRIGGER trigger_cleanup_expired_tokens_extended')
         end
       end
     end
@@ -626,6 +627,53 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
       expect(result).not_to be_empty
       expect(result.first[:relname]).to eq('account_authentication_audit_logs')
+    end
+  end
+
+  describe 'Privilege Separation (Security Model)' do
+    # Validates that the regular database user (test_db / onetime_user) cannot
+    # perform privileged DDL operations. This ensures proper security boundaries
+    # between application-level database access and administrative operations.
+
+    let(:test_table) { :account_jwt_refresh_keys }
+    let(:test_trigger) { :trigger_cleanup_expired_tokens_extended }
+
+    context 'trigger manipulation restrictions' do
+      it 'test_db cannot disable triggers (requires table ownership)' do
+        expect {
+          test_db.run("ALTER TABLE #{test_table} DISABLE TRIGGER #{test_trigger}")
+        }.to raise_error(Sequel::DatabaseError) do |error|
+          expect(error.cause).to be_a(PG::InsufficientPrivilege)
+        end
+      end
+
+      it 'test_db cannot enable triggers (requires table ownership)' do
+        expect {
+          test_db.run("ALTER TABLE #{test_table} ENABLE TRIGGER #{test_trigger}")
+        }.to raise_error(Sequel::DatabaseError) do |error|
+          expect(error.cause).to be_a(PG::InsufficientPrivilege)
+        end
+      end
+
+      it 'test_db cannot disable ALL triggers on a table' do
+        expect {
+          test_db.run("ALTER TABLE #{test_table} DISABLE TRIGGER ALL")
+        }.to raise_error(Sequel::DatabaseError) do |error|
+          expect(error.cause).to be_a(PG::InsufficientPrivilege)
+        end
+      end
+    end
+
+    context 'setup_db retains elevated privileges' do
+      # Confirms that setup_db (migration connection) CAN perform these operations,
+      # validating the dual-connection security model works as designed.
+
+      it 'setup_db can disable and re-enable triggers' do
+        expect {
+          setup_db.run("ALTER TABLE #{test_table} DISABLE TRIGGER #{test_trigger}")
+          setup_db.run("ALTER TABLE #{test_table} ENABLE TRIGGER #{test_trigger}")
+        }.not_to raise_error
+      end
     end
   end
 end

@@ -21,7 +21,7 @@
 require 'sequel'
 require 'logger'
 
-require 'onetime/logger_methods'
+require_relative '../../../lib/onetime/logger_methods'
 require_relative 'database'
 
 module Auth
