@@ -36,7 +36,7 @@ OT.boot! :test, false
 
 ## OT.boot! :test, false
 [OT.mode, OT.conf.class]
-#=> [:test, Hash]
+#=> [:test, Onetime::IndifferentHash]
 
 ## Has global secret
 Onetime.global_secret.nil?
