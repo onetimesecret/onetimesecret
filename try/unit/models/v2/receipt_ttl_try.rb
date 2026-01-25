@@ -1,0 +1,182 @@
+# try/unit/models/v2/receipt_ttl_try.rb
+#
+# frozen_string_literal: true
+
+# These tryouts test the V1::Controllers::Index.receipt_hsh method functionality.
+# The receipt_hsh method is responsible for transforming receipt records
+# into a structured hash with enhanced information.
+#
+# We're testing various aspects of the receipt_hsh method, including:
+# 1. Basic receipt transformation
+# 2. TTL handling (metadata_ttl, secret_ttl, and real TTL values)
+# 3. State-dependent field presence
+# 4. Optional parameter handling
+#
+# These tests aim to ensure that the receipt_hsh method correctly
+# processes receipt objects and produces the expected structured
+# hash output for the API response.
+
+require_relative '../../../support/test_models'
+
+require 'v1/controllers'
+
+OT.boot! :test, false
+
+# Setup
+@receipt, @secret = Onetime::Receipt.spawn_pair 'anon', 300, 'secret message' # 5 minutes
+
+## Basic receipt transformation (this doubles as a check for FlexibleHashAccess)
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+[result['custid'], result['metadata_key'], result['secret_key']]
+#=> [@receipt.custid, @receipt.key, @receipt.secret_key]
+
+## TTL handling - metadata_ttl is set to the real TTL value
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['metadata_ttl'].is_a?(Integer) && result['metadata_ttl'] > 0
+#=> true
+
+## TTL handling - ttl is set to the static value from db hash field
+@receipt.secret_ttl = 3600
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['ttl']
+#=> 3600
+
+## TTL handling - secret_ttl is nil when not provided
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['secret_ttl']
+#=> nil
+
+## TTL handling - secret_ttl is set when provided
+result = V1::Controllers::Index.receipt_hsh(@receipt, secret_ttl: 1800)
+result['secret_ttl']
+#=> 1800
+
+## State-dependent field presence - 'new' state
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+[result.key?('secret_key'), result.key?('secret_ttl'), result.key?('received')]
+#=> [true, true, false]
+
+## State-dependent field presence - 'received' state
+@receipt.state = 'received'
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+[result.key?('secret_key'), result.key?('secret_ttl'), result.key?('received')]
+#=> [false, false, true]
+
+## Optional parameter handling - value
+result = V1::Controllers::Index.receipt_hsh(@receipt, value: 'test_value')
+result['value']
+#=> 'test_value'
+
+## Optional parameter handling - passphrase_required (true)
+result = V1::Controllers::Index.receipt_hsh(@receipt, passphrase_required: true)
+result['passphrase_required']
+#=> true
+
+## Optional parameter handling - passphrase_required (false)
+result = V1::Controllers::Index.receipt_hsh(@receipt, passphrase_required: false)
+result['passphrase_required']
+#=> false
+
+## Handling nil custid
+@receipt.custid = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+# As of familia-2.0.0-pre18, nils are are JSON serialized to "null" which
+# means they now deserialize back to nils. In previous versions, the
+# expectation here was an empty string.
+result['custid']
+#=> nil
+
+## Handling nil secret_identifier
+@receipt.secret_identifier = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['secret_identifier']
+#=> nil
+
+## Handling nil state
+@receipt.state = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+# As of familia-2.0.0-pre18, nils are are JSON serialized to "null" which
+# means they now deserialize back to nils. In previous versions, the
+# expectation here was an empty string.
+result['state']
+#=> nil
+
+## Handling nil updated timestamp, is overridden when saved
+@receipt.updated = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['created'].positive?
+#=> true
+
+## Handling nil created timestamp, is overridden when saved
+@receipt.created = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['created'].positive?
+#=> true
+
+## Handling nil received timestamp
+@receipt.received = nil
+@receipt.state = 'received'
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['received']
+#=> 0
+
+## Handling nil recipients
+@receipt.recipients = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['recipient']
+#=> []
+
+## Handling nil secret_ttl in receipt
+@receipt.secret_ttl = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['ttl']
+#=> nil
+
+## Handling nil realttl
+class Onetime::Receipt
+  def current_expiration; nil; end
+end
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+p [:receipt_realttl, @receipt]
+class Onetime::Receipt
+  remove_method :current_expiration
+end
+result['metadata_ttl']
+#=> nil
+
+## Handling realttl
+## This follows the nil handler to demonstrate the overloaded method was removed.
+## The receipt was created with 300s secret TTL, so receipt TTL is 600s.
+## current_expiration returns remaining time, so should be positive and <= 600.
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['metadata_ttl'].is_a?(Integer) && result['metadata_ttl'] > 0
+#=> true
+
+## Handling nil secret_ttl option
+result = V1::Controllers::Index.receipt_hsh(@receipt, secret_ttl: nil)
+result['secret_ttl']
+#=> nil
+
+## Handling nil value option
+result = V1::Controllers::Index.receipt_hsh(@receipt, value: nil)
+result.key?(:value)
+#=> false
+
+## Handling nil passphrase_required option
+result = V1::Controllers::Index.receipt_hsh(@receipt, passphrase_required: nil)
+result.key?(:passphrase_required)
+#=> false
+
+
+# Teardown
+@receipt.destroy!
+@secret.destroy!

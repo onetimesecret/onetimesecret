@@ -1,17 +1,93 @@
 // src/router/public.routes.ts
 
-import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import { WindowService } from '@/services/window.service';
-import HomepageContainer from '@/views/HomepageContainer.vue';
+import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
+import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
+import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
+import TransactionalLayout from '@/shared/layouts/TransactionalLayout.vue';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { SCOPE_PRESETS } from '@/types/router';
 import { RouteRecordRaw } from 'vue-router';
 
-// Extend RouteRecordRaw meta to include our custom componentState
+// Extend RouteRecordRaw meta to include our custom componentMode
 declare module 'vue-router' {
   interface RouteMeta {
-    componentState?: string;
+    componentMode?: string;
   }
+}
+
+// Determine which homepage component mode to use
+function determineComponentMode(): string {
+  const bootstrapStore = useBootstrapStore();
+
+  if (!bootstrapStore.ui?.enabled) {
+    return 'disabled-ui';
+  }
+
+  const hasSession = document.cookie.includes('ots-session');
+
+  // Only show disabled-homepage if user has no session and one of:
+  //  - auth is required
+  //  - if homepage is in external mode
+  if (
+    !hasSession &&
+    (bootstrapStore.authentication?.required || bootstrapStore.homepage_mode === 'external')
+  ) {
+    console.debug('Homepage Mode disabled-homepage ' + bootstrapStore.homepage_mode);
+    return 'disabled-homepage';
+  }
+
+  return 'normal';
+}
+
+// Get layout props for the given component mode
+function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
+  const baseProps = {
+    displayMasthead: true,
+    displayNavigation: true,
+    displayFooterLinks: true,
+    displayFeedback: true,
+    displayPoweredBy: false,
+    displayVersion: true,
+    displayToggles: true,
+  };
+
+  let layoutProps = { ...baseProps };
+
+  // Apply component mode specific overrides
+  switch (componentMode) {
+    case 'disabled-ui':
+      layoutProps = {
+        ...layoutProps,
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFeedback: false,
+        displayVersion: false,
+      };
+      break;
+    case 'disabled-homepage':
+      layoutProps = {
+        ...layoutProps,
+        displayFeedback: false,
+        displayVersion: false,
+      };
+      break;
+  }
+
+  // Apply custom domain overrides if needed
+  // Custom domains get minimal layout - logo goes in content area, not MastHead
+  if (domainStrategy === 'custom') {
+    layoutProps = {
+      ...layoutProps,
+      displayMasthead: false, // Logo goes in page content for centered experience
+      displayNavigation: false,
+      displayFooterLinks: true, // Keep Terms/Privacy links
+      displayFeedback: false,
+      displayVersion: false,
+      displayPoweredBy: true, // Show "Powered by Onetime Secret"
+    };
+  }
+
+  return layoutProps;
 }
 
 const routes: Array<RouteRecordRaw> = [
@@ -20,12 +96,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Home',
     components: {
       default: HomepageContainer,
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: TransactionalHeader,
+      footer: TransactionalFooter,
     },
     meta: {
+      title: 'web.COMMON.title_home',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -35,117 +112,112 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
     beforeEnter: async (to) => {
-      // Use window service directly rather than the identity store
-      // since the routes start before the pinia stores.
-      const domainStrategy = WindowService.get('domain_strategy') as string;
+      const bootstrapStore = useBootstrapStore();
+      const domainStrategy = bootstrapStore.domain_strategy as string;
+      const componentMode = determineComponentMode();
+      const layoutProps = getLayoutPropsForMode(componentMode, domainStrategy);
+      const hasSession = document.cookie.includes('ots-session');
 
-      // Determine component state based on UI and authentication settings
-      let componentState = 'normal';
-
-      // Check if UI is completely disabled
-      const ui = WindowService.get('ui');
-      if (!ui?.enabled) {
-        componentState = 'disabled-ui';
-      } else {
-        // Check if authentication is required but user is not authenticated
-        const authentication = WindowService.get('authentication');
-        // For route-level checks, we need to check session existence rather than store state
-        const hasSession = document.cookie.includes('ots-session');
-
-        // Check homepage mode
-        const homepageMode = WindowService.get('homepage_mode');
-
-        // Show disabled-homepage if:
-        // 1. Auth is required AND user has no session
-        // 2. Homepage is in external mode (regardless of auth status)
-        if ((authentication?.required && !hasSession) || homepageMode === 'external') {
-          componentState = 'disabled-homepage';
-        }
-      }
-
-      // Store component state in meta for the container component
-      to.meta.componentState = componentState;
-
-      // Set layout props based on component state and domain strategy
-      let layoutProps = {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        displayToggles: true,
-      };
-
-      // Apply component state specific overrides
-      switch (componentState) {
-        case 'disabled-ui':
-          // DisabledUI layout: minimal header/nav
-          layoutProps = {
-            ...layoutProps,
-            displayMasthead: false,
-            displayNavigation: false,
-            displayFooterLinks: true,
-            displayFeedback: false,
-            displayPoweredBy: false,
-            displayVersion: false,
-            displayToggles: true,
-          };
-          break;
-        case 'disabled-homepage':
-          // DisabledHomepage layout: show header/nav but no feedback
-          layoutProps = {
-            ...layoutProps,
-            displayMasthead: true,
-            displayNavigation: true,
-            displayFooterLinks: true,
-            displayFeedback: false,
-            displayPoweredBy: false,
-            displayVersion: false,
-            displayToggles: true,
-          };
-          break;
-        case 'normal':
-        default:
-          // Normal homepage layout - keep defaults
-          break;
-      }
-
-      // Apply custom domain overrides if needed
-      if (domainStrategy === 'custom') {
-        layoutProps = {
-          ...layoutProps,
-          displayMasthead: true,
-          displayNavigation: false,
-          displayFooterLinks: false,
-          displayFeedback: false,
-          displayVersion: true,
-          displayPoweredBy: false,
-          displayToggles: true,
-        };
-      }
-
-      // Set the final layout props
+      to.meta.componentMode = componentMode;
       to.meta.layoutProps = {
         ...to.meta.layoutProps,
         ...layoutProps,
       };
+
+      // Scope visibility: show on canonical site for authenticated users only
+      // Custom domains never show scopes (the domain itself IS the scope)
+      if (domainStrategy !== 'custom' && hasSession) {
+        to.meta.scopesAvailable = SCOPE_PRESETS.showBoth;
+      } else {
+        to.meta.scopesAvailable = SCOPE_PRESETS.hideBoth;
+      }
     },
   },
   {
     path: '/feedback',
     name: 'Feedback',
-    component: () => import('@/views/Feedback.vue'),
+    component: () => import('@/apps/secret/support/Feedback.vue'),
     meta: {
+      title: 'web.TITLES.feedback',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayFooterLinks: true,
         displayFeedback: false,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  {
+    path: '/help',
+    name: 'Help',
+    component: () => import('@/apps/secret/support/Help.vue'),
+    meta: {
+      title: 'web.TITLES.help',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  {
+    path: '/pricing',
+    name: 'Pricing',
+    component: () => import('@/apps/secret/support/Pricing.vue'),
+    meta: {
+      title: 'web.TITLES.pricing',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: false, // Pricing page has its own feedback toggle
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  // Deep-link routes for external sites to link directly to specific plans
+  // URL pattern: /pricing/:product/:interval
+  // Examples: /pricing/identity_plus/month, /pricing/team_plus/year
+  // Resolves to plan ID: {product}_v{version}_{interval} (e.g., identity_plus_v1_monthly)
+  {
+    path: '/pricing/:product',
+    name: 'PricingProduct',
+    component: () => import('@/apps/secret/support/Pricing.vue'),
+    meta: {
+      title: 'web.TITLES.pricing',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: false,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  {
+    path: '/pricing/:product/:interval',
+    name: 'PricingProductInterval',
+    component: () => import('@/apps/secret/support/Pricing.vue'),
+    meta: {
+      title: 'web.TITLES.pricing',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: false,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
 ];

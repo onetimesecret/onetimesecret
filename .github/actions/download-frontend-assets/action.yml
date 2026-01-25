@@ -1,0 +1,185 @@
+# .github/actions/download-frontend-assets/action.yml
+---
+# ==============================================================================
+# Download Frontend Assets - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Downloads frontend build artifacts from a previous job and optionally
+# verifies they exist and are non-empty. Provides clear error messages
+# for common failure scenarios.
+#
+# Usage:
+#   # Basic usage with defaults
+#   - uses: ./.github/actions/download-frontend-assets
+#
+#   # Custom artifact name and path
+#   - uses: ./.github/actions/download-frontend-assets
+#     with:
+#       artifact-name: 'my-build'
+#       artifact-path: 'dist/'
+#       verify: 'true'
+#
+#   # Skip verification (useful for optional assets)
+#   - uses: ./.github/actions/download-frontend-assets
+#     with:
+#       verify: 'false'
+#
+# Error Scenarios:
+#   - Artifact not found: Check that build-assets job ran and succeeded
+#   - Empty artifact: Build may have failed silently
+#   - Permission denied: Check artifact retention settings
+#
+# Changelog:
+#   1.0.0 - Initial release extracted from setup-ruby-test-env
+# ==============================================================================
+
+name: Download Frontend Assets
+description: |
+  Downloads frontend build artifacts and verifies they exist.
+  Provides clear error messages for debugging CI failures.
+
+inputs:
+  artifact-name:
+    description: 'Name of the artifact to download'
+    required: false
+    default: 'frontend-build'
+  artifact-path:
+    description: 'Path to download artifacts to'
+    required: false
+    default: 'public/web/dist/'
+  verify:
+    description: 'Verify that downloaded assets exist and are non-empty'
+    required: false
+    default: 'true'
+  required-files:
+    description: 'Specific files to check for (one per line, optional)'
+    required: false
+    default: ''
+
+outputs:
+  downloaded:
+    description: 'Whether artifacts were successfully downloaded'
+    value: ${{ steps.download.outputs.downloaded }}
+  verified:
+    description: 'Whether verification passed (if enabled)'
+    value: ${{ steps.verify.outputs.verified }}
+  file-count:
+    description: 'Number of files in the artifact directory'
+    value: ${{ steps.verify.outputs.file_count }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download build artifacts
+      id: download
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      continue-on-error: true
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifact-path }}
+
+    - name: Check download result
+      id: check-download
+      shell: bash
+      run: |
+        if [ "${{ steps.download.outcome }}" = "success" ]; then
+          echo "downloaded=true" >> $GITHUB_OUTPUT
+          echo "::notice::Artifact '${{ inputs.artifact-name }}' downloaded to '${{ inputs.artifact-path }}'"
+        else
+          echo "downloaded=false" >> $GITHUB_OUTPUT
+          echo "::error::Failed to download artifact '${{ inputs.artifact-name }}'"
+          echo "::error::Possible causes:"
+          echo "::error::  1. The build-assets job did not run or failed"
+          echo "::error::  2. Artifact name mismatch (expected: '${{ inputs.artifact-name }}')"
+          echo "::error::  3. Artifact expired (check retention-days setting)"
+          echo "::error::  4. Job dependency issue (needs: [build-assets] missing?)"
+          exit 1
+        fi
+
+    - name: Verify downloaded assets
+      id: verify
+      if: inputs.verify == 'true'
+      shell: bash
+      run: |
+        ARTIFACT_PATH="${{ inputs.artifact-path }}"
+        REQUIRED_FILES="${{ inputs.required-files }}"
+
+        echo "::group::Verifying assets at $ARTIFACT_PATH"
+
+        # Check directory exists
+        if [ ! -d "$ARTIFACT_PATH" ]; then
+          echo "::error::Asset directory does not exist: $ARTIFACT_PATH"
+          echo "::error::This usually means the download failed silently"
+          echo "verified=false" >> $GITHUB_OUTPUT
+          echo "file_count=0" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+          exit 1
+        fi
+
+        # Check directory is not empty
+        FILE_COUNT=$(find "$ARTIFACT_PATH" -type f | wc -l | tr -d ' ')
+        echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+
+        if [ "$FILE_COUNT" -eq 0 ]; then
+          echo "::error::Asset directory is empty: $ARTIFACT_PATH"
+          echo "::error::The build may have failed without producing output"
+          echo "::error::Check the build-assets job logs for errors"
+          echo "verified=false" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+          exit 1
+        fi
+
+        echo "Found $FILE_COUNT file(s)"
+
+        # List files for debugging (limit to first 20)
+        echo "Contents:"
+        find "$ARTIFACT_PATH" -type f | head -20 | while read -r file; do
+          SIZE=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "?")
+          echo "  ${file#$ARTIFACT_PATH} (${SIZE} bytes)"
+        done
+
+        if [ "$FILE_COUNT" -gt 20 ]; then
+          echo "  ... and $((FILE_COUNT - 20)) more files"
+        fi
+
+        # Check required files if specified
+        if [ -n "$REQUIRED_FILES" ]; then
+          echo ""
+          echo "Checking required files:"
+          MISSING=0
+
+          while IFS= read -r required_file; do
+            # Skip empty lines and comments
+            if [ -z "$required_file" ] || [[ "$required_file" =~ ^# ]]; then
+              continue
+            fi
+
+            FULL_PATH="${ARTIFACT_PATH%/}/${required_file#/}"
+            if [ -f "$FULL_PATH" ]; then
+              echo "  ✓ $required_file"
+            else
+              echo "  ✗ $required_file (MISSING)"
+              MISSING=$((MISSING + 1))
+            fi
+          done <<< "$REQUIRED_FILES"
+
+          if [ "$MISSING" -gt 0 ]; then
+            echo "::error::$MISSING required file(s) missing from artifact"
+            echo "verified=false" >> $GITHUB_OUTPUT
+            echo "::endgroup::"
+            exit 1
+          fi
+        fi
+
+        echo "::endgroup::"
+        echo "verified=true" >> $GITHUB_OUTPUT
+        echo "::notice::Asset verification passed ($FILE_COUNT files)"
+
+    - name: Skip verification notice
+      if: inputs.verify != 'true'
+      shell: bash
+      run: |
+        echo "::notice::Asset verification skipped (verify=${{ inputs.verify }})"
+        echo "verified=skipped" >> $GITHUB_OUTPUT

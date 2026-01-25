@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Proč je toto tajemství nedostupné?",
+    "sha256": "bd545472"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Tajemství jsou navržena k zobrazení pouze jednou. Tento odkaz již mohl být otevřen, vypršel nebo byl ručně smazán odesílatelem.",
+    "sha256": "44c54ed2"
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Co mám teď dělat?",
+    "sha256": "fbf3e67f"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Kontaktuj osobu, která ti poslala tento odkaz, a požádej ji o vytvoření nového tajemství. Dej jí vědět, že ses k původním informacím nemohl dostat.",
+    "sha256": "d9f4f41a"
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Varování zavřeno",
+    "sha256": "e6d67409"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Zavřít varování o zkrácení",
+    "sha256": "79e02fe6"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Jejda! Stránka, kterou hledáš, neexistuje nebo byla přesunuta.",
+    "sha256": "78207a09"
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Stránka nenalezena",
+    "sha256": "27595daa"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Stránka nenalezena",
+    "sha256": "27595daa"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Zavřít varování",
+    "sha256": "9f6e4da3"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Zavřít oznámení",
+    "sha256": "b7bb3f34"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Pokud si nejsi jistý, co dělat dál, prosím kontaktuj osobu, která ti poslala tento odkaz, pro více informací.",
+    "sha256": "0df00d3f"
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Informace sdílené prostřednictvím naší služby lze otevřít pouze jednou. Po zobrazení je obsah trvale smazán z našich serverů, aby byla zajištěna důvěrnost. Tento přístup pomáhá chránit tvá citlivá data omezením jejich vystavení a prevencí neoprávněného přístupu.",
+    "sha256": "a3fd8283"
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Je nám líto, ale došlo k neočekávané chybě při zpracování tvého požadavku. Náš tým byl informován a pracujeme na opravě.",
+    "sha256": "f3b50965"
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Něco se pokazilo",
+    "sha256": "93529f24"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Jděte sdílet tajemství!",
+    "sha256": "04c04b1a"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Stránka, kterou hledáš, neexistuje nebo byla přesunuta. Neboj, stává se to i těm nejlepším z nás!",
+    "sha256": "e26522de"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Nelze načíst data kvůli problémům s formátem dat. Zkus to prosím později.",
+    "sha256": "a7b6f998"
+  }
+}

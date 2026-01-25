@@ -1,7 +1,11 @@
+# lib/middleware/detect_host.rb
+#
+# frozen_string_literal: true
+
+require 'ipaddr'
+require_relative 'logging'
+
 module Rack
-
-  require 'ipaddr'
-
   # Middleware to accurately detect the client's host in a Rack application.
   #
   # This middleware examines incoming HTTP requests and attempts to determine
@@ -74,6 +78,8 @@ module Rack
   # by trusted components.
   #
   class DetectHost
+    include Middleware::Logging
+
     # NOTE: CF-Visitor header only contains scheme information { "scheme": "https" }
     # and is not used for host detection
     unless defined?(HEADER_PRECEDENCE)
@@ -97,8 +103,6 @@ module Rack
       ].freeze
     end
 
-    attr_reader :logger
-
     # Class-level setting initialized from ENV variable
     @result_field_name = ENV['DETECTED_HOST'] || 'rack.detected_host'
 
@@ -109,16 +113,16 @@ module Rack
     # Initializes the middleware with the application and logging options.
     #
     # @param app [#call] The Rack application
-    # @param io [IO] IO object for logging (defaults to stderr)
+    # @param logger [Logger, nil] Optional logger instance to use
     # @return [void]
-    def initialize(app, io: $stderr)
-      @app = app
-      log_level = ::Logger::INFO
-      # Override with DEBUG level only when conditions are met
-      if defined?(OT) && OT.respond_to?(:debug?) && OT.debug?
-        log_level = ::Logger::DEBUG
-      end
-      @logger = ::Logger.new(io, level: log_level)
+    def initialize(app, logger: nil)
+      @app           = app
+      @custom_logger = logger
+    end
+
+    # Override logger to allow custom logger injection
+    def logger
+      @custom_logger || super
     end
 
     # Processes the request and determines the appropriate host.
@@ -134,12 +138,12 @@ module Rack
     # 5. Passes the request to the next middleware
     def call(env)
       result_field_name = self.class.result_field_name
-      detected_host = nil
+      detected_host     = nil
 
       # Try headers in order of precedence
       HEADER_PRECEDENCE.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        host = self.class.normalize_host(env[header_key])
+        host       = self.class.normalize_host(env[header_key])
         next if host.nil?
 
         if self.class.valid_domain_name?(host)
@@ -157,7 +161,7 @@ module Rack
 
       # Log indication if no valid host found in debug mode
       unless detected_host
-        logger.debug("[DetectHost] No valid host detected in request")
+        logger.debug('[DetectHost] No valid host detected in request')
       end
 
       # e.g. env['rack.detected_host'] = 'example.com'
@@ -165,8 +169,6 @@ module Rack
 
       @app.call(env)
     end
-
-    private
 
     module ClassMethods
       # Extracts and normalizes the host from a header value.
@@ -176,14 +178,14 @@ module Rack
       #
       # This method:
       # - Takes the first host if multiple are provided (comma-separated)
-      # - Removes any port numbers (e.g., example.com:8080 → example.com)
-      # - Converts to lowercase and removes surrounding whitespace
+      # - Delegates to DomainParser for port stripping and normalization
       # - Returns nil for empty values
       def normalize_host(value_unsafe)
-        host_with_port = value_unsafe.to_s.split(',').first.to_s
-        host = host_with_port.split(':').first.to_s.strip.downcase
-        return nil if host.empty?
-        host
+        # Handle comma-separated hosts (e.g., X-Forwarded-Host header)
+        first_host = value_unsafe.to_s.split(',').first.to_s
+
+        # Delegate core normalization to DomainParser
+        Onetime::Utils::DomainParser.extract_hostname(first_host)
       end
 
       # Determines if a string is a valid host for use in this application.
@@ -196,6 +198,7 @@ module Rack
       def valid_domain_name?(host)
         return false if INVALID_HOSTS.include?(host)
         return false if valid_ip?(host)
+
         true
       end
 
@@ -221,9 +224,9 @@ module Rack
 
         # Check for private IPv6 ranges
         elsif ip.ipv6?
-          fc00 = IPAddr.new("fc00::/7")
-          fe80 = IPAddr.new("fe80::/10")
-          loopback = IPAddr.new("::1/128")
+          fc00     = IPAddr.new('fc00::/7')
+          fe80     = IPAddr.new('fe80::/10')
+          loopback = IPAddr.new('::1/128')
 
           return fc00.include?(ip) || # Unique Local Addresses
                  fe80.include?(ip) || # Link-local addresses

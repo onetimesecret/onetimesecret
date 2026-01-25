@@ -1,0 +1,20 @@
+.. A new scriv changelog fragment.
+
+Added
+-----
+
+- Dashboard experience variants: The dashboard now adapts based on user capabilities and team count, showing appropriate views for free users, single-team users, and multi-team users.
+- Self-hosted feature parity: Full capabilities granted when billing is disabled for opensource/self-hosted installations.
+- Team-count driven UX with onboarding flow for users with no teams.
+
+Changed
+-------
+
+- Renamed TeamDashboard component to TeamView for naming consistency.
+- API parameter access standardized from symbol keys to string keys across account, teams, and secrets APIs.
+- Team updates now use PUT instead of PATCH for full resource replacement semantics.
+
+AI Assistance
+-------------
+
+- Claude assisted with dashboard variant architecture, capability-based routing, and component refactoring.

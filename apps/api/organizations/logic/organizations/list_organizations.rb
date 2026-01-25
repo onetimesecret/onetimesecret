@@ -1,0 +1,46 @@
+# apps/api/organizations/logic/organizations/list_organizations.rb
+#
+# frozen_string_literal: true
+
+module OrganizationAPI::Logic
+  module Organizations
+    class ListOrganizations < OrganizationAPI::Logic::Base
+      attr_reader :organizations
+
+      def process_params
+        # No parameters needed - lists all organizations for current user
+      end
+
+      def raise_concerns
+        # Require authenticated user
+        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+      end
+
+      def process
+        OT.ld "[ListOrganizations] Listing organizations for user #{cust.extid}"
+
+        # Use Familia v2 reverse collection method
+        @organizations = cust.organization_instances
+
+        # Fallback if reverse lookup not working - use org: prefix (not organization:)
+        if @organizations.empty? && !cust.participations.empty?
+          org_keys       = cust.participations.to_a.select { |k| k.start_with?('org:') && k.end_with?(':members') }
+          org_ids        = org_keys.map { |k| k.split(':')[1] }.uniq
+          @organizations = Onetime::Organization.load_multi(org_ids).compact if org_ids.any?
+        end
+
+        OT.ld "[ListOrganizations] Found #{@organizations.size} organizations"
+
+        success_data
+      end
+
+      def success_data
+        {
+          user_id: cust.extid,
+          records: organizations.map { |org| serialize_organization(org) },
+          count: organizations.length,
+        }
+      end
+    end
+  end
+end

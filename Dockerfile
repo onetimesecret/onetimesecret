@@ -2,7 +2,7 @@
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE (2025-11-27)
+# ONETIME SECRET - DOCKER IMAGE
 #
 # Multi-stage build optimized for production deployment.
 # See docs/docker.md for detailed usage instructions.
@@ -54,32 +54,45 @@
 #     # View application logs
 #     $ docker logs onetime-app
 
+ARG APP_DIR=/app
+ARG PUBLIC_DIR=/app/public
+ARG VERSION
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:1ca19bf218752c371039ebe6c8a1aa719cd6e6424b32d08faffdb2a6938f3241
+ARG NODE_IMAGE_TAG=22@sha256:23c24e85395992be118734a39903e08c8f7d1abc73978c46b6bda90060091a49
 
 ##
-# BUILDER LAYER
+# NODE: Node.js source for copying binaries
+#
+FROM docker.io/library/node:${NODE_IMAGE_TAG} AS node
+
+##
+# BASE: System dependencies and tools
 #
 # Installs system packages, updates RubyGems, and prepares the
 # application's package management dependencies using a Debian
-# Ruby 3 base image.
+# Ruby 3.4 base image.
 #
-ARG CODE_ROOT=/app
-ARG ONETIME_HOME=/opt/onetime
-ARG VERSION
+FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS base
 
-FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:6785e74b2baeb6a876abfc2312b590dac1ecd1a2fe25fe57c3aa4d9ad53224d7 AS base
-
-# Limit to packages needed for the system itself
-ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git curl"
-
-# Fast fail on errors while installing system packages
-RUN set -eux \
-  && apt-get update \
-  && apt-get install -y $PACKAGES \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+# Install system packages in a single layer
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        libssl-dev \
+        libffi-dev \
+        libyaml-dev \
+        libsqlite3-dev \
+        libpq-dev \
+        pkg-config \
+        git \
+        curl \
+        python3 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 # Install yq (optimized for multi-arch)
-# Used for migrating config from symbol keys to string keys (v0.22 to v0.23+)
+# We use this for migrating config from v0.22 to v0.23.
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
@@ -92,143 +105,301 @@ RUN set -eux && \
     chmod +x /usr/local/bin/yq && \
     yq --version
 
-# Copy Node.js and npm from the official image
-COPY --from=docker.io/library/node:22@sha256:cd7bcd2e7a1e6f72052feb023c7f6b722205d3fcab7bbcbd2d1bfdab10b1e935 /usr/local/bin/node /usr/local/bin/
-COPY --from=docker.io/library/node:22@sha256:cd7bcd2e7a1e6f72052feb023c7f6b722205d3fcab7bbcbd2d1bfdab10b1e935 /usr/local/lib/node_modules /usr/local/lib/node_modules
+# Copy Node.js binaries (more efficient than full copy)
+COPY --from=node \
+    /usr/local/bin/node \
+    /usr/local/bin/
 
-# Create necessary symlinks
-RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-  && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+COPY --from=node \
+    /usr/local/lib/node_modules/npm \
+    /usr/local/lib/node_modules/npm
 
-# Verify Node.js and npm installation
-RUN node --version && npm --version
-
-# Install necessary tools
-RUN set -eux \
-  && gem install bundler \
-  && npm install -g pnpm
+# Create symlinks and install package managers
+RUN set -eux && \
+    ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
+    node --version && npm --version && \
+    npm install -g pnpm && \
+    pnpm --version
 
 ##
-# DEPENDENCIES LAYER
+# DEPENDENCIES: Install application dependencies
 #
 # Sets up the necessary directories, installs additional
 # system packages for userland, and installs the application's
 # dependencies using the Base Layer as a starting point.
 #
-FROM base AS app_deps
-ARG CODE_ROOT
-ARG ONETIME_HOME
-ARG VERSION
+FROM base AS dependencies
+ARG APP_DIR
 
-# Create the directories that we need in the following image
-RUN set -eux \
-  && echo "Creating directories" \
-  && mkdir -p $CODE_ROOT $ONETIME_HOME/{log,tmp}
+WORKDIR ${APP_DIR}
+ENV NODE_PATH=${APP_DIR}/node_modules
 
-WORKDIR $CODE_ROOT
+# Copy dependency manifests
+COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
-ENV NODE_PATH=$CODE_ROOT/node_modules
+# Install Ruby dependencies
+# BUNDLE_WITHOUT excludes dev/test/optional gems from production image
+ENV BUNDLE_WITHOUT="development:test:optional"
 
-# Install the dependencies into the environment image
-COPY Gemfile Gemfile.lock ./
-COPY package.json pnpm-lock.yaml ./
-
-RUN set -eux \
-  && bundle config set --local without 'development test' \
-  && bundle update --bundler \
-  && bundle install
-
-# Put the npm depdenencies in a separate layer to avoid
-# rebuilding the gems when the package.json is updated.
-RUN set -eux \
-  && pnpm install --frozen-lockfile
-
-##
-# BUILD LAYER
-#
-FROM app_deps AS build
-ARG CODE_ROOT
-ARG VERSION
-
-WORKDIR $CODE_ROOT
-
-COPY public $CODE_ROOT/public
-COPY templates $CODE_ROOT/templates
-COPY src $CODE_ROOT/src
-COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.ts ./
-
-# Remove pnpm after use
-RUN set -eux \
-  && pnpm run build \
-  && pnpm prune --prod \
-  && rm -rf node_modules \
-  && npm uninstall -g pnpm
-
-# Create both version and commit hash files while we can
-RUN VERSION=$(node -p "require('./package.json').version") \
-    && mkdir -p /tmp/build-meta \
-    && echo "VERSION=$VERSION" > /tmp/build-meta/version_env \
-    && if [ ! -f /tmp/build-meta/commit_hash.txt ]; then \
-      date -u +%s > /tmp/build-meta/commit_hash.txt; \
-    fi
-
-##
-# APPLICATION LAYER (FINAL)
-#
-FROM ruby:3.4-slim-bookworm@sha256:fdadeae7d74a179b236dc991a43958c5f09545569d0d8df89051d14f9ee40c15 AS final
-ARG CODE_ROOT
-ARG VERSION
-LABEL org.opencontainers.image.version=$VERSION
-
-WORKDIR $CODE_ROOT
-
-## Copy only necessary files from previous stages
-COPY --from=base /usr/local/bin/yq /usr/local/bin/yq
-COPY --from=build /usr/local/bundle /usr/local/bundle
-COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
-COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
-COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
-COPY bin $CODE_ROOT/bin
-COPY apps $CODE_ROOT/apps
-COPY etc $CODE_ROOT/etc
-COPY lib $CODE_ROOT/lib
-COPY scripts/entrypoint.sh ./bin/
-COPY scripts/check-migration-status.sh ./bin/
-COPY scripts/update-version.sh ./bin/
-COPY migrations $CODE_ROOT/migrations
-COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
-
-# Copy build stage metadata files
-COPY --from=build /tmp/build-meta/commit_hash.txt $CODE_ROOT/.commit_hash.txt
-
-# See: https://fly.io/docs/rails/cookbooks/deploy/
-ENV RUBY_YJIT_ENABLE=1
-
-# Explicitly setting the Rack environment to production directs
-# the application to use the pre-built JS/CSS assets in the
-# "public/web/dist" directory. In dev mode, the application
-# expects a vite server to be running on port 5173 and will
-# attempt to connect to that server for each request.
-#
-#   $ pnpm run dev
-#   VITE v5.3.4  ready in 38 ms
-#
-#   ➜  Local:   http://localhost:5173/dist/
-#   ➜  Network: use --host to expose
-#   ➜  press h + enter to show help
-#
-ENV RACK_ENV=production
-
-WORKDIR $CODE_ROOT
-
-# Copy the default config file into place if it doesn't
-# already exist. If it does exist, nothing happens. For
-# example, if the config file has been previously copied
-# (and modified) the "--no-clobber" argument prevents
-# those changes from being overwritten.
 RUN set -eux && \
-    cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
-    chmod +x bin/entrypoint.sh bin/check-migration-status.sh
+    bundle install --jobs "$(nproc)" --retry=3 && \
+    bundle binstubs puma --force && \
+    bundle clean --force
+
+# Install Node.js dependencies (separate layer for better caching)
+RUN set -eux && \
+    pnpm install --frozen-lockfile --prod=false
+
+##
+# BUILD: Compile and prepare application assets
+#
+FROM dependencies AS build
+ARG APP_DIR
+ARG VERSION
+ARG COMMIT_HASH
+
+WORKDIR ${APP_DIR}
+
+# Copy application source
+COPY public ./public
+COPY src ./src
+COPY locales ./locales
+COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
+     tailwind.config.ts eslint.config.ts ./
+
+# Build application and generate schema
+RUN set -eux && \
+    pnpm run build && \
+    pnpm prune --prod && \
+    rm -rf node_modules ~/.npm ~/.pnpm-store && \
+    npm uninstall -g pnpm
+
+# Generate build metadata
+# COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
+# For local builds without the arg, falls back to "dev".
+RUN set -eux && \
+    VERSION=$(node -p "require('./package.json').version") && \
+    mkdir -p /tmp/build-meta && \
+    echo "VERSION=${VERSION}" > /tmp/build-meta/version_env && \
+    echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
+    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
+
+##
+# FINAL-S6: Production image with S6 overlay for multi-process supervision
+#
+# Build with: docker build --target final-s6 -t onetimesecret:s6 .
+#
+# This stage provides:
+# - S6 overlay v3.2.0.2 for process supervision
+# - Automatic service restart on crash
+# - Graceful shutdown coordination
+# - Service dependency management
+# - Runs web + scheduler + worker in single container
+#
+# See docker/s6/README.md for usage and deployment patterns.
+#
+FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final-s6
+ARG APP_DIR
+ARG PUBLIC_DIR
+ARG VERSION
+ARG S6_OVERLAY_VERSION=3.2.0.2
+
+LABEL org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.title="OneTime Secret (S6)" \
+      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time. Multi-process supervised container." \
+      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+# Install system packages + S6 dependencies
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsqlite3-0 \
+        libpq5 \
+        curl \
+        xz-utils \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+# Install S6 overlay
+RUN set -eux && \
+    ARCH=$(dpkg --print-architecture) && \
+    case "$ARCH" in \
+        amd64) S6_ARCH="x86_64" ;; \
+        arm64) S6_ARCH="aarch64" ;; \
+        armhf) S6_ARCH="armhf" ;; \
+        *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
+    esac && \
+    cd /tmp && \
+    curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" -o s6-overlay-noarch.tar.xz && \
+    curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" -o s6-overlay-arch.tar.xz && \
+    tar -C / -Jxpf s6-overlay-noarch.tar.xz && \
+    tar -C / -Jxpf s6-overlay-arch.tar.xz && \
+    rm -f s6-overlay-*.tar.xz
+
+WORKDIR ${APP_DIR}
+
+# Create non-root user
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
+
+# Copy runtime essentials from build stages
+COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
+COPY --from=dependencies /usr/local/bundle /usr/local/bundle
+
+# Copy application files
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/generated ./generated
+COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
+
+# Copy runtime files
+COPY --chown=appuser:appuser bin ./bin
+COPY --chown=appuser:appuser apps ./apps
+COPY --chown=appuser:appuser etc/ ./etc/
+COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser migrations ./migrations
+COPY --chown=appuser:appuser scripts/entrypoint*.sh ./bin/
+COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
+COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+
+# Copy S6 service definitions (as root for proper ownership)
+COPY --chown=root:root scripts/s6-rc.d /etc/s6-overlay/s6-rc.d
+
+# Set permissions on service scripts
+RUN find /etc/s6-overlay/s6-rc.d -type f -name "run" -exec chmod +x {} \; && \
+    find /etc/s6-overlay/s6-rc.d -type f -name "finish" -exec chmod +x {} \; && \
+    find /etc/s6-overlay/s6-rc.d -type f -name "up" -exec chmod +x {} \;
+
+# Set production environment
+ENV RACK_ENV=production \
+    ONETIME_HOME=${APP_DIR} \
+    PUBLIC_DIR=${PUBLIC_DIR} \
+    RUBY_YJIT_ENABLE=1 \
+    SERVER_TYPE=puma \
+    BUNDLE_WITHOUT="development:test:optional" \
+    PATH=${APP_DIR}/bin:$PATH
+
+# S6 configuration
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
+    S6_VERBOSITY=2
+
+# Ensure config files exist
+RUN set -eux && \
+    for file in etc/defaults/*.defaults.*; do \
+        if [ -f "$file" ]; then \
+            target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
+            cp --preserve --no-clobber "$file" "$target"; \
+        fi; \
+    done && \
+    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    chmod +x bin/entrypoint.sh bin/update-version.sh
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD s6-svstat /run/service/web && curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+
+# Run as non-root user
+USER appuser
+
+# S6 overlay entrypoint
+# Default: Starts all services defined in s6-rc.d/user bundle (web + scheduler + worker)
+# Override with command: ["bin/entrypoint.sh"] for web-only
+ENTRYPOINT ["/init"]
+CMD []
+
+##
+# FINAL: Production-ready application image (DEFAULT)
+#
+# This is the default build target when no --target is specified.
+# For S6 multi-process supervision, use: docker build --target final-s6
+#
+FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
+ARG APP_DIR
+ARG PUBLIC_DIR
+ARG VERSION
+
+LABEL org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.title="OneTime Secret" \
+      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
+      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsqlite3-0 \
+        libpq5 \
+        curl \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+WORKDIR ${APP_DIR}
+
+# Create non-root user for security
+# Note: nologin shell blocks SSH/su, but docker exec still works for debugging:
+#   docker exec -it container /bin/sh
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
+
+# Copy only runtime essentials from build stages
+COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
+COPY --from=dependencies /usr/local/bundle /usr/local/bundle
+
+# Copy application files (using --chown to avoid extra layer)
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/generated ./generated
+COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
+
+# Copy runtime files
+COPY --chown=appuser:appuser bin ./bin
+COPY --chown=appuser:appuser apps ./apps
+COPY --chown=appuser:appuser etc/ ./etc/
+COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser migrations ./migrations
+COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
+COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+
+# Set production environment
+ENV RACK_ENV=production \
+    ONETIME_HOME=${APP_DIR} \
+    PUBLIC_DIR=${PUBLIC_DIR} \
+    RUBY_YJIT_ENABLE=1 \
+    SERVER_TYPE=puma \
+    BUNDLE_WITHOUT="development:test:optional" \
+    PATH=${APP_DIR}/bin:$PATH
+
+# Ensure config files exist (preserve existing if mounted)
+# Copies all default config files from etc/defaults/*.defaults.* to etc/*
+# removing the .defaults suffix. For example:
+#   etc/defaults/config.defaults.yaml -> etc/config.yaml
+#   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
+#   etc/defaults/logging.defaults.yaml -> etc/logging.yaml
+# The --no-clobber flag ensures existing files are not overwritten.
+RUN set -eux && \
+    for file in etc/defaults/*.defaults.*; do \
+        if [ -f "$file" ]; then \
+            target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
+            cp --preserve --no-clobber "$file" "$target"; \
+        fi; \
+    done && \
+    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    chmod +x bin/entrypoint.sh bin/update-version.sh
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+
+# Run as non-root user
+USER appuser
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
@@ -242,8 +413,4 @@ RUN set -eux && \
 # 3. Using the CMD instruction in the Dockerfile provides a fallback
 # command, which can be useful if no specific command is set in the
 # Docker Compose configuration.
-
-# Rack app
-EXPOSE 3000
-
 CMD ["bin/entrypoint.sh"]

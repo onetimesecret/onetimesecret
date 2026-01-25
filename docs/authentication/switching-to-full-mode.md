@@ -1,0 +1,306 @@
+# Switching from Simple to Full Auth Mode
+
+**Last Updated:** 2025-10-23
+
+## Overview
+
+OneTimeSecret supports two authentication modes:
+
+- **Simple Mode**: Lightweight authentication managed by Core app using Redis sessions
+- **Full Mode**: Full-featured authentication using Rodauth with SQL database
+
+Full mode enables:
+- RDBMS requirement
+- Multi-factor authentication (TOTP, WebAuthn)
+- Passwordless login (magic links, security keys)
+- Password reset functionality
+- Enhanced security features (lockout, active sessions)
+- Audit logging
+
+## Prerequisites
+
+Before switching modes:
+
+1. **Database Setup**: Configure a SQL database (SQLite or PostgreSQL)
+2. **Backup**: Back up your Redis data
+3. **Downtime Window**: Plan for brief service interruption during migration
+4. **Testing**: Test full mode in non-production environment first
+
+## Migration Steps
+
+### 1. Configure Database Connection
+
+See etc/auth.yaml
+
+
+### 2. Database Migrations (Automatic)
+
+**Migrations run automatically on first boot** when full auth mode is enabled.
+
+The application will:
+1. Detect missing schema on startup
+2. Run all Rodauth migrations automatically
+3. Create necessary tables, indexes, functions, and triggers
+4. Log migration progress to application logs
+
+
+**PostgreSQL-specific setup (one-time, before first boot):**
+
+For PostgreSQL, create the database and roles first:
+
+```bash
+psql -U postgres -h localhost -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql
+```
+
+This creates:
+- Database `onetime_auth`
+- Role `onetime_migrator` (elevated privileges for migrations)
+- Role `onetime_user` (restricted privileges for runtime)
+
+Then configure environment variables:
+
+```bash
+export AUTHENTICATION_MODE=full
+export AUTH_DATABASE_URL=postgresql://onetime_user:pass@localhost/onetime_auth
+export AUTH_DATABASE_URL_MIGRATIONS=postgresql://onetime_migrator:pass@localhost/onetime_auth
+```
+
+**SQLite:** No pre-setup needed. Database file created automatically.
+
+**Manual migrations (optional):**
+
+If you prefer to run migrations manually before boot:
+
+```bash
+sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
+```
+
+To disable automatic migrations: `export SKIP_AUTH_MIGRATIONS=true`
+
+### 3. Sync Existing Customer Accounts
+
+Migrate customer records from Redis to the SQL database:
+
+```bash
+# Preview what will be migrated (dry-run mode)
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts
+
+# Execute the synchronization
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
+
+# Verbose output for detailed progress
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run -v
+```
+
+**What the sync command does:**
+- Creates account records in SQL for all Redis customers
+- Links accounts via `external_id` field (maps to customer `extid`)
+- Sets verification status based on customer state
+- Skips anonymous customers automatically
+- Idempotent: safe to run multiple times
+
+**Expected output:**
+```
+Auth Account Synchronization Tool
+============================================================
+
+Discovered 1,234 customers in Redis
+
+DRY RUN MODE - No changes will be made
+To execute synchronization, run with --run flag
+
+Progress: 1234/1234 customers processed
+
+============================================================
+Synchronization Preview
+============================================================
+
+Statistics:
+  Total customers:     1234
+  Skipped (anonymous): 2
+  Skipped (existing):  0
+  Linked:              0
+  Created:             1232
+```
+
+### 4. Verify Account Migration
+
+Check that accounts were created correctly:
+
+```bash
+# For SQLite
+sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts;"
+sqlite3 data/auth.db "SELECT id, email, external_id, status_id FROM accounts LIMIT 5;"
+
+# For PostgreSQL
+psql -U user -d onetime_auth -c "SELECT COUNT(*) FROM accounts;"
+psql -U user -d onetime_auth -c "SELECT id, email, external_id, status_id FROM accounts LIMIT 5;"
+```
+
+Verify external_id linking:
+
+```bash
+# Check that accounts have external_id populated
+sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts WHERE external_id IS NULL;"
+# Should return 0
+```
+
+### 5. Switch to Full Mode
+
+Update your configuration:
+
+```yaml
+# etc/config.yaml
+authentication:
+  mode: full
+  database_url: sqlite://data/auth.db
+  session:
+    expire_after: 86400  # 24 hours
+```
+
+Or via environment:
+
+```bash
+export AUTHENTICATION_MODE=full
+```
+
+### 6. Restart Application
+
+```bash
+# Stop current process
+pkill -f puma
+
+# Start with full mode
+AUTHENTICATION_MODE=full bundle exec puma -C config/puma.rb
+```
+
+### 7. Verify Authentication Works
+
+Test the authentication flow:
+
+1. **Login Test**: Log in with existing customer credentials
+2. **Session Check**: Verify session persistence across requests
+3. **Logout Test**: Confirm logout functionality
+4. **Registration Test**: Create new account (if enabled)
+
+Check Auth routes are mounted:
+
+```bash
+curl -I http://localhost:7143/auth/login
+# Should return 200 or redirect, not 404
+```
+
+### 8. Enable Advanced Features (Optional)
+
+After successful migration, configure advanced features:
+
+**MFA (TOTP):**
+```ruby
+# apps/web/auth/config/features.rb
+enable :otp, :recovery_codes
+```
+
+**WebAuthn (Security Keys):**
+```ruby
+enable :webauthn, :webauthn_login
+```
+
+**Magic Links:**
+```ruby
+enable :email_auth
+```
+
+Restart the application after enabling new features.
+
+## Rollback Procedure
+
+If issues occur, revert to simple mode:
+
+1. Stop the application
+2. Change config: `authentication.mode: simple`
+3. Restart application
+4. Customer data remains in Redis (unchanged)
+
+**Note:** Accounts created during full mode will remain in SQL database but won't be used in simple mode.
+
+## Troubleshooting
+
+### Sync Command Shows "Advanced auth mode is not enabled"
+
+**Cause:** `AUTHENTICATION_MODE` not set or set to `simple`
+**Solution:** Run with `AUTHENTICATION_MODE=full` prefix
+
+### Database Connection Errors
+
+**Cause:** `DATABASE_URL` not configured or database doesn't exist
+**Solution:**
+- Verify database URL in config or environment
+- Create database if it doesn't exist
+- Check database permissions
+
+### Customers Can't Log In After Switch
+
+**Cause:** Accounts not synced or external_id mismatch
+**Solution:**
+```bash
+# Re-run sync to fix links
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
+
+# Check specific account
+sqlite3 data/auth.db "SELECT * FROM accounts WHERE email='user@example.com';"
+```
+
+### Session Not Persisting
+
+**Cause:** Session store mismatch between modes
+**Solution:** Clear Redis sessions and have users log in again:
+```bash
+redis-cli KEYS "session:*" | xargs redis-cli DEL
+```
+
+## Post-Migration Tasks
+
+1. **Monitor Logs**: Watch for authentication errors in first 24 hours
+2. **Update Documentation**: Document any custom auth configuration
+3. **Backup Database**: Add SQL database to backup routine
+4. **Performance**: Monitor database query performance
+5. **Security Audit**: Review enabled Rodauth features and configuration
+
+## Maintenance
+
+### Running Sync Again (Idempotent)
+
+Safe to run sync command multiple times:
+
+```bash
+# Adds any new customers created since last sync
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
+```
+
+### Checking Sync Status
+
+Compare Redis and SQL counts:
+
+```bash
+# Redis customer count
+redis-cli ZCARD customer:instances
+
+# SQL account count
+sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts WHERE status_id IN (1, 2);"
+```
+
+### Handling New Features
+
+When enabling new Rodauth features:
+
+1. Check if additional migrations needed
+2. Update feature configuration in `apps/web/auth/config/features.rb`
+3. Test in development first
+4. Restart application in production
+
+## See Also
+
+- [MFA Recovery Workflow](mfa-recovery.md)
+- [Magic Link MFA Flow](magic-link-mfa-flow.md)
+- Rodauth Documentation: http://rodauth.jeremyevans.net
+- Auth Configuration: `apps/web/auth/config/`

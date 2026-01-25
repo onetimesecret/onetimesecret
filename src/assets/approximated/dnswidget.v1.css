@@ -1,0 +1,435 @@
+.apxdnswidget {
+    --text-color: #333;
+    --light-text-color: #666;
+    --link-text-color: rgb(46, 90, 173);
+    --main-bg-color: transparent;
+    --shaded-bg-color: #FAFAFA;
+    --shaded-border: 1px solid #EEE;
+    --button-bg-color: #333;
+    --button-text-color: #FFF;
+    --radius: 5px;
+    --widget-max-width: 600px;
+    --border-color: #EEE;
+    background-color: var(--main-bg-color);
+    display: grid;
+    grid-column: 1;
+    row-gap: 1.5rem;
+    width: 100%;
+    max-width: var(--widget-max-width);
+}
+
+.apxdnswidget input {
+    height: 2.2rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.apxdnswidget input:focus {
+    outline: none;
+}
+
+.apxdnswidget ol, .apxdnswidget ul {
+    padding-left: 0;
+    margin: 0;
+}
+
+.apxdnswidget a {
+    text-decoration: none;
+}
+
+.apxdnswidget .apxdns-domain-tld-container {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.apxdnswidget .apxdns-domain-header {
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
+.apxdnswidget .apxdns-domain-input-label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.apxdnswidget .apxdns-domain-explainer {
+    font-size: 0.8rem;
+    color: var(--light-text-color);
+    margin-top: 0.5rem;
+}
+
+.apxdnswidget .apxdns-domain-tld-container input {
+    border-radius: var(--radius);
+    outline: none;
+    border: 1px solid #CCC;
+    width: 100%;
+}
+
+.apxdnswidget .apxdns-domain-tld-container input:focus {
+    outline: none;
+    border: 1px solid #333;
+    box-shadow: none;
+}
+
+.apxdnswidget .apxdns-text-btn {
+    background: none;
+    color: var(--light-text-color);
+    border: none;
+    outline: none;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.apxdnswidget .apxdns-button {
+    border: 1px solid var(--button-bg-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius);
+    font-weight: 700;
+    color: var(--button-text-color);
+    background-color: var(--button-bg-color);
+}
+
+.apxdnswidget .apxdns-instruction {
+    padding-top: 1.5rem;
+    border-top: 1px solid #EEE;
+}
+
+.apxdnswidget .apxdns-inst-heading {
+    font-weight: 700;
+}
+
+.apxdnswidget .apxdns-inst-body {
+    margin-top: 0.3rem;
+
+}
+
+
+.apxdnswidget ol.apxdns-inst-numbered-substeps {
+    list-style-type: decimal;
+    list-style-position: inside;
+}
+
+.apxdnswidget li.apxdns-inst-numbered-substep {
+    vertical-align: middle;
+    line-height: 100%;
+    padding-top: 1rem;
+    padding-bottom: 0;
+    list-style-position: outside;
+    margin-left: 1rem;
+    line-height: 1.6rem;
+}
+
+.apxdnswidget .apxdns-input-copy-container {
+    display: grid;
+    grid-template-columns: 200px auto;
+    grid-auto-rows: 1fr;
+    width: fit-content;
+    gap: 0;
+    align-items: center;
+}
+
+.apxdnswidget .apxdns-input-copy-container input {
+    background-color: #FFF;
+    border-radius: 5px 0 0 5px;
+    text-align: left;
+    width: 200px;
+    margin-right: 0;
+    line-height: normal;
+    box-sizing: border-box;
+    border-right: none;
+}
+
+.apxdnswidget .apxdns-input-copy-container .apxdns-copy-button {
+    border: 1px solid var(--button-bg-color);
+    border-left: none;
+    border-radius: 0 5px 5px 0;
+    color: var(--button-text-color);
+    margin-left: 0;
+    line-height: normal;
+    font-size: 0.8rem;
+    background-color: var(--button-bg-color);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    height: 2.2rem;
+    box-sizing: border-box;
+    cursor:pointer;
+}
+
+.apxdnswidget .apxdns-inst-actions-section {
+    margin-top: 1rem;
+}
+
+.apxdnswidget .apxdns-provider-login-btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius);
+    border: 1px solid #CCC;
+    color: #666;
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.apxdnswidget .apxdns-provider-inline-logo {
+    max-height: 1.2rem;
+    height: 100%;
+    display: inline-block;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.apxdnswidget .apxdns-provider-login-btn-logo {
+    max-height: 1.2rem;
+    height: 100%;
+    width: 100%;
+}
+
+.apxdnswidget .apxdns-provider-login-btn-text {
+    width: 100%;
+    white-space: nowrap;
+    font-size: 0.8rem;
+}
+
+.apxdnswidget .apxdns-btn-link {
+    border: 1px solid var(--button-bg-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius);
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    vertical-align: middle;
+}
+
+.apxdnswidget .apxdns-inst-provider-logo {
+    max-width: 60%;
+    max-height: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.apxdnswidget .apxdns-domain-header,
+.apxdnswidget .apxdns-inst-heading,
+.apxdnswidget .apxdns-verify-domain {
+    max-width: calc(var(--widget-max-width) - (var(--widget-padding)*4));
+    word-wrap: break-word;
+}
+
+.apxdnswidget .apxdns-restart-section {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #EEE;
+}
+
+.apxdnswidget .apxdns-restart-section button {
+    display: flex;
+    gap: 0.5rem;
+    color: #999;
+    align-items: center;
+    font-size: 0.8rem;
+}
+
+.apxdnswidget .apxdns-restart-section button:hover,
+.apxdnswidget .apxdns-restart-section button:hover svg {
+    stroke: #333;
+    color: #333;
+}
+
+.apxdnswidget .apxdns-restart-section svg {
+    stroke: #999;
+    height: 0.8rem;
+    width: 0.8rem;
+}
+
+.apxdnswidget .apxdns-verify-container {
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.apxdnswidget .apxdnswidget-verify-section {
+    padding-bottom: 1rem;
+}
+
+.apxdnswidget .apxdns-verify-btn-loader-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.apxdnswidget .apxdns-verify-btn {
+    border: 1px solid var(--button-bg-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius);
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+}
+
+.apxdnswidget .apxdns-verify-domain {
+    margin-top: 2rem;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.apxdnswidget .apxdns-verify-record{
+    margin-top: 0.5rem;
+    padding: 0.8rem;
+    border: var(--shaded-border);
+    background: var(--shaded-bg-color);
+    border-radius: var(--radius);
+}
+
+.apxdnswidget .apxdns-verify-record-slot {
+    display: grid;
+    grid-column: 1;
+    row-gap: 0.4rem;
+}
+
+.apxdnswidget .apxdns-verify-record-label-span {
+    font-weight: 700;
+}
+
+.apxdnswidget .apxdns-record-actual-values-label {
+    font-weight: 700;
+}
+
+.apxdnswidget .apxdns-verify-record-actual-values-textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    margin-top: 0.2rem;
+}
+
+.apxdnswidget .apxdns-verify-record-match {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.apxdnswidget .apxdns-verify-record-match .apxdns-verify-record-result-container-true {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: darkgreen;
+    font-weight: 600;
+}
+
+.apxdnswidget .apxdns-verify-record-match .apxdns-verify-record-result-container-false {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: darkred;
+    font-weight: 600;
+}
+
+.apxdnswidget .apxdns-verify-record-is-true {
+    background-color: rgba(220,255,220, 0.4);
+    border-color: darkgreen;
+}
+
+.apxdnswidget .apxdns-verify-record-is-false {
+    background-color: rgba(255,220,220, 0.4);
+    border-color: darkred;
+}
+
+.apxdnswidget .apxdns-verify-loader {
+    display: inline-block;
+}
+
+.apxdnswidget .apxdns-domain-button-container {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.apxdnswidget .apxdns-domain-loader {
+    display: inline-block;
+}
+
+.apxdnswidget .apxdns-hide {
+    display: none;
+}
+
+.apxdnswidget .apxdns-disable-btn {
+    opacity: 0.7;
+    cursor:not-allowed;
+}
+
+/* HTML: <div class="loader"></div> */
+.apxdnswidget .loader {
+    width: 1.5rem;
+    padding: 0.3rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #333;
+    --_m:
+      conic-gradient(#0000 10%,#000),
+      linear-gradient(#000 0 0) content-box;
+    -webkit-mask: var(--_m);
+            mask: var(--_m);
+    -webkit-mask-composite: source-out;
+            mask-composite: subtract;
+    animation: apxdnsl3 1s infinite linear;
+  }
+  @keyframes apxdnsl3 {to{transform: rotate(1turn)}}
+
+.apxdnswidget .apxdns-domainconnect-link-container {
+    padding-top: 1rem;
+}
+
+.apxdnswidget .apxdns-show-manual-instructions-btn-container {
+    font-size: 0.8rem;
+    color: var(--light-text-color);
+    padding-top: 1rem;
+}
+
+.apxdnswidget .apxdns-show-manual-instructions-btn {
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.apxdnswidget .apxdns-provider-login-link {
+    color: var(--light-text-color);
+    text-decoration: underline;
+}
+
+.apxdnswidget .apxdns-domainconnect-record-display {
+    margin-top: 0.5rem;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+.apxdnswidget .apxdns-domainconnect-record-display-host-label,
+.apxdnswidget .apxdns-domainconnect-record-display-value-label,
+.apxdnswidget .apxdns-domainconnect-record-display-ttl-label {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    background-color: var(--shaded-bg-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.apxdnswidget .apxdns-domainconnect-record-display-host-value,
+.apxdnswidget .apxdns-domainconnect-record-display-value-value,
+.apxdnswidget .apxdns-domainconnect-record-display-ttl-value {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.apxdnswidget .apxdns-automate-dns-icon {
+    display: inline-block;
+    height: 1rem;
+    width: 1rem;
+    stroke: var(--button-text-color);
+    vertical-align: middle;
+}

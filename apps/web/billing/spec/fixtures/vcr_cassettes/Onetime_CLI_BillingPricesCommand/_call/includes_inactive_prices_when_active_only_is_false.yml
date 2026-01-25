@@ -1,0 +1,551 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=false&expand%5B%5D=data.product&limit=100
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_21jrDdOgETbVPu","request_duration_ms":363}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Mon, 29 Dec 2025 05:21:26 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '13021'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Orktv4bTtuo9_AflQv9KJ5FTYsL8MZNe8dAmtLn_Vv23wM4kTOWvFKAmSdTuC6ZmwugV9k50ARkzQbIn
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "price_1SWaFKH54PcLeqtYrxz3QnGS",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763892618,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {
+                "foo": "bar"
+              },
+              "nickname": null,
+              "product": {
+                "id": "prod_TTXJy8SnSrQHJH",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892618,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895756,
+                "url": null
+              },
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWaCjH54PcLeqtY3RfAyDTb",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763892457,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTXHnP9QFCCdKP",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892456,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895895,
+                "url": null
+              },
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWaCOH54PcLeqtY8XTsxHDv",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763892436,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTXGEE1ysKDyyw",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892436,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895861,
+                "url": null
+              },
+              "recurring": null,
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "one_time",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWaBQH54PcLeqtYfySfaj6v",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763892376,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTXFxh1S2Xt0Yj",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892376,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895918,
+                "url": null
+              },
+              "recurring": null,
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "one_time",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWa9YH54PcLeqtYL2FhVfdu",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763892260,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTXEn69dK8Lmo1",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892260,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895829,
+                "url": null
+              },
+              "recurring": null,
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "one_time",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWa6DH54PcLeqtYf7atNmuP",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763892053,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTXADkKpqCMWck",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892053,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895907,
+                "url": null
+              },
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWa4SH54PcLeqtYDO3JGfTR",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763891944,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTX8ZwHv0vvMNV",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763891944,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895840,
+                "url": null
+              },
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWa49H54PcLeqtYV3084INj",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763891925,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTX8PaWWXiGIZH",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763891925,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895912,
+                "url": null
+              },
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWZ8EH54PcLeqtYeVOKH3bs",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763888334,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTWA0cnKz2yaR5",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763888334,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895871,
+                "url": null
+              },
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 1500,
+              "unit_amount_decimal": "1500"
+            },
+            {
+              "id": "price_1SWMuTH54PcLeqtYxmEdPusQ",
+              "object": "price",
+              "active": false,
+              "billing_scheme": "per_unit",
+              "created": 1763841353,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": {
+                "id": "prod_TTJRoYRCTxy8Xm",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763841002,
+                "default_price": null,
+                "description": null,
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {
+                  "app": "onetimesecret",
+                  "created": "2025-11-22T19:50:01Z",
+                  "plan_id": "identity_v1",
+                  "region": "us-east",
+                  "tier": "single_team"
+                },
+                "name": "Single Team Test Plan",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763896209,
+                "url": null
+              },
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 900,
+              "unit_amount_decimal": "900"
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/prices"
+        }
+  recorded_at: Mon, 29 Dec 2025 05:21:26 GMT
+recorded_with: VCR 6.3.1

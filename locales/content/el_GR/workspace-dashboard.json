@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Παραλήφθηκαν",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Δεν παραλήφθηκαν",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Δεν υπάρχουν πρόσφατα μυστικά",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Ξεκινήστε δημιουργώντας το πρώτο σας μυστικό.",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Αδύνατη η φόρτωση δεδομένων",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των δεδομένων σας. Παρακαλώ δοκιμάστε ξανά.",
+    "sha256": "ff0d904e"
+  }
+}

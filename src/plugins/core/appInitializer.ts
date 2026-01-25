@@ -3,8 +3,10 @@
 import { createApi } from '@/api';
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
+import { setupRouterGuards } from '@/router/guards.routes';
+import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
 import { loggingService } from '@/services/logging.service';
-import { WindowService } from '@/services/window.service';
+import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
@@ -38,21 +40,33 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  *
  * We separate this from the main plugin to interface for testing purposes.
  */
-/*eslint max-statements: ["error", 20]*/
+/*eslint max-statements: ["error", 23]*/
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
-  const diagnostics = WindowService.get('diagnostics');
-  const d9sEnabled = WindowService.get('d9s_enabled');
-  const displayDomain = WindowService.get('display_domain');
-  const siteHost = WindowService.get('site_host');
+  // Consume bootstrap data early, before Pinia is installed.
+  // This populates the snapshot for getBootstrapValue() calls.
+  consumeBootstrapData();
+
+  const diagnostics = getBootstrapValue('diagnostics');
+  const d9sEnabled = getBootstrapValue('d9s_enabled');
+  const displayDomain = getBootstrapValue('display_domain');
+  const siteHost = getBootstrapValue('site_host');
   const router = createAppRouter();
   const pinia = createPinia();
   const api = options.api ?? createApi();
 
-  if (d9sEnabled) {
-    // Create plugin instances
+  if (d9sEnabled && diagnostics) {
+    // Fail loudly if diagnostics is enabled but host is missing
+    const host = displayDomain ?? siteHost;
+    if (!host) {
+      throw new Error(
+        '[AppInitializer] Diagnostics enabled but no host available. ' +
+        'Expected display_domain or site_host in bootstrap data.'
+      );
+    }
+
     const diagnosticsPlugin = createDiagnostics({
-      host: displayDomain ?? siteHost,
-      config: diagnostics,
+      host,
+      config: diagnostics as DiagnosticsConfig,
       router,
     });
 
@@ -77,6 +91,11 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   app.use(pinia);
   app.use(errorBoundary);
   app.use(i18n);
+
+  // Set up router guards AFTER Pinia is installed.
+  // Guards use stores (usePageTitle, useAuthStore, etc.) which require Pinia.
+  setupRouterGuards(router);
+
   app.use(router);
 
   // Display startup banner

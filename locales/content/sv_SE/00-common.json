@@ -1,0 +1,1337 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "Sändning"
+  },
+  "web.COMMON.tagline": {
+    "text": "Säkra länkar som bara fungerar en gång",
+    "sha256": "9da7aece"
+  },
+  "web.COMMON.powered_by": {
+    "text": "Drivs av",
+    "sha256": "fdc5d2e9"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/sv",
+    "sha256": "440f5303"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Generera lösenord",
+    "sha256": "fdcbfcc7"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "Generera lösenord är inaktiverat när formuläret är giltigt",
+    "sha256": "dc0e2b8c"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "t.ex. tom{'@'}myspace.com",
+    "sha256": "f2350739"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Ange ditt lösenord",
+    "sha256": "c06bf967"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Anpassade domäner",
+    "sha256": "6170ab94"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Stärk relationer och bygg förtroende med dina egna varumärkta hemliga länkar.",
+    "sha256": "71fddc05"
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Kom igång",
+    "sha256": "983f3110"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Bekräfta ditt lösenord",
+    "sha256": "bfd8c343"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Inställningar",
+    "sha256": "74a883a0"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Skicka",
+    "sha256": "155f816c"
+  },
+  "web.COMMON.submitting": {
+    "text": "Skickar...",
+    "sha256": "64115d5b"
+  },
+  "web.COMMON.processing": {
+    "text": "Bearbetar...",
+    "sha256": "f40a853e"
+  },
+  "web.COMMON.description": {
+    "text": "Håll känslig information borta från dina chattloggar och e-post. Dela en hemlig länk som bara är tillgänglig en gång.",
+    "sha256": "4c895f85"
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Felaktig lösenfras",
+    "sha256": "a55f9636"
+  },
+  "web.COMMON.keywords": {
+    "text": "hemlighet,lösenordsgenerator,dela en hemlighet,engångs",
+    "sha256": "52728258"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Skapa en hemlig länk",
+    "sha256": "a3e07632"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Eller generera ett slumpmässigt lösenord",
+    "sha256": "8c1c764b"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Integritetsalternativ",
+    "sha256": "643a6921"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Lösenfras",
+    "sha256": "e7611f05"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Ett ord eller en fras som är svår att gissa",
+    "sha256": "29d0cf13"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Mottagaradress",
+    "sha256": "f6f6311d"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "Hemligt innehåll skrivs här...",
+    "sha256": "54630bab"
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Skapa konto",
+    "sha256": "0dffe234"
+  },
+  "web.COMMON.header_about": {
+    "text": "Om",
+    "sha256": "4efca0d1"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Logga in",
+    "sha256": "bcc0bcc9"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Logga ut",
+    "sha256": "d0527e4b"
+  },
+  "web.COMMON.secret": {
+    "text": "Hemlighet | Hemligheter",
+    "sha256": "c7ebd045"
+  },
+  "web.COMMON.recent": {
+    "text": "Senaste",
+    "sha256": "690dbe9d"
+  },
+  "web.COMMON.received": {
+    "text": "Mottagen",
+    "sha256": "49f19bee"
+  },
+  "web.COMMON.burn": {
+    "text": "Radera permanent",
+    "sha256": "926c5b43"
+  },
+  "web.COMMON.burned": {
+    "text": "Raderad permanent",
+    "sha256": "6d747b33"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Går ut om",
+    "sha256": "de996752"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "Radera denna hemlighet permanent",
+    "sha256": "ffff30e8"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "Permanent radering kommer att ta bort hemligheten innan den har lästs (klicka för att bekräfta)",
+    "sha256": "c6a8b145"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "Permanent radering kan inte ångras",
+    "sha256": "ab774967"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Kontrollera din e-post",
+    "sha256": "77322879"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Klicka för att visa →",
+    "sha256": "41658f99"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Fortsätt för att verifiera ditt konto:",
+    "sha256": "954d6fc9"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Du angav inget att dela",
+    "sha256": "9ac6488f"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Dubbelkolla den lösenfrasen",
+    "sha256": "b582f3a6"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Ange lösenfrasen här",
+    "sha256": "ee855dad"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Visa hemlighet",
+    "sha256": "01835e7c"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "Var försiktig: vi visar den bara en gång.",
+    "sha256": "d29e2820"
+  },
+  "web.COMMON.warning": {
+    "text": "Varning",
+    "sha256": "e981ddae"
+  },
+  "web.COMMON.oops": {
+    "text": "Hoppsan!",
+    "sha256": "8344947a"
+  },
+  "web.COMMON.error": {
+    "text": "Fel",
+    "sha256": "54a0e8c1"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "Ett oväntat fel uppstod. Vänligen försök igen.",
+    "sha256": "e198269c"
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "Meddelandet blev avkortat",
+    "sha256": "1d1730d4"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Registrera dig för mer",
+    "sha256": "cc1421d0"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Logga in på ditt konto",
+    "sha256": "62f1fe13"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Skickad till:",
+    "sha256": "e79c8bcb"
+  },
+  "web.COMMON.field_email": {
+    "text": "E-post",
+    "sha256": "969ccbd3"
+  },
+  "web.COMMON.field_password": {
+    "text": "Lösenord",
+    "sha256": "e7cf3ef4"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Bekräfta lösenord",
+    "sha256": "c292210c"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Skapa konto",
+    "sha256": "0dffe234"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Dela en hemlighet",
+    "sha256": "5384461b"
+  },
+  "web.COMMON.title_home": {
+    "text": "Hem",
+    "sha256": "3a786953"
+  },
+  "web.COMMON.word_none": {
+    "text": "Ingen",
+    "sha256": "dc937b59"
+  },
+  "web.COMMON.word_burned": {
+    "text": "raderad permanent",
+    "sha256": "2f79ea62"
+  },
+  "web.COMMON.word_received": {
+    "text": "mottagen",
+    "sha256": "318c5ad5"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Bekräfta",
+    "sha256": "eebdd24a"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Avbryt",
+    "sha256": "19766ed6"
+  },
+  "web.COMMON.word_continue": {
+    "text": "Fortsätt",
+    "sha256": "31fbef16"
+  },
+  "web.COMMON.word_done": {
+    "text": "Klar",
+    "sha256": "11a6767d"
+  },
+  "web.COMMON.back": {
+    "text": "Tillbaka",
+    "sha256": "76900f1b"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Dela dina tankar, idéer eller erfarenheter...",
+    "sha256": "6bd0351a"
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Skicka återkoppling",
+    "sha256": "84195de9"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "En verifiering skickades till",
+    "sha256": "62da29c0"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "Konto skapat. Vänligen logga in.",
+    "sha256": "fd3610bf"
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "Om ett konto med denna e-postadress finns kommer du att få ett verifieringsmeddelande.",
+    "sha256": "f596cdd0"
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Radera denna hemlighet permanent",
+    "sha256": "0a7afc29"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Vänligen bekräfta",
+    "sha256": "dcd78dfb"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Är du säker på att du vill radera denna hemlighet permanent? Denna åtgärd kan inte ångras.",
+    "sha256": "5dde5dd9"
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Ja, radera denna hemlighet permanent",
+    "sha256": "6e5b02a7"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "Permanent radering kommer att ta bort hemligheten innan den har mottagits.",
+    "sha256": "b4c8bbc3"
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "Dela denna länk separat från andra uppgifter av säkerhetsskäl.",
+    "sha256": "c46e6204"
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Kopierat till urklipp",
+    "sha256": "d37078fe"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "Skapa inkommande",
+    "sha256": "5bb95106"
+  },
+  "web.COMMON.faq_title": {
+    "text": "Vanliga frågor",
+    "sha256": "bd7394ac"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "Verifieringen är inte giltig",
+    "sha256": "abf07ced"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Kan inte verifiera ett konto när du redan är inloggad",
+    "sha256": "f0a17c5f"
+  },
+  "web.COMMON.show_password": {
+    "text": "Visa lösenord",
+    "sha256": "6aeaa6a5"
+  },
+  "web.COMMON.hide_password": {
+    "text": "Dölj lösenord",
+    "sha256": "a60a56c5"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "Lösenordet måste vara minst 8 tecken",
+    "sha256": "e3b8d09d"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "Lösenordet måste vara minst 8 tecken långt",
+    "sha256": "e5054833"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "Lösenorden matchar inte",
+    "sha256": "b6eb82cd"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "Detta fält är obligatoriskt",
+    "sha256": "6876f12e"
+  },
+  "web.COMMON.form_processing": {
+    "text": "Bearbetar din förfrågan",
+    "sha256": "a512a73b"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "Håll mig inloggad i 30 dagar",
+    "sha256": "6e069c11"
+  },
+  "web.COMMON.redirecting": {
+    "text": "Omdirigerar...",
+    "sha256": "cd23991b"
+  },
+  "web.COMMON.continue": {
+    "text": "Fortsätt",
+    "sha256": "31fbef16"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "Är du säker?",
+    "sha256": "f0762c4f"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "Riskzon",
+    "sha256": "3c1c01b4"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "Zon för noggrant övervägande",
+    "sha256": "fe27a3a8"
+  },
+  "web.COMMON.user_menu": {
+    "text": "Användarmeny",
+    "sha256": "6fa25be1"
+  },
+  "web.COMMON.security": {
+    "text": "Säkerhet",
+    "sha256": "8f6fb4eb"
+  },
+  "web.COMMON.manage": {
+    "text": "Hantera",
+    "sha256": "5a234448"
+  },
+  "web.COMMON.loading": {
+    "text": "Laddar...",
+    "sha256": "47d2a515"
+  },
+  "web.COMMON.save_changes": {
+    "text": "Spara ändringar",
+    "sha256": "35322b5b"
+  },
+  "web.COMMON.saving": {
+    "text": "Sparar...",
+    "sha256": "dc85af8f"
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "Lägger till",
+    "sha256": "0a6691ef"
+  },
+  "web.COMMON.e_g_example": {
+    "text": "t.ex.",
+    "sha256": "a79b4bf9"
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "t.ex. {example}",
+    "sha256": "cc921aaa"
+  },
+  "web.COMMON.status": {
+    "text": "Status",
+    "sha256": "920e413c"
+  },
+  "web.COMMON.escape": {
+    "text": "Escape",
+    "sha256": "037c9684"
+  },
+  "web.COMMON.active": {
+    "text": "Aktiv",
+    "sha256": "92340695"
+  },
+  "web.COMMON.preview": {
+    "text": "Förhandsgranskning",
+    "sha256": "324b134f"
+  },
+  "web.COMMON.remove": {
+    "text": "Ta bort",
+    "sha256": "c3812fc4"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Tryck ESC för att stänga",
+    "sha256": "5aa83883"
+  },
+  "web.COMMON.enter": {
+    "text": "Enter",
+    "sha256": "dc8659db"
+  },
+  "web.COMMON.important": {
+    "text": "Viktigt",
+    "sha256": "ddca9a57"
+  },
+  "web.COMMON.language": {
+    "text": "Språk",
+    "sha256": "a4fe6526"
+  },
+  "web.COMMON.theme": {
+    "text": "Tema",
+    "sha256": "efb52e71"
+  },
+  "web.COMMON.appearance": {
+    "text": "Utseende",
+    "sha256": "3907fa7f"
+  },
+  "web.COMMON.done": {
+    "text": "Klar",
+    "sha256": "11a6767d"
+  },
+  "web.COMMON.end": {
+    "text": "Slut",
+    "sha256": "f4db1e48"
+  },
+  "web.COMMON.general": {
+    "text": "Allmänt",
+    "sha256": "c910d474"
+  },
+  "web.COMMON.note": {
+    "text": "Notera",
+    "sha256": "d8da2c49"
+  },
+  "web.COMMON.monthly": {
+    "text": "Månadsvis",
+    "sha256": "9b11f6b7"
+  },
+  "web.COMMON.yearly": {
+    "text": "Årlig",
+    "sha256": "6e69b59e"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "Fortsätt då.",
+    "sha256": "fb697cc7"
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "Laddar...",
+    "sha256": "47d2a515"
+  },
+  "web.COMMON.not_received": {
+    "text": "EJ MOTTAGEN",
+    "sha256": "d84ee92c"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Bekräfta lösenord",
+    "sha256": "5ac265f3"
+  },
+  "web.COMMON.new_password": {
+    "text": "Nytt lösenord",
+    "sha256": "3dd9df44"
+  },
+  "web.COMMON.email_address": {
+    "text": "E-postadress",
+    "sha256": "f2488fd4"
+  },
+  "web.COMMON.switch": {
+    "text": "byt",
+    "sha256": "78b49fb2"
+  },
+  "web.COMMON.features": {
+    "text": "Funktioner",
+    "sha256": "5697d03d"
+  },
+  "web.COMMON.not_found": {
+    "text": "Hittades inte",
+    "sha256": "0019dfc4"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌",
+    "sha256": "2b2966a5"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅",
+    "sha256": "1d456424"
+  },
+  "web.COMMON.supported": {
+    "text": "Stöds",
+    "sha256": "c1658000"
+  },
+  "web.COMMON.version": {
+    "text": "Version",
+    "sha256": "dd167905"
+  },
+  "web.COMMON.other": {
+    "text": "Annat",
+    "sha256": "f97e9da0"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(min-width: 1024px)",
+    "sha256": "c8a306d0"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter",
+    "sha256": "78192e6e"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter",
+    "sha256": "558acbab"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac",
+    "sha256": "8b3795aa"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "E-postadress kopierad till urklipp!",
+    "sha256": "23238b4e"
+  },
+  "web.COMMON.value": {
+    "text": "Värde",
+    "sha256": "8e37953d"
+  },
+  "web.COMMON.host": {
+    "text": "Värd",
+    "sha256": "4a823118"
+  },
+  "web.COMMON.type": {
+    "text": "Typ",
+    "sha256": "baaddf70"
+  },
+  "web.COMMON.previous": {
+    "text": "Föregående",
+    "sha256": "a57b08a4"
+  },
+  "web.COMMON.next": {
+    "text": "Nästa",
+    "sha256": "1ff57a29"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Lösenordsstyrka:",
+    "sha256": "663d6499"
+  },
+  "web.COMMON.great": {
+    "text": "Utmärkt",
+    "sha256": "c8cc1c7b"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Ganska bra",
+    "sha256": "521a41b6"
+  },
+  "web.COMMON.fair": {
+    "text": "Acceptabel",
+    "sha256": "f7b19afc"
+  },
+  "web.COMMON.meh": {
+    "text": "Sådär",
+    "sha256": "8b0d6190"
+  },
+  "web.COMMON.not_great": {
+    "text": "Inte bra",
+    "sha256": "00561207"
+  },
+  "web.COMMON.open_options": {
+    "text": "Öppna alternativ",
+    "sha256": "3dc08503"
+  },
+  "web.COMMON.inactive": {
+    "text": "Inaktiv",
+    "sha256": "ac7c949f"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Ett fel uppstod",
+    "sha256": "ddf785b7"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Kopiera hemlighet till urklipp",
+    "sha256": "a2ceff6d"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Hemlighet kopierad till urklipp",
+    "sha256": "da84ff02"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Dubbelkolla den lösenfrasen",
+    "sha256": "b582f3a6"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Tryck på kopieringsknappen nedan.",
+    "sha256": "77fcf6fb"
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Visa",
+    "sha256": "0df6f1ca"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Dölj",
+    "sha256": "ac20a57b"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Visa mer",
+    "sha256": "ba8a80fd"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Visa mindre",
+    "sha256": "0264d7b0"
+  },
+  "web.LABELS.enable": {
+    "text": "Aktivera",
+    "sha256": "5342e09f"
+  },
+  "web.LABELS.disable": {
+    "text": "Inaktivera",
+    "sha256": "b7e3e4aa"
+  },
+  "web.LABELS.stats": {
+    "text": "Statistik",
+    "sha256": "b4a73657"
+  },
+  "web.LABELS.timeline": {
+    "text": "Tidslinje",
+    "sha256": "9dcff98e"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Livslängd",
+    "sha256": "58994285"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Utgångstid",
+    "sha256": "c5db84a8"
+  },
+  "web.LABELS.close": {
+    "text": "Stäng",
+    "sha256": "7d9eb7ac"
+  },
+  "web.LABELS.loading": {
+    "text": "Laddar...",
+    "sha256": "47d2a515"
+  },
+  "web.LABELS.cancel": {
+    "text": "Avbryt",
+    "sha256": "19766ed6"
+  },
+  "web.LABELS.saving": {
+    "text": "Sparar...",
+    "sha256": "dc85af8f"
+  },
+  "web.LABELS.saved": {
+    "text": "Sparad",
+    "sha256": "b5c120b3"
+  },
+  "web.LABELS.save": {
+    "text": "Spara",
+    "sha256": "1509f561"
+  },
+  "web.LABELS.save_all": {
+    "text": "Spara alla",
+    "sha256": "d3c54e39"
+  },
+  "web.LABELS.details": {
+    "text": "Detaljer",
+    "sha256": "45989de4"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Krypterad",
+    "sha256": "f45aef6e"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Hemlighetens status",
+    "sha256": "57330d93"
+  },
+  "web.LABELS.need_help": {
+    "text": "Behöver du hjälp?",
+    "sha256": "c225cdfb"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Skapa ny hemlighet",
+    "sha256": "311d266c"
+  },
+  "web.LABELS.actions": {
+    "text": "Åtgärder",
+    "sha256": "ff8059dc"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Ingen lösenfras krävs",
+    "sha256": "6b43174d"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Kopiera till urklipp",
+    "sha256": "b749e205"
+  },
+  "web.LABELS.receipts": {
+    "text": "Kvitton",
+    "sha256": "60a627df"
+  },
+  "web.LABELS.share": {
+    "text": "Dela",
+    "sha256": "29887a5f"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Hemlig länk",
+    "sha256": "a02fb1cd"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Avfärda",
+    "sha256": "48845bff"
+  },
+  "web.LABELS.security_details": {
+    "text": "Säkerhetsdetaljer",
+    "sha256": "96d2098c"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} objekt",
+    "sha256": "63e0dea7"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} mottagare",
+    "sha256": "48187543"
+  },
+  "web.LABELS.view": {
+    "text": "Visa",
+    "sha256": "dcc839a4"
+  },
+  "web.LABELS.views": {
+    "text": "Visningar",
+    "sha256": "69c40459"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "gånger visad",
+    "sha256": "73758343"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Visa förlopp",
+    "sha256": "6c072c1f"
+  },
+  "web.LABELS.help_section": {
+    "text": "Hjälpavsnitt",
+    "sha256": "614e14f0"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Skyddad med lösenfras",
+    "sha256": "a52b9edf"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Återkoppling mottagen.",
+    "sha256": "3fa595ef"
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "Skickar...",
+    "sha256": "286a3af7"
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Senaste hemligheter",
+    "sha256": "0b907f8b"
+  },
+  "web.LABELS.pricing": {
+    "text": "Prissättning",
+    "sha256": "dfe95783"
+  },
+  "web.LABELS.refresh": {
+    "text": "Uppdatera",
+    "sha256": "0e916101"
+  },
+  "web.LABELS.reload": {
+    "text": "Ladda om",
+    "sha256": "bdc090ec"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Hemliga länkar skapade under denna session",
+    "sha256": "6c7ceab8"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Skapa länk",
+    "sha256": "cac74fdb"
+  },
+  "web.LABELS.create_link": {
+    "text": "Skapa hemlig länk",
+    "sha256": "a30a47b9"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Skapa förfrågan",
+    "sha256": "71a0bd40"
+  },
+  "web.LABELS.create_request": {
+    "text": "Skapa förfrågningslänk",
+    "sha256": "190463dc"
+  },
+  "web.LABELS.related_settings": {
+    "text": "Relaterade inställningar",
+    "sha256": "68574b20"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "Skapar länkar för",
+    "sha256": "57db069e"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "Skapar hemligheter i {domain}",
+    "sha256": "3bbed96b"
+  },
+  "web.STATUS.new": {
+    "text": "Ny",
+    "sha256": "18fdd549"
+  },
+  "web.STATUS.unread": {
+    "text": "Oläst",
+    "sha256": "1b9f384c"
+  },
+  "web.STATUS.viewed": {
+    "text": "Länk öppnad",
+    "sha256": "66844573"
+  },
+  "web.STATUS.received": {
+    "text": "Mottagen",
+    "sha256": "49f19bee"
+  },
+  "web.STATUS.burned": {
+    "text": "Raderad permanent",
+    "sha256": "6d747b33"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Förstörd",
+    "sha256": "ff49630c"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Går ut snart",
+    "sha256": "0259442c"
+  },
+  "web.STATUS.created": {
+    "text": "Skapad",
+    "sha256": "d70b9e24"
+  },
+  "web.STATUS.expires": {
+    "text": "Går ut",
+    "sha256": "f6725f3a"
+  },
+  "web.STATUS.expired": {
+    "text": "Utgången",
+    "sha256": "424a2551"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Övergiven",
+    "sha256": "8d827807"
+  },
+  "web.STATUS.secured": {
+    "text": "Säkrad",
+    "sha256": "b0cbaa5b"
+  },
+  "web.STATUS.securing": {
+    "text": "Säkrar",
+    "sha256": "37c84053"
+  },
+  "web.STATUS.copied": {
+    "text": "Kopierad",
+    "sha256": "8d525e5f"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Återstående tid",
+    "sha256": "9e65f559"
+  },
+  "web.STATUS.new_description": {
+    "text": "Hemlig länk har skapats och ännu inte visats",
+    "sha256": "447c4445"
+  },
+  "web.STATUS.unread_description": {
+    "text": "Hemlig länk har skapats och har inte visats",
+    "sha256": "83b9a0ca"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "Hemlig länk har öppnats och är redo att visas",
+    "sha256": "f392af12"
+  },
+  "web.STATUS.received_description": {
+    "text": "Hemligheten har avslöjats för mottagaren",
+    "sha256": "ceb756b4"
+  },
+  "web.STATUS.burned_description": {
+    "text": "Hemligheten raderades manuellt permanent innan den visades",
+    "sha256": "e7aa1ec1"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "Hemligheten har förstörts permanent",
+    "sha256": "9bcb9949"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "Hemligheten går ut snart",
+    "sha256": "e182e8f4"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "Hemligheten har övergivits och kommer snart att förstöras",
+    "sha256": "49b87422"
+  },
+  "web.STATUS.expired_description": {
+    "text": "Hemligheten har gått ut innan den visades",
+    "sha256": "f527de55"
+  },
+  "web.STATUS.success": {
+    "text": "Lyckades",
+    "sha256": "c88a0b90"
+  },
+  "web.STATUS.delivered": {
+    "text": "Levererad",
+    "sha256": "90611565"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "DNS felaktig",
+    "sha256": "7848d601"
+  },
+  "web.STATUS.active": {
+    "text": "Aktiv",
+    "sha256": "92340695"
+  },
+  "web.STATUS.inactive": {
+    "text": "Inaktiv",
+    "sha256": "ac7c949f"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Obegränsat antal visningar",
+    "sha256": "3f6859b0"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Varumärkning med betrodd domän",
+    "sha256": "5e39b05c"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Krypterad under överföring och vid lagring",
+    "sha256": "314c7974"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}",
+    "sha256": "e6c9e0e6"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "dag | dagar",
+    "sha256": "6ac0d345"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "timme | timmar",
+    "sha256": "f4fef91b"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "minut | minuter",
+    "sha256": "08d71a9f"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "sekund | sekunder",
+    "sha256": "e655e068"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---",
+    "sha256": "cb3f91d5"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "{count} {unit} kvar",
+    "sha256": "18f6c6e8"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "dag kvar | dagar kvar",
+    "sha256": "6702855e"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "timme kvar | timmar kvar",
+    "sha256": "2eaebd6f"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "minut kvar | minuter kvar",
+    "sha256": "26c80140"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "sekund kvar | sekunder kvar",
+    "sha256": "01159ce3"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---",
+    "sha256": "cb3f91d5"
+  },
+  "web.UNITS.limited_views": {
+    "text": "{count} visningsgräns",
+    "sha256": "8db0e228"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "{count} dagar kvar",
+    "sha256": "398e4024"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "{count} timmar kvar",
+    "sha256": "717b6d58"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "{count} minuter kvar",
+    "sha256": "d322f4c5"
+  },
+  "web.TITLES.incoming": {
+    "text": "Inkommande hemligheter",
+    "sha256": "883dbca9"
+  },
+  "web.TITLES.feedback": {
+    "text": "Återkoppling",
+    "sha256": "aac77df3"
+  },
+  "web.TITLES.signin": {
+    "text": "Logga in",
+    "sha256": "bcc0bcc9"
+  },
+  "web.TITLES.signup": {
+    "text": "Skapa konto",
+    "sha256": "0dffe234"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "Glömt lösenord",
+    "sha256": "fdfd41de"
+  },
+  "web.TITLES.reset_password": {
+    "text": "Återställ lösenord",
+    "sha256": "4e70f1fd"
+  },
+  "web.TITLES.logout": {
+    "text": "Loggar ut",
+    "sha256": "afbce8a6"
+  },
+  "web.TITLES.verify_account": {
+    "text": "Verifiera konto",
+    "sha256": "2f3ea760"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "Tvåfaktorsautentisering",
+    "sha256": "bc074b60"
+  },
+  "web.TITLES.email_login": {
+    "text": "E-postinloggning",
+    "sha256": "c316e3d7"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Acceptera inbjudan",
+    "sha256": "ce7cfeaf"
+  },
+  "web.TITLES.secret": {
+    "text": "Hemlighet",
+    "sha256": "7e32a729"
+  },
+  "web.TITLES.metadata": {
+    "text": "Hemlighetsdetaljer",
+    "sha256": "c11bd410"
+  },
+  "web.TITLES.receipt": {
+    "text": "Hemlighetskvitto",
+    "sha256": "fe0c79e9"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "Radera hemlighet permanent",
+    "sha256": "28785b83"
+  },
+  "web.TITLES.dashboard": {
+    "text": "Instrumentpanel",
+    "sha256": "67b69646"
+  },
+  "web.TITLES.recent": {
+    "text": "Senaste hemligheter",
+    "sha256": "0b907f8b"
+  },
+  "web.TITLES.domains": {
+    "text": "Anpassade domäner",
+    "sha256": "6170ab94"
+  },
+  "web.TITLES.domain_add": {
+    "text": "Lägg till domän",
+    "sha256": "0f09df73"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "Verifiera domän",
+    "sha256": "b416f537"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "Varumärkesdomän",
+    "sha256": "35e4dfbe"
+  },
+  "web.TITLES.account": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.TITLES.data_region": {
+    "text": "Dataregion",
+    "sha256": "a1c6039f"
+  },
+  "web.TITLES.current_region": {
+    "text": "Nuvarande region",
+    "sha256": "b92e254d"
+  },
+  "web.TITLES.available_regions": {
+    "text": "Tillgängliga regioner",
+    "sha256": "ee788590"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "Varför datasuveränitet är viktigt",
+    "sha256": "67de6cf7"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "Profilinställningar",
+    "sha256": "4f1063c9"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "Inställningar",
+    "sha256": "66962f72"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "Integritet",
+    "sha256": "54a57c31"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Aviseringar",
+    "sha256": "78801183"
+  },
+  "web.TITLES.change_email": {
+    "text": "Ändra e-post",
+    "sha256": "18c3f2d5"
+  },
+  "web.TITLES.security_overview": {
+    "text": "Säkerhet",
+    "sha256": "8f6fb4eb"
+  },
+  "web.TITLES.change_password": {
+    "text": "Ändra lösenord",
+    "sha256": "a949f462"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "Tvåfaktorsautentisering",
+    "sha256": "bc074b60"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "Aktiva sessioner",
+    "sha256": "b58fa4e0"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "Återställningskoder",
+    "sha256": "579c7f4e"
+  },
+  "web.TITLES.api_settings": {
+    "text": "API-inställningar",
+    "sha256": "6c2a9675"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "Avancerade inställningar",
+    "sha256": "22d4f608"
+  },
+  "web.TITLES.system_settings": {
+    "text": "Systeminställningar",
+    "sha256": "1f87f883"
+  },
+  "web.TITLES.not_found": {
+    "text": "Sidan hittades inte",
+    "sha256": "cb2f00d1"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "Organisationer",
+    "sha256": "2730183d"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "Organisationsinställningar",
+    "sha256": "cc1d9e61"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "Fokus är nu i huvudtextområdet",
+    "sha256": "e00dd260"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Delningsinstruktioner",
+    "sha256": "1a450046"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Dela länken med den avsedda mottagaren",
+    "sha256": "43bdee1d"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Dela lösenfrasen separat via en säker kanal",
+    "sha256": "c348d386"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Använd en annan säker kanal för att dela känslig information",
+    "sha256": "fc78d9cb"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "Verifiera alltid att du är på den officiella Onetime Secret-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som Onetime Secret för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera regiondomänen innan du skapar nya länkar.",
+    "sha256": "b588f5b2"
+  },
+  "web.STATUS.previewed": {
+    "text": "Förhandsgranskad",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Avslöjad",
+    "sha256": "17376ee4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Hemlig länk har öppnats och är redo att avslöjas",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Hemligt innehåll har avslöjats för mottagaren",
+    "sha256": "39b32f80"
+  },
+  "web.COMMON.not_set": {
+    "text": "Ej inställt",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Redigera",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Spara",
+    "sha256": "1509f561"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Går ut om",
+    "sha256": "de996752"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtrera",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Rensa",
+    "sha256": "83b12c22"
+  },
+  "web.LABELS.add_note": {
+    "text": "Lägg till anteckning...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Redigera anteckning",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Lägg till memo...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Redigera memo",
+    "sha256": "0ec1a5db"
+  },
+  "web.TITLES.help": {
+    "text": "Hjälp",
+    "sha256": "b79cac92"
+  },
+  "web.TITLES.pricing": {
+    "text": "Prissättning",
+    "sha256": "dfe95783"
+  },
+  "web.pricing.title": {
+    "text": "Enkel, transparent prissättning",
+    "sha256": "97e283c7"
+  },
+  "web.pricing.subtitle": {
+    "text": "Välj den plan som passar dina behov. Alla planer inkluderar obegränsad hemlighetsdelning och integritetsfokuserad design.",
+    "sha256": "9204dff4"
+  },
+  "web.pricing.get_started_free": {
+    "text": "Kom igång gratis",
+    "sha256": "6bb5a4a7"
+  },
+  "web.pricing.start_trial": {
+    "text": "Kom igång",
+    "sha256": "983f3110"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Har du redan ett konto?",
+    "sha256": "e77fea93"
+  },
+  "web.pricing.sign_in": {
+    "text": "Logga in",
+    "sha256": "bfd402b2"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Rekommenderat för dig",
+    "sha256": "00093fbd"
+  },
+  "web.pricing.free_tier_description": {
+    "text": "Skapa och dela hemligheter med grundläggande funktioner. Inget kreditkort krävs.",
+    "sha256": "3a4f2bc0"
+  }
+}

@@ -93,6 +93,8 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     transport: makeFetchTransport,
     stackParser: defaultStackParser,
     tracesSampleRate: 0.01,
+    // Note: Sentry 10+ requires sendDefaultPii: true for IP address collection
+    // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [
       /^localhost(:\d+)?$/, // Matches localhost with optional port
       // Add host domain regex only if host is provided

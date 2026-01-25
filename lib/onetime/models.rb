@@ -1,22 +1,14 @@
 # lib/onetime/models.rb
-
-# This file serves as a central loading point for all model classes across
-# different API versions. It provides a convenient way for external code to
-# access model classes without needing to understand the underlying version
-# structure.
 #
-# The CURRENT_API_VERSION constant allows test suites and application code to
-# reference the current API models without hardcoding specific version
-# dependencies throughout the codebase. This facilitates running the same
-# test suite against multiple API versions and simplifies version transitions.
+# frozen_string_literal: true
 
-require 'v1/models'
-require 'v2/models'
-
-
-module Onetime
-  # Points to the current API version's models module.
-  # Fixed to V2 for stability, but designed to be configurable in future
-  # iterations when dynamic version selection becomes necessary.
-  CURRENT_API_VERSION = V2
-end
+require_relative 'models/features'
+require_relative 'models/secret'
+require_relative 'models/organization'
+require_relative 'models/organization_membership'
+require_relative 'models/customer'
+require_relative 'models/custom_domain'
+# Receipt must be loaded AFTER Organization and CustomDomain because
+# Receipt.participates_in declarations reference those classes
+require_relative 'models/receipt'
+require_relative 'models/feedback'

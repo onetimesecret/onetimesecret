@@ -1,16 +1,5 @@
-//const DEBUG = true;
-//
-//export const debugLog = (component: string, event: string, data?: any) => {
-//  if (DEBUG) {
-//    const timestamp = performance.now().toFixed(2);
-//    console.log(
-//      `[${timestamp}ms] [${component}] ${event}`,
-//      data ? data : ''
-//    );
-//  }
-//};
-
 // src/utils/debug.ts
+
 export const DEBUG = process.env.NODE_ENV === 'development';
 
 export const debugLog = {

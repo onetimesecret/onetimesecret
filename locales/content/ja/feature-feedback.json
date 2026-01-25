@@ -1,0 +1,66 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "フィードバック",
+    "sha256": "cdb1c0a5"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "すべてのフィードバックを歓迎します!",
+    "sha256": "c57d3006"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "改善にご協力ください",
+    "sha256": "f35439c4"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "フィードバックモーダルを閉じる",
+    "sha256": "41689bb4"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "フィードバックを共有",
+    "sha256": "6d62dfbd"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
+  },
+  "web.feedback.delano": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "ヘルプコンテンツはこちら。",
+    "sha256": "796979ea"
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Onetime Secretの改善にご協力いただきありがとうございます。とても重要です。"
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "私たちは、このツールを作成して、機密情報を安全に共有できるようにしました。皆さんの実際の経験は、私たちの取り組みを集中させるために非常に重要です。次に何に取り組むべきか、そしてサービスをどのように改善すればよいかを把握するのに役立ちます。"
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "こんにちは、フィードバックページにお越しいただきありがとうございます。あなたの意見は歓迎されるだけでなく、非常に重要です。"
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Onetime Secretの創設者であるデラノからのメッセージ"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "フィードバックフォームを開く",
+    "sha256": "acd8409b"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "フィードバックを入力",
+    "sha256": "1bb310f4"
+  },
+  "web.feedback.send_feedback": {
+    "text": "フィードバックを送信",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "ここに届くすべてのフィードバックを読んでいます。これが何に時間を費やすべきかを判断する方法です。",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "何か問題がある場合や、どう機能すべきかについてアイデアがあれば、ここが適切な場所です。",
+    "sha256": "d4b8f073"
+  }
+}

@@ -1,0 +1,212 @@
+// src/tests/router/guards.routes.spec.ts
+
+import { createTestingPinia } from '@pinia/testing';
+import { setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { RouteLocationNormalized, Router } from 'vue-router';
+
+import {
+  AuthValidator,
+  setupRouterGuards,
+  validateAuthentication,
+} from '@/router/guards.routes';
+import { useAuthStore } from '@/shared/stores';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+
+const protectedRoute: RouteLocationNormalized = {
+  meta: { requiresAuth: true },
+  fullPath: '/protected',
+  path: '/protected',
+  name: 'Protected',
+  params: {},
+  query: {},
+  hash: '',
+  matched: [],
+  redirectedFrom: undefined,
+};
+
+const publicRoute: RouteLocationNormalized = {
+  ...protectedRoute,
+  meta: { requiresAuth: false },
+};
+
+vi.mock('@/shared/stores/authStore', () => ({
+  useAuthStore: vi.fn(() => ({
+    isAuthenticated: false,
+    needsCheck: false,
+    checkWindowStatus: vi.fn(),
+  })),
+}));
+
+vi.mock('@/shared/stores/languageStore', () => ({
+  useLanguageStore: vi.fn(() => ({
+    setCurrentLocale: vi.fn(),
+  })),
+}));
+
+vi.mock('@/shared/composables/usePageTitle', () => ({
+  usePageTitle: vi.fn(() => ({
+    setTitle: vi.fn(),
+    useComputedTitle: vi.fn(),
+    formatTitle: vi.fn(),
+  })),
+}));
+
+describe('Router Guards', () => {
+  let router: Router;
+  let pinia: ReturnType<typeof createTestingPinia>;
+  let _bootstrapStore: ReturnType<typeof useBootstrapStore>;
+
+  beforeEach(() => {
+    pinia = createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+      initialState: {
+        bootstrap: {
+          authenticated: false,
+          domain_strategy: 'canonical',
+          site_host: 'onetimesecret.com',
+          display_domain: 'onetimesecret.com',
+          domains_enabled: false,
+          cust: null,
+        },
+      },
+    });
+    setActivePinia(pinia);
+    _bootstrapStore = useBootstrapStore();
+
+    router = {
+      beforeEach: vi.fn(),
+      afterEach: vi.fn(),
+    } as unknown as Router;
+
+    vi.clearAllMocks();
+  });
+
+  it('should setup router guards', () => {
+    setupRouterGuards(router);
+    expect(router.beforeEach).toHaveBeenCalled();
+  });
+
+  it('should redirect authenticated users from auth routes', async () => {
+    setupRouterGuards(router);
+
+    const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+    const to = {
+      meta: { isAuthRoute: true },
+      query: {},
+      path: '/auth',
+      name: 'Auth',
+      params: {},
+      hash: '',
+      fullPath: '/auth',
+      matched: [],
+      redirectedFrom: undefined
+    };
+
+    const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
+    vi.mocked(useAuthStore).mockReturnValue(authStore as any);
+
+    const result = await guard(to as any);
+
+    expect(result).toEqual({ name: 'Dashboard' });
+  });
+
+  it('should handle root path redirect for authenticated users', async () => {
+    setupRouterGuards(router);
+
+    const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+    const to = {
+      path: '/',
+      query: {},
+      name: 'Home',
+      params: {},
+      hash: '',
+      fullPath: '/',
+      matched: [],
+      redirectedFrom: undefined,
+      meta: {}
+    };
+
+    const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
+    vi.mocked(useAuthStore).mockReturnValue(authStore as any);
+
+    const result = await guard(to as any);
+
+    expect(result).toEqual({ name: 'Dashboard' });
+  });
+
+  describe('validateAuthentication', () => {
+    let mockValidator: AuthValidator;
+    let protectedRoute: RouteLocationNormalized;
+
+    beforeEach(() => {
+      // Create mock validator with vi.fn() for methods
+      mockValidator = {
+        needsCheck: true,
+        isAuthenticated: null,
+        checkWindowStatus: vi.fn().mockImplementation(async () => true),
+      } satisfies AuthValidator;
+
+      protectedRoute = {
+        meta: { requiresAuth: true },
+        fullPath: '/protected',
+        path: '/protected',
+        name: 'Protected',
+        params: {},
+        query: {},
+        hash: '',
+        matched: [],
+        redirectedFrom: undefined,
+      } as RouteLocationNormalized;
+    });
+
+    test('performs check when needed on protected route', async () => {
+      mockValidator.needsCheck = true;
+      const result = await validateAuthentication(mockValidator, protectedRoute);
+      expect(mockValidator.checkWindowStatus).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    test('skips check when not needed on protected route', async () => {
+      // Set up authenticated state
+      mockValidator.needsCheck = false;
+      mockValidator.isAuthenticated = true; // Add this line to indicate authenticated state
+
+      const result = await validateAuthentication(mockValidator, protectedRoute);
+      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    test('skips return false when no need for a check', async () => {
+      //  when `needsCheck` is false but `isAuthenticated` is null (the default
+      // value in our setup), the validator should return false for protected routes.
+      mockValidator.needsCheck = false;
+      const result = await validateAuthentication(mockValidator, protectedRoute);
+      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+
+    test('always returns true for public routes', async () => {
+      mockValidator.needsCheck = true;
+      mockValidator.isAuthenticated = false;
+      const result = await validateAuthentication(mockValidator, publicRoute);
+      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    test('returns false when auth check fails', async () => {
+      mockValidator.needsCheck = true;
+      mockValidator.checkWindowStatus.mockResolvedValueOnce(false);
+      const result = await validateAuthentication(mockValidator, protectedRoute);
+      expect(result).toBe(false);
+    });
+
+    test('returns false when authenticated is null', async () => {
+      mockValidator.needsCheck = false;
+      mockValidator.isAuthenticated = null;
+      const result = await validateAuthentication(mockValidator, protectedRoute);
+      expect(result).toBe(false);
+    });
+  });
+});

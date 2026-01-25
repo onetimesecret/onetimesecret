@@ -1,35 +1,29 @@
 // vite.config.ts
 
 import Vue from '@vitejs/plugin-vue';
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
 
-//import { createHtmlPlugin } from 'vite-plugin-html'
-//import checker from 'vite-plugin-checker';
-//import vueDevTools from 'vite-plugin-vue-devtools';
-//import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
+import VueDevTools from 'vite-plugin-vue-devtools';
+import Inspector from 'vite-plugin-vue-inspector';
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
 const viteBaseUrl = process.env.VITE_BASE_URL;
 
-// According to the documentation, we should be able to set the allowed hosts
-// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS but as of 5.4.15, that is not
-// working as expected. So here we capture the value of that env var with
-// and without the __ prefix and if either are defined, add the hosts to
-// server.allowedHosts below. Multiple hosts can be separated by commas.
+// server.allowedHosts - Multiple hosts can be separated by commas.
 //
 // https://vite.dev/config/server-options.html#server-allowedhosts
 // https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
-const viteAdditionalServerAllowedHosts =
-  process.env.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS ??
-  process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
+const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
 
 /**
  * Vite Configuration - Consolidated Assets
@@ -38,6 +32,10 @@ const viteAdditionalServerAllowedHosts =
  * - Single JS bundle (no code splitting)
  * - Separate style.css entry
  * - Simplified manifest format
+ *
+ * The single-bundle approach enables strict Content Security Policy (CSP)
+ * implementation with nonces, as each script chunk would otherwise require
+ * its own unique nonce attribute.
  *
  * Manifest Output Example:
  * {
@@ -51,36 +49,16 @@ const viteAdditionalServerAllowedHosts =
  * }
  *
  * @see 29ffd790d74599bbbe3755d0fcba2b59c2f59ed7
- *
- * Previously used Vite's default code splitting behavior, producing:
- * - Multiple JS chunks for dynamic imports
- * - Separate CSS files
- * - Standard Vite manifest format with CSS files listed in main entry
- *
- * Manifest Output Example:
- * {
- *   "main.ts": {
- *     "file": "assets/main.[hash].js",
- *     "css": ["assets/style.[hash].css"],
- *     "imports": ["_vendor.[hash].js"]
- *   }
- * }
  */
 export default defineConfig({
-  // Sets project root to ./src directory
-  // - All imports will be resolved relative to ./src
-  // - Static assets should be placed in ./src/public
-  // - Index.html should be in ./src
+  // Project root is ./src (imports resolve from here, index.html lives here)
   root: './src',
-  // If root is NOT set:
-  // - Project root will be the directory with vite.config.ts
-  // - Static assets go in ./public
-  // - Index.html should be in project root
+
   plugins: [
-    // re: order of plugins
-    // - Vue plugin should be early in the chain
-    // - Transformation/checking plugins follow framework plugins
-    // - Plugins that modify code should precede diagnostic plugins
+    // Plugin order matters: Tailwind CSS first for stylesheet processing
+    tailwindcss(),
+
+    // Then Vue for component compilation
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
       template: {
@@ -110,29 +88,71 @@ export default defineConfig({
          * Reference: Discovered via stack trace to Pinia devtools initialization:
          * $subscribe @ pinia.js -> devtoolsInitApp @ chunk-LR5MW2GB.js -> mount
          */
-        compilerOptions: {
-          // Be cool and chill about 3rd party components. Alternatvely can use
-          // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
-          // in main.ts.
-          isCustomElement: (tag: string | string[]) => tag.includes('altcha-'),
-        },
+        compilerOptions: {},
       },
     }),
 
-    // // Enable type checking and linting w/o blocking hmr
-    // checker({
-    //   typescript: true,
-    //   vueTsc: true,
-    // }),
+    /**
+     * Vue I18n Plugin - Handles internationalization
+     * ------------------------------------------------
+     * Locales are pre-merged by Python script (locales/scripts/build/compile.py)
+     * into single JSON files per locale in generated/locales/{locale}.json.
+     * The src/i18n.ts module loads these pre-merged files directly.
+     */
+    VueI18nPlugin({
+      // Disable automatic locale file discovery - we load pre-merged files
+      // from generated/locales/ in src/i18n.ts
+      include: [],
+
+      // compositionOnly: true
+      // - Only generates Composition API code (no Options API compatibility)
+      // - Smaller bundle size, modern Vue 3 approach
+      // - Requires using useI18n() instead of $t in <script>
+      compositionOnly: true,
+
+      // runtimeOnly: false
+      // - Includes the full message compiler at runtime (not just pre-compiled)
+      // - Allows dynamic message compilation and runtime template features
+      // - Better Vue devtools support for inspecting translations
+      // - Trade-off: ~8KB larger bundle vs. full runtime capabilities
+      runtimeOnly: false,
+
+      // fullInstall: true
+      // - Includes all i18n APIs (datetime, number formatting, pluralization, etc.)
+      // What fullInstall provides but you DON'T use:
+      // - $d() / d() - datetime formatting (0 instances)
+      // - $n() / n() - number formatting (0 instances)
+      // - $tm() / tm() - translation message object access (0 instances)
+      // - Advanced composition functions beyond t()
+      // - Trade-off: Larger bundle vs. complete i18n functionality
+      fullInstall: true,
+
+      // strictMessage: true
+      // - Enforces strict message format validation during compilation
+      // - Special characters (@, {, }, etc.) must be properly escaped
+      // - Catches syntax errors early at build time
+      // - Prevents runtime message parsing failures
+      // - Example: Use "email{'@'}example.com" not "email@example.com"
+      strictMessage: true,
+
+      // escapeHtml: true
+      // - Automatically escapes HTML entities in translation strings
+      // - Use v-html directive if intentional HTML formatting needed
+      escapeHtml: true,
+
+      // defaultSFCLang: 'json'
+      // - Default language format for Single File Component i18n blocks
+      // - Specifies that <i18n> blocks in .vue files use JSON format
+      // - Alternatives: 'yaml', 'json5', 'yml'
+      defaultSFCLang: 'json',
+    }),
 
     // Enable Vue Devtools
-    //vueDevTools(),
-    //Inspector(),
+    VueDevTools({ launchEditor: 'zed' }),
+    Inspector(),
 
     // https://github.com/unplugin/unplugin-vue-markdown
-    Markdown({
-      /* options */
-    }),
+    Markdown({}),
 
     /**
      * Makes sure all text output files have a trailing newline.
@@ -149,13 +169,14 @@ export default defineConfig({
      *
      * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
      */
-    addTrailingNewline(),
+    addTrailingNewline() as any,
   ],
 
   resolve: {
     alias: {
       '@': resolve(process.cwd(), './src'),
       '@tests': resolve(process.cwd(), './tests'),
+      '@generated': resolve(process.cwd(), './generated'),
       // vue: 'vue/dist/vue.runtime.esm-bundler.js',
     },
   },
@@ -184,42 +205,13 @@ export default defineConfig({
     // (or be manually deleted). The key is template:global:vite_assets in db 0.
     emptyOutDir: true,
 
-    // Code Splitting vs Combined Files
+    // Single Bundle Strategy
     //
-    // Code Splitting:
-    // Advantages:
-    // 1. Improved Initial Load Time: Only the necessary code for the initial page
-    // is loaded, with additional code loaded as needed.
-    // 2. Better Caching: Smaller, more granular files can be cached more
-    // effectively. Changes in one part of the application only require updating
-    // the corresponding file.
-    // 3. Parallel Loading: Modern browsers can download multiple files in
-    // parallel, speeding up the overall loading process.
-    //
-    // Disadvantages:
-    // 1. Increased Complexity: Managing multiple files can be more complex,
-    // especially with dependencies and ensuring correct load order.
-    // 2. More HTTP Requests: More files mean more HTTP requests, which can be a
-    // performance bottleneck on slower networks.
-    //
-    // Combined Files:
-    // Advantages:
-    // 1. Simplicity: A single file is easier to manage and deploy, with no
-    // concerns about missing files or incorrect load orders.
-    // 2. Fewer HTTP Requests: Combining everything into a single file reduces the
-    // number of HTTP requests, beneficial for performance on slower networks.
-    //
-    // Disadvantages:
-    // 1. Longer Initial Load Time: The entire application needs to be downloaded
-    // before it can be used, increasing initial load time.
-    // 2. Inefficient Caching: Any change in the application requires the entire
-    // bundle to be re-downloaded.
-    //
-    // Conclusion:
-    // The conventional approach in modern web development is to use code
-    // splitting for better performance and caching. However, the best approach
-    // depends on the specific use case. For larger applications, code splitting
-    // is usually preferred, while for smaller applications, combining files might
+    // We intentionally disable code splitting to support CSP nonces.
+    // While this increases initial load time, it simplifies nonce
+    // management by requiring only one script tag. Code splitting would
+    // require generating and tracking nonces for each chunk, adding
+    // complexity without significant benefit for our use case.
     manifest: true,
     rollupOptions: {
       input: {
@@ -236,17 +228,9 @@ export default defineConfig({
       },
     },
 
-    // Pollyfill preloads are disabled while we establish our
-    // strict CSP headers. We will revisit again whether these
-    // are still useful or to remove.
-    // https://guybedford.com/es-module-preloading-integrity
-    // https://github.com/vitejs/vite/issues/5120#issuecomment-971952210
-    //modulePreload: {
-    //  polyfill: true,
-    //},
-
     cssCodeSplit: false,
     sourcemap: true,
+    chunkSizeWarningLimit: 3000, // up from default 500 KB to accommodate single bundle
   },
 
   css: {

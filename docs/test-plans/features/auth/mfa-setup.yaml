@@ -1,0 +1,556 @@
+# docs/test-plans/features/auth/mfa-setup.yaml
+---
+# LLM-Optimized Test Cases: MFA Setup and Login
+# Schema version: 1.0.0
+#
+# Tests multi-factor authentication setup flow including:
+# - Enabling TOTP-based MFA
+# - Recording recovery codes
+# - Logging in with MFA
+# - Using recovery codes as backup
+
+suite:
+  id: mfa-setup
+  name: Multi-Factor Authentication Setup and Login
+  feature: TOTP-based MFA with recovery codes
+  tags: [auth, mfa, totp, security, recovery-codes]
+  notes: |
+    MFA uses TOTP (Time-based One-Time Password) compatible with
+    authenticator apps like Google Authenticator, Authy, 1Password.
+    Recovery codes provide backup access if authenticator is lost.
+
+    For testing, use `bin/ots totp SECRET_KEY` to generate valid TOTP
+    codes locally without external tools. The SECRET_KEY is the base32
+    secret shown during MFA setup (manual entry key).
+
+definitions:
+  users:
+    authenticated_no_mfa: &user_no_mfa
+      auth: logged_in
+      state:
+        mfa_enabled: false
+      description: Authenticated user without MFA enabled
+
+    authenticated_with_mfa: &user_with_mfa
+      auth: logged_in
+      state:
+        mfa_enabled: true
+        has_recovery_codes: true
+      description: Authenticated user with MFA enabled
+
+    unauthenticated: &user_unauth
+      auth: logged_out
+      description: User not signed in
+
+tests:
+  # ===========================================================================
+  # SECTION 1: MFA Setup Flow
+  # ===========================================================================
+
+  - id: TC-MFA-001
+    intent: User can access MFA settings from account security page
+    setup:
+      <<: *user_no_mfa
+    target: /account/security
+    action:
+      type: none
+    verify:
+      - MFA section visible on security page
+      - Shows MFA is currently disabled
+      - Enable MFA button or link visible
+      - selector: "[data-testid='mfa-settings']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [MfaSettings.vue, SecurityOverview.vue]
+
+  - id: TC-MFA-002
+    intent: Clicking Enable MFA opens setup wizard
+    setup:
+      <<: *user_no_mfa
+    target: /account/security
+    action:
+      type: click
+      element: Enable MFA button
+    verify:
+      - Setup wizard modal or page opens
+      - Shows QR code for authenticator app
+      - Shows manual entry secret key
+      - Instructions explain next steps
+      - selector: "[data-testid='mfa-setup-wizard']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [OtpSetupWizard.vue, MfaSettings.vue]
+
+  - id: TC-MFA-003
+    intent: QR code can be scanned by authenticator app
+    setup:
+      <<: *user_no_mfa
+    target: /account/security (MFA setup wizard open)
+    action:
+      type: none
+    verify:
+      - QR code is displayed and scannable
+      - Secret key shown for manual entry
+      - Account name/issuer visible in setup
+      - QR contains otpauth:// URI
+    priority: high
+    type: functional
+    covers: [OtpSetupWizard.vue, totp-setup]
+
+  - id: TC-MFA-004
+    intent: User must verify TOTP code to complete setup
+    setup:
+      <<: *user_no_mfa
+    target: /account/security (MFA setup wizard - verification step)
+    action:
+      type: submit
+      element: Verify code input
+      data:
+        otp_code: "123456"
+    verify:
+      - 6-digit OTP input field visible
+      - Verify button enabled when 6 digits entered
+      - Invalid code shows error message
+      - Valid code proceeds to next step
+    priority: critical
+    type: functional
+    covers: [OtpSetupWizard.vue, totp-verification]
+
+  - id: TC-MFA-005
+    intent: After verification, recovery codes are displayed
+    setup:
+      <<: *user_no_mfa
+    target: /account/security (MFA setup wizard - after TOTP verification)
+    action:
+      type: none
+    verify:
+      - Recovery codes displayed (typically 8-10 codes)
+      - Each code is unique
+      - Warning to save codes securely
+      - Download codes button available
+      - Copy codes button available
+      - Cannot proceed without acknowledging codes saved
+    priority: critical
+    type: functional
+    covers: [OtpSetupWizard.vue, recovery-codes]
+
+  - id: TC-MFA-006
+    intent: User can download recovery codes as text file
+    setup:
+      <<: *user_no_mfa
+    target: /account/security (MFA setup wizard - recovery codes step)
+    action:
+      type: click
+      element: Download codes button
+    verify:
+      - File download initiated
+      - File contains all recovery codes
+      - File is plain text format
+      - Filename indicates purpose (e.g., recovery-codes.txt)
+    priority: high
+    type: functional
+    covers: [OtpSetupWizard.vue, downloadCodes]
+
+  - id: TC-MFA-007
+    intent: User can copy recovery codes to clipboard
+    setup:
+      <<: *user_no_mfa
+    target: /account/security (MFA setup wizard - recovery codes step)
+    action:
+      type: click
+      element: Copy codes button
+    verify:
+      - Codes copied to clipboard
+      - Success notification shown
+      - Clipboard contains all recovery codes
+    priority: high
+    type: functional
+    covers: [OtpSetupWizard.vue, copyCodes]
+
+  - id: TC-MFA-008
+    intent: User must confirm codes saved before completing setup
+    setup:
+      <<: *user_no_mfa
+    target: /account/security (MFA setup wizard - recovery codes step)
+    action:
+      type: click
+      element: Complete setup button (without confirming)
+    verify:
+      - Checkbox or confirmation required
+      - Cannot complete without acknowledging codes saved
+      - After confirmation, setup completes
+      - selector: "[data-testid='mfa-setup-wizard']"
+        assertion: hidden
+      - selector: "[data-testid='mfa-status']"
+        assertion: contains_text
+        expected: "enabled"
+      - api: GET /api/v2/account/mfa/status
+        assert:
+          mfa_enabled: true
+          has_recovery_codes: true
+    postconditions:
+      - MFA enabled for user account (verified via API)
+      - Recovery codes stored (hashed) server-side
+    priority: critical
+    type: functional
+    covers: [OtpSetupWizard.vue, codesSaved]
+
+  - id: TC-MFA-009
+    intent: After setup, security page shows MFA is enabled
+    setup:
+      <<: *user_with_mfa
+    target: /account/security
+    action:
+      type: none
+    verify:
+      - MFA status shows enabled
+      - Disable MFA option available
+      - Recovery codes section visible
+      - Option to regenerate recovery codes
+    priority: high
+    type: functional
+    covers: [MfaSettings.vue, SecurityOverview.vue]
+
+  # ===========================================================================
+  # SECTION 2: Login with MFA
+  # ===========================================================================
+
+  - id: TC-MFA-010
+    intent: Login with correct password redirects to MFA challenge
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+    target: /signin
+    action:
+      type: submit
+      element: Sign in form
+      data:
+        email: user@example.com
+        password: correct_password
+    verify:
+      - Does not sign in immediately
+      - Redirects to MFA verification page
+      - Shows TOTP code input
+      - Option to use recovery code visible
+      - url: /mfa-verify
+        assertion: matches
+      - selector: "[data-testid='mfa-setup-form']"
+        assertion: visible
+      - selector: "[data-testid='otp-code-input']"
+        assertion: visible
+    priority: critical
+    type: functional
+    covers: [MfaChallenge.vue, useAuth.ts]
+
+  - id: TC-MFA-011
+    intent: Valid TOTP code completes login
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+    target: /mfa-verify
+    action:
+      type: submit
+      element: OTP code input
+      data:
+        otp_code: valid_totp_code
+    verify:
+      - User is signed in
+      - Redirects to dashboard or intended destination
+      - Session is established
+      - selector: "[data-testid='otp-code-input']"
+        assertion: visible
+      - api: GET /bootstrap/me
+        assertion: { authenticated: true, mfa_enabled: true, awaiting_mfa: false }
+      - url: /dashboard
+        assertion: matches
+    postconditions:
+      - User authenticated
+      - Session created
+    priority: critical
+    type: functional
+    covers: [MfaChallenge.vue, useMfa.ts]
+    notes: Generate valid codes with `bin/ots totp SECRET_KEY`
+
+  - id: TC-MFA-012
+    intent: Invalid TOTP code shows error and allows retry
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+    target: /mfa-verify
+    action:
+      type: submit
+      element: OTP code input
+      data:
+        otp_code: "000000"
+    verify:
+      - Error message displayed
+      - User remains on MFA page
+      - Can retry with correct code
+      - Input is cleared for new attempt
+    priority: high
+    type: error
+    covers: [MfaChallenge.vue, error-handling]
+
+  - id: TC-MFA-013
+    intent: User can switch to recovery code mode
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+    target: /mfa-verify
+    action:
+      type: click
+      element: Use recovery code link/button
+    verify:
+      - UI switches to recovery code input
+      - Recovery code input field visible
+      - Option to switch back to TOTP
+      - Instructions for recovery code format
+    priority: high
+    type: functional
+    covers: [MfaChallenge.vue, useRecoveryMode]
+
+  - id: TC-MFA-014
+    intent: Valid recovery code completes login
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+        recovery_codes_remaining: 8
+    target: /mfa-verify (recovery mode)
+    action:
+      type: submit
+      element: Recovery code input
+      data:
+        recovery_code: valid_recovery_code
+    verify:
+      - User is signed in
+      - Redirects to dashboard
+      - Recovery code is consumed (one-time use)
+      - Warning shown about reduced recovery codes remaining
+      - api: GET /bootstrap/me
+        assertion: { authenticated: true, mfa_enabled: true, awaiting_mfa: false }
+      - api: GET /api/v2/account/recovery-codes/count
+        assertion: { remaining: 7 }
+    postconditions:
+      - User authenticated
+      - Used recovery code invalidated
+    priority: critical
+    type: functional
+    covers: [MfaChallenge.vue, recovery-code-auth]
+
+  - id: TC-MFA-015
+    intent: Invalid recovery code shows error
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+    target: /mfa-verify (recovery mode)
+    action:
+      type: submit
+      element: Recovery code input
+      data:
+        recovery_code: "invalid-code-12345"
+    verify:
+      - Error message displayed
+      - User remains on MFA page
+      - Can retry with correct code
+    priority: high
+    type: error
+    covers: [MfaChallenge.vue, recovery-code-error]
+
+  - id: TC-MFA-016
+    intent: Already-used recovery code is rejected
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+        used_recovery_codes: ["abc123-def456"]
+    target: /mfa-verify (recovery mode)
+    action:
+      type: submit
+      element: Recovery code input
+      data:
+        recovery_code: "abc123-def456"
+    verify:
+      - Error message indicates code already used
+      - User must use different recovery code
+      - No authentication occurs
+    priority: high
+    type: security
+    covers: [recovery-code-reuse-prevention]
+
+  # ===========================================================================
+  # SECTION 3: Recovery Code Management
+  # ===========================================================================
+
+  - id: TC-MFA-020
+    intent: User can view recovery codes status in settings
+    setup:
+      <<: *user_with_mfa
+    target: /account/security
+    action:
+      type: none
+    verify:
+      - Recovery codes section visible
+      - Shows count of remaining codes (if tracked)
+      - Option to regenerate codes available
+      - Warning if codes are running low
+      - selector: "[data-testid='recovery-codes-section']"
+        assertion: visible
+    priority: medium
+    type: functional
+    covers: [RecoveryCodes.vue, hasRecoveryCodes]
+
+  - id: TC-MFA-021
+    intent: Regenerating recovery codes requires password confirmation
+    setup:
+      <<: *user_with_mfa
+    target: /account/security
+    action:
+      type: click
+      element: Generate new recovery codes button
+    verify:
+      - Confirmation modal appears
+      - Password input required
+      - Warning that old codes will be invalidated
+      - Cancel option available
+    priority: high
+    type: functional
+    covers: [RecoveryCodes.vue, showGenerateConfirm]
+
+  - id: TC-MFA-022
+    intent: Correct password generates new recovery codes
+    setup:
+      <<: *user_with_mfa
+      state:
+        old_recovery_code: "old-code-123456"
+    target: /account/security (regenerate modal open)
+    action:
+      type: submit
+      element: Regenerate form
+      data:
+        password: correct_password
+    verify:
+      - New recovery codes displayed
+      - Old codes are invalidated
+      - Download/copy options available
+      - Must acknowledge saving new codes
+      - selector: "[data-testid='recovery-codes']"
+        assertion: visible
+    postconditions:
+      - Previous recovery codes no longer work
+      - New recovery codes active
+    postcondition_validation:
+      - action: attempt_login_with_old_recovery_code
+        data:
+          recovery_code: "old-code-123456"
+        expected: { error: "Invalid recovery code", authenticated: false }
+    priority: high
+    type: functional
+    covers: [RecoveryCodes.vue, handleGenerateNew]
+
+  # ===========================================================================
+  # SECTION 4: Edge Cases
+  # ===========================================================================
+
+  - id: TC-MFA-030
+    intent: MFA setup can be cancelled without enabling
+    setup:
+      <<: *user_no_mfa
+    target: /account/security (MFA setup wizard open)
+    action:
+      type: click
+      element: Cancel button
+    verify:
+      - Wizard closes
+      - MFA remains disabled
+      - No partial state saved
+      - Can restart setup fresh
+      - selector: "[data-testid='mfa-setup-wizard']"
+        assertion: hidden
+      - api: GET /bootstrap/me
+        assertion: { mfa_enabled: false }
+    priority: medium
+    type: edge
+    covers: [OtpSetupWizard.vue, handleCancel]
+
+  - id: TC-MFA-031
+    intent: Page refresh during MFA login returns to MFA challenge
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+    target: /mfa-verify
+    action:
+      type: navigate
+      data:
+        steps: [Refresh page]
+    verify:
+      - User remains on MFA verification page
+      - awaiting_mfa state preserved (or re-authenticated)
+      - Can still enter TOTP code
+      - url: /mfa-verify
+        assertion: matches
+      - selector: "[data-testid='mfa-setup-form']"
+        assertion: visible
+      - selector: "[data-testid='otp-code-input']"
+        assertion: visible
+    priority: medium
+    type: edge
+    covers: [MfaChallenge.vue, state-persistence]
+
+  - id: TC-MFA-032
+    intent: Direct navigation to MFA page without pending auth redirects to login
+    setup:
+      <<: *user_unauth
+      state:
+        awaiting_mfa: false
+    target: /mfa-verify
+    action:
+      type: navigate
+    verify:
+      - Redirects to /signin
+      - Cannot access MFA page without pending authentication
+      - Route guard protects MFA page
+      - url: /signin
+        assertion: matches
+      - selector: "[data-testid='signin-form']"
+        assertion: visible
+    priority: high
+    type: security
+    covers: [route-guards, MfaChallenge.vue]
+
+  - id: TC-MFA-033
+    intent: TOTP code expires after time window
+    setup:
+      <<: *user_unauth
+      state:
+        account_has_mfa: true
+        awaiting_mfa: true
+    target: /mfa-verify
+    action:
+      type: submit
+      element: OTP code input
+      data:
+        otp_code: expired_totp_code
+    verify:
+      - Error message about invalid or expired code
+      - User must use current TOTP code
+      - TOTP has ~30 second validity window
+    priority: medium
+    type: edge
+    covers: [totp-time-window]
+    notes: TOTP codes are time-based, typically valid for 30 seconds with some drift allowance

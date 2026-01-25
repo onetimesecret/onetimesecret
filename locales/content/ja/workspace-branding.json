@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "text": "カラーピッカー",
+    "sha256": "ba42602c"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "現在の{0}: {1}。クリックしてオプションを切り替えます。",
+    "sha256": "84bf49e6"
+  },
+  "web.branding.use_setting": {
+    "text": "設定を使用",
+    "sha256": "8a18d118"
+  },
+  "web.branding.font_family": {
+    "text": "フォントファミリー",
+    "sha256": "f81339da"
+  },
+  "web.branding.corner_style": {
+    "text": "角のスタイル",
+    "sha256": "fcb3ecdf"
+  },
+  "web.branding.brand_color": {
+    "text": "ブランドカラー",
+    "sha256": "db3183e3"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "セキュアリンクにアクセスする受信者の表示のプレビュー",
+    "sha256": "199c165f"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "プレビューとカスタマイズ",
+    "sha256": "215d3659"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Safariブラウザビューに切り替え",
+    "sha256": "6e0fe791"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge",
+    "sha256": "951e7f89"
+  },
+  "web.branding.maximize_window": {
+    "text": "ウィンドウを最大化",
+    "sha256": "45d23969"
+  },
+  "web.branding.minimize_window": {
+    "text": "ウィンドウを最小化",
+    "sha256": "5cd54386"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Edgeブラウザビューに切り替え",
+    "sha256": "a8fcd82d"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500文字",
+    "sha256": "e36598ef"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "スマートフォンでQRコードをスキャンしてください",
+    "sha256": "99ecf59f"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "ご質問はonboarding{'@'}example.comまでお問い合わせください",
+    "sha256": "bee120a7"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "これらの指示は、受信者がシークレットの内容を表示する前に表示されます",
+    "sha256": "9d5a6334"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "これらの指示は、受信者がシークレットを表示した後に表示されます",
+    "sha256": "9f82bd94"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "公開前の説明",
+    "sha256": "a299422e"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "公開後の説明",
+    "sha256": "72ecc23a"
+  },
+  "web.branding.instructions": {
+    "text": "説明",
+    "sha256": "934652dc"
+  },
+  "web.branding.logo_controls": {
+    "text": "ロゴコントロール",
+    "sha256": "43e9a2d7"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "クリックしてロゴをアップロードします。推奨サイズ：128x128ピクセル。最大ファイルサイズ：1MB。サポートされている形式：PNG、JPG、SVG",
+    "sha256": "a35452bf"
+  },
+  "web.branding.upload_logo": {
+    "text": "ロゴをアップロード",
+    "sha256": "c3330082"
+  },
+  "web.branding.loading_preview": {
+    "text": "プレビューを読み込み中...",
+    "sha256": "c02130fa"
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "「シークレットを表示」ボタンをテストして、受信者がどのようにあなたのシークレットを見るかをプレビューします",
+    "sha256": "3b58a297"
+  },
+  "web.branding.eye_icon": {
+    "text": "目のアイコン",
+    "sha256": "7f605d3c"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "以下のプレビュー画像をクリックして、ロゴを更新します（最小128x128ピクセル推奨、最大1MB）",
+    "sha256": "77a19049"
+  },
+  "web.branding.image_icon": {
+    "text": "画像アイコン",
+    "sha256": "b0d64fcf"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "上のコントロールを使用して、ブランドの色、スタイル、受信者への指示をカスタマイズします",
+    "sha256": "d6287134"
+  },
+  "web.branding.customization_icon": {
+    "text": "カスタマイズアイコン",
+    "sha256": "bde04d31"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "保存されていない変更があります。よろしいですか？",
+    "sha256": "184b6a83"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "ブランド設定の読み込みに失敗しました",
+    "sha256": "a7a1575e"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト",
+    "sha256": "3d8b2c0d"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "日本語の漢字「秘」(ひみつ) - 「秘密」または「機密」を意味する",
+    "sha256": "1e04ba2e"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Powered by Onetime Secret",
+    "sha256": "935442d0"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0}ロゴ",
+    "sha256": "3a3c98ed"
+  },
+  "web.branding.edge": {
+    "text": "Edge",
+    "sha256": "0f82fe72"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Edgeプレビューに切り替え",
+    "sha256": "83883d84"
+  },
+  "web.branding.safari": {
+    "text": "Safari",
+    "sha256": "5f033039"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Safariプレビューに切り替え",
+    "sha256": "f24ac447"
+  }
+}

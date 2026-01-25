@@ -1,0 +1,367 @@
+# apps/web/billing/logic/welcome.rb
+#
+# frozen_string_literal: true
+
+require 'onetime/logic/base'
+
+module Billing
+  module Logic
+    module Welcome
+      # Handles redirect from Stripe Payment Links after successful payment
+      #
+      # This logic class associates the Stripe checkout session with the
+      # customer's account and updates their organization's billing details
+      # (planid, subscription status, etc.) after completing a purchase.
+      #
+      # @note The external API remains unchanged: GET /welcome?checkout={ID}
+      #
+      class FromStripePaymentLink < Onetime::Logic::Base
+        attr_reader :checkout_session_id,
+          :checkout_session,
+          :checkout_email,
+          :update_customer_fields,
+          :stripe_subscription
+
+        def process_params
+          @checkout_session_id = params['checkout']
+        end
+
+        def raise_concerns
+          raise_form_error 'No Stripe checkout_session_id' unless checkout_session_id
+
+          # Use expand to fetch subscription in a single API call
+          @checkout_session = Stripe::Checkout::Session.retrieve(
+            {
+              id: checkout_session_id,
+              expand: ['subscription'],
+            },
+          )
+          raise_form_error 'Invalid Stripe checkout session' unless checkout_session
+
+          # The full subscription object is now available via expand
+          @stripe_subscription = checkout_session.subscription
+
+          @checkout_email         = checkout_session.customer_details.email
+          @update_customer_fields = {
+            stripe_checkout_email: checkout_email,
+            stripe_subscription_id: stripe_subscription&.id,
+            stripe_customer_id: checkout_session.customer,
+          }
+        end
+
+        def process
+          if @sess['authenticated'] == true
+            # If the user is already authenticated, we can associate the checkout
+            # session with their account - but only if emails match.
+
+            unless checkout_email.eql?(cust.email)
+              # Security: Don't link checkout to a different account than checkout_email
+              OT.le "[FromStripePaymentLink] Email mismatch: checkout email differs from authenticated user #{cust.obscure_email}"
+              raise_form_error 'Please log out first to complete checkout with a different email address'
+            end
+
+            OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with authenticated user #{cust.obscure_email}"
+
+            fields_to_update = preserve_existing_stripe_customer_id(cust, update_customer_fields.dup)
+            cust.apply_fields(**fields_to_update).commit_fields
+
+            # Update organization billing from subscription (extracts planid, etc.)
+            update_organization_billing(cust)
+
+          else
+            # If the user is not authenticated, check if the email address is already
+            # associated with an account. If not, we can create a new account for them
+            # using the email address from the checkout session.
+            cust = Onetime::Customer.load(checkout_email)
+
+            if cust
+              # If the email address is already associated with an account, we can
+              # associate the checkout session with that account and then direct
+              # them to sign in.
+
+              OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.obscure_email}"
+
+              fields_to_update = preserve_existing_stripe_customer_id(cust, update_customer_fields.dup)
+              cust.apply_fields(**fields_to_update).commit_fields
+
+              # Update organization billing from subscription (extracts planid, etc.)
+              update_organization_billing(cust)
+
+              raise OT::Redirect.new('/signin')
+            else
+              # Security: Create account but require email verification before login.
+              # This prevents an attacker from using victim's email in checkout
+              # and gaining immediate authenticated access.
+              OT.info "[FromStripePaymentLink] Creating unverified account for #{OT::Utils.obscure_email(checkout_email)}"
+
+              new_cust             = Onetime::Customer.create!(checkout_email)
+              new_cust.verified    = false  # Require email verification
+              new_cust.verified_by = 'stripe_payment'  # Track payment-initiated account
+              new_cust.role        = 'customer'
+              new_cust.update_passphrase Onetime::Utils.strand(12)
+              new_cust.apply_fields(**update_customer_fields).commit_fields
+
+              # Update organization billing from subscription (extracts planid, etc.)
+              update_organization_billing(new_cust)
+
+              # Send verification email so they can complete account setup
+              send_verification_email_to(new_cust)
+
+              OT.info "[FromStripePaymentLink] Verification email sent to #{new_cust.obscure_email}"
+
+              # Do NOT authenticate - require email verification first
+              # Redirect to signin with message about checking email
+              raise OT::Redirect.new('/signin')
+            end
+
+          end
+
+          success_data
+        end
+
+        def success_data
+          { checkout_session_id: checkout_session_id }
+        end
+
+        private
+
+        # Update the customer's organization with subscription billing details
+        #
+        # Fetches the customer's primary organization and updates it with the
+        # subscription data, which includes extracting planid from metadata.
+        #
+        # @param customer [Onetime::Customer] The customer whose organization to update
+        # @return [void]
+        def update_organization_billing(customer)
+          return unless stripe_subscription
+
+          # Find or create default organization
+          orgs = customer.organization_instances.to_a
+          org  = orgs.find(&:is_default)
+
+          # Self-healing fallback - see: apps/web/auth/operations/create_default_workspace.rb
+          unless org
+            OT.info "[FromStripePaymentLink] No default organization found, creating one for customer #{customer.obscure_email}"
+            org = Onetime::Organization.create!(
+              "#{customer.email}'s Workspace",
+              customer,
+              customer.email,
+              is_default: true,
+            )
+          end
+
+          OT.info "[FromStripePaymentLink] Updating organization #{org.objid} billing from subscription #{stripe_subscription.id}"
+          org.update_from_stripe_subscription(stripe_subscription)
+        rescue Stripe::StripeError, Familia::Problem => ex
+          # Log but don't fail the checkout flow - billing can be reconciled later
+          OT.le "[FromStripePaymentLink] Error updating organization billing: #{ex.message}"
+        end
+
+        # Send verification email to a specific customer
+        #
+        # Creates a verification secret and sends the welcome email.
+        # Similar to base class send_verification_email but takes customer as param.
+        #
+        # @param customer [Onetime::Customer] The customer to send verification to
+        # @return [void]
+        def send_verification_email_to(customer)
+          msg = format(
+            "Thanks for your purchase! Please verify your email to activate your account.\n\n\"%s\"",
+            OT::Utils.random_fortune,
+          )
+
+          _receipt, secret = Onetime::Receipt.spawn_pair(customer.objid, 24.days, msg)
+
+          secret.verification = true
+          secret.custid       = customer.custid
+          secret.save
+
+          customer.reset_secret = secret.identifier
+
+          Onetime::Mail::Mailer.deliver(
+            :welcome,
+            {
+              email_address: customer.email,
+              secret: secret,
+            },
+          )
+        rescue StandardError => ex
+          OT.le "[FromStripePaymentLink] Error sending verification email: #{ex.message}"
+        end
+
+        # Preserve existing stripe_customer_id during checkout association
+        #
+        # When a user already has a stripe_customer_id (from a previous checkout),
+        # we keep their existing ID rather than overwriting with the new one.
+        # The authoritative billing relationship is now on Organization, but we
+        # preserve Customer.stripe_customer_id for data integrity during migration.
+        #
+        # @param customer [Onetime::Customer] The customer to check
+        # @param fields [Hash] The update fields hash (will be modified in place)
+        # @return [Hash] The modified fields hash
+        def preserve_existing_stripe_customer_id(customer, fields)
+          existing_id = customer.stripe_customer_id.to_s
+          new_id      = fields[:stripe_customer_id].to_s
+
+          if existing_id.present? && existing_id != new_id
+            OT.lw '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing',
+              {
+                existing: existing_id,
+                new: new_id,
+                customer: customer.obscure_email,
+              }
+            fields.delete(:stripe_customer_id)
+          end
+
+          fields
+        end
+      end
+
+      # Processes checkout session redirect from Stripe
+      #
+      # Handles the redirect after a customer completes checkout via
+      # Billing::Controllers::Plans (using ?session_id= parameter).
+      # Retrieves the full checkout session with expanded subscription,
+      # finds/creates the customer's organization, and updates billing.
+      #
+      # @note This is used by /billing/welcome endpoint
+      #
+      class ProcessCheckoutSession < Onetime::Logic::Base
+        attr_reader :session_id, :checkout_session, :subscription, :target_organization
+
+        def process_params
+          @session_id = params['session_id']
+        end
+
+        def raise_concerns
+          raise_form_error 'No session_id provided' unless session_id
+
+          # Validate checkout session ID format (Stripe uses cs_test_ or cs_live_ prefix)
+          unless session_id.match?(/\Acs_(test|live)_/)
+            raise_form_error 'Invalid checkout session ID format'
+          end
+
+          @checkout_session = Stripe::Checkout::Session.retrieve(
+            {
+              id: session_id,
+              expand: %w[subscription customer],
+            },
+          )
+          raise_form_error 'Invalid checkout session' unless checkout_session
+
+          @subscription = checkout_session.subscription
+          # NOTE: subscription may be nil for one-time payments
+        end
+
+        def process
+          return success_data unless subscription
+
+          metadata        = subscription.metadata
+          customer_extid  = metadata['customer_extid']
+          orgid           = metadata['orgid']
+          plan_id         = metadata['plan_id']
+
+          OT.info '[ProcessCheckoutSession] Processing checkout',
+            {
+              session_id: session_id,
+              customer_extid: customer_extid,
+              orgid: orgid,
+              plan_id: plan_id,
+              subscription_id: subscription.id,
+            }
+
+          # Load the actual customer from metadata (session may be anonymous after Stripe redirect)
+          # The customer_extid was embedded in subscription metadata when checkout was created
+          customer = Onetime::Customer.find_by_extid(customer_extid)
+          unless customer
+            OT.le "[ProcessCheckoutSession] Customer not found: #{customer_extid}"
+            raise_form_error 'Customer not found'
+          end
+
+          # Find the target organization from metadata (the org that initiated checkout)
+          # This ensures the correct org gets upgraded, not just the customer's default
+          @target_organization = find_target_organization(customer, metadata)
+
+          # Update organization with subscription details (extracts planid, etc.)
+          @target_organization.update_from_stripe_subscription(subscription)
+
+          OT.info '[ProcessCheckoutSession] Organization subscription activated',
+            {
+              orgid: @target_organization.objid,
+              extid: @target_organization.extid,
+              subscription_id: subscription.id,
+              plan_id: @target_organization.planid,
+            }
+
+          success_data
+        end
+
+        def success_data
+          {
+            session_id: session_id,
+            success: true,
+            org_extid: @target_organization&.extid,
+          }
+        end
+
+        private
+
+        # Find the target organization for this checkout
+        #
+        # Priority:
+        # 1. orgid from subscription metadata (explicit org that initiated checkout)
+        # 2. Org already linked to this Stripe customer (idempotent replay)
+        # 3. Customer's default org (legacy/fallback)
+        # 4. Create new default org (shouldn't happen in normal flow)
+        #
+        # @param customer [Onetime::Customer] The customer
+        # @param metadata [Stripe::StripeObject] Subscription metadata
+        # @return [Onetime::Organization] The target organization
+        def find_target_organization(customer, metadata)
+          # 1. Explicit org from metadata (most reliable - set during checkout creation)
+          orgid = metadata['orgid']
+          if orgid
+            org = Onetime::Organization.load(orgid)
+            if org
+              OT.info '[ProcessCheckoutSession] Found org from subscription metadata',
+                { orgid: orgid, extid: org.extid }
+              return org
+            end
+            OT.lw '[ProcessCheckoutSession] orgid in metadata not found', { orgid: orgid }
+          end
+
+          # 2. Org already linked to Stripe customer (idempotent replay case)
+          stripe_customer_id = checkout_session&.customer
+          if stripe_customer_id.is_a?(String) && stripe_customer_id.start_with?('cus_')
+            org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer_id)
+            if org
+              OT.info '[ProcessCheckoutSession] Found org by stripe_customer_id',
+                { stripe_customer_id: stripe_customer_id, extid: org.extid }
+              return org
+            end
+          end
+
+          # 3. Customer's default org (fallback for legacy checkouts)
+          orgs = customer.organization_instances.to_a
+          org  = orgs.find { |o| o.is_default }
+          if org
+            OT.info '[ProcessCheckoutSession] Using customer default org (fallback)',
+              { extid: org.extid }
+            return org
+          end
+
+          # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org context)
+          # See: apps/web/auth/operations/create_default_workspace.rb
+          OT.lw '[ProcessCheckoutSession] Creating default org during checkout (unexpected)',
+            { customer_extid: customer.extid }
+          Onetime::Organization.create!(
+            "#{customer.email}'s Workspace",
+            customer,
+            customer.email,
+            is_default: true,
+          )
+        end
+      end
+    end
+  end
+end

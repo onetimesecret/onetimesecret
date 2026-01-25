@@ -5,7 +5,6 @@ import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod';
 
 import { createModelSchema } from './base';
-import { planSchema } from './plan';
 
 /**
  * @fileoverview Customer schema with simplified type boundaries
@@ -30,14 +29,16 @@ export const CustomerRole = {
 export const customerSchema = withFeatureFlags(
   createModelSchema({
     // Core fields
-    custid: z.string(),
+    objid: z.string(),
+    extid: z.string(),
+
     role: z.enum([
       CustomerRole.CUSTOMER,
       CustomerRole.COLONEL,
       CustomerRole.RECIPIENT,
       CustomerRole.USER_DELETED_SELF,
     ]),
-    email: z.string().email(),
+    email: z.email(),
 
     // Boolean fields from API
     verified: transforms.fromString.boolean,
@@ -55,15 +56,9 @@ export const customerSchema = withFeatureFlags(
 
     // Optional fields
     locale: z.string().nullable(),
-    planid: z.string().nullable().optional(),
 
-    // Plan data
-    plan: planSchema,
-
-    // Stripe-related fields
-    stripe_customer_id: z.string().nullable(),
-    stripe_subscription_id: z.string().nullable(),
-    stripe_checkout_email: z.string().nullable(),
+    // Notification preferences
+    notify_on_reveal: transforms.fromString.boolean.default(false),
   }).strict()
 );
 

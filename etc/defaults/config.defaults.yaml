@@ -17,9 +17,9 @@ site:
       enabled: <%= ENV['UI_ENABLED'] != 'false' %>
       # Homepage Mode
       #
-      # Determines which homepage experience to show based on the request.
-      # It can change the content presented to a visitor when they navigate
-      # to the homepage but it does not expand or restrict access.
+      # Determines which homepage experience to show based on the request
+      # headers. It can change the content presented to a visitor when they
+      # navigate to the homepage but it does not expand or restrict access.
       #
       # ✓ Can do: Hide the Create Secret form for external users
       # ✗ Cannot do: Grant access to endpoints for creating secret links
@@ -27,39 +27,47 @@ site:
       # This does not protect API endpoints and has no effect on existing
       # authentication or authorization logic.
       #
-      # Detection Priority (evaluated in order):
+      # Detection Methods (evaluated in order):
       #   1. matching_cidrs - Client IP must match one of these subnets
       #   2. mode_header - Fallback if no CIDR match (requires header value = mode)
-      #   3. default_mode - Applied when no CIDR or header match (NEW)
       #
-      # See etc/examples/homepage_modes.example.yaml for detailed examples
+      # Example:
+      #   mode: internal
+      #   matching_cidrs:
+      #     - 203.0.113.0/24      # Office network
+      #     - 198.51.100.0/24     # Partner network
+      #     - 192.0.2.0/24        # Additional location
+      #
+      # Example:
+      #   mode: external
+      #   mode_header: O-Homepage-Mode
+      #
+      # Privacy Preservation
+      #
+      # CIDR Subnet Limitations:
+      #   - Minimum prefix length: /24 for IPv4 (supports any prefix up to /24, e.g., /8, /12, /16, /24)
+      #   - Minimum prefix length: /48 for IPv6 (supports any prefix up to /48)
+      #   - Prefix lengths greater than minimum are not supported for privacy
+      #
+      # Proxy Configuration:
+      #   - trusted_proxy_depth: How many proxies to trust for client IP extraction
+      #   - 0: Don't trust proxies, use REMOTE_ADDR (direct connections only)
+      #   - 1: Trust 1 proxy - STANDARD for reverse proxy (nginx, Caddy)
+      #   - 2+: Trust N proxies (e.g., CDN → reverse proxy → app)
+      #
+      #   - trusted_ip_header: Which header to use for client IP extraction
+      #   - X-Forwarded-For: Standard header (most common)
+      #   - Forwarded: RFC 7239 standard header
+      #   - Both: Try Forwarded first, fallback to X-Forwarded-For
+      #
+      # Default is 1 (standard reverse proxy) as most deployments use nginx/Caddy.
+      # Set to 0 only for development or direct-to-internet deployments.
+      #
       homepage:
-        # Mode: 'internal' or 'external' or nil (default)
-        # - internal: Show full homepage with secret creation
-        # - external: Show restricted homepage without secret creation
-        # - nil: Default homepage based on authentication settings
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
-        # CIDR ranges that match the configured mode
-        # Example: ['10.0.0.0/8', '192.168.0.0/16', '203.0.113.0/24']
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
-        # HTTP header to check as fallback (header value must match mode)
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
-        # Default mode to apply when IP doesn't match CIDRs or header
-        # - 'internal': Apply internal mode for non-matches
-        # - 'external': Apply external mode for non-matches
-        # - nil: Return nil (default homepage behavior, backward compatible)
-        # Example use case: Office IPs → internal, everyone else → external
-        default_mode: <%= ENV['UI_HOMEPAGE_DEFAULT_MODE'] || nil %>
-        # Number of trusted proxies between client and application
-        # - 0: Direct connection (use REMOTE_ADDR, ignore headers)
-        # - 1: Single reverse proxy (standard nginx/Caddy setup)
-        # - 2+: Multiple proxies (e.g., CDN + reverse proxy)
-        # Default is 1 for standard deployments behind reverse proxy
-        trusted_proxy_depth: <%= ENV.fetch('UI_HOMEPAGE_TRUSTED_PROXY_DEPTH', '1').to_i %>
-        # Which header to use for IP extraction
-        # - X-Forwarded-For: Standard (most common)
-        # - Forwarded: RFC 7239 standard
-        # - Both: Try Forwarded first, fallback to X-Forwarded-For
+        trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
         trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
       # Header configuration
       # Controls branding and navigation in the site header
@@ -93,12 +101,12 @@ site:
             i18n_key: web.footer.legals
             links:
               - text: Terms of Service
-                i18n_key: terms-of-service
+                i18n_key: web.layout.terms_of_service
                 # Replace with your own terms URL or use relative path like /terms
                 url: <%= ENV['TERMS_URL']  %>
                 external: <%= ENV['TERMS_EXTERNAL'] || false %>
               - text: Privacy Policy
-                i18n_key: privacy-policy
+                i18n_key: web.layout.privacy_policy
                 # Replace with your own privacy URL or use relative path like /privacy
                 url: <%= ENV['PRIVACY_URL']  %>
                 external: <%= ENV['PRIVACY_EXTERNAL'] || false %>
@@ -106,7 +114,7 @@ site:
             i18n_key: web.footer.resources
             links:
               - text: Status
-                i18n_key: status
+                i18n_key: web.COMMON.status
                 # Replace with your status page URL if you have one
                 url: <%= ENV['STATUS_URL'] %>
                 external: <%= ENV['STATUS_EXTERNAL'] || true %>
@@ -128,33 +136,18 @@ site:
     api:
       enabled: <%= ENV['API_ENABLED'] != 'false' %>
       # Guest API routes for anonymous access
-      # When enabled, /api/v2/guest/* endpoints allow unauthenticated requests
+      # When enabled, /api/v3/guest/* endpoints allow unauthenticated requests
       guest_routes:
         # Global toggle - disables all guest routes when false
         enabled: <%= ENV['API_GUEST_ROUTES_ENABLED'] != 'false' %>
         # Fine-grained controls (checked only when enabled=true)
         conceal: <%= ENV['API_GUEST_CONCEAL'] != 'false' %>
         generate: <%= ENV['API_GUEST_GENERATE'] != 'false' %>
-        show: <%= ENV['API_GUEST_SHOW'] != 'false' %>
         reveal: <%= ENV['API_GUEST_REVEAL'] != 'false' %>
-        receipt: <%= ENV['API_GUEST_RECEIPT'] != 'false' %>
         burn: <%= ENV['API_GUEST_BURN'] != 'false' %>
+        show: <%= ENV['API_GUEST_SHOW'] != 'false' %>
+        receipt: <%= ENV['API_GUEST_RECEIPT'] != 'false' %>
   # Configuration options for secret management
-  #
-  # NOTE: TTL limits are enforced at two levels:
-  #   1. Config level (below): DEFAULT_TTL and TTL_OPTIONS control what's shown to users
-  #   2. Plan level: Each plan has a max TTL that caps the actual value
-  #
-  # Plan TTL limits can be overridden via environment variables:
-  #   - PLAN_TTL_ANONYMOUS: Max TTL for anonymous users (default: 604800 = 7 days)
-  #   - PLAN_TTL_BASIC: Max TTL for basic plan users (default: 1209600 = 14 days)
-  #   - PLAN_TTL_IDENTITY: Max TTL for identity plan users (default: 2592000 = 30 days)
-  #   - Maximum allowed value: 31536000 (365 days) to prevent resource exhaustion
-  #
-  # To allow 30-day TTL for anonymous users in Docker:
-  #   TTL_OPTIONS='604800 1209600 2592000'  # 7d, 14d, 30d options
-  #   PLAN_TTL_ANONYMOUS=2592000             # Allow anonymous up to 30 days
-  #
   secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds
     # This value is used if no specific TTL is provided when creating a secret
@@ -214,113 +207,197 @@ site:
     # a more restrictive mode where only authenticated users can create
     # secrets while maintaining site navigation and branding.
     required: <%= ENV['AUTH_REQUIRED'] == 'true' %>
-    # Email addresses listed below will be granted automatic
-    # administrative privileges upon account creation. These
-    # accounts have access to a page that show basic system stats.
-    # The term "colonel" is used instead of "admin". "Colonel" (which
-    # is pronounced "kernel") references both the protected core of a
-    # Linux system and a military rank, symbolizing high-level access
-    # permissions. This naming helps avoid basic, automated attacks
-    # that target common admin URLs or role names.
-    colonels:
-      - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
-    # Restrict sign-up to specific email domains. When set, only email
-    # addresses from these domains will be allowed to create accounts.
-    # This does NOT affect sending secrets to recipients - users can
-    # still share secrets with any email address. Leave empty or comment
-    # out to allow sign-ups from any domain.
-    # Example: Add more lines for additional domains
-    allowed_signup_domains:
-      - <%= ENV['ALLOWED_SIGNUP_DOMAIN'] %>
-  # A captcha-like feature that protects the feedback form
-  # from bots and other tomfoolery.
-  authenticity:
-    type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-    secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
+    # Restrict account creation to specific email domains while allowing
+    # secret-sharing with any email address. When set, only email addresses
+    # from the listed domains can create accounts. This is useful for
+    # organizations that want to limit signups to their own domains while
+    # still allowing secrets to be shared with anyone.
+    # Format: List of domain names (e.g., example.com, company.org)
+    # If empty or not set, signups are allowed from any domain (default).
+    # Environment variable: ALLOWED_SIGNUP_DOMAIN (comma-separated list)
+    allowed_signup_domains: <%= ENV['ALLOWED_SIGNUP_DOMAIN']&.split(',')&.map(&:strip) || [] %>
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecret.com.
   support:
     host: <%= ENV['SUPPORT_HOST'] || nil %>
-  plans:
-    enabled: <%= ENV['PLANS_ENABLED'] == 'true' || false %>
-    stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
+  # Session configuration
+  # Controls browser cookie and server-side session behavior.
+  # Session handling is auth-mode agnostic (works with simple or full mode).
+  session:
+    # Session secret for HMAC signing. Falls back to site.secret if not set.
+    secret: <%= ENV['SESSION_SECRET'] %>
+    # Session lifetime in seconds (default: 24 hours)
+    expire_after: 86400
+    # Cookie name
+    key: 'onetime.session'
+    # Require HTTPS for cookies (recommended: true in production)
+    secure: <%= ENV['SSL'] == 'true' || false %>
+    # SameSite cookie attribute (strict|lax|none)
+    # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations
+    same_site: lax
+    # Prevent JavaScript access to cookies (always true in Rack)
+    httponly: true
+  # Middleware Configuration
+  # Controls which security and performance middleware components are enabled.
+  # Each setting can be overridden via environment variables.
+  middleware:
+    # Serve static files for frontend vue application
+    # ENV: MIDDLEWARE_STATIC_FILES (default: true)
+    static_files: <%= ENV['MIDDLEWARE_STATIC_FILES'] != 'false' %>
+    # Sanitizes request parameters to ensure proper UTF-8 encoding
+    # Prevents encoding-based attacks and malformed input
+    # ENV: MIDDLEWARE_UTF8_SANITIZER (default: true)
+    utf8_sanitizer: <%= ENV['MIDDLEWARE_UTF8_SANITIZER'] != 'false' %>
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates that requests originate from the same site
+    # ENV: MIDDLEWARE_AUTHENTICITY_TOKEN (default: true)
+    authenticity_token: <%= ENV['MIDDLEWARE_AUTHENTICITY_TOKEN'] != 'false' %>
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates HTTP Origin header matches expected origin
+    # ENV: MIDDLEWARE_HTTP_ORIGIN (default: false)
+    http_origin: <%= ENV['MIDDLEWARE_HTTP_ORIGIN'] == 'true' %>
+    # Sets X-XSS-Protection header to enable browser XSS filtering
+    # Modern browsers rely less on this as CSP becomes standard
+    # ENV: MIDDLEWARE_XSS_HEADER (default: false)
+    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
+    # Prevents your site from being embedded in frames (clickjacking protection)
+    # Sets X-Frame-Options header to SAMEORIGIN or DENY
+    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: false)
+    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] == 'true' %>
+    # Blocks directory traversal attacks using "../" in paths
+    # Critical for preventing unauthorized file access
+    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: false)
+    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] == 'true' %>
+    # Protects against cookie tossing attacks
+    # Prevents session fixation via manipulated cookies
+    # ENV: MIDDLEWARE_COOKIE_TOSSING (default: false)
+    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] == 'true' %>
+    # Prevents IP spoofing attacks by validating IP addresses
+    # Useful when IP-based access controls are implemented
+    # ENV: MIDDLEWARE_IP_SPOOFING (default: false)
+    ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>
+    # Forces all connections to use HTTPS via HSTS headers
+    # Disable only for development or when behind a secure proxy
+    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: false)
+    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] == 'true' %>
+  # Security Configuration
+  # Additional security settings beyond middleware
+  security:
+    # Content Security Policy (CSP) Configuration
+    #
+    # When enabled, adds Content-Security-Policy headers to responses.
+    # - Development mode: Less restrictive headers to allow hot reloading
+    # - Production mode: Strict headers with nonce-based script protection
+    #
+    # The nonce is available via `req.env['onetime.nonce']` for custom
+    # script/style assets. Backend views add it automatically.
+    #
+    # ENV: CSP_ENABLED (default: false)
+    csp:
+      enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
+
+features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+  # Incoming Secrets Feature
+  # Allows anonymous users to send encrypted secrets to pre-configured recipients
+  # via a dedicated web form at /incoming. Recipients receive email notifications.
+  incoming:
+    # Enable or disable the incoming secrets feature
+    enabled: <%= ENV['INCOMING_ENABLED'] == 'true' || false %>
+    # Maximum character length for the memo/subject field
+    memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>
+    # Default TTL for incoming secrets in seconds (7 days = 604800)
+    default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
+    # Optional default passphrase for all incoming secrets (nil = no passphrase)
+    default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
+    # Recipients who can receive incoming secrets
+    # Each recipient needs an email and optional display name.
+    # Email addresses are hashed at startup and never exposed in API responses.
+    #
+    # Environment Variable Format:
+    #   INCOMING_RECIPIENT_N=email[,name]
+    #   where N is 1, 2, 3, etc. and name is optional
+    #
+    # Examples:
+    #   INCOMING_RECIPIENT_1=support@example.com,Support Team
+    #   INCOMING_RECIPIENT_2=security@example.com,Security Team
+    #   INCOMING_RECIPIENT_3=admin@example.com   (name defaults to 'admin')
+    #
+    recipients:
+      - <%= ENV['INCOMING_RECIPIENT_1']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_2']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_3']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_4']&.split(',') %>
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
-    # The cluster type determines how the application will support
-    # multiple domains. The default is nil which means that the
-    # application itself is responsible for handling multiple domains.
-    cluster:
-      type: <%= ENV['CLUSTER_TYPE'] || nil %>
-      api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
-      cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
-      cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
-      cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
-      vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
-features:
-  # Incoming Secrets - Allows anonymous users to send secrets to pre-configured recipients
-  # IMPORTANT: Requires email configuration (:emailer section) to send notifications
-  incoming:
-    enabled: false
-    # Maximum length for the optional memo field (subject line in email)
-    memo_max_length: 50
-    # Optional passphrase applied to all incoming secrets (nil = no passphrase)
-    default_passphrase: null
-    # Default TTL in seconds (604800 = 7 days)
-    default_ttl: 604800
-    # Recipients who can receive incoming secrets
-    # Format: Can be configured via ENV vars: INCOMING_RECIPIENT_N=email,name
-    # Email addresses are hashed at startup and never exposed in API responses
-    # Examples:
-    #   INCOMING_RECIPIENT_1=support@example.com,Support Team
-    #   INCOMING_RECIPIENT_2=security@example.com,Security Team
-    #   INCOMING_RECIPIENT_3=admin@example.com  (name defaults to 'admin')
-    recipients:
-      - email: 'support@example.com'
-        name: 'Support Team'
-      - email: 'security@example.com'
-        name: 'Security Team'
-# Redis Configuration
-redis:
-  # Main Redis connection URI - Specify full connection string including auth
-  # Format: redis://[:password@]host[:port]/[db-number]
-  #
-  # IMPORTANT: For password-only auth, use a COLON before the password:
-  #   redis://:password@host:port/db   (correct - colon before password)
-  #   redis://password@host:port/db    (WRONG - password treated as username!)
-  #
-  # Examples:
-  #   - redis://:mypassword@localhost:6379/0      # Password-only auth (note the colon!)
-  #   - redis://user:pass@localhost:6379/0        # Username + password auth (Redis 6+ ACLs)
-  #   - redis://localhost:6379/0                  # No auth (development only)
-  uri: <%= ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://:CHANGEME@127.0.0.1:6379/0' %>
-  # Database Mapping Configuration
-  # These mappings allow separating data across different Redis logical
-  # databases (0-15). These can be arranged any way you like.
-  # Note: If using a Redis provider with single-database limitation
-  # (e.g., Upstash) set all values to 0.
-  dbs:
-    session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
-    custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
-    customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
-    subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
-    metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
-    email_receipt: <%= ENV['REDIS_DBS_EMAIL_RECEIPT'] || 8 %>
-    secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
-    rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
-    feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
-    exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
-    system_settings: <%= ENV['REDIS_DBS_SYSTEM_SETTINGS'] || 15 %>
 
-# Logging Configuration
-logging:
-  # HTTP request logs (Rack::CommonLogger)
-  http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
+    # Domain validation and certificate management strategy
+    # Options:
+    #   - passthrough: No validation or cert management
+    #   - approximated: Use approximated.app API for SSL certs and validation (requires cluster config)
+    #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint)
+    validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>
+
+    # Approximated proxy configuration (required for 'approximated' strategy)
+    approximated:
+      api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
+      proxy_ip: <%= ENV['APPROXIMATED_PROXY_IP'] || nil %>
+      proxy_host: <%= ENV['APPROXIMATED_PROXY_HOST'] || nil %>
+      proxy_name: <%= ENV['APPROXIMATED_PROXY_NAME'] || nil %>
+      vhost_target: <%= ENV['APPROXIMATED_VHOST_TARGET'] || nil %>
+
+    # Internal ACME endpoint configuration (for 'caddy_on_demand' strategy)
+    # This endpoint allows Caddy to verify domains before issuing certificates
+    acme:
+      # Enable the internal ACME endpoint at /api/internal/acme/ask
+      enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' %>
+      # IP address to bind to (should always be localhost for security)
+      listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
+      # Port for the ACME endpoint (Caddy will call this)
+      port: <%= ENV['ACME_PORT'] || '12020' %>
+
+# Main Database Configuration
+redis:
+  # Redis/Valkey connection URI - Compatible with Redis, Valkey, and other
+  # Redis-compatible servers.
+  #
+  # Environment Variable Precedence (highest to lowest):
+  #   1. VALKEY_URL or REDIS_URL - Explicit connection string
+  #   2. IN_DOCKER=1 - Force Docker configuration (redis://host.docker.internal:6379)
+  #   3. AUTO_DETECT_DOCKER=1 - Enable automatic Docker detection via /.dockerenv file
+  #   4. Default - Local development (redis://CHANGEME@127.0.0.1:6379)
+  #
+  # Format: redis://[:password@]host[:port]/[db-number]
+  # Examples:
+  #   - redis://mypassword@localhost:6379       # Simple password auth
+  #   - redis://user:pass@localhost:6379        # Username/password auth
+  #   - redis://host.docker.internal:6379       # Docker environment
+  #   - redis://127.0.0.1:6379                  # Local development
+  uri: >-
+      <%=
+        ENV['VALKEY_URL'] ||
+        ENV['REDIS_URL'] ||
+        (ENV['IN_DOCKER'] == '1' || (ENV['AUTO_DETECT_DOCKER'] == '1' && File.exist?('/.dockerenv')) ?
+          'redis://host.docker.internal:6379' :
+          'redis://CHANGEME@127.0.0.1:6379')
+      %>
+  # Database Mapping Configuration
+  # By default, all data types use database 0 for simplified connection pooling
+  # and compatibility with Redis-as-a-Service providers. For advanced setups,
+  # you can separate data across different Redis logical databases (0-15)
+  # by setting environment variables or modifying the values below.
+  dbs:
+    custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
+    customdomain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
+    customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 0 %>
+    metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 0 %>
+    secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 0 %>
+    feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 0 %>
 
 # Sending Emails
 emailer:
@@ -332,9 +409,8 @@ emailer:
   # Web UI: http://localhost:8025
   #
   #  :mode: smtp                     # Use SMTP mode for local testing
-  # region: ca-central-1             # For mode=ses only
   #  :from: secure@onetimesecret.com # Sender address
-  #  :fromname: OTS Support          # Sender name
+  #  :from_name: OTS Support         # Sender name
   #  :host: 127.0.0.1                # Mailpit host
   #  :port: 1025                     # Mailpit default SMTP port
   #  :user: ~                        # No auth needed for Mailpit
@@ -345,14 +421,16 @@ emailer:
   # Production Settings (for reference)
   # ----------------------------------
   mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
-  region: <%= ENV['EMAILER_REGION'] || nil %>
+  region: <%= ENV['EMAILER_REGION'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
-  fromname: <%= ENV['FROMNAME'] || 'Support' %>
+  from_name: <%= ENV['FROM_NAME'] || 'Support' %>
+  reply_to: <%= ENV['REPLYTO_EMAIL'] || ENV['FROM_EMAIL'] || nil %>
   host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   port: <%= ENV['SMTP_PORT'] || 587 %>
   user: <%= ENV['SMTP_USERNAME'] %>
-  pass: <%= ENV['SMTP_PASSWORD'] %>
-  auth: <%= ENV['SMTP_AUTH'] || 'login' %>
+  # The double quotes are important b/c credentials can have characters that break YAML parsing.
+  pass: "<%= ENV['SMTP_PASSWORD'] %>"
+  auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
 mail:
   truemail:
@@ -422,6 +500,80 @@ mail:
       tracking_event: :error
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
+
+# Background Job Processing (RabbitMQ)
+# ------------------------------------
+# Async processing for emails, notifications, webhooks, and scheduled tasks.
+# When disabled, email delivery falls back to synchronous mode.
+jobs:
+  # Global toggle for background job system
+  enabled: <%= ENV['JOBS_ENABLED'] == 'true' || false %>
+
+  # RabbitMQ connection URL
+  # Format: amqp://[user:password@]host[:port][/vhost]
+  #
+  # The vhost dev doesn't exist in RabbitMQ. Either create it:
+  #
+  #  rabbitmqctl add_vhost dev
+  #  rabbitmqctl set_permissions -p dev guest ".*" ".*" ".*"
+  #
+  rabbitmq_url: <%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672/dev' %>
+
+  # Publisher settings (Puma process)
+  # Channel pool size for multi-threaded web server
+  channel_pool_size: <%= ENV['RABBITMQ_CHANNEL_POOL_SIZE']&.to_i || 5 %>
+
+  # Fallback to synchronous delivery when RabbitMQ unavailable
+  # Recommended: true for production to ensure emails always send
+  fallback_to_sync: <%= ENV['JOBS_FALLBACK_SYNC'] != 'false' %>
+
+  # Worker settings (consumer processes)
+  workers:
+    email:
+      threads: <%= ENV['EMAIL_WORKER_THREADS']&.to_i || 4 %>
+      prefetch: <%= ENV['EMAIL_WORKER_PREFETCH']&.to_i || 10 %>
+    notifications:
+      threads: <%= ENV['NOTIFICATION_WORKER_THREADS']&.to_i || 2 %>
+      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 10 %>
+    billing:
+      threads: <%= ENV['BILLING_WORKER_THREADS']&.to_i || 2 %>
+      prefetch: <%= ENV['BILLING_WORKER_PREFETCH']&.to_i || 5 %>
+
+  # Scheduler settings (rufus-scheduler daemon)
+  scheduler:
+    enabled: <%= ENV['JOBS_SCHEDULER_ENABLED'] == 'true' || false %>
+
+  # Plan Cache Refresh Job
+  # Proactively refreshes Billing::Plan cache from Stripe API every 6 hours.
+  # This ensures plan data remains available even if Stripe webhooks fail.
+  # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
+  # Skips gracefully if no Stripe API key is configured (standalone mode).
+  plan_cache_refresh_enabled: <%= ENV['JOBS_PLAN_CACHE_REFRESH_ENABLED'] == 'true' || false %>
+
+  # Catalog Retry Job
+  # Retries webhook events that were blocked by the Stripe circuit breaker.
+  # When Stripe API is unavailable, catalog update webhooks (product.updated,
+  # price.created, etc.) are queued for retry rather than failing. This job
+  # processes those queued events once the circuit breaker closes.
+  # Runs every 2 minutes when enabled; skips if circuit is still open.
+  catalog_retry_enabled: <%= ENV['JOBS_CATALOG_RETRY_ENABLED'] == 'true' || false %>
+
+  # Expiration warning emails
+  # Send email notifications before secrets expire to warn recipients
+  expiration_warnings:
+    # Enable/disable expiration warning emails
+    enabled: <%= ENV['JOBS_EXPIRATION_WARNINGS_ENABLED'] == 'true' || false %>
+    # How often to scan for expiring secrets (rufus-scheduler interval)
+    check_interval: <%= ENV['JOBS_EXPIRATION_CHECK_INTERVAL'] || '1h' %>
+    # Send warning N hours before secret expires
+    warning_hours: <%= ENV['JOBS_EXPIRATION_WARNING_HOURS']&.to_i || 24 %>
+    # Only warn for secrets with TTL greater than this (hours)
+    # Prevents spamming for short-lived secrets
+    min_ttl_hours: <%= ENV['JOBS_EXPIRATION_MIN_TTL_HOURS']&.to_i || 48 %>
+    # Maximum warnings to process per job run (rate limiting)
+    # Prevents queue overflow; remaining secrets processed in next run
+    batch_size: <%= ENV['JOBS_EXPIRATION_BATCH_SIZE']&.to_i || 100 %>
+
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
@@ -502,47 +654,6 @@ diagnostics:
     frontend:
       dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
       trackComponents: <%= ENV['SENTRY_VUE_TRACK_COMPONENTS'] != 'false' %>
-limits:
-  # This section defines rate limits for various events per user
-  # per a rolling 20 minute period. Each key is an event name
-  # and the value is the max count allowed. Changes require
-  # restart of the app.
-  check_status: 10000
-  create_secret: 1000
-  create_account: 10
-  update_account: 10
-  email_recipient: 50
-  send_feedback: 10
-  authenticate_session: 5
-  get_page: 1000
-  dashboard: 1000
-  failed_passphrase: 5
-  show_metadata: 1000
-  show_secret: 1000
-  burn_secret: 1000
-  destroy_account: 2
-  forgot_password_request: 2
-  forgot_password_reset: 3
-  generate_apitoken: 10
-  add_domain: 30
-  remove_domain: 30
-  list_domains: 100
-  get_domain: 100
-  verify_domain: 25
-  report_exception: 50
-  attempt_secret_access: 10
-  update_branding: 50
-  destroy_session: 5
-  get_domain_brand: 1000
-  get_domain_logo: 1000
-  get_image: 1000
-  remove_domain_logo: 20
-  show_account: 100
-  stripe_webhook: 25
-  update_domain_brand: 50
-  view_colonel: 100
-  external_redirect: 100
-  update_colonel_settings: 50
 development:
   # Development Mode Configuration
   #
@@ -578,13 +689,26 @@ development:
   # - Set to 'http://localhost:5173' to use built-in proxy
   # - Leave empty when using a reverse proxy (like nginx, caddy, etc)
   frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
-# Settings for experimental features that are still being tested.
-# All of these features are turned off by default and may not work as expected.
-experimental:
-  # SECURITY FEATURE: Controls whether the application can run without a
-  # site.secret (either in this file or via the SECRET env var).
+  # Domain Context Override for persona-based testing
   #
-  # DEFAULT: false (application will fail to start if site.secret is nil)
+  # When enabled, allows simulating custom domain experiences without
+  # actual DNS/domain setup. Supports three override mechanisms:
+  # - DOMAIN_CONTEXT env var: Set at server startup for entire process
+  # - O-Domain-Context header: Per-request override for API/curl testing
+  # - Colonel UI component: Browser-based override via sessionStorage
+  #
+  # SECURITY: Must remain false in production. No query param support.
+  domain_context_enabled: <%= ENV['DOMAIN_CONTEXT_ENABLED'] == 'true' %>
+experimental:
+  # SECURITY FEATURE: Allow application to run without a site.secret
+  #
+  # WHY THIS EXISTS:
+  # The application encrypts secret content using site.secret before storing
+  # in Redis. If site.secret is nil/empty, encryption still occurs but with
+  # a predictable key - making stored data vulnerable. This setting exists
+  # to recover secrets that were accidentally created during such a state.
+  #
+  # DEFAULT: false (application fails to start if site.secret is nil)
   #
   # WARNING: Setting to true presents significant security risks:
   # - Secrets may be stored without proper encryption
@@ -604,6 +728,9 @@ experimental:
   # - When decrypting, CipherErrors with the real secret will cause
   #   automatic retry with nil secret
   #
+  # RELATED: rotated_secrets (below) provides a safer rotation mechanism
+  # for planned secret changes. Use that instead when possible.
+  #
   allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
   # SECURITY FEATURE: Support for rotating global secret
   #
@@ -618,61 +745,12 @@ experimental:
   # MAINTENANCE: Remove secrets from this list after the relevant secrets
   # have expired or has been successfully re-encrypted with the current
   # primary secret. An easy guideline is the maximum TTL in `ttl_options`.
+  #
+  # KNOWN LIMITATIONS:
+  # - Only works with Secret/Metadata content encryption (LegacyEncryptedFields)
+  # - Does NOT work with Familia's EncryptedFields (used for model attributes)
+  # - Does NOT affect SESSION_SECRET or HMAC_SECRET (separate systems)
+  # - Changing site.secret without proper rotation will break Familia-encrypted
+  #   data (e.g., encrypted model fields) - this is a known gap to be addressed
+  #
   rotated_secrets: []
-  # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
-  # after initialization to prevent any runtime modifications to the app
-  # middleware chain. This is a security measure that prevents malicious
-  # code from injecting new middleware.
-  #
-  # Effects:
-  # - Freezes the middleware stack, preventing adding/removing after boot
-  # - Freezes the app object passed to Rack::Builder
-  # - Does not affect request/response object mutability
-  #
-  # Note: This setting can help make your application more secure by preventing
-  # middleware chain manipulation at runtime. For most applications, this
-  # should be enabled in production environments.
-  freeze_app: false
-  # Middleware Configuration
-  # Controls which security and performance middleware components are enabled
-  middleware:
-    # Serve static files for frontend vue application
-    static_files: true
-    # Sanitizes request parameters to ensure proper UTF-8 encoding
-    # Prevents encoding-based attacks and malformed input
-    utf8_sanitizer: true
-    # Protects against Cross-Site Request Forgery (CSRF) attacks
-    # Validates that requests originate from the same site
-    http_origin: false
-    # Escapes HTML entities in request parameters
-    # Helps prevent XSS attacks via request parameters
-    escaped_params: false
-    # Sets X-XSS-Protection header to enable browser XSS filtering
-    # Modern browsers rely less on this as CSP becomes standard
-    xss_header: false
-    # Prevents your site from being embedded in frames (clickjacking protection)
-    # Sets X-Frame-Options header to SAMEORIGIN or DENY
-    frame_options: false
-    # Blocks directory traversal attacks using "../" in paths
-    # Critical for preventing unauthorized file access
-    path_traversal: false
-    # Protects against cookie tossing attacks
-    # Prevents session fixation via manipulated cookies
-    cookie_tossing: false
-    # Prevents IP spoofing attacks by validating IP addresses
-    # Useful when IP-based access controls are implemented
-    ip_spoofing: false
-    # Forces all connections to use HTTPS via HSTS headers
-    # Disable only for development or when behind a secure proxy
-    strict_transport: false
-  # When enabled, adds Content-Security-Policy headers to the response. When
-  # `development.enabled=true`, the headers will be less restrictive but still
-  # prevent any content loading from other origins. In regular production mode,
-  # a secure nonce will be included with the headers and unsafe-inline content
-  # is completely blocked. The nonce can be accessed via the rack request object
-  # `req.env['ots.nonce']`. The backend views grab it from there to add it to
-  # all front-end script and style assets automatically. You'd only need to use
-  # the none if you're adding new script or style dependencies.
-  # When disabled, no csp headers are included in any environment.
-  csp:
-    enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>

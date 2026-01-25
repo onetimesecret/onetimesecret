@@ -1,0 +1,120 @@
+# .github/labeler.yml
+#
+# Configuration for the PR Labeler workflow.
+# Maps file path patterns to existing labels.
+#
+# Documentation:
+# https://github.com/actions/labeler#common-examples
+#
+# ## Guidance
+#
+# - Use existing tags, don't create new tags, but suggestions always welcome.
+#
+
+# Frontend labels
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/**/*'
+          - 'public/**/*'
+          - 'index.html'
+          - 'vite.config.ts'
+          - 'vitest.config.ts'
+          - 'tailwind.config.ts'
+          - '**/*.vue'
+
+typescript:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.ts'
+          - '**/*.tsx'
+          - 'tsconfig*.json'
+
+javascript:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.js'
+          - '**/*.mjs'
+          - '**/*.cjs'
+
+# Backend labels
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'lib/**/*'
+          - 'apps/**/*'
+          - 'bin/**/*'
+          - 'config/**/*'
+
+ruby:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.rb'
+          - 'Gemfile'
+          - 'Gemfile.lock'
+          - '.ruby-version'
+
+# Infrastructure labels
+#
+# Containers - covers Docker, Podman, and other OCI-compliant runtimes
+containers:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'Dockerfile*'
+          - 'Containerfile*'
+          - 'docker/**/*'
+          - 'docker-compose*.yml'
+          - 'compose*.yml'
+          - '.dockerignore'
+          - '.containerignore'
+
+github_actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**/*'
+          - '.github/actions/**/*'
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'config/**/*'
+          - '.env*'
+
+# Content labels
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**/*'
+
+i18n:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'locales/**/*'
+          - 'generated/locales/**/*'
+          - '**/*.i18n.*'
+
+# Quality labels
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*_spec.rb'
+          - '**/*_try.rb'
+          - '**/*.try.rb'
+          - '**/*.test.ts'
+          - '**/*.spec.ts'
+          - 'spec/**/*'
+          - 'try/**/*'
+          - 'tests/**/*'
+          - 'e2e/**/*'
+
+# Operations labels
+migrations:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'migrations/**/*'
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'scripts/**/*'

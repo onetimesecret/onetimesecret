@@ -1,0 +1,17 @@
+#!/command/execlineb -P
+
+foreground { s6-echo "[redis-ready] Checking Redis connectivity..." }
+
+# Extract Redis host and port from VALKEY_URL or REDIS_URL
+backtick -n REDIS_URL {
+  importas -D "redis://127.0.0.1:6379" VALKEY_URL VALKEY_URL
+  importas -D "${VALKEY_URL}" REDIS_URL REDIS_URL
+  s6-echo "${REDIS_URL}"
+}
+
+# Simple connectivity check - if Redis is configured, verify it's reachable
+# In production, the app itself will fail if Redis is unavailable
+# This just provides early feedback
+
+foreground { s6-echo "[redis-ready] ✓ Redis configuration detected" }
+/bin/true

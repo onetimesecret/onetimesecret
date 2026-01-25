@@ -1,0 +1,66 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Din återkoppling",
+    "sha256": "cdb1c0a5"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "All återkoppling är välkommen!",
+    "sha256": "c57d3006"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Hjälp oss förbättra",
+    "sha256": "f35439c4"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Stäng återkopplingsmodal",
+    "sha256": "41689bb4"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Dela din återkoppling",
+    "sha256": "6d62dfbd"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
+  },
+  "web.feedback.delano": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Hjälpinnehåll placeras här.",
+    "sha256": "796979ea"
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Tack för att du hjälper Onetime Secret att förbättras. Det betyder mycket."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Vi har byggt detta verktyg för att hjälpa dig att dela känslig information säkert, och dina verkliga erfarenheter är avgörande för att fokusera våra ansträngningar. Det hjälper oss att avgöra vad vi ska arbeta med härnäst och hur vi kan göra tjänsten bättre för alla."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Hej där, tack för att du besöker vår feedback-sida. Din input är inte bara välkommen - den är avgörande."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "En notering från Delano, grundare av Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Öppna återkopplingsformulär",
+    "sha256": "acd8409b"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Ange din återkoppling",
+    "sha256": "1bb310f4"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Skicka återkoppling",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Jag läser varje återkoppling som kommer in här. Det är så jag tar reda på vad jag ska lägga tid på.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Om något inte stämmer, eller om du har idéer om hur det borde fungera, är detta rätt ställe.",
+    "sha256": "d4b8f073"
+  }
+}

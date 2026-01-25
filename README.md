@@ -1,27 +1,30 @@
 # Onetime Secret - Secure One-Time Message Sharing
 
-_Keep passwords and other sensitive information out of your inboxes and chat logs._
+*Keep passwords and other sensitive information out of your inboxes and chat logs.*
+
+> [!WARNING]
+> **Development Branch**: You're viewing the `develop` branch with active development and unreleased features. This branch may be unstable or contain work-in-progress code. For stable releases and production use, check out the [`main` branch](https://github.com/onetimesecret/onetimesecret/tree/main).
+
+
+## What is a One-Time Secret?
 
 A onetime secret is a link that can be viewed only once. A single-use URL.
 
-**Try it out**: [OnetimeSecret.com](https://onetimesecret.com/)
-
-> [!NOTE] > **Branch Information**: You're viewing the `main` branch (stable production release). For the latest features and active development, check out the [`develop` branch](https://github.com/onetimesecret/onetimesecret/tree/develop). Note that `develop` may contain work-in-progress features as we prepare for the next major release.
-
-## Why use Onetime Secret?
+Try it out on [OnetimeSecret.com](https://onetimesecret.com/)
 
 When you send sensitive info like passwords via email or chat, copies persist in many places. Onetime links self-destruct after viewing, ensuring only the intended recipient sees the information.
 
 ## Quick Start with Docker
 
-**1. Start Redis:**
+> [!IMPORTANT]
+> **Upgrading from v0.22.x?** See [Redis Migration Guide](./docs/redis-migration.md) for database consolidation options (optional until v1.0).
 
+**1. Start Redis:**
 ```bash
 docker run -p 6379:6379 -d redis:bookworm
 ```
 
 **2. Generate and store a persistent secret key:**
-
 ```bash
 # First, generate a persistent secret key and store it
 openssl rand -hex 32 > .ots_secret
@@ -33,45 +36,54 @@ docker run -p 3000:3000 -d \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
+  -e AUTH_REQUIRED=false \
   -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
-  onetimesecret/onetimesecret:latest
+  onetimesecret/onetimesecret:v0.23.0
 ```
 
 **3. Access:** http://localhost:3000
+
+### Upgrading to v0.23+
+
+> **For existing installations**: Your current setup will continue working without changes. Redis data migration is optional until v1.0.
+
+Starting with v0.23, OneTime Secret uses Redis database 0 for all models by default (previously distributed across multiple databases). This improves compatibility with Redis-as-a-Service providers and support for connection pooling.
+
+**New installations**: No action needed - automatically uses the optimized setup.
+
+**Existing installations**: See the [Redis Data Migration Guide](./docs/redis-migration.md) for migration options and timeline.
+
 
 ## Configuration
 
 ### UI Controls
 
 **Disable Web Interface** (`UI_ENABLED=false`):
-
 - Shows minimal explanation page instead of full interface
 - Useful for maintenance or API-only deployments
 
 **Require Authentication** (`AUTH_REQUIRED=true`):
-
 - Homepage secret creation requires login
 - Maintains site navigation while restricting access
+
 
 ### Essential Settings
 
 Create `./etc/config.yaml` from the example:
-
 ```bash
-cp ./etc/defaults/config.defaults.yaml ./etc/config.yaml
+cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
-
-- **Email**: SMTP or SendGrid setup
-- **Authentication**: Enable/disable login requirements
-- **Rate limits**: Control usage patterns
+- **Authentication**: Two modes available - Simple (Redis-only, default) or Full (SQL database with MFA, WebAuthn, etc.)
+- **Email**: SMTP, SES or SendGrid setup
 - **UI settings**: Customize user experience
+
+> See [docs/authentication/switching-to-full-mode.md](./docs/authentication/switching-to-full-mode.md) for advanced authentication features
 
 ### Environment Variables
 
 Common overrides:
-
 ```bash
 HOST=your-domain.com
 SSL=true
@@ -84,7 +96,6 @@ TTL_OPTIONS='1800 43200 86400 259200'  # 30m, 12h, 24h, 3d
 ```
 
 > **Important**: Generate a secure SECRET key and back it up safely:
->
 > ```bash
 > openssl rand -hex 32
 > ```
@@ -94,7 +105,6 @@ TTL_OPTIONS='1800 43200 86400 259200'  # 30m, 12h, 24h, 3d
 ### Docker Images
 
 **Pre-built images:**
-
 ```bash
 # GitHub Container Registry
 docker pull ghcr.io/onetimesecret/onetimesecret:latest
@@ -107,7 +117,6 @@ docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
 ```
 
 **Build locally:**
-
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
@@ -117,24 +126,34 @@ docker build -t onetimesecret .
 ### Manual Installation
 
 **System Requirements:**
-
-- Ruby 3.1+
+- Ruby 3.4+
 - Redis 5+
 - Node.js 22+ (for development)
 - 1GB RAM, 2 CPU cores minimum
 
 **Quick setup:**
-
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
 bundle install
-cp ./etc/defaults/config.defaults.yaml ./etc/config.yaml
+cp ./etc/config.example.yaml ./etc/config.yaml
 # Edit config.yaml as needed
 RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
 ```
 
 > **For detailed installation instructions**, including system setup, troubleshooting, and advanced configuration, see [INSTALL.md](./INSTALL.md).
+
+### Admin Setup
+
+Create your first admin (colonel) user via CLI:
+```bash
+bin/ots customers --create admin@example.com --role colonel
+```
+
+Or promote an existing user:
+```bash
+bin/ots role promote user@example.com --role colonel
+```
 
 ## Development
 
@@ -143,7 +162,6 @@ RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
 For active development with live reloading:
 
 1. Enable development mode in `etc/config.yaml`:
-
 ```yaml
 :development:
   :enabled: true
@@ -151,7 +169,6 @@ For active development with live reloading:
 ```
 
 2. Start servers:
-
 ```bash
 # Terminal 1: Main server
 RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
@@ -199,30 +216,46 @@ This version of Familia was developed with assistance from AI tools. The followi
 
 I remain responsible for all design decisions and the final code. I believe in being transparent about development tools, especially as AI becomes more integrated into our workflows as developers.
 
+
 ## Similar Services
 
 This section provides an overview of services similar to our project, highlighting their unique features and how they compare. These alternatives may be useful for users looking for specific functionalities or wanting to explore different options in the same domain. By presenting this information, we aim to give our users a comprehensive view of the available options in the secure information sharing space.
 
 **Note:** Our in-house legal counsel ([codium-pr-agent-pro bot](https://github.com/onetimesecret/onetimesecret/pull/610#issuecomment-2333317937)) suggested adding this introduction and the disclaimer at the end.
 
-| URL                                | Service            | Description                                                                                                                                                     | Distinctive Feature                                                                                          |
-| ---------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| URL                                | Service            | Description                                                                                                                                                     | Distinctive Feature                                               |
+| ---------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | <https://protonurl.ch/>            | protonURL          | A simple and secure tool to share secret, confidential, or non-confidential content via a self-destructing link.                                                | Temporary, self-destructing links for sensitive content with strong encryption and available in 15 languages |
-| <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing                                                       |
-| <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                                                                  |
-| <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault                                              |
-| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                                                             |
-| <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing                                                       |
-| <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration                                                     |
-| <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management                                                       |
-| <https://secretshare.io/>          | Secret Share       | A service for sharing passwords securely.                                                                                                                       | Strong encryption for data in transit and at rest                                                            |
-| <https://retriever.corgea.io/>     | Retriever          | A service for requesting secrets securely.                                                                                                                      | Secure secret request and retrieval with encryption                                                          |
-| <https://winden.app/s>             | Winden             | A service for sharing secrets and passwords securely.                                                                                                           | Securely transfers files with end-to-end encryption                                                          |
-| <https://www.snote.app/>           | SNote              | A privacy-focused workspace with end-to-end encryption.                                                                                                         | Secure collaboration on projects, to-dos, tasks, and shared files                                            |
-| <https://www.burnafterreading.me/> | Burn After Reading | A service for sharing various types of sensitive information.                                                                                                   | Self-destructing messages with diceware passphrase encryption                                                |
-| <https://pvtnote.com/en/>          | PvtNote            | A service for sending private, self-destructing messages.                                                                                                       | Clean design with self-destructing messages                                                                  |
-| <https://k9crypt.xyz/>             | K9Crypt            | A secure and anonymous messaging platform.                                                                                                                      | End-to-end encryption with 2-hour message deletion                                                           |
+| <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing            |
+| <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                       |
+| <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |
+| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                  |
+| <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing            |
+| <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration          |
+| <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management            |
+| <https://secretshare.io/>          | Secret Share       | A service for sharing passwords securely.                                                                                                                       | Strong encryption for data in transit and at rest                 |
+| <https://retriever.corgea.io/>     | Retriever          | A service for requesting secrets securely.                                                                                                                      | Secure secret request and retrieval with encryption               |
+| <https://winden.app/s>             | Winden             | A service for sharing secrets and passwords securely.                                                                                                           | Securely transfers files with end-to-end encryption               |
+| <https://www.snote.app/>           | SNote              | A privacy-focused workspace with end-to-end encryption.                                                                                                         | Secure collaboration on projects, to-dos, tasks, and shared files |
+| <https://www.burnafterreading.me/> | Burn After Reading | A service for sharing various types of sensitive information.                                                                                                   | Self-destructing messages with diceware passphrase encryption     |
+| <https://pvtnote.com/en/>          | PvtNote            | A service for sending private, self-destructing messages.                                                                                                       | Clean design with self-destructing messages                       |
+| <https://k9crypt.xyz/>             | K9Crypt            | A secure and anonymous messaging platform.                                                                                                                      | End-to-end encryption with 2-hour message deletion                |
 
 _Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot)._
 
-The inclusion of these services in this list does not imply endorsement. Users are encouraged to conduct their own research and due diligence before using any of the listed services, especially when handling sensitive information.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
+
+## Community & Support
+
+[![Latest Release](https://img.shields.io/github/v/release/onetimesecret/onetimesecret)](https://github.com/onetimesecret/onetimesecret/releases/latest)
+[![Docker Pulls](https://img.shields.io/docker/pulls/onetimesecret/onetimesecret)](https://hub.docker.com/r/onetimesecret/onetimesecret)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/onetimesecret/onetimesecret/ci.yml)](https://github.com/onetimesecret/onetimesecret/actions)
+[![License](https://img.shields.io/github/license/onetimesecret/onetimesecret)](LICENSE)
+
+
+- [Report Issues](https://github.com/onetimesecret/onetimesecret/issues)
+- [Security Issues](mailto:security@onetimesecret.com) (email)
+- [Try it Live](https://ca.onetimesecret.com/)

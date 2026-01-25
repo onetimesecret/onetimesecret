@@ -1,0 +1,50 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "AI 生成的评价",
+    "sha256": "ff4d6634"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "AI 生成的内容仅供演示。非来自真实人物或公司。",
+    "sha256": "d7093de7"
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5",
+    "sha256": "a5bdbbd3"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}，{1}",
+    "sha256": "a06d9daa"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "「{0}」",
+    "sha256": "7a27d02b"
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}：",
+    "sha256": "14159dd9"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "领先 AI 对我们的评价",
+    "sha256": "f46a8839"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "AI 生成的评价",
+    "sha256": "947cd6b4"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "此引言由以下生成",
+    "sha256": "7879a747"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "它基于页面内容，不代表实际的人或公司。",
+    "sha256": "8b290e9a"
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "人工生成的反馈",
+    "sha256": "4c8d20ba"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "此内容是基于此页面内容的 AI 生成内容，不代表实际的人或公司。",
+    "sha256": "03c16436"
+  }
+}

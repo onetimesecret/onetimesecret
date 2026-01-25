@@ -1,23 +1,23 @@
 // src/schemas/models/public.ts
+
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
- * Zod schema for SecretOptions
+ * Public API Secret Options Schema
+ *
+ * This schema is for parsing public settings API responses where values may
+ * be stringified from environment variables. Uses transforms.fromString.*
+ * for automatic string-to-type coercion.
+ *
+ * NOTE: This is distinct from config/section/secret_options.ts which validates
+ * backend YAML configuration structure.
  *
  * @example Validate and parse the data
- *    const parsedSecretOptions: SecretOptions = secretOptionsSchema.parse(receivedSecretOptions);
- *    const parsedAuthSettings: Authentication = authenticationSchema.parse(receivedAuthSettings);
- *
- *    console.log(parsedSecretOptions);
- *       Output:
- *       {
- *         default_ttl: 604800,
- *         ttl_options: [600, 1800, 3600]
- *       }
+ *    const parsedSecretOptions: SecretOptions = publicSecretOptionsSchema.parse(receivedSecretOptions);
  *
  */
-export const secretOptionsSchema = z.object({
+export const publicSecretOptionsSchema = z.object({
   /**
    * Default Time-To-Live (TTL) for secrets in seconds
    * Default: 604800 (7 days in seconds)
@@ -43,64 +43,76 @@ export const secretOptionsSchema = z.object({
   /**
    * Settings for the passphrase field that protects access to secrets
    */
-  passphrase: z.object({
-    /**
-     * Whether passphrases are required for all secrets
-     */
-    required: transforms.fromString.boolean.default(false),
+  passphrase: z
+    .object({
+      /**
+       * Whether passphrases are required for all secrets
+       */
+      required: transforms.fromString.boolean.default(false),
 
-    /**
-     * Minimum length required for passphrases
-     */
-    minimum_length: z.number().int().min(1).max(256).default(8),
+      /**
+       * Minimum length required for passphrases
+       */
+      minimum_length: z.number().int().min(1).max(256).default(8),
 
-    /**
-     * Maximum length allowed for passphrases
-     */
-    maximum_length: z.number().int().min(8).max(1024).default(128),
+      /**
+       * Maximum length allowed for passphrases
+       */
+      maximum_length: z.number().int().min(8).max(1024).default(128),
 
-    /**
-     * Whether to enforce complexity requirements
-     */
-    enforce_complexity: transforms.fromString.boolean.default(false),
-  }).optional(),
+      /**
+       * Whether to enforce complexity requirements
+       */
+      enforce_complexity: transforms.fromString.boolean.default(false),
+    })
+    .optional(),
 
   /**
    * Settings for password generation feature
    */
-  password_generation: z.object({
-    /**
-     * Default length for generated passwords
-     */
-    default_length: z.number().int().min(4).max(128).default(12),
+  password_generation: z
+    .object({
+      /**
+       * Default length for generated passwords
+       */
+      default_length: z.number().int().min(4).max(128).default(12),
 
-    /**
-     * Available length options for password generation
-     */
-    length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+      /**
+       * Available length options for password generation
+       */
+      length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
 
-    /**
-     * Character sets to include in generated passwords
-     */
-    character_sets: z.object({
-      uppercase: transforms.fromString.boolean.default(true),
-      lowercase: transforms.fromString.boolean.default(true),
-      numbers: transforms.fromString.boolean.default(true),
-      symbols: transforms.fromString.boolean.default(false),
-      exclude_ambiguous: transforms.fromString.boolean.default(true),
-    }).optional(),
-  }).optional(),
+      /**
+       * Character sets to include in generated passwords
+       */
+      character_sets: z
+        .object({
+          uppercase: transforms.fromString.boolean.default(true),
+          lowercase: transforms.fromString.boolean.default(true),
+          numbers: transforms.fromString.boolean.default(true),
+          symbols: transforms.fromString.boolean.default(false),
+          exclude_ambiguous: transforms.fromString.boolean.default(true),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 /**
  * Inferred TypeScript type for SecretOptions
  */
-export type SecretOptions = z.infer<typeof secretOptionsSchema>;
+export type SecretOptions = z.infer<typeof publicSecretOptionsSchema>;
 
 /**
- * Zod schema for Authentication
+ * Public API Authentication Schema
+ *
+ * This schema is for parsing public settings API responses where boolean
+ * values may be stringified. Uses transforms.fromString.boolean for coercion.
+ *
+ * NOTE: This is distinct from config/section/site.ts:siteAuthenticationSchema
+ * which validates backend YAML configuration structure.
  */
-export const authenticationSchema = z.object({
+export const publicAuthenticationSchema = z.object({
   /**
    * Flag to enable or disable authentication
    */
@@ -125,12 +137,17 @@ export const authenticationSchema = z.object({
    * Flag to enable or disable homepage secret form when not logged in.
    */
   required: transforms.fromString.boolean,
+
+  /**
+   * Authentication mode: 'simple' (Redis-only) or 'full' (Rodauth with SQL db)
+   */
+  mode: z.enum(['simple', 'full']).optional(),
 });
 
 /**
  * Inferred TypeScript type for Authentication
  */
-export type AuthenticationSettings = z.infer<typeof authenticationSchema>;
+export type AuthenticationSettings = z.infer<typeof publicAuthenticationSchema>;
 
 /**
  * Schema for the :jurisdiction section
@@ -152,15 +169,15 @@ const regionsSchema = z.object({
 });
 
 /**
- * Schema for the :cluster section within :domains
+ * Schema for the :cluster section within :domains (proxy configuration)
  */
 const clusterSchema = z
   .object({
     type: z.string().optional(),
     //  api_key: z.string().optional(),
-    cluster_ip: z.string().optional(),
-    cluster_host: z.string().optional(),
-    cluster_name: z.string(),
+    proxy_ip: z.string().optional(),
+    proxy_host: z.string().optional(),
+    proxy_name: z.string(),
     vhost_target: z.string(),
   })
   .strip();
@@ -180,19 +197,9 @@ const domainsSchema = z.object({
 const authenticitySchema = z
   .object({
     type: z.string(),
-    //  secret_key: z.string(),
+    //  secret_identifier: z.string(),
   })
   .strip();
-
-/**
- * Schema for the :plans section
- */
-const plansSchema = z.object({
-  enabled: transforms.fromString.boolean,
-  stripe_key: z.string().optional(),
-  webook_signing_secret: z.string().optional(),
-  payment_links: z.any().optional(),
-});
 
 /**
  * Schema for the :support section
@@ -202,20 +209,31 @@ const supportSchema = z.object({
 });
 
 /**
+ * Public API Features Schema
+ *
+ * This schema is for parsing public settings API responses for feature flags.
+ * Uses transforms.fromString.boolean for stringified boolean coercion.
+ *
+ * NOTE: This is distinct from config/section/features.ts:featuresSchema
+ * which validates backend YAML configuration structure.
+ */
+export const publicFeaturesSchema = z.object({
+  regions: regionsSchema,
+  domains: domainsSchema,
+});
+
+/**
  * Combined Schema for PublicSettings based on :site in config.schema.yaml
  */
 export const publicSettingsSchema = z
   .object({
     host: z.string(),
-    domains: domainsSchema,
     ssl: transforms.fromString.boolean,
-    authentication: authenticationSchema,
+    authentication: publicAuthenticationSchema,
     // secret: z.string(),
     authenticity: authenticitySchema,
-    plans: plansSchema,
     support: supportSchema,
-    regions: regionsSchema,
-    secret_options: secretOptionsSchema,
+    secret_options: publicSecretOptionsSchema,
   })
   .strict();
 
@@ -223,3 +241,8 @@ export const publicSettingsSchema = z
  * Inferred TypeScript type for PublicSettings
  */
 export type PublicSettings = z.infer<typeof publicSettingsSchema>;
+
+/**
+ * Inferred TypeScript type for Features
+ */
+export type Features = z.infer<typeof publicFeaturesSchema>;

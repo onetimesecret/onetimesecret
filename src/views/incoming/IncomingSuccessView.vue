@@ -1,37 +1,19 @@
 <!-- src/views/incoming/IncomingSuccessView.vue -->
 
 <script setup lang="ts">
-  import { computed, ref, onMounted } from 'vue';
+  import { computed, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import { useNotificationsStore } from '@/stores/notificationsStore';
-  import { useIncomingStore } from '@/stores/incomingStore';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const route = useRoute();
   const router = useRouter();
   const notifications = useNotificationsStore();
-  const incomingStore = useIncomingStore();
 
   const metadataKey = computed(() => route.params.metadataKey as string);
   const receiptUrl = computed(() => `/receipt/${metadataKey.value}`);
   const copied = ref(false);
-  const receiptData = ref<unknown>(null);
-  const isLoading = ref(false);
-
-  onMounted(async () => {
-    if (metadataKey.value) {
-      isLoading.value = true;
-      try {
-        receiptData.value = await incomingStore.getReceipt(metadataKey.value);
-      } catch (error) {
-        // Receipt fetch is optional - don't block the success page
-        console.warn('Failed to fetch receipt:', error);
-      } finally {
-        isLoading.value = false;
-      }
-    }
-  });
 
   const handleCreateAnother = () => {
     router.push({ name: 'IncomingSecretForm' });
@@ -217,9 +199,19 @@
 
     <!-- Helpful Tips -->
     <div class="mt-8 text-center">
-      <p
-        class="text-sm text-gray-500 dark:text-gray-400 [&_a]:text-brand-600 [&_a]:underline [&_a]:transition-colors [&_a]:duration-200 hover:[&_a]:text-brand-700 dark:[&_a]:text-brand-400 dark:hover:[&_a]:text-brand-300"
-        v-html="t('incoming.end_of_experience_suggestion', { receiptUrl })"></p>
+      <i18n-t
+        keypath="incoming.end_of_experience_suggestion"
+        tag="p"
+        class="text-sm text-gray-500 dark:text-gray-400"
+        scope="global">
+        <template #receipt>
+          <a
+            :href="receiptUrl"
+            class="text-brand-600 underline transition-colors duration-200 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+            {{ t('incoming.receipt_link_text', 'receipt') }}
+          </a>
+        </template>
+      </i18n-t>
     </div>
   </div>
 </template>

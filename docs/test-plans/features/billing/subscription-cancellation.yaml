@@ -1,0 +1,184 @@
+# docs/test-plans/subscription-cancellation.yaml
+---
+# LLM-Optimized Test Cases: Subscription Cancellation
+# Version: 1.1.0
+
+suite:
+  id: subscription-cancellation
+  name: Subscription Cancellation Flow
+  feature: Cancel subscription at period end with access retention
+  tags: [billing, subscription, cancellation, stripe]
+
+definitions:
+  users:
+    paid_user:
+      auth: logged_in
+      description: User with active paid subscription
+
+tests:
+  - id: CANCEL-001
+    intent: User initiates cancellation and access is retained until period ends
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        has_active_subscription: true
+        plan_name: Identity Plus
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: "[data-testid='cancel-subscription-button']"
+    verify:
+      - description: Cancel subscription modal opens
+        selector: "[data-testid='cancel-subscription-modal']"
+        assert: visible
+      - description: Modal shows plan name being cancelled
+        selector: "[data-testid='cancel-modal-plan-name']"
+        assert:
+          text_contains: Identity Plus
+      - description: Confirm cancellation button visible
+        selector: "[data-testid='confirm-cancel-button']"
+        assert: visible
+      - description: After confirmation, subscription status shows Canceling at period end
+        action:
+          click: "[data-testid='confirm-cancel-button']"
+        api: GET /bootstrap/me
+        assert:
+          subscription.cancel_at_period_end: true
+        selector: "[data-testid='subscription-status']"
+        selector_assert:
+          text_contains: Canceling
+    priority: critical
+    type: functional
+    covers:
+      - CancelSubscriptionModal.vue
+      - POST /billing/api/org/:extid/cancel-subscription
+    notes: Cancellation should be at period end not immediate
+
+  - id: CANCEL-002
+    intent: Cancellation confirmation shows period end date and what happens next
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        has_active_subscription: true
+        period_end: 1737072000
+    target: /billing/:extid/plans
+    action:
+      type: click
+      element: "[data-testid='cancel-subscription-button']"
+    verify:
+      - description: Modal displays formatted end date
+        selector: "[data-testid='cancel-modal-period-end']"
+        assert:
+          text_matches: '\w+ \d{1,2}, \d{4}'
+      - description: Access until message shows the period end date
+        selector: "[data-testid='access-until-message']"
+        assert:
+          text_matches: 'access until \w+ \d{1,2}, \d{4}'
+      - description: No future charges message visible
+        selector: "[data-testid='no-future-charges-message']"
+        assert: visible
+      - description: Downgrade to free message visible
+        selector: "[data-testid='downgrade-to-free-message']"
+        assert: visible
+    priority: high
+    type: ui
+    covers:
+      - CancelSubscriptionModal.vue
+      - formattedPeriodEnd computed property
+
+  - id: CANCEL-003
+    intent: After cancellation initiated, paid features remain accessible until period end
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        subscription_cancel_at_period_end: true
+        period_end_not_reached: true
+    target: /billing/:extid/overview
+    action:
+      type: none
+    verify:
+      - description: Subscription status shows canceling state
+        api: GET /bootstrap/me
+        assert:
+          subscription.cancel_at_period_end: true
+          subscription.status: active
+        selector: "[data-testid='subscription-status']"
+        selector_assert:
+          text_contains: Canceling
+      - description: Current plan still shows paid tier name
+        selector: "[data-testid='current-plan-name']"
+        assert:
+          text_contains: Identity Plus
+      - description: Paid features remain accessible
+        features_to_check:
+          - selector: "[data-testid='custom-domains-section']"
+            assert: enabled
+          - selector: "[data-testid='api-access-section']"
+            assert: enabled
+        api: GET /bootstrap/me
+        assert:
+          subscription.plan_tier: paid
+      - description: Upgrade button not shown
+        selector: "[data-testid='upgrade-plan-button']"
+        assert: not_visible
+      - description: Period end date displayed
+        selector: "[data-testid='period-end-date']"
+        assert:
+          visible: true
+          text_matches: '\w+ \d{1,2}, \d{4}'
+    priority: high
+    type: functional
+    covers:
+      - BillingOverview.vue
+      - subscription status display
+    notes: User should retain full access until billing period ends
+
+  - id: CANCEL-004
+    intent: After period ends, user is on free tier with upgrade prompts
+    setup:
+      auth: logged_in
+      user_type: paid_user
+      state:
+        subscription_cancelled: true
+        period_has_ended: true
+    target: /billing/:extid/overview
+    action:
+      type: none
+    verify:
+      - description: Current plan shows Free
+        selector: "[data-testid='current-plan-name']"
+        assert:
+          text: Free
+        api: GET /bootstrap/me
+        api_assert:
+          subscription.plan_tier: free
+      - description: No active subscription indicator
+        selector: "[data-testid='active-subscription-badge']"
+        assert: not_visible
+        api: GET /bootstrap/me
+        api_assert:
+          subscription.status:
+            not: active
+      - description: Upgrade Plan button visible
+        selector: "[data-testid='upgrade-plan-button']"
+        assert: visible
+      - description: Paid-only features show upgrade prompts or restrictions
+        features_to_check:
+          - selector: "[data-testid='custom-domains-section']"
+            child: "[data-testid='upgrade-prompt']"
+            assert: visible
+          - selector: "[data-testid='api-access-section']"
+            child: "[data-testid='upgrade-prompt']"
+            assert: visible
+      - description: No cancellation pending indicator
+        selector: "[data-testid='cancellation-pending-badge']"
+        assert: not_visible
+    priority: medium
+    type: functional
+    covers:
+      - BillingOverview.vue
+      - plan downgrade logic
+    notes: After period end, account reverts to free tier capabilities

@@ -1,0 +1,89 @@
+# etc/defaults/auth.defaults.yaml
+#
+# Authentication Configuration for OneTimeSecret
+# Controls the authentication mode and related settings
+---
+# Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
+# Can be overridden with AUTHENTICATION_MODE environment variable
+mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
+
+# NOTE: Session configuration has been moved to config.yaml under site.session
+# Session handling is auth-mode agnostic (works with simple or full mode).
+
+# Simple mode settings (Redis-only authentication)
+simple:
+  #password_hash_cost: 12
+  #session_timeout: 86400    # 24 hours
+
+# Full mode settings (Rodauth-based application)
+full:
+  # Application Connection
+  #
+  # Used at runtime by the application.
+  #
+  # e.g. "postgres://user:password@host:port/database"
+  #
+  # SQLite paths:
+  #   sqlite::memory: - In-memory, no persistence (dev/test only)
+  #   sqlite://data/auth.db - Relative path from application directory
+  #   sqlite:///data/auth.db - Absolute path from filesystem root
+  #   sqlite:///tmp/auth.db - Temporary, lost on restart
+  #
+  # ⚠️  In OCI containers: SQLite files MUST be in a mounted volume directory
+  #     (e.g., /app/data or /data) or all data will be lost on container restart.
+  #
+  # NOTE: The double quotes prevent YAML issues when parsing `sqlite::memory:`
+  database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>"
+
+  # Migrations Connection (PostgreSQL, MySQL, MS SQL Server only)
+  #
+  # Used at deployment time to run all Rodauth migrations:
+  #   - Set up the schema with appropriate permissions
+  #   - Create database functions for password verification
+  #   - Grant specific access to the application account as needed
+  #
+  # When using this approach, the application account should only have EXECUTE
+  # permission on the password hash verification functions and should not have
+  # SELECT access to the password hash column.
+  #
+  # Not needed for SQLite or other databases that don't support this security model.
+  #
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
+
+  # Service URL (used for internal requests)
+  #service_url: <%= ENV['AUTH_SERVICE_URL'] || 'http://127.0.0.1:3000/auth' %>
+
+  # Optional Rodauth features (enabled via ENV variables)
+  #
+  # Pattern: Features default ON use `!= 'false'` (must explicitly disable)
+  #          Features default OFF use `== 'true'` (must explicitly enable)
+  #
+  features:
+    # Attack prevention: brute force lockout, password requirements (default: ON)
+    hardening: <%= ENV['AUTH_HARDENING_ENABLED'] != 'false' %>
+
+    # Session tracking: view and manage active sessions (default: ON)
+    active_sessions: <%= ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false' %>
+
+    # Remember me: persistent login across browser sessions (default: ON)
+    remember_me: <%= ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false' %>
+
+    # Email verification: require email verification on signup (default: ON, OFF in test)
+    verify_account: <%= ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] != 'false' && ENV['RACK_ENV'] != 'test' %>
+
+    # MFA: TOTP codes and recovery codes (default: OFF)
+    mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
+
+    # Email auth: passwordless login via email links, aka magic links (default: OFF)
+    email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
+
+    # WebAuthn: biometrics and security keys (default: OFF)
+    webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
+
+    # OmniAuth: external identity providers via OIDC (default: OFF)
+    # Requires OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET env vars
+    omniauth: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
+
+    # SSO display name (shown on "Sign in with X" button)
+    # If not set, generic "SSO" is used
+    sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>

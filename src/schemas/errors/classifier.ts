@@ -1,17 +1,12 @@
 // src/schemas/errors/classifier.ts
 
 import { NavigationFailure, NavigationFailureType } from 'vue-router';
-
-import type {
-  ApplicationError,
-  ErrorType,
-  ErrorSeverity,
-  HttpErrorLike,
-} from './types';
-import { errorGuards } from './guards';
-import { wrapError } from './wrapper';
-import { HTTP_STATUS_CODES } from './constants';
 import { ZodError } from 'zod';
+
+import { HTTP_STATUS_CODES } from './constants';
+import { errorGuards } from './guards';
+import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
+import { wrapError } from './wrapper';
 
 /**
  * Classifies errors into application-specific categories based on their properties.
@@ -55,22 +50,61 @@ export const errorClassifier = {
         'technical',
         'error',
         error as Error,
-        error.status // there may not be a status
+        error.status
       );
     }
 
     const status = error.status || error.response?.status;
-    const type = status ? this.getTypeFromStatus(status) : 'technical';
-    const details = error.response?.data || {};
+    const rawDetails = error.response?.data || {};
+    const details =
+      typeof rawDetails === 'object' && rawDetails !== null ? rawDetails : { raw: rawDetails };
+    const userMessage = this.extractUserMessage(details, error);
+    const type = this.determineHttpErrorType(status, details);
 
-    return wrapError(
-      details.message || error.message || 'HTTP Error',
-      type,
-      'error',
-      error as Error,
-      status,
-      details // include the response payload
-    );
+    return wrapError(userMessage, type, 'error', error as Error, status, details);
+  },
+
+  extractUserMessage(details: any, error: HttpErrorLike): string {
+    // Prioritize 'message' over 'error' since 'error' is often a generic type identifier
+    // while 'message' contains the user-friendly description
+    // Example API response: { "error": "FormError", "message": "Please enter a domain" }
+    // We want to show "Please enter a domain" not "FormError"
+    return details.message || details.error || error.message || 'HTTP Error';
+  },
+
+  determineHttpErrorType(status: number | undefined, details: any): ErrorType {
+    if (!status) return 'technical';
+
+    // If backend provides field-level errors, it's always a human error (form validation)
+    if (details['field-error']) {
+      return 'human';
+    }
+
+    // Heuristic: If backend sends a user-friendly message for a client error (4xx),
+    // it's signaling that this error is user-actionable. This applies even to
+    // security status codes (401, 403, 429) when the backend provides a clear message.
+    //
+    // Examples:
+    // - 403 with "Guest API access is disabled" -> human (show message)
+    // - 403 with no message -> security (show generic)
+    // - 401 with "Invalid credentials" -> human (show message)
+    // - 429 with "Too many requests" -> human (show message)
+    const hasUserMessage = Boolean(details.error || details.message);
+    const isClientError = status >= 400 && status < 500;
+
+    if (hasUserMessage && isClientError) {
+      // Backend is signaling this error is user-actionable by providing a message
+      return 'human';
+    }
+
+    // For security status codes without user messages, classify as security
+    // This ensures silent auth failures don't leak information
+    if (HTTP_STATUS_CODES.SECURITY.has(status)) {
+      return 'security';
+    }
+
+    // Fall back to status-based classification
+    return this.getTypeFromStatus(status);
   },
 
   classifyRouter(error: NavigationFailure): ApplicationError {
@@ -84,29 +118,26 @@ export const errorClassifier = {
   },
 
   classifyValidation(error: ZodError): ApplicationError {
-    // Get a more user-friendly message from the ZodError
+    // Get a developer-friendly message from the ZodError
     const formattedMessage = this.formatZodError(error);
 
-    return wrapError(
-      formattedMessage,
-      'human',
-      'error',
-      error
-    );
+    // Zod validation errors are technical issues (API/schema mismatch),
+    // not user-caused errors. They should be logged for debugging.
+    return wrapError(formattedMessage, 'technical', 'error', error);
   },
 
   formatZodError(error: ZodError): string {
-    if (!error.errors || error.errors.length === 0) {
+    if (!error.issues || error.issues.length === 0) {
       return 'Validation Error';
     }
 
     // Get the first error message
-    const firstError = error.errors[0];
+    const firstError = error.issues[0];
 
     if (firstError.code === 'invalid_type') {
       // Format the invalid_type error nicely
-      const expected = firstError.expected;
-      const received = firstError.received;
+      const expected = (firstError as any).expected;
+      const received = (firstError as any).received;
       return `Invalid data received. Expected ${expected} but got ${received}.`;
     }
 

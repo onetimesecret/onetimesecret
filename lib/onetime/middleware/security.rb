@@ -1,5 +1,8 @@
 # lib/onetime/middleware/security.rb
 #
+# frozen_string_literal: true
+
+#
 # Security middleware collection for the Onetime Secret application.
 # Configures various Rack::Protection middleware components based on
 # application configuration settings.
@@ -37,7 +40,7 @@ module Onetime
       #
       # @param app [#call] The Rack application to wrap
       def initialize(app)
-        @app = app
+        @app      = app
         @rack_app = setup_security_middleware
       end
 
@@ -53,28 +56,29 @@ module Onetime
 
       # Configure the security middleware stack based on application settings
       #
-      # Reads configuration from Onetime.conf.dig(:experimental, :middleware)
+      # Reads configuration from Onetime.conf.dig("site", "middleware")
       # and conditionally enables corresponding Rack::Protection middleware.
       #
       # @return [#call] Configured Rack application with security middleware
       def setup_security_middleware
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
-        app_instance = @app
-        middleware_settings = Onetime.conf.dig(:experimental, :middleware) || {}
+        app_instance        = @app
+        middleware_settings = Onetime.conf.dig('site', 'middleware') || {}
 
         # Define middleware components with their corresponding settings keys
         components = self.class.middleware_components
         Rack::Builder.new do
           # Apply each middleware if configured
           components.each do |name, config|
-            next unless middleware_settings[config[:key]]
-            Onetime.ld "[Security] Enabling #{name} protection"
-            if config[:options]
-              use config[:klass], config[:options]
-            else
-              use config[:klass]
-            end
+            # All settings comfing from yaml are strings as a rule
+            middleware_key = config[:key].to_s
+            next unless middleware_settings[middleware_key]
+
+            OT.ld "[Security] Enabling #{name}/middleware_key protection"
+
+            # Use double-splat to pass options only if they exist
+            use config[:klass], **(config[:options] || {})
           end
 
           # Pass through to original application
@@ -90,49 +94,77 @@ module Onetime
 end
 
 Onetime::Middleware::Security.middleware_components = {
-  # UTF-8 Sanitization - Ensures proper UTF-8 encoding in request parameters
-  "UTF8Sanitizer" => {
+  # UTF-8 Sanitization: Ensures request parameters use valid UTF-8 encoding.
+  'UTF8Sanitizer' => {
     key: :utf8_sanitizer,
     klass: Rack::UTF8Sanitizer,
     options: { sanitize_null_bytes: true },
   },
-  # Protection against CSRF attacks
-  "HttpOrigin" => {
+
+  # CSRF Protection (Token-based): Validates 'shrimp' authenticity tokens.
+  #
+  # ⚠️ Dual-CSRF System: This works alongside Rodauth's separate CSRF protection.
+  # ⚠️ SSO Bypass: /auth/sso/ routes are excluded as they use OAuth 'state' params.
+  # ⚠️ API Bypass: API and JSON requests are excluded (handled via other means).
+  #
+  # See: apps/web/auth/config/hooks/omniauth.rb for the Rodauth-side bypass.
+  'AuthenticityToken' => {
+    key: :authenticity_token,
+    klass: Rack::Protection::AuthenticityToken,
+    options: {
+      authenticity_param: 'shrimp',
+      allow_if: ->(env) {
+        req = Rack::Request.new(env)
+        req.path.start_with?('/api/', '/auth/sso/') ||
+          req.media_type == 'application/json' ||
+          req.get_header('HTTP_ACCEPT')&.include?('application/json')
+      },
+    },
+  },
+
+  # CSRF Protection (Origin-based): Validates Origin and Referer headers.
+  'HttpOrigin' => {
     key: :http_origin,
     klass: Rack::Protection::HttpOrigin,
   },
-  # Escapes HTML in parameters to prevent XSS
-  "EscapedParams" => {
-    key: :escaped_params,
-    klass: Rack::Protection::EscapedParams,
-  },
-  # Sets X-XSS-Protection header
-  "XSSHeader" => {
+
+  # NOTE: Rack::Protection::EscapedParams is intentionally EXCLUDED.
+  # It escapes all parameters uniformly, which would corrupt sensitive data
+  # like passwords and secrets. OTS uses Onetime::Security::InputSanitizers
+  # for field-aware sanitization instead.
+
+  # XSS Header: Sets X-XSS-Protection to mitigate reflected XSS in older browsers.
+  'XSSHeader' => {
     key: :xss_header,
     klass: Rack::Protection::XSSHeader,
   },
-  # Prevents clickjacking via X-Frame-Options
-  "FrameOptions" => {
+
+  # Frame Options: Prevents clickjacking by restricting iframe embedding.
+  'FrameOptions' => {
     key: :frame_options,
     klass: Rack::Protection::FrameOptions,
   },
-  # Blocks directory traversal attacks
-  "PathTraversal" => {
+
+  # Path Traversal: Prevents directory traversal attacks in request paths.
+  'PathTraversal' => {
     key: :path_traversal,
     klass: Rack::Protection::PathTraversal,
   },
-  # Prevents session fixation via manipulated cookies
-  "CookieTossing" => {
+
+  # Cookie Tossing: Blocks session fixation via cookies set on subdomains.
+  'CookieTossing' => {
     key: :cookie_tossing,
     klass: Rack::Protection::CookieTossing,
   },
-  # Prevents IP spoofing attacks
-  "IPSpoofing" => {
+
+  # IP Spoofing: Detects and blocks IP spoofing attempts via header validation.
+  'IPSpoofing' => {
     key: :ip_spoofing,
     klass: Rack::Protection::IPSpoofing,
   },
-  # Forces HTTPS connections via HSTS headers
-  "StrictTransport" => {
+
+  # HSTS: Forces HTTPS by setting the Strict-Transport-Security header.
+  'StrictTransport' => {
     key: :strict_transport,
     klass: Rack::Protection::StrictTransport,
   },

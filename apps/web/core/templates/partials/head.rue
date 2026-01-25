@@ -1,0 +1,19 @@
+<template>
+  <!-- Include base head tags -->
+  {{> partials/head-base}}
+
+  <!-- Open Graph meta tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{baseuri}}">
+  <meta property="og:title" content="{{page_title}}">
+  <meta property="og:description" content="{{description}}">
+  <meta property="og:image" content="{{baseuri}}/img/social-preview.png">
+
+  <!-- Twitter Card meta tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="{{site_host}}">
+  <meta property="twitter:url" content="{{baseuri}}">
+  <meta name="twitter:title" content="{{page_title}}">
+  <meta name="twitter:description" content="{{description}}">
+  <meta name="twitter:image" content="{{baseuri}}/img/social-preview.png">
+</template>

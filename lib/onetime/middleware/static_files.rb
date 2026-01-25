@@ -1,5 +1,8 @@
 # lib/onetime/middleware/static_files.rb
 #
+# frozen_string_literal: true
+
+#
 # Static file serving middleware for the Onetime Secret application.
 # Provides static file serving capabilities which can be used when
 # running without a reverse proxy.
@@ -27,7 +30,7 @@ module Onetime
       #
       # @param app [#call] The Rack application to wrap
       def initialize(app)
-        @app = app
+        @app      = app
         @rack_app = setup_static_files
       end
 
@@ -51,17 +54,18 @@ module Onetime
       def setup_static_files
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
-        app_instance = @app
-        middleware_settings = Onetime.conf.dig(:experimental, :middleware) || {}
+        app_instance        = @app
+        middleware_settings = Onetime.conf.dig('site', 'middleware') || {}
 
         Rack::Builder.new do
           # Configure static file middleware to serve files from public/web directory
           # Only serve specific paths that contain static assets
-          if middleware_settings[:static_files]
-            Onetime.ld "[StaticFiles] Enabling StaticFiles middleware"
+          if middleware_settings['static_files']
+            Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
+            require 'rack/static'
             use Rack::Static,
-              :urls => ["/dist", "/img", "/v3", "/site.webmanifest", "/favicon.ico"],
-              :root => "public/web"
+              urls: ['/dist', '/img', '/v3', '/site.webmanifest', '/favicon.ico'],
+              root: 'public/web'
           end
 
           # All non-static requests pass through to the original application

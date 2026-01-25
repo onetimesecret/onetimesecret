@@ -1,10 +1,11 @@
+# lib/onetime/initializers/setup_incoming_recipients.rb
+#
 # frozen_string_literal: true
 
 require 'digest/sha2'
 
 module Onetime
   module Initializers
-
     # Sets up recipient hashing for the incoming secrets feature.
     # Processes raw email addresses from config and creates:
     # 1. A lookup table mapping hashes to emails (for backend)
@@ -18,17 +19,17 @@ module Onetime
       raw_recipients = OT.conf.dig(:features, :incoming, :recipients) || []
 
       # Create lookup tables
-      recipient_lookup = {}
+      recipient_lookup  = {}
       public_recipients = []
 
       raw_recipients.each do |recipient|
         email = recipient[:email]
-        name = recipient[:name] || email.split('@').first
+        name  = recipient[:name] || email.split('@').first
 
         # Generate a stable hash for this email
         # Use site secret as salt to ensure consistency across restarts
         site_secret = OT.conf[:site][:secret] || 'default-secret'
-        hash_key = Digest::SHA256.hexdigest("#{email}:#{site_secret}")[0..15]
+        hash_key    = Digest::SHA256.hexdigest("#{email}:#{site_secret}")[0..15]
 
         # Store for backend lookup
         recipient_lookup[hash_key] = email
@@ -48,13 +49,11 @@ module Onetime
 
       OT.info "[IncomingSecrets] Initialized #{recipient_lookup.size} recipients"
     end
-
   end
 end
 
 module Onetime
   class << self
-
     # Returns the lookup table mapping hashes to email addresses
     # @return [Hash<String, String>] Hash mapping recipient hashes to emails
     def incoming_recipient_lookup
@@ -73,6 +72,5 @@ module Onetime
     def lookup_incoming_recipient(hash_key)
       incoming_recipient_lookup[hash_key]
     end
-
   end
 end

@@ -1,0 +1,220 @@
+// src/shared/stores/secretStore.ts
+
+import { PiniaPluginOptions } from '@/plugins/pinia';
+import {
+  ConcealDataResponse,
+  ConcealPayload,
+  GeneratePayload,
+  responseSchemas,
+  type SecretResponse,
+} from '@/schemas/api/v3';
+import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
+import { loggingService } from '@/services/logging.service';
+import { useAuthStore } from '@/shared/stores/authStore';
+import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
+import { AxiosInstance } from 'axios';
+import { defineStore, PiniaCustomProperties } from 'pinia';
+import { computed, inject, ref } from 'vue';
+
+/**
+ * API mode for secret operations.
+ * - 'authenticated': Uses /api/v3 endpoints (requires authentication)
+ * - 'public': Uses /api/v3/guest endpoints (guest access)
+ */
+export type ApiMode = 'authenticated' | 'public';
+
+interface StoreOptions extends PiniaPluginOptions {}
+
+/**
+ * Type definition for SecretStore.
+ */
+export type SecretStore = {
+  // State
+  record: Secret | null;
+  details: SecretDetails | null;
+  status: SecretState | null;
+  apiMode: ApiMode;
+  _initialized: boolean;
+
+  // Getters
+  isInitialized: boolean;
+
+  // Actions
+  init: () => { isInitialized: boolean };
+  setApiMode: (mode: ApiMode) => void;
+  fetch: (secretIdentifier: string) => Promise<void>;
+  reveal: (secretIdentifier: string, passphrase?: string) => Promise<void>;
+  getStatus: (secretIdentifier: string) => Promise<SecretState>;
+  clear: () => void;
+  $reset: () => void;
+} & PiniaCustomProperties;
+
+/**
+ * Store for managing secret records and their details
+ */
+/* eslint-disable max-lines-per-function */
+export const useSecretStore = defineStore('secrets', () => {
+  const $api = inject('api') as AxiosInstance;
+
+  // State
+  const record = ref<Secret | null>(null);
+  const details = ref<SecretDetails | null>(null);
+  const status = ref<SecretState | null>(null);
+  const apiMode = ref<ApiMode>('authenticated');
+  const _initialized = ref(false);
+
+  // Getters
+  const isInitialized = computed(() => _initialized.value);
+
+  // Actions
+
+  function init(options?: StoreOptions) {
+    if (_initialized.value) return { isInitialized };
+
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
+
+    _initialized.value = true;
+
+    return { isInitialized };
+  }
+
+  /**
+   * Sets the API mode for secret operations
+   * @param mode - 'authenticated' for /api/v3 or 'public' for /api/v3/guest
+   */
+  function setApiMode(mode: ApiMode) {
+    apiMode.value = mode;
+  }
+
+  /**
+   * Returns the appropriate endpoint path based on current API mode
+   * @param path - The path suffix (e.g., '/secret/conceal')
+   * @returns Full endpoint path with correct prefix
+   */
+  function getEndpoint(path: string): string {
+    const prefix = apiMode.value === 'public' ? '/api/v3/guest' : '/api/v3';
+    return `${prefix}${path}`;
+  }
+
+  /**
+   * Loads a secret by its key
+   * @param secretIdentifier - Unique identifier for the secret
+   * @throws Will throw an error if the API call fails
+   * @returns Validated secret response
+   */
+  async function fetch(secretIdentifier: string) {
+    const response = await $api.get(getEndpoint(`/secret/${secretIdentifier}`));
+    const validated = responseSchemas.secret.parse(response.data);
+    record.value = validated.record;
+    details.value = validated.details ?? null;
+
+    return validated;
+  }
+
+  /**
+   * Creates a new concealed secret
+   * @param payload - Validated secret creation payload
+   * @throws Will throw an error if the API call fails or validation fails
+   * @returns Validated secret response
+   *
+   * Validation responsibilities:
+   * - Input payload is pre-validated by useSecretConcealer composable
+   * - Store validates complete request structure to ensure API contract
+   * - Store validates API response to ensure data integrity
+   *
+   * This dual validation approach provides:
+   * 1. Early user input validation at form level
+   * 2. API contract enforcement at store level
+   * 3. Type safety and runtime validation of response data
+   *
+   * Note: Store-level request validation may be redundant given TypeScript types
+   * and composable validation. This is an open question. Response validation
+   * should remain the responsibility of this store.
+   */
+  async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
+    const response = await $api.post(getEndpoint('/secret/conceal'), {
+      secret: payload,
+    });
+    return response.data;
+  }
+
+  async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
+    const response = await $api.post(getEndpoint('/secret/generate'), {
+      secret: payload,
+    });
+    // const validated = responseSchemas.concealData.parse(response.data); // Fails?
+    // record.value = validated.record;
+    // details.value = validated.details;
+    return response.data;
+  }
+
+  /**
+   * Reveals a secret's contents using an optional passphrase
+   * @param secretIdentifier - Unique identifier for the secret
+   * @param passphrase - Optional passphrase to decrypt the secret
+   * @throws Will throw an error if the API call fails
+   * @returns Validated secret response
+   */
+  async function reveal(secretIdentifier: string, passphrase?: string) {
+    const response = await $api.post<SecretResponse>(
+      getEndpoint(`/secret/${secretIdentifier}/reveal`),
+      {
+        passphrase,
+        continue: true,
+      }
+    );
+
+    const validated = responseSchemas.secret.parse(response.data);
+    record.value = validated.record;
+    details.value = validated.details ?? null;
+
+    // Update local storage status for non-authenticated users only
+    // The secretIdentifier is the secretExtid we stored when creating the secret
+    const authStore = useAuthStore();
+    if (!authStore.isAuthenticated) {
+      const localReceiptStore = useLocalReceiptStore();
+      localReceiptStore.markAsRevealed(secretIdentifier);
+    }
+
+    return validated;
+  }
+
+  function clear() {
+    record.value = null;
+    details.value = null;
+    status.value = null;
+  }
+
+  /**
+   * Resets the store state to its initial values
+   */
+  function $reset() {
+    record.value = null;
+    details.value = null;
+    status.value = null;
+    apiMode.value = 'authenticated';
+    _initialized.value = false;
+  }
+
+  return {
+    // State
+    record,
+    details,
+    status,
+    apiMode,
+    _initialized,
+
+    // Getters
+    isInitialized,
+
+    // Actions
+    init,
+    setApiMode,
+    clear,
+    fetch,
+    conceal,
+    generate,
+    reveal,
+    $reset,
+  };
+});

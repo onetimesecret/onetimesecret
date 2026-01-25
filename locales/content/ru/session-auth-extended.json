@@ -1,0 +1,548 @@
+{
+  "web.auth.mfa_required": {
+    "text": "Требуется проверка MFA",
+    "sha256": "e93fd3a4"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "Для доступа к аккаунту требуется проверка MFA",
+    "sha256": "3cff3311"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Завершить проверку MFA",
+    "sha256": "0e681134"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "Ошибка аутентификации. Проверьте учётные данные и попробуйте ещё раз.",
+    "sha256": "b0eeece9"
+  },
+  "web.auth.security.rate_limited": {
+    "text": "Слишком много попыток. Попробуйте позже.",
+    "sha256": "282db6f3"
+  },
+  "web.auth.security.session_expired": {
+    "text": "Сессия истекла. Пожалуйста, войдите снова.",
+    "sha256": "f6f51186"
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "Код восстановления не найден. Убедитесь, что Вы ввели его правильно.",
+    "sha256": "f5f1bd09"
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Этот код восстановления уже использован. Каждый код можно использовать только один раз.",
+    "sha256": "b51d6820"
+  },
+  "web.auth.security.network_error": {
+    "text": "Ошибка сети. Проверьте соединение и попробуйте ещё раз.",
+    "sha256": "31f2678d"
+  },
+  "web.auth.security.internal_error": {
+    "text": "Произошла ошибка. Попробуйте ещё раз.",
+    "sha256": "9c170dda"
+  },
+  "web.auth.methods.password": {
+    "text": "Пароль",
+    "sha256": "e7cf3ef4"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "Ссылка по почте",
+    "sha256": "1b6ffed2"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Биометрия",
+    "sha256": "ab2ba7db"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Вход по электронной почте",
+    "sha256": "79a864df"
+  },
+  "web.auth.magicLink.description": {
+    "text": "Мы отправим Вам безопасную ссылку для входа",
+    "sha256": "5d75aeb0"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Введите Вашу почту",
+    "sha256": "2837f6fa"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Отправить ссылку для входа",
+    "sha256": "f5f52392"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Проверьте почту",
+    "sha256": "77322879"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Мы отправили ссылку для входа на {email}",
+    "sha256": "d9193f59"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Срок действия ссылки истекает через 15 минут",
+    "sha256": "91b5f027"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Попробуйте другую почту",
+    "sha256": "98657c0b"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "Пароль не нужен — просто нажмите на ссылку в письме",
+    "sha256": "5f539b97"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Ошибка сети. Попробуйте ещё раз.",
+    "sha256": "9ff8cfaf"
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "Не удалось отправить ссылку для входа. Попробуйте ещё раз.",
+    "sha256": "4c685e97"
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Недействительная или отсутствующая ссылка для входа",
+    "sha256": "d726c0da"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "Вход не удался. Попробуйте ещё раз.",
+    "sha256": "c95b4875"
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Выполняется вход...",
+    "sha256": "9d432ef1"
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Пожалуйста, подождите, пока мы проверяем Вашу ссылку",
+    "sha256": "81e4efed"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Ошибка аутентификации",
+    "sha256": "797b4f03"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Вернуться к входу",
+    "sha256": "ee9eb75e"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Войти с Face ID / Touch ID",
+    "sha256": "46f75469"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Настроить биометрический вход",
+    "sha256": "7593dd46"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "Биометрическая аутентификация не поддерживается в этом браузере",
+    "sha256": "fe2a2c2b"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Используйте современный браузер с поддержкой WebAuthn (Chrome, Safari, Firefox или Edge)",
+    "sha256": "fd9752eb"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "Биометрический вход включён",
+    "sha256": "63407e97"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "Не удалось настроить биометрический вход",
+    "sha256": "290cca44"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "Биометрическая аутентификация не удалась. Попробуйте ещё раз.",
+    "sha256": "626b9ece"
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "Аутентификация была отменена",
+    "sha256": "57461b04"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Аутентификация...",
+    "sha256": "1f6087c2"
+  },
+  "web.auth.webauthn.description": {
+    "text": "Используйте отпечаток пальца, лицо или ключ безопасности для входа",
+    "sha256": "f02f0427"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "Поддерживает Face ID, Touch ID, Windows Hello и ключи безопасности",
+    "sha256": "3ea1c1a2"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Предупреждение: осталось {count} попыток входа",
+    "sha256": "151dcb5e"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "Аккаунт заблокирован из-за слишком большого количества неудачных попыток входа",
+    "sha256": "5247f389"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "Ваш аккаунт заблокирован до {time}",
+    "sha256": "1a8f382e"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Свяжитесь со службой поддержки, если Вам нужен срочный доступ",
+    "sha256": "23d82e46"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Вы можете сбросить пароль",
+    "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions.title": {
+    "text": "Активные сессии",
+    "sha256": "b58fa4e0"
+  },
+  "web.auth.sessions.current": {
+    "text": "Текущая сессия",
+    "sha256": "386c7932"
+  },
+  "web.auth.sessions.other": {
+    "text": "Другие сессии",
+    "sha256": "8409f445"
+  },
+  "web.auth.sessions.device": {
+    "text": "Устройство",
+    "sha256": "6ba0bdec"
+  },
+  "web.auth.sessions.location": {
+    "text": "Местоположение",
+    "sha256": "15b61974"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "IP-адрес",
+    "sha256": "3c3de0c9"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Последняя активность",
+    "sha256": "b6dc1b95"
+  },
+  "web.auth.sessions.created": {
+    "text": "Создано",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Удалить",
+    "sha256": "c3812fc4"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Выйти из всех других сессий",
+    "sha256": "412bb9e2"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Вы уверены, что хотите удалить эту сессию?",
+    "sha256": "ef12c1ba"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Это завершит Вашу сессию на всех других устройствах. Вы уверены?",
+    "sha256": "4a1a73e9"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "Нет других активных сессий",
+    "sha256": "b83317f2"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "Сессия успешно удалена",
+    "sha256": "6d27d44a"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "Выход выполнен из всех других сессий",
+    "sha256": "1b49e75c"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Активные сессии",
+    "sha256": "b58fa4e0"
+  },
+  "web.auth.mfa.title": {
+    "text": "Двухфакторная аутентификация",
+    "sha256": "bc074b60"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "Двухфакторная аутентификация включена",
+    "sha256": "d27a70c6"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "Двухфакторная аутентификация отключена",
+    "sha256": "0af18e50"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Включить двухфакторную аутентификацию",
+    "sha256": "9b83e658"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Отключить двухфакторную аутентификацию",
+    "sha256": "c9698815"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Настройка двухфакторной аутентификации",
+    "sha256": "04e05601"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Добавьте дополнительный уровень защиты Вашего аккаунта",
+    "sha256": "d47240b9"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. Отсканируйте QR-код",
+    "sha256": "efd0134a"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Подтвердите настройку",
+    "sha256": "59bba5f7"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Отсканируйте этот QR-код приложением-аутентификатором",
+    "sha256": "65752db3"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "Или введите этот код вручную",
+    "sha256": "3ea15b3e"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Введите 6-значный код из приложения",
+    "sha256": "38f61733"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Введите код аутентификации",
+    "sha256": "186a582a"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Подтвердить и включить",
+    "sha256": "7c08f68d"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "Требуется код аутентификации",
+    "sha256": "217de0fc"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Неверный код. Коды истекают каждые 30 секунд. Попробуйте последний код из приложения-аутентификатора.",
+    "sha256": "94b58889"
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "Двухфакторная аутентификация включена",
+    "sha256": "e5aff73d"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "Двухфакторная аутентификация отключена",
+    "sha256": "4fd6b4b4"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Введите пароль, чтобы отключить 2FA",
+    "sha256": "c384b93c"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Пароль",
+    "sha256": "e7cf3ef4"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Подтвердите свою личность для изменения настроек двухфакторной аутентификации",
+    "sha256": "09a96c07"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Последнее использование: {time}",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Никогда не использовался",
+    "sha256": "24d3236c"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Использовать код восстановления",
+    "sha256": "23d3441a"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Вернуться к коду аутентификации",
+    "sha256": "6fa090b4"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Отменить и вернуться к входу",
+    "sha256": "83256742"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Загрузка статуса MFA...",
+    "sha256": "01919f0e"
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "Ваш аккаунт защищён двухфакторной аутентификацией",
+    "sha256": "02b9d169"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Защитите аккаунт дополнительным уровнем безопасности",
+    "sha256": "06d9123b"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Предотвратите несанкционированный доступ, даже если Ваш пароль скомпрометирован",
+    "sha256": "61d99c71"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Работает с Google Authenticator, Authy и другими TOTP-приложениями",
+    "sha256": "6ee8ab12"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Резервные коды восстановления для экстренного доступа",
+    "sha256": "747917bb"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Введите Ваш пароль",
+    "sha256": "c06bf967"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Отключение...",
+    "sha256": "e4080e19"
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "Отключить 2FA",
+    "sha256": "1c3193f3"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "Генерация QR-кода...",
+    "sha256": "8eab9da9"
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Используйте Google Authenticator, Authy или любое TOTP-приложение",
+    "sha256": "a8eaef9d"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Перейти к проверке",
+    "sha256": "4da96e87"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Введите 6-значный код из приложения-аутентификатора",
+    "sha256": "a160dee6"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Включить MFA",
+    "sha256": "37c8090d"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Завершить настройку",
+    "sha256": "30e87601"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Введите один из кодов восстановления",
+    "sha256": "91ab44cf"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Код восстановления",
+    "sha256": "cf25d0fc"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Введите код восстановления",
+    "sha256": "586d719c"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Проверить код восстановления",
+    "sha256": "c244c7bd"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "Введите 6-значный код аутентификации",
+    "sha256": "36a438ba"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Режим кода восстановления активен",
+    "sha256": "c895f08b"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Режим кода аутентификации активен",
+    "sha256": "8c44a306"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Введите все 6 цифр для продолжения",
+    "sha256": "7914f7b2"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "Цифра {current} из {total}",
+    "sha256": "879df41a"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Коды восстановления",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Сохраните эти коды в безопасном месте. Каждый можно использовать один раз, если Вы потеряете доступ к аутентификатору.",
+    "sha256": "87aebdfb"
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Эти коды будут показаны только один раз",
+    "sha256": "d13f2877"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Вы должны скачать или скопировать коды восстановления, прежде чем завершить настройку.",
+    "sha256": "6b97bc6d"
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Сгенерировать новые коды",
+    "sha256": "4025779e"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Перегенерировать коды",
+    "sha256": "aa652d21"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Это сделает все существующие коды восстановления недействительными",
+    "sha256": "9795a175"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Скачать коды",
+    "sha256": "9c23dbba"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Коды восстановления скачаны",
+    "sha256": "10486340"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Печать кодов",
+    "sha256": "ff940182"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Копировать все коды",
+    "sha256": "ee956b2b"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "Коды скопированы в буфер обмена",
+    "sha256": "06ebb466"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Не удалось скопировать коды в буфер обмена",
+    "sha256": "e8be6a51"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Использован",
+    "sha256": "ae7d8dfa"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "Не использован",
+    "sha256": "231aedff"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "Осталось {count} из {limit} кодов восстановления",
+    "sha256": "b5d484e7"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Каждый код можно использовать только один раз. Перегенерируйте коды, если их осталось мало.",
+    "sha256": "737a7702"
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "Коды восстановления закончились",
+    "sha256": "9ae26d68"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "Новые коды восстановления сгенерированы",
+    "sha256": "831cb1aa"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Коды восстановления",
+    "sha256": "579c7f4e"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Подтвердить",
+    "sha256": "eea2745e"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Использовать код восстановления",
+    "sha256": "50d5790d"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Отменить вход",
+    "sha256": "1bebad2f"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ КРИТИЧНО ДЛЯ БЕЗОПАСНОСТИ: Сообщения предотвращают раскрытие информации. См. src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Страница управления устройствами/браузерами пользователя"
+  }
+}

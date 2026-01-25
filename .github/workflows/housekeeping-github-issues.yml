@@ -1,11 +1,28 @@
 # .github/workflows/housekeeping-github-issues.yml
-
+---
 # Onetime Secret Ops
 #
-# This workflow notifies and closes issues and PRs that have had no activity for a specified amount of time.
+# This workflow notifies and closes issues and PRs that have had no activity
+# for a specified amount of time.
 #
 # Documentation:
 # https://github.com/actions/stale
+#
+# ## Workflow Guidance
+#
+# - Use existing tags, don't create new tags, but suggestions always welcome.
+# - Keep any Issue or PR templates minimal.
+# - Use separate github workflows for triggers that are not copacetic: for
+#   example, something that runs when an issue created shouldn't run when a
+#   PR is created as well; or workflows that are meant to run on different
+#   schedules.
+#
+# ## Future Considerations
+#
+# - Consider adding a `needs-triage` label and auto-labeling workflow to
+#   automatically tag new issues for review. This helps ensure nothing falls
+#   through the cracks and provides visibility into the inbound issue queue.
+#
 
 name: Github Issues - Housekeeping
 
@@ -37,8 +54,9 @@ jobs:
           days-before-pr-stale: 45
           days-before-pr-close: 14
           exempt-pr-labels: auto-update,dependencies,security
-          exempt-issue-labels: security,improvement,bug
+          exempt-issue-labels: security,improvement,bug,wontfix,privacy
           exempt-draft-pr: true
           stale-issue-label: Stale Boetticher
           stale-pr-label: Stale Boetticher
-          operations-per-run: 30
+          # Increased from 30 to handle longtail backlog cleanup more efficiently
+          operations-per-run: 100

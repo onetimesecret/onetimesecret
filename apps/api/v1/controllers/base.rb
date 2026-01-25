@@ -1,4 +1,6 @@
 # apps/api/v1/controllers/base.rb
+#
+# frozen_string_literal: true
 
 require_relative 'helpers'
 
@@ -8,11 +10,23 @@ module V1
     include V1::ControllerHelpers
 
     attr_reader :req, :res
-    attr_reader :sess, :cust, :locale
-    attr_reader :ignoreshrimp
+    attr_reader :cust, :locale
+    attr_reader :ignoreshrimp, :sess
 
     def initialize req, res
       @req, @res = req, res
+    end
+
+    # Access the current session via Rack::Request extension
+    # Required by SessionHelpers module
+    def session
+      req.session
+    end
+
+    # Alias for req to support SessionHelpers
+    # Required by SessionHelpers#authenticate! which calls request.session_options
+    def request
+      req
     end
 
     def publically
@@ -40,43 +54,37 @@ module V1
           return disabled_response(req.path) unless authentication_enabled?
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
-          possible = V1::Customer.load custid
+          possible = Onetime::Customer.load custid
           raise OT::Unauthorized, "No such customer" if possible.nil?
 
           @cust = possible if possible.apitoken?(apitoken)
           raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
 
-          @sess = cust.load_or_create_session req.client_ipaddress
+          # For basic auth, authenticate the session directly
+          authenticate!(@cust) if respond_to?(:authenticate!)
 
-          # Set the session as authenticated for this request
-          sess.authenticated = true
-
-          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (#{sess.authenticated?})"
+          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (basic auth authenticated)"
 
         # Second line, check for session cookie. We allow this in certain cases
         # like API requests coming from hybrid Vue components.
-        elsif req.cookie?(:sess)
+        elsif req.cookie?(:sess) || session['external_id']
 
-          check_session!
+          setup_request_context if respond_to?(:setup_request_context)
 
-          unless sess.authenticated? || allow_anonymous
+          unless authenticated? || allow_anonymous
             raise OT::Unauthorized, "Session not authenticated"
           end
 
-          # Only attempt to load the customer object if the session has
-          # already been authenticated. Otherwise this is an anonymous session.
-          @cust = sess.load_customer if sess.authenticated?
-          @cust ||= V1::Customer.anonymous if allow_anonymous
+          # Customer is loaded via setup_request_context or current_customer helper
+          @cust = current_customer
+          @cust ||= Onetime::Customer.anonymous if allow_anonymous
 
           raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
 
           custid = @cust.custid unless @cust.nil?
-          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+          OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (session)"
 
-          # Anytime we allow session cookies, we must also check shrimp. This will
-          # run only for POST etc requests (i.e. not GET) and it's important to
-          # check the shrimp after checking auth. Otherwise we'll chrun through
-          # shrimp even though weren't going to complete the request anyway.
+          # Check CSRF for state-changing requests
           check_shrimp!
 
         # Otherwise, we have no credentials, so we must be anonymous. Only
@@ -88,19 +96,20 @@ module V1
             raise OT::Unauthorized, "No session or credentials"
           end
 
-          @cust = V1::Customer.anonymous
-          @sess = V1::Session.new req.client_ipaddress, cust.custid
+          @cust = Onetime::Customer.anonymous
+          # Session is already created by middleware
 
           if OT.debug?
             ip_address = req.client_ipaddress.to_s
-            session_id = sess.sessid.to_s
-            message = "[authorized] Anonymous session via #{ip_address} (new session #{session_id})"
+            # session may be a Hash fallback when no session middleware is available
+            session_id = (session.respond_to?(:id) && session.id&.private_id) || 'unknown'
+            message = "[authorized] Anonymous session via #{ip_address} (session #{session_id})"
             OT.ld message
           end
 
         end
 
-        if cust.nil? || sess.nil?
+        if cust.nil?
           raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
         end
 
@@ -109,7 +118,7 @@ module V1
     end
 
     def json hsh
-      res.header['Content-Type'] = "application/json; charset=utf-8"
+      res.headers['content-type'] = "application/json; charset=utf-8"
       res.body = hsh.to_json
     end
 
@@ -126,12 +135,13 @@ module V1
       # request was good. Pass a delicious fresh shrimp to the client
       # so they can try again with a new one (without refreshing the
       # entire page).
-      hsh[:shrimp] = sess.add_shrimp
+      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+      hsh[:shrimp] = shrimp_token if respond_to?(:shrimp_token)
       error_response ex.message, hsh
     end
 
     def secret_not_found_response
-      not_found_response "Unknown secret", :secret_key => req.params[:key]
+      not_found_response "Unknown secret", :secret_key => req.params['key']
     end
 
     def disabled_response path
@@ -156,7 +166,6 @@ module V1
       res.status = 404
       json hsh
     end
-    alias throttle_response error_response # Maintain existing behaviour
 
   end
 end

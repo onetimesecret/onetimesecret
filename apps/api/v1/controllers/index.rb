@@ -1,4 +1,8 @@
 # apps/api/v1/controllers/index.rb
+#
+# frozen_string_literal: true
+
+require 'v1/refinements'
 
 require_relative 'base'
 require_relative 'settings'
@@ -16,20 +20,18 @@ module V1
       # the use of either strings or symbols interchangeably when
       # retrieving values from a hash.
       #
-      # @see metadata_hsh method
+      # @see receipt_hsh method
       #
       using FlexibleHashAccess
 
       def status
         authorized(true) do
-          sess.event_incr! :check_status
           json :status => :nominal, :locale => locale
         end
       end
 
       def authcheck
         authorized(false) do
-          sess.event_incr! :check_status
           json :status => :nominal, :locale => locale
         end
       end
@@ -40,11 +42,11 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.metadata_hsh(logic.metadata,
-                                :secret_ttl => secret.realttl,
+            json self.class.receipt_hsh(logic.receipt,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
         end
@@ -56,63 +58,63 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.metadata_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.receipt,
                                 :value => logic.secret_value,
-                                :secret_ttl => secret.realttl,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
-            logic.metadata.viewed!
+            logic.receipt.previewed!
           end
         end
       end
 
       def show_metadata
         authorized(true) do
-          logic = V1::Logic::Secrets::ShowMetadata.new sess, cust, req.params, locale
+          logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          secret = logic.metadata.load_secret
+          secret = logic.receipt.load_secret
           if logic.show_secret
             secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-            json self.class.metadata_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.receipt,
                                 :value => secret_value,
-                                :secret_ttl => secret.realttl,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           else
-            json self.class.metadata_hsh(logic.metadata,
-                                :secret_ttl => secret ? secret.realttl : nil,
+            json self.class.receipt_hsh(logic.receipt,
+                                :secret_ttl => secret ? secret.current_expiration : nil,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
-          logic.metadata.viewed!
+          logic.receipt.previewed!
         end
       end
 
-      def show_metadata_recent
+      def show_receipt_recent
         authorized(false) do
-          logic = V1::Logic::Dashboard::ShowRecentMetadata.new sess, cust, req.params, locale
+          logic = V1::Logic::Secrets::ShowReceiptList.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          recent_metadata = logic.metadata.collect { |md|
+          recent_receipts = logic.receipts.collect { |md|
             next if md.nil?
-            hash = self.class.metadata_hsh(md)
-            hash.delete :secret_key   # Don't call md.delete, that will delete from redis
+            hash = self.class.receipt_hsh(md)
+            hash.delete :secret_key   # Don't call md.delete, that will delete from the db
             hash
           }.compact
-          json recent_metadata
+          json recent_receipts
         end
       end
 
       def show_secret
         authorized(true) do
-          req.params[:continue] = 'true'
+          req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           if logic.show_secret
             json :value => logic.secret_value,
-                :secret_key => req.params[:key],
+                :secret_key => req.params['key'],
                 :share_domain => logic.share_domain
           else
             secret_not_found_response
@@ -123,13 +125,13 @@ module V1
       # curl -X POST -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/private/:key/burn
       def burn_secret
         authorized(true) do
-          req.params[:continue] = 'true'
+          req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           if logic.greenlighted
-            json :state           => self.class.metadata_hsh(logic.metadata),
-                :secret_shortkey => logic.metadata.secret_shortkey
+            json :state           => self.class.receipt_hsh(logic.receipt),
+                :secret_shortid => logic.receipt.secret_shortid
           else
             secret_not_found_response
           end
@@ -138,17 +140,17 @@ module V1
 
       def create
         authorized(true) do
-          req.params[:kind] = :share
+          req.params['kind'] = :share
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.token = ''.instance_of?(String).to_s  # lol a roundabout way to get to "true"
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.metadata_hsh(logic.metadata,
-                                :secret_ttl => secret.realttl,
+            json self.class.receipt_hsh(logic.receipt,
+                                :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
         end

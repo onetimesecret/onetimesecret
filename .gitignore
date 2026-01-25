@@ -38,7 +38,7 @@ pnpm-debug.log*
 .rspec
 .rspec_status
 appendonlydir/
-data/
+data
 doc/
 node_modules/
 vendor/
@@ -67,21 +67,29 @@ bin/rubocop
 support/schemas/
 tsconfig.tsbuildinfo
 *.db
+!locales/db/*.sql
+!routes.txt
+
+Procfile.*
+!Procfile*.example
 
 # Auto-generated files
 src/auto-imports.d.ts
 src/.eslintrc-auto-import.json
+*.pyc
 
-# Ignore WIP or temp dev files with uppercase names
-[A-Z]*.rb
-[A-Z]*.ts
+# Generated files (locales and types) - produced by sync/type-gen scripts
+generated/locales/*.json
+generated/types/*.d.ts
 
 # Environment files
 .env*
 !.env.example
+!.env.sh
 
 # Playwright paths
 test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+*.egg-info/

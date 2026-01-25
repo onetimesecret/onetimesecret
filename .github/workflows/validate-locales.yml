@@ -1,0 +1,192 @@
+# .github/workflows/validate-locales.yml
+---
+name: Validate Locale Files
+
+# Validates structural integrity of submitted translations: syntax, variable
+# preservation, format compliance, and security. Does NOT check for missing
+# keys (translations absent from locale files). Missing key detection is
+# handled separately by harmonization workflows.
+#
+# Validates:
+# 1. JSON syntax is valid
+# 2. Template variables ({var}, {0}, %{var}) match English exactly
+# 3. ERB format (email.json uses %{var} only)
+# 4. Security namespace (web.auth.security.*) has no forbidden patterns
+# 5. No extra/orphaned keys that don't exist in English
+#
+# Out of scope (handled by harmonization):
+# - Keys present in English but missing from translations
+# - Translation completeness/coverage metrics
+#
+# Triggers on pull requests that modify locale files (src/locales/**/*.json)
+# Posts validation results as PR comment
+
+on:
+  pull_request:
+    paths:
+      - 'src/locales/**/*.json'
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate-locales:
+    # Temporarily disabled during i18n workflow refactoring (#2319)
+    if: false
+    name: Validate Locale Files
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Get changed locale files
+        id: changed-files
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # Get list of changed locale files (exclude English source)
+          CHANGED_FILES=$(git diff --name-only "origin/${BASE_REF}...HEAD" \
+            | grep '^src/locales/[^/]*/.*\.json$' \
+            | grep -v '^src/locales/en/' \
+            | sed 's|src/locales/||' \
+            || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No locale files changed (excluding English)"
+            echo "files=" >> $GITHUB_OUTPUT
+            echo "count=0" >> $GITHUB_OUTPUT
+          else
+            # Convert newlines to spaces for --files argument
+            FILES_ARG=$(echo "$CHANGED_FILES" | tr '\n' ' ')
+            echo "files=$FILES_ARG" >> $GITHUB_OUTPUT
+            echo "count=$(echo "$CHANGED_FILES" | wc -l | tr -d ' ')" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run locale validation
+        id: validate
+        if: steps.changed-files.outputs.count != '0'
+        env:
+          FILES: ${{ steps.changed-files.outputs.files }}
+        run: |
+          # Run unified validation script with JSON output
+          python3 src/scripts/locales/validate-locale-pr.py \
+            --files $FILES \
+            --format json \
+            > validation-results.json 2>&1 || true
+
+          # Check if validation passed
+          PASSED=$(python3 -c "import json; d=json.load(open('validation-results.json')); print('true' if d.get('passed', False) else 'false')" 2>/dev/null || echo "false")
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment
+        if: always() && steps.changed-files.outputs.count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const changedCount = '${{ steps.changed-files.outputs.count }}';
+            const passed = '${{ steps.validate.outputs.passed }}' === 'true';
+
+            let results = { passed: false, summary: { errors: 0, warnings: 0 }, issues: [] };
+            try {
+              results = JSON.parse(fs.readFileSync('validation-results.json', 'utf8'));
+            } catch (e) {
+              results.issues = [{ message: 'Failed to parse validation results: ' + e.message }];
+            }
+
+            let comment;
+            if (passed) {
+              comment = '## ✅ Locale Validation Passed\n\n';
+              comment += `**Files validated:** ${changedCount}\n`;
+              comment += `**Locales:** ${results.summary?.locales?.join(', ') || 'none'}\n\n`;
+              comment += 'All locale files have:\n';
+              comment += '- ✓ Valid JSON syntax\n';
+              comment += '- ✓ Correct variable interpolations\n';
+              comment += '- ✓ Proper ERB format (email.json)\n';
+              comment += '- ✓ Security-compliant messages\n';
+              comment += '- ✓ Matching key structure\n';
+            } else {
+              comment = '## ❌ Locale Validation Failed\n\n';
+              comment += `**Files validated:** ${changedCount}\n`;
+              comment += `**Errors:** ${results.summary?.errors || 0}\n`;
+              comment += `**Warnings:** ${results.summary?.warnings || 0}\n\n`;
+              comment += '### Issues Found\n\n';
+
+              // Group issues by file
+              const byFile = {};
+              for (const issue of results.issues || []) {
+                const key = `${issue.locale}/${issue.file}`;
+                if (!byFile[key]) byFile[key] = [];
+                byFile[key].push(issue);
+              }
+
+              for (const [file, issues] of Object.entries(byFile)) {
+                comment += `#### \`src/locales/${file}\`\n\n`;
+                for (const issue of issues) {
+                  const icon = issue.severity === 'error' ? '❌' : '⚠️';
+                  comment += `${icon} **[${issue.category}]** ${issue.message}\n`;
+                  if (issue.key) {
+                    comment += `   Key: \`${issue.key}\`\n`;
+                  }
+                  if (issue.details) {
+                    if (issue.details.source_text) {
+                      comment += `   English: \`${issue.details.source_text}\`\n`;
+                    }
+                    if (issue.details.locale_text) {
+                      comment += `   Translation: \`${issue.details.locale_text}\`\n`;
+                    }
+                    if (issue.details.missing_vars) {
+                      comment += `   Missing: ${issue.details.missing_vars.join(', ')}\n`;
+                    }
+                    if (issue.details.extra_vars) {
+                      comment += `   Extra: ${issue.details.extra_vars.join(', ')}\n`;
+                    }
+                    if (issue.details.pattern) {
+                      comment += `   Pattern: \`${issue.details.pattern}\`\n`;
+                    }
+                  }
+                  comment += '\n';
+                }
+              }
+
+              comment += '---\n';
+              comment += '**Fix these issues before merging.** Run locally:\n';
+              comment += '```bash\n';
+              comment += 'python3 src/scripts/locales/validate-locale-pr.py --files LOCALE/FILE.json --verbose\n';
+              comment += '```\n\n';
+              comment += 'See also:\n';
+              comment += '- [Security Translation Guide](src/locales/SECURITY-TRANSLATION-GUIDE.md)\n';
+              comment += '- [UX Translation Guide](src/locales/UX-TRANSLATION-GUIDE.md)\n';
+            }
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Skip message for English-only changes
+        if: steps.changed-files.outputs.count == '0'
+        run: |
+          echo "No translation files changed (only English source files modified)"
+          echo "Skipping validation - English files are the source of truth"
+
+      - name: Fail if validation errors
+        if: steps.validate.outputs.passed == 'false'
+        run: |
+          echo "Locale validation failed. Check the PR comment for details."
+          exit 1

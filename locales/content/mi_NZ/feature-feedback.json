@@ -1,0 +1,66 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Tō urupare",
+    "sha256": "cdb1c0a5"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "E whakaaetia ana ngā urupare katoa!",
+    "sha256": "c57d3006"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Āwhinatia mātou ki te whakapai ake",
+    "sha256": "f35439c4"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Kati pouaka urupare",
+    "sha256": "41689bb4"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Tohatoha tō urupare",
+    "sha256": "6d62dfbd"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum",
+    "sha256": "6da0b72b"
+  },
+  "web.feedback.delano": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Ka haere ngā ihirangi āwhina ki konei.",
+    "sha256": "796979ea"
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Ngā mihi mō tō āwhina ki a Onetime Secret ki te whakapai ake. He mea nui tēnei."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Kua hangaia e mātou tēnei taputapu hei āwhina i a koe ki te tuari mōhiohio tairongo i runga i te haumaru, ā, he mea nui ō wheako ao-tūturu mō te arotahi i ā mātou mahi. Ka āwhina i a mātou ki te whakatau he aha te mahi ā muri ake nei me te pēhea te whakapai ake i te ratonga mō te katoa."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Tēnā koe, ngā mihi mō tō toro mai ki tā mātou whārangi urupare. Ehara tō kōrero i te mea pōwhiri noa - he mea nui."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "He tuhipoka mai i a Delano, kaiwhakarewa o Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Huaki puka urupare",
+    "sha256": "acd8409b"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Whakauru tō urupare",
+    "sha256": "1bb310f4"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Tuku urupare",
+    "sha256": "8235980b"
+  },
+  "web.feedback.founder_note_line1": {
+    "text": "Ka pānui au i ngā urupare katoa e tae mai ana ki konei. Ko te tikanga tēnei e mōhio ai au me whakapau kaha ki hea.",
+    "sha256": "8b430d93"
+  },
+  "web.feedback.founder_note_line2": {
+    "text": "Mēnā he mea kāore e tika, he whakaaro rānei tāu mō te āhua o te mahi, ko tēnei te wāhi tika.",
+    "sha256": "d4b8f073"
+  }
+}

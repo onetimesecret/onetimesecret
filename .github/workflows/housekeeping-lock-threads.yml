@@ -1,0 +1,54 @@
+# .github/workflows/housekeeping-lock-threads.yml
+---
+# Onetime Secret Ops
+#
+# This workflow locks closed issues and PRs after a period of inactivity to
+# prevent necroposting and keep discussions focused on active work.
+#
+# Documentation:
+# https://github.com/dessant/lock-threads
+#
+# ## Workflow Guidance
+#
+# - Use existing tags, don't create new tags, but suggestions always welcome.
+# - Keep any Issue or PR templates minimal.
+# - Use separate github workflows for triggers that are not copacetic: for
+#   example, something that runs when an issue created shouldn't run when a
+#   PR is created as well; or workflows that are meant to run on different
+#   schedules.
+#
+
+name: Lock Threads - Housekeeping
+
+on:
+  schedule:
+    # Runs weekly on Monday at 5:00 AM UTC (offset from stale workflow)
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  lock:
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: dessant/lock-threads@1bf7ec25051fe7c00c4f1cf6d1cd62a14af0f455 # v5.0.1
+        with:
+          # Lock issues that have been closed for 90 days
+          issue-inactive-days: 90
+          issue-lock-reason: 'resolved'
+          issue-comment: ''
+
+          # Lock PRs that have been closed for 90 days
+          pr-inactive-days: 90
+          pr-lock-reason: 'resolved'
+          pr-comment: ''
+
+          # Process up to 100 items per run
+          process-only: ''

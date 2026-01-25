@@ -1,0 +1,57 @@
+# apps/web/billing/routes
+#
+# Otto Routes - Billing (Organization subscriptions)
+# Using controller-based routing with authentication strategies
+#
+# Organization billing endpoints - subscription management
+
+# Plan selection checkout redirect
+# Accepts product (e.g., identity_plus_v1) + interval (monthly/yearly)
+GET    /plans/:product/:interval                 Billing::Controllers::Plans#checkout_redirect auth=noauth
+
+# Legacy welcome endpoint (redirects from Stripe Payment Links)
+# Maintained for backward compatibility
+GET    /welcome                                  Billing::Controllers::Plans#welcome auth=noauth
+
+# Stripe webhooks (CSRF exempt, signature verified in controller)
+POST   /webhook                                  Billing::Controllers::Webhooks#handle_event response=json csrf=exempt
+
+# Customer portal redirect (authenticated only)
+GET    /portal                                   Billing::Controllers::Plans#customer_portal_redirect auth=sessionauth
+
+# Billing REST API endpoints
+# All API routes prefixed with /api/ to avoid conflicts with SPA routes
+# Uses extid (external ID) in URLs for security; objid (internal ID) is for internal use only
+
+# Plan listing (no authentication required for browsing)
+GET    /api/plans                                Billing::Controllers::BillingController#list_plans response=json auth=noauth
+GET    /plans                                    Billing::Controllers::Page#index auth=sessionauth
+
+# Organization billing endpoints (authenticated)
+GET    /api/org/:extid                           Billing::Controllers::BillingController#overview response=json auth=sessionauth
+POST   /api/org/:extid/checkout                  Billing::Controllers::BillingController#create_checkout_session response=json auth=sessionauth
+GET    /api/org/:extid/invoices                  Billing::Controllers::BillingController#list_invoices response=json auth=sessionauth
+
+# Plan switching endpoints (authenticated subscribers)
+GET    /api/org/:extid/subscription              Billing::Controllers::BillingController#subscription_status response=json auth=sessionauth
+POST   /api/org/:extid/preview-plan-change       Billing::Controllers::BillingController#preview_plan_change response=json auth=sessionauth
+POST   /api/org/:extid/change-plan               Billing::Controllers::BillingController#change_plan response=json auth=sessionauth
+POST   /api/org/:extid/cancel-subscription       Billing::Controllers::BillingController#cancel_subscription response=json auth=sessionauth
+
+# Entitlement checking API endpoints (authenticated only)
+GET    /api/entitlements                         Billing::Controllers::Entitlements#list response=json auth=sessionauth
+GET    /api/entitlements/:extid                  Billing::Controllers::Entitlements#show response=json auth=sessionauth
+GET    /api/entitlements/:extid/:entitlement     Billing::Controllers::Entitlements#check response=json auth=sessionauth
+
+# Billing is a web app so it needs to support its own root paths for
+# the initial server-rendered page loads. e.g. linking directly to
+# /billing/overview would return a 404 without these. After that
+# the Vue application handles the navigation. A common way around
+# this for SPAs is to simply return the base server-rendered page
+# for any route by default. But imagine that. A world where people
+# navigate websites blissfully unaware that their browser console is
+# filling with red 404 errors everywhere they go. So I say, no. No to
+# the 404-land dystopia. No to the absurdity. And yes to keeping it 200.
+GET   /teapot                                    Billing::Controllers::TeaPot#brew response=json auth=noauth
+GET   /overview                                  Billing::Controllers::Page#index auth=sessionauth
+GET   /*                                         Billing::Controllers::Page#index auth=sessionauth

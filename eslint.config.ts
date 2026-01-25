@@ -1,6 +1,12 @@
 /**
  * ESLint Flat Config
  *
+ * FILE HEADER REQUIREMENT:
+ * All TypeScript and Vue files must include a filename comment header:
+ * - TypeScript: // src/path/to/file.ts
+ * - Vue: <!-- src/path/to/file.vue -->
+ * Followed by a blank line. This is enforced via scripts/validate_headers.rb
+ *
  * IMPORTANT: Beware of conditional ts parser assignment based on the extension of this file.
  *
  * Problem Pattern:
@@ -56,8 +62,17 @@ import * as importPlugin from 'eslint-plugin-import';
 import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
-import path from 'path';
 import vueEslintParser from 'vue-eslint-parser';
+
+import otsRules from './src/build/eslint';
+
+// Validate that required plugin configs are available
+if (!pluginVue.configs?.['flat/strongly-recommended']) {
+  throw new Error('Vue ESLint plugin flat/strongly-recommended config not found');
+}
+if (!pluginTailwindCSS.configs?.['flat/recommended']) {
+  throw new Error('Tailwind ESLint plugin flat/recommended config not found');
+}
 
 export default [
   /**
@@ -65,28 +80,22 @@ export default [
    * Excludes all files except source and config files
    */
   {
-    ignores: ['**/*', '!src/**', '!tests/**', '!*.config.ts', '!*.config.*js'],
+    ignores: ['**/*', '!src/**', '!*.config.ts', '!*.config.*js'],
   },
 
   /**
    * Global Project Configuration
-   * Applies to all JavaScript, TypeScript and Vue files
+   * Applies to all JavaScript, TypeScript and Vue files in src/
    * Handles basic ES features and import ordering
    */
   {
-    files: [
-      'src/**/*.{js,mjs,cjs,ts,vue}',
-      //'tests/**/*.{js,mjs,cjs,ts,vue}',
-      'eslint.config.ts',
-      'tailwind.config.ts',
-      'vite.config.ts',
-    ],
+    files: ['src/**/*.{js,mjs,cjs,ts,vue}', '!src/tests/**'],
     languageOptions: {
       globals: {
         ...globals.browser,
         process: true, // Allow process global for environment variables
       },
-      parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url)) ? parserTs : undefined,
+      parser: parserTs,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -98,6 +107,25 @@ export default [
     },
     rules: {
       'no-undef': 'error', // Prevent usage of undeclared variables
+      // Prevent direct access to bootstrap state - use bootstrapStore instead
+      'no-restricted-globals': [
+        'error',
+        {
+          name: '__BOOTSTRAP_STATE__',
+          message: 'Use bootstrapStore instead of direct window access',
+        },
+      ],
+      // Prevent window.__BOOTSTRAP_STATE__ access pattern
+      // Allowed only in: bootstrap.service.ts, global.d.ts, window.d.ts
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'MemberExpression[object.name="window"][property.name="__BOOTSTRAP_STATE__"]',
+          message:
+            'Direct window.__BOOTSTRAP_STATE__ access is prohibited. ' +
+            'Use bootstrapStore or bootstrap.service.ts instead.',
+        },
+      ],
       // Enforce consistent import ordering
       'import/order': [
         'warn',
@@ -140,11 +168,11 @@ export default [
   },
   /**
    * Typescript Rules
-   * Applies to .ts et al. files
-   * Configures TypeScript, i18n
+   * Applies to .ts files in src/ only (excludes root config files)
+   * Configures TypeScript with type-aware linting
    */
   {
-    files: ['src/**/*.{ts,d.ts}'],
+    files: ['src/**/*.{ts,d.ts}', '!src/tests/**'],
     languageOptions: {
       parserOptions: {
         parser: parserTs,
@@ -157,10 +185,20 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint,
       '@intlify/vue-i18n': pluginVueI18n,
+      ots: otsRules,
     },
     rules: {
+      // OWASP IDOR prevention - use .extid not .id in URLs
+      'ots/no-internal-id-in-url': 'warn',
       // ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'error', // Prevent unused variables
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ], // Prevent unused variables (underscore prefix allowed)
 
       // Note: you must disable the base rule as it can report incorrect errors
       'no-unused-expressions': 'off',
@@ -267,10 +305,10 @@ export default [
 
   /**
    * Vue Component Rules
-   * Specific rules for Vue single-file components
+   * Specific rules for Vue single-file components in src/ only
    */
   {
-    files: ['src/**/*.vue', 'tests/**/*.{vue}'],
+    files: ['src/**/*.vue', '!src/tests/**'],
     languageOptions: {
       parser: vueEslintParser,
       parserOptions: {
@@ -286,8 +324,11 @@ export default [
       tailwindcss: pluginTailwindCSS,
       '@typescript-eslint': tseslint,
       '@intlify/vue-i18n': pluginVueI18n,
+      ots: otsRules,
     },
     rules: {
+      // OWASP IDOR prevention - use .extid not .id in URLs
+      'ots/no-internal-id-in-url': 'warn',
       'no-multiple-empty-lines': ['warn', { max: 1 }], // Limit empty lines to 1
 
       // Prefer camelCase over kebab-case
@@ -331,7 +372,7 @@ export default [
           multiline: 'never',
           selfClosingTag: {
             singleline: 'never',
-            multiline: 'always',
+            multiline: 'never',
           },
         },
       ],
@@ -355,25 +396,8 @@ export default [
         },
       ],
 
-      // ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'error', // Prevent unused variables
-
-      // Note: you must disable the base rule as it can report incorrect errors
-      'no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-expressions': [
-        'error',
-        {
-          allowShortCircuit: true,
-          allowTernary: true,
-          allowTaggedTemplates: true,
-        },
-      ],
-
-      // Only warn explicit any in declaration files
-      '@typescript-eslint/no-explicit-any': 'warn',
-
-      '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error', // Enforce modern i18n syntax
-      // https://github.com/francoismassart/eslint-plugin-tailwindcss/tree/master/docs/rules
+      // TypeScript rules are inherited from the TypeScript configuration above
+      // Vue <script> blocks will use those rules automatically
     },
   },
   /**
@@ -398,6 +422,22 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       // Allow empty interfaces in declaration files
       '@typescript-eslint/no-empty-interface': 'off',
+    },
+  },
+
+  /**
+   * Bootstrap State Access Exception
+   * These files are allowed to access window.__BOOTSTRAP_STATE__ directly
+   */
+  {
+    files: [
+      'src/services/bootstrap.service.ts',
+      'src/types/declarations/global.d.ts',
+      'src/types/declarations/bootstrap.d.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': 'off',
+      'no-restricted-globals': 'off',
     },
   },
 
@@ -428,10 +468,16 @@ export default [
 
   /**
    * Page and Layout Components Exception
-   * Relaxes naming convention for top-level components
+   * Relaxes naming convention for top-level components (views, layouts, page-level routes)
    */
   {
-    files: ['src/views/*.vue', 'src/layouts/*.vue'],
+    files: [
+      'src/views/*.vue',
+      'src/layouts/*.vue',
+      'src/apps/**/views/*.vue',
+      'src/apps/secret/conceal/*.vue',
+      'src/apps/secret/support/*.vue',
+    ],
     rules: {
       'vue/multi-word-component-names': 'off', // Allow single-word names for pages/layouts
     },
@@ -442,7 +488,7 @@ export default [
    * Relaxes naming conventions and adds specific rules for test files
    */
   {
-    files: ['tests/**/*.spec.{ts,vue,d.ts}', 'tests/**/*.{vue,d.ts}'],
+    files: ['src/tests/**/*.{ts,vue,d.ts}'],
     languageOptions: {
       parser: parserTs,
       parserOptions: {
@@ -477,7 +523,10 @@ export default [
       'max-nested-callbacks': ['error', 6], // Prevent test suite organization from becoming too granular and hard to navigate.
       // Deep nesting often indicates over-categorization - prefer clear, descriptive test names instead.
       'max-lines-per-function': ['warn', { max: 300 }], // Keep test cases focused
-      // ... existing code ...
+
+      // Disable import ordering in test files to preserve manual test infrastructure setup
+      'import/order': 'off', // Allow manual import organization for test setup patterns
+
       'padding-line-between-statements': [
         'error',
         { blankLine: 'always', prev: '*', next: 'block' },
@@ -502,6 +551,68 @@ export default [
       '@typescript-eslint/no-empty-function': 'off', // Allow empty mock functions
       '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions in tests
       'no-console': 'off', // Allow console usage in tests
+    },
+  },
+
+  /**
+   * Config Files Override (Must be last)
+   * Ensures config files are linted without type-aware rules
+   * Overrides any previous configurations that might apply project references
+   */
+  {
+    files: ['*.config.ts', '*.config.mjs', '*.config.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        process: true,
+      },
+      parser: parserTs,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        // Explicitly NO project - config files aren't in tsconfig.json
+        project: null,
+      },
+    },
+    plugins: {
+      import: importPlugin,
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      'no-undef': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      // Explicitly disable all type-aware rules
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-for-in-array': 'off',
+      '@typescript-eslint/no-implied-eval': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      'import/order': [
+        'warn',
+        {
+          groups: [['builtin', 'external', 'internal']],
+          pathGroups: [{ pattern: '@/**', group: 'internal' }],
+          pathGroupsExcludedImportTypes: ['builtin'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
     },
   },
 ];

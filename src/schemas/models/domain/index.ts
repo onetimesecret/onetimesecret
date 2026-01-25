@@ -1,4 +1,5 @@
 // src/schemas/models/domain/index.ts
+
 export * from './brand';
 export * from './vhost';
 
@@ -29,7 +30,8 @@ export type DomainStrategy = (typeof DomainStrategyValues)[keyof typeof DomainSt
 export const customDomainSchema = createModelSchema({
   // Core identifiers
   domainid: z.string(),
-  custid: z.string(),
+  extid: z.string(),
+  custid: z.string().nullable(),
 
   // Domain parts
   display_domain: z.string(),
@@ -71,27 +73,30 @@ export const customDomainSchema = createModelSchema({
 }).strip();
 
 /**
- * Input schema for domain cluster from API
- * Used for managing domain routing/infrastructure. Always null
- * when DOMAINS_ENABLED is false.
+ * Input schema for domain proxy configuration from API
+ * Used for managing domain routing/infrastructure via Approximated.
+ * Always null when DOMAINS_ENABLED is false.
  */
-const customDomainClusterSchema = z
+const customDomainProxySchema = z
   .object({
     type: z.string().nullable().optional(),
-    cluster_ip: z.string().nullable().optional(),
-    cluster_name: z.string().nullable().optional(),
-    cluster_host: z.string().nullable().optional(),
+    proxy_ip: z.string().nullable().optional(),
+    proxy_name: z.string().nullable().optional(),
+    proxy_host: z.string().nullable().optional(),
     vhost_target: z.string().nullable().optional(),
+    validation_strategy: z.string().nullable().optional(),
   })
   .strip()
   .optional()
   .nullable();
 
 export const customDomainDetailsSchema = z.object({
-  cluster: customDomainClusterSchema,
+  cluster: customDomainProxySchema,
+  /** Domain context returned by AddDomain - indicates which domain should be active in session */
+  domain_context: z.string().optional().nullable(),
 });
 
-export type CustomDomainCluster = z.infer<typeof customDomainClusterSchema>;
+export type CustomDomainProxy = z.infer<typeof customDomainProxySchema>;
 
 // Export types
 export type CustomDomain = z.infer<typeof customDomainSchema>;

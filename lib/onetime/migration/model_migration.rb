@@ -4,48 +4,6 @@
 
 require_relative 'base_migration'
 
-
-# Familia v1 compatibility layer for v2 methods
-#
-# This module provides backward compatibility when running migrations
-# in main which uses Familia v1 API, while the migration framework
-# uses Familia v2 methods.
-#
-# Familia v1 used `redis` for connections, while v2 uses `dbclient`.
-# These aliases bridge the gap between versions.
-#
-# @example Running migrations with mixed Familia versions
-#   # In your main application (Familia v1):
-#   class Customer < Familia::Horreum
-#     # Uses redis, values, etc.
-#   end
-#
-#   # In your migration (uses this compatibility layer):
-#   class CustomerMigration < ModelMigration
-#     def prepare
-#       @model_class = Customer  # Works with both v1 and v2
-#       @dbclient = @model_class.dbclient  # Aliases to redis
-#     end
-#   end
-module Familia
-  class Horreum
-    alias_method :dbclient, :redis
-    alias_method :dbclient=, :redis=
-
-    def self.dbclient
-      redis
-    end
-
-    def self.instances
-      values
-    end
-  end
-
-  module Connection
-    alias_method :dbclient, :redis
-  end
-end
-
 module Onetime
   # Base class for individual record migrations on Familia::Horreum models
   #

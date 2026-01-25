@@ -1,0 +1,65 @@
+[Unit]
+Description=Onetime Secret Job Scheduler
+Documentation=https://docs.onetimesecret.com
+After=network-online.target rabbitmq-server.service redis.service
+Wants=network-online.target
+PartOf=ots.target
+
+[Service]
+Type=simple
+User=onetime
+Group=onetime
+WorkingDirectory=/opt/onetime
+
+# Environment
+Environment="RACK_ENV=production"
+Environment="ONETIME_HOME=/opt/onetime"
+EnvironmentFile=-/etc/onetime/environment
+EnvironmentFile=-/opt/onetime/.env
+
+# Start command
+ExecStart=/opt/onetime/bin/ots scheduler --environment production
+
+# Reload sends USR1 to log scheduled job status
+ExecReload=/bin/kill -USR1 $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=5min
+StartLimitBurst=3
+
+# Graceful shutdown
+TimeoutStopSec=90
+KillMode=mixed
+SuccessExitStatus=0 143
+
+# Resource limits
+MemoryMax=256M
+MemoryHigh=192M
+TasksMax=20
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/onetime/tmp
+ReadWritePaths=/opt/onetime/log
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ots-scheduler
+
+[Install]
+WantedBy=ots.target

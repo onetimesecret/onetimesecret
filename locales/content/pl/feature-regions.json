@@ -1,0 +1,142 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Suwerenność danych i izolacja regionalna",
+    "sha256": "1e6287f1"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Twoje dane znajdują się wyłącznie w wybranym regionie i nigdy nie są transferowane między regionami",
+    "sha256": "5e904993"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Każdy region działa jako całkowicie niezależne środowisko z własną infrastrukturą, kluczami szyfrowania i pamięcią masową danych",
+    "sha256": "cd996732"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Utrzymujemy ścisłą politykę: dane klientów nigdy nie są transferowane między regionami w żadnych okolicznościach",
+    "sha256": "33b74be3"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Ważne: przejście do innego regionu powoduje utworzenie nowego konta. Twoje dane pozostają w oryginalnym regionie.",
+    "sha256": "40e3ee34"
+  },
+  "web.regions.your_region": {
+    "text": "Twój region",
+    "sha256": "cafa720f"
+  },
+  "web.regions.your_current_region": {
+    "text": "Twój bieżący region",
+    "sha256": "45e2a9d6"
+  },
+  "web.regions.active": {
+    "text": "Aktywny",
+    "sha256": "92340695"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Poznaj inne dostępne regiony",
+    "sha256": "953d0057"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Dlaczego suwerenność danych ma znaczenie",
+    "sha256": "67de6cf7"
+  },
+  "web.regions.trust_title": {
+    "text": "Przejrzystość i kontrola",
+    "sha256": "6170c9b0"
+  },
+  "web.regions.trust_description": {
+    "text": "Wiesz dokładnie, gdzie znajdują się Twoje dane i jakie przepisy regulują ich ochronę.",
+    "sha256": "97fd57ab"
+  },
+  "web.regions.privacy_title": {
+    "text": "Prawa do prywatności",
+    "sha256": "d13d2931"
+  },
+  "web.regions.privacy_description": {
+    "text": "Upewnij się, że Twoje dane osobowe są przetwarzane zgodnie z przepisami o ochronie prywatności w Twoim kraju, zapobiegając nieautoryzowanemu dostępowi lub niewłaściwemu wykorzystaniu.",
+    "sha256": "28d9d42e"
+  },
+  "web.regions.compliance_title": {
+    "text": "Zgodność z przepisami",
+    "sha256": "8aa0df2a"
+  },
+  "web.regions.compliance_description": {
+    "text": "Spełnij wymagania RODO, HIPAA, CCPA i innych regionalnych przepisów o ochronie danych",
+    "sha256": "c3b2ee43"
+  },
+  "web.regions.performance_title": {
+    "text": "Szybszy dostęp",
+    "sha256": "504b7b49"
+  },
+  "web.regions.performance_description": {
+    "text": "Dane przechowywane bliżej Ciebie oznaczają niższe opóźnienia i lepszą wydajność.",
+    "sha256": "e133ef1d"
+  },
+  "web.regions.regions": {
+    "text": "Regiony",
+    "sha256": "610c65d8"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "skontaktuj się z naszym zespołem ds. zgodności",
+    "sha256": "87e6746e"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "zapoznaj się z naszą dokumentacją",
+    "sha256": "9cbd03df"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Twoje konto i dane są chronione zgodnie z prawem i przepisami",
+    "sha256": "5f5ef5b6"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Te ramy regulacyjne są określane przez Twoją domenę dostępu:",
+    "sha256": "7fdbc59c"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Każda jurysdykcja utrzymuje odrębną zgodność prawną i zarządzanie danymi. Chociaż możesz tworzyć konta w wielu jurysdykcjach, pozostają one prawnie odrębne bez udostępniania danych między strefami regulacyjnymi.",
+    "sha256": "5c0b350e"
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Aby zrozumieć szczegółowe przepisy i zabezpieczenia dotyczące Twojego konta, proszę",
+    "sha256": "e8acc835"
+  },
+  "web.regions.current": {
+    "text": "Bieżący",
+    "sha256": "e0d1b682"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}",
+    "sha256": "10866a9d"
+  },
+  "web.regions.available_regions": {
+    "text": "Dostępne regiony",
+    "sha256": "ee788590"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurysdykcja",
+    "sha256": "d69b9ac7"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Lokalizacja centrum danych: {0}",
+    "sha256": "f1699c90"
+  },
+  "web.regions.data_region": {
+    "text": "Region danych",
+    "sha256": "a1c6039f"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Nieznana jurysdykcja",
+    "sha256": "eae2e122"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Obsługujemy Cię z",
+    "sha256": "25db17aa"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Kontynuuj do {0}",
+    "sha256": "dd1a44e4"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Bieżąca jurysdykcja:",
+    "sha256": "d0f2192d"
+  }
+}

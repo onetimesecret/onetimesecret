@@ -1,0 +1,525 @@
+---
+http_interactions:
+  - request:
+      method: get
+      uri: https://api.stripe.com/v1/products?active=false&limit=100
+      body:
+        encoding: US-ASCII
+        string: ''
+      headers:
+        User-Agent:
+          - Stripe/v1 RubyBindings/17.2.0
+        Authorization:
+          - '<STRIPE_API_KEY>'
+        X-Stripe-Client-Telemetry:
+          - '{"last_request_metrics":{"request_id":"req_TBx7UEmP8WjzbN","request_duration_ms":430}}'
+        Stripe-Version:
+          - '<STRIPE_VERSION>'
+        X-Stripe-Client-User-Agent:
+          - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+            Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+            2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+        Accept-Encoding:
+          - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+        Accept:
+          - '*/*'
+    response:
+      status:
+        code: 200
+        message: OK
+      headers:
+        Server:
+          - nginx
+        Date:
+          - Mon, 29 Dec 2025 05:21:55 GMT
+        Content-Type:
+          - application/json
+        Content-Length:
+          - '12152'
+        Connection:
+          - keep-alive
+        Access-Control-Allow-Credentials:
+          - 'true'
+        Access-Control-Allow-Methods:
+          - GET, HEAD, PUT, PATCH, POST, DELETE
+        Access-Control-Allow-Origin:
+          - '*'
+        Access-Control-Expose-Headers:
+          - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+            X-Stripe-Privileged-Session-Required
+        Access-Control-Max-Age:
+          - '300'
+        Cache-Control:
+          - no-cache, no-store
+        Content-Security-Policy:
+          - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+            img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+            'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ZwVZY1KhK3_WqYiZLbWhufc0iJyAioQxh9ljE26mbGmUcFOhXK9LRike292zNg2P-uq1Otrp636he82W
+        Stripe-Version:
+          - '<STRIPE_VERSION>'
+        Vary:
+          - Origin
+        X-Stripe-Priority-Routing-Enabled:
+          - 'true'
+        X-Stripe-Routing-Context-Priority-Tier:
+          - api-testmode
+        X-Wc:
+          - ABGHIJ
+        Strict-Transport-Security:
+          - max-age=63072000; includeSubDomains; preload
+      body:
+        encoding: UTF-8
+        string: |-
+          {
+            "object": "list",
+            "data": [
+              {
+                "id": "prod_TV1JNv2ubNGNY4",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1764234828,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1765526833,
+                "url": null
+              },
+              {
+                "id": "prod_TUzhfJGGvycIem",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1764228846,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1765526838,
+                "url": null
+              },
+              {
+                "id": "prod_TUzhqCeIdEulqt",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1764228837,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1765526842,
+                "url": null
+              },
+              {
+                "id": "prod_TTYGrrgibbp9RJ",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763896139,
+                "default_price": null,
+                "description": null,
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {
+                  "app": "onetimesecret",
+                  "capabilities": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso",
+                  "created": "2025-11-23T11:32:01Z",
+                  "display_order": "30",
+                  "limit_custom_domains": "-1",
+                  "limit_members_per_team": "25",
+                  "limit_secret_lifetime": "2592000",
+                  "limit_teams": "-1",
+                  "plan_id": "org_plus_v1",
+                  "region": "EU",
+                  "show_on_plans_page": "true",
+                  "tenancy": "multi",
+                  "tier": "multi_team"
+                },
+                "name": "Organization Plus",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763897577,
+                "url": null
+              },
+              {
+                "id": "prod_TTYGQorG63gpvp",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763896134,
+                "default_price": null,
+                "description": null,
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {
+                  "app": "onetimesecret",
+                  "capabilities": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members",
+                  "created": "2025-11-23T11:31:58Z",
+                  "display_order": "20",
+                  "limit_custom_domains": "-1",
+                  "limit_members_per_team": "10",
+                  "limit_secret_lifetime": "2592000",
+                  "limit_teams": "1",
+                  "plan_id": "team_plus_v1",
+                  "region": "EU",
+                  "show_on_plans_page": "true",
+                  "tenancy": "multi",
+                  "tier": "multi_team"
+                },
+                "name": "Team Plus",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763897585,
+                "url": null
+              },
+              {
+                "id": "prod_TTXsoQhHQylFWZ",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763894676,
+                "default_price": null,
+                "description": null,
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {
+                  "app": "onetimesecret",
+                  "capabilities": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_hom\nepage",
+                  "created": "2025-11-23T10:44:32Z",
+                  "limit_secret_lifetime": "2592000",
+                  "limit_teams": "0",
+                  "plan_id": "identity_v1_monthly",
+                  "region": "us-east",
+                  "tenancy": "multi",
+                  "tier": "single_team"
+                },
+                "name": "Identity Plus",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763897589,
+                "url": null
+              },
+              {
+                "id": "prod_TTXJy8SnSrQHJH",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892618,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895756,
+                "url": null
+              },
+              {
+                "id": "prod_TTXHBrCDq7RHzm",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892480,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {
+                  "foo": "bar"
+                },
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895824,
+                "url": null
+              },
+              {
+                "id": "prod_TTXH445lkThj5b",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892474,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {
+                  "foo": "bar"
+                },
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895884,
+                "url": null
+              },
+              {
+                "id": "prod_TTXHnP9QFCCdKP",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892456,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895895,
+                "url": null
+              },
+              {
+                "id": "prod_TTXGEE1ysKDyyw",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892436,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895861,
+                "url": null
+              },
+              {
+                "id": "prod_TTXFxh1S2Xt0Yj",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892376,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895918,
+                "url": null
+              },
+              {
+                "id": "prod_TTXEn69dK8Lmo1",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892260,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895829,
+                "url": null
+              },
+              {
+                "id": "prod_TTXADkKpqCMWck",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763892053,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895907,
+                "url": null
+              },
+              {
+                "id": "prod_TTX8ZwHv0vvMNV",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763891944,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895840,
+                "url": null
+              },
+              {
+                "id": "prod_TTX8PaWWXiGIZH",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763891925,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895912,
+                "url": null
+              },
+              {
+                "id": "prod_TTWA0cnKz2yaR5",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763888334,
+                "default_price": null,
+                "description": "(created by Stripe CLI)",
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {},
+                "name": "myproduct",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763895871,
+                "url": null
+              },
+              {
+                "id": "prod_TTJRoYRCTxy8Xm",
+                "object": "product",
+                "active": false,
+                "attributes": [],
+                "created": 1763841002,
+                "default_price": null,
+                "description": null,
+                "images": [],
+                "livemode": false,
+                "marketing_features": [],
+                "metadata": {
+                  "app": "onetimesecret",
+                  "created": "2025-11-22T19:50:01Z",
+                  "plan_id": "identity_v1",
+                  "region": "us-east",
+                  "tier": "single_team"
+                },
+                "name": "Single Team Test Plan",
+                "package_dimensions": null,
+                "shippable": null,
+                "statement_descriptor": null,
+                "tax_code": null,
+                "type": "service",
+                "unit_label": null,
+                "updated": 1763896209,
+                "url": null
+              }
+            ],
+            "has_more": false,
+            "url": "/v1/products"
+          }
+    recorded_at: Mon, 29 Dec 2025 05:21:55 GMT
+recorded_with: VCR 6.3.1

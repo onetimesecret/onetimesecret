@@ -1,16 +1,18 @@
 # apps/web/core/views/serializers/domain_serializer.rb
+#
+# frozen_string_literal: true
 
-require 'v2/models/custom_domain'
 require 'onetime/middleware/domain_strategy'
+require 'onetime/logger_methods'
 
 module Core
   module Views
-
     # Serializes domain-related information for the frontend
     #
     # Handles custom domains, domain strategies, and domain branding
     # transformations for frontend consumption.
     module DomainSerializer
+      extend Onetime::LoggerMethods
 
       # Serializes domain data from view variables
       #
@@ -18,32 +20,34 @@ module Core
       # information into a consistent format for the frontend.
       #
       # @param view_vars [Hash] The view variables containing domain information
-      # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized domain data
-      def self.serialize(view_vars, i18n)
-        output = self.output_template
-        site = view_vars[:site] || {}
-        domains_enabled = site.dig(:domains, :enabled)
+      def self.serialize(view_vars)
+        output          = output_template
+        features        = view_vars['features'] || {}
+        domains_enabled = features.dig('domains', 'enabled')
 
-        is_authenticated = view_vars[:authenticated]
-        domains = view_vars[:site].fetch(:domains, {})
-        cust = view_vars[:cust]
+        is_authenticated = view_vars['authenticated']
+        cust             = view_vars['cust']
 
-        output[:domain_strategy] = view_vars[:domain_strategy]
+        output['domain_strategy'] = view_vars['domain_strategy']
 
-        output[:canonical_domain] = Onetime::DomainStrategy.canonical_domain
-        output[:display_domain] = view_vars[:display_domain]
+        output['canonical_domain'] = Onetime::Middleware::DomainStrategy.canonical_domain
+        output['display_domain']   = view_vars['display_domain']
 
         # Custom domain handling
-        if output[:domain_strategy] == :custom
+        if output['domain_strategy'] == :custom
           # Load the CustomDomain object
-          custom_domain = V2::CustomDomain.from_display_domain(output[:display_domain])
-          output[:domain_id] = custom_domain&.domainid
-          output[:domain_branding] = (custom_domain&.brand&.hgetall || {}).to_h
-          output[:domain_logo] = (custom_domain&.logo&.hgetall || {}).to_h
+          custom_domain             = Onetime::CustomDomain.from_display_domain(output['display_domain'])
+          output['domain_id']       = custom_domain&.domainid
+          output['domain_branding'] = (custom_domain&.brand&.hgetall || {}).to_h
 
-          domain_locale = output[:domain_branding].fetch('locale', nil)
-          output[:domain_locale] = domain_locale
+          domain_locale           = output['domain_branding'].fetch('locale', nil)
+          output['domain_locale'] = domain_locale
+
+          # Check if custom domain has a logo uploaded
+          # Use extid (external ID) for public URLs, not domainid (internal objid)
+          has_logo              = !custom_domain&.logo&.[]('filename').to_s.empty?
+          output['domain_logo'] = has_logo ? "/imagine/#{custom_domain.extid}/logo.png" : nil
         end
 
         # There's no custom domain list when the feature is disabled
@@ -57,13 +61,25 @@ module Core
               # have some visibility which customers this will affect. We've made
               # the verification more stringent so currently many existing domains
               # would return obj.ready? == false.
-              OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
+              app_logger.warn 'Serializing unverified custom domain',
+                {
+                  domain: obj.display_domain,
+                  verified: obj.verified,
+                  resolving: obj.resolving,
+                }
             end
 
             obj.display_domain
           end
 
-          output[:custom_domains] = custom_domains.sort
+          output['custom_domains'] = custom_domains.sort
+        end
+
+        # Include user's domain context preference from session
+        # This persists across page refreshes, new tabs, and browser restarts
+        sess = view_vars['sess']
+        if is_authenticated && sess
+          output['domain_context'] = sess['domain_context']
         end
 
         output
@@ -75,14 +91,15 @@ module Core
         # @return [Hash] Template with all possible domain output fields
         def output_template
           {
-            canonical_domain: nil,
-            custom_domains: nil,
-            display_domain: nil,
-            domain_branding: nil,
-            domain_id: nil,
-            domain_locale: nil,
-            domain_logo: nil,
-            domain_strategy: nil,
+            'canonical_domain' => nil,
+            'custom_domains' => nil,
+            'display_domain' => nil,
+            'domain_branding' => nil,
+            'domain_id' => nil,
+            'domain_locale' => nil,
+            'domain_logo' => nil,
+            'domain_context' => nil,
+            'domain_strategy' => nil,
             # Were in original implementation, now removed:
             # display_locale: nil,
           }

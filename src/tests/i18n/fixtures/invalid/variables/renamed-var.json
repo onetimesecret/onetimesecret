@@ -1,0 +1,8 @@
+{
+  "email": {
+    "welcome": {
+      "subject": "Welcome to %{product_name}",
+      "postscript": "P.S. This email was sent to %{correo}."
+    }
+  }
+}

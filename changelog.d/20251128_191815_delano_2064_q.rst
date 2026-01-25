@@ -1,0 +1,20 @@
+.. A new scriv changelog fragment.
+
+Changed
+-------
+
+- Publisher now supports configurable fallback strategies when RabbitMQ is
+  unavailable: ``:async_thread`` (default, non-blocking), ``:sync`` (blocking),
+  ``:raise`` (error), or ``:none`` (silent fail). This replaces the previous
+  3-second retry delay that could block Puma threads during outages. PR #2064
+
+- Critical auth flows (password reset, Rodauth emails) use ``:sync`` fallback
+  to ensure delivery; non-critical paths (feedback) use ``:none`` to avoid
+  thread proliferation.
+
+AI Assistance
+-------------
+
+- RabbitMQ architecture review identified sync fallback as blocking issue.
+  Claude assisted with designing the opt-in fallback parameter API and
+  Thread.new implementation for Puma compatibility.

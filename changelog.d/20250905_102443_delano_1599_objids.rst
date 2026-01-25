@@ -1,0 +1,36 @@
+.. A new scriv changelog fragment.
+..
+.. Uncomment the section that is right (remove the leading dots).
+.. For top level release notes, leave all the headers commented out.
+..
+.. Removed
+.. -------
+..
+.. - A bullet item for the Removed category.
+..
+Added
+-----
+
+- UUIDv7 refinements for SecureRandom, String, and Time classes with methods for generating and extracting timestamps from UUIDv7s.
+
+Changed
+-------
+
+- Customer migration now uses deterministic external ID generation based on UUID hash instead of random values.
+- Session cleanup migration updated to use Familia::Refinements::TimeLiterals instead of custom time extensions.
+
+.. Deprecated
+.. ----------
+..
+.. - A bullet item for the Deprecated category.
+..
+.. Fixed
+.. -----
+..
+.. - A bullet item for the Fixed category.
+..
+.. Security
+.. --------
+..
+.. - A bullet item for the Security category.
+..

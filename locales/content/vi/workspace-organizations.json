@@ -1,0 +1,578 @@
+{
+  "web.organizations.title": {
+    "text": "Tổ chức",
+    "sha256": "2730183d"
+  },
+  "web.organizations.organization": {
+    "text": "Tổ chức",
+    "sha256": "d764d425"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Tổ chức",
+    "sha256": "2730183d"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Quản lý các tổ chức của bạn",
+    "sha256": "dbaa4f92"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Tổ chức",
+    "sha256": "2730183d"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Quản lý tổ chức",
+    "sha256": "be0fe4c3"
+  },
+  "web.organizations.new_organization": {
+    "text": "Tổ chức mới",
+    "sha256": "4876e647"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Chưa có tổ chức",
+    "sha256": "5b7a7cbd"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Tổ chức cung cấp thanh toán và quản trị tập trung. Bắt đầu bằng cách tạo tổ chức đầu tiên.",
+    "sha256": "deab4304"
+  },
+  "web.organizations.no_description": {
+    "text": "Chưa có mô tả",
+    "sha256": "41183d01"
+  },
+  "web.organizations.default": {
+    "text": "Mặc định",
+    "sha256": "21b111cb"
+  },
+  "web.organizations.create_organization": {
+    "text": "Tạo tổ chức",
+    "sha256": "e27f4540"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Tạo tổ chức đầu tiên",
+    "sha256": "27bae486"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Tạo một tổ chức mới",
+    "sha256": "67cd5950"
+  },
+  "web.organizations.create": {
+    "text": "Tạo",
+    "sha256": "4759498a"
+  },
+  "web.organizations.create_error": {
+    "text": "Không thể tạo tổ chức",
+    "sha256": "f2204373"
+  },
+  "web.organizations.organization_name": {
+    "text": "Tên tổ chức",
+    "sha256": "4cbd9073"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "ví dụ Công ty Acme",
+    "sha256": "ac1c804b"
+  },
+  "web.organizations.display_name": {
+    "text": "Tên tổ chức",
+    "sha256": "4cbd9073"
+  },
+  "web.organizations.description": {
+    "text": "Mô tả",
+    "sha256": "526e0087"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "Tổ chức này dùng để làm gì?",
+    "sha256": "27d7edae"
+  },
+  "web.organizations.contact_email": {
+    "text": "Email thanh toán",
+    "sha256": "513332d3"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Liên hệ chính cho thông báo thanh toán và quản trị",
+    "sha256": "ee81c03d"
+  },
+  "web.organizations.select_organization": {
+    "text": "Chọn một tổ chức",
+    "sha256": "48326f52"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Chuyển đổi tổ chức không khả dụng trên trang này",
+    "sha256": "da0cf810"
+  },
+  "web.organizations.not_found": {
+    "text": "Không tìm thấy tổ chức",
+    "sha256": "00c50f7a"
+  },
+  "web.organizations.load_error": {
+    "text": "Không thể tải tổ chức",
+    "sha256": "6b5fa342"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Không thể tải tổ chức",
+    "sha256": "6b5fa342"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Không thể tải các tổ chức",
+    "sha256": "03b30208"
+  },
+  "web.organizations.organization_information": {
+    "text": "Thông tin tổ chức",
+    "sha256": "85274cee"
+  },
+  "web.organizations.created": {
+    "text": "Đã tạo",
+    "sha256": "d70b9e24"
+  },
+  "web.organizations.last_updated": {
+    "text": "Cập nhật lần cuối",
+    "sha256": "048c7f2e"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Cài đặt tổ chức",
+    "sha256": "cc1d9e61"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Cập nhật tên và mô tả tổ chức",
+    "sha256": "2d8b5b2b"
+  },
+  "web.organizations.general_settings": {
+    "text": "Cài đặt chung",
+    "sha256": "de322f87"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Thanh toán & Đăng ký",
+    "sha256": "896913f0"
+  },
+  "web.organizations.save_changes": {
+    "text": "Lưu thay đổi",
+    "sha256": "35322b5b"
+  },
+  "web.organizations.update_success": {
+    "text": "Đã cập nhật tổ chức thành công",
+    "sha256": "af39d0f3"
+  },
+  "web.organizations.update_error": {
+    "text": "Không thể cập nhật tổ chức",
+    "sha256": "bc2b59b8"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Tích hợp thanh toán sắp ra mắt",
+    "sha256": "d3e0ec75"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Quản lý thanh toán và đăng ký tập trung sẽ có trong phiên bản tương lai.",
+    "sha256": "8836108f"
+  },
+  "web.organizations.about_title": {
+    "text": "Về tổ chức",
+    "sha256": "2f3e2ad8"
+  },
+  "web.organizations.about_description": {
+    "text": "Tổ chức cung cấp thanh toán và quản trị tập trung để quản lý trung tâm.",
+    "sha256": "910f97a8"
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Quản lý tổ chức của bạn",
+    "sha256": "810a6c86"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Cập nhật tên công ty và chi tiết tổ chức tại đây. Thông tin này giúp cá nhân hóa tài khoản và có thể được sử dụng cho các tính năng thương hiệu trong tương lai.",
+    "sha256": "96b2e4b5"
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Bắt đầu với tổ chức",
+    "sha256": "2871e738"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Tạo tổ chức đầu tiên để quản lý thông tin công ty và chuẩn bị cho các tính năng thương hiệu trong tương lai.",
+    "sha256": "0487f33a"
+  },
+  "web.organizations.page_description": {
+    "text": "Quản lý các tổ chức và thành viên nhóm",
+    "sha256": "2d026be4"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Cài đặt",
+    "sha256": "74a883a0"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Thương hiệu công ty",
+    "sha256": "7ecc5d35"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Nhóm",
+    "sha256": "5985039f"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Thanh toán",
+    "sha256": "3ac8bbca"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Vùng nguy hiểm",
+    "sha256": "3c1c01b4"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Xóa tổ chức",
+    "sha256": "54b2edc7"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Điều này sẽ xóa tổ chức vĩnh viễn. Hành động này không thể hoàn tác.",
+    "sha256": "ab2d2c05"
+  },
+  "web.organizations.delete": {
+    "text": "Xóa",
+    "sha256": "e2d0a549"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Xóa tổ chức",
+    "sha256": "54b2edc7"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Bạn có chắc muốn xóa {name}? Hành động này không thể hoàn tác.",
+    "sha256": "db7e1f9d"
+  },
+  "web.organizations.delete_error": {
+    "text": "Không thể xóa tổ chức",
+    "sha256": "a8e5bb28"
+  },
+  "web.organizations.members.title": {
+    "text": "Thành viên",
+    "sha256": "1044a4c0"
+  },
+  "web.organizations.members.description": {
+    "text": "Quản lý thành viên tổ chức và vai trò của họ",
+    "sha256": "1353774c"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Thành viên hiện tại",
+    "sha256": "cfc156ae"
+  },
+  "web.organizations.members.member": {
+    "text": "Thành viên",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "thành viên",
+    "sha256": "e31ab643"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "thành viên",
+    "sha256": "17373ca1"
+  },
+  "web.organizations.members.name": {
+    "text": "Tên",
+    "sha256": "dcd1d522"
+  },
+  "web.organizations.members.email": {
+    "text": "Email",
+    "sha256": "969ccbd3"
+  },
+  "web.organizations.members.role": {
+    "text": "Vai trò",
+    "sha256": "14736a2e"
+  },
+  "web.organizations.members.joined": {
+    "text": "Tham gia",
+    "sha256": "69318b0c"
+  },
+  "web.organizations.members.actions": {
+    "text": "Hành động",
+    "sha256": "ff8059dc"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Chưa có thành viên. Mời thành viên nhóm để bắt đầu.",
+    "sha256": "6cbc5271"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Tổ chức này chưa có thành viên.",
+    "sha256": "61dd2085"
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Đã cập nhật vai trò thành viên thành công",
+    "sha256": "d0d332c6"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Không thể cập nhật vai trò thành viên",
+    "sha256": "17d5ca66"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Đã xóa thành viên khỏi tổ chức",
+    "sha256": "210a187b"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Không thể xóa thành viên",
+    "sha256": "1cff79b7"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Xóa thành viên",
+    "sha256": "2b98b194"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Bạn có chắc muốn xóa {name} khỏi tổ chức này?",
+    "sha256": "36695d98"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "Bạn không thể thay đổi vai trò của chính mình",
+    "sha256": "0d874f75"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "Bạn không thể tự xóa mình khỏi tổ chức",
+    "sha256": "ab358307"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "Bạn không thể xóa chủ sở hữu tổ chức",
+    "sha256": "c92ed0f4"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "Bạn không có quyền quản lý thành viên",
+    "sha256": "d6239f33"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Chủ sở hữu",
+    "sha256": "4b1b8aa3"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Quản trị viên",
+    "sha256": "c1c224b0"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Thành viên",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Truy cập đầy đủ tất cả cài đặt tổ chức và thành viên",
+    "sha256": "d49381bf"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Có thể quản lý thành viên và hầu hết cài đặt tổ chức",
+    "sha256": "3d7ade92"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Truy cập cơ bản vào tài nguyên tổ chức",
+    "sha256": "0ddca91a"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Lời mời tổ chức",
+    "sha256": "0289d92d"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Mời thành viên",
+    "sha256": "8e8a0b88"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Mời thành viên mới",
+    "sha256": "0bfb50ed"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Lời mời đang chờ",
+    "sha256": "b327e8a8"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Không có lời mời đang chờ",
+    "sha256": "275814da"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "Địa chỉ email",
+    "sha256": "09bf25ef"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "member{'@'}example.com",
+    "sha256": "7fd425f7"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Vai trò",
+    "sha256": "14736a2e"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Gửi lời mời",
+    "sha256": "d076aa0f"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Đã gửi lời mời thành công",
+    "sha256": "81facbe6"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Không thể gửi lời mời",
+    "sha256": "cedbf507"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Gửi lại",
+    "sha256": "1f948437"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Thu hồi",
+    "sha256": "87e6d00b"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Đã gửi lại lời mời thành công",
+    "sha256": "099eb255"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Không thể gửi lại lời mời",
+    "sha256": "82750487"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Đã thu hồi lời mời thành công",
+    "sha256": "4ce1262c"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Không thể thu hồi lời mời",
+    "sha256": "9dbd2a60"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Được mời bởi",
+    "sha256": "c7a6f156"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Đã mời",
+    "sha256": "63b17bec"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Hết hạn",
+    "sha256": "f6725f3a"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Đã gửi lại {count} lần",
+    "sha256": "e71d1c6d"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Đã gửi lại {count} lần",
+    "sha256": "e58d803d"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Đang chờ",
+    "sha256": "331551b0"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Đã chấp nhận",
+    "sha256": "a00fb0c5"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Đã từ chối",
+    "sha256": "dce083a2"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Đã hết hạn",
+    "sha256": "424a2551"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Thành viên",
+    "sha256": "7c968fb7"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Quản trị viên",
+    "sha256": "c1c224b0"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Chấp nhận lời mời",
+    "sha256": "ce7cfeaf"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Từ chối lời mời",
+    "sha256": "f6e06ada"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Chi tiết lời mời",
+    "sha256": "59936259"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Bạn đã được mời tham gia",
+    "sha256": "60e635c6"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Bạn đã được mời với vai trò",
+    "sha256": "f9809eae"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Đã chấp nhận lời mời thành công",
+    "sha256": "7eb6b234"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Không thể chấp nhận lời mời",
+    "sha256": "3ecc8b0f"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Đã từ chối lời mời",
+    "sha256": "31bffdcb"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Không thể từ chối lời mời",
+    "sha256": "2bccbd56"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "Lời mời này đã hết hạn",
+    "sha256": "b72770d7"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Lời mời không hợp lệ hoặc đã hết hạn",
+    "sha256": "6c0fc3de"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Vui lòng đăng nhập để chấp nhận lời mời này",
+    "sha256": "469fc705"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Đang tải chi tiết lời mời",
+    "sha256": "58884885"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Đã cập nhật email thanh toán thành công",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Email thanh toán có thể được thay đổi trên trang Tổng quan thanh toán",
+    "sha256": "8a131415"
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro",
+    "sha256": "957b0b87"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} thành viên | {count} thành viên",
+    "sha256": "f652af0c"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} tên miền | {count} tên miền",
+    "sha256": "09f52efa"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Nâng cấp gói để mời thành viên nhóm",
+    "sha256": "5e3f8df8"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Mời thành viên nhóm yêu cầu gói có quản lý nhóm. Nâng cấp để thêm cộng tác viên vào tổ chức.",
+    "sha256": "cf10d623"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Sai tài khoản",
+    "sha256": "80c8ffa7"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "Lời mời này được gửi đến {invitedEmail}, nhưng bạn đang đăng nhập với {currentEmail}.",
+    "sha256": "937e08e7"
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Đăng nhập bằng tài khoản khác",
+    "sha256": "71b2bdf3"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "Còn {days} ngày",
+    "sha256": "50ff6f2b"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "Còn {hours} giờ",
+    "sha256": "ff56d105"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Sắp hết hạn",
+    "sha256": "a5dcfef9"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Đăng ký",
+    "sha256": "4999c6c6"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Tên miền",
+    "sha256": "ced67718"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "text": "vítá přispěvatele pro stávající i nové jazyky.",
+    "sha256": "87abcdeb"
+  },
+  "web.translations.our_github_project": {
+    "text": "náš GitHub projekt",
+    "sha256": "dabd28e2"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "text": "Pokud vás zajímá překládání,",
+    "sha256": "10056bff"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "text": "kteří pomohli s překlady, zatímco pokračujeme ve vývoji nových funkcí.",
+    "sha256": "d629cc71"
+  },
+  "web.translations.25_contributors": {
+    "text": "25+ přispěvatelů",
+    "sha256": "080aa720"
+  },
+  "web.translations.were_grateful_to_the": {
+    "text": "Jsme vděční",
+    "sha256": "cf446287"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "text": "S přidáváním nových funkcí naše překlady postupně potřebují aktualizace, aby zůstaly aktuální. To ovlivňuje jak onetimesecret.com, tak tisíce self-hosted instalací po celém světě.",
+    "sha256": "c6fb1cf5"
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "text": "- nezapomeň uvést svůj e-mail, pokud nejsi přihlášen. Každý překlad pomáhá více lidem komunikovat bezpečně.",
+    "sha256": "1a8ccc7d"
+  },
+  "web.translations.reach_out_to_us": {
+    "text": "Kontaktujte nás",
+    "sha256": "fee7dd79"
+  },
+  "web.translations.have_questions": {
+    "text": "Máte otázky?",
+    "sha256": "75e4b61a"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "text": "Odešlete překlady e-mailem na",
+    "sha256": "f96a59a1"
+  },
+  "web.translations.english_template": {
+    "text": "anglická šablona",
+    "sha256": "1a843644"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "text": "Začněte nový překlad z naší",
+    "sha256": "b963b7e9"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "text": "Aktualizuj jazyk přímo prostřednictvím našeho GitHub projektu",
+    "sha256": "449cde87"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "text": "Prověř existující překlady pomocí výběru jazyka výše",
+    "sha256": "74ea57e9"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "text": "Připraven pomoci? Několik způsobů, jak přispět:",
+    "sha256": "13131e36"
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "text": "Následující lidé věnovali svůj čas k rozšíření dosahu Onetime Secret:",
+    "sha256": "85a766af"
+  },
+  "web.translations.translations": {
+    "text": "Překlady",
+    "sha256": "266a41b9"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "text": "Vytvořte fork na GitHubu a odešlete PR",
+    "sha256": "bb60a45d"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "text": "Tvé jazykové dovednosti mohou pomoci rozšířit přístup k bezpečné komunikaci.",
+    "sha256": "ad22076b"
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "text": "Díky naší komunitě dnes podporujeme více než 20 jazyků. S naším rychlým tempem vývoje však mnoho překladů potřebuje aktualizace, aby zůstaly aktuální. To ovlivňuje jak onetimesecret.com, tak tisíce self-hosted instalací po celém světě.",
+    "sha256": "ba5c4395"
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "text": "Od roku 2012 poskytuje Onetime Secret bezpečný způsob sdílení citlivých informací po celém světě. S uživateli v regionech, kde angličtina není primárním jazykem, jsou přesné překlady zásadní pro zpřístupnění bezpečné komunikace všem.",
+    "sha256": "87a6e9af"
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "text": "Pomozte bezpečné komunikaci rozšířit se do celého světa",
+    "sha256": "e94bdc8e"
+  }
+}

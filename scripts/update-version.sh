@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# scripts/update-version.sh - Update package.json version from git tags or provided version
+# update-version.sh - Update package.json version from git tags or provided version
 #
 # Usage:
-#   ./scripts/update-version.sh           # Auto-detect from git
-#   ./scripts/update-version.sh v1.2.3    # Use provided version
-#   VERSION=v1.2.3 ./scripts/update-version.sh  # Use environment variable
+#   ./bin/update-version.sh           # Auto-detect from git
+#   ./bin/update-version.sh v1.2.3    # Use provided version
+#   VERSION=v1.2.3 ./bin/update-version.sh  # Use environment variable
 #
 # @see ./.github/workflows/.build-and-publish-oci-images-reusable.yml
 

@@ -1,0 +1,163 @@
+---
+# apps/web/billing/spec/billing.test.yaml
+#
+# Test-specific billing configuration for RSpec tests.
+# Loaded via ConfigResolver when RACK_ENV=test.
+#
+# Purpose: Provide stable, controlled plan data for unit tests without
+# requiring Stripe API access or VCR cassettes.
+#
+# Usage in RSpec:
+#   include_context 'with_test_plans'
+#
+# This config is deliberately minimal - only plans needed for testing.
+# Real production catalog is in etc/billing.yaml.
+
+schema_version: '1.0'
+app_identifier: 'onetimesecret'
+enabled: false
+stripe_key: 'sk_test_mock'
+webhook_signing_secret: 'whsec_test_mock'
+stripe_api_version: '2025-11-17.clover'
+
+# Match fields for product identification in Stripe
+# Default: ['plan_id'] - matches by plan_id metadata only
+# With region: ['plan_id', 'region'] - composite matching for regional isolation
+match_fields:
+  - plan_id
+  - region
+
+# Region filter for this catalog instance
+# When set, only Stripe products with matching region metadata are visible
+region: EU
+
+# Test entitlements (minimal set)
+entitlements:
+  create_secrets:
+    category: core
+    description: Can create basic secrets
+
+  view_receipt:
+    category: core
+    description: Can view secret metadata
+
+  api_access:
+    category: infrastructure
+    description: Can use REST API endpoints
+
+  custom_domains:
+    category: infrastructure
+    description: Can configure custom domains
+
+  extended_default_expiration:
+    category: core
+    description: Extended secret expiration (30 days default)
+
+  custom_branding:
+    category: branding
+    description: Custom branding and styling
+
+  branded_homepage:
+    category: branding
+    description: Branded homepage for custom domains
+
+  manage_teams:
+    category: collaboration
+    description: Can create and manage teams
+
+  manage_members:
+    category: collaboration
+    description: Can add and manage team members
+
+# Test plans
+plans:
+  # Free tier for baseline tests
+  free_v1:
+    name: 'Free'
+    tier: free
+    tenancy: multi
+    region: EU
+    display_order: 0
+    show_on_plans_page: true
+    description: 'Test free tier'
+
+    entitlements:
+      - create_secrets
+      - view_receipt
+      - api_access
+
+    limits:
+      teams: 0
+      organizations: 5
+      members_per_team: 1
+      custom_domains: 0
+      secret_lifetime: 604800 # 7 days
+
+    prices: []
+
+  # Single team tier for subscription tests
+  # This matches the tier used in controller specs
+  identity_plus_v1:
+    name: 'Identity Plus'
+    tier: single_team
+    tenancy: multi
+    region: EU # IMPORTANT: Must match mock_region! in tests
+    display_order: 10
+    show_on_plans_page: true
+    description: 'Test subscription tier'
+    # Optional: Direct Stripe product ID binding (escape hatch for matching issues)
+    # stripe_product_id: prod_xxx  # Uncomment to override composite matching
+
+    entitlements:
+      - create_secrets
+      - view_receipt
+      - api_access
+      - custom_domains
+      - extended_default_expiration
+      - custom_branding
+      - branded_homepage
+
+    limits:
+      teams: 0
+      organizations: 10
+      members_per_team: 10
+      custom_domains: -1 # unlimited
+      secret_lifetime: 2592000 # 30 days
+
+    prices:
+      - price_id: price_test_monthly
+        interval: month
+        amount: 1200 # $12.00 in cents
+        currency: usd
+
+      - price_id: price_test_yearly
+        interval: year
+        amount: 12000 # $120.00 in cents
+        currency: usd
+
+  # Legacy plan for testing legacy plan detection
+  # Tests verify that plans with legacy: true are detected correctly
+  identity:
+    name: 'Identity (Legacy)'
+    tier: single_team
+    tenancy: multi
+    region: EU
+    display_order: 99
+    show_on_plans_page: false
+    legacy: true
+    description: 'Legacy plan for testing'
+
+    entitlements:
+      - create_secrets
+      - view_receipt
+      - api_access
+      - manage_teams
+
+    limits:
+      teams: 1
+      organizations: 1
+      members_per_team: 5
+      custom_domains: 0
+      secret_lifetime: 1209600 # 14 days
+
+    prices: []

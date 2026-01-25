@@ -1,71 +1,70 @@
 # lib/onetime/initializers/setup_diagnostics.rb
-
-require 'openssl'
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers
-    # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
-    attr_accessor :d9s_enabled
+    # SetupDiagnostics initializer
+    #
+    # Configures Sentry error tracking and performance monitoring if diagnostics
+    # are enabled. Sets up breadcrumbs logging, sampling rates, and environment
+    # information for error context.
+    #
+    # Runtime state set:
+    # - Onetime::Runtime.infrastructure.d9s_enabled
+    #
+    class SetupDiagnostics < Onetime::Boot::Initializer
+      @depends_on = [:logging]
+      @provides   = [:diagnostics]
+      @optional   = true
 
-    def setup_diagnostics
+      def execute(_context)
+        d9s_enabled = OT.conf['diagnostics']['enabled'] || false
 
-      OT.d9s_enabled = conf[:diagnostics][:enabled] || false
-      return unless OT.d9s_enabled
+        unless d9s_enabled
+          Onetime::Runtime.update_infrastructure(d9s_enabled: false)
+          return
+        end
+        backend   = OT.conf['diagnostics']['sentry']['backend']
+        dsn       = backend.fetch('dsn', nil)
+        site_host = OT.conf.dig('site', 'host')
 
-      backend = conf[:diagnostics][:sentry][:backend]
-      dsn = backend.fetch(:dsn, nil)
-      site_host = conf.dig(:site, :host)
+        OT.ld "[init] Setting up Sentry #{backend}..."
 
-      OT.ld "Setting up Sentry #{backend}..."
+        # Log more details about the Sentry configuration for debugging
+        OT.ld "[init] Sentry: DSN present: #{!dsn.nil?}"
+        OT.ld "[init] Sentry: Site host: #{site_host.inspect}"
+        OT.ld "[init] Sentry: OT.env: #{OT.env.inspect}"
 
-      # Log more details about the Sentry configuration for debugging
-      OT.ld "[sentry-debug] DSN present: #{!dsn.nil?}"
-      OT.ld "[sentry-debug] Site host: #{site_host.inspect}"
-      OT.ld "[sentry-debug] OT.env: #{OT.env.inspect}"
+        # Early validation to prevent nil errors during initialization
+        if dsn.nil?
+          OT.ld '[init] Sentry: Cannot initialize Sentry with nil DSN'
+          d9s_enabled = false
+        elsif site_host.nil?
+          OT.le '[init] Sentry: Cannot initialize Sentry with nil site_host'
+          OT.ld 'Falling back to default environment name'
+          site_host = 'unknown-host'
+        end
 
-      # Early validation to prevent nil errors during initialization
-      if dsn.nil?
-        OT.ld "[sentry-init] Cannot initialize Sentry with nil DSN"
-        OT.d9s_enabled = false
-      elsif site_host.nil?
-        OT.le "[sentry-init] Cannot initialize Sentry with nil site_host"
-        OT.ld "Falling back to default environment name"
-        site_host = "unknown-host"
-      end
+        # Only proceed if we have valid configuration
+        unless d9s_enabled
+          Onetime::Runtime.update_infrastructure(d9s_enabled: false)
+          return
+        end
 
-      # Only proceed if we have valid configuration
-      if OT.d9s_enabled
         # Safely log first part of DSN for debugging
-        dsn_preview = dsn ? "#{dsn[0..10]}..." : "nil"
-        OT.li "[sentry-init] Initializing with DSN: #{dsn_preview}"
+        dsn_preview = dsn ? "#{dsn[0..10]}..." : 'nil'
+        OT.boot_logger.info "[init] Sentry: Initializing with DSN: #{dsn_preview}"
 
         # Only require Sentry if we have a DSN. We call explicitly
         # via Kernel to aid in testing.
         Kernel.require 'sentry-ruby'
         Kernel.require 'stackprof'
 
-        # re: "certificate verify failed (unable to get certificate CRL)"
-        #
-        # Fix for OpenSSL 3.6+ CRL verification failures on macOS
-        # OpenSSL 3.6 enables strict CRL checking by default, but macOS's
-        # OpenSSL build lacks a CRL bundle, causing valid certificates to fail.
-        # This disables CRL checking while maintaining certificate verification.
-        #
-        # See: https://github.com/rails/rails/issues/55886
-        #
-        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
-        #
-        # Now disabling :verify_flags even though it worked briefly and got rid of
-        # CRL error. There's some version voodoo going on since it now results in a
-        # separate error ("undefined method 'verify_flags=' in OpenSSL::SSL::SSLContext").
-        # ¯\_(ツ)_/¯
-        # OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_flags] &=
-        #   ~(OpenSSL::X509::V_FLAG_CRL_CHECK_ALL | OpenSSL::X509::V_FLAG_CRL_CHECK)
-
         Sentry.init do |config|
-          config.dsn = dsn
+          config.dsn         = dsn
           config.environment = "#{site_host} (#{OT.env})"
-          config.release = OT::VERSION.inspect
+          config.release     = OT::VERSION.details
 
           # Configure breadcrumbs logger for detailed error tracking.
           # Uses sentry_logger to capture progression of events leading
@@ -81,10 +80,10 @@ module Onetime
           config.profiles_sample_rate = 0.1
 
           # Add a before_send to filter out problematic events that might cause errors
-          config.before_send = lambda do |event, _hint|
+          config.before_send = ->(event, _hint) do
             # Return nil if the event would cause errors in processing
             if event.nil? || event.request.nil? || event.request.headers.nil?
-              OT.ld "[sentry-debug] Filtering out event with nil components"
+              OT.ld '[init] Sentry: Filtering out event with nil components'
               return nil
             end
 
@@ -93,7 +92,10 @@ module Onetime
           end
         end
 
-        OT.ld "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        OT.ld "[init] Sentry: Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+
+        # Set runtime state
+        Onetime::Runtime.update_infrastructure(d9s_enabled: true)
       end
     end
   end

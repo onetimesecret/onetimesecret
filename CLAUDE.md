@@ -1,42 +1,68 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+WRITE SHORT RESPONSES. BE CONCISE. Focus on what's important NOW.
 
-## Branch Context
+DO NOT WRITE MARKDOWN DOCUMENTS unless requested.
 
-This is the `main` branch (stable production release). Active development happens on `develop` branch which is ~2500 commits ahead. The architecture is similar but `develop` has significant new features.
+Pull requests target `develop` branch, unless otherwise specified.
 
-## Common Commands
+## Critical Workflow
+1. **Research First**: Read files, understand patterns, plan before coding
+2. **TDD**: Write tests → fail → implement → pass → commit
+3. **Validate**: Test suite → type-check → lint → accessibility
+4. **Script-First for Bulk Ops**: When a plan calls for scripts (file moves, renames, migrations), create the script, stop, wait for review - do NOT execute directly
 
-### Git Commands
+## Code Style (Non-Negotiable)
+- **Vue**: Composition API `<script setup lang="ts">`, Pinia stores, i18n `$t()`
+- **TypeScript**: Strict mode, explicit types, max 100 chars
+- **Testing**: Vitest (max 300 lines), mock Pinia stores
+- **Styling**: Tailwind classes, WCAG compliance
+- **Minimal Changes**: Preserve patterns, use existing utilities
+- **URL Paths**: ALWAYS use `extid` (not `id`/`objid`) for URL paths - entities have dual IDs
 
-Always use `--no-pager` for git commands in non-interactive shells:
-```bash
-git --no-pager diff
-git --no-pager log --oneline -20
-git --no-pager show HEAD
-```
+## Tech Stack
+**Backend**: Ruby 3.4, Rack 3, Redis 7
+**Frontend**: Vue 3.5, Pinia 3, Vue Router 4.4, TypeScript 5.6
+**Build**: Vite 7, Vitest 2.1.8, Tailwind 4
+**Validation**: Zod 4 (import from `'zod'`, NOT `'zod/v4'`), i18n 11
 
-### Backend
+## Architecture Overview
 
-```bash
-# Start development server
-RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+### Backend Structure (Multi Rack-Application, rabbit workers, and rufus scheduler)
+- **`apps/`**: Modular Rack applications (API v1/v2, Web Core)
+  - `apps/api/v1/`: Legacy API with logic modules, controllers, models
+  - `apps/api/v2/`: New API architecture with Otto auth strategies
+  - `apps/web/core/`: Web application with views and serializers
+  - `apps/base_application.rb`: Shared application foundation
+- **`lib/`**: Core business logic and utilities
+  - `lib/onetime/`: Main application classes (models, config, CLI)
+  - `lib/middleware/`: Rack middleware for request processing
+  - `lib/onetime/initializers/`: Boot-time setup modules
+- **`bin/ots`**: CLI tool for administration and operations
 
-# Console access
-bin/ots console
+### Frontend Structure (Interaction Modes Architecture)
+- **`src/apps/`**: Domain-specific Vue applications
+  - `src/apps/secret/`: Transactional flows (conceal, reveal, support)
+  - `src/apps/workspace/`: Management (dashboard, account, billing, teams, domains)
+  - `src/apps/session/`: Authentication (login, signup, MFA)
+  - `src/apps/colonel/`: Admin (colonel)
+- **`src/shared/`**: Cross-app shared resources
+  - `src/shared/components/`: Categorized components (ui/, forms/, modals/, etc.)
+  - `src/shared/composables/`: Shared composables
+  - `src/shared/stores/`: Pinia state management
+  - `src/shared/layouts/`: Layout components (TransactionalLayout, ManagementLayout, etc.)
+- **`src/types/`**: TypeScript type definitions
 
-# Run Ruby tests (Tryouts framework)
-REDIS_URL='redis://127.0.0.1:2121/0' bundle exec try --agent
-bundle exec try --verbose --fails try/path/file_try.rb
-bundle exec try --stack  # full stack traces
+### Locales
 
-# RSpec tests
-bundle exec rspec spec/
-```
+- **`generated/locales/`**: runtime i18n JSON files (generated, hierarchical keys -- do not modify directly)
+- **`locales/content/<LOCALE>/*.json`**: i18n JSON files (flat keys, multiple files, source of truth -- add and modify these)
+- **`locales/db`**: hydrate as needed sqlite database used for processing locales, translations.
+- **`locales/scripts`**: locale management tools
 
-### Frontend
+## Development Commands
 
+### Frontend Development
 ```bash
 # Development with HMR
 pnpm run dev
@@ -46,71 +72,101 @@ pnpm run build
 
 # Type checking
 pnpm run type-check
+pnpm run type-check:watch
 
 # Linting
 pnpm run lint
 pnpm run lint:fix
-
-# Tests
-pnpm test                  # Vitest unit tests
-pnpm run playwright        # E2E tests
 ```
 
-### Test Database
-
+### Backend Development
 ```bash
-# Start Redis on port 2121 for tests
-pnpm run redis:start
-pnpm run redis:stop
+# Console access
+bin/ots console
+
+# Start test database
+pnpm run test:database:start
+pnpm run test:database:stop
+pnpm run test:database:status
+
+# Administration
+bin/ots migrate SCRIPT --run
+bin/ots customers --list
+bin/ots domains --list
 ```
 
-## High-Level Architecture
+### Git Worktrees
+```bash
+# Create worktree for an issue (two-step to set correct upstream)
+git worktree add -b feature/1234-description ../onetimesecret-1234 origin/develop
+cd ../onetimesecret-1234 && git push -u origin feature/1234-description
 
-### Stack
-
-- **Backend**: Ruby 3.1+, Rack 2.x, Otto router, Thin server
-- **Data**: Redis via Familia ORM
-- **Frontend**: Vue 3, TypeScript, Vite, Tailwind CSS, Pinia
-- **Package management**: Bundler (Ruby), pnpm (Node.js)
-
-### Directory Structure
-
-```
-apps/                   # Modular Rack applications
-  ├── api/              # REST APIs (v1, v2)
-  └── web/              # Main web application
-
-lib/
-  ├── onetime.rb        # Core library entry point
-  └── onetime/          # Business logic, models, utilities
-
-src/                    # Vue 3 SPA
-  ├── components/       # Vue components
-  ├── views/            # Page views
-  ├── stores/           # Pinia state management
-  └── locales/          # i18n translations
-
-try/                    # Tryouts integration tests (primary)
-spec/                   # RSpec tests
-tests/                  # Vitest/Playwright tests
-etc/                    # Configuration files
+# Without the push -u, the branch tracks origin/develop (wrong!)
+# This causes pushes to go to develop instead of the feature branch
 ```
 
-### Application Entry Points
+### Testing
 
-- `config.ru` - Main Rack configuration, loads apps from `apps/` directory
-- `bin/ots` - CLI tool for administration commands
-- Apps are mounted via Otto router, each with its own `application.rb`
+#### Ruby Tests
+```bash
+# RSpec tests
+pnpm run test:rspec
+pnpm run test:rspec:failures spec/path/file_spec.rb
 
-### Configuration
+# Tryouts framework (preferred for running all tests)
+pnpm run test:tryouts:agent
 
-- Copy `etc/defaults/config.defaults.yaml` to `etc/config.yaml`
-- Environment variables override config (see `.env.example`)
-- Key vars: `HOST`, `SSL`, `SECRET`, `REDIS_URL`, `RACK_ENV`
+# Individual tryout files (verbose, failures only)
+pnpm run test:tryouts:failures try/path/file_try.rb:L100-L200
+```
 
-### Familia ORM
+#### Frontend Tests
+```bash
+# Vitest unit tests
+pnpm test
+pnpm run test:coverage
+pnpm run test:watch
 
-Redis-backed models in `lib/onetime/models/`. Key pattern:
-- Models inherit from Familia::Horreum
-- Define fields, TTLs, and relationships
-- Use `prefix` for Redis key namespace
+# Playwright E2E
+pnpm run playwright
+```
+
+### Quality Assurance
+```bash
+# Ruby linting
+pnpm run rubocop
+pnpm run rubocop:autocorrect
+
+# Config validation
+pnpm run config:validate
+
+# Full test suite
+pnpm run test:all:clean
+```
+
+## i18n Requirements
+- All text via `$t('key.path')` from locale files in `locales/`
+- Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
+- NO hardcoded text
+- **UX guidance:** `locales/UX-TRANSLATION-GUIDE.md` (button text, character limits, pluralization)
+- **Security guidance:** `locales/SECURITY-TRANSLATION-GUIDE.md` (auth error messages)
+
+## Project Structure
+- Apps: `src/apps/` (secret, workspace, session, colonel)
+- Shared: `src/shared/` (components, composables, stores, layouts)
+- Types: `src/types/`
+- Tests: `tests/`, `src/**/__tests__/`
+
+## Files to Skip in Reviews
+When analyzing PRs or code changes, skip these generated/non-essential files:
+- Lock files: `*.lock`, `pnpm-lock.yaml`, `Gemfile.lock`
+- Build artifacts: `dist/**`, `public/web/dist/**`, `*.min.js`, `*.min.css`
+- Test fixtures: `**/spec/fixtures/vcr_cassettes/**`
+- Binary assets: images, fonts, PDFs
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+Please don't run web server processes. Ask the user to do it.

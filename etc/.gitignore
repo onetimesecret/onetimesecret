@@ -9,6 +9,10 @@
 !examples/*-example
 !examples/puma*.rb
 !init.d/
+!systemd/
+!systemd/*
 !fortunes*
 !redis.conf
 !valkey.conf
+!schemas/
+!schemas/*.json

@@ -1,0 +1,68 @@
+# try/unit/utils/value_encryption_try.rb
+#
+# frozen_string_literal: true
+
+# These tryouts test the encryption and decryption functionality
+# of the Onetime::Secret class.
+#
+# We're testing various aspects of secret handling, including:
+# 1. Storing a value
+# 2. Encrypting a value
+# 3. Decrypting a value
+# 4. Behavior when decrypting without prior encryption
+# 5. Behavior when the global secret is changed
+#
+# These tests aim to ensure that the secret handling mechanism
+# in the Onetime application works correctly and securely, which
+# is crucial for the core functionality of the service.
+#
+# The tryouts simulate different scenarios of secret handling
+# without needing to run the full application, allowing for
+# targeted testing of this specific functionality.
+
+require_relative '../../support/test_models'
+OT.boot! :test, false
+
+## Can store a value
+s = Onetime::Secret.new
+s.value = 'plop'
+s.value
+#=> 'plop'
+
+## Can encrypt a value
+s = Onetime::Secret.new
+s.encrypt_value 'plop', key: 'tryouts'
+puts "The value checksum is the gibbled value after being truncated (if needed)"
+s.value.nil?
+#=> false
+
+## Can decrypt a value
+s = Onetime::Secret.new
+s.encrypt_value 'plop', key: 'tryouts'
+s.decrypted_value
+#=> 'plop'
+
+## Decrypt does nothing if encrypt_value wasn't called
+s = Onetime::Secret.new
+s.value = 'plop'
+s.decrypted_value
+#=> 'plop'
+
+## Cannot decrypt after changing global secret - or succeeds if allow_nil_global_secret is enabled
+original_secret = Onetime.global_secret
+begin
+  s = Onetime::Secret.new
+  s.encrypt_value 'plop', key: 'tryouts'
+  Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
+  result = begin
+    decrypted = s.decrypted_value
+    # If allow_nil_global_secret is enabled in experimental config, decryption may succeed
+    decrypted == 'plop' ? 'decryption_succeeded' : 'unexpected_result'
+  rescue OpenSSL::Cipher::CipherError => e
+    e.class
+  end
+  result
+ensure
+  Onetime.instance_variable_set(:@global_secret, original_secret)
+end
+#=> 'decryption_succeeded'

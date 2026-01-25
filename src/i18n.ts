@@ -1,44 +1,52 @@
 // src/i18n.ts
 
-import bg from '@/locales/bg.json';
-import da_DK from '@/locales/da_DK.json';
-import de from '@/locales/de.json';
-import de_AT from '@/locales/de_AT.json';
-import el_GR from '@/locales/el_GR.json';
-import en from '@/locales/en.json';
-import es from '@/locales/es.json';
-import fr_CA from '@/locales/fr_CA.json';
-import fr_FR from '@/locales/fr_FR.json';
-import it_IT from '@/locales/it_IT.json';
-import ja from '@/locales/ja.json';
-import ko from '@/locales/ko.json';
-import mi_NZ from '@/locales/mi_NZ.json';
-import nl from '@/locales/nl.json';
-import pl from '@/locales/pl.json';
-import pt_BR from '@/locales/pt_BR.json';
-import sv_SE from '@/locales/sv_SE.json';
-import tr from '@/locales/tr.json';
-import uk from '@/locales/uk.json';
 import { type Locale } from '@/schemas/i18n/locale';
-import { WindowService } from '@/services/window.service';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { createI18n, type Composer } from 'vue-i18n';
 
 /**
  * Internationalization configuration and utilities.
  * Sets up Vue i18n instance with locale management and message loading.
+ *
+ * Locale files are pre-merged by the Python sync script into single files
+ * at generated/locales/{locale}.json. This simplifies the frontend loading
+ * by eliminating the need for runtime merging of split locale files.
  */
 
-type MessageSchema = typeof en;
+/**
+ * Import pre-merged locale files directly from generated directory.
+ * The Python sync script (locales/scripts/build/compile.py --merged) produces
+ * these files during development and build.
+ */
+// Using type assertion for Vite's import.meta.glob (types from vite/client reference)
+// Note: Since vite.config.ts sets root: './src', paths starting with / are relative to src/
+// We use /../generated to go up one level to the project root where generated/ lives
+const localeModules = (import.meta as any).glob('/../generated/locales/*.json', {
+  eager: true,
+}) as Record<string, { default: Record<string, any> }>;
+
+const messages: Record<string, any> = {};
+
+// Simple extraction - files are already merged by the Python sync script
+for (const path in localeModules) {
+  // Extract locale code from path: /generated/locales/en.json -> en
+  const match = path.match(/\/locales\/([^/]+)\.json$/);
+  if (match) {
+    const locale = match[1];
+    messages[locale] = localeModules[path].default;
+  }
+}
+
 type GlobalComposer = Composer<{}, {}, {}, Locale>;
 
 /**
  * The list of supported locales comes directly from etc/config.yaml.
  */
-const domainBranding = WindowService.get('domain_branding');
-const supportedLocales = WindowService.get('supported_locales') || [];
-const fallbackLocale = WindowService.get('fallback_locale') || {};
-const defaultLocale = WindowService.get('default_locale') || 'en';
-const displayLocale = domainBranding?.locale ?? WindowService.get('locale');
+const domainBranding = getBootstrapValue('domain_branding');
+const supportedLocales = getBootstrapValue('supported_locales') || [];
+const fallbackLocale = getBootstrapValue('fallback_locale') || {};
+const defaultLocale = getBootstrapValue('default_locale') || 'en';
+const displayLocale = domainBranding?.locale ?? getBootstrapValue('locale');
 
 /**
  * Creates a completely independent i18n instance with its own locale state and message
@@ -70,27 +78,7 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
     globalInjection: true, // allows $t to be used globally.
     missingWarn: true, // these enable browser console logging
     fallbackWarn: true, // and are removed from prod builds.
-    messages: {
-      bg,
-      da_DK,
-      de,
-      de_AT,
-      el_GR,
-      en, // Always include default messages
-      es,
-      fr_CA,
-      fr_FR,
-      it_IT,
-      ja,
-      ko,
-      mi_NZ,
-      nl,
-      pl,
-      pt_BR,
-      sv_SE,
-      tr,
-      uk,
-    },
+    messages, // All locales pre-loaded and merged via import.meta.glob()
     availableLocales: supportedLocales,
   });
 
@@ -113,13 +101,13 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
   /**
    * Updates locale for this instance only
    * @param locale - Target locale to set
+   *
+   * Note: All locales are pre-loaded and merged at module load time
+   * via import.meta.glob() in this file, so no dynamic loading is needed.
    */
   const setLocale = async (locale: string) => {
     if (!composer.availableLocales.includes(locale)) {
-      const messages = await loadLocaleMessages(locale);
-      if (messages) {
-        composer.setLocaleMessage(locale, messages);
-      }
+      console.warn(`Locale ${locale} is not in available locales. Attempting to set anyway.`);
     }
     composer.locale.value = locale;
   };
@@ -139,49 +127,3 @@ const {
 } = createI18nInstance(displayLocale);
 export default i18n;
 export { globalComposer, setGlobalLocale };
-
-/**
- * Dynamically imports locale message files.
- * @param locale - Locale code to load (e.g. 'en', 'es')
- * @returns Loaded messages or null if failed
- */
-async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
-  console.debug(`Attempting to load locale: ${locale}`);
-  try {
-    const messages = await import(`@/locales/${locale}.json`);
-    console.debug(`Successfully loaded locale: ${locale}`);
-    return messages.default;
-  } catch (error) {
-    console.error(`Failed to load locale: ${locale}`, error);
-    return null;
-  }
-}
-
-/**
- * Flattens nested message structure while maintaining backwards compatibility.
- * Supports both flat and dot-notation key access.
- * @param messages - Nested message object
- * @returns Flattened messages with preserved key paths
- */
-export function createCompatibilityLayer(messages: Record<string, any>): Record<string, string> {
-  const flat: Record<string, string> = {};
-
-  /**
-   * Recursively flattens object into dot notation paths.
-   * @param obj - Source object
-   * @param prefix - Current key path
-   */
-  function flattenKeys(obj: Record<string, unknown>, prefix = ''): void {
-    Object.entries(obj).forEach(([key, value]) => {
-      if (value && typeof value === 'object') {
-        flattenKeys(value as Record<string, unknown>, `${prefix}${key}.`);
-      } else {
-        flat[key] = value as string; // Maintain old keys
-        flat[`${prefix}${key}`] = value as string; // Add new nested keys
-      }
-    });
-  }
-
-  flattenKeys(messages);
-  return flat;
-}

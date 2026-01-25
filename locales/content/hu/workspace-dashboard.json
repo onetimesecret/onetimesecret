@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Megkapva",
+    "sha256": "49f19bee"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Nem kapták meg",
+    "sha256": "a4cf12ca"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Nincsenek legutóbbi titkok",
+    "sha256": "02b7b86b"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Kezdjen hozzá az első titkának létrehozásával.",
+    "sha256": "e96db24d"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Nem sikerült betölteni az adatokat",
+    "sha256": "ba7df1be"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Probléma merült fel az adatok betöltése során. Kérjük, próbálja újra.",
+    "sha256": "ff0d904e"
+  }
+}

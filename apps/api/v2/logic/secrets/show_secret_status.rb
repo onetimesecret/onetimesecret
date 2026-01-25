@@ -1,36 +1,41 @@
 # apps/api/v2/logic/secrets/show_secret_status.rb
+#
+# frozen_string_literal: true
 
 module V2::Logic
   module Secrets
+    using Familia::Refinements::TimeLiterals
 
     class ShowSecretStatus < V2::Logic::Base
-      attr_reader :key, :realttl
-      attr_reader :secret, :verification
+      attr_reader :identifier, :current_expiration, :secret, :verification
 
       def process_params
-        @key = params[:key].to_s
-        @secret = V2::Secret.load key
+        @identifier = params['identifier'].to_s
+        @secret     = Onetime::Secret.load identifier
       end
 
       def raise_concerns
-        limit_action :show_secret
+        require_entitlement!('api_access')
       end
 
       def process
-        @realttl = secret.realttl unless secret.nil?
+        @current_expiration = secret.current_expiration unless secret.nil?
+
+        response_data = success_data
+
+        # Otherwise it'll be flagged previewed before we've even sent the response.
+        secret.previewed! unless secret.nil?
+
+        response_data
       end
 
       def success_data
-        ret = if secret.nil?
+        if secret.nil?
           { record: { state: 'unknown' } }
         else
-          { record: secret.safe_dump, details: { realttl: realttl } }
+          { record: secret.safe_dump, details: { current_expiration: @current_expiration } }
         end
-
-        ret
       end
-
     end
-
   end
 end

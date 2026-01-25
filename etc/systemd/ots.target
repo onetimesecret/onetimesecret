@@ -1,0 +1,10 @@
+[Unit]
+Description=Onetime Secret Job System
+Documentation=https://docs.onetimesecret.com
+Wants=ots-scheduler.service
+Wants=ots-worker@email.service
+Wants=ots-worker@notifications.service
+Wants=ots-worker@default.service
+
+[Install]
+WantedBy=multi-user.target

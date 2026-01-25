@@ -1,0 +1,31 @@
+# try/support/test_models.rb
+#
+# frozen_string_literal: true
+
+#
+# This file provides convenient access to model classes for testing purposes.
+# It creates top-level constants (e.g., Customer) to versioned namespaces
+# (e.g., Onetime::Customer), allowing tests to use cleaner, more readable code
+# without version-specific references.
+#
+# Future improvement: Version selection will be controlled via environment
+# variable, enabling the same test suite to run against multiple API versions
+# without code changes.
+
+# Make sure the test helpers are loaded before the models. This makes it
+# possible for the tryouts to need only one require statement.
+require_relative 'test_helpers'
+
+require 'onetime/models'
+
+# Reference current API version for consistent model access across tests
+TestVersion = Onetime
+
+# Map commonly used models to top-level constants for cleaner test code
+Customer = TestVersion::Customer # e.g. Onetime::Customer
+CustomDomain = TestVersion::CustomDomain
+Receipt = TestVersion::Receipt
+Metadata = Receipt # Legacy alias for backward compatibility
+Secret = TestVersion::Secret
+Feedback = TestVersion::Feedback
+Organization = TestVersion::Organization

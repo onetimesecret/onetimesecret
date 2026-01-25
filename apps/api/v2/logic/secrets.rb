@@ -1,4 +1,6 @@
 # apps/api/v2/logic/secrets.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 
@@ -14,8 +16,9 @@ require_relative 'secrets/burn_secret'
 require_relative 'secrets/conceal_secret'
 require_relative 'secrets/generate_secret'
 require_relative 'secrets/reveal_secret'
-require_relative 'secrets/show_metadata'
+require_relative 'secrets/show_receipt'
 require_relative 'secrets/show_secret'
 require_relative 'secrets/show_secret_status'
 require_relative 'secrets/list_secret_status'
-require_relative 'secrets/list_metadata'
+require_relative 'secrets/list_receipts'
+require_relative 'secrets/update_receipt'

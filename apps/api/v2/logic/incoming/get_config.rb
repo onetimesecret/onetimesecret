@@ -1,4 +1,6 @@
 # apps/api/v2/logic/incoming/get_config.rb
+#
+# frozen_string_literal: true
 
 require_relative '../base'
 
@@ -15,7 +17,7 @@ module V2::Logic
         # Check if feature is enabled
         incoming_config = OT.conf.dig(:features, :incoming) || {}
         unless incoming_config[:enabled]
-          raise_form_error "Incoming secrets feature is not enabled"
+          raise_form_error 'Incoming secrets feature is not enabled'
         end
 
         limit_action :get_page

@@ -1,0 +1,8 @@
+# Procfile.dev
+
+# Use the port if set otherwise default to 3000
+backend: bundle exec bin/server -p ${PORT:-3000} etc/examples/puma.example.rb
+
+frontend: pnpm run dev
+
+worker: bundle exec bin/worker

@@ -1,3 +1,5 @@
+// src/utils/redirect.ts
+
 import type {
   RouteLocationNamedRaw,
   RouteLocationPathRaw,
@@ -50,6 +52,24 @@ export const validateRedirect = (path: string | RouteLocationRaw): boolean => {
     return false;
   }
 };
+
+/**
+ * Validates that a path is a safe internal redirect.
+ * Security: Prevents open redirect attacks by ensuring path is internal only.
+ *
+ * @param path - The path to validate
+ * @returns true if path is a valid internal redirect
+ */
+export function isValidInternalPath(path: string | undefined | null): path is string {
+  if (!path || typeof path !== 'string') return false;
+  // Max length to prevent DoS
+  if (path.length > 2048) return false;
+  // Must start with single slash, not double (protocol-relative)
+  if (!path.startsWith('/') || path.startsWith('//')) return false;
+  // Must not contain protocol
+  if (path.includes('://')) return false;
+  return true;
+}
 
 function validatePathString(path: string): boolean {
   try {

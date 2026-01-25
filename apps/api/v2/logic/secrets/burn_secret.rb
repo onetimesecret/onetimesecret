@@ -1,97 +1,127 @@
 # apps/api/v2/logic/secrets/burn_secret.rb
+#
+# frozen_string_literal: true
 
 module V2::Logic
   module Secrets
+    using Familia::Refinements::TimeLiterals
 
     class BurnSecret < V2::Logic::Base
-      attr_reader :key, :passphrase, :continue
-      attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
+      include Onetime::LoggerMethods
+
+      attr_reader :identifier, :passphrase, :continue, :receipt, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key = params[:key].to_s
-        @metadata = V2::Metadata.load key
-        @passphrase = params[:passphrase].to_s
-        @continue = [true, 'true'].include?(params[:continue])
+        @identifier = sanitize_identifier(params['identifier'])
+        @receipt    = Onetime::Receipt.load identifier
+        @passphrase = params['passphrase'].to_s
+        @continue   = [true, 'true'].include?(params['continue'])
       end
 
       def raise_concerns
-        limit_action :burn_secret
-        raise OT::MissingSecret if metadata.nil?
+        require_entitlement!('api_access')
+        raise OT::MissingSecret if receipt.nil?
       end
 
       def process
-        potential_secret = @metadata.load_secret
+        potential_secret = @receipt.load_secret
 
-        if potential_secret
-          # Rate limit all secret access attempts
-          limit_action :attempt_secret_access
+        return unless potential_secret
 
-          @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
-          viewable = potential_secret.viewable?
-          continue_result = params[:continue]
-          @greenlighted = viewable && correct_passphrase && continue_result
+        @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
+        viewable            = potential_secret.viewable?
+        continue_result     = params['continue']
+        @greenlighted       = viewable && correct_passphrase && continue_result
 
-          if greenlighted
-            @secret = potential_secret
-            owner = secret.load_customer
-            secret.burned!
-            owner.increment_field :secrets_burned unless owner.anonymous?
-            V2::Customer.global.increment_field :secrets_burned
-            V2::Logic.stathat_count('Burned Secrets', 1)
+        secret_logger.debug 'Secret burn initiated',
+          {
+            receipt_identifier: receipt.identifier,
+            secret_identifier: potential_secret.shortid,
+            viewable: viewable,
+            has_passphrase: potential_secret.has_passphrase?,
+            passphrase_correct: correct_passphrase,
+            continue: continue_result,
+            user_id: cust&.custid,
+          }
 
-          elsif !correct_passphrase
-            limit_action :failed_passphrase if potential_secret.has_passphrase?
-            message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
-            raise_form_error message
+        if greenlighted
+          @secret = potential_secret
+          owner   = secret.load_owner
+          secret.burned!
+          owner.increment_field :secrets_burned unless owner.anonymous?
+          Onetime::Customer.secrets_burned.increment
 
-          end
+          secret_logger.info 'Secret burned successfully',
+            {
+              secret_identifier: secret.shortid,
+              receipt_identifier: receipt.identifier,
+              owner_id: owner&.custid,
+              user_id: cust&.custid,
+              action: 'burn',
+              result: :success,
+            }
+
+        elsif !correct_passphrase
+          secret_logger.warn 'Burn failed - incorrect passphrase',
+            {
+              receipt_identifier: receipt.identifier,
+              secret_identifier: potential_secret.shortid,
+              user_id: cust&.custid,
+              action: 'burn',
+              result: :passphrase_failed,
+            }
+
+          message = I18n.t('web.COMMON.error_passphrase', locale: locale, default: 'Incorrect passphrase')
+          raise_form_error message
+
         end
+
+        success_data
       end
 
       def success_data
-        # Get base metadata attributes
-        attributes = metadata.safe_dump
+        # Get base receipt attributes
+        attributes = receipt.safe_dump
 
         # Add required URL fields
-        attributes.merge!({
-          # secret_state: 'burned',
-          natural_expiration: natural_duration(metadata.ttl.to_i),
-          expiration: (metadata.ttl.to_i + metadata.created.to_i),
-          expiration_in_seconds: (metadata.ttl.to_i),
-          share_path: build_path(:secret, metadata.secret_key),
-          burn_path: build_path(:private, metadata.key, 'burn'),
-          metadata_path: build_path(:private, metadata.key),
-          share_url: build_url(baseuri, build_path(:secret, metadata.secret_key)),
-          metadata_url: build_url(baseuri, build_path(:private, metadata.key)),
-          burn_url: build_url(baseuri, build_path(:private, metadata.key, 'burn')),
-        })
+        attributes.merge!(
+          {
+            # secret_state: 'burned',
+            natural_expiration: natural_duration(receipt.default_expiration.to_i),
+            expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
+            expiration_in_seconds: receipt.default_expiration.to_i,
+            share_path: build_path(:secret, receipt.secret_identifier),
+            burn_path: build_path(:private, receipt.identifier, 'burn'),
+            receipt_path: build_path(:private, receipt.identifier),
+            metadata_path: build_path(:private, receipt.identifier), # maintain public API
+            share_url: build_url(baseuri, build_path(:secret, receipt.secret_identifier)),
+            receipt_url: build_url(baseuri, build_path(:private, receipt.identifier)),
+            metadata_url: build_url(baseuri, build_path(:private, receipt.identifier)), # maintain public API
+            burn_url: build_url(baseuri, build_path(:private, receipt.identifier, 'burn')),
+          },
+        )
 
         {
           success: greenlighted,
           record: attributes,
           details: {
             type: 'record',
-            title: "Secret burned",
+            title: 'Secret burned',
             display_lines: 0,
             display_feedback: false,
             no_cache: true,
-            maxviews: 0,
-            has_maxviews: false,
             view_count: 0,
             has_passphrase: false,
             can_decrypt: false,
-            is_truncated: false,
             show_secret: false,
             show_secret_link: false,
-            show_metadata_link: false,
-            show_metadata: true,
-            show_recipients: !metadata.recipients.to_s.empty?,
+            show_metadata_link: false, # maintain public API
+            show_metadata: true, # maintain public API
+            show_recipients: !receipt.recipients.to_s.empty?,
             is_orphaned: false,
           },
         }
       end
-
     end
-
   end
 end

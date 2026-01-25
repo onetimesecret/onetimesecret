@@ -1,0 +1,9 @@
+{
+  "web": {
+    "auth": {
+      "security": {
+        "authentication_failed": "Authentication failed. 3 attempts remaining."
+      }
+    }
+  }
+}

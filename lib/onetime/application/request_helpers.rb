@@ -1,0 +1,170 @@
+# lib/onetime/application/request_helpers.rb
+#
+# frozen_string_literal: true
+
+# Onetime-specific request helpers for Otto
+#
+# This module provides Onetime-specific request helper methods that extend
+# Otto::Request. These methods provide access to authentication state,
+# session, locale, and other request-scoped data across controllers,
+# views, and Rhales templates.
+#
+# All methods delegate to env keys set by Otto middleware.
+#
+# @example Registration in Otto
+#   router = Otto.new(routes_path)
+#   router.register_request_helpers(Onetime::Application::RequestHelpers)
+#
+# @see Otto#register_request_helpers
+
+module Onetime
+  module Application
+    module RequestHelpers
+      # =========================================================================
+      # AUTHENTICATION (Otto StrategyResult)
+      # =========================================================================
+
+      # Get Otto's StrategyResult (canonical authentication state)
+      #
+      # @return [Otto::Security::Authentication::StrategyResult, nil]
+      # @note Returns nil in contexts without Otto middleware (e.g., rake tasks, console)
+      def strategy_result
+        env['otto.strategy_result']
+      end
+
+      # Get authenticated user object
+      #
+      # @return [Object, nil] User object or nil for anonymous/non-middleware requests
+      def user
+        strategy_result&.user
+      end
+
+      # Get Rack session via StrategyResult
+      #
+      # Using strategy_result.session ensures we get the same session object
+      # that Otto's authentication strategies use.
+      #
+      # @return [Hash] Rack session hash
+      def session
+        strategy_result&.session || env['rack.session'] || {}
+      end
+
+      # Check if request is authenticated
+      #
+      # @return [Boolean] true if authenticated, false otherwise
+      def authenticated?
+        strategy_result&.authenticated? || false
+      end
+
+      # Get authentication method used for this request
+      #
+      # @return [String, nil] Auth method or nil if not authenticated
+      def auth_method
+        strategy_result&.auth_method
+      end
+
+      # =========================================================================
+      # ONETIME-SPECIFIC
+      # =========================================================================
+
+      # Get current customer (Onetime-specific user object)
+      #
+      # Never returns nil - returns Customer.anonymous for unauthenticated requests.
+      #
+      # @return [Onetime::Customer] Customer object (authenticated or anonymous)
+      def current_customer
+        user.is_a?(Onetime::Customer) ? user : Onetime::Customer.anonymous
+      end
+
+      # Get current organization from strategy result metadata
+      #
+      # @return [Onetime::Organization, nil] Current organization or nil
+      def organization
+        return @organization if defined?(@organization)
+
+        result = strategy_result
+        return nil unless result
+
+        context       = result.metadata[:organization_context]
+        @organization = context[:organization] if context
+      end
+
+      # Get current organization ID
+      #
+      # @return [String, nil] Organization objid or nil
+      def organization_id
+        organization&.objid
+      end
+
+      # Switch to a different organization
+      #
+      # Updates session and clears cache. Organization change takes effect
+      # on the next request.
+      #
+      # @param org_id [String] Organization objid to switch to
+      # @return [Boolean] true if switch was successful
+      def switch_organization(org_id)
+        return false unless user && org_id
+        return false unless strategy_result&.session || env['rack.session']
+
+        org = Onetime::Organization.load(org_id)
+        return false unless org && org.member?(user)
+
+        session['organization_id'] = org_id
+
+        # Clear cache to force reload on next request
+        cache_key = "org_context:#{user.objid}"
+        session.delete(cache_key)
+
+        # Update current request's memoized values
+        @organization = org
+
+        true
+      rescue StandardError => ex
+        OT.le "[RequestHelpers#switch_organization] Failed to switch: #{ex.message}"
+        false
+      end
+
+      # =========================================================================
+      # LOCALE (Onetime-specific fallback)
+      # =========================================================================
+
+      # Get resolved locale for this request
+      #
+      # @return [String] Locale code (e.g., 'en', 'es', 'fr')
+      def locale
+        env['otto.locale'] || OT.default_locale
+      end
+
+      # =========================================================================
+      # SECURITY (CSP Nonce)
+      # =========================================================================
+
+      # Get CSP nonce for this request
+      #
+      # Generated by Onetime's RequestSetup middleware.
+      #
+      # @return [String, nil] Base64-encoded nonce or nil if not in middleware context
+      def nonce
+        env['onetime.nonce']
+      end
+
+      # =========================================================================
+      # HTTP HEADERS (Convenience Methods)
+      # =========================================================================
+
+      # Check if request accepts specific content type
+      #
+      # @param content_type [String] Content type to check (e.g., 'application/json')
+      # @return [Boolean] true if Accept header includes content type
+      def accepts?(content_type)
+        accept_header = env['HTTP_ACCEPT']
+        return false unless accept_header
+
+        accept_header.split(',').any? do |type|
+          type.strip.split(';').first == content_type
+        end
+      end
+    end
+  end
+end

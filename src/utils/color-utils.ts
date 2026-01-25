@@ -1,3 +1,5 @@
+// src/utils/color-utils.ts
+
 export function shouldUseLightText(hexColor: string): boolean {
   // Remove the # if present
   const color = hexColor.replace('#', '');

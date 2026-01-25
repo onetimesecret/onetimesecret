@@ -1,3 +1,5 @@
+// src/schemas/models/secret.ts
+
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -11,11 +13,24 @@ import { z } from 'zod';
  * 3. Clear type boundaries
  */
 
+/**
+ * STATE TERMINOLOGY MIGRATION REFERENCE (Secret)
+ * ==============================================
+ * Legacy -> New field mappings:
+ *   State values:
+ *     'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *     'received' -> 'revealed'   (secret content decrypted/consumed)
+ *
+ * API sends BOTH old and new values for backward compatibility.
+ * @deprecated VIEWED and RECEIVED - use PREVIEWED and REVEALED instead
+ */
 export const SecretState = {
   NEW: 'new',
-  RECEIVED: 'received',
+  RECEIVED: 'received',     // @deprecated - use REVEALED
+  REVEALED: 'revealed',     // NEW: secret content was decrypted/consumed
   BURNED: 'burned',
-  VIEWED: 'viewed',
+  VIEWED: 'viewed',         // @deprecated - use PREVIEWED
+  PREVIEWED: 'previewed',   // NEW: secret link accessed, confirmation shown
 } as const;
 
 export type SecretState = (typeof SecretState)[keyof typeof SecretState];
@@ -25,10 +40,10 @@ export const secretStateSchema = z.enum(Object.values(SecretState) as [string, .
 
 // Base schema for core fields
 const secretBaseSchema = z.object({
+  identifier: z.string(),
   key: z.string(),
-  shortkey: z.string(),
+  shortid: z.string(),
   state: secretStateSchema,
-  is_truncated: transforms.fromString.boolean,
   has_passphrase: transforms.fromString.boolean,
   verification: transforms.fromString.boolean,
   secret_value: z.string().optional(), // optional for preview/confirmation page

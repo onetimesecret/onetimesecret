@@ -1,0 +1,511 @@
+# .github/workflows/migration-tests.yml
+---
+name: Migration Tests
+
+# Dedicated workflow for Rodauth database migration and trigger testing.
+#
+# Tests database schema migrations, triggers, and functions across both SQLite
+# and PostgreSQL engines. These tests verify that:
+# - Migrations run successfully without errors
+# - Database triggers fire correctly
+# - PostgreSQL-specific features (functions, citext, etc.) work as expected
+# - Concurrent boots handle race conditions gracefully
+#
+# Architecture:
+# - Three parallel jobs test different database scenarios
+# - SQLite job uses in-memory database for speed
+# - PostgreSQL jobs use real database service container
+# - Each job runs focused test suites with appropriate tags
+#
+# Test Files:
+# - spec/integration/full/database_triggers/sqlite_spec.rb
+# - spec/integration/full/database_triggers/postgres_spec.rb
+# - spec/integration/full/postgres_infrastructure_spec.rb
+# - spec/integration/full/infrastructure_spec.rb (SQLite triggers)
+#
+# Performance Targets:
+# - SQLite tests: < 2 minutes
+# - PostgreSQL tests: < 5 minutes
+# - Concurrent boot: < 3 minutes
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - 'rel/*'
+    paths:
+      - 'apps/web/auth/migrations/**'
+      - 'apps/web/auth/database.rb'
+      - 'apps/web/auth/rodauth.rb'
+      - 'spec/integration/full/database_triggers/**'
+      - 'spec/integration/full/*_infrastructure_spec.rb'
+      - 'spec/support/*_database.rb'
+      - '.github/workflows/migration-tests.yml'
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate debugging session'
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migration-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================================================
+  # SQLite Migration Tests (~90s)
+  # ==========================================================================
+  migration-tests-sqlite:
+    name: SQLite Migrations & Triggers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=2g
+        ports:
+          - 2121:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Ruby environment
+        uses: ./.github/actions/setup-ruby-test-env
+        with:
+          download-artifacts: 'false'
+
+      - name: Enable memory overcommit for Redis
+        run: sudo sysctl -w vm.overcommit_memory=1
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        if: inputs.debug_enabled == true
+        with:
+          detached: true
+
+      - name: Run SQLite migration tests
+        env:
+          RACK_ENV: test
+          AUTHENTICATION_MODE: full
+          AUTH_DATABASE_URL: 'sqlite::memory:'
+          REDIS_URL: redis://127.0.0.1:2121/0
+          RSPEC_OUTPUT_FILE: tmp/sqlite_migration_results.json
+        run: |
+          set -e
+          mkdir -p tmp
+          echo "## SQLite Migration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "Running database trigger tests..." >> $GITHUB_STEP_SUMMARY
+
+          # Run SQLite-specific database trigger tests
+          bundle exec rspec \
+            spec/integration/full/database_triggers/sqlite_spec.rb \
+            --format progress \
+            --format json --out $RSPEC_OUTPUT_FILE
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "### Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f "tmp/sqlite_migration_results.json" ]; then
+            TOTAL=$(jq '.summary.example_count' tmp/sqlite_migration_results.json)
+            FAILURES=$(jq '.summary.failure_count' tmp/sqlite_migration_results.json)
+            DURATION=$(jq '.summary.duration' tmp/sqlite_migration_results.json)
+            echo "- Total: $TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $FAILURES" >> $GITHUB_STEP_SUMMARY
+            echo "- Duration: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- No results file generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload SQLite test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlite-migration-results
+          path: tmp/sqlite_migration_results.json
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ==========================================================================
+  # PostgreSQL Migration Tests (~4min)
+  # ==========================================================================
+  migration-tests-postgres:
+    name: PostgreSQL Migrations & Triggers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=2g
+        ports:
+          - 2121:6379
+
+      postgres:
+        image: postgres:17@sha256:929190a12e0833c89276f78c7cf665aaaa62b5930e6f852e9f733f8b737d3f8f
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: onetime_auth_test
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Ruby environment
+        uses: ./.github/actions/setup-ruby-test-env
+        with:
+          download-artifacts: 'false'
+
+      - name: Enable memory overcommit for Redis
+        run: sudo sysctl -w vm.overcommit_memory=1
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        if: inputs.debug_enabled == true
+        with:
+          detached: true
+
+      - name: Create PostgreSQL test users
+        env:
+          PGPASSWORD: postgres
+        run: |
+          # Create read/write user for tests
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_user') THEN
+                CREATE USER onetime_user WITH PASSWORD 'testpass';
+              END IF;
+            END
+            \$\$;
+          "
+
+          # Create privileged user for migrations (can create extensions)
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator') THEN
+                CREATE USER onetime_migrator WITH PASSWORD 'migratepass' CREATEDB;
+              END IF;
+            END
+            \$\$;
+          "
+
+          # Grant necessary permissions
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_user;
+            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_migrator;
+            GRANT ALL ON SCHEMA public TO onetime_user;
+            GRANT ALL ON SCHEMA public TO onetime_migrator;
+
+            -- Set default privileges so tables created by onetime_migrator
+            -- are automatically accessible to onetime_user
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT USAGE, SELECT ON SEQUENCES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT EXECUTE ON FUNCTIONS TO onetime_user;
+          "
+
+      - name: Run PostgreSQL migration tests
+        env:
+          RACK_ENV: test
+          AUTHENTICATION_MODE: full
+          AUTH_DATABASE_URL: postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test
+          AUTH_DATABASE_URL_MIGRATIONS: postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test
+          REDIS_URL: redis://127.0.0.1:2121/0
+          RSPEC_OUTPUT_FILE: tmp/postgres_migration_results.json
+        run: |
+          set -e
+          mkdir -p tmp
+          echo "## PostgreSQL Migration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "Running database trigger and infrastructure tests..." >> $GITHUB_STEP_SUMMARY
+
+          # Run PostgreSQL-specific database trigger tests
+          bundle exec rspec \
+            spec/integration/full/database_triggers/postgres_spec.rb \
+            spec/integration/full/postgres_infrastructure_spec.rb \
+            --tag postgres_database \
+            --format progress \
+            --format json --out $RSPEC_OUTPUT_FILE
+
+      - name: Test dual URL configuration
+        env:
+          RACK_ENV: test
+          AUTHENTICATION_MODE: full
+          AUTH_DATABASE_URL: postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test
+          AUTH_DATABASE_URL_MIGRATIONS: postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test
+          REDIS_URL: redis://127.0.0.1:2121/0
+        run: |
+          echo "### Dual URL Configuration Test" >> $GITHUB_STEP_SUMMARY
+
+          # Verify migrations can run with elevated connection
+          bundle exec ruby -e '
+            require "bundler/setup"
+            require_relative "lib/onetime"
+            require_relative "apps/web/auth/database"
+
+            # This should use AUTH_DATABASE_URL_MIGRATIONS for migrations
+            # and AUTH_DATABASE_URL for normal operations
+            Auth::Database.ensure_migrations!
+
+            puts "Dual URL configuration verified"
+          ' && echo "- Dual URL configuration: PASS" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "### Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f "tmp/postgres_migration_results.json" ]; then
+            TOTAL=$(jq '.summary.example_count' tmp/postgres_migration_results.json)
+            FAILURES=$(jq '.summary.failure_count' tmp/postgres_migration_results.json)
+            DURATION=$(jq '.summary.duration' tmp/postgres_migration_results.json)
+            echo "- Total: $TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $FAILURES" >> $GITHUB_STEP_SUMMARY
+            echo "- Duration: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- No results file generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload PostgreSQL test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-migration-results
+          path: tmp/postgres_migration_results.json
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ==========================================================================
+  # Concurrent Boot Simulation (~2min)
+  # ==========================================================================
+  migration-tests-concurrent:
+    name: Concurrent Boot & Race Conditions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=2g
+        ports:
+          - 2121:6379
+
+      postgres:
+        image: postgres:17@sha256:929190a12e0833c89276f78c7cf665aaaa62b5930e6f852e9f733f8b737d3f8f
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: onetime_auth_test_concurrent
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Ruby environment
+        uses: ./.github/actions/setup-ruby-test-env
+        with:
+          download-artifacts: 'false'
+
+      - name: Enable memory overcommit for Redis
+        run: sudo sysctl -w vm.overcommit_memory=1
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        if: inputs.debug_enabled == true
+        with:
+          detached: true
+
+      - name: Simulate concurrent boot scenario
+        env:
+          PGPASSWORD: postgres
+          RACK_ENV: test
+          AUTHENTICATION_MODE: full
+          AUTH_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/onetime_auth_test_concurrent
+          REDIS_URL: redis://127.0.0.1:2121/0
+        run: |
+          set -e
+          echo "## Concurrent Boot Simulation" >> $GITHUB_STEP_SUMMARY
+          echo "Simulating multiple instances starting simultaneously..." >> $GITHUB_STEP_SUMMARY
+
+          # Simulate 5 instances booting concurrently
+          # Each should handle migrations gracefully without errors
+          PIDS=()
+          for i in {1..5}; do
+            (
+              bundle exec ruby -e '
+                require "bundler/setup"
+                require_relative "lib/onetime"
+                require_relative "apps/web/auth/database"
+
+                puts "Starting boot"
+                Auth::Database.ensure_migrations!
+                puts "Boot complete"
+              ' 2>&1 | sed "s/^/[Instance $i] /"
+            ) &
+            PIDS+=($!)
+          done
+
+          # Wait for all instances and check for failures
+          FAILED=0
+          for pid in "${PIDS[@]}"; do
+            if ! wait $pid; then
+              FAILED=1
+              echo "- Instance with PID $pid FAILED" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          if [ $FAILED -eq 0 ]; then
+            echo "- All 5 instances booted successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- No race conditions detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- FAILED: Some instances encountered errors" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Verify migration idempotency
+        env:
+          PGPASSWORD: postgres
+          RACK_ENV: test
+          AUTHENTICATION_MODE: full
+          AUTH_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/onetime_auth_test_concurrent
+          REDIS_URL: redis://127.0.0.1:2121/0
+        run: |
+          echo "### Migration Idempotency Test" >> $GITHUB_STEP_SUMMARY
+
+          # Run migrations 3 times - should be idempotent
+          for i in {1..3}; do
+            bundle exec ruby -e '
+              require "bundler/setup"
+              require_relative "lib/onetime"
+              require_relative "apps/web/auth/database"
+              Auth::Database.ensure_migrations!
+            '
+          done
+
+          echo "- Migrations are idempotent (ran 3 times without errors)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for schema consistency
+        env:
+          PGPASSWORD: postgres
+        run: |
+          echo "### Schema Consistency Check" >> $GITHUB_STEP_SUMMARY
+
+          # Verify critical tables exist
+          TABLES=$(psql -h localhost -U postgres -d onetime_auth_test_concurrent -t -c "
+            SELECT string_agg(tablename, ', ')
+            FROM pg_tables
+            WHERE schemaname = 'public'
+            ORDER BY tablename;
+          " | xargs)
+
+          echo "- Tables: $TABLES" >> $GITHUB_STEP_SUMMARY
+
+          # Verify critical triggers exist
+          TRIGGERS=$(psql -h localhost -U postgres -d onetime_auth_test_concurrent -t -c "
+            SELECT string_agg(trigger_name, ', ')
+            FROM information_schema.triggers
+            WHERE trigger_schema = 'public'
+            ORDER BY trigger_name;
+          " | xargs)
+
+          echo "- Triggers: $TRIGGERS" >> $GITHUB_STEP_SUMMARY
+
+  # ==========================================================================
+  # Test Aggregation
+  # ==========================================================================
+  aggregate-migration-results:
+    name: Aggregate Migration Test Results
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    needs:
+      - migration-tests-sqlite
+      - migration-tests-postgres
+      - migration-tests-concurrent
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Download all test results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: '*-migration-results'
+          path: migration-results/
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Generate summary
+        run: |
+          echo "## Migration Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| SQLite Migrations | ${{ needs.migration-tests-sqlite.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| PostgreSQL Migrations | ${{ needs.migration-tests-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Concurrent Boot | ${{ needs.migration-tests-concurrent.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d "migration-results" ]; then
+            echo "### Detailed Results" >> $GITHUB_STEP_SUMMARY
+            for file in migration-results/*.json; do
+              if [ -f "$file" ]; then
+                NAME=$(basename "$file" .json)
+                TOTAL=$(jq -r '.summary.example_count // "N/A"' "$file")
+                FAILURES=$(jq -r '.summary.failure_count // "N/A"' "$file")
+                echo "- **$NAME**: $TOTAL tests, $FAILURES failures" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          fi
+
+      - name: Check overall status
+        run: |
+          if [ "${{ needs.migration-tests-sqlite.result }}" != "success" ] || \
+             [ "${{ needs.migration-tests-postgres.result }}" != "success" ] || \
+             [ "${{ needs.migration-tests-concurrent.result }}" != "success" ]; then
+            echo "At least one migration test job failed"
+            exit 1
+          fi

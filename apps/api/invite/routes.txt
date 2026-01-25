@@ -1,0 +1,18 @@
+# apps/api/invite/routes
+#
+# Otto Routes - Invite API (Public Token-Based Endpoints)
+# Using direct Logic class routing with authentication strategies
+#
+# Invite API handles invitation acceptance/decline flows.
+# These endpoints use tokens for validation rather than session auth.
+#
+# Auth Notes:
+# - "noauth" means publicly accessible, but the token validates access
+# - Invalid/expired tokens are rejected in the logic layer
+# - Accept requires session auth (user must be logged in)
+# - Decline only requires token (invitee may not have an account)
+
+# Invitation Token Endpoints
+GET    /:token                              InviteAPI::Logic::Invites::ShowInvite response=json auth=noauth
+POST   /:token/accept                       InviteAPI::Logic::Invites::AcceptInvite response=json auth=sessionauth
+POST   /:token/decline                      InviteAPI::Logic::Invites::DeclineInvite response=json auth=noauth

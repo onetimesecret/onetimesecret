@@ -1,0 +1,60 @@
+# .gemeini/config.yaml
+---
+# Default Gemini Code Assist review categories (when custom style guides aren't
+# specified):
+#
+# - Correctness: Ensures code functions as intended, handles edge cases, checks
+#   for logic errors, race conditions, or incorrect API usage.
+# - Efficiency: Identifies performance bottlenecks like excessive loops, memory
+#   leaks, inefficient data structures, redundant calculations, and string
+#   manipulation.
+# - Maintainability: Assesses readability, modularity, and best practices.
+#   Targets poor naming, missing documentation, complexity, duplication,
+#   inconsistent formatting, and magic numbers.
+# - Security: Identifies vulnerabilities in data handling and input validation,
+#   including insecure storage, injection attacks, insufficient access controls,
+#   CSRF, and IDOR.
+# - Miscellaneous: Testing, performance, scalability, modularity, reusability,
+#   error logging, and monitoring.
+#
+# @see https://developers.google.com/gemini-code-assist/docs/customize-gemini-behavior-github
+#
+have_fun: false
+memory_config:
+  disabled: false
+code_review:
+  disable: false
+  comment_severity_threshold: MEDIUM
+  max_review_comments: 12
+  pull_request_opened:
+    help: true
+    summary: true
+    code_review: true
+    include_drafts: true
+ignore_patterns:
+  # Lock files and dependencies
+  - "*.lock"
+  - "pnpm-lock.yaml"
+  - "Gemfile.lock"
+  # Build artifacts
+  - "dist/**"
+  - "*.min.js"
+  - "*.min.css"
+  - "public/web/dist/**"
+  - "node_modules/**"
+  - "coverage/**"
+  - "playwright-report/**"
+  - "test-results/**"
+  # Test fixtures
+  - "**/spec/fixtures/vcr_cassettes/**"
+  # Binary and large assets
+  - "**/*.png"
+  - "**/*.jpg"
+  - "**/*.jpeg"
+  - "**/*.gif"
+  - "**/*.webp"
+  - "**/*.svg"
+  - "**/*.ico"
+  - "**/*.pdf"
+  - "**/*.woff*"
+  - "**/*.ttf"

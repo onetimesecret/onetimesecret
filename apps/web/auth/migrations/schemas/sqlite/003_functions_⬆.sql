@@ -1,0 +1,42 @@
+-- ================================================================
+-- Rodauth SQLite Functions (003)
+-- Loaded by 002_functions.rb migration
+--
+-- SQLite Limitation: No Stored Functions/Procedures
+-- ================================================================
+--
+-- SQLite does not support stored functions or procedures like PostgreSQL.
+-- The functions defined in the PostgreSQL version would need to be
+-- implemented at the application level in Ruby code.
+--
+-- For reference, the PostgreSQL functions that would exist here are:
+--
+-- SECURITY FUNCTIONS:
+-- - rodauth_get_salt(p_account_id) → Returns password salt substring
+-- - rodauth_valid_password_hash(p_account_id, hash) → Validates password hash
+-- - cleanup_expired_tokens() → Removes expired password reset/remember/lockout keys
+--
+-- TRIGGER FUNCTIONS:
+-- - update_last_login_time() → Updates account_activity_times on successful login
+-- - cleanup_expired_tokens_extended() → Removes expired JWT/email auth tokens
+-- - update_accounts_updated_at() → Updates account updated_at timestamp
+--
+-- UTILITY FUNCTIONS:
+-- - update_session_last_use(account_id, session_id) → Updates session timestamp
+-- - cleanup_old_audit_logs() → Removes audit logs older than 90 days
+-- - get_account_security_summary(account_id) → Returns security status summary
+--
+-- ================================================================
+-- IMPLEMENTATION NOTES
+-- ================================================================
+--
+-- The application-level equivalent in Ruby would be:
+--
+-- 1. Password operations handled by Rodauth's configured hash algorith
+-- 2. Token cleanup can be scheduled via background jobs (e.g., Kicks/RabbitMQ)
+-- 3. Timestamp updates handled by Sequel hooks or model callbacks
+-- 4. Security summaries via Sequel queries or model methods
+--
+-- ================================================================
+
+-- This file intentionally contains no executable SQL.

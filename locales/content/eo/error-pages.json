@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Kial ĉi tiu sekreto estas nealirebla?",
+    "sha256": "bd545472"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Sekretoj estas dizajnitaj por esti viditaj nur unufoje. Ĉi tiu ligilo eble jam estis alirita, eksvalidiĝis, aŭ estis permane forigita de la sendinto.",
+    "sha256": "44c54ed2"
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Kion mi devus fari nun?",
+    "sha256": "fbf3e67f"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Kontaktu la personon kiu sendis al vi ĉi tiun ligilon kaj petu ilin krei novan sekreton. Sciigu ilin ke vi ne povis aliri la originalan informon.",
+    "sha256": "d9f4f41a"
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Averto forigita",
+    "sha256": "e6d67409"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Forigi averton pri mallongigo",
+    "sha256": "79e02fe6"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Ho ve! La paĝo kiun vi serĉas ne ekzistas aŭ estis movita.",
+    "sha256": "78207a09"
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Paĝo Ne Trovita",
+    "sha256": "27595daa"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Paĝo Ne Trovita",
+    "sha256": "27595daa"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Forigi averton",
+    "sha256": "9f6e4da3"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Forigi sciigon",
+    "sha256": "b7bb3f34"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Se vi ne certas kion fari poste, bonvolu kontakti la personon kiu sendis al vi ĉi tiun ligilon por pliaj informoj.",
+    "sha256": "0df00d3f"
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Informoj dividitaj per nia servo povas esti aliritaj nur unufoje. Post vidado, la enhavo estas porĉiam forigita de niaj serviloj por certigi konfidencon. Ĉi tiu aliro helpas protekti viajn sentemajn datumojn limigante ilian eksponiĝon kaj malhelpante neaŭtorizitan aliron.",
+    "sha256": "a3fd8283"
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Ni bedaŭras, sed neatendita eraro okazis dum pritraktado de via peto. Nia teamo estis sciigita kaj ni laboras por ripari ĝin.",
+    "sha256": "f3b50965"
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Io misfunkciis",
+    "sha256": "93529f24"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Iru kunhavigi sekreton!",
+    "sha256": "04c04b1a"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "La paĝo kiun vi serĉas ne ekzistas aŭ estis movita. Ne zorgu, tio okazas al ĉiuj!",
+    "sha256": "e26522de"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404",
+    "sha256": "ba5b5737"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Ne eblas ŝargi datumojn pro problemoj kun datumformato. Bonvolu reprovi poste.",
+    "sha256": "a7b6f998"
+  }
+}

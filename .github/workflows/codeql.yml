@@ -1,5 +1,5 @@
 # .github/workflows/codeql.yml
-
+---
 # For most projects, this workflow file will not need changing; you simply need
 # to commit it to your repository.
 #
@@ -33,16 +33,8 @@ on:
       - 'feature/*'
     types:
       - opened
-      - edited
+      - synchronize
       - ready_for_review
-
-  # Automatic trigger on pushes to feature and work-in-progress branches
-  # Allows for continuous integration and testing of new features
-  push:
-    branches:
-      - develop
-      - 'feature/*'
-      - 'rel/*'
 
   schedule:
     - cron: '26 17 * * 2'
@@ -69,17 +61,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          detached: true
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
+        uses: github/codeql-action/init@d198d2fabf39a7f36b5ce57ce70d4942944f006e # v3
         with:
           languages: ${{ matrix.language }}
           config-file: .github/codeql/codeql-config.yml # Use your advanced config file
@@ -103,6 +89,6 @@ jobs:
           exit 1
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
+        uses: github/codeql-action/analyze@d198d2fabf39a7f36b5ce57ce70d4942944f006e # v3
         with:
           category: '/language:${{matrix.language}}'

@@ -1,0 +1,80 @@
+# apps/web/core/routes
+
+# Public routes - accessible to everyone
+GET   /                                          Core::Controllers::Page#index auth=noauth
+GET   /404                                       Core::Controllers::Page#not_found auth=noauth
+GET   /500                                       Core::Controllers::Page#server_error auth=noauth
+GET   /robots.txt                                Core::Controllers::Page#robots_txt auth=noauth
+GET   /favicon.ico                               Core::Controllers::Page#favicon auth=noauth
+GET   /feedback                                  Core::Controllers::Page#index auth=noauth
+GET   /health                                    Core::Controllers::Health#index auth=noauth
+GET   /health/advanced                           Core::Controllers::Health#advanced auth=noauth
+
+# Authentication System UI - Supports both Basic and Advanced modes
+GET   /signin                                    Core::Controllers::Page#index auth=noauth
+GET   /signup                                    Core::Controllers::Page#index auth=noauth
+GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
+GET   /pricing                                   Core::Controllers::Page#index auth=noauth
+GET   /forgot                                    Core::Controllers::Page#index auth=noauth
+GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
+GET   /reset-password                            Core::Controllers::Page#index auth=noauth
+
+# Authentication routes - handled here in basic mode, by Auth app in advanced
+# mode. The Vue frontend uses the same /auth/* endpoints regardless of which
+# mode is enabled. The Auth app provides many more routes in addition to these.
+GET   /logout                                    Core::Controllers::Authentication#logout auth=noauth
+POST  /logout                                    Core::Controllers::Authentication#logout auth=noauth
+GET   /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
+POST  /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
+POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=noauth response=json
+POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=noauth response=json
+POST  /auth/reset-password-request               Core::Controllers::Registration#request_reset_email auth=noauth response=json
+POST  /auth/reset-password                       Core::Controllers::Registration#reset_password auth=noauth response=json
+POST  /auth/reset-password/:key                  Core::Controllers::Registration#reset_password auth=noauth response=json
+
+# Authentication routes - advanced mode routes that core delivers for the
+# frontend vue app to mount on. The frontend app then communicates via
+# the JSON API at /auth/verify-account etc.
+GET   /verify-account                            Core::Controllers::Page#index
+GET   /email-login                               Core::Controllers::Page#index
+GET   /mfa-verify                                Core::Controllers::Page#index
+
+# Bootstrap endpoint - returns initialization data for the current session
+GET   /bootstrap/me                              Core::Controllers::Page#bootstrap_me auth=noauth
+
+# Vue SPA catch-all routes - public (Vue handles auth client-side)
+GET   /receipt/*                                 Core::Controllers::Page#index auth=noauth
+GET   /secret/*                                  Core::Controllers::Page#index auth=noauth
+GET   /l/*                                       Core::Controllers::Page#index auth=noauth
+GET   /l                                         Core::Controllers::Page#index auth=noauth
+
+# Incoming secrets - anonymous secret submission to configured recipients
+GET   /incoming                                  Core::Controllers::Page#index auth=noauth
+GET   /incoming/*                                Core::Controllers::Page#index auth=noauth
+
+# Authenticated routes - require valid session
+GET   /dashboard                                 Core::Controllers::Page#index auth=sessionauth
+GET   /recent                                    Core::Controllers::Page#index auth=sessionauth
+GET   /domains/*                                 Core::Controllers::Page#index auth=sessionauth
+GET   /domains                                   Core::Controllers::Page#index auth=sessionauth
+GET   /account/*                                 Core::Controllers::Page#index auth=sessionauth
+GET   /account                                   Core::Controllers::Page#index auth=sessionauth
+GET   /teams/*                                   Core::Controllers::Page#index auth=sessionauth
+GET   /teams                                     Core::Controllers::Page#index auth=sessionauth
+GET   /orgs/*                                    Core::Controllers::Page#index auth=sessionauth
+GET   /org/*                                     Core::Controllers::Page#index auth=sessionauth
+GET   /orgs                                      Core::Controllers::Page#index auth=sessionauth
+GET   /org                                       Core::Controllers::Page#index auth=sessionauth
+
+# Billing
+GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=noauth
+GET   /plans/:tier/:billing_cycle                Core::Controllers::Welcome#plan_redirect auth=noauth
+GET   /welcome                                   Core::Controllers::Welcome#welcome auth=noauth
+GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=sessionauth
+
+# Colonel routes - require colonel role
+GET   /colonel                                   Core::Controllers::Page#index auth=sessionauth role=colonel
+GET   /colonel/*                                 Core::Controllers::Page#index auth=sessionauth role=colonel
+
+# Image generation - authenticated
+GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=noauth
