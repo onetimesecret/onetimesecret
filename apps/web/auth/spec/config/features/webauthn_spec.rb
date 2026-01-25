@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Tests for ENABLE_WEBAUTHN ENV variable
+# Tests for AUTH_WEBAUTHN_ENABLED ENV variable
 #
 # Verifies that WebAuthn features (webauthn, webauthn_login, webauthn_modify_email) are:
 # - Disabled by default (when ENV not set)
-# - Enabled when ENV['ENABLE_WEBAUTHN'] == 'true'
+# - Enabled when ENV['AUTH_WEBAUTHN_ENABLED'] == 'true'
 #
 # Reference: apps/web/auth/config/features/webauthn.rb
 
@@ -15,7 +15,7 @@ require_relative '../../spec_helper'
 RSpec.describe 'Auth::Config::Features::WebAuthn' do
   let(:db) { create_test_database }
 
-  describe 'when ENABLE_WEBAUTHN=true (enabled)' do
+  describe 'when AUTH_WEBAUTHN_ENABLED=true (enabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,
@@ -109,7 +109,7 @@ RSpec.describe 'Auth::Config::Features::WebAuthn' do
     end
   end
 
-  describe 'when ENABLE_WEBAUTHN is not set (disabled by default)' do
+  describe 'when AUTH_WEBAUTHN_ENABLED is not set (disabled by default)' do
     let(:app) do
       create_rodauth_app(
         db: db,

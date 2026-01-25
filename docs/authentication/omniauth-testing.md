@@ -32,7 +32,7 @@ Create realm, client, and user via admin console at `http://localhost:8080/admin
 ## Environment Configuration
 
 ```bash
-export ENABLE_OMNIAUTH=true
+export AUTH_SSO_ENABLED=true
 export OIDC_ISSUER=http://localhost:8080           # Zitadel/Keycloak base URL
 export OIDC_CLIENT_ID=<from-idp>
 export OIDC_CLIENT_SECRET=<from-idp>
@@ -57,7 +57,7 @@ curl -s $OIDC_ISSUER/.well-known/openid-configuration | jq '.authorization_endpo
 
 | Scenario | Expected |
 |----------|----------|
-| SSO button visibility | Appears on `/signin` when `ENABLE_OMNIAUTH=true` |
+| SSO button visibility | Appears on `/signin` when `AUTH_SSO_ENABLED=true` |
 | New user login | Account created, redirected to dashboard |
 | Existing user login | Logged in via linked identity |
 | Domain restriction | Redirected to `/signin?auth_error=sso_failed` |

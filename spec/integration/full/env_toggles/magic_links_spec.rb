@@ -2,9 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Tests for email auth (magic links/passwordless login) toggle via ENABLE_EMAIL_AUTH env var.
+# Tests for email auth (magic links/passwordless login) toggle via AUTH_EMAIL_AUTH_ENABLED env var.
 # NOTE: Rodauth features are configured at boot time. These tests verify
-# the current state based on whether ENABLE_EMAIL_AUTH was set when the app loaded.
+# the current state based on whether AUTH_EMAIL_AUTH_ENABLED was set when the app loaded.
 
 require 'spec_helper'
 require 'rack/test'
@@ -30,9 +30,9 @@ RSpec.describe 'Email Auth (Magic Links) Toggle', type: :integration do
   end
 
   describe 'configuration' do
-    it 'detects ENABLE_EMAIL_AUTH environment variable' do
+    it 'detects AUTH_EMAIL_AUTH_ENABLED environment variable' do
       # This test documents the current state - email auth may or may not be enabled
-      expect([nil, 'true', 'false']).to include(ENV['ENABLE_EMAIL_AUTH'])
+      expect([nil, 'true', 'false']).to include(ENV['AUTH_EMAIL_AUTH_ENABLED'])
     end
 
     it 'mounts Auth app' do
@@ -46,14 +46,14 @@ RSpec.describe 'Email Auth (Magic Links) Toggle', type: :integration do
 
     it 'correctly detects email auth feature availability' do
       # This documents the actual state - email auth may or may not be enabled
-      # depending on whether ENABLE_EMAIL_AUTH=true was set when Auth::Config loaded
+      # depending on whether AUTH_EMAIL_AUTH_ENABLED=true was set when Auth::Config loaded
       expect(email_auth_features_available).to be(true).or be(false)
     end
 
     it 'ENV and feature state are consistent when email auth enabled' do
       # If email auth features are available, ENV should have been set
       if email_auth_features_available
-        expect(ENV['ENABLE_EMAIL_AUTH']).to eq('true')
+        expect(ENV['AUTH_EMAIL_AUTH_ENABLED']).to eq('true')
       end
     end
   end

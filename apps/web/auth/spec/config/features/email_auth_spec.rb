@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Tests for ENABLE_EMAIL_AUTH ENV variable
+# Tests for AUTH_EMAIL_AUTH_ENABLED ENV variable
 #
 # Verifies that email auth (aka magic links) feature is:
 # - Disabled by default (when ENV not set)
-# - Enabled when ENV['ENABLE_EMAIL_AUTH'] == 'true'
+# - Enabled when ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true'
 #
 # Reference: apps/web/auth/config/features/email_auth.rb
 
@@ -15,7 +15,7 @@ require_relative '../../spec_helper'
 RSpec.describe 'Auth::Config::Features::EmailAuth' do
   let(:db) { create_test_database }
 
-  describe 'when ENABLE_EMAIL_AUTH=true (enabled)' do
+  describe 'when AUTH_EMAIL_AUTH_ENABLED=true (enabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,
@@ -93,7 +93,7 @@ RSpec.describe 'Auth::Config::Features::EmailAuth' do
     end
   end
 
-  describe 'when ENABLE_EMAIL_AUTH is not set (disabled by default)' do
+  describe 'when AUTH_EMAIL_AUTH_ENABLED is not set (disabled by default)' do
     let(:app) do
       create_rodauth_app(
         db: db,

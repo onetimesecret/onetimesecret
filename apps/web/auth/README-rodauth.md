@@ -105,12 +105,12 @@ module Auth
       enable :verify_account unless ENV['RACK_ENV'] == 'test'
       enable :otp, :recovery_codes
       # Granular security features (enabled by default)
-      enable :lockout, :login_password_requirements_base if ENV['ENABLE_HARDENING'] != 'false'
-      enable :active_sessions if ENV['ENABLE_ACTIVE_SESSIONS'] != 'false'
-      enable :remember if ENV['ENABLE_REMEMBER_ME'] != 'false'
+      enable :lockout, :login_password_requirements_base if ENV['AUTH_HARDENING_ENABLED'] != 'false'
+      enable :active_sessions if ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false'
+      enable :remember if ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false'
       # Optional auth methods (disabled by default)
-      enable :email_auth if ENV['ENABLE_EMAIL_AUTH'] == 'true'
-      enable :webauthn if ENV['ENABLE_WEBAUTHN'] == 'true'
+      enable :email_auth if ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true'
+      enable :webauthn if ENV['AUTH_WEBAUTHN_ENABLED'] == 'true'
 
       # 2. Configure subsystems (order: base → features → hooks)
       Auth::Config::Base.configure(self)
@@ -217,7 +217,7 @@ module Auth::Config::Hooks
     end
 
     # WebAuthn hooks (if enabled)
-    if ENV['ENABLE_WEBAUTHN'] == 'true'
+    if ENV['AUTH_WEBAUTHN_ENABLED'] == 'true'
       auth.after_webauthn_setup do
         # ... webauthn logic
       end

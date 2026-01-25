@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Tests for ENABLE_REMEMBER_ME ENV variable
+# Tests for AUTH_REMEMBER_ME_ENABLED ENV variable
 #
 # Verifies that remember me feature is:
 # - Enabled by default (when ENV not set or != 'false')
-# - Disabled when ENV['ENABLE_REMEMBER_ME'] == 'false'
+# - Disabled when ENV['AUTH_REMEMBER_ME_ENABLED'] == 'false'
 #
 # Reference: apps/web/auth/config/features/remember_me.rb
 
@@ -15,7 +15,7 @@ require_relative '../../spec_helper'
 RSpec.describe 'Auth::Config::Features::RememberMe' do
   let(:db) { create_test_database }
 
-  describe 'when ENABLE_REMEMBER_ME is enabled (default)' do
+  describe 'when AUTH_REMEMBER_ME_ENABLED is enabled (default)' do
     let(:app) do
       create_rodauth_app(
         db: db,
@@ -38,7 +38,7 @@ RSpec.describe 'Auth::Config::Features::RememberMe' do
     end
   end
 
-  describe 'when ENABLE_REMEMBER_ME=false (disabled)' do
+  describe 'when AUTH_REMEMBER_ME_ENABLED=false (disabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,

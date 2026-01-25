@@ -6,7 +6,7 @@ module Auth::Config::Features
   # Remember me feature: persistent login across browser sessions.
   # Provides the "Remember me" checkbox on the login form.
   #
-  # ENV: ENABLE_REMEMBER_ME (default: enabled, set to 'false' to disable)
+  # ENV: AUTH_REMEMBER_ME_ENABLED (default: enabled, set to 'false' to disable)
   #
   module RememberMe
     def self.configure(auth)

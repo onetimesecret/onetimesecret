@@ -25,7 +25,7 @@ Creates `account_identities` table for storing provider/uid links.
 ### 2. Set Environment Variables
 
 ```bash
-export ENABLE_OMNIAUTH=true
+export AUTH_SSO_ENABLED=true
 export OIDC_ISSUER=https://auth.example.com
 export OIDC_CLIENT_ID=your-client-id
 export OIDC_CLIENT_SECRET=your-client-secret
@@ -34,18 +34,19 @@ export OIDC_REDIRECT_URI=https://app.example.com/auth/sso/oidc/callback
 
 ### 3. Restart Application
 
-The feature loads automatically when `ENABLE_OMNIAUTH=true`.
+The feature loads automatically when `AUTH_SSO_ENABLED=true`.
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ENABLE_OMNIAUTH` | Yes | Set to `true` to enable |
+| `AUTH_SSO_ENABLED` | Yes | Set to `true` to enable |
 | `OIDC_ISSUER` | Yes | IdP's issuer URL (used for OIDC discovery) |
 | `OIDC_CLIENT_ID` | Yes | OAuth client ID from IdP |
 | `OIDC_CLIENT_SECRET` | Yes | OAuth client secret from IdP |
 | `OIDC_REDIRECT_URI` | Yes | Callback URL registered with IdP |
-| `OIDC_PROVIDER_NAME` | No | Provider name in routes (default: `oidc`). **Must remain `oidc` for frontend compatibility.** |
+| `OIDC_ROUTE_NAME` | No | Route path segment (default: `oidc`). **Must remain `oidc` for frontend compatibility.** |
+| `SSO_DISPLAY_NAME` | No | Button label (e.g., "Company SSO"). If not set, generic "SSO" is used. |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated list of allowed email domains for SSO signup (see Domain Restrictions) |
 
 ## Routes
@@ -185,7 +186,7 @@ OmniAuth routes (`/auth/sso/*`) use OAuth's built-in state parameter for CSRF pr
 ### Feature Flag
 
 The SSO button only appears when:
-1. `ENABLE_OMNIAUTH=true` is set
+1. `AUTH_SSO_ENABLED=true` is set
 2. The bootstrap payload includes `features.omniauth: true`
 
 Check in Vue: `isOmniAuthEnabled()` from `src/utils/features.ts`
@@ -252,7 +253,7 @@ The current implementation supports a single OIDC provider configured via enviro
 - Self-hosted instances with one IdP
 - Development and testing
 
-**Constraint:** The frontend hardcodes `/auth/sso/oidc` as the SSO endpoint. Do not change `OIDC_PROVIDER_NAME` from its default value `oidc`.
+**Constraint:** The frontend hardcodes `/auth/sso/oidc` as the SSO endpoint. Do not change `OIDC_ROUTE_NAME` from its default value `oidc`.
 
 ### Multi-tenant (Future)
 

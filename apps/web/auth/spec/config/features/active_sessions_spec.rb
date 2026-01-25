@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Tests for ENABLE_ACTIVE_SESSIONS ENV variable
+# Tests for AUTH_ACTIVE_SESSIONS_ENABLED ENV variable
 #
 # Verifies that active sessions feature is:
 # - Enabled by default (when ENV not set or != 'false')
-# - Disabled when ENV['ENABLE_ACTIVE_SESSIONS'] == 'false'
+# - Disabled when ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] == 'false'
 #
 # Reference: apps/web/auth/config/features/active_sessions.rb
 
@@ -15,7 +15,7 @@ require_relative '../../spec_helper'
 RSpec.describe 'Auth::Config::Features::ActiveSessions' do
   let(:db) { create_test_database }
 
-  describe 'when ENABLE_ACTIVE_SESSIONS is enabled (default)' do
+  describe 'when AUTH_ACTIVE_SESSIONS_ENABLED is enabled (default)' do
     let(:app) do
       create_rodauth_app(
         db: db,
@@ -62,7 +62,7 @@ RSpec.describe 'Auth::Config::Features::ActiveSessions' do
     end
   end
 
-  describe 'when ENABLE_ACTIVE_SESSIONS=false (disabled)' do
+  describe 'when AUTH_ACTIVE_SESSIONS_ENABLED=false (disabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,

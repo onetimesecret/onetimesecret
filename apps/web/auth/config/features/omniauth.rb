@@ -49,7 +49,8 @@
 #   - OIDC_CLIENT_ID: OAuth client ID
 #   - OIDC_CLIENT_SECRET: OAuth client secret
 #   - OIDC_REDIRECT_URI: Callback URL (https://app/auth/sso/oidc/callback)
-#   - OIDC_PROVIDER_NAME: Optional display name (default: 'oidc')
+#   - OIDC_ROUTE_NAME: Optional route path segment (default: 'oidc')
+#   - SSO_DISPLAY_NAME: Optional display name for button (e.g., 'Company SSO')
 #
 # ==============================================================================
 
@@ -97,13 +98,13 @@ module Auth::Config::Features
       client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '') # Optional for PKCE-only flows
       redirect_uri  = ENV.fetch('OIDC_REDIRECT_URI', nil)
 
-      # Issue: The provider name is configurable via OIDC_PROVIDER_NAME env var. If someone sets
-      #        OIDC_PROVIDER_NAME=google, the route becomes /auth/sso/google, but the frontend hardcodes /auth/sso/oidc.
+      # Issue: The route name is configurable via OIDC_ROUTE_NAME env var. If someone sets
+      #        OIDC_ROUTE_NAME=google, the route becomes /auth/sso/google, but the frontend hardcodes /auth/sso/oidc.
 
       #        Recommendation: Either:
-      #        - Expose the provider name via bootstrap state, or
-      #        - Document that OIDC_PROVIDER_NAME must stay oidc for frontend compatibility
-      provider_name = ENV.fetch('OIDC_PROVIDER_NAME', 'oidc').to_sym
+      #        - Expose the route name via bootstrap state, or
+      #        - Document that OIDC_ROUTE_NAME must stay oidc for frontend compatibility
+      provider_name = ENV.fetch('OIDC_ROUTE_NAME', 'oidc').to_sym
 
       # Validate required configuration - check for empty strings too
       missing = []

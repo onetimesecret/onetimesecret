@@ -192,9 +192,9 @@ RSpec.describe 'Auth Route Availability', type: :integration do
     end
   end
 
-  describe 'MFA routes (when ENABLE_MFA=true)' do
+  describe 'MFA routes (when AUTH_MFA_ENABLED=true)' do
     before do
-      skip 'MFA not enabled (ENABLE_MFA != true)' unless ENV['ENABLE_MFA'] == 'true'
+      skip 'MFA not enabled (AUTH_MFA_ENABLED != true)' unless ENV['AUTH_MFA_ENABLED'] == 'true'
     end
 
     describe 'GET /auth/otp-setup' do

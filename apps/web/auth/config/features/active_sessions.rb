@@ -6,7 +6,7 @@ module Auth::Config::Features
   # Active sessions feature: track and manage user sessions across devices.
   # Allows users to view where they're logged in and revoke sessions.
   #
-  # ENV: ENABLE_ACTIVE_SESSIONS (default: enabled, set to 'false' to disable)
+  # ENV: AUTH_ACTIVE_SESSIONS_ENABLED (default: enabled, set to 'false' to disable)
   #
   module ActiveSessions
     def self.configure(auth)

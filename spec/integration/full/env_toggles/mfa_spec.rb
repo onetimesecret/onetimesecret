@@ -2,9 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Tests for MFA (Multi-Factor Authentication) toggle via ENABLE_MFA env var.
+# Tests for MFA (Multi-Factor Authentication) toggle via AUTH_MFA_ENABLED env var.
 # NOTE: Rodauth features are configured at boot time. These tests verify
-# the current state based on whether ENABLE_MFA was set when the app loaded.
+# the current state based on whether AUTH_MFA_ENABLED was set when the app loaded.
 
 require 'spec_helper'
 require 'rack/test'
@@ -30,9 +30,9 @@ RSpec.describe 'MFA Toggle', type: :integration do
   end
 
   describe 'configuration' do
-    it 'detects ENABLE_MFA environment variable' do
+    it 'detects AUTH_MFA_ENABLED environment variable' do
       # This test documents the current state - MFA may or may not be enabled
-      expect([nil, 'true', 'false']).to include(ENV['ENABLE_MFA'])
+      expect([nil, 'true', 'false']).to include(ENV['AUTH_MFA_ENABLED'])
     end
 
     it 'mounts Auth app' do
@@ -46,14 +46,14 @@ RSpec.describe 'MFA Toggle', type: :integration do
 
     it 'correctly detects MFA feature availability' do
       # This documents the actual state - MFA may or may not be enabled
-      # depending on whether ENABLE_MFA=true was set when Auth::Config loaded
+      # depending on whether AUTH_MFA_ENABLED=true was set when Auth::Config loaded
       expect(mfa_features_available).to be(true).or be(false)
     end
 
     it 'ENV and feature state are consistent when MFA enabled' do
       # If MFA features are available, ENV should have been set
       if mfa_features_available
-        expect(ENV['ENABLE_MFA']).to eq('true')
+        expect(ENV['AUTH_MFA_ENABLED']).to eq('true')
       end
     end
   end
