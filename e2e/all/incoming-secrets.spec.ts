@@ -506,8 +506,8 @@ test.describe('Incoming Secrets - Form Validation', () => {
     const memoInput = page.locator('#incoming-memo');
     await memoInput.fill('Test memo');
 
-    // Click reset button
-    const resetButton = page.locator('button[type="button"]', { hasText: /reset/i });
+    // Click reset/clear button
+    const resetButton = page.locator('button[type="button"]', { hasText: /clear form/i });
     await resetButton.click();
 
     // Verify fields are cleared
@@ -645,8 +645,8 @@ test.describe('Incoming Secrets - Happy Path Flow', () => {
     const referenceId = page.locator('code', { hasText: 'test-metadata-key' });
     await expect(referenceId).toBeVisible();
 
-    // "Create Another" button should be visible
-    const createAnotherButton = page.locator('button', { hasText: /create another/i });
+    // "Send Another Secret" button should be visible
+    const createAnotherButton = page.locator('button', { hasText: /send another/i });
     await expect(createAnotherButton).toBeVisible();
 
     // Verify no critical errors
@@ -704,8 +704,8 @@ test.describe('Incoming Secrets - Happy Path Flow', () => {
 
     await page.waitForLoadState('domcontentloaded');
 
-    // Wait for create another button
-    const createAnotherButton = page.locator('button', { hasText: /create another/i });
+    // Wait for send another secret button
+    const createAnotherButton = page.locator('button', { hasText: /send another/i });
     const buttonVisible = await createAnotherButton.isVisible({ timeout: 5000 }).catch(() => false);
 
     if (!buttonVisible) {
@@ -936,7 +936,7 @@ test.describe('Incoming Secrets - Mobile Responsiveness', () => {
 
     // Get button positions
     const submitButton = page.locator('button[type="submit"]');
-    const resetButton = page.locator('button[type="button"]', { hasText: /reset/i });
+    const resetButton = page.locator('button[type="button"]', { hasText: /clear form/i });
 
     const submitBox = await submitButton.boundingBox();
     const resetBox = await resetButton.boundingBox();
