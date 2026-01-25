@@ -271,10 +271,10 @@ RSpec.describe 'OmniAuth hooks' do
 
     # Simulates the only_json? override logic
     def only_json?(request_path:, omniauth_prefix:, default_json_mode: true)
-      # The hook returns: !request.path.start_with?(omniauth_prefix)
-      # When path starts with omniauth_prefix, return false (allow redirects)
-      # Otherwise return the default JSON mode setting
-      if request_path.start_with?(omniauth_prefix)
+      # The hook uses trailing slash to avoid matching unrelated paths.
+      # Match /auth/sso/ prefix OR exact /auth/sso match.
+      is_sso_route = request_path.start_with?("#{omniauth_prefix}/") || request_path == omniauth_prefix
+      if is_sso_route
         false
       else
         default_json_mode
@@ -377,10 +377,10 @@ RSpec.describe 'OmniAuth hooks' do
         result = only_json?(
           request_path: '/auth/sso-like/callback',
           omniauth_prefix: omniauth_prefix,
+          default_json_mode: true,
         )
-        # This DOES match because path.start_with?('/auth/sso') is true
-        # for '/auth/sso-like/callback'
-        expect(result).to be false
+        # With trailing slash check, /auth/sso-like does NOT match /auth/sso/
+        expect(result).to be true
       end
     end
   end

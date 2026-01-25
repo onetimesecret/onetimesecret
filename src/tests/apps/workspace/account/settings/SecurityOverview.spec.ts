@@ -4,7 +4,8 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
-import { computed, defineComponent, ref } from 'vue';
+import { ref } from 'vue';
+import SecurityOverview from '@/apps/workspace/account/settings/SecurityOverview.vue';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -125,148 +126,17 @@ const i18n = createI18n({
 describe('SecurityOverview', () => {
   let wrapper: VueWrapper;
 
-  // SecurityOverview stub representing the component interface
-  const SecurityOverviewStub = defineComponent({
-    name: 'SecurityOverview',
-    setup() {
-      const webAuthnEnabled = ref(mockWebAuthnEnabled.value);
-      const accountInfo = mockAccountInfo;
+  // Helper to find a security card by its icon name
+  const findCardByIcon = (iconName: string) => {
+    const cards = wrapper.findAll('.grid > div');
+    return cards.find((card) => card.find(`[data-icon="${iconName}"]`).exists());
+  };
 
-      interface SecurityCard {
-        id: string;
-        icon: { collection: string; name: string };
-        title: string;
-        description: string;
-        status: 'active' | 'inactive' | 'warning';
-        statusText: string;
-        action: { label: string; to: string };
-      }
-
-      const buildCoreCards = (info: typeof mockAccountInfo.value): SecurityCard[] => {
-        if (!info) return [];
-        return [
-          {
-            id: 'password',
-            icon: { collection: 'heroicons', name: 'lock-closed-solid' },
-            title: 'Password',
-            description: 'Update your account password',
-            status: 'active',
-            statusText: 'Configured',
-            action: { label: 'Change', to: '/account/settings/security/password' },
-          },
-          {
-            id: 'mfa',
-            icon: { collection: 'heroicons', name: 'key-solid' },
-            title: 'Two-Factor Authentication',
-            description: 'Add an extra layer of security',
-            status: info.mfa_enabled ? 'active' : 'warning',
-            statusText: info.mfa_enabled ? 'Enabled' : 'Not enabled',
-            action: {
-              label: info.mfa_enabled ? 'Manage' : 'Enable',
-              to: '/account/settings/security/mfa',
-            },
-          },
-          {
-            id: 'recovery-codes',
-            icon: { collection: 'heroicons', name: 'document-text-solid' },
-            title: 'Recovery Codes',
-            description: 'Backup codes for account recovery',
-            status: info.recovery_codes_count > 0 ? 'active' : 'inactive',
-            statusText:
-              info.recovery_codes_count > 0
-                ? `${info.recovery_codes_count} codes available`
-                : 'No codes generated',
-            action: { label: 'Manage', to: '/account/settings/security/recovery-codes' },
-          },
-        ];
-      };
-
-      const buildPasskeyCard = (info: typeof mockAccountInfo.value): SecurityCard | null => {
-        if (!info) return null;
-        const passkeyCount = info.passkeys_count ?? 0;
-        return {
-          id: 'passkeys',
-          icon: { collection: 'heroicons', name: 'finger-print-solid' },
-          title: 'Passkeys',
-          description: 'Use biometrics or security keys',
-          status: passkeyCount > 0 ? 'active' : 'inactive',
-          statusText: passkeyCount > 0 ? `${passkeyCount} passkey${passkeyCount > 1 ? 's' : ''}` : 'Not configured',
-          action: {
-            label: passkeyCount > 0 ? 'Manage' : 'Enable',
-            to: '/account/settings/security/passkeys',
-          },
-        };
-      };
-
-      const securityCards = computed<SecurityCard[]>(() => {
-        if (!accountInfo.value) return [];
-
-        const cards = buildCoreCards(accountInfo.value);
-
-        if (webAuthnEnabled.value) {
-          const passkeyCard = buildPasskeyCard(accountInfo.value);
-          if (passkeyCard) {
-            cards.push(passkeyCard);
-          }
-        }
-
-        return cards;
-      });
-
-      const statusColorClasses = {
-        active: 'status-active bg-green-50 text-green-700',
-        inactive: 'status-inactive bg-gray-50 text-gray-600',
-        warning: 'status-warning bg-yellow-50 text-yellow-800',
-      };
-
-      return {
-        securityCards,
-        statusColorClasses,
-        webAuthnEnabled,
-      };
-    },
-    template: `
-      <div class="mock-settings-layout">
-        <div class="space-y-8">
-          <!-- Security Settings Cards -->
-          <div class="grid gap-6 sm:grid-cols-2">
-            <div
-              v-for="card in securityCards"
-              :key="card.id"
-              :data-card-id="card.id"
-              class="security-card rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-              <div class="flex items-start gap-4">
-                <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                  <span class="o-icon" :data-icon="card.icon.name" :data-collection="card.icon.collection"></span>
-                </div>
-                <div class="flex-1">
-                  <h3 class="font-semibold text-gray-900 dark:text-white">{{ card.title }}</h3>
-                  <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ card.description }}</p>
-
-                  <!-- Status Badge -->
-                  <div class="mt-3">
-                    <span :class="['status-badge inline-flex items-center rounded-full px-2 py-1 text-xs font-medium', statusColorClasses[card.status]]">
-                      {{ card.statusText }}
-                    </span>
-                  </div>
-
-                  <!-- Action Button -->
-                  <div class="mt-4">
-                    <a
-                      :href="card.action.to"
-                      class="action-link inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700">
-                      {{ card.action.label }}
-                      <span class="o-icon" data-icon="arrow-right-solid"></span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `,
-  });
+  // Helper to find card by title text
+  const findCardByTitle = (title: string) => {
+    const cards = wrapper.findAll('.grid > div');
+    return cards.find((card) => card.text().includes(title));
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -288,7 +158,7 @@ describe('SecurityOverview', () => {
   });
 
   const mountComponent = () =>
-    mount(SecurityOverviewStub, {
+    mount(SecurityOverview, {
       global: {
         plugins: [
           i18n,
@@ -321,9 +191,9 @@ describe('SecurityOverview', () => {
     it('renders core security cards', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.find('[data-card-id="password"]').exists()).toBe(true);
-      expect(wrapper.find('[data-card-id="mfa"]').exists()).toBe(true);
-      expect(wrapper.find('[data-card-id="recovery-codes"]').exists()).toBe(true);
+      expect(findCardByIcon('lock-closed-solid')).toBeDefined();
+      expect(findCardByIcon('key-solid')).toBeDefined();
+      expect(findCardByIcon('document-text-solid')).toBeDefined();
     });
   });
 
@@ -332,38 +202,38 @@ describe('SecurityOverview', () => {
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
-      expect(wrapper.find('[data-card-id="passkeys"]').exists()).toBe(true);
+      expect(findCardByIcon('finger-print-solid')).toBeDefined();
     });
 
     it('hides passkey card when WebAuthn is disabled', () => {
       mockWebAuthnEnabled.value = false;
       wrapper = mountComponent();
 
-      expect(wrapper.find('[data-card-id="passkeys"]').exists()).toBe(false);
+      expect(findCardByIcon('finger-print-solid')).toBeUndefined();
     });
 
     it('displays passkey card title', () => {
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      expect(passkeyCard.text()).toContain('Passkeys');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.text()).toContain('Passkeys');
     });
 
     it('displays passkey card description', () => {
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      expect(passkeyCard.text()).toContain('Use biometrics or security keys');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.text()).toContain('Use biometrics or security keys');
     });
 
     it('shows fingerprint icon on passkey card', () => {
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      expect(passkeyCard.find('[data-icon="finger-print-solid"]').exists()).toBe(true);
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.find('[data-icon="finger-print-solid"]').exists()).toBe(true);
     });
   });
 
@@ -375,8 +245,8 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      expect(passkeyCard.text()).toContain('Not configured');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.text()).toContain('Not configured');
     });
 
     it('shows passkey count when passkeys exist (singular)', () => {
@@ -386,8 +256,8 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      expect(passkeyCard.text()).toContain('1 passkey');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.text()).toContain('1 passkey');
     });
 
     it('shows passkey count when multiple passkeys exist (plural)', () => {
@@ -397,8 +267,8 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      expect(passkeyCard.text()).toContain('3 passkeys');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.text()).toContain('3 passkeys');
     });
 
     it('shows inactive status when no passkeys configured', () => {
@@ -408,9 +278,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      const statusBadge = passkeyCard.find('.status-badge');
-      expect(statusBadge.classes()).toContain('status-inactive');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.text()).toContain('Not configured');
+      expect(passkeyCard?.html()).toContain('bg-gray-50');
     });
 
     it('shows active status when passkeys configured', () => {
@@ -420,9 +290,8 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      const statusBadge = passkeyCard.find('.status-badge');
-      expect(statusBadge.classes()).toContain('status-active');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.html()).toContain('bg-green-50');
     });
   });
 
@@ -434,9 +303,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      const actionLink = passkeyCard.find('.action-link');
-      expect(actionLink.text()).toContain('Enable');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      const actionLink = passkeyCard?.find('.router-link');
+      expect(actionLink?.text()).toContain('Enable');
     });
 
     it('shows "Manage" action when passkeys exist', () => {
@@ -446,18 +315,18 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      const actionLink = passkeyCard.find('.action-link');
-      expect(actionLink.text()).toContain('Manage');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      const actionLink = passkeyCard?.find('.router-link');
+      expect(actionLink?.text()).toContain('Manage');
     });
 
     it('links to passkey settings page', () => {
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      const actionLink = passkeyCard.find('.action-link');
-      expect(actionLink.attributes('href')).toBe('/account/settings/security/passkeys');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      const actionLink = passkeyCard?.find('.router-link');
+      expect(actionLink?.attributes('href')).toBe('/account/settings/security/passkeys');
     });
   });
 
@@ -465,9 +334,9 @@ describe('SecurityOverview', () => {
     it('password card links to password settings', () => {
       wrapper = mountComponent();
 
-      const card = wrapper.find('[data-card-id="password"]');
-      const link = card.find('.action-link');
-      expect(link.attributes('href')).toBe('/account/settings/security/password');
+      const card = findCardByIcon('lock-closed-solid');
+      const link = card?.find('.router-link');
+      expect(link?.attributes('href')).toBe('/account/settings/security/password');
     });
 
     it('MFA card shows correct status when disabled', () => {
@@ -477,10 +346,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const card = wrapper.find('[data-card-id="mfa"]');
-      const statusBadge = card.find('.status-badge');
-      expect(statusBadge.classes()).toContain('status-warning');
-      expect(card.text()).toContain('Not enabled');
+      const card = findCardByIcon('key-solid');
+      expect(card?.html()).toContain('bg-yellow-50');
+      expect(card?.text()).toContain('Not enabled');
     });
 
     it('MFA card shows correct status when enabled', () => {
@@ -490,10 +358,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const card = wrapper.find('[data-card-id="mfa"]');
-      const statusBadge = card.find('.status-badge');
-      expect(statusBadge.classes()).toContain('status-active');
-      expect(card.text()).toContain('Enabled');
+      const card = findCardByIcon('key-solid');
+      expect(card?.html()).toContain('bg-green-50');
+      expect(card?.text()).toContain('Enabled');
     });
 
     it('recovery codes card shows count when available', () => {
@@ -503,8 +370,8 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const card = wrapper.find('[data-card-id="recovery-codes"]');
-      expect(card.text()).toContain('5 codes available');
+      const card = findCardByIcon('document-text-solid');
+      expect(card?.text()).toContain('5 codes available');
     });
 
     it('recovery codes card shows inactive when no codes', () => {
@@ -514,10 +381,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const card = wrapper.find('[data-card-id="recovery-codes"]');
-      const statusBadge = card.find('.status-badge');
-      expect(statusBadge.classes()).toContain('status-inactive');
-      expect(card.text()).toContain('No codes generated');
+      const card = findCardByIcon('document-text-solid');
+      expect(card?.html()).toContain('bg-gray-50');
+      expect(card?.text()).toContain('No codes generated');
     });
   });
 
@@ -532,7 +398,7 @@ describe('SecurityOverview', () => {
     it('each card has consistent styling', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.security-card');
+      const cards = wrapper.findAll('.grid > div');
       cards.forEach((card) => {
         expect(card.classes()).toContain('rounded-lg');
         expect(card.classes()).toContain('border');
@@ -543,7 +409,7 @@ describe('SecurityOverview', () => {
     it('each card has an icon container', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.security-card');
+      const cards = wrapper.findAll('.grid > div');
       cards.forEach((card) => {
         const iconContainer = card.find('.size-12');
         expect(iconContainer.exists()).toBe(true);
@@ -559,10 +425,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const passkeyCard = wrapper.find('[data-card-id="passkeys"]');
-      const badge = passkeyCard.find('.status-badge');
-      expect(badge.classes()).toContain('bg-green-50');
-      expect(badge.classes()).toContain('text-green-700');
+      const passkeyCard = findCardByIcon('finger-print-solid');
+      expect(passkeyCard?.html()).toContain('bg-green-50');
+      expect(passkeyCard?.html()).toContain('text-green-700');
     });
 
     it('warning status has yellow styling', () => {
@@ -572,10 +437,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const mfaCard = wrapper.find('[data-card-id="mfa"]');
-      const badge = mfaCard.find('.status-badge');
-      expect(badge.classes()).toContain('bg-yellow-50');
-      expect(badge.classes()).toContain('text-yellow-800');
+      const mfaCard = findCardByIcon('key-solid');
+      expect(mfaCard?.html()).toContain('bg-yellow-50');
+      expect(mfaCard?.html()).toContain('text-yellow-800');
     });
 
     it('inactive status has gray styling', () => {
@@ -585,10 +449,9 @@ describe('SecurityOverview', () => {
       };
       wrapper = mountComponent();
 
-      const recoveryCard = wrapper.find('[data-card-id="recovery-codes"]');
-      const badge = recoveryCard.find('.status-badge');
-      expect(badge.classes()).toContain('bg-gray-50');
-      expect(badge.classes()).toContain('text-gray-600');
+      const recoveryCard = findCardByIcon('document-text-solid');
+      expect(recoveryCard?.html()).toContain('bg-gray-50');
+      expect(recoveryCard?.html()).toContain('text-gray-600');
     });
   });
 
@@ -597,7 +460,7 @@ describe('SecurityOverview', () => {
       mockAccountInfo.value = null;
       wrapper = mountComponent();
 
-      expect(wrapper.findAll('.security-card').length).toBe(0);
+      expect(wrapper.findAll('.grid > div').length).toBe(0);
     });
   });
 
@@ -606,14 +469,14 @@ describe('SecurityOverview', () => {
       mockWebAuthnEnabled.value = false;
       wrapper = mountComponent();
 
-      expect(wrapper.findAll('.security-card').length).toBe(3);
+      expect(wrapper.findAll('.grid > div').length).toBe(3);
     });
 
     it('renders 4 cards when WebAuthn is enabled', () => {
       mockWebAuthnEnabled.value = true;
       wrapper = mountComponent();
 
-      expect(wrapper.findAll('.security-card').length).toBe(4);
+      expect(wrapper.findAll('.grid > div').length).toBe(4);
     });
   });
 });

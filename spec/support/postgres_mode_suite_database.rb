@@ -156,20 +156,80 @@ module PostgresModeSuiteDatabase
       @setup_complete == true
     end
 
-    # Clean database for initial setup by dropping and recreating the public schema
-    # This ensures a completely clean state, removing tables, functions, views, and extensions
+    # Clean database for initial setup
+    #
+    # Uses elevated connection if available to handle CI permission model where
+    # onetime_migrator owns tables and onetime_user has limited privileges.
+    #
+    # Strategy: Drop and recreate schema to ensure clean state, but do this
+    # with the migration connection (if available) to preserve permission model.
     def clean_database_for_setup
-      return unless @database
+      # Use migration connection if available (has superuser-like privileges)
+      # Otherwise fall back to regular connection
+      migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+      use_elevated = migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
 
-      # Drop and recreate public schema (removes all objects)
-      @database.run 'DROP SCHEMA IF EXISTS public CASCADE'
-      @database.run 'CREATE SCHEMA public'
-      @database.run 'GRANT ALL ON SCHEMA public TO postgres'
-      @database.run 'GRANT ALL ON SCHEMA public TO public'
+      if use_elevated
+        # Create temporary elevated connection for schema cleanup
+        elevated_db = Sequel.connect(migration_url)
+        begin
+          clean_schema_with_connection(elevated_db)
+        ensure
+          elevated_db.disconnect
+        end
+      elsif @database
+        # Use regular connection (works when running as database owner)
+        clean_schema_with_connection(@database)
+      end
     rescue Sequel::DatabaseError => e
       warn "[PostgresModeSuiteDatabase] Failed to clean database: #{e.message}"
       # Continue - migrations may still succeed if database is actually clean
     end
+
+    # Perform the actual schema drop/recreate with the given connection
+    def clean_schema_with_connection(db)
+      # Drop and recreate public schema (removes all objects)
+      db.run 'DROP SCHEMA IF EXISTS public CASCADE'
+      db.run 'CREATE SCHEMA public'
+      db.run 'GRANT ALL ON SCHEMA public TO postgres'
+      db.run 'GRANT ALL ON SCHEMA public TO public'
+
+      # Re-apply grants for test users after schema recreation
+      apply_schema_grants_with_connection(db)
+    end
+
+    # Apply schema-level grants using the given connection
+    def apply_schema_grants_with_connection(db)
+      # Check if onetime_migrator role exists (CI environment)
+      migrator_exists = db.fetch(
+        "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
+      ).any?
+
+      return unless migrator_exists
+
+      # Re-apply schema grants
+      db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
+      db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
+
+      # Re-apply default privileges so tables created by onetime_migrator
+      # are automatically accessible to onetime_user
+      db.run <<~SQL
+        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+          GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
+      SQL
+      db.run <<~SQL
+        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+          GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
+      SQL
+      db.run <<~SQL
+        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+          GRANT EXECUTE ON FUNCTIONS TO onetime_user
+      SQL
+    rescue Sequel::DatabaseError => e
+      warn "[PostgresModeSuiteDatabase] Failed to apply schema grants: #{e.message}"
+      # Continue - may not have permission or roles don't exist
+    end
+
 
     # Run migrations using elevated connection if available
     # Also stores migration connection for test data setup (infrastructure tests)

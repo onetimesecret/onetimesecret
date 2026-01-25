@@ -223,6 +223,15 @@ jobs:
             GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_migrator;
             GRANT ALL ON SCHEMA public TO onetime_user;
             GRANT ALL ON SCHEMA public TO onetime_migrator;
+
+            -- Set default privileges so tables created by onetime_migrator
+            -- are automatically accessible to onetime_user
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT USAGE, SELECT ON SEQUENCES TO onetime_user;
+            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
+              GRANT EXECUTE ON FUNCTIONS TO onetime_user;
           "
 
       - name: Run PostgreSQL migration tests

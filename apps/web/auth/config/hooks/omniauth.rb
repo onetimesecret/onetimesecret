@@ -82,7 +82,10 @@ module Auth::Config::Hooks
       #
       auth.only_json? do
         full_sso_prefix = "#{Auth::Application.uri_prefix}#{omniauth_prefix}"
-        !request.path.start_with?(full_sso_prefix)
+        # Use trailing slash to avoid matching unrelated paths like /auth/sso-admin.
+        # Also handle exact match for /auth/sso (the SSO index/landing, if any).
+        is_sso_route    = request.path.start_with?("#{full_sso_prefix}/") || request.path == full_sso_prefix
+        !is_sso_route
       end
 
       # ========================================================================
