@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative 'utils/config_resolver'
-require_relative 'indifferent_hash'
 
 module Onetime
   module Config
@@ -410,11 +409,7 @@ module Onetime
       # know we only expect a regular hash here without any methods, procs
       # etc, we use YAML instead to accomplish the same thing (JSON is
       # another option but it turns all the symbol keys into strings).
-      #
-      # Returns IndifferentHash to support both symbol and string key access,
-      # which is needed for backwards compatibility during the develop->main migration.
-      raw_hash = YAML.load(YAML.dump(config_hash))
-      IndifferentHash.deep_convert(raw_hash)
+      YAML.load(YAML.dump(config_hash))
     rescue TypeError => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
