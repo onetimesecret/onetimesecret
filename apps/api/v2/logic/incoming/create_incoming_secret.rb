@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../lib/onetime/jobs/publisher'
 
 module V2::Logic
   module Incoming
@@ -149,20 +150,20 @@ module V2::Logic
       def send_recipient_notification
         return if recipient_email.nil? || recipient_email.empty?
 
-        # Use a specialized template for incoming secrets
-        klass = OT::Mail::IncomingSecretNotification
+        Onetime::Jobs::Publisher.enqueue_email(
+          :incoming_secret,
+          {
+            secret_key: secret.key,
+            share_domain: secret.share_domain,
+            recipient: recipient_email,
+            memo: memo,
+            locale: locale || OT.default_locale,
+          },
+        )
 
-        # Create an anonymous customer object for the sender
-        # This is needed for the deliver_by_email method signature
-        anon_cust = V2::Customer.new(custid: 'anon')
-
-        # Send the email using the existing delivery mechanism
-        # Pass memo as additional parameter
-        metadata.deliver_by_email(anon_cust, locale, secret, recipient_email, klass)
-
-        OT.info "[IncomingSecret] Email notification sent to #{OT::Utils.obscure_email(recipient_email)} for secret #{secret.key}"
+        OT.info "[IncomingSecret] Notification enqueued for #{OT::Utils.obscure_email(recipient_email)} (metadata: #{metadata.key})"
       rescue StandardError => ex
-        OT.le "[IncomingSecret] Failed to send email notification: #{ex.message}"
+        OT.le "[IncomingSecret] Failed to enqueue notification: #{ex.message}"
         # Don't raise - email failure shouldn't prevent secret creation
       end
     end

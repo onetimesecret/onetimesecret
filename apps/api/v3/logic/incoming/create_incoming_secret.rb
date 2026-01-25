@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../lib/onetime/jobs/publisher'
 
 module V3
   module Logic
