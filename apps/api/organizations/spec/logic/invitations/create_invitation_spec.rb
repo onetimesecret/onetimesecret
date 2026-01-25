@@ -293,7 +293,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       result = logic.process
       expect(result).to have_key(:user_id)
       expect(result).to have_key(:record)
-      expect(result[:user_id]).to eq('cust-owner-123')
+      expect(result[:user_id]).to eq('ext-cust-owner')
       expect(result[:record]).to include('id' => 'membership-new-123')
     end
 
