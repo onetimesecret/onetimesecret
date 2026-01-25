@@ -18,19 +18,12 @@ import { computed, inject, ref } from 'vue';
 
 /**
  * API mode for secret operations.
- * - 'authenticated': Uses standard /api/v2 endpoints (requires auth)
- * - 'public': Uses /api/v2/guest endpoints (no auth required)
- */
-export type ApiMode = 'authenticated' | 'public';
-
-interface StoreOptions extends PiniaPluginOptions {}
-
-/**
- * API mode for secret operations.
  * - 'authenticated': Uses /api/v3 endpoints (requires authentication)
  * - 'public': Uses /api/v3/guest endpoints (guest access)
  */
 export type ApiMode = 'authenticated' | 'public';
+
+interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for SecretStore.
