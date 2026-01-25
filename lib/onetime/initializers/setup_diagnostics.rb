@@ -72,12 +72,17 @@ module Onetime
         #
         # See: https://github.com/rails/rails/issues/55886
         #
-        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
+        # In Ruby 3.4+, OpenSSL::SSL::SSLContext::DEFAULT_PARAMS is frozen.
+        # We skip this modification if frozen since VERIFY_PEER is usually
+        # the default anyway.
+        unless OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.frozen?
+          OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
+        end
         #
         # Now disabling :verify_flags even though it worked briefly and got rid of
         # CRL error. There's some version voodoo going on since it now results in a
         # separate error ("undefined method 'verify_flags=' in OpenSSL::SSL::SSLContext").
-        # ¯\_(ツ)_/¯
+        # The hash is also frozen in Ruby 3.4+, so we'd need to guard this as well.
         # OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_flags] &=
         #   ~(OpenSSL::X509::V_FLAG_CRL_CHECK_ALL | OpenSSL::X509::V_FLAG_CRL_CHECK)
 
