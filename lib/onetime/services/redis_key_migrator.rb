@@ -497,6 +497,9 @@ module Onetime
     end
 
     # Try partial batch retry by splitting the failed batch into smaller chunks
+    # Uses the same strategy as the main migration path:
+    # - COPY for same-instance migrations (preserves source data, no TCP issues)
+    # - DUMP/RESTORE for cross-server migrations
     def retry_partial_batch(batch, source_client = nil, target_client = nil, &)
       # Split batch in half and retry each part
       mid_point   = batch.size / 2
@@ -510,12 +513,14 @@ module Onetime
           @logger.debug "Retrying partial batch (#{sub_batch.size} keys)"
 
           if target_client.nil?
-            # Same instance migration
-            target_db    = extract_db_number(@target_uri)
-            migrate_args = [@target_uri.host, @target_uri.port, '', target_db, @options[:timeout], 'COPY', 'REPLACE', 'KEYS'] + sub_batch
-            source_client.call('MIGRATE', *migrate_args)
+            # Same instance migration - use COPY command (consistent with migrate_using_copy_command)
+            # COPY is preferred over MIGRATE for same-instance: no TCP loopback issues, preserves source
+            target_db = extract_db_number(@target_uri)
+            sub_batch.each do |key|
+              source_client.copy(key, key, db: target_db, replace: true)
+            end
           else
-            # Cross-server migration
+            # Cross-server migration - use DUMP/RESTORE (consistent with migrate_using_dump_restore)
             dumps = source_client.pipelined { |pipe| sub_batch.each { |key| pipe.dump(key) } }
             ttls  = source_client.pipelined { |pipe| sub_batch.each { |key| pipe.pttl(key) } }
 
@@ -728,12 +733,17 @@ module Onetime
     end
 
     # Process a batch of keys in streaming mode
+    # Uses the same strategy as the main migration path:
+    # - COPY for same-instance migrations (preserves source data, no TCP issues)
+    # - DUMP/RESTORE for cross-server migrations
     def migrate_batch_streaming(batch, source_client, target_client, &)
       if target_client.nil?
-        # Same instance migration using MIGRATE command
-        target_db    = extract_db_number(@target_uri)
-        migrate_args = [@target_uri.host, @target_uri.port, '', target_db, @options[:timeout], 'COPY', 'REPLACE', 'KEYS'] + batch
-        source_client.call('MIGRATE', *migrate_args)
+        # Same instance migration using COPY command (consistent with migrate_using_copy_command)
+        # COPY is preferred over MIGRATE: no TCP loopback issues, preserves source data
+        target_db = extract_db_number(@target_uri)
+        batch.each do |key|
+          source_client.copy(key, key, db: target_db, replace: true)
+        end
       else
         # Cross-server migration using DUMP/RESTORE
         dumps = source_client.pipelined { |pipe| batch.each { |key| pipe.dump(key) } }
