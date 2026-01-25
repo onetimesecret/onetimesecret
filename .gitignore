@@ -68,6 +68,7 @@ support/schemas/
 tsconfig.tsbuildinfo
 *.db
 !locales/db/*.sql
+!routes.txt
 
 Procfile.*
 !Procfile*.example
