@@ -31,6 +31,7 @@ class KeyDumper
   MODEL_MAPPING = {
     'customer' => { model: 'customer', db: 6 },
     'customdomain' => { model: 'customdomain', db: 6 },
+    'onetime' => { model: 'customer', db: 6 },  # legacy: onetime:customer instances
     'metadata' => { model: 'metadata', db: 7 },  # becomes receipt
     'secret' => { model: 'secret', db: 8 },
     'feedback' => { model: 'feedback', db: 11 },

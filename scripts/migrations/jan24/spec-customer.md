@@ -72,6 +72,8 @@ None. All V1 fields preserved (deprecated fields kept for backward compat).
 
 **V1 key exists:** `onetime:customer` (sorted set, 368 entries) - legacy naming convention.
 
+**NOTE:** This key uses prefix `onetime:` not `customer:` - must be added to `dump_keys.rb` MODEL_MAPPING.
+
 ```redis
 # Rename the existing key
 RENAME onetime:customer customer:instances
