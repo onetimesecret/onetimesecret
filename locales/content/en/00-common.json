@@ -1351,5 +1351,17 @@
   "web.COMMON.password_required_for_action": {
     "text": "Your password is required to complete this action",
     "context": "Description for password confirmation modal"
+  },
+  "api.errors.unexpected_error": {
+    "text": "An unexpected error occurred",
+    "context": "Generic error message for unhandled exceptions in API"
+  },
+  "api.errors.service_unavailable": {
+    "text": "Service temporarily unavailable. Please try again shortly.",
+    "context": "Error message when database connection fails"
+  },
+  "api.errors.request_processing_error": {
+    "text": "Unable to process your request at this time",
+    "context": "Error message for recoverable server errors"
   }
 }

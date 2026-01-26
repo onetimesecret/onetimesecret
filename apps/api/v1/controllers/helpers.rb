@@ -88,7 +88,7 @@ module V1
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
 
-      error_response "We're sorry, but we can't process your request at this time."
+      error_response I18n.t('api.errors.request_processing_error')
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
@@ -96,7 +96,7 @@ module V1
       # Track Familia errors as regular exceptions
       capture_error ex
 
-      error_response 'An error occurred :['
+      error_response I18n.t('api.errors.unexpected_error')
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -104,7 +104,7 @@ module V1
       # Track DB connection errors as fatal errors
       capture_error ex, :fatal
 
-      error_response "We'll be back shortly!"
+      error_response I18n.t('api.errors.service_unavailable')
     rescue StandardError => ex
       custid           = cust&.custid || '<notset>'
       # session may be a Hash fallback when no session middleware is available
@@ -116,7 +116,7 @@ module V1
       # Track the unexected errors
       capture_error ex
 
-      error_response 'An unexpected error occurred :['
+      error_response I18n.t('api.errors.unexpected_error')
     end
 
     # Sets the locale for the request based on various sources.
