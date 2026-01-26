@@ -30,6 +30,7 @@ require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
+require 'securerandom'
 
 class CustomerIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_'
@@ -65,18 +66,19 @@ class CustomerIndexCreator
 
     commands = []
 
-    # Process the dump file
+    # First pass: collect records and detect if onetime:customer exists
     File.foreach(@input_file) do |line|
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
 
       case record[:key]
       when 'onetime:customer'
-        # Existing instance index - rename it
-        commands.concat(process_instance_index(record))
+        # Store for later processing after we have email->objid mapping
+        instance_index_record = record
+        @stats[:instance_index_source] = 'existing'
       when /:object$/
-        # Customer object hash - extract fields for indexes
-        commands.concat(process_customer_object(record))
+        # Collect for processing
+        customer_object_records << record
       else
         @stats[:skipped] += 1
       end
@@ -84,11 +86,19 @@ class CustomerIndexCreator
       @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
 
-    # If no instance index was found, generate from objects
-    if @stats[:instance_index_source].nil?
-      @stats[:instance_index_source] = 'generated'
-      # Instance entries already added during object processing
+    # Set source to 'generated' if no existing index found
+    @stats[:instance_index_source] ||= 'generated'
+
+    # Second pass: process customer objects (builds email->objid mapping)
+    customer_object_records.each do |record|
+      commands.concat(process_customer_object(record))
     end
+
+    # Process instance index now that we have email->objid mapping
+    if instance_index_record
+      commands.concat(process_instance_index(instance_index_record))
+    end
+    # When no instance index exists, entries were added during object processing
 
     # Add counter commands (aggregate totals)
     commands.concat(generate_counter_commands)
@@ -130,7 +140,12 @@ class CustomerIndexCreator
   end
 
   def process_instance_index(record)
-    # The onetime:customer sorted set exists - we'll rename it
+    # The onetime:customer sorted set exists - convert it to customer:instances.
+    #
+    # v1 used email addresses as zset members; v2 uses objid.
+    # We preserve the original scores (created timestamps) but replace
+    # email members with their corresponding objid from the mapping
+    # built during process_customer_object.
     @stats[:instance_index_source] = 'existing'
 
     commands = []
@@ -141,7 +156,7 @@ class CustomerIndexCreator
       return commands
     end
 
-    # Restore to temp key, read members, generate ZADD commands
+    # Restore to temp key, read members, generate ZADD commands with objid
     temp_key  = "#{TEMP_KEY_PREFIX}instance_index"
     dump_data = Base64.strict_decode64(record[:dump])
 
@@ -149,11 +164,19 @@ class CustomerIndexCreator
       @redis.restore(temp_key, 0, dump_data, replace: true)
       members_with_scores = @redis.zrange(temp_key, 0, -1, with_scores: true)
 
-      members_with_scores.each do |member, score|
+      members_with_scores.each do |email, score|
+        # Convert v1 email member to v2 objid member
+        objid = @email_to_objid[email]
+
+        unless objid
+          @stats[:errors] << { key: record[:key], error: "No objid mapping for email: #{email}" }
+          next
+        end
+
         commands << {
           command: 'ZADD',
           key: 'customer:instances',
-          args: [score.to_i, member],
+          args: [score.to_i, objid],
         }
         @stats[:instance_entries] += 1
       end
@@ -179,6 +202,9 @@ class CustomerIndexCreator
     key_parts = record[:key].split(':')
     return commands if key_parts.size < 3
 
+    # Extract v1 custid (email) from key for instance index mapping
+    v1_custid = key_parts[1]
+
     # Use enriched objid/extid from JSONL record, fall back to hash fields
     objid = record[:objid]
     extid = record[:extid]
@@ -192,6 +218,13 @@ class CustomerIndexCreator
 
       objid, extid = resolve_identifiers(objid, extid, fields)
       return commands if objid.nil? || objid.empty?
+
+      # Build email->objid mapping for instance index conversion.
+      # v1 used email as custid; we need to map those to objid.
+      # NOTE: This intentionally duplicates the email_index logic below. Both
+      # read from source material (the key and hash fields) independently,
+      # avoiding a mistake in one codepath from affecting another.
+      @email_to_objid[v1_custid] = objid
 
       build_customer_index_commands(commands, record, fields, objid, extid)
       accumulate_counters(fields)
@@ -233,19 +266,21 @@ class CustomerIndexCreator
     end
 
     # Email lookup
+    # NOTE: Values are JSON-encoded (e.g., "\"uuid\"") to match Familia's
+    # HashKey storage format which preserves type information via JSON serialization.
     email = fields['email']
     if email && !email.empty?
       commands << { command: 'HSET', key: 'customer:email_index', args: [email, objid.to_json] }
       @stats[:email_lookups] += 1
     end
 
-    # ExtID lookup
+    # ExtID lookup (JSON-encoded value for Familia HashKey compatibility)
     if extid && !extid.empty?
       commands << { command: 'HSET', key: 'customer:extid_lookup', args: [extid, objid.to_json] }
       @stats[:extid_lookups] += 1
     end
 
-    # ObjID lookup
+    # ObjID lookup (JSON-encoded value for Familia HashKey compatibility)
     commands << { command: 'HSET', key: 'customer:objid_lookup', args: [objid, objid.to_json] }
     @stats[:objid_lookups] += 1
 
@@ -395,7 +430,6 @@ def parse_args(args)
 end
 
 if __FILE__ == $0
-  require 'securerandom'
 
   options = parse_args(ARGV)
 
