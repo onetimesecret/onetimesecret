@@ -95,9 +95,15 @@
 
   // On mount: fetch domain then verify if showing widget
   onMounted(async () => {
-    await fetchDomain();
-    if (showDnsWidget.value) {
-      await triggerVerification();
+    try {
+      await fetchDomain();
+      if (showDnsWidget.value) {
+        await triggerVerification();
+      }
+    } catch (err: unknown) {
+      // Errors from fetchDomain are handled by useDomainsManager
+      // This catch is a safety net for any unexpected errors
+      console.error('Failed to initialize domain verification:', err);
     }
   });
 </script>
