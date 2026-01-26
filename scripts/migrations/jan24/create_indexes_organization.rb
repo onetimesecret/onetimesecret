@@ -175,7 +175,11 @@ class OrganizationIndexCreator
 
     # Members relationship: organization:{org_objid}:members
     # Owner is first member, score = created timestamp
-    add_command('ZADD', "organization:#{org_objid}:members", [created.to_s, customer_objid])
+    add_command('ZADD', "organization:#{org_objid}:members", [created.to_i, customer_objid])
+
+    # Customer participation: customer:{customer_objid}:participations
+    # Tracks which org member sets this customer belongs to (inverse of members relationship)
+    add_command('SADD', "customer:#{customer_objid}:participations", ["organization:#{org_objid}:members"])
   end
 
   def extract_customer_objid(key, customer_data)
