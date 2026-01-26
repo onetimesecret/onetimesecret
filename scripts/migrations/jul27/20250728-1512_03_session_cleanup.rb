@@ -42,7 +42,6 @@ module Onetime
       dry_run_only? do
         debug("Would update #{@model_class}: #{original_key} (created: #{obj.to_h})")
       end
-
     end
 
     private
@@ -54,7 +53,7 @@ module Onetime
     # return a boolean value.
     def should_process?(obj)
       should_process = false
-      criteria = [
+      criteria       = [
         obj.current_expiration.to_i.negative?,
         obj.created.to_i.older_than?(7.days),
       ]

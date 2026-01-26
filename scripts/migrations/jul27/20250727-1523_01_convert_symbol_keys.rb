@@ -31,10 +31,10 @@ require 'fileutils'
 module Onetime
   class Migration < BaseMigration
     def prepare
-      @base_path = OT::HOME
-      @config_file = File.join(@base_path, 'etc', 'config.yaml')
+      @base_path     = OT::HOME
+      @config_file   = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
-      @findings = []  # Store findings for consolidated output
+      @findings      = []  # Store findings for consolidated output
     end
 
     def migration_needed?
@@ -65,7 +65,7 @@ module Onetime
       # Perform migration steps
       backup_path = backup_config
       convert_symbols_to_strings
-      success = validate_conversion
+      success     = validate_conversion
 
       # Result line
       if success
@@ -90,7 +90,7 @@ module Onetime
 
     def scan_for_symbol_keys
       content = File.read(@config_file)
-      lines = content.lines
+      lines   = content.lines
 
       # Check for symbol key patterns:
       # 1. Start of line with optional whitespace, then :key:
@@ -158,8 +158,8 @@ module Onetime
       begin
         YAML.safe_load_file(@config_file, permitted_classes: [Symbol])
         true
-      rescue Psych::SyntaxError => e
-        error "YAML syntax error: #{e.message}"
+      rescue Psych::SyntaxError => ex
+        error "YAML syntax error: #{ex.message}"
         false
       end
     end
