@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
-
 # Rebuild v2 indexes after migration.
 #
 # Creates the Familia v2 index structures:
@@ -18,55 +16,45 @@
 #   --dry-run          Show what would be created without writing
 #
 # Index structures:
-# - customer:instances (zset: objid → created)
-# - customer:email_index (hash: email → objid)
-# - customer:extid_lookup (hash: extid → objid)
-# - customer:objid_lookup (hash: objid → objid JSON serialized string)
+# - customer:instances (zset: objid -> created)
+# - customer:email_index (hash: email -> objid)
+# - customer:extid_lookup (hash: extid -> objid)
+# - customer:objid_lookup (hash: objid -> objid JSON serialized string)
 # - customer:secrets_created
 # - customer:secrets_shared
-# - organization:instances (zset: objid → created)
-# - organization:contact_email_index (hash: contact_email → objid)
-# - organization:stripe_customer_id_index (hash: stripe_customer_id → objid)
-# - organization:stripe_subscription_id_index (hash: stripe_subscription_id → objid)
+# - organization:instances (zset: objid -> created)
+# - organization:contact_email_index (hash: contact_email -> objid)
+# - organization:stripe_customer_id_index (hash: stripe_customer_id -> objid)
+# - organization:stripe_subscription_id_index (hash: stripe_subscription_id -> objid)
 # - organization:{objid}:members (zset: auto-populated by Familia participates_in)
 # - organization:{objid}:domains (zset: auto-populated by Familia participates_in)
-# - customdomain:instances (zset: domainid → created)
-# - customdomain:display_domain_index (hash: display_domain → domainid)
+# - customdomain:instances (zset: domainid -> created)
+# - customdomain:display_domain_index (hash: display_domain -> domainid)
 # - customdomain:display_domains
 # - customdomain:extid_lookup
 # - customdomain:instances
-# - customdomain:objid_lookup (hash: objid → objid JSON serialized string)
+# - customdomain:objid_lookup (hash: objid -> objid JSON serialized string)
 # - customdomain:owners
-# - receipt:instances (zset: objid → created)
-# - receipt:expiration_timeline (zset: expires date → objid)
-# - receipt:objid_lookup (hash: objid → objid JSON serialized string)
-# - secret:instances (zset: objid → created)
-# - secret:objid_lookup (hash: objid → objid JSON serialized string)
+# - receipt:instances (zset: objid -> created)
+# - receipt:expiration_timeline (zset: expires date -> objid)
+# - receipt:objid_lookup (hash: objid -> objid JSON serialized string)
+# - secret:instances (zset: objid -> created)
+# - secret:objid_lookup (hash: objid -> objid JSON serialized string)
 
 require 'redis'
 require 'json'
 require 'securerandom'
 
-class IndexRebuilder
-  # External ID prefixes (from Familia v2 models)
-  # Format: prefix + first 16 chars of objid (no dashes)
-  EXTID_PREFIXES = {
-    customer: 'ur',
-    organization: 'on',
-    customdomain: 'cd',
-    receipt: 'rc',
-  }.freeze
+require_relative 'rebuild_indexes/base'
+require_relative 'rebuild_indexes/customer_indexes'
+require_relative 'rebuild_indexes/organization_indexes'
+require_relative 'rebuild_indexes/membership_indexes'
+require_relative 'rebuild_indexes/customdomain_indexes'
+require_relative 'rebuild_indexes/receipt_indexes'
+require_relative 'rebuild_indexes/secret_indexes'
 
-  # Generate external ID in the correct format
-  # @param prefix [String] Model prefix (ur, on, cd, rc)
-  # @param objid [String] Object identifier (UUID format)
-  # @return [String] External ID (prefix + 16 hex chars)
-  def generate_extid(prefix, objid)
-    # Remove dashes from UUID and take first 16 chars
-    clean_id = objid.to_s.delete('-')[0, 16]
-    "#{prefix}#{clean_id}"
-  end
-
+# Orchestrates the index rebuilding process across all models
+class IndexRebuilderOrchestrator
   def initialize(valkey_url:, dry_run: false)
     @valkey_url = valkey_url
     @dry_run    = dry_run
@@ -92,37 +80,42 @@ class IndexRebuilder
     puts "  URL: #{@valkey_url}"
     puts "  Dry run: #{@dry_run}"
 
+    # Initialize model-specific builders
+    customer     = IndexRebuilder::CustomerIndexes.new(valkey: @valkey, dry_run: @dry_run, stats: @stats)
+    organization = IndexRebuilder::OrganizationIndexes.new(valkey: @valkey, dry_run: @dry_run, stats: @stats)
+    membership   = IndexRebuilder::MembershipIndexes.new(valkey: @valkey, dry_run: @dry_run, stats: @stats)
+    customdomain = IndexRebuilder::CustomdomainIndexes.new(valkey: @valkey, dry_run: @dry_run, stats: @stats)
+    receipt      = IndexRebuilder::ReceiptIndexes.new(valkey: @valkey, dry_run: @dry_run, stats: @stats)
+    secret       = IndexRebuilder::SecretIndexes.new(valkey: @valkey, dry_run: @dry_run, stats: @stats)
+
     # Phase 1: Build instances sorted sets
     puts "\n=== Phase 1: Building instances sorted sets ==="
-    build_customer_instances
-    build_organization_instances
-    build_membership_instances
-    build_customdomain_instances
-    build_receipt_instances
-    build_secret_instances
+    customer.build_instances
+    organization.build_instances
+    membership.build_instances
+    customdomain.build_instances
+    receipt.build_instances
+    secret.build_instances
 
     # Phase 2: Build unique indexes
     puts "\n=== Phase 2: Building unique indexes ==="
-    build_customer_email_index
-    build_customer_extid_lookup
-    build_organization_contact_email_index
-    build_organization_extid_lookup
-    build_organization_stripe_customer_id_index
-    build_organization_stripe_subscription_id_index
-    build_customdomain_display_domain_index
-    build_membership_indexes
+    customer.build_email_index
+    customer.build_extid_lookup
+    organization.build_contact_email_index
+    organization.build_extid_lookup
+    organization.build_stripe_customer_id_index
+    organization.build_stripe_subscription_id_index
+    customdomain.build_display_domain_index
+    membership.build_lookup_indexes
 
     # Phase 2b: Build class hashkeys (model-level lookup hashes)
     puts "\n=== Phase 2b: Building class hashkeys ==="
-    build_customdomain_display_domains
-    build_customdomain_owners
+    customdomain.build_class_hashkeys
 
     # Phase 3: Build participation sets
     puts "\n=== Phase 3: Building participation sets ==="
-    build_organization_members_sets
-    build_organization_domains_sets
-    build_organization_receipts_sets
-    build_customdomain_receipts_sets
+    organization.build_participation_sets
+    customdomain.build_participation_sets
 
     # Write manifest
     write_manifest unless @dry_run
@@ -131,530 +124,6 @@ class IndexRebuilder
   end
 
   private
-
-  # ============================================
-  # Phase 1: Instances Sorted Sets
-  # ============================================
-
-  def build_customer_instances
-    build_instances_set('customer', 'customer')
-  end
-
-  def build_organization_instances
-    build_instances_set('organization', 'organization')
-  end
-
-  def build_membership_instances
-    build_instances_set('org_membership', 'org_membership')
-  end
-
-  def build_customdomain_instances
-    build_instances_set('customdomain', 'customdomain')
-  end
-
-  def build_receipt_instances
-    build_instances_set('receipt', 'receipt')
-  end
-
-  def build_secret_instances
-    build_instances_set('secret', 'secret')
-  end
-
-  def build_instances_set(model_prefix, index_name)
-    puts "  Building #{index_name}:instances..."
-
-    instances_key = "#{index_name}:instances"
-    count         = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: "#{model_prefix}:*:object", count: 1000)
-
-      keys.each do |key|
-        # Extract objid from key
-        objid = key.split(':')[1]
-
-        # Get created timestamp for score (fall back to current time)
-        created = @valkey.hget(key, 'created') || @valkey.hget(key, 'joined_at') || Time.now.to_f
-
-        unless @dry_run
-          @valkey.zadd(instances_key, created.to_f, objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{instances_key}"
-    @stats[:instances][:created] += count
-  end
-
-  # ============================================
-  # Phase 2: Unique Indexes
-  # ============================================
-
-  def build_customer_email_index
-    puts '  Building customer:email_index...'
-
-    index_key = 'customer:email_index'
-    count     = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'customer:*:object', count: 1000)
-
-      keys.each do |key|
-        email = @valkey.hget(key, 'email')
-        objid = @valkey.hget(key, 'objid')
-
-        next if email.to_s.empty? || objid.to_s.empty?
-
-        unless @dry_run
-          @valkey.hset(index_key, email, objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{index_key}"
-    @stats[:unique_indexes][:created] += count
-  end
-
-  def build_customer_extid_lookup
-    puts '  Building customer:extid_lookup...'
-
-    lookup_key = 'customer:extid_lookup'
-    count      = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'customer:*:object', count: 1000)
-
-      keys.each do |key|
-        objid = @valkey.hget(key, 'objid')
-        next if objid.to_s.empty?
-
-        # Generate extid if not present
-        extid = @valkey.hget(key, 'extid')
-        if extid.to_s.empty?
-          extid = generate_extid(EXTID_PREFIXES[:customer], objid)
-          @valkey.hset(key, 'extid', extid) unless @dry_run
-        end
-
-        unless @dry_run
-          @valkey.hset(lookup_key, extid, objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{lookup_key}"
-    @stats[:extid_lookups][:created] += count
-  end
-
-  def build_organization_contact_email_index
-    puts '  Building organization:contact_email_index...'
-
-    index_key = 'organization:contact_email_index'
-    count     = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'organization:*:object', count: 1000)
-
-      keys.each do |key|
-        contact_email = @valkey.hget(key, 'contact_email')
-        objid         = @valkey.hget(key, 'objid')
-
-        next if contact_email.to_s.empty? || objid.to_s.empty?
-
-        unless @dry_run
-          @valkey.hset(index_key, contact_email, objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{index_key}"
-    @stats[:unique_indexes][:created] += count
-  end
-
-  def build_organization_extid_lookup
-    puts '  Building organization:extid_lookup...'
-
-    lookup_key = 'organization:extid_lookup'
-    count      = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'organization:*:object', count: 1000)
-
-      keys.each do |key|
-        objid = @valkey.hget(key, 'objid')
-        next if objid.to_s.empty?
-
-        # Generate extid if not present
-        extid = @valkey.hget(key, 'extid')
-        if extid.to_s.empty?
-          extid = generate_extid(EXTID_PREFIXES[:organization], objid)
-          @valkey.hset(key, 'extid', extid) unless @dry_run
-        end
-
-        unless @dry_run
-          @valkey.hset(lookup_key, extid, objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{lookup_key}"
-    @stats[:extid_lookups][:created] += count
-  end
-
-  def build_organization_stripe_customer_id_index
-    puts '  Building organization:stripe_customer_id_index...'
-
-    index_key = 'organization:stripe_customer_id_index'
-    count     = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'organization:*:object', count: 1000)
-
-      keys.each do |key|
-        stripe_customer_id = @valkey.hget(key, 'stripe_customer_id')
-        objid              = @valkey.hget(key, 'objid')
-
-        next if stripe_customer_id.to_s.empty? || objid.to_s.empty?
-
-        unless @dry_run
-          @valkey.hset(index_key, stripe_customer_id, objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{index_key}"
-    @stats[:stripe_indexes][:created] += count
-  end
-
-  def build_organization_stripe_subscription_id_index
-    puts '  Building organization:stripe_subscription_id_index...'
-
-    index_key = 'organization:stripe_subscription_id_index'
-    count     = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'organization:*:object', count: 1000)
-
-      keys.each do |key|
-        stripe_subscription_id = @valkey.hget(key, 'stripe_subscription_id')
-        objid                  = @valkey.hget(key, 'objid')
-
-        next if stripe_subscription_id.to_s.empty? || objid.to_s.empty?
-
-        unless @dry_run
-          @valkey.hset(index_key, stripe_subscription_id, objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{index_key}"
-    @stats[:stripe_indexes][:created] += count
-  end
-
-  def build_customdomain_display_domain_index
-    puts '  Building customdomain:display_domain_index...'
-
-    index_key = 'customdomain:display_domain_index'
-    count     = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'customdomain:*:object', count: 1000)
-
-      keys.each do |key|
-        display_domain = @valkey.hget(key, 'display_domain')
-        domainid       = key.split(':')[1] # Extract from key pattern
-
-        next if display_domain.to_s.empty?
-
-        unless @dry_run
-          @valkey.hset(index_key, display_domain, domainid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{index_key}"
-    @stats[:unique_indexes][:created] += count
-  end
-
-  def build_membership_indexes
-    puts '  Building org_membership indexes...'
-
-    token_lookup        = 'org_membership:token_lookup'
-    org_email_lookup    = 'org_membership:org_email_lookup'
-    org_customer_lookup = 'org_membership:org_customer_lookup'
-    count               = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'org_membership:*:object', count: 1000)
-
-      keys.each do |key|
-        membership = @valkey.hgetall(key)
-        objid      = membership['objid']
-        next if objid.to_s.empty?
-
-        unless @dry_run
-          # Token lookup
-          unless membership['token'].to_s.empty?
-            @valkey.hset(token_lookup, membership['token'], objid)
-          end
-
-          # Org+email lookup (for pending invites)
-          org_objid     = membership['organization_objid']
-          invited_email = membership['invited_email']
-          if org_objid && invited_email
-            composite_key = "#{org_objid}:#{invited_email.downcase}"
-            @valkey.hset(org_email_lookup, composite_key, objid)
-          end
-
-          # Org+customer lookup (for active memberships)
-          customer_objid = membership['customer_objid']
-          if org_objid && customer_objid
-            composite_key = "#{org_objid}:#{customer_objid}"
-            @valkey.hset(org_customer_lookup, composite_key, objid)
-          end
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Built membership indexes (#{count} memberships)"
-    @stats[:unique_indexes][:created] += count
-  end
-
-  # ============================================
-  # Phase 2b: Class Hashkeys
-  # ============================================
-
-  # Build customdomain:display_domains hash (display_domain → domainid)
-  # This is the class_hashkey used by CustomDomain.load_by_display_domain
-  # Note: This is separate from display_domain_index (unique_index)
-  def build_customdomain_display_domains
-    puts '  Building customdomain:display_domains...'
-
-    hashkey = 'customdomain:display_domains'
-    count   = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'customdomain:*:object', count: 1000)
-
-      keys.each do |key|
-        display_domain = @valkey.hget(key, 'display_domain')
-        domainid       = key.split(':')[1] # Extract from key pattern
-
-        next if display_domain.to_s.empty?
-
-        unless @dry_run
-          @valkey.hset(hashkey, display_domain, domainid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{hashkey}"
-    @stats[:class_hashkeys][:created] += count
-  end
-
-  # Build customdomain:owners hash (domainid → org_id)
-  # Used for cascade delete operations (find domains when org is deleted)
-  def build_customdomain_owners
-    puts '  Building customdomain:owners...'
-
-    hashkey = 'customdomain:owners'
-    count   = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'customdomain:*:object', count: 1000)
-
-      keys.each do |key|
-        domainid = key.split(':')[1] # Extract from key pattern
-        org_id   = @valkey.hget(key, 'org_id')
-
-        next if org_id.to_s.empty?
-
-        unless @dry_run
-          @valkey.hset(hashkey, domainid, org_id)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} entries to #{hashkey}"
-    @stats[:class_hashkeys][:created] += count
-  end
-
-  # ============================================
-  # Phase 3: Participation Sets
-  # ============================================
-
-  def build_organization_members_sets
-    puts '  Building organization:{objid}:members sets...'
-
-    count = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'org_membership:*:object', count: 1000)
-
-      keys.each do |key|
-        membership = @valkey.hgetall(key)
-
-        org_objid      = membership['organization_objid']
-        customer_objid = membership['customer_objid']
-        joined_at      = membership['joined_at'] || Time.now.to_f
-
-        next if org_objid.to_s.empty? || customer_objid.to_s.empty?
-
-        members_key = "organization:#{org_objid}:members"
-
-        unless @dry_run
-          @valkey.zadd(members_key, joined_at.to_f, customer_objid)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} member entries"
-    @stats[:participation_sets][:created] += count
-  end
-
-  def build_organization_domains_sets
-    puts '  Building organization:{objid}:domains sets...'
-
-    count = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'customdomain:*:object', count: 1000)
-
-      keys.each do |key|
-        org_id    = @valkey.hget(key, 'org_id')
-        domain_id = key.split(':')[1]
-        created   = @valkey.hget(key, 'created') || Time.now.to_f
-
-        next if org_id.to_s.empty?
-
-        domains_key = "organization:#{org_id}:domains"
-
-        unless @dry_run
-          @valkey.zadd(domains_key, created.to_f, domain_id)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} domain entries"
-    @stats[:participation_sets][:created] += count
-  end
-
-  def build_organization_receipts_sets
-    puts '  Building organization:{objid}:receipts sets...'
-
-    count = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'receipt:*:object', count: 1000)
-
-      keys.each do |key|
-        org_id     = @valkey.hget(key, 'org_id')
-        receipt_id = key.split(':')[1]
-        created    = @valkey.hget(key, 'created') || Time.now.to_f
-
-        next if org_id.to_s.empty?
-
-        receipts_key = "organization:#{org_id}:receipts"
-
-        unless @dry_run
-          @valkey.zadd(receipts_key, created.to_f, receipt_id)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} receipt entries to organization sets"
-    @stats[:participation_sets][:created] += count
-  end
-
-  def build_customdomain_receipts_sets
-    puts '  Building customdomain:{domainid}:receipts sets...'
-
-    count = 0
-
-    cursor = '0'
-    loop do
-      cursor, keys = @valkey.scan(cursor, match: 'receipt:*:object', count: 1000)
-
-      keys.each do |key|
-        domain_id  = @valkey.hget(key, 'domain_id')
-        receipt_id = key.split(':')[1]
-        created    = @valkey.hget(key, 'created') || Time.now.to_f
-
-        next if domain_id.to_s.empty?
-
-        receipts_key = "customdomain:#{domain_id}:receipts"
-
-        unless @dry_run
-          @valkey.zadd(receipts_key, created.to_f, receipt_id)
-        end
-        count += 1
-      end
-
-      break if cursor == '0'
-    end
-
-    puts "    Added #{count} receipt entries to domain sets"
-    @stats[:participation_sets][:created] += count
-  end
-
-  # ============================================
-  # Reporting
-  # ============================================
 
   def write_manifest
     manifest = {
@@ -712,12 +181,10 @@ end
 if __FILE__ == $0
   options = parse_args(ARGV)
 
-  rebuilder = IndexRebuilder.new(
+  orchestrator = IndexRebuilderOrchestrator.new(
     valkey_url: options[:valkey_url],
     dry_run: options[:dry_run],
   )
 
-  rebuilder.rebuild_all
+  orchestrator.rebuild_all
 end
-
-# rubocop:enable Metrics/ClassLength
