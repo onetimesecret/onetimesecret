@@ -1,4 +1,4 @@
-# migrations/pending/20250727-1523_02_reorganize_config_structure.rb
+# migrations/pending/20250727-1523_02_big_reorganize_config_structure.rb
 #
 # frozen_string_literal: true
 
@@ -81,11 +81,11 @@ module Onetime
     ].freeze
 
     def prepare
-      @base_path = OT::HOME
-      @source_config = File.join(@base_path, 'etc', 'config.yaml')
-      @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
-      @temp_config = File.join(@base_path, 'etc', 'config.reorganized.yaml')
-      @old_keys_found = []  # Store detected old structure
+      @base_path               = OT::HOME
+      @source_config           = File.join(@base_path, 'etc', 'config.yaml')
+      @backup_suffix           = Time.now.strftime('%Y%m%d%H%M%S')
+      @temp_config             = File.join(@base_path, 'etc', 'config.reorganized.yaml')
+      @old_keys_found          = []  # Store detected old structure
       @blocked_by_prerequisite = false
     end
 
@@ -141,8 +141,8 @@ module Onetime
       info ''
 
       # Perform migration steps
-      backup_path = backup_config
-      mappings_count = generate_reorganized_config
+      backup_path    = backup_config
+      generate_reorganized_config
       finalize_config
 
       # Result line
@@ -168,7 +168,6 @@ module Onetime
     end
 
     def needs_reorganization?
-      begin
         config = YAML.safe_load_file(@source_config, permitted_classes: [Symbol])
 
         # Detect old structure markers
@@ -178,10 +177,9 @@ module Onetime
         @old_keys_found << 'site.interface' if config.dig('site', 'interface') && !config.key?('interface')
 
         @old_keys_found.any?
-      rescue StandardError => e
-        error "Failed to parse config: #{e.message}"
+    rescue StandardError => ex
+        error "Failed to parse config: #{ex.message}"
         false
-      end
     end
 
     def backup_config
@@ -212,8 +210,8 @@ module Onetime
     end
 
     def apply_mapping(mapping)
-      from_path = mapping['from']
-      to_path = mapping['to']
+      from_path     = mapping['from']
+      to_path       = mapping['to']
       default_value = mapping['default']
 
       # Skip 'doesnotexist' paths - these are just for setting defaults
@@ -227,7 +225,7 @@ module Onetime
         cmd = "yq eval '.#{to_path} = load(\"#{@source_config}\").#{from_path}' -i '#{@temp_config}'"
       else
         formatted_default = format_for_yq(default_value)
-        cmd = "yq eval '.#{to_path} = (load(\"#{@source_config}\").#{from_path} // #{formatted_default})' -i '#{@temp_config}'"
+        cmd               = "yq eval '.#{to_path} = (load(\"#{@source_config}\").#{from_path} // #{formatted_default})' -i '#{@temp_config}'"
       end
 
       system(cmd)
@@ -235,7 +233,7 @@ module Onetime
 
     def apply_default_value(to_path, default_value)
       formatted_default = format_for_yq(default_value)
-      cmd = "yq eval '.#{to_path} = #{formatted_default}' -i '#{@temp_config}'"
+      cmd               = "yq eval '.#{to_path} = #{formatted_default}' -i '#{@temp_config}'"
       system(cmd)
     end
 
