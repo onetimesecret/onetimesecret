@@ -84,7 +84,7 @@ module Onetime
     identifier_field :domainid
 
     field :display_domain
-    field :org_id       # Organization foreign key (replaces custid)
+    field :org_id       # Organization objid (replaces custid because customdomains are now organization-level)
     field :base_domain
     field :subdomain
     field :trd
