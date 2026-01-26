@@ -35,6 +35,28 @@ RSpec.describe 'Security Features Toggle', type: :integration do
     {}
   end
 
+  # Establish a session and retrieve CSRF token
+  def ensure_csrf_token
+    return @csrf_token if defined?(@csrf_token) && @csrf_token
+
+    get '/auth', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    @csrf_token = last_response.headers['X-CSRF-Token']
+    @csrf_token
+  end
+
+  # POST with JSON content type and CSRF token
+  def post_with_csrf(path, params = {}, headers = {})
+    csrf_token = ensure_csrf_token
+
+    post path,
+      params.merge(shrimp: csrf_token).to_json,
+      headers.merge(
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_ACCEPT' => 'application/json',
+        'HTTP_X_CSRF_TOKEN' => csrf_token
+      )
+  end
+
   describe 'default configuration (security enabled)' do
     it 'has hardening features enabled by default' do
       # ENV['AUTH_HARDENING_ENABLED'] != 'false' means enabled
@@ -70,11 +92,8 @@ RSpec.describe 'Security Features Toggle', type: :integration do
   end
 
   describe 'POST /auth/login with security enabled' do
-    let(:credentials) { { login: 'test@example.com', password: 'wrongpassword' }.to_json }
-    let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
     it 'returns appropriate error status' do
-      post '/auth/login', credentials, json_headers
+      post_with_csrf '/auth/login', { login: 'test@example.com', password: 'wrongpassword' }
       expect([400, 401, 422]).to include(last_response.status)
     end
   end
