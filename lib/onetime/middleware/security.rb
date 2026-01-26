@@ -135,6 +135,10 @@ Onetime::Middleware::Security.middleware_components = {
         # - CSRF attacks require victim's session cookies, which don't exist for API calls
         return true if req.path.start_with?('/api/')
 
+        # Webhook endpoints use their own signature-based verification (e.g., Stripe-Signature header)
+        # They're called server-to-server, not from browsers, so CSRF doesn't apply
+        return true if req.path == '/billing/webhook'
+
         false
       },
     },
