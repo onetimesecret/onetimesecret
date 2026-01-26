@@ -19,12 +19,6 @@
     router.push({ name: 'IncomingSecretForm' });
   };
 
-  const openReceipt = () => {
-    if (metadataKey.value) {
-      window.open(receiptUrl.value, '_blank');
-    }
-  };
-
   const copyToClipboard = async () => {
     if (!metadataKey.value) return;
 
@@ -123,10 +117,11 @@
                       d="M5 13l4 4L19 7" />
                   </svg>
                 </button>
-                <button
-                  type="button"
+                <a
+                  :href="receiptUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   class="rounded-lg bg-gray-200 p-2.5 text-gray-600 transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                  @click="openReceipt"
                   title="Open receipt in new window">
                   <svg
                     class="size-5"
@@ -139,7 +134,7 @@
                       stroke-linejoin="round"
                       d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
-                </button>
+                </a>
               </div>
             </div>
           </div>

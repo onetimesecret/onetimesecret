@@ -122,7 +122,8 @@
         class="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-slate-800">
         <ul
           class="max-h-60 overflow-auto py-1"
-          role="listbox">
+          role="listbox"
+          data-testid="recipient-listbox">
           <li
             v-for="recipient in recipients"
             :key="recipient.hash"

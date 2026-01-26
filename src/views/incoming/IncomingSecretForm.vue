@@ -87,7 +87,7 @@
       :message="t('incoming.loading_config')" />
 
     <!-- Error State -->
-    <EmptyState v-if="loadError">
+    <EmptyState v-if="!isLoading && loadError">
       <template #title>
         {{ t('incoming.config_error_title') }}
       </template>
@@ -100,7 +100,7 @@
     </EmptyState>
 
     <!-- Feature Disabled -->
-    <EmptyState v-else-if="!isFeatureEnabled">
+    <EmptyState v-else-if="!isLoading && !isFeatureEnabled">
       <template #title>
         {{ t('incoming.feature_disabled_title') }}
       </template>
@@ -114,7 +114,7 @@
 
     <!-- Form -->
     <div
-      v-else
+      v-else-if="!isLoading"
       class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
       <form
         @submit.prevent="handleSubmit"
