@@ -31,9 +31,16 @@
 
 require 'json'
 require 'base64'
-require 'securerandom'
 require 'fileutils'
-require 'digest'
+
+require_relative 'transformers/base_transformer'
+require_relative 'transformers/customer_transformer'
+require_relative 'transformers/organization_transformer'
+require_relative 'transformers/membership_transformer'
+require_relative 'transformers/customdomain_transformer'
+require_relative 'transformers/receipt_transformer'
+require_relative 'transformers/secret_transformer'
+require_relative 'transformers/feedback_transformer'
 
 class KeyTransformer
   # Model names and their output file mappings
@@ -45,27 +52,43 @@ class KeyTransformer
     @dry_run    = dry_run
     @timestamp  = Time.now.utc.strftime('%Y%m%dT%H%M%SZ')
 
-    # Mappings built during customer processing
-    @email_to_objid       = {} # email -> customer objid
-    @email_to_org_objid   = {} # email -> organization objid
-    @email_to_org_data    = {} # email -> organization record (for deferred write)
-    @email_to_membership  = {} # email -> membership record (for deferred write)
+    # Shared context for all transformers
+    @context = {
+      # Mappings built during customer processing
+      email_to_objid: {},       # email -> customer objid
+      email_to_org_objid: {},   # email -> organization objid
+      email_to_org_data: {},    # email -> organization record (for deferred write)
+      email_to_membership: {},  # email -> membership record (for deferred write)
 
-    # Mappings built during customdomain processing
-    @domainid_to_objid    = {} # old hex domainid -> new UUID objid
+      # Mappings built during customdomain processing
+      domainid_to_objid: {},    # old hex domainid -> new UUID objid
 
-    # Stats
-    @stats = {
-      customers: { scanned: 0, transformed: 0, skipped: 0 },
-      organizations: { generated: 0 },
-      memberships: { generated: 0 },
-      custom_domains: { scanned: 0, transformed: 0, hashkeys: 0, skipped: 0 },
-      receipts: { scanned: 0, transformed: 0, skipped: 0 },
-      secrets: { scanned: 0, transformed: 0, skipped: 0 },
-      feedback: { scanned: 0, passed_through: 0 },
-      indexes: { skipped: 0 },
-      other: { skipped: 0 },
+      # Shared stats
+      stats: {
+        customers: { scanned: 0, transformed: 0, skipped: 0 },
+        organizations: { generated: 0 },
+        memberships: { generated: 0 },
+        custom_domains: { scanned: 0, transformed: 0, hashkeys: 0, skipped: 0 },
+        receipts: { scanned: 0, transformed: 0, skipped: 0 },
+        secrets: { scanned: 0, transformed: 0, skipped: 0 },
+        feedback: { scanned: 0, passed_through: 0 },
+        indexes: { skipped: 0 },
+        other: { skipped: 0 },
+      },
     }
+
+    # Initialize transformers
+    @transformers = {
+      customer: Transformers::CustomerTransformer.new(@context),
+      customdomain: Transformers::CustomdomainTransformer.new(@context),
+      metadata: Transformers::ReceiptTransformer.new(@context),
+      secret: Transformers::SecretTransformer.new(@context),
+      feedback: Transformers::FeedbackTransformer.new(@context),
+    }
+
+    # Generated record writers
+    @organization_transformer = Transformers::OrganizationTransformer.new(@context)
+    @membership_transformer   = Transformers::MembershipTransformer.new(@context)
   end
 
   def transform_all
@@ -98,6 +121,9 @@ class KeyTransformer
     # Write manifest
     write_manifest unless @dry_run
 
+    # Sync transformer stats to context stats
+    sync_stats
+
     print_summary
   end
 
@@ -121,25 +147,13 @@ class KeyTransformer
 
     records_written = 0
     output_handle   = @dry_run ? nil : File.open(output_file, 'w')
-    transformer     = @transformers[model_name.to_sym]
+    @transformers[model_name.to_sym]
 
     File.foreach(input_file) do |line|
       record = JSON.parse(line.strip)
       key    = record['key']
 
-      # Route to model-specific handler
-      transformed = case model_name
-                    when 'customer'
-                      route_customer_key(record, key)
-                    when 'customdomain'
-                      route_customdomain_key(record, key)
-                    when 'metadata'
-                      route_metadata_key(record, key)
-                    when 'secret'
-                      route_secret_key(record, key)
-                    when 'feedback'
-                      route_feedback_key(record, key)
-                    end
+      transformed = transformer.route(record, key)
 
       next unless transformed
 
@@ -153,301 +167,18 @@ class KeyTransformer
     puts "  Records written: #{records_written}" unless @dry_run
   end
 
-  # === Per-model key routers ===
-
-  def route_customer_key(record, key)
-    case key
-    when /^customer:([^:]+):object$/
-      transform_customer(record, Regexp.last_match(1))
-    when /^customer:([^:]+):metadata$/, /^customer:values$/
-      # Skip v1 indexes (metadata sorted sets, global values set)
-      skip_index_key
-    else
-      skip_other_key
-    end
-  end
-
-  def route_customdomain_key(record, key)
-    case key
-    when /^customdomain:([^:]+):object$/
-      transform_custom_domain(record, Regexp.last_match(1))
-    when /^customdomain:([^:]+):(brand|logo|icon)$/
-      transform_custom_domain_hashkey(record, Regexp.last_match(1), Regexp.last_match(2))
-    when /^customdomain:(values|owners|display_domains)$/
-      # Skip v1 global indexes
-      skip_index_key
-    else
-      skip_other_key
-    end
-  end
-
-  def route_metadata_key(record, key)
-    case key
-    when /^metadata:([^:]+):object$/
-      transform_receipt(record, Regexp.last_match(1))
-    else
-      skip_other_key
-    end
-  end
-
-  def route_secret_key(record, key)
-    case key
-    when /^secret:([^:]+):object$/
-      transform_secret(record, Regexp.last_match(1))
-    when /^secret:([^:]+):email$/
-      # Preserve email notification records as-is
-      record
-    else
-      skip_other_key
-    end
-  end
-
-  def route_feedback_key(record, key)
-    case key
-    when /^feedback$/
-      # Pass through feedback as-is
-      @stats[:feedback][:scanned]        += 1
-      @stats[:feedback][:passed_through] += 1
-      record
-    else
-      skip_other_key
-    end
-  end
-
-  # === Transform methods (unchanged) ===
-
-  def transform_customer(record, email)
-    @stats[:customers][:scanned] += 1
-
-    # Decode the DUMP data to inspect fields
-    # Note: We can't actually decode Redis DUMP format without Redis,
-    # so we'll transform the record metadata and pass through the dump
-    # The actual field transformation happens at load time via Familia
-
-    # For customers, the key pattern doesn't change in structure,
-    # but the semantic meaning of custid changes from email to objid.
-    # The dump contains the serialized hash which we'll restore as-is.
-
-    # Parse created timestamp from record (extracted during dump phase)
-    created_time = parse_created_time(record['created'])
-
-    # Generate new objid for this customer using historical timestamp
-    objid = generate_objid(created_time)
-    extid = derive_extid_from_uuid(objid, prefix: 'cus')
-
-    # Store mappings for later phases
-    @email_to_objid[email] = objid
-
-    # Generate corresponding Organization using customer's created timestamp
-    # so they appear to have been created at the same time
-    org_objid                  = generate_objid(created_time)
-    org_extid                  = derive_extid_from_uuid(org_objid, prefix: 'org')
-    @email_to_org_objid[email] = org_objid
-
-    @email_to_org_data[email] = {
-      objid: org_objid,
-      extid: org_extid,
-      owner_id: objid,
-      contact_email: email,
-      is_default: 'true',
-      display_name: "#{email.split('@').first}'s Workspace",
-      created: created_time&.to_f&.to_s || Time.now.to_f.to_s,
-      v1_source_custid: email,
-      migration_status: 'completed',
-      migrated_at: Time.now.to_f.to_s,
-    }
-
-    # Generate OrganizationMembership using customer's created timestamp
-    membership_objid            = generate_objid(created_time)
-    membership_extid            = derive_extid_from_uuid(membership_objid, prefix: 'mem')
-    @email_to_membership[email] = {
-      objid: membership_objid,
-      extid: membership_extid,
-      organization_objid: org_objid,
-      customer_objid: objid,
-      role: 'owner',
-      status: 'active',
-      created: created_time&.to_f&.to_s || Time.now.to_f.to_s,
-      joined_at: created_time&.to_f || Time.now.to_f,
-      token: SecureRandom.urlsafe_base64(32),  # 256-bit entropy
-      migration_status: 'completed',
-      migrated_at: Time.now.to_f.to_s,
-    }
-
-    @stats[:customers][:transformed]   += 1
-    @stats[:organizations][:generated] += 1
-    @stats[:memberships][:generated]   += 1
-
-    # Transform the key to use objid instead of email
-    # Note: The actual Redis key stays as customer:{email}:object for now
-    # because we're passing through the DUMP data which has the serialized hash.
-    # The load script will need to handle the key transformation.
-
-    {
-      key: "customer:#{objid}:object",
-      original_key: record['key'],
-      type: record['type'],
-      ttl_ms: record['ttl_ms'],
-      dump: record['dump'],
-      migration: {
-        v1_custid: email,
-        v2_objid: objid,
-        v2_extid: extid,
-        org_objid: org_objid,
-        created_time: created_time&.iso8601,
-      },
-    }
-  end
-
-  def transform_custom_domain(record, old_domain_id)
-    @stats[:custom_domains][:scanned] += 1
-
-    # Parse created timestamp from record (extracted during dump phase)
-    created_time = parse_created_time(record['created'])
-
-    # Generate new UUIDv7 objid for this CustomDomain using historical timestamp
-    # This replaces the old 20-char hex domainid
-    objid = generate_objid(created_time)
-    extid = derive_extid_from_uuid(objid, prefix: 'cd')
-
-    # Transform the key pattern: customdomain:{old_hex}:object -> customdomain:{new_uuid}:object
-    new_key = "customdomain:#{objid}:object"
-
-    # Store mapping for hashkey transformation
-    @domainid_to_objid[old_domain_id] = objid
-
-    {
-      key: new_key,
-      original_key: record['key'],
-      type: record['type'],
-      ttl_ms: record['ttl_ms'],
-      dump: record['dump'],
-      migration: {
-        v1_domainid: old_domain_id,
-        v2_objid: objid,
-        v2_extid: extid,
-        created_time: created_time&.iso8601,
-        # The actual custid->org_id mapping happens at load time
-        # because we need to parse the dump data
-        email_to_org_mapping: @email_to_org_objid,
-      },
-    }.tap { @stats[:custom_domains][:transformed] += 1 }
-  end
-
-  def transform_custom_domain_hashkey(record, old_domain_id, hashkey_name)
-    @stats[:custom_domains][:hashkeys] += 1
-
-    # Look up the new objid from our mapping
-    new_objid = @domainid_to_objid[old_domain_id]
-
-    unless new_objid
-      # Object record hasn't been processed yet - this shouldn't happen
-      # if files are processed in order, but handle gracefully
-      puts "  Warning: No objid mapping for domain #{old_domain_id}, keeping original key"
-      return {
-        key: record['key'],
-        type: record['type'],
-        ttl_ms: record['ttl_ms'],
-        dump: record['dump'],
-      }
-    end
-
-    # Transform hashkey path: customdomain:{old_hex}:{hashkey} -> customdomain:{new_uuid}:{hashkey}
-    new_key = "customdomain:#{new_objid}:#{hashkey_name}"
-
-    {
-      key: new_key,
-      original_key: record['key'],
-      type: record['type'],
-      ttl_ms: record['ttl_ms'],
-      dump: record['dump'],
-    }
-  end
-
-  def transform_receipt(record, receipt_id)
-    @stats[:receipts][:scanned] += 1
-
-    # Key transformation: metadata:{id}:object -> receipt:{id}:object
-    new_key = "receipt:#{receipt_id}:object"
-
-    {
-      key: new_key,
-      original_key: record['key'],
-      type: record['type'],
-      ttl_ms: record['ttl_ms'],
-      dump: record['dump'],
-      migration: {
-        v1_key: record['key'],
-        receipt_id: receipt_id,
-        # The actual custid->owner_id mapping happens at load time
-        email_to_objid_mapping: @email_to_objid,
-        email_to_org_mapping: @email_to_org_objid,
-      },
-    }.tap { @stats[:receipts][:transformed] += 1 }
-  end
-
-  def transform_secret(record, secret_id)
-    @stats[:secrets][:scanned] += 1
-
-    # Secret key pattern unchanged
-    # Field transformations (custid->owner_id, remove original_size)
-    # happen at load time
-
-    {
-      key: record['key'],
-      type: record['type'],
-      ttl_ms: record['ttl_ms'],
-      dump: record['dump'],
-      migration: {
-        secret_id: secret_id,
-        # The actual custid->owner_id mapping happens at load time
-        email_to_objid_mapping: @email_to_objid,
-      },
-    }.tap { @stats[:secrets][:transformed] += 1 }
-  end
-
-  def skip_index_key
-    @stats[:indexes][:skipped] += 1
-    nil
-  end
-
-  def skip_other_key
-    @stats[:other][:skipped] += 1
-    nil
-  end
-
   def write_generated_records
-    # Write organizations
-    org_file = File.join(@output_dir, "organization_generated_#{@timestamp}.jsonl")
-    File.open(org_file, 'w') do |f|
-      @email_to_org_data.each do |_email, org|
-        record = {
-          key: "organization:#{org[:objid]}:object",
-          type: 'hash',
-          ttl_ms: -1,
-          generated: true,
-          fields: org,
-        }
-        f.puts(JSON.generate(record))
-      end
-    end
-    puts "  Written: #{File.basename(org_file)} (#{@email_to_org_data.size} records)"
+    @organization_transformer.write_generated_records(@output_dir, @timestamp)
+    @membership_transformer.write_generated_records(@output_dir, @timestamp)
+  end
 
-    # Write memberships
-    membership_file = File.join(@output_dir, "org_membership_generated_#{@timestamp}.jsonl")
-    File.open(membership_file, 'w') do |f|
-      @email_to_membership.each do |_email, membership|
-        record = {
-          key: "org_membership:#{membership[:objid]}:object",
-          type: 'hash',
-          ttl_ms: -1,
-          generated: true,
-          fields: membership,
-        }
-        f.puts(JSON.generate(record))
-      end
-    end
-    puts "  Written: #{File.basename(membership_file)} (#{@email_to_membership.size} records)"
+  def sync_stats
+    # Copy transformer stats to context stats for summary
+    @context[:stats][:customers]      = @transformers[:customer].stats
+    @context[:stats][:custom_domains] = @transformers[:customdomain].stats
+    @context[:stats][:receipts]       = @transformers[:metadata].stats
+    @context[:stats][:secrets]        = @transformers[:secret].stats
+    @context[:stats][:feedback]       = @transformers[:feedback].stats
   end
 
   def write_manifest
@@ -468,83 +199,17 @@ class KeyTransformer
   end
 
   def print_summary
+    stats = @context[:stats]
     puts "\n=== Transformation Summary ==="
-    puts "Customers:      #{@stats[:customers][:transformed]} transformed, #{@stats[:customers][:skipped]} skipped"
-    puts "Organizations:  #{@stats[:organizations][:generated]} generated"
-    puts "Memberships:    #{@stats[:memberships][:generated]} generated"
-    puts "Custom Domains: #{@stats[:custom_domains][:transformed]} transformed, #{@stats[:custom_domains][:hashkeys]} hashkeys"
-    puts "Receipts:       #{@stats[:receipts][:transformed]} transformed"
-    puts "Secrets:        #{@stats[:secrets][:transformed]} transformed"
-    puts "Feedback:       #{@stats[:feedback][:passed_through]} passed through"
-    puts "Indexes:        #{@stats[:indexes][:skipped]} skipped (will rebuild)"
-    puts "Other:          #{@stats[:other][:skipped]} skipped"
-  end
-
-  # Parse created timestamp from record (float seconds since epoch)
-  def parse_created_time(created_value)
-    return nil if created_value.nil? || created_value.to_s.empty?
-
-    Time.at(created_value.to_f)
-  rescue ArgumentError
-    nil
-  end
-
-  # Generate UUIDv7 from a specific time (preserves historical ordering)
-  # Standalone implementation copied from lib/onetime/refinements/uuidv7_refinements.rb
-  # to avoid requiring OT boot.
-  def uuid_v7_from(time)
-    timestamp_ms   = (time.to_f * 1000).to_i
-    hex            = timestamp_ms.to_s(16).rjust(12, '0')
-    timestamp_part = "#{hex[0, 8]}-#{hex[8, 4]}-7"
-    base_uuid      = generate_base_uuid_v7
-    base_parts     = base_uuid.split('-')
-    "#{timestamp_part}#{base_parts[2][1..]}-#{base_parts[3]}-#{base_parts[4]}"
-  end
-
-  # Generate a base UUIDv7 with current time (used for random portion extraction)
-  def generate_base_uuid_v7
-    timestamp_ms = (Time.now.to_f * 1000).to_i
-    random_bytes = SecureRandom.random_bytes(10).bytes
-
-    uuid_bytes = [
-      (timestamp_ms >> 40) & 0xFF,
-      (timestamp_ms >> 32) & 0xFF,
-      (timestamp_ms >> 24) & 0xFF,
-      (timestamp_ms >> 16) & 0xFF,
-      (timestamp_ms >> 8) & 0xFF,
-      timestamp_ms & 0xFF,
-      (0x70 | (random_bytes[0] & 0x0F)),  # version 7
-      random_bytes[1],
-      (0x80 | (random_bytes[2] & 0x3F)),  # variant 10xx
-      random_bytes[3],
-      random_bytes[4],
-      random_bytes[5],
-      random_bytes[6],
-      random_bytes[7],
-      random_bytes[8],
-      random_bytes[9],
-    ].pack('C*')
-
-    hex = uuid_bytes.unpack1('H*')
-    "#{hex[0, 8]}-#{hex[8, 4]}-#{hex[12, 4]}-#{hex[16, 4]}-#{hex[20, 12]}"
-  end
-
-  # Derive deterministic external ID from UUID
-  # Matches Familia v2's derive_external_identifier format: {prefix}{base36_id}
-  # Format strings: 'ur%<id>s' (Customer), 'cd%<id>s' (CustomDomain), 'on%<id>s' (Organization)
-  def derive_extid_from_uuid(uuid_string, prefix: 'ext')
-    normalized_hex = uuid_string.delete('-')
-    seed           = Digest::SHA256.digest(normalized_hex)
-    prng           = Random.new(seed.unpack1('Q>'))
-    random_bytes   = prng.bytes(16)
-    external_part  = random_bytes.unpack1('H*').to_i(16).to_s(36).rjust(25, '0')
-    "#{prefix}#{external_part}"  # No underscore - matches Familia format strings
-  end
-
-  # Generate objid from optional created timestamp (falls back to Time.now)
-  def generate_objid(created_time = nil)
-    time = created_time || Time.now
-    uuid_v7_from(time)
+    puts "Customers:      #{stats[:customers][:transformed]} transformed, #{stats[:customers][:skipped]} skipped"
+    puts "Organizations:  #{stats[:organizations][:generated]} generated"
+    puts "Memberships:    #{stats[:memberships][:generated]} generated"
+    puts "Custom Domains: #{stats[:custom_domains][:transformed]} transformed, #{stats[:custom_domains][:hashkeys]} hashkeys"
+    puts "Receipts:       #{stats[:receipts][:transformed]} transformed"
+    puts "Secrets:        #{stats[:secrets][:transformed]} transformed"
+    puts "Feedback:       #{stats[:feedback][:passed_through]} passed through"
+    puts "Indexes:        #{stats[:indexes][:skipped]} skipped (will rebuild)"
+    puts "Other:          #{stats[:other][:skipped]} skipped"
   end
 end
 
