@@ -1,4 +1,5 @@
 <!-- src/apps/secret/components/SecretLinksTableRowConsole.vue -->
+
 <!--
   Console-style feed item for recent secrets.
   Monospace precision design embracing the security/technical nature.

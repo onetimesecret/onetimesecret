@@ -11,18 +11,22 @@ module Onetime
       # Sent to configured recipients when someone submits a secret via /incoming.
       #
       # Required data:
-      #   secret:    Secret object with #key method
-      #   recipient: Recipient email address
+      #   secret_key:   Secret key for URL (string)
+      #   recipient:    Recipient email address
       #
       # Optional data:
-      #   memo:    Brief description from sender (shown in body, not subject for security)
-      #   baseuri: Override site base URI
+      #   share_domain: Custom domain for secret sharing
+      #   memo:         Brief description from sender (shown in body, not subject for security)
+      #   baseuri:      Override site base URI
+      #
+      # NOTE: Uses primitive data types for RabbitMQ serialization.
+      # Secret objects cannot be serialized to JSON.
       #
       class IncomingSecret < Base
         protected
 
         def validate_data!
-          raise ArgumentError, 'Secret required' unless data[:secret]
+          raise ArgumentError, 'Secret key required' unless data[:secret_key]
           raise ArgumentError, 'Recipient required' unless data[:recipient]
         end
 
@@ -41,17 +45,13 @@ module Onetime
         end
 
         def display_domain
-          secret = data[:secret]
           scheme = site_ssl? ? 'https://' : 'http://'
-          host   = (secret.respond_to?(:share_domain) && secret.share_domain) || site_host
+          host   = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
           "#{scheme}#{host}"
         end
 
         def uri_path
-          secret = data[:secret]
-          # Use identifier (not deprecated .key field which may be nil)
-          key    = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
-          "/secret/#{key}"
+          "/secret/#{data[:secret_key]}"
         end
 
         def memo

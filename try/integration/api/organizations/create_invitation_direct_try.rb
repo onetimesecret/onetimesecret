@@ -64,9 +64,9 @@ params = {
 @result.key?(:record)
 #=> true
 
-## Result contains user_id
+## Result contains the user external ID
 @result[:user_id]
-#=> @owner.objid
+#=> @owner.extid
 
 ## Record has correct email
 @result[:record][:email]

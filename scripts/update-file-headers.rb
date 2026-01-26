@@ -1,16 +1,16 @@
 #!/usr/bin/env ruby
-# scripts/validate_headers.rb
+# scripts/update-file-headers.rb
 #
 # frozen_string_literal: true
 
 # Validates that all Ruby, TypeScript, and Vue files have correct header format
 #
 # Usage:
-#   ruby scripts/validate_headers.rb
-#   ruby scripts/validate_headers.rb --fix
-#   ruby scripts/validate_headers.rb lib/onetime/
-#   ruby scripts/validate_headers.rb --fix src/**/*.ts
-#   ruby scripts/validate_headers.rb apps/ lib/onetime/*.rb
+#   ruby scripts/update-file-headers.rb
+#   ruby scripts/update-file-headers.rb --fix
+#   ruby scripts/update-file-headers.rb lib/onetime/
+#   ruby scripts/update-file-headers.rb --fix src/**/*.ts
+#   ruby scripts/update-file-headers.rb apps/ lib/onetime/*.rb
 #
 # Expected header formats:
 #

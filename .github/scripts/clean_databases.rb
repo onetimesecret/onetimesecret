@@ -1,13 +1,11 @@
-# scripts/clean_database.rb
+# .github/scripts/clean_databases.rb
 #
 # frozen_string_literal: true
 
-# support/clean_database.rb
-#
 # Clear Redis databases with safety checks and options
 #
 # Usage:
-#   ruby support/clean_database.rb [options]
+#   ruby clean_databases.rb [options]
 #
 # Options:
 #   --db N          Clear specific database number (default: current config)
@@ -19,25 +17,25 @@
 #
 #   # Clear current database (dry run first). These are equivalent
 #   # because dry-run is the default behaviour.
-#   $ ruby support/clean_database.rb --dry-run
+#   $ ruby clean_databases.rb --dry-run
 #
 #   # Clear current database
-#   $ ruby support/clean_database.rb --force
+#   $ ruby clean_databases.rb --force
 #
 #   # Clear specific database
-#   $ ruby support/clean_database.rb --db 1 --force
+#   $ ruby clean_databases.rb --db 1 --force
 #
 #   # Clear all databases
-#   $ ruby support/clean_database.rb --all --force
+#   $ ruby clean_databases.rb --all --force
 #
 #   # Clear only OneTimeSecret keys
-#   $ ruby support/clean_database.rb --pattern "onetime:*" --force
+#   $ ruby clean_databases.rb --pattern "onetime:*" --force
 #
 #   # Clear mutable config keys only
-#   $ ruby support/clean_database.rb --pattern "*mutableconfig*" --force
+#   $ ruby clean_databases.rb --pattern "*mutableconfig*" --force
 #
 #   # Clear test environment
-#   $ ruby support/clean_database.rb --env test --force
+#   $ ruby clean_databases.rb --env test --force
 #
 
 require 'bundler/setup'
@@ -111,7 +109,7 @@ class DatabaseCleaner
   end
 
   def load_database_config
-    database_url = ENV['AUTH_DATABASE_URL'] || ENV['VALKEY_URL'] || ENV['REDIS_URL']
+    database_url = ENV['AUTH_DATABASE_URL'] || ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil)
 
     if database_url
       # Parse environment variable (e.g., redis://localhost:6379/0)
@@ -119,7 +117,7 @@ class DatabaseCleaner
       return {
         host: uri.host || 'localhost',
         port: uri.port || 6379,
-        db: uri.path ? uri.path[1..-1].to_i : 0,
+        db: uri.path ? uri.path[1..].to_i : 0,
       }
     end
 
@@ -146,12 +144,12 @@ class DatabaseCleaner
     puts "  Keys matching '#{@options[:pattern]}': #{keys.length}"
 
     if keys.empty?
-      puts "  No keys to clear"
+      puts '  No keys to clear'
       return
     end
 
     if @options[:dry_run]
-      puts "  DRY RUN - Would delete:"
+      puts '  DRY RUN - Would delete:'
       keys.each { |key| puts "    #{key}" }
       return
     end
@@ -159,13 +157,13 @@ class DatabaseCleaner
     unless @options[:force]
       print "  Delete #{keys.length} keys from database #{db_num}? (y/N): "
       response = $stdin.gets.chomp.downcase
-      return unless ['y', 'yes'].include?(response)
+      return unless %w[y yes].include?(response)
     end
 
     if @options[:pattern] == '*'
       # More efficient for clearing entire database
       dbclient.flushdb
-      puts "  Flushed entire database"
+      puts '  Flushed entire database'
     else
       # Delete specific keys
       deleted = 0
@@ -174,11 +172,10 @@ class DatabaseCleaner
       end
       puts "  Deleted #{deleted} keys"
     end
-
-  rescue Redis::CannotConnectError => e
-    puts "  Cannot connect to database: #{e.message}"
-  rescue => e
-    puts "  Error: #{e.message}"
+  rescue Redis::CannotConnectError => ex
+    puts "  Cannot connect to database: #{ex.message}"
+  rescue StandardError => ex
+    puts "  Error: #{ex.message}"
   ensure
     dbclient&.quit
   end

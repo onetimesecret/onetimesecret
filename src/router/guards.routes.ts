@@ -26,6 +26,7 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     const mfaRedirect = handleMfaAccess(to, authStore);
     if (mfaRedirect) return mfaRedirect;
 
+
     // Handle root path redirect
     if (to.path === '/') return authStore.isFullyAuthenticated ? { name: 'Dashboard' } : true;
 

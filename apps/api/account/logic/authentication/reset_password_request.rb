@@ -34,7 +34,7 @@ module AccountAPI::Logic
         if cust.pending?
           auth_logger.info 'Resending verification email for pending customer',
             {
-              customer_id: cust.objid,
+              customer_id: cust.extid,
               email: cust.obscure_email,
               status: :pending,
             }
@@ -53,7 +53,7 @@ module AccountAPI::Logic
 
         auth_logger.debug 'Delivering password reset email',
           {
-            customer_id: cust.objid,
+            customer_id: cust.extid,
             email: cust.obscure_email,
             secret_identifier: secret.identifier,
             token: token&.slice(0, 8), # Only log first 8 chars for debugging
@@ -75,7 +75,7 @@ module AccountAPI::Logic
           errmsg = "Couldn't send the notification email. Let know below."
           auth_logger.error 'Password reset email delivery failed',
             {
-              customer_id: cust.objid,
+              customer_id: cust.extid,
               email: cust.obscure_email,
               error: ex.message,
               session_id: sess&.id,
@@ -85,7 +85,7 @@ module AccountAPI::Logic
         else
           auth_logger.info 'Password reset email sent',
             {
-              customer_id: cust.objid,
+              customer_id: cust.extid,
               email: cust.obscure_email,
               session_id: sess&.id,
               secret_identifier: secret.identifier,

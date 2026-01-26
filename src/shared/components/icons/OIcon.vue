@@ -23,6 +23,10 @@
 <script setup lang="ts">
   import { computed } from 'vue';
 
+  defineOptions({
+    inheritAttrs: false
+  });
+
   export interface Props {
     collection: string; // heroicons-solid
     name: string; // ellipses-vertical
@@ -45,7 +49,7 @@
 
 <template>
   <svg
-    :class="size"
+    :class="[size, $attrs.class]"
     :aria-hidden="true"
     :aria-label="ariaLabel"
     role="img">

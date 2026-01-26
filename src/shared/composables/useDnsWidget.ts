@@ -1,4 +1,5 @@
 // src/shared/composables/useDnsWidget.ts
+
 //
 // Composable for integrating the Approximated DNS widget into Vue components.
 // The widget helps users configure DNS records by detecting their DNS provider

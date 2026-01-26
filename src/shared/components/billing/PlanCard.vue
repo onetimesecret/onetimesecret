@@ -1,4 +1,5 @@
 <!-- src/shared/components/billing/PlanCard.vue -->
+
 <!--
   Shared plan card component for pricing/plans pages.
   Displays plan details, features, and action button.

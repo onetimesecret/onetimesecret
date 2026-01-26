@@ -109,14 +109,32 @@ function containsUUID(url: string): boolean {
 
 /**
  * Check if a URL path contains a hex string ID (internal ID format)
+ * that is NOT part of a valid ExtId prefix.
  * @internal Reserved for future use in more comprehensive ID detection
+ *
+ * Implementation note: We scan for hex ID matches and verify each is not
+ * preceded by a valid ExtId prefix, avoiding string mutation patterns
+ * that trigger CodeQL's incomplete-sanitization warnings.
  */
 function _containsHexId(url: string): boolean {
-  // Exclude valid ExtId prefixes using single regex to avoid incomplete sanitization
-  // (CodeQL: chained .replace() calls can miss patterns created by earlier replacements)
-  const withoutExtIds = url.replace(/\/(on|cd|ur|se|md)[a-zA-Z0-9]+/g, '');
+  // Find all potential hex ID matches (16-32 hex chars)
+  const hexPattern = /[0-9a-f]{16,32}/gi;
+  let match: RegExpExecArray | null;
 
-  return PATTERNS.hexId.test(withoutExtIds);
+  while ((match = hexPattern.exec(url)) !== null) {
+    const matchIndex = match.index;
+    // Check if this hex string is preceded by a valid ExtId prefix (e.g., "/on", "/cd")
+    // Valid ExtId pattern: slash + prefix + alphanumeric continuation into our match
+    const precedingChars = url.slice(Math.max(0, matchIndex - 3), matchIndex);
+    const isPartOfExtId = /\/(on|cd|ur|se|md)$/i.test(precedingChars);
+
+    if (!isPartOfExtId) {
+      // Found a hex ID that's not part of a valid ExtId
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

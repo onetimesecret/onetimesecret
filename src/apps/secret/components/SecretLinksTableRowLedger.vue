@@ -1,4 +1,5 @@
 <!-- src/apps/secret/components/SecretLinksTableRowLedger.vue -->
+
 <!--
   Ledger variant: The Index as Medallion design.
   Row identity is instantly communicated through a prominent, state-colored medallion.

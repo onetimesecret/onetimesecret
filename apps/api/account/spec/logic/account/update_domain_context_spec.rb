@@ -28,6 +28,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
     instance_double(
       Onetime::Customer,
       objid: 'test-cust-123',
+      extid: 'urtest-cust-123',
       custid: 'test-cust-123',
       anonymous?: false,
       custom_domains_list: [custom_domain_obj]

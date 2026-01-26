@@ -80,7 +80,7 @@ PublicSuffix.domain("status.onetimesecret.com", ignore_private: true)
 PublicSuffix.valid?("example.tldnotlisted")
 #=> true
 
-## Unknown/not-listed TLD domains without the * rule are not valid
+## Unknown/not-listed TLD domains without the *rule are not valid
 PublicSuffix.valid?("example.tldnotlisted", default_rule: nil)
 #=> false
 

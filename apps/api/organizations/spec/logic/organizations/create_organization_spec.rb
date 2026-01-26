@@ -287,7 +287,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       result = logic.process
       expect(result).to have_key(:user_id)
       expect(result).to have_key(:record)
-      expect(result[:user_id]).to eq('cust-123')
+      expect(result[:user_id]).to eq('ext-cust-123')
     end
 
     context 'when contact_email is empty' do

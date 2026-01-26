@@ -1,4 +1,5 @@
 // src/tests/components/WorkspaceSecretForm.spec.ts
+
 //
 // Tests for WorkspaceSecretForm.vue functionality:
 // - Keyboard shortcuts (Cmd+Enter, Ctrl+Enter)

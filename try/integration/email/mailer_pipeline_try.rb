@@ -128,7 +128,7 @@ result[:status]
 ## Mailer.deliver with :incoming_secret template works
 Onetime::Mail::Mailer.reset!
 result = Onetime::Mail::Mailer.deliver(:incoming_secret, {
-  secret: @mock_secret,
+  secret_key: @mock_secret.key,
   recipient: @recipient,
   memo: 'Test memo'
 })

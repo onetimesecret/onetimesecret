@@ -484,10 +484,11 @@ module Onetime
       #
       def create!(input, org_id)
         # Parse the domain to get normalized display_domain
-        obj = parse(input, org_id)
+        obj               = parse(input, org_id)
+        normalized_domain = obj.display_domain.to_s.downcase
 
         # Check for existing domain BEFORE attempting creation
-        existing = load_by_display_domain(obj.display_domain)
+        existing = load_by_display_domain(normalized_domain)
 
         if existing
           # Scenario 1: Domain already in customer's organization (same org_id)
@@ -502,37 +503,42 @@ module Onetime
             raise Onetime::Problem, 'Domain is registered to another organization'
           end
 
-          # Scenario 3: Orphaned domain (no org_id) - claim it
-          OT.info "[CustomDomain.create!] Claiming orphaned domain: #{obj.display_domain} for org_id=#{org_id}"
-          existing.org_id  = org_id
-          existing.updated = OT.now.to_i
-          existing.save
-
-          # Add to organization_domains collection
-          org = Onetime::Organization.load(org_id)
-          existing.add_to_organization_domains(org) if org
-
-          return existing
+          # Scenario 3: Orphaned domain (no org_id) - claim it atomically
+          # Use a simple lock pattern: try to set a claim marker, then update
+          claim_result = claim_orphaned_domain(existing, org_id)
+          return claim_result if claim_result
         end
 
-        # No existing domain - create new one
-        dbclient.watch(obj.dbkey) do
-          if obj.exists?
-            dbclient.unwatch
-            raise Onetime::Problem, 'Duplicate domain for organization'
-          end
+        # No existing domain - create new one with atomic uniqueness check
+        # Use HSETNX on display_domains as the atomic gate for uniqueness
+        was_set = display_domains.hsetnx(normalized_domain, obj.identifier)
 
-          dbclient.multi do |_multi|
-            obj.generate_txt_validation_record
-            obj.save
+        if was_set == 0
+          # Another process created this domain between our check and creation attempt
+          # Re-check to provide accurate error message
+          concurrent_domain = load_by_display_domain(normalized_domain)
+          raise Onetime::Problem, 'Domain already registered in your organization' if concurrent_domain&.org_id.to_s == org_id.to_s
 
-            # Use Familia v2 participation to add to organization.domains
-            org = Onetime::Organization.load(org_id)
-            obj.add_to_organization_domains(org) if org
+          raise Onetime::Problem, 'Domain is registered to another organization'
 
-            # Add to global values set
-            add(obj)
-          end
+        end
+
+        # We own the display_domains entry - now create the full record
+        begin
+          obj.generate_txt_validation_record
+          obj.save
+
+          # Use Familia v2 participation to add to organization.domains
+          org = Onetime::Organization.load(org_id)
+          obj.add_to_organization_domains(org) if org
+
+          # Add to other global indexes (instances sorted set, owners hash)
+          instances.add obj.to_s
+          owners.put obj.to_s, obj.org_id
+        rescue StandardError => ex
+          # Rollback the display_domains entry on failure
+          display_domains.remove(normalized_domain)
+          raise ex
         end
 
         obj # Return the created object
@@ -542,6 +548,52 @@ module Onetime
       rescue Redis::BaseError => ex
         OT.le "[CustomDomain.create!] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
+      end
+
+      # Atomically claim an orphaned domain for an organization.
+      # Uses optimistic locking via WATCH to prevent race conditions.
+      #
+      # @param existing [CustomDomain] The orphaned domain to claim
+      # @param org_id [String] The organization ID claiming the domain
+      # @return [CustomDomain, nil] The claimed domain, or nil if claim failed
+      # @raise [Onetime::Problem] If domain was claimed by another org during race
+      def claim_orphaned_domain(existing, org_id)
+        OT.info "[CustomDomain.create!] Claiming orphaned domain: #{existing.display_domain} for org_id=#{org_id}"
+
+        # Use WATCH/MULTI for optimistic locking on the domain record
+        result = dbclient.watch(existing.dbkey) do
+          # Re-check org_id inside the watch - if changed, transaction will fail
+          current_org_id = existing.hget(:org_id)
+
+          unless current_org_id.to_s.empty?
+            dbclient.unwatch
+            return existing if current_org_id.to_s == org_id.to_s
+
+            # We already own it (concurrent request from same org succeeded)
+
+            # Another org claimed it
+            raise Onetime::Problem, 'Domain is registered to another organization'
+
+          end
+
+          dbclient.multi do |_multi|
+            existing.org_id  = org_id
+            existing.updated = OT.now.to_i
+            existing.save
+
+            # Add to organization_domains collection
+            org = Onetime::Organization.load(org_id)
+            existing.add_to_organization_domains(org) if org
+          end
+        end
+
+        # If multi returned nil, WATCH detected a change - retry or fail
+        if result.nil?
+          OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
+          raise Onetime::Problem, 'Domain claim failed due to concurrent modification'
+        end
+
+        existing
       end
 
       # Returns a new Onetime::CustomDomain object (without saving it).

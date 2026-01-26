@@ -66,7 +66,7 @@ module OrganizationAPI::Logic
 
       def success_data
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           organization_id: @organization.extid,
           record: {
             id: @target_member.extid,

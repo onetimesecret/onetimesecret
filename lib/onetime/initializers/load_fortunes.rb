@@ -16,7 +16,7 @@ module Onetime
       @provides = [:fortunes]
 
       def execute(_context)
-        filepath = File.join(Onetime::HOME, 'etc', 'fortunes')
+        filepath = File.join(__dir__, 'fortunes')
 
         fortunes_list = if File.exist?(filepath)
                           OT.ld "[init] Loading fortunes from #{filepath}"

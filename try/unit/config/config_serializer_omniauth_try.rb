@@ -1,9 +1,9 @@
 # try/unit/config/config_serializer_omniauth_try.rb
 #
+# frozen_string_literal: true
+
 # Tests for ConfigSerializer.build_omniauth_config method.
 # Verifies the serialization of OmniAuth feature configuration for frontend consumption.
-#
-# frozen_string_literal: true
 
 ENV['AUTHENTICATION_MODE'] = 'full'
 

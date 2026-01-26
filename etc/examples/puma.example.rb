@@ -1,4 +1,4 @@
-# etc/puma.rb
+# etc/examples/puma.example.rb
 #
 # frozen_string_literal: true
 

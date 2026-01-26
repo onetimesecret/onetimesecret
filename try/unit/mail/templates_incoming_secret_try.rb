@@ -5,8 +5,11 @@
 # Tests for Onetime::Mail::Templates::IncomingSecret class.
 #
 # IncomingSecret is used for incoming secrets feature notifications.
-# Required data: secret, recipient
-# Optional: memo, baseuri
+# Required data: secret_key, recipient
+# Optional: share_domain, memo, baseuri
+#
+# NOTE: Uses primitive data types for RabbitMQ serialization.
+# Secret objects cannot be serialized to JSON.
 
 require_relative '../../support/test_helpers'
 
@@ -16,24 +19,14 @@ OT.boot! :test, false
 # Load the mail module
 require 'onetime/mail'
 
-# Data class for mocking secrets (immutable, Ruby 3.2+)
-# Template uses #identifier method (not #key which is deprecated)
-MockIncomingSecret = Data.define(:key, :share_domain) do
-  alias identifier key
-end
-
-# Setup mock secrets
-@mock_secret = MockIncomingSecret.new(key: 'incoming_key_abc', share_domain: nil)
-@mock_secret_with_domain = MockIncomingSecret.new(key: 'incoming_key_xyz', share_domain: 'custom.example.com')
-
 @valid_data = {
-  secret: @mock_secret,
+  secret_key: 'incoming_key_abc',
   recipient: 'recipient@example.com'
 }
 
 # TRYOUTS
 
-## IncomingSecret validates presence of secret
+## IncomingSecret validates presence of secret_key
 begin
   Onetime::Mail::Templates::IncomingSecret.new({
     recipient: 'test@example.com'
@@ -41,12 +34,12 @@ begin
 rescue ArgumentError => e
   e.message
 end
-#=> 'Secret required'
+#=> 'Secret key required'
 
 ## IncomingSecret validates presence of recipient
 begin
   Onetime::Mail::Templates::IncomingSecret.new({
-    secret: @mock_secret
+    secret_key: 'abc123'
   })
 rescue ArgumentError => e
   e.message
@@ -107,7 +100,7 @@ template.display_domain
 #=~> /https?:\/\/.+/
 
 ## IncomingSecret display_domain uses share_domain when present
-data = @valid_data.merge(secret: @mock_secret_with_domain)
+data = @valid_data.merge(share_domain: 'custom.example.com')
 template = Onetime::Mail::Templates::IncomingSecret.new(data)
 template.display_domain
 #=~> /https?:\/\/custom\.example\.com/

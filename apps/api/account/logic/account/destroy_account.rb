@@ -1,4 +1,4 @@
-# apps/api/account/logic/destroy_account.rb
+# apps/api/account/logic/account/destroy_account.rb
 #
 # frozen_string_literal: true
 
@@ -12,7 +12,7 @@ module AccountAPI::Logic
       def process_params
         return if params.nil?
 
-        OT.ld "[DestroyAccount#process_params] params: #{params.inspect}"
+        OT.ld "[DestroyAccount#process_params] param keys: #{params.keys.sort}"
         @confirmation = self.class.normalize_password(params['confirmation'])
       end
 

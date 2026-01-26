@@ -8,7 +8,7 @@ module AccountAPI::Logic
       attr_reader :new_locale, :old_locale
 
       def process_params
-        OT.ld "[UpdateLocale#process_params] params: #{params.inspect}" # careful w/ logging params
+        OT.ld "[UpdateLocale#process_params] param keys: #{params.keys.sort}"
         @new_locale = params[field_name] # i.e. :locale
         @old_locale = cust.locale
       end
@@ -41,10 +41,8 @@ module AccountAPI::Logic
 
       def perform_update
         # Always update session locale (works for both anonymous and authenticated)
-        OT.ld "[UpdateLocale#perform_update] Setting session['locale'] = #{new_locale}"
-        OT.ld "[UpdateLocale#perform_update] Session before: #{sess.inspect}"
+        OT.ld "[UpdateLocale#perform_update] Setting locale: #{new_locale}"
         sess['locale'] = new_locale
-        OT.ld "[UpdateLocale#perform_update] Session after: #{sess.inspect}"
 
         # Only update customer record if authenticated
         unless cust.anonymous?

@@ -102,11 +102,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     try {
       const response = await $api.get('/api/colonel/info');
       const validated = responseSchemas.colonelInfo.parse(response.data);
-      details.value = validated.details as any;
+      details.value = validated.details ?? null;
       // Also populate stats from the full response
       if (validated.details) {
         stats.value = {
-          counts: (validated.details as any).counts,
+          counts: validated.details.counts,
         };
       }
       return validated.record;
@@ -126,7 +126,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       const response = await $api.get('/api/colonel/stats');
       const validated = responseSchemas.colonelStats.parse(response.data);
       if (validated.details) {
-        stats.value = validated.details as any;
+        stats.value = validated.details;
       }
       return stats.value!;
     } catch (error) {

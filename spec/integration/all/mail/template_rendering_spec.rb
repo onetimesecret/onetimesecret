@@ -300,12 +300,10 @@ RSpec.describe 'Email Template Rendering', type: :integration do
   end
 
   describe Onetime::Mail::Templates::IncomingSecret do
-    let(:mock_secret) do
-      double('Secret', key: 'incoming789', identifier: 'incoming789', share_domain: nil)
-    end
     let(:data) do
       {
-        secret: mock_secret,
+        secret_key: 'incoming789',
+        share_domain: nil,
         recipient: test_email,
         memo: 'Important document'
       }
@@ -372,7 +370,7 @@ RSpec.describe 'Email Template Rendering', type: :integration do
     context 'without memo' do
       let(:data) do
         {
-          secret: mock_secret,
+          secret_key: 'incoming789',
           recipient: test_email,
           memo: nil
         }
@@ -636,13 +634,13 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         .to raise_error(ArgumentError, /Reset password path or secret required/)
     end
 
-    it 'IncomingSecret requires secret' do
+    it 'IncomingSecret requires secret_key' do
       expect { Onetime::Mail::Templates::IncomingSecret.new({ recipient: 'a@b.com' }) }
-        .to raise_error(ArgumentError, /Secret required/)
+        .to raise_error(ArgumentError, /Secret key required/)
     end
 
     it 'IncomingSecret requires recipient' do
-      expect { Onetime::Mail::Templates::IncomingSecret.new({ secret: double('s', key: 'x') }) }
+      expect { Onetime::Mail::Templates::IncomingSecret.new({ secret_key: 'abc123' }) }
         .to raise_error(ArgumentError, /Recipient required/)
     end
 

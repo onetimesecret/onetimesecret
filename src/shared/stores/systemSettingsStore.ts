@@ -41,7 +41,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
 
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);
-      details.value = validated.details as any;
+      details.value = validated.details ?? null;
     } catch (validationError) {
       console.warn('System settings validation warning:', validationError);
       // Gracefully handle validation errors by using response data directly
@@ -74,7 +74,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);
       record.value = validated.record;
-      details.value = validated.details as any;
+      details.value = validated.details ?? null;
       return validated;
     } catch (validationError) {
       console.warn('Response validation warning:', validationError);

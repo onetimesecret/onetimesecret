@@ -30,8 +30,6 @@ module Onetime
     # Each protection can be individually enabled/disabled via configuration.
     #
     class Security
-      include Onetime::LoggerMethods
-
       @middleware_components = {}
 
       # The wrapped Rack application
@@ -73,14 +71,14 @@ module Onetime
         Rack::Builder.new do
           # Apply each middleware if configured
           components.each do |name, config|
-            next unless middleware_settings[config[:key]]
+            # All settings comfing from yaml are strings as a rule
+            middleware_key = config[:key].to_s
+            next unless middleware_settings[middleware_key]
 
-            http_logger.info "[Security] Enabling #{name} protection"
-            if config[:options]
-              use config[:klass], config[:options]
-            else
-              use config[:klass]
-            end
+            OT.ld "[Security] Enabling #{name}/middleware_key protection"
+
+            # Use double-splat to pass options only if they exist
+            use config[:klass], **(config[:options] || {})
           end
 
           # Pass through to original application
@@ -96,78 +94,76 @@ module Onetime
 end
 
 Onetime::Middleware::Security.middleware_components = {
-  # UTF-8 Sanitization - Ensures proper UTF-8 encoding in request parameters
+  # UTF-8 Sanitization: Ensures request parameters use valid UTF-8 encoding.
   'UTF8Sanitizer' => {
     key: :utf8_sanitizer,
     klass: Rack::UTF8Sanitizer,
     options: { sanitize_null_bytes: true },
   },
-  # CSRF Protection via authenticity tokens
+
+  # CSRF Protection (Token-based): Validates 'shrimp' authenticity tokens.
   #
-  # ⚠️  NOTE: This is ONE of TWO CSRF systems in the application.
-  # Rodauth also loads Roda's route_csrf plugin separately.
+  # ⚠️ Dual-CSRF System: This works alongside Rodauth's separate CSRF protection.
+  # ⚠️ SSO Bypass: /auth/sso/ routes are excluded as they use OAuth 'state' params.
+  # ⚠️ API Bypass: API and JSON requests are excluded (handled via other means).
   #
-  # For OmniAuth/SSO routes (/auth/sso/*):
-  #   - This middleware is SKIPPED (via allow_if below)
-  #   - Rodauth's route_csrf is ALSO skipped (via omniauth_request_validation_phase hook)
-  #   - OAuth state parameter provides CSRF protection instead
-  #
-  # See: apps/web/auth/config/hooks/omniauth.rb for the Rodauth-side bypass
-  #
+  # See: apps/web/auth/config/hooks/omniauth.rb for the Rodauth-side bypass.
   'AuthenticityToken' => {
     key: :authenticity_token,
     klass: Rack::Protection::AuthenticityToken,
     options: {
-      # OTS uses 'shrimp' as the CSRF parameter name (legacy naming)
       authenticity_param: 'shrimp',
-      # Skip CSRF for specific routes
-      # ⚠️  /auth/sso/ bypass is REQUIRED - OAuth uses state param for CSRF
       allow_if: ->(env) {
         req = Rack::Request.new(env)
-        # Skip for API endpoints or JSON requests
         req.path.start_with?('/api/', '/auth/sso/') ||
           req.media_type == 'application/json' ||
           req.get_header('HTTP_ACCEPT')&.include?('application/json')
       },
     },
   },
-  # Protection against CSRF attacks
+
+  # CSRF Protection (Origin-based): Validates Origin and Referer headers.
   'HttpOrigin' => {
     key: :http_origin,
     klass: Rack::Protection::HttpOrigin,
   },
-  # NOTE: Rack::Protection::EscapedParams intentionally excluded.
-  # It escapes ALL string parameters uniformly (no field exclusions),
-  # which corrupts sensitive fields like passwords, passphrases, and
-  # secret content. OTS uses Onetime::Security::InputSanitizers for
-  # field-aware sanitization instead.
-  #
-  # Sets X-XSS-Protection header
+
+  # NOTE: Rack::Protection::EscapedParams is intentionally EXCLUDED.
+  # It escapes all parameters uniformly, which would corrupt sensitive data
+  # like passwords and secrets. OTS uses Onetime::Security::InputSanitizers
+  # for field-aware sanitization instead.
+
+  # XSS Header: Sets X-XSS-Protection to mitigate reflected XSS in older browsers.
   'XSSHeader' => {
     key: :xss_header,
     klass: Rack::Protection::XSSHeader,
   },
-  # Prevents clickjacking via X-Frame-Options
+
+  # Frame Options: Prevents clickjacking by restricting iframe embedding.
   'FrameOptions' => {
     key: :frame_options,
     klass: Rack::Protection::FrameOptions,
   },
-  # Blocks directory traversal attacks
+
+  # Path Traversal: Prevents directory traversal attacks in request paths.
   'PathTraversal' => {
     key: :path_traversal,
     klass: Rack::Protection::PathTraversal,
   },
-  # Prevents session fixation via manipulated cookies
+
+  # Cookie Tossing: Blocks session fixation via cookies set on subdomains.
   'CookieTossing' => {
     key: :cookie_tossing,
     klass: Rack::Protection::CookieTossing,
   },
-  # Prevents IP spoofing attacks
+
+  # IP Spoofing: Detects and blocks IP spoofing attempts via header validation.
   'IPSpoofing' => {
     key: :ip_spoofing,
     klass: Rack::Protection::IPSpoofing,
   },
-  # Forces HTTPS connections via HSTS headers
+
+  # HSTS: Forces HTTPS by setting the Strict-Transport-Security header.
   'StrictTransport' => {
     key: :strict_transport,
     klass: Rack::Protection::StrictTransport,

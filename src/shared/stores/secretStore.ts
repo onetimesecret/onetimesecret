@@ -16,14 +16,14 @@ import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
 
-interface StoreOptions extends PiniaPluginOptions {}
-
 /**
  * API mode for secret operations.
  * - 'authenticated': Uses /api/v3 endpoints (requires authentication)
  * - 'public': Uses /api/v3/guest endpoints (guest access)
  */
 export type ApiMode = 'authenticated' | 'public';
+
+interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for SecretStore.
@@ -106,7 +106,7 @@ export const useSecretStore = defineStore('secrets', () => {
     const response = await $api.get(getEndpoint(`/secret/${secretIdentifier}`));
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details as any;
+    details.value = validated.details ?? null;
 
     return validated;
   }
@@ -166,7 +166,7 @@ export const useSecretStore = defineStore('secrets', () => {
 
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
-    details.value = validated.details as any;
+    details.value = validated.details ?? null;
 
     // Update local storage status for non-authenticated users only
     // The secretIdentifier is the secretExtid we stored when creating the secret

@@ -66,19 +66,19 @@ module InviteAPI::Logic
       end
 
       def process
-        OT.ld "[AcceptInvite] Accepting invitation #{@invitation.objid} for user #{OT::Utils.obscure_email(cust.extid)}"
+        OT.ld "[AcceptInvite] Accepting invitation #{@invitation.objid} for user #{cust.obscure_email}"
 
         # Accept the invitation (updates membership status and adds to org)
         @invitation.accept!(cust)
 
-        OT.info "[AcceptInvite] User #{OT::Utils.obscure_email(cust.extid)} joined organization #{@organization.extid}"
+        OT.info "[AcceptInvite] User #{cust.obscure_email} joined organization #{@organization.extid}"
 
         success_data
       end
 
       def success_data
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           organization: {
             id: @organization.extid,
             display_name: @organization.display_name,

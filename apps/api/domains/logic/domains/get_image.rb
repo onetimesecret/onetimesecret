@@ -45,6 +45,7 @@ module DomainsAPI::Logic
 
       def raise_concerns
         raise_not_found 'Missing domain ID' if custom_domain_id.empty?
+        raise_not_found 'Invalid image type' if image_type.nil?
 
         # Use find_by_extid since URLs use external IDs (cd<id> format)
         tmp_custom_domain = Onetime::CustomDomain.find_by_extid custom_domain_id

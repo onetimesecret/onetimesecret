@@ -1,4 +1,5 @@
 // src/tests/schemas/receiptStateTerminology.spec.ts
+
 //
 // TDD tests for secret state terminology rename: viewed->previewed, received->revealed
 //

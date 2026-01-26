@@ -281,7 +281,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       expect(result).to have_key(:user_id)
       expect(result).to have_key(:organization_id)
       expect(result).to have_key(:record)
-      expect(result[:user_id]).to eq('cust-owner-123')
+      expect(result[:user_id]).to eq('ext-cust-owner')
       expect(result[:organization_id]).to eq('ext-org-123')
     end
 

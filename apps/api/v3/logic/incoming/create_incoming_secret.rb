@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../lib/onetime/jobs/publisher'
 
 module V3
   module Logic
@@ -154,25 +155,20 @@ module V3
         def send_recipient_notification
           return if recipient_email.nil? || recipient_email.empty?
 
-          # NOTE: Email notification for incoming secrets is not yet implemented
-          # in this branch. The IncomingSecretNotification mail view class needs
-          # to be created, along with the corresponding HTML template.
-          #
-          # The implementation should:
-          # 1. Create OT::Mail::IncomingSecretNotification class
-          # 2. Create templates/mail/incoming_secret_notification.html template
-          # 3. Call receipt.deliver_by_email with the appropriate parameters
-          #
-          # Example of intended implementation:
-          #   klass = OT::Mail::IncomingSecretNotification
-          #   receipt.deliver_by_email(cust, locale, secret, recipient_email, klass)
-          #
-          # For now, we log the event but don't send the email.
+          Onetime::Jobs::Publisher.enqueue_email(
+            :incoming_secret,
+            {
+              secret_key: secret.identifier,
+              share_domain: secret.share_domain,
+              recipient: recipient_email,
+              memo: memo,
+              locale: locale || OT.default_locale,
+            },
+          )
 
-          Onetime.secret_logger.info "[IncomingSecret] Secret created for #{OT::Utils.obscure_email(recipient_email)} (receipt: #{receipt.shortid})"
-          Onetime.secret_logger.warn '[IncomingSecret] Email notification not sent - IncomingSecretNotification mail class not implemented'
+          Onetime.secret_logger.info "[IncomingSecret] Notification enqueued for #{OT::Utils.obscure_email(recipient_email)} (receipt: #{receipt.shortid})"
         rescue StandardError => ex
-          Onetime.secret_logger.error "[IncomingSecret] Failed to send email notification: #{ex.message}"
+          Onetime.secret_logger.error "[IncomingSecret] Failed to enqueue notification: #{ex.message}"
           # Don't raise - email failure shouldn't prevent secret creation
         end
       end

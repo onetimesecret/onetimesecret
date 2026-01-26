@@ -93,7 +93,7 @@ module OrganizationAPI::Logic
 
       def success_data
         {
-          user_id: cust.objid,
+          user_id: cust.extid,
           record: serialize_organization(organization),
         }
       end

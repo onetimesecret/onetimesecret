@@ -42,7 +42,6 @@ module DomainsAPI::Logic
 
         if result[:available]
           {
-            success: true,
             token: result[:token],
             api_url: result[:api_url],
             expires_in: result[:expires_in],
