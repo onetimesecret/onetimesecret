@@ -74,6 +74,29 @@ vi.mock('@/shared/composables/useDomainsManager', () => ({
   }),
 }));
 
+// Mock bootstrapStore with feature flags
+const mockCust = ref({
+  feature_flags: {
+    dns_widget: true, // Enable DNS widget by default in tests
+  },
+});
+
+vi.mock('@/shared/stores/bootstrapStore', () => ({
+  useBootstrapStore: () => ({
+    cust: mockCust,
+  }),
+}));
+
+vi.mock('pinia', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('pinia')>();
+  return {
+    ...actual,
+    storeToRefs: (store: { cust?: typeof mockCust }) => ({
+      cust: store.cust ?? mockCust,
+    }),
+  };
+});
+
 // i18n setup
 const i18n = createI18n({
   legacy: false,
@@ -130,6 +153,9 @@ describe('DomainVerify', () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     vi.useFakeTimers();
+
+    // Reset feature flags to enabled state for tests
+    mockCust.value = { feature_flags: { dns_widget: true } };
 
     // Default mock responses
     mockGetDomain.mockResolvedValue({
@@ -417,6 +443,38 @@ describe('DomainVerify', () => {
       const wrapper = await mountComponent();
 
       expect(wrapper.text()).toContain('Loading domain information...');
+    });
+
+    it('hides DnsWidget when dns_widget feature flag is disabled', async () => {
+      // Disable the feature flag
+      mockCust.value = { feature_flags: { dns_widget: false } };
+
+      mockGetDomain.mockResolvedValue({
+        domain: createMockDomain({ vhost: { last_monitored_unix: 0 } }),
+        cluster: createMockCluster({ validation_strategy: 'approximated' }),
+        canVerify: true,
+      });
+
+      const wrapper = await mountComponent();
+
+      // Should show VerifyDomainDetails instead of DnsWidget
+      expect(wrapper.find('[data-testid="dns-widget"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="verify-domain-details"]').exists()).toBe(true);
+    });
+
+    it('shows DnsWidget when dns_widget feature flag is enabled', async () => {
+      // Enable the feature flag
+      mockCust.value = { feature_flags: { dns_widget: true } };
+
+      mockGetDomain.mockResolvedValue({
+        domain: createMockDomain({ vhost: { last_monitored_unix: 0 } }),
+        cluster: createMockCluster({ validation_strategy: 'approximated' }),
+        canVerify: true,
+      });
+
+      const wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="dns-widget"]').exists()).toBe(true);
     });
   });
 

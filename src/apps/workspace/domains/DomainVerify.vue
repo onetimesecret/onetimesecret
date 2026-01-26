@@ -8,14 +8,21 @@
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
   import { CustomDomain, CustomDomainProxy } from '@/schemas/models';
+  import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
   const route = useRoute();
   const { getDomain, verifyDomain } = useDomainsManager();
+  const bootstrapStore = useBootstrapStore();
+  const { cust } = storeToRefs(bootstrapStore);
+
+  // Feature flag: DNS widget UI (disabled by default for launch)
+  const isDnsWidgetEnabled = computed(() => cust.value?.feature_flags?.dns_widget ?? false);
 
   const domain = ref<CustomDomain | null>(null);
   const cluster = ref<CustomDomainProxy | null>(null);
@@ -49,9 +56,13 @@
   };
 
   // DNS Widget configuration
-  // Show widget only for approximated strategy when domain is not yet verified
+  // Show widget only when:
+  // 1. Feature flag is enabled (dns_widget)
+  // 2. Domain exists and is not yet verified
+  // 3. Cluster uses approximated validation strategy
   const showDnsWidget = computed(
     () =>
+      isDnsWidgetEnabled.value &&
       domain.value &&
       !domain.value.vhost?.last_monitored_unix &&
       cluster.value?.validation_strategy === 'approximated'
