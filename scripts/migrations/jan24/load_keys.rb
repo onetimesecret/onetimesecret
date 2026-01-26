@@ -249,18 +249,20 @@ class KeyLoader
   def transform_customer_fields(key, migration)
     v1_custid = migration['v1_custid']
     v2_objid  = migration['v2_objid']
+    v2_extid  = migration['v2_extid']
     migration['org_objid']
 
     # Update fields in the hash
-    @valkey.hset(
-      key,
+    fields          = {
       'objid' => v2_objid,
       'custid' => v2_objid,        # custid now equals objid
       'email' => v1_custid,        # email field stores the email
       'v1_custid' => v1_custid,    # migration reference
       'migration_status' => 'completed',
       'migrated_at' => Time.now.to_f.to_s,
-    )
+    }
+    fields['extid'] = v2_extid if v2_extid
+    @valkey.hset(key, fields)
   end
 
   def transform_custom_domain_fields(key, _migration)

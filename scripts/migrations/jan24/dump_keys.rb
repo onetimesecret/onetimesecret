@@ -2,7 +2,10 @@
 # frozen_string_literal: true
 
 # Dumps Redis keys to JSONL format for migration.
-# Each line: {"key": "...", "type": "...", "ttl_ms": ..., "dump": "<base64>"}
+# Each line: {"key": "...", "type": "...", "ttl_ms": ..., "dump": "<base64>", "created": "..."}
+#
+# For hash records, also extracts the 'created' field using HGET to preserve
+# historical timestamps for UUIDv7 generation during transformation.
 #
 # Usage:
 #   ruby scripts/dump_keys.rb [OPTIONS]
@@ -125,6 +128,12 @@ class KeyDumper
       ttl_ms: ttl_ms,
       dump: Base64.strict_encode64(dump_data),
     }
+
+    # For hash records, extract the 'created' field to preserve timestamps
+    if key_type == 'hash'
+      created_value    = redis.hget(key, 'created')
+      record[:created] = created_value if created_value
+    end
 
     file.puts(JSON.generate(record))
     stats[:dumped] += 1

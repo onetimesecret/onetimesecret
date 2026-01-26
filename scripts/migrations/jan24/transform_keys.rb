@@ -26,6 +26,7 @@ require 'json'
 require 'base64'
 require 'securerandom'
 require 'fileutils'
+require 'digest'
 
 class KeyTransformer
   # DB mappings from analyze_keyspace.rb
@@ -164,36 +165,47 @@ class KeyTransformer
     # but the semantic meaning of custid changes from email to objid.
     # The dump contains the serialized hash which we'll restore as-is.
 
-    # Generate new objid for this customer
-    objid = generate_objid
+    # Parse created timestamp from record (extracted during dump phase)
+    created_time = parse_created_time(record['created'])
+
+    # Generate new objid for this customer using historical timestamp
+    objid = generate_objid(created_time)
+    extid = derive_extid_from_uuid(objid, prefix: 'cus')
 
     # Store mappings for later phases
     @email_to_objid[email] = objid
 
-    # Generate corresponding Organization
-    org_objid                  = generate_objid
+    # Generate corresponding Organization using customer's created timestamp
+    # so they appear to have been created at the same time
+    org_objid                  = generate_objid(created_time)
+    org_extid                  = derive_extid_from_uuid(org_objid, prefix: 'org')
     @email_to_org_objid[email] = org_objid
 
     @email_to_org_data[email] = {
       objid: org_objid,
+      extid: org_extid,
       owner_id: objid,
       contact_email: email,
       is_default: 'true',
       display_name: "#{email.split('@').first}'s Workspace",
+      created: created_time&.to_f&.to_s || Time.now.to_f.to_s,
       v1_source_custid: email,
       migration_status: 'completed',
       migrated_at: Time.now.to_f.to_s,
     }
 
-    # Generate OrganizationMembership with proper token
-    membership_objid            = generate_objid
+    # Generate OrganizationMembership using customer's created timestamp
+    membership_objid            = generate_objid(created_time)
+    membership_extid            = derive_extid_from_uuid(membership_objid, prefix: 'mem')
     @email_to_membership[email] = {
       objid: membership_objid,
+      extid: membership_extid,
       organization_objid: org_objid,
       customer_objid: objid,
       role: 'owner',
       status: 'active',
-      joined_at: Time.now.to_f,
+      created: created_time&.to_f&.to_s || Time.now.to_f.to_s,
+      joined_at: created_time&.to_f || Time.now.to_f,
       token: SecureRandom.urlsafe_base64(32),  # 256-bit entropy
       migration_status: 'completed',
       migrated_at: Time.now.to_f.to_s,
@@ -217,7 +229,9 @@ class KeyTransformer
       migration: {
         v1_custid: email,
         v2_objid: objid,
+        v2_extid: extid,
         org_objid: org_objid,
+        created_time: created_time&.iso8601,
       },
     }
   end
@@ -367,15 +381,32 @@ class KeyTransformer
     puts "Other:          #{@stats[:other][:skipped]} skipped"
   end
 
-  def generate_objid
-    # Generate proper UUID v7 (time-ordered, RFC 9562 compliant)
-    # Format: xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx
-    # where 7 indicates version 7 and y is 8, 9, a, or b
+  # Parse created timestamp from record (float seconds since epoch)
+  def parse_created_time(created_value)
+    return nil if created_value.nil? || created_value.to_s.empty?
 
+    Time.at(created_value.to_f)
+  rescue ArgumentError
+    nil
+  end
+
+  # Generate UUIDv7 from a specific time (preserves historical ordering)
+  # Standalone implementation copied from lib/onetime/refinements/uuidv7_refinements.rb
+  # to avoid requiring OT boot.
+  def uuid_v7_from(time)
+    timestamp_ms   = (time.to_f * 1000).to_i
+    hex            = timestamp_ms.to_s(16).rjust(12, '0')
+    timestamp_part = "#{hex[0, 8]}-#{hex[8, 4]}-7"
+    base_uuid      = generate_base_uuid_v7
+    base_parts     = base_uuid.split('-')
+    "#{timestamp_part}#{base_parts[2][1..]}-#{base_parts[3]}-#{base_parts[4]}"
+  end
+
+  # Generate a base UUIDv7 with current time (used for random portion extraction)
+  def generate_base_uuid_v7
     timestamp_ms = (Time.now.to_f * 1000).to_i
     random_bytes = SecureRandom.random_bytes(10).bytes
 
-    # Build UUID v7: 48 bits timestamp + 4 bits version + 12 bits rand_a + 2 bits variant + 62 bits rand_b
     uuid_bytes = [
       (timestamp_ms >> 40) & 0xFF,
       (timestamp_ms >> 32) & 0xFF,
@@ -395,9 +426,25 @@ class KeyTransformer
       random_bytes[9],
     ].pack('C*')
 
-    # Format as UUID string
     hex = uuid_bytes.unpack1('H*')
     "#{hex[0, 8]}-#{hex[8, 4]}-#{hex[12, 4]}-#{hex[16, 4]}-#{hex[20, 12]}"
+  end
+
+  # Derive deterministic external ID from UUID
+  # Standalone implementation copied from migrations/20250728-1512_00_customer_objid.rb
+  def derive_extid_from_uuid(uuid_string, prefix: 'ext')
+    normalized_hex = uuid_string.delete('-')
+    seed           = Digest::SHA256.digest(normalized_hex)
+    prng           = Random.new(seed.unpack1('Q>'))
+    random_bytes   = prng.bytes(16)
+    external_part  = random_bytes.unpack1('H*').to_i(16).to_s(36).rjust(25, '0')
+    "#{prefix}_#{external_part}"
+  end
+
+  # Generate objid from optional created timestamp (falls back to Time.now)
+  def generate_objid(created_time = nil)
+    time = created_time || Time.now
+    uuid_v7_from(time)
   end
 end
 
