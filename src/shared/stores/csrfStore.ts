@@ -104,7 +104,7 @@ export const useCsrfStore = defineStore('csrf', () => {
       {
         headers: {
           'Content-Type': 'application/json',
-          'O-Shrimp': shrimp.value,
+          'X-CSRF-Token': shrimp.value,
         },
       }
     );

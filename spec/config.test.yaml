@@ -40,6 +40,16 @@ site:
         numbers: true
         symbols: false
         exclude_ambiguous: true
+  middleware:
+    utf8_sanitizer: true
+    authenticity_token: true
+    http_origin: true
+    xss_header: true
+    frame_options: true
+    path_traversal: true
+    cookie_tossing: true
+    ip_spoofing: true
+    # Note: strict_transport is false for tests (no HTTPS in Rack::Test)
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.

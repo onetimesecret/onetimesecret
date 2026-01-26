@@ -104,8 +104,12 @@ Onetime::Middleware::Security.middleware_components = {
   # CSRF Protection (Token-based): Validates 'shrimp' authenticity tokens.
   #
   # ⚠️ Dual-CSRF System: This works alongside Rodauth's separate CSRF protection.
-  # ⚠️ SSO Bypass: /auth/sso/ routes are excluded as they use OAuth 'state' params.
-  # ⚠️ API Bypass: API and JSON requests are excluded (handled via other means).
+  # ⚠️ SSO Bypass: /auth/sso/ routes use OAuth 'state' params for CSRF protection.
+  # ⚠️ API Bypass: /api/ routes use Basic Auth (not session auth).
+  #
+  # SECURITY: JSON content-type and Accept header bypasses were REMOVED.
+  # Those headers are attacker-controlled and provided no real protection.
+  # Legitimate JSON requests must include a valid CSRF token.
   #
   # See: apps/web/auth/config/hooks/omniauth.rb for the Rodauth-side bypass.
   'AuthenticityToken' => {
@@ -115,9 +119,7 @@ Onetime::Middleware::Security.middleware_components = {
       authenticity_param: 'shrimp',
       allow_if: ->(env) {
         req = Rack::Request.new(env)
-        req.path.start_with?('/api/', '/auth/sso/') ||
-          req.media_type == 'application/json' ||
-          req.get_header('HTTP_ACCEPT')&.include?('application/json')
+        req.path.start_with?('/api/', '/auth/sso/')
       },
     },
   },

@@ -29,7 +29,7 @@ const handleReset = async () => {
       {
         headers: {
           'Content-Type': 'application/json',
-          'O-Shrimp': csrfStore.shrimp,
+          'X-CSRF-Token': csrfStore.shrimp,
         },
       }
     );

@@ -168,7 +168,7 @@ describe('CSRF Store', () => {
       axiosMock?.onPost('/api/v3/validate-shrimp').reply((config) => {
         // Verify that the shrimp token is included in the request (test behavior)
         const headers = config.headers as Record<string, string> | undefined;
-        const shrimpHeader = headers?.['O-Shrimp'];
+        const shrimpHeader = headers?.['X-CSRF-Token'];
         expect(shrimpHeader).toBe('initial-shrimp');
 
         // Return successful response
@@ -208,7 +208,7 @@ describe('CSRF Store', () => {
       // Verify the request was made with correct shrimp token (behavior-focused)
       const request = axiosMock?.history.post[0];
       const headers = request?.headers as Record<string, string> | undefined;
-      const shrimpHeader = headers?.['O-Shrimp'];
+      const shrimpHeader = headers?.['X-CSRF-Token'];
       expect(shrimpHeader).toBe('initial-shrimp');
     });
 

@@ -2,31 +2,32 @@
 #
 # frozen_string_literal: true
 
+require 'rack/protection'
+
 module Onetime
   module Middleware
     ##
     # CsrfResponseHeader
     #
-    # Adds CSRF token to response headers after Rack::Protection::JsonCsrf
+    # Adds CSRF token to response headers after Rack::Protection::AuthenticityToken
     # validates the request.
     #
-    # This middleware is a thin wrapper that ensures the CSRF token is
-    # available to the frontend via the X-CSRF-Token response header.
+    # This middleware ensures the CSRF token is available to the frontend via
+    # the X-CSRF-Token response header. The token is MASKED using the same
+    # algorithm that Rack::Protection uses for form tokens.
+    #
+    # **Why masked tokens?**
+    # Rack::Protection::AuthenticityToken stores a raw token in session[:csrf]
+    # but validates against MASKED tokens (XOR + base64). Returning the raw
+    # token would fail validation. Using .token(session) returns the properly
+    # masked version that the middleware will accept.
     #
     # **Why separate middleware?**
-    # Rack::Protection::JsonCsrf handles validation but doesn't add the
-    # token to response headers (it's designed for HTML meta tags).
-    # This middleware complements it for JSON API usage.
-    #
-    # **Alternative approach:**
-    # We could create a single consolidated middleware that both validates
-    # and adds headers, but keeping them separate:
-    # - Follows single responsibility principle
-    # - Leverages battle-tested Rack::Protection for validation
-    # - Keeps our custom code minimal and focused
+    # Rack::Protection handles validation but doesn't add the token to response
+    # headers. This middleware complements it for JSON/AJAX usage.
     #
     # Usage:
-    #   use Rack::Protection::JsonCsrf
+    #   use Rack::Protection::AuthenticityToken
     #   use Onetime::Middleware::CsrfResponseHeader
     #
     class CsrfResponseHeader
@@ -37,12 +38,13 @@ module Onetime
       def call(env)
         status, headers, body = @app.call(env)
 
-        # Read CSRF token from session (Rack::Protection stores as :csrf)
-        session    = env['rack.session']
-        csrf_token = session&.[](:csrf) || session&.[]('csrf')
-
-        # Add to response headers if present
-        headers['X-CSRF-Token'] = csrf_token if csrf_token
+        # Get properly masked CSRF token from Rack::Protection
+        # This returns a masked token that will pass validation
+        session = env['rack.session']
+        if session
+          csrf_token              = Rack::Protection::AuthenticityToken.token(session)
+          headers['X-CSRF-Token'] = csrf_token if csrf_token
+        end
 
         [status, headers, body]
       end

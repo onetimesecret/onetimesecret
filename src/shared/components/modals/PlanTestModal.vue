@@ -113,7 +113,7 @@ const handleActivateTestMode = async (planId: string) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          'O-Shrimp': csrfStore.shrimp,
+          'X-CSRF-Token': csrfStore.shrimp,
         },
       }
     );
@@ -140,7 +140,7 @@ const handleResetToActual = async () => {
       {
         headers: {
           'Content-Type': 'application/json',
-          'O-Shrimp': csrfStore.shrimp,
+          'X-CSRF-Token': csrfStore.shrimp,
         },
       }
     );
