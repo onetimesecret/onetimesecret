@@ -14,7 +14,7 @@
 #   --output-dir=DIR Output directory (default: exports)
 #   --dry-run        Show what would be dumped without writing
 #
-# Output files per model: exports/customer_dump.jsonl, exports/metadata_dump.jsonl, etc.
+# Output files per model: exports/customer/customer_dump.jsonl, exports/metadata/metadata_dump.jsonl, etc.
 # Includes 'created' timestamp for UUIDv7 generation during transform.
 # Idempotent: each run overwrites existing model files.
 
@@ -95,7 +95,7 @@ class KeyDumper
     close_model_files
 
     @model_stats.each do |model, stats|
-      puts "#{model}: #{stats[:dumped]} keys dumped to #{model}_dump.jsonl"
+      puts "#{model}: #{stats[:dumped]} keys dumped to #{model}/#{model}_dump.jsonl"
       puts "  Skipped: #{stats[:skipped]}, Errors: #{stats[:errors].size}" if stats[:skipped] > 0 || stats[:errors].any?
     end
 
@@ -137,7 +137,9 @@ class KeyDumper
 
   def get_file_for_model(model_name)
     @model_files[model_name] ||= begin
-      filename = File.join(@output_dir, "#{model_name}_dump.jsonl")
+      model_dir = File.join(@output_dir, model_name)
+      FileUtils.mkdir_p(model_dir)
+      filename  = File.join(model_dir, "#{model_name}_dump.jsonl")
       File.open(filename, 'w')
     end
   end
@@ -214,7 +216,7 @@ class KeyDumper
     model_summaries = {}
     @model_stats.each do |model, stats|
       model_summaries[model] = {
-        file: "#{model}_dump.jsonl",
+        file: "#{model}/#{model}_dump.jsonl",
         total_scanned: stats[:total],
         dumped: stats[:dumped],
         skipped: stats[:skipped],
@@ -268,12 +270,12 @@ def parse_args(args)
           --dry-run        Show what would be dumped
           --help           Show this help
 
-        Output files per model:
-          exports/customer_dump.jsonl
-          exports/customdomain_dump.jsonl
-          exports/metadata_dump.jsonl
-          exports/secret_dump.jsonl
-          exports/feedback_dump.jsonl
+        Output files per model (in subdirectories):
+          exports/customer/customer_dump.jsonl
+          exports/customdomain/customdomain_dump.jsonl
+          exports/metadata/metadata_dump.jsonl
+          exports/secret/secret_dump.jsonl
+          exports/feedback/feedback_dump.jsonl
 
         Each record includes 'created' timestamp for UUIDv7 generation.
       HELP
