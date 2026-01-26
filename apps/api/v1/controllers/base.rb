@@ -54,10 +54,11 @@ module V1
 
         if auth.provided?
           # Basic Auth path
-          raise OT::Unauthorized unless auth.basic?
+          # Use identical error messages to prevent user enumeration
+          raise OT::Unauthorized, 'Invalid credentials' unless auth.basic?
 
           custid, apitoken = *(auth.credentials || [])
-          raise OT::Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
+          raise OT::Unauthorized, 'Invalid credentials' if custid.to_s.empty? || apitoken.to_s.empty?
 
           return disabled_response(req.path) unless authentication_enabled?
 
@@ -79,10 +80,10 @@ module V1
 
         else
           # No credentials and anonymous not allowed
-          raise OT::Unauthorized, 'No credentials provided'
+          raise OT::Unauthorized, 'Invalid credentials'
         end
 
-        raise OT::Unauthorized, "[bad-cust] via #{req.client_ipaddress}" if cust.nil?
+        raise OT::Unauthorized, 'Invalid credentials' if cust.nil?
 
         yield
       end
