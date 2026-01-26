@@ -88,12 +88,7 @@ created, updated, burned, shared, truncate, secret_key, key
 
 ### Instance Index
 
-**No V1 key exists.** Familia v2 automatically maintains `receipt:instances` - no manual migration needed.
-
-```redis
-# Auto-populated by Familia v2 on save
-receipt:instances
-```
+**No V1 key exists.** Not required for migration.
 
 ### Expiration Timeline
 

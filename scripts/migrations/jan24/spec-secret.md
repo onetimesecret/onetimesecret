@@ -83,12 +83,7 @@ share_domain, verification, truncated, secret_key, metadata_key
 
 ### Instance Index
 
-**No V1 key exists.** Familia v2 automatically maintains `secret:instances` - no manual migration needed.
-
-```redis
-# Auto-populated by Familia v2 on save
-secret:instances
-```
+**No V1 key exists.** Not required for migration.
 
 ### Lookup Index
 

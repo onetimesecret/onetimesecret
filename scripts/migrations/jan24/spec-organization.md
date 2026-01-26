@@ -68,11 +68,10 @@
 
 ### Instance Index
 
-**New model.** Familia v2 automatically maintains `organization:instances` on save.
+**New model.** Must be populated during migration as organizations are created.
 
 ```redis
-# Auto-populated by Familia v2 on save
-organization:instances
+ZADD organization:instances <created_timestamp> <objid>
 ```
 
 ### Lookup Indexes
