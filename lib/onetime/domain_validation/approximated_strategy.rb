@@ -114,7 +114,8 @@ module Onetime
           '443',
         )
 
-        if res.code == 200
+        # 200 = existing vhost returned, 201 = new vhost created
+        if [200, 201].include?(res.code)
           payload = res.parsed_response
           {
             status: 'requested',
