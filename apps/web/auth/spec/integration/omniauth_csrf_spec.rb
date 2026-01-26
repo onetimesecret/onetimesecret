@@ -114,10 +114,12 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
 
     let(:sso_path) { '/auth/sso/oidc' }
 
-    context 'when OmniAuth is configured' do
-      before do
-        skip 'OmniAuth not configured (OIDC_ISSUER not set)' if ENV['OIDC_ISSUER'].to_s.empty?
-      end
+    context 'when OmniAuth is configured', :omniauth_mock do
+      # Tests verify CSRF bypass behavior and OAuth redirect behavior.
+      # Note: Full OAuth redirect with state parameter requires the OmniAuth
+      # strategy to be registered during boot, which needs OIDC discovery to
+      # be available at that time. Without a real IdP or pre-boot mock, the
+      # route won't be registered and requests will 404.
 
       it 'accepts POST without shrimp token (CSRF skipped for SSO routes)' do
         # OmniAuth routes bypass Rack::Protection CSRF
@@ -125,29 +127,38 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
         post sso_path
 
         # Should NOT be 403 (CSRF rejection)
-        # Will be 302 (redirect to IdP) or 500 (if OIDC misconfigured)
+        # Will be 302 (redirect to IdP) or 404 (if route not registered)
         expect(last_response.status).not_to eq(403)
       end
 
       it 'redirects to identity provider on valid request' do
         post sso_path
 
-        # OmniAuth should initiate OAuth flow with redirect
-        if last_response.status == 302
-          location = last_response.headers['Location']
-          # Should redirect to OIDC issuer, not back to app
-          expect(location).to include(ENV['OIDC_ISSUER']) if ENV['OIDC_ISSUER']
+        # Skip if OmniAuth route not registered (requires OIDC discovery at boot)
+        if last_response.status == 404
+          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
         end
+
+        # OmniAuth should initiate OAuth flow with redirect
+        expect(last_response.status).to eq(302)
+        location = last_response.headers['Location']
+        # Should redirect to OIDC issuer (mock or real)
+        expected_issuer = ENV['OIDC_ISSUER'] || OmniAuthTestHelper::MOCK_ISSUER
+        expect(location).to include(expected_issuer)
       end
 
       it 'includes state parameter in authorization URL' do
         post sso_path
 
-        if last_response.status == 302
-          location = last_response.headers['Location']
-          # OAuth state parameter provides CSRF protection
-          expect(location).to include('state=')
+        # Skip if OmniAuth route not registered (requires OIDC discovery at boot)
+        if last_response.status == 404
+          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
         end
+
+        expect(last_response.status).to eq(302)
+        location = last_response.headers['Location']
+        # OAuth state parameter provides CSRF protection
+        expect(location).to include('state=')
       end
     end
 
