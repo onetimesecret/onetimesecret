@@ -1,173 +1,144 @@
-# Organization Model Migration Spec (V1 → V2)
+MODEL MIGRATION SPEC: Organization
+Version: 1.0
+Phase: 2 of 5 (based on directory prefix)
 
-## Key Pattern
+DEPENDENCIES
 
-| Aspect | V1 | V2 |
-|--------|----|----|
-| Prefix | `organization` | `organization` |
-| Key Pattern | `organization:{objid}:object` | `organization:{objid}:object` |
-| Identifier | `objid` (UUID) | `objid` (UUID) |
-| External ID | `on%<id>s` (e.g., `onABC123`) | `on%<id>s` |
+Requires
+  - Phase 1 Customer migration (reads Customer records to create Organizations)
 
-**Note:** Organization is conceptually NEW in V2 - created 1:1 from Customer records during migration.
+Provides
+  - org_objid for subsequent phases (CustomDomain, Receipt)
+  - organization:contact_email_index mapping
+  - organization:stripe_customer_id_index mapping
 
----
+KEY PATTERN
 
-## Field Mapping
+V1: N/A (New model)
+V2: organization:{objid}:object
 
-### Core Fields (Created from Customer)
+Change: New model in V2. Organizations are created 1-for-1 from V1 Customer records.
 
-| Field | Source | Transform |
-|-------|--------|-----------|
-| `objid` | Generated | New UUID for organization |
-| `extid` | Generated | Format: `on{short_id}` |
-| `display_name` | Customer email domain or name | Derived |
-| `description` | Empty | Initialize empty |
-| `owner_id` | Customer.objid | Direct reference |
-| `contact_email` | Customer.email | Copy |
-| `is_default` | `true` | Migrated orgs are default |
+FIELD TRANSFORMS
 
-### Billing Fields (Transferred from Customer)
+Source Fields (from Customer)
+  Customer.objid             -> owner_id
+  Customer.email             -> contact_email, billing_email
+  Customer.stripe_customer_id  -> stripe_customer_id
+  Customer.stripe_subscription_id -> stripe_subscription_id
+  Customer.planid            -> planid
 
-| V1 Customer Field | V2 Organization Field |
-|-------------------|----------------------|
-| `stripe_customer_id` | `stripe_customer_id` |
-| `stripe_subscription_id` | `stripe_subscription_id` |
-| `planid` | `planid` |
-| (new) | `billing_email` |
-| (new) | `subscription_status` |
-| (new) | `subscription_period_end` |
-| (new) | `stripe_checkout_email` |
+New Fields (generated during migration)
+  objid, extid, display_name, description, is_default, subscription_status, ...
 
-### New V2 Fields (Migration-Only)
+New Fields (migration-only)
+  caboose             JsonKey   Migration metadata + payment link info
+  v1_identifier       String    Original key reference (from Customer)
+  migration_status    String    pending/completed/failed
+  migrated_at         Float     Unix timestamp of completion
+  _original_record    JSON      Snapshot of the source Customer record
+  v1_source_custid    String    Source customer email
 
-| Field | Type | Purpose | Post-Migration |
-|-------|------|---------|----------------|
-| `caboose` | JsonKey | Migration metadata + payment link info | KEEP |
-| `v1_identifier` | String | Original key reference | REMOVE later |
-| `migration_status` | String | pending/completed/failed | REMOVE later |
-| `migrated_at` | String | Migration timestamp | REMOVE later |
-| `_original_record` | JsonKey | Source customer data snapshot | REMOVE later |
-| `v1_source_custid` | String | Source customer email | REMOVE later |
+Removed Fields
+  None
 
----
+RELATED DATA TYPES
 
-## Redis Data Types
+Type        Key Pattern                                Action
+Hash        organization:{objid}:urls                  New in V2
+Sorted Set  organization:{objid}:pending_invitations   New in V2
+JsonKey     organization:{objid}:caboose               New in V2
+JsonKey     organization:{objid}:_original_record    New in V2 (migration snapshot)
 
-| Type | Key Pattern | Notes |
-|------|-------------|-------|
-| Hash (main) | `organization:{objid}:object` | Primary object data |
-| Hash | `organization:{objid}:urls` | URL configuration |
-| Sorted Set | `organization:{objid}:pending_invitations` | Pending member invites |
-| JsonKey | `organization:{objid}:caboose` | V2 - payment links, metadata |
-| JsonKey | `organization:{objid}:_original_record` | V2 - migration snapshot |
+INDEXES
 
----
+Instance Index
+  V2 key: organization:instances (sorted set, score=created timestamp)
 
-## Indexes to Create
+Lookup Indexes
+  organization:contact_email_index          Hash    email -> "objid"
+  organization:stripe_customer_id_index     Hash    cus_xxx -> "objid"
+  organization:stripe_subscription_id_index Hash    sub_xxx -> "objid"
+  organization:stripe_checkout_email_index  Hash    email -> "objid"
+  organization:extid_lookup                 Hash    extid -> "objid"
+  organization:objid_lookup                 Hash    objid -> "objid"
 
-### Instance Index
+Participation Indexes
+  organization:{objid}:members    Sorted Set    Add customer objids with score=joined
+  organization:{objid}:domains    Sorted Set    Add CustomDomain objids with score=created
+  organization:{objid}:receipts   Sorted Set    Add Receipt objids with score=created
 
-**New model.** Must be populated during migration as organizations are created.
+TRANSFORM PSEUDOCODE
 
-```redis
-ZADD organization:instances <created_timestamp> <objid>
-```
+transform(v1_customer_record, mappings):
+  v2_org = {}
 
-### Lookup Indexes
+  # Create new identifiers
+  v2_org.objid = generate_id()
+  v2_org.extid = "on" + v2_org.objid[0..7]
 
-| Index | Key | Type | Content |
-|-------|-----|------|---------|
-| Contact Email | `organization:contact_email_index` | Hash | `email` → `"objid"` |
-| Stripe Customer | `organization:stripe_customer_id_index` | Hash | `cus_xxx` → `"objid"` |
-| Stripe Subscription | `organization:stripe_subscription_id_index` | Hash | `sub_xxx` → `"objid"` |
-| Stripe Checkout Email | `organization:stripe_checkout_email_index` | Hash | `email` → `"objid"` |
-| ExtID | `organization:extid_lookup` | Hash | `extid` → `"objid"` |
-| ObjID | `organization:objid_lookup` | Hash | `objid` → `"objid"` |
+  # Set fields from source customer
+  v2_org.owner_id = v1_customer_record.objid
+  v2_org.contact_email = v1_customer_record.email
+  v2_org.billing_email = v1_customer_record.email
+  v2_org.stripe_customer_id = v1_customer_record.stripe_customer_id
+  v2_org.stripe_subscription_id = v1_customer_record.stripe_subscription_id
+  v2_org.planid = v1_customer_record.planid
 
-### Relationship Collections (Auto-Generated by `participates_in`)
+  # Set default and generated fields
+  v2_org.display_name = derive_display_name(v1_customer_record.email)
+  v2_org.is_default = true
 
-| Collection | Key Pattern | Type | Content |
-|------------|-------------|------|---------|
-| Members | `organization:{objid}:members` | Sorted Set | Customer objids (score: joined timestamp) |
-| Domains | `organization:{objid}:domains` | Sorted Set | CustomDomain objids (score: created) |
-| Receipts | `organization:{objid}:receipts` | Sorted Set | Receipt objids (score: created) |
+  # Store original for rollback
+  v2_org._original_record = json(v1_customer_record)
+  v2_org.v1_identifier = "customer:{v1_customer_record.objid}"
+  v2_org.v1_source_custid = v1_customer_record.email
 
----
+  # Status
+  v2_org.migration_status = 'completed'
+  v2_org.migrated_at = now()
 
-## Migration Transform Steps
+  return v2_org
 
-```ruby
-def create_org_from_customer(customer)
-  org_objid = Familia.generate_id
+INDEX REBUILD PSEUDOCODE
 
-  {
-    objid: org_objid,
-    extid: "on#{org_objid[0..7]}",
-    display_name: derive_display_name(customer.email),
-    description: '',
-    owner_id: customer.objid,
-    contact_email: customer.email,
-    is_default: 'true',
-
-    # Transfer billing from customer
-    stripe_customer_id: customer.stripe_customer_id,
-    stripe_subscription_id: customer.stripe_subscription_id,
-    planid: customer.planid,
-    billing_email: customer.email,
-
-    # Migration tracking
-    v1_source_custid: customer.email,
-    v1_identifier: "customer:#{customer.objid}",
-    migration_status: 'completed',
-    migrated_at: Time.now.to_f.to_s,
-    _original_record: customer.to_json
-  }
-end
-```
-
-### Index Rebuild
-
-```ruby
-def rebuild_organization_indexes(org)
-  objid = org.objid
-  created = org.created.to_f
+rebuild_indexes(v2_record):
+  objid = v2_record.objid
+  created = v2_record.created
 
   # Instance tracking
-  redis.zadd('organization:instances', created, objid)
+  ZADD organization:instances created objid
 
-  # Lookup indexes (JSON-quoted values)
-  redis.hset('organization:contact_email_index', org.contact_email, objid.to_json)
-  redis.hset('organization:extid_lookup', org.extid, objid.to_json)
-  redis.hset('organization:objid_lookup', objid, objid.to_json)
+  # Lookup indexes
+  HSET organization:contact_email_index v2_record.contact_email json(objid)
+  HSET organization:extid_lookup v2_record.extid json(objid)
+  HSET organization:objid_lookup objid json(objid)
+  if v2_record.stripe_customer_id:
+    HSET organization:stripe_customer_id_index v2_record.stripe_customer_id json(objid)
+  if v2_record.stripe_subscription_id:
+    HSET organization:stripe_subscription_id_index v2_record.stripe_subscription_id json(objid)
 
-  # Stripe indexes (only if present)
-  if org.stripe_customer_id&.start_with?('cus_')
-    redis.hset('organization:stripe_customer_id_index', org.stripe_customer_id, objid.to_json)
-  end
-  if org.stripe_subscription_id&.start_with?('sub_')
-    redis.hset('organization:stripe_subscription_id_index', org.stripe_subscription_id, objid.to_json)
-  end
+  # Participation (add owner as first member)
+  ZADD organization:{objid}:members created v2_record.owner_id
 
-  # Add owner as first member
-  redis.zadd("organization:#{objid}:members", created, org.owner_id)
-end
-```
+VALIDATION CHECKLIST
 
----
+[ ] Organization created with valid objid
+[ ] extid generated in on{id} format
+[ ] owner_id references valid Customer
+[ ] contact_email set from customer email
+[ ] Stripe billing fields transferred from customer
+[ ] is_default = true for migrated orgs
+[ ] Added to organization:instances
+[ ] Added to organization:contact_email_index
+[ ] Added to organization:extid_lookup
+[ ] Added to organization:objid_lookup
+[ ] Stripe indexes populated if applicable
+[ ] Owner added to organization:{objid}:members
+[ ] Migration status = 'completed'
 
-## Validation Checklist
+WARNINGS
 
-- [ ] Organization created with valid objid
-- [ ] extid generated in `on{id}` format
-- [ ] owner_id references valid Customer
-- [ ] contact_email set from customer email
-- [ ] Stripe billing fields transferred from customer
-- [ ] is_default = true for migrated orgs
-- [ ] Added to `organization:instances`
-- [ ] Added to `organization:contact_email_index`
-- [ ] Added to `organization:extid_lookup`
-- [ ] Added to `organization:objid_lookup`
-- [ ] Stripe indexes populated if applicable
-- [ ] Owner added to `organization:{objid}:members`
-- [ ] Migration status = 'completed'
+CRITICAL: Do not re-encrypt ciphertext or passphrase fields. Preserve exactly.
+
+NOTE: Organization is a new model in V2. Records are created from V1 Customer data, not transformed from V1 Organization data.

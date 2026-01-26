@@ -1,172 +1,120 @@
-# Customer Model Migration Spec (V1 → V2)
+MODEL MIGRATION SPEC: Customer
+Version: 1.0
+Phase: 1 of 5 (based on directory prefix)
 
-## Key Pattern
+DEPENDENCIES
 
-| Aspect | V1 | V2 |
-|--------|----|----|
-| Prefix | `customer` | `customer` |
-| Key Pattern | `customer:{objid}` | `customer:{objid}` |
-| Identifier | `objid` (UUID v7) | `objid` (UUID v7) |
-| External ID | `ur%<id>s` (e.g., `ur0abc123`) | `ur%<id>s` |
+Requires
+  - None
 
-**No key structure change** - same prefix and pattern.
+Provides
+  - email_to_objid mapping (for subsequent phases)
+  - extid_to_objid mapping (for subsequent phases)
 
----
+KEY PATTERN
 
-## Field Mapping
+V1: customer:{custid}
+V2: customer:{objid}
 
-### Direct Copy (No Transform)
+Change: Identifier change (custid (email) -> objid (UUID v7))
 
-All existing V1 fields map directly:
+FIELD TRANSFORMS
 
-```
-objid, extid, custid, email, locale, planid,
-last_password_update, last_login, notify_on_reveal,
-role, joined, verified, verified_by,
-secrets_created, secrets_burned, secrets_shared, emails_sent,
-sessid, apitoken, contributor,
-stripe_customer_id, stripe_subscription_id,
-passphrase, passphrase_encryption, value, value_encryption
-```
+Direct Copy (no transform)
+  objid, extid, email, locale, planid, last_password_update, last_login,
+  notify_on_reveal, role, joined, verified, verified_by, secrets_created,
+  secrets_burned, secrets_shared, emails_sent, sessid, apitoken,
+  contributor, stripe_customer_id, stripe_subscription_id, passphrase,
+  passphrase_encryption, value, value_encryption
 
-### Critical Transform
+Transforms
+  custid (email) -> custid (objid)     Lookup: sets custid = objid
+  custid (email) -> v1_custid            Preserve original if custid != objid
 
-| V1 Field | V2 Field | Transform |
-|----------|----------|-----------|
-| `custid` | `custid` | For legacy records where `custid=email`, it should equal `objid` in V2 |
+New Fields (migration-only)
+  v1_identifier       String    Original V1 key for rollback
+  migration_status    String    pending/migrating/completed/failed/skipped
+  migrated_at         Float     Unix timestamp of completion
+  _original_record    JSON      Complete V1 snapshot
 
-**Migration Rule:** If V1 `custid` equals email address, store original in `v1_custid` and set `custid = objid`.
+Removed Fields
+  None
 
-### New V2 Fields (Migration-Only)
+RELATED DATA TYPES
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `v1_identifier` | String | Original V1 key for rollback |
-| `migration_status` | String | `pending`/`migrating`/`completed`/`failed`/`skipped` |
-| `migrated_at` | String | Migration completion timestamp |
-| `_original_record` | JsonKey | Complete V1 record for rollback/audit |
-| `v1_custid` | String | Original email-based custid (if different from objid) |
+Type        Key Pattern                      Action
+Sorted Set  customer:{objid}:receipts        Rename from :metadata
+Hash        customer:{objid}:feature_flags   Copy as-is
+String      customer:{objid}:reset_secret    Copy as-is (with TTL)
+Sorted Set  customer:{objid}:custom_domain   Copy as-is (deprecated)
 
-### Removed Fields
+INDEXES
 
-None. All V1 fields preserved (deprecated fields kept for backward compat).
+Instance Index
+  V1 key: onetime:customer (rename to customer:instances)
 
----
+Lookup Indexes
+  customer:email_index        Hash    email -> "objid" (JSON quoted)
+  customer:extid_lookup       Hash    extid -> "objid"
+  customer:objid_lookup       Hash    objid -> "objid"
 
-## Redis Data Types
+Participation Indexes
+  customer:role_index:{role}    Set    Add objid to set based on role
 
-| Type | Key Pattern | V1 Name | Notes |
-|------|-------------|---------|-------|
-| Hash (main) | `customer:{objid}` | same | Primary object data |
-| Sorted Set | `customer:{objid}:receipts` | `:metadata` | Customer's receipts (renamed from `:metadata`) |
-| Hash | `customer:{objid}:feature_flags` | same | Feature toggles |
-| String | `customer:{objid}:reset_secret` | same | Password reset token (24h TTL) |
-| Sorted Set | `customer:{objid}:custom_domain` | same | Deprecated - domains now on Organization |
-| JsonKey | `customer:{objid}:_original_record` | n/a | **V2 only** - V1 backup |
+TRANSFORM PSEUDOCODE
 
-### Key Renames
+transform(v1_record, mappings):
+  v2 = copy(v1_record)
 
-| V1 Key | V2 Key |
-|--------|--------|
-| `customer:{objid}:metadata` | `customer:{objid}:receipts` |
+  # Store original for rollback
+  v2._original_record = json(v1_record)
+  v2.v1_identifier = "customer:{v1.objid}"
 
----
+  # Field transforms: Handle custid migration (email → objid)
+  if v1.custid != v1.objid:
+    v2.v1_custid = v1.custid
+    v2.custid = v1.objid
 
-## Indexes to Create
+  # Status
+  v2.migration_status = 'completed'
+  v2.migrated_at = Familia.now()
 
-### Instance Index
+  return v2
 
-**V1 key exists:** `onetime:customer` (sorted set, 368 entries) - legacy naming convention.
+INDEX REBUILD PSEUDOCODE
 
-**NOTE:** This key uses prefix `onetime:` not `customer:` - must be added to `dump_keys.rb` MODEL_MAPPING.
-
-```redis
-# Rename the existing key
-RENAME onetime:customer customer:instances
-```
-
-### Lookup Indexes
-
-| Index | Key | Type | Content |
-|-------|-----|------|---------|
-| Email → objid | `customer:email_index` | Hash | `email` → `"objid"` (JSON quoted) |
-| ExtID → objid | `customer:extid_lookup` | Hash | `extid` → `"objid"` (JSON quoted) |
-| ObjID → objid | `customer:objid_lookup` | Hash | `objid` → `"objid"` (JSON quoted) |
-
-### Role Index
-
-```redis
-SADD customer:role_index:colonel <objid>
-SADD customer:role_index:customer <objid>
-SADD customer:role_index:anonymous <objid>
-```
-
-### Class Counters (Global)
-
-| Counter | Key |
-|---------|-----|
-| secrets_created | `customer:secrets_created` |
-| secrets_shared | `customer:secrets_shared` |
-| secrets_burned | `customer:secrets_burned` |
-| emails_sent | `customer:emails_sent` |
-
----
-
-## Migration Transform Steps
-
-```ruby
-def transform_customer(v1_data)
-  v2_data = v1_data.dup
-
-  # 1. Store original record
-  v2_data[:_original_record] = v1_data.to_json
-  v2_data[:v1_identifier] = "customer:#{v1_data[:objid]}"
-
-  # 2. Handle custid migration (email → objid)
-  if v1_data[:custid] != v1_data[:objid]
-    v2_data[:v1_custid] = v1_data[:custid]
-    v2_data[:custid] = v1_data[:objid]
-  end
-
-  # 3. Set migration status
-  v2_data[:migration_status] = 'completed'
-  v2_data[:migrated_at] = Time.now.to_f.to_s
-
-  v2_data
-end
-```
-
-### Index Rebuild
-
-```ruby
-def rebuild_customer_indexes(customer)
-  objid = customer.objid
-  created = customer.created.to_f
+rebuild_indexes(v2_record):
+  objid = v2_record.objid
+  created = v2_record.created
 
   # Instance tracking
-  redis.zadd('customer:instances', created, objid)
+  ZADD customer:instances created objid
 
   # Lookup indexes (JSON-quoted values)
-  redis.hset('customer:email_index', customer.email, objid.to_json)
-  redis.hset('customer:extid_lookup', customer.extid, objid.to_json)
-  redis.hset('customer:objid_lookup', objid, objid.to_json)
+  HSET customer:email_index v2_record.email json(objid)
+  HSET customer:extid_lookup v2_record.extid json(objid)
+  HSET customer:objid_lookup objid json(objid)
 
-  # Role index
-  redis.sadd("customer:role_index:#{customer.role}", objid) if customer.role
-end
-```
+  # Participation (Role index)
+  if v2_record.role:
+    SADD customer:role_index:{v2_record.role} objid
 
----
+VALIDATION CHECKLIST
 
-## Validation Checklist
+[ ] All hash fields copied
+[ ] v1_custid populated if custid was email
+[ ] custid equals objid
+[ ] _original_record contains complete V1 data
+[ ] Added to customer:instances
+[ ] Added to customer:email_index
+[ ] Added to customer:extid_lookup
+[ ] Added to customer:objid_lookup
+[ ] Added to appropriate customer:role_index:{role}
+[ ] Migration status = 'completed'
+[ ] Record count matches: V1 count == V2 count
 
-- [ ] All hash fields copied
-- [ ] `v1_custid` populated if custid was email
-- [ ] `custid` equals `objid`
-- [ ] `_original_record` contains complete V1 data
-- [ ] Added to `customer:instances` sorted set
-- [ ] Added to `customer:email_index`
-- [ ] Added to `customer:extid_lookup`
-- [ ] Added to `customer:objid_lookup`
-- [ ] Added to appropriate `customer:role_index:{role}`
-- [ ] Migration status = 'completed'
+WARNINGS
+
+CRITICAL: Do not re-encrypt ciphertext or passphrase fields. Preserve exactly.
+
+NOTE: The V1 instance index uses the prefix `onetime:` not `customer:` (`onetime:customer`). This key must be added to the `dump_keys.rb` MODEL_MAPPING to be included in the data dump.

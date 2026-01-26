@@ -1,173 +1,122 @@
-# CustomDomain Model Migration Spec (V1 → V2)
+MODEL MIGRATION SPEC: CustomDomain
+Version: 1.0
+Phase: 3 of 5 (based on directory prefix)
 
-## Key Pattern
+DEPENDENCIES
 
-| Aspect | V1 | V2 |
-|--------|----|----|
-| Prefix | `customdomain` | `customdomain` |
-| Key Pattern | `customdomain:{domainid}` | `customdomain:{domainid}` |
-| Identifier | `domainid` (random base-36) | `domainid` (alias for `objid`) |
-| External ID | N/A | `cd%<id>s` (e.g., `cd1a2b3c4`) |
+Requires
+  - Phase 1 Customer migration (provides email_to_objid mapping)
+  - Phase 2 Organization migration (provides email_to_org_objid mapping)
 
-**Key change:** V2 adds external identifier (`extid`) for public-facing URLs.
+Provides
+  - fqdn_to_domain_objid mapping (for Receipt phase)
 
----
+KEY PATTERN
 
-## Field Mapping
+V1: customdomain:{domainid}
+V2: customdomain:{domainid}
 
-### Direct Copy (No Transform)
+Change: None. V2 adds an external ID (`extid`).
 
-```
-domainid, display_domain, base_domain, subdomain,
-trd, tld, sld,
-txt_validation_host, txt_validation_value,
-status, vhost, verified, resolving,
-created, updated, _original_value
-```
+FIELD TRANSFORMS
 
-### Critical Transform
+Direct Copy (no transform)
+  domainid, display_domain, base_domain, subdomain, trd, tld, sld,
+  txt_validation_host, txt_validation_value, status, vhost, verified,
+  resolving, created, updated, _original_value
 
-| V1 Field | V2 Field | Transform |
-|----------|----------|-----------|
-| `custid` (email) | `org_id` (Organization objid) | Lookup customer → organization |
+Transforms
+  custid (email) -> org_id (objid)     Lookup: email_to_org_objid[custid]
+  custid (email) -> v1_custid            Preserve original
 
-**Migration Rule:** Lookup Customer by email, then get their default Organization objid.
+New Fields (migration-only)
+  objid               String    Primary identifier (alias for domainid)
+  extid               String    External ID for public-facing URLs
+  v1_identifier       String    Original V1 key for rollback
+  migration_status    String    pending/migrating/completed/failed/skipped
+  migrated_at         Float     Unix timestamp of completion
+  _original_record    JSON      Complete V1 snapshot
 
-### New V2 Fields
+Removed Fields
+  custid      Replaced by org_id
+  values      (class set) Replaced by `instances` sorted set index
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `objid` | String | Primary identifier (equals domainid) |
-| `extid` | String | External ID format: `cd{short_id}` |
-| `org_id` | String | Organization foreign key (replaces custid) |
-| `v1_identifier` | String | Original V1 key reference |
-| `migration_status` | String | pending/completed/failed/skipped |
-| `migrated_at` | String | Migration timestamp |
-| `v1_custid` | String | Original email-based custid |
-| `_original_record` | JsonKey | Complete V1 snapshot |
+RELATED DATA TYPES
 
-### Removed/Replaced Fields
+Type        Key Pattern                      Action
+Hash        customdomain:{id}:brand          Copy as-is
+Hash        customdomain:{id}:logo           Copy as-is
+Hash        customdomain:{id}:icon           Copy as-is
 
-| V1 Field | V2 Status | Notes |
-|----------|-----------|-------|
-| `custid` | Replaced | Use `org_id` (Organization objid) |
-| `values` (class set) | Removed | Replaced by `instances` sorted set |
+INDEXES
 
----
+Instance Index
+  V1 key: customdomain:values (rename to customdomain:instances)
 
-## Redis Data Types
+Lookup Indexes
+  customdomain:display_domain_index  Hash    fqdn -> "domainid" (JSON quoted)
+  customdomain:display_domains       Hash    fqdn -> "domainid" (legacy compat)
+  customdomain:extid_lookup          Hash    extid -> "domainid"
+  customdomain:objid_lookup          Hash    domainid -> "domainid"
+  customdomain:owners                Hash    domainid -> "org_id"
 
-| Type | Key Pattern | Notes |
-|------|-------------|-------|
-| Hash (main) | `customdomain:{domainid}` | Primary object data |
-| Hash | `customdomain:{domainid}:brand` | Branding config |
-| Hash | `customdomain:{domainid}:logo` | Logo config |
-| Hash | `customdomain:{domainid}:icon` | Icon config |
-| JsonKey | `customdomain:{domainid}:_original_record` | V2 only |
+Participation Indexes
+  organization:{org_id}:domains    Sorted Set    Add domainid with score=created
 
----
+TRANSFORM PSEUDOCODE
 
-## Indexes to Create
+transform(v1_record, mappings):
+  v2 = copy(v1_record)
+  domainid = v1_record.domainid
 
-### Instance Index
+  # Store original for rollback
+  v2._original_record = json(v1_record)
+  v2.v1_identifier = "customdomain:{domainid}"
+  v2.v1_custid = v1_record.custid
 
-**V1 key exists:** `customdomain:values` (sorted set)
+  # Field transforms
+  v2.org_id = mappings.email_to_org_objid[v1_record.custid]
+  v2.delete(custid)
 
-```redis
-# Rename the existing key
-RENAME customdomain:values customdomain:instances
-```
+  # New Fields
+  v2.objid = domainid
+  v2.extid = "cd" + domainid[0..7]
 
-### Lookup Indexes
+  # Status
+  v2.migration_status = 'completed'
+  v2.migrated_at = now()
 
-| Index | Key | Type | Content |
-|-------|-----|------|---------|
-| Display Domain (unique) | `customdomain:display_domain_index` | Hash | `fqdn` → `"domainid"` |
-| Display Domain (compat) | `customdomain:display_domains` | Hash | `fqdn` → `"domainid"` |
-| ExtID | `customdomain:extid_lookup` | Hash | `extid` → `"domainid"` |
-| ObjID | `customdomain:objid_lookup` | Hash | `domainid` → `"domainid"` |
-| Owners | `customdomain:owners` | Hash | `domainid` → `"org_id"` |
+  return v2
 
-### Organization Participation
+INDEX REBUILD PSEUDOCODE
 
-```redis
-ZADD organization:{org_id}:domains <created_timestamp> <domainid>
-```
-
----
-
-## Migration Transform Steps
-
-```ruby
-def transform_customdomain(v1_data, customer_email_to_org_map)
-  v2_data = v1_data.dup
-  domainid = v1_data[:domainid]
-
-  # 1. Store original
-  v2_data[:_original_record] = v1_data.to_json
-  v2_data[:v1_identifier] = "customdomain:#{domainid}"
-  v2_data[:v1_custid] = v1_data[:custid]
-
-  # 2. Transform custid → org_id
-  org_id = customer_email_to_org_map[v1_data[:custid]]
-  v2_data[:org_id] = org_id
-  v2_data.delete(:custid)  # Remove deprecated field
-
-  # 3. Generate external ID
-  v2_data[:extid] = "cd#{domainid[0..7]}"
-
-  # 4. Ensure objid equals domainid
-  v2_data[:objid] = domainid
-
-  # 5. Migration status
-  v2_data[:migration_status] = 'completed'
-  v2_data[:migrated_at] = Time.now.to_f.to_s
-
-  v2_data
-end
-```
-
-### Index Rebuild
-
-```ruby
-def rebuild_customdomain_indexes(domain)
-  domainid = domain.domainid
-  created = domain.created.to_f
+rebuild_indexes(v2_record):
+  domainid = v2_record.domainid
+  created = v2_record.created
 
   # Instance tracking
-  redis.zadd('customdomain:instances', created, domainid)
+  ZADD customdomain:instances created domainid
 
-  # Display domain indexes (JSON-quoted)
-  redis.hset('customdomain:display_domain_index', domain.display_domain, domainid.to_json)
-  redis.hset('customdomain:display_domains', domain.display_domain, domainid.to_json)
+  # Lookup indexes (JSON-quoted values)
+  HSET customdomain:display_domain_index v2_record.display_domain json(domainid)
+  HSET customdomain:display_domains v2_record.display_domain json(domainid)
+  HSET customdomain:extid_lookup v2_record.extid json(domainid)
+  HSET customdomain:objid_lookup domainid json(domainid)
+  HSET customdomain:owners domainid json(v2_record.org_id)
 
-  # Identifier lookups
-  redis.hset('customdomain:extid_lookup', domain.extid, domainid.to_json)
-  redis.hset('customdomain:objid_lookup', domainid, domainid.to_json)
+  # Participation (if applicable)
+  ZADD organization:{v2_record.org_id}:domains created domainid
 
-  # Owner mapping
-  redis.hset('customdomain:owners', domainid, domain.org_id.to_json)
+VALIDATION CHECKLIST
 
-  # Organization participation
-  redis.zadd("organization:#{domain.org_id}:domains", created, domainid)
-end
-```
-
----
-
-## Validation Checklist
-
-- [ ] All hash fields copied
-- [ ] `v1_custid` stores original email-based custid
-- [ ] `org_id` points to valid Organization objid
-- [ ] `extid` generated in `cd{id}` format
-- [ ] `objid` equals `domainid`
-- [ ] Brand/logo/icon hashes migrated
-- [ ] Added to `customdomain:instances`
-- [ ] Added to `customdomain:display_domain_index`
-- [ ] Added to `customdomain:display_domains`
-- [ ] Added to `customdomain:extid_lookup`
-- [ ] Added to `customdomain:objid_lookup`
-- [ ] Added to `customdomain:owners`
-- [ ] Added to `organization:{org_id}:domains`
-- [ ] Migration status = 'completed'
+[ ] All hash fields copied
+[ ] v1_custid stores original email-based custid
+[ ] org_id points to a valid Organization objid
+[ ] extid generated in `cd{id}` format
+[ ] objid equals domainid
+[ ] Brand/logo/icon hashes migrated correctly
+[ ] Added to customdomain:instances
+[ ] Added to lookup indexes (display_domain, extid, objid, owners)
+[ ] Added to organization:{org_id}:domains
+[ ] Migration status = 'completed'
+[ ] Record count matches: V1 count == V2 count

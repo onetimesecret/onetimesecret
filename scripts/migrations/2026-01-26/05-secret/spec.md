@@ -1,187 +1,119 @@
-# Secret Model Migration Spec (V1 → V2)
+MODEL MIGRATION SPEC: Secret
+Version: 1.0
+Phase: 5 of 5 (based on directory prefix)
 
-## Key Pattern
+DEPENDENCIES
 
-| Aspect | V1 | V2 |
-|--------|----|----|
-| Prefix | `secret` | `secret` |
-| Key Pattern | `secret:{objid}` | `secret:{objid}` |
-| Identifier | `objid` (VerifiableIdentifier) | `objid` (VerifiableIdentifier) |
-| External ID | N/A | N/A (uses objid directly) |
+Requires
+  - Phase 1 Customer migration (provides email_to_objid mapping)
 
-**No key structure change.** Secret uses VerifiableIdentifier as the public-facing ID.
+Provides
+  - None
 
----
+KEY PATTERN
 
-## Field Mapping
+V1: secret:{objid}
+V2: secret:{objid}
 
-### Direct Copy - PRESERVE EXACTLY
+Change: None
 
-**CRITICAL: Never re-encrypt these fields:**
+FIELD TRANSFORMS
 
-```
-ciphertext, value, value_encryption,
-passphrase, passphrase_encryption
-```
+Direct Copy (no transform)
+  objid, lifespan, receipt_identifier, receipt_shortid, created, updated,
+  share_domain, verification, truncated, secret_key, metadata_key
 
-### Direct Copy (No Transform)
+Transforms
+  custid (email) -> owner_id (objid)     Lookup: email_to_objid[custid]
+  custid (email) -> v1_custid            Preserve original
+  state: 'viewed' -> state: 'previewed'  Value transform
+  state: 'received' -> state: 'revealed' Value transform
+  original_size -> v1_original_size      Move and delete original
 
-```
-objid, lifespan, receipt_identifier, receipt_shortid,
-created, updated,
-share_domain, verification, truncated, secret_key, metadata_key
-```
+New Fields (migration-only)
+  v1_identifier       String    Original V1 key for rollback
+  migration_status    String    pending/migrating/completed/failed/skipped
+  migrated_at         Float     Unix timestamp of completion
+  _original_record    JSON      Complete V1 snapshot
 
-### State Value Transform
+Removed Fields
+  original_size       Moved to v1_original_size
 
-| V1 State | V2 State |
-|----------|----------|
-| `new` | `new` |
-| `viewed` | `previewed` |
-| `received` | `revealed` |
-| `burned` | `burned` |
-| `expired` | `expired` |
+RELATED DATA TYPES
 
-### Critical Transform
+Type        Key Pattern        Action
+(none)
 
-| V1 Field | V2 Field | Transform |
-|----------|----------|-----------|
-| `custid` (email/`anon`) | `owner_id` (objid/`anon`) | Lookup email → Customer.objid |
+INDEXES
 
-**Migration Rule:** If `custid='anon'`, set `owner_id='anon'`. Otherwise lookup Customer by email.
+Instance Index
+  V2 key: secret:instances (sorted set, score=created timestamp)
 
-### New V2 Fields (Migration-Only)
+Lookup Indexes
+  secret:objid_lookup       Hash    objid -> "objid" (JSON quoted)
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `v1_identifier` | String | Original V1 key reference |
-| `migration_status` | String | pending/completed/failed/skipped |
-| `migrated_at` | Float | Migration timestamp |
-| `_original_record` | JsonKey | Complete V1 snapshot |
-| `v1_custid` | String | Original email-based custid |
-| `v1_original_size` | String | Dropped field preservation |
+Participation Indexes
+  (none)
 
-### Removed Fields
+TRANSFORM PSEUDOCODE
 
-| V1 Field | Action |
-|----------|--------|
-| `original_size` | Store in `v1_original_size`, remove from main hash |
+transform(v1_record, mappings):
+  v2 = copy(v1_record)
 
----
+  # CRITICAL: Do not re-encrypt these fields.
+  # ciphertext, value, value_encryption, passphrase, passphrase_encryption
+  # These are carried over by the initial `copy`.
 
-## Redis Data Types
+  # Store original for rollback
+  v2._original_record = json(v1_record)
+  v2.v1_identifier = "secret:{v1.objid}"
+  v2.v1_custid = v1.custid
 
-| Type | Key Pattern | Notes |
-|------|-------------|-------|
-| Hash (main) | `secret:{objid}` | Primary object data |
+  # Field transforms
+  if v1.custid == 'anon':
+    v2.owner_id = 'anon'
+  else:
+    v2.owner_id = mappings.email_to_objid[v1.custid]
 
-**Note:** Secret has no subsidiary data types. It's accessed through Receipt.
+  v2.state = transform_state(v1_record.state) # 'viewed'->'previewed', etc.
 
----
+  # Handle removed field
+  if v1_record.original_size:
+    v2.v1_original_size = v1_record.original_size
+    v2.delete(original_size)
 
-## Indexes to Create
+  # Status
+  v2.migration_status = 'completed'
+  v2.migrated_at = now()
 
-### Instance Index
+  return v2
 
-**No V1 key exists.** Not required for migration.
+INDEX REBUILD PSEUDOCODE
 
-### Lookup Index
-
-| Index | Key | Type | Content |
-|-------|-----|------|---------|
-| ObjID | `secret:objid_lookup` | Hash | `objid` → `"objid"` (JSON quoted) |
-
-**Note:** No `extid_lookup` - Secret uses VerifiableIdentifier as public ID.
-
----
-
-## Migration Transform Steps
-
-```ruby
-def transform_secret(v1_data, customer_email_to_objid_map)
-  v2_data = v1_data.dup
-  objid = v1_data[:objid]
-
-  # 1. Store original (CRITICAL for rollback)
-  v2_data[:_original_record] = v1_data.to_json
-  v2_data[:v1_identifier] = "secret:#{objid}"
-  v2_data[:v1_custid] = v1_data[:custid]
-
-  # 2. Transform state values
-  v2_data[:state] = case v1_data[:state]
-    when 'viewed' then 'previewed'
-    when 'received' then 'revealed'
-    else v1_data[:state]
-  end
-
-  # 3. Transform custid → owner_id
-  custid = v1_data[:custid]
-  v2_data[:owner_id] = if custid == 'anon'
-    'anon'
-  else
-    customer_email_to_objid_map[custid]
-  end
-
-  # 4. Handle removed field
-  if v1_data[:original_size]
-    v2_data[:v1_original_size] = v1_data[:original_size]
-    v2_data.delete(:original_size)
-  end
-
-  # 5. Migration status
-  v2_data[:migration_status] = 'completed'
-  v2_data[:migrated_at] = Time.now.to_f
-
-  # CRITICAL: Preserve encryption fields EXACTLY
-  # Do NOT touch: ciphertext, value, value_encryption,
-  #               passphrase, passphrase_encryption
-
-  v2_data
-end
-```
-
-### Index Rebuild
-
-```ruby
-def rebuild_secret_indexes(secret)
-  objid = secret.objid
-  created = secret.created.to_f
+rebuild_indexes(v2_record):
+  objid = v2_record.objid
+  created = v2_record.created
 
   # Instance tracking
-  redis.zadd('secret:instances', created, objid)
+  ZADD secret:instances created objid
 
-  # Objid lookup (JSON-quoted)
-  redis.hset('secret:objid_lookup', objid, objid.to_json)
-end
-```
+  # Lookup index
+  HSET secret:objid_lookup objid json(objid)
 
----
+VALIDATION CHECKLIST
 
-## Validation Checklist
+[ ] `ciphertext` preserved exactly (binary comparison)
+[ ] `passphrase` preserved exactly (hash comparison)
+[ ] `state` values transformed correctly
+[ ] `owner_id` populated from `custid` (or 'anon')
+[ ] `v1_original_size` stores dropped field value
+[ ] `_original_record` contains complete V1 data
+[ ] Added to `secret:instances`
+[ ] Added to `secret:objid_lookup`
+[ ] Migration status = 'completed'
 
-### Critical - Encryption Integrity
+WARNINGS
 
-- [ ] `ciphertext` preserved exactly (binary comparison)
-- [ ] `value` preserved exactly
-- [ ] `value_encryption` unchanged
-- [ ] `passphrase` preserved exactly (hash comparison)
-- [ ] `passphrase_encryption` unchanged
+CRITICAL: Do not re-encrypt `ciphertext`, `value`, or `passphrase` fields. They must be preserved exactly as they are in the V1 record.
 
-### Field Migration
-
-- [ ] `state` values transformed: `viewed`→`previewed`, `received`→`revealed`
-- [ ] `owner_id` populated from custid lookup (or 'anon')
-- [ ] `v1_custid` stores original custid
-- [ ] `v1_original_size` stores dropped field value
-- [ ] `_original_record` contains complete V1 data
-
-### Index Population
-
-- [ ] Added to `secret:instances` sorted set
-- [ ] Added to `secret:objid_lookup` hash
-- [ ] Migration status = 'completed'
-
-### Relationship Integrity
-
-- [ ] `receipt_identifier` still points to valid Receipt
-- [ ] `receipt_shortid` matches first 8 chars of receipt objid
+NOTE: Anonymous records use custid='anon', set owner_id='anon' (no lookup).

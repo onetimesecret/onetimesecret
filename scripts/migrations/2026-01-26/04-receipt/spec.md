@@ -1,253 +1,151 @@
-# Receipt Model Migration Spec (V1 → V2)
+MODEL MIGRATION SPEC: Receipt
+Version: 1.0
+Phase: 4 of 5 (based on directory prefix)
 
-## Key Pattern
+DEPENDENCIES
 
-| Aspect | V1 | V2 |
-|--------|----|----|
-| Model Name | `Onetime::Metadata` | `Onetime::Receipt` |
-| Prefix | `metadata` | `receipt` |
-| Key Pattern | `metadata:{objid}:object` | `receipt:{objid}:object` |
-| Identifier | `objid` (VerifiableIdentifier) | `objid` (VerifiableIdentifier) |
-| External ID | N/A | N/A (uses objid directly) |
+Requires
+  - Phase 1 Customer migration (provides email_to_objid mapping)
+  - Phase 2 Organization migration (provides org_objid for linking)
+  - Phase 3 CustomDomain migration (provides fqdn_to_domain_objid mapping)
 
-**Key prefix change:** `metadata` → `receipt`
+Provides
+  - None
 
----
+KEY PATTERN
 
-## Field Mapping
+V1: metadata:{objid}:object
+V2: receipt:{objid}:object
 
-### Direct Copy (No Transform)
+Change: Prefix change (metadata -> receipt)
 
-```
-objid, secret_identifier, secret_shortid, secret_ttl,
-lifespan, share_domain, passphrase, recipients, memo,
-created, updated, burned, shared, truncate, secret_key, key
-```
+FIELD TRANSFORMS
 
-### Field Renames
+Direct Copy (no transform)
+  objid, secret_identifier, secret_shortid, secret_ttl, lifespan,
+  share_domain, passphrase, recipients, memo, created, updated, burned,
+  shared, truncate, secret_key, key
 
-| V1 Field | V2 Field | Notes |
-|----------|----------|-------|
-| `viewed` | `previewed` | Copy to both for compat |
-| `received` | `revealed` | Copy to both for compat |
+Transforms
+  custid (email) -> owner_id (objid)     Lookup: email_to_objid[custid]
+  custid (email) -> v1_custid            Preserve original
+  state: 'viewed' -> state: 'previewed'  Value transform
+  state: 'received' -> state: 'revealed' Value transform
+  viewed -> previewed                    Rename (keep original for compat)
+  received -> revealed                 Rename (keep original for compat)
 
-### State Value Transform
+New Fields (migration-only)
+  org_id              String    Inferred Organization objid
+  domain_id           String    Inferred CustomDomain objid
+  v1_key              String    Original V1 key for rollback
+  v1_identifier       String    Base migration tracking
+  migration_status    String    pending/migrating/completed/failed/skipped
+  migrated_at         Float     Unix timestamp of completion
+  _original_record    JSON      Complete V1 snapshot
 
-| V1 State | V2 State |
-|----------|----------|
-| `new` | `new` |
-| `viewed` | `previewed` |
-| `received` | `revealed` |
-| `burned` | `burned` |
-| `expired` | `expired` |
-| `orphaned` | `orphaned` |
+Removed Fields
+  custid      Replaced by owner_id
 
-### Critical Transform
+RELATED DATA TYPES
 
-| V1 Field | V2 Field | Transform |
-|----------|----------|-----------|
-| `custid` (email/`anon`) | `owner_id` (objid/`anon`) | Lookup email → Customer.objid |
+Type        Key Pattern        Action
+(none)
 
-**Migration Rule:** If `custid='anon'`, set `owner_id='anon'`. Otherwise lookup Customer by email.
+INDEXES
 
-### New V2 Fields
+Instance Index
+  V2 key: receipt:instances (sorted set, score=created timestamp)
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `owner_id` | String | Customer objid (replaces custid) |
-| `org_id` | String | Organization objid (optional, from owner) |
-| `domain_id` | String | CustomDomain objid (optional, from share_domain) |
-| `previewed` | String | Renamed from `viewed` |
-| `revealed` | String | Renamed from `received` |
-| `v1_key` | String | Original `metadata:{id}:object` key |
-| `v1_custid` | String | Original email-based custid |
-| `v1_identifier` | String | Base migration tracking |
-| `migration_status` | String | pending/completed/failed/skipped |
-| `migrated_at` | String | Migration timestamp |
-| `_original_record` | JsonKey | Complete V1 snapshot |
+Lookup Indexes
+  receipt:objid_lookup       Hash    objid -> "objid" (JSON quoted)
 
-### Removed Fields
+Participation Indexes
+  organization:{org_id}:receipts    Sorted Set    Add objid with score=created
+  customdomain:{domain_id}:receipts Sorted Set    Add objid with score=created
+  customer:{owner_id}:receipts      Sorted Set    Add objid (for V1 compat)
 
-| V1 Field | V2 Status | Notes |
-|----------|-----------|-------|
-| `custid` | Replaced | Use `owner_id` |
-| `viewed` | Deprecated | Keep for compat, use `previewed` |
-| `received` | Deprecated | Keep for compat, use `revealed` |
+Other Indexes
+  receipt:expiration_timeline   Sorted Set    score=expires_at, value=objid
+  receipt:warnings_sent         Set           objid
 
----
+TRANSFORM PSEUDOCODE
 
-## Redis Data Types
+transform(v1_record, mappings):
+  v2 = copy_direct_fields(v1_record)
 
-| Type | Key Pattern | Notes |
-|------|-------------|-------|
-| Hash (main) | `receipt:{objid}:object` | Primary object data |
+  # Store original for rollback
+  v2._original_record = json(v1_record)
+  v2.v1_identifier = "metadata:{v1.objid}:object"
+  v2.v1_key = v2.v1_identifier
+  v2.v1_custid = v1.custid
 
----
+  # Field renames (keeping original for backward compatibility)
+  v2.previewed = v1_record.viewed
+  v2.revealed = v1_record.received
 
-## Indexes to Create
+  # State transform
+  v2.state = transform_state(v1_record.state) # 'viewed'->'previewed', etc.
 
-### Instance Index
+  # Link owner
+  if v1.custid == 'anon':
+    v2.owner_id = 'anon'
+  else:
+    v2.owner_id = mappings.email_to_objid[v1.custid]
 
-**No V1 key exists.** Not required for migration.
+  # Link organization and domain
+  if v2.owner_id != 'anon':
+    v2.org_id = get_org_from_owner(v2.owner_id)
+  if v1.share_domain:
+    v2.domain_id = mappings.fqdn_to_domain_objid[v1.share_domain]
 
-### Expiration Timeline
+  # Status
+  v2.migration_status = 'completed'
+  v2.migrated_at = now()
 
-```redis
-ZADD receipt:expiration_timeline <expires_at> <objid>
-```
+  return v2
 
-### Warnings Sent Tracking
+INDEX REBUILD PSEUDOCODE
 
-```redis
-SADD receipt:warnings_sent <objid>  # If warning already sent
-```
-
-### Lookup Index
-
-| Index | Key | Type | Content |
-|-------|-----|------|---------|
-| ObjID | `receipt:objid_lookup` | Hash | `objid` → `"objid"` (JSON quoted) |
-
-### Relationship Participation
-
-```redis
-# Organization participation
-ZADD organization:{org_id}:receipts <created_timestamp> <objid>
-
-# CustomDomain participation (if domain_id set)
-ZADD customdomain:{domain_id}:receipts <created_timestamp> <objid>
-```
-
----
-
-## Migration Transform Steps
-
-```ruby
-def transform_receipt(v1_data, customer_email_to_objid_map, domain_fqdn_to_id_map)
-  v2_data = {}
-  objid = v1_data[:objid]
-
-  # 1. Store original
-  v2_data[:_original_record] = v1_data.to_json
-  v2_data[:v1_identifier] = "metadata:#{objid}:object"
-  v2_data[:v1_key] = "metadata:#{objid}:object"
-  v2_data[:v1_custid] = v1_data[:custid]
-
-  # 2. Copy direct fields
-  %i[objid secret_identifier secret_shortid secret_ttl
-     lifespan share_domain passphrase recipients memo
-     created updated burned shared truncate secret_key key].each do |field|
-    v2_data[field] = v1_data[field] if v1_data[field]
-  end
-
-  # 3. Rename fields (keep both for compat)
-  v2_data[:previewed] = v1_data[:viewed]
-  v2_data[:viewed] = v1_data[:viewed]  # Keep deprecated
-  v2_data[:revealed] = v1_data[:received]
-  v2_data[:received] = v1_data[:received]  # Keep deprecated
-
-  # 4. Transform state
-  v2_data[:state] = case v1_data[:state]
-    when 'viewed' then 'previewed'
-    when 'received' then 'revealed'
-    else v1_data[:state]
-  end
-
-  # 5. Transform custid → owner_id
-  custid = v1_data[:custid]
-  v2_data[:owner_id] = if custid == 'anon'
-    'anon'
-  else
-    customer_email_to_objid_map[custid]
-  end
-
-  # 6. Set org_id from owner's organization (optional)
-  if v2_data[:owner_id] && v2_data[:owner_id] != 'anon'
-    customer = Customer.load(v2_data[:owner_id])
-    v2_data[:org_id] = customer&.organization&.objid
-  end
-
-  # 7. Set domain_id from share_domain (optional)
-  if v1_data[:share_domain]
-    v2_data[:domain_id] = domain_fqdn_to_id_map[v1_data[:share_domain]]
-  end
-
-  # 8. Migration status
-  v2_data[:migration_status] = 'completed'
-  v2_data[:migrated_at] = Time.now.to_f.to_s
-
-  v2_data
-end
-```
-
-### Index Rebuild
-
-```ruby
-def rebuild_receipt_indexes(receipt)
-  objid = receipt.objid
-  created = receipt.created.to_f
+rebuild_indexes(v2_record):
+  objid = v2_record.objid
+  created = v2_record.created
 
   # Instance tracking
-  redis.zadd('receipt:instances', created, objid)
+  ZADD receipt:instances created objid
 
-  # Expiration timeline (if secret has expiration)
-  if receipt.secret_ttl && receipt.created
-    expires_at = receipt.created.to_f + receipt.secret_ttl.to_i
-    redis.zadd('receipt:expiration_timeline', expires_at, objid)
-  end
+  # Expiration timeline
+  if v2_record.secret_ttl:
+    expires_at = created + v2_record.secret_ttl
+    ZADD receipt:expiration_timeline expires_at objid
 
-  # Objid lookup (JSON-quoted)
-  redis.hset('receipt:objid_lookup', objid, objid.to_json)
+  # Lookup index
+  HSET receipt:objid_lookup objid json(objid)
 
-  # Organization participation
-  if receipt.org_id
-    redis.zadd("organization:#{receipt.org_id}:receipts", created, objid)
-  end
+  # Participation
+  if v2_record.org_id:
+    ZADD organization:{v2_record.org_id}:receipts created objid
+  if v2_record.domain_id:
+    ZADD customdomain:{v2_record.domain_id}:receipts created objid
+  if v2_record.owner_id and v2_record.owner_id != 'anon':
+    ZADD customer:{v2_record.owner_id}:receipts created objid
 
-  # Domain participation
-  if receipt.domain_id
-    redis.zadd("customdomain:#{receipt.domain_id}:receipts", created, objid)
-  end
 
-  # Customer receipts (for backwards compat)
-  if receipt.owner_id && receipt.owner_id != 'anon'
-    redis.zadd("customer:#{receipt.owner_id}:receipts", created, objid)
-  end
-end
-```
+VALIDATION CHECKLIST
 
----
+[ ] `receipt:{objid}:object` written correctly
+[ ] `v1_key` stores original `metadata:...` key path
+[ ] `state` values transformed ('viewed' -> 'previewed')
+[ ] `owner_id` populated from `custid` (or 'anon')
+[ ] `org_id` and `domain_id` linked correctly
+[ ] Added to `receipt:instances`
+[ ] Added to `receipt:expiration_timeline` if applicable
+[ ] Added to `receipt:objid_lookup`
+[ ] Added to participation indexes (organization, customdomain, customer)
+[ ] Migration status = 'completed'
 
-## Validation Checklist
+WARNINGS
 
-### Key Migration
+CRITICAL: Do not re-encrypt ciphertext or passphrase fields. Preserve exactly.
 
-- [ ] Source key `metadata:{objid}:object` read correctly
-- [ ] Target key `receipt:{objid}:object` written correctly
-- [ ] `v1_key` stores original key path
-
-### Field Migration
-
-- [ ] `state` values transformed: `viewed`→`previewed`, `received`→`revealed`
-- [ ] `owner_id` populated from custid lookup (or 'anon')
-- [ ] `previewed` populated from `viewed` value
-- [ ] `revealed` populated from `received` value
-- [ ] `v1_custid` stores original custid
-- [ ] `org_id` set from owner's organization (if applicable)
-- [ ] `domain_id` set from share_domain lookup (if applicable)
-- [ ] `_original_record` contains complete V1 data
-
-### Index Population
-
-- [ ] Added to `receipt:instances` sorted set
-- [ ] Added to `receipt:expiration_timeline` (if has expiration)
-- [ ] Added to `receipt:objid_lookup` hash
-- [ ] Added to `organization:{org_id}:receipts` (if org_id set)
-- [ ] Added to `customdomain:{domain_id}:receipts` (if domain_id set)
-- [ ] Added to `customer:{owner_id}:receipts` (if owner_id not anon)
-- [ ] Migration status = 'completed'
-
-### Relationship Integrity
-
-- [ ] `secret_identifier` still points to valid Secret
-- [ ] `secret_shortid` matches first 8 chars of secret objid
+NOTE: Anonymous records use custid='anon', set owner_id='anon' (no lookup).
+NOTE: Field `viewed` is renamed to `previewed`, and `received` to `revealed`. The original fields are kept for backward compatibility during the transition.
