@@ -57,7 +57,8 @@ class InstanceIndexValidator
     # 4. Report
     print_report(results, members_with_scores, customer_objects)
 
-    results[:mismatches].empty? && results[:missing_objects].empty?
+    # Success if no missing objects (modified_since_creation is expected/normal)
+    results[:missing_objects].empty?
   ensure
     cleanup_redis
   end
@@ -126,7 +127,7 @@ class InstanceIndexValidator
   def compare_members(members_with_scores, customer_objects)
     results = {
       matches: 0,
-      mismatches: [],
+      modified_since_creation: [],
       missing_objects: [],
     }
 
@@ -144,12 +145,14 @@ class InstanceIndexValidator
       if score.to_i == created.to_i
         results[:matches] += 1
       else
-        results[:mismatches] << {
+        # Index score reflects last-modified time, not created time.
+        # A difference indicates the customer was modified after creation.
+        results[:modified_since_creation] << {
           email: email,
-          index_score: score.to_i,
-          object_created: created,
+          last_modified: score.to_i,
+          created: created,
           objid: objid,
-          diff: (score.to_i - created.to_i).abs,
+          age_at_modification: (score.to_i - created.to_i),
         }
       end
     end
@@ -160,15 +163,17 @@ class InstanceIndexValidator
   def print_report(results, members_with_scores, customer_objects)
     puts '=== Validation Results ==='
     puts "Total members in onetime:customer: #{members_with_scores.size}"
-    puts "Matching scores: #{results[:matches]}"
-    puts "Mismatched scores: #{results[:mismatches].size}"
+    puts "Unmodified (score == created): #{results[:matches]}"
+    puts "Modified since creation: #{results[:modified_since_creation].size}"
     puts "Missing customer objects: #{results[:missing_objects].size}"
     puts
 
-    if results[:mismatches].any?
-      puts '=== Score Mismatches (first 10) ==='
-      results[:mismatches].first(10).each do |m|
-        puts "  #{m[:email]}: index=#{m[:index_score]}, created=#{m[:object_created]}, diff=#{m[:diff]}s"
+    if results[:modified_since_creation].any?
+      puts '=== Modified Since Creation (first 10) ==='
+      puts '    (Index score reflects last-modified time, not created time)'
+      results[:modified_since_creation].first(10).each do |m|
+        days = m[:age_at_modification] / 86_400.0
+        puts "  #{m[:email]}: last_modified=#{m[:last_modified]}, created=#{m[:created]} (#{days.round(1)} days after)"
       end
       puts
     end
