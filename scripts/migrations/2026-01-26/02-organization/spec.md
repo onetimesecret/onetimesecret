@@ -68,14 +68,27 @@ Participation Indexes
   organization:{objid}:domains    Sorted Set    Add CustomDomain objids with score=created
   organization:{objid}:receipts   Sorted Set    Add Receipt objids with score=created
 
+SCRIPTS
+
+1. generate.rb   - Creates organization records from transformed customer data
+                   Input:  exports/customer/customer_transformed.jsonl
+                   Output: exports/organization/organization_generated.jsonl
+                           exports/organization/customer_to_org_lookup.json
+
+2. create_indexes.rb - Creates index commands from generated organizations
+                       Input:  exports/organization/organization_generated.jsonl
+                       Output: exports/organization/organization_indexes.jsonl
+
+Run order: generate.rb -> create_indexes.rb
+
 TRANSFORM PSEUDOCODE
 
 transform(v1_customer_record, mappings):
   v2_org = {}
 
-  # Create new identifiers
-  v2_org.objid = generate_id()
-  v2_org.extid = "on" + v2_org.objid[0..7]
+  # Create new identifiers (UUIDv7 derived from customer_objid)
+  v2_org.objid = generate_org_objid_from_customer(customer_objid)
+  v2_org.extid = derive_extid_from_uuid(objid, prefix: 'on')  # 27 chars: on + 25 base36
 
   # Set fields from source customer
   v2_org.owner_id = v1_customer_record.objid
@@ -123,8 +136,8 @@ rebuild_indexes(v2_record):
 
 VALIDATION CHECKLIST
 
-[ ] Organization created with valid objid
-[ ] extid generated in on{id} format
+[ ] Organization created with valid objid (UUIDv7 format)
+[ ] extid generated in on{25-char-base36} format (27 chars total)
 [ ] owner_id references valid Customer
 [ ] contact_email set from customer email
 [ ] Stripe billing fields transferred from customer
