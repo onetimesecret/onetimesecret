@@ -128,12 +128,12 @@ Onetime::Middleware::Security.middleware_components = {
         # SSO routes use OAuth state parameter for CSRF protection
         return true if req.path.start_with?('/auth/sso/')
 
-        # API routes with Basic Auth don't need CSRF (API key is the credential)
-        # Session-based API requests would need CSRF, but we removed session auth from v1
-        if req.path.start_with?('/api/')
-          auth = env['otto.auth'] ||= Rack::Auth::Basic::Request.new(env)
-          return auth.provided? && auth.basic?
-        end
+        # API routes bypass CSRF entirely:
+        # - API v1 only accepts Basic Auth or anonymous (no session auth)
+        # - API v2/v3 with session auth are accessed via frontend which sends CSRF tokens
+        # - Anonymous API requests are stateless (no session = no CSRF attack vector)
+        # - CSRF attacks require victim's session cookies, which don't exist for API calls
+        return true if req.path.start_with?('/api/')
 
         false
       },

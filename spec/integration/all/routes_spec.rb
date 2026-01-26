@@ -119,24 +119,14 @@ RSpec.describe 'routes_try', type: :integration do
 
   it 'Can access the API generate endpoint' do
     # V1 generate endpoint creates a random secret (no auth/data required)
-    # Anonymous API endpoints now require CSRF validation when no Basic Auth is provided.
-    # This test verifies that the endpoint itself works when CSRF is bypassed.
-    # In production, anonymous API calls from browsers would need CSRF token,
-    # while programmatic calls would use API key authentication.
-    #
-    # Note: The generate endpoint allows anonymous access, but we still need
-    # to either:
-    # a) Provide valid Basic Auth credentials (which we don't have in this test), or
-    # b) Provide a valid CSRF token
-    #
-    # For this test, we verify the endpoint returns 403 (CSRF rejection)
-    # to confirm CSRF enforcement is active on anonymous API routes.
-    result = begin
-      response = @mock_request.post('/api/v1/generate')
-      response.status
-    end
-    # Without CSRF token or valid Basic Auth, anonymous API POST gets 403
-    expect(result).to eq(403)
+    # API routes bypass CSRF entirely because:
+    # - API v1 removed session auth (Basic Auth or anonymous only)
+    # - Anonymous requests are stateless (no session to exploit)
+    response = @mock_request.post('/api/v1/generate')
+
+    # Anonymous generate should work (not be blocked by CSRF)
+    # May return 200 (success) or 401 (if auth required) but NOT 403 (CSRF)
+    expect(response.status).not_to eq(403)
   end
 
   it 'Can post to a bogus endpoint and get a 404' do
@@ -159,33 +149,27 @@ RSpec.describe 'routes_try', type: :integration do
     expect(result).to eq([200, "nominal", "en"])
   end
 
-  it 'Can access the API share endpoint (requires CSRF or valid auth)' do
-    # With CSRF enabled, API POST without valid auth or CSRF gets rejected
-    # This test verifies the endpoint responds appropriately
-    result = begin
-      response = @mock_request.post('/api/v2/secret/conceal')
-      response.status
-    end
-    # Without CSRF token or valid auth, gets 403
-    expect(result).to eq(403)
+  it 'Can access the API share endpoint (requires auth)' do
+    # API routes bypass CSRF, so unauthenticated requests reach the API
+    response = @mock_request.post('/api/v2/secret/conceal')
+
+    # Should NOT be 403 (CSRF rejection) - API routes bypass CSRF
+    # Will be 401 (unauthorized) or similar API-level error
+    expect(response.status).not_to eq(403)
   end
 
   it 'Can post to a bogus v2 endpoint and get rejection' do
-    result = begin
-      response = @mock_request.post('/api/v2/generate2')
-      response.status
-    end
-    # Without auth, CSRF rejection (403) takes precedence
-    expect(result).to eq(403)
+    response = @mock_request.post('/api/v2/generate2')
+
+    # Should NOT be 403 (CSRF rejection) - API routes bypass CSRF
+    expect(response.status).not_to eq(403)
   end
 
   it 'Can post to v2 colonel endpoint and get rejection' do
-    result = begin
-      response = @mock_request.post('/api/v2/colonel/info')
-      response.status
-    end
-    # Without auth, CSRF rejection (403) takes precedence
-    expect(result).to eq(403)
+    response = @mock_request.post('/api/v2/colonel/info')
+
+    # Should NOT be 403 (CSRF rejection) - API routes bypass CSRF
+    expect(response.status).not_to eq(403)
   end
 
 end

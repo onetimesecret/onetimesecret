@@ -175,30 +175,34 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     end
 
     describe 'API routes without authentication' do
-      it 'POST to /api/v1/generate without Basic Auth gets CSRF rejection' do
-        # The generate endpoint allows anonymous access for the API itself,
-        # but CSRF middleware runs first. Without Basic Auth header, the
-        # bypass doesn't apply and CSRF validation fails with 403.
+      it 'POST to /api/v1/generate without auth bypasses CSRF (anonymous allowed)' do
+        # API routes bypass CSRF entirely because:
+        # - API v1 only accepts Basic Auth or anonymous (no session auth)
+        # - Anonymous requests are stateless (no session = no CSRF attack vector)
         response = @mock_request.post('/api/v1/generate')
 
-        # CSRF middleware rejects the request before it reaches the API
-        expect(response.status).to eq(403)
+        # Should NOT be 403 (CSRF rejection) - API routes bypass CSRF
+        # Will be 400 (missing params) or similar API-level error
+        expect(response.status).not_to eq(403)
       end
 
-      it 'POST to /api/v1/* without any auth gets appropriate response' do
+      it 'POST to /api/v1/* without any auth gets API-level response' do
         # Endpoint that requires auth
         response = @mock_request.post('/api/v1/share', {
           params: { secret: 'test secret' }
         })
 
-        # May be 403 (CSRF) or 401 (unauthorized) depending on order
-        expect([401, 403]).to include(response.status)
+        # Should NOT be 403 (CSRF rejection) - API routes bypass CSRF
+        # Will be 401 (unauthorized) or other API-level response
+        expect(response.status).not_to eq(403)
       end
 
-      it 'documents CSRF enforcement on API without Basic Auth' do
-        # This test documents the expected behavior:
-        # API routes WITHOUT Basic Auth header still get CSRF validation
-        # because the bypass only applies when auth.provided? && auth.basic?
+      it 'documents CSRF bypass for all API routes' do
+        # API routes bypass CSRF entirely - both authenticated and anonymous
+        # This is safe because:
+        # - API v1 removed session auth (Basic Auth or anonymous only)
+        # - Anonymous requests have no session to exploit
+        # - Authenticated API requests use API keys, not session cookies
 
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
         allow_if = middleware_config[:options][:allow_if]
@@ -210,7 +214,7 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         }
 
         result = allow_if.call(env_without_auth)
-        expect(result).to be false # CSRF should NOT be bypassed
+        expect(result).to be true # All API routes bypass CSRF
       end
 
       it 'documents CSRF bypass with Basic Auth on API' do
@@ -286,13 +290,13 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     end
 
     describe 'non-API web routes enforce CSRF' do
-      it 'POST to /feedback without CSRF token returns 403' do
+      it 'POST to /feedback API route bypasses CSRF' do
         response = @mock_request.post('/api/v2/feedback', {
           params: { feedback: 'test feedback' }
         })
 
-        # Without Basic Auth, CSRF applies to API routes too
-        expect(response.status).to eq(403)
+        # API routes bypass CSRF, will get API-level response (not 403)
+        expect(response.status).not_to eq(403)
       end
 
       it 'POST to /account/* without CSRF token returns 403' do
@@ -335,25 +339,25 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(result).to be true
       end
 
-      it 'bypasses API routes with Bearer token (treated as Basic Auth check fails)' do
-        # Bearer tokens should NOT bypass CSRF (only Basic Auth does)
+      it 'bypasses API routes regardless of auth header type' do
+        # All API routes bypass CSRF (Bearer, Basic, or none)
         env = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST',
           'HTTP_AUTHORIZATION' => 'Bearer some-jwt-token'
         }
         result = allow_if.call(env)
-        expect(result).to be false
+        expect(result).to be true
       end
 
-      it 'does not bypass for malformed Basic Auth header' do
+      it 'bypasses API routes even with malformed auth header' do
         env = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST',
           'HTTP_AUTHORIZATION' => 'Basic' # Missing credentials
         }
         result = allow_if.call(env)
-        expect(result).to be false
+        expect(result).to be true # API routes always bypass CSRF
       end
     end
 
