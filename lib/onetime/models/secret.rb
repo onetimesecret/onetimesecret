@@ -4,10 +4,10 @@
 
 require 'familia/verifiable_identifier'
 
-require_relative 'secret/features'
-
 module Onetime
   class Secret < Familia::Horreum
+    include Familia::Features::Autoloader
+
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,
