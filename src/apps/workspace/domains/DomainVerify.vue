@@ -22,6 +22,10 @@
   const allowVerifyCTA = ref(true);
   const verificationInProgress = ref(false);
   const verificationError = ref<string | null>(null);
+  const lastVerificationTime = ref<number>(0);
+
+  // Rate limit: minimum 10 seconds between verification attempts
+  const VERIFICATION_COOLDOWN_MS = 10000;
 
   const fetchDomain = async (): Promise<void> => {
     const extid = route.params.extid as string;
@@ -70,19 +74,44 @@
     return cluster.value?.proxy_host ?? '';
   });
 
+  // Extract error message from various error types
+  const extractErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    if (typeof err === 'object' && err !== null && 'message' in err) {
+      const message = (err as { message: unknown }).message;
+      if (typeof message === 'string') {
+        return message;
+      }
+    }
+    return String(err);
+  };
+
+  // Check if enough time has passed since last verification
+  const canVerify = (): boolean => {
+    const now = Date.now();
+    return now - lastVerificationTime.value >= VERIFICATION_COOLDOWN_MS;
+  };
+
   // Trigger backend verification (called on mount and widget success)
   const triggerVerification = async () => {
-    if (!domain.value || verificationInProgress.value) return;
+    // Guard: no domain, already in progress, or rate limited
+    if (!domain.value || verificationInProgress.value || !canVerify()) {
+      return;
+    }
 
     verificationInProgress.value = true;
     verificationError.value = null;
+    lastVerificationTime.value = Date.now();
+
     try {
       const result = await verifyDomain(domain.value.extid);
       if (result) {
         await fetchDomain();
       }
     } catch (err: unknown) {
-      verificationError.value = err instanceof Error ? err.message : String(err);
+      verificationError.value = extractErrorMessage(err);
     } finally {
       verificationInProgress.value = false;
     }
