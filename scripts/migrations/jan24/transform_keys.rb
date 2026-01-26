@@ -6,12 +6,17 @@
 # Reads per-model JSONL exports from ./exports/, transforms keys/fields according
 # to v1->v2 migration rules, outputs transformed JSONL ready for loading.
 #
-# Input structure (per-model directories):
-#   exports/customer/customer_dump.jsonl
-#   exports/customdomain/customdomain_dump.jsonl
-#   exports/metadata/metadata_dump.jsonl
-#   exports/secret/secret_dump.jsonl
-#   exports/feedback/feedback_dump.jsonl
+# Input structure (per-model directories or flat files):
+#   exports/customer/customer_dump.jsonl     (preferred)
+#   exports/customer_dump_*.jsonl            (legacy flat format)
+#
+# Output structure (same directory as input):
+#   exports/customer/customer_transformed.jsonl
+#   exports/organization/organization_generated.jsonl
+#   exports/membership/membership_generated.jsonl
+#   exports/customdomain/customdomain_transformed.jsonl
+#   exports/receipt/receipt_transformed.jsonl
+#   exports/secret/secret_transformed.jsonl
 #
 # Usage:
 #   ruby scripts/migrations/jan24/transform_keys.rb [OPTIONS]
@@ -46,11 +51,10 @@ class KeyTransformer
   # Model names and their output file mappings
   MODELS = %w[customer customdomain metadata secret feedback].freeze
 
-  def initialize(input_dir:, output_dir:, dry_run: false)
-    @input_dir  = input_dir
-    @output_dir = output_dir
-    @dry_run    = dry_run
-    @timestamp  = Time.now.utc.strftime('%Y%m%dT%H%M%SZ')
+  def initialize(input_dir:, dry_run: false)
+    @input_dir = input_dir
+    @dry_run   = dry_run
+    @timestamp = Time.now.utc.strftime('%Y%m%dT%H%M%SZ')
 
     # Shared context for all transformers
     @context = {
@@ -92,8 +96,6 @@ class KeyTransformer
   end
 
   def transform_all
-    FileUtils.mkdir_p(@output_dir) unless @dry_run
-
     # Phase 1: Process customers first (builds email mappings)
     puts '=== Phase 1: Processing Customers ==='
     process_model_file('customer')
@@ -130,24 +132,26 @@ class KeyTransformer
   private
 
   def process_model_file(model_name)
-    # Look for input in model subdirectory: exports/{model}/{model}_dump.jsonl
-    input_file = File.join(@input_dir, model_name, "#{model_name}_dump.jsonl")
+    input_file = find_input_file(model_name)
 
-    unless File.exist?(input_file)
-      puts "  No input file found: #{input_file}"
+    unless input_file
+      puts "  No input file found for #{model_name}"
       return
     end
 
-    # Output file: metadata -> receipt, others keep their name
+    # Output file: metadata -> receipt (different dir), others same dir as input
     output_model = model_name == 'metadata' ? 'receipt' : model_name
-    output_file  = File.join(@output_dir, "#{output_model}_transformed_#{@timestamp}.jsonl")
+    output_dir   = File.join(@input_dir, output_model)
+    output_file  = File.join(output_dir, "#{output_model}_transformed.jsonl")
 
-    puts "  Reading: #{File.basename(input_file)}"
-    puts "  Writing: #{File.basename(output_file)}" unless @dry_run
+    puts "  Reading: #{input_file}"
+    puts "  Writing: #{output_file}" unless @dry_run
+
+    FileUtils.mkdir_p(output_dir) unless @dry_run
 
     records_written = 0
     output_handle   = @dry_run ? nil : File.open(output_file, 'w')
-    @transformers[model_name.to_sym]
+    transformer     = @transformers[model_name.to_sym]
 
     File.foreach(input_file) do |line|
       record = JSON.parse(line.strip)
@@ -167,9 +171,23 @@ class KeyTransformer
     puts "  Records written: #{records_written}" unless @dry_run
   end
 
+  # Find input file - check model subdirectory first, then flat format
+  def find_input_file(model_name)
+    # Preferred: exports/{model}/{model}_dump.jsonl
+    dir_path = File.join(@input_dir, model_name, "#{model_name}_dump.jsonl")
+    return dir_path if File.exist?(dir_path)
+
+    # Legacy: exports/{model}_dump_*.jsonl (timestamped flat files)
+    pattern = File.join(@input_dir, "#{model_name}_dump_*.jsonl")
+    files   = Dir.glob(pattern).sort
+    return files.last if files.any?
+
+    nil
+  end
+
   def write_generated_records
-    @organization_transformer.write_generated_records(@output_dir, @timestamp)
-    @membership_transformer.write_generated_records(@output_dir, @timestamp)
+    @organization_transformer.write_generated_records(@input_dir, @timestamp)
+    @membership_transformer.write_generated_records(@input_dir, @timestamp)
   end
 
   def sync_stats
@@ -185,7 +203,6 @@ class KeyTransformer
     manifest = {
       timestamp: @timestamp,
       input_dir: @input_dir,
-      output_dir: @output_dir,
       stats: @context[:stats],
       mappings: {
         email_to_objid_count: @context[:email_to_objid].size,
@@ -193,7 +210,7 @@ class KeyTransformer
       },
     }
 
-    manifest_file = File.join(@output_dir, "transform_manifest_#{@timestamp}.json")
+    manifest_file = File.join(@input_dir, "transform_manifest_#{@timestamp}.json")
     File.write(manifest_file, JSON.pretty_generate(manifest))
     puts "\n  Manifest: #{File.basename(manifest_file)}"
   end
@@ -216,7 +233,6 @@ end
 def parse_args(args)
   options = {
     input_dir: 'exports',
-    output_dir: 'exports/transformed',
     dry_run: false,
   }
 
@@ -224,8 +240,8 @@ def parse_args(args)
     case arg
     when /^--input-dir=(.+)$/
       options[:input_dir] = Regexp.last_match(1)
-    when /^--output-dir=(.+)$/
-      options[:output_dir] = Regexp.last_match(1)
+    when /^--exports-dir=(.+)$/
+      options[:input_dir] = Regexp.last_match(1)
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
@@ -233,17 +249,17 @@ def parse_args(args)
         Usage: ruby scripts/migrations/jan24/transform_keys.rb [OPTIONS]
 
         Options:
-          --input-dir=DIR    Input directory (default: exports)
-          --output-dir=DIR   Output directory (default: exports/transformed)
+          --input-dir=DIR    Exports directory (default: exports)
+          --exports-dir=DIR  Alias for --input-dir
           --dry-run          Show what would be transformed
           --help             Show this help
 
-        Input structure (per-model directories):
+        Input/Output structure (all files in same model directory):
           exports/customer/customer_dump.jsonl
-          exports/customdomain/customdomain_dump.jsonl
-          exports/metadata/metadata_dump.jsonl
-          exports/secret/secret_dump.jsonl
-          exports/feedback/feedback_dump.jsonl
+          exports/customer/customer_transformed.jsonl
+          exports/organization/organization_generated.jsonl
+          exports/membership/membership_generated.jsonl
+          exports/receipt/receipt_transformed.jsonl  (from metadata/)
       HELP
       exit 0
     end
@@ -257,7 +273,6 @@ if __FILE__ == $0
 
   transformer = KeyTransformer.new(
     input_dir: options[:input_dir],
-    output_dir: options[:output_dir],
     dry_run: options[:dry_run],
   )
 

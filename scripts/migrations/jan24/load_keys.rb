@@ -109,16 +109,39 @@ class KeyLoader
     # We'll extract them as we process
   end
 
-  def load_generated_records(model_prefix)
-    input_files = Dir.glob(File.join(@input_dir, "#{model_prefix}_generated_*.jsonl"))
+  # Find generated file in model subdirectory
+  def find_generated_file(model_prefix)
+    # Map model prefix to directory name
+    dir_name = case model_prefix
+               when 'org_membership' then 'membership'
+               else model_prefix
+               end
 
-    if input_files.empty?
+    # {dir}/{dir}_generated.jsonl
+    dir_path = File.join(@input_dir, dir_name, "#{dir_name}_generated.jsonl")
+    return dir_path if File.exist?(dir_path)
+
+    nil
+  end
+
+  # Find transformed file in model subdirectory
+  def find_transformed_file(model_prefix)
+    # {model}/{model}_transformed.jsonl
+    dir_path = File.join(@input_dir, model_prefix, "#{model_prefix}_transformed.jsonl")
+    return dir_path if File.exist?(dir_path)
+
+    nil
+  end
+
+  def load_generated_records(model_prefix)
+    input_file = find_generated_file(model_prefix)
+
+    unless input_file
       puts "  No #{model_prefix} files found"
       return
     end
 
-    input_file = input_files.max
-    puts "  Reading: #{File.basename(input_file)}"
+    puts "  Reading: #{input_file}"
 
     File.foreach(input_file) do |line|
       record = JSON.parse(line.strip)
@@ -152,15 +175,14 @@ class KeyLoader
   end
 
   def load_transformed_records(model_prefix)
-    input_files = Dir.glob(File.join(@input_dir, "#{model_prefix}_transformed_*.jsonl"))
+    input_file = find_transformed_file(model_prefix)
 
-    if input_files.empty?
+    unless input_file
       puts "  No #{model_prefix} files found"
       return
     end
 
-    input_file = input_files.max
-    puts "  Reading: #{File.basename(input_file)}"
+    puts "  Reading: #{input_file}"
 
     stat_key = case model_prefix
                when 'customdomain' then :custom_domains

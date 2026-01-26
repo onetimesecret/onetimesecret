@@ -16,8 +16,11 @@ module Transformers
     end
 
     # Write all generated organization records to output file
-    def write_generated_records(output_dir, timestamp)
-      org_file = File.join(output_dir, "organization_generated_#{timestamp}.jsonl")
+    def write_generated_records(output_dir, _timestamp)
+      model_dir = File.join(output_dir, 'organization')
+      FileUtils.mkdir_p(model_dir)
+
+      org_file = File.join(model_dir, 'organization_generated.jsonl')
       File.open(org_file, 'w') do |f|
         email_to_org_data.each do |_email, org|
           record = {
@@ -30,7 +33,7 @@ module Transformers
           f.puts(JSON.generate(record))
         end
       end
-      puts "  Written: #{File.basename(org_file)} (#{email_to_org_data.size} records)"
+      puts "  Written: #{org_file} (#{email_to_org_data.size} records)"
     end
   end
 end

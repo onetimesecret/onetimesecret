@@ -81,10 +81,23 @@ class MigrationValidator
     check_mappings_consistency
   end
 
+  # Find JSONL files in model subdirectory
+  def find_jsonl_files(model_name, file_type)
+    files = []
+
+    # {model}/{model}_{type}.jsonl
+    dir_path = File.join(@input_dir, model_name, "#{model_name}_#{file_type}.jsonl")
+    files << dir_path if File.exist?(dir_path)
+
+    files
+  end
+
   def check_jsonl_integrity
     puts "\n  Checking JSONL file integrity..."
 
-    jsonl_files = Dir.glob(File.join(@input_dir, '*.jsonl'))
+    # Find JSONL files in both flat format and model subdirectories
+    jsonl_files = Dir.glob(File.join(@input_dir, '*.jsonl')) +
+                  Dir.glob(File.join(@input_dir, '*', '*.jsonl'))
 
     jsonl_files.each do |file|
       line_num = 0
@@ -108,7 +121,7 @@ class MigrationValidator
     puts "\n  Checking required fields..."
 
     # Check organizations have required fields
-    org_files = Dir.glob(File.join(@input_dir, 'organization_generated_*.jsonl'))
+    org_files = find_jsonl_files('organization', 'generated')
     org_files.each do |file|
       File.foreach(file) do |line|
         record = JSON.parse(line.strip)
@@ -131,7 +144,7 @@ class MigrationValidator
     record_check('Organization required fields', @issues.empty? || @issues.none? { |i| i[:check].include?('Organization') })
 
     # Check memberships have required fields
-    membership_files = Dir.glob(File.join(@input_dir, 'org_membership_generated_*.jsonl'))
+    membership_files = find_jsonl_files('membership', 'generated')
     membership_files.each do |file|
       File.foreach(file) do |line|
         record = JSON.parse(line.strip)
@@ -158,7 +171,7 @@ class MigrationValidator
     puts "\n  Checking migration metadata..."
 
     # Check customers have migration info
-    customer_files           = Dir.glob(File.join(@input_dir, 'customer_transformed_*.jsonl'))
+    customer_files           = find_jsonl_files('customer', 'transformed')
     customers_with_migration = 0
     customers_total          = 0
 
@@ -176,7 +189,7 @@ class MigrationValidator
     )
 
     # Check receipts have migration info
-    receipt_files           = Dir.glob(File.join(@input_dir, 'receipt_transformed_*.jsonl'))
+    receipt_files           = find_jsonl_files('receipt', 'transformed')
     receipts_with_migration = 0
     receipts_total          = 0
 
@@ -199,7 +212,7 @@ class MigrationValidator
 
     # Count unique emails from customer transforms
     customer_emails = Set.new
-    customer_files  = Dir.glob(File.join(@input_dir, 'customer_transformed_*.jsonl'))
+    customer_files  = find_jsonl_files('customer', 'transformed')
 
     customer_files.each do |file|
       File.foreach(file) do |line|
@@ -212,14 +225,14 @@ class MigrationValidator
 
     # Count organizations
     org_count = 0
-    org_files = Dir.glob(File.join(@input_dir, 'organization_generated_*.jsonl'))
+    org_files = find_jsonl_files('organization', 'generated')
     org_files.each do |file|
       org_count += File.readlines(file).size
     end
 
     # Count memberships
     membership_count = 0
-    membership_files = Dir.glob(File.join(@input_dir, 'org_membership_generated_*.jsonl'))
+    membership_files = find_jsonl_files('membership', 'generated')
     membership_files.each do |file|
       membership_count += File.readlines(file).size
     end

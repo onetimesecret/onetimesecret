@@ -38,13 +38,12 @@ class MigrationPipeline
   ].freeze
 
   def initialize(options)
-    @options         = options
-    @exports_dir     = options[:exports_dir]
-    @valkey_url      = options[:valkey_url]
-    @replace         = options[:replace]
-    @dry_run         = options[:dry_run]
-    @step            = options[:step]
-    @transformed_dir = File.join(@exports_dir, 'transformed')
+    @options     = options
+    @exports_dir = options[:exports_dir]
+    @valkey_url  = options[:valkey_url]
+    @replace     = options[:replace]
+    @dry_run     = options[:dry_run]
+    @step        = options[:step]
   end
 
   def run
@@ -93,7 +92,6 @@ class MigrationPipeline
     cmd = build_cmd(
       'transform_keys.rb',
       "--input-dir=#{@exports_dir}",
-      "--output-dir=#{@transformed_dir}",
       @dry_run ? '--dry-run' : nil,
     )
 
@@ -104,7 +102,7 @@ class MigrationPipeline
     cmd = build_cmd(
       'validate_keys.rb',
       '--mode=pre-load',
-      "--input-dir=#{@transformed_dir}",
+      "--input-dir=#{@exports_dir}",
       "--valkey-url=#{@valkey_url}",
     )
 
@@ -120,7 +118,7 @@ class MigrationPipeline
 
     cmd = build_cmd(
       'load_keys.rb',
-      "--input-dir=#{@transformed_dir}",
+      "--input-dir=#{@exports_dir}",
       "--valkey-url=#{@valkey_url}",
       @replace ? '--replace' : nil,
     )
@@ -146,7 +144,7 @@ class MigrationPipeline
     cmd = build_cmd(
       'validate_keys.rb',
       '--mode=post-load',
-      "--input-dir=#{@transformed_dir}",
+      "--input-dir=#{@exports_dir}",
       "--valkey-url=#{@valkey_url}",
     )
 
