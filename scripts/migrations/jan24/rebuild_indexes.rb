@@ -19,14 +19,25 @@
 # - customer:instances (zset: objid → created)
 # - customer:email_index (hash: email → objid)
 # - customer:extid_lookup (hash: extid → objid)
+# - customer:objid_lookup (hash: objid → objid JSON serialized string)
+# - customer:secrets_created
+# - customer:secrets_shared
 # - organization:instances (zset: objid → created)
 # - organization:contact_email_index (hash: contact_email → objid)
 # - organization:{objid}:members (zset: auto-populated by Familia participates_in)
 # - organization:{objid}:domains (zset: auto-populated by Familia participates_in)
 # - customdomain:instances (zset: domainid → created)
 # - customdomain:display_domain_index (hash: display_domain → domainid)
+# - customdomain:display_domains
+# - customdomain:extid_lookup
+# - customdomain:instances
+# - customdomain:objid_lookup (hash: objid → objid JSON serialized string)
+# - customdomain:owners
 # - receipt:instances (zset: objid → created)
+# - receipt:expiration_timeline (zset: expires date → objid)
+# - receipt:objid_lookup (hash: objid → objid JSON serialized string)
 # - secret:instances (zset: objid → created)
+# - secret:objid_lookup (hash: objid → objid JSON serialized string)
 
 require 'redis'
 require 'json'
