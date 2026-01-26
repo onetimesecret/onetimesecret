@@ -96,6 +96,11 @@ module Onetime
           return { status: 'error', message: 'Approximated API key not configured' }
         end
 
+        if vhost_target.to_s.empty?
+          OT.le '[ApproximatedStrategy] vhost_target not configured (set APPROXIMATED_VHOST_TARGET)'
+          return { status: 'error', message: 'Approximated vhost_target not configured' }
+        end
+
         res = client.create_vhost(
           api_key,
           custom_domain.display_domain,
