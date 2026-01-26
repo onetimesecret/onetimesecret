@@ -32,8 +32,8 @@
 #   --output-dir=DIR Output directory (default: exports)
 #   --dry-run        Show what would be dumped without writing
 #
-# Output files are timestamped: customer_dump_20260124T120000Z.jsonl
-# Idempotent: each run creates new files, never modifies existing.
+# Output structure: exports/{model}/{model}_dump.jsonl
+# Each model gets its own directory for clean organization.
 
 require 'redis'
 require 'json'
@@ -62,7 +62,6 @@ class KeyDumper
     @redis_url  = redis_url
     @output_dir = output_dir
     @dry_run    = dry_run
-    @timestamp  = Time.now.utc.strftime('%Y%m%dT%H%M%SZ')
   end
 
   def dump_model(model_name)
@@ -72,7 +71,8 @@ class KeyDumper
 
     db_number   = MODEL_DB_MAP[model_name]
     redis       = Redis.new(url: "#{@redis_url}/#{db_number}")
-    output_file = File.join(@output_dir, "#{model_name}_dump_#{@timestamp}.jsonl")
+    model_dir   = File.join(@output_dir, model_name)
+    output_file = File.join(model_dir, "#{model_name}_dump.jsonl")
 
     stats = { total: 0, dumped: 0, skipped: 0, errors: [] }
 
@@ -82,7 +82,7 @@ class KeyDumper
       return stats
     end
 
-    FileUtils.mkdir_p(@output_dir)
+    FileUtils.mkdir_p(model_dir)
 
     File.open(output_file, 'w') do |f|
       scan_and_dump_model(redis, model_name, f, stats)
@@ -242,7 +242,7 @@ class KeyDumper
       source_db: db_number,
       source_url: @redis_url.sub(/:[^:@]*@/, ':***@'),
       output_file: File.basename(output_file),
-      timestamp: @timestamp,
+      timestamp: Time.now.utc.iso8601,
       stats: {
         total_scanned: stats[:total],
         dumped: stats[:dumped],

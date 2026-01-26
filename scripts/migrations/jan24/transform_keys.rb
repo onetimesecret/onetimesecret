@@ -1,19 +1,17 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
-
 # Transform v1 Redis keys to v2 Valkey format.
 #
 # Reads per-model JSONL exports from ./exports/, transforms keys/fields according
 # to v1->v2 migration rules, outputs transformed JSONL ready for loading.
 #
-# Input files (per-model dumps):
-#   customer_dump_*.jsonl      - customer:* keys
-#   customdomain_dump_*.jsonl  - customdomain:* keys
-#   metadata_dump_*.jsonl      - metadata:* keys (becomes receipt)
-#   secret_dump_*.jsonl        - secret:* keys
-#   feedback_dump_*.jsonl      - feedback key
+# Input structure (per-model directories):
+#   exports/customer/customer_dump.jsonl
+#   exports/customdomain/customdomain_dump.jsonl
+#   exports/metadata/metadata_dump.jsonl
+#   exports/secret/secret_dump.jsonl
+#   exports/feedback/feedback_dump.jsonl
 #
 # Usage:
 #   ruby scripts/migrations/jan24/transform_keys.rb [OPTIONS]
@@ -106,15 +104,13 @@ class KeyTransformer
   private
 
   def process_model_file(model_name)
-    input_files = Dir.glob(File.join(@input_dir, "#{model_name}_dump_*.jsonl"))
-      .reject { |f| f.end_with?('_manifest.json') }
+    # Look for input in model subdirectory: exports/{model}/{model}_dump.jsonl
+    input_file = File.join(@input_dir, model_name, "#{model_name}_dump.jsonl")
 
-    if input_files.empty?
-      puts "  No input files found for #{model_name}"
+    unless File.exist?(input_file)
+      puts "  No input file found: #{input_file}"
       return
     end
-
-    input_file = input_files.max # Latest by timestamp
 
     # Output file: metadata -> receipt, others keep their name
     output_model = model_name == 'metadata' ? 'receipt' : model_name
@@ -125,6 +121,7 @@ class KeyTransformer
 
     records_written = 0
     output_handle   = @dry_run ? nil : File.open(output_file, 'w')
+    transformer     = @transformers[model_name.to_sym]
 
     File.foreach(input_file) do |line|
       record = JSON.parse(line.strip)
@@ -458,10 +455,10 @@ class KeyTransformer
       timestamp: @timestamp,
       input_dir: @input_dir,
       output_dir: @output_dir,
-      stats: @stats,
+      stats: @context[:stats],
       mappings: {
-        email_to_objid_count: @email_to_objid.size,
-        email_to_org_count: @email_to_org_objid.size,
+        email_to_objid_count: @context[:email_to_objid].size,
+        email_to_org_count: @context[:email_to_org_objid].size,
       },
     }
 
@@ -576,12 +573,12 @@ def parse_args(args)
           --dry-run          Show what would be transformed
           --help             Show this help
 
-        Input files (per-model dumps):
-          customer_dump_*.jsonl      - customer:* keys
-          customdomain_dump_*.jsonl  - customdomain:* keys
-          metadata_dump_*.jsonl      - metadata:* keys (becomes receipt)
-          secret_dump_*.jsonl        - secret:* keys
-          feedback_dump_*.jsonl      - feedback key
+        Input structure (per-model directories):
+          exports/customer/customer_dump.jsonl
+          exports/customdomain/customdomain_dump.jsonl
+          exports/metadata/metadata_dump.jsonl
+          exports/secret/secret_dump.jsonl
+          exports/feedback/feedback_dump.jsonl
       HELP
       exit 0
     end
@@ -601,5 +598,3 @@ if __FILE__ == $0
 
   transformer.transform_all
 end
-
-# rubocop:enable Metrics/ClassLength
