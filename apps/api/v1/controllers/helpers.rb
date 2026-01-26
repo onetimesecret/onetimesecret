@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative '../../../../lib/onetime/helpers/session_helpers'
-require_relative '../../../../lib/onetime/helpers/shrimp_helpers'
 
 module V1
   unless defined?(V1::BADAGENTS)
@@ -14,7 +13,6 @@ module V1
 
   module ControllerHelpers
     include Onetime::Helpers::SessionHelpers
-    include Onetime::Helpers::ShrimpHelpers
 
     # `carefully` is a wrapper around the main web application logic. We
     # handle errors, redirects, and other exceptions here to ensure that
@@ -58,14 +56,6 @@ module V1
     rescue OT::Unauthorized => ex
       OT.info ex.message
       not_authorized_error
-    rescue Onetime::BadShrimp
-      # If it's a json response, no need to set an error message on the session
-      if res.headers['content-type'] == 'application/json'
-        error_response 'Please refresh the page and try again', reason: 'Bad shrimp 🍤'
-      else
-        session['error_message'] = 'Please go back, refresh the page, and try again.'
-        res.redirect redirect
-      end
     rescue OT::FormError => ex
       OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
 
@@ -88,8 +78,7 @@ module V1
       secret_not_found_response
     rescue OT::RecordNotFound => ex
       OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
-      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
-      not_found_response ex.message, shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
+      not_found_response ex.message
     rescue Familia::FieldTypeError => ex
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
@@ -99,9 +88,7 @@ module V1
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
 
-      # Include fresh shrimp so they can try again 🦐
-      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
-      error_response "We're sorry, but we can't process your request at this time.", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
+      error_response "We're sorry, but we can't process your request at this time."
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
@@ -109,9 +96,7 @@ module V1
       # Track Familia errors as regular exceptions
       capture_error ex
 
-      # Include fresh shrimp so they can try again 🦐
-      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
-      error_response 'An error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
+      error_response 'An error occurred :['
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -119,8 +104,7 @@ module V1
       # Track DB connection errors as fatal errors
       capture_error ex, :fatal
 
-      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
-      error_response "We'll be back shortly!", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
+      error_response "We'll be back shortly!"
     rescue StandardError => ex
       custid           = cust&.custid || '<notset>'
       # session may be a Hash fallback when no session middleware is available
@@ -132,8 +116,7 @@ module V1
       # Track the unexected errors
       capture_error ex
 
-      regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
-      error_response 'An unexpected error occurred :[', shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
+      error_response 'An unexpected error occurred :['
     end
 
     # Sets the locale for the request based on various sources.
@@ -338,35 +321,6 @@ module V1
       paths.join('/').gsub '//', '/'
     end
 
-    def setup_request_context
-      return if @request_context_setup
-
-      @request_context_setup = true
-
-      # Session is already loaded by Onetime::Session middleware
-      # Load customer based on session state
-      @cust = current_customer
-
-      # Track request for security monitoring
-      unless @cust.anonymous?
-        custref = @cust.obscure_email
-        OT.ld "[session.request] #{custref} #{request.request_method} #{request.path}"
-      end
-    end
-
-    # Check CSRF value submitted with POST requests (aka shrimp)
-    def check_shrimp!(_replace = true)
-      return if @check_shrimp_ran
-
-      @check_shrimp_ran = true
-      return unless state_changing_request?
-
-      # Extract token from request
-      token = extract_shrimp_token
-
-      # Verify using the modern shrimp helpers
-      verify_shrimp!(token) if token
-    end
 
     # Checks if authentication is enabled for the site.
     #

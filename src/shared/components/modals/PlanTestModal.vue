@@ -3,7 +3,6 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
-import { useCsrfStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
 import {
@@ -17,7 +16,6 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const csrfStore = useCsrfStore();
 const bootstrapStore = useBootstrapStore();
 const $api = createApi();
 
@@ -107,16 +105,7 @@ const handleActivateTestMode = async (planId: string) => {
   error.value = null;
 
   try {
-    await $api.post(
-      '/api/colonel/entitlement-test',
-      { planid: planId },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'O-Shrimp': csrfStore.shrimp,
-        },
-      }
-    );
+    await $api.post('/api/colonel/entitlement-test', { planid: planId });
 
     // Refresh bootstrap store to get updated entitlements (no page reload needed)
     await bootstrapStore.refresh();
@@ -134,16 +123,7 @@ const handleResetToActual = async () => {
   error.value = null;
 
   try {
-    await $api.post(
-      '/api/colonel/entitlement-test',
-      { planid: null },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'O-Shrimp': csrfStore.shrimp,
-        },
-      }
-    );
+    await $api.post('/api/colonel/entitlement-test', { planid: null });
 
     // Refresh bootstrap store to clear test mode (no page reload needed)
     await bootstrapStore.refresh();
