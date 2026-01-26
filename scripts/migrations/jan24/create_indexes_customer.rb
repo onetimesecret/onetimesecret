@@ -153,7 +153,7 @@ class CustomerIndexCreator
         commands << {
           command: 'ZADD',
           key: 'customer:instances',
-          args: [score.to_i.to_s, member],
+          args: [score.to_i, member],
         }
         @stats[:instance_entries] += 1
       end
@@ -214,7 +214,7 @@ class CustomerIndexCreator
         commands << {
           command: 'ZADD',
           key: 'customer:instances',
-          args: [created_ts.to_s, identifier],
+          args: [created_ts.to_i, identifier],
         }
         @stats[:instance_entries] += 1
       end

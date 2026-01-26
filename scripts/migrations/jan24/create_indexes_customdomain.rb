@@ -161,7 +161,7 @@ class CustomDomainIndexCreator
         commands << {
           command: 'ZADD',
           key: 'customdomain:instances',
-          args: [score.to_i.to_s, member],
+          args: [score.to_i, member],
         }
         @stats[:instance_entries] += 1
       end
@@ -220,7 +220,7 @@ class CustomDomainIndexCreator
         commands << {
           command: 'ZADD',
           key: 'customdomain:instances',
-          args: [created_ts.to_s, domainid],
+          args: [created_ts.to_i, domainid],
         }
         @stats[:instance_entries] += 1
       end
@@ -269,7 +269,7 @@ class CustomDomainIndexCreator
         commands << {
           command: 'ZADD',
           key: "organization:#{org_id}:domains",
-          args: [created_ts.to_s, domainid],
+          args: [created_ts.to_i, domainid],
         }
         @stats[:org_participation] += 1
       end

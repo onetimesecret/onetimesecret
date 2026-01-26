@@ -144,7 +144,7 @@ class OrganizationIndexCreator
     @stats[:organizations_created]  += 1
 
     # Instance index: organization:instances (sorted set)
-    add_command('ZADD', 'organization:instances', [created.to_s, org_objid])
+    add_command('ZADD', 'organization:instances', [created.to_i, org_objid])
 
     # Lookup indexes (Hash type, JSON-quoted values)
     if email && !email.empty?

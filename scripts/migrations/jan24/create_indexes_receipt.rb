@@ -194,7 +194,7 @@ class ReceiptIndexCreator
     commands << {
       command: 'ZADD',
       key: 'receipt:instances',
-      args: [created.to_s, objid],
+      args: [created.to_i, objid],
     }
     @stats[:instance_indexes] += 1
 
@@ -205,7 +205,7 @@ class ReceiptIndexCreator
       commands << {
         command: 'ZADD',
         key: 'receipt:expiration_timeline',
-        args: [expires_at.to_s, objid],
+        args: [expires_at.to_i, objid],
       }
       @stats[:expiration_indexes] += 1
     end
@@ -227,7 +227,7 @@ class ReceiptIndexCreator
       commands << {
         command: 'ZADD',
         key: "customer:#{owner_id}:receipts",
-        args: [created.to_s, objid],
+        args: [created.to_i, objid],
       }
       @stats[:customer_indexes] += 1
     else
@@ -242,7 +242,7 @@ class ReceiptIndexCreator
         commands << {
           command: 'ZADD',
           key: "customdomain:#{domain_id}:receipts",
-          args: [created.to_s, objid],
+          args: [created.to_i, objid],
         }
         @stats[:domain_indexes] += 1
       end

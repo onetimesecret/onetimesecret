@@ -126,7 +126,7 @@ class SecretIndexCreator
         {
           command: 'ZADD',
           key: 'secret:instances',
-          args: [created.to_s, objid],
+          args: [created.to_i, objid],
         },
       )
 
