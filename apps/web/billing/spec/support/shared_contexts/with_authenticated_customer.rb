@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'digest'
+require 'securerandom'
 
 # Shared context for authenticated customer with session
 #
@@ -28,6 +29,10 @@ require 'digest'
 RSpec.shared_context 'with_authenticated_customer' do
   let(:created_customers) { [] }
 
+  # Generate a valid CSRF token compatible with Rack::Protection::AuthenticityToken
+  # The token must be URL-safe base64 encoded (32 bytes = 43 chars without padding)
+  let(:csrf_token) { SecureRandom.urlsafe_base64(32, padding: false) }
+
   # Generate deterministic email based on test description for VCR cassette matching
   def deterministic_email(prefix = 'test')
     test_hash = Digest::SHA256.hexdigest(RSpec.current_example.full_description)[0..7]
@@ -43,11 +48,25 @@ RSpec.shared_context 'with_authenticated_customer' do
   before do
     customer.save
 
-    # Mock authentication by setting up session
+    # Mock authentication by setting up session with CSRF token
+    # Rack::Protection::AuthenticityToken stores the raw token in session[:csrf]
+    # and validates X-CSRF-Token header against it (supports both masked and unmasked)
     env 'rack.session', {
       'authenticated' => true,
       'external_id' => customer.extid,
+      :csrf => csrf_token,
     }
+
+    # Add CSRF header to all requests (matches frontend Axios interceptor)
+    # Using unmasked token here - Rack::Protection accepts raw token via compare_with_real_token
+    header 'X-CSRF-Token', csrf_token
+  end
+
+  # Helper: Include CSRF token header in requests
+  #
+  # @return [Hash] Headers hash with CSRF token
+  def csrf_headers
+    { 'HTTP_X_CSRF_TOKEN' => csrf_token }
   end
 
   after do
@@ -76,11 +95,15 @@ RSpec.shared_context 'with_authenticated_customer' do
     env 'rack.session', {
       'authenticated' => true,
       'external_id' => other_customer.extid,
+      :csrf => csrf_token,
     }
   end
 
-  # Helper: Clear authentication session
+  # Helper: Clear authentication session while preserving CSRF token
+  #
+  # Preserves the CSRF token so POST requests pass CSRF validation
+  # but fail authentication (expected 401 response).
   def clear_authentication
-    env 'rack.session', {}
+    env 'rack.session', { :csrf => csrf_token }
   end
 end

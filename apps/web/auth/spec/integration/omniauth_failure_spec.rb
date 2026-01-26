@@ -74,13 +74,8 @@ RSpec.describe 'OmniAuth Failure Handling' do
       Onetime.boot! :test
     end
 
-    context 'when OmniAuth is configured' do
-      before do
-        skip 'OmniAuth not configured (OIDC_ISSUER not set)' if ENV['OIDC_ISSUER'].to_s.empty?
-      end
-
-      # Note: Testing the actual failure callback requires OmniAuth test mode
-      # or a mock IdP. These tests verify the configuration is correct.
+    context 'when OmniAuth is configured', :omniauth_mock do
+      # Uses mock OIDC discovery via OmniAuthTestHelper
 
       it 'failure redirect path includes auth_error param' do
         # Verify the configuration produces the expected redirect path

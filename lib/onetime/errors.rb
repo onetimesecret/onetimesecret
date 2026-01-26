@@ -54,27 +54,6 @@ module Onetime
     end
   end
 
-  class BadShrimp < Problem
-    attr_reader :path, :user, :got, :wanted
-
-    def initialize(path, user, got, wanted)
-      @path   = path
-      @user   = user
-      @got    = got.to_s
-      @wanted = wanted.to_s
-    end
-
-    def report
-      got_display    = got.size <= 16 ? got : got[0, 16] + '...'
-      wanted_display = wanted.size <= 16 ? wanted : wanted[0, 16] + '...'
-      "BAD SHRIMP FOR #{@path}: #{@user}: #{got_display}/#{wanted_display}"
-    end
-
-    def message
-      'Sorry, bad shrimp'
-    end
-  end
-
   class Unauthorized < RuntimeError
   end
 

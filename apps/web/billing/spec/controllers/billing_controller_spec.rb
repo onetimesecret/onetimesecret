@@ -29,6 +29,10 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
+  # Generate a valid CSRF token compatible with Rack::Protection::AuthenticityToken
+  # The token must be URL-safe base64 encoded (32 bytes = 43 chars without padding)
+  let(:csrf_token) { SecureRandom.urlsafe_base64(32, padding: false) }
+
   let(:customer) do
     cust = Onetime::Customer.create!(email: deterministic_email)
     created_customers << cust
@@ -45,11 +49,16 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     customer.save
     organization.save
 
-    # Mock authentication by setting up session
+    # Mock authentication by setting up session with valid CSRF token
+    # Rack::Protection::AuthenticityToken stores the raw token in session[:csrf]
+    # and validates X-CSRF-Token header against it (supports both masked and unmasked)
     env 'rack.session', {
       'authenticated' => true,
       'external_id' => customer.extid,
+      :csrf => csrf_token,
     }
+    # Set CSRF header globally for all requests (matches frontend Axios interceptor)
+    header 'X-CSRF-Token', csrf_token
   end
 
   after do
@@ -249,7 +258,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       post "/billing/api/org/#{organization.extid}/checkout", {
         product: product,
         interval: interval,
-      }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+      }.to_json, { 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => csrf_token }
 
       expect(last_response.status).to eq(200)
       expect(last_response.content_type).to include('application/json')
@@ -272,7 +281,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     it 'returns 400 when product is missing' do
       post "/billing/api/org/#{organization.extid}/checkout", {
         interval: interval,
-      }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+      }.to_json, { 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => csrf_token }
 
       expect(last_response.status).to eq(400)
       expect(last_response.body).to include('Missing product or interval')
@@ -395,10 +404,11 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Add as member but not owner (using Organization's auto-generated method)
       organization.add_members_instance(member_customer)
 
-      # Switch session to member customer
+      # Switch session to member customer (preserve CSRF token)
       env 'rack.session', {
         'authenticated' => true,
         'external_id' => member_customer.extid,
+        :csrf => csrf_token,
       }
 
       post "/billing/api/org/#{organization.extid}/checkout", {
@@ -411,7 +421,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'requires authentication' do
-      env 'rack.session', {}
+      # Clear session but preserve CSRF token to test auth requirement (not CSRF)
+      env 'rack.session', { :csrf => csrf_token }
 
       post "/billing/api/org/#{organization.extid}/checkout", {
         product: product,
@@ -788,6 +799,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       env 'rack.session', {
         'authenticated' => true,
         'external_id' => other_customer.extid,
+        :csrf => csrf_token,
       }
 
       post "/billing/api/org/#{organization.extid}/preview-plan-change", {
@@ -798,7 +810,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'requires authentication', :vcr do
-      env 'rack.session', {}
+      # Clear session but preserve CSRF token to test auth requirement (not CSRF)
+      env 'rack.session', { :csrf => csrf_token }
 
       post "/billing/api/org/#{organization.extid}/preview-plan-change", {
         new_price_id: new_price_id,
@@ -927,6 +940,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         env 'rack.session', {
           'authenticated' => true,
           'external_id' => member_customer.extid,
+          :csrf => csrf_token,
         }
 
         post "/billing/api/org/#{organization.extid}/change-plan", {
@@ -1011,6 +1025,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       env 'rack.session', {
         'authenticated' => true,
         'external_id' => other_customer.extid,
+        :csrf => csrf_token,
       }
 
       post "/billing/api/org/#{organization.extid}/change-plan", {
@@ -1021,7 +1036,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'requires authentication', :vcr do
-      env 'rack.session', {}
+      # Clear session but preserve CSRF token to test auth requirement (not CSRF)
+      env 'rack.session', { :csrf => csrf_token }
 
       post "/billing/api/org/#{organization.extid}/change-plan", {
         new_price_id: new_price_id,

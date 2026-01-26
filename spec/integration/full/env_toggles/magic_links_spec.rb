@@ -22,6 +22,28 @@ RSpec.describe 'Email Auth (Magic Links) Toggle', type: :integration do
     {}
   end
 
+  # Establish a session and retrieve CSRF token
+  def ensure_csrf_token
+    return @csrf_token if defined?(@csrf_token) && @csrf_token
+
+    get '/auth', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    @csrf_token = last_response.headers['X-CSRF-Token']
+    @csrf_token
+  end
+
+  # POST with JSON content type and CSRF token
+  def post_with_csrf(path, params = {}, headers = {})
+    csrf_token = ensure_csrf_token
+
+    post path,
+      params.merge(shrimp: csrf_token).to_json,
+      headers.merge(
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_ACCEPT' => 'application/json',
+        'HTTP_X_CSRF_TOKEN' => csrf_token
+      )
+  end
+
   # Detect if email auth was actually enabled at boot time by checking for methods
   # Note: ENV var alone is not sufficient - must check if Rodauth actually loaded email_auth features
   let(:email_auth_features_available) do
@@ -65,10 +87,7 @@ RSpec.describe 'Email Auth (Magic Links) Toggle', type: :integration do
       end
 
       describe 'POST /auth/email-login-request' do
-        let(:email_data) { { login: 'test@example.com' }.to_json }
-        let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
-        before { post '/auth/email-login-request', email_data, json_headers }
+        before { post_with_csrf '/auth/email-login-request', { login: 'test@example.com' } }
 
         it 'returns valid HTTP status' do
           expect([200, 400, 401, 422]).to include(last_response.status)
@@ -98,8 +117,7 @@ RSpec.describe 'Email Auth (Magic Links) Toggle', type: :integration do
       end
 
       it 'returns 404 for /auth/email-login-request' do
-        post '/auth/email-login-request', { login: 'test@example.com' }.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        post_with_csrf '/auth/email-login-request', { login: 'test@example.com' }
         expect(last_response.status).to eq(404)
       end
 
@@ -111,11 +129,8 @@ RSpec.describe 'Email Auth (Magic Links) Toggle', type: :integration do
   end
 
   describe 'POST /auth/login (standard login always works)' do
-    let(:credentials) { { login: 'test@example.com', password: 'wrongpassword' }.to_json }
-    let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
     it 'returns appropriate error for invalid credentials' do
-      post '/auth/login', credentials, json_headers
+      post_with_csrf '/auth/login', { login: 'test@example.com', password: 'wrongpassword' }
       # 400=bad request, 401=unauthorized, 403=forbidden, 422=unprocessable
       expect([400, 401, 403, 422]).to include(last_response.status)
     end

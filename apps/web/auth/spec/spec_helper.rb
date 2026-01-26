@@ -13,6 +13,66 @@
 # Run specific feature tests:
 #   pnpm run test:rspec apps/web/auth/spec/config/features/mfa_spec.rb
 
+# =============================================================================
+# EARLY ENVIRONMENT AND WEBMOCK SETUP
+# =============================================================================
+# Set env vars AND WebMock stubs BEFORE any requires that might trigger config
+# loading. Onetime config uses ERB which evaluates at YAML load time, so these
+# must be set before any code path that loads the config.
+#
+# The OmniAuth OIDC strategy fetches the discovery document during provider
+# registration, so WebMock must be configured before the app boots.
+#
+# Note: Different config files may use different env var names for the same
+# feature (e.g., AUTH_SSO_ENABLED vs ENABLE_OMNIAUTH), so we set both.
+#
+MOCK_OIDC_ISSUER = 'https://mock-idp.example.com'
+
+unless ENV['OIDC_ISSUER'].to_s.strip.length.positive?
+  ENV['OIDC_ISSUER'] = MOCK_OIDC_ISSUER
+  ENV['OIDC_CLIENT_ID'] = 'test-client-id'
+  ENV['OIDC_CLIENT_SECRET'] = 'test-client-secret'
+  ENV['OIDC_REDIRECT_URI'] = 'http://localhost:3000/auth/sso/oidc/callback'
+  # Enable OmniAuth feature - both env var names for compatibility
+  ENV['AUTH_SSO_ENABLED'] = 'true'
+  ENV['ENABLE_OMNIAUTH'] = 'true'
+  ENV['AUTHENTICATION_MODE'] ||= 'full'
+
+  # Set up WebMock BEFORE loading any app code
+  require 'webmock'
+  WebMock.enable!
+  WebMock.disable_net_connect!(allow_localhost: true)
+
+  # Mock OIDC discovery document
+  WebMock.stub_request(:get, "#{MOCK_OIDC_ISSUER}/.well-known/openid-configuration")
+    .to_return(
+      status: 200,
+      body: {
+        issuer: MOCK_OIDC_ISSUER,
+        authorization_endpoint: "#{MOCK_OIDC_ISSUER}/authorize",
+        token_endpoint: "#{MOCK_OIDC_ISSUER}/token",
+        userinfo_endpoint: "#{MOCK_OIDC_ISSUER}/userinfo",
+        jwks_uri: "#{MOCK_OIDC_ISSUER}/.well-known/jwks.json",
+        response_types_supported: %w[code],
+        subject_types_supported: %w[public],
+        id_token_signing_alg_values_supported: %w[RS256],
+        scopes_supported: %w[openid email profile],
+        token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
+        claims_supported: %w[sub email email_verified name],
+        code_challenge_methods_supported: %w[S256],
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+  # Mock JWKS endpoint
+  WebMock.stub_request(:get, "#{MOCK_OIDC_ISSUER}/.well-known/jwks.json")
+    .to_return(
+      status: 200,
+      body: { keys: [] }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+end
+
 require 'rspec'
 require 'sequel'
 require 'roda'
@@ -20,8 +80,10 @@ require 'rodauth'
 require 'securerandom'
 require 'rack/test'
 
-require_relative '../database'
+# Load OmniAuth test helper for additional helper methods
+require_relative 'support/omniauth_test_helper'
 require_relative 'support/auth_test_constants'
+require_relative '../database'
 
 # Helper module for creating isolated Rodauth test environments
 module RodauthTestHelper

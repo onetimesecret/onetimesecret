@@ -62,8 +62,8 @@ module Onetime
         session['ip_address']       = request.ip
         session['user_agent']       = request.user_agent
 
-        # Initialize CSRF protection
-        regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
+        # NOTE: CSRF tokens are managed by Rack::Protection::AuthenticityToken middleware
+        # The token is generated on first access via AuthenticityToken.token(session)
       end
 
       def logout!
