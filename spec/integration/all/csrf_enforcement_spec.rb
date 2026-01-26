@@ -175,19 +175,14 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     end
 
     describe 'API routes without authentication' do
-      it 'POST to /api/v1/generate without auth or CSRF works (anonymous allowed)' do
-        # The generate endpoint specifically allows anonymous access
-        # This is a special case - no auth required, and CSRF bypass
-        # only applies when Basic Auth IS provided
+      it 'POST to /api/v1/generate without Basic Auth gets CSRF rejection' do
+        # The generate endpoint allows anonymous access for the API itself,
+        # but CSRF middleware runs first. Without Basic Auth header, the
+        # bypass doesn't apply and CSRF validation fails with 403.
         response = @mock_request.post('/api/v1/generate')
 
-        # Without Basic Auth, CSRF would normally apply
-        # But v1 API has session auth removed, so this tests the current behavior
-        # If CSRF is enforced without Basic Auth, this would be 403
-        # Current implementation: API without Basic Auth gets CSRF check
-
-        # Document the actual behavior
-        expect([200, 403]).to include(response.status)
+        # CSRF middleware rejects the request before it reaches the API
+        expect(response.status).to eq(403)
       end
 
       it 'POST to /api/v1/* without any auth gets appropriate response' do
