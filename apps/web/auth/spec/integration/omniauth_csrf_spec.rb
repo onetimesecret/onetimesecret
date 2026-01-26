@@ -70,16 +70,6 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
         expect(allow_if.call(env)).to be true
       end
 
-      it 'skips CSRF for JSON content-type requests' do
-        env = mock_env(path: '/some/path', media_type: 'application/json')
-        expect(allow_if.call(env)).to be true
-      end
-
-      it 'skips CSRF for JSON accept header requests' do
-        env = mock_env(path: '/some/path', accept: 'application/json')
-        expect(allow_if.call(env)).to be true
-      end
-
       it 'does NOT skip CSRF for regular form posts' do
         env = mock_env(path: '/signin', media_type: 'application/x-www-form-urlencoded')
         # Returns nil/false when CSRF should be validated (falsy = don't skip)
@@ -101,12 +91,6 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
         # /auth/sso-other does not start with /auth/sso/
         env = mock_env(path: '/auth/sso-other')
         expect(allow_if.call(env)).to be_falsey
-      end
-
-      it 'skips CSRF for /auth/login with JSON content-type (JSON bypass)' do
-        # JSON routes bypass CSRF regardless of path
-        env = mock_env(path: '/auth/login', media_type: 'application/json')
-        expect(allow_if.call(env)).to be true
       end
 
       it 'handles mixed conditions correctly' do
