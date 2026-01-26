@@ -321,7 +321,7 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
   const error = ref<ApplicationError | null>(null);
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
+    notify: (message, severity) => notifications.show(message, severity, 'top'),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
   };
