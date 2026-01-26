@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
+
 # Rebuild v2 indexes after migration.
 #
 # Creates the Familia v2 index structures:
@@ -24,6 +26,8 @@
 # - customer:secrets_shared
 # - organization:instances (zset: objid → created)
 # - organization:contact_email_index (hash: contact_email → objid)
+# - organization:stripe_customer_id_index (hash: stripe_customer_id → objid)
+# - organization:stripe_subscription_id_index (hash: stripe_subscription_id → objid)
 # - organization:{objid}:members (zset: auto-populated by Familia participates_in)
 # - organization:{objid}:domains (zset: auto-populated by Familia participates_in)
 # - customdomain:instances (zset: domainid → created)
@@ -72,6 +76,8 @@ class IndexRebuilder
       instances: { created: 0 },
       unique_indexes: { created: 0 },
       extid_lookups: { created: 0 },
+      stripe_indexes: { created: 0 },
+      class_hashkeys: { created: 0 },
       participation_sets: { created: 0 },
       errors: 0,
     }
@@ -101,8 +107,15 @@ class IndexRebuilder
     build_customer_extid_lookup
     build_organization_contact_email_index
     build_organization_extid_lookup
+    build_organization_stripe_customer_id_index
+    build_organization_stripe_subscription_id_index
     build_customdomain_display_domain_index
     build_membership_indexes
+
+    # Phase 2b: Build class hashkeys (model-level lookup hashes)
+    puts "\n=== Phase 2b: Building class hashkeys ==="
+    build_customdomain_display_domains
+    build_customdomain_owners
 
     # Phase 3: Build participation sets
     puts "\n=== Phase 3: Building participation sets ==="
@@ -307,6 +320,64 @@ class IndexRebuilder
     @stats[:extid_lookups][:created] += count
   end
 
+  def build_organization_stripe_customer_id_index
+    puts '  Building organization:stripe_customer_id_index...'
+
+    index_key = 'organization:stripe_customer_id_index'
+    count     = 0
+
+    cursor = '0'
+    loop do
+      cursor, keys = @valkey.scan(cursor, match: 'organization:*:object', count: 1000)
+
+      keys.each do |key|
+        stripe_customer_id = @valkey.hget(key, 'stripe_customer_id')
+        objid              = @valkey.hget(key, 'objid')
+
+        next if stripe_customer_id.to_s.empty? || objid.to_s.empty?
+
+        unless @dry_run
+          @valkey.hset(index_key, stripe_customer_id, objid)
+        end
+        count += 1
+      end
+
+      break if cursor == '0'
+    end
+
+    puts "    Added #{count} entries to #{index_key}"
+    @stats[:stripe_indexes][:created] += count
+  end
+
+  def build_organization_stripe_subscription_id_index
+    puts '  Building organization:stripe_subscription_id_index...'
+
+    index_key = 'organization:stripe_subscription_id_index'
+    count     = 0
+
+    cursor = '0'
+    loop do
+      cursor, keys = @valkey.scan(cursor, match: 'organization:*:object', count: 1000)
+
+      keys.each do |key|
+        stripe_subscription_id = @valkey.hget(key, 'stripe_subscription_id')
+        objid                  = @valkey.hget(key, 'objid')
+
+        next if stripe_subscription_id.to_s.empty? || objid.to_s.empty?
+
+        unless @dry_run
+          @valkey.hset(index_key, stripe_subscription_id, objid)
+        end
+        count += 1
+      end
+
+      break if cursor == '0'
+    end
+
+    puts "    Added #{count} entries to #{index_key}"
+    @stats[:stripe_indexes][:created] += count
+  end
+
   def build_customdomain_display_domain_index
     puts '  Building customdomain:display_domain_index...'
 
@@ -382,6 +453,73 @@ class IndexRebuilder
 
     puts "    Built membership indexes (#{count} memberships)"
     @stats[:unique_indexes][:created] += count
+  end
+
+  # ============================================
+  # Phase 2b: Class Hashkeys
+  # ============================================
+
+  # Build customdomain:display_domains hash (display_domain → domainid)
+  # This is the class_hashkey used by CustomDomain.load_by_display_domain
+  # Note: This is separate from display_domain_index (unique_index)
+  def build_customdomain_display_domains
+    puts '  Building customdomain:display_domains...'
+
+    hashkey = 'customdomain:display_domains'
+    count   = 0
+
+    cursor = '0'
+    loop do
+      cursor, keys = @valkey.scan(cursor, match: 'customdomain:*:object', count: 1000)
+
+      keys.each do |key|
+        display_domain = @valkey.hget(key, 'display_domain')
+        domainid       = key.split(':')[1] # Extract from key pattern
+
+        next if display_domain.to_s.empty?
+
+        unless @dry_run
+          @valkey.hset(hashkey, display_domain, domainid)
+        end
+        count += 1
+      end
+
+      break if cursor == '0'
+    end
+
+    puts "    Added #{count} entries to #{hashkey}"
+    @stats[:class_hashkeys][:created] += count
+  end
+
+  # Build customdomain:owners hash (domainid → org_id)
+  # Used for cascade delete operations (find domains when org is deleted)
+  def build_customdomain_owners
+    puts '  Building customdomain:owners...'
+
+    hashkey = 'customdomain:owners'
+    count   = 0
+
+    cursor = '0'
+    loop do
+      cursor, keys = @valkey.scan(cursor, match: 'customdomain:*:object', count: 1000)
+
+      keys.each do |key|
+        domainid = key.split(':')[1] # Extract from key pattern
+        org_id   = @valkey.hget(key, 'org_id')
+
+        next if org_id.to_s.empty?
+
+        unless @dry_run
+          @valkey.hset(hashkey, domainid, org_id)
+        end
+        count += 1
+      end
+
+      break if cursor == '0'
+    end
+
+    puts "    Added #{count} entries to #{hashkey}"
+    @stats[:class_hashkeys][:created] += count
   end
 
   # ============================================
@@ -533,11 +671,13 @@ class IndexRebuilder
 
   def print_summary
     puts "\n=== Index Rebuild Summary ==="
-    puts "  Instances entries:       #{@stats[:instances][:created]}"
-    puts "  Unique index entries:    #{@stats[:unique_indexes][:created]}"
-    puts "  ExtID lookup entries:    #{@stats[:extid_lookups][:created]}"
+    puts "  Instances entries:         #{@stats[:instances][:created]}"
+    puts "  Unique index entries:      #{@stats[:unique_indexes][:created]}"
+    puts "  ExtID lookup entries:      #{@stats[:extid_lookups][:created]}"
+    puts "  Stripe index entries:      #{@stats[:stripe_indexes][:created]}"
+    puts "  Class hashkey entries:     #{@stats[:class_hashkeys][:created]}"
     puts "  Participation set entries: #{@stats[:participation_sets][:created]}"
-    puts "  Errors:                  #{@stats[:errors]}"
+    puts "  Errors:                    #{@stats[:errors]}"
   end
 end
 
@@ -579,3 +719,5 @@ if __FILE__ == $0
 
   rebuilder.rebuild_all
 end
+
+# rubocop:enable Metrics/ClassLength
