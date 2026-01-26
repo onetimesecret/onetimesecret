@@ -2,10 +2,25 @@
 # frozen_string_literal: true
 
 # Dumps Redis keys to JSONL format for migration, organized by model prefix.
-# Each line: {"key": "...", "type": "...", "ttl_ms": ..., "dump": "<base64>", "created": "..."}
+# Each line contains:
+# {
+#   "key": "...",
+#   "type": "...",
+#   "ttl_ms": ...,
+#   "dump": "<base64>",
+#   "created": "...",
+#   "_original_record": {
+#     "object": { ...all hash fields... },
+#     "data_types": { ...related keys for models with hashkeys/strings... },
+#     "key": "original:redis:key",
+#     "db": 6,
+#     "exported_at": "2026-01-25T01:24:40Z"
+#   }
+# }
 #
-# For hash records, also extracts the 'created' field using HGET to preserve
-# historical timestamps for UUIDv7 generation during transformation.
+# For hash records:
+# - Captures all fields via HGETALL into _original_record.object
+# - For CustomDomain, also captures related keys (brand, logo, icon)
 #
 # Usage:
 #   ruby scripts/dump_keys.rb [OPTIONS]
@@ -32,6 +47,13 @@ class KeyDumper
     'metadata' => 7,
     'secret' => 8,
     'feedback' => 11,
+  }.freeze
+
+  # Related data_type keys for models (Familia hashkey/string patterns)
+  # Format: model_name => [suffix1, suffix2, ...]
+  # These create keys like: customdomain:{id}:brand, customdomain:{id}:logo
+  MODEL_DATA_TYPES = {
+    'customdomain' => %w[brand logo icon],
   }.freeze
 
   VALID_MODELS = MODEL_DB_MAP.keys.freeze
@@ -115,14 +137,14 @@ class KeyDumper
         next unless key_matches_model?(key, model_name)
 
         stats[:total] += 1
-        dump_key(redis, file, key, stats)
+        dump_key(redis, model_name, file, key, stats)
       end
 
       break if cursor == '0'
     end
   end
 
-  def dump_key(redis, file, key, stats)
+  def dump_key(redis, model_name, file, key, stats)
     key_type = redis.type(key)
 
     if key_type == 'none'
@@ -154,12 +176,62 @@ class KeyDumper
     if key_type == 'hash'
       created_value    = redis.hget(key, 'created')
       record[:created] = created_value if created_value
+
+      # Capture complete original record for zero data loss
+      record[:_original_record] = build_original_record(redis, model_name, key)
     end
 
     file.puts(JSON.generate(record))
     stats[:dumped] += 1
   rescue Redis::CommandError => ex
     stats[:errors] << { key: key, error: ex.message }
+  end
+
+  # Build the complete original record structure for rollback/audit
+  #
+  # @param redis [Redis] Redis connection
+  # @param model_name [String] Model name (customer, customdomain, etc.)
+  # @param key [String] Redis key
+  # @return [Hash] Complete original record with object and data_types
+  def build_original_record(redis, model_name, key)
+    db_number = MODEL_DB_MAP[model_name]
+
+    original = {
+      'object' => redis.hgetall(key),
+      'data_types' => {},
+      'key' => key,
+      'db' => db_number,
+      'exported_at' => Time.now.utc.iso8601,
+    }
+
+    # Capture related data_type keys if model has them
+    data_type_suffixes = MODEL_DATA_TYPES[model_name]
+    if data_type_suffixes && key.include?(':object')
+      # Extract base key: "customdomain:abc123:object" -> "customdomain:abc123"
+      base_key = key.delete_suffix(':object')
+
+      data_type_suffixes.each do |suffix|
+        related_key  = "#{base_key}:#{suffix}"
+        related_type = redis.type(related_key)
+
+        next if related_type == 'none'
+
+        original['data_types'][suffix] = case related_type
+                                         when 'hash'
+                                           redis.hgetall(related_key)
+                                         when 'string'
+                                           redis.get(related_key)
+                                         when 'list'
+                                           redis.lrange(related_key, 0, -1)
+                                         when 'set'
+                                           redis.smembers(related_key)
+                                         when 'zset'
+                                           redis.zrange(related_key, 0, -1, with_scores: true)
+                                         end
+      end
+    end
+
+    original
   end
 
   def write_manifest(model_name, db_number, output_file, stats)
