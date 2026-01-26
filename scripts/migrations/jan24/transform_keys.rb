@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
+
 # Transform v1 Redis keys to v2 Valkey format.
 #
 # Reads per-model JSONL exports from ./exports/, transforms keys/fields according
@@ -50,6 +52,9 @@ class KeyTransformer
     @email_to_org_objid   = {} # email -> organization objid
     @email_to_org_data    = {} # email -> organization record (for deferred write)
     @email_to_membership  = {} # email -> membership record (for deferred write)
+
+    # Mappings built during customdomain processing
+    @domainid_to_objid    = {} # old hex domainid -> new UUID objid
 
     # Stats
     @stats = {
@@ -297,19 +302,34 @@ class KeyTransformer
     }
   end
 
-  def transform_custom_domain(record, domain_id)
+  def transform_custom_domain(record, old_domain_id)
     @stats[:custom_domains][:scanned] += 1
 
-    # CustomDomain key pattern unchanged, but we need to record
-    # the custid->org_id transformation that will happen at load time
+    # Parse created timestamp from record (extracted during dump phase)
+    created_time = parse_created_time(record['created'])
+
+    # Generate new UUIDv7 objid for this CustomDomain using historical timestamp
+    # This replaces the old 20-char hex domainid
+    objid = generate_objid(created_time)
+    extid = derive_extid_from_uuid(objid, prefix: 'cd')
+
+    # Transform the key pattern: customdomain:{old_hex}:object -> customdomain:{new_uuid}:object
+    new_key = "customdomain:#{objid}:object"
+
+    # Store mapping for hashkey transformation
+    @domainid_to_objid[old_domain_id] = objid
 
     {
-      key: record['key'],
+      key: new_key,
+      original_key: record['key'],
       type: record['type'],
       ttl_ms: record['ttl_ms'],
       dump: record['dump'],
       migration: {
-        domain_id: domain_id,
+        v1_domainid: old_domain_id,
+        v2_objid: objid,
+        v2_extid: extid,
+        created_time: created_time&.iso8601,
         # The actual custid->org_id mapping happens at load time
         # because we need to parse the dump data
         email_to_org_mapping: @email_to_org_objid,
@@ -317,11 +337,30 @@ class KeyTransformer
     }.tap { @stats[:custom_domains][:transformed] += 1 }
   end
 
-  def transform_custom_domain_hashkey(record, _domain_id, _hashkey_name)
-    # Preserve hashkey data (brand, logo, icon) as-is
+  def transform_custom_domain_hashkey(record, old_domain_id, hashkey_name)
     @stats[:custom_domains][:hashkeys] += 1
+
+    # Look up the new objid from our mapping
+    new_objid = @domainid_to_objid[old_domain_id]
+
+    unless new_objid
+      # Object record hasn't been processed yet - this shouldn't happen
+      # if files are processed in order, but handle gracefully
+      puts "  Warning: No objid mapping for domain #{old_domain_id}, keeping original key"
+      return {
+        key: record['key'],
+        type: record['type'],
+        ttl_ms: record['ttl_ms'],
+        dump: record['dump'],
+      }
+    end
+
+    # Transform hashkey path: customdomain:{old_hex}:{hashkey} -> customdomain:{new_uuid}:{hashkey}
+    new_key = "customdomain:#{new_objid}:#{hashkey_name}"
+
     {
-      key: record['key'],
+      key: new_key,
+      original_key: record['key'],
       type: record['type'],
       ttl_ms: record['ttl_ms'],
       dump: record['dump'],
@@ -494,14 +533,15 @@ class KeyTransformer
   end
 
   # Derive deterministic external ID from UUID
-  # Standalone implementation copied from migrations/20250728-1512_00_customer_objid.rb
+  # Matches Familia v2's derive_external_identifier format: {prefix}{base36_id}
+  # Format strings: 'ur%<id>s' (Customer), 'cd%<id>s' (CustomDomain), 'on%<id>s' (Organization)
   def derive_extid_from_uuid(uuid_string, prefix: 'ext')
     normalized_hex = uuid_string.delete('-')
     seed           = Digest::SHA256.digest(normalized_hex)
     prng           = Random.new(seed.unpack1('Q>'))
     random_bytes   = prng.bytes(16)
     external_part  = random_bytes.unpack1('H*').to_i(16).to_s(36).rjust(25, '0')
-    "#{prefix}_#{external_part}"
+    "#{prefix}#{external_part}"  # No underscore - matches Familia format strings
   end
 
   # Generate objid from optional created timestamp (falls back to Time.now)
@@ -561,3 +601,5 @@ if __FILE__ == $0
 
   transformer.transform_all
 end
+
+# rubocop:enable Metrics/ClassLength
