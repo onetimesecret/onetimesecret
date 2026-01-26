@@ -14,9 +14,9 @@ Provides
 KEY PATTERN
 
 V1: customdomain:{domainid}
-V2: customdomain:{domainid}
+V2: custom_domain:{objid}
 
-Change: None. V2 adds an external ID (`extid`).
+Change: Prefix adds underscore, Identifier change (domainid (hexadecimal) -> objid (UUID v7))
 
 FIELD TRANSFORMS
 

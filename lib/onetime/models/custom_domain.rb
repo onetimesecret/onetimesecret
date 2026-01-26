@@ -60,7 +60,7 @@ module Onetime
 
     using Familia::Refinements::TimeLiterals
 
-    prefix :customdomain
+    prefix :custom_domain
 
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
