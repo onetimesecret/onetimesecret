@@ -91,7 +91,7 @@ transform(v1_customer_record, mappings):
 
   # Store original for rollback
   v2_org._original_record = json(v1_customer_record)
-  v2_org.v1_identifier = "customer:{v1_customer_record.objid}"
+  v2_org.v1_identifier = v1_record.key  # Full V1 key path for rollback
   v2_org.v1_source_custid = v1_customer_record.email
 
   # Status

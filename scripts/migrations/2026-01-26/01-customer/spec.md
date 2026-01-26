@@ -68,7 +68,7 @@ transform(v1_record, mappings):
 
   # Store original for rollback
   v2._original_record = json(v1_record)
-  v2.v1_identifier = "customer:{v1.objid}"
+  v2.v1_identifier = v1_record.key  # Full V1 key path for rollback
 
   # Field transforms: Handle custid migration (email → objid)
   if v1.custid != v1.objid:

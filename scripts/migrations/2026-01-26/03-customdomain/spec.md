@@ -71,7 +71,7 @@ transform(v1_record, mappings):
 
   # Store original for rollback
   v2._original_record = json(v1_record)
-  v2.v1_identifier = "customdomain:{domainid}"
+  v2.v1_identifier = v1_record.key  # Full V1 key path for rollback
   v2.v1_custid = v1_record.custid
 
   # Field transforms
