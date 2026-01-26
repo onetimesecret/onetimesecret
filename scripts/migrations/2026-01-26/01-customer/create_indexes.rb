@@ -64,7 +64,12 @@ class CustomerIndexCreator
     validate_input_file
     connect_redis unless @dry_run
 
-    commands = []
+    commands                  = []
+    instance_index_record     = nil
+    customer_object_records   = []
+    @email_to_objid           = {}  # Built during object processing for instance index conversion
+    @objid_to_created         = {} # For backfilling missing instance entries
+    @objids_in_instance_index = Set.new # Track which objids were added from existing index
 
     # First pass: collect records and detect if onetime:customer exists
     File.foreach(@input_file) do |line|
@@ -74,7 +79,6 @@ class CustomerIndexCreator
       case record[:key]
       when 'onetime:customer'
         # Store for later processing after we have email->objid mapping
-        instance_index_record = record
         @stats[:instance_index_source] = 'existing'
       when /:object$/
         # Collect for processing
@@ -97,6 +101,8 @@ class CustomerIndexCreator
     # Process instance index now that we have email->objid mapping
     if instance_index_record
       commands.concat(process_instance_index(instance_index_record))
+      # Backfill any customers missing from the v1 index (fixes data inconsistency)
+      commands.concat(backfill_missing_instance_entries)
     end
     # When no instance index exists, entries were added during object processing
 
@@ -178,6 +184,7 @@ class CustomerIndexCreator
           key: 'customer:instances',
           args: [score.to_i, objid],
         }
+        @objids_in_instance_index << objid
         @stats[:instance_entries] += 1
       end
     rescue Redis::CommandError => ex
@@ -188,6 +195,31 @@ class CustomerIndexCreator
       rescue StandardError
         nil
       end
+    end
+
+    commands
+  end
+
+  def backfill_missing_instance_entries
+    # Add instance entries for customers that exist but were missing from
+    # the v1 onetime:customer index. This fixes data inconsistency in source.
+    commands = []
+
+    all_objids     = Set.new(@email_to_objid.values)
+    missing_objids = all_objids - @objids_in_instance_index
+
+    missing_objids.each do |objid|
+      created_ts = @objid_to_created[objid] || Time.now.to_i
+      created_ts = Time.now.to_i if created_ts.zero?
+
+      commands << {
+        command: 'ZADD',
+        key: 'customer:instances',
+        args: [created_ts, objid],
+      }
+      @stats[:instance_entries]    += 1
+      @stats[:backfilled_entries] ||= 0
+      @stats[:backfilled_entries]  += 1
     end
 
     commands
@@ -225,6 +257,10 @@ class CustomerIndexCreator
       # read from source material (the key and hash fields) independently,
       # avoiding a mistake in one codepath from affecting another.
       @email_to_objid[v1_custid] = objid
+
+      # Track objid->created for backfilling missing instance entries
+      created                  = record[:created] || fields['created']
+      @objid_to_created[objid] = created.to_i if created
 
       build_customer_index_commands(commands, record, fields, objid, extid)
       accumulate_counters(fields)
@@ -340,6 +376,7 @@ class CustomerIndexCreator
     puts 'Instance Index:'
     puts "  Source: #{@stats[:instance_index_source] || 'none'}"
     puts "  Entries: #{@stats[:instance_entries]}"
+    puts "  Backfilled: #{@stats[:backfilled_entries] || 0}" if @stats[:instance_index_source] == 'existing'
     puts
 
     puts 'Lookup Indexes:'
