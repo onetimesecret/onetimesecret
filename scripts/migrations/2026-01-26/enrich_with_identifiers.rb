@@ -286,7 +286,7 @@ def parse_args(args)
           customer:     ur (e.g., ur0abc123...)
           customdomain: cd (e.g., cd0xyz789...)
 
-        Note: metadata/secret use VerifiableIdentifier (no objid/extid)
+        Note: metadata/receipts and secret use VerifiableIdentifier (no objid/extid)
       HELP
       exit 0
     else
