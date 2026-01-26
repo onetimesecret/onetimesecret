@@ -55,14 +55,20 @@ None. All V1 fields preserved (deprecated fields kept for backward compat).
 
 ## Redis Data Types
 
-| Type | Key Pattern | Notes |
-|------|-------------|-------|
-| Hash (main) | `customer:{objid}` | Primary object data |
-| Sorted Set | `customer:{objid}:receipts` | Customer's receipts |
-| Hash | `customer:{objid}:feature_flags` | Feature toggles |
-| String | `customer:{objid}:reset_secret` | Password reset token (24h TTL) |
-| Sorted Set | `customer:{objid}:custom_domain` | Deprecated - domains now on Organization |
-| JsonKey | `customer:{objid}:_original_record` | **V2 only** - V1 backup |
+| Type | Key Pattern | V1 Name | Notes |
+|------|-------------|---------|-------|
+| Hash (main) | `customer:{objid}` | same | Primary object data |
+| Sorted Set | `customer:{objid}:receipts` | `:metadata` | Customer's receipts (renamed from `:metadata`) |
+| Hash | `customer:{objid}:feature_flags` | same | Feature toggles |
+| String | `customer:{objid}:reset_secret` | same | Password reset token (24h TTL) |
+| Sorted Set | `customer:{objid}:custom_domain` | same | Deprecated - domains now on Organization |
+| JsonKey | `customer:{objid}:_original_record` | n/a | **V2 only** - V1 backup |
+
+### Key Renames
+
+| V1 Key | V2 Key |
+|--------|--------|
+| `customer:{objid}:metadata` | `customer:{objid}:receipts` |
 
 ---
 

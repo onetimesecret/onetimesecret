@@ -174,16 +174,15 @@ class CustomerIndexCreator
     commands                    = []
     @stats[:objects_processed] += 1
 
-    if @dry_run
-      # Can't decode without Redis
-      return commands
-    end
+    return commands if @dry_run
 
-    # Extract identifier from key (customer:{id}:object)
     key_parts = record[:key].split(':')
     return commands if key_parts.size < 3
 
-    # Restore hash to temp key and read fields
+    # Use enriched objid/extid from JSONL record, fall back to hash fields
+    objid = record[:objid]
+    extid = record[:extid]
+
     temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     dump_data = Base64.strict_decode64(record[:dump])
 
@@ -191,77 +190,11 @@ class CustomerIndexCreator
       @redis.restore(temp_key, 0, dump_data, replace: true)
       fields = @redis.hgetall(temp_key)
 
-      # Extract identifier - V2 uses objid, V1 uses custid (which equals email)
-      identifier = fields['objid']
-      identifier = fields['custid'] if identifier.nil? || identifier.empty?
+      objid, extid = resolve_identifiers(objid, extid, fields)
+      return commands if objid.nil? || objid.empty?
 
-      email   = fields['email']
-      extid   = fields['extid']
-      role    = fields['role']
-      created = fields['created'] || record[:created]
-
-      # Skip if no identifier found
-      if identifier.nil? || identifier.empty?
-        @stats[:skipped] += 1
-        return commands
-      end
-
-      # Instance index entry (if not using existing index)
-      if @stats[:instance_index_source] != 'existing'
-        created_ts = created.to_i
-        created_ts = Time.now.to_i if created_ts.zero?
-
-        commands << {
-          command: 'ZADD',
-          key: 'customer:instances',
-          args: [created_ts.to_i, identifier],
-        }
-        @stats[:instance_entries] += 1
-      end
-
-      # Email lookup
-      if email && !email.empty?
-        commands << {
-          command: 'HSET',
-          key: 'customer:email_index',
-          args: [email, identifier.to_json],
-        }
-        @stats[:email_lookups] += 1
-      end
-
-      # ExtID lookup (may not exist in V1 data)
-      if extid && !extid.empty?
-        commands << {
-          command: 'HSET',
-          key: 'customer:extid_lookup',
-          args: [extid, identifier.to_json],
-        }
-        @stats[:extid_lookups] += 1
-      end
-
-      # ObjID lookup (self-reference for consistency)
-      commands << {
-        command: 'HSET',
-        key: 'customer:objid_lookup',
-        args: [identifier, identifier.to_json],
-      }
-      @stats[:objid_lookups] += 1
-
-      # Role index
-      if role && VALID_ROLES.include?(role)
-        commands << {
-          command: 'SADD',
-          key: "customer:role_index:#{role}",
-          args: [identifier],
-        }
-        @stats[:role_entries][role] += 1
-      end
-
-      # Accumulate counters
-      COUNTER_FIELDS.each do |field|
-        value                     = fields[field].to_i
-        @stats[:counters][field] += value if value > 0
-      end
+      build_customer_index_commands(commands, record, fields, objid, extid)
+      accumulate_counters(fields)
     rescue Redis::CommandError => ex
       @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
     ensure
@@ -273,6 +206,62 @@ class CustomerIndexCreator
     end
 
     commands
+  end
+
+  def resolve_identifiers(objid, extid, fields)
+    objid ||= fields['objid']
+    objid   = fields['custid'] if objid.nil? || objid.empty?
+    extid ||= fields['extid']
+
+    if objid.nil? || objid.empty?
+      @stats[:skipped] += 1
+    end
+
+    [objid, extid]
+  end
+
+  def build_customer_index_commands(commands, record, fields, objid, extid)
+    created = record[:created] || fields['created']
+
+    # Instance index entry (if not using existing index)
+    if @stats[:instance_index_source] != 'existing'
+      created_ts = created.to_i
+      created_ts = Time.now.to_i if created_ts.zero?
+
+      commands << { command: 'ZADD', key: 'customer:instances', args: [created_ts.to_i, objid] }
+      @stats[:instance_entries] += 1
+    end
+
+    # Email lookup
+    email = fields['email']
+    if email && !email.empty?
+      commands << { command: 'HSET', key: 'customer:email_index', args: [email, objid.to_json] }
+      @stats[:email_lookups] += 1
+    end
+
+    # ExtID lookup
+    if extid && !extid.empty?
+      commands << { command: 'HSET', key: 'customer:extid_lookup', args: [extid, objid.to_json] }
+      @stats[:extid_lookups] += 1
+    end
+
+    # ObjID lookup
+    commands << { command: 'HSET', key: 'customer:objid_lookup', args: [objid, objid.to_json] }
+    @stats[:objid_lookups] += 1
+
+    # Role index
+    role = fields['role']
+    if role && VALID_ROLES.include?(role)
+      commands << { command: 'SADD', key: "customer:role_index:#{role}", args: [objid] }
+      @stats[:role_entries][role] += 1
+    end
+  end
+
+  def accumulate_counters(fields)
+    COUNTER_FIELDS.each do |field|
+      value                     = fields[field].to_i
+      @stats[:counters][field] += value if value > 0
+    end
   end
 
   def generate_counter_commands

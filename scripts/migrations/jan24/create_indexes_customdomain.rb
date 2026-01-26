@@ -186,6 +186,10 @@ class CustomDomainIndexCreator
       return commands
     end
 
+    # Use enriched objid/extid from JSONL record (set by enrich_with_identifiers.rb)
+    objid = record[:objid]
+    extid = record[:extid]
+
     # Extract identifier from key (customdomain:{id}:object)
     key_parts = record[:key].split(':')
     return commands if key_parts.size < 3
@@ -198,16 +202,17 @@ class CustomDomainIndexCreator
       @redis.restore(temp_key, 0, dump_data, replace: true)
       fields = @redis.hgetall(temp_key)
 
-      # Extract required fields
-      domainid       = fields['domainid'] || key_parts[1]
+      # Use enriched objid, or fall back to domainid from hash/key
+      domainid = objid || fields['domainid'] || key_parts[1]
+
+      # Use enriched extid, or fall back to hash field
+      extid ||= fields['extid']
+
       display_domain = fields['display_domain']
       custid         = fields['custid']
-      created        = fields['created'] || record[:created]
+      created        = record[:created] || fields['created']
 
       return commands if domainid.nil? || domainid.empty?
-
-      # Generate extid (cd{domainid[0..7]})
-      extid = "cd#{domainid[0..7]}"
 
       # Resolve custid -> org_id
       org_id = resolve_org_id(custid)
@@ -240,13 +245,15 @@ class CustomDomainIndexCreator
         @stats[:display_domain_lookups] += 1
       end
 
-      # ExtID lookup
-      commands << {
-        command: 'HSET',
-        key: 'customdomain:extid_lookup',
-        args: [extid, domainid.to_json],
-      }
-      @stats[:extid_lookups] += 1
+      # ExtID lookup (only if extid available)
+      if extid && !extid.empty?
+        commands << {
+          command: 'HSET',
+          key: 'customdomain:extid_lookup',
+          args: [extid, domainid.to_json],
+        }
+        @stats[:extid_lookups] += 1
+      end
 
       # ObjID lookup (domainid = objid for customdomain)
       commands << {

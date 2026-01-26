@@ -122,7 +122,9 @@ class OrganizationIndexCreator
   end
 
   def create_organization_indexes(customer_data, record)
-    customer_objid = extract_customer_objid(record['key'], customer_data)
+    # Use enriched objid from JSONL record (set by enrich_with_identifiers.rb)
+    # Fall back to extraction from key/data if not present
+    customer_objid = record['objid'] || extract_customer_objid(record['key'], customer_data)
     unless customer_objid
       @stats[:skipped] += 1
       return
