@@ -92,14 +92,20 @@ module Onetime
         api_key      = Features.api_key
         vhost_target = Features.vhost_target
 
+        OT.ld "[ApproximatedStrategy.request_certificate] domain=#{custom_domain.display_domain} " \
+              "vhost_target=#{vhost_target.inspect} api_key_present=#{!api_key.to_s.empty?}"
+
         if api_key.to_s.empty?
           return { status: 'error', message: 'Approximated API key not configured' }
         end
 
         if vhost_target.to_s.empty?
-          OT.le '[ApproximatedStrategy] vhost_target not configured (set APPROXIMATED_VHOST_TARGET)'
+          OT.le '[ApproximatedStrategy] vhost_target not configured (set features.domains.approximated.vhost_target)'
           return { status: 'error', message: 'Approximated vhost_target not configured' }
         end
+
+        OT.ld '[ApproximatedStrategy.request_certificate] Creating vhost: ' \
+              "incoming=#{custom_domain.display_domain} target=#{vhost_target} port=443"
 
         res = client.create_vhost(
           api_key,
@@ -134,6 +140,9 @@ module Onetime
       #
       def check_status(custom_domain)
         api_key = Features.api_key
+
+        OT.ld "[ApproximatedStrategy.check_status] domain=#{custom_domain.display_domain} " \
+              "api_key_present=#{!api_key.to_s.empty?}"
 
         if api_key.to_s.empty?
           return { ready: false, message: 'Approximated API key not configured' }
