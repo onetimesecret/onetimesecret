@@ -130,7 +130,7 @@ Onetime::Middleware::Security.middleware_components = {
         # API routes with Basic Auth don't need CSRF (API key is the credential)
         # Session-based API requests would need CSRF, but we removed session auth from v1
         if req.path.start_with?('/api/')
-          auth = Rack::Auth::Basic::Request.new(env)
+          auth = env['otto.auth'] ||= Rack::Auth::Basic::Request.new(env)
           return auth.provided? && auth.basic?
         end
 

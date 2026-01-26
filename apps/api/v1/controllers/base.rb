@@ -63,9 +63,7 @@ module V1
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
           possible = Onetime::Customer.load custid
-          raise OT::Unauthorized, 'No such customer' if possible.nil?
-
-          @cust = possible if possible.apitoken?(apitoken)
+          @cust = possible if possible&.apitoken?(apitoken)
           raise OT::Unauthorized, 'Invalid credentials' if cust.nil?
 
           OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (basic auth authenticated)"
