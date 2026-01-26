@@ -321,9 +321,10 @@ test.describe('Incoming Secrets - Recipients Dropdown', () => {
     const recipientDropdown = page.locator('#incoming-recipient');
     await recipientDropdown.click();
 
-    // Verify all mock recipients are listed
+    // Verify all mock recipients are listed in the dropdown
+    const listbox = page.getByTestId('recipient-listbox');
     for (const recipient of MOCK_RECIPIENTS) {
-      const recipientOption = page.locator(`text=${recipient.name}`);
+      const recipientOption = listbox.getByText(recipient.name, { exact: true });
       await expect(recipientOption).toBeVisible();
     }
   });
