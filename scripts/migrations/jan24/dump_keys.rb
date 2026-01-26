@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Dumps Redis keys to JSONL format for migration.
+# Dumps Redis keys to JSONL format for migration, organized by model prefix.
 # Each line: {"key": "...", "type": "...", "ttl_ms": ..., "dump": "<base64>", "created": "..."}
 #
 # For hash records, also extracts the 'created' field using HGET to preserve
@@ -11,13 +11,13 @@
 #   ruby scripts/dump_keys.rb [OPTIONS]
 #
 # Options:
-#   --db=N           Database number to dump (required, or use --all)
-#   --all            Dump all migration databases (6, 7, 8, 11)
+#   --model=NAME     Model to dump (customer, customdomain, metadata, secret, feedback)
+#   --all            Dump all models
 #   --redis-url=URL  Redis URL (default: redis://127.0.0.1:6379)
 #   --output-dir=DIR Output directory (default: exports)
 #   --dry-run        Show what would be dumped without writing
 #
-# Output files are timestamped: db6_keys_20260124T120000Z.jsonl
+# Output files are timestamped: customer_dump_20260124T120000Z.jsonl
 # Idempotent: each run creates new files, never modifies existing.
 
 require 'redis'
@@ -26,7 +26,15 @@ require 'base64'
 require 'fileutils'
 
 class KeyDumper
-  MIGRATION_DBS = [6, 7, 8, 11].freeze
+  MODEL_DB_MAP = {
+    'customer' => 6,
+    'customdomain' => 6,
+    'metadata' => 7,
+    'secret' => 8,
+    'feedback' => 11,
+  }.freeze
+
+  VALID_MODELS = MODEL_DB_MAP.keys.freeze
 
   def initialize(redis_url:, output_dir:, dry_run: false)
     @redis_url  = redis_url
@@ -35,59 +43,77 @@ class KeyDumper
     @timestamp  = Time.now.utc.strftime('%Y%m%dT%H%M%SZ')
   end
 
-  def dump_database(db_number)
+  def dump_model(model_name)
+    unless MODEL_DB_MAP.key?(model_name)
+      raise ArgumentError, "Unknown model: #{model_name}. Valid: #{VALID_MODELS.join(', ')}"
+    end
+
+    db_number   = MODEL_DB_MAP[model_name]
     redis       = Redis.new(url: "#{@redis_url}/#{db_number}")
-    output_file = File.join(@output_dir, "db#{db_number}_keys_#{@timestamp}.jsonl")
+    output_file = File.join(@output_dir, "#{model_name}_dump_#{@timestamp}.jsonl")
 
     stats = { total: 0, dumped: 0, skipped: 0, errors: [] }
 
     if @dry_run
-      puts "DRY RUN: Would dump DB #{db_number} to #{output_file}"
-      count_keys(redis, stats)
+      puts "DRY RUN: Would dump model '#{model_name}' from DB #{db_number} to #{output_file}"
+      count_keys_for_model(redis, model_name, stats)
       return stats
     end
 
     FileUtils.mkdir_p(@output_dir)
 
     File.open(output_file, 'w') do |f|
-      scan_and_dump(redis, f, stats)
+      scan_and_dump_model(redis, model_name, f, stats)
     end
 
-    # Write manifest for this dump
-    write_manifest(db_number, output_file, stats)
+    write_manifest(model_name, db_number, output_file, stats)
 
-    puts "DB #{db_number}: #{stats[:dumped]} keys dumped to #{output_file}"
+    puts "#{model_name}: #{stats[:dumped]} keys dumped to #{output_file}"
     puts "  Skipped: #{stats[:skipped]}, Errors: #{stats[:errors].size}"
 
     stats
   end
 
-  def dump_all
+  def dump_all_models
     results = {}
-    MIGRATION_DBS.each do |db|
-      results[db] = dump_database(db)
+    VALID_MODELS.each do |model|
+      results[model] = dump_model(model)
     end
     results
   end
 
   private
 
-  def count_keys(redis, stats)
+  def key_matches_model?(key, model_name)
+    case model_name
+    when 'feedback'
+      # feedback is a single key, exact match
+      key == 'feedback'
+    else
+      # Other models use prefix pattern: model:* or model:id:suffix
+      key.start_with?("#{model_name}:")
+    end
+  end
+
+  def count_keys_for_model(redis, model_name, stats)
     cursor = '0'
     loop do
       cursor, keys   = redis.scan(cursor, count: 1000)
-      stats[:total] += keys.size
+      matching       = keys.count { |key| key_matches_model?(key, model_name) }
+      stats[:total] += matching
       break if cursor == '0'
     end
     puts "  Would dump #{stats[:total]} keys"
   end
 
-  def scan_and_dump(redis, file, stats)
+  def scan_and_dump_model(redis, model_name, file, stats)
     cursor = '0'
     loop do
       cursor, keys = redis.scan(cursor, count: 1000)
 
       keys.each do |key|
+        next unless key_matches_model?(key, model_name)
+
         stats[:total] += 1
         dump_key(redis, file, key, stats)
       end
@@ -97,16 +123,13 @@ class KeyDumper
   end
 
   def dump_key(redis, file, key, stats)
-    # Get key type
     key_type = redis.type(key)
 
-    # Skip if key expired between scan and type check
     if key_type == 'none'
       stats[:skipped] += 1
       return
     end
 
-    # Get TTL in milliseconds (-1 = no expiry, -2 = key doesn't exist)
     ttl_ms = redis.pttl(key)
 
     if ttl_ms == -2
@@ -114,7 +137,6 @@ class KeyDumper
       return
     end
 
-    # Get serialized value
     dump_data = redis.dump(key)
 
     if dump_data.nil?
@@ -129,7 +151,6 @@ class KeyDumper
       dump: Base64.strict_encode64(dump_data),
     }
 
-    # For hash records, extract the 'created' field to preserve timestamps
     if key_type == 'hash'
       created_value    = redis.hget(key, 'created')
       record[:created] = created_value if created_value
@@ -141,12 +162,13 @@ class KeyDumper
     stats[:errors] << { key: key, error: ex.message }
   end
 
-  def write_manifest(db_number, output_file, stats)
+  def write_manifest(model_name, db_number, output_file, stats)
     manifest_file = output_file.sub('.jsonl', '_manifest.json')
 
     manifest = {
+      model: model_name,
       source_db: db_number,
-      source_url: @redis_url.sub(/:[^:@]*@/, ':***@'), # Redact password
+      source_url: @redis_url.sub(/:[^:@]*@/, ':***@'),
       output_file: File.basename(output_file),
       timestamp: @timestamp,
       stats: {
@@ -155,7 +177,7 @@ class KeyDumper
         skipped: stats[:skipped],
         errors: stats[:errors].size,
       },
-      errors: stats[:errors].first(10), # First 10 errors only
+      errors: stats[:errors].first(10),
     }
 
     File.write(manifest_file, JSON.pretty_generate(manifest))
@@ -167,14 +189,14 @@ def parse_args(args)
     redis_url: 'redis://127.0.0.1:6379',
     output_dir: 'exports',
     dry_run: false,
-    db: nil,
+    model: nil,
     all: false,
   }
 
   args.each do |arg|
     case arg
-    when /^--db=(\d+)$/
-      options[:db] = Regexp.last_match(1).to_i
+    when /^--model=(.+)$/
+      options[:model] = Regexp.last_match(1)
     when '--all'
       options[:all] = true
     when /^--redis-url=(.+)$/
@@ -188,12 +210,19 @@ def parse_args(args)
         Usage: ruby scripts/dump_keys.rb [OPTIONS]
 
         Options:
-          --db=N           Database number to dump
-          --all            Dump migration databases (6, 7, 8, 11)
+          --model=NAME     Model to dump (#{KeyDumper::VALID_MODELS.join(', ')})
+          --all            Dump all models
           --redis-url=URL  Redis URL (default: redis://127.0.0.1:6379)
           --output-dir=DIR Output directory (default: exports)
           --dry-run        Show what would be dumped
           --help           Show this help
+
+        Model-to-DB mapping:
+          customer     => DB 6
+          customdomain => DB 6
+          metadata     => DB 7
+          secret       => DB 8
+          feedback     => DB 11
       HELP
       exit 0
     end
@@ -205,8 +234,8 @@ end
 if __FILE__ == $0
   options = parse_args(ARGV)
 
-  unless options[:db] || options[:all]
-    puts 'Error: Must specify --db=N or --all'
+  unless options[:model] || options[:all]
+    puts 'Error: Must specify --model=NAME or --all'
     puts 'Use --help for usage'
     exit 1
   end
@@ -218,8 +247,8 @@ if __FILE__ == $0
   )
 
   if options[:all]
-    dumper.dump_all
+    dumper.dump_all_models
   else
-    dumper.dump_database(options[:db])
+    dumper.dump_model(options[:model])
   end
 end

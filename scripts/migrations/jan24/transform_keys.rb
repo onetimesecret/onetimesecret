@@ -3,8 +3,15 @@
 
 # Transform v1 Redis keys to v2 Valkey format.
 #
-# Reads JSONL exports from ./exports/, transforms keys/fields according
-# to v1→v2 migration rules, outputs transformed JSONL ready for loading.
+# Reads per-model JSONL exports from ./exports/, transforms keys/fields according
+# to v1->v2 migration rules, outputs transformed JSONL ready for loading.
+#
+# Input files (per-model dumps):
+#   customer_dump_*.jsonl      - customer:* keys
+#   customdomain_dump_*.jsonl  - customdomain:* keys
+#   metadata_dump_*.jsonl      - metadata:* keys (becomes receipt)
+#   secret_dump_*.jsonl        - secret:* keys
+#   feedback_dump_*.jsonl      - feedback key
 #
 # Usage:
 #   ruby scripts/migrations/jan24/transform_keys.rb [OPTIONS]
@@ -18,9 +25,9 @@
 # - Customer: key unchanged, custid=objid, store email in email field
 # - Organization: NEW records created 1:1 with each Customer
 # - OrganizationMembership: NEW records linking Customer to Organization
-# - CustomDomain: custid (email) → org_id (Organization objid)
-# - Receipt: metadata:{id}: → receipt:{id}:, custid → owner_id
-# - Secret: custid → owner_id, remove original_size
+# - CustomDomain: custid (email) -> org_id (Organization objid)
+# - Receipt: metadata:{id}: -> receipt:{id}:, custid -> owner_id
+# - Secret: custid -> owner_id, remove original_size
 
 require 'json'
 require 'base64'
@@ -29,13 +36,8 @@ require 'fileutils'
 require 'digest'
 
 class KeyTransformer
-  # DB mappings from analyze_keyspace.rb
-  DB_CONTENT = {
-    6 => %w[customer customdomain],
-    7 => %w[metadata],
-    8 => %w[secret],
-    11 => %w[feedback],
-  }.freeze
+  # Model names and their output file mappings
+  MODELS = %w[customer customdomain metadata secret feedback].freeze
 
   def initialize(input_dir:, output_dir:, dry_run: false)
     @input_dir  = input_dir
@@ -44,19 +46,20 @@ class KeyTransformer
     @timestamp  = Time.now.utc.strftime('%Y%m%dT%H%M%SZ')
 
     # Mappings built during customer processing
-    @email_to_objid       = {} # email → customer objid
-    @email_to_org_objid   = {} # email → organization objid
-    @email_to_org_data    = {} # email → organization record (for deferred write)
-    @email_to_membership  = {} # email → membership record (for deferred write)
+    @email_to_objid       = {} # email -> customer objid
+    @email_to_org_objid   = {} # email -> organization objid
+    @email_to_org_data    = {} # email -> organization record (for deferred write)
+    @email_to_membership  = {} # email -> membership record (for deferred write)
 
     # Stats
     @stats = {
       customers: { scanned: 0, transformed: 0, skipped: 0 },
       organizations: { generated: 0 },
       memberships: { generated: 0 },
-      custom_domains: { scanned: 0, transformed: 0, skipped: 0 },
+      custom_domains: { scanned: 0, transformed: 0, hashkeys: 0, skipped: 0 },
       receipts: { scanned: 0, transformed: 0, skipped: 0 },
       secrets: { scanned: 0, transformed: 0, skipped: 0 },
+      feedback: { scanned: 0, passed_through: 0 },
       indexes: { skipped: 0 },
       other: { skipped: 0 },
     }
@@ -67,22 +70,26 @@ class KeyTransformer
 
     # Phase 1: Process customers first (builds email mappings)
     puts '=== Phase 1: Processing Customers ==='
-    process_db_file(6, 'customer')
+    process_model_file('customer')
 
-    # Phase 2: Process custom domains (needs email→org mapping)
+    # Phase 2: Process custom domains (needs email->org mapping)
     puts "\n=== Phase 2: Processing Custom Domains ==="
-    process_db_file(6, 'customdomain')
+    process_model_file('customdomain')
 
-    # Phase 3: Process receipts (metadata → receipt)
+    # Phase 3: Process receipts (metadata -> receipt)
     puts "\n=== Phase 3: Processing Receipts (Metadata) ==="
-    process_db_file(7, 'metadata')
+    process_model_file('metadata')
 
     # Phase 4: Process secrets
     puts "\n=== Phase 4: Processing Secrets ==="
-    process_db_file(8, 'secret')
+    process_model_file('secret')
 
-    # Phase 5: Write generated organizations and memberships
-    puts "\n=== Phase 5: Writing Generated Records ==="
+    # Phase 5: Process feedback (pass through)
+    puts "\n=== Phase 5: Processing Feedback ==="
+    process_model_file('feedback')
+
+    # Phase 6: Write generated organizations and memberships
+    puts "\n=== Phase 6: Writing Generated Records ==="
     write_generated_records unless @dry_run
 
     # Write manifest
@@ -93,17 +100,20 @@ class KeyTransformer
 
   private
 
-  def process_db_file(db, model_prefix)
-    input_files = Dir.glob(File.join(@input_dir, "db#{db}_keys_*.jsonl"))
+  def process_model_file(model_name)
+    input_files = Dir.glob(File.join(@input_dir, "#{model_name}_dump_*.jsonl"))
       .reject { |f| f.end_with?('_manifest.json') }
 
     if input_files.empty?
-      puts "  No input files found for db#{db}"
+      puts "  No input files found for #{model_name}"
       return
     end
 
-    input_file  = input_files.max # Latest by timestamp
-    output_file = File.join(@output_dir, "#{model_prefix}_transformed_#{@timestamp}.jsonl")
+    input_file = input_files.max # Latest by timestamp
+
+    # Output file: metadata -> receipt, others keep their name
+    output_model = model_name == 'metadata' ? 'receipt' : model_name
+    output_file  = File.join(@output_dir, "#{output_model}_transformed_#{@timestamp}.jsonl")
 
     puts "  Reading: #{File.basename(input_file)}"
     puts "  Writing: #{File.basename(output_file)}" unless @dry_run
@@ -115,30 +125,18 @@ class KeyTransformer
       record = JSON.parse(line.strip)
       key    = record['key']
 
-      # Route to appropriate transformer based on key pattern
-      transformed = case key
-                    when /^customer:([^:]+):object$/
-                      transform_customer(record, Regexp.last_match(1))
-                    when /^customer:([^:]+):metadata$/
-                      # Skip v1 metadata sorted sets (receipts tracked differently in v2)
-                      @stats[:indexes][:skipped] += 1
-                      nil
-                    when /^customdomain:([^:]+):object$/
-                      transform_custom_domain(record, Regexp.last_match(1))
-                    when /^customdomain:([^:]+):(brand|logo|icon)$/
-                      transform_custom_domain_hashkey(record, Regexp.last_match(1), Regexp.last_match(2))
-                    when /^metadata:([^:]+):object$/
-                      transform_receipt(record, Regexp.last_match(1))
-                    when /^secret:([^:]+):object$/
-                      transform_secret(record, Regexp.last_match(1))
-                    when /^secret:([^:]+):email$/, /^feedback$/
-                      # Preserve email notification records and feedback as-is
-                      record
-                    when /^onetime:/, /^customer:values$/, /^customdomain:(values|owners|display_domains)$/
-                      # Skip v1 global indexes (will be rebuilt)
-                      skip_index_key
-                    else
-                      skip_other_key
+      # Route to model-specific handler
+      transformed = case model_name
+                    when 'customer'
+                      route_customer_key(record, key)
+                    when 'customdomain'
+                      route_customdomain_key(record, key)
+                    when 'metadata'
+                      route_metadata_key(record, key)
+                    when 'secret'
+                      route_secret_key(record, key)
+                    when 'feedback'
+                      route_feedback_key(record, key)
                     end
 
       next unless transformed
@@ -152,6 +150,69 @@ class KeyTransformer
     output_handle&.close
     puts "  Records written: #{records_written}" unless @dry_run
   end
+
+  # === Per-model key routers ===
+
+  def route_customer_key(record, key)
+    case key
+    when /^customer:([^:]+):object$/
+      transform_customer(record, Regexp.last_match(1))
+    when /^customer:([^:]+):metadata$/, /^customer:values$/
+      # Skip v1 indexes (metadata sorted sets, global values set)
+      skip_index_key
+    else
+      skip_other_key
+    end
+  end
+
+  def route_customdomain_key(record, key)
+    case key
+    when /^customdomain:([^:]+):object$/
+      transform_custom_domain(record, Regexp.last_match(1))
+    when /^customdomain:([^:]+):(brand|logo|icon)$/
+      transform_custom_domain_hashkey(record, Regexp.last_match(1), Regexp.last_match(2))
+    when /^customdomain:(values|owners|display_domains)$/
+      # Skip v1 global indexes
+      skip_index_key
+    else
+      skip_other_key
+    end
+  end
+
+  def route_metadata_key(record, key)
+    case key
+    when /^metadata:([^:]+):object$/
+      transform_receipt(record, Regexp.last_match(1))
+    else
+      skip_other_key
+    end
+  end
+
+  def route_secret_key(record, key)
+    case key
+    when /^secret:([^:]+):object$/
+      transform_secret(record, Regexp.last_match(1))
+    when /^secret:([^:]+):email$/
+      # Preserve email notification records as-is
+      record
+    else
+      skip_other_key
+    end
+  end
+
+  def route_feedback_key(record, key)
+    case key
+    when /^feedback$/
+      # Pass through feedback as-is
+      @stats[:feedback][:scanned]        += 1
+      @stats[:feedback][:passed_through] += 1
+      record
+    else
+      skip_other_key
+    end
+  end
+
+  # === Transform methods (unchanged) ===
 
   def transform_customer(record, email)
     @stats[:customers][:scanned] += 1
@@ -240,7 +301,7 @@ class KeyTransformer
     @stats[:custom_domains][:scanned] += 1
 
     # CustomDomain key pattern unchanged, but we need to record
-    # the custid→org_id transformation that will happen at load time
+    # the custid->org_id transformation that will happen at load time
 
     {
       key: record['key'],
@@ -249,7 +310,7 @@ class KeyTransformer
       dump: record['dump'],
       migration: {
         domain_id: domain_id,
-        # The actual custid→org_id mapping happens at load time
+        # The actual custid->org_id mapping happens at load time
         # because we need to parse the dump data
         email_to_org_mapping: @email_to_org_objid,
       },
@@ -258,6 +319,7 @@ class KeyTransformer
 
   def transform_custom_domain_hashkey(record, _domain_id, _hashkey_name)
     # Preserve hashkey data (brand, logo, icon) as-is
+    @stats[:custom_domains][:hashkeys] += 1
     {
       key: record['key'],
       type: record['type'],
@@ -269,7 +331,7 @@ class KeyTransformer
   def transform_receipt(record, receipt_id)
     @stats[:receipts][:scanned] += 1
 
-    # Key transformation: metadata:{id}:object → receipt:{id}:object
+    # Key transformation: metadata:{id}:object -> receipt:{id}:object
     new_key = "receipt:#{receipt_id}:object"
 
     {
@@ -281,7 +343,7 @@ class KeyTransformer
       migration: {
         v1_key: record['key'],
         receipt_id: receipt_id,
-        # The actual custid→owner_id mapping happens at load time
+        # The actual custid->owner_id mapping happens at load time
         email_to_objid_mapping: @email_to_objid,
         email_to_org_mapping: @email_to_org_objid,
       },
@@ -292,7 +354,7 @@ class KeyTransformer
     @stats[:secrets][:scanned] += 1
 
     # Secret key pattern unchanged
-    # Field transformations (custid→owner_id, remove original_size)
+    # Field transformations (custid->owner_id, remove original_size)
     # happen at load time
 
     {
@@ -302,7 +364,7 @@ class KeyTransformer
       dump: record['dump'],
       migration: {
         secret_id: secret_id,
-        # The actual custid→owner_id mapping happens at load time
+        # The actual custid->owner_id mapping happens at load time
         email_to_objid_mapping: @email_to_objid,
       },
     }.tap { @stats[:secrets][:transformed] += 1 }
@@ -374,9 +436,10 @@ class KeyTransformer
     puts "Customers:      #{@stats[:customers][:transformed]} transformed, #{@stats[:customers][:skipped]} skipped"
     puts "Organizations:  #{@stats[:organizations][:generated]} generated"
     puts "Memberships:    #{@stats[:memberships][:generated]} generated"
-    puts "Custom Domains: #{@stats[:custom_domains][:transformed]} transformed"
+    puts "Custom Domains: #{@stats[:custom_domains][:transformed]} transformed, #{@stats[:custom_domains][:hashkeys]} hashkeys"
     puts "Receipts:       #{@stats[:receipts][:transformed]} transformed"
     puts "Secrets:        #{@stats[:secrets][:transformed]} transformed"
+    puts "Feedback:       #{@stats[:feedback][:passed_through]} passed through"
     puts "Indexes:        #{@stats[:indexes][:skipped]} skipped (will rebuild)"
     puts "Other:          #{@stats[:other][:skipped]} skipped"
   end
@@ -472,6 +535,13 @@ def parse_args(args)
           --output-dir=DIR   Output directory (default: exports/transformed)
           --dry-run          Show what would be transformed
           --help             Show this help
+
+        Input files (per-model dumps):
+          customer_dump_*.jsonl      - customer:* keys
+          customdomain_dump_*.jsonl  - customdomain:* keys
+          metadata_dump_*.jsonl      - metadata:* keys (becomes receipt)
+          secret_dump_*.jsonl        - secret:* keys
+          feedback_dump_*.jsonl      - feedback key
       HELP
       exit 0
     end
