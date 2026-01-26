@@ -2,6 +2,11 @@
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Migration 2 of 2: Reorganize Config Structure
 #
 # This migration reorganizes the config.yaml hierarchy, moving settings

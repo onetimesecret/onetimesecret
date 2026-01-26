@@ -2,6 +2,11 @@
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Custom Domain Cleanup - Remove test user domains
 #
 # Purpose: Removes custom domain records for test users:

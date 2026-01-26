@@ -2,6 +2,11 @@
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Migration 1 of 2: Convert YAML Symbol Keys to Strings
 #
 # This migration converts YAML files that use Ruby symbol syntax for keys

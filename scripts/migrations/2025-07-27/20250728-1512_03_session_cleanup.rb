@@ -2,6 +2,11 @@
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Session Cleanup - Remove test user sessions
 #
 # Purpose: Removes session records with no expiration

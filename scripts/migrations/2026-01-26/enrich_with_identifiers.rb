@@ -48,6 +48,8 @@ class IdentifierEnricher
   }.freeze
 
   # Models that need identifier enrichment (ObjectIdentifier only)
+  # NOTE: Organization is in EXTID_PREFIXES but not here because organizations
+  # are created fresh during migration (one per customer), not imported from v1.
   MODELS_TO_ENRICH = %w[customer customdomain].freeze
 
   # Key rename patterns: old_suffix => new_suffix

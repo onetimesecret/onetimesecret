@@ -2,6 +2,11 @@
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Customer Cleanup - Remove anonymous, known test users - Pipeline
 #
 # Purpose: Removes Customer records based on the following criteria:
