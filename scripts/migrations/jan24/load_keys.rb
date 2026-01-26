@@ -7,6 +7,10 @@
 # Handles both DUMP-based records (from original exports) and
 # generated records (Organizations, Memberships).
 #
+# CRITICAL: Stores _original_record data for zero data loss guarantee.
+# The complete v1 data structure is preserved in each record's
+# _original_record jsonkey field for rollback/audit purposes.
+#
 # Usage:
 #   ruby scripts/migrations/jan24/load_keys.rb [OPTIONS]
 #
@@ -20,6 +24,7 @@
 # 1. Load generated records first (Organizations, Memberships)
 # 2. Load transformed records with RESTORE
 # 3. Apply field transformations where needed
+# 4. Store _original_record for zero data loss
 
 require 'redis'
 require 'json'
@@ -234,6 +239,9 @@ class KeyLoader
     migration = record['migration']
     return unless migration
 
+    # Store the complete original v1 record for zero data loss
+    store_original_record(record, key)
+
     case stat_key
     when :customers
       transform_customer_fields(key, migration)
@@ -244,6 +252,25 @@ class KeyLoader
     when :secrets
       transform_secret_fields(key, migration)
     end
+  end
+
+  # Store the complete original v1 record in the _original_record jsonkey
+  #
+  # The Familia model's jsonkey :_original_record stores this as JSON.
+  # Key format: {prefix}:{id}:_original_record (e.g., customer:abc123:_original_record)
+  #
+  # @param record [Hash] The JSONL record containing _original_record data
+  # @param key [String] The main object key (e.g., customer:abc123:object)
+  def store_original_record(record, key)
+    original_record = record['_original_record']
+    return unless original_record
+
+    # Derive the _original_record key from the main object key
+    # customer:abc123:object -> customer:abc123:_original_record
+    original_record_key = key.sub(/:object\z/, ':_original_record')
+
+    # Store as JSON string (Familia jsonkey expects this)
+    @valkey.set(original_record_key, JSON.generate(original_record))
   end
 
   def transform_customer_fields(key, migration)
@@ -265,26 +292,43 @@ class KeyLoader
     @valkey.hset(key, fields)
   end
 
-  def transform_custom_domain_fields(key, _migration)
-    # Read current custid (email) from the hash
+  def transform_custom_domain_fields(key, migration)
+    # Extract migration metadata
+    v1_domainid = migration['v1_domainid']
+    v2_objid    = migration['v2_objid']
+    v2_extid    = migration['v2_extid']
+
+    # Read current custid (email) from the hash for org_id lookup
     current_custid = @valkey.hget(key, 'custid')
-    return unless current_custid
 
-    # Look up org_id
-    org_objid = @email_to_org_objid[current_custid]
-    return unless org_objid
-
-    # Update fields
-    @valkey.hset(
-      key,
-      'org_id' => org_objid,
-      'v1_custid' => current_custid,
+    # Build fields to set
+    fields = {
+      'objid' => v2_objid,
+      'domainid' => v2_objid,         # domainid is aliased to objid in v2
+      'extid' => v2_extid,
+      'v1_domainid' => v1_domainid,   # preserve old hex identifier
       'migration_status' => 'completed',
       'migrated_at' => Time.now.to_f.to_s,
-    )
+    }
+
+    # Look up org_id from custid (email)
+    if current_custid && !current_custid.empty?
+      org_objid = @email_to_org_objid[current_custid]
+      if org_objid
+        fields['org_id']    = org_objid
+        fields['v1_custid'] = current_custid
+      else
+        # Customer not found - preserve custid for manual review
+        fields['v1_custid'] = current_custid
+        puts "  Warning: No org mapping for custid #{current_custid} on domain #{v1_domainid}"
+      end
+    end
+
+    # Update fields
+    @valkey.hset(key, fields)
 
     # Remove old custid field (it's now org_id)
-    @valkey.hdel(key, 'custid')
+    @valkey.hdel(key, 'custid') if current_custid
   end
 
   def transform_receipt_fields(key, migration)
