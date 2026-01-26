@@ -42,6 +42,7 @@ class OrganizationIndexCreator
       indexes_written: 0,
       stripe_customer_indexes: 0,
       stripe_subscription_indexes: 0,
+      stripe_checkout_email_indexes: 0,
       skipped: 0,
       errors: [],
     }
@@ -140,6 +141,7 @@ class OrganizationIndexCreator
     email                  = customer_data['email'] || customer_data['custid']
     stripe_customer_id     = customer_data['stripe_customer_id']
     stripe_subscription_id = customer_data['stripe_subscription_id']
+    stripe_checkout_email  = customer_data['stripe_checkout_email']
 
     # Track mapping
     @customer_to_org[customer_objid] = org_objid
@@ -173,6 +175,15 @@ class OrganizationIndexCreator
         [stripe_subscription_id, json_quote(org_objid)],
       )
       @stats[:stripe_subscription_indexes] += 1
+    end
+
+    if stripe_checkout_email && !stripe_checkout_email.empty?
+      add_command(
+        'HSET',
+        'organization:stripe_checkout_email_index',
+        [stripe_checkout_email, json_quote(org_objid)],
+      )
+      @stats[:stripe_checkout_email_indexes] += 1
     end
 
     # Members relationship: organization:{org_objid}:members
@@ -261,6 +272,7 @@ class OrganizationIndexCreator
     puts "Index commands generated: #{@stats[:indexes_written]}"
     puts "  - Stripe customer indexes: #{@stats[:stripe_customer_indexes]}"
     puts "  - Stripe subscription indexes: #{@stats[:stripe_subscription_indexes]}"
+    puts "  - Stripe checkout email indexes: #{@stats[:stripe_checkout_email_indexes]}"
     puts "Skipped: #{@stats[:skipped]}"
 
     return unless @stats[:errors].any?
@@ -316,6 +328,7 @@ def parse_args(args)
           - organization:objid_lookup (hash: org_objid -> "org_objid")
           - organization:stripe_customer_id_index (hash: cus_xxx -> "org_objid")
           - organization:stripe_subscription_id_index (hash: sub_xxx -> "org_objid")
+          - organization:stripe_checkout_email_index (hash: email -> "org_objid")
           - organization:{org_objid}:members (sorted set: score=created, member=customer_objid)
       HELP
       exit 0

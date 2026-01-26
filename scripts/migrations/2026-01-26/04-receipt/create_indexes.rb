@@ -11,6 +11,7 @@
 #   --input-file=PATH      Input JSONL file (default: exports/metadata/metadata_dump.jsonl)
 #   --output-dir=DIR       Output directory (default: exports/receipt)
 #   --customer-lookup=PATH Path to customer email→objid JSON map
+#   --org-lookup=PATH      Path to customer objid→org objid JSON map
 #   --domain-lookup=PATH   Path to domain fqdn→domainid JSON map
 #   --dry-run              Show what would be created without writing
 #   --help                 Show this help
@@ -31,14 +32,16 @@ class ReceiptIndexCreator
   DEFAULT_OUTPUT_DIR = 'exports/receipt'
   OUTPUT_FILENAME    = 'receipt_indexes.jsonl'
 
-  def initialize(input_file:, output_dir:, customer_lookup_path:, domain_lookup_path:, dry_run: false)
+  def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, dry_run: false)
     @input_file           = input_file
     @output_dir           = output_dir
     @customer_lookup_path = customer_lookup_path
+    @org_lookup_path      = org_lookup_path
     @domain_lookup_path   = domain_lookup_path
     @dry_run              = dry_run
 
     @customer_lookup = load_lookup(@customer_lookup_path, 'customer')
+    @org_lookup      = load_lookup(@org_lookup_path, 'org')
     @domain_lookup   = load_lookup(@domain_lookup_path, 'domain')
 
     @stats = {
@@ -54,6 +57,7 @@ class ReceiptIndexCreator
       domain_indexes: 0,
       errors: [],
       missing_customer_lookups: 0,
+      missing_org_lookups: 0,
       missing_domain_lookups: 0,
       anonymous_receipts: 0,
     }
@@ -100,6 +104,7 @@ class ReceiptIndexCreator
     puts "DRY RUN: Would process #{@input_file}"
     puts "         Output to: #{File.join(@output_dir, OUTPUT_FILENAME)}"
     puts "         Customer lookup: #{@customer_lookup.size} entries"
+    puts "         Org lookup: #{@org_lookup.size} entries"
     puts "         Domain lookup: #{@domain_lookup.size} entries"
 
     # Count records
@@ -230,6 +235,17 @@ class ReceiptIndexCreator
         args: [created.to_i, objid],
       }
       @stats[:customer_indexes] += 1
+
+      # Organization receipts (derive org_id from owner_id)
+      org_id = resolve_org_id(owner_id)
+      if org_id
+        commands << {
+          command: 'ZADD',
+          key: "organization:#{org_id}:receipts",
+          args: [created.to_i, objid],
+        }
+        @stats[:org_indexes] += 1
+      end
     else
       @stats[:anonymous_receipts] += 1
     end
@@ -265,6 +281,17 @@ class ReceiptIndexCreator
     owner_id
   end
 
+  def resolve_org_id(owner_id)
+    return nil if owner_id.nil? || owner_id.empty?
+
+    org_id = @org_lookup[owner_id]
+    if org_id.nil?
+      @stats[:missing_org_lookups] += 1
+    end
+
+    org_id
+  end
+
   def resolve_domain_id(fqdn)
     return nil if fqdn.nil? || fqdn.empty?
 
@@ -291,11 +318,13 @@ class ReceiptIndexCreator
     puts "  Expiration (receipt:expiration_timeline): #{@stats[:expiration_indexes]}"
     puts "  Lookup (receipt:objid_lookup):          #{@stats[:lookup_indexes]}"
     puts "  Customer (customer:{id}:receipts):      #{@stats[:customer_indexes]}"
+    puts "  Org (organization:{id}:receipts):       #{@stats[:org_indexes]}"
     puts "  Domain (customdomain:{id}:receipts):    #{@stats[:domain_indexes]}"
     puts
     puts 'Ownership:'
     puts "  Anonymous receipts: #{@stats[:anonymous_receipts]}"
     puts "  Missing customer lookups: #{@stats[:missing_customer_lookups]}"
+    puts "  Missing org lookups: #{@stats[:missing_org_lookups]}"
     puts "  Missing domain lookups: #{@stats[:missing_domain_lookups]}"
 
     return unless @stats[:errors].any?
@@ -313,6 +342,7 @@ def parse_args(args)
     input_file: ReceiptIndexCreator::DEFAULT_INPUT,
     output_dir: ReceiptIndexCreator::DEFAULT_OUTPUT_DIR,
     customer_lookup: nil,
+    org_lookup: nil,
     domain_lookup: nil,
     dry_run: false,
   }
@@ -325,6 +355,8 @@ def parse_args(args)
       options[:output_dir] = Regexp.last_match(1)
     when /^--customer-lookup=(.+)$/
       options[:customer_lookup] = Regexp.last_match(1)
+    when /^--org-lookup=(.+)$/
+      options[:org_lookup] = Regexp.last_match(1)
     when /^--domain-lookup=(.+)$/
       options[:domain_lookup] = Regexp.last_match(1)
     when '--dry-run'
@@ -339,12 +371,14 @@ def parse_args(args)
           --input-file=PATH      Input JSONL (default: exports/metadata/metadata_dump.jsonl)
           --output-dir=DIR       Output directory (default: exports/receipt)
           --customer-lookup=PATH JSON file mapping email -> customer objid
+          --org-lookup=PATH      JSON file mapping customer objid -> org objid
           --domain-lookup=PATH   JSON file mapping fqdn -> domain id
           --dry-run              Show what would be created
           --help                 Show this help
 
         Lookup file formats:
           customer-lookup: {"user@example.com": "objid123", ...}
+          org-lookup:      {"customer_objid": "org_objid", ...}
           domain-lookup:   {"secrets.example.com": "domainid456", ...}
 
         Output: JSONL with Redis commands (ZADD, HSET)
@@ -354,6 +388,7 @@ def parse_args(args)
           - receipt:expiration_timeline (sorted set: score=expires_at, member=objid)
           - receipt:objid_lookup (hash: objid -> "objid" JSON)
           - customer:{owner_id}:receipts (sorted set, if not anonymous)
+          - organization:{org_id}:receipts (sorted set, if owner has org)
           - customdomain:{domain_id}:receipts (sorted set, if share_domain set)
       HELP
       exit 0
@@ -373,6 +408,7 @@ if __FILE__ == $0
     input_file: options[:input_file],
     output_dir: options[:output_dir],
     customer_lookup_path: options[:customer_lookup],
+    org_lookup_path: options[:org_lookup],
     domain_lookup_path: options[:domain_lookup],
     dry_run: options[:dry_run],
   )
