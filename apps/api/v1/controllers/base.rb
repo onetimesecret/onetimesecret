@@ -46,7 +46,7 @@ module V1
     #
     # @param allow_anonymous [Boolean] Whether to allow unauthenticated requests
     def authorized(allow_anonymous = false)
-      carefully(redirect = nil, content_type = 'application/json', app: :api) do
+      carefully(nil, 'application/json', app: :api) do
         check_locale!
 
         req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)

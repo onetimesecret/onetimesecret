@@ -112,8 +112,9 @@ Onetime::Middleware::Security.middleware_components = {
   # - API routes with Basic Auth: API key serves as the credential; no session = no CSRF needed
   # - Web/SPA routes: Must include X-CSRF-Token header (Axios interceptor) or 'shrimp' form param
   #
-  # Note: API v1 no longer accepts session/cookie auth. Requests must use Basic Auth or be
-  # anonymous. This eliminates the CSRF attack vector for API routes.
+  # Note: API v1 no longer accepts session/cookie auth (must use Basic Auth or be anonymous).
+  # API v2/v3 still support session auth, so those requests require CSRF tokens unless
+  # Basic Auth credentials are provided (the allow_if lambda checks for this).
   #
   # See also: apps/web/auth/config/hooks/omniauth.rb for Rodauth-side bypass
   'AuthenticityToken' => {
