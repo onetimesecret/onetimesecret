@@ -229,7 +229,7 @@ describe('useReceipt', () => {
       // Verify
       expect(store.fetch).toHaveBeenCalledWith('test-key');
       expect(isLoading.value).toBe(false);
-      expect(notifications.show).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
+      expect(notifications.show).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error', 'top');
       expect(error.value).toBeDefined();
       expect(error.value?.type).toBe('technical');
       expect(error.value?.severity).toBe('error');
@@ -267,7 +267,8 @@ describe('useReceipt', () => {
       });
       expect(notifications.show).toHaveBeenCalledWith(
         'Secret not found or has been burned',
-        'error'
+        'error',
+        'top'
       );
     });
   });
@@ -330,15 +331,12 @@ describe('useReceipt', () => {
 
       // Verify
       expect(store.burn).not.toHaveBeenCalled();
-      console.log(error.value);
-      console.log(error.value?.original);
-      debugger;
       expect(error.value).toMatchObject({
         message: 'Cannot burn this secret',
         type: 'human',
         severity: 'error',
       });
-      expect(notifications.show).toHaveBeenCalledWith('Cannot burn this secret', 'error');
+      expect(notifications.show).toHaveBeenCalledWith('Cannot burn this secret', 'error', 'top');
     });
   });
 

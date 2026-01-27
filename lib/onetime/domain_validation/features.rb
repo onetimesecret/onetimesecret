@@ -91,13 +91,21 @@ module Onetime
           domains_config = config.dig('features', 'domains') || {}
           approx_config  = domains_config['approximated'] || {}
 
+          strategy   = domains_config['validation_strategy'] || 'passthrough'
+          target     = approx_config['vhost_target']
+          has_key    = !approx_config['api_key'].to_s.empty?
+
+          OT.info "[DomainValidation::Features] Loading config: strategy=#{strategy} " \
+                  "vhost_target=#{target.inspect} api_key_present=#{has_key} " \
+                  "proxy_host=#{approx_config['proxy_host'].inspect}"
+
           configure(
-            strategy_name: domains_config['validation_strategy'] || 'passthrough',
+            strategy_name: strategy,
             api_key: approx_config['api_key'],
             proxy_ip: approx_config['proxy_ip'],
             proxy_host: approx_config['proxy_host'],
             proxy_name: approx_config['proxy_name'],
-            vhost_target: approx_config['vhost_target'],
+            vhost_target: target,
           )
         end
 

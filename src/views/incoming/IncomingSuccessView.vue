@@ -25,13 +25,13 @@
     try {
       await navigator.clipboard.writeText(metadataKey.value);
       copied.value = true;
-      notifications.show('Reference ID copied to clipboard', 'success');
+      notifications.show('Reference ID copied to clipboard', 'success', 'top');
 
       setTimeout(() => {
         copied.value = false;
       }, 2000);
     } catch {
-      notifications.show('Failed to copy reference ID', 'error');
+      notifications.show('Failed to copy reference ID', 'error', 'top');
     }
   };
 </script>

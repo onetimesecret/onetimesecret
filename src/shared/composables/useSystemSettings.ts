@@ -41,7 +41,7 @@ export function useSystemSettings() {
 
   // AsyncHandler setup
   const defaultOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
+    notify: (message, severity) => notifications.show(message, severity, 'top'),
     setLoading: (loading) => (isSaving.value = loading),
     onError: (err) => {
       errorMessage.value = err.message || t('web.colonel.errorSavingConfig');
@@ -245,7 +245,7 @@ export function useSystemSettings() {
         modifiedSections.value.delete(currentSection);
 
         saveSuccess.value = true;
-        notifications.show(t('web.colonel.sectionSaved', { section: sectionLabel }), 'success');
+        notifications.show(t('web.colonel.sectionSaved', { section: sectionLabel }), 'success', 'top');
       } catch (error) {
         // The wrap function will handle notifications.show for errors
         throw error;

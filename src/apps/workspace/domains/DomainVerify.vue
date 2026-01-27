@@ -6,19 +6,33 @@
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import MoreInfoText from '@/shared/components/ui/MoreInfoText.vue';
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
   import { CustomDomain, CustomDomainProxy } from '@/schemas/models';
+  import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
   const route = useRoute();
-  const { getDomain } = useDomainsManager();
+  const { getDomain, verifyDomain } = useDomainsManager();
+  const bootstrapStore = useBootstrapStore();
+  const { cust } = storeToRefs(bootstrapStore);
+
+  // Feature flag: DNS widget UI (disabled by default for launch)
+  const isDnsWidgetEnabled = computed(() => cust.value?.feature_flags?.dns_widget ?? false);
 
   const domain = ref<CustomDomain | null>(null);
   const cluster = ref<CustomDomainProxy | null>(null);
   const allowVerifyCTA = ref(true);
+  const verificationInProgress = ref(false);
+  const verificationError = ref<string | null>(null);
+  const lastVerificationTime = ref<number>(0);
+
+  // Rate limit: minimum 10 seconds between verification attempts
+  const VERIFICATION_COOLDOWN_MS = 10000;
 
   const fetchDomain = async (): Promise<void> => {
     const extid = route.params.extid as string;
@@ -42,9 +56,13 @@
   };
 
   // DNS Widget configuration
-  // Show widget only for approximated strategy when domain is not yet verified
+  // Show widget only when:
+  // 1. Feature flag is enabled (dns_widget)
+  // 2. Domain exists and is not yet verified
+  // 3. Cluster uses approximated validation strategy
   const showDnsWidget = computed(
     () =>
+      isDnsWidgetEnabled.value &&
       domain.value &&
       !domain.value.vhost?.last_monitored_unix &&
       cluster.value?.validation_strategy === 'approximated'
@@ -67,17 +85,71 @@
     return cluster.value?.proxy_host ?? '';
   });
 
-  const handleDnsRecordsVerified = async () => {
-    console.debug('DNS records verified via widget');
-    // Refresh domain data to pick up verification status
-    await fetchDomain();
+  // Extract error message from various error types
+  const extractErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    if (typeof err === 'object' && err !== null && 'message' in err) {
+      const message = (err as { message: unknown }).message;
+      if (typeof message === 'string') {
+        return message;
+      }
+    }
+    return String(err);
   };
 
-  onMounted(fetchDomain);
+  // Check if enough time has passed since last verification
+  const canVerify = (): boolean => {
+    const now = Date.now();
+    return now - lastVerificationTime.value >= VERIFICATION_COOLDOWN_MS;
+  };
+
+  // Trigger backend verification (called on mount and widget success)
+  const triggerVerification = async () => {
+    // Guard: no domain, already in progress, or rate limited
+    if (!domain.value || verificationInProgress.value || !canVerify()) {
+      return;
+    }
+
+    verificationInProgress.value = true;
+    verificationError.value = null;
+    lastVerificationTime.value = Date.now();
+
+    try {
+      const result = await verifyDomain(domain.value.extid);
+      if (result) {
+        await fetchDomain();
+      }
+    } catch (err: unknown) {
+      verificationError.value = extractErrorMessage(err);
+    } finally {
+      verificationInProgress.value = false;
+    }
+  };
+
+  const handleDnsRecordsVerified = async () => {
+    console.debug('DNS records verified via widget, triggering backend verification');
+    await triggerVerification();
+  };
+
+  // On mount: fetch domain then verify if showing widget
+  onMounted(async () => {
+    try {
+      await fetchDomain();
+      if (showDnsWidget.value) {
+        await triggerVerification();
+      }
+    } catch (err: unknown) {
+      // Errors from fetchDomain are handled by useDomainsManager
+      // This catch is a safety net for any unexpected errors
+      console.error('Failed to initialize domain verification:', err);
+    }
+  });
 </script>
 
 <template>
-  <div class="">
+  <div>
     <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
       {{ t('web.domains.verify_your_domain') }}
     </h1>
@@ -152,6 +224,41 @@
         :txt-validation-value="domain?.txt_validation_value"
         :trd="domain?.trd"
         @records-verified="handleDnsRecordsVerified" />
+
+      <!-- Manual verification button and error display -->
+      <div class="mt-6 flex items-center gap-4">
+        <button
+          type="button"
+          :disabled="verificationInProgress"
+          :aria-busy="verificationInProgress"
+          class="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+          @click="triggerVerification">
+          <svg
+            v-if="verificationInProgress"
+            class="-ml-1 mr-2 h-4 w-4 animate-spin"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24">
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4" />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          {{ verificationInProgress ? t('web.COMMON.processing') : t('web.domains.verify_domain') }}
+        </button>
+        <BasicFormAlerts
+          v-if="verificationError"
+          aria-live="polite"
+          :errors="[verificationError]" />
+      </div>
     </div>
 
     <!-- Manual verification steps for non-approximated strategies -->

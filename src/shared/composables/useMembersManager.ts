@@ -63,7 +63,7 @@ export function useMembersManager() {
   // Async handler configuration
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => {
-      notifications.show(message, severity);
+      notifications.show(message, severity, 'top');
     },
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
@@ -137,7 +137,8 @@ export function useMembersManager() {
       if (!canChangeRole(member)) {
         notifications.show(
           t('web.organizations.members.insufficient_permissions'),
-          'error'
+          'error',
+          'top'
         );
         return undefined;
       }
@@ -145,7 +146,8 @@ export function useMembersManager() {
       if (newRole === 'owner') {
         notifications.show(
           t('web.organizations.members.cannot_change_own_role'),
-          'error'
+          'error',
+          'top'
         );
         return undefined;
       }
@@ -155,7 +157,8 @@ export function useMembersManager() {
 
       notifications.show(
         t('web.organizations.members.role_updated'),
-        'success'
+        'success',
+        'top'
       );
 
       return result;
@@ -177,12 +180,14 @@ export function useMembersManager() {
         if (member.role === 'owner') {
           notifications.show(
             t('web.organizations.members.cannot_remove_owner'),
-            'error'
+            'error',
+            'top'
           );
         } else {
           notifications.show(
             t('web.organizations.members.insufficient_permissions'),
-            'error'
+            'error',
+            'top'
           );
         }
         return undefined;
@@ -192,7 +197,8 @@ export function useMembersManager() {
 
       notifications.show(
         t('web.organizations.members.member_removed'),
-        'success'
+        'success',
+        'top'
       );
 
       return true;
