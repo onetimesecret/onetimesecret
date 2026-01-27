@@ -17,21 +17,19 @@
 #   ruby scripts/migrations/2026-01-26/04-receipt/transform.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE        Input JSONL dump file (default: exports/metadata/metadata_dump.jsonl)
-#   --output-dir=DIR         Output directory (default: exports/receipt)
-#   --email-to-customer=FILE JSON map of email -> customer_objid
-#   --customer-to-org=FILE   JSON map of customer_objid -> org_objid
-#   --fqdn-to-domain=FILE    JSON map of fqdn -> domain_objid
-#   --redis-url=URL          Redis URL for temporary operations (default: redis://127.0.0.1:6379)
-#   --temp-db=N              Temporary database for restore/dump (default: 15)
-#   --dry-run                Parse and count without writing output
+#   --input-file=FILE   Input JSONL dump file (default: exports/metadata/metadata_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: exports/metadata)
+#   --exports-dir=DIR   Base exports directory for loading indexes (default: exports)
+#   --redis-url=URL     Redis URL for temporary operations (default: redis://127.0.0.1:6379)
+#   --temp-db=N         Temporary database for restore/dump (default: 15)
+#   --dry-run           Parse and count without writing output
 #
-# Output: receipt_transformed.jsonl with V2 records in Redis DUMP format.
+# Output: receipts_transformed.jsonl with V2 records in Redis DUMP format.
 #
-# Dependencies:
-#   - Phase 1 Customer migration (provides email->customer_objid)
-#   - Phase 2 Organization migration (provides customer_objid->org_objid)
-#   - Phase 3 CustomDomain migration (provides fqdn->domain_objid)
+# Required index files (from prior migration phases):
+#   - exports/customer/customer_indexes.jsonl (email -> customer_objid)
+#   - exports/organization/organization_indexes.jsonl (email -> org_objid)
+#   - exports/customdomain/customdomain_indexes.jsonl (fqdn -> domain_objid)
 
 require 'redis'
 require 'json'
@@ -55,20 +53,23 @@ class ReceiptTransformer
     'received' => 'revealed',
   }.freeze
 
-  def initialize(input_file:, output_dir:, email_to_customer_file:, customer_to_org_file:, fqdn_to_domain_file:, redis_url:, temp_db:, dry_run: false)
-    @input_file              = input_file
-    @output_dir              = output_dir
-    @email_to_customer_file  = email_to_customer_file
-    @customer_to_org_file    = customer_to_org_file
-    @fqdn_to_domain_file     = fqdn_to_domain_file
-    @redis_url               = redis_url
-    @temp_db                 = temp_db
-    @dry_run                 = dry_run
-    @redis                   = nil
+  # Expected index files relative to exports_dir
+  CUSTOMER_INDEXES_FILE = 'customer/customer_indexes.jsonl'
+  ORG_INDEXES_FILE      = 'organization/organization_indexes.jsonl'
+  DOMAIN_INDEXES_FILE   = 'customdomain/customdomain_indexes.jsonl'
 
-    @email_to_customer = {}
-    @customer_to_org   = {}
-    @fqdn_to_domain    = {}
+  def initialize(input_file:, output_dir:, exports_dir:, redis_url:, temp_db:, dry_run: false)
+    @input_file  = input_file
+    @output_dir  = output_dir
+    @exports_dir = exports_dir
+    @redis_url   = redis_url
+    @temp_db     = temp_db
+    @dry_run     = dry_run
+    @redis       = nil
+
+    @email_to_customer = {}  # email -> customer_objid
+    @email_to_org      = {}  # email -> org_objid
+    @fqdn_to_domain    = {}  # fqdn -> domain_objid
 
     @stats = {
       receipts_processed: 0,
@@ -120,30 +121,53 @@ class ReceiptTransformer
   end
 
   def load_mappings
-    # Load email -> customer_objid mapping
-    @email_to_customer = load_json_mapping(@email_to_customer_file, 'email_to_customer')
+    # Load from customer_indexes.jsonl: customer:email_index -> email -> objid
+    customer_file = File.join(@exports_dir, CUSTOMER_INDEXES_FILE)
+    validate_index_file!(customer_file, 'customer')
+    load_index_file(customer_file, 'customer:email_index') do |email, objid|
+      @email_to_customer[email] = objid
+    end
+    puts "Loaded #{@email_to_customer.size} email->customer mappings"
 
-    # Load customer_objid -> org_objid mapping
-    @customer_to_org = load_json_mapping(@customer_to_org_file, 'customer_to_org')
+    # Load from organization_indexes.jsonl: organization:contact_email_index -> email -> org_objid
+    org_file = File.join(@exports_dir, ORG_INDEXES_FILE)
+    validate_index_file!(org_file, 'organization')
+    load_index_file(org_file, 'organization:contact_email_index') do |email, org_objid|
+      @email_to_org[email] = org_objid
+    end
+    puts "Loaded #{@email_to_org.size} email->org mappings"
 
-    # Load fqdn -> domain_objid mapping
-    @fqdn_to_domain = load_json_mapping(@fqdn_to_domain_file, 'fqdn_to_domain')
-
-    puts "Loaded mappings: #{@email_to_customer.size} customers, #{@customer_to_org.size} orgs, #{@fqdn_to_domain.size} domains"
+    # Load from customdomain_indexes.jsonl: customdomain:display_domain_index -> fqdn -> domain_objid
+    domain_file = File.join(@exports_dir, DOMAIN_INDEXES_FILE)
+    validate_index_file!(domain_file, 'customdomain')
+    load_index_file(domain_file, 'customdomain:display_domain_index') do |fqdn, domain_objid|
+      @fqdn_to_domain[fqdn] = domain_objid
+    end
+    puts "Loaded #{@fqdn_to_domain.size} fqdn->domain mappings"
   end
 
-  def load_json_mapping(file_path, name)
-    return {} if file_path.nil? || file_path.empty?
+  def validate_index_file!(file_path, name)
+    return if File.exist?(file_path)
 
-    unless File.exist?(file_path)
-      warn "Warning: #{name} mapping file not found: #{file_path}"
-      return {}
+    raise ArgumentError,
+      "Required #{name} index file not found: #{file_path}\n" \
+      "Run the #{name} migration phase first to generate this file."
+  end
+
+  def load_index_file(file_path, target_key)
+    File.foreach(file_path) do |line|
+      record = JSON.parse(line)
+      next unless record['command'] == 'HSET' && record['key'] == target_key
+
+      # args: [lookup_key, json_quoted_objid]
+      args       = record['args']
+      lookup_key = args[0]
+      objid      = JSON.parse(args[1])  # Remove JSON quoting
+
+      yield(lookup_key, objid)
+    rescue JSON::ParserError
+      next
     end
-
-    JSON.parse(File.read(file_path))
-  rescue JSON::ParserError => ex
-    warn "Error parsing #{name} mapping file: #{ex.message}"
-    {}
   end
 
   def connect_redis
@@ -284,20 +308,20 @@ class ReceiptTransformer
     owner_id = @email_to_customer[custid]
     if owner_id
       v2_fields['owner_id'] = owner_id
-
-      # Lookup org_id from owner_id
-      org_id = @customer_to_org[owner_id]
-      if org_id
-        v2_fields['org_id'] = org_id
-      else
-        @stats[:missing_org_lookup] += 1
-        @stats[:failed_org_lookups] << owner_id
-      end
     else
       @stats[:missing_customer_lookup] += 1
       @stats[:failed_customer_lookups] << custid
-      # Still set owner_id to nil to indicate lookup failure
+      # Set owner_id to nil to indicate lookup failure
       v2_fields['owner_id']             = nil
+    end
+
+    # Lookup org_id directly from email (organization:contact_email_index)
+    org_id = @email_to_org[custid]
+    if org_id
+      v2_fields['org_id'] = org_id
+    else
+      @stats[:missing_org_lookup] += 1
+      @stats[:failed_org_lookups] << custid
     end
 
     # Lookup domain_id from share_domain (fqdn)
@@ -403,9 +427,7 @@ def parse_args(args)
   options = {
     input_file: 'exports/metadata/metadata_dump.jsonl',
     output_dir: 'exports/metadata',
-    email_to_customer: nil,
-    customer_to_org: nil,
-    fqdn_to_domain: nil,
+    exports_dir: 'exports',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -413,14 +435,12 @@ def parse_args(args)
 
   args.each do |arg|
     case arg
-    when /^--input-file=(.+)$/ then options[:input_file]               = Regexp.last_match(1)
-    when /^--output-dir=(.+)$/ then options[:output_dir]               = Regexp.last_match(1)
-    when /^--email-to-customer=(.+)$/ then options[:email_to_customer] = Regexp.last_match(1)
-    when /^--customer-to-org=(.+)$/ then options[:customer_to_org]     = Regexp.last_match(1)
-    when /^--fqdn-to-domain=(.+)$/ then options[:fqdn_to_domain]       = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/ then options[:redis_url]                 = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/ then options[:temp_db]                    = Regexp.last_match(1).to_i
-    when '--dry-run' then options[:dry_run]                            = true
+    when /^--input-file=(.+)$/ then options[:input_file]   = Regexp.last_match(1)
+    when /^--output-dir=(.+)$/ then options[:output_dir]   = Regexp.last_match(1)
+    when /^--exports-dir=(.+)$/ then options[:exports_dir] = Regexp.last_match(1)
+    when /^--redis-url=(.+)$/ then options[:redis_url]     = Regexp.last_match(1)
+    when /^--temp-db=(\d+)$/ then options[:temp_db]        = Regexp.last_match(1).to_i
+    when '--dry-run' then options[:dry_run]                = true
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby #{__FILE__} [OPTIONS]
@@ -428,25 +448,26 @@ def parse_args(args)
         Transforms Receipt (Metadata) data from V1 dump to V2 format.
 
         Options:
-          --input-file=FILE        Input JSONL dump (default: exports/metadata/metadata_dump.jsonl)
-          --output-dir=DIR         Output directory (default: exports/metadata)
-          --email-to-customer=FILE JSON map: email -> customer_objid
-          --customer-to-org=FILE   JSON map: customer_objid -> org_objid
-          --fqdn-to-domain=FILE    JSON map: fqdn -> domain_objid
-          --redis-url=URL          Redis URL for temp operations (default: redis://127.0.0.1:6379)
-          --temp-db=N              Temp database number (default: 15)
-          --dry-run                Parse and count without writing output
-          --help                   Show this help
+          --input-file=FILE   Input JSONL dump (default: exports/metadata/metadata_dump.jsonl)
+          --output-dir=DIR    Output directory (default: exports/metadata)
+          --exports-dir=DIR   Base exports directory for index files (default: exports)
+          --redis-url=URL     Redis URL for temp operations (default: redis://127.0.0.1:6379)
+          --temp-db=N         Temp database number (default: 15)
+          --dry-run           Parse and count without writing output
+          --help              Show this help
 
         Output file: receipts_transformed.jsonl
 
-        Dependencies:
-          Requires Phase 1 (Customer), Phase 2 (Organization), Phase 3 (CustomDomain).
+        Required index files (loaded automatically from exports-dir):
+          - customer/customer_indexes.jsonl
+          - organization/organization_indexes.jsonl
+          - customdomain/customdomain_indexes.jsonl
 
         Key transformations:
           - Key: metadata:{objid}:object -> receipt:{objid}:object
           - custid (email) -> owner_id (customer objid)
-          - Links org_id (via owner) and domain_id (via share_domain)
+          - custid (email) -> org_id (organization objid)
+          - share_domain (fqdn) -> domain_id (customdomain objid)
           - State: 'viewed' -> 'previewed', 'received' -> 'revealed'
           - Renames viewed->previewed, received->revealed (keeps originals)
           - Preserves v1_custid for rollback
@@ -468,9 +489,7 @@ if __FILE__ == $0
   transformer = ReceiptTransformer.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
-    email_to_customer_file: options[:email_to_customer],
-    customer_to_org_file: options[:customer_to_org],
-    fqdn_to_domain_file: options[:fqdn_to_domain],
+    exports_dir: options[:exports_dir],
     redis_url: options[:redis_url],
     temp_db: options[:temp_db],
     dry_run: options[:dry_run],
