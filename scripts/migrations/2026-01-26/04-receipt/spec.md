@@ -27,7 +27,8 @@ Direct Copy (no transform)
   shared, truncate, secret_key, key
 
 Transforms
-  custid (email) -> owner_id (objid)     Lookup: email_to_objid[custid]
+  custid (email) -> owner_id (customer objid)     Lookup: email_to_objid[custid]
+  custid (email) -> org_id (customer->organization.objid)
   custid (email) -> v1_custid            Preserve original
   state: 'viewed' -> state: 'previewed'  Value transform
   state: 'received' -> state: 'revealed' Value transform
