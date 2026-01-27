@@ -23,10 +23,12 @@ FIELD TRANSFORMS
 Direct Copy (no transform)
   domainid, display_domain, base_domain, subdomain, trd, tld, sld,
   txt_validation_host, txt_validation_value, status, vhost, verified,
-  resolving, created, updated, _original_value
+  resolving, created, updated
 
 Transforms
-  custid (email) -> org_id (objid)     Lookup: email_to_org_objid[custid]
+
+Domains are now associated to the organization, NOT the customer.
+  custid (email) -> org_id (customer->organization.objid)
   custid (email) -> v1_custid            Preserve original
 
 New Fields (migration-only)
@@ -39,26 +41,27 @@ New Fields (migration-only)
 
 Removed Fields
   custid      Replaced by org_id
-  values      (class set) Replaced by `instances` sorted set index
+  values      (class set) Replaced by `instances` sorted set index (handled by create_indexes)
 
 RELATED DATA TYPES
 
 Type        Key Pattern                      Action
-Hash        customdomain:{id}:brand          Copy as-is
-Hash        customdomain:{id}:logo           Copy as-is
-Hash        customdomain:{id}:icon           Copy as-is
+Hash        custom_domain:{objid}:brand          Rename key, Copy as-is
+Hash        custom_domain:{objid}:logo           Rename key, Copy as-is
+Hash        custom_domain:{objid}:icon           Rename key, Copy as-is
 
 INDEXES
 
 Instance Index
-  V1 key: customdomain:values (rename to customdomain:instances)
+  V1 key: customdomain:values (rename to custom_domain:instances)
 
 Lookup Indexes
-  customdomain:display_domain_index  Hash    fqdn -> "domainid" (JSON quoted)
-  customdomain:display_domains       Hash    fqdn -> "domainid" (legacy compat)
-  customdomain:extid_lookup          Hash    extid -> "domainid"
-  customdomain:objid_lookup          Hash    domainid -> "domainid"
-  customdomain:owners                Hash    domainid -> "org_id"
+  custom_domain:display_domain_index  Hash    fqdn -> "objid" (JSON quoted)
+  custom_domain:display_domains       Hash    fqdn -> "objid" (legacy compat)
+  custom_domain:extid_lookup          Hash    extid -> "objid"
+  custom_domain:objid_lookup          Hash    objid -> "objid"
+  custom_domain:domainid_lookup       Hash    domainid -> "objid"
+  custom_domain:owners                Hash    objid -> "org_id"
 
 Participation Indexes
   organization:{org_id}:domains    Sorted Set    Add domainid with score=created
@@ -91,18 +94,19 @@ transform(v1_record, mappings):
 INDEX REBUILD PSEUDOCODE
 
 rebuild_indexes(v2_record):
-  domainid = v2_record.domainid
+  objid = v2_record.objid
   created = v2_record.created
 
   # Instance tracking
-  ZADD customdomain:instances created domainid
+  ZADD custom_domain:instances created objid
 
   # Lookup indexes (JSON-quoted values)
-  HSET customdomain:display_domain_index v2_record.display_domain json(domainid)
-  HSET customdomain:display_domains v2_record.display_domain json(domainid)
-  HSET customdomain:extid_lookup v2_record.extid json(domainid)
-  HSET customdomain:objid_lookup domainid json(domainid)
-  HSET customdomain:owners domainid json(v2_record.org_id)
+  HSET custom_domain:display_domain_index v2_record.display_domain json(objid)
+  HSET custom_domain:display_domains v2_record.display_domain json(objid)
+  HSET custom_domain:extid_lookup v2_record.extid json(objid)
+  HSET custom_domain:objid_lookup objid json(objid)
+  HSET custom_domain:domainid_lookup v2_record.domainid json(objid)
+  HSET custom_domain:owners objid json(org_id)
 
   # Participation (if applicable)
   ZADD organization:{v2_record.org_id}:domains created domainid
