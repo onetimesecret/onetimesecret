@@ -114,8 +114,8 @@ class ReceiptIndexCreator
   end
 
   def process_input_file(out)
-    # Connect to Redis to decode dump data
-    redis = Redis.new(url: 'redis://127.0.0.1:6379/0')
+    # Connect to Redis temp DB for decode operations (DB 15 for safety)
+    redis = Redis.new(url: 'redis://127.0.0.1:6379/15')
 
     File.foreach(@input_file) do |line|
       @stats[:records_read] += 1
@@ -123,6 +123,8 @@ class ReceiptIndexCreator
     end
   rescue StandardError => ex
     @stats[:errors] << { error: ex.message, backtrace: ex.backtrace.first(3) }
+  ensure
+    redis&.close
   end
 
   def process_record(line, out, redis)

@@ -282,7 +282,7 @@ class SecretTransformer
 
     # Create new dump for the transformed hash
     # Filter out nil values - Redis doesn't accept them
-    v2_fields_clean = v2_fields.reject { |_k, v| v.nil? }
+    v2_fields_clean = v2_fields.compact
 
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     v2_dump_b64 = begin
