@@ -286,10 +286,10 @@ class CustomDomainTransformer
     end
 
     # Add migration tracking fields
+    # NOTE: _original_record is added by enrich_with_original_record.rb
     v2_fields['v1_identifier']    = v1_record[:key]
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
-    v2_fields['_original_record'] = v1_fields.to_json
 
     # Create new dump for the transformed hash
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"

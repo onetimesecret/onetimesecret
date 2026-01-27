@@ -274,11 +274,11 @@ class SecretTransformer
     end
 
     # Add migration tracking fields
+    # NOTE: _original_record is added by enrich_with_original_record.rb
     v2_fields['v1_key']           = v1_record[:key]
     v2_fields['v1_identifier']    = v1_record[:key]
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
-    v2_fields['_original_record'] = safe_json_encode(v1_fields)
 
     # Create new dump for the transformed hash
     # Filter out nil values - Redis doesn't accept them
@@ -361,27 +361,6 @@ class SecretTransformer
     ensure
       @redis.del(temp_key) if @redis
     end
-  end
-
-  # Safely encode a hash to JSON, base64-encoding any binary values
-  # that would fail UTF-8 conversion
-  def safe_json_encode(hash)
-    safe_hash = hash.transform_values do |value|
-      if value.is_a?(String) && !value.valid_encoding?
-        # Binary data - base64 encode it
-        { '_binary' => Base64.strict_encode64(value) }
-      elsif value.is_a?(String)
-        # Try to encode as UTF-8, fallback to base64 if it fails
-        begin
-          value.encode('UTF-8')
-        rescue Encoding::UndefinedConversionError
-          { '_binary' => Base64.strict_encode64(value) }
-        end
-      else
-        value
-      end
-    end
-    JSON.generate(safe_hash)
   end
 
   def write_output(records)

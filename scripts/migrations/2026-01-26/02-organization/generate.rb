@@ -190,11 +190,11 @@ class OrganizationGenerator
       'stripe_checkout_email' => stripe_checkout_email,
 
       # Migration tracking
+      # NOTE: _original_record is added by enrich_with_original_record.rb
       'v1_identifier' => customer_record[:key],
       'v1_source_custid' => customer_fields['v1_custid'] || customer_fields['email'],
       'migration_status' => 'completed',
       'migrated_at' => Time.now.to_f.to_s,
-      '_original_record' => customer_fields.to_json,
     }
 
     # Remove nil values
