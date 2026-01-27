@@ -89,7 +89,7 @@ class OriginalRecordEnricher
     @redis      = nil
     @timestamp  = Time.now.utc.iso8601
 
-    @stats = Hash.new { |h, k| h[k] = { total: 0, enriched: 0, skipped: 0, not_found: 0, errors: [] } }
+    @stats = Hash.new { |h, k| h[k] = { total: 0, enriched: 0, related: 0, not_found: 0, errors: [] } }
   end
 
   def run
@@ -163,14 +163,14 @@ class OriginalRecordEnricher
       if record[:key]&.end_with?(':object')
         stats[:enriched] += 1
       else
-        stats[:skipped] += 1
+        stats[:related] += 1
       end
     rescue JSON::ParserError => ex
       stats[:errors] << { line: stats[:total], error: ex.message }
     end
 
     puts "  V1 object records: #{v1_count}"
-    puts "  Would enrich #{stats[:enriched]} of #{stats[:total]} transformed records"
+    puts "  Would enrich #{stats[:enriched]} :object records (#{stats[:related]} related records unchanged)"
   end
 
   def enrich_model(model, config, dump_file, transformed_file, transformed_subdir)
@@ -196,8 +196,8 @@ class OriginalRecordEnricher
           enriched = enrich_record(record, v1_lookup, binary_safe, stats)
           out.puts(JSON.generate(enriched))
         else
-          # Non-object records pass through unchanged
-          stats[:skipped] += 1
+          # Related records (lists, sets, etc.) pass through unchanged
+          stats[:related] += 1
           out.puts(line.chomp)
         end
       rescue JSON::ParserError => ex
@@ -208,7 +208,8 @@ class OriginalRecordEnricher
 
     # Atomic replace
     FileUtils.mv(temp_file, output_file)
-    puts "  Enriched #{stats[:enriched]} of #{stats[:total]} records -> #{output_file}"
+    puts "  Enriched #{stats[:enriched]} :object records (#{stats[:related]} related records unchanged)"
+    puts "  Output: #{output_file}"
     puts "  Not found in v1: #{stats[:not_found]}" if stats[:not_found] > 0
   end
 
@@ -290,7 +291,7 @@ class OriginalRecordEnricher
     temp_key = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
 
     # Filter nil values - Redis doesn't accept them
-    clean_fields = fields.reject { |_k, v| v.nil? }
+    clean_fields = fields.compact
 
     @redis.hmset(temp_key, clean_fields.to_a.flatten)
     dump_data = @redis.dump(temp_key)
@@ -320,13 +321,13 @@ class OriginalRecordEnricher
     puts "\n=== Original Record Enrichment Summary ==="
     @stats.each do |model, stats|
       puts "#{model}:"
-      puts "  Total records:  #{stats[:total]}"
-      puts "  Enriched:       #{stats[:enriched]}"
-      puts "  Skipped:        #{stats[:skipped]}"
-      puts "  V1 not found:   #{stats[:not_found]}" if stats[:not_found] > 0
+      puts "  Total records:    #{stats[:total]}"
+      puts "  :object enriched: #{stats[:enriched]}"
+      puts "  Related records:  #{stats[:related]} (lists, sets - unchanged)"
+      puts "  V1 not found:     #{stats[:not_found]}" if stats[:not_found] > 0
       next unless stats[:errors].any?
 
-      puts "  Errors:         #{stats[:errors].size}"
+      puts "  Errors:           #{stats[:errors].size}"
       stats[:errors].first(5).each do |err|
         msg = err[:line] ? "Line #{err[:line]}" : err[:key]
         puts "    #{msg}: #{err[:error]}"
