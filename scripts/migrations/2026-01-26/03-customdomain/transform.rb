@@ -72,8 +72,8 @@ class CustomDomainTransformer
 
   def run
     validate_input_file
-    load_mappings
     connect_redis unless @dry_run
+    load_mappings
 
     # 1. Group records by domain ID from the dump file
     records_by_domain = group_records_by_domain
