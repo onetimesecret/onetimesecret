@@ -12,8 +12,8 @@ Provides
 
 KEY PATTERN
 
-V1: secret:{objid}
-V2: secret:{objid}
+V1: secret:{objid}:object
+V2: secret:{objid}:object
 
 Change: None
 
@@ -24,13 +24,19 @@ Direct Copy (no transform)
   share_domain, verification, truncated, secret_key, metadata_key
 
 Transforms
-  custid (email) -> owner_id (objid)     Lookup: email_to_objid[custid]
+  custid (email) -> owner_id (customer objid)     Lookup: email_to_objid[custid]
+  custid (email) -> org_id (customer->organization.objid)
   custid (email) -> v1_custid            Preserve original
   state: 'viewed' -> state: 'previewed'  Value transform
   state: 'received' -> state: 'revealed' Value transform
+  viewed -> previewed                    Rename (keep original for compat)
+  received -> revealed                 Rename (keep original for compat)
   original_size -> v1_original_size      Move and delete original
 
 New Fields (migration-only)
+  org_id              String    Inferred Organization objid
+  domain_id           String    Inferred CustomDomain objid
+  v1_key              String    Original V1 key for rollback
   v1_identifier       String    Original V1 key for rollback
   migration_status    String    pending/migrating/completed/failed/skipped
   migrated_at         Float     Unix timestamp of completion
