@@ -57,6 +57,7 @@ class CustomDomainIndexCreator
       org_participation: 0,
       skipped: 0,
       missing_org_lookup: 0,
+      missing_org_details: [],  # Details of domains missing org lookup
       errors: [],
     }
   end
@@ -215,7 +216,15 @@ class CustomDomainIndexCreator
       return commands if domainid.nil? || domainid.empty?
 
       # Resolve custid -> org_id
-      org_id = resolve_org_id(custid)
+      org_id = resolve_org_id(
+        custid,
+        {
+          domainid: domainid,
+          extid: extid,
+          display_domain: display_domain,
+          created: created,
+        },
+      )
 
       created_ts = created.to_i
       created_ts = Time.now.to_i if created_ts.zero?
@@ -293,13 +302,14 @@ class CustomDomainIndexCreator
     commands
   end
 
-  def resolve_org_id(custid)
+  def resolve_org_id(custid, domain_info = {})
     return nil if custid.nil? || custid.empty?
 
     # Look up custid (email) -> org_id
     org_id = @customer_to_org[custid]
     if org_id.nil?
       @stats[:missing_org_lookup] += 1
+      @stats[:missing_org_details] << domain_info.merge(custid: custid)
     end
 
     org_id
@@ -342,6 +352,18 @@ class CustomDomainIndexCreator
     puts "  Organization participation: #{@stats[:org_participation]}"
     puts "  Missing org lookups: #{@stats[:missing_org_lookup]}"
     puts
+
+    # Detail missing org lookups
+    if @stats[:missing_org_details].any?
+      puts '=== Domains Missing Org Lookup ==='
+      @stats[:missing_org_details].each do |detail|
+        puts "  #{detail[:display_domain] || detail[:domainid]}"
+        puts "    custid: #{detail[:custid]}"
+        puts "    domainid: #{detail[:domainid]}"
+        puts "    extid: #{detail[:extid]}"
+      end
+      puts
+    end
 
     return unless @stats[:errors].any?
 
