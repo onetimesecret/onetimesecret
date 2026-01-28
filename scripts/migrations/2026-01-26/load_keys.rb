@@ -239,13 +239,13 @@ class KeyLoader
     case command
     when 'ZADD'
       # args: [score, member] or [score, member, score, member, ...]
-      redis.zadd(key, args)
+      redis.zadd(key, *args)
     when 'HSET'
       # args: [field, value] or [field, value, field, value, ...]
       redis.hset(key, *args)
     when 'SADD'
       # args: [member, ...]
-      redis.sadd(key, args)
+      redis.sadd(key, *args)
     when 'INCRBY'
       # args: [increment]
       redis.incrby(key, args.first.to_i)
@@ -259,7 +259,9 @@ class KeyLoader
 
   def get_redis(db)
     @redis_clients[db] ||= begin
-      client = Redis.new(url: "#{@valkey_url}/#{db}")
+      # Strip any existing database number from the URL before appending the target DB
+      base_url = @valkey_url.sub(%r{/\d+$}, '')
+      client   = Redis.new(url: "#{base_url}/#{db}")
       client.ping # Verify connection
       client
     rescue Redis::CannotConnectError => ex

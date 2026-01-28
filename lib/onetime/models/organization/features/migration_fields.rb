@@ -128,6 +128,8 @@ module Onetime
             return false if planid.to_s.empty? || planid == 'free' || planid == 'free_v1'
 
             # Parse plan info (e.g., "identity_plus_monthly" or "identity")
+            # Note: In v0.23 customer data, planid values never had underscores.
+            # Only "free" and "identity" were the available options.
             plan_parts = planid.to_s.split('_')
             plan_name  = plan_parts.first
             interval   = plan_parts.last if %w[monthly yearly].include?(plan_parts.last)
