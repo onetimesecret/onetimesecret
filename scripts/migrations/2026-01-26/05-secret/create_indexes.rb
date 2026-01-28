@@ -34,6 +34,7 @@ class SecretIndexCreator
       records_read: 0,
       records_processed: 0,
       records_skipped: 0,
+      email_keys_skipped: 0,
       missing_created: 0,
       missing_objid: 0,
       errors: [],
@@ -72,8 +73,11 @@ class SecretIndexCreator
       @stats[:records_read] += 1
       record                 = JSON.parse(line.chomp)
 
-      # Only process :object keys
-      next unless record['key']&.end_with?(':object')
+      # Only process :object keys (skip :email suffix keys)
+      unless record['key']&.end_with?(':object')
+        @stats[:email_keys_skipped] += 1 if record['key']&.end_with?(':email')
+        next
+      end
 
       objid   = extract_objid(record['key'])
       created = record['created']
@@ -100,9 +104,10 @@ class SecretIndexCreator
       @stats[:records_read] += 1
       record                 = JSON.parse(line.chomp)
 
-      # Only process :object keys (skip :email, etc.)
+      # Only process :object keys (skip :email suffix keys)
       unless record['key']&.end_with?(':object')
-        @stats[:records_skipped] += 1
+        @stats[:email_keys_skipped] += 1 if record['key']&.end_with?(':email')
+        @stats[:records_skipped]    += 1
         next
       end
 
@@ -157,7 +162,7 @@ class SecretIndexCreator
     puts '=' * 40
     puts "Records read:      #{@stats[:records_read]}"
     puts "Records processed: #{@stats[:records_processed]}"
-    puts "Records skipped:   #{@stats[:records_skipped]}"
+    puts "Records skipped:   #{@stats[:records_skipped]} (#{@stats[:email_keys_skipped]} :email suffix keys)"
     puts "Missing created:   #{@stats[:missing_created]}" if @stats[:missing_created] > 0
     puts "Missing objid:     #{@stats[:missing_objid]}" if @stats[:missing_objid] > 0
     puts "Errors:            #{@stats[:errors].size}" if @stats[:errors].any?

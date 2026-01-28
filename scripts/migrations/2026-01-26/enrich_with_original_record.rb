@@ -69,13 +69,14 @@ class OriginalRecordEnricher
     },
     'metadata' => {
       # NOTE: metadata becomes receipt, but dump file is still metadata
+      # The transformed file lives in exports/metadata/ with plural name
       dump_file: 'metadata_dump.jsonl',
-      transformed_file: 'receipt_transformed.jsonl',
+      transformed_file: 'receipts_transformed.jsonl',
       binary_safe: false,
     },
     'secret' => {
       dump_file: 'secret_dump.jsonl',
-      transformed_file: 'secret_transformed.jsonl',
+      transformed_file: 'secrets_transformed.jsonl',
       binary_safe: true,
     },
   }.freeze
@@ -117,12 +118,12 @@ class OriginalRecordEnricher
   end
 
   def process_model(model, config)
-    # Determine the correct subdirectory for dump vs transformed files
-    dump_subdir        = model == 'metadata' ? 'metadata' : model
-    transformed_subdir = model == 'metadata' ? 'receipt' : model
+    # Both dump and transformed files live in the same subdirectory
+    # (metadata/ for metadata->receipts, secret/ for secrets, etc.)
+    subdir = model
 
-    dump_file        = File.join(@input_dir, dump_subdir, config[:dump_file])
-    transformed_file = File.join(@input_dir, transformed_subdir, config[:transformed_file])
+    dump_file        = File.join(@input_dir, subdir, config[:dump_file])
+    transformed_file = File.join(@input_dir, subdir, config[:transformed_file])
 
     unless File.exist?(dump_file)
       puts "Skipping #{model}: #{dump_file} not found"
@@ -139,7 +140,7 @@ class OriginalRecordEnricher
     if @dry_run
       dry_run_model(model, dump_file, transformed_file)
     else
-      enrich_model(model, config, dump_file, transformed_file, transformed_subdir)
+      enrich_model(model, config, dump_file, transformed_file, subdir)
     end
   end
 

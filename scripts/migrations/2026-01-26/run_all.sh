@@ -18,10 +18,9 @@ echo "=== Organization ==="
 ruby "$DIR/02-organization/generate.rb"
 ruby "$DIR/02-organization/create_indexes.rb"
 
-# echo "=== Domain ==="
+echo "=== Domain ==="
 ruby "$DIR/03-customdomain/transform.rb"
 ruby "$DIR/03-customdomain/create_indexes.rb"
-
 
 echo "=== Receipt ==="
 ruby "$DIR/04-receipt/transform.rb"
@@ -32,9 +31,6 @@ ruby "$DIR/05-secret/transform.rb"
 ruby "$DIR/05-secret/create_indexes.rb"
 
 # echo "=== Enriching with original records ==="
-# ruby "$DIR/enrich_with_original_record.rb" customer
-# ruby "$DIR/enrich_with_original_record.rb" customdomain
-# ruby "$DIR/enrich_with_original_record.rb" receipt
-# ruby "$DIR/enrich_with_original_record.rb" secret
+ruby "$DIR/enrich_with_original_record.rb"
 
-# echo "=== Done ==="
+echo "=== Done ==="

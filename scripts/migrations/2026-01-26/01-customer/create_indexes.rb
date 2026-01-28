@@ -362,12 +362,20 @@ class CustomerIndexCreator
       end
     end
 
-    puts "Wrote #{commands.size} commands to #{output_file}"
+    @stats[:indexes_written] = commands.size
+    @stats[:lookups_written] = @email_to_objid.size
+
+    # Write email->objid lookup for use by receipt index creation
+    lookup_file = File.join(@output_dir, 'email_to_objid.json')
+    File.write(lookup_file, JSON.pretty_generate(@email_to_objid))
   end
 
   def print_summary
     puts "\n=== Customer Index Creation Summary ==="
-    puts "Input file: #{@input_file}"
+    puts "Input:  #{@input_file}"
+    puts "Output: #{File.join(@output_dir, 'customer_indexes.jsonl')}"
+    puts "Lookup: #{File.join(@output_dir, 'email_to_objid.json')}"
+    puts
     puts "Records read: #{@stats[:records_read]}"
     puts "Objects processed: #{@stats[:objects_processed]}"
     puts "Skipped records: #{@stats[:skipped]}"
@@ -396,6 +404,11 @@ class CustomerIndexCreator
     COUNTER_FIELDS.each do |field|
       puts "  #{field}: #{@stats[:counters][field]}"
     end
+    puts
+
+    puts 'Written:'
+    puts "  Index commands: #{@stats[:indexes_written]}"
+    puts "  Email->objid mappings: #{@stats[:lookups_written]}"
     puts
 
     return unless @stats[:errors].any?

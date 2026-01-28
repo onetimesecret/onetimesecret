@@ -9,10 +9,10 @@
 #
 # Options:
 #   --input-file=PATH      Input JSONL file (default: exports/metadata/metadata_dump.jsonl)
-#   --output-dir=DIR       Output directory (default: exports/receipt)
-#   --customer-lookup=PATH Path to customer email→objid JSON map
-#   --org-lookup=PATH      Path to customer objid→org objid JSON map
-#   --domain-lookup=PATH   Path to domain fqdn→domainid JSON map
+#   --output-dir=DIR       Output directory (default: exports/metadata)
+#   --customer-lookup=PATH Path to customer email→objid JSON map (default: exports/customer/email_to_objid.json)
+#   --org-lookup=PATH      Path to customer objid→org objid JSON map (default: exports/organization/customer_objid_to_org_objid.json)
+#   --domain-lookup=PATH   Path to domain fqdn→objid JSON map (default: exports/customdomain/fqdn_to_objid.json)
 #   --dry-run              Show what would be created without writing
 #   --help                 Show this help
 #
@@ -29,10 +29,12 @@ require 'fileutils'
 require 'securerandom'
 
 class ReceiptIndexCreator
-  DEFAULT_INPUT         = 'exports/metadata/metadata_dump.jsonl'
-  DEFAULT_OUTPUT_DIR    = 'exports/receipt'
-  OUTPUT_FILENAME       = 'receipt_indexes.jsonl'
-  DEFAULT_DOMAIN_LOOKUP = 'exports/customdomain/domain_lookup.json'
+  DEFAULT_INPUT           = 'exports/metadata/metadata_dump.jsonl'
+  DEFAULT_OUTPUT_DIR      = 'exports/metadata'
+  OUTPUT_FILENAME         = 'receipt_indexes.jsonl'
+  DEFAULT_CUSTOMER_LOOKUP = 'exports/customer/email_to_objid.json'
+  DEFAULT_ORG_LOOKUP      = 'exports/organization/customer_objid_to_org_objid.json'
+  DEFAULT_DOMAIN_LOOKUP   = 'exports/customdomain/fqdn_to_objid.json'
 
   def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, dry_run: false)
     @input_file           = input_file
@@ -62,6 +64,7 @@ class ReceiptIndexCreator
       missing_org_lookups: 0,
       missing_domain_lookups: 0,
       missing_domains: Hash.new(0),  # Track FQDN -> count
+      missing_custids: Hash.new(0),  # Track custid -> count for diagnostics
       anonymous_receipts: 0,
     }
   end
@@ -84,7 +87,10 @@ class ReceiptIndexCreator
   private
 
   def load_lookup(path, name)
-    return {} if path.nil? || path.empty?
+    if path.nil? || path.empty?
+      puts "  #{name} lookup: not specified (use --#{name}-lookup=PATH)"
+      return {}
+    end
 
     unless File.exist?(path)
       warn "Warning: #{name} lookup file not found: #{path}"
@@ -279,6 +285,7 @@ class ReceiptIndexCreator
     owner_id = @customer_lookup[custid]
     if owner_id.nil?
       @stats[:missing_customer_lookups] += 1
+      @stats[:missing_custids][custid]  += 1
       # Return nil to skip customer index, but continue processing
       return nil
     end
@@ -341,6 +348,24 @@ class ReceiptIndexCreator
       end
     end
 
+    if @stats[:missing_custids].any?
+      puts
+      unique_count = @stats[:missing_custids].size
+      total_count  = @stats[:missing_customer_lookups]
+      puts "Missing custid lookups: #{unique_count} unique custids (#{total_count} total occurrences)"
+      puts 'Sample custids not found (top 10 by frequency):'
+      @stats[:missing_custids].sort_by { |_, count| -count }.first(10).each do |custid, count|
+        # Truncate long emails for display
+        display = custid.length > 40 ? "#{custid[0, 37]}..." : custid
+        puts "  #{display}: #{count}"
+      end
+      if @customer_lookup.empty?
+        puts
+        puts '  NOTE: No customer lookup loaded. Use --customer-lookup=PATH to provide'
+        puts '        a JSON file mapping custid (email) -> customer objid'
+      end
+    end
+
     return unless @stats[:errors].any?
 
     puts
@@ -355,8 +380,8 @@ def parse_args(args)
   options = {
     input_file: ReceiptIndexCreator::DEFAULT_INPUT,
     output_dir: ReceiptIndexCreator::DEFAULT_OUTPUT_DIR,
-    customer_lookup: nil,
-    org_lookup: nil,
+    customer_lookup: ReceiptIndexCreator::DEFAULT_CUSTOMER_LOOKUP,
+    org_lookup: ReceiptIndexCreator::DEFAULT_ORG_LOOKUP,
     domain_lookup: ReceiptIndexCreator::DEFAULT_DOMAIN_LOOKUP,
     dry_run: false,
   }
@@ -383,17 +408,20 @@ def parse_args(args)
 
         Options:
           --input-file=PATH      Input JSONL (default: exports/metadata/metadata_dump.jsonl)
-          --output-dir=DIR       Output directory (default: exports/receipt)
+          --output-dir=DIR       Output directory (default: exports/metadata)
           --customer-lookup=PATH JSON file mapping email -> customer objid
+                                 (default: exports/customer/email_to_objid.json)
           --org-lookup=PATH      JSON file mapping customer objid -> org objid
-          --domain-lookup=PATH   JSON file mapping fqdn -> domain id
+                                 (default: exports/organization/customer_objid_to_org_objid.json)
+          --domain-lookup=PATH   JSON file mapping fqdn -> objid
+                                 (default: exports/customdomain/fqdn_to_objid.json)
           --dry-run              Show what would be created
           --help                 Show this help
 
         Lookup file formats:
           customer-lookup: {"user@example.com": "objid123", ...}
           org-lookup:      {"customer_objid": "org_objid", ...}
-          domain-lookup:   {"secrets.example.com": "domainid456", ...}
+          domain-lookup:   {"secrets.example.com": "01234567-89ab-...", ...}
 
         Output: JSONL with Redis commands (ZADD, HSET)
 

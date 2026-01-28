@@ -62,6 +62,8 @@ class CustomDomainTransformer
     @email_to_org      = {}
     @email_to_customer = {}
 
+    @fqdn_to_objid = {}  # FQDN -> objid mapping for downstream consumers
+
     @stats = {
       domains_processed: 0,
       v1_records_read: 0,
@@ -315,6 +317,12 @@ class CustomDomainTransformer
 
     @stats[:transformed_objects] += 1
 
+    # Track FQDN -> objid mapping for downstream consumers (receipt/secret indexers)
+    display_domain = v2_fields['display_domain']
+    if display_domain && !display_domain.empty?
+      @fqdn_to_objid[display_domain] = objid
+    end
+
     {
       key: "custom_domain:#{objid}:object",  # NOTE: underscore added per spec
       type: 'hash',
@@ -383,6 +391,11 @@ class CustomDomainTransformer
       end
     end
     puts "Wrote #{@stats[:v2_records_written]} transformed records to #{output_file}"
+
+    # Write FQDN -> objid lookup for downstream consumers (receipt/secret indexers)
+    lookup_file = File.join(@output_dir, 'fqdn_to_objid.json')
+    File.write(lookup_file, JSON.pretty_generate(@fqdn_to_objid))
+    puts "Wrote #{@fqdn_to_objid.size} FQDN->objid mappings to #{lookup_file}"
   end
 
   def print_summary
