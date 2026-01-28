@@ -19,7 +19,7 @@
 # Input: exports/customer/customer_transformed.jsonl (V2 customer records)
 # Output:
 #   - exports/organization/organization_generated.jsonl (V2 organization records)
-#   - exports/organization/debug_customer_to_org.json (debug: customer_objid -> org_objid)
+#   - exports/organization/customer_email_to_org_objid.json (debug: customer_objid -> org_objid)
 
 require 'redis'
 require 'json'
@@ -291,7 +291,7 @@ class OrganizationGenerator
 
     # Write customer->org lookup
     # Debug file for development/troubleshooting
-    debug_file = File.join(@output_dir, 'debug_customer_to_org.json')
+    debug_file = File.join(@output_dir, 'customer_email_to_org_objid.json')
     File.write(debug_file, JSON.pretty_generate(@customer_to_org))
     puts "Wrote #{@customer_to_org.size} debug mappings to #{debug_file}"
   end
@@ -346,7 +346,7 @@ def parse_args(args)
 
         Output files:
           organization_generated.jsonl - V2 organization records with DUMP data
-          debug_customer_to_org.json   - debug: customer_objid -> org_objid mapping
+          customer_email_to_org_objid.json   - debug: customer_objid -> org_objid mapping
 
         Run this BEFORE create_indexes.rb to establish org_objid values.
       HELP

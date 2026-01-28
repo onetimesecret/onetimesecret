@@ -17,7 +17,7 @@
 # Options:
 #   --input-file=FILE        Input JSONL dump file (default: exports/customdomain/customdomain_dump.jsonl)
 #   --output-dir=DIR         Output directory (default: exports/customdomain)
-#   --email-to-org=FILE      JSON map of email -> org_objid (from organization/debug_customer_to_org.json)
+#   --email-to-org=FILE      JSON map of email -> org_objid (from organization/customer_email_to_org_objid.json)
 #   --email-to-customer=FILE JSON map of email -> customer_objid (built from customer transform)
 #   --redis-url=URL          Redis URL for temporary operations (default: redis://127.0.0.1:6379)
 #   --temp-db=N              Temporary database for restore/dump (default: 15)
@@ -27,7 +27,7 @@
 #
 # Dependencies:
 #   - Phase 1 Customer migration (provides email->customer_objid via customer_transformed.jsonl)
-#   - Phase 2 Organization migration (provides email->org_objid via debug_customer_to_org.json)
+#   - Phase 2 Organization migration (provides email->org_objid via customer_email_to_org_objid.json)
 
 require 'redis'
 require 'json'
@@ -103,7 +103,7 @@ class CustomDomainTransformer
   def load_mappings
     # Load email -> org_objid mapping
     if @email_to_org_file && File.exist?(@email_to_org_file)
-      # The debug_customer_to_org.json is customer_objid -> org_objid
+      # The customer_email_to_org_objid.json is customer_objid -> org_objid
       # We need email -> org_objid, so we'll need to build that from customer data
       # Actually, looking at organization/generate.rb, it outputs customer_objid -> org_objid
       # We need to build email -> org_objid by reading customer_transformed.jsonl
@@ -408,7 +408,7 @@ def parse_args(args)
   options = {
     input_file: 'exports/customdomain/customdomain_dump.jsonl',
     output_dir: 'exports/customdomain',
-    email_to_org: 'exports/organization/debug_customer_to_org.json',
+    email_to_org: 'exports/organization/customer_email_to_org_objid.json',
     email_to_customer: 'exports/customer/customer_transformed.jsonl',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
@@ -433,7 +433,7 @@ def parse_args(args)
         Options:
           --input-file=FILE        Input JSONL dump (default: exports/customdomain/customdomain_dump.jsonl)
           --output-dir=DIR         Output directory (default: exports/customdomain)
-          --email-to-org=FILE      customer_objid->org_objid JSON map (default: exports/organization/debug_customer_to_org.json)
+          --email-to-org=FILE      customer_objid->org_objid JSON map (default: exports/organization/customer_email_to_org_objid.json)
           --email-to-customer=FILE customer transformed JSONL for email->objid (default: exports/customer/customer_transformed.jsonl)
           --redis-url=URL          Redis URL for temp operations (default: redis://127.0.0.1:6379)
           --temp-db=N              Temp database number (default: 15)
