@@ -83,7 +83,7 @@ class CustomDomainTransformer
     records_by_domain.each do |domainid, records|
       v2_records.concat(process_domain(domainid, records))
     rescue StandardError => ex
-      @stats[:errors] << { domain: domainid, error: "Processing failed: #{ex.message}" }
+      @stats[:errors] << { domain: domainid, records: records, error: "Processing failed: #{ex.message}" }
     end
 
     # 3. Write the transformed records to the output file
@@ -400,8 +400,7 @@ class CustomDomainTransformer
     return unless @stats[:errors].any?
 
     puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each { |err| puts "  - #{err}" }
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
+    @stats[:errors].each { |err| puts "  - #{err}" }
   end
 end
 
