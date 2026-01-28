@@ -1,4 +1,4 @@
-# migrations/pending/20250727-1523_02_big_reorganize_config_structure.rb
+# migrations/2025-07-27/big_reorganize_config_structure.rb
 #
 # frozen_string_literal: true
 
@@ -17,13 +17,16 @@
 # Install with: brew install yq (macOS) or apt install yq (Ubuntu)
 #
 # Usage:
-#   bin/ots migrate 20250727-1523_02_reorganize_config_structure.rb           # Preview changes
-#   bin/ots migrate --run 20250727-1523_02_reorganize_config_structure.rb     # Execute migration
+#   bin/ots migrate 2025-07-27/reorganize_config_structure.rb           # Preview changes
+#   bin/ots migrate --run 2025-07-27/reorganize_config_structure.rb     # Execute migration
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml
 #   2. Creates a new config file with reorganized hierarchy
 #   3. Replaces the original with the reorganized version
+
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
 require 'yaml'

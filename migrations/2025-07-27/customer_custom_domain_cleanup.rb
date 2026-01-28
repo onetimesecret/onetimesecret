@@ -1,4 +1,4 @@
-# migrations/20250728-1512_02_customer_custom_domain_cleanup.rb
+# migrations/2025-07-27/customer_custom_domain_cleanup.rb
 #
 # frozen_string_literal: true
 
@@ -17,6 +17,9 @@
 #   bin/ots migrate 1512_02_custom_domain_cleanup.rb # Preview changes
 #   bin/ots migrate --run 1512_02_custom_domain_cleanup.rb
 #
+
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
 

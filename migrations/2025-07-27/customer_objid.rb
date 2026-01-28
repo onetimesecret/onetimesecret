@@ -1,4 +1,4 @@
-# migrations/20250728-1512_00_customer_objid.rb
+# migrations/2025-07-27/customer_objid.rb
 #
 # frozen_string_literal: true
 
@@ -26,6 +26,9 @@
 #   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --dry-run  # Preview changes
 #   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --run
 #
+
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
 require 'onetime/refinements/uuidv7_refinements'

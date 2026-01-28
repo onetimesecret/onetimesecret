@@ -1,4 +1,4 @@
-# migrations/20250727-1523_01_convert_symbol_keys.rb
+# migrations/2025-07-27/convert_symbol_keys.rb
 #
 # frozen_string_literal: true
 
@@ -28,10 +28,13 @@
 #   - Top-level:  `:key:` → `key:`
 #   - Nested:     `  :key:` → `  key:`
 #   - Array items: `- :key:` → `- key:`
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
-require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
+
+require 'onetime/migration'
 
 module Onetime
   class Migration < BaseMigration
