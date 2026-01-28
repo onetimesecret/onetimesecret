@@ -18,7 +18,7 @@ echo "=== Organization ==="
 ruby "$DIR/02-organization/generate.rb"
 ruby "$DIR/02-organization/create_indexes.rb"
 
-echo "=== Domain ==="
+# echo "=== Domain ==="
 ruby "$DIR/03-customdomain/transform.rb"
 ruby "$DIR/03-customdomain/create_indexes.rb"
 

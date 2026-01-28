@@ -38,6 +38,10 @@ require 'securerandom'
 class CustomDomainTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_domain_'
 
+  # V1 index keys that should be skipped (not domain-specific records)
+  # These are 2-part keys like customdomain:owners, customdomain:display_domains
+  V1_INDEX_KEYS = %w[owners display_domains instances values].freeze
+
   # Fields to copy directly without transformation
   DIRECT_COPY_FIELDS = %w[
     domainid display_domain base_domain subdomain trd tld sld
@@ -66,6 +70,8 @@ class CustomDomainTransformer
       renamed_related: Hash.new(0),
       skipped_domains: 0,
       missing_org_mapping: 0,
+      missing_object_records: [],    # Domains with no :object record
+      unmapped_custids: [],          # Domains where custid couldn't be mapped to org
       errors: [],
     }
   end
@@ -201,16 +207,17 @@ class CustomDomainTransformer
       key = record[:key]
       next unless key
 
-      # Handle customdomain:values (instance index) separately
-      if key == 'customdomain:values'
-        # Store for later - will be renamed to customdomain:instances
-        groups['__instance_index__'] << record
-        next
-      end
-
-      # Parse customdomain:{domainid}:{type} or customdomain:{domainid}
+      # Parse key parts: customdomain:{identifier}:{type} or customdomain:{identifier}
       key_parts = key.split(':')
       next unless key_parts.first == 'customdomain' && key_parts.size >= 2
+
+      # Skip V1 index keys (2-part keys where second part is an index name)
+      # e.g., customdomain:owners, customdomain:display_domains, customdomain:values
+      if key_parts.size == 2 && V1_INDEX_KEYS.include?(key_parts[1])
+        # Store instance indexes for later processing if needed
+        groups['__instance_index__'] << record if key_parts[1] == 'values'
+        next
+      end
 
       domainid = key_parts[1]
       groups[domainid] << record
@@ -229,6 +236,12 @@ class CustomDomainTransformer
     object_record = records.find { |r| r[:key].end_with?(':object') }
     unless object_record
       @stats[:skipped_domains] += 1
+      related_keys              = records.map { |r| r[:key] }
+      @stats[:missing_object_records] << {
+        domainid: domainid,
+        related_keys: related_keys,
+        record_count: records.size,
+      }
       @stats[:errors] << { domain: domainid, error: 'No :object record found.' }
       return []
     end
@@ -281,6 +294,16 @@ class CustomDomainTransformer
         v2_fields['org_id'] = org_id
       else
         @stats[:missing_org_mapping] += 1
+        customer_objid                = @email_to_customer[custid]
+        @stats[:unmapped_custids] << {
+          domainid: v1_fields['domainid'],
+          objid: objid,
+          custid: custid,
+          display_domain: v1_fields['display_domain'],
+          created: v1_fields['created'],
+          customer_objid: customer_objid,
+          reason: customer_objid ? 'customer_objid not in org mapping' : 'custid not in customer mapping',
+        }
         @stats[:errors] << { domain: objid, error: "No org mapping for custid: #{custid}" }
       end
     end
@@ -395,12 +418,84 @@ class CustomDomainTransformer
 
     puts 'Mapping Issues:'
     puts "  Missing org mappings: #{@stats[:missing_org_mapping]}"
+    puts "  Missing object records: #{@stats[:missing_object_records].size}"
     puts
+
+    # Detail missing object records
+    if @stats[:missing_object_records].any?
+      puts '=== Domains Missing :object Record (Manual Follow-up Required) ==='
+      @stats[:missing_object_records].each do |record|
+        puts "  Domain ID: #{record[:domainid]}"
+        puts "    Related keys (#{record[:record_count]}): #{record[:related_keys].join(', ')}"
+      end
+      puts
+    end
+
+    # Detail unmapped custids with actionable information
+    if @stats[:unmapped_custids].any?
+      puts '=== Domains With Unmapped Custid (Manual Follow-up Required) ==='
+      by_reason = @stats[:unmapped_custids].group_by { |r| r[:reason] }
+
+      by_reason.each do |reason, records|
+        puts "  #{reason} (#{records.size}):"
+        records.first(10).each do |record|
+          puts "    - #{record[:display_domain] || record[:domainid]}"
+          puts "      custid: #{record[:custid]}"
+          puts "      objid: #{record[:objid]}"
+          puts "      customer_objid: #{record[:customer_objid] || '(not found)'}"
+          puts "      created: #{record[:created]}"
+        end
+        puts "    ... and #{records.size - 10} more" if records.size > 10
+      end
+      puts
+    end
+
+    # Write follow-up files for manual review
+    write_followup_files unless @dry_run
 
     return unless @stats[:errors].any?
 
     puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].each { |err| puts "  - #{err}" }
+    @stats[:errors].first(20).each { |err| puts "  - #{err}" }
+    puts "  ... and #{@stats[:errors].size - 20} more" if @stats[:errors].size > 20
+  end
+
+  def write_followup_files
+    return if @stats[:missing_object_records].empty? && @stats[:unmapped_custids].empty?
+
+    FileUtils.mkdir_p(@output_dir)
+
+    # Write missing object records for follow-up
+    if @stats[:missing_object_records].any?
+      file = File.join(@output_dir, 'followup_missing_objects.json')
+      File.write(file, JSON.pretty_generate(@stats[:missing_object_records]))
+      puts "Wrote #{@stats[:missing_object_records].size} missing object records to #{file}"
+    end
+
+    # Write unmapped custids for follow-up
+    return unless @stats[:unmapped_custids].any?
+
+    file     = File.join(@output_dir, 'followup_unmapped_custids.json')
+    File.write(file, JSON.pretty_generate(@stats[:unmapped_custids]))
+    puts "Wrote #{@stats[:unmapped_custids].size} unmapped custid records to #{file}"
+
+    # Also write a simple CSV for easier review
+    csv_file = File.join(@output_dir, 'followup_unmapped_custids.csv')
+    File.open(csv_file, 'w') do |f|
+      f.puts 'domainid,objid,custid,display_domain,customer_objid,reason,created'
+      @stats[:unmapped_custids].each do |record|
+        f.puts [
+          record[:domainid],
+          record[:objid],
+          record[:custid],
+          record[:display_domain],
+          record[:customer_objid],
+          record[:reason],
+          record[:created],
+        ].map { |v| "\"#{v}\"" }.join(',')
+      end
+    end
+    puts "Wrote CSV summary to #{csv_file}"
   end
 end
 
