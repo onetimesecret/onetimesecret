@@ -1,4 +1,4 @@
-# migrations/20250727-1523_02_reorganize_config_structure.rb
+# migrations/pending/20250727-1523_02_big_reorganize_config_structure.rb
 #
 # frozen_string_literal: true
 
@@ -17,19 +17,14 @@
 # Install with: brew install yq (macOS) or apt install yq (Ubuntu)
 #
 # Usage:
-#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --dry-run  # Preview changes
-#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --run      # Execute migration
-#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --check    # Exit 1 if needed, 0 if not
+#   bin/ots migrate 20250727-1523_02_reorganize_config_structure.rb           # Preview changes
+#   bin/ots migrate --run 20250727-1523_02_reorganize_config_structure.rb     # Execute migration
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml
 #   2. Creates a new config file with reorganized hierarchy
 #   3. Replaces the original with the reorganized version
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
-require 'onetime'
 require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
@@ -91,7 +86,7 @@ module Onetime
     ].freeze
 
     def prepare
-      @base_path               = BASE_PATH
+      @base_path               = OT::HOME
       @source_config           = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix           = Time.now.strftime('%Y%m%d%H%M%S')
       @temp_config             = File.join(@base_path, 'etc', 'config.reorganized.yaml')
@@ -107,11 +102,11 @@ module Onetime
       end
 
       # Check for symbol keys first - if found, migration 01 needs to run first
-      if has_symbol_keys?
+      if symbol_keys?
         @blocked_by_prerequisite = true
         error 'Prerequisite not met: config still has symbol keys'
         error 'Run migration 01 first:'
-        error '  ruby migrations/20250727-1523_01_convert_symbol_keys.rb --run'
+        error '  bin/ots migrate --run 20250727-1523_01_convert_symbol_keys.rb'
         return false
       end
 
@@ -172,7 +167,7 @@ module Onetime
       path.sub("#{@base_path}/", '')
     end
 
-    def has_symbol_keys?
+    def symbol_keys?
       content = File.read(@source_config)
       content.match?(/^(\s*)(-\s*)?:([a-zA-Z_][a-zA-Z0-9_]*):/)
     end
@@ -251,9 +246,7 @@ module Onetime
       case value
       when String
         escape_for_yq(value)
-      when TrueClass, FalseClass
-        value.to_s
-      when Numeric
+      when TrueClass, FalseClass, Numeric
         value.to_s
       when NilClass
         'null'
