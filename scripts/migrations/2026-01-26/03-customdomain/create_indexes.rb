@@ -11,7 +11,7 @@
 # Options:
 #   --input-file=FILE       Input JSONL dump file (default: exports/customdomain/customdomain_dump.jsonl)
 #   --output-dir=DIR        Output directory (default: exports/customdomain)
-#   --customer-lookup=FILE  Customer email->org_objid JSON map (for custid->org_id transform)
+#   --customer-lookup=FILE  Email->org_objid JSON map (default: exports/organization/email_to_org_objid.json)
 #   --redis-url=URL         Redis URL for temporary restore (default: redis://127.0.0.1:6379)
 #   --temp-db=N             Temporary database for restore operations (default: 15)
 #   --dry-run               Parse and count without writing output
@@ -104,19 +104,17 @@ class CustomDomainIndexCreator
   private
 
   def load_customer_lookup
-    return {} if @customer_lookup_file.nil? || @customer_lookup_file.empty?
+    if @customer_lookup_file.nil? || @customer_lookup_file.empty?
+      raise ArgumentError, 'Customer lookup file is required (--customer-lookup or default)'
+    end
 
     unless File.exist?(@customer_lookup_file)
-      warn "Warning: Customer lookup file not found: #{@customer_lookup_file}"
-      return {}
+      raise ArgumentError, "Customer lookup file not found: #{@customer_lookup_file}"
     end
 
     data = JSON.parse(File.read(@customer_lookup_file))
-    puts "Loaded #{data.size} customer->org mappings"
+    puts "Loaded #{data.size} email->org mappings from #{@customer_lookup_file}"
     data
-  rescue JSON::ParserError => ex
-    warn "Error parsing customer lookup file: #{ex.message}"
-    {}
   end
 
   def validate_input_file
@@ -379,7 +377,7 @@ def parse_args(args)
   options = {
     input_file: 'exports/customdomain/customdomain_dump.jsonl',
     output_dir: 'exports/customdomain',
-    customer_lookup: nil,
+    customer_lookup: 'exports/organization/email_to_org_objid.json',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -408,7 +406,7 @@ def parse_args(args)
         Options:
           --input-file=FILE       Input JSONL dump (default: exports/customdomain/customdomain_dump.jsonl)
           --output-dir=DIR        Output directory (default: exports/customdomain)
-          --customer-lookup=FILE  Customer email->org_objid JSON map
+          --customer-lookup=FILE  Email->org_objid JSON map (default: exports/organization/email_to_org_objid.json)
           --redis-url=URL         Redis URL for temp restore (default: redis://127.0.0.1:6379)
           --temp-db=N             Temp database number (default: 15)
           --dry-run               Parse without writing output

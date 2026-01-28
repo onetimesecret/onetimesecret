@@ -19,7 +19,8 @@
 # Input: exports/customer/customer_transformed.jsonl (V2 customer records)
 # Output:
 #   - exports/organization/organization_generated.jsonl (V2 organization records)
-#   - exports/organization/customer_email_to_org_objid.json (debug: customer_objid -> org_objid)
+#   - exports/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
+#   - exports/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
 
 require 'redis'
 require 'json'
@@ -49,6 +50,7 @@ class OrganizationGenerator
     }
 
     @customer_to_org = {}  # customer_objid -> org_objid
+    @email_to_org    = {}  # email -> org_objid
     @org_records     = []  # Generated organization JSONL records
   end
 
@@ -128,7 +130,12 @@ class OrganizationGenerator
 
     @org_records << org_record
     @customer_to_org[customer_objid] = org_record[:objid]
-    @stats[:organizations_created]  += 1
+
+    # Also track email -> org_objid for downstream scripts (customdomain, etc.)
+    email                = org_record[:contact_email]
+    @email_to_org[email] = org_record[:objid] if email && !email.empty?
+
+    @stats[:organizations_created] += 1
   end
 
   def restore_and_read_hash(record)
@@ -219,6 +226,7 @@ class OrganizationGenerator
       objid: org_objid,
       extid: org_extid,
       owner_id: customer_objid,
+      contact_email: email,
       created: created,
     }
   end
@@ -289,11 +297,15 @@ class OrganizationGenerator
     end
     puts "Wrote #{@org_records.size} organization records to #{org_file}"
 
-    # Write customer->org lookup
-    # Debug file for development/troubleshooting
-    debug_file = File.join(@output_dir, 'customer_email_to_org_objid.json')
-    File.write(debug_file, JSON.pretty_generate(@customer_to_org))
-    puts "Wrote #{@customer_to_org.size} debug mappings to #{debug_file}"
+    # Write customer_objid -> org_objid lookup (debug/reference)
+    customer_lookup_file = File.join(@output_dir, 'customer_objid_to_org_objid.json')
+    File.write(customer_lookup_file, JSON.pretty_generate(@customer_to_org))
+    puts "Wrote #{@customer_to_org.size} customer->org mappings to #{customer_lookup_file}"
+
+    # Write email -> org_objid lookup (used by customdomain create_indexes.rb)
+    email_lookup_file = File.join(@output_dir, 'email_to_org_objid.json')
+    File.write(email_lookup_file, JSON.pretty_generate(@email_to_org))
+    puts "Wrote #{@email_to_org.size} email->org mappings to #{email_lookup_file}"
   end
 
   def print_summary
@@ -345,8 +357,9 @@ def parse_args(args)
           --help              Show this help
 
         Output files:
-          organization_generated.jsonl - V2 organization records with DUMP data
-          customer_email_to_org_objid.json   - debug: customer_objid -> org_objid mapping
+          organization_generated.jsonl       - V2 organization records with DUMP data
+          customer_objid_to_org_objid.json   - customer_objid -> org_objid mapping
+          email_to_org_objid.json            - email -> org_objid (for customdomain)
 
         Run this BEFORE create_indexes.rb to establish org_objid values.
       HELP
