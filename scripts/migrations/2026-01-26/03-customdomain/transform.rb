@@ -17,7 +17,7 @@
 # Options:
 #   --input-file=FILE        Input JSONL dump file (default: exports/customdomain/customdomain_dump.jsonl)
 #   --output-dir=DIR         Output directory (default: exports/customdomain)
-#   --email-to-org=FILE      JSON map of email -> org_objid (from organization/customer_email_to_org_objid.json)
+#   --email-to-org=FILE      JSON map of email -> org_objid (default: exports/organization/email_to_org_objid.json)
 #   --email-to-customer=FILE JSON map of email -> customer_objid (built from customer transform)
 #   --redis-url=URL          Redis URL for temporary operations (default: redis://127.0.0.1:6379)
 #   --temp-db=N              Temporary database for restore/dump (default: 15)
@@ -27,7 +27,7 @@
 #
 # Dependencies:
 #   - Phase 1 Customer migration (provides email->customer_objid via customer_transformed.jsonl)
-#   - Phase 2 Organization migration (provides email->org_objid via customer_email_to_org_objid.json)
+#   - Phase 2 Organization migration (provides email->org_objid via email_to_org_objid.json)
 
 require 'redis'
 require 'json'
@@ -107,21 +107,17 @@ class CustomDomainTransformer
   end
 
   def load_mappings
-    # Load email -> org_objid mapping
-    if @email_to_org_file && File.exist?(@email_to_org_file)
-      # The customer_email_to_org_objid.json is customer_objid -> org_objid
-      # We need email -> org_objid, so we'll need to build that from customer data
-      # Actually, looking at organization/generate.rb, it outputs customer_objid -> org_objid
-      # We need to build email -> org_objid by reading customer_transformed.jsonl
-      raw_data               = JSON.parse(File.read(@email_to_org_file))
-      # This file is customer_objid -> org_objid, not email -> org_objid
-      # We need a different approach - load from organization's contact_email mapping
-      @customer_objid_to_org = raw_data
-      puts "Loaded #{raw_data.size} customer_objid->org mappings from #{@email_to_org_file}"
-    else
-      @customer_objid_to_org = {}
-      warn "Warning: email_to_org file not found: #{@email_to_org_file}" if @email_to_org_file
+    # Load email -> org_objid mapping (direct from organization generate.rb output)
+    if @email_to_org_file.nil? || @email_to_org_file.empty?
+      raise ArgumentError, 'Email-to-org mapping file is required'
     end
+
+    unless File.exist?(@email_to_org_file)
+      raise ArgumentError, "Email-to-org mapping file not found: #{@email_to_org_file}"
+    end
+
+    @email_to_org = JSON.parse(File.read(@email_to_org_file))
+    puts "Loaded #{@email_to_org.size} email->org mappings from #{@email_to_org_file}"
 
     # Load email -> customer_objid mapping by reading customer_transformed.jsonl
     if @email_to_customer_file && File.exist?(@email_to_customer_file)
@@ -130,13 +126,6 @@ class CustomDomainTransformer
     elsif @email_to_customer_file
       warn "Warning: email_to_customer file not found: #{@email_to_customer_file}"
     end
-
-    # Build email -> org_objid by combining the two mappings
-    @email_to_customer.each do |email, customer_objid|
-      org_objid            = @customer_objid_to_org[customer_objid]
-      @email_to_org[email] = org_objid if org_objid
-    end
-    puts "Built #{@email_to_org.size} email->org_objid mappings"
   end
 
   def build_email_to_customer_mapping(customer_file)
@@ -503,7 +492,7 @@ def parse_args(args)
   options = {
     input_file: 'exports/customdomain/customdomain_dump.jsonl',
     output_dir: 'exports/customdomain',
-    email_to_org: 'exports/organization/customer_email_to_org_objid.json',
+    email_to_org: 'exports/organization/email_to_org_objid.json',
     email_to_customer: 'exports/customer/customer_transformed.jsonl',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
@@ -528,7 +517,7 @@ def parse_args(args)
         Options:
           --input-file=FILE        Input JSONL dump (default: exports/customdomain/customdomain_dump.jsonl)
           --output-dir=DIR         Output directory (default: exports/customdomain)
-          --email-to-org=FILE      customer_objid->org_objid JSON map (default: exports/organization/customer_email_to_org_objid.json)
+          --email-to-org=FILE      email->org_objid JSON map (default: exports/organization/email_to_org_objid.json)
           --email-to-customer=FILE customer transformed JSONL for email->objid (default: exports/customer/customer_transformed.jsonl)
           --redis-url=URL          Redis URL for temp operations (default: redis://127.0.0.1:6379)
           --temp-db=N              Temp database number (default: 15)
