@@ -26,11 +26,13 @@ require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
+require 'securerandom'
 
 class ReceiptIndexCreator
-  DEFAULT_INPUT      = 'exports/metadata/metadata_dump.jsonl'
-  DEFAULT_OUTPUT_DIR = 'exports/receipt'
-  OUTPUT_FILENAME    = 'receipt_indexes.jsonl'
+  DEFAULT_INPUT         = 'exports/metadata/metadata_dump.jsonl'
+  DEFAULT_OUTPUT_DIR    = 'exports/receipt'
+  OUTPUT_FILENAME       = 'receipt_indexes.jsonl'
+  DEFAULT_DOMAIN_LOOKUP = 'exports/customdomain/domain_lookup.json'
 
   def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, dry_run: false)
     @input_file           = input_file
@@ -59,6 +61,7 @@ class ReceiptIndexCreator
       missing_customer_lookups: 0,
       missing_org_lookups: 0,
       missing_domain_lookups: 0,
+      missing_domains: Hash.new(0),  # Track FQDN -> count
       anonymous_receipts: 0,
     }
   end
@@ -300,6 +303,7 @@ class ReceiptIndexCreator
     domain_id = @domain_lookup[fqdn]
     if domain_id.nil?
       @stats[:missing_domain_lookups] += 1
+      @stats[:missing_domains][fqdn]  += 1
     end
 
     domain_id
@@ -329,6 +333,14 @@ class ReceiptIndexCreator
     puts "  Missing org lookups: #{@stats[:missing_org_lookups]}"
     puts "  Missing domain lookups: #{@stats[:missing_domain_lookups]}"
 
+    if @stats[:missing_domains].any?
+      puts
+      puts 'Missing domains (FQDN -> count):'
+      @stats[:missing_domains].sort_by { |_, count| -count }.each do |fqdn, count|
+        puts "  #{fqdn}: #{count}"
+      end
+    end
+
     return unless @stats[:errors].any?
 
     puts
@@ -345,7 +357,7 @@ def parse_args(args)
     output_dir: ReceiptIndexCreator::DEFAULT_OUTPUT_DIR,
     customer_lookup: nil,
     org_lookup: nil,
-    domain_lookup: nil,
+    domain_lookup: ReceiptIndexCreator::DEFAULT_DOMAIN_LOOKUP,
     dry_run: false,
   }
 

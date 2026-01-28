@@ -24,16 +24,12 @@ ruby "$DIR/03-customdomain/create_indexes.rb"
 
 
 echo "=== Receipt ==="
-# ruby "$DIR/04-receipt/transform.rb"
-# ruby "$DIR/04-receipt/create_indexes.rb"
+ruby "$DIR/04-receipt/transform.rb"
+ruby "$DIR/04-receipt/create_indexes.rb"
 
 echo "=== Secret ==="
-# ruby "$DIR/05-secret/transform.rb"
-# ruby "$DIR/05-secret/create_indexes.rb"
-
-
-# echo "=== Creating indexes ==="
-
+ruby "$DIR/05-secret/transform.rb"
+ruby "$DIR/05-secret/create_indexes.rb"
 
 # echo "=== Enriching with original records ==="
 # ruby "$DIR/enrich_with_original_record.rb" customer
