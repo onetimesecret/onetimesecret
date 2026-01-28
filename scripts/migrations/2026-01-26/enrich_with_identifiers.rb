@@ -203,11 +203,14 @@ class IdentifierEnricher
     rand_hex = random_bytes.unpack1('H*')
 
     # Construct UUID parts per RFC 9562
-    time_hi    = hex[0, 8]                                   # bits 0-31 of timestamp
-    time_mid   = hex[8, 4]                                   # bits 32-47 of timestamp
-    ver_rand   = '7' + rand_hex[0, 3]                        # version 7 + 12 random bits
-    variant    = ((rand_hex[3, 2].to_i(16) & 0x3F) | 0x80).to_s(16).rjust(2, '0') + rand_hex[5, 2]  # variant 10xx + 14 random
-    node       = rand_hex[7, 12]                             # 48 random bits
+    time_hi      = hex[0, 8]                                   # bits 0-31 of timestamp
+    time_mid     = hex[8, 4]                                   # bits 32-47 of timestamp
+    ver_rand     = '7' + rand_hex[0, 3]                        # version 7 + 12 random bits
+    # variant: mask to 10xxxxxx per RFC 9562
+    variant_byte = (rand_hex[3, 2].to_i(16) & 0x3F) | 0x80
+    variant      = variant_byte.to_s(16).rjust(2, '0') + rand_hex[5, 2]
+
+    node       = rand_hex[7, 12] # Uses indices 7-18
 
     "#{time_hi}-#{time_mid}-#{ver_rand}-#{variant}-#{node}"
   end
