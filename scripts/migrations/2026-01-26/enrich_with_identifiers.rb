@@ -183,8 +183,11 @@ class IdentifierEnricher
 
   # Generate UUID v7 from Unix timestamp (seconds)
   # Standalone implementation to avoid external dependencies
+  #
+  # Note: Records sharing the same second will have random (not deterministic)
+  # sort order within that second. Sub-second precision not preserved.
   def generate_uuid_v7_from(timestamp_seconds)
-    # Convert to milliseconds
+    # Convert to milliseconds (UUID v7 uses 48-bit ms timestamp)
     timestamp_ms = (timestamp_seconds.to_f * 1000).to_i
 
     # Encode timestamp as 48-bit hex (12 hex chars)
@@ -197,15 +200,14 @@ class IdentifierEnricher
     # xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx
     # where x = timestamp/random, 7 = version, y = variant (8-b)
 
-    # Random part for clock_seq and node
     rand_hex = random_bytes.unpack1('H*')
 
-    # Construct UUID parts
-    time_hi    = hex[0, 8]                                   # 8 chars
-    time_mid   = hex[8, 4]                                   # 4 chars
-    ver_rand   = '7' + rand_hex[0, 3]                        # version 7 + 3 random
-    variant    = ((rand_hex[4, 2].to_i(16) & 0x3F) | 0x80).to_s(16).rjust(2, '0') + rand_hex[6, 2]
-    node       = rand_hex[8, 12]                             # 12 chars
+    # Construct UUID parts per RFC 9562
+    time_hi    = hex[0, 8]                                   # bits 0-31 of timestamp
+    time_mid   = hex[8, 4]                                   # bits 32-47 of timestamp
+    ver_rand   = '7' + rand_hex[0, 3]                        # version 7 + 12 random bits
+    variant    = ((rand_hex[3, 2].to_i(16) & 0x3F) | 0x80).to_s(16).rjust(2, '0') + rand_hex[5, 2]  # variant 10xx + 14 random
+    node       = rand_hex[7, 12]                             # 48 random bits
 
     "#{time_hi}-#{time_mid}-#{ver_rand}-#{variant}-#{node}"
   end
