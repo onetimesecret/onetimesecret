@@ -4,10 +4,10 @@
 
 require 'familia/verifiable_identifier'
 
-require_relative 'secret/features'
-
 module Onetime
   class Secret < Familia::Horreum
+    include Familia::Features::Autoloader
+
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,
@@ -21,6 +21,10 @@ module Onetime
     feature :secret_state_management
     feature :legacy_encrypted_fields
     feature :deprecated_fields
+
+    # Migration features - REMOVE after v1→v2 migration complete
+    feature :with_migration_fields
+    feature :secret_migration_fields
 
     default_expiration 7.days # default only, can be overridden at create time
     prefix :secret

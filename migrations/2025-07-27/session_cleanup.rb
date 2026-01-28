@@ -1,7 +1,12 @@
-# migrations/20250728-1512_03_session_cleanup.rb
+# migrations/2025-07-27/session_cleanup.rb
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Session Cleanup - Remove test user sessions
 #
 # Purpose: Removes session records with no expiration
@@ -14,6 +19,9 @@
 #   bin/ots migrate 1512_03_session_cleanup.rb # Preview changes
 #   bin/ots migrate --run 1512_03_session_cleanup.rb
 #
+
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
 require 'familia/refinements/time_utils'
@@ -42,7 +50,6 @@ module Onetime
       dry_run_only? do
         debug("Would update #{@model_class}: #{original_key} (created: #{obj.to_h})")
       end
-
     end
 
     private
@@ -54,7 +61,7 @@ module Onetime
     # return a boolean value.
     def should_process?(obj)
       should_process = false
-      criteria = [
+      criteria       = [
         obj.current_expiration.to_i.negative?,
         obj.created.to_i.older_than?(7.days),
       ]

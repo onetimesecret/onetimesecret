@@ -1,7 +1,16 @@
-# migrations/20250728-1512_00_customer_objid.rb
+# migrations/2025-07-27/customer_objid.rb
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+#
+# This script is preserved for historical reference only. The extid format
+# used here ("#{prefix}_#{external_part}" with underscore) is inconsistent
+# with the current Familia v2 format ("#{prefix}#{external_part}" without
+# underscore). Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Customer Object ID (and External ID) Migration - Pipeline
 #
 # Purpose: Populates objid field for all existing Customer records. The extid
@@ -17,6 +26,9 @@
 #   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --dry-run  # Preview changes
 #   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --run
 #
+
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
 require 'onetime/refinements/uuidv7_refinements'

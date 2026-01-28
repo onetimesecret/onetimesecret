@@ -1,7 +1,12 @@
-# migrations/20250728-1512_01_customer_cleanup.rb
+# migrations/2025-07-27/customer_cleanup.rb
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Customer Cleanup - Remove anonymous, known test users - Pipeline
 #
 # Purpose: Removes Customer records based on the following criteria:
@@ -13,6 +18,9 @@
 #   bin/ots migrate 1512_customer_cleanup.rb # Preview changes
 #   bin/ots migrate --run 1512_customer_cleanup.rb
 #
+
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
 

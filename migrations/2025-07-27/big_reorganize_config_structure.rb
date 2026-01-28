@@ -1,7 +1,12 @@
-# migrations/pending/20250727-1523_02_reorganize_config_structure.rb
+# migrations/2025-07-27/big_reorganize_config_structure.rb
 #
 # frozen_string_literal: true
 
+# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
+# Use the 2026-01-26 migration scripts instead.
+#
+# ---
+#
 # Migration 2 of 2: Reorganize Config Structure
 #
 # This migration reorganizes the config.yaml hierarchy, moving settings
@@ -12,13 +17,16 @@
 # Install with: brew install yq (macOS) or apt install yq (Ubuntu)
 #
 # Usage:
-#   bin/ots migrate 20250727-1523_02_reorganize_config_structure.rb           # Preview changes
-#   bin/ots migrate --run 20250727-1523_02_reorganize_config_structure.rb     # Execute migration
+#   bin/ots migrate 2025-07-27/reorganize_config_structure.rb           # Preview changes
+#   bin/ots migrate --run 2025-07-27/reorganize_config_structure.rb     # Execute migration
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml
 #   2. Creates a new config file with reorganized hierarchy
 #   3. Replaces the original with the reorganized version
+
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
 require 'yaml'
@@ -81,11 +89,11 @@ module Onetime
     ].freeze
 
     def prepare
-      @base_path = OT::HOME
-      @source_config = File.join(@base_path, 'etc', 'config.yaml')
-      @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
-      @temp_config = File.join(@base_path, 'etc', 'config.reorganized.yaml')
-      @old_keys_found = []  # Store detected old structure
+      @base_path               = OT::HOME
+      @source_config           = File.join(@base_path, 'etc', 'config.yaml')
+      @backup_suffix           = Time.now.strftime('%Y%m%d%H%M%S')
+      @temp_config             = File.join(@base_path, 'etc', 'config.reorganized.yaml')
+      @old_keys_found          = []  # Store detected old structure
       @blocked_by_prerequisite = false
     end
 
@@ -97,7 +105,7 @@ module Onetime
       end
 
       # Check for symbol keys first - if found, migration 01 needs to run first
-      if has_symbol_keys?
+      if symbol_keys?
         @blocked_by_prerequisite = true
         error 'Prerequisite not met: config still has symbol keys'
         error 'Run migration 01 first:'
@@ -141,8 +149,8 @@ module Onetime
       info ''
 
       # Perform migration steps
-      backup_path = backup_config
-      mappings_count = generate_reorganized_config
+      backup_path    = backup_config
+      generate_reorganized_config
       finalize_config
 
       # Result line
@@ -162,13 +170,12 @@ module Onetime
       path.sub("#{@base_path}/", '')
     end
 
-    def has_symbol_keys?
+    def symbol_keys?
       content = File.read(@source_config)
       content.match?(/^(\s*)(-\s*)?:([a-zA-Z_][a-zA-Z0-9_]*):/)
     end
 
     def needs_reorganization?
-      begin
         config = YAML.safe_load_file(@source_config, permitted_classes: [Symbol])
 
         # Detect old structure markers
@@ -178,10 +185,9 @@ module Onetime
         @old_keys_found << 'site.interface' if config.dig('site', 'interface') && !config.key?('interface')
 
         @old_keys_found.any?
-      rescue StandardError => e
-        error "Failed to parse config: #{e.message}"
+    rescue StandardError => ex
+        error "Failed to parse config: #{ex.message}"
         false
-      end
     end
 
     def backup_config
@@ -212,8 +218,8 @@ module Onetime
     end
 
     def apply_mapping(mapping)
-      from_path = mapping['from']
-      to_path = mapping['to']
+      from_path     = mapping['from']
+      to_path       = mapping['to']
       default_value = mapping['default']
 
       # Skip 'doesnotexist' paths - these are just for setting defaults
@@ -227,7 +233,7 @@ module Onetime
         cmd = "yq eval '.#{to_path} = load(\"#{@source_config}\").#{from_path}' -i '#{@temp_config}'"
       else
         formatted_default = format_for_yq(default_value)
-        cmd = "yq eval '.#{to_path} = (load(\"#{@source_config}\").#{from_path} // #{formatted_default})' -i '#{@temp_config}'"
+        cmd               = "yq eval '.#{to_path} = (load(\"#{@source_config}\").#{from_path} // #{formatted_default})' -i '#{@temp_config}'"
       end
 
       system(cmd)
@@ -235,7 +241,7 @@ module Onetime
 
     def apply_default_value(to_path, default_value)
       formatted_default = format_for_yq(default_value)
-      cmd = "yq eval '.#{to_path} = #{formatted_default}' -i '#{@temp_config}'"
+      cmd               = "yq eval '.#{to_path} = #{formatted_default}' -i '#{@temp_config}'"
       system(cmd)
     end
 
@@ -243,9 +249,7 @@ module Onetime
       case value
       when String
         escape_for_yq(value)
-      when TrueClass, FalseClass
-        value.to_s
-      when Numeric
+      when TrueClass, FalseClass, Numeric
         value.to_s
       when NilClass
         'null'

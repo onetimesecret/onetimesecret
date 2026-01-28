@@ -28,7 +28,7 @@ CONFIG_MIGRATE="${CONFIG_MIGRATE:-check}"
 
 # Migrations to check/run, in order. Add new migrations to this array.
 MIGRATIONS=(
-  "migrations/20250727-1523_01_convert_symbol_keys.rb"
+  "migrations/2025-07-27/reorganize_config_structure.rb"
 )
 
 # Check if config directory is writable (for migrations that modify config)

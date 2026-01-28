@@ -5,7 +5,7 @@
 require 'spec_helper'
 
 # Load migration to access its methods
-require File.join(Onetime::HOME, 'migrations', 'pending', '20250727-1523_02_reorganize_config_structure.rb')
+require File.join(Onetime::HOME, 'migrations', '2025-07-27', 'reorganize_config_structure.rb')
 
 
 RSpec.describe 'Config Migration Helpers' do
