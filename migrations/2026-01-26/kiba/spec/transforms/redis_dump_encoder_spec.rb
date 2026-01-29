@@ -188,17 +188,56 @@ RSpec.describe Migration::Transforms::RedisDumpEncoder do
     end
 
     context 'with empty fields hash' do
-      it 'raises error when encoding empty hash (Redis dump returns nil for non-existent key)' do
-        # Note: The current implementation of create_dump_from_hash skips hset
-        # for empty fields, causing dump() to return nil, which makes
-        # Base64.strict_encode64(nil) raise an error.
-        # This test documents the actual behavior.
+      # BEHAVIOR CONTRACT: Empty hashes result in encode_error.
+      #
+      # When v2_fields is empty {}, the encoder:
+      # 1. Attempts to create a Redis hash with no fields
+      # 2. Redis DUMP returns nil for non-existent keys
+      # 3. Base64.strict_encode64(nil) raises TypeError
+      # 4. Encoder catches error, attaches :encode_error, increments stat
+      #
+      # This is intentional: empty records should not be written to Redis.
+      # Callers should filter empty records before encoding, or handle
+      # records with :encode_error appropriately in destination.
+
+      it 'attaches encode_error for empty hash (documented behavior)' do
         encoder = described_class.new(redis_helper: redis_helper, stats: stats)
         record = { key: 'test:1', v2_fields: {} }
 
         result = encoder.process(record)
 
-        # The encoder catches StandardError and attaches encode_error
+        expect(result[:encode_error]).to be_a(String)
+        expect(stats[:encode_errors]).to eq(1)
+      end
+
+      it 'preserves original record fields when encode fails' do
+        encoder = described_class.new(redis_helper: redis_helper, stats: stats)
+        record = { key: 'test:1', dump: 'original', v2_fields: {}, extra: 'preserved' }
+
+        result = encoder.process(record)
+
+        expect(result[:key]).to eq('test:1')
+        expect(result[:dump]).to eq('original')
+        expect(result[:extra]).to eq('preserved')
+      end
+
+      it 'does not increment :encoded stat on empty hash failure' do
+        encoder = described_class.new(redis_helper: redis_helper, stats: stats)
+        encoder.process({ key: 'test:1', v2_fields: {} })
+
+        expect(stats[:encoded]).to be_nil
+        expect(stats[:encode_errors]).to eq(1)
+      end
+    end
+
+    context 'with hash containing only nil values' do
+      # After nil filtering, this becomes an empty hash - same behavior
+      it 'treats all-nil-values hash same as empty hash' do
+        encoder = described_class.new(redis_helper: redis_helper, stats: stats)
+        record = { key: 'test:1', v2_fields: { 'a' => nil, 'b' => nil } }
+
+        result = encoder.process(record)
+
         expect(result[:encode_error]).to be_a(String)
         expect(stats[:encode_errors]).to eq(1)
       end

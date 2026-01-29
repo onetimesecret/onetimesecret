@@ -203,5 +203,194 @@ RSpec.describe Migration::Transforms::SchemaValidator do
         expect(result[:validation_errors].length).to be > 1
       end
     end
+
+    context 'additionalProperties behavior' do
+      before do
+        Migration::Schemas.register(:strict_no_additional, {
+          'type' => 'object',
+          'required' => ['id'],
+          'properties' => {
+            'id' => { 'type' => 'string' }
+          },
+          'additionalProperties' => false
+        })
+
+        Migration::Schemas.register(:allow_additional, {
+          'type' => 'object',
+          'required' => ['id'],
+          'properties' => {
+            'id' => { 'type' => 'string' }
+          },
+          'additionalProperties' => true
+        })
+      end
+
+      it 'rejects unknown properties when additionalProperties is false' do
+        validator = described_class.new(schema: :strict_no_additional, stats: stats)
+        record = { key: 'test:1', fields: { 'id' => '123', 'unknown_field' => 'value' } }
+
+        result = validator.process(record)
+
+        expect(result[:validation_errors]).to be_an(Array)
+        expect(result[:validation_errors]).not_to be_empty
+        expect(stats[:validation_failures]).to eq(1)
+      end
+
+      it 'allows unknown properties when additionalProperties is true' do
+        validator = described_class.new(schema: :allow_additional, stats: stats)
+        record = { key: 'test:1', fields: { 'id' => '123', 'extra' => 'allowed' } }
+
+        result = validator.process(record)
+
+        expect(result).not_to have_key(:validation_errors)
+        expect(stats[:validated]).to eq(1)
+      end
+    end
+
+    context 'with nested schema validation' do
+      before do
+        Migration::Schemas.register(:nested_schema, {
+          'type' => 'object',
+          'required' => ['user'],
+          'properties' => {
+            'user' => {
+              'type' => 'object',
+              'required' => ['email'],
+              'properties' => {
+                'email' => { 'type' => 'string', 'format' => 'email' },
+                'settings' => {
+                  'type' => 'object',
+                  'properties' => {
+                    'theme' => { 'type' => 'string', 'enum' => ['light', 'dark'] }
+                  }
+                }
+              }
+            }
+          }
+        })
+      end
+
+      it 'validates nested object structure' do
+        validator = described_class.new(schema: :nested_schema, stats: stats)
+        record = {
+          key: 'test:1',
+          fields: {
+            'user' => {
+              'email' => 'test@example.com',
+              'settings' => { 'theme' => 'light' }
+            }
+          }
+        }
+
+        result = validator.process(record)
+
+        expect(result).not_to have_key(:validation_errors)
+        expect(stats[:validated]).to eq(1)
+      end
+
+      it 'reports errors at nested path locations' do
+        validator = described_class.new(schema: :nested_schema, stats: stats)
+        record = {
+          key: 'test:1',
+          fields: {
+            'user' => {
+              'email' => 'test@example.com',
+              'settings' => { 'theme' => 'invalid_theme' }
+            }
+          }
+        }
+
+        result = validator.process(record)
+
+        expect(result[:validation_errors]).to be_an(Array)
+        # Error should reference the nested path
+        expect(result[:validation_errors].first).to match(/theme|settings/)
+      end
+    end
+
+    context 'with many validation errors' do
+      before do
+        # Use multiple type violations instead of missing required fields
+        # json_schemer reports missing required fields as a single error
+        Migration::Schemas.register(:multi_error, {
+          'type' => 'object',
+          'properties' => {
+            'field1' => { 'type' => 'string' },
+            'field2' => { 'type' => 'integer' },
+            'field3' => { 'type' => 'boolean' },
+            'field4' => { 'type' => 'array' },
+            'field5' => { 'type' => 'object' }
+          }
+        })
+      end
+
+      it 'collects all validation errors not just the first' do
+        validator = described_class.new(schema: :multi_error, strict: false, stats: stats)
+        # All fields have wrong types
+        record = {
+          key: 'test:1',
+          fields: {
+            'field1' => 123,       # should be string
+            'field2' => 'string',  # should be integer
+            'field3' => 'yes',     # should be boolean
+            'field4' => 'array',   # should be array
+            'field5' => 'object'   # should be object
+          }
+        }
+
+        result = validator.process(record)
+
+        # Should have 5 type errors, one per field
+        expect(result[:validation_errors].length).to eq(5)
+      end
+
+      it 'reports missing required fields in a single error message' do
+        Migration::Schemas.register(:multi_required, {
+          'type' => 'object',
+          'required' => %w[a b c d e],
+          'properties' => {}
+        })
+
+        validator = described_class.new(schema: :multi_required, strict: false, stats: stats)
+        record = { key: 'test:1', fields: {} }
+
+        result = validator.process(record)
+
+        # json_schemer reports all missing required fields in one error
+        expect(result[:validation_errors].length).to eq(1)
+        expect(result[:validation_errors].first).to include('missing required properties')
+      end
+    end
+
+    context 'with multiple field keys present' do
+      it 'only validates the specified field key' do
+        validator = described_class.new(schema: :test_schema, field: :v2_fields, stats: stats)
+        record = {
+          key: 'test:1',
+          fields: {},  # Invalid against schema (missing name)
+          v2_fields: { 'name' => 'Valid' }  # Valid
+        }
+
+        result = validator.process(record)
+
+        # Should validate v2_fields, not fields
+        expect(result).not_to have_key(:validation_errors)
+        expect(stats[:validated]).to eq(1)
+      end
+
+      it 'validates correct field even when others are invalid' do
+        validator = described_class.new(schema: :test_schema, field: :fields, stats: stats)
+        record = {
+          key: 'test:1',
+          fields: {},  # Invalid
+          v2_fields: { 'name' => 'Valid' }  # Valid but not checked
+        }
+
+        result = validator.process(record)
+
+        expect(result[:validation_errors]).not_to be_empty
+        expect(stats[:validation_failures]).to eq(1)
+      end
+    end
   end
 end

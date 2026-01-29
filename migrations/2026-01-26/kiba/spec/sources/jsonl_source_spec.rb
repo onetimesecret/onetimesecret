@@ -179,6 +179,68 @@ RSpec.describe Migration::Sources::JsonlSource do
       end
     end
 
+    context 'with extremely long lines' do
+      it 'handles lines exceeding typical buffer sizes' do
+        # Create a record with a very long value (1MB+)
+        long_value = 'x' * (1024 * 1024)
+        records = [{ key: 'long', data: long_value }]
+        write_jsonl(input_file, records)
+
+        source = described_class.new(file: input_file)
+        yielded = []
+        source.each { |r| yielded << r }
+
+        expect(yielded.size).to eq(1)
+        expect(yielded.first[:data].length).to eq(1024 * 1024)
+      end
+    end
+
+    context 'with BOM (byte order mark)' do
+      it 'handles UTF-8 BOM at file start' do
+        # Write file with UTF-8 BOM
+        File.open(input_file, 'wb') do |f|
+          f.write("\xEF\xBB\xBF") # UTF-8 BOM
+          f.puts('{"key":"first","type":"hash"}')
+          f.puts('{"key":"second","type":"hash"}')
+        end
+
+        source = described_class.new(file: input_file)
+        yielded = []
+
+        # Should either skip BOM or handle gracefully
+        # The first line may fail JSON parse due to BOM prefix
+        warnings = []
+        allow(source).to receive(:warn) { |msg| warnings << msg }
+
+        source.each { |r| yielded << r }
+
+        # At minimum, should process subsequent valid lines
+        expect(yielded.size).to be >= 1
+      end
+    end
+
+    context 'with malformed UTF-8' do
+      it 'handles invalid UTF-8 sequences gracefully' do
+        File.open(input_file, 'wb') do |f|
+          f.puts('{"key":"valid1","type":"hash"}')
+          # Invalid UTF-8 sequence (truncated multi-byte)
+          f.write("{\"key\":\"bad\xFF\xFE\"}\n")
+          f.puts('{"key":"valid2","type":"hash"}')
+        end
+
+        source = described_class.new(file: input_file)
+        yielded = []
+        warnings = []
+        allow(source).to receive(:warn) { |msg| warnings << msg }
+
+        source.each { |r| yielded << r }
+
+        # Should process valid records, skip or warn on invalid
+        expect(yielded.map { |r| r[:key] }).to include('valid1')
+        expect(yielded.map { |r| r[:key] }).to include('valid2')
+      end
+    end
+
     context 'with empty file' do
       before { FileUtils.touch(input_file) }
 

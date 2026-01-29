@@ -333,4 +333,85 @@ RSpec.describe Migration::Shared::LookupRegistry do
       expect(lookup_meta[:phase]).to eq(3)
     end
   end
+
+  describe 'duplicate key overwrites' do
+    it 'overwrites existing key when collecting same key twice' do
+      registry.collect(:email_to_customer, 'user@example.com', 'uuid-first')
+      registry.collect(:email_to_customer, 'user@example.com', 'uuid-second')
+
+      collected = registry.collected(:email_to_customer)
+
+      expect(collected['user@example.com']).to eq('uuid-second')
+      expect(collected.size).to eq(1)
+    end
+
+    it 'overwrites when registering same lookup name twice' do
+      registry.register(:test_lookup, { 'key1' => 'value1' }, phase: 1)
+      registry.register(:test_lookup, { 'key2' => 'value2' }, phase: 1)
+
+      expect(registry.lookup(:test_lookup, 'key1')).to be_nil
+      expect(registry.lookup(:test_lookup, 'key2')).to eq('value2')
+    end
+  end
+
+  describe 'file corruption handling' do
+    it 'raises error when loading corrupted JSON file' do
+      FileUtils.mkdir_p(lookups_dir)
+      File.write(
+        File.join(lookups_dir, 'email_to_customer_objid.json'),
+        'not valid json {{{'
+      )
+
+      expect do
+        registry.load(:email_to_customer)
+      end.to raise_error(JSON::ParserError)
+    end
+
+    it 'raises error when loading truncated JSON file' do
+      FileUtils.mkdir_p(lookups_dir)
+      File.write(
+        File.join(lookups_dir, 'email_to_customer_objid.json'),
+        '{"user@example.com": "uuid-123"'  # Missing closing brace
+      )
+
+      expect do
+        registry.load(:email_to_customer)
+      end.to raise_error(JSON::ParserError)
+    end
+
+    it 'raises error when loading empty file' do
+      FileUtils.mkdir_p(lookups_dir)
+      FileUtils.touch(File.join(lookups_dir, 'email_to_customer_objid.json'))
+
+      expect do
+        registry.load(:email_to_customer)
+      end.to raise_error(JSON::ParserError)
+    end
+  end
+
+  describe 'large dataset handling' do
+    it 'handles large lookup tables' do
+      large_data = {}
+      10_000.times { |i| large_data["user#{i}@example.com"] = "uuid-#{i}" }
+
+      registry.register(:large_lookup, large_data, phase: 1)
+
+      expect(registry.lookup(:large_lookup, 'user5000@example.com')).to eq('uuid-5000')
+      expect(registry.lookup(:large_lookup, 'user9999@example.com')).to eq('uuid-9999')
+    end
+
+    it 'round-trips large dataset through save and load' do
+      large_data = {}
+      1_000.times { |i| large_data["key#{i}"] = "value#{i}" }
+      large_data.each { |k, v| registry.collect(:large_lookup, k, v) }
+
+      registry.save(:large_lookup)
+
+      new_registry = described_class.new(exports_dir: exports_dir)
+      new_registry.load(:large_lookup)
+
+      expect(new_registry.lookup(:large_lookup, 'key500')).to eq('value500')
+      expect(new_registry.lookup(:large_lookup, 'key999')).to eq('value999')
+    end
+  end
 end
