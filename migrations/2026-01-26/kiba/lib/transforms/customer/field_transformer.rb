@@ -18,6 +18,16 @@ module Migration
       #   transform Customer::FieldTransformer, registry: registry
       #
       class FieldTransformer < BaseTransform
+        attr_reader :migrated_at
+
+        # @param migrated_at [Time, nil] Timestamp for migration tracking (default: job start time)
+        # @param kwargs [Hash] Additional options passed to BaseTransform
+        #
+        def initialize(migrated_at: nil, **kwargs)
+          super(**kwargs)
+          @migrated_at = migrated_at || Time.now
+        end
+
         # Process customer record and transform fields.
         #
         # @param record [Hash] Record with :fields, :objid, :extid
@@ -76,7 +86,7 @@ module Migration
           # Add migration tracking
           v2_fields['v1_identifier'] = record[:key]
           v2_fields['migration_status'] = 'completed'
-          v2_fields['migrated_at'] = Time.now.to_f.to_s
+          v2_fields['migrated_at'] = @migrated_at.to_f.to_s
 
           v2_fields
         end
@@ -93,7 +103,7 @@ module Migration
         end
 
         def build_v2_record(record, v2_fields, objid, extid)
-          increment_stat(:transformed)
+          increment_stat(:objects_transformed)
 
           {
             key: "customer:#{objid}:object",

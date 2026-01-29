@@ -97,7 +97,7 @@ module Migration
         clean_fields = fields.compact
 
         begin
-          @redis.hmset(temp_key, clean_fields.to_a.flatten)
+          @redis.hset(temp_key, clean_fields) unless clean_fields.empty?
           @temp_keys_created << temp_key
           dump_data = @redis.dump(temp_key)
           Base64.strict_encode64(dump_data)

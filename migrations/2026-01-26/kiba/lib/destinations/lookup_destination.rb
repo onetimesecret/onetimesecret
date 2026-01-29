@@ -19,20 +19,22 @@ module Migration
     #     lookup_name: :email_to_customer
     #
     class LookupDestination
-      attr_reader :file, :key_field, :value_field, :lookup_name, :registry, :count
+      attr_reader :file, :key_field, :value_field, :lookup_name, :registry, :phase, :count
 
       # @param file [String] Output JSON file path
       # @param key_field [Symbol] Field name for lookup key
       # @param value_field [Symbol] Field name for lookup value
       # @param registry [LookupRegistry, nil] Optional registry to update
       # @param lookup_name [Symbol, nil] Name for registry entry
+      # @param phase [Integer] Migration phase number (default: 1)
       #
-      def initialize(file:, key_field:, value_field:, registry: nil, lookup_name: nil)
+      def initialize(file:, key_field:, value_field:, registry: nil, lookup_name: nil, phase: 1)
         @file = file
         @key_field = key_field.to_sym
         @value_field = value_field.to_sym
         @registry = registry
         @lookup_name = lookup_name&.to_sym
+        @phase = phase
         @data = {}
         @count = 0
 
@@ -65,7 +67,7 @@ module Migration
 
         # Update registry if provided
         if @registry && @lookup_name
-          @registry.register(@lookup_name, @data, phase: 1)
+          @registry.register(@lookup_name, @data, phase: @phase)
         end
       end
 

@@ -127,11 +127,7 @@ class CustomerJob
     output_file_path = output_file
     lookup_file_path = lookup_file
     stats = @stats
-
-    # Store destination refs for stats
-    jsonl_dest_ref = nil
-    lookup_dest_ref = nil
-    job_instance = self
+    job_started_at = Time.now
 
     Kiba.parse do
       # Pre-process: setup
@@ -172,7 +168,8 @@ class CustomerJob
       # Transform: apply field transformations
       transform Migration::Transforms::Customer::FieldTransformer,
                 registry: registry,
-                stats: stats
+                stats: stats,
+                migrated_at: job_started_at
 
       # Transform: encode fields back to DUMP
       transform Migration::Transforms::RedisDumpEncoder,
@@ -182,7 +179,7 @@ class CustomerJob
 
       # Transform: count records being written
       transform do |record|
-        stats[:records_written] = (stats[:records_written] || 0) + 1
+        stats[:records_written] += 1
         record
       end
 
