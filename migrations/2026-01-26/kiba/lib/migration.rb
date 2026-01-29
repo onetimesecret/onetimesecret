@@ -62,6 +62,7 @@ require_relative 'shared/lookup_registry'
 require_relative 'schemas/base'
 require_relative 'schemas/v1/customer'
 require_relative 'schemas/v2/customer'
+require_relative 'schemas/v2/organization'
 
 # Load sources
 require_relative 'sources/jsonl_source'
@@ -73,6 +74,7 @@ require_relative 'transforms/redis_dump_decoder'
 require_relative 'transforms/redis_dump_encoder'
 require_relative 'transforms/customer/identifier_enricher'
 require_relative 'transforms/customer/field_transformer'
+require_relative 'transforms/organization/generator'
 
 # Load destinations
 require_relative 'destinations/jsonl_destination'
