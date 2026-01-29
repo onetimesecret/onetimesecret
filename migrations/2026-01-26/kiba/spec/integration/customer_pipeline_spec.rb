@@ -554,4 +554,214 @@ RSpec.describe 'Customer Migration Pipeline Integration' do
       expect(lookup_data.keys.size).to eq(100)
     end
   end
+
+  describe 'special character handling' do
+    let(:special_char_records) do
+      [
+        {
+          key: 'customer:user+tag@example.com:object',
+          type: 'hash',
+          ttl_ms: -1,
+          db: 6,
+          created: 1706140800,
+          objid: '0194a700-spec-7abc-8def-000000000001',
+          extid: 'urspecialchar00000000001',
+          fields: {
+            'custid' => 'user+tag@example.com',
+            'created' => '1706140800.0',
+            'role' => 'customer',
+          },
+        },
+        {
+          key: "customer:user's@example.com:object",
+          type: 'hash',
+          ttl_ms: -1,
+          db: 6,
+          created: 1706140801,
+          objid: '0194a700-spec-7abc-8def-000000000002',
+          extid: 'urspecialchar00000000002',
+          fields: {
+            'custid' => "user's@example.com",
+            'created' => '1706140801.0',
+            'role' => 'customer',
+          },
+        },
+      ]
+    end
+
+    before do
+      write_jsonl(input_file, special_char_records)
+    end
+
+    it 'handles special characters in email addresses' do
+      job = build_test_pipeline(input_file, output_file, lookup_file, stats, migrated_at)
+      Kiba.run(job)
+
+      expect(stats[:records_written]).to eq(2)
+
+      lookup_data = read_json(lookup_file)
+      expect(lookup_data['user+tag@example.com']).to eq('0194a700-spec-7abc-8def-000000000001')
+      expect(lookup_data["user's@example.com"]).to eq('0194a700-spec-7abc-8def-000000000002')
+    end
+  end
+
+  describe 'duplicate key handling' do
+    let(:duplicate_records) do
+      [
+        {
+          key: 'customer:duplicate@example.com:object',
+          type: 'hash',
+          ttl_ms: -1,
+          db: 6,
+          created: 1706140800,
+          objid: '0194a700-dup1-7abc-8def-000000000001',
+          extid: 'urduplicate0000000000001',
+          fields: {
+            'custid' => 'duplicate@example.com',
+            'created' => '1706140800.0',
+            'role' => 'customer',
+          },
+        },
+        {
+          key: 'customer:duplicate@example.com:object',
+          type: 'hash',
+          ttl_ms: -1,
+          db: 6,
+          created: 1706140900,
+          objid: '0194a700-dup2-7abc-8def-000000000002',
+          extid: 'urduplicate0000000000002',
+          fields: {
+            'custid' => 'duplicate@example.com',
+            'created' => '1706140900.0',
+            'role' => 'customer',
+          },
+        },
+      ]
+    end
+
+    before do
+      write_jsonl(input_file, duplicate_records)
+    end
+
+    it 'processes all records even with duplicate custid' do
+      job = build_test_pipeline(input_file, output_file, lookup_file, stats, migrated_at)
+      Kiba.run(job)
+
+      # Both records should be written to JSONL
+      output_records = read_jsonl(output_file)
+      expect(output_records.size).to eq(2)
+      expect(stats[:records_written]).to eq(2)
+    end
+
+    it 'lookup contains last value for duplicate keys' do
+      job = build_test_pipeline(input_file, output_file, lookup_file, stats, migrated_at)
+      Kiba.run(job)
+
+      lookup_data = read_json(lookup_file)
+      # LookupDestination uses last-write-wins semantics
+      expect(lookup_data['duplicate@example.com']).to eq('0194a700-dup2-7abc-8def-000000000002')
+    end
+  end
+
+  describe 'mixed valid and invalid records' do
+    let(:mixed_records) do
+      [
+        # Valid record
+        v1_records[0],
+        # Record with nil fields - passes through untransformed
+        {
+          key: 'customer:nilfields@example.com:object',
+          type: 'hash',
+          ttl_ms: -1,
+          db: 6,
+          created: 1706140850,
+          objid: '0194a700-nil1-7abc-8def-000000000001',
+          extid: 'urnilfields0000000000001',
+          fields: nil,
+        },
+        # Another valid record
+        v1_records[1],
+        # Record missing objid - passes through untransformed
+        {
+          key: 'customer:noobjid@example.com:object',
+          type: 'hash',
+          ttl_ms: -1,
+          db: 6,
+          created: 1706140860,
+          # no objid
+          fields: {
+            'custid' => 'noobjid@example.com',
+            'created' => '1706140860.0',
+          },
+        },
+      ]
+    end
+
+    before do
+      write_jsonl(input_file, mixed_records)
+    end
+
+    it 'reads all records but only transforms valid ones' do
+      job = build_test_pipeline(input_file, output_file, lookup_file, stats, migrated_at)
+      Kiba.run(job)
+
+      # 4 records read, all written (transform passes through invalid records)
+      expect(stats[:records_read]).to eq(4)
+      # Only 2 fully transformed (alice and bob)
+      expect(stats[:objects_transformed]).to eq(2)
+      # All 4 written (FieldTransformer returns untransformed records, doesn't filter)
+      expect(stats[:records_written]).to eq(4)
+    end
+
+    it 'tracks skipped records in stats' do
+      job = build_test_pipeline(input_file, output_file, lookup_file, stats, migrated_at)
+      Kiba.run(job)
+
+      # FieldTransformer tracks why records were skipped
+      expect(stats[:skipped_no_fields]).to eq(1)
+      expect(stats[:skipped_no_objid]).to eq(1)
+    end
+
+    it 'lookup only contains valid entries with v1_custid' do
+      job = build_test_pipeline(input_file, output_file, lookup_file, stats, migrated_at)
+      Kiba.run(job)
+
+      lookup_data = read_json(lookup_file)
+      # Only transformed records have v1_custid field
+      expect(lookup_data.keys.size).to eq(2)
+      expect(lookup_data).to have_key('alice@example.com')
+      expect(lookup_data).to have_key('bob@example.com')
+      # Untransformed records don't have v1_custid, so not in lookup
+      expect(lookup_data).not_to have_key('nilfields@example.com')
+      expect(lookup_data).not_to have_key('noobjid@example.com')
+    end
+  end
+
+  describe 'concurrent destination write patterns' do
+    before do
+      write_jsonl(input_file, v1_records)
+    end
+
+    it 'maintains consistency between JSONL and lookup file' do
+      job = build_test_pipeline(input_file, output_file, lookup_file, stats, migrated_at)
+      Kiba.run(job)
+
+      output_records = read_jsonl(output_file)
+      lookup_data = read_json(lookup_file)
+
+      # Every lookup key should have a corresponding JSONL record
+      lookup_data.each do |email, objid|
+        matching_record = output_records.find { |r| r[:objid] == objid }
+        expect(matching_record).not_to be_nil, "Expected JSONL record for objid #{objid}"
+      end
+
+      # Every JSONL record with v1_custid should be in lookup
+      output_records.each do |record|
+        v1_custid = record[:v1_custid]
+        if v1_custid
+          expect(lookup_data[v1_custid]).to eq(record[:objid])
+        end
+      end
+    end
+  end
 end

@@ -309,4 +309,104 @@ RSpec.describe Migration::Destinations::CompositeDestination do
       expect(stats[:lookup_entries]).to eq(2)
     end
   end
+
+  describe 'close error handling' do
+    context 'when one destination fails on close' do
+      # Create a destination class that raises on close
+      let(:failing_destination_class) do
+        Class.new do
+          def initialize(**); end
+          def write(_record); end
+
+          def close
+            raise 'Simulated close error'
+          end
+        end
+      end
+
+      it 'propagates error from first failing destination' do
+        dest = described_class.new(destinations: [])
+        mock_dest1 = instance_double('Destination')
+        mock_dest2 = instance_double('Destination')
+
+        allow(mock_dest1).to receive(:close).and_raise('Close error in dest1')
+        # mock_dest2.close never called because error propagates
+
+        dest.instance_variable_set(:@destinations, [mock_dest1, mock_dest2])
+
+        expect { dest.close }.to raise_error('Close error in dest1')
+      end
+
+      it 'calls close on all destinations before first error when they succeed' do
+        dest = described_class.new(destinations: [])
+        mock_dest1 = instance_double('Destination')
+        mock_dest2 = instance_double('Destination')
+        mock_dest3 = instance_double('Destination')
+
+        allow(mock_dest1).to receive(:close)
+        allow(mock_dest2).to receive(:close).and_raise('Close error in dest2')
+        # mock_dest3.close never called
+
+        dest.instance_variable_set(:@destinations, [mock_dest1, mock_dest2, mock_dest3])
+
+        expect(mock_dest1).to receive(:close).ordered
+        expect(mock_dest2).to receive(:close).ordered
+        expect { dest.close }.to raise_error('Close error in dest2')
+      end
+    end
+  end
+
+  describe 'nil record handling' do
+    it 'passes nil records to all destinations' do
+      dest = described_class.new(
+        destinations: [
+          [Migration::Destinations::JsonlDestination, { file: jsonl_file }],
+          [Migration::Destinations::LookupDestination, {
+            file: lookup_file,
+            key_field: :email,
+            value_field: :objid,
+          }],
+        ]
+      )
+
+      # Write mix of valid and nil records
+      dest.write({ email: 'a@test.com', objid: 'uuid-1' })
+      dest.write(nil)
+      dest.write({ email: 'b@test.com', objid: 'uuid-2' })
+      dest.close
+
+      # JSONL should have 2 records (nil skipped)
+      jsonl_records = read_jsonl(jsonl_file)
+      expect(jsonl_records.size).to eq(2)
+
+      # Lookup should have 2 entries (nil skipped)
+      lookup_data = read_json(lookup_file)
+      expect(lookup_data.keys.size).to eq(2)
+    end
+  end
+
+  describe 'three or more destinations' do
+    it 'supports arbitrary number of destinations' do
+      file1 = File.join(temp_dir, 'out1.jsonl')
+      file2 = File.join(temp_dir, 'out2.jsonl')
+      file3 = File.join(temp_dir, 'out3.jsonl')
+
+      dest = described_class.new(
+        destinations: [
+          [Migration::Destinations::JsonlDestination, { file: file1 }],
+          [Migration::Destinations::JsonlDestination, { file: file2 }],
+          [Migration::Destinations::JsonlDestination, { file: file3 }],
+        ]
+      )
+
+      dest.write({ key: 'test', value: 42 })
+      dest.close
+
+      [file1, file2, file3].each do |f|
+        records = read_jsonl(f)
+        expect(records.size).to eq(1)
+        expect(records.first[:key]).to eq('test')
+      end
+    end
+  end
 end

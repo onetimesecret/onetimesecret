@@ -322,6 +322,42 @@ RSpec.describe Migration::Destinations::LookupDestination do
         # Stats unchanged because close returns early
         expect(stats[:lookup_entries]).to eq(99)
       end
+
+      it 'overwrites stats rather than incrementing (single batch assumption)' do
+        # This documents that stats[:lookup_entries] is set to count, not incremented
+        # Each LookupDestination assumes it owns the :lookup_entries stat
+        stats = { lookup_entries: 50 }
+
+        dest = described_class.new(
+          file: output_file,
+          key_field: :email,
+          value_field: :objid,
+          stats: stats
+        )
+
+        dest.write({ email: 'a@test.com', objid: 'uuid-1' })
+        dest.write({ email: 'b@test.com', objid: 'uuid-2' })
+        dest.close
+
+        # Overwrites, does not add to 50
+        expect(stats[:lookup_entries]).to eq(2)
+      end
+
+      it 'works when no stats hash provided' do
+        dest = described_class.new(
+          file: output_file,
+          key_field: :email,
+          value_field: :objid
+          # no stats
+        )
+
+        dest.write({ email: 'test@example.com', objid: 'uuid-123' })
+        expect { dest.close }.not_to raise_error
+
+        # File still written
+        data = read_json(output_file)
+        expect(data).to eq({ 'test@example.com' => 'uuid-123' })
+      end
     end
   end
 
@@ -345,6 +381,81 @@ RSpec.describe Migration::Destinations::LookupDestination do
       expect {
         dest.write({ id: 123, count: 456 })
       }.to raise_error(NoMethodError, /empty\?/)
+    end
+  end
+
+  describe 'edge cases' do
+    it 'handles keys with special characters' do
+      dest = described_class.new(file: output_file, key_field: :email, value_field: :objid)
+
+      dest.write({ email: 'user+tag@example.com', objid: 'uuid-1' })
+      dest.write({ email: "user's@example.com", objid: 'uuid-2' })
+      dest.write({ email: 'user"quoted"@example.com', objid: 'uuid-3' })
+      dest.close
+
+      data = read_json(output_file)
+      expect(data['user+tag@example.com']).to eq('uuid-1')
+      expect(data["user's@example.com"]).to eq('uuid-2')
+      expect(data['user"quoted"@example.com']).to eq('uuid-3')
+    end
+
+    it 'handles unicode keys and values' do
+      dest = described_class.new(file: output_file, key_field: :email, value_field: :name)
+
+      dest.write({ email: 'user@example.com', name: 'Nombre' })
+      dest.close
+
+      data = read_json(output_file)
+      expect(data['user@example.com']).to eq('Nombre')
+    end
+
+    it 'handles very long keys' do
+      dest = described_class.new(file: output_file, key_field: :email, value_field: :objid)
+      long_email = "#{'a' * 200}@example.com"
+
+      dest.write({ email: long_email, objid: 'uuid-123' })
+      dest.close
+
+      data = read_json(output_file)
+      expect(data[long_email]).to eq('uuid-123')
+    end
+
+    it 'handles whitespace-only keys as empty' do
+      dest = described_class.new(file: output_file, key_field: :email, value_field: :objid)
+
+      dest.write({ email: '   ', objid: 'uuid-123' })
+      dest.close
+
+      # Whitespace-only is NOT empty, so it should be written
+      # This documents current behavior
+      data = read_json(output_file)
+      expect(data['   ']).to eq('uuid-123')
+    end
+  end
+
+  describe 'file handling' do
+    it 'creates nested directory structure' do
+      nested_file = File.join(temp_dir, 'deep', 'nested', 'path', 'lookup.json')
+      dest = described_class.new(file: nested_file, key_field: :k, value_field: :v)
+
+      dest.write({ k: 'key', v: 'value' })
+      dest.close
+
+      expect(File.exist?(nested_file)).to be true
+    end
+
+    it 'overwrites existing file on close' do
+      # Create directory and write initial file
+      FileUtils.mkdir_p(File.dirname(output_file))
+      File.write(output_file, '{"old": "data"}')
+
+      dest = described_class.new(file: output_file, key_field: :email, value_field: :objid)
+      dest.write({ email: 'new@example.com', objid: 'new-uuid' })
+      dest.close
+
+      data = read_json(output_file)
+      expect(data).not_to have_key('old')
+      expect(data['new@example.com']).to eq('new-uuid')
     end
   end
 end

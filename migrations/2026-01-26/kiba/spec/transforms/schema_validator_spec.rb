@@ -392,5 +392,159 @@ RSpec.describe Migration::Transforms::SchemaValidator do
         expect(stats[:validation_failures]).to eq(1)
       end
     end
+
+    context 'chained validators' do
+      before do
+        Migration::Schemas.register(:v1_schema, {
+          'type' => 'object',
+          'required' => ['email'],
+          'properties' => {
+            'email' => { 'type' => 'string', 'format' => 'email' }
+          }
+        })
+
+        Migration::Schemas.register(:v2_schema, {
+          'type' => 'object',
+          'required' => ['objid'],
+          'properties' => {
+            'objid' => { 'type' => 'string', 'pattern' => '^[0-9a-f-]+$' }
+          }
+        })
+      end
+
+      it 'accumulates errors from multiple validators' do
+        stats1 = {}
+        stats2 = {}
+        v1_validator = described_class.new(schema: :v1_schema, field: :fields, stats: stats1)
+        v2_validator = described_class.new(schema: :v2_schema, field: :v2_fields, stats: stats2)
+
+        record = {
+          key: 'test:1',
+          fields: {},           # Missing email - invalid
+          v2_fields: {}         # Missing objid - invalid
+        }
+
+        # Simulate pipeline: record passes through both validators
+        result = v1_validator.process(record)
+        result = v2_validator.process(result)
+
+        # Both validators should have added errors
+        expect(result[:validation_errors].size).to eq(2)
+        expect(result[:validation_errors].any? { |e| e.include?('[v1_schema]') }).to be true
+        expect(result[:validation_errors].any? { |e| e.include?('[v2_schema]') }).to be true
+
+        expect(stats1[:validation_failures]).to eq(1)
+        expect(stats2[:validation_failures]).to eq(1)
+      end
+
+      it 'maintains valid count when second validator passes' do
+        stats1 = {}
+        stats2 = {}
+        v1_validator = described_class.new(schema: :v1_schema, field: :fields, stats: stats1)
+        v2_validator = described_class.new(schema: :v2_schema, field: :v2_fields, stats: stats2)
+
+        record = {
+          key: 'test:1',
+          fields: {},                    # Invalid
+          v2_fields: { 'objid' => 'abc-123' }  # Valid
+        }
+
+        result = v1_validator.process(record)
+        result = v2_validator.process(result)
+
+        # First failed, second passed
+        expect(stats1[:validation_failures]).to eq(1)
+        expect(stats2[:validated]).to eq(1)
+
+        # Only first validator's error should be present
+        expect(result[:validation_errors].size).to eq(1)
+        expect(result[:validation_errors].first).to include('[v1_schema]')
+      end
+
+      it 'strict mode filters on first invalid validator' do
+        stats1 = {}
+        v1_validator = described_class.new(schema: :v1_schema, field: :fields, strict: true, stats: stats1)
+
+        record = {
+          key: 'test:1',
+          fields: {},                    # Invalid - will be filtered
+          v2_fields: { 'objid' => 'abc-123' }
+        }
+
+        result = v1_validator.process(record)
+
+        # First validator returns nil (filtered)
+        expect(result).to be_nil
+        expect(stats1[:filtered_invalid]).to eq(1)
+
+        # Second validator never sees record (would be called with nil in real pipeline)
+        # This documents that strict filtering short-circuits the pipeline
+      end
+    end
+
+    context 'empty object validation' do
+      before do
+        Migration::Schemas.register(:empty_allowed, {
+          'type' => 'object',
+          'properties' => {}
+        })
+      end
+
+      it 'validates empty object when no required fields' do
+        validator = described_class.new(schema: :empty_allowed, stats: stats)
+        record = { key: 'test:1', fields: {} }
+
+        result = validator.process(record)
+
+        expect(result).not_to have_key(:validation_errors)
+        expect(stats[:validated]).to eq(1)
+      end
+    end
+
+    context 'with array type fields' do
+      before do
+        Migration::Schemas.register(:array_schema, {
+          'type' => 'object',
+          'properties' => {
+            'tags' => {
+              'type' => 'array',
+              'items' => { 'type' => 'string' },
+              'minItems' => 1
+            }
+          },
+          'required' => ['tags']
+        })
+      end
+
+      it 'validates array fields correctly' do
+        validator = described_class.new(schema: :array_schema, stats: stats)
+        record = { key: 'test:1', fields: { 'tags' => ['a', 'b', 'c'] } }
+
+        result = validator.process(record)
+
+        expect(result).not_to have_key(:validation_errors)
+        expect(stats[:validated]).to eq(1)
+      end
+
+      it 'reports error for empty array when minItems required' do
+        validator = described_class.new(schema: :array_schema, stats: stats)
+        record = { key: 'test:1', fields: { 'tags' => [] } }
+
+        result = validator.process(record)
+
+        expect(result[:validation_errors]).not_to be_empty
+        expect(stats[:validation_failures]).to eq(1)
+      end
+
+      it 'reports error for wrong item types in array' do
+        validator = described_class.new(schema: :array_schema, stats: stats)
+        record = { key: 'test:1', fields: { 'tags' => [1, 2, 3] } }
+
+        result = validator.process(record)
+
+        expect(result[:validation_errors]).not_to be_empty
+        expect(stats[:validation_failures]).to eq(1)
+      end
+    end
   end
 end
