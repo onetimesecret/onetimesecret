@@ -58,11 +58,17 @@ require_relative 'shared/uuid_v7_generator'
 require_relative 'shared/redis_temp_key'
 require_relative 'shared/lookup_registry'
 
+# Load schemas
+require_relative 'schemas/base'
+require_relative 'schemas/v1/customer'
+require_relative 'schemas/v2/customer'
+
 # Load sources
 require_relative 'sources/jsonl_source'
 
 # Load transforms
 require_relative 'transforms/base_transform'
+require_relative 'transforms/schema_validator'
 require_relative 'transforms/redis_dump_decoder'
 require_relative 'transforms/redis_dump_encoder'
 require_relative 'transforms/customer/identifier_enricher'

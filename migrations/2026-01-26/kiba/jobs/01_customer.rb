@@ -37,6 +37,7 @@ class CustomerJob
     @redis_url = options[:redis_url]
     @temp_db = options[:temp_db]
     @dry_run = options[:dry_run]
+    @strict_validation = options[:strict_validation]
 
     @stats = {
       records_read: 0,
@@ -44,6 +45,9 @@ class CustomerJob
       objects_transformed: 0,
       records_written: 0,
       lookup_entries: 0,
+      validated: 0,
+      validation_failures: 0,
+      validation_skipped: 0,
       errors: [],
     }
   end
@@ -123,6 +127,7 @@ class CustomerJob
     lookup_file_path = lookup_file
     stats = @stats
     job_started_at = Time.now
+    strict_validation = @strict_validation
 
     Kiba.parse do
       # Pre-process: setup
@@ -147,6 +152,13 @@ class CustomerJob
                 redis_helper: redis_helper,
                 stats: stats
 
+      # Transform: validate V1 input structure
+      transform Migration::Transforms::SchemaValidator,
+                schema: :customer_v1,
+                field: :fields,
+                strict: strict_validation,
+                stats: stats
+
       # Transform: enrich with identifiers (if not already present)
       transform Migration::Transforms::Customer::IdentifierEnricher,
                 stats: stats
@@ -165,6 +177,13 @@ class CustomerJob
                 stats: stats,
                 migrated_at: job_started_at
 
+      # Transform: validate V2 output structure
+      transform Migration::Transforms::SchemaValidator,
+                schema: :customer_v2,
+                field: :v2_fields,
+                strict: strict_validation,
+                stats: stats
+
       # Transform: encode fields back to DUMP
       transform Migration::Transforms::RedisDumpEncoder,
                 redis_helper: redis_helper,
@@ -182,7 +201,7 @@ class CustomerJob
                   destinations: [
                     [Migration::Destinations::JsonlDestination, {
                       file: output_file_path,
-                      exclude_fields: %i[fields v2_fields decode_error encode_error],
+                      exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
                     }],
                     [Migration::Destinations::LookupDestination, {
                       file: lookup_file_path,
@@ -204,6 +223,11 @@ class CustomerJob
     puts
     puts "Records written:     #{@stats[:records_written]}"
     puts "Lookup entries:      #{@stats[:lookup_entries]}"
+    puts
+    puts "Validation:"
+    puts "  Validated:         #{@stats[:validated]}"
+    puts "  Failures:          #{@stats[:validation_failures]}"
+    puts "  Skipped:           #{@stats[:validation_skipped]}"
 
     return unless @stats[:errors].any?
 
@@ -226,6 +250,7 @@ def parse_args(args)
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
+    strict_validation: false,
   }
 
   parser = OptionParser.new do |opts|
@@ -253,6 +278,10 @@ def parse_args(args)
 
     opts.on('--dry-run', 'Parse and count without writing') do
       options[:dry_run] = true
+    end
+
+    opts.on('--strict', 'Filter out records that fail validation') do
+      options[:strict_validation] = true
     end
 
     opts.on('-h', '--help', 'Show this help') do
