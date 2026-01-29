@@ -16,7 +16,7 @@ module Migration
 
         def initialize(**kwargs)
           super(**kwargs)
-          @uuid_generator = Shared::UuidV7Generator.new
+          @uuid_generator = Migration::Shared::UuidV7Generator.new
         end
 
         # Add objid and extid to record if it's an enrichable :object record.

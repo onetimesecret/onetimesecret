@@ -58,7 +58,7 @@ module Migration
           # Transform fields
           v2_fields = transform_fields(fields, objid, extid, record)
 
-          # Build V2 record (lookup collection now handled by LookupDestination)
+          # Build V2 record; lookup collection is handled by LookupDestination
           build_v2_record(record, v2_fields, objid, extid)
         end
 
