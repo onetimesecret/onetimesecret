@@ -8,15 +8,27 @@ module Migration
       # Only processes :object records that have a 'created' timestamp.
       # Uses the timestamp to generate deterministic-ish UUIDv7 identifiers.
       #
+      # Also builds an email_to_objid mapping that can be shared with
+      # FieldTransformer for renaming related records.
+      #
       # Usage in Kiba job:
-      #   transform Customer::IdentifierEnricher
+      #   email_mapping = {}
+      #   transform Customer::IdentifierEnricher, email_mapping: email_mapping
+      #   transform Customer::FieldTransformer, email_mapping: email_mapping
       #
       class IdentifierEnricher < BaseTransform
         EXTID_PREFIX = 'ur'
 
-        def initialize(**kwargs)
+        attr_reader :email_mapping
+
+        # @param email_mapping [Hash] Shared hash with pre-built email→objid mappings.
+        #        If provided and contains the email, uses existing objid instead of generating new one.
+        # @param kwargs [Hash] Additional options passed to BaseTransform
+        #
+        def initialize(email_mapping: nil, **kwargs)
           super(**kwargs)
           @uuid_generator = Migration::Shared::UuidV7Generator.new
+          @email_mapping = email_mapping || {}
         end
 
         # Add objid and extid to record if it's an enrichable :object record.
@@ -38,6 +50,21 @@ module Migration
             return record
           end
 
+          # Extract email to check pre-built mapping
+          email = extract_email(record)
+
+          # Use pre-built objid if available (ensures consistency with related records)
+          if email && @email_mapping[email]
+            objid = @email_mapping[email]
+            extid = @uuid_generator.derive_extid(objid, prefix: EXTID_PREFIX)
+
+            record[:objid] = objid
+            record[:extid] = extid
+            increment_stat(:enriched_from_mapping)
+
+            return record
+          end
+
           # Need 'created' timestamp from either record or fields
           created = extract_created_timestamp(record)
           unless created && created > 0
@@ -50,9 +77,20 @@ module Migration
 
           record[:objid] = objid
           record[:extid] = extid
+
+          # Store email→objid mapping for related record renaming
+          @email_mapping[email] = objid if email && !email.empty?
+
           increment_stat(:enriched)
 
           record
+        end
+
+        def extract_email(record)
+          fields = record[:fields]
+          return nil unless fields
+
+          fields['custid'] || fields['email']
         end
 
         private

@@ -10,20 +10,24 @@ module Migration
       # - Preserves original custid as v1_custid
       # - Updates custid to objid
       # - Adds migration tracking fields
-      # - Renames key from email-based to objid-based
+      # - Renames key from email-based to objid-based (both :object and related records)
       #
       # Usage in Kiba job:
       #   transform Customer::FieldTransformer, stats: stats
       #
       class FieldTransformer < BaseTransform
-        attr_reader :migrated_at
+        attr_reader :migrated_at, :email_mapping
 
         # @param migrated_at [Time, nil] Timestamp for migration tracking (default: job start time)
+        # @param email_mapping [Hash] Shared email→objid mapping from IdentifierEnricher
         # @param kwargs [Hash] Additional options passed to BaseTransform
         #
-        def initialize(migrated_at: nil, **kwargs)
+        def initialize(migrated_at: nil, email_mapping: nil, **kwargs)
           super(**kwargs)
           @migrated_at = migrated_at || Time.now
+          # Use shared mapping from IdentifierEnricher, or create local one
+          # This allows renaming related records regardless of dump order
+          @email_mapping = email_mapping || {}
         end
 
         # Process customer record and transform fields.
@@ -90,6 +94,10 @@ module Migration
         def build_v2_record(record, v2_fields, objid, extid)
           increment_stat(:objects_transformed)
 
+          # Also store in local mapping (for records processed after their :object)
+          v1_custid = v2_fields['v1_custid']
+          @email_mapping[v1_custid] = objid if v1_custid && !v1_custid.empty?
+
           {
             key: "customer:#{objid}:object",
             type: 'hash',
@@ -97,21 +105,44 @@ module Migration
             db: record[:db],
             objid: objid,
             extid: extid,
+            v1_custid: v1_custid,
             v2_fields: v2_fields,
           }
         end
 
+        # Suffix renames for V1 → V2 migration
+        SUFFIX_RENAMES = {
+          'metadata' => 'receipts',
+        }.freeze
+
         def rename_related_record(record)
-          key_parts = record[:key].split(':')
+          key = record[:key]
+          key_parts = key.split(':')
           return record unless key_parts.size >= 3 && key_parts.first == 'customer'
 
-          # Need the objid for this customer - check if it's in the record
-          # For related records, we need to look up from customer context
-          # In Kiba pipeline, this happens in a grouping stage or via context
-          # For now, pass through - the job orchestrator handles customer grouping
+          # Extract email (middle part) and suffix
+          # Format: customer:<email>:<suffix> e.g. customer:user@example.com:metadata
+          email = key_parts[1]
+          suffix = key_parts[2..-1].join(':')
 
-          increment_stat(:related_passthrough)
-          record
+          # Look up objid from shared mapping (populated by IdentifierEnricher)
+          objid = @email_mapping[email]
+
+          unless objid
+            increment_stat(:related_no_objid)
+            return record
+          end
+
+          increment_stat(:related_renamed)
+
+          # Rename suffix if needed (e.g., metadata → receipts)
+          new_suffix = SUFFIX_RENAMES[suffix] || suffix
+
+          # Return record with renamed key
+          record.merge(
+            key: "customer:#{objid}:#{new_suffix}",
+            v1_key: key
+          )
         end
       end
     end

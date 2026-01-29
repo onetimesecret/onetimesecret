@@ -73,10 +73,10 @@ module Migration
             'description' => 'Secret TTL in seconds (integer as string)',
           },
 
-          # Whether secret has a passphrase (stored as boolean string)
+          # Whether secret has a passphrase (stored as boolean string, empty allowed)
           'passphrase' => {
             'type' => 'string',
-            'enum' => %w[0 1 true false],
+            'enum' => ['0', '1', 'true', 'false', ''],
             'description' => 'Whether secret is passphrase protected',
           },
 

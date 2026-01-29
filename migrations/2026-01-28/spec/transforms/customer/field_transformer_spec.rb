@@ -272,29 +272,84 @@ RSpec.describe Migration::Transforms::Customer::FieldTransformer do
     end
 
     context 'with related records (non-:object)' do
-      it 'passes through related customer records unchanged' do
-        transformer = described_class.new(migrated_at: fixed_time, stats: stats)
-        record = {
+      it 'renames related record key when objid mapping exists' do
+        # Shared mapping simulates what IdentifierEnricher populates
+        email_mapping = { 'alice@example.com' => '01945678-1234-7abc-8def-0123456789ab' }
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats, email_mapping: email_mapping)
+
+        # Process a related record (mapping already populated)
+        related_record = {
+          key: 'customer:alice@example.com:secrets',
+          type: 'zset',
+          fields: { 'some' => 'data' }
+        }
+
+        result = transformer.process(related_record)
+
+        expect(result[:key]).to eq('customer:01945678-1234-7abc-8def-0123456789ab:secrets')
+        expect(result[:v1_key]).to eq('customer:alice@example.com:secrets')
+        expect(stats[:related_renamed]).to eq(1)
+      end
+
+      it 'renames metadata suffix to receipts' do
+        email_mapping = { 'alice@example.com' => '01945678-1234-7abc-8def-0123456789ab' }
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats, email_mapping: email_mapping)
+
+        related_record = {
           key: 'customer:alice@example.com:metadata',
+          type: 'zset'
+        }
+
+        result = transformer.process(related_record)
+
+        expect(result[:key]).to eq('customer:01945678-1234-7abc-8def-0123456789ab:receipts')
+        expect(result[:v1_key]).to eq('customer:alice@example.com:metadata')
+      end
+
+      it 'renames related record when :object processed after related' do
+        # Start with empty mapping
+        email_mapping = {}
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats, email_mapping: email_mapping)
+
+        # Process :object record first (populates mapping)
+        transformer.process(v1_record)
+
+        # Now process related record - metadata becomes receipts
+        related_record = {
+          key: 'customer:alice@example.com:metadata',
+          type: 'hash'
+        }
+        result = transformer.process(related_record)
+
+        expect(result[:key]).to eq('customer:01945678-1234-7abc-8def-0123456789ab:receipts')
+      end
+
+      it 'passes through related record unchanged when no objid mapping exists' do
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats)
+
+        # Process related record without any mapping
+        record = {
+          key: 'customer:unknown@example.com:metadata',
           type: 'hash',
           fields: { 'some' => 'data' }
         }
 
         result = transformer.process(record)
 
-        expect(result).to eq(record)
+        expect(result[:key]).to eq('customer:unknown@example.com:metadata')
+        expect(result).not_to have_key(:v1_key)
+        expect(stats[:related_no_objid]).to eq(1)
       end
 
-      it 'increments :related_passthrough stat for customer:*:* records' do
-        transformer = described_class.new(migrated_at: fixed_time, stats: stats)
-        record = {
-          key: 'customer:alice@example.com:secrets',
-          type: 'zset'
-        }
+      it 'increments :related_renamed stat for successfully renamed records' do
+        email_mapping = { 'alice@example.com' => '01945678-1234-7abc-8def-0123456789ab' }
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats, email_mapping: email_mapping)
 
-        transformer.process(record)
+        # Process multiple related records
+        transformer.process({ key: 'customer:alice@example.com:secrets', type: 'zset' })
+        transformer.process({ key: 'customer:alice@example.com:sessions', type: 'set' })
 
-        expect(stats[:related_passthrough]).to eq(1)
+        expect(stats[:related_renamed]).to eq(2)
       end
 
       it 'returns record as-is for non-customer keys without colon' do
@@ -304,13 +359,16 @@ RSpec.describe Migration::Transforms::Customer::FieldTransformer do
         result = transformer.process(record)
 
         expect(result).to eq(record)
-        expect(stats).not_to have_key(:related_passthrough)
+        expect(stats).not_to have_key(:related_renamed)
+        expect(stats).not_to have_key(:related_no_objid)
       end
     end
 
     context 'stats tracking summary' do
       it 'tracks all stat types correctly across multiple records' do
-        transformer = described_class.new(migrated_at: fixed_time, stats: stats)
+        # Pre-populate mapping for alice (simulating IdentifierEnricher)
+        email_mapping = { 'alice@example.com' => '01945678-1234-7abc-8def-0123456789ab' }
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats, email_mapping: email_mapping)
 
         # Valid object transformation
         transformer.process(v1_record)
@@ -328,7 +386,13 @@ RSpec.describe Migration::Transforms::Customer::FieldTransformer do
           fields: { 'custid' => 'charlie@example.com' }
         })
 
-        # Related passthrough
+        # Related record - renamed (alice's mapping exists)
+        transformer.process({
+          key: 'customer:alice@example.com:metadata',
+          type: 'hash'
+        })
+
+        # Related record - no objid mapping
         transformer.process({
           key: 'customer:dave@example.com:metadata',
           type: 'hash'
@@ -337,7 +401,8 @@ RSpec.describe Migration::Transforms::Customer::FieldTransformer do
         expect(stats[:objects_transformed]).to eq(1)
         expect(stats[:skipped_no_fields]).to eq(1)
         expect(stats[:skipped_no_objid]).to eq(1)
-        expect(stats[:related_passthrough]).to eq(1)
+        expect(stats[:related_renamed]).to eq(1)
+        expect(stats[:related_no_objid]).to eq(1)
       end
     end
 

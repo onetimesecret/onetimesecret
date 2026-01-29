@@ -104,15 +104,15 @@ class SecretJob
 
     # These lookups are required for Phase 5
     begin
-      registry.require_lookup(:email_to_customer, for_phase: PHASE)
-      puts "Loaded lookup: email_to_customer (#{registry.collected(:email_to_customer).size rescue 'N/A'} entries)"
+      data = registry.require_lookup(:email_to_customer, for_phase: PHASE)
+      puts "Loaded lookup: email_to_customer (#{data.size} entries)"
     rescue Migration::Shared::LookupRegistry::LookupNotFoundError => e
       raise ArgumentError, "Phase 1 prerequisite missing: #{e.message}"
     end
 
     begin
-      registry.require_lookup(:email_to_org, for_phase: PHASE)
-      puts "Loaded lookup: email_to_org (#{registry.collected(:email_to_org).size rescue 'N/A'} entries)"
+      data = registry.require_lookup(:email_to_org, for_phase: PHASE)
+      puts "Loaded lookup: email_to_org (#{data.size} entries)"
     rescue Migration::Shared::LookupRegistry::LookupNotFoundError => e
       raise ArgumentError, "Phase 2 prerequisite missing: #{e.message}"
     end

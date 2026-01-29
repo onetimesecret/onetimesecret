@@ -131,6 +131,10 @@ class CustomerJob
     job_started_at = Time.now
     strict_validation = @strict_validation
 
+    # Shared mapping for email→objid (pre-built, used by FieldTransformer)
+    # This enables renaming related records regardless of dump order
+    email_mapping = build_email_mapping(input_file)
+
     Kiba.parse do
       # Pre-process: setup
       pre_process do
@@ -162,8 +166,10 @@ class CustomerJob
                 stats: stats
 
       # Transform: enrich with identifiers (if not already present)
+      # Also populates email_mapping for related record renaming
       transform Migration::Transforms::Customer::IdentifierEnricher,
-                stats: stats
+                stats: stats,
+                email_mapping: email_mapping
 
       # Transform: filter to :object records for main transform
       # (pass through others for related record handling)
@@ -175,9 +181,11 @@ class CustomerJob
       end
 
       # Transform: apply field transformations
+      # Uses email_mapping to rename related records to use objid
       transform Migration::Transforms::Customer::FieldTransformer,
                 stats: stats,
-                migrated_at: job_started_at
+                migrated_at: job_started_at,
+                email_mapping: email_mapping
 
       # Transform: validate V2 output structure
       transform Migration::Transforms::SchemaValidator,
@@ -214,6 +222,61 @@ class CustomerJob
                     }],
                   ]
     end
+  end
+
+  # Pre-scan input to build email→objid mapping before main processing.
+  # This enables renaming related records regardless of dump order.
+  #
+  # Uses a temporary Redis connection to decode DUMP data and extract
+  # created timestamps for UUIDv7 generation.
+  def build_email_mapping(input_file)
+    mapping = {}
+    uuid_generator = Migration::Shared::UuidV7Generator.new
+
+    redis_helper = Migration::Shared::RedisTempKey.new(
+      redis_url: @redis_url,
+      temp_db: @temp_db
+    )
+    redis_helper.connect!
+
+    File.foreach(input_file) do |line|
+      record = JSON.parse(line, symbolize_names: true)
+
+      # Only process :object records
+      next unless record[:key]&.end_with?(':object')
+
+      # Extract email from key: customer:<email>:object
+      email = record[:key].split(':')[1]
+
+      # Skip if already has objid (enriched dump)
+      if record[:objid] && !record[:objid].empty?
+        mapping[email] = record[:objid]
+        next
+      end
+
+      # Decode DUMP to get created timestamp
+      next unless record[:dump]
+
+      begin
+        fields = redis_helper.restore_and_read_hash(record[:dump])
+        created = fields['created']&.to_f
+        next unless created && created > 0
+
+        # Generate deterministic objid from timestamp
+        objid, _extid = uuid_generator.generate_identifiers(created, prefix: 'ur')
+        mapping[email] = objid
+      rescue StandardError
+        # Skip records that fail to decode
+        next
+      end
+    rescue JSON::ParserError
+      next
+    end
+
+    mapping
+  ensure
+    redis_helper&.cleanup!
+    redis_helper&.disconnect!
   end
 
   def print_summary

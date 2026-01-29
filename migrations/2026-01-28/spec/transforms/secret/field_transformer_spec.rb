@@ -281,7 +281,7 @@ RSpec.describe Migration::Transforms::Secret::FieldTransformer do
         expect(result[:ttl_ms]).to eq(86400000)
       end
 
-      it 'increments :objects_transformed stat' do
+      it 'increments :secrets_transformed stat' do
         transformer = described_class.new(
           registry: lookup_registry,
           migrated_at: fixed_time,
@@ -290,7 +290,7 @@ RSpec.describe Migration::Transforms::Secret::FieldTransformer do
 
         transformer.process(v1_record)
 
-        expect(stats[:objects_transformed]).to eq(1)
+        expect(stats[:secrets_transformed]).to eq(1)
       end
     end
 
@@ -586,7 +586,7 @@ RSpec.describe Migration::Transforms::Secret::FieldTransformer do
         # No fields
         transformer.process({ key: 'secret:nf:object', type: 'hash', fields: nil })
 
-        expect(stats[:objects_transformed]).to eq(3)
+        expect(stats[:secrets_transformed]).to eq(3)
         expect(stats[:anonymous_secrets]).to eq(2) # anon1 + unknown owner
         expect(stats[:related_passthrough]).to eq(1)
         expect(stats[:skipped_non_secret]).to eq(1)

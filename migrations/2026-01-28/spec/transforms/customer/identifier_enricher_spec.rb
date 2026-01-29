@@ -58,6 +58,28 @@ RSpec.describe Migration::Transforms::Customer::IdentifierEnricher do
         expect(result).to have_key(:extid)
       end
 
+      it 'populates email_mapping with custid→objid' do
+        email_mapping = {}
+        enricher = described_class.new(stats: stats, email_mapping: email_mapping)
+
+        result = enricher.process(record)
+
+        expect(email_mapping['alice@example.com']).to eq(result[:objid])
+      end
+
+      it 'uses email field when custid is missing' do
+        email_mapping = {}
+        enricher = described_class.new(stats: stats, email_mapping: email_mapping)
+        record_with_email = {
+          key: 'customer:bob@example.com:object',
+          fields: { 'email' => 'bob@example.com', 'created' => '1706140800.0' }
+        }
+
+        result = enricher.process(record_with_email)
+
+        expect(email_mapping['bob@example.com']).to eq(result[:objid])
+      end
+
       it 'increments :enriched stat' do
         enricher = described_class.new(stats: stats)
 

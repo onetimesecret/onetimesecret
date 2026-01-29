@@ -106,10 +106,14 @@ module Migration
         end
 
         def build_v2_record(record, v2_fields)
-          increment_stat(:objects_transformed)
+          increment_stat(:secrets_transformed)
 
           objid = v2_fields['objid']
           extid = v2_fields['extid']
+
+          # Extract original secret key for lookup (the middle part of secret:<key>:object)
+          original_key = record[:key]
+          secret_key = original_key.sub(/^secret:/, '').sub(/:object$/, '')
 
           {
             key: "secret:#{objid}:object",
@@ -118,6 +122,7 @@ module Migration
             db: record[:db],
             objid: objid,
             extid: extid,
+            secret_key: secret_key,
             v2_fields: v2_fields,
           }
         end

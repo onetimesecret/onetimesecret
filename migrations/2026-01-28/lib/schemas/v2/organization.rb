@@ -87,15 +87,15 @@ module Migration
             'description' => 'Last update timestamp (epoch float as string)',
           },
 
-          # Stripe identifiers (inherited from customer)
+          # Stripe identifiers (inherited from customer, empty string allowed for unset)
           'stripe_customer_id' => {
             'type' => 'string',
-            'pattern' => '^cus_',
+            'pattern' => '^(cus_.*|)$',
             'description' => 'Stripe customer identifier',
           },
           'stripe_subscription_id' => {
             'type' => 'string',
-            'pattern' => '^sub_',
+            'pattern' => '^(sub_.*|)$',
             'description' => 'Stripe subscription identifier',
           },
           'stripe_checkout_email' => {

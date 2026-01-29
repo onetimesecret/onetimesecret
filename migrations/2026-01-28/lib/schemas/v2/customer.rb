@@ -101,15 +101,15 @@ module Migration
             'description' => 'Subscription plan identifier',
           },
 
-          # Stripe identifiers
+          # Stripe identifiers (empty string allowed for unset)
           'stripe_customer_id' => {
             'type' => 'string',
-            'pattern' => '^cus_',
+            'pattern' => '^(cus_.*|)$',
             'description' => 'Stripe customer identifier',
           },
           'stripe_subscription_id' => {
             'type' => 'string',
-            'pattern' => '^sub_',
+            'pattern' => '^(sub_.*|)$',
             'description' => 'Stripe subscription identifier',
           },
 
@@ -131,10 +131,10 @@ module Migration
             'description' => 'Hashed authentication passphrase',
           },
 
-          # Last login timestamp
+          # Last login timestamp (empty string allowed for never logged in)
           'last_login' => {
             'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
+            'pattern' => '^(\\d+(\\.\\d+)?|)$',
             'description' => 'Last login timestamp (epoch float as string)',
           },
 
