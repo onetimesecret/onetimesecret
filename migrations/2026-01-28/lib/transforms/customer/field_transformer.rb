@@ -71,11 +71,12 @@ module Migration
           v2_fields['objid'] = objid
           v2_fields['extid'] = extid if extid && !extid.empty?
 
-          # Preserve original custid (email) and update to objid
+          # Preserve original custid (email) for lookup and update to objid
+          # Use email as fallback when custid is missing to ensure lookup coverage
+          # This ensures lookup file has entries for all customers
           original_custid = v1_fields['custid']
-          if original_custid && original_custid != objid
-            v2_fields['v1_custid'] = original_custid
-          end
+          original_custid = v1_fields['email'] if original_custid.nil? || original_custid.empty?
+          v2_fields['v1_custid'] = original_custid if original_custid && !original_custid.empty?
           v2_fields['custid'] = objid
 
           # Add migration tracking

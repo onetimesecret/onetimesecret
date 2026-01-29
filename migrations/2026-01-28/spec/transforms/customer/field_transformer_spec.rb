@@ -141,10 +141,44 @@ RSpec.describe Migration::Transforms::Customer::FieldTransformer do
     end
 
     context 'with record where custid already equals objid' do
-      it 'does not add v1_custid when custid equals objid' do
+      it 'still preserves v1_custid for lookup consistency' do
         transformer = described_class.new(migrated_at: fixed_time, stats: stats)
         record = v1_record.dup
         record[:fields] = record[:fields].merge('custid' => '01945678-1234-7abc-8def-0123456789ab')
+
+        result = transformer.process(record)
+
+        # Always preserve v1_custid to ensure lookup file has entries for all customers
+        expect(result[:v2_fields]['v1_custid']).to eq('01945678-1234-7abc-8def-0123456789ab')
+      end
+    end
+
+    context 'with record missing custid field' do
+      it 'falls back to email for v1_custid lookup key' do
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats)
+        record = v1_record.dup
+        record[:fields] = record[:fields].reject { |k, _| k == 'custid' }
+
+        result = transformer.process(record)
+
+        # Uses email as fallback to ensure lookup coverage
+        expect(result[:v2_fields]['v1_custid']).to eq('alice@example.com')
+      end
+
+      it 'handles empty custid by falling back to email' do
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats)
+        record = v1_record.dup
+        record[:fields] = record[:fields].merge('custid' => '')
+
+        result = transformer.process(record)
+
+        expect(result[:v2_fields]['v1_custid']).to eq('alice@example.com')
+      end
+
+      it 'does not set v1_custid when both custid and email are missing' do
+        transformer = described_class.new(migrated_at: fixed_time, stats: stats)
+        record = v1_record.dup
+        record[:fields] = record[:fields].reject { |k, _| %w[custid email].include?(k) }
 
         result = transformer.process(record)
 
