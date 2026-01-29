@@ -22,11 +22,14 @@ module Migration
     class BaseTransform
       class << self
         # Declare lookups required by this transform.
+        # Can be called multiple times; lookups are accumulated and deduplicated.
         #
         # @param names [Array<Symbol>] Lookup names
         #
         def requires_lookups(*names)
-          @required_lookups = names
+          @required_lookups ||= []
+          @required_lookups.concat(names)
+          @required_lookups.uniq!
         end
 
         # Get required lookups for this transform.

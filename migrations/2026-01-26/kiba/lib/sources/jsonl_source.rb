@@ -34,6 +34,8 @@ module Migration
       #
       def each
         File.foreach(@file) do |line|
+          # Scrub invalid UTF-8 sequences to prevent encoding errors
+          line = line.scrub('?')
           next if line.strip.empty?
 
           record = JSON.parse(line.chomp, symbolize_names: true)
