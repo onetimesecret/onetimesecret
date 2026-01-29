@@ -12,10 +12,8 @@ module Migration
       # - Adds migration tracking fields
       # - Renames key from email-based to objid-based
       #
-      # Also collects email→objid mappings for the lookup registry.
-      #
       # Usage in Kiba job:
-      #   transform Customer::FieldTransformer, registry: registry
+      #   transform Customer::FieldTransformer, stats: stats
       #
       class FieldTransformer < BaseTransform
         attr_reader :migrated_at
@@ -60,10 +58,7 @@ module Migration
           # Transform fields
           v2_fields = transform_fields(fields, objid, extid, record)
 
-          # Collect lookup mapping (email -> objid)
-          collect_lookup(fields, objid)
-
-          # Build V2 record
+          # Build V2 record (lookup collection now handled by LookupDestination)
           build_v2_record(record, v2_fields, objid, extid)
         end
 
@@ -89,17 +84,6 @@ module Migration
           v2_fields['migrated_at'] = @migrated_at.to_f.to_s
 
           v2_fields
-        end
-
-        def collect_lookup(fields, objid)
-          return unless @registry
-
-          # The original custid is the email
-          email = fields['custid']
-          return unless email && !email.empty?
-
-          @registry.collect(:email_to_customer, email, objid)
-          increment_stat(:lookup_collected)
         end
 
         def build_v2_record(record, v2_fields, objid, extid)

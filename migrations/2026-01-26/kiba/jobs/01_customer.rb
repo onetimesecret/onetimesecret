@@ -106,14 +106,9 @@ class CustomerJob
     )
     redis_helper.connect!
 
-    registry = Migration::Shared::LookupRegistry.new(exports_dir: @output_dir)
-
     # Build and run Kiba job
-    job = build_kiba_job(redis_helper, registry)
+    job = build_kiba_job(redis_helper)
     Kiba.run(job)
-
-    # Save lookup data
-    save_lookups(registry)
 
     # Stats are tracked via the stats hash passed to transforms
     # records_written is tracked by a post-transform counter
@@ -122,7 +117,7 @@ class CustomerJob
     redis_helper&.disconnect!
   end
 
-  def build_kiba_job(redis_helper, registry)
+  def build_kiba_job(redis_helper)
     input_file = @input_file
     output_file_path = output_file
     lookup_file_path = lookup_file
@@ -167,7 +162,6 @@ class CustomerJob
 
       # Transform: apply field transformations
       transform Migration::Transforms::Customer::FieldTransformer,
-                registry: registry,
                 stats: stats,
                 migrated_at: job_started_at
 
@@ -183,20 +177,22 @@ class CustomerJob
         record
       end
 
-      # Destination: write transformed JSONL
-      destination Migration::Destinations::JsonlDestination,
-                  file: output_file_path,
-                  exclude_fields: %i[fields v2_fields decode_error encode_error]
+      # Destination: write transformed JSONL and lookup file
+      destination Migration::Destinations::CompositeDestination,
+                  destinations: [
+                    [Migration::Destinations::JsonlDestination, {
+                      file: output_file_path,
+                      exclude_fields: %i[fields v2_fields decode_error encode_error],
+                    }],
+                    [Migration::Destinations::LookupDestination, {
+                      file: lookup_file_path,
+                      key_field: :v1_custid,
+                      value_field: :objid,
+                      phase: PHASE,
+                      stats: stats,
+                    }],
+                  ]
     end
-  end
-
-  def save_lookups(registry)
-    data = registry.collected(:email_to_customer)
-    return if data.empty?
-
-    FileUtils.mkdir_p(File.dirname(lookup_file))
-    File.write(lookup_file, JSON.pretty_generate(data))
-    @stats[:lookup_entries] = data.size
   end
 
   def print_summary

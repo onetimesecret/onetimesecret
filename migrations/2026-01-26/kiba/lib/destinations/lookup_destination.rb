@@ -27,14 +27,16 @@ module Migration
       # @param registry [LookupRegistry, nil] Optional registry to update
       # @param lookup_name [Symbol, nil] Name for registry entry
       # @param phase [Integer] Migration phase number (default: 1)
+      # @param stats [Hash, nil] Stats hash to update :lookup_entries on close
       #
-      def initialize(file:, key_field:, value_field:, registry: nil, lookup_name: nil, phase: 1)
+      def initialize(file:, key_field:, value_field:, registry: nil, lookup_name: nil, phase: 1, stats: nil)
         @file = file
         @key_field = key_field.to_sym
         @value_field = value_field.to_sym
         @registry = registry
         @lookup_name = lookup_name&.to_sym
         @phase = phase
+        @stats = stats
         @data = {}
         @count = 0
 
@@ -69,6 +71,9 @@ module Migration
         if @registry && @lookup_name
           @registry.register(@lookup_name, @data, phase: @phase)
         end
+
+        # Update stats if provided
+        @stats[:lookup_entries] = @count if @stats
       end
 
       private

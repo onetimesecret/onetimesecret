@@ -71,3 +71,4 @@ require_relative 'transforms/customer/field_transformer'
 # Load destinations
 require_relative 'destinations/jsonl_destination'
 require_relative 'destinations/lookup_destination'
+require_relative 'destinations/composite_destination'
