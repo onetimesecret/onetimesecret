@@ -21,6 +21,8 @@
 #   --temp-db=N         Temp database (default: 15)
 #   --dry-run           Parse and count without writing
 
+require 'fileutils'
+require 'json'
 require 'kiba'
 
 # Add lib to load path

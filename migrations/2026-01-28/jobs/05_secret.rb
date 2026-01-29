@@ -29,6 +29,8 @@
 #   --dry-run           Parse and count without writing
 #   --strict            Filter out records that fail validation
 
+require 'fileutils'
+require 'json'
 require 'kiba'
 
 # Add lib to load path
