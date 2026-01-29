@@ -90,19 +90,27 @@ RSpec.describe Migration::Shared::RedisTempKey do
       expect(restored).to eq(original)
     end
 
-    it 'handles hash after filtering nil values results in empty' do
+    it 'raises ArgumentError when hash compacts to empty' do
       # When all values are nil, the hash becomes empty after compact
-      # Redis DUMP on non-existent key returns nil, causing an error
-      # This tests the expected behavior - we verify that filtering nil
-      # produces empty hash behavior
       original = { 'only_nil' => nil }
 
-      # The implementation skips HSET for empty hashes,
-      # but DUMP on an empty key will return nil
-      # This is a known limitation - document it via test
       expect do
         helper.create_dump_from_hash(original)
-      end.to raise_error(TypeError)
+      end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
+    end
+
+    it 'raises ArgumentError for explicitly empty hash' do
+      expect do
+        helper.create_dump_from_hash({})
+      end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
+    end
+
+    it 'raises ArgumentError when multiple nil values compact to empty' do
+      original = { 'a' => nil, 'b' => nil, 'c' => nil }
+
+      expect do
+        helper.create_dump_from_hash(original)
+      end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
     end
 
     it 'handles hash with at least one non-nil field' do

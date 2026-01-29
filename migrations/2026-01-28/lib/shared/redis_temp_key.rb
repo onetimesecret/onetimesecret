@@ -94,13 +94,18 @@ module Migration
       #
       def create_dump_from_hash(fields)
         ensure_connected!
-        temp_key = generate_temp_key
 
         # Filter out nil values
         clean_fields = fields.compact
 
+        if clean_fields.empty?
+          raise ArgumentError, 'Cannot create dump from empty hash'
+        end
+
+        temp_key = generate_temp_key
+
         begin
-          @redis.hset(temp_key, clean_fields) unless clean_fields.empty?
+          @redis.hset(temp_key, clean_fields)
           @temp_keys_created << temp_key
           dump_data = @redis.dump(temp_key)
           Base64.strict_encode64(dump_data)
