@@ -41,6 +41,8 @@ module Migration
     'customer' => 'ur',
     'customdomain' => 'cd',
     'organization' => 'on',
+    'receipt' => 'rc',
+    'secret' => 'se',
   }.freeze
 
   # Model-specific output directories
@@ -61,8 +63,14 @@ require_relative 'shared/lookup_registry'
 # Load schemas
 require_relative 'schemas/base'
 require_relative 'schemas/v1/customer'
+require_relative 'schemas/v1/customdomain'
+require_relative 'schemas/v1/metadata'
+require_relative 'schemas/v1/secret'
 require_relative 'schemas/v2/customer'
+require_relative 'schemas/v2/customdomain'
 require_relative 'schemas/v2/organization'
+require_relative 'schemas/v2/receipt'
+require_relative 'schemas/v2/secret'
 
 # Load sources
 require_relative 'sources/jsonl_source'
@@ -74,7 +82,10 @@ require_relative 'transforms/redis_dump_decoder'
 require_relative 'transforms/redis_dump_encoder'
 require_relative 'transforms/customer/identifier_enricher'
 require_relative 'transforms/customer/field_transformer'
+require_relative 'transforms/customdomain/field_transformer'
 require_relative 'transforms/organization/generator'
+require_relative 'transforms/receipt/field_transformer'
+require_relative 'transforms/secret/field_transformer'
 
 # Load destinations
 require_relative 'destinations/jsonl_destination'

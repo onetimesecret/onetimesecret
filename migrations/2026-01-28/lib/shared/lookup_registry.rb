@@ -52,6 +52,16 @@ module Migration
           phase: 3,
           description: 'Maps FQDN to custom_domain objid',
         },
+        metadata_key_to_receipt: {
+          file: 'metadata_key_to_receipt_objid.json',
+          phase: 4,
+          description: 'Maps metadata key (secret key) to receipt objid',
+        },
+        secret_key_to_objid: {
+          file: 'secret_key_to_objid.json',
+          phase: 5,
+          description: 'Maps secret key to secret objid',
+        },
       }.freeze
 
       attr_reader :exports_dir, :lookups_dir
