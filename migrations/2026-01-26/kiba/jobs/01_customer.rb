@@ -218,7 +218,9 @@ class CustomerJob
 end
 
 def parse_args(args)
-  # Resolve paths relative to kiba directory
+  require 'optparse'
+
+  # All paths resolved relative to kiba directory for consistency
   kiba_dir = File.expand_path('..', __dir__)
   migrations_dir = File.expand_path('../..', kiba_dir)
 
@@ -230,39 +232,49 @@ def parse_args(args)
     dry_run: false,
   }
 
-  args.each do |arg|
-    case arg
-    when /^--input-file=(.+)$/ then options[:input_file] = File.expand_path(Regexp.last_match(1))
-    when /^--output-dir=(.+)$/ then options[:output_dir] = File.expand_path(Regexp.last_match(1))
-    when /^--redis-url=(.+)$/ then options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/ then options[:temp_db] = Regexp.last_match(1).to_i
-    when '--dry-run' then options[:dry_run] = true
-    when '--help', '-h'
-      puts <<~HELP
-        Usage: ruby jobs/01_customer.rb [OPTIONS]
+  parser = OptionParser.new do |opts|
+    opts.banner = "Usage: ruby jobs/01_customer.rb [OPTIONS]"
+    opts.separator ""
+    opts.separator "Kiba ETL job for customer data transformation (Phase 1)."
+    opts.separator ""
+    opts.separator "Options:"
 
-        Kiba ETL job for customer data transformation (Phase 1).
+    opts.on('--input-file=FILE', 'Input JSONL file') do |file|
+      options[:input_file] = File.expand_path(file, kiba_dir)
+    end
 
-        Options:
-          --input-file=FILE   Input JSONL file (default: ../exports/customer/customer_dump.jsonl)
-          --output-dir=DIR    Output directory (default: exports)
-          --redis-url=URL     Redis URL (default: redis://127.0.0.1:6379)
-          --temp-db=N         Temp database (default: 15)
-          --dry-run           Parse and count without writing
-          --help              Show this help
+    opts.on('--output-dir=DIR', 'Output directory') do |dir|
+      options[:output_dir] = File.expand_path(dir, kiba_dir)
+    end
 
-        Output files:
-          exports/customer/customer_transformed.jsonl
-          exports/lookups/email_to_customer_objid.json
-      HELP
+    opts.on('--redis-url=URL', 'Redis URL (default: redis://127.0.0.1:6379)') do |url|
+      options[:redis_url] = url
+    end
+
+    opts.on('--temp-db=N', Integer, 'Temp database (default: 15)') do |db|
+      options[:temp_db] = db
+    end
+
+    opts.on('--dry-run', 'Parse and count without writing') do
+      options[:dry_run] = true
+    end
+
+    opts.on('-h', '--help', 'Show this help') do
+      puts opts
+      puts
+      puts "Output files:"
+      puts "  exports/customer/customer_transformed.jsonl"
+      puts "  exports/lookups/email_to_customer_objid.json"
       exit 0
-    else
-      warn "Unknown option: #{arg}"
-      exit 1
     end
   end
 
+  parser.parse!(args)
   options
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
+  warn e.message
+  warn "Use --help for usage information"
+  exit 1
 end
 
 if __FILE__ == $PROGRAM_NAME
