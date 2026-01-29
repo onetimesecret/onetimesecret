@@ -66,9 +66,12 @@ module Migration
       # @param dump_b64 [String] Base64-encoded Redis DUMP data
       # @param original_key [String] Original key name (for error messages)
       # @return [Hash] Hash fields from the restored key
+      # @raise [Base64FormatError] If Base64 encoding is invalid
+      # @raise [RestoreError] If Redis restore fails
       #
       def restore_and_read_hash(dump_b64, original_key: 'unknown')
         ensure_connected!
+        validate_base64!(dump_b64, original_key)
         temp_key = generate_temp_key
 
         dump_data = Base64.strict_decode64(dump_b64)
@@ -142,6 +145,26 @@ module Migration
 
       private
 
+      # Validate Base64 encoding format before decoding.
+      #
+      # @param data [String] Base64-encoded data
+      # @param key [String] Original key name (for error messages)
+      # @raise [Base64FormatError] If encoding is invalid
+      #
+      def validate_base64!(data, key)
+        return if data.nil? || data.empty?
+
+        # Check for valid Base64 characters and padding
+        unless data.match?(/\A[A-Za-z0-9+\/]*={0,2}\z/)
+          raise Base64FormatError.new(key, 'Invalid Base64 characters or padding')
+        end
+
+        # Check length is valid (Base64 length must be multiple of 4)
+        unless (data.length % 4).zero?
+          raise Base64FormatError.new(key, "Invalid Base64 length: #{data.length}")
+        end
+      end
+
       def ensure_connected!
         raise NotConnectedError unless @redis
       end
@@ -173,6 +196,16 @@ module Migration
           @key = key
           @redis_message = redis_message
           super("Restore failed for key '#{key}': #{redis_message}")
+        end
+      end
+
+      class Base64FormatError < RedisTempKeyError
+        attr_reader :key, :reason
+
+        def initialize(key, reason)
+          @key = key
+          @reason = reason
+          super("Invalid Base64 for key '#{key}': #{reason}")
         end
       end
     end
