@@ -113,12 +113,13 @@ module Migration
           objid = v2_fields['objid']
           extid = v2_fields['extid']
 
-          # Extract original secret key for lookup (the middle part of secret:<key>:object)
+          # Extract original secret key (the middle part of secret:<key>:object)
+          # Secret key is preserved as-is - no lookup needed
           original_key = record[:key]
           secret_key = original_key.sub(/^secret:/, '').sub(/:object$/, '')
 
           {
-            key: "secret:#{objid}:object",
+            key: original_key,  # Keep original key: secret:<key>:object
             type: 'hash',
             ttl_ms: record[:ttl_ms],
             db: record[:db],

@@ -150,21 +150,21 @@ module Migration
           # Received timestamp
           'received' => {
             'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
+            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
             'description' => 'Timestamp when secret was received',
           },
 
           # Burned timestamp
           'burned' => {
             'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
+            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
             'description' => 'Timestamp when secret was burned (destroyed by owner)',
           },
 
           # TTL duration set when created
           'lifespan' => {
             'type' => 'string',
-            'pattern' => '^\\d+$',
+            'pattern' => '^(\\d+)?$',  # Allow empty string
             'description' => 'TTL duration in seconds (V1 field name)',
           },
 
@@ -189,14 +189,14 @@ module Migration
           # Time-to-live in seconds for the secret
           'secret_ttl' => {
             'type' => 'string',
-            'pattern' => '^\\d+$',
+            'pattern' => '^(\\d+)?$',  # Allow empty string
             'description' => 'Time-to-live in seconds for the secret',
           },
 
           # Shared timestamp
           'shared' => {
             'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
+            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
             'description' => 'Timestamp when secret was shared',
           },
 
@@ -209,14 +209,14 @@ module Migration
           # Truncation indicator
           'truncate' => {
             'type' => 'string',
-            'enum' => %w[true false 0 1],
+            'enum' => ['true', 'false', '0', '1', ''],  # Allow empty string
             'description' => 'Whether content was truncated',
           },
 
           # Viewed timestamp (by owner)
           'viewed' => {
             'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
+            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
             'description' => 'Timestamp when secret was previewed by owner',
           },
         },

@@ -52,7 +52,6 @@ class ReceiptJob
       objects_found: 0,
       objects_transformed: 0,
       records_written: 0,
-      lookup_entries: 0,
       owner_resolved: 0,
       owner_unresolved: 0,
       org_resolved: 0,
@@ -78,7 +77,6 @@ class ReceiptJob
     puts '=' * 50
     puts "Input:  #{@input_file}"
     puts "Output: #{output_file}"
-    puts "Lookup: #{lookup_file}"
     puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
     puts 'Required lookups:'
@@ -118,10 +116,6 @@ class ReceiptJob
 
   def output_file
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
-  end
-
-  def lookup_file
-    File.join(@output_dir, 'lookups', 'metadata_key_to_receipt_objid.json')
   end
 
   def email_to_customer_lookup
@@ -175,7 +169,6 @@ class ReceiptJob
   def build_kiba_job(redis_helper, registry)
     input_file = @input_file
     output_file_path = output_file
-    lookup_file_path = lookup_file
     stats = @stats
     job_started_at = Time.now
     strict_validation = @strict_validation
@@ -184,7 +177,6 @@ class ReceiptJob
       # Pre-process: setup directories
       pre_process do
         FileUtils.mkdir_p(File.dirname(output_file_path))
-        FileUtils.mkdir_p(File.dirname(lookup_file_path))
       end
 
       # Source: read metadata JSONL
@@ -243,21 +235,12 @@ class ReceiptJob
         record
       end
 
-      # Destination: write transformed JSONL and lookup file
-      destination Migration::Destinations::CompositeDestination,
-                  destinations: [
-                    [Migration::Destinations::JsonlDestination, {
-                      file: output_file_path,
-                      exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
-                    }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: lookup_file_path,
-                      key_field: :secret_key,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
-                    }],
-                  ]
+      # Destination: write transformed JSONL
+      # Note: No lookup file needed - the secret key is preserved as-is,
+      # only the Redis key prefix changes (metadata: → receipt:)
+      destination Migration::Destinations::JsonlDestination,
+                  file: output_file_path,
+                  exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors]
     end
   end
 
@@ -267,9 +250,7 @@ class ReceiptJob
     puts "Records read:           #{@stats[:records_read]}"
     puts "Objects found:          #{@stats[:objects_found]}"
     puts "Objects transformed:    #{@stats[:objects_transformed]}"
-    puts
     puts "Records written:        #{@stats[:records_written]}"
-    puts "Lookup entries:         #{@stats[:lookup_entries]}"
     puts
     puts 'Ownership resolution:'
     puts "  Owner resolved:       #{@stats[:owner_resolved]}"
@@ -284,6 +265,11 @@ class ReceiptJob
     puts "  Validated:            #{@stats[:validated]}"
     puts "  Failures:             #{@stats[:validation_failures]}"
     puts "  Skipped:              #{@stats[:validation_skipped]}"
+
+    # Print detailed validation error summaries
+    Migration::Transforms::SchemaValidator.print_summary(@stats, :metadata_v1)
+    Migration::Transforms::SchemaValidator.print_summary(@stats, :receipt_v2)
+
     puts
     puts 'Skipped records:'
     puts "  Non-metadata objects: #{@stats[:skipped_non_metadata_object]}"

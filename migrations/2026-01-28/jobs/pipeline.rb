@@ -52,8 +52,8 @@ class Pipeline
     1 => %w[email_to_customer_objid],
     2 => %w[email_to_org_objid customer_objid_to_org_objid],
     3 => %w[fqdn_to_domain_objid],
-    4 => %w[metadata_key_to_receipt_objid],
-    5 => %w[secret_key_to_objid],
+    4 => [],  # Receipt uses same key as metadata, no lookup needed
+    5 => [],  # Secret key is preserved as-is, no lookup needed
     6 => [],
   }.freeze
 

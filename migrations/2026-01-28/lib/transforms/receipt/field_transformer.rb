@@ -127,14 +127,18 @@ module Migration
         def build_v2_record(record, v2_fields, objid, extid)
           increment_stat(:objects_transformed)
 
+          # Receipt key uses the secret key directly (same as metadata)
+          # Only the prefix changes: metadata:KEY:object -> receipt:KEY:object
+          secret_key = v2_fields['key']
+
           {
-            key: "receipt:#{objid}:object",
+            key: "receipt:#{secret_key}:object",
             type: 'hash',
             ttl_ms: record[:ttl_ms],
             db: record[:db],
             objid: objid,
             extid: extid,
-            secret_key: v2_fields['key'],
+            secret_key: secret_key,
             v2_fields: v2_fields,
           }
         end

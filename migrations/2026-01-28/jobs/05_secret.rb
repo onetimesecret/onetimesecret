@@ -54,7 +54,6 @@ class SecretJob
       objects_found: 0,
       secrets_transformed: 0,
       records_written: 0,
-      lookup_entries: 0,
       owner_resolved: 0,
       owner_not_found: 0,
       org_resolved: 0,
@@ -78,7 +77,6 @@ class SecretJob
     puts '=' * 50
     puts "Input:  #{@input_file}"
     puts "Output: #{output_file}"
-    puts "Lookup: #{lookup_file}"
     puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
 
@@ -124,10 +122,6 @@ class SecretJob
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
-  def lookup_file
-    File.join(@output_dir, 'lookups', 'secret_key_to_objid.json')
-  end
-
   def run_dry
     # Simple pass to count records
     File.foreach(@input_file) do |line|
@@ -166,7 +160,6 @@ class SecretJob
   def build_kiba_job(redis_helper, registry)
     input_file = @input_file
     output_file_path = output_file
-    lookup_file_path = lookup_file
     stats = @stats
     job_started_at = Time.now
     strict_validation = @strict_validation
@@ -175,7 +168,6 @@ class SecretJob
       # Pre-process: setup directories
       pre_process do
         FileUtils.mkdir_p(File.dirname(output_file_path))
-        FileUtils.mkdir_p(File.dirname(lookup_file_path))
       end
 
       # Source: read JSONL
@@ -235,21 +227,11 @@ class SecretJob
         record
       end
 
-      # Destination: write transformed JSONL and lookup file
-      destination Migration::Destinations::CompositeDestination,
-                  destinations: [
-                    [Migration::Destinations::JsonlDestination, {
-                      file: output_file_path,
-                      exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
-                    }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: lookup_file_path,
-                      key_field: :secret_key,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
-                    }],
-                  ]
+      # Destination: write transformed JSONL
+      # Note: No lookup file needed - secret key is preserved as-is
+      destination Migration::Destinations::JsonlDestination,
+                  file: output_file_path,
+                  exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors]
     end
   end
 
@@ -261,7 +243,6 @@ class SecretJob
     puts "Secrets transformed:  #{@stats[:secrets_transformed]}"
     puts
     puts "Records written:      #{@stats[:records_written]}"
-    puts "Lookup entries:       #{@stats[:lookup_entries]}"
     puts
     puts 'Owner resolution:'
     puts "  Resolved:           #{@stats[:owner_resolved]}"
