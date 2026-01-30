@@ -8,6 +8,20 @@
 #
 # This command creates account records in the Rodauth database for existing
 # customers in Redis, linking them via external_id for future synchronization.
+#
+# PREREQUISITE: Familia v1→v2 migration must be complete
+#
+# This command expects customers to be in Redis DB 0 with populated indexes
+# (Familia v2 layout). If you're running Familia v1 (customers in DB 6),
+# you must first run the data migration:
+#
+#   cd migrations/2026-01-28
+#   bundle exec ruby jobs/pipeline.rb      # Transform data
+#   bundle exec ruby jobs/06_load.rb       # Load to DB 0
+#
+# The command uses Customer.instances (a sorted set index) to enumerate all
+# customers. This index is only populated in Familia v2 when customers are
+# saved with the :object_identifier feature enabled.
 
 module Onetime
   module CLI
@@ -70,8 +84,27 @@ module Onetime
         puts '=' * 60
 
         # Get all customers from Redis (Familia v2 pattern)
+        # The instances sorted set is populated by the :object_identifier feature
         all_customer_ids = Onetime::Customer.instances.all
         total_customers  = all_customer_ids.size
+
+        if total_customers.zero?
+          puts <<~MESSAGE
+
+            ⚠️  No customers found in Redis DB 0.
+
+            This command requires the Familia v1→v2 migration to be complete.
+            Customer data must be in DB 0 with populated indexes.
+
+            If customers exist in legacy databases (DB 6/7/8), run the migration first:
+
+              cd migrations/2026-01-28
+              bundle exec ruby jobs/pipeline.rb      # Transform data
+              bundle exec ruby jobs/06_load.rb       # Load to DB 0
+
+          MESSAGE
+          return
+        end
 
         puts "\nDiscovered #{total_customers} customers in Redis"
 
@@ -96,11 +129,12 @@ module Onetime
         verbose_level = verbose ? 1 : 0
 
         # Process each customer
-        all_customer_ids.each_with_index do |custid, idx|
+        # NOTE: instances.all returns objids (the identifier_field for Customer)
+        all_customer_ids.each_with_index do |objid, idx|
           stats[:total] += 1
 
           begin
-            customer = Onetime::Customer.load(custid)
+            customer = Onetime::Customer.load(objid)
 
             # Skip anonymous customers (they shouldn't be in auth DB)
             if customer.anonymous?
