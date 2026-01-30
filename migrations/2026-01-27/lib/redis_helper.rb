@@ -170,7 +170,11 @@ module Migration
       end
     end
 
-    # Pipeline multiple hash reads for efficiency.
+    # Process multiple hash records sequentially.
+    #
+    # Note: Each record requires a separate Redis round-trip (restore,
+    # read, delete). True pipelining isn't possible here because each
+    # restore needs a unique temp key that must be read before cleanup.
     #
     # @param records [Array<Hash>] Array of JSONL records
     # @yield [record, fields] Block called for each record with its fields
