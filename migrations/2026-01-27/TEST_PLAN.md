@@ -9,11 +9,34 @@ Test strategy for the Redis data migration pipeline that transforms v1 (email-ba
 - DB7: 2,507 keys (metadata/receipts)
 - DB8: 741 keys (secrets)
 
+## Pipeline Architecture
+
+This migration (2026-01-27) uses a hybrid approach:
+
+- **Extract/Transform phases**: Use scripts from `../2026-01-26/`
+- **Load phase**: Uses `load_keys.rb` (this directory)
+- **Shared infrastructure**: `lib/` provides common utilities
+
+### Script Locations
+
+| Phase | Script | Location |
+|-------|--------|----------|
+| 1. Dump | `dump_keys.rb` | `../2026-01-26/` |
+| 2. Enrich IDs | `enrich_with_identifiers.rb` | `../2026-01-26/` |
+| 3. Transform | `01-customer/transform.rb` | `../2026-01-26/` |
+| 3. Transform | `02-organization/generate.rb` | `../2026-01-26/` |
+| 3. Transform | `03-customdomain/transform.rb` | `../2026-01-26/` |
+| 3. Transform | `04-receipt/transform.rb` | `../2026-01-26/` |
+| 3. Transform | `05-secret/transform.rb` | `../2026-01-26/` |
+| 4. Enrich Original | `enrich_with_original_record.rb` | `../2026-01-26/` |
+| 5. Create Indexes | `*/create_indexes.rb` | `../2026-01-26/` |
+| 6. Load | `load_keys.rb` | This directory |
+
 ## 1. Unit Tests
 
-### 1.1 IdentifierEnricher (`enrich_with_identifiers.rb`)
+### 1.1 IdentifierEnricher (`../2026-01-26/enrich_with_identifiers.rb`)
 
-Location: `try/migrations/identifier_enricher_try.rb`
+Location: `../2026-01-26/try/identifier_enricher_try.rb`
 
 ```
 Test Cases:
@@ -29,9 +52,9 @@ Test Cases:
 - Dry-run mode counts without writing
 ```
 
-### 1.2 KeyDumper (`dump_keys.rb`)
+### 1.2 KeyDumper (`../2026-01-26/dump_keys.rb`)
 
-Location: `try/migrations/key_dumper_try.rb`
+Location: `../2026-01-26/try/key_dumper_try.rb`
 
 ```
 Test Cases:
@@ -44,9 +67,9 @@ Test Cases:
 - Password redacted in manifest source_url
 ```
 
-### 1.3 CustomerTransformer (`01-customer/transform.rb`)
+### 1.3 CustomerTransformer (`../2026-01-26/01-customer/transform.rb`)
 
-Location: `try/migrations/customer_transformer_try.rb`
+Location: `../2026-01-26/try/customer_transformer_try.rb`
 
 ```
 Test Cases:
@@ -62,9 +85,9 @@ Test Cases:
 - Records without objid are skipped
 ```
 
-### 1.4 CustomDomainTransformer (`03-customdomain/transform.rb`)
+### 1.4 CustomDomainTransformer (`../2026-01-26/03-customdomain/transform.rb`)
 
-Location: `try/migrations/customdomain_transformer_try.rb`
+Location: `../2026-01-26/try/customdomain_transformer_try.rb`
 
 ```
 Test Cases:
@@ -77,9 +100,9 @@ Test Cases:
 - Related hashes (brand, logo, icon) renamed correctly
 ```
 
-### 1.5 ReceiptTransformer (`04-receipt/transform.rb`)
+### 1.5 ReceiptTransformer (`../2026-01-26/04-receipt/transform.rb`)
 
-Location: `try/migrations/receipt_transformer_try.rb`
+Location: `../2026-01-26/try/receipt_transformer_try.rb`
 
 ```
 Test Cases:
@@ -93,9 +116,9 @@ Test Cases:
 - Missing lookups tracked separately
 ```
 
-### 1.6 OriginalRecordEnricher (`enrich_with_original_record.rb`)
+### 1.6 OriginalRecordEnricher (`../2026-01-26/enrich_with_original_record.rb`)
 
-Location: `try/migrations/original_record_enricher_try.rb`
+Location: `../2026-01-26/try/original_record_enricher_try.rb`
 
 ```
 Test Cases:
@@ -107,9 +130,9 @@ Test Cases:
 - Missing v1 records logged, not fatal
 ```
 
-### 1.7 Index Creators
+### 1.7 Index Creators (`../2026-01-26/*/create_indexes.rb`)
 
-Location: `try/migrations/index_creator_try.rb`
+Location: `../2026-01-26/try/index_creator_try.rb`
 
 ```
 Test Cases:
@@ -125,7 +148,7 @@ Test Cases:
 
 ### 1.8 KeyLoader (`load_keys.rb`)
 
-Location: `try/migrations/key_loader_try.rb`
+Location: `try/key_loader_try.rb`
 
 ```
 Test Cases:
@@ -135,13 +158,14 @@ Test Cases:
 - Unknown commands rejected
 - Model-specific DB targeting (customer->6, receipt->7, secret->8)
 - Dependency order: customer -> organization -> customdomain -> receipt -> secret
+- Dry-run mode skips Redis connection entirely
 ```
 
 ## 2. Integration Tests
 
 ### 2.1 Pipeline Order Validation
 
-Location: `try/migrations/pipeline_order_try.rb`
+Location: `../2026-01-26/try/pipeline_order_try.rb`
 
 ```
 Test Cases:
@@ -153,7 +177,7 @@ Test Cases:
 
 ### 2.2 Lookup Consistency
 
-Location: `try/migrations/lookup_consistency_try.rb`
+Location: `../2026-01-26/try/lookup_consistency_try.rb`
 
 ```
 Test Cases:
@@ -166,7 +190,7 @@ Test Cases:
 
 ### 2.3 Data Integrity
 
-Location: `try/migrations/data_integrity_try.rb`
+Location: `../2026-01-26/try/data_integrity_try.rb`
 
 ```
 Test Cases:
@@ -179,7 +203,7 @@ Test Cases:
 
 ### 2.4 Audit Trail Completeness
 
-Location: `try/migrations/audit_trail_try.rb`
+Location: `../2026-01-26/try/audit_trail_try.rb`
 
 ```
 Test Cases:
@@ -194,7 +218,7 @@ Test Cases:
 
 ### 3.1 Missing Lookup Handling
 
-Location: `try/migrations/missing_lookup_try.rb`
+Location: `../2026-01-26/try/missing_lookup_try.rb`
 
 ```
 Test Cases:
@@ -207,7 +231,7 @@ Test Cases:
 
 ### 3.2 Duplicate Email Handling
 
-Location: `try/migrations/duplicate_handling_try.rb`
+Location: `../2026-01-26/try/duplicate_handling_try.rb`
 
 ```
 Test Cases:
@@ -218,7 +242,7 @@ Test Cases:
 
 ### 3.3 Binary Data Preservation
 
-Location: `try/migrations/binary_preservation_try.rb`
+Location: `../2026-01-26/try/binary_preservation_try.rb`
 
 ```
 Test Cases:
@@ -229,7 +253,7 @@ Test Cases:
 
 ### 3.4 Phase Ordering Violations
 
-Location: `try/migrations/phase_ordering_try.rb`
+Location: `../2026-01-26/try/phase_ordering_try.rb`
 
 ```
 Test Cases:
@@ -243,7 +267,7 @@ Test Cases:
 
 ### 4.1 Referential Integrity
 
-Location: `try/migrations/referential_integrity_try.rb`
+Location: `../2026-01-26/try/referential_integrity_try.rb`
 
 ```
 Test Cases:
@@ -256,7 +280,7 @@ Test Cases:
 
 ### 4.2 Index Count Validation
 
-Location: `try/migrations/index_counts_try.rb`
+Location: `../2026-01-26/try/index_counts_try.rb`
 
 ```
 Test Cases:
@@ -270,7 +294,7 @@ Test Cases:
 
 ### 4.3 Counter Validation
 
-Location: `try/migrations/counter_validation_try.rb`
+Location: `../2026-01-26/try/counter_validation_try.rb`
 
 ```
 Test Cases:
@@ -284,7 +308,7 @@ Test Cases:
 
 ### 5.1 Sample Data Generation
 
-Create minimal representative fixtures in `migrations/2026-01-26/fixtures/`:
+Create minimal representative fixtures in `../2026-01-26/fixtures/`:
 
 ```
 fixtures/
@@ -309,14 +333,17 @@ fixtures/
 ### Running All Migration Tests
 
 ```bash
-# Agent mode (recommended for CI)
-bundle exec try --agent try/migrations/
+# Extract/Transform tests (2026-01-26)
+bundle exec try --agent ../2026-01-26/try/
+
+# Load tests (this directory)
+bundle exec try --agent try/
 
 # Verbose mode for debugging
-bundle exec try --verbose --fails try/migrations/
+bundle exec try --verbose --fails ../2026-01-26/try/
 
 # Single test file with stack traces
-bundle exec try --verbose --stack try/migrations/identifier_enricher_try.rb
+bundle exec try --verbose --stack ../2026-01-26/try/identifier_enricher_try.rb
 ```
 
 ### Test Database Setup
