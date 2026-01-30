@@ -305,8 +305,6 @@ stats['customer'][:indexes_skipped]
 #=> 1
 
 ## TTL conversion: -1 in source becomes 0 in RESTORE (no expiry)
-loader = KeyLoader.allocate
-
 # Simulating the TTL conversion logic from restore_record
 record = { key: 'test:key', dump: 'dGVzdA==', ttl_ms: -1 }
 ttl_ms = record[:ttl_ms]
@@ -317,8 +315,6 @@ restore_ttl
 #=> 0
 
 ## TTL conversion: positive value passes through
-loader = KeyLoader.allocate
-
 record = { key: 'test:key', dump: 'dGVzdA==', ttl_ms: 3600000 }
 ttl_ms = record[:ttl_ms]
 
@@ -359,7 +355,7 @@ target_db = 6
 "#{base_url}/#{target_db}"
 #=> "redis://127.0.0.1:6379/6"
 
-## load_model skips missing directories gracefully
+## load_model handles missing files gracefully (flat structure)
 @temp_dir = Dir.mktmpdir('loader_test')
 
 loader = KeyLoader.new(
@@ -368,11 +364,13 @@ loader = KeyLoader.new(
   dry_run: true
 )
 
-# customer subdirectory doesn't exist
+# No files exist in input_dir, load_model outputs "No transformed file" / "No indexes file"
+# but doesn't record errors - this is expected behavior for the flat structure
 loader.send(:load_model, 'customer')
 
 stats = loader.instance_variable_get(:@stats)
-stats['customer'][:errors].any? { |e| e[:error].include?('Directory not found') }
+# No errors recorded when files are missing - just skip messages printed
+stats['customer'][:errors].empty?
 #=> true
 
 ## Cleanup
@@ -380,12 +378,11 @@ FileUtils.rm_rf(@temp_dir)
 true
 #=> true
 
-## load_transformed_records processes JSONL file
+## load_transformed_records processes JSONL file (flat structure)
 @temp_dir = Dir.mktmpdir('loader_test')
-model_dir = File.join(@temp_dir, 'customer')
-FileUtils.mkdir_p(model_dir)
 
-File.open(File.join(model_dir, 'customer_transformed.jsonl'), 'w') do |f|
+# Files are placed directly in input_dir (flat structure, no subdirectories)
+File.open(File.join(@temp_dir, 'customer_transformed.jsonl'), 'w') do |f|
   f.puts JSON.generate({ key: 'customer:obj1:object', dump: 'dGVzdA==', ttl_ms: -1 })
   f.puts JSON.generate({ key: 'customer:obj2:object', dump: 'dGVzdA==', ttl_ms: -1 })
 end
@@ -396,7 +393,7 @@ loader = KeyLoader.new(
   dry_run: true
 )
 
-loader.send(:load_transformed_records, 'customer', File.join(model_dir, 'customer_transformed.jsonl'))
+loader.send(:load_transformed_records, 'customer', File.join(@temp_dir, 'customer_transformed.jsonl'))
 
 stats = loader.instance_variable_get(:@stats)
 stats['customer'][:records_restored]
@@ -407,12 +404,11 @@ FileUtils.rm_rf(@temp_dir)
 true
 #=> true
 
-## execute_index_commands processes JSONL file
+## execute_index_commands processes JSONL file (flat structure)
 @temp_dir = Dir.mktmpdir('loader_test')
-model_dir = File.join(@temp_dir, 'customer')
-FileUtils.mkdir_p(model_dir)
 
-File.open(File.join(model_dir, 'customer_indexes.jsonl'), 'w') do |f|
+# Files are placed directly in input_dir (flat structure, no subdirectories)
+File.open(File.join(@temp_dir, 'customer_indexes.jsonl'), 'w') do |f|
   f.puts JSON.generate({ command: 'ZADD', key: 'customer:instances', args: [1706000000, 'obj1'] })
   f.puts JSON.generate({ command: 'HSET', key: 'customer:email_index', args: ['user@example.com', '"obj1"'] })
 end
@@ -423,7 +419,7 @@ loader = KeyLoader.new(
   dry_run: true
 )
 
-loader.send(:execute_index_commands, 'customer', File.join(model_dir, 'customer_indexes.jsonl'))
+loader.send(:execute_index_commands, 'customer', File.join(@temp_dir, 'customer_indexes.jsonl'))
 
 stats = loader.instance_variable_get(:@stats)
 stats['customer'][:indexes_executed]
