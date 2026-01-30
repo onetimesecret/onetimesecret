@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/schemas/v1/customdomain.rb
+#
 # frozen_string_literal: true
 
 require_relative '../base'

@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/shared/redis_temp_key.rb
+#
 # frozen_string_literal: true
 
 require 'redis'

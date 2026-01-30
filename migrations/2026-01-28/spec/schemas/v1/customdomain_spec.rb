@@ -1,3 +1,5 @@
+# migrations/2026-01-28/spec/schemas/v1/customdomain_spec.rb
+#
 # frozen_string_literal: true
 
 require 'spec_helper'

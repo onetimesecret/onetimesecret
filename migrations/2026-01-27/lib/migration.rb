@@ -1,7 +1,7 @@
+# migrations/2026-01-27/lib/migration.rb
+#
 # frozen_string_literal: true
 
-# Migration Pipeline Library
-#
 # Shared infrastructure for Redis data migration scripts.
 # Provides lookup management, Redis operations, base transformer class,
 # and phase tracking.

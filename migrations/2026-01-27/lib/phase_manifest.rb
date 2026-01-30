@@ -1,3 +1,5 @@
+# migrations/2026-01-27/lib/phase_manifest.rb
+#
 # frozen_string_literal: true
 
 require 'json'

@@ -1,7 +1,4 @@
-# try/migrations/key_loader_try.rb
-#
-# Unit tests for the KeyLoader class from load_keys.rb
-# Tests loading transformed data back into Redis.
+# migrations/2026-01-27/try/key_loader_try.rb
 #
 # frozen_string_literal: true
 

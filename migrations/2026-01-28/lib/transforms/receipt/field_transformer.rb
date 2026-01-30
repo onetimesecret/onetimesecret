@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/transforms/receipt/field_transformer.rb
+#
 # frozen_string_literal: true
 
 require 'digest'

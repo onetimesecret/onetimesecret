@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/transforms/schema_validator.rb
+#
 # frozen_string_literal: true
 
 module Migration

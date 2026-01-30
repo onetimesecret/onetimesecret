@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/transforms/customdomain/field_transformer.rb
+#
 # frozen_string_literal: true
 
 module Migration

@@ -1,7 +1,7 @@
+# migrations/2026-01-28/lib/migration.rb
+#
 # frozen_string_literal: true
 
-# Kiba ETL Migration Pipeline
-#
 # Namespace and configuration for the Kiba-based migration pipeline.
 # This module provides shared configuration, constants, and convenience
 # methods for all pipeline components.

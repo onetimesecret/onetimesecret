@@ -1,3 +1,5 @@
+# migrations/2026-01-28/spec/schemas/v2/receipt_spec.rb
+#
 # frozen_string_literal: true
 
 require 'spec_helper'

@@ -1,3 +1,5 @@
+# migrations/2026-01-28/spec/destinations/composite_destination_spec.rb
+#
 # frozen_string_literal: true
 
 require_relative '../spec_helper'

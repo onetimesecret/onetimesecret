@@ -1,3 +1,5 @@
+# migrations/2026-01-28/spec/spec_helper.rb
+#
 # frozen_string_literal: true
 
 require 'rspec'

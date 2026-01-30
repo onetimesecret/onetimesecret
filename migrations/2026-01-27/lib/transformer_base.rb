@@ -1,3 +1,5 @@
+# migrations/2026-01-27/lib/transformer_base.rb
+#
 # frozen_string_literal: true
 
 require 'json'

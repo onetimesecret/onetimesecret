@@ -1,3 +1,5 @@
+# migrations/2026-01-27/lib/redis_helper.rb
+#
 # frozen_string_literal: true
 
 require 'redis'

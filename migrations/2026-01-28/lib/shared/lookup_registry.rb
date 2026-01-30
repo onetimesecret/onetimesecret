@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/shared/lookup_registry.rb
+#
 # frozen_string_literal: true
 
 require 'json'
