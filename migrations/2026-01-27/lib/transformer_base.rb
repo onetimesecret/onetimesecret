@@ -120,6 +120,32 @@ module Migration
       raise NotImplementedError, "Subclass must implement #process_record"
     end
 
+    # Override in subclass to enable grouping mode.
+    #
+    # When this returns a non-nil value, records are accumulated by grouping
+    # key and then processed together via #process_group. This is useful for
+    # models with related records that should be processed together.
+    #
+    # @param record [Hash] Parsed JSONL record (symbolized keys)
+    # @return [String, nil] Grouping key, or nil to disable grouping for this record
+    #
+    def grouping_key_for(record)
+      nil # Default: no grouping
+    end
+
+    # Override in subclass to process a group of related records.
+    #
+    # Called when grouping mode is enabled (grouping_key_for returns non-nil).
+    # Receives all records that share the same grouping key.
+    #
+    # @param key [String] The grouping key
+    # @param records [Array<Hash>] All records with this grouping key
+    # @return [Array<Hash>] Array of V2 records to write
+    #
+    def process_group(key, records)
+      raise NotImplementedError, "Subclass must implement #process_group when using grouping mode"
+    end
+
     # Override in subclass to register output lookups.
     # Called after all records are processed.
     #
@@ -252,9 +278,70 @@ module Migration
     end
 
     def process_input_file
+      # First pass: detect if grouping mode is needed by checking first record
+      first_record = peek_first_record
+      @grouping_mode = first_record && grouping_key_for(first_record)
+
+      if @grouping_mode
+        process_with_grouping
+      else
+        process_without_grouping
+      end
+    end
+
+    def peek_first_record
+      File.open(@options[:input_file]) do |f|
+        line = f.readline.strip
+        return nil if line.empty?
+        JSON.parse(line, symbolize_names: true)
+      end
+    rescue EOFError, JSON::ParserError
+      nil
+    end
+
+    def process_without_grouping
       File.foreach(@options[:input_file]) do |line|
         @stats[:records_read] += 1
         process_line(line.strip)
+      end
+    end
+
+    def process_with_grouping
+      groups = Hash.new { |h, k| h[k] = [] }
+
+      # Accumulate records by grouping key
+      File.foreach(@options[:input_file]) do |line|
+        @stats[:records_read] += 1
+        next if line.strip.empty?
+
+        begin
+          record = JSON.parse(line.strip, symbolize_names: true)
+          key = grouping_key_for(record)
+          if key
+            groups[key] << record
+          else
+            # Process ungrouped records immediately
+            results = process_record(record)
+            @v2_records.concat(Array(results))
+            @stats[:records_processed] += 1
+          end
+        rescue JSON::ParserError => ex
+          track_error({ line: @stats[:records_read] }, "JSON parse error: #{ex.message}")
+        rescue StandardError => ex
+          track_error({ line: @stats[:records_read] }, "Processing error: #{ex.message}")
+        end
+      end
+
+      # Process accumulated groups
+      groups.each do |key, records|
+        begin
+          results = process_group(key, records)
+          @v2_records.concat(Array(results))
+          increment_stat(:groups_processed)
+          increment_stat(:related_records, records.size - 1) # -1 for the object record
+        rescue StandardError => ex
+          track_error({ group_key: key }, "Group processing error: #{ex.message}")
+        end
       end
     end
 
