@@ -38,7 +38,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: dessant/lock-threads@1bf7ec25051fe7c00c4f1cf6d1cd62a14af0f455 # v5.0.1
+      - uses: dessant/lock-threads@1bf7ec25051fe7c00bdd17e6a7cf3d7bfb7dc771 # v5.0.1
         with:
           # Lock issues that have been closed for 90 days
           issue-inactive-days: 90
