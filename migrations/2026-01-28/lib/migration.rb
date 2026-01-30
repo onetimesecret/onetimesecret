@@ -53,6 +53,30 @@ module Migration
     'receipt' => 'receipt',
     'secret' => 'secret',
   }.freeze
+
+  # Map key prefixes to model names and their source/target databases.
+  # Used by RedisSource for extraction and RedisDestination for loading.
+  # Format: prefix => { model: output_name, db: database_number }
+  MODEL_MAPPING = {
+    'customer' => { model: 'customer', db: 6 },
+    'customdomain' => { model: 'customdomain', db: 6 },
+    'onetime' => { model: 'customer', db: 6 },  # legacy: onetime:customer instances
+    'metadata' => { model: 'metadata', db: 7 },  # becomes receipt
+    'secret' => { model: 'secret', db: 8 },
+    'feedback' => { model: 'feedback', db: 11 },
+  }.freeze
+
+  # Databases containing migration data
+  MIGRATION_DBS = [6, 7, 8, 11].freeze
+
+  # Target databases for V2 models
+  V2_MODEL_DBS = {
+    'customer' => 6,
+    'organization' => 6,
+    'customdomain' => 6,
+    'receipt' => 7,
+    'secret' => 8,
+  }.freeze
 end
 
 # Load shared utilities
@@ -74,6 +98,7 @@ require_relative 'schemas/v2/secret'
 
 # Load sources
 require_relative 'sources/jsonl_source'
+require_relative 'sources/redis_source'
 
 # Load transforms
 require_relative 'transforms/base_transform'
@@ -91,3 +116,5 @@ require_relative 'transforms/secret/field_transformer'
 require_relative 'destinations/jsonl_destination'
 require_relative 'destinations/lookup_destination'
 require_relative 'destinations/composite_destination'
+require_relative 'destinations/redis_destination'
+require_relative 'destinations/redis_index_destination'

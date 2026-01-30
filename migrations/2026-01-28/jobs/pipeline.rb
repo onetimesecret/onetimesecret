@@ -6,11 +6,13 @@
 # Runs all migration phases in sequence with dependency validation.
 #
 # Execution order:
+#   Phase 0: Dump - Extract data from Redis to JSONL files
 #   Phase 1: Customer transform (generates email_to_customer_objid lookup)
 #   Phase 2: Organization generation (generates email_to_org_objid lookup)
 #   Phase 3: CustomDomain transform (generates fqdn_to_domain_objid lookup)
 #   Phase 4: Receipt transform (uses all lookups)
 #   Phase 5: Secret transform (uses customer/org lookups)
+#   Phase 6: Load - Load transformed data into Redis/Valkey
 #
 # Usage:
 #   cd migrations/2026-01-28
@@ -36,25 +38,36 @@ require 'migration'
 
 class Pipeline
   PHASES = {
+    0 => { name: 'Dump', job: '00_dump.rb', input: nil, type: :dump },
     1 => { name: 'Customer', job: '01_customer.rb', input: 'customer_dump.jsonl' },
     2 => { name: 'Organization', job: '02_organization.rb', input: 'customer_transformed.jsonl' },
     3 => { name: 'CustomDomain', job: '03_customdomain.rb', input: 'customdomain_dump.jsonl' },
     4 => { name: 'Receipt', job: '04_receipt.rb', input: 'metadata_dump.jsonl' },
     5 => { name: 'Secret', job: '05_secret.rb', input: 'secret_dump.jsonl' },
+    6 => { name: 'Load', job: '06_load.rb', input: nil, type: :load },
   }.freeze
 
   PHASE_LOOKUPS = {
+    0 => [],
     1 => %w[email_to_customer_objid],
     2 => %w[email_to_org_objid customer_objid_to_org_objid],
     3 => %w[fqdn_to_domain_objid],
     4 => %w[metadata_key_to_receipt_objid],
     5 => %w[secret_key_to_objid],
+    6 => [],
   }.freeze
+
+  # Default phase range for transforms only (excludes dump/load)
+  DEFAULT_PHASES = (1..5).to_a.freeze
+
+  # Full phase range including dump and load
+  ALL_PHASES = (0..6).to_a.freeze
 
   def initialize(options)
     @input_dir = options[:input_dir]
     @output_dir = options[:output_dir]
     @redis_url = options[:redis_url]
+    @valkey_url = options[:valkey_url]
     @temp_db = options[:temp_db]
     @dry_run = options[:dry_run]
     @strict = options[:strict]
@@ -89,6 +102,8 @@ class Pipeline
     puts '=' * 60
     puts "Input:   #{@input_dir}"
     puts "Output:  #{@output_dir}"
+    puts "Redis:   #{@redis_url}"
+    puts "Valkey:  #{@valkey_url || @redis_url}" if @valkey_url
     puts "Mode:    #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts "Strict:  #{@strict ? 'YES' : 'NO'}"
     puts
@@ -107,9 +122,11 @@ class Pipeline
     if @continue && File.exist?(@state_file)
       state = JSON.parse(File.read(@state_file), symbolize_names: true)
       last_completed = state[:last_completed_phase] || 0
-      (last_completed + 1..5).to_a
+      # Continue from last completed, up to phase 6
+      ((last_completed + 1)..6).to_a.select { |p| PHASES.key?(p) }
     else
-      (1..5).to_a
+      # Default: run transform phases only (1-5), not dump/load
+      DEFAULT_PHASES
     end
   end
 
@@ -118,6 +135,15 @@ class Pipeline
     puts "-" * 50
     puts "Phase #{phase}: #{config[:name]}"
     puts "-" * 50
+
+    # Phase 0 (dump) and Phase 6 (load) have special handling
+    if config[:type] == :dump
+      run_dump_phase(phase, config)
+      return
+    elsif config[:type] == :load
+      run_load_phase(phase, config)
+      return
+    end
 
     # Check input exists
     input_file = resolve_input_file(phase, config[:input])
@@ -159,6 +185,54 @@ class Pipeline
     end
   end
 
+  def run_dump_phase(phase, config)
+    job_file = File.join(__dir__, config[:job])
+    cmd = build_dump_command(job_file)
+
+    puts "  Running: ruby #{config[:job]}"
+    puts "  Output: #{@output_dir}"
+    puts
+
+    start_time = Time.now
+    success = system(cmd)
+    elapsed = Time.now - start_time
+
+    if success
+      puts
+      puts "  COMPLETED in #{elapsed.round(2)}s"
+      @results[phase] = { status: :completed, elapsed: elapsed }
+    else
+      puts
+      puts "  FAILED after #{elapsed.round(2)}s"
+      @results[phase] = { status: :failed, elapsed: elapsed }
+      raise "Phase #{phase} (Dump) failed" unless @dry_run
+    end
+  end
+
+  def run_load_phase(phase, config)
+    job_file = File.join(__dir__, config[:job])
+    cmd = build_load_command(job_file)
+
+    puts "  Running: ruby #{config[:job]}"
+    puts "  Input: #{@output_dir}"
+    puts
+
+    start_time = Time.now
+    success = system(cmd)
+    elapsed = Time.now - start_time
+
+    if success
+      puts
+      puts "  COMPLETED in #{elapsed.round(2)}s"
+      @results[phase] = { status: :completed, elapsed: elapsed }
+    else
+      puts
+      puts "  FAILED after #{elapsed.round(2)}s"
+      @results[phase] = { status: :failed, elapsed: elapsed }
+      raise "Phase #{phase} (Load) failed" unless @dry_run
+    end
+  end
+
   def resolve_input_file(phase, relative_path)
     if phase == 1
       # Phase 1 reads from original dump directory
@@ -194,6 +268,22 @@ class Pipeline
     parts << "--temp-db=#{@temp_db}"
     parts << '--dry-run' if @dry_run
     parts << '--strict' if @strict
+    parts.join(' ')
+  end
+
+  def build_dump_command(job_file)
+    parts = ['bundle', 'exec', 'ruby', job_file]
+    parts << "--output-dir=#{@output_dir}"
+    parts << "--redis-url=#{@redis_url}"
+    parts << '--dry-run' if @dry_run
+    parts.join(' ')
+  end
+
+  def build_load_command(job_file)
+    parts = ['bundle', 'exec', 'ruby', job_file]
+    parts << "--input-dir=#{@output_dir}"
+    parts << "--valkey-url=#{@valkey_url || @redis_url}"
+    parts << '--dry-run' if @dry_run
     parts.join(' ')
   end
 
@@ -252,6 +342,7 @@ def parse_args(args)
     input_dir: results_dir,
     output_dir: results_dir,
     redis_url: 'redis://127.0.0.1:6379',
+    valkey_url: nil,  # defaults to redis_url if not specified
     temp_db: 15,
     dry_run: false,
     strict: false,
@@ -274,8 +365,12 @@ def parse_args(args)
       options[:output_dir] = File.expand_path(dir, migration_dir)
     end
 
-    opts.on('--redis-url=URL', 'Redis URL (default: redis://127.0.0.1:6379)') do |url|
+    opts.on('--redis-url=URL', 'Redis URL for reading (default: redis://127.0.0.1:6379)') do |url|
       options[:redis_url] = url
+    end
+
+    opts.on('--valkey-url=URL', 'Valkey/Redis URL for loading (default: same as redis-url)') do |url|
+      options[:valkey_url] = url
     end
 
     opts.on('--temp-db=N', Integer, 'Temp database (default: 15)') do |db|
@@ -302,11 +397,16 @@ def parse_args(args)
       puts opts
       puts
       puts 'Phases:'
+      puts '  0: Dump - Extract from Redis (optional, run with --phases=0)'
       puts '  1: Customer transform'
       puts '  2: Organization generation'
       puts '  3: CustomDomain transform'
       puts '  4: Receipt transform'
       puts '  5: Secret transform'
+      puts '  6: Load - Load to Redis/Valkey (optional, run with --phases=6)'
+      puts
+      puts 'By default, runs phases 1-5 (transforms only).'
+      puts 'Use --phases=0,1,2,3,4,5,6 for full pipeline.'
       exit 0
     end
   end
