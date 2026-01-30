@@ -258,6 +258,9 @@ class KeyLoader
   end
 
   def get_redis(db)
+    # In dry_run mode, skip Redis connection entirely
+    return nil if @dry_run
+
     @redis_clients[db] ||= begin
       # Strip any existing database number from the URL before appending the target DB
       base_url = @valkey_url.sub(%r{/\d+$}, '')
