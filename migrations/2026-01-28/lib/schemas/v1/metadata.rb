@@ -83,12 +83,6 @@ module Migration
             'description' => 'Time-to-live in seconds',
           },
 
-          # Secret value (encrypted, may be present in some records)
-          'secret_value' => {
-            'type' => 'string',
-            'description' => 'Encrypted secret value (if embedded)',
-          },
-
           # View count
           'view_count' => {
             'type' => 'string',
@@ -213,7 +207,7 @@ __END__
 
 **Schema has 13 fields. Dump has 19 fields.**
 
-**In schema (13):** `key`, `custid`, `state`, `secret_shortkey`, `recipients`, `created`, `updated`, `passphrase_temp`, `share_domain`, `ttl`, `secret_value`, `view_count`, `received`
+**In schema (13):** `key`, `custid`, `state`, `secret_shortkey`, `recipients`, `created`, `updated`, `passphrase_temp`, `share_domain`, `ttl`, `view_count`, `received`
 
 **Missing from schema (10):**
 - `burned` - Timestamp when the secret was burned
