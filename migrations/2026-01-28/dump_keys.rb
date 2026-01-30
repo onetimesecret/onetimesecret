@@ -14,7 +14,7 @@
 #   --output-dir=DIR Output directory (default: exports)
 #   --dry-run        Show what would be dumped without writing
 #
-# Output files per model: exports/customer/customer_dump.jsonl, exports/metadata/metadata_dump.jsonl, etc.
+# Output files per model: results/customer_dump.jsonl, results/metadata_dump.jsonl, etc.
 # Includes 'created' timestamp for UUIDv7 generation during transform.
 # Idempotent: each run overwrites existing model files.
 
@@ -95,7 +95,7 @@ class KeyDumper
     close_model_files
 
     @model_stats.each do |model, stats|
-      puts "#{model}: #{stats[:dumped]} keys dumped to #{model}/#{model}_dump.jsonl"
+      puts "#{model}: #{stats[:dumped]} keys dumped to #{model}_dump.jsonl"
       puts "  Skipped: #{stats[:skipped]}, Errors: #{stats[:errors].size}" if stats[:skipped] > 0 || stats[:errors].any?
     end
 
@@ -137,9 +137,8 @@ class KeyDumper
 
   def get_file_for_model(model_name)
     @model_files[model_name] ||= begin
-      model_dir = File.join(@output_dir, model_name)
-      FileUtils.mkdir_p(model_dir)
-      filename  = File.join(model_dir, "#{model_name}_dump.jsonl")
+      FileUtils.mkdir_p(@output_dir)
+      filename  = File.join(@output_dir, "#{model_name}_dump.jsonl")
       File.open(filename, 'w')
     end
   end
@@ -216,7 +215,7 @@ class KeyDumper
     model_summaries = {}
     @model_stats.each do |model, stats|
       model_summaries[model] = {
-        file: "#{model}/#{model}_dump.jsonl",
+        file: "#{model}_dump.jsonl",
         total_scanned: stats[:total],
         dumped: stats[:dumped],
         skipped: stats[:skipped],
@@ -238,9 +237,10 @@ class KeyDumper
 end
 
 def parse_args(args)
+  script_dir = File.expand_path(__dir__)
   options = {
     redis_url: 'redis://127.0.0.1:6379',
-    output_dir: 'exports',
+    output_dir: File.join(script_dir, 'results'),
     dry_run: false,
     db: nil,
     all: false,
@@ -260,22 +260,22 @@ def parse_args(args)
       options[:dry_run] = true
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/dump_keys.rb [OPTIONS]
+        Usage: ruby dump_keys.rb [OPTIONS]
 
         Options:
           --db=N           Database number to dump
           --all            Dump migration databases (6, 7, 8, 11)
           --redis-url=URL  Redis URL (default: redis://127.0.0.1:6379)
-          --output-dir=DIR Output directory (default: exports)
+          --output-dir=DIR Output directory (default: results)
           --dry-run        Show what would be dumped
           --help           Show this help
 
-        Output files per model (in subdirectories):
-          exports/customer/customer_dump.jsonl
-          exports/customdomain/customdomain_dump.jsonl
-          exports/metadata/metadata_dump.jsonl
-          exports/secret/secret_dump.jsonl
-          exports/feedback/feedback_dump.jsonl
+        Output files (flat structure in results/):
+          results/customer_dump.jsonl
+          results/customdomain_dump.jsonl
+          results/metadata_dump.jsonl
+          results/secret_dump.jsonl
+          results/feedback_dump.jsonl
 
         Each record includes 'created' timestamp for UUIDv7 generation.
       HELP

@@ -9,13 +9,13 @@
 # CRITICAL: The encrypted 'value' field is preserved exactly as-is.
 # This job never decodes or re-encodes the encrypted value.
 #
-# Input:  ../exports/secret/secret_dump.jsonl
-# Output: exports/secret/secret_transformed.jsonl
-#         exports/lookups/secret_key_to_objid.json
+# Input:  results/secret_dump.jsonl
+# Output: results/secret_transformed.jsonl
+#         results/lookups/secret_key_to_objid.json
 #
 # Prerequisites:
-#   - Phase 1: exports/lookups/email_to_customer_objid.json
-#   - Phase 2: exports/lookups/email_to_org_objid.json
+#   - Phase 1: results/lookups/email_to_customer_objid.json
+#   - Phase 2: results/lookups/email_to_org_objid.json
 #
 # Usage:
 #   cd migrations/2026-01-28
@@ -121,7 +121,7 @@ class SecretJob
   end
 
   def output_file
-    File.join(@output_dir, MODEL, "#{MODEL}_transformed.jsonl")
+    File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
   def lookup_file
@@ -293,13 +293,13 @@ end
 def parse_args(args)
   require 'optparse'
 
-  # All paths resolved relative to migrations directory
-  migrations_dir = File.expand_path('..', __dir__)
-  parent_dir = File.expand_path('../..', migrations_dir)
+  # All paths resolved relative to migration directory for consistency
+  migration_dir = File.expand_path('..', __dir__)
+  results_dir = File.join(migration_dir, 'results')
 
   options = {
-    input_file: File.join(parent_dir, 'exports/secret/secret_dump.jsonl'),
-    output_dir: File.join(migrations_dir, 'exports'),
+    input_file: File.join(results_dir, 'secret_dump.jsonl'),
+    output_dir: results_dir,
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -317,11 +317,11 @@ def parse_args(args)
     opts.separator 'Options:'
 
     opts.on('--input-file=FILE', 'Input JSONL file') do |file|
-      options[:input_file] = File.expand_path(file, migrations_dir)
+      options[:input_file] = File.expand_path(file, migration_dir)
     end
 
     opts.on('--output-dir=DIR', 'Output directory') do |dir|
-      options[:output_dir] = File.expand_path(dir, migrations_dir)
+      options[:output_dir] = File.expand_path(dir, migration_dir)
     end
 
     opts.on('--redis-url=URL', 'Redis URL (default: redis://127.0.0.1:6379)') do |url|
@@ -344,12 +344,12 @@ def parse_args(args)
       puts opts
       puts
       puts 'Output files:'
-      puts '  exports/secret/secret_transformed.jsonl'
-      puts '  exports/lookups/secret_key_to_objid.json'
+      puts '  results/secret_transformed.jsonl'
+      puts '  results/lookups/secret_key_to_objid.json'
       puts
       puts 'Prerequisites:'
-      puts '  exports/lookups/email_to_customer_objid.json (Phase 1)'
-      puts '  exports/lookups/email_to_org_objid.json (Phase 2)'
+      puts '  results/lookups/email_to_customer_objid.json (Phase 1)'
+      puts '  results/lookups/email_to_org_objid.json (Phase 2)'
       exit 0
     end
   end

@@ -32,8 +32,8 @@
 #   ruby transforms/03_custom_domain_transform.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump file (default: exports/customdomain/customdomain_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/custom_domain)
+#   --input-file=FILE   Input JSONL dump file (default: results/customdomain_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: results)
 #   --dry-run           Parse and count without writing output
 #   --help              Show help
 #
@@ -70,8 +70,9 @@ module Migration
 
     def setup_defaults
       # Override to use customdomain dump as input (V1 naming)
-      @options[:input_file] ||= 'exports/customdomain/customdomain_dump.jsonl'
-      @options[:output_dir] ||= 'exports/custom_domain'
+      results_dir = @options[:results_dir]
+      @options[:input_file] ||= File.join(results_dir, 'customdomain_dump.jsonl')
+      @options[:output_dir] ||= results_dir
     end
 
     def validate_prerequisites!

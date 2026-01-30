@@ -11,12 +11,12 @@
 #   ruby scripts/migrations/jan24/enrich_with_identifiers.rb [OPTIONS]
 #
 # Options:
-#   --input-dir=DIR    Input directory with dump files (default: exports)
-#   --output-dir=DIR   Output directory (default: exports, overwrites in place)
+#   --input-dir=DIR    Input directory with dump files (default: results)
+#   --output-dir=DIR   Output directory (default: results, overwrites in place)
 #   --dry-run          Show what would be generated without writing
 #
-# Input: exports/{model}/{model}_dump.jsonl
-# Output: exports/{model}/{model}_dump.jsonl (enriched with objid, extid)
+# Input: results/{model}/{model}_dump.jsonl
+# Output: results/{model}/{model}_dump.jsonl (enriched with objid, extid)
 #
 # For :object records with 'created' field:
 #   - objid: UUIDv7 generated from created timestamp
@@ -256,8 +256,8 @@ end
 
 def parse_args(args)
   options = {
-    input_dir: 'exports',
-    output_dir: 'exports',
+    input_dir: 'results',
+    output_dir: 'results',
     dry_run: false,
   }
 
@@ -276,14 +276,14 @@ def parse_args(args)
         Enriches dump JSONL files with UUIDv7 objid and derived extid.
 
         Options:
-          --input-dir=DIR    Input directory (default: exports)
-          --output-dir=DIR   Output directory (default: exports)
+          --input-dir=DIR    Input directory (default: results)
+          --output-dir=DIR   Output directory (default: results)
           --dry-run          Preview without writing
           --help             Show this help
 
         Input files (from dump_keys.rb):
-          exports/customer/customer_dump.jsonl
-          exports/customdomain/customdomain_dump.jsonl
+          results/customer/customer_dump.jsonl
+          results/customdomain/customdomain_dump.jsonl
 
         For each :object record with 'created' field, adds:
           - objid: UUIDv7 generated from created timestamp

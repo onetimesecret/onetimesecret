@@ -8,11 +8,11 @@
 #   ruby scripts/migrations/jan24/create_indexes_secret.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input dump file (default: exports/secret/secret_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/secret)
+#   --input-file=FILE   Input dump file (default: results/secret/secret_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: results/secret)
 #   --dry-run           Show what would be created without writing
 #
-# Output: exports/secret/secret_indexes.jsonl
+# Output: results/secret/secret_indexes.jsonl
 #
 # Indexes created:
 #   - secret:instances (sorted set): score=created, member=objid
@@ -182,8 +182,8 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/secret/secret_dump.jsonl',
-    output_dir: 'exports/secret',
+    input_file: 'results/secret/secret_dump.jsonl',
+    output_dir: 'results/secret',
     dry_run: false,
   }
 
@@ -202,8 +202,8 @@ def parse_args(args)
         Creates index records for Secret model from dump file.
 
         Options:
-          --input-file=FILE   Input dump file (default: exports/secret/secret_dump.jsonl)
-          --output-dir=DIR    Output directory (default: exports/secret)
+          --input-file=FILE   Input dump file (default: results/secret/secret_dump.jsonl)
+          --output-dir=DIR    Output directory (default: results/secret)
           --dry-run           Show what would be created without writing
           --help              Show this help
 

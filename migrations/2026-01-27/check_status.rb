@@ -14,8 +14,11 @@ require 'optparse'
 require_relative 'lib/migration'
 
 def parse_args(args)
+  # Default to results subdirectory within this migration folder
+  default_results_dir = File.join(File.expand_path('..', __FILE__), 'results')
+
   options = {
-    exports_dir: 'exports',
+    results_dir: default_results_dir,
     phase: nil,
     reset: false,
     next_phase: false,
@@ -28,8 +31,8 @@ def parse_args(args)
     opts.separator ""
     opts.separator "Options:"
 
-    opts.on("--exports-dir=DIR", "Exports directory (default: exports)") do |dir|
-      options[:exports_dir] = dir
+    opts.on("--results-dir=DIR", "Results directory (default: results)") do |dir|
+      options[:results_dir] = dir
     end
 
     opts.on("--phase=N", Integer, "Validate dependencies for phase N") do |n|
@@ -66,7 +69,7 @@ def parse_args(args)
 end
 
 options = parse_args(ARGV)
-manifest = Migration::PhaseManifest.new(exports_dir: options[:exports_dir])
+manifest = Migration::PhaseManifest.new(results_dir: options[:results_dir])
 
 if options[:reset]
   print "Reset manifest? This will clear all phase tracking. [y/N] "

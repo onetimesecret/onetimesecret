@@ -26,8 +26,8 @@
 #   ruby transforms/05_secret_transform.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump file (default: exports/secret/secret_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/secret)
+#   --input-file=FILE   Input JSONL dump file (default: results/secret_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: results)
 #   --dry-run           Parse and count without writing output
 #   --help              Show help
 #

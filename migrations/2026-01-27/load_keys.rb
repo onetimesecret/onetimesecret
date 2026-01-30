@@ -5,10 +5,10 @@
 # Processes both transformed records (RESTORE) and index commands (ZADD/HSET/etc).
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/load_keys.rb [OPTIONS]
+#   ruby migrations/2026-01-27/load_keys.rb [OPTIONS]
 #
 # Options:
-#   --input-dir=DIR      Input directory with model subdirs (default: exports)
+#   --input-dir=DIR      Input directory with transformed files (default: results)
 #   --valkey-url=URL     Valkey/Redis URL (default: redis://127.0.0.1:6379)
 #   --model=NAME         Load only specific model (customer, organization, customdomain, receipt, secret)
 #   --dry-run            Count records without loading
@@ -17,7 +17,7 @@
 #
 # Models are loaded in dependency order: customer -> organization -> customdomain -> receipt -> secret
 #
-# Input files per model (in subdirs):
+# Input files (in results directory):
 #   - {model}_transformed.jsonl: Records to RESTORE (with dump blobs)
 #   - {model}_indexes.jsonl: Redis commands to execute (ZADD, HSET, SADD, INCRBY)
 
@@ -116,17 +116,16 @@ class KeyLoader
 
   def load_model(model_name)
     puts "=== Loading #{model_name} ==="
-    model_dir = File.join(@input_dir, model_name)
 
-    unless Dir.exist?(model_dir)
-      puts "  Skipping: directory not found (#{model_dir})"
-      @stats[model_name][:errors] << { error: "Directory not found: #{model_dir}" }
+    unless Dir.exist?(@input_dir)
+      puts "  Skipping: input directory not found (#{@input_dir})"
+      @stats[model_name][:errors] << { error: "Directory not found: #{@input_dir}" }
       return
     end
 
     # Load transformed records (RESTORE)
     unless @skip_records
-      transformed_file = File.join(model_dir, "#{model_name}_transformed.jsonl")
+      transformed_file = File.join(@input_dir, "#{model_name}_transformed.jsonl")
       if File.exist?(transformed_file)
         load_transformed_records(model_name, transformed_file)
       else
@@ -136,7 +135,7 @@ class KeyLoader
 
     # Execute index commands
     unless @skip_indexes
-      indexes_file = File.join(model_dir, "#{model_name}_indexes.jsonl")
+      indexes_file = File.join(@input_dir, "#{model_name}_indexes.jsonl")
       if File.exist?(indexes_file)
         execute_index_commands(model_name, indexes_file)
       else
@@ -332,8 +331,11 @@ class KeyLoader
 end
 
 def parse_args(args)
+  # Default to results subdirectory within this migration folder
+  default_input_dir = File.join(File.expand_path('..', __FILE__), 'results')
+
   options = {
-    input_dir: 'exports',
+    input_dir: default_input_dir,
     valkey_url: 'redis://127.0.0.1:6379',
     model: nil,
     dry_run: false,
@@ -357,12 +359,12 @@ def parse_args(args)
       options[:skip_records] = true
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/migrations/2026-01-26/load_keys.rb [OPTIONS]
+        Usage: ruby load_keys.rb [OPTIONS]
 
         Loads migrated data into Valkey/Redis from transformed JSONL files.
 
         Options:
-          --input-dir=DIR      Input directory with model subdirs (default: exports)
+          --input-dir=DIR      Input directory with transformed files (default: results)
           --valkey-url=URL     Valkey/Redis URL (default: redis://127.0.0.1:6379)
           --model=NAME         Load only specific model
           --dry-run            Count records without loading
@@ -377,7 +379,7 @@ def parse_args(args)
           receipt        -> DB 7
           secret         -> DB 8
 
-        Input files per model (in subdirs):
+        Input files (in results directory):
           {model}_transformed.jsonl   Records to RESTORE (with dump blobs)
           {model}_indexes.jsonl       Redis commands (ZADD, HSET, SADD, INCRBY)
 

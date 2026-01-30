@@ -9,8 +9,8 @@
 #   ruby scripts/migrations/jan24/create_indexes_customer.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump file (default: exports/customer/customer_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/customer)
+#   --input-file=FILE   Input JSONL dump file (default: results/customer/customer_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: results/customer)
 #   --redis-url=URL     Redis URL for temporary restore (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temporary database for restore operations (default: 15)
 #   --dry-run           Parse and count without writing output
@@ -423,8 +423,8 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/customer/customer_dump.jsonl',
-    output_dir: 'exports/customer',
+    input_file: 'results/customer/customer_dump.jsonl',
+    output_dir: 'results/customer',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -449,8 +449,8 @@ def parse_args(args)
         Creates customer indexes from dump file.
 
         Options:
-          --input-file=FILE   Input JSONL dump (default: exports/customer/customer_dump.jsonl)
-          --output-dir=DIR    Output directory (default: exports/customer)
+          --input-file=FILE   Input JSONL dump (default: results/customer/customer_dump.jsonl)
+          --output-dir=DIR    Output directory (default: results/customer)
           --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse without writing output

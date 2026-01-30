@@ -11,7 +11,7 @@ puts
 
 # Test LookupRegistry
 puts "Testing LookupRegistry..."
-registry = Migration::LookupRegistry.new(exports_dir: '/tmp/test_exports')
+registry = Migration::LookupRegistry.new(results_dir: '/tmp/test_results')
 registry.register(:test_lookup, { 'foo' => 'bar' }, phase: 1)
 raise "Register failed" unless registry.lookup(:test_lookup, 'foo') == 'bar'
 raise "Loaded check failed" unless registry.loaded?(:test_lookup)
@@ -26,8 +26,8 @@ puts "  RedisHelper: OK (no connection test)"
 
 # Test PhaseManifest
 puts "Testing PhaseManifest..."
-manifest = Migration::PhaseManifest.new(exports_dir: '/tmp/test_exports')
-raise "Manifest init failed" unless manifest.exports_dir == '/tmp/test_exports'
+manifest = Migration::PhaseManifest.new(results_dir: '/tmp/test_results')
+raise "Manifest init failed" unless manifest.results_dir == '/tmp/test_results'
 raise "Phase complete check failed" if manifest.phase_complete?(1)
 puts "  PhaseManifest: OK"
 

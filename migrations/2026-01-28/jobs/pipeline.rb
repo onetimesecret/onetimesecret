@@ -36,11 +36,11 @@ require 'migration'
 
 class Pipeline
   PHASES = {
-    1 => { name: 'Customer', job: '01_customer.rb', input: 'customer/customer_dump.jsonl' },
-    2 => { name: 'Organization', job: '02_organization.rb', input: 'customer/customer_transformed.jsonl' },
-    3 => { name: 'CustomDomain', job: '03_customdomain.rb', input: 'customdomain/customdomain_dump.jsonl' },
-    4 => { name: 'Receipt', job: '04_receipt.rb', input: 'metadata/metadata_dump.jsonl' },
-    5 => { name: 'Secret', job: '05_secret.rb', input: 'secret/secret_dump.jsonl' },
+    1 => { name: 'Customer', job: '01_customer.rb', input: 'customer_dump.jsonl' },
+    2 => { name: 'Organization', job: '02_organization.rb', input: 'customer_transformed.jsonl' },
+    3 => { name: 'CustomDomain', job: '03_customdomain.rb', input: 'customdomain_dump.jsonl' },
+    4 => { name: 'Receipt', job: '04_receipt.rb', input: 'metadata_dump.jsonl' },
+    5 => { name: 'Secret', job: '05_secret.rb', input: 'secret_dump.jsonl' },
   }.freeze
 
   PHASE_LOOKUPS = {
@@ -245,12 +245,12 @@ class Pipeline
 end
 
 def parse_args(args)
-  kiba_dir = File.expand_path('..', __dir__)
-  migrations_dir = File.expand_path('../..', kiba_dir)
+  migration_dir = File.expand_path('..', __dir__)
+  results_dir = File.join(migration_dir, 'results')
 
   options = {
-    input_dir: File.join(migrations_dir, 'exports'),
-    output_dir: File.join(kiba_dir, 'exports'),
+    input_dir: results_dir,
+    output_dir: results_dir,
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -267,11 +267,11 @@ def parse_args(args)
     opts.separator 'Options:'
 
     opts.on('--input-dir=DIR', 'Input directory with dump files') do |dir|
-      options[:input_dir] = File.expand_path(dir, kiba_dir)
+      options[:input_dir] = File.expand_path(dir, migration_dir)
     end
 
     opts.on('--output-dir=DIR', 'Output directory') do |dir|
-      options[:output_dir] = File.expand_path(dir, kiba_dir)
+      options[:output_dir] = File.expand_path(dir, migration_dir)
     end
 
     opts.on('--redis-url=URL', 'Redis URL (default: redis://127.0.0.1:6379)') do |url|

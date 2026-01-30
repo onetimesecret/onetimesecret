@@ -6,9 +6,9 @@
 # Transforms metadata records from V1 dump format to V2 receipt format.
 # Uses lookups from Phases 1-3 to resolve ownership.
 #
-# Input:  ../exports/metadata/metadata_dump.jsonl
-# Output: exports/receipt/receipt_transformed.jsonl
-#         exports/lookups/metadata_key_to_receipt_objid.json
+# Input:  results/metadata_dump.jsonl
+# Output: results/receipt_transformed.jsonl
+#         results/lookups/metadata_key_to_receipt_objid.json
 #
 # Dependencies (lookups from previous phases):
 #   - Phase 1: email_to_customer_objid.json
@@ -117,7 +117,7 @@ class ReceiptJob
   end
 
   def output_file
-    File.join(@output_dir, MODEL, "#{MODEL}_transformed.jsonl")
+    File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
   def lookup_file
@@ -303,11 +303,11 @@ def parse_args(args)
 
   # All paths resolved relative to migration directory for consistency
   migration_dir = File.expand_path('..', __dir__)
-  exports_parent = File.expand_path('../..', migration_dir)
+  results_dir = File.join(migration_dir, 'results')
 
   options = {
-    input_file: File.join(exports_parent, 'exports/metadata/metadata_dump.jsonl'),
-    output_dir: File.join(migration_dir, 'exports'),
+    input_file: File.join(results_dir, 'metadata_dump.jsonl'),
+    output_dir: results_dir,
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -321,7 +321,7 @@ def parse_args(args)
     opts.separator 'Transforms metadata records to receipts with ownership resolution.'
     opts.separator ''
     opts.separator 'Dependencies:'
-    opts.separator '  Requires lookups from Phases 1-3 in exports/lookups/'
+    opts.separator '  Requires lookups from Phases 1-3 in results/lookups/'
     opts.separator ''
     opts.separator 'Options:'
 
@@ -353,8 +353,8 @@ def parse_args(args)
       puts opts
       puts
       puts 'Output files:'
-      puts '  exports/receipt/receipt_transformed.jsonl'
-      puts '  exports/lookups/metadata_key_to_receipt_objid.json'
+      puts '  results/receipt_transformed.jsonl'
+      puts '  results/lookups/metadata_key_to_receipt_objid.json'
       exit 0
     end
   end

@@ -28,8 +28,8 @@
 #   ruby transforms/02_organization_transform.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL file (default: exports/customer/customer_transformed.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/organization)
+#   --input-file=FILE   Input JSONL file (default: results/customer_transformed.jsonl)
+#   --output-dir=DIR    Output directory (default: results)
 #   --dry-run           Parse and count without writing output
 #   --help              Show help
 #
@@ -62,8 +62,9 @@ module Migration
 
     def setup_defaults
       # Override to use customer_transformed.jsonl as input
-      @options[:input_file] ||= 'exports/customer/customer_transformed.jsonl'
-      @options[:output_dir] ||= 'exports/organization'
+      results_dir = @options[:results_dir]
+      @options[:input_file] ||= File.join(results_dir, 'customer_transformed.jsonl')
+      @options[:output_dir] ||= results_dir
     end
 
     def validate_prerequisites!

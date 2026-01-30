@@ -10,14 +10,14 @@
 #   ruby scripts/migrations/2026-01-26/02-organization/create_indexes.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL file (default: exports/organization/organization_generated.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/organization)
+#   --input-file=FILE   Input JSONL file (default: results/organization/organization_generated.jsonl)
+#   --output-dir=DIR    Output directory (default: results/organization)
 #   --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temp database for restore operations (default: 15)
 #   --dry-run           Show what would be created without writing
 #
-# Input: exports/organization/organization_generated.jsonl (from generate.rb)
-# Output: exports/organization/organization_indexes.jsonl (Redis commands)
+# Input: results/organization/organization_generated.jsonl (from generate.rb)
+# Output: results/organization/organization_indexes.jsonl (Redis commands)
 
 require 'json'
 require 'base64'
@@ -264,8 +264,8 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/organization/organization_generated.jsonl',
-    output_dir: 'exports/organization',
+    input_file: 'results/organization/organization_generated.jsonl',
+    output_dir: 'results/organization',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -286,8 +286,8 @@ def parse_args(args)
         Run AFTER generate.rb which creates organization_generated.jsonl.
 
         Options:
-          --input-file=FILE   Input JSONL (default: exports/organization/organization_generated.jsonl)
-          --output-dir=DIR    Output directory (default: exports/organization)
+          --input-file=FILE   Input JSONL (default: results/organization/organization_generated.jsonl)
+          --output-dir=DIR    Output directory (default: results/organization)
           --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Show what would be created without writing

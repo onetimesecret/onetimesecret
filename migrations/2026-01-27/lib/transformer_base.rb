@@ -52,11 +52,15 @@ module Migration
     PHASE = nil
     MODEL_NAME = nil
 
+    # Base directory for this migration (relative to script location)
+    MIGRATION_DIR = File.expand_path('..', __dir__)
+    RESULTS_DIR = File.join(MIGRATION_DIR, 'results')
+
     # Common CLI options available to all transformers
     DEFAULT_OPTIONS = {
       input_file: nil,       # Set in subclass based on MODEL_NAME
       output_dir: nil,       # Set in subclass based on MODEL_NAME
-      exports_dir: 'exports',
+      results_dir: RESULTS_DIR,
       redis_url: 'redis://127.0.0.1:6379',
       temp_db: 15,
       dry_run: false,
@@ -175,7 +179,7 @@ module Migration
         Options:
           --input-file=FILE   Input JSONL dump file
           --output-dir=DIR    Output directory
-          --exports-dir=DIR   Base exports directory (default: exports)
+          --results-dir=DIR   Base results directory (default: migrations/2026-01-27/results)
           --redis-url=URL     Redis URL for temp operations (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output
@@ -256,8 +260,9 @@ module Migration
 
     def setup_defaults
       model = self.class::MODEL_NAME
-      @options[:input_file] ||= "exports/#{model}/#{model}_dump.jsonl"
-      @options[:output_dir] ||= "exports/#{model}"
+      results_dir = @options[:results_dir]
+      @options[:input_file] ||= File.join(results_dir, "#{model}_dump.jsonl")
+      @options[:output_dir] ||= results_dir
     end
 
     def validate_input_file!
@@ -271,8 +276,8 @@ module Migration
         redis_url: @options[:redis_url],
         temp_db: @options[:temp_db]
       )
-      @lookup_registry = LookupRegistry.new(exports_dir: @options[:exports_dir])
-      @manifest = PhaseManifest.new(exports_dir: @options[:exports_dir])
+      @lookup_registry = LookupRegistry.new(results_dir: @options[:results_dir])
+      @manifest = PhaseManifest.new(results_dir: @options[:results_dir])
     end
 
     def connect_redis
@@ -426,8 +431,8 @@ module Migration
           @options[:input_file] = Regexp.last_match(1)
         when /^--output-dir=(.+)$/
           @options[:output_dir] = Regexp.last_match(1)
-        when /^--exports-dir=(.+)$/
-          @options[:exports_dir] = Regexp.last_match(1)
+        when /^--results-dir=(.+)$/
+          @options[:results_dir] = Regexp.last_match(1)
         when /^--redis-url=(.+)$/
           @options[:redis_url] = Regexp.last_match(1)
         when /^--temp-db=(\d+)$/

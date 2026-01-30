@@ -8,7 +8,7 @@ require 'fileutils'
 module Migration
   # Tracks phase completion for the migration pipeline.
   #
-  # Maintains a manifest file (exports/manifest.json) recording:
+  # Maintains a manifest file (results/manifest.json) recording:
   # - Which phases have completed
   # - Timestamps for each phase
   # - Record counts (input/output)
@@ -37,7 +37,7 @@ module Migration
   #   }
   #
   # Usage:
-  #   manifest = Migration::PhaseManifest.new(exports_dir: 'exports')
+  #   manifest = Migration::PhaseManifest.new(results_dir: 'results')
   #
   #   # Check if a phase is complete
   #   manifest.phase_complete?(2)  # => false
@@ -70,11 +70,12 @@ module Migration
       5 => 'secret',
     }.freeze
 
-    attr_reader :exports_dir, :manifest_path
+    attr_reader :results_dir, :manifest_path
 
-    def initialize(exports_dir: 'exports')
-      @exports_dir = exports_dir
-      @manifest_path = File.join(exports_dir, MANIFEST_FILE)
+    def initialize(results_dir: nil)
+      # Default to the results directory within this migration folder
+      @results_dir = results_dir || File.join(File.expand_path('../..', __dir__), 'results')
+      @manifest_path = File.join(@results_dir, MANIFEST_FILE)
       @data = nil
     end
 
@@ -95,7 +96,7 @@ module Migration
     # Save manifest to disk.
     #
     def save
-      FileUtils.mkdir_p(@exports_dir)
+      FileUtils.mkdir_p(@results_dir)
       File.write(@manifest_path, JSON.pretty_generate(load))
     end
 

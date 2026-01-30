@@ -18,16 +18,16 @@
 #   ruby scripts/migrations/2026-01-26/enrich_with_original_record.rb [OPTIONS]
 #
 # Options:
-#   --input-dir=DIR    Input directory with dump/transformed files (default: exports)
-#   --output-dir=DIR   Output directory (default: exports, overwrites in place)
+#   --input-dir=DIR    Input directory with dump/transformed files (default: results)
+#   --output-dir=DIR   Output directory (default: results, overwrites in place)
 #   --dry-run          Show what would be generated without writing
 #
 # Input:
-#   exports/{model}/{model}_dump.jsonl        (original v1 dump - source of v1_fields)
-#   exports/{model}/{model}_transformed.jsonl (transformed v2 records - to be enriched)
+#   results/{model}/{model}_dump.jsonl        (original v1 dump - source of v1_fields)
+#   results/{model}/{model}_transformed.jsonl (transformed v2 records - to be enriched)
 #
 # Output:
-#   exports/{model}/{model}_transformed.jsonl (enriched with _original_record in dump)
+#   results/{model}/{model}_transformed.jsonl (enriched with _original_record in dump)
 #
 # For :object records, adds _original_record hash field with structure:
 #   {
@@ -69,7 +69,7 @@ class OriginalRecordEnricher
     },
     'metadata' => {
       # NOTE: metadata becomes receipt, but dump file is still metadata
-      # The transformed file lives in exports/metadata/ with plural name
+      # The transformed file lives in results/metadata/ with plural name
       dump_file: 'metadata_dump.jsonl',
       transformed_file: 'receipts_transformed.jsonl',
       binary_safe: false,
@@ -339,8 +339,8 @@ end
 
 def parse_args(args)
   options = {
-    input_dir: 'exports',
-    output_dir: 'exports',
+    input_dir: 'results',
+    output_dir: 'results',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -365,19 +365,19 @@ def parse_args(args)
         Enriches transformed JSONL files with _original_record for rollback/audit.
 
         Options:
-          --input-dir=DIR    Input directory (default: exports)
-          --output-dir=DIR   Output directory (default: exports)
+          --input-dir=DIR    Input directory (default: results)
+          --output-dir=DIR   Output directory (default: results)
           --redis-url=URL    Redis URL for temp operations (default: redis://127.0.0.1:6379)
           --temp-db=N        Temp database number (default: 15)
           --dry-run          Preview without writing
           --help             Show this help
 
         Input files:
-          exports/{model}/{model}_dump.jsonl        (v1 source)
-          exports/{model}/{model}_transformed.jsonl (to be enriched)
+          results/{model}/{model}_dump.jsonl        (v1 source)
+          results/{model}/{model}_transformed.jsonl (to be enriched)
 
         Output:
-          exports/{model}/{model}_transformed.jsonl (with _original_record)
+          results/{model}/{model}_transformed.jsonl (with _original_record)
 
         For each :object record, adds _original_record hash field with:
           - object: Original v1 hash fields (binary-safe for secret)

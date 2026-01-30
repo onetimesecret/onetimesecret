@@ -8,7 +8,7 @@
 #   ruby scripts/migrations/2026-01-26/load_keys.rb [OPTIONS]
 #
 # Options:
-#   --input-dir=DIR      Input directory with model subdirs (default: exports)
+#   --input-dir=DIR      Input directory with model subdirs (default: results)
 #   --valkey-url=URL     Valkey/Redis URL (default: redis://127.0.0.1:6379)
 #   --model=NAME         Load only specific model (customer, organization, customdomain, receipt, secret)
 #   --dry-run            Count records without loading
@@ -330,7 +330,7 @@ end
 
 def parse_args(args)
   options = {
-    input_dir: 'exports',
+    input_dir: 'results',
     valkey_url: 'redis://127.0.0.1:6379',
     model: nil,
     dry_run: false,
@@ -359,7 +359,7 @@ def parse_args(args)
         Loads migrated data into Valkey/Redis from transformed JSONL files.
 
         Options:
-          --input-dir=DIR      Input directory with model subdirs (default: exports)
+          --input-dir=DIR      Input directory with model subdirs (default: results)
           --valkey-url=URL     Valkey/Redis URL (default: redis://127.0.0.1:6379)
           --model=NAME         Load only specific model
           --dry-run            Count records without loading

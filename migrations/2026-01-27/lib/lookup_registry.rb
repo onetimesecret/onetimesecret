@@ -12,13 +12,13 @@ module Migration
   # automatic bidirectional lookup generation.
   #
   # Design Goals:
-  # - Single JSON format for all lookups in exports/lookups/
+  # - Single JSON format for all lookups in results/lookups/
   # - Lazy loading with phase prerequisite validation
   # - Auto-generate bidirectional lookups when registered
   # - Fail-fast on missing prerequisites (no silent failures)
   #
   # Usage:
-  #   registry = Migration::LookupRegistry.new(exports_dir: 'exports')
+  #   registry = Migration::LookupRegistry.new(results_dir: 'results')
   #
   #   # Register lookup data from a prior phase
   #   registry.register(:email_to_customer, data, phase: 1)
@@ -30,7 +30,7 @@ module Migration
   #   customer_objid = registry.lookup(:email_to_customer, 'user@example.com')
   #
   class LookupRegistry
-    # Standard lookup directory within exports
+    # Standard lookup directory within results
     LOOKUPS_DIR = 'lookups'
 
     # Known lookup types and their expected files
@@ -58,11 +58,12 @@ module Migration
       },
     }.freeze
 
-    attr_reader :exports_dir, :lookups_dir
+    attr_reader :results_dir, :lookups_dir
 
-    def initialize(exports_dir: 'exports')
-      @exports_dir = exports_dir
-      @lookups_dir = File.join(exports_dir, LOOKUPS_DIR)
+    def initialize(results_dir: nil)
+      # Default to the results directory within this migration folder
+      @results_dir = results_dir || File.join(File.expand_path('../..', __dir__), 'results')
+      @lookups_dir = File.join(@results_dir, LOOKUPS_DIR)
       @lookups = {}
       @lookup_metadata = {}
       @loaded = Set.new

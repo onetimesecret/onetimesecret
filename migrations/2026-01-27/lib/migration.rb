@@ -24,13 +24,16 @@ require_relative 'phase_manifest'
 module Migration
   VERSION = '1.0.0'
 
+  # Default results directory (relative to this file)
+  DEFAULT_RESULTS_DIR = File.join(File.expand_path('../..', __FILE__), 'results')
+
   # Convenience method to create a new lookup registry.
   #
-  # @param exports_dir [String] Base exports directory
+  # @param results_dir [String] Base results directory
   # @return [LookupRegistry]
   #
-  def self.lookup_registry(exports_dir: 'exports')
-    LookupRegistry.new(exports_dir: exports_dir)
+  def self.lookup_registry(results_dir: DEFAULT_RESULTS_DIR)
+    LookupRegistry.new(results_dir: results_dir)
   end
 
   # Convenience method to create a new Redis helper.
@@ -45,18 +48,18 @@ module Migration
 
   # Convenience method to create a new phase manifest.
   #
-  # @param exports_dir [String] Base exports directory
+  # @param results_dir [String] Base results directory
   # @return [PhaseManifest]
   #
-  def self.manifest(exports_dir: 'exports')
-    PhaseManifest.new(exports_dir: exports_dir)
+  def self.manifest(results_dir: DEFAULT_RESULTS_DIR)
+    PhaseManifest.new(results_dir: results_dir)
   end
 
   # Check migration status.
   #
-  # @param exports_dir [String] Base exports directory
+  # @param results_dir [String] Base results directory
   #
-  def self.status(exports_dir: 'exports')
-    manifest(exports_dir: exports_dir).print_status
+  def self.status(results_dir: DEFAULT_RESULTS_DIR)
+    manifest(results_dir: results_dir).print_status
   end
 end
