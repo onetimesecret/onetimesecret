@@ -182,7 +182,8 @@ v2_fields = {}
 transformer.send(:transform_ownership, v2_fields, 'missing@example.com', nil)
 
 stats = transformer.instance_variable_get(:@stats)
-[v2_fields['owner_id'], stats[:missing_customer_lookup], stats[:failed_customer_lookups].include?('missing@example.com')]
+is_included_in_array = stats[:failed_customer_lookups].include?('missing@example.com') # not a string comparison
+[v2_fields['owner_id'], stats[:missing_customer_lookup], is_included_in_array]
 #=> [nil, 1, true]
 
 ## transform_ownership uses email_to_customer lookup
