@@ -10,6 +10,7 @@
 #   ruby check_status.rb --next             # Show next pending phase
 #
 
+require 'optparse'
 require_relative 'lib/migration'
 
 def parse_args(args)
@@ -20,39 +21,45 @@ def parse_args(args)
     next_phase: false,
   }
 
-  args.each do |arg|
-    case arg
-    when /^--exports-dir=(.+)$/
-      options[:exports_dir] = Regexp.last_match(1)
-    when /^--phase=(\d+)$/
-      options[:phase] = Regexp.last_match(1).to_i
-    when '--reset'
-      options[:reset] = true
-    when '--next'
-      options[:next_phase] = true
-    when '--help', '-h'
-      puts <<~HELP
-        Usage: ruby check_status.rb [OPTIONS]
+  parser = OptionParser.new do |opts|
+    opts.banner = "Usage: ruby check_status.rb [OPTIONS]"
+    opts.separator ""
+    opts.separator "Check migration status and validate phase dependencies."
+    opts.separator ""
+    opts.separator "Options:"
 
-        Check migration status and validate phase dependencies.
-
-        Options:
-          --exports-dir=DIR   Exports directory (default: exports)
-          --phase=N           Validate dependencies for phase N
-          --next              Show next pending phase
-          --reset             Reset manifest (start fresh)
-          --help              Show this help
-
-        Examples:
-          ruby check_status.rb                  # Show status
-          ruby check_status.rb --phase=3       # Can we run phase 3?
-          ruby check_status.rb --next          # What's next?
-      HELP
-      exit 0
-    else
-      warn "Unknown option: #{arg}"
-      exit 1
+    opts.on("--exports-dir=DIR", "Exports directory (default: exports)") do |dir|
+      options[:exports_dir] = dir
     end
+
+    opts.on("--phase=N", Integer, "Validate dependencies for phase N") do |n|
+      options[:phase] = n
+    end
+
+    opts.on("--next", "Show next pending phase") do
+      options[:next_phase] = true
+    end
+
+    opts.on("--reset", "Reset manifest (start fresh)") do
+      options[:reset] = true
+    end
+
+    opts.on("--help", "Show this help") do
+      puts opts
+      puts ""
+      puts "Examples:"
+      puts "  ruby check_status.rb                  # Show status"
+      puts "  ruby check_status.rb --phase=3       # Can we run phase 3?"
+      puts "  ruby check_status.rb --next          # What's next?"
+      exit 0
+    end
+  end
+
+  begin
+    parser.parse!(args)
+  rescue OptionParser::InvalidOption => e
+    warn e.message
+    exit 1
   end
 
   options
