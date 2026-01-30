@@ -114,6 +114,12 @@ bundle exec ruby jobs/06_load.rb --valkey-url=redis://localhost:6379
 bundle exec ruby jobs/06_load.rb --model=customer
 bundle exec ruby jobs/06_load.rb --skip-indexes   # Records only
 bundle exec ruby jobs/06_load.rb --skip-records   # Indexes only
+
+# Phase 7: Cleanup (reset for pristine restart)
+bundle exec ruby jobs/07_cleanup.rb --dry-run     # Preview what will be deleted
+bundle exec ruby jobs/07_cleanup.rb               # Full cleanup (Redis + files)
+bundle exec ruby jobs/07_cleanup.rb --redis-only  # Clean only Redis DB 0
+bundle exec ruby jobs/07_cleanup.rb --files-only  # Clean only result files
 ```
 
 ### Tests
