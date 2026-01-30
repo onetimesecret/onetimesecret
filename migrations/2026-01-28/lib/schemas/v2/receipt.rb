@@ -193,3 +193,126 @@ Receipt (highest discrepancy count)
 Updates needed:
 - Ruby: Expand state enum, rename secret_shortkey, add 8 boolean flags, add all timestamp fields, add computed fields
 - Spec: Add shortid, receipt_ttl, all boolean flags, computed/derived fields section
+
+---
+
+## V1 Dump Field Analysis (2026-01-29)
+
+**Source:** `exports/metadata/metadata_dump.jsonl`
+**Total Records:** 2,428 metadata objects
+
+### V1 Metadata/Receipt Fields (19 fields)
+
+| Field | Description |
+|-------|-------------|
+| `burned` | Timestamp when the secret was burned (destroyed by owner) |
+| `created` | Creation timestamp (epoch float as string) |
+| `custid` | Customer identifier (email address or "anon") |
+| `key` | The secret key this receipt tracks (primary reference) |
+| `lifespan` | TTL duration that was set when created |
+| `memo` | Optional memo/subject for incoming secrets |
+| `passphrase` | Passphrase indicator/value (if set) |
+| `received` | Timestamp when secret was revealed |
+| `recipients` | Comma-separated recipient emails |
+| `secret_key` | Full secret key reference |
+| `secret_shortkey` | Short version of secret key for display (first 8 chars) |
+| `secret_ttl` | Time-to-live in seconds for the secret |
+| `share_domain` | Custom domain FQDN used for sharing |
+| `shared` | Timestamp when secret was shared |
+| `state` | Lifecycle state (new, viewed, received, burned) |
+| `token` | Receipt token/identifier |
+| `truncate` | Truncation indicator |
+| `updated` | Last update timestamp (epoch float as string) |
+| `viewed` | Timestamp when secret was previewed (by owner) |
+
+### V1 Schema Gaps
+
+The existing V1 schema at `migrations/2026-01-28/lib/schemas/v1/metadata.rb` is missing
+several fields that exist in the actual dump data:
+- `burned`
+- `secret_shortkey`
+- `secret_ttl`
+- `shared`
+- `token`
+- `truncate`
+
+### V1 → V2 Migration Notes
+
+1. **Model rename:** Metadata → Receipt
+2. **custid → owner_id:** Maps to Customer objid via lookup ("anon" → null)
+3. **share_domain → domain_id:** Maps to CustomDomain objid via lookup
+4. **key:** Preserved for audit, used to generate deterministic objid
+5. **Timestamps:** All lifecycle timestamps (viewed, shared, received, burned) preserved
+
+---
+
+## Model Introspection Comparison (2026-01-29)
+
+### Schema Fields (V2 migration schema) - 20 fields
+```
+objid, extid, key, owner_id, org_id, domain_id, v1_custid, v1_identifier,
+migration_status, migrated_at, state, secret_shortkey, recipients, created,
+updated, passphrase_temp, share_domain, ttl, view_count, received
+```
+
+### Model Fields (Onetime::Receipt) - 30 fields
+```
+objid, created, updated, key, viewed, received, shared, burned, custid,
+truncate, secret_key, previewed, revealed, v1_identifier, migration_status,
+migrated_at, v1_key, v1_custid, owner_id, state, secret_identifier,
+secret_shortid, secret_ttl, lifespan, share_domain, passphrase, org_id,
+domain_id, recipients, memo
+```
+
+### Discrepancies
+
+**In Schema but MISSING from Model (5 fields):**
+
+| Field | Notes |
+|-------|-------|
+| `extid` | External identifier for URLs (likely computed or inherited) |
+| `secret_shortkey` | Model uses `secret_shortid` instead (naming mismatch) |
+| `passphrase_temp` | Model uses `passphrase` instead (naming mismatch) |
+| `ttl` | Model uses `secret_ttl` and `lifespan` instead (naming mismatch) |
+| `view_count` | Not in model fields |
+
+**In Model but MISSING from Schema (15 fields):**
+
+| Field | Notes |
+|-------|-------|
+| `viewed` | Timestamp when secret was previewed |
+| `shared` | Timestamp when secret was shared |
+| `burned` | Timestamp when secret was burned |
+| `custid` | Legacy customer ID |
+| `truncate` | Truncation flag |
+| `secret_key` | The actual secret key reference |
+| `previewed` | Timestamp when previewed |
+| `revealed` | Timestamp when revealed |
+| `v1_key` | Migration audit field |
+| `secret_identifier` | Full secret identifier |
+| `secret_shortid` | Schema has `secret_shortkey` (naming mismatch) |
+| `secret_ttl` | Schema has `ttl` (naming mismatch) |
+| `lifespan` | Duration field |
+| `passphrase` | Schema has `passphrase_temp` (naming mismatch) |
+| `memo` | User note field |
+
+### Key Naming Mismatches
+
+| Schema Field | Model Field | Notes |
+|--------------|-------------|-------|
+| `secret_shortkey` | `secret_shortid` | Schema should use `secret_shortid` |
+| `passphrase_temp` | `passphrase` | Schema should use `passphrase` |
+| `ttl` | `secret_ttl` | Schema should use `secret_ttl` |
+| — | `lifespan` | Model has both `secret_ttl` and `lifespan` |
+
+### Missing Timestamp Fields
+
+The schema lacks all lifecycle timestamp fields that exist in both V1 dump and V2 model:
+- `viewed` - when owner previewed
+- `shared` - when secret was shared
+- `burned` - when owner burned/destroyed
+- `previewed` - similar to viewed
+- `revealed` - when recipient revealed
+
+**Summary:** The schema has significant naming mismatches and is missing 15 fields
+from the actual model. The V1 dump also contains 6 fields not in the V1 schema.

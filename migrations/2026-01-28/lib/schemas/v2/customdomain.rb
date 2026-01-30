@@ -165,7 +165,6 @@ module Migration
   end
 end
 
-
 __END__
 
 ## Source Files
@@ -187,3 +186,115 @@ CustomDomain
 Updates needed:
 - Ruby: Add identifier, domainid, custid, _original_value, is_apex, nested objects
 - Spec: Add identifier, _original_value, is_apex; clarify custid is nullable (not removed)
+
+---
+
+## V1 Dump Field Analysis (2026-01-29)
+
+**Source:** `exports/customdomain/customdomain_dump.jsonl`
+**Total Records:** 14 customdomain objects, 12 brand records, 10 logo records
+
+### V1 CustomDomain `:object` Fields (18 fields)
+
+| Field | Description |
+|-------|-------------|
+| `key` | V1 identifier (20-char hex) |
+| `domainid` | Same as key (aliased) |
+| `custid` | Customer email (v1 FK) |
+| `display_domain` | Full domain name (e.g., secrets.example.com) |
+| `base_domain` | Root domain (e.g., example.com) |
+| `subdomain` | Full subdomain (e.g., secrets.example.com) |
+| `trd` | Transit routing domain (e.g., secrets) |
+| `sld` | Second-level domain (e.g., example) |
+| `tld` | Top-level domain (e.g., com) |
+| `_original_value` | Original input value |
+| `txt_validation_host` | TXT record hostname for verification |
+| `txt_validation_value` | TXT record value (32-char hex) |
+| `vhost` | JSON blob from Approximated API |
+| `status` | Domain status |
+| `verified` | TXT record verified (true/false) |
+| `resolving` | DNS resolving (true/false) |
+| `created` | Unix timestamp |
+| `updated` | Unix timestamp |
+
+### V1 CustomDomain `:brand` Fields (8 fields)
+
+| Field | Description |
+|-------|-------------|
+| `primary_color` | Brand color |
+| `font_family` | Font family (sans, mono, etc.) |
+| `corner_style` | Corner style (rounded, square, pill) |
+| `button_text_light` | Button text color setting |
+| `instructions_pre_reveal` | Text shown before reveal |
+| `instructions_post_reveal` | Text shown after reveal |
+| `locale` | Language locale (e.g., en) |
+| `allow_public_homepage` | Boolean flag |
+
+### V1 CustomDomain `:logo` Fields (6 fields)
+
+| Field | Description |
+|-------|-------------|
+| `filename` | Original filename |
+| `content_type` | MIME type (e.g., image/jpeg) |
+| `ratio` | Aspect ratio |
+| `width` | Image width in pixels |
+| `height` | Image height in pixels |
+| `encoded` | Base64-encoded image data |
+
+### V1 → V2 Migration Notes
+
+1. **custid → org_id:** V1 uses customer email, V2 uses organization objid
+2. **key/domainid → objid:** V2 uses UUIDv7-based objid with extid format `cd%<id>s`
+3. **Nested hashkeys:** brand and logo are stored as separate Redis hash keys in both versions
+4. **vhost:** Contains JSON blob from external API, preserved as-is
+
+---
+
+## Model Introspection Comparison (2026-01-29)
+
+### Schema Fields (V2 migration schema) - ~18 fields
+```
+objid, extid, display_domain, base_domain, subdomain, trd, tld, sld,
+owner_id, org_id, v1_custid, v1_identifier, migration_status, migrated_at,
+txt_validation_value, txt_validation_host, verification_status, verified,
+verified_at, created, updated, active
+```
+
+### Model Fields (Onetime::CustomDomain) - 22 fields
+```
+objid, extid, v1_identifier, migration_status, migrated_at, v1_custid,
+display_domain, org_id, base_domain, subdomain, trd, tld, sld,
+txt_validation_host, txt_validation_value, status, vhost, verified,
+resolving, created, updated, _original_value
+```
+
+### Discrepancies
+
+**In Model but MISSING from Schema (4 fields):**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `status` | field | General status field (distinct from verification_status) |
+| `vhost` | field | Virtual host reference (JSON blob) |
+| `resolving` | field | DNS resolving status |
+| `_original_value` | field | Internal tracking field |
+
+**In Schema but MISSING from Model (4 fields):**
+
+| Field | Notes |
+|-------|-------|
+| `owner_id` | Schema has it, model doesn't (may derive from org_id) |
+| `verification_status` | Schema defines enum; model has `status` instead |
+| `verified_at` | Verification timestamp |
+| `active` | Active status flag |
+
+**Related Collections (model only):**
+- `participations` (UnsortedSet)
+- `receipts` (SortedSet)
+
+### Key Observations
+
+1. **owner_id mismatch:** Schema expects owner_id but model doesn't define it. May be derived from org_id lookup.
+2. **Status fields:** Model has `status` and `resolving`, schema has `verification_status` and `active`. Different aspects of domain state.
+3. **vhost representation:** Model has it as a field (JSON blob), schema doesn't include it.
+4. **_original_value:** Model has this internal field; schema doesn't (probably intentional for internal tracking).
