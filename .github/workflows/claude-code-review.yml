@@ -23,10 +23,14 @@ jobs:
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
     # if: ${{ !startsWith(github.head_ref, 'deps/') }}
     runs-on: ubuntu-latest
+    # Skip bot-created PRs (renovate, dependabot, etc.) unless explicitly labeled
     if: |
-      (github.event.action == 'opened') ||
-      (github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'claude-review'))
+      github.event.pull_request.user.type != 'Bot' &&
+      (
+        (github.event.action == 'opened') ||
+        (github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
+        (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'claude-review'))
+      )
 
     permissions:
       contents: read
