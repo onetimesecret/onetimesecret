@@ -46,21 +46,21 @@ module Migration
 
           # Owner customer objid (resolved from custid)
           'owner_id' => {
-            'type' => ['string', 'null'],
+            'type' => %w[string null],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Owner customer objid (UUIDv7)',
           },
 
           # Organization objid (resolved from customer email)
           'org_id' => {
-            'type' => ['string', 'null'],
+            'type' => %w[string null],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Organization objid (UUIDv7)',
           },
 
           # Custom domain objid (resolved from share_domain if present)
           'domain_id' => {
-            'type' => ['string', 'null'],
+            'type' => %w[string null],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Custom domain objid (UUIDv7, optional)',
           },
@@ -162,3 +162,34 @@ module Migration
     end
   end
 end
+
+
+__END__
+
+## Source Files
+- Ruby Schema: migrations/2026-01-28/lib/schemas/v2/receipt.rb
+- Spec.md: migrations/2026-01-26/04-metadata/spec.md
+- Zod Schema: src/schemas/models/receipt.ts
+
+---
+Receipt (highest discrepancy count)
+┌─────────────────┬──────────────────────────────────────────────────────────┬──────────────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│    Category     │                       Ruby Schema                        │                   Spec.md                    │                                                Zod (truth)                                                 │
+├─────────────────┼──────────────────────────────────────────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ State enum      │ Missing: shared, revealed, previewed, expired, orphaned  │ Documents transform                          │ Has all values                                                                                             │
+├─────────────────┼──────────────────────────────────────────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Field renames   │ secret_shortkey→secret_shortid                           │ Uses both naming conventions                 │ Uses secret_shortid                                                                                        │
+├─────────────────┼──────────────────────────────────────────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Boolean flags   │ Missing all is_* flags                                   │ Missing all                                  │ Has 8: is_viewed, is_received, is_previewed, is_revealed, is_burned, is_destroyed, is_expired, is_orphaned │
+├─────────────────┼──────────────────────────────────────────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Timestamps      │ Missing: shared, viewed, previewed, revealed, burned     │ Has some                                     │ Has all as nullable dates                                                                                  │
+├─────────────────┼──────────────────────────────────────────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Missing fields  │ shortid, receipt_ttl, has_passphrase, secret_state, memo │ Missing: shortid, receipt_ttl, boolean flags │ Has all                                                                                                    │
+├─────────────────┼──────────────────────────────────────────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Computed fields │ Missing all                                              │ Missing all                                  │ natural_expiration, expiration, expiration_in_seconds, paths, URLs                                         │
+├─────────────────┼──────────────────────────────────────────────────────────┼──────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Security        │ Has passphrase, secret_key                               │ Same                                         │ Has has_passphrase (boolean, no raw passphrase)                                                            │
+└─────────────────┴──────────────────────────────────────────────────────────┴──────────────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+Updates needed:
+- Ruby: Expand state enum, rename secret_shortkey, add 8 boolean flags, add all timestamp fields, add computed fields
+- Spec: Add shortid, receipt_ttl, all boolean flags, computed/derived fields section

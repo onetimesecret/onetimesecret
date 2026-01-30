@@ -131,3 +131,26 @@ module Migration
     end
   end
 end
+
+
+__END__
+
+## Source Files
+- Ruby Schema: migrations/2026-01-28/lib/schemas/v2/secret.rb
+- Spec.md: migrations/2026-01-26/05-secret/spec.md
+- Zod Schema: src/schemas/models/secret.ts
+
+---
+Secret
+┌────────────────┬─────────────────────────────────────────────────────────────────┬─────────────────────┬─────────────────────────────────┐
+│    Category    │                           Ruby Schema                           │       Spec.md       │           Zod (truth)           │
+├────────────────┼─────────────────────────────────────────────────────────────────┼─────────────────────┼─────────────────────────────────┤
+│ Field renames  │ objid→identifier, passphrase→has_passphrase, value→secret_value │ Uses objid          │ Uses identifier, has_passphrase │
+├────────────────┼─────────────────────────────────────────────────────────────────┼─────────────────────┼─────────────────────────────────┤
+│ State enum     │ Missing: revealed, previewed                                    │ Documents transform │ Has all 6 values                │
+├────────────────┼─────────────────────────────────────────────────────────────────┼─────────────────────┼─────────────────────────────────┤
+│ Missing fields │ key, shortid, verification, lifespan                            │ —                   │ Has all                         │
+└────────────────┴─────────────────────────────────────────────────────────────────┴─────────────────────┴─────────────────────────────────┘
+Updates needed:
+- Ruby: Rename 3 fields, add 4 fields, expand state enum
+- Spec: Clarify identifier is the frontend field name

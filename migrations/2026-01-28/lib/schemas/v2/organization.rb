@@ -134,3 +134,30 @@ module Migration
     end
   end
 end
+
+
+__END__
+
+## Source Files
+- Ruby Schema: migrations/2026-01-28/lib/schemas/v2/organization.rb
+- Spec.md: migrations/2026-01-26/02-organization/spec.md
+- Zod Schema: src/types/organization.ts
+
+---
+Organization
+┌─────────────────┬──────────────────────────────────────────────────┬──────────────┬─────────────────────────────────────────────────────────────────────┐
+│    Category     │                   Ruby Schema                    │   Spec.md    │                             Zod (truth)                             │
+├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
+│ Field renames   │ objid→id, created→created_at, updated→updated_at │ Same issue   │ Uses id, created_at, updated_at                                     │
+├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
+│ Owner field     │ Has owner_id (ObjId)                             │ Has owner_id │ Expects owner_extid (ExtId)                                         │
+├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
+│ Type mismatch   │ is_default is string                             │ —            │ Expects boolean                                                     │
+├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
+│ Computed fields │ Missing all                                      │ Missing all  │ member_count, current_user_role, entitlements, limits, domain_count │
+├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
+│ contact_email   │ Required                                         │ Required     │ Nullable (nullish)                                                  │
+└─────────────────┴──────────────────────────────────────────────────┴──────────────┴─────────────────────────────────────────────────────────────────────┘
+Updates needed:
+- Ruby: Rename 3 fields, add owner_extid, fix is_default type, add computed fields
+- Spec: Rename owner_id→owner_extid, created→created_at; add updated_at, computed fields

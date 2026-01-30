@@ -162,3 +162,28 @@ module Migration
     end
   end
 end
+
+
+__END__
+
+## Source Files
+- Ruby Schema: migrations/2026-01-28/lib/schemas/v2/customer.rb
+- Spec.md: migrations/2026-01-26/01-customer/spec.md
+- Zod Schema: src/schemas/models/customer.ts
+
+---
+Customer
+┌────────────────┬────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────────────┬───────────────────────┐
+│    Category    │                                Ruby Schema                                 │                    Spec.md                    │      Zod (truth)      │
+├────────────────┼────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────┼───────────────────────┤
+│ Base fields    │ Missing: identifier                                                        │ Missing: identifier, created, updated, active │ Has all               │
+├────────────────┼────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────┼───────────────────────┤
+│ Role enum      │ Has anonymous                                                              │ —                                             │ Has user_deleted_self │
+├────────────────┼────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────┼───────────────────────┤
+│ Missing fields │ contributor, secrets_burned, secrets_shared, emails_sent, notify_on_reveal │ —                                             │ Has all               │
+├────────────────┼────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────────────┼───────────────────────┤
+│ Backend-only   │ stripe_*, apitoken, passphrase (acceptable)                                │ Same                                          │ Not exposed           │
+└────────────────┴────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────┴───────────────────────┘
+Updates needed:
+- Ruby: Add 6 fields, fix role enum
+- Spec: Add identifier, created, updated, active to Direct Copy

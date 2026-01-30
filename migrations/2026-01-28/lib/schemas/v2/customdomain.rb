@@ -164,3 +164,26 @@ module Migration
     end
   end
 end
+
+
+__END__
+
+## Source Files
+- Ruby Schema: migrations/2026-01-28/lib/schemas/v2/customdomain.rb
+- Spec.md: migrations/2026-01-26/03-customdomain/spec.md
+- Zod Schema: src/schemas/models/domain/index.ts
+
+---
+CustomDomain
+┌────────────────┬───────────────────────────────────────┬───────────────────────────────────────────────┬─────────────────────────────┐
+│    Category    │              Ruby Schema              │                    Spec.md                    │         Zod (truth)         │
+├────────────────┼───────────────────────────────────────┼───────────────────────────────────────────────┼─────────────────────────────┤
+│ Base fields    │ Missing: identifier, domainid, custid │ Missing: identifier, _original_value, is_apex │ Has all                     │
+├────────────────┼───────────────────────────────────────┼───────────────────────────────────────────────┼─────────────────────────────┤
+│ Nested objects │ Missing: vhost, brand                 │ Has vhost, brand as related data              │ Has both as nullable nested │
+├────────────────┼───────────────────────────────────────┼───────────────────────────────────────────────┼─────────────────────────────┤
+│ Backend-only   │ owner_id, org_id, verification_status │ Same                                          │ Not exposed                 │
+└────────────────┴───────────────────────────────────────┴───────────────────────────────────────────────┴─────────────────────────────┘
+Updates needed:
+- Ruby: Add identifier, domainid, custid, _original_value, is_apex, nested objects
+- Spec: Add identifier, _original_value, is_apex; clarify custid is nullable (not removed)
