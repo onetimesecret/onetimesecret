@@ -155,6 +155,43 @@ module Migration
             'enum' => %w[true false 0 1],
             'description' => 'Domain active status',
           },
+
+          # V1 identifier (20-char hex)
+          'key' => {
+            'type' => 'string',
+            'description' => 'V1 identifier (20-char hex)',
+          },
+
+          # Same as key (aliased)
+          'domainid' => {
+            'type' => 'string',
+            'description' => 'Domain ID (alias of key)',
+          },
+
+          # Original input value
+          '_original_value' => {
+            'type' => 'string',
+            'description' => 'Original input value before normalization',
+          },
+
+          # JSON blob from Approximated API
+          'vhost' => {
+            'type' => 'string',
+            'description' => 'JSON blob from Approximated API',
+          },
+
+          # Domain status
+          'status' => {
+            'type' => 'string',
+            'description' => 'Domain status',
+          },
+
+          # DNS resolving flag
+          'resolving' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'DNS resolving status',
+          },
         },
         'additionalProperties' => true,
       }.freeze

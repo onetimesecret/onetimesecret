@@ -106,6 +106,46 @@ module Migration
             'description' => 'Custom domain for sharing',
           },
 
+          # V1 legacy fields (preserved for migration)
+          'key' => {
+            'type' => 'string',
+            'minLength' => 1,
+            'description' => 'Secret identifier key',
+          },
+
+          'lifespan' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'TTL in seconds (V1 field name)',
+          },
+
+          'passphrase_encryption' => {
+            'type' => 'string',
+            'enum' => %w[1 2],
+            'description' => 'Passphrase encryption algorithm (1=bcrypt, 2=argon2)',
+          },
+
+          'token' => {
+            'type' => 'string',
+            'description' => 'Access token for secret',
+          },
+
+          'truncated' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'Whether content was truncated',
+          },
+
+          'value_encryption' => {
+            'type' => 'string',
+            'description' => 'Encryption version (e.g., "2")',
+          },
+
+          'verification' => {
+            'type' => 'string',
+            'description' => 'Verification status',
+          },
+
           # Migration tracking
           'v1_identifier' => {
             'type' => 'string',

@@ -153,6 +153,35 @@ module Migration
             'enum' => %w[true false 0 1],
             'description' => 'Account active status',
           },
+
+          # Counter: emails sent
+          'emails_sent' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Number of emails sent (integer as string)',
+          },
+
+          # Hash algorithm indicator
+          'passphrase_encryption' => {
+            'type' => 'string',
+            'enum' => %w[1 2],
+            'description' => 'Passphrase hash algorithm (1=bcrypt, 2=argon2)',
+          },
+
+          # Counter: secrets burned
+          'secrets_burned' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Number of secrets burned (integer as string)',
+          },
+
+          # Counter: secrets shared
+          'secrets_shared' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Number of secrets shared (integer as string)',
+          },
+
         },
         'additionalProperties' => true,
       }.freeze

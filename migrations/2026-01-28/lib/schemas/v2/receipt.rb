@@ -153,6 +153,72 @@ module Migration
             'pattern' => '^\\d+(\\.\\d+)?$',
             'description' => 'Timestamp when secret was received',
           },
+
+          # Burned timestamp
+          'burned' => {
+            'type' => 'string',
+            'pattern' => '^\\d+(\\.\\d+)?$',
+            'description' => 'Timestamp when secret was burned (destroyed by owner)',
+          },
+
+          # TTL duration set when created
+          'lifespan' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'TTL duration in seconds (V1 field name)',
+          },
+
+          # Optional memo/subject for incoming secrets
+          'memo' => {
+            'type' => 'string',
+            'description' => 'Optional memo or subject for incoming secrets',
+          },
+
+          # Passphrase indicator/value
+          'passphrase' => {
+            'type' => 'string',
+            'description' => 'Passphrase indicator or encrypted value',
+          },
+
+          # Full secret key reference
+          'secret_key' => {
+            'type' => 'string',
+            'description' => 'Full secret key reference',
+          },
+
+          # Time-to-live in seconds for the secret
+          'secret_ttl' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Time-to-live in seconds for the secret',
+          },
+
+          # Shared timestamp
+          'shared' => {
+            'type' => 'string',
+            'pattern' => '^\\d+(\\.\\d+)?$',
+            'description' => 'Timestamp when secret was shared',
+          },
+
+          # Receipt token/identifier
+          'token' => {
+            'type' => 'string',
+            'description' => 'Receipt token/identifier',
+          },
+
+          # Truncation indicator
+          'truncate' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'Whether content was truncated',
+          },
+
+          # Viewed timestamp (by owner)
+          'viewed' => {
+            'type' => 'string',
+            'pattern' => '^\\d+(\\.\\d+)?$',
+            'description' => 'Timestamp when secret was previewed by owner',
+          },
         },
         'additionalProperties' => true,
       }.freeze
