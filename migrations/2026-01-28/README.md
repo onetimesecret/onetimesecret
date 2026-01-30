@@ -1,6 +1,6 @@
 # Kiba ETL Migration Pipeline
 
-Redis data migration from Familia v1 to v2 using Kiba ETL framework.
+Redis data migration from Familia v1 (multi-db) to v2 (single DB 0) using Kiba ETL framework.
 
 ## Architecture
 
@@ -37,7 +37,7 @@ Redis data migration from Familia v1 to v2 using Kiba ETL framework.
               │                              │
               └──────────┬───────────────────┘
                          ▼
-                    06_load.rb → Redis/Valkey
+                    06_load.rb → Redis/Valkey DB 0
                     (RESTORE + ZADD/HSET/SADD)
 ```
 

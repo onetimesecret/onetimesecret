@@ -37,13 +37,13 @@ class LoadJob
   PHASE = 6
   JOB_NAME = 'Redis Load'
 
-  # Models in dependency order with their target databases
+  # Models in dependency order - all load to DB 0 (Familia v2 consolidation)
   MODELS = {
-    'customer' => { db: 6 },
-    'organization' => { db: 6 },
-    'customdomain' => { db: 6 },
-    'receipt' => { db: 7 },
-    'secret' => { db: 8 },
+    'customer' => { db: 0 },
+    'organization' => { db: 0 },
+    'customdomain' => { db: 0 },
+    'receipt' => { db: 0 },
+    'secret' => { db: 0 },
   }.freeze
 
   def initialize(options)
@@ -311,12 +311,8 @@ def parse_args(args)
     opts.on('-h', '--help', 'Show this help') do
       puts opts
       puts
-      puts 'Models (loaded in dependency order):'
-      puts '  customer       -> DB 6'
-      puts '  organization   -> DB 6'
-      puts '  customdomain   -> DB 6'
-      puts '  receipt        -> DB 7'
-      puts '  secret         -> DB 8'
+      puts 'Models (loaded in dependency order to DB 0):'
+      puts '  customer, organization, customdomain, receipt, secret'
       puts
       puts 'Input files:'
       puts '  {model}_transformed.jsonl   Records to RESTORE'
