@@ -76,7 +76,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
   // Form submission: shows user notifications
   const submitHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
+    notify: (message, severity) => notifications.show(message, severity, 'top'),
     setLoading: (loading) => (isSubmitting.value = loading),
   };
 

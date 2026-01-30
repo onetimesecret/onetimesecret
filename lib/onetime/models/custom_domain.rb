@@ -60,12 +60,16 @@ module Onetime
 
     using Familia::Refinements::TimeLiterals
 
-    prefix :customdomain
+    prefix :custom_domain
 
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
     feature :external_identifier, format: 'cd%<id>s' # use builtin extid_lookup index
+
+    # Migration features - REMOVE after v1→v2 migration complete
+    feature :with_migration_fields
+    feature :custom_domain_migration_fields
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
@@ -80,7 +84,7 @@ module Onetime
     identifier_field :domainid
 
     field :display_domain
-    field :org_id       # Organization foreign key (replaces custid)
+    field :org_id       # Organization objid (replaces custid because customdomains are now organization-level)
     field :base_domain
     field :subdomain
     field :trd

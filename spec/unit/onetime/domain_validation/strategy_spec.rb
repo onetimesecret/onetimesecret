@@ -289,10 +289,39 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
     end
 
-    context 'when vhost creation succeeds' do
+    context 'when vhost creation returns 200 (existing vhost)' do
       let(:api_response) do
         double('Response',
                code: 200,
+               parsed_response: {
+                 'data' => {
+                   'status' => 'PENDING',
+                   'incoming_address' => 'example.com'
+                 }
+               })
+      end
+
+      before do
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:create_vhost)
+          .and_return(api_response)
+      end
+
+      it 'returns requested status' do
+        result = strategy.request_certificate(custom_domain)
+        expect(result[:status]).to eq('requested')
+      end
+
+      it 'includes response data' do
+        result = strategy.request_certificate(custom_domain)
+        expect(result[:data]).to be_a(Hash)
+        expect(result[:data]['status']).to eq('PENDING')
+      end
+    end
+
+    context 'when vhost creation returns 201 (new vhost created)' do
+      let(:api_response) do
+        double('Response',
+               code: 201,
                parsed_response: {
                  'data' => {
                    'status' => 'PENDING',

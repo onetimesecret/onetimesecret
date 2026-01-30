@@ -22,6 +22,10 @@ Onetime.started! unless Onetime.ready?
 mapped = Onetime::Application::Registry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
+# Basic Auth header for API POST requests (bypasses CSRF middleware)
+# Using anonymous credentials - custid:apikey format
+@api_auth = { 'HTTP_AUTHORIZATION' => "Basic #{Base64.strict_encode64('anon:')}" }
+
 # NOTE: Careful when flushing the Redis database, as it will remove
 # all data. Since we organize data types by database number, we can
 # flush a specific database to clear only that data type. In this
@@ -88,21 +92,23 @@ content = Familia::JsonSerializer.parse(response.body)
 ## V2 API conceal returns 422 with validation error when no secret provided
 # Otto error format: { error: 'FormError', message: '...' }
 # NOTE: Accept header required for JSON error responses (Otto content negotiation)
-response = @mock_request.post('/api/v2/secret/conceal', 'HTTP_ACCEPT' => 'application/json')
+# NOTE: Basic Auth required to bypass CSRF middleware for POST requests
+response = @mock_request.post('/api/v2/secret/conceal', @api_auth.merge('HTTP_ACCEPT' => 'application/json'))
 content = Familia::JsonSerializer.parse(response.body)
 has_msg = content['message'] == 'You did not provide anything to share'
-p response.body
 [response.status, has_msg, content.keys.sort]
 #=> [422, true, ['error', 'message']]
 
 ## V2 API generate creates a secret and returns success with nested record data
-response = @mock_request.post('/api/v2/secret/generate')
+# NOTE: Basic Auth required to bypass CSRF middleware for POST requests
+response = @mock_request.post('/api/v2/secret/generate', @api_auth)
 content = Familia::JsonSerializer.parse(response.body)
 [response.status, content['success']]
 #=> [200, true]
 
 ## Behaviour when requesting a known non-existent endpoint
-response = @mock_request.post('/api/v2/humphrey/bogus')
+# NOTE: Basic Auth required to bypass CSRF middleware for POST requests
+response = @mock_request.post('/api/v2/humphrey/bogus', @api_auth)
 content = Familia::JsonSerializer.parse(response.body)
 has_msg = content.slice('error').eql?({'error' => 'Not Found'})
 [response.status, has_msg, content.keys.sort]

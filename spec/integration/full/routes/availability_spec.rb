@@ -47,10 +47,21 @@ RSpec.describe 'Auth Route Availability', type: :integration do
     get path
   end
 
+  # POST with JSON content and CSRF token from session
+  #
+  # Auth routes require CSRF tokens (like all browser-facing routes).
+  # This method establishes a session first, extracts the CSRF token,
+  # and includes it in the POST request.
   def json_post(path, params = {})
+    # Establish session and get CSRF token by making a GET request first
+    json_get '/auth'
+    csrf_token = last_response.headers['X-CSRF-Token']
+
+    # Include CSRF token in both header and body (mirrors frontend behavior)
     header 'Content-Type', 'application/json'
     header 'Accept', 'application/json'
-    post path, JSON.generate(params)
+    header 'X-CSRF-Token', csrf_token if csrf_token
+    post path, JSON.generate(params.merge(shrimp: csrf_token))
   end
 
   # Boot the application once for all tests in this file

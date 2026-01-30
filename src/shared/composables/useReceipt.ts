@@ -50,7 +50,7 @@ export function useReceipt(receiptIdentifier: string, options?: ReceiptOptions) 
   // );
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity as NotificationSeverity),
+    notify: (message, severity) => notifications.show(message, severity as NotificationSeverity, 'top'),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
   };

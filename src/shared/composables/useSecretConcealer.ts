@@ -57,7 +57,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
   const { form, validation, operations } = useSecretForm();
 
   const asyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
+    notify: (message, severity) => notifications.show(message, severity, 'top'),
     setLoading: (loading) => (isSubmitting.value = loading),
   };
 

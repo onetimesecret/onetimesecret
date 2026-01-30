@@ -102,7 +102,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
    *
    * @param msg - Notification message text
    * @param sev - Message severity: 'success' | 'error' | 'info'
-   * @param pos - Optional display position, defaults to 'bottom'
+   * @param pos - Optional display position, defaults to 'top'
    *
    * @example Error Notification
    * ```ts
@@ -117,7 +117,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition) {
     message.value = msg;
     severity.value = sev;
-    position.value = pos || 'bottom';
+    position.value = pos || 'top';
     isVisible.value = true;
 
     setTimeout(() => {
@@ -148,7 +148,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     message.value = '';
     severity.value = null;
     isVisible.value = false;
-    position.value = 'bottom';
+    position.value = 'top';
     _initialized.value = false;
   }
 

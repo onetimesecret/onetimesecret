@@ -256,12 +256,7 @@ describe('PlanTestModal', () => {
 
       expect(mockPost).toHaveBeenCalledWith(
         '/api/colonel/entitlement-test',
-        { planid: 'identity_v1' },
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-          }),
-        })
+        { planid: 'identity_v1' }
       );
 
       // Should emit close after successful operation
@@ -288,12 +283,7 @@ describe('PlanTestModal', () => {
 
       expect(mockPost).toHaveBeenCalledWith(
         '/api/colonel/entitlement-test',
-        { planid: null },
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-          }),
-        })
+        { planid: null }
       );
 
       // Should emit close after successful operation

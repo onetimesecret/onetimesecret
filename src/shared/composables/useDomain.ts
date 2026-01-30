@@ -42,7 +42,7 @@ export function useDomain(domainId?: string) {
   const details = ref<any>(null);
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
+    notify: (message, severity) => notifications.show(message, severity, 'top'),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
       if (err.code === 404 || err.code === 422 || err.code === 403) {
@@ -75,7 +75,7 @@ export function useDomain(domainId?: string) {
     wrap(async () => {
       if (!domainId) return;
       await store.verifyDomain(domainId);
-      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success');
+      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success', 'top');
       await initialize();
     });
 
@@ -83,7 +83,7 @@ export function useDomain(domainId?: string) {
     wrap(async () => {
       if (!domainId) return;
       await store.deleteDomain(domainId);
-      notifications.show(t('web.domains.domain_removed_successfully'), 'success');
+      notifications.show(t('web.domains.domain_removed_successfully'), 'success', 'top');
       router.push({ name: 'Domains' });
     });
 

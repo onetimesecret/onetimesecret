@@ -50,7 +50,7 @@ Organization-based ownership via Familia v2 `participates_in` declarations.
 class CustomDomain < Familia::Horreum
   feature :relationships  # Enable Familia v2 features
 
-  field :org_id           # Organization foreign key (replaces custid)
+  field :org_id           # Organization objid (replaces custid because customdomains are now organization-level)
 
   participates_in :Organization, :domains, score: :created
 

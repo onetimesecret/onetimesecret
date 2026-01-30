@@ -4,7 +4,6 @@
 
 require_relative '../views'
 require 'onetime/helpers/session_helpers'
-require 'onetime/helpers/shrimp_helpers'
 require 'onetime/helpers/homepage_mode_helpers'
 require 'onetime/controllers/organization_context'
 
@@ -13,7 +12,6 @@ module Core
     module Base
       include Onetime::LoggerMethods
       include Onetime::Helpers::SessionHelpers
-      include Onetime::Helpers::ShrimpHelpers
       include Onetime::Helpers::HomepageModeHelpers
       include Onetime::Controllers::OrganizationContext
 

@@ -5,7 +5,7 @@ foreground { s6-echo "[config-check] Validating configuration..." }
 # Check for v0.24.0 migration requirement
 # Only run migration check if both config and migration script exist
 if { test -f /app/etc/config.yaml }
-if { test -f /app/migrations/20250727-1523_01_convert_symbol_keys.rb }
+if { test -f /app/migrations/2025-07-27/reorganize_config_structure.rb }
 
 # Check if migration is needed (symbol-style keys present)
 backtick -n NEEDS_MIGRATION {
