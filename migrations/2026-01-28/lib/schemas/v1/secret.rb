@@ -51,11 +51,10 @@ module Migration
             'description' => 'Secret state',
           },
 
-          # Whether secret has a passphrase (stored as boolean string, empty allowed)
+          # Passphrase (bcrypt hash if set, or indicator)
           'passphrase' => {
             'type' => 'string',
-            'enum' => ['0', '1', 'true', 'false', ''],
-            'description' => 'Whether secret is passphrase protected',
+            'description' => 'Encrypted passphrase (bcrypt hash) or indicator',
           },
 
           # Time to live in seconds
@@ -87,6 +86,65 @@ module Migration
           'share_domain' => {
             'type' => 'string',
             'description' => 'Custom domain for sharing',
+          },
+
+          # TTL in seconds (lifespan is V1 field name)
+          'lifespan' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'TTL in seconds (V1 field name)',
+          },
+
+          # Maximum allowed views
+          'maxviews' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Maximum allowed views (integer as string)',
+          },
+
+          # Reference to associated metadata record
+          'metadata_key' => {
+            'type' => 'string',
+            'description' => 'Key linking to associated metadata/receipt record',
+          },
+
+          # Original size before truncation
+          'original_size' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Original content size before truncation',
+          },
+
+          # Passphrase encryption indicator
+          'passphrase_encryption' => {
+            'type' => 'string',
+            'enum' => %w[1 2],
+            'description' => 'Passphrase encryption algorithm (1=bcrypt, 2=argon2)',
+          },
+
+          # Access token
+          'token' => {
+            'type' => 'string',
+            'description' => 'Access token for secret',
+          },
+
+          # Truncation flag
+          'truncated' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'Whether content was truncated',
+          },
+
+          # Encryption version
+          'value_encryption' => {
+            'type' => 'string',
+            'description' => 'Encryption version (e.g., "2")',
+          },
+
+          # Verification status
+          'verification' => {
+            'type' => 'string',
+            'description' => 'Verification status',
           },
         },
         'additionalProperties' => true,

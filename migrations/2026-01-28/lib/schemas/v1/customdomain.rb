@@ -110,12 +110,135 @@ module Migration
             'enum' => %w[true false 0 1],
             'description' => 'Domain active status',
           },
+
+          # V1 identifier (20-char hex)
+          'key' => {
+            'type' => 'string',
+            'description' => 'V1 identifier (20-char hex)',
+          },
+
+          # Same as key (aliased)
+          'domainid' => {
+            'type' => 'string',
+            'description' => 'Domain ID (alias of key)',
+          },
+
+          # Original input value
+          '_original_value' => {
+            'type' => 'string',
+            'description' => 'Original input value before normalization',
+          },
+
+          # JSON blob from Approximated API
+          'vhost' => {
+            'type' => 'string',
+            'description' => 'JSON blob from Approximated API',
+          },
+
+          # Domain status
+          'status' => {
+            'type' => 'string',
+            'description' => 'Domain status',
+          },
+
+          # DNS resolving flag
+          'resolving' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'DNS resolving status',
+          },
         },
         'additionalProperties' => true,
       }.freeze
 
-      # Register the schema
+      # JSON Schema for V1 customdomain brand data (stored as separate Redis hash).
+      CUSTOMDOMAIN_BRAND = {
+        '$schema' => 'http://json-schema.org/draft-07/schema#',
+        'title' => 'CustomDomain Brand V1',
+        'description' => 'V1 customdomain brand settings from Redis hash',
+        'type' => 'object',
+        'properties' => {
+          'primary_color' => {
+            'type' => 'string',
+            'description' => 'Brand primary color (hex)',
+          },
+          'font_family' => {
+            'type' => 'string',
+            'enum' => %w[sans mono serif],
+            'description' => 'Font family (sans, mono, serif)',
+          },
+          'corner_style' => {
+            'type' => 'string',
+            'enum' => %w[rounded square pill],
+            'description' => 'Corner style (rounded, square, pill)',
+          },
+          'button_text_light' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'Use light button text',
+          },
+          'instructions_pre_reveal' => {
+            'type' => 'string',
+            'description' => 'Text shown before reveal',
+          },
+          'instructions_post_reveal' => {
+            'type' => 'string',
+            'description' => 'Text shown after reveal',
+          },
+          'locale' => {
+            'type' => 'string',
+            'description' => 'Language locale (e.g., en)',
+          },
+          'allow_public_homepage' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'Allow public homepage',
+          },
+        },
+        'additionalProperties' => true,
+      }.freeze
+
+      # JSON Schema for V1 customdomain logo data (stored as separate Redis hash).
+      CUSTOMDOMAIN_LOGO = {
+        '$schema' => 'http://json-schema.org/draft-07/schema#',
+        'title' => 'CustomDomain Logo V1',
+        'description' => 'V1 customdomain logo data from Redis hash',
+        'type' => 'object',
+        'properties' => {
+          'filename' => {
+            'type' => 'string',
+            'description' => 'Original filename',
+          },
+          'content_type' => {
+            'type' => 'string',
+            'description' => 'MIME type (e.g., image/jpeg)',
+          },
+          'ratio' => {
+            'type' => 'string',
+            'description' => 'Aspect ratio',
+          },
+          'width' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Image width in pixels',
+          },
+          'height' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Image height in pixels',
+          },
+          'encoded' => {
+            'type' => 'string',
+            'description' => 'Base64-encoded image data',
+          },
+        },
+        'additionalProperties' => true,
+      }.freeze
+
+      # Register the schemas
       Schemas.register(:customdomain_v1, CUSTOMDOMAIN)
+      Schemas.register(:customdomain_brand_v1, CUSTOMDOMAIN_BRAND)
+      Schemas.register(:customdomain_logo_v1, CUSTOMDOMAIN_LOGO)
     end
   end
 end

@@ -116,6 +116,59 @@ module Migration
             'enum' => %w[true false 0 1],
             'description' => 'Account active status',
           },
+
+          # Contributor flag
+          'contributor' => {
+            'type' => 'string',
+            'enum' => %w[true false 0 1],
+            'description' => 'Contributor flag',
+          },
+
+          # Counter: emails sent
+          'emails_sent' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Number of emails sent (integer as string)',
+          },
+
+          # Duplicate of custid (deprecated)
+          'key' => {
+            'type' => 'string',
+            'description' => 'Duplicate of custid (deprecated)',
+          },
+
+          # Hash algorithm indicator (1=bcrypt, 2=argon2)
+          'passphrase_encryption' => {
+            'type' => 'string',
+            'enum' => %w[1 2],
+            'description' => 'Passphrase hash algorithm (1=bcrypt, 2=argon2)',
+          },
+
+          # Counter: secrets burned
+          'secrets_burned' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Number of secrets burned (integer as string)',
+          },
+
+          # Counter: secrets shared
+          'secrets_shared' => {
+            'type' => 'string',
+            'pattern' => '^\\d+$',
+            'description' => 'Number of secrets shared (integer as string)',
+          },
+
+          # Session ID (deprecated)
+          'sessid' => {
+            'type' => 'string',
+            'description' => 'Session ID (deprecated)',
+          },
+
+          # Stripe checkout email
+          'stripe_checkout_email' => {
+            'type' => 'string',
+            'description' => 'Email used in Stripe checkout',
+          },
         },
         'additionalProperties' => true,
       }.freeze
