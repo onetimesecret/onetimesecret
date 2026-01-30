@@ -6,12 +6,12 @@ Redis data migration from Familia v1 to v2 using Kiba ETL framework.
 
 ```
 ┌─────────────┐     ┌───────────────┐     ┌───────────────┐
-│ Redis DBs   │────▶│ dump_keys.rb  │────▶│ *_dump.jsonl  │
+│ Redis DBs   │────▶│  00_dump.rb   │────▶│ *_dump.jsonl  │
 │ 6,7,8,11    │     └───────────────┘     └───────┬───────┘
 └─────────────┘                                   │
                                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Kiba Pipeline                            │
+│                     Kiba Pipeline (Phases 1-5)                  │
 │  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐      │
 │  │ Customer │──▶│   Org    │──▶│  Domain  │──▶│ Receipt/ │      │
 │  │ Transform│   │ Generate │   │ Transform│   │  Secret  │      │
@@ -25,13 +25,20 @@ Redis data migration from Familia v1 to v2 using Kiba ETL framework.
 │                      │                                          │
 │                      ▼                                          │
 │              LookupRegistry                                     │
+│                      │                                          │
+│       ┌──────────────┴──────────────┐                           │
+│       ▼                             ▼                           │
+│   IndexGenerator ──────────▶ RoutingDestination                 │
+│   (yields multiple)          (routes by type)                   │
 └─────────────────────────────────────────────────────────────────┘
-                                                  │
-                                                  ▼
-                                         *_transformed.jsonl
-                                                  │
-                                                  ▼
-                                          load_keys.rb → Redis
+              │                              │
+              ▼                              ▼
+     *_transformed.jsonl            *_indexes.jsonl
+              │                              │
+              └──────────┬───────────────────┘
+                         ▼
+                    06_load.rb → Redis/Valkey
+                    (RESTORE + ZADD/HSET/SADD)
 ```
 
 ## Quick Start
@@ -93,14 +100,20 @@ bundle exec ruby jobs/04_receipt.rb --dry-run
 bundle exec ruby jobs/05_secret.rb --dry-run
 ```
 
-### Dump and Load
+### Dump and Load (Kiba Jobs)
 
 ```bash
-# Export from source Redis
-ruby dump_keys.rb --all
+# Phase 0: Export from source Redis
+bundle exec ruby jobs/00_dump.rb
+bundle exec ruby jobs/00_dump.rb --dry-run
+bundle exec ruby jobs/00_dump.rb --model=customer
 
-# Load to target Redis
-ruby load_keys.rb --input-dir=exports --target-db=0
+# Phase 6: Load to target Redis/Valkey
+bundle exec ruby jobs/06_load.rb --dry-run
+bundle exec ruby jobs/06_load.rb --valkey-url=redis://localhost:6379
+bundle exec ruby jobs/06_load.rb --model=customer
+bundle exec ruby jobs/06_load.rb --skip-indexes   # Records only
+bundle exec ruby jobs/06_load.rb --skip-records   # Indexes only
 ```
 
 ### Tests
@@ -151,3 +164,33 @@ EXTID_PREFIXES = {
   'secret' => 'se',
 }
 ```
+
+## Output Files
+
+Each phase generates two output files:
+
+| Phase | Data File | Index File |
+|-------|-----------|------------|
+| 1 | `customer_transformed.jsonl` | `customer_indexes.jsonl` |
+| 2 | `organization_transformed.jsonl` | `organization_indexes.jsonl` |
+| 3 | `customdomain_transformed.jsonl` | `customdomain_indexes.jsonl` |
+| 4 | `receipt_transformed.jsonl` | `receipt_indexes.jsonl` |
+| 5 | `secret_transformed.jsonl` | `secret_indexes.jsonl` |
+
+**Data files** contain records with Redis DUMP blobs for RESTORE commands.
+
+**Index files** contain Redis commands (ZADD, HSET, SADD) as JSONL:
+```json
+{"command":"ZADD","key":"customer:instances","args":[1762193015,"019a4ae3-..."]}
+{"command":"HSET","key":"customer:email_index","args":["user@example.com","\"019a4ae3-...\""]}
+```
+
+### Index Types by Model
+
+| Model | Indexes Generated |
+|-------|-------------------|
+| Customer | `instances`, `email_index`, `extid_lookup`, `objid_lookup`, `role_index:{role}` |
+| Organization | `instances`, `contact_email_index`, `extid/objid_lookup`, stripe indexes, `{org}:members`, `customer:{id}:participations` |
+| CustomDomain | `instances`, `display_domain_index`, `display_domains`, `extid/objid_lookup`, `owners`, `organization:{id}:domains` |
+| Receipt | `instances`, `expiration_timeline`, `objid_lookup`, `customer/organization/customdomain:{id}:receipts` |
+| Secret | `instances`, `objid_lookup` |

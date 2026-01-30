@@ -75,9 +75,10 @@ class ReceiptJob
 
     puts "Receipt Transform Job (Phase #{PHASE})"
     puts '=' * 50
-    puts "Input:  #{@input_file}"
-    puts "Output: #{output_file}"
-    puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
+    puts "Input:   #{@input_file}"
+    puts "Output:  #{output_file}"
+    puts "Indexes: #{indexes_file}"
+    puts "Mode:    #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
     puts 'Required lookups:'
     puts "  - #{email_to_customer_lookup}"
@@ -116,6 +117,10 @@ class ReceiptJob
 
   def output_file
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
+  end
+
+  def indexes_file
+    File.join(@output_dir, "#{MODEL}_indexes.jsonl")
   end
 
   def email_to_customer_lookup
@@ -169,6 +174,7 @@ class ReceiptJob
   def build_kiba_job(redis_helper, registry)
     input_file = @input_file
     output_file_path = output_file
+    indexes_file_path = indexes_file
     stats = @stats
     job_started_at = Time.now
     strict_validation = @strict_validation
@@ -229,18 +235,28 @@ class ReceiptJob
                 fields_key: :v2_fields,
                 stats: stats
 
+      # Transform: generate index commands
+      transform Migration::Transforms::Receipt::IndexGenerator,
+                stats: stats
+
       # Transform: count records being written
       transform do |record|
-        stats[:records_written] += 1
+        stats[:records_written] += 1 unless record[:command]
         record
       end
 
-      # Destination: write transformed JSONL
-      # Note: No lookup file needed - the secret key is preserved as-is,
-      # only the Redis key prefix changes (metadata: → receipt:)
-      destination Migration::Destinations::JsonlDestination,
-                  file: output_file_path,
-                  exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors]
+      # Destination: route records to appropriate outputs
+      destination Migration::Destinations::RoutingDestination,
+                  routes: {
+                    data: [Migration::Destinations::JsonlDestination, {
+                      file: output_file_path,
+                      exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
+                    }],
+                    indexes: [Migration::Destinations::JsonlDestination, {
+                      file: indexes_file_path,
+                    }],
+                  },
+                  stats: stats
     end
   end
 
@@ -251,6 +267,15 @@ class ReceiptJob
     puts "Objects found:          #{@stats[:objects_found]}"
     puts "Objects transformed:    #{@stats[:objects_transformed]}"
     puts "Records written:        #{@stats[:records_written]}"
+    puts
+    puts "Indexes generated:      #{@stats[:indexes_generated] || 0}"
+    puts "  Instance entries:     #{@stats[:receipt_instance_entries] || 0}"
+    puts "  ObjID lookups:        #{@stats[:receipt_objid_lookups] || 0}"
+    puts "  Expiration entries:   #{@stats[:receipt_expiration_entries] || 0}"
+    puts "  Customer receipts:    #{@stats[:customer_receipt_entries] || 0}"
+    puts "  Org receipts:         #{@stats[:org_receipt_entries] || 0}"
+    puts "  Domain receipts:      #{@stats[:domain_receipt_entries] || 0}"
+    puts "  Anonymous:            #{@stats[:anonymous_receipts] || 0}"
     puts
     puts 'Ownership resolution:'
     puts "  Owner resolved:       #{@stats[:owner_resolved]}"
