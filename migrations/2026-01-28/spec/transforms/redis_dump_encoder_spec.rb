@@ -56,17 +56,17 @@ RSpec.describe Migration::Transforms::RedisDumpEncoder do
         expect { Base64.strict_decode64(result[:dump]) }.not_to raise_error
       end
 
-      it 'produces dump that can be decoded back to original fields' do
+      it 'produces dump with JSON-encoded field values for Familia v2' do
         encoder = described_class.new(redis_helper: redis_helper, stats: stats)
         fields = { 'name' => 'Bob', 'count' => '42' }
         record = { key: 'test:1', v2_fields: fields }
 
         result = encoder.process(record)
 
-        # Decode and verify
+        # Decode and verify - values are JSON-encoded for Familia v2 compatibility
         decoded_fields = redis_helper.restore_and_read_hash(result[:dump], original_key: 'test')
-        expect(decoded_fields['name']).to eq('Bob')
-        expect(decoded_fields['count']).to eq('42')
+        expect(decoded_fields['name']).to eq('"Bob"')
+        expect(decoded_fields['count']).to eq('"42"')
       end
 
       it 'increments :encoded stat on success' do
@@ -91,7 +91,8 @@ RSpec.describe Migration::Transforms::RedisDumpEncoder do
         result = encoder.process(record)
 
         decoded = redis_helper.restore_and_read_hash(result[:dump], original_key: 'test')
-        expect(decoded['correct']).to eq('data')
+        # Value is JSON-encoded for Familia v2
+        expect(decoded['correct']).to eq('"data"')
         expect(decoded).not_to have_key('wrong')
       end
     end
@@ -180,10 +181,10 @@ RSpec.describe Migration::Transforms::RedisDumpEncoder do
 
         result = encoder.process(record)
 
-        # Decode and verify nil was filtered
+        # Decode and verify nil was filtered; values are JSON-encoded
         decoded = redis_helper.restore_and_read_hash(result[:dump], original_key: 'test')
-        expect(decoded['name']).to eq('Alice')
-        expect(decoded['value']).to eq('present')
+        expect(decoded['name']).to eq('"Alice"')
+        expect(decoded['value']).to eq('"present"')
         # Redis hashes don't store nil values, so key should not exist
         expect(decoded).not_to have_key('empty')
       end

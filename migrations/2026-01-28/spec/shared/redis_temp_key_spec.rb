@@ -68,79 +68,117 @@ RSpec.describe Migration::Shared::RedisTempKey do
     before { helper.connect! }
     after { helper.disconnect! }
 
-    it 'round-trips hash data correctly' do
-      original = { 'name' => 'test', 'value' => '123', 'nested' => 'data' }
-
-      dump_b64 = helper.create_dump_from_hash(original)
-      restored = helper.restore_and_read_hash(dump_b64, original_key: 'test:key')
-
-      expect(restored).to eq(original)
+    # Helper to JSON-encode expected values (simulates what Familia v2 expects)
+    def json_encode_values(hash)
+      hash.transform_values { |v| Oj.dump(v, mode: :strict) }
     end
 
-    it 'preserves all fields in round-trip' do
-      original = {
-        'custid' => 'test@example.com',
-        'created' => '1706140800.0',
-        'role' => 'customer',
-        'verified' => 'true',
-        'planid' => 'free'
-      }
+    context 'with JSON serialization (default for Familia v2)' do
+      it 'stores values as JSON-encoded strings' do
+        original = { 'name' => 'test', 'value' => '123', 'nested' => 'data' }
 
-      dump_b64 = helper.create_dump_from_hash(original)
-      restored = helper.restore_and_read_hash(dump_b64, original_key: 'customer:test')
+        dump_b64 = helper.create_dump_from_hash(original)
+        restored = helper.restore_and_read_hash(dump_b64, original_key: 'test:key')
 
-      expect(restored).to eq(original)
+        # Values are JSON-encoded: "test" becomes "\"test\""
+        expect(restored).to eq(json_encode_values(original))
+        expect(restored['name']).to eq('"test"')
+        expect(restored['value']).to eq('"123"')
+      end
+
+      it 'preserves all fields with JSON encoding' do
+        original = {
+          'custid' => 'test@example.com',
+          'created' => '1706140800.0',
+          'role' => 'customer',
+          'verified' => 'true',
+          'planid' => 'free'
+        }
+
+        dump_b64 = helper.create_dump_from_hash(original)
+        restored = helper.restore_and_read_hash(dump_b64, original_key: 'customer:test')
+
+        expect(restored).to eq(json_encode_values(original))
+        expect(restored['custid']).to eq('"test@example.com"')
+      end
+
+      it 'handles special characters in values' do
+        original = { 'unicode' => "\u{1F600}", 'newline' => "line1\nline2" }
+
+        dump_b64 = helper.create_dump_from_hash(original)
+        restored = helper.restore_and_read_hash(dump_b64, original_key: 'special:key')
+
+        expect(restored).to eq(json_encode_values(original))
+      end
+
+      it 'handles non-string Ruby values correctly' do
+        original = { 'number' => 123, 'bool' => true, 'float' => 3.14 }
+
+        dump_b64 = helper.create_dump_from_hash(original)
+        restored = helper.restore_and_read_hash(dump_b64, original_key: 'typed:key')
+
+        # JSON primitives are stored as their JSON string representation
+        expect(restored['number']).to eq('123')
+        expect(restored['bool']).to eq('true')
+        expect(restored['float']).to eq('3.14')
+      end
     end
 
-    it 'raises ArgumentError when hash compacts to empty' do
-      # When all values are nil, the hash becomes empty after compact
-      original = { 'only_nil' => nil }
+    context 'without JSON serialization (serialize_values: false)' do
+      it 'stores values as-is for backwards compatibility' do
+        original = { 'name' => 'test', 'value' => '123' }
 
-      expect do
-        helper.create_dump_from_hash(original)
-      end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
+        dump_b64 = helper.create_dump_from_hash(original, serialize_values: false)
+        restored = helper.restore_and_read_hash(dump_b64, original_key: 'test:key')
+
+        # Values stored without JSON encoding
+        expect(restored).to eq(original)
+        expect(restored['name']).to eq('test')
+      end
     end
 
-    it 'raises ArgumentError for explicitly empty hash' do
-      expect do
-        helper.create_dump_from_hash({})
-      end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
-    end
+    context 'nil value handling' do
+      it 'raises ArgumentError when hash compacts to empty' do
+        original = { 'only_nil' => nil }
 
-    it 'raises ArgumentError when multiple nil values compact to empty' do
-      original = { 'a' => nil, 'b' => nil, 'c' => nil }
+        expect do
+          helper.create_dump_from_hash(original)
+        end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
+      end
 
-      expect do
-        helper.create_dump_from_hash(original)
-      end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
-    end
+      it 'raises ArgumentError for explicitly empty hash' do
+        expect do
+          helper.create_dump_from_hash({})
+        end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
+      end
 
-    it 'handles hash with at least one non-nil field' do
-      original = { 'name' => 'test', 'nil_field' => nil }
+      it 'raises ArgumentError when multiple nil values compact to empty' do
+        original = { 'a' => nil, 'b' => nil, 'c' => nil }
 
-      dump_b64 = helper.create_dump_from_hash(original)
-      restored = helper.restore_and_read_hash(dump_b64, original_key: 'test:key')
+        expect do
+          helper.create_dump_from_hash(original)
+        end.to raise_error(ArgumentError, 'Cannot create dump from empty hash')
+      end
 
-      expect(restored).to eq({ 'name' => 'test' })
-    end
+      it 'handles hash with at least one non-nil field' do
+        original = { 'name' => 'test', 'nil_field' => nil }
 
-    it 'filters out nil values when creating dump' do
-      original = { 'name' => 'test', 'nil_field' => nil, 'value' => '123' }
+        dump_b64 = helper.create_dump_from_hash(original)
+        restored = helper.restore_and_read_hash(dump_b64, original_key: 'test:key')
 
-      dump_b64 = helper.create_dump_from_hash(original)
-      restored = helper.restore_and_read_hash(dump_b64, original_key: 'test:key')
+        # Only 'name' is stored (nil_field filtered out), and it's JSON-encoded
+        expect(restored).to eq({ 'name' => '"test"' })
+      end
 
-      expect(restored).to include('name' => 'test', 'value' => '123')
-      expect(restored).not_to have_key('nil_field')
-    end
+      it 'filters out nil values when creating dump' do
+        original = { 'name' => 'test', 'nil_field' => nil, 'value' => '123' }
 
-    it 'handles special characters in values' do
-      original = { 'unicode' => "\u{1F600}", 'newline' => "line1\nline2" }
+        dump_b64 = helper.create_dump_from_hash(original)
+        restored = helper.restore_and_read_hash(dump_b64, original_key: 'test:key')
 
-      dump_b64 = helper.create_dump_from_hash(original)
-      restored = helper.restore_and_read_hash(dump_b64, original_key: 'special:key')
-
-      expect(restored).to eq(original)
+        expect(restored).to include('name' => '"test"', 'value' => '"123"')
+        expect(restored).not_to have_key('nil_field')
+      end
     end
   end
 

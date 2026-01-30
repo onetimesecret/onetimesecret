@@ -29,8 +29,12 @@ RSpec.describe Migration::Transforms::RedisDumpDecoder do
   describe '#process' do
     context 'with valid DUMP data' do
       let(:valid_dump) do
-        # Create a real Redis dump for testing
-        redis_helper.create_dump_from_hash({ 'name' => 'Alice', 'email' => 'alice@example.com' })
+        # Create a dump simulating v1 data (no JSON serialization) for decoder testing.
+        # This reflects real v1 Redis data which has plain string values.
+        redis_helper.create_dump_from_hash(
+          { 'name' => 'Alice', 'email' => 'alice@example.com' },
+          serialize_values: false
+        )
       end
 
       it 'decodes valid DUMP and adds :fields hash to record' do

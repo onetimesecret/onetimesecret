@@ -5,6 +5,7 @@
 require 'redis'
 require 'base64'
 require 'securerandom'
+require 'oj'
 
 module Migration
   module Shared
@@ -91,10 +92,15 @@ module Migration
 
       # Create a hash in Redis, dump it, return base64.
       #
+      # Field values are JSON-serialized for Familia v2 compatibility.
+      # This ensures strings like "email@example.com" are stored as
+      # "\"email@example.com\"" which Familia v2 can properly deserialize.
+      #
       # @param fields [Hash] Hash fields to store
+      # @param serialize_values [Boolean] JSON-serialize values for Familia v2 (default: true)
       # @return [String] Base64-encoded DUMP data
       #
-      def create_dump_from_hash(fields)
+      def create_dump_from_hash(fields, serialize_values: true)
         ensure_connected!
 
         # Filter out nil values
@@ -104,10 +110,17 @@ module Migration
           raise ArgumentError, 'Cannot create dump from empty hash'
         end
 
+        # JSON-serialize each field value for Familia v2 compatibility
+        stored_fields = if serialize_values
+                          serialize_field_values(clean_fields)
+                        else
+                          clean_fields
+                        end
+
         temp_key = generate_temp_key
 
         begin
-          @redis.hset(temp_key, clean_fields)
+          @redis.hset(temp_key, stored_fields)
           @temp_keys_created << temp_key
           dump_data = @redis.dump(temp_key)
           Base64.strict_encode64(dump_data)
@@ -185,6 +198,23 @@ module Migration
         @temp_keys_created.delete(key)
       rescue StandardError
         # Ignore cleanup errors
+      end
+
+      # JSON-serialize field values for Familia v2 compatibility.
+      #
+      # Familia v2 expects all hash field values to be JSON strings:
+      #   - "email@example.com" -> "\"email@example.com\""
+      #   - 123 -> "123"
+      #   - true -> "true"
+      #   - nil -> "null" (but nils are filtered before this)
+      #
+      # @param fields [Hash] Hash with field values
+      # @return [Hash] Hash with JSON-serialized values
+      #
+      def serialize_field_values(fields)
+        fields.transform_values do |value|
+          Oj.dump(value, mode: :strict)
+        end
       end
 
       # Error classes
