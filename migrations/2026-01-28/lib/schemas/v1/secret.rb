@@ -22,7 +22,7 @@ module Migration
           # Primary identifier (random string in V1)
           'key' => {
             'type' => 'string',
-            'minLength' => 1,
+            'minLength' => 24,
             'description' => 'Secret identifier key',
           },
 
