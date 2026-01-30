@@ -125,3 +125,53 @@ module Migration
     end
   end
 end
+
+__END__
+
+## V1 Dump Field Analysis (2026-01-29)
+
+**Source:** `exports/customer/customer_dump.jsonl`
+**Total Records:** 400 customer objects
+
+### V1 Customer Fields (22 fields)
+
+| Field | Description | Coverage |
+|-------|-------------|----------|
+| `apitoken` | API authentication token | 41 with values |
+| `contributor` | Contributor flag | 0 with values |
+| `created` | Account creation timestamp (epoch) | 400 |
+| `custid` | Customer ID (email address in v1) | 400 |
+| `email` | Email address | 400 |
+| `emails_sent` | Counter: emails sent | 400 |
+| `key` | Duplicate of custid | 400 |
+| `last_login` | Last login timestamp | 400 |
+| `locale` | User locale preference | 400 |
+| `passphrase` | Hashed password (bcrypt) | 397 |
+| `passphrase_encryption` | Hash algorithm (1=bcrypt, 2=argon2) | 398 (all bcrypt) |
+| `planid` | Subscription plan ID | 400 |
+| `role` | User role (customer, etc.) | 400 |
+| `secrets_burned` | Counter: secrets burned | 400 |
+| `secrets_created` | Counter: secrets created | 400 |
+| `secrets_shared` | Counter: secrets shared | 400 |
+| `sessid` | Session ID (deprecated) | 400 |
+| `stripe_checkout_email` | Stripe checkout email | 0 with values |
+| `stripe_customer_id` | Stripe customer ID | 12 with values |
+| `stripe_subscription_id` | Stripe subscription ID | 12 with values |
+| `updated` | Last update timestamp | 400 |
+| `verified` | Account verification status | 400 |
+
+### V1 Schema Coverage
+
+**Schema has 15 fields. Dump has 22 fields.**
+
+**In schema (15):** `custid`, `email`, `created`, `updated`, `role`, `verified`, `planid`, `stripe_customer_id`, `stripe_subscription_id`, `locale`, `apitoken`, `passphrase`, `last_login`, `secrets_created`, `active`
+
+**Missing from schema (7):**
+- `contributor` - Contributor flag
+- `emails_sent` - Counter: emails sent
+- `key` - Duplicate of custid (deprecated)
+- `passphrase_encryption` - Hash algorithm indicator
+- `secrets_burned` - Counter: secrets burned
+- `secrets_shared` - Counter: secrets shared
+- `sessid` - Session ID (deprecated)
+- `stripe_checkout_email` - Stripe checkout email

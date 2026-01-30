@@ -119,3 +119,73 @@ module Migration
     end
   end
 end
+
+__END__
+
+## V1 Dump Field Analysis (2026-01-29)
+
+**Source:** `exports/customdomain/customdomain_dump.jsonl`
+**Total Records:** 14 customdomain objects, 12 brand records, 10 logo records
+
+### V1 CustomDomain `:object` Fields (18 fields)
+
+| Field | Description |
+|-------|-------------|
+| `key` | V1 identifier (20-char hex) |
+| `domainid` | Same as key (aliased) |
+| `custid` | Customer email (v1 FK) |
+| `display_domain` | Full domain name (e.g., secrets.example.com) |
+| `base_domain` | Root domain (e.g., example.com) |
+| `subdomain` | Full subdomain (e.g., secrets.example.com) |
+| `trd` | Transit routing domain (e.g., secrets) |
+| `sld` | Second-level domain (e.g., example) |
+| `tld` | Top-level domain (e.g., com) |
+| `_original_value` | Original input value |
+| `txt_validation_host` | TXT record hostname for verification |
+| `txt_validation_value` | TXT record value (32-char hex) |
+| `vhost` | JSON blob from Approximated API |
+| `status` | Domain status |
+| `verified` | TXT record verified (true/false) |
+| `resolving` | DNS resolving (true/false) |
+| `created` | Unix timestamp |
+| `updated` | Unix timestamp |
+
+### V1 CustomDomain `:brand` Fields (8 fields)
+
+| Field | Description |
+|-------|-------------|
+| `primary_color` | Brand color |
+| `font_family` | Font family (sans, mono, etc.) |
+| `corner_style` | Corner style (rounded, square, pill) |
+| `button_text_light` | Button text color setting |
+| `instructions_pre_reveal` | Text shown before reveal |
+| `instructions_post_reveal` | Text shown after reveal |
+| `locale` | Language locale (e.g., en) |
+| `allow_public_homepage` | Boolean flag |
+
+### V1 CustomDomain `:logo` Fields (6 fields)
+
+| Field | Description |
+|-------|-------------|
+| `filename` | Original filename |
+| `content_type` | MIME type (e.g., image/jpeg) |
+| `ratio` | Aspect ratio |
+| `width` | Image width in pixels |
+| `height` | Image height in pixels |
+| `encoded` | Base64-encoded image data |
+
+### V1 Schema Coverage
+
+**Schema has 16 fields. Dump `:object` has 18 fields + 14 nested fields.**
+
+**In schema (16):** `display_domain`, `base_domain`, `subdomain`, `trd`, `tld`, `sld`, `custid`, `txt_validation_value`, `txt_validation_host`, `verification_status`, `verified`, `verified_at`, `created`, `updated`, `active`
+
+**Missing from schema (6 + nested):**
+- `key` - V1 identifier (20-char hex)
+- `domainid` - Same as key (aliased)
+- `_original_value` - Original input value
+- `vhost` - JSON blob from Approximated API
+- `status` - Domain status
+- `resolving` - DNS resolving flag
+- `:brand` hash (8 fields) - stored as separate Redis hash
+- `:logo` hash (6 fields) - stored as separate Redis hash

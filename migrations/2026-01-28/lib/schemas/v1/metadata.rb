@@ -111,3 +111,52 @@ module Migration
     end
   end
 end
+
+__END__
+
+## V1 Dump Field Analysis (2026-01-29)
+
+**Source:** `exports/metadata/metadata_dump.jsonl`
+**Total Records:** 2,428 metadata objects
+
+### V1 Metadata/Receipt Fields (19 fields)
+
+| Field | Description |
+|-------|-------------|
+| `burned` | Timestamp when the secret was burned (destroyed by owner) |
+| `created` | Creation timestamp (epoch float as string) |
+| `custid` | Customer identifier (email address or "anon") |
+| `key` | The secret key this receipt tracks (primary reference) |
+| `lifespan` | TTL duration that was set when created |
+| `memo` | Optional memo/subject for incoming secrets |
+| `passphrase` | Passphrase indicator/value (if set) |
+| `received` | Timestamp when secret was revealed |
+| `recipients` | Comma-separated recipient emails |
+| `secret_key` | Full secret key reference |
+| `secret_shortkey` | Short version of secret key for display (first 8 chars) |
+| `secret_ttl` | Time-to-live in seconds for the secret |
+| `share_domain` | Custom domain FQDN used for sharing |
+| `shared` | Timestamp when secret was shared |
+| `state` | Lifecycle state (new, viewed, received, burned) |
+| `token` | Receipt token/identifier |
+| `truncate` | Truncation indicator |
+| `updated` | Last update timestamp (epoch float as string) |
+| `viewed` | Timestamp when secret was previewed (by owner) |
+
+### V1 Schema Coverage
+
+**Schema has 13 fields. Dump has 19 fields.**
+
+**In schema (13):** `key`, `custid`, `state`, `secret_shortkey`, `recipients`, `created`, `updated`, `passphrase_temp`, `share_domain`, `ttl`, `secret_value`, `view_count`, `received`
+
+**Missing from schema (10):**
+- `burned` - Timestamp when the secret was burned
+- `lifespan` - TTL duration that was set when created
+- `memo` - Optional memo/subject for incoming secrets
+- `passphrase` - Passphrase indicator/value (if set)
+- `secret_key` - Full secret key reference
+- `secret_ttl` - Time-to-live in seconds for the secret
+- `shared` - Timestamp when secret was shared
+- `token` - Receipt token/identifier
+- `truncate` - Truncation indicator
+- `viewed` - Timestamp when secret was previewed (by owner)

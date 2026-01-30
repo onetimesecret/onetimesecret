@@ -97,3 +97,50 @@ module Migration
     end
   end
 end
+
+__END__
+
+## V1 Dump Field Analysis (2026-01-29)
+
+**Source:** `exports/secret/secret_dump.jsonl`
+**Total Records:** 603 secret objects
+
+### V1 Secret Fields (18 fields)
+
+| Field | Description |
+|-------|-------------|
+| `created` | Unix timestamp of creation |
+| `custid` | Customer ID (e.g., "anon" or email) |
+| `key` | Secret identifier/key |
+| `lifespan` | TTL in seconds (e.g., 604800 = 7 days) |
+| `maxviews` | Maximum allowed views (typically 1) |
+| `metadata_key` | Reference to associated metadata record |
+| `original_size` | Original size before truncation |
+| `passphrase` | Encrypted passphrase (bcrypt hash) |
+| `passphrase_encryption` | Encryption flag for passphrase |
+| `share_domain` | Custom domain for sharing |
+| `state` | State (e.g., "new", "viewed") |
+| `token` | Access token |
+| `truncated` | Truncation flag |
+| `updated` | Unix timestamp of last update |
+| `value` | Encrypted secret content |
+| `value_checksum` | SHA checksum of the value |
+| `value_encryption` | Encryption version (e.g., "2") |
+| `verification` | Verification status |
+
+### V1 Schema Coverage
+
+**Schema has 12 fields. Dump has 18 fields.**
+
+**In schema (12):** `key`, `value`, `value_checksum`, `custid`, `state`, `passphrase`, `secret_ttl`, `created`, `updated`, `recipient`, `share_domain`
+
+**Missing from schema (8):**
+- `lifespan` - TTL in seconds
+- `maxviews` - Maximum allowed views
+- `metadata_key` - Reference to associated metadata record
+- `original_size` - Original size before truncation
+- `passphrase_encryption` - Encryption flag for passphrase
+- `token` - Access token
+- `truncated` - Truncation flag
+- `value_encryption` - Encryption version
+- `verification` - Verification status
