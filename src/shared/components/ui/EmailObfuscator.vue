@@ -31,10 +31,10 @@ const handleClick = async () => {
   // Copy email to clipboard
   try {
     await navigator.clipboard.writeText(deobfuscatedEmail);
-    notifications.show(t('web.COMMON.email_address_copied_to_clipboard'), 'success');
+    notifications.show(t('web.COMMON.email_address_copied_to_clipboard'), 'success', 'top');
   } catch (err) {
     console.error('Failed to copy email: ', err);
-    notifications.show(t('web.COMMON.unexpected_error'), 'error');
+    notifications.show(t('web.COMMON.unexpected_error'), 'error', 'top');
   }
 
 };

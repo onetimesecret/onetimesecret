@@ -8,6 +8,7 @@ require 'rack/test'
 # Requires full authentication mode - tests Rodauth/Auth app integration
 RSpec.describe 'Full Authentication Mode', type: :integration do
   include Rack::Test::Methods
+  include CsrfTestHelpers
 
   # skip_unless_mode :full
 
@@ -35,6 +36,23 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
 
   def app
     Onetime::Application::Registry.generate_rack_url_map
+  end
+
+  # Override ensure_csrf_token to fetch fresh token for each request
+  # This ensures the token matches the current session state
+  def fetch_csrf_token
+    header 'Accept', 'application/json'
+    get '/auth'
+    last_response.headers['X-CSRF-Token']
+  end
+
+  # POST with JSON content and CSRF token
+  def json_post(path, params)
+    csrf_token = fetch_csrf_token
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    header 'X-CSRF-Token', csrf_token if csrf_token
+    post path, JSON.generate(params.merge(shrimp: csrf_token))
   end
 
   describe 'Configuration' do
@@ -124,14 +142,11 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
       end
 
       before do
-        post '/auth/login',
-             login_params.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        json_post '/auth/login', login_params
       end
 
       it 'responds with authentication error or validation error' do
-        # 403 may be returned for CSRF protection or rate limiting
-        expect([400, 401, 403, 422]).to include(last_response.status)
+        expect([400, 401, 422]).to include(last_response.status)
       end
 
       it 'returns JSON response' do
@@ -154,9 +169,7 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
       end
 
       before do
-        post '/auth/create-account',
-             signup_params.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        json_post '/auth/create-account', signup_params
       end
 
       it 'responds with success or validation error' do
@@ -181,9 +194,7 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
 
     describe 'POST /auth/logout' do
       before do
-        post '/auth/logout',
-             {}.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        json_post '/auth/logout', {}
       end
 
       it 'responds appropriately' do
@@ -203,9 +214,7 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
       end
 
       before do
-        post '/auth/reset-password',
-             reset_params.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        json_post '/auth/reset-password', reset_params
       end
 
       it 'responds with success or error' do
@@ -245,9 +254,7 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
       end
 
       before do
-        post '/auth/login',
-             login_params.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        json_post '/auth/login', login_params
       end
 
       it 'returns error in expected format' do
@@ -278,9 +285,7 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
 
   describe 'Session Integration' do
     it 'uses unified session cookie name' do
-      post '/auth/login',
-           { login: 'test@example.com', password: 'password' }.to_json,
-           { 'CONTENT_TYPE' => 'application/json' }
+      json_post '/auth/login', { login: 'test@example.com', password: 'password' }
 
       # Check if session cookie is set
       set_cookie_header = last_response.headers['Set-Cookie']

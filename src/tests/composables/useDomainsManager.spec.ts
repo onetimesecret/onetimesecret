@@ -189,7 +189,8 @@ describe('useDomainsManager', () => {
         });
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
           'Domain added successfully',
-          'success'
+          'success',
+          'top'
         );
       });
 
@@ -294,7 +295,8 @@ describe('useDomainsManager', () => {
         expect(mockDependencies.domainsStore.deleteDomain).toHaveBeenCalledWith('domain-1');
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
           'Domain removed successfully',
-          'success'
+          'success',
+          'top'
         );
       });
 

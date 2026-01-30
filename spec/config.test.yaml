@@ -40,6 +40,18 @@ site:
         numbers: true
         symbols: false
         exclude_ambiguous: true
+  # Middleware Configuration for tests
+  # Enable CSRF protection to test enforcement
+  middleware:
+    utf8_sanitizer: true
+    authenticity_token: true
+    http_origin: false
+    xss_header: false
+    frame_options: false
+    path_traversal: false
+    cookie_tossing: false
+    ip_spoofing: false
+    strict_transport: false
   # Registration and Authentication settings
   authentication:
     # Can be disabled altogether, including API authentication.

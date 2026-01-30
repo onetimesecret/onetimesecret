@@ -22,6 +22,28 @@ RSpec.describe 'MFA Toggle', type: :integration do
     {}
   end
 
+  # Establish a session and retrieve CSRF token
+  def ensure_csrf_token
+    return @csrf_token if defined?(@csrf_token) && @csrf_token
+
+    get '/auth', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    @csrf_token = last_response.headers['X-CSRF-Token']
+    @csrf_token
+  end
+
+  # POST with JSON content type and CSRF token
+  def post_with_csrf(path, params = {}, headers = {})
+    csrf_token = ensure_csrf_token
+
+    post path,
+      params.merge(shrimp: csrf_token).to_json,
+      headers.merge(
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_ACCEPT' => 'application/json',
+        'HTTP_X_CSRF_TOKEN' => csrf_token
+      )
+  end
+
   # Detect if MFA was actually enabled at boot time by checking for MFA methods
   # Note: ENV var alone is not sufficient - must check if Rodauth actually loaded MFA features
   let(:mfa_features_available) do
@@ -82,11 +104,8 @@ RSpec.describe 'MFA Toggle', type: :integration do
       end
 
       describe 'POST /auth/otp-auth' do
-        let(:otp_data) { { otp_code: '123456' }.to_json }
-        let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
         it 'returns valid HTTP status (route exists)' do
-          post '/auth/otp-auth', otp_data, json_headers
+          post_with_csrf '/auth/otp-auth', { otp_code: '123456' }
           expect([200, 400, 401, 403, 422]).to include(last_response.status)
         end
       end
@@ -99,11 +118,8 @@ RSpec.describe 'MFA Toggle', type: :integration do
       end
 
       describe 'POST /auth/recovery-auth' do
-        let(:recovery_data) { { recovery_code: 'abc12345' }.to_json }
-        let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
         it 'returns valid HTTP status (route exists)' do
-          post '/auth/recovery-auth', recovery_data, json_headers
+          post_with_csrf '/auth/recovery-auth', { recovery_code: 'abc12345' }
           expect([200, 400, 401, 403, 422]).to include(last_response.status)
         end
       end
@@ -125,8 +141,7 @@ RSpec.describe 'MFA Toggle', type: :integration do
       end
 
       it 'rejects /auth/otp-auth requests' do
-        post '/auth/otp-auth', { otp_code: '123456' }.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        post_with_csrf '/auth/otp-auth', { otp_code: '123456' }
         expect([400, 401, 403, 404]).to include(last_response.status)
       end
 
@@ -136,19 +151,15 @@ RSpec.describe 'MFA Toggle', type: :integration do
       end
 
       it 'rejects /auth/recovery-auth requests' do
-        post '/auth/recovery-auth', { recovery_code: 'abc12345' }.to_json,
-             { 'CONTENT_TYPE' => 'application/json' }
+        post_with_csrf '/auth/recovery-auth', { recovery_code: 'abc12345' }
         expect([400, 401, 403, 404]).to include(last_response.status)
       end
     end
   end
 
   describe 'POST /auth/login (standard login always works)' do
-    let(:credentials) { { login: 'test@example.com', password: 'wrongpassword' }.to_json }
-    let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
     it 'returns appropriate error for invalid credentials' do
-      post '/auth/login', credentials, json_headers
+      post_with_csrf '/auth/login', { login: 'test@example.com', password: 'wrongpassword' }
       expect([400, 401, 422]).to include(last_response.status)
     end
   end

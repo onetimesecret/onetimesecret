@@ -3,14 +3,12 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
-import { useCsrfStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const csrfStore = useCsrfStore();
 const bootstrapStore = useBootstrapStore();
 const $api = createApi();
 
@@ -23,16 +21,7 @@ const handleReset = async () => {
   isResetting.value = true;
 
   try {
-    await $api.post(
-      '/api/colonel/entitlement-test',
-      { planid: null },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'O-Shrimp': csrfStore.shrimp,
-        },
-      }
-    );
+    await $api.post('/api/colonel/entitlement-test', { planid: null });
 
     // Refresh bootstrap state to clear test mode (no page reload needed)
     await bootstrapStore.refresh();

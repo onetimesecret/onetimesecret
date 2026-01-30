@@ -46,7 +46,7 @@ export function useDomainsManager() {
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => {
-      notifications.show(message, severity);
+      notifications.show(message, severity, 'top');
     },
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
@@ -60,7 +60,7 @@ export function useDomainsManager() {
       // These should surface to the user, not redirect to NotFound
       error.value = err;
       if (err.message) {
-        notifications.show(err.message, 'error');
+        notifications.show(err.message, 'error', 'top');
       }
     },
   };
@@ -97,13 +97,13 @@ export function useDomainsManager() {
   const verifyDomain = async (extid: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(extid);
-      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success');
+      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success', 'top');
       return result;
     });
 
   const handleDomainExistsError = async (domain: string, errorMessage: string) => {
     if (errorMessage.includes('already registered in your organization')) {
-      notifications.show(t('web.domains.domain_already_in_organization'), 'warning');
+      notifications.show(t('web.domains.domain_already_in_organization'), 'warning', 'top');
       await store.fetchList();
       const existingDomain = store.records?.find(d => d.display_domain === domain);
       if (existingDomain && orgid.value) {
@@ -117,7 +117,7 @@ export function useDomainsManager() {
       return null;
     }
     if (errorMessage.includes('registered to another organization')) {
-      notifications.show(t('web.domains.domain_in_other_organization'), 'error');
+      notifications.show(t('web.domains.domain_in_other_organization'), 'error', 'top');
       return null;
     }
     return undefined; // Signal to re-throw
@@ -151,7 +151,7 @@ export function useDomainsManager() {
         const { record, details } = result;
         const isReclaimed = record.updated.getTime() > record.created.getTime();
         const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
-        notifications.show(t(message), 'success');
+        notifications.show(t(message), 'success', 'top');
 
         updateDomainContextAfterAdd(record, details);
 
@@ -173,7 +173,7 @@ export function useDomainsManager() {
 
   const deleteDomain = async (domainId: string) => {
     await store.deleteDomain(domainId);
-    notifications.show(t('web.domains.domain_removed_successfully'), 'success');
+    notifications.show(t('web.domains.domain_removed_successfully'), 'success', 'top');
   };
 
   /**

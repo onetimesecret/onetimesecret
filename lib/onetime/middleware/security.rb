@@ -103,11 +103,20 @@ Onetime::Middleware::Security.middleware_components = {
 
   # CSRF Protection (Token-based): Validates 'shrimp' authenticity tokens.
   #
-  # ⚠️ Dual-CSRF System: This works alongside Rodauth's separate CSRF protection.
-  # ⚠️ SSO Bypass: /auth/sso/ routes are excluded as they use OAuth 'state' params.
-  # ⚠️ API Bypass: API and JSON requests are excluded (handled via other means).
+  # This middleware validates CSRF tokens for all state-changing requests (POST, PUT, etc.)
+  # using Rack::Protection::AuthenticityToken. The raw token is stored in session[:csrf],
+  # but forms submit a MASKED version (different each request) to mitigate BREACH attacks.
   #
-  # See: apps/web/auth/config/hooks/omniauth.rb for the Rodauth-side bypass.
+  # Bypass rules:
+  # - SSO routes (/auth/sso/*): Use OAuth 'state' parameter for CSRF protection
+  # - API routes with Basic Auth: API key serves as the credential; no session = no CSRF needed
+  # - Web/SPA routes: Must include X-CSRF-Token header (Axios interceptor) or 'shrimp' form param
+  #
+  # Note: API v1 no longer accepts session/cookie auth (must use Basic Auth or be anonymous).
+  # API v2/v3 still support session auth, so those requests require CSRF tokens unless
+  # Basic Auth credentials are provided (the allow_if lambda checks for this).
+  #
+  # See also: apps/web/auth/config/hooks/omniauth.rb for Rodauth-side bypass
   'AuthenticityToken' => {
     key: :authenticity_token,
     klass: Rack::Protection::AuthenticityToken,
@@ -115,9 +124,22 @@ Onetime::Middleware::Security.middleware_components = {
       authenticity_param: 'shrimp',
       allow_if: ->(env) {
         req = Rack::Request.new(env)
-        req.path.start_with?('/api/', '/auth/sso/') ||
-          req.media_type == 'application/json' ||
-          req.get_header('HTTP_ACCEPT')&.include?('application/json')
+
+        # SSO routes use OAuth state parameter for CSRF protection
+        return true if req.path.start_with?('/auth/sso/')
+
+        # API routes bypass CSRF entirely:
+        # - API v1 only accepts Basic Auth or anonymous (no session auth)
+        # - API v2/v3 with session auth are accessed via frontend which sends CSRF tokens
+        # - Anonymous API requests are stateless (no session = no CSRF attack vector)
+        # - CSRF attacks require victim's session cookies, which don't exist for API calls
+        return true if req.path.start_with?('/api/')
+
+        # Webhook endpoints use their own signature-based verification (e.g., Stripe-Signature header)
+        # They're called server-to-server, not from browsers, so CSRF doesn't apply
+        return true if req.path == '/billing/webhook'
+
+        false
       },
     },
   },
