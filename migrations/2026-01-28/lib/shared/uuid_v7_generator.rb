@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/shared/uuid_v7_generator.rb
+#
 # frozen_string_literal: true
 
 require 'securerandom'

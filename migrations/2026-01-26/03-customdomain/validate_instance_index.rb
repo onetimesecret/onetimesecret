@@ -15,7 +15,7 @@
 #   ruby scripts/migrations/2026-01-26/03-customdomain/validate_instance_index.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump (default: exports/customdomain/customdomain_dump.jsonl)
+#   --input-file=FILE   Input JSONL dump (default: results/customdomain/customdomain_dump.jsonl)
 #   --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temp database number (default: 15)
 
@@ -228,7 +228,7 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/customdomain/customdomain_dump.jsonl',
+    input_file: 'results/customdomain/customdomain_dump.jsonl',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
   }
@@ -248,7 +248,7 @@ def parse_args(args)
         Validates custom_domain:instances index and ownership migration.
 
         Options:
-          --input-file=FILE   Input JSONL dump (default: exports/customdomain/customdomain_dump.jsonl)
+          --input-file=FILE   Input JSONL dump (default: results/customdomain/customdomain_dump.jsonl)
           --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)
           --help              Show this help

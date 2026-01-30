@@ -1,3 +1,5 @@
+# migrations/2026-01-28/spec/integration/customer_pipeline_spec.rb
+#
 # frozen_string_literal: true
 
 require_relative '../spec_helper'
@@ -9,7 +11,7 @@ RSpec.describe 'Customer Migration Pipeline Integration' do
 
   let(:temp_dir) { create_temp_dir }
   let(:input_file) { File.join(temp_dir, 'customer_dump.jsonl') }
-  let(:output_file) { File.join(temp_dir, 'customer', 'customer_transformed.jsonl') }
+  let(:output_file) { File.join(temp_dir, 'customer_transformed.jsonl') }
   let(:lookup_file) { File.join(temp_dir, 'lookups', 'email_to_customer_objid.json') }
 
   # Sample V1 customer data

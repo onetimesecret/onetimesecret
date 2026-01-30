@@ -7,9 +7,9 @@
 # Uses lookups from Phase 1 (email_to_customer) and Phase 2 (email_to_org)
 # to resolve owner_id and org_id references.
 #
-# Input:  ../exports/customdomain/customdomain_dump.jsonl (from dump)
-# Output: exports/customdomain/customdomain_transformed.jsonl
-#         exports/lookups/fqdn_to_domain_objid.json
+# Input:  results/customdomain_dump.jsonl (from dump)
+# Output: results/customdomain_transformed.jsonl
+#         results/lookups/fqdn_to_domain_objid.json
 #
 # Usage:
 #   cd migrations/2026-01-28
@@ -107,7 +107,7 @@ class CustomdomainJob
   end
 
   def output_file
-    File.join(@output_dir, MODEL, "#{MODEL}_transformed.jsonl")
+    File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
   def lookup_file
@@ -270,12 +270,13 @@ end
 def parse_args(args)
   require 'optparse'
 
-  # All paths resolved relative to migrations directory for consistency
-  migrations_dir = File.expand_path('..', __dir__)
+  # All paths resolved relative to migration directory for consistency
+  migration_dir = File.expand_path('..', __dir__)
+  results_dir = File.join(migration_dir, 'results')
 
   options = {
-    input_file: File.join(migrations_dir, 'exports/customdomain/customdomain_dump.jsonl'),
-    output_dir: File.join(migrations_dir, 'exports'),
+    input_file: File.join(results_dir, 'customdomain_dump.jsonl'),
+    output_dir: results_dir,
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -291,11 +292,11 @@ def parse_args(args)
     opts.separator 'Options:'
 
     opts.on('--input-file=FILE', 'Input JSONL file') do |file|
-      options[:input_file] = File.expand_path(file, migrations_dir)
+      options[:input_file] = File.expand_path(file, migration_dir)
     end
 
     opts.on('--output-dir=DIR', 'Output directory') do |dir|
-      options[:output_dir] = File.expand_path(dir, migrations_dir)
+      options[:output_dir] = File.expand_path(dir, migration_dir)
     end
 
     opts.on('--redis-url=URL', 'Redis URL (default: redis://127.0.0.1:6379)') do |url|
@@ -318,12 +319,12 @@ def parse_args(args)
       puts opts
       puts
       puts 'Prerequisites:'
-      puts '  Phase 1: exports/lookups/email_to_customer_objid.json'
-      puts '  Phase 2: exports/lookups/email_to_org_objid.json'
+      puts '  Phase 1: results/lookups/email_to_customer_objid.json'
+      puts '  Phase 2: results/lookups/email_to_org_objid.json'
       puts
       puts 'Output files:'
-      puts '  exports/customdomain/customdomain_transformed.jsonl'
-      puts '  exports/lookups/fqdn_to_domain_objid.json'
+      puts '  results/customdomain_transformed.jsonl'
+      puts '  results/lookups/fqdn_to_domain_objid.json'
       exit 0
     end
   end

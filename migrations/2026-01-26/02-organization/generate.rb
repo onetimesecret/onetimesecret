@@ -10,17 +10,17 @@
 #   ruby scripts/migrations/2026-01-26/02-organization/generate.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL file (default: exports/customer/customer_transformed.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/organization)
+#   --input-file=FILE   Input JSONL file (default: results/customer/customer_transformed.jsonl)
+#   --output-dir=DIR    Output directory (default: results/organization)
 #   --redis-url=URL     Redis URL for temporary operations (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
-# Input: exports/customer/customer_transformed.jsonl (V2 customer records)
+# Input: results/customer/customer_transformed.jsonl (V2 customer records)
 # Output:
-#   - exports/organization/organization_generated.jsonl (V2 organization records)
-#   - exports/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
-#   - exports/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
+#   - results/organization/organization_generated.jsonl (V2 organization records)
+#   - results/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
+#   - results/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
 
 require 'redis'
 require 'json'
@@ -327,8 +327,8 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/customer/customer_transformed.jsonl',
-    output_dir: 'exports/organization',
+    input_file: 'results/customer/customer_transformed.jsonl',
+    output_dir: 'results/organization',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -349,8 +349,8 @@ def parse_args(args)
         Organizations are NEW in V2 - one is created per Customer.
 
         Options:
-          --input-file=FILE   Input JSONL (default: exports/customer/customer_transformed.jsonl)
-          --output-dir=DIR    Output directory (default: exports/organization)
+          --input-file=FILE   Input JSONL (default: results/customer/customer_transformed.jsonl)
+          --output-dir=DIR    Output directory (default: results/organization)
           --redis-url=URL     Redis URL for temp operations (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output

@@ -6,10 +6,10 @@
 # Generates organization records from Phase 1 customer output.
 # Organizations are NEW in V2 - one is created per Customer.
 #
-# Input:  exports/customer/customer_transformed.jsonl (from Phase 1)
-# Output: exports/organization/organization_transformed.jsonl
-#         exports/lookups/email_to_org_objid.json
-#         exports/lookups/customer_objid_to_org_objid.json
+# Input:  results/customer_transformed.jsonl (from Phase 1)
+# Output: results/organization_transformed.jsonl
+#         results/lookups/email_to_org_objid.json
+#         results/lookups/customer_objid_to_org_objid.json
 #
 # Usage:
 #   cd migrations/2026-01-26/kiba
@@ -92,7 +92,7 @@ class OrganizationJob
   end
 
   def output_file
-    File.join(@output_dir, MODEL, "#{MODEL}_transformed.jsonl")
+    File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
   def email_lookup_file
@@ -259,12 +259,13 @@ end
 def parse_args(args)
   require 'optparse'
 
-  # All paths resolved relative to kiba directory for consistency
-  kiba_dir = File.expand_path('..', __dir__)
+  # All paths resolved relative to migration directory for consistency
+  migration_dir = File.expand_path('..', __dir__)
+  results_dir = File.join(migration_dir, 'results')
 
   options = {
-    input_file: File.join(kiba_dir, 'exports/customer/customer_transformed.jsonl'),
-    output_dir: File.join(kiba_dir, 'exports'),
+    input_file: File.join(results_dir, 'customer_transformed.jsonl'),
+    output_dir: results_dir,
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -280,11 +281,11 @@ def parse_args(args)
     opts.separator 'Options:'
 
     opts.on('--input-file=FILE', 'Input JSONL file') do |file|
-      options[:input_file] = File.expand_path(file, kiba_dir)
+      options[:input_file] = File.expand_path(file, migration_dir)
     end
 
     opts.on('--output-dir=DIR', 'Output directory') do |dir|
-      options[:output_dir] = File.expand_path(dir, kiba_dir)
+      options[:output_dir] = File.expand_path(dir, migration_dir)
     end
 
     opts.on('--redis-url=URL', 'Redis URL (default: redis://127.0.0.1:6379)') do |url|
@@ -307,9 +308,9 @@ def parse_args(args)
       puts opts
       puts
       puts 'Output files:'
-      puts '  exports/organization/organization_transformed.jsonl'
-      puts '  exports/lookups/email_to_org_objid.json'
-      puts '  exports/lookups/customer_objid_to_org_objid.json'
+      puts '  results/organization_transformed.jsonl'
+      puts '  results/lookups/email_to_org_objid.json'
+      puts '  results/lookups/customer_objid_to_org_objid.json'
       exit 0
     end
   end

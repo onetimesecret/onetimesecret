@@ -9,9 +9,9 @@
 #   ruby scripts/migrations/jan24/create_indexes_customdomain.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE       Input JSONL dump file (default: exports/customdomain/customdomain_dump.jsonl)
-#   --output-dir=DIR        Output directory (default: exports/customdomain)
-#   --customer-lookup=FILE  Email->org_objid JSON map (default: exports/organization/email_to_org_objid.json)
+#   --input-file=FILE       Input JSONL dump file (default: results/customdomain/customdomain_dump.jsonl)
+#   --output-dir=DIR        Output directory (default: results/customdomain)
+#   --customer-lookup=FILE  Email->org_objid JSON map (default: results/organization/email_to_org_objid.json)
 #   --redis-url=URL         Redis URL for temporary restore (default: redis://127.0.0.1:6379)
 #   --temp-db=N             Temporary database for restore operations (default: 15)
 #   --dry-run               Parse and count without writing output
@@ -375,9 +375,9 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/customdomain/customdomain_dump.jsonl',
-    output_dir: 'exports/customdomain',
-    customer_lookup: 'exports/organization/email_to_org_objid.json',
+    input_file: 'results/customdomain/customdomain_dump.jsonl',
+    output_dir: 'results/customdomain',
+    customer_lookup: 'results/organization/email_to_org_objid.json',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -404,9 +404,9 @@ def parse_args(args)
         Creates CustomDomain indexes from dump file.
 
         Options:
-          --input-file=FILE       Input JSONL dump (default: exports/customdomain/customdomain_dump.jsonl)
-          --output-dir=DIR        Output directory (default: exports/customdomain)
-          --customer-lookup=FILE  Email->org_objid JSON map (default: exports/organization/email_to_org_objid.json)
+          --input-file=FILE       Input JSONL dump (default: results/customdomain/customdomain_dump.jsonl)
+          --output-dir=DIR        Output directory (default: results/customdomain)
+          --customer-lookup=FILE  Email->org_objid JSON map (default: results/organization/email_to_org_objid.json)
           --redis-url=URL         Redis URL for temp restore (default: redis://127.0.0.1:6379)
           --temp-db=N             Temp database number (default: 15)
           --dry-run               Parse without writing output

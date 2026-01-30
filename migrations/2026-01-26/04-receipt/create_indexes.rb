@@ -8,11 +8,11 @@
 #   ruby scripts/migrations/jan24/create_indexes_receipt.rb [OPTIONS]
 #
 # Options:
-#   --input-file=PATH      Input JSONL file (default: exports/metadata/metadata_dump.jsonl)
-#   --output-dir=DIR       Output directory (default: exports/metadata)
-#   --customer-lookup=PATH Path to customer email→objid JSON map (default: exports/customer/email_to_objid.json)
-#   --org-lookup=PATH      Path to customer objid→org objid JSON map (default: exports/organization/customer_objid_to_org_objid.json)
-#   --domain-lookup=PATH   Path to domain fqdn→objid JSON map (default: exports/customdomain/fqdn_to_objid.json)
+#   --input-file=PATH      Input JSONL file (default: results/metadata/metadata_dump.jsonl)
+#   --output-dir=DIR       Output directory (default: results/metadata)
+#   --customer-lookup=PATH Path to customer email→objid JSON map (default: results/customer/email_to_objid.json)
+#   --org-lookup=PATH      Path to customer objid→org objid JSON map (default: results/organization/customer_objid_to_org_objid.json)
+#   --domain-lookup=PATH   Path to domain fqdn→objid JSON map (default: results/customdomain/fqdn_to_objid.json)
 #   --dry-run              Show what would be created without writing
 #   --help                 Show this help
 #
@@ -29,12 +29,12 @@ require 'fileutils'
 require 'securerandom'
 
 class ReceiptIndexCreator
-  DEFAULT_INPUT           = 'exports/metadata/metadata_dump.jsonl'
-  DEFAULT_OUTPUT_DIR      = 'exports/metadata'
+  DEFAULT_INPUT           = 'results/metadata/metadata_dump.jsonl'
+  DEFAULT_OUTPUT_DIR      = 'results/metadata'
   OUTPUT_FILENAME         = 'receipt_indexes.jsonl'
-  DEFAULT_CUSTOMER_LOOKUP = 'exports/customer/email_to_objid.json'
-  DEFAULT_ORG_LOOKUP      = 'exports/organization/customer_objid_to_org_objid.json'
-  DEFAULT_DOMAIN_LOOKUP   = 'exports/customdomain/fqdn_to_objid.json'
+  DEFAULT_CUSTOMER_LOOKUP = 'results/customer/email_to_objid.json'
+  DEFAULT_ORG_LOOKUP      = 'results/organization/customer_objid_to_org_objid.json'
+  DEFAULT_DOMAIN_LOOKUP   = 'results/customdomain/fqdn_to_objid.json'
 
   def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, dry_run: false)
     @input_file           = input_file
@@ -407,14 +407,14 @@ def parse_args(args)
         Creates V2 index commands for Receipt model from V1 metadata dump.
 
         Options:
-          --input-file=PATH      Input JSONL (default: exports/metadata/metadata_dump.jsonl)
-          --output-dir=DIR       Output directory (default: exports/metadata)
+          --input-file=PATH      Input JSONL (default: results/metadata/metadata_dump.jsonl)
+          --output-dir=DIR       Output directory (default: results/metadata)
           --customer-lookup=PATH JSON file mapping email -> customer objid
-                                 (default: exports/customer/email_to_objid.json)
+                                 (default: results/customer/email_to_objid.json)
           --org-lookup=PATH      JSON file mapping customer objid -> org objid
-                                 (default: exports/organization/customer_objid_to_org_objid.json)
+                                 (default: results/organization/customer_objid_to_org_objid.json)
           --domain-lookup=PATH   JSON file mapping fqdn -> objid
-                                 (default: exports/customdomain/fqdn_to_objid.json)
+                                 (default: results/customdomain/fqdn_to_objid.json)
           --dry-run              Show what would be created
           --help                 Show this help
 

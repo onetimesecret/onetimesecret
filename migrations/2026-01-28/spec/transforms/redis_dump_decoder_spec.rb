@@ -1,3 +1,5 @@
+# migrations/2026-01-28/spec/transforms/redis_dump_decoder_spec.rb
+#
 # frozen_string_literal: true
 
 require 'spec_helper'

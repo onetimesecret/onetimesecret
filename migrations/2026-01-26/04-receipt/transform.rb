@@ -17,9 +17,9 @@
 #   ruby scripts/migrations/2026-01-26/04-receipt/transform.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump file (default: exports/metadata/metadata_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: exports/metadata)
-#   --exports-dir=DIR   Base exports directory for loading indexes (default: exports)
+#   --input-file=FILE   Input JSONL dump file (default: results/metadata/metadata_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: results/metadata)
+#   --exports-dir=DIR   Base exports directory for loading indexes (default: results)
 #   --redis-url=URL     Redis URL for temporary operations (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
@@ -27,9 +27,9 @@
 # Output: receipts_transformed.jsonl with V2 records in Redis DUMP format.
 #
 # Required index files (from prior migration phases):
-#   - exports/customer/customer_indexes.jsonl (email -> customer_objid)
-#   - exports/organization/organization_indexes.jsonl (email -> org_objid)
-#   - exports/customdomain/customdomain_indexes.jsonl (fqdn -> domain_objid)
+#   - results/customer/customer_indexes.jsonl (email -> customer_objid)
+#   - results/organization/organization_indexes.jsonl (email -> org_objid)
+#   - results/customdomain/customdomain_indexes.jsonl (fqdn -> domain_objid)
 
 require 'redis'
 require 'json'
@@ -425,9 +425,9 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/metadata/metadata_dump.jsonl',
-    output_dir: 'exports/metadata',
-    exports_dir: 'exports',
+    input_file: 'results/metadata/metadata_dump.jsonl',
+    output_dir: 'results/metadata',
+    exports_dir: 'results',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -448,9 +448,9 @@ def parse_args(args)
         Transforms Receipt (Metadata) data from V1 dump to V2 format.
 
         Options:
-          --input-file=FILE   Input JSONL dump (default: exports/metadata/metadata_dump.jsonl)
-          --output-dir=DIR    Output directory (default: exports/metadata)
-          --exports-dir=DIR   Base exports directory for index files (default: exports)
+          --input-file=FILE   Input JSONL dump (default: results/metadata/metadata_dump.jsonl)
+          --output-dir=DIR    Output directory (default: results/metadata)
+          --exports-dir=DIR   Base exports directory for index files (default: results)
           --redis-url=URL     Redis URL for temp operations (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output

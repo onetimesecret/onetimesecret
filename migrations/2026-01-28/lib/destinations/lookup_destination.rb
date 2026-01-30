@@ -1,3 +1,5 @@
+# migrations/2026-01-28/lib/destinations/lookup_destination.rb
+#
 # frozen_string_literal: true
 
 require 'json'

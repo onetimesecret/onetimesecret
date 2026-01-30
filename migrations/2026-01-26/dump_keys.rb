@@ -11,10 +11,10 @@
 #   --db=N           Database number to dump (required, or use --all)
 #   --all            Dump all migration databases (6, 7, 8, 11)
 #   --redis-url=URL  Redis URL (default: redis://127.0.0.1:6379)
-#   --output-dir=DIR Output directory (default: exports)
+#   --output-dir=DIR Output directory (default: results)
 #   --dry-run        Show what would be dumped without writing
 #
-# Output files per model: exports/customer/customer_dump.jsonl, exports/metadata/metadata_dump.jsonl, etc.
+# Output files per model: results/customer/customer_dump.jsonl, results/metadata/metadata_dump.jsonl, etc.
 # Includes 'created' timestamp for UUIDv7 generation during transform.
 # Idempotent: each run overwrites existing model files.
 
@@ -240,7 +240,7 @@ end
 def parse_args(args)
   options = {
     redis_url: 'redis://127.0.0.1:6379',
-    output_dir: 'exports',
+    output_dir: 'results',
     dry_run: false,
     db: nil,
     all: false,
@@ -266,16 +266,16 @@ def parse_args(args)
           --db=N           Database number to dump
           --all            Dump migration databases (6, 7, 8, 11)
           --redis-url=URL  Redis URL (default: redis://127.0.0.1:6379)
-          --output-dir=DIR Output directory (default: exports)
+          --output-dir=DIR Output directory (default: results)
           --dry-run        Show what would be dumped
           --help           Show this help
 
         Output files per model (in subdirectories):
-          exports/customer/customer_dump.jsonl
-          exports/customdomain/customdomain_dump.jsonl
-          exports/metadata/metadata_dump.jsonl
-          exports/secret/secret_dump.jsonl
-          exports/feedback/feedback_dump.jsonl
+          results/customer/customer_dump.jsonl
+          results/customdomain/customdomain_dump.jsonl
+          results/metadata/metadata_dump.jsonl
+          results/secret/secret_dump.jsonl
+          results/feedback/feedback_dump.jsonl
 
         Each record includes 'created' timestamp for UUIDv7 generation.
       HELP

@@ -1,3 +1,5 @@
+# migrations/2026-01-28/spec/transforms/customer/identifier_enricher_spec.rb
+#
 # frozen_string_literal: true
 
 require 'spec_helper'

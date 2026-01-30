@@ -14,7 +14,7 @@
 #   ruby scripts/migrations/2026-01-26/validate_instance_index.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump (default: exports/customer/customer_dump.jsonl)
+#   --input-file=FILE   Input JSONL dump (default: results/customer/customer_dump.jsonl)
 #   --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temp database number (default: 15)
 
@@ -201,7 +201,7 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/customer/customer_dump.jsonl',
+    input_file: 'results/customer/customer_dump.jsonl',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
   }
@@ -221,7 +221,7 @@ def parse_args(args)
         Validates onetime:customer index against customer objects.
 
         Options:
-          --input-file=FILE   Input JSONL dump (default: exports/customer/customer_dump.jsonl)
+          --input-file=FILE   Input JSONL dump (default: results/customer/customer_dump.jsonl)
           --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)
           --help              Show this help

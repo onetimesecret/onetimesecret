@@ -15,9 +15,9 @@
 #   ruby scripts/migrations/2026-01-26/03-customdomain/transform.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE        Input JSONL dump file (default: exports/customdomain/customdomain_dump.jsonl)
-#   --output-dir=DIR         Output directory (default: exports/customdomain)
-#   --email-to-org=FILE      JSON map of email -> org_objid (default: exports/organization/email_to_org_objid.json)
+#   --input-file=FILE        Input JSONL dump file (default: results/customdomain/customdomain_dump.jsonl)
+#   --output-dir=DIR         Output directory (default: results/customdomain)
+#   --email-to-org=FILE      JSON map of email -> org_objid (default: results/organization/email_to_org_objid.json)
 #   --email-to-customer=FILE JSON map of email -> customer_objid (built from customer transform)
 #   --redis-url=URL          Redis URL for temporary operations (default: redis://127.0.0.1:6379)
 #   --temp-db=N              Temporary database for restore/dump (default: 15)
@@ -503,10 +503,10 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'exports/customdomain/customdomain_dump.jsonl',
-    output_dir: 'exports/customdomain',
-    email_to_org: 'exports/organization/email_to_org_objid.json',
-    email_to_customer: 'exports/customer/customer_transformed.jsonl',
+    input_file: 'results/customdomain/customdomain_dump.jsonl',
+    output_dir: 'results/customdomain',
+    email_to_org: 'results/organization/email_to_org_objid.json',
+    email_to_customer: 'results/customer/customer_transformed.jsonl',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -528,10 +528,10 @@ def parse_args(args)
         Transforms CustomDomain data from V1 dump to V2 format.
 
         Options:
-          --input-file=FILE        Input JSONL dump (default: exports/customdomain/customdomain_dump.jsonl)
-          --output-dir=DIR         Output directory (default: exports/customdomain)
-          --email-to-org=FILE      email->org_objid JSON map (default: exports/organization/email_to_org_objid.json)
-          --email-to-customer=FILE customer transformed JSONL for email->objid (default: exports/customer/customer_transformed.jsonl)
+          --input-file=FILE        Input JSONL dump (default: results/customdomain/customdomain_dump.jsonl)
+          --output-dir=DIR         Output directory (default: results/customdomain)
+          --email-to-org=FILE      email->org_objid JSON map (default: results/organization/email_to_org_objid.json)
+          --email-to-customer=FILE customer transformed JSONL for email->objid (default: results/customer/customer_transformed.jsonl)
           --redis-url=URL          Redis URL for temp operations (default: redis://127.0.0.1:6379)
           --temp-db=N              Temp database number (default: 15)
           --dry-run                Parse and count without writing output

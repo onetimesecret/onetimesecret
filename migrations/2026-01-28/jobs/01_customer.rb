@@ -6,9 +6,9 @@
 # Transforms customer data from V1 dump format to V2 format.
 # This is a proof-of-concept spike to validate the Kiba architecture.
 #
-# Input:  ../exports/customer/customer_dump.jsonl (enriched with identifiers)
-# Output: exports/customer/customer_transformed.jsonl
-#         exports/lookups/email_to_customer_objid.json
+# Input:  results/customer_dump.jsonl (enriched with identifiers)
+# Output: results/customer_transformed.jsonl
+#         results/lookups/email_to_customer_objid.json
 #
 # Usage:
 #   cd migrations/2026-01-26/kiba
@@ -83,7 +83,7 @@ class CustomerJob
   end
 
   def output_file
-    File.join(@output_dir, MODEL, "#{MODEL}_transformed.jsonl")
+    File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
   def lookup_file
@@ -305,13 +305,13 @@ end
 def parse_args(args)
   require 'optparse'
 
-  # All paths resolved relative to kiba directory for consistency
-  kiba_dir = File.expand_path('..', __dir__)
-  migrations_dir = File.expand_path('../..', kiba_dir)
+  # All paths resolved relative to migration directory for consistency
+  migration_dir = File.expand_path('..', __dir__)
+  results_dir = File.join(migration_dir, 'results')
 
   options = {
-    input_file: File.join(migrations_dir, 'exports/customer/customer_dump.jsonl'),
-    output_dir: File.join(kiba_dir, 'exports'),
+    input_file: File.join(results_dir, 'customer_dump.jsonl'),
+    output_dir: results_dir,
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
     dry_run: false,
@@ -326,11 +326,11 @@ def parse_args(args)
     opts.separator "Options:"
 
     opts.on('--input-file=FILE', 'Input JSONL file') do |file|
-      options[:input_file] = File.expand_path(file, kiba_dir)
+      options[:input_file] = File.expand_path(file, migration_dir)
     end
 
     opts.on('--output-dir=DIR', 'Output directory') do |dir|
-      options[:output_dir] = File.expand_path(dir, kiba_dir)
+      options[:output_dir] = File.expand_path(dir, migration_dir)
     end
 
     opts.on('--redis-url=URL', 'Redis URL (default: redis://127.0.0.1:6379)') do |url|
@@ -353,8 +353,8 @@ def parse_args(args)
       puts opts
       puts
       puts "Output files:"
-      puts "  exports/customer/customer_transformed.jsonl"
-      puts "  exports/lookups/email_to_customer_objid.json"
+      puts "  results/customer_transformed.jsonl"
+      puts "  results/lookups/email_to_customer_objid.json"
       exit 0
     end
   end
