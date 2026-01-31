@@ -54,7 +54,7 @@ module Migration
           # Verification status (stored as string boolean or 0/1)
           'verified' => {
             'type' => 'string',
-            'enum' => %w[true false 0 1],
+            'enum' => ['true', 'false', '0', '1', ''],
             'description' => 'Email verification status',
           },
 
@@ -64,17 +64,17 @@ module Migration
             'description' => 'Subscription plan identifier',
           },
 
-          # Stripe customer ID
+          # Stripe customer ID (empty string or cus_*)
           'stripe_customer_id' => {
             'type' => 'string',
-            'pattern' => '^cus_',
+            'pattern' => '^(cus_.*)?$',
             'description' => 'Stripe customer identifier',
           },
 
-          # Stripe subscription ID
+          # Stripe subscription ID (empty string or sub_*)
           'stripe_subscription_id' => {
             'type' => 'string',
-            'pattern' => '^sub_',
+            'pattern' => '^(sub_.*)?$',
             'description' => 'Stripe subscription identifier',
           },
 
@@ -96,10 +96,10 @@ module Migration
             'description' => 'Hashed authentication passphrase',
           },
 
-          # Last login timestamp
+          # Last login timestamp (empty string or epoch float)
           'last_login' => {
             'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
+            'pattern' => '^(\\d+(\\.\\d+)?)?$',
             'description' => 'Last login timestamp (epoch float as string)',
           },
 
@@ -113,14 +113,14 @@ module Migration
           # Active status
           'active' => {
             'type' => 'string',
-            'enum' => %w[true false 0 1],
+            'enum' => ['true', 'false', '0', '1', ''],
             'description' => 'Account active status',
           },
 
           # Contributor flag
           'contributor' => {
             'type' => 'string',
-            'enum' => %w[true false 0 1],
+            'enum' => ['true', 'false', '0', '1', ''],
             'description' => 'Contributor flag',
           },
 

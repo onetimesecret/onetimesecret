@@ -98,10 +98,10 @@ module Migration
             'description' => 'Hashed authentication passphrase',
           },
 
-          # Hash algorithm indicator - INTEGER
+          # Hash algorithm indicator - INTEGER (null if no passphrase)
           'passphrase_encryption' => {
-            'type' => 'integer',
-            'enum' => [1, 2],
+            'type' => ['integer', 'null'],
+            'enum' => [1, 2, nil],
             'description' => 'Passphrase hash algorithm (1=bcrypt, 2=argon2)',
           },
 
@@ -113,17 +113,17 @@ module Migration
             'description' => 'Subscription plan identifier',
           },
 
-          # Stripe customer ID (nullable)
+          # Stripe customer ID (empty string, null, or cus_*)
           'stripe_customer_id' => {
             'type' => ['string', 'null'],
-            'pattern' => '^cus_',
+            'pattern' => '^(cus_.*)?$',
             'description' => 'Stripe customer identifier',
           },
 
-          # Stripe subscription ID (nullable)
+          # Stripe subscription ID (empty string, null, or sub_*)
           'stripe_subscription_id' => {
             'type' => ['string', 'null'],
-            'pattern' => '^sub_',
+            'pattern' => '^(sub_.*)?$',
             'description' => 'Stripe subscription identifier',
           },
 
