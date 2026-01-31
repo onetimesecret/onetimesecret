@@ -13,7 +13,7 @@ module Migration
       #   - receipt:objid_lookup (HSET objid -> "objid")
       #   - customer:{owner_id}:receipts (ZADD score=created member=objid)
       #   - organization:{org_id}:receipts (ZADD score=created member=objid)
-      #   - customdomain:{domain_id}:receipts (ZADD score=created member=objid)
+      # NOTE: customdomain:{domain_id}:receipts is managed by Familia v2 at runtime
       #
       # Usage in Kiba job:
       #   transform Receipt::IndexGenerator, stats: stats
@@ -55,11 +55,9 @@ module Migration
             increment_stat(:org_receipt_entries)
           end
 
-          # Domain receipts relationship
-          if domain_id && !domain_id.empty?
-            commands << zadd("customdomain:#{domain_id}:receipts", created, objid)
-            increment_stat(:domain_receipt_entries)
-          end
+          # NOTE: customdomain:{domain_id}:receipts is NOT generated here.
+          # This sorted_set is auto-managed by Familia v2's participates_in
+          # mechanism at runtime. See Receipt.participates_in :CustomDomain, :receipts
 
           commands
         end
