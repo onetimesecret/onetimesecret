@@ -4,8 +4,11 @@
  * Primary models
  *
  */
+export * from './auth';
 export * from './base';
+export * from './billing';
 export * from './customer';
+export * from './diagnostics';
 export * from './feedback';
 export * from './jurisdiction';
 export * from './organization';

@@ -19,8 +19,6 @@
  * @see docs/IDENTIFIER-REVIEW-CHECKLIST.md
  */
 
-import { z } from 'zod';
-
 // =============================================================================
 // Branded Type Definitions
 // =============================================================================
@@ -208,66 +206,19 @@ export function buildApiPathWithAction(
 }
 
 // =============================================================================
-// Zod Schemas for API Boundaries
+// Zod Schemas (re-exported from @/schemas/utils/identifiers)
 // =============================================================================
 
-/**
- * Strict ObjId schema - validates format and brands output
- *
- * Use when you need to ensure the ID is actually an internal ID format.
- * Fails on strings that look like ExtIds.
- */
-export const objIdSchema = z
-  .string()
-  .refine((val) => !looksLikeExtId(val), {
-    message: 'Expected internal ID format, got external ID',
-  })
-  .transform((val) => toObjId(val));
-
-/**
- * Strict ExtId schema - validates format and brands output
- *
- * Use when you need to ensure the ID is actually an external ID format.
- * Fails on strings that look like internal UUIDs.
- */
-export const extIdSchema = z
-  .string()
-  .refine((val) => looksLikeExtId(val), {
-    message: 'Expected external ID format (e.g., on8a7b9c)',
-  })
-  .transform((val) => toExtId(val));
-
-/**
- * Lenient ObjId schema - accepts any string, brands output
- *
- * Use during migration phase when strict validation would break existing code.
- * Accepts any string but outputs branded ObjId type.
- *
- * @migration Phase 1 - will be replaced with strict schema in Phase 3
- */
-export const lenientObjIdSchema = z.string().transform((val) => toObjId(val));
-
-/**
- * Lenient ExtId schema - accepts any string, brands output
- *
- * Use during migration phase when strict validation would break existing code.
- * Accepts any string but outputs branded ExtId type.
- *
- * @migration Phase 1 - will be replaced with strict schema in Phase 3
- */
-export const lenientExtIdSchema = z.string().transform((val) => toExtId(val));
-
-// =============================================================================
-// Type Inference Helpers
-// =============================================================================
-
-/**
- * Inferred types from Zod schemas
- */
-export type ZodObjId = z.infer<typeof objIdSchema>;
-export type ZodExtId = z.infer<typeof extIdSchema>;
-export type ZodLenientObjId = z.infer<typeof lenientObjIdSchema>;
-export type ZodLenientExtId = z.infer<typeof lenientExtIdSchema>;
+export {
+  extIdSchema,
+  lenientExtIdSchema,
+  lenientObjIdSchema,
+  objIdSchema,
+  type ZodExtId,
+  type ZodLenientExtId,
+  type ZodLenientObjId,
+  type ZodObjId,
+} from '@/schemas/utils/identifiers';
 
 // =============================================================================
 // Assertion Functions (Development Only)
