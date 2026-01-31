@@ -1,25 +1,78 @@
 // src/schemas/models/organization.ts
 
 /**
- * Organization Zod schemas for validation
+ * Organization Zod schemas and derived types
  *
- * Validates API responses and request payloads for organization management.
- * Types are defined in @/types/organization - schemas here provide runtime validation.
+ * Schemas are the source of truth for organization data structures.
+ * Types are inferred from schemas using z.infer<>.
+ *
+ * Constants (ENTITLEMENTS, ORGANIZATION_ROLES, etc.) remain in
+ * @/types/organization to avoid circular dependencies.
  */
 
 import { z } from 'zod';
 
 import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
-import type { Entitlement } from '@/types/organization';
+
+/**
+ * Organization limits schema
+ */
+export const organizationLimitsSchema = z.object({
+  teams: z.number().optional(),
+  members_per_team: z.number().optional(),
+  custom_domains: z.number().optional(),
+});
+
+export type OrganizationLimits = z.infer<typeof organizationLimitsSchema>;
+
+/**
+ * Organization role schema
+ */
+export const organizationRoleSchema = z.enum(['owner', 'admin', 'member']);
+
+export type OrganizationRole = z.infer<typeof organizationRoleSchema>;
+
+/**
+ * Entitlement schema
+ *
+ * Maps to STANDALONE_ENTITLEMENTS in backend (lib/onetime/billing/catalog.rb)
+ */
+export const entitlementSchema = z.enum([
+  'api_access',
+  'custom_domains',
+  'custom_privacy_defaults',
+  'extended_default_expiration',
+  'custom_mail_defaults',
+  'custom_branding',
+  'branded_homepage',
+  'incoming_secrets',
+  'manage_orgs',
+  'manage_teams',
+  'manage_members',
+  'audit_logs',
+]);
+
+export type Entitlement = z.infer<typeof entitlementSchema>;
+
+/**
+ * Invitation status schema
+ */
+export const invitationStatusSchema = z.enum(['pending', 'accepted', 'declined', 'expired']);
+
+export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
 
 /**
  * Organization schema
  *
  * Validates organization data from API responses.
  * Uses lenient ID schemas during migration phase.
+ *
+ * ID Fields:
+ * - id: ObjId - Internal database ID (use for Vue :key, store lookups)
+ * - extid: ExtId - External identifier (use for URLs, API paths)
+ * - owner_extid: ExtId - External ID of the organization owner (Customer#extid)
  */
 export const organizationSchema = z.object({
-  // Use lenient schemas during migration - accepts any string but brands the output
   id: lenientObjIdSchema,
   extid: lenientExtIdSchema,
   display_name: z.string().min(1).max(100),
@@ -30,18 +83,14 @@ export const organizationSchema = z.object({
   updated_at: z.number().transform((val) => new Date(val * 1000)),
   owner_extid: lenientExtIdSchema.nullish(),
   member_count: z.number().int().min(0).nullish(),
-  current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
+  current_user_role: organizationRoleSchema.nullish(),
   planid: z.string().nullish(),
-  entitlements: z.array(z.string() as z.ZodType<Entitlement>).nullish(),
-  limits: z
-    .object({
-      teams: z.number().optional(),
-      members_per_team: z.number().optional(),
-      custom_domains: z.number().optional(),
-    })
-    .nullish(),
+  entitlements: z.array(entitlementSchema).nullish(),
+  limits: organizationLimitsSchema.nullish(),
   domain_count: z.number().int().min(0).nullish(),
 });
+
+export type Organization = z.infer<typeof organizationSchema>;
 
 /**
  * Create organization request payload schema
@@ -55,6 +104,8 @@ export const createOrganizationPayloadSchema = z.object({
   contact_email: z.email('Valid email required').optional(),
 });
 
+export type CreateOrganizationPayload = z.infer<typeof createOrganizationPayloadSchema>;
+
 /**
  * Update organization request payload schema
  */
@@ -64,23 +115,32 @@ export const updateOrganizationPayloadSchema = z.object({
   billing_email: z.email('Valid email required').optional(),
 });
 
+export type UpdateOrganizationPayload = z.infer<typeof updateOrganizationPayloadSchema>;
+
 /**
  * Organization invitation schema
  *
  * Validates invitation data from API responses.
+ *
+ * ID Fields:
+ * - id: ObjId - Internal invitation ID (for store lookups)
+ * - organization_id: ExtId - External org ID (backend returns org.extid)
+ * - invited_by: ObjId - Internal ID of the user who sent the invitation
  */
 export const organizationInvitationSchema = z.object({
   id: lenientObjIdSchema,
-  organization_id: lenientExtIdSchema, // Backend returns org.extid
+  organization_id: lenientExtIdSchema,
   email: z.email(),
   role: z.enum(['member', 'admin']),
-  status: z.enum(['pending', 'accepted', 'declined', 'expired']),
+  status: invitationStatusSchema,
   invited_by: lenientObjIdSchema,
   invited_at: z.number(),
   expires_at: z.number(),
   resend_count: z.number().int().min(0),
   token: z.string().optional(),
 });
+
+export type OrganizationInvitation = z.infer<typeof organizationInvitationSchema>;
 
 /**
  * Create invitation request payload schema
@@ -90,6 +150,8 @@ export const createInvitationPayloadSchema = z.object({
   role: z.enum(['member', 'admin']),
 });
 
+export type CreateInvitationPayload = z.infer<typeof createInvitationPayloadSchema>;
+
 /**
  * Organization member schema
  *
@@ -98,11 +160,13 @@ export const createInvitationPayloadSchema = z.object({
 export const organizationMemberSchema = z.object({
   extid: lenientExtIdSchema,
   email: z.email(),
-  role: z.enum(['owner', 'admin', 'member']),
+  role: organizationRoleSchema,
   joined_at: z.number(),
   is_owner: z.boolean(),
   is_current_user: z.boolean(),
 });
+
+export type OrganizationMember = z.infer<typeof organizationMemberSchema>;
 
 /**
  * Update member role request payload schema
@@ -110,3 +174,5 @@ export const organizationMemberSchema = z.object({
 export const updateMemberRolePayloadSchema = z.object({
   role: z.enum(['admin', 'member']),
 });
+
+export type UpdateMemberRolePayload = z.infer<typeof updateMemberRolePayloadSchema>;
