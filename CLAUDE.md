@@ -4,7 +4,7 @@ WRITE SHORT RESPONSES. BE CONCISE. Focus on what's important NOW.
 
 DO NOT WRITE MARKDOWN DOCUMENTS unless requested.
 
-Pull requests target `develop` branch, unless otherwise specified.
+Pull requests target `main` for releases, `develop` for ongoing work. Branch from either depending on scope.
 
 ## Critical Workflow
 1. **Research First**: Read files, understand patterns, plan before coding
