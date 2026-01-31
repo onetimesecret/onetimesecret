@@ -72,7 +72,7 @@ services:
       - ./etc:/app/etc
 
   redis:
-    image: valkey/valkey:8.0-bookworm@sha256:d8c55e49e11ca5c88c2e2cc98f0ce166ea54ad0f1fb30ea1daca7f60e3af1b2e
+    image: valkey/valkey:8.0-bookworm@sha256:3fb1247c0ae098a109f49e86a00bbae330044d610a608228a8350c0287c1e4f1
     container_name: onetime-redis
     command: >
       valkey-server
