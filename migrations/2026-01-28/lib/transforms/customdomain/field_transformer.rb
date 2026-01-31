@@ -14,26 +14,33 @@ module Migration
       # - Preserves original custid as v1_custid
       # - Adds migration tracking fields
       # - Renames key from display_domain-based to objid-based
+      # - Renames related keys (brand, logo, icon) to use new objid
       #
       # Usage in Kiba job:
       #   transform Customdomain::FieldTransformer,
       #             registry: registry,
       #             stats: stats,
-      #             migrated_at: job_started_at
+      #             migrated_at: job_started_at,
+      #             identifier_mapping: mapping
       #
       class FieldTransformer < BaseTransform
         EXTID_PREFIX = 'cd'
 
+        # Related key suffixes that should be renamed (not transformed)
+        RELATED_SUFFIXES = %w[brand logo icon].freeze
+
         requires_lookups :email_to_customer, :email_to_org
 
-        attr_reader :migrated_at
+        attr_reader :migrated_at, :identifier_mapping
 
         # @param migrated_at [Time, nil] Timestamp for migration tracking (default: job start time)
+        # @param identifier_mapping [Hash] Pre-built v1_id → objid mapping for related records
         # @param kwargs [Hash] Additional options passed to BaseTransform
         #
-        def initialize(migrated_at: nil, **kwargs)
+        def initialize(migrated_at: nil, identifier_mapping: {}, **kwargs)
           super(**kwargs)
           @migrated_at = migrated_at || Time.now
+          @identifier_mapping = identifier_mapping
           @uuid_generator = Shared::UuidV7Generator.new
         end
 
@@ -45,8 +52,10 @@ module Migration
         def process(record)
           key = record[:key]
 
-          # Only transform :object records
+          # Handle related records (brand, logo, icon) - just rename key
           unless key&.end_with?(':object')
+            return rename_related_record(record) if related_record?(key)
+
             increment_stat(:skipped_non_object)
             return nil
           end
@@ -124,7 +133,7 @@ module Migration
           display_domain = v2_fields['display_domain']
 
           {
-            key: "customdomain:#{objid}:object",
+            key: "custom_domain:#{objid}:object",
             type: 'hash',
             ttl_ms: record[:ttl_ms],
             db: record[:db],
@@ -141,6 +150,44 @@ module Migration
           # Try record-level first, then fields
           ts = record[:created] || fields['created']
           ts ? ts.to_f.to_i : Time.now.to_i
+        end
+
+        # Check if key is a related record (brand, logo, icon)
+        def related_record?(key)
+          return false unless key
+
+          suffix = key.split(':').last
+          RELATED_SUFFIXES.include?(suffix)
+        end
+
+        # Rename related record key from v1_id to objid
+        # Format: customdomain:{v1_id}:{suffix} → custom_domain:{objid}:{suffix}
+        def rename_related_record(record)
+          key = record[:key]
+          key_parts = key.split(':')
+
+          return record unless key_parts.size >= 3 && key_parts.first == 'customdomain'
+
+          # Extract v1_id and suffix
+          # Format: customdomain:<v1_id>:<suffix>
+          v1_id = key_parts[1]
+          suffix = key_parts[2..-1].join(':')
+
+          # Look up objid from pre-built mapping
+          objid = @identifier_mapping[v1_id]
+
+          unless objid
+            increment_stat(:related_no_objid)
+            return nil
+          end
+
+          increment_stat(:related_renamed)
+
+          # Return record with renamed key, preserving original
+          record.merge(
+            key: "custom_domain:#{objid}:#{suffix}",
+            v1_key: key
+          )
         end
       end
     end

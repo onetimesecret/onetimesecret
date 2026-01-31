@@ -145,15 +145,20 @@ class CustomdomainJob
     registry.require_lookup(:email_to_customer, for_phase: PHASE)
     registry.require_lookup(:email_to_org, for_phase: PHASE)
 
+    # Pre-build identifier mapping for related record renaming
+    # Maps v1_id → objid so brand/logo/icon keys can be renamed
+    identifier_mapping = build_identifier_mapping(@input_file, redis_helper)
+    puts "Built identifier mapping: #{identifier_mapping.size} entries"
+
     # Build and run Kiba job
-    job = build_kiba_job(redis_helper, registry)
+    job = build_kiba_job(redis_helper, registry, identifier_mapping)
     Kiba.run(job)
   ensure
     redis_helper&.cleanup!
     redis_helper&.disconnect!
   end
 
-  def build_kiba_job(redis_helper, registry)
+  def build_kiba_job(redis_helper, registry, identifier_mapping)
     input_file = @input_file
     output_file_path = output_file
     indexes_file_path = indexes_file
@@ -201,10 +206,12 @@ class CustomdomainJob
       end
 
       # Transform: apply field transformations with lookups
+      # identifier_mapping enables renaming related keys (brand, logo, icon)
       transform Migration::Transforms::Customdomain::FieldTransformer,
                 registry: registry,
                 stats: stats,
-                migrated_at: job_started_at
+                migrated_at: job_started_at,
+                identifier_mapping: identifier_mapping
 
       # Transform: validate V2 output structure
       transform Migration::Transforms::SchemaValidator,
@@ -255,6 +262,56 @@ class CustomdomainJob
     end
   end
 
+  # Pre-build mapping from v1_id → objid for related record renaming.
+  # This enables renaming brand/logo/icon keys regardless of dump order.
+  #
+  # Uses a temporary Redis connection to decode DUMP data and extract
+  # created timestamps for UUIDv7 generation.
+  #
+  # @param input_file [String] Path to the dump JSONL file
+  # @param redis_helper [RedisTempKey] Redis helper for decoding
+  # @return [Hash] Mapping of v1_id → objid
+  def build_identifier_mapping(input_file, redis_helper)
+    mapping = {}
+    uuid_generator = Migration::Shared::UuidV7Generator.new
+
+    File.foreach(input_file) do |line|
+      record = JSON.parse(line, symbolize_names: true)
+
+      # Only process :object records to build mapping
+      next unless record[:key]&.end_with?(':object')
+
+      # Extract v1_id from key: customdomain:<v1_id>:object
+      v1_id = record[:key].split(':')[1]
+
+      # Skip if already has objid (enriched dump)
+      if record[:objid] && !record[:objid].empty?
+        mapping[v1_id] = record[:objid]
+        next
+      end
+
+      # Decode DUMP to get created timestamp
+      next unless record[:dump]
+
+      begin
+        fields = redis_helper.restore_and_read_hash(record[:dump])
+        created = fields['created']&.to_f
+        next unless created && created > 0
+
+        # Generate deterministic objid from timestamp
+        objid, _extid = uuid_generator.generate_identifiers(created, prefix: 'cd')
+        mapping[v1_id] = objid
+      rescue StandardError
+        # Skip records that fail to decode
+        next
+      end
+    rescue JSON::ParserError
+      next
+    end
+
+    mapping
+  end
+
   def print_summary
     puts
     puts '=== CustomDomain Transform Summary ==='
@@ -277,6 +334,10 @@ class CustomdomainJob
     puts "  Validated:         #{@stats[:validated]}"
     puts "  Failures:          #{@stats[:validation_failures]}"
     puts "  Skipped:           #{@stats[:validation_skipped]}"
+    puts
+    puts 'Related records (brand/logo/icon):'
+    puts "  Renamed:           #{@stats[:related_renamed] || 0}"
+    puts "  No objid found:    #{@stats[:related_no_objid] || 0}"
     puts
     puts 'Skipped records:'
     puts "  Non-object:        #{@stats[:skipped_non_object]}"
