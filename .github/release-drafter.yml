@@ -1,0 +1,113 @@
+# .github/release-drafter.yml
+#
+# Configuration for the Release Drafter workflow.
+# Categories are aligned with scriv changelog (changelog.d/scriv.ini).
+#
+# Documentation:
+# https://github.com/release-drafter/release-drafter#configuration
+#
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+# Categories aligned with scriv: Added, Changed, Deprecated, Removed, Fixed, Security, Documentation, AI Assistance
+categories:
+  - title: 'Added'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: 'Changed'
+    labels:
+      - 'frontend'
+      - 'backend'
+      - 'containers'
+      - 'config'
+      - 'i18n'
+      - 'migrations'
+  - title: 'Deprecated'
+    labels:
+      - 'deprecated'
+  - title: 'Removed'
+    labels:
+      - 'removed'
+  - title: 'Fixed'
+    labels:
+      - 'bug'
+      - 'bugfix'
+      - 'fix'
+  - title: 'Security'
+    labels:
+      - 'security'
+  - title: 'Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: 'Testing'
+    labels:
+      - 'testing'
+      - 'test'
+  - title: 'Infrastructure'
+    labels:
+      - 'github_actions'
+      - 'ci'
+      - 'scripts'
+  - title: 'Dependencies'
+    labels:
+      - 'dependencies'
+      - 'ruby'
+      - 'typescript'
+      - 'javascript'
+
+# Exclude certain labels from release notes
+exclude-labels:
+  - 'skip-changelog'
+  - 'no-release-notes'
+
+# Autolabeler rules for PRs based on branch names and file paths
+autolabeler:
+  - label: 'documentation'
+    files:
+      - '*.md'
+      - 'docs/**/*'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+      - '/bugfix\/.+/'
+      - '/hotfix\/.+/'
+  - label: 'feature'
+    branch:
+      - '/feature\/.+/'
+      - '/feat\/.+/'
+  - label: 'github_actions'
+    files:
+      - '.github/workflows/**/*'
+      - '.github/actions/**/*'
+
+# Version resolver based on labels
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'feature'
+      - 'enhancement'
+      - 'minor'
+  patch:
+    labels:
+      - 'bug'
+      - 'bugfix'
+      - 'fix'
+      - 'patch'
+      - 'documentation'
+      - 'dependencies'
+  default: patch
+
+# Release notes template
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
