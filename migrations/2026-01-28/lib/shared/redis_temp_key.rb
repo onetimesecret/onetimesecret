@@ -68,11 +68,12 @@ module Migration
       #
       # @param dump_b64 [String] Base64-encoded Redis DUMP data
       # @param original_key [String] Original key name (for error messages)
+      # @param deserialize_values [Boolean] JSON-deserialize values (default: false for v1 compat)
       # @return [Hash] Hash fields from the restored key
       # @raise [Base64FormatError] If Base64 encoding is invalid
       # @raise [RestoreError] If Redis restore fails
       #
-      def restore_and_read_hash(dump_b64, original_key: 'unknown')
+      def restore_and_read_hash(dump_b64, original_key: 'unknown', deserialize_values: false)
         ensure_connected!
         validate_base64!(dump_b64, original_key)
         temp_key = generate_temp_key
@@ -82,7 +83,10 @@ module Migration
         begin
           @redis.restore(temp_key, 0, dump_data, replace: true)
           @temp_keys_created << temp_key
-          @redis.hgetall(temp_key)
+          fields = @redis.hgetall(temp_key)
+
+          # Optionally deserialize JSON-encoded values (for reading v2-encoded data)
+          deserialize_values ? deserialize_field_values(fields) : fields
         rescue Redis::CommandError => ex
           raise RestoreError.new(original_key, ex.message)
         ensure
@@ -198,6 +202,25 @@ module Migration
         @temp_keys_created.delete(key)
       rescue StandardError
         # Ignore cleanup errors
+      end
+
+      # JSON-deserialize field values from Familia v2 format.
+      #
+      # Reverses the JSON encoding done by serialize_field_values.
+      # Used when reading data that was previously encoded.
+      #
+      # @param fields [Hash] Hash with JSON-encoded string values
+      # @return [Hash] Hash with native Ruby values
+      #
+      def deserialize_field_values(fields)
+        fields.transform_values do |value|
+          next value if value.nil?
+
+          Oj.load(value, mode: :strict)
+        rescue Oj::ParseError
+          # If parsing fails, return the original value
+          value
+        end
       end
 
       # JSON-serialize field values for Familia v2 compatibility.

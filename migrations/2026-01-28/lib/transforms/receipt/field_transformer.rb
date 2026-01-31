@@ -119,7 +119,7 @@ module Migration
           # Add migration tracking
           v2_fields['v1_identifier'] = record[:key]
           v2_fields['migration_status'] = 'completed'
-          v2_fields['migrated_at'] = @migrated_at.to_f.to_s
+          v2_fields['migrated_at'] = @migrated_at.to_f  # Float, not string
 
           v2_fields
         end

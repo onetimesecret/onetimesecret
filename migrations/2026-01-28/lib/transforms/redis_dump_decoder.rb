@@ -17,14 +17,17 @@ module Migration
     #   post_process { @redis_helper.cleanup!; @redis_helper.disconnect! }
     #
     class RedisDumpDecoder < BaseTransform
-      attr_reader :redis_helper
+      attr_reader :redis_helper, :deserialize_values
 
       # @param redis_helper [Migration::Shared::RedisTempKey] Connected Redis helper
+      # @param deserialize_values [Boolean] JSON-deserialize field values (default: false)
+      #   Set to true when reading dumps that were encoded with serialize_values: true
       # @param kwargs [Hash] Additional options passed to BaseTransform
       #
-      def initialize(redis_helper:, **kwargs)
+      def initialize(redis_helper:, deserialize_values: false, **kwargs)
         super(**kwargs)
         @redis_helper = redis_helper
+        @deserialize_values = deserialize_values
       end
 
       # Decode the dump and add :fields to record.
@@ -37,7 +40,11 @@ module Migration
         return record unless dump_b64
 
         begin
-          fields = @redis_helper.restore_and_read_hash(dump_b64, original_key: record[:key])
+          fields = @redis_helper.restore_and_read_hash(
+            dump_b64,
+            original_key: record[:key],
+            deserialize_values: @deserialize_values
+          )
           record[:fields] = fields
           increment_stat(:decoded)
         rescue Migration::Shared::RedisTempKey::RestoreError => ex

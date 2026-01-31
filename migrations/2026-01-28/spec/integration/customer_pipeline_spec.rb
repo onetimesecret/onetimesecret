@@ -460,7 +460,7 @@ RSpec.describe 'Customer Migration Pipeline Integration' do
 
       # Note: JSON.parse with symbolize_names converts nested hash keys to symbols too
       expect(v2_fields[:migration_status]).to eq('completed')
-      expect(v2_fields[:migrated_at]).to eq(migrated_at.to_f.to_s)
+      expect(v2_fields[:migrated_at]).to eq(migrated_at.to_f)  # Native float
       expect(v2_fields[:v1_identifier]).to eq('customer:alice@example.com:object')
       expect(v2_fields[:v1_custid]).to eq('alice@example.com')
       expect(v2_fields[:objid]).to eq(expected_objid)

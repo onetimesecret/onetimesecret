@@ -103,12 +103,12 @@ RSpec.describe Migration::Transforms::Customer::FieldTransformer do
         expect(result[:v2_fields]['migration_status']).to eq('completed')
       end
 
-      it 'adds v2_fields migrated_at as float string' do
+      it 'adds v2_fields migrated_at as native float' do
         transformer = described_class.new(migrated_at: fixed_time, stats: stats)
 
         result = transformer.process(v1_record)
 
-        expect(result[:v2_fields]['migrated_at']).to eq(fixed_time.to_f.to_s)
+        expect(result[:v2_fields]['migrated_at']).to eq(fixed_time.to_f)
       end
 
       it 'renames key from email-based to objid-based' do

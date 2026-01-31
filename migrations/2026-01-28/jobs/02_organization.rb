@@ -167,9 +167,11 @@ class OrganizationJob
       end
 
       # Transform: decode Redis DUMP to get customer fields
-      # Phase 1 output has DUMP data containing v2_fields - decoded into :fields
+      # Phase 1 output has DUMP data containing v2_fields (JSON-encoded) - decoded into :fields
+      # deserialize_values: true undoes the JSON encoding so we get native Ruby types
       transform Migration::Transforms::RedisDumpDecoder,
                 redis_helper: redis_helper,
+                deserialize_values: true,
                 stats: stats
 
       # Transform: count customer objects
