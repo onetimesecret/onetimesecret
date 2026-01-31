@@ -14,14 +14,25 @@ module Migration
       #
       # CRITICAL: The value field must be preserved EXACTLY as-is during migration.
       #
+      # V2 uses Familia's JSON serialization, so field values are stored as JSON
+      # primitives in Redis. When deserialized, they become native Ruby/JSON types:
+      # - Booleans: true/false (not strings "true"/"false")
+      # - Numbers: integers and floats (not string representations)
+      # - Strings: regular strings
+      #
+      # The Zod schema in src/schemas/models/secret.ts is the source of truth
+      # for frontend field expectations.
+      #
       SECRET = {
         '$schema' => 'http://json-schema.org/draft-07/schema#',
         'title' => 'Secret V2',
-        'description' => 'V2 secret record after migration transformation',
+        'description' => 'V2 secret record with JSON-serialized field values',
         'type' => 'object',
-        'required' => %w[objid value migration_status migrated_at],
+        'required' => %w[objid value state migration_status migrated_at],
         'properties' => {
-          # New primary identifier (UUIDv7)
+          # === Identity Fields ===
+
+          # Primary identifier (UUIDv7) - frontend uses 'identifier'
           'objid' => {
             'type' => 'string',
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
@@ -35,21 +46,49 @@ module Migration
             'description' => 'External identifier for URL paths',
           },
 
-          # Owner customer objid (optional for anonymous secrets)
-          'owner_id' => {
+          # Secret key (V1 identifier preserved)
+          'key' => {
             'type' => 'string',
+            'description' => 'Secret identifier key',
+          },
+
+          # Short ID for display (matches Zod: shortid)
+          'shortid' => {
+            'type' => 'string',
+            'description' => 'Short identifier for display',
+          },
+
+          # Access token
+          'token' => {
+            'type' => 'string',
+            'description' => 'Access token for secret',
+          },
+
+          # === Ownership (nullable for anonymous secrets) ===
+
+          # Owner customer objid
+          'owner_id' => {
+            'type' => ['string', 'null'],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Owner customer objid (UUIDv7)',
           },
 
-          # Organization objid (optional for anonymous secrets)
+          # Organization objid
           'org_id' => {
-            'type' => 'string',
+            'type' => ['string', 'null'],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Organization objid (UUIDv7)',
           },
 
-          # Encrypted value (CRITICAL - preserved exactly from V1)
+          # V1 custid (email or "anon")
+          'custid' => {
+            'type' => ['string', 'null'],
+            'description' => 'V1 customer ID (email or "anon")',
+          },
+
+          # === Content (CRITICAL - preserved exactly) ===
+
+          # Encrypted value - MUST be preserved exactly from V1
           'value' => {
             'type' => 'string',
             'description' => 'Encrypted secret content (preserved exactly)',
@@ -57,110 +96,164 @@ module Migration
 
           # Checksum of the value
           'value_checksum' => {
-            'type' => 'string',
-            'description' => 'Checksum of the encrypted value',
+            'type' => ['string', 'null'],
+            'description' => 'SHA checksum of the encrypted value',
           },
 
-          # Secret state
-          'state' => {
-            'type' => 'string',
-            'enum' => %w[new viewed received burned],
-            'description' => 'Secret state',
-          },
-
-          # Time to live in seconds
-          'secret_ttl' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'Secret TTL in seconds (integer as string)',
-          },
-
-          # Whether secret has a passphrase (stored as boolean string, empty allowed)
-          'passphrase' => {
-            'type' => 'string',
-            'enum' => ['0', '1', 'true', 'false', ''],
-            'description' => 'Whether secret is passphrase protected',
-          },
-
-          # Timestamps
-          'created' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Creation timestamp (epoch float as string)',
-          },
-          'updated' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Last update timestamp (epoch float as string)',
-          },
-
-          # Recipient email (optional)
-          'recipient' => {
-            'type' => 'string',
-            'description' => 'Recipient email address',
-          },
-
-          # Share domain (optional)
-          'share_domain' => {
-            'type' => 'string',
-            'description' => 'Custom domain for sharing',
-          },
-
-          # V1 legacy fields (preserved for migration)
-          'key' => {
-            'type' => 'string',
-            'minLength' => 1,
-            'description' => 'Secret identifier key',
-          },
-
-          'lifespan' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'TTL in seconds (V1 field name)',
-          },
-
-          'passphrase_encryption' => {
-            'type' => 'string',
-            'enum' => %w[1 2],
-            'description' => 'Passphrase encryption algorithm (1=bcrypt, 2=argon2)',
-          },
-
-          'token' => {
-            'type' => 'string',
-            'description' => 'Access token for secret',
-          },
-
-          'truncated' => {
-            'type' => 'string',
-            'enum' => %w[true false 0 1],
-            'description' => 'Whether content was truncated',
-          },
-
+          # Encryption version
           'value_encryption' => {
-            'type' => 'string',
+            'type' => ['string', 'null'],
             'description' => 'Encryption version (e.g., "2")',
           },
 
-          'verification' => {
+          # Original size before truncation - INTEGER
+          'original_size' => {
+            'type' => ['integer', 'null'],
+            'minimum' => 0,
+            'description' => 'Original size in bytes before truncation',
+          },
+
+          # Whether content was truncated - BOOLEAN
+          'truncated' => {
+            'type' => 'boolean',
+            'description' => 'Whether content was truncated',
+          },
+
+          # === State & Security ===
+
+          # Secret state (matches Zod: state enum with all values)
+          'state' => {
             'type' => 'string',
+            'enum' => %w[new viewed received burned revealed previewed],
+            'description' => 'Secret lifecycle state',
+          },
+
+          # Whether secret has a passphrase - BOOLEAN (matches Zod: has_passphrase)
+          'has_passphrase' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret is passphrase protected',
+          },
+
+          # Passphrase hash (backend-only)
+          'passphrase' => {
+            'type' => ['string', 'null'],
+            'description' => 'Encrypted passphrase hash (backend-only)',
+          },
+
+          # Passphrase encryption algorithm - INTEGER
+          'passphrase_encryption' => {
+            'type' => ['integer', 'null'],
+            'enum' => [1, 2],
+            'description' => 'Passphrase encryption algorithm (1=bcrypt, 2=argon2)',
+          },
+
+          # Verification status
+          'verification' => {
+            'type' => ['string', 'null'],
             'description' => 'Verification status',
           },
 
-          # Migration tracking
+          # === TTL & Lifespan (as integers) ===
+
+          # TTL in seconds - INTEGER
+          'secret_ttl' => {
+            'type' => ['integer', 'null'],
+            'minimum' => 0,
+            'description' => 'Secret TTL in seconds',
+          },
+
+          # Lifespan in seconds (V1 field name) - INTEGER
+          'lifespan' => {
+            'type' => ['integer', 'null'],
+            'minimum' => 0,
+            'description' => 'TTL in seconds (V1 field name)',
+          },
+
+          # Maximum views allowed - INTEGER
+          'maxviews' => {
+            'type' => ['integer', 'null'],
+            'minimum' => 1,
+            'description' => 'Maximum allowed views',
+          },
+
+          # === Sharing Context ===
+
+          # Recipient email
+          'recipient' => {
+            'type' => ['string', 'null'],
+            'description' => 'Recipient email address',
+          },
+
+          # Custom domain for sharing
+          'share_domain' => {
+            'type' => ['string', 'null'],
+            'description' => 'Custom domain FQDN for sharing',
+          },
+
+          # Metadata/Receipt key reference
+          'metadata_key' => {
+            'type' => ['string', 'null'],
+            'description' => 'Reference to associated receipt record',
+          },
+
+          # Receipt identifier
+          'receipt_identifier' => {
+            'type' => ['string', 'null'],
+            'description' => 'Associated receipt identifier',
+          },
+
+          # Receipt short ID
+          'receipt_shortid' => {
+            'type' => ['string', 'null'],
+            'description' => 'Short receipt ID for display',
+          },
+
+          # === Timestamps (as numbers) ===
+
+          # Creation timestamp - NUMBER
+          'created' => {
+            'type' => 'number',
+            'description' => 'Creation timestamp (Unix epoch)',
+          },
+
+          # Last update timestamp - NUMBER
+          'updated' => {
+            'type' => 'number',
+            'description' => 'Last update timestamp (Unix epoch)',
+          },
+
+          # === Migration Tracking ===
+
+          # Original V1 Redis key
           'v1_identifier' => {
             'type' => 'string',
             'pattern' => '^secret:.+:object$',
             'description' => 'Original V1 Redis key',
           },
+
+          # V1 custid preserved
+          'v1_custid' => {
+            'type' => ['string', 'null'],
+            'description' => 'Original V1 customer ID',
+          },
+
+          # V1 original size
+          'v1_original_size' => {
+            'type' => ['integer', 'null'],
+            'description' => 'V1 original size tracking',
+          },
+
+          # Migration status
           'migration_status' => {
             'type' => 'string',
             'enum' => %w[pending completed failed],
             'description' => 'Migration status',
           },
+
+          # Migration timestamp - NUMBER
           'migrated_at' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Migration timestamp (epoch float as string)',
+            'type' => 'number',
+            'description' => 'Migration timestamp (Unix epoch float)',
           },
         },
         'additionalProperties' => true,

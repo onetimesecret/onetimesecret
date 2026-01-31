@@ -16,58 +16,293 @@ module Migration
       # - org_id linking to organization objid
       # - domain_id linking to custom domain objid (optional)
       #
+      # V2 uses Familia's JSON serialization, so field values are stored as JSON
+      # primitives in Redis. When deserialized, they become native Ruby/JSON types:
+      # - Booleans: true/false (not strings "true"/"false")
+      # - Numbers: integers and floats (not string representations)
+      # - Strings: regular strings
+      #
+      # The Zod schema in src/schemas/models/receipt.ts is the source of truth
+      # for frontend field expectations.
+      #
       RECEIPT = {
         '$schema' => 'http://json-schema.org/draft-07/schema#',
         'title' => 'Receipt V2',
-        'description' => 'V2 receipt record after migration transformation',
+        'description' => 'V2 receipt record with JSON-serialized field values',
         'type' => 'object',
-        'required' => %w[objid key migration_status migrated_at],
+        'required' => %w[objid key state migration_status migrated_at],
         'properties' => {
-          # New primary identifier (UUIDv7)
+          # === Identity Fields ===
+
+          # Primary identifier (UUIDv7)
           'objid' => {
             'type' => 'string',
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Object identifier (UUIDv7)',
           },
 
-          # External identifier for URL paths
+          # External identifier for URL paths (matches Zod: extid)
           'extid' => {
             'type' => 'string',
             'pattern' => '^rc[0-9a-zA-Z]+$',
             'description' => 'External identifier for URL paths',
           },
 
-          # Secret key this receipt tracks (preserved from V1)
+          # Short ID for display (matches Zod: shortid)
+          'shortid' => {
+            'type' => 'string',
+            'description' => 'Short identifier for display',
+          },
+
+          # Secret key this receipt tracks (matches Zod: key)
           'key' => {
             'type' => 'string',
             'minLength' => 1,
             'description' => 'Secret key this receipt tracks',
           },
 
+          # Short version of secret key (matches Zod: secret_shortid)
+          'secret_shortid' => {
+            'type' => 'string',
+            'description' => 'Short version of secret key for display',
+          },
+
+          # Token for receipt access
+          'token' => {
+            'type' => 'string',
+            'description' => 'Receipt access token',
+          },
+
+          # === Ownership & Context ===
+
           # Owner customer objid (resolved from custid)
           'owner_id' => {
-            'type' => %w[string null],
+            'type' => ['string', 'null'],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Owner customer objid (UUIDv7)',
           },
 
           # Organization objid (resolved from customer email)
           'org_id' => {
-            'type' => %w[string null],
+            'type' => ['string', 'null'],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Organization objid (UUIDv7)',
           },
 
           # Custom domain objid (resolved from share_domain if present)
           'domain_id' => {
-            'type' => %w[string null],
+            'type' => ['string', 'null'],
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Custom domain objid (UUIDv7, optional)',
           },
 
+          # Custom domain FQDN (preserved for context)
+          'share_domain' => {
+            'type' => ['string', 'null'],
+            'description' => 'Custom domain FQDN used for sharing',
+          },
+
+          # Recipients (comma-separated emails)
+          'recipients' => {
+            'type' => ['string', 'null'],
+            'description' => 'Comma-separated recipient emails',
+          },
+
+          # === State & Lifecycle (matches Zod: state enum) ===
+
+          # Lifecycle state
+          'state' => {
+            'type' => 'string',
+            'enum' => %w[new shared viewed received burned revealed previewed expired orphaned],
+            'description' => 'Receipt/secret lifecycle state',
+          },
+
+          # Secret state (separate from receipt state)
+          'secret_state' => {
+            'type' => ['string', 'null'],
+            'enum' => %w[new viewed received burned],
+            'description' => 'Secret lifecycle state',
+          },
+
+          # === Boolean Flags (matches Zod: is_* fields) ===
+
+          'is_viewed' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret has been viewed',
+          },
+          'is_received' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret has been received',
+          },
+          'is_previewed' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret has been previewed by owner',
+          },
+          'is_revealed' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret has been revealed',
+          },
+          'is_burned' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret has been burned',
+          },
+          'is_destroyed' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret has been destroyed',
+          },
+          'is_expired' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret has expired',
+          },
+          'is_orphaned' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret is orphaned (owner deleted)',
+          },
+          'has_passphrase' => {
+            'type' => 'boolean',
+            'description' => 'Whether secret requires a passphrase',
+          },
+          'truncate' => {
+            'type' => 'boolean',
+            'description' => 'Whether content was truncated',
+          },
+
+          # === Numeric Fields ===
+
+          # TTL in seconds - INTEGER
+          'ttl' => {
+            'type' => 'integer',
+            'minimum' => 0,
+            'description' => 'Time-to-live in seconds',
+          },
+
+          # Secret TTL in seconds - INTEGER
+          'secret_ttl' => {
+            'type' => ['integer', 'null'],
+            'minimum' => 0,
+            'description' => 'Secret time-to-live in seconds',
+          },
+
+          # Receipt TTL in seconds - INTEGER
+          'receipt_ttl' => {
+            'type' => ['integer', 'null'],
+            'minimum' => 0,
+            'description' => 'Receipt time-to-live in seconds',
+          },
+
+          # Lifespan in seconds - INTEGER
+          'lifespan' => {
+            'type' => ['integer', 'null'],
+            'minimum' => 0,
+            'description' => 'TTL duration in seconds (V1 field name)',
+          },
+
+          # View count - INTEGER
+          'view_count' => {
+            'type' => 'integer',
+            'minimum' => 0,
+            'description' => 'Number of times viewed',
+          },
+
+          # === Timestamps (as numbers) ===
+
+          # Creation timestamp - NUMBER
+          'created' => {
+            'type' => 'number',
+            'description' => 'Creation timestamp (Unix epoch)',
+          },
+
+          # Last update timestamp - NUMBER
+          'updated' => {
+            'type' => 'number',
+            'description' => 'Last update timestamp (Unix epoch)',
+          },
+
+          # Shared timestamp - NUMBER (nullable)
+          'shared' => {
+            'type' => ['number', 'null'],
+            'description' => 'Timestamp when secret was shared',
+          },
+
+          # Viewed timestamp - NUMBER (nullable)
+          'viewed' => {
+            'type' => ['number', 'null'],
+            'description' => 'Timestamp when secret was previewed by owner',
+          },
+
+          # Previewed timestamp - NUMBER (nullable)
+          'previewed' => {
+            'type' => ['number', 'null'],
+            'description' => 'Timestamp when secret was previewed',
+          },
+
+          # Revealed timestamp - NUMBER (nullable)
+          'revealed' => {
+            'type' => ['number', 'null'],
+            'description' => 'Timestamp when secret was revealed',
+          },
+
+          # Received timestamp - NUMBER (nullable)
+          'received' => {
+            'type' => ['number', 'null'],
+            'description' => 'Timestamp when secret was received',
+          },
+
+          # Burned timestamp - NUMBER (nullable)
+          'burned' => {
+            'type' => ['number', 'null'],
+            'description' => 'Timestamp when secret was burned',
+          },
+
+          # Natural expiration timestamp - NUMBER (nullable)
+          'natural_expiration' => {
+            'type' => ['number', 'null'],
+            'description' => 'Natural expiration timestamp',
+          },
+
+          # Expiration timestamp - NUMBER (nullable)
+          'expiration' => {
+            'type' => ['number', 'null'],
+            'description' => 'Expiration timestamp',
+          },
+
+          # Expiration in seconds - INTEGER (nullable)
+          'expiration_in_seconds' => {
+            'type' => ['integer', 'null'],
+            'description' => 'Seconds until expiration',
+          },
+
+          # === Content Fields ===
+
+          # Optional memo/subject
+          'memo' => {
+            'type' => ['string', 'null'],
+            'description' => 'Optional memo or subject',
+          },
+
+          # Full secret key reference
+          'secret_key' => {
+            'type' => ['string', 'null'],
+            'description' => 'Full secret key reference',
+          },
+
+          # Passphrase indicator (backend-only, not exposed)
+          'passphrase' => {
+            'type' => ['string', 'null'],
+            'description' => 'Passphrase hash (backend-only)',
+          },
+
+          # Temporary passphrase indicator
+          'passphrase_temp' => {
+            'type' => ['string', 'null'],
+            'description' => 'Temporary passphrase indicator',
+          },
+
+          # === Migration Tracking ===
+
           # Original V1 custid (email) preserved for audit
           'v1_custid' => {
-            'type' => 'string',
+            'type' => ['string', 'null'],
             'description' => 'Original V1 customer identifier (email)',
           },
 
@@ -78,146 +313,25 @@ module Migration
             'description' => 'Original V1 Redis key',
           },
 
-          # Migration tracking
+          # Migration status
           'migration_status' => {
             'type' => 'string',
             'enum' => %w[pending completed failed],
             'description' => 'Migration status',
           },
+
+          # Migration timestamp - NUMBER
           'migrated_at' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Migration timestamp (epoch float as string)',
+            'type' => 'number',
+            'description' => 'Migration timestamp (Unix epoch float)',
           },
 
-          # Lifecycle state (preserved from V1)
-          'state' => {
-            'type' => 'string',
-            'enum' => %w[new viewed received burned],
-            'description' => 'Receipt/secret lifecycle state',
-          },
+          # === Deprecated Fields ===
 
-          # Short key for display
+          # V1 field name for secret_shortid
           'secret_shortkey' => {
             'type' => 'string',
-            'description' => 'Short version of secret key for display',
-          },
-
-          # Recipients (preserved from V1)
-          'recipients' => {
-            'type' => 'string',
-            'description' => 'Comma-separated recipient emails',
-          },
-
-          # Timestamps (carried forward)
-          'created' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Creation timestamp (epoch float as string)',
-          },
-          'updated' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Last update timestamp (epoch float as string)',
-          },
-
-          # Passphrase indicator
-          'passphrase_temp' => {
-            'type' => 'string',
-            'description' => 'Temporary passphrase indicator',
-          },
-
-          # Original share domain FQDN (preserved for audit)
-          'share_domain' => {
-            'type' => 'string',
-            'description' => 'Custom domain FQDN used for sharing',
-          },
-
-          # TTL in seconds
-          'ttl' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'Time-to-live in seconds',
-          },
-
-          # View count
-          'view_count' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'Number of times viewed',
-          },
-
-          # Received timestamp
-          'received' => {
-            'type' => 'string',
-            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
-            'description' => 'Timestamp when secret was received',
-          },
-
-          # Burned timestamp
-          'burned' => {
-            'type' => 'string',
-            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
-            'description' => 'Timestamp when secret was burned (destroyed by owner)',
-          },
-
-          # TTL duration set when created
-          'lifespan' => {
-            'type' => 'string',
-            'pattern' => '^(\\d+)?$',  # Allow empty string
-            'description' => 'TTL duration in seconds (V1 field name)',
-          },
-
-          # Optional memo/subject for incoming secrets
-          'memo' => {
-            'type' => 'string',
-            'description' => 'Optional memo or subject for incoming secrets',
-          },
-
-          # Passphrase indicator/value
-          'passphrase' => {
-            'type' => 'string',
-            'description' => 'Passphrase indicator or encrypted value',
-          },
-
-          # Full secret key reference
-          'secret_key' => {
-            'type' => 'string',
-            'description' => 'Full secret key reference',
-          },
-
-          # Time-to-live in seconds for the secret
-          'secret_ttl' => {
-            'type' => 'string',
-            'pattern' => '^(\\d+)?$',  # Allow empty string
-            'description' => 'Time-to-live in seconds for the secret',
-          },
-
-          # Shared timestamp
-          'shared' => {
-            'type' => 'string',
-            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
-            'description' => 'Timestamp when secret was shared',
-          },
-
-          # Receipt token/identifier
-          'token' => {
-            'type' => 'string',
-            'description' => 'Receipt token/identifier',
-          },
-
-          # Truncation indicator
-          'truncate' => {
-            'type' => 'string',
-            'enum' => ['true', 'false', '0', '1', ''],  # Allow empty string
-            'description' => 'Whether content was truncated',
-          },
-
-          # Viewed timestamp (by owner)
-          'viewed' => {
-            'type' => 'string',
-            'pattern' => '^(\\d+(\\.\\d+)?)?$',  # Allow empty string
-            'description' => 'Timestamp when secret was previewed by owner',
+            'description' => 'Deprecated: Use secret_shortid instead',
           },
         },
         'additionalProperties' => true,

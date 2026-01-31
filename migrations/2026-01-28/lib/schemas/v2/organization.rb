@@ -10,15 +10,25 @@ module Migration
       # JSON Schema for V2 organization data (newly generated records).
       #
       # Organizations are NEW in V2 - one is created per Customer.
-      # All values are strings since Redis hashes only store strings.
+      #
+      # V2 uses Familia's JSON serialization, so field values are stored as JSON
+      # primitives in Redis. When deserialized, they become native Ruby/JSON types:
+      # - Booleans: true/false (not strings "true"/"false")
+      # - Numbers: integers and floats (not string representations)
+      # - Strings: regular strings
+      #
+      # The Zod schema in src/types/organization.ts is the source of truth
+      # for frontend field expectations.
       #
       ORGANIZATION = {
         '$schema' => 'http://json-schema.org/draft-07/schema#',
         'title' => 'Organization V2',
-        'description' => 'V2 organization record generated during migration',
+        'description' => 'V2 organization record with JSON-serialized field values',
         'type' => 'object',
-        'required' => %w[objid owner_id contact_email is_default migration_status migrated_at],
+        'required' => %w[objid owner_id is_default migration_status migrated_at],
         'properties' => {
+          # === Identity Fields ===
+
           # Primary identifier (UUIDv7)
           'objid' => {
             'type' => 'string',
@@ -26,104 +36,143 @@ module Migration
             'description' => 'Object identifier (UUIDv7)',
           },
 
-          # External identifier for URLs
+          # External identifier for URLs (matches Zod: extid)
           'extid' => {
             'type' => 'string',
             'pattern' => '^on[0-9a-zA-Z]+$',
             'description' => 'External identifier for URL paths',
           },
 
-          # Display name for UI
+          # === Organization Details ===
+
+          # Display name for UI (matches Zod: display_name)
           'display_name' => {
             'type' => 'string',
+            'minLength' => 1,
+            'maxLength' => 100,
             'description' => 'Human-readable display name',
           },
 
-          # Optional description
+          # Optional description (matches Zod: description - nullable)
           'description' => {
             'type' => ['string', 'null'],
+            'maxLength' => 500,
             'description' => 'Organization description',
           },
 
-          # Owner customer objid
+          # === Ownership ===
+
+          # Owner customer objid (UUIDv7)
           'owner_id' => {
             'type' => 'string',
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
             'description' => 'Owner customer objid (UUIDv7)',
           },
 
-          # Contact email (from customer)
+          # === Contact Information ===
+
+          # Contact email - nullable (matches Zod: contact_email)
           'contact_email' => {
-            'type' => 'string',
+            'type' => ['string', 'null'],
+            'format' => 'email',
             'description' => 'Primary contact email',
           },
 
           # Billing email
           'billing_email' => {
-            'type' => 'string',
+            'type' => ['string', 'null'],
+            'format' => 'email',
             'description' => 'Billing contact email',
           },
 
-          # Default organization flag
+          # === Organization Settings ===
+
+          # Default organization flag - BOOLEAN (matches Zod: is_default)
           'is_default' => {
-            'type' => 'string',
-            'enum' => %w[true false],
+            'type' => 'boolean',
             'description' => 'Whether this is the default organization',
           },
 
-          # Plan identifier
+          # Plan identifier (matches Zod: planid - nullable)
           'planid' => {
-            'type' => 'string',
+            'type' => ['string', 'null'],
             'description' => 'Subscription plan identifier',
           },
 
-          # Timestamps
+          # === Timestamps (as numbers) ===
+
+          # Creation timestamp - NUMBER (matches Zod: created_at transform)
           'created' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Creation timestamp (epoch float as string)',
-          },
-          'updated' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Last update timestamp (epoch float as string)',
+            'type' => 'number',
+            'description' => 'Creation timestamp (Unix epoch float)',
           },
 
-          # Stripe identifiers (inherited from customer, empty string allowed for unset)
+          # Last update timestamp - NUMBER (matches Zod: updated_at transform)
+          'updated' => {
+            'type' => 'number',
+            'description' => 'Last update timestamp (Unix epoch float)',
+          },
+
+          # === Stripe Integration ===
+
+          # Stripe customer ID (nullable for orgs without billing)
           'stripe_customer_id' => {
-            'type' => 'string',
-            'pattern' => '^(cus_.*|)$',
+            'type' => ['string', 'null'],
+            'pattern' => '^cus_',
             'description' => 'Stripe customer identifier',
           },
+
+          # Stripe subscription ID (nullable)
           'stripe_subscription_id' => {
-            'type' => 'string',
-            'pattern' => '^(sub_.*|)$',
+            'type' => ['string', 'null'],
+            'pattern' => '^sub_',
             'description' => 'Stripe subscription identifier',
           },
+
+          # Stripe checkout email
           'stripe_checkout_email' => {
-            'type' => 'string',
+            'type' => ['string', 'null'],
             'description' => 'Stripe checkout email',
           },
 
-          # Migration tracking
+          # Subscription status (from Stripe)
+          'subscription_status' => {
+            'type' => ['string', 'null'],
+            'description' => 'Stripe subscription status',
+          },
+
+          # Subscription period end timestamp
+          'subscription_period_end' => {
+            'type' => ['number', 'null'],
+            'description' => 'Subscription period end (Unix epoch)',
+          },
+
+          # === Migration Tracking ===
+
+          # Original V1 customer Redis key
           'v1_identifier' => {
             'type' => 'string',
             'pattern' => '^customer:.+:object$',
             'description' => 'Original V1 customer Redis key (source of this org)',
           },
+
+          # Original V1 customer identifier
           'v1_source_custid' => {
             'type' => 'string',
             'description' => 'Original V1 customer identifier (email)',
           },
+
+          # Migration status
           'migration_status' => {
             'type' => 'string',
             'enum' => %w[pending completed failed],
             'description' => 'Migration status',
           },
+
+          # Migration timestamp - NUMBER
           'migrated_at' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Migration timestamp (epoch float as string)',
+            'type' => 'number',
+            'description' => 'Migration timestamp (Unix epoch float)',
           },
         },
         'additionalProperties' => true,

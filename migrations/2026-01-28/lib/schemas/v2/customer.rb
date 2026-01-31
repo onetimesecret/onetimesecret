@@ -12,14 +12,25 @@ module Migration
       # V2 customers use UUIDv7 objid as custid, have extid for URLs,
       # and include migration tracking fields.
       #
+      # V2 uses Familia's JSON serialization, so field values are stored as JSON
+      # primitives in Redis. When deserialized, they become native Ruby/JSON types:
+      # - Booleans: true/false (not strings "true"/"false")
+      # - Numbers: integers and floats (not string representations)
+      # - Strings: regular strings
+      #
+      # The Zod schema in src/schemas/models/customer.ts is the source of truth
+      # for frontend field expectations.
+      #
       CUSTOMER = {
         '$schema' => 'http://json-schema.org/draft-07/schema#',
         'title' => 'Customer V2',
-        'description' => 'V2 customer record after migration transformation',
+        'description' => 'V2 customer record with JSON-serialized field values',
         'type' => 'object',
-        'required' => %w[objid custid migration_status migrated_at],
+        'required' => %w[objid custid email migration_status migrated_at],
         'properties' => {
-          # New primary identifier (UUIDv7)
+          # === Identity Fields ===
+
+          # Primary identifier (UUIDv7)
           'objid' => {
             'type' => 'string',
             'pattern' => '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
@@ -33,12 +44,158 @@ module Migration
             'description' => 'External identifier for URL paths',
           },
 
-          # Customer ID (now equals objid in V2)
+          # Customer ID (equals objid in V2)
           'custid' => {
             'type' => 'string',
-            'minLength' => 1,
             'description' => 'Customer identifier (objid in V2)',
           },
+
+          # === Contact & Auth ===
+
+          # Email address
+          'email' => {
+            'type' => 'string',
+            'format' => 'email',
+            'description' => 'Email address',
+          },
+
+          # User role
+          'role' => {
+            'type' => 'string',
+            'enum' => %w[customer colonel recipient anonymous user_deleted_self],
+            'description' => 'User role',
+          },
+
+          # Email verification status - BOOLEAN
+          'verified' => {
+            'type' => 'boolean',
+            'description' => 'Whether email has been verified',
+          },
+
+          # Account active status - BOOLEAN
+          'active' => {
+            'type' => 'boolean',
+            'description' => 'Whether account is active',
+          },
+
+          # Locale preference
+          'locale' => {
+            'type' => 'string',
+            'description' => 'User locale preference',
+          },
+
+          # === Authentication (backend-only, not exposed to frontend) ===
+
+          # API token
+          'apitoken' => {
+            'type' => ['string', 'null'],
+            'description' => 'API authentication token',
+          },
+
+          # Passphrase (hashed)
+          'passphrase' => {
+            'type' => ['string', 'null'],
+            'description' => 'Hashed authentication passphrase',
+          },
+
+          # Hash algorithm indicator - INTEGER
+          'passphrase_encryption' => {
+            'type' => 'integer',
+            'enum' => [1, 2],
+            'description' => 'Passphrase hash algorithm (1=bcrypt, 2=argon2)',
+          },
+
+          # === Plan & Billing ===
+
+          # Plan identifier
+          'planid' => {
+            'type' => 'string',
+            'description' => 'Subscription plan identifier',
+          },
+
+          # Stripe customer ID (nullable)
+          'stripe_customer_id' => {
+            'type' => ['string', 'null'],
+            'pattern' => '^cus_',
+            'description' => 'Stripe customer identifier',
+          },
+
+          # Stripe subscription ID (nullable)
+          'stripe_subscription_id' => {
+            'type' => ['string', 'null'],
+            'pattern' => '^sub_',
+            'description' => 'Stripe subscription identifier',
+          },
+
+          # Stripe checkout email
+          'stripe_checkout_email' => {
+            'type' => ['string', 'null'],
+            'description' => 'Stripe checkout email',
+          },
+
+          # === Counters (as integers) ===
+
+          # Secrets created count - INTEGER
+          'secrets_created' => {
+            'type' => 'integer',
+            'minimum' => 0,
+            'description' => 'Total secrets created',
+          },
+
+          # Secrets burned count - INTEGER
+          'secrets_burned' => {
+            'type' => 'integer',
+            'minimum' => 0,
+            'description' => 'Number of secrets burned',
+          },
+
+          # Secrets shared count - INTEGER
+          'secrets_shared' => {
+            'type' => 'integer',
+            'minimum' => 0,
+            'description' => 'Number of secrets shared',
+          },
+
+          # Emails sent count - INTEGER
+          'emails_sent' => {
+            'type' => 'integer',
+            'minimum' => 0,
+            'description' => 'Number of emails sent',
+          },
+
+          # Contributor flag - BOOLEAN
+          'contributor' => {
+            'type' => 'boolean',
+            'description' => 'Whether user is a contributor',
+          },
+
+          # Notify on reveal preference - BOOLEAN
+          'notify_on_reveal' => {
+            'type' => 'boolean',
+            'description' => 'Whether to notify user on secret reveal',
+          },
+
+          # === Timestamps (as numbers) ===
+
+          # Creation timestamp - NUMBER
+          'created' => {
+            'type' => 'number',
+            'description' => 'Account creation timestamp (Unix epoch)',
+          },
+
+          # Last update timestamp - NUMBER
+          'updated' => {
+            'type' => 'number',
+            'description' => 'Last update timestamp (Unix epoch)',
+          },
+
+          # Last login timestamp - NUMBER (nullable for never logged in)
+          'last_login' => {
+            'type' => ['number', 'null'],
+            'description' => 'Last login timestamp (Unix epoch)',
+          },
+
+          # === Migration Tracking ===
 
           # Original V1 custid (email) preserved for lookup
           'v1_custid' => {
@@ -53,135 +210,32 @@ module Migration
             'description' => 'Original V1 Redis key',
           },
 
-          # Migration tracking
+          # Migration status
           'migration_status' => {
             'type' => 'string',
             'enum' => %w[pending completed failed],
             'description' => 'Migration status',
           },
+
+          # Migration timestamp - NUMBER
           'migrated_at' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Migration timestamp (epoch float as string)',
+            'type' => 'number',
+            'description' => 'Migration timestamp (Unix epoch float)',
           },
 
-          # Email (may differ from v1_custid if normalized)
-          'email' => {
+          # === Deprecated Fields (preserved for compatibility) ===
+
+          # V1 key field (duplicate of v1_custid)
+          'key' => {
             'type' => 'string',
-            'description' => 'Email address',
+            'description' => 'Deprecated: V1 key field',
           },
 
-          # Timestamps (carried forward)
-          'created' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Creation timestamp (epoch float as string)',
+          # Session ID (deprecated)
+          'sessid' => {
+            'type' => ['string', 'null'],
+            'description' => 'Deprecated: Session ID',
           },
-          'updated' => {
-            'type' => 'string',
-            'pattern' => '^\\d+(\\.\\d+)?$',
-            'description' => 'Last update timestamp (epoch float as string)',
-          },
-
-          # Role
-          'role' => {
-            'type' => 'string',
-            'enum' => %w[customer colonel recipient anonymous],
-            'description' => 'User role',
-          },
-
-          # Verification status
-          'verified' => {
-            'type' => 'string',
-            'enum' => %w[true false 0 1],
-            'description' => 'Email verification status',
-          },
-
-          # Plan identifier
-          'planid' => {
-            'type' => 'string',
-            'description' => 'Subscription plan identifier',
-          },
-
-          # Stripe identifiers (empty string allowed for unset)
-          'stripe_customer_id' => {
-            'type' => 'string',
-            'pattern' => '^(cus_.*|)$',
-            'description' => 'Stripe customer identifier',
-          },
-          'stripe_subscription_id' => {
-            'type' => 'string',
-            'pattern' => '^(sub_.*|)$',
-            'description' => 'Stripe subscription identifier',
-          },
-
-          # Locale
-          'locale' => {
-            'type' => 'string',
-            'description' => 'User locale preference',
-          },
-
-          # API token
-          'apitoken' => {
-            'type' => 'string',
-            'description' => 'API authentication token',
-          },
-
-          # Passphrase (hashed)
-          'passphrase' => {
-            'type' => 'string',
-            'description' => 'Hashed authentication passphrase',
-          },
-
-          # Last login timestamp (empty string allowed for never logged in)
-          'last_login' => {
-            'type' => 'string',
-            'pattern' => '^(\\d+(\\.\\d+)?|)$',
-            'description' => 'Last login timestamp (epoch float as string)',
-          },
-
-          # Secret count
-          'secrets_created' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'Total secrets created (integer as string)',
-          },
-
-          # Active status
-          'active' => {
-            'type' => 'string',
-            'enum' => %w[true false 0 1],
-            'description' => 'Account active status',
-          },
-
-          # Counter: emails sent
-          'emails_sent' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'Number of emails sent (integer as string)',
-          },
-
-          # Hash algorithm indicator
-          'passphrase_encryption' => {
-            'type' => 'string',
-            'enum' => %w[1 2],
-            'description' => 'Passphrase hash algorithm (1=bcrypt, 2=argon2)',
-          },
-
-          # Counter: secrets burned
-          'secrets_burned' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'Number of secrets burned (integer as string)',
-          },
-
-          # Counter: secrets shared
-          'secrets_shared' => {
-            'type' => 'string',
-            'pattern' => '^\\d+$',
-            'description' => 'Number of secrets shared (integer as string)',
-          },
-
         },
         'additionalProperties' => true,
       }.freeze
