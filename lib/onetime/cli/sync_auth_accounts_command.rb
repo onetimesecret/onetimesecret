@@ -119,6 +119,7 @@ module Onetime
         stats = {
           total: 0,
           skipped_anonymous: 0,
+          skipped_system: 0,
           skipped_existing: 0,
           created: 0,
           linked: 0,
@@ -141,6 +142,25 @@ module Onetime
               stats[:skipped_anonymous] += 1
               if verbose_level > 0
                 puts "  [#{idx+1}/#{total_customers}] Skipping anonymous: #{customer.custid}"
+              end
+              next
+            end
+
+            # Skip system customers (GLOBAL, etc.) - check both custid and email
+            # because migrated data may have GLOBAL as the email value
+            if customer.global? || customer.email.to_s.upcase == 'GLOBAL'
+              stats[:skipped_system] += 1
+              if verbose_level > 0
+                puts "  [#{idx+1}/#{total_customers}] Skipping system: #{customer.custid}"
+              end
+              next
+            end
+
+            # Skip customers without valid email format
+            unless customer.email.to_s.include?('@')
+              stats[:skipped_system] += 1
+              if verbose_level > 0
+                puts "  [#{idx+1}/#{total_customers}] Skipping invalid email: #{customer.email}"
               end
               next
             end
@@ -195,15 +215,15 @@ module Onetime
             end
 
             # Progress indicator for non-verbose mode
-            if verbose_level == 0 && (stats[:total] % 10 == 0)
+            if verbose_level == 0 && (stats[:total] % 100 == 0)
               print "\r  Progress: #{stats[:total]}/#{total_customers} customers processed"
             end
           rescue StandardError => ex
-            error_msg = "#{obscure_email(customer&.email || custid)}: #{ex.message}"
+            error_msg = "#{obscure_email(customer&.email || objid)}: #{ex.message}"
             stats[:errors] << error_msg
 
             puts "  [#{idx+1}/#{total_customers}] ❌ Error: #{error_msg}"
-            OT.le "Sync error for #{custid}: #{ex.message}"
+            OT.le "Sync error for #{objid}: #{ex.message}"
             OT.ld ex.backtrace.join("\n") if verbose_level > 1
           end
         end
@@ -218,6 +238,7 @@ module Onetime
         puts "\nStatistics:"
         puts "  Total customers:     #{stats[:total]}"
         puts "  Skipped (anonymous): #{stats[:skipped_anonymous]}"
+        puts "  Skipped (system):    #{stats[:skipped_system]}"
         puts "  Skipped (existing):  #{stats[:skipped_existing]}"
         puts "  Linked:              #{stats[:linked]}"
         puts "  Created:             #{stats[:created]}"
