@@ -1,6 +1,9 @@
 # Ignore generated locale files (they are generated from locales/content/)
 locales/*.json
 
+# Ignore generated JSON Schema files (they are generated from src/schemas/)
+schemas/
+
 # Keep this directory in git
 !.gitkeep
 !.gitignore
