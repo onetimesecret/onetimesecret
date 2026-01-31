@@ -3,16 +3,25 @@
 /**
  * Organization management type definitions
  * Used across organization components, stores, and views
+ *
+ * Note: Zod schemas are defined in @/schemas/models/organization
+ * and re-exported here for backward compatibility.
  */
 
-import { z } from 'zod';
+import type { z } from 'zod';
 
-import {
-  ExtId,
-  ObjId,
-  lenientExtIdSchema,
-  lenientObjIdSchema,
-} from './identifiers';
+import type { ExtId, ObjId } from './identifiers';
+
+// Re-export schemas from canonical location for backward compatibility
+export {
+  createInvitationPayloadSchema,
+  createOrganizationPayloadSchema,
+  organizationInvitationSchema,
+  organizationMemberSchema,
+  organizationSchema,
+  updateMemberRolePayloadSchema,
+  updateOrganizationPayloadSchema,
+} from '@/schemas/models/organization';
 
 /**
  * Organization entitlement constants
@@ -99,58 +108,19 @@ export interface Organization {
 }
 
 /**
- * Zod schemas for validation
- */
-
-export const organizationSchema = z.object({
-  // Use lenient schemas during migration - accepts any string but brands the output
-  id: lenientObjIdSchema,
-  extid: lenientExtIdSchema,
-  display_name: z.string().min(1).max(100),
-  description: z.string().max(500).nullish(),
-  contact_email: z.email().nullish(),
-  is_default: z.preprocess((v) => v ?? false, z.boolean()),
-  created_at: z.number().transform((val) => new Date(val * 1000)),
-  updated_at: z.number().transform((val) => new Date(val * 1000)),
-  owner_extid: lenientExtIdSchema.nullish(),
-  member_count: z.number().int().min(0).nullish(),
-  current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
-  planid: z.string().nullish(),
-  entitlements: z.array(z.string() as z.ZodType<Entitlement>).nullish(),
-  limits: z
-    .object({
-      teams: z.number().optional(),
-      members_per_team: z.number().optional(),
-      custom_domains: z.number().optional(),
-    })
-    .nullish(),
-  domain_count: z.number().int().min(0).nullish(),
-});
-
-/**
- * Request payload schemas
- */
-
-export const createOrganizationPayloadSchema = z.object({
-  display_name: z
-    .string()
-    .min(1, 'Organization name is required')
-    .max(100, 'Organization name is too long'),
-  description: z.string().max(500, 'Description is too long').optional(),
-  contact_email: z.email('Valid email required').optional(),
-});
-
-export const updateOrganizationPayloadSchema = z.object({
-  display_name: z.string().min(1).max(100).optional(),
-  description: z.string().max(500).optional(),
-  billing_email: z.email('Valid email required').optional(),
-});
-
-/**
  * Type exports from schemas
  */
+import type {
+  createInvitationPayloadSchema,
+  createOrganizationPayloadSchema,
+  updateMemberRolePayloadSchema,
+  updateOrganizationPayloadSchema,
+} from '@/schemas/models/organization';
+
 export type CreateOrganizationPayload = z.infer<typeof createOrganizationPayloadSchema>;
 export type UpdateOrganizationPayload = z.infer<typeof updateOrganizationPayloadSchema>;
+export type CreateInvitationPayload = z.infer<typeof createInvitationPayloadSchema>;
+export type UpdateMemberRolePayload = z.infer<typeof updateMemberRolePayloadSchema>;
 
 /**
  * Organization invitation status constants
@@ -186,29 +156,6 @@ export interface OrganizationInvitation {
 }
 
 /**
- * Organization invitation schemas
- */
-export const organizationInvitationSchema = z.object({
-  id: lenientObjIdSchema,
-  organization_id: lenientExtIdSchema, // Backend returns org.extid
-  email: z.email(),
-  role: z.enum(['member', 'admin']),
-  status: z.enum(['pending', 'accepted', 'declined', 'expired']),
-  invited_by: lenientObjIdSchema,
-  invited_at: z.number(),
-  expires_at: z.number(),
-  resend_count: z.number().int().min(0),
-  token: z.string().optional(),
-});
-
-export const createInvitationPayloadSchema = z.object({
-  email: z.email('Valid email required'),
-  role: z.enum(['member', 'admin']),
-});
-
-export type CreateInvitationPayload = z.infer<typeof createInvitationPayloadSchema>;
-
-/**
  * Display helpers
  */
 
@@ -230,26 +177,3 @@ export interface OrganizationMember {
   is_owner: boolean;
   is_current_user: boolean;
 }
-
-/**
- * Organization member schema
- *
- * Validates response from GET /api/organizations/:extid/members
- */
-export const organizationMemberSchema = z.object({
-  extid: lenientExtIdSchema,
-  email: z.email(),
-  role: z.enum(['owner', 'admin', 'member']),
-  joined_at: z.number(),
-  is_owner: z.boolean(),
-  is_current_user: z.boolean(),
-});
-
-/**
- * Update member role payload schema
- */
-export const updateMemberRolePayloadSchema = z.object({
-  role: z.enum(['admin', 'member']),
-});
-
-export type UpdateMemberRolePayload = z.infer<typeof updateMemberRolePayloadSchema>;
