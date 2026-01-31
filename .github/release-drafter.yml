@@ -57,6 +57,10 @@ categories:
       - 'ruby'
       - 'typescript'
       - 'javascript'
+  - title: 'AI Assistance'
+    labels:
+      - 'ai'
+      - 'ai-assistance'
 
 # Exclude certain labels from release notes
 exclude-labels:
@@ -71,13 +75,13 @@ autolabeler:
       - 'docs/**/*'
   - label: 'bug'
     branch:
-      - '/fix\/.+/'
-      - '/bugfix\/.+/'
-      - '/hotfix\/.+/'
+      - 'fix\/.+'
+      - 'bugfix\/.+'
+      - 'hotfix\/.+'
   - label: 'feature'
     branch:
-      - '/feature\/.+/'
-      - '/feat\/.+/'
+      - 'feature\/.+'
+      - 'feat\/.+'
   - label: 'github_actions'
     files:
       - '.github/workflows/**/*'
