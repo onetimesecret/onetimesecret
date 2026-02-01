@@ -24,7 +24,7 @@
 #   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
-# Output: receipts_transformed.jsonl with V2 records in Redis DUMP format.
+# Output: receipt_transformed.jsonl with V2 records in Redis DUMP format.
 #
 # Required index files (from prior migration phases):
 #   - results/customer/customer_indexes.jsonl (email -> customer_objid)
@@ -351,7 +351,7 @@ class ReceiptTransformer
 
   def write_output(records)
     FileUtils.mkdir_p(@output_dir)
-    output_file = File.join(@output_dir, 'receipts_transformed.jsonl')
+    output_file = File.join(@output_dir, 'receipt_transformed.jsonl')
 
     File.open(output_file, 'w') do |f|
       records.each do |record|
@@ -456,7 +456,7 @@ def parse_args(args)
           --dry-run           Parse and count without writing output
           --help              Show this help
 
-        Output file: receipts_transformed.jsonl
+        Output file: receipt_transformed.jsonl
 
         Required index files (loaded automatically from exports-dir):
           - customer/customer_indexes.jsonl

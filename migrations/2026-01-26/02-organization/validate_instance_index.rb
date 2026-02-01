@@ -15,7 +15,7 @@
 #   ruby scripts/migrations/2026-01-26/02-organization/validate_instance_index.rb [OPTIONS]
 #
 # Options:
-#   --org-input-file=FILE       Input org JSONL dump (default: results/organization/organization_generated.jsonl)
+#   --org-input-file=FILE       Input org JSONL dump (default: results/organization/organization_transformed.jsonl)
 #   --customer-input-file=FILE  Input customer JSONL dump (default: results/customer/customer_dump.jsonl)
 #   --redis-url=URL             Redis URL for temp restore (default: redis://127.0.0.1:6379)
 #   --temp-db=N                 Temp database number (default: 15)
@@ -200,7 +200,7 @@ end
 
 def parse_args(args)
   options = {
-    org_input_file: 'results/organization/organization_generated.jsonl',
+    org_input_file: 'results/organization/organization_transformed.jsonl',
     customer_input_file: 'results/customer/customer_dump.jsonl',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
@@ -223,7 +223,7 @@ def parse_args(args)
         Validates organization:instances index against v1 customer records and v2 organization objects.
 
         Options:
-          --org-input-file=FILE       Input org JSONL dump (default: results/organization/organization_generated.jsonl)
+          --org-input-file=FILE       Input org JSONL dump (default: results/organization/organization_transformed.jsonl)
           --customer-input-file=FILE  Input customer JSONL dump (default: results/customer/customer_dump.jsonl)
           --redis-url=URL             Redis URL for temp restore (default: redis://127.0.0.1:6379)
           --temp-db=N                 Temp database number (default: 15)

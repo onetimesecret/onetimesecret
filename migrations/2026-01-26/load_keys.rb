@@ -28,11 +28,11 @@ require 'base64'
 class KeyLoader
   # Models in dependency order with their target databases
   MODELS = {
-    'customer' => { db: 6 },
-    'organization' => { db: 6 },
-    'customdomain' => { db: 6 },
-    'receipt' => { db: 7 },
-    'secret' => { db: 8 },
+    'customer' => { db: 0 },
+    'organization' => { db: 0 },
+    'customdomain' => { db: 0 },
+    'receipt' => { db: 0, dir: 'metadata' },
+    'secret' => { db: 0 },
   }.freeze
 
   VALID_COMMANDS = %w[ZADD HSET SADD INCRBY].freeze
@@ -72,7 +72,8 @@ class KeyLoader
     puts
 
     models_to_load.each do |model_name|
-      load_model(model_name)
+      dir_override = MODELS[model_name][:dir]
+      load_model(model_name, dir_override)
     end
 
     print_summary
@@ -114,9 +115,10 @@ class KeyLoader
     parts.join(', ')
   end
 
-  def load_model(model_name)
-    puts "=== Loading #{model_name} ==="
-    model_dir = File.join(@input_dir, model_name)
+  def load_model(model_name, dir_name=nil)
+    dir_name ||= model_name
+    puts "=== Loading #{model_name} (via #{dir_name}) ==="
+    model_dir = File.join(@input_dir, dir_name)
 
     unless Dir.exist?(model_dir)
       puts "  Skipping: directory not found (#{model_dir})"

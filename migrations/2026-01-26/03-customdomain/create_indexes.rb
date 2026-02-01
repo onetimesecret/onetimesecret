@@ -17,12 +17,12 @@
 #   --dry-run               Parse and count without writing output
 #
 # Output: customdomain_indexes.jsonl with Redis commands for:
-#   - customdomain:instances (ZADD) - sorted set by created timestamp
-#   - customdomain:display_domain_index (HSET) - fqdn -> "domainid"
-#   - customdomain:display_domains (HSET) - fqdn -> "domainid" (compat)
-#   - customdomain:extid_lookup (HSET) - extid -> "domainid"
-#   - customdomain:objid_lookup (HSET) - domainid -> "domainid"
-#   - customdomain:owners (HSET) - domainid -> "org_id"
+#   - custom_domain:instances (ZADD) - sorted set by created timestamp
+#   - custom_domain:display_domain_index (HSET) - fqdn -> "domainid"
+#   - custom_domain:display_domains (HSET) - fqdn -> "domainid" (compat)
+#   - custom_domain:extid_lookup (HSET) - extid -> "domainid"
+#   - custom_domain:objid_lookup (HSET) - domainid -> "domainid"
+#   - custom_domain:owners (HSET) - domainid -> "org_id"
 #   - organization:{org_id}:domains (ZADD) - org participation
 
 require 'redis'
@@ -74,7 +74,7 @@ class CustomDomainIndexCreator
       record                 = JSON.parse(line, symbolize_names: true)
 
       case record[:key]
-      when 'customdomain:values'
+      when 'custom_domain:values'
         # Existing instance index - rename it
         commands.concat(process_instance_index(record))
       when /:object$/
@@ -159,7 +159,7 @@ class CustomDomainIndexCreator
       members_with_scores.each do |member, score|
         commands << {
           command: 'ZADD',
-          key: 'customdomain:instances',
+          key: 'custom_domain:instances',
           args: [score.to_i, member],
         }
         @stats[:instance_entries] += 1
@@ -189,7 +189,7 @@ class CustomDomainIndexCreator
     objid = record[:objid]
     extid = record[:extid]
 
-    # Extract identifier from key (customdomain:{id}:object)
+    # Extract identifier from key (custom_domain:{id}:object)
     key_parts = record[:key].split(':')
     return commands if key_parts.size < 3
 
@@ -231,7 +231,7 @@ class CustomDomainIndexCreator
       if @stats[:instance_index_source] != 'existing'
         commands << {
           command: 'ZADD',
-          key: 'customdomain:instances',
+          key: 'custom_domain:instances',
           args: [created_ts.to_i, domainid],
         }
         @stats[:instance_entries] += 1
@@ -241,12 +241,12 @@ class CustomDomainIndexCreator
       if display_domain && !display_domain.empty?
         commands << {
           command: 'HSET',
-          key: 'customdomain:display_domain_index',
+          key: 'custom_domain:display_domain_index',
           args: [display_domain, domainid.to_json],
         }
         commands << {
           command: 'HSET',
-          key: 'customdomain:display_domains',
+          key: 'custom_domain:display_domains',
           args: [display_domain, domainid.to_json],
         }
         @stats[:display_domain_lookups] += 1
@@ -256,7 +256,7 @@ class CustomDomainIndexCreator
       if extid && !extid.empty?
         commands << {
           command: 'HSET',
-          key: 'customdomain:extid_lookup',
+          key: 'custom_domain:extid_lookup',
           args: [extid, domainid.to_json],
         }
         @stats[:extid_lookups] += 1
@@ -265,7 +265,7 @@ class CustomDomainIndexCreator
       # ObjID lookup (domainid = objid for customdomain)
       commands << {
         command: 'HSET',
-        key: 'customdomain:objid_lookup',
+        key: 'custom_domain:objid_lookup',
         args: [domainid, domainid.to_json],
       }
       @stats[:objid_lookups] += 1
@@ -274,7 +274,7 @@ class CustomDomainIndexCreator
       if org_id
         commands << {
           command: 'HSET',
-          key: 'customdomain:owners',
+          key: 'custom_domain:owners',
           args: [domainid, org_id.to_json],
         }
         @stats[:owner_mappings] += 1
@@ -415,12 +415,12 @@ def parse_args(args)
         Output file: customdomain_indexes.jsonl
 
         Index commands generated:
-          ZADD customdomain:instances <score> <domainid>
-          HSET customdomain:display_domain_index <fqdn> "<domainid>"
-          HSET customdomain:display_domains <fqdn> "<domainid>"
-          HSET customdomain:extid_lookup <extid> "<domainid>"
-          HSET customdomain:objid_lookup <domainid> "<domainid>"
-          HSET customdomain:owners <domainid> "<org_id>"
+          ZADD custom_domain:instances <score> <domainid>
+          HSET custom_domain:display_domain_index <fqdn> "<domainid>"
+          HSET custom_domain:display_domains <fqdn> "<domainid>"
+          HSET custom_domain:extid_lookup <extid> "<domainid>"
+          HSET custom_domain:objid_lookup <domainid> "<domainid>"
+          HSET custom_domain:owners <domainid> "<org_id>"
           ZADD organization:{org_id}:domains <score> <domainid>
       HELP
       exit 0

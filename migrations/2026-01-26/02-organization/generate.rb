@@ -18,7 +18,7 @@
 #
 # Input: results/customer/customer_transformed.jsonl (V2 customer records)
 # Output:
-#   - results/organization/organization_generated.jsonl (V2 organization records)
+#   - results/organization/organization_transformed.jsonl (V2 organization records)
 #   - results/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
 #   - results/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
 
@@ -289,7 +289,7 @@ class OrganizationGenerator
     FileUtils.mkdir_p(@output_dir)
 
     # Write organization records JSONL
-    org_file = File.join(@output_dir, 'organization_generated.jsonl')
+    org_file = File.join(@output_dir, 'organization_transformed.jsonl')
     File.open(org_file, 'w') do |f|
       @org_records.each do |record|
         f.puts(JSON.generate(record))
@@ -357,7 +357,7 @@ def parse_args(args)
           --help              Show this help
 
         Output files:
-          organization_generated.jsonl       - V2 organization records with DUMP data
+          organization_transformed.jsonl       - V2 organization records with DUMP data
           customer_objid_to_org_objid.json   - customer_objid -> org_objid mapping
           email_to_org_objid.json            - email -> org_objid (for customdomain)
 

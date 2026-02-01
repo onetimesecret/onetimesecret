@@ -5,7 +5,7 @@
 #
 # Reads a JSONL dump file, groups records by domain, and applies transformations
 # based on the migration spec. This includes:
-# - Renaming keys from customdomain:{domainid} to custom_domain:{objid}
+# - Renaming keys from custom_domain:{domainid} to custom_domain:{objid}
 # - Transforming custid (email) -> org_id (organization objid) + owner_id (customer objid)
 # - Preserving original custid as v1_custid
 # - Creating new Redis DUMPs for transformed objects
@@ -39,7 +39,7 @@ class CustomDomainTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_domain_'
 
   # V1 index keys that should be skipped (not domain-specific records)
-  # These are 2-part keys like customdomain:owners, customdomain:display_domains
+  # These are 2-part keys like custom_domain:owners, custom_domain:display_domains
   V1_INDEX_KEYS = %w[owners display_domains instances values].freeze
 
   # Fields to copy directly without transformation
@@ -198,12 +198,12 @@ class CustomDomainTransformer
       key = record[:key]
       next unless key
 
-      # Parse key parts: customdomain:{identifier}:{type} or customdomain:{identifier}
+      # Parse key parts: custom_domain:{identifier}:{type} or custom_domain:{identifier}
       key_parts = key.split(':')
       next unless key_parts.first == 'customdomain' && key_parts.size >= 2
 
       # Skip V1 index keys (2-part keys where second part is an index name)
-      # e.g., customdomain:owners, customdomain:display_domains, customdomain:values
+      # e.g., custom_domain:owners, custom_domain:display_domains, custom_domain:values
       if key_parts.size == 2 && V1_INDEX_KEYS.include?(key_parts[1])
         # Store instance indexes for later processing if needed
         groups['__instance_index__'] << record if key_parts[1] == 'values'
@@ -339,7 +339,7 @@ class CustomDomainTransformer
   def rename_related_records(records, objid)
     records.map do |record|
       v2_record = record.dup
-      key_parts = record[:key].split(':')  # customdomain:{domainid}:{type}
+      key_parts = record[:key].split(':')  # custom_domain:{domainid}:{type}
 
       # Get the data type (brand, logo, icon, etc.)
       data_type = key_parts.last
@@ -543,7 +543,7 @@ def parse_args(args)
           Requires Phase 1 (Customer) and Phase 2 (Organization) to be complete.
 
         Key transformations:
-          - Key prefix: customdomain:{id} -> custom_domain:{objid}
+          - Key prefix: custom_domain:{id} -> custom_domain:{objid}
           - custid (email) -> org_id (organization objid) + owner_id (customer objid)
           - Preserves v1_custid for rollback
           - Renames related hashes (brand, logo, icon)

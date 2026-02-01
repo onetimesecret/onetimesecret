@@ -4,19 +4,19 @@
 # Creates Organization indexes from generated organization records.
 # Reads the output of generate.rb and produces index commands.
 #
-# Run AFTER generate.rb which creates organization_generated.jsonl
+# Run AFTER generate.rb which creates organization_transformed.jsonl
 #
 # Usage:
 #   ruby scripts/migrations/2026-01-26/02-organization/create_indexes.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL file (default: results/organization/organization_generated.jsonl)
+#   --input-file=FILE   Input JSONL file (default: results/organization/organization_transformed.jsonl)
 #   --output-dir=DIR    Output directory (default: results/organization)
 #   --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temp database for restore operations (default: 15)
 #   --dry-run           Show what would be created without writing
 #
-# Input: results/organization/organization_generated.jsonl (from generate.rb)
+# Input: results/organization/organization_transformed.jsonl (from generate.rb)
 # Output: results/organization/organization_indexes.jsonl (Redis commands)
 
 require 'json'
@@ -264,7 +264,7 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/organization/organization_generated.jsonl',
+    input_file: 'results/organization/organization_transformed.jsonl',
     output_dir: 'results/organization',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
@@ -283,10 +283,10 @@ def parse_args(args)
         Usage: ruby #{__FILE__} [OPTIONS]
 
         Creates Organization indexes from generated organization records.
-        Run AFTER generate.rb which creates organization_generated.jsonl.
+        Run AFTER generate.rb which creates organization_transformed.jsonl.
 
         Options:
-          --input-file=FILE   Input JSONL (default: results/organization/organization_generated.jsonl)
+          --input-file=FILE   Input JSONL (default: results/organization/organization_transformed.jsonl)
           --output-dir=DIR    Output directory (default: results/organization)
           --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)

@@ -71,12 +71,12 @@ class OriginalRecordEnricher
       # NOTE: metadata becomes receipt, but dump file is still metadata
       # The transformed file lives in results/metadata/ with plural name
       dump_file: 'metadata_dump.jsonl',
-      transformed_file: 'receipts_transformed.jsonl',
+      transformed_file: 'receipt_transformed.jsonl',
       binary_safe: false,
     },
     'secret' => {
       dump_file: 'secret_dump.jsonl',
-      transformed_file: 'secrets_transformed.jsonl',
+      transformed_file: 'secret_transformed.jsonl',
       binary_safe: true,
     },
   }.freeze
