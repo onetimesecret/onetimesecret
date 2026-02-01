@@ -20,6 +20,7 @@
 #   bundle exec ruby migrations/2026-01-31/04_receipt_migration.rb --run     # Actual run
 
 require 'bundler/setup'
+require 'familia/migration'
 
 # Only boot if running directly (not via bin/ots migrate)
 unless defined?(Onetime::CLI)

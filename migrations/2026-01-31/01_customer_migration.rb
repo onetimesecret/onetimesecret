@@ -17,6 +17,7 @@
 #   bundle exec ruby migrations/2026-01-31/01_customer_migration.rb --run     # Actual run
 
 require 'bundler/setup'
+require 'familia/migration'
 
 # Only boot if running directly (not via bin/ots migrate)
 unless defined?(Onetime::CLI)
@@ -46,10 +47,11 @@ module OTS
       end
 
       def migration_needed?
+        p [:PLOPPLOP]
         # Check if any customers still have email-based custid (v1 pattern)
         count = 0
-        @model_class.instances.revrangeraw(0, 100).each do |identifier|
-          cust = @model_class.load(identifier) rescue nil
+        @model_class.instances.each do |dbkey|
+          cust = @model_class.find_by_key(dbkey)
           next unless cust
 
           # v1 pattern: custid contains @ (email address)
