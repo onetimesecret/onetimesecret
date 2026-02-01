@@ -2,8 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'familia/migration'
-
 module Onetime
   module CLI
     # Migrate command using Familia::Migration infrastructure
