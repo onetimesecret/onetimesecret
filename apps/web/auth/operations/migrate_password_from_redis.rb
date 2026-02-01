@@ -83,7 +83,7 @@ module Auth
             backtrace: ex.backtrace&.first(10)&.join("\n"),
           }
 
-        failure(:error, ex.message)
+        failure(:error)
       end
 
       private
@@ -94,7 +94,7 @@ module Auth
         Onetime::Customer.find_by_email(@email)
       end
 
-      def failure(reason, _details = nil)
+      def failure(reason)
         MigrationResult.new(
           success: false,
           customer: nil,
