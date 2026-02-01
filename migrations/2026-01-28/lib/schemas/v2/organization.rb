@@ -101,7 +101,7 @@ module Migration
 
           # === Timestamps (as numbers) ===
 
-          # Creation timestamp - NUMBER (matches Zod: created_at transform)
+          # Creation timestamp - NUMBER (matches Zod: created transform)
           'created' => {
             'type' => 'number',
             'description' => 'Creation timestamp (Unix epoch float)',
@@ -196,7 +196,7 @@ Organization
 ┌─────────────────┬──────────────────────────────────────────────────┬──────────────┬─────────────────────────────────────────────────────────────────────┐
 │    Category     │                   Ruby Schema                    │   Spec.md    │                             Zod (truth)                             │
 ├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
-│ Field renames   │ objid→id, created→created_at, updated→updated_at │ Same issue   │ Uses id, created_at, updated_at                                     │
+│ Field renames   │ objid→id, created→created, updated→updated_at │ Same issue   │ Uses id, created, updated_at                                     │
 ├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
 │ Owner field     │ Has owner_id (ObjId)                             │ Has owner_id │ Expects owner_extid (ExtId)                                         │
 ├─────────────────┼──────────────────────────────────────────────────┼──────────────┼─────────────────────────────────────────────────────────────────────┤
@@ -208,7 +208,7 @@ Organization
 └─────────────────┴──────────────────────────────────────────────────┴──────────────┴─────────────────────────────────────────────────────────────────────┘
 Updates needed:
 - Ruby: Rename 3 fields, add owner_extid, fix is_default type, add computed fields
-- Spec: Rename owner_id→owner_extid, created→created_at; add updated_at, computed fields
+- Spec: Rename owner_id→owner_extid, created→created; add updated_at, computed fields
 
 ---
 

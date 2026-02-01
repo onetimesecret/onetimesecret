@@ -60,8 +60,8 @@ resp = JSON.parse(last_response.body)
   resp['record'].key?('contact_email'),
   resp['record'].key?('owner_extid'),
   resp['record'].key?('member_count'),
-  resp['record'].key?('created_at'),
-  resp['record'].key?('updated_at')
+  resp['record'].key?('created'),
+  resp['record'].key?('updated')
 ]
 #=> [true, true, true, true, true, true, true, true]
 
