@@ -80,6 +80,7 @@ module Auth
           {
             email: OT::Utils.obscure_email(@email),
             error: ex.message,
+            backtrace: ex.backtrace&.first(10)&.join("\n"),
           }
 
         failure(:error, ex.message)

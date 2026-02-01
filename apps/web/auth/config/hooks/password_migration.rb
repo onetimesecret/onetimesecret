@@ -37,7 +37,15 @@ module Auth::Config::Hooks
         has_rodauth_password = begin
           # account_password_hash returns the hash if it exists, nil otherwise
           !get_password_hash.nil?
-        rescue StandardError
+        rescue StandardError => ex
+          Auth::Logging.log_auth_event(
+            :password_hash_check_error,
+            level: :error,
+            email: OT::Utils.obscure_email(account[:email]),
+            account_id: account_id,
+            error: ex.message,
+            backtrace: ex.backtrace&.first(10)&.join("\n"),
+          )
           false
         end
 
@@ -107,6 +115,7 @@ module Auth::Config::Hooks
             email: OT::Utils.obscure_email(email),
             account_id: account_id,
             error: ex.message,
+            backtrace: ex.backtrace&.first(10)&.join("\n"),
           )
           false
         end
