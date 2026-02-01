@@ -32,6 +32,8 @@ module Auth::Config::Hooks
       # Rodauth calls this to verify passwords during login. We intercept
       # to check for password migration scenarios.
       #
+      auth.include(InstanceMethods)
+
       auth.password_match? do |password|
         # Check if a password hash exists in Rodauth
         has_rodauth_password = begin
@@ -123,6 +125,3 @@ module Auth::Config::Hooks
     end
   end
 end
-
-# Register instance methods with Rodauth
-Rodauth::Auth.include(Auth::Config::Hooks::PasswordMigration::InstanceMethods)
