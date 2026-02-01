@@ -38,6 +38,7 @@ export type OrganizationRole = z.infer<typeof organizationRoleSchema>;
  * Maps to STANDALONE_ENTITLEMENTS in backend (lib/onetime/billing/catalog.rb)
  */
 export const entitlementSchema = z.enum([
+  // Core entitlements (standalone mode)
   'api_access',
   'custom_domains',
   'custom_privacy_defaults',
@@ -50,6 +51,11 @@ export const entitlementSchema = z.enum([
   'manage_teams',
   'manage_members',
   'audit_logs',
+  // Free tier entitlements (from billing.yaml free_v1 plan)
+  'create_secrets',
+  'view_receipt',
+  // Paid plan entitlements (from billing.yaml)
+  'homepage_secrets',
 ]);
 
 export type Entitlement = z.infer<typeof entitlementSchema>;
@@ -79,8 +85,9 @@ export const organizationSchema = z.object({
   description: z.string().max(500).nullish(),
   contact_email: z.email().nullish(),
   is_default: z.preprocess((v) => v ?? false, z.boolean()),
-  created: z.number().transform((val) => new Date(val * 1000)),
-  updated: z.number().transform((val) => new Date(val * 1000)),
+  // Backend returns timestamps as strings from Redis, coerce to number then Date
+  created: z.coerce.number().transform((val) => new Date(val * 1000)),
+  updated: z.coerce.number().transform((val) => new Date(val * 1000)),
   owner_extid: lenientExtIdSchema.nullish(),
   member_count: z.number().int().min(0).nullish(),
   current_user_role: organizationRoleSchema.nullish(),

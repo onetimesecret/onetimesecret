@@ -254,8 +254,8 @@ const loadBilling = async () => {
           current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
           current_period_end: new Date(overview.subscription.period_end * 1000),
           cancel_at_period_end: overview.subscription.canceled,
-          created: new Date(),
-          updated: new Date(),
+          created_at: new Date(),
+          updated_at: new Date(),
         };
         // Store plan name and features for display
         planName.value = overview.plan.name || '';
