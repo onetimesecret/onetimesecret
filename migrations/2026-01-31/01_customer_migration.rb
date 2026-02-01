@@ -47,7 +47,6 @@ module OTS
       end
 
       def migration_needed?
-        p [:PLOPPLOP]
         # Check if any customers still have email-based custid (v1 pattern)
         count = 0
         @model_class.instances.each do |dbkey|
