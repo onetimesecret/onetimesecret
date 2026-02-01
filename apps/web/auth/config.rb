@@ -87,6 +87,7 @@ module Auth
       Hooks::Login.configure(self)
       Hooks::Logout.configure(self)
       Hooks::Password.configure(self)
+      Hooks::PasswordMigration.configure(self)
       Hooks::ErrorHandling.configure(self)
       RodauthOverrides.configure(self)
 
