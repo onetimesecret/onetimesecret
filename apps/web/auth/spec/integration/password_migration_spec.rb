@@ -62,9 +62,16 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
     end
 
     # Clean up test account from Rodauth database
+    # Delete in order: child tables first, then parent
     if defined?(@test_account_id) && @test_account_id
       begin
+        # Session and security tables (reference account_id or id)
+        auth_db[:account_active_session_keys].where(account_id: @test_account_id).delete
+        auth_db[:account_login_failures].where(id: @test_account_id).delete
+        auth_db[:account_lockouts].where(id: @test_account_id).delete
+        auth_db[:account_remember_keys].where(id: @test_account_id).delete
         auth_db[:account_password_hashes].where(id: @test_account_id).delete
+        # Finally delete the account
         auth_db[:accounts].where(id: @test_account_id).delete
       rescue StandardError
         # Ignore cleanup errors
@@ -87,6 +94,29 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
 
   def reset_csrf_token
     @csrf_token = nil
+  end
+
+  # Make a login request in a fresh browser session (no shared cookies/state)
+  def login_in_fresh_session(email:, password:)
+    # Use Rack::Test's with_session to create isolated session
+    with_session('fresh_login') do
+      # Get CSRF token in fresh session
+      header 'Accept', 'application/json'
+      get '/auth'
+      csrf_token = last_response.headers['X-CSRF-Token']
+
+      # Make login request
+      header 'Content-Type', 'application/json'
+      header 'Accept', 'application/json'
+      header 'X-CSRF-Token', csrf_token if csrf_token
+      post '/auth/login', JSON.generate({
+        login: email,
+        password: password,
+        shrimp: csrf_token
+      })
+
+      last_response
+    end
   end
 
   # Helper to POST JSON with CSRF token
@@ -196,16 +226,13 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
 
         expect(password_hash_exists?(account_id)).to be true
 
-        # Reset session for fresh login
-        reset_csrf_token
-
-        # Second login should work via Rodauth directly
-        json_post_with_csrf '/auth/login', {
-          login: test_email,
+        # Second login in fresh session - uses migrated Rodauth password
+        response = login_in_fresh_session(
+          email: test_email,
           password: test_password
-        }
+        )
 
-        expect(last_response.status).to be_between(200, 399)
+        expect(response.status).to be_between(200, 399)
       end
     end
 
@@ -271,16 +298,14 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
 
         expect(last_response.status).to be_between(200, 399)
 
-        # Reset session
-        reset_csrf_token
-
-        # Login with Redis password should fail (migration not triggered)
-        json_post_with_csrf '/auth/login', {
-          login: test_email,
+        # Login with Redis password in fresh session should fail
+        # (migration not triggered because Rodauth hash already exists)
+        response = login_in_fresh_session(
+          email: test_email,
           password: 'RedisPassword123!'
-        }
+        )
 
-        expect(last_response.status).to eq(401)
+        expect(response.status).to eq(401)
       end
     end
 
