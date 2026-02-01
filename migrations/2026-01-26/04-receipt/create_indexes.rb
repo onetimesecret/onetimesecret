@@ -268,7 +268,7 @@ class ReceiptIndexCreator
       if domain_id
         commands << {
           command: 'ZADD',
-          key: "customdomain:#{domain_id}:receipts",
+          key: "custom_domain:#{domain_id}:receipts",
           args: [created.to_i, objid],
         }
         @stats[:domain_indexes] += 1
@@ -332,7 +332,7 @@ class ReceiptIndexCreator
     puts "  Lookup (receipt:objid_lookup):          #{@stats[:lookup_indexes]}"
     puts "  Customer (customer:{id}:receipts):      #{@stats[:customer_indexes]}"
     puts "  Org (organization:{id}:receipts):       #{@stats[:org_indexes]}"
-    puts "  Domain (customdomain:{id}:receipts):    #{@stats[:domain_indexes]}"
+    puts "  Domain (custom_domain:{id}:receipts):   #{@stats[:domain_indexes]}"
     puts
     puts 'Ownership:'
     puts "  Anonymous receipts: #{@stats[:anonymous_receipts]}"
@@ -431,7 +431,7 @@ def parse_args(args)
           - receipt:objid_lookup (hash: objid -> "objid" JSON)
           - customer:{owner_id}:receipts (sorted set, if not anonymous)
           - organization:{org_id}:receipts (sorted set, if owner has org)
-          - customdomain:{domain_id}:receipts (sorted set, if share_domain set)
+          - custom_domain:{domain_id}:receipts (sorted set, if share_domain set)
       HELP
       exit 0
     else
