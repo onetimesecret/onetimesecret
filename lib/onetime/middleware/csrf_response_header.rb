@@ -7,27 +7,15 @@ module Onetime
     ##
     # CsrfResponseHeader
     #
-    # Adds CSRF token to response headers after Rack::Protection::JsonCsrf
-    # validates the request.
+    # Adds CSRF token to response headers for frontend consumption.
     #
-    # This middleware is a thin wrapper that ensures the CSRF token is
-    # available to the frontend via the X-CSRF-Token response header.
-    #
-    # **Why separate middleware?**
-    # Rack::Protection::JsonCsrf handles validation but doesn't add the
-    # token to response headers (it's designed for HTML meta tags).
-    # This middleware complements it for JSON API usage.
-    #
-    # **Alternative approach:**
-    # We could create a single consolidated middleware that both validates
-    # and adds headers, but keeping them separate:
-    # - Follows single responsibility principle
-    # - Leverages battle-tested Rack::Protection for validation
-    # - Keeps our custom code minimal and focused
+    # Rack::Protection::AuthenticityToken handles validation and stores
+    # the token in session[:csrf]. This middleware reads that token and
+    # exposes it via the X-CSRF-Token response header for axios to use.
     #
     # Usage:
-    #   use Rack::Protection::JsonCsrf
-    #   use Onetime::Middleware::CsrfResponseHeader
+    #   use Rack::Protection::AuthenticityToken  # validates requests
+    #   use Onetime::Middleware::CsrfResponseHeader  # exposes token
     #
     class CsrfResponseHeader
       def initialize(app)

@@ -16,10 +16,10 @@ import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axio
  *
  * Flow:
  * 1. Request: Attaches current token to X-CSRF-Token header
- * 2. Response: Updates token if new one is provided in response.data.shrimp
+ * 2. Response: Updates token from X-CSRF-Token response header
  * 3. Error: Preserves token updates even in error cases
  *
- * The token is stored in session[:csrf] by Rack::Protection::JsonCsrf middleware.
+ * The token is stored in session[:csrf] by Rack::Protection::AuthenticityToken middleware.
  */
 
 /**
