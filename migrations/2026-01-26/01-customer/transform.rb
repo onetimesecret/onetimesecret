@@ -27,9 +27,55 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+require 'familia'
 
 class CustomerTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_transform_'
+
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (customer.rb)
+    'custid' => :string,
+    'email' => :string,
+    'locale' => :string,
+    'planid' => :string,
+    'last_password_update' => :timestamp,
+    'last_login' => :timestamp,
+    'notify_on_reveal' => :boolean,
+    'objid' => :string,
+    'extid' => :string,
+    # Status fields (features/status.rb)
+    'role' => :string,
+    'joined' => :timestamp,
+    'verified' => :boolean,
+    'verified_by' => :string,
+    # Deprecated fields (features/deprecated_fields.rb)
+    'sessid' => :string,
+    'apitoken' => :string,
+    'contributor' => :string,
+    'stripe_customer_id' => :string,
+    'stripe_subscription_id' => :string,
+    # Counter fields (features/counter_fields.rb)
+    'secrets_created' => :integer,
+    'secrets_burned' => :integer,
+    'secrets_shared' => :integer,
+    'emails_sent' => :integer,
+    # Legacy encrypted fields (features/legacy_encrypted_fields.rb)
+    'passphrase' => :string,
+    'passphrase_encryption' => :string,
+    'value' => :string,
+    'value_encryption' => :string,
+    # Required fields (features/required_fields.rb)
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields (features/with_migration_fields.rb)
+    'v1_identifier' => :string,
+    'v1_custid' => :string,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+  }.freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file = input_file
@@ -168,12 +214,14 @@ class CustomerTransformer
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
 
-    # Create new dump for the transformed hash
+    # Create new dump for the transformed hash with Familia v2 JSON serialization
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     v2_dump_b64 = begin
+      # Serialize field values to JSON for Familia v2 compatibility
+      v2_serialized = serialize_for_v2(v2_fields)
       # NOTE: hmset is deprecated, but redis-rb gem maps it to HMSET for older redis-server versions
-      # For modern Redis, this would be `hset(temp_key, v2_fields)`
-      @redis.hmset(temp_key, v2_fields.to_a.flatten)
+      # For modern Redis, this would be `hset(temp_key, v2_serialized)`
+      @redis.hmset(temp_key, v2_serialized.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
@@ -235,6 +283,33 @@ class CustomerTransformer
     extid   = record[:extid]
     extid ||= fields['extid']
     [objid, extid]
+  end
+
+  # Serialize hash fields to JSON format for Familia v2 compatibility
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == ''
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  # Convert string value to appropriate Ruby type based on FIELD_TYPES mapping
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f
+    when :boolean then value == 'true'
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
   end
 
   def write_output(records)

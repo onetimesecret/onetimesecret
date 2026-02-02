@@ -28,9 +28,40 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'digest'
+require 'familia'
 
 class OrganizationGenerator
   TEMP_KEY_PREFIX = '_migrate_tmp_org_'
+
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (organization.rb)
+    'objid' => :string,
+    'extid' => :string,
+    'display_name' => :string,
+    'description' => :string,
+    'owner_id' => :string,
+    'contact_email' => :string,
+    'is_default' => :boolean,
+    # Billing fields (features/with_organization_billing.rb)
+    'planid' => :string,
+    'billing_email' => :string,
+    'stripe_customer_id' => :string,
+    'stripe_subscription_id' => :string,
+    'stripe_checkout_email' => :string,
+    'subscription_status' => :string,
+    'subscription_period_end' => :timestamp,
+    # Required fields (features/required_fields.rb)
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields (features/with_migration_fields.rb + organization-specific)
+    'v1_identifier' => :string,
+    'v1_source_custid' => :string,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+  }.freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file = input_file
@@ -94,6 +125,31 @@ class OrganizationGenerator
       break if cursor == '0'
     end
     @redis.close
+  end
+
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == '' || value.nil?
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value.to_s
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f  # timestamps stored as floats
+    when :boolean then value == 'true' || value == true
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
   end
 
   def process_customers
@@ -208,9 +264,11 @@ class OrganizationGenerator
     org_fields.compact!
 
     # Create Redis DUMP for the organization hash
-    temp_key     = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
+    # Serialize values for Familia v2 JSON format before writing to Redis
+    temp_key       = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
+    serialized     = serialize_for_v2(org_fields)
     org_dump_b64 = begin
-      @redis.hmset(temp_key, org_fields.to_a.flatten)
+      @redis.hmset(temp_key, serialized.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure

@@ -36,9 +36,79 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+require 'familia'
 
 class ReceiptTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_receipt_'
+
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (receipt.rb)
+    'objid' => :string,
+    'extid' => :string,
+    'owner_id' => :string,
+    'state' => :string,
+    'secret_identifier' => :string,
+    'secret_shortid' => :string,
+    'secret_ttl' => :integer,
+    'lifespan' => :integer,
+    'share_domain' => :string,
+    'passphrase' => :string,
+    'org_id' => :string,
+    'domain_id' => :string,
+    'recipients' => :string,  # JSON array stored as string
+    'memo' => :string,
+    # Required fields - timestamps stored as floats
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields
+    'v1_identifier' => :string,
+    'v1_key' => :string,
+    'v1_custid' => :string,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # Deprecated fields (features/deprecated_fields.rb)
+    'key' => :string,
+    'viewed' => :timestamp,    # renamed to 'previewed' in v2
+    'received' => :timestamp,  # renamed to 'revealed' in v2
+    'shared' => :timestamp,
+    'burned' => :timestamp,
+    'custid' => :string,       # legacy owner field
+    'truncate' => :boolean,
+    'secret_key' => :string,   # use secret_identifier
+    'previewed' => :timestamp,
+    'revealed' => :timestamp,
+  }.freeze
+
+  # Serialize hash fields for Familia v2 JSON format
+  # Empty strings become 'null', typed values are JSON-encoded
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == ''
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  # Convert string value to appropriate Ruby type based on FIELD_TYPES
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f  # timestamps stored as floats
+    when :boolean then value == 'true'
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
+  end
 
   # Fields to copy directly without transformation
   DIRECT_COPY_FIELDS = %w[
@@ -271,9 +341,12 @@ class ReceiptTransformer
     # Filter out nil values - Redis doesn't accept them
     v2_fields_clean = v2_fields.compact
 
+    # Serialize values for Familia v2 JSON format
+    v2_fields_serialized = serialize_for_v2(v2_fields_clean)
+
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     v2_dump_b64 = begin
-      @redis.hmset(temp_key, v2_fields_clean.to_a.flatten)
+      @redis.hmset(temp_key, v2_fields_serialized.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure

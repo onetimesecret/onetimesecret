@@ -34,9 +34,44 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+require 'familia'
 
 class CustomDomainTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_domain_'
+
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (custom_domain.rb)
+    'domainid' => :string,
+    'objid' => :string,
+    'extid' => :string,
+    'display_domain' => :string,
+    'org_id' => :string,
+    'base_domain' => :string,
+    'subdomain' => :string,
+    'trd' => :string,
+    'tld' => :string,
+    'sld' => :string,
+    'txt_validation_host' => :string,
+    'txt_validation_value' => :string,
+    'status' => :string,
+    'vhost' => :string,  # JSON string stored as string
+    'verified' => :boolean,
+    'resolving' => :boolean,
+    '_original_value' => :string,
+    # V1 legacy field (custid was used before org_id)
+    'custid' => :string,
+    # Required fields - timestamps stored as floats
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields
+    'v1_identifier' => :string,
+    'v1_custid' => :string,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+  }.freeze
 
   # V1 index keys that should be skipped (not domain-specific records)
   # These are 2-part keys like custom_domain:owners, custom_domain:display_domains
@@ -305,10 +340,11 @@ class CustomDomainTransformer
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
 
-    # Create new dump for the transformed hash
+    # Create new dump for the transformed hash with Familia v2 JSON serialization
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     v2_dump_b64 = begin
-      @redis.hmset(temp_key, v2_fields.to_a.flatten)
+      serialized_fields = serialize_for_v2(v2_fields)
+      @redis.hmset(temp_key, serialized_fields.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
@@ -378,6 +414,33 @@ class CustomDomainTransformer
     extid ||= fields['extid']
 
     [objid, extid]
+  end
+
+  # Serialize field values for Familia v2 JSON format
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == ''
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  # Parse string value to appropriate Ruby type based on FIELD_TYPES
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f  # timestamps stored as floats
+    when :boolean then value == 'true'
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
   end
 
   def write_output(records)
