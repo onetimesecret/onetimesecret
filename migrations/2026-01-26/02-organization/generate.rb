@@ -18,7 +18,7 @@
 #
 # Input: results/customer/customer_transformed.jsonl (V2 customer records)
 # Output:
-#   - results/organization/organization_generated.jsonl (V2 organization records)
+#   - results/organization/organization_transformed.jsonl (V2 organization records)
 #   - results/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
 #   - results/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
 
@@ -28,9 +28,40 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'digest'
+require 'familia'
 
 class OrganizationGenerator
   TEMP_KEY_PREFIX = '_migrate_tmp_org_'
+
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (organization.rb)
+    'objid' => :string,
+    'extid' => :string,
+    'display_name' => :string,
+    'description' => :string,
+    'owner_id' => :string,
+    'contact_email' => :string,
+    'is_default' => :boolean,
+    # Billing fields (features/with_organization_billing.rb)
+    'planid' => :string,
+    'billing_email' => :string,
+    'stripe_customer_id' => :string,
+    'stripe_subscription_id' => :string,
+    'stripe_checkout_email' => :string,
+    'subscription_status' => :string,
+    'subscription_period_end' => :timestamp,
+    # Required fields (features/required_fields.rb)
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields (features/with_migration_fields.rb + organization-specific)
+    'v1_identifier' => :string,
+    'v1_source_custid' => :string,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+  }.freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file = input_file
@@ -41,7 +72,8 @@ class OrganizationGenerator
     @redis      = nil
 
     @stats = {
-      customers_read: 0,
+      records_read: 0,          # Total lines read from JSONL (includes related records)
+      customer_objects: 0,      # Customer :object records processed
       organizations_created: 0,
       stripe_customers: 0,
       stripe_subscriptions: 0,
@@ -96,17 +128,59 @@ class OrganizationGenerator
     @redis.close
   end
 
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == '' || value.nil?
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  # Deserialize a single v2 JSON-encoded value back to Ruby type
+  # Used when reading data from upstream transforms that already wrote v2 format
+  def deserialize_v2_value(raw_value)
+    return nil if raw_value.nil? || raw_value == 'null'
+    return raw_value if raw_value.empty?
+
+    Familia::JsonSerializer.parse(raw_value)
+  rescue Familia::SerializerError
+    raw_value # Fallback for non-JSON values
+  end
+
+  # Deserialize all fields in a hash from v2 JSON format
+  def deserialize_v2_fields(fields)
+    fields.transform_values { |v| deserialize_v2_value(v) }
+  end
+
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value.to_s
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f  # timestamps stored as floats
+    when :boolean then value == 'true' || value == true
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
+  end
+
   def process_customers
     File.foreach(@input_file) do |line|
-      @stats[:customers_read] += 1
-      record                   = JSON.parse(line, symbolize_names: true)
+      @stats[:records_read] += 1
+      record                 = JSON.parse(line, symbolize_names: true)
 
-      # Only process :object records
+      # Only process :object records (skip related records like receipts, domains)
       next unless record[:key]&.end_with?(':object')
 
+      @stats[:customer_objects] += 1
       process_customer_record(record)
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:customers_read], error: "JSON parse: #{ex.message}" }
+      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
     end
   end
 
@@ -121,8 +195,12 @@ class OrganizationGenerator
     return if @dry_run
 
     # Decode customer fields from DUMP
+    # NOTE: Customer transform writes v2 JSON-serialized values, so we must
+    # deserialize them before using for comparisons/lookups
     customer_fields = restore_and_read_hash(record)
     return unless customer_fields
+
+    customer_fields = deserialize_v2_fields(customer_fields)
 
     # Generate organization record
     org_record = generate_organization(customer_objid, customer_fields, record)
@@ -208,9 +286,11 @@ class OrganizationGenerator
     org_fields.compact!
 
     # Create Redis DUMP for the organization hash
-    temp_key     = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
+    # Serialize values for Familia v2 JSON format before writing to Redis
+    temp_key       = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
+    serialized     = serialize_for_v2(org_fields)
     org_dump_b64 = begin
-      @redis.hmset(temp_key, org_fields.to_a.flatten)
+      @redis.hmset(temp_key, serialized.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
@@ -289,7 +369,7 @@ class OrganizationGenerator
     FileUtils.mkdir_p(@output_dir)
 
     # Write organization records JSONL
-    org_file = File.join(@output_dir, 'organization_generated.jsonl')
+    org_file = File.join(@output_dir, 'organization_transformed.jsonl')
     File.open(org_file, 'w') do |f|
       @org_records.each do |record|
         f.puts(JSON.generate(record))
@@ -311,7 +391,8 @@ class OrganizationGenerator
   def print_summary
     puts "\n=== Organization Generation Summary ==="
     puts "Input file: #{@input_file}"
-    puts "Customers read: #{@stats[:customers_read]}"
+    puts "Records read: #{@stats[:records_read]}"
+    puts "Customer objects: #{@stats[:customer_objects]}"
     puts "Organizations created: #{@stats[:organizations_created]}"
     puts "  With Stripe customer: #{@stats[:stripe_customers]}"
     puts "  With Stripe subscription: #{@stats[:stripe_subscriptions]}"
@@ -357,7 +438,7 @@ def parse_args(args)
           --help              Show this help
 
         Output files:
-          organization_generated.jsonl       - V2 organization records with DUMP data
+          organization_transformed.jsonl       - V2 organization records with DUMP data
           customer_objid_to_org_objid.json   - customer_objid -> org_objid mapping
           email_to_org_objid.json            - email -> org_objid (for customdomain)
 

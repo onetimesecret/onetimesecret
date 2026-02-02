@@ -59,10 +59,11 @@ class CustomerJob
 
     puts "Customer Transform Job (Phase #{PHASE})"
     puts "=" * 50
-    puts "Input:  #{@input_file}"
-    puts "Output: #{output_file}"
-    puts "Lookup: #{lookup_file}"
-    puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
+    puts "Input:   #{@input_file}"
+    puts "Output:  #{output_file}"
+    puts "Indexes: #{indexes_file}"
+    puts "Lookup:  #{lookup_file}"
+    puts "Mode:    #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
 
     if @dry_run
@@ -84,6 +85,10 @@ class CustomerJob
 
   def output_file
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
+  end
+
+  def indexes_file
+    File.join(@output_dir, "#{MODEL}_indexes.jsonl")
   end
 
   def lookup_file
@@ -126,6 +131,7 @@ class CustomerJob
   def build_kiba_job(redis_helper)
     input_file = @input_file
     output_file_path = output_file
+    indexes_file_path = indexes_file
     lookup_file_path = lookup_file
     stats = @stats
     job_started_at = Time.now
@@ -200,27 +206,43 @@ class CustomerJob
                 fields_key: :v2_fields,
                 stats: stats
 
+      # Transform: generate index commands
+      # Yields both the original record and index command records
+      transform Migration::Transforms::Customer::IndexGenerator,
+                stats: stats
+
       # Transform: count records being written
       transform do |record|
-        stats[:records_written] += 1
+        # Only count data records, not index commands
+        stats[:records_written] += 1 unless record[:command]
         record
       end
 
-      # Destination: write transformed JSONL and lookup file
-      destination Migration::Destinations::CompositeDestination,
-                  destinations: [
-                    [Migration::Destinations::JsonlDestination, {
-                      file: output_file_path,
-                      exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
+      # Destination: route records to appropriate outputs
+      # - Data records (with :dump) go to transformed JSONL and lookup
+      # - Index commands (with :command) go to indexes JSONL
+      destination Migration::Destinations::RoutingDestination,
+                  routes: {
+                    data: [Migration::Destinations::CompositeDestination, {
+                      destinations: [
+                        [Migration::Destinations::JsonlDestination, {
+                          file: output_file_path,
+                          exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
+                        }],
+                        [Migration::Destinations::LookupDestination, {
+                          file: lookup_file_path,
+                          key_field: :v1_custid,
+                          value_field: :objid,
+                          phase: PHASE,
+                          stats: stats,
+                        }],
+                      ],
                     }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: lookup_file_path,
-                      key_field: :v1_custid,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
+                    indexes: [Migration::Destinations::JsonlDestination, {
+                      file: indexes_file_path,
                     }],
-                  ]
+                  },
+                  stats: stats
     end
   end
 
@@ -288,6 +310,13 @@ class CustomerJob
     puts
     puts "Records written:     #{@stats[:records_written]}"
     puts "Lookup entries:      #{@stats[:lookup_entries]}"
+    puts
+    puts "Indexes generated:   #{@stats[:indexes_generated] || 0}"
+    puts "  Instance entries:  #{@stats[:customer_instance_entries] || 0}"
+    puts "  Email lookups:     #{@stats[:customer_email_lookups] || 0}"
+    puts "  ExtID lookups:     #{@stats[:customer_extid_lookups] || 0}"
+    puts "  ObjID lookups:     #{@stats[:customer_objid_lookups] || 0}"
+    puts "  Role entries:      #{@stats[:customer_role_entries] || 0}"
     puts
     puts "Validation:"
     puts "  Validated:         #{@stats[:validated]}"

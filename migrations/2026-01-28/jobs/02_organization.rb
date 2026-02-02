@@ -67,11 +67,12 @@ class OrganizationJob
 
     puts "Organization Generation Job (Phase #{PHASE})"
     puts '=' * 50
-    puts "Input:  #{@input_file}"
-    puts "Output: #{output_file}"
-    puts "Lookup: #{email_lookup_file}"
-    puts "Lookup: #{customer_lookup_file}"
-    puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
+    puts "Input:   #{@input_file}"
+    puts "Output:  #{output_file}"
+    puts "Indexes: #{indexes_file}"
+    puts "Lookup:  #{email_lookup_file}"
+    puts "Lookup:  #{customer_lookup_file}"
+    puts "Mode:    #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
 
     if @dry_run
@@ -93,6 +94,10 @@ class OrganizationJob
 
   def output_file
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
+  end
+
+  def indexes_file
+    File.join(@output_dir, "#{MODEL}_indexes.jsonl")
   end
 
   def email_lookup_file
@@ -136,6 +141,7 @@ class OrganizationJob
   def build_kiba_job(redis_helper)
     input_file = @input_file
     output_file_path = output_file
+    indexes_file_path = indexes_file
     email_lookup_path = email_lookup_file
     customer_lookup_path = customer_lookup_file
     stats = @stats
@@ -161,9 +167,11 @@ class OrganizationJob
       end
 
       # Transform: decode Redis DUMP to get customer fields
-      # Phase 1 output has DUMP data containing v2_fields - decoded into :fields
+      # Phase 1 output has DUMP data containing v2_fields (JSON-encoded) - decoded into :fields
+      # deserialize_values: true undoes the JSON encoding so we get native Ruby types
       transform Migration::Transforms::RedisDumpDecoder,
                 redis_helper: redis_helper,
+                deserialize_values: true,
                 stats: stats
 
       # Transform: count customer objects
@@ -192,34 +200,46 @@ class OrganizationJob
                 fields_key: :v2_fields,
                 stats: stats
 
+      # Transform: generate index commands
+      transform Migration::Transforms::Organization::IndexGenerator,
+                stats: stats
+
       # Transform: count records being written
       transform do |record|
-        stats[:records_written] += 1
+        stats[:records_written] += 1 unless record[:command]
         record
       end
 
-      # Destination: write transformed JSONL and lookup files
-      destination Migration::Destinations::CompositeDestination,
-                  destinations: [
-                    [Migration::Destinations::JsonlDestination, {
-                      file: output_file_path,
-                      exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors generation_error],
+      # Destination: route records to appropriate outputs
+      destination Migration::Destinations::RoutingDestination,
+                  routes: {
+                    data: [Migration::Destinations::CompositeDestination, {
+                      destinations: [
+                        [Migration::Destinations::JsonlDestination, {
+                          file: output_file_path,
+                          exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors generation_error],
+                        }],
+                        [Migration::Destinations::LookupDestination, {
+                          file: email_lookup_path,
+                          key_field: :contact_email,
+                          value_field: :objid,
+                          phase: PHASE,
+                          stats: stats,
+                        }],
+                        [Migration::Destinations::LookupDestination, {
+                          file: customer_lookup_path,
+                          key_field: :owner_id,
+                          value_field: :objid,
+                          phase: PHASE,
+                          stats: stats,
+                        }],
+                      ],
                     }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: email_lookup_path,
-                      key_field: :contact_email,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
+                    indexes: [Migration::Destinations::JsonlDestination, {
+                      file: indexes_file_path,
                     }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: customer_lookup_path,
-                      key_field: :owner_id,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
-                    }],
-                  ]
+                  },
+                  stats: stats
     end
   end
 
@@ -233,6 +253,15 @@ class OrganizationJob
     puts "Records written:          #{@stats[:records_written]}"
     puts "Email lookups:            #{@stats[:email_lookups]}"
     puts "Customer lookups:         #{@stats[:customer_lookups]}"
+    puts
+    puts "Indexes generated:        #{@stats[:indexes_generated] || 0}"
+    puts "  Instance entries:       #{@stats[:org_instance_entries] || 0}"
+    puts "  Email lookups:          #{@stats[:org_email_lookups] || 0}"
+    puts "  ExtID lookups:          #{@stats[:org_extid_lookups] || 0}"
+    puts "  ObjID lookups:          #{@stats[:org_objid_lookups] || 0}"
+    puts "  Member entries:         #{@stats[:org_member_entries] || 0}"
+    puts "  Customer participations:#{@stats[:customer_participations] || 0}"
+    puts "  Stripe indexes:         #{(@stats[:org_stripe_customer_indexes] || 0) + (@stats[:org_stripe_subscription_indexes] || 0)}"
     puts
     puts 'Stripe data:'
     puts "  With customer ID:       #{@stats[:stripe_customers]}"

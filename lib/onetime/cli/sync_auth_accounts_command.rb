@@ -8,6 +8,20 @@
 #
 # This command creates account records in the Rodauth database for existing
 # customers in Redis, linking them via external_id for future synchronization.
+#
+# PREREQUISITE: Familia v1→v2 migration must be complete
+#
+# This command expects customers to be in Redis DB 0 with populated indexes
+# (Familia v2 layout). If you're running Familia v1 (customers in DB 6),
+# you must first run the data migration:
+#
+#   cd migrations/2026-01-28
+#   bundle exec ruby jobs/pipeline.rb      # Transform data
+#   bundle exec ruby jobs/06_load.rb       # Load to DB 0
+#
+# The command uses Customer.instances (a sorted set index) to enumerate all
+# customers. This index is only populated in Familia v2 when customers are
+# saved with the :object_identifier feature enabled.
 
 module Onetime
   module CLI
@@ -70,8 +84,27 @@ module Onetime
         puts '=' * 60
 
         # Get all customers from Redis (Familia v2 pattern)
+        # The instances sorted set is populated by the :object_identifier feature
         all_customer_ids = Onetime::Customer.instances.all
         total_customers  = all_customer_ids.size
+
+        if total_customers.zero?
+          puts <<~MESSAGE
+
+            ⚠️  No customers found in Redis DB 0.
+
+            This command requires the Familia v1→v2 migration to be complete.
+            Customer data must be in DB 0 with populated indexes.
+
+            If customers exist in legacy databases (DB 6/7/8), run the migration first:
+
+              cd migrations/2026-01-28
+              bundle exec ruby jobs/pipeline.rb      # Transform data
+              bundle exec ruby jobs/06_load.rb       # Load to DB 0
+
+          MESSAGE
+          return
+        end
 
         puts "\nDiscovered #{total_customers} customers in Redis"
 
@@ -86,6 +119,7 @@ module Onetime
         stats = {
           total: 0,
           skipped_anonymous: 0,
+          skipped_system: 0,
           skipped_existing: 0,
           created: 0,
           linked: 0,
@@ -96,17 +130,37 @@ module Onetime
         verbose_level = verbose ? 1 : 0
 
         # Process each customer
-        all_customer_ids.each_with_index do |custid, idx|
+        # NOTE: instances.all returns objids (the identifier_field for Customer)
+        all_customer_ids.each_with_index do |objid, idx|
           stats[:total] += 1
 
           begin
-            customer = Onetime::Customer.load(custid)
+            customer = Onetime::Customer.load(objid)
 
             # Skip anonymous customers (they shouldn't be in auth DB)
             if customer.anonymous?
               stats[:skipped_anonymous] += 1
               if verbose_level > 0
                 puts "  [#{idx+1}/#{total_customers}] Skipping anonymous: #{customer.custid}"
+              end
+              next
+            end
+
+            # Skip system customers (GLOBAL, etc.) - check both custid and email
+            # because migrated data may have GLOBAL as the email value
+            if customer.global? || customer.email.to_s.upcase == 'GLOBAL'
+              stats[:skipped_system] += 1
+              if verbose_level > 0
+                puts "  [#{idx+1}/#{total_customers}] Skipping system: #{customer.custid}"
+              end
+              next
+            end
+
+            # Skip customers without valid email format
+            unless customer.email.to_s.include?('@')
+              stats[:skipped_system] += 1
+              if verbose_level > 0
+                puts "  [#{idx+1}/#{total_customers}] Skipping invalid email: #{customer.email}"
               end
               next
             end
@@ -161,15 +215,15 @@ module Onetime
             end
 
             # Progress indicator for non-verbose mode
-            if verbose_level == 0 && (stats[:total] % 10 == 0)
+            if verbose_level == 0 && (stats[:total] % 100 == 0)
               print "\r  Progress: #{stats[:total]}/#{total_customers} customers processed"
             end
           rescue StandardError => ex
-            error_msg = "#{obscure_email(customer&.email || custid)}: #{ex.message}"
+            error_msg = "#{obscure_email(customer&.email || objid)}: #{ex.message}"
             stats[:errors] << error_msg
 
             puts "  [#{idx+1}/#{total_customers}] ❌ Error: #{error_msg}"
-            OT.le "Sync error for #{custid}: #{ex.message}"
+            OT.le "Sync error for #{objid}: #{ex.message}"
             OT.ld ex.backtrace.join("\n") if verbose_level > 1
           end
         end
@@ -184,6 +238,7 @@ module Onetime
         puts "\nStatistics:"
         puts "  Total customers:     #{stats[:total]}"
         puts "  Skipped (anonymous): #{stats[:skipped_anonymous]}"
+        puts "  Skipped (system):    #{stats[:skipped_system]}"
         puts "  Skipped (existing):  #{stats[:skipped_existing]}"
         puts "  Linked:              #{stats[:linked]}"
         puts "  Created:             #{stats[:created]}"

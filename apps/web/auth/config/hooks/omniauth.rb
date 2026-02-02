@@ -92,15 +92,15 @@ module Auth::Config::Hooks
       # ⚠️  CRITICAL: CSRF Bypass for OmniAuth Routes - DO NOT REMOVE
       # ========================================================================
       #
-      # This application has TWO separate CSRF protection systems:
+      # CSRF protection operates at two layers here:
       #
-      #   1. Rack::Protection::AuthenticityToken (middleware layer)
+      #   1. Rack::Protection::AuthenticityToken (Rack middleware)
       #      - Configured in: lib/onetime/middleware/security.rb
-      #      - Uses 'shrimp' parameter name
+      #      - Uses 'shrimp' parameter name, stores token in session[:csrf]
       #      - Skipped for /auth/sso/* via allow_if callback
       #
-      #   2. Roda's route_csrf plugin (Rodauth layer)
-      #      - Auto-loaded by Rodauth when plugin :rodauth is called
+      #   2. Rodauth's route_csrf plugin (application layer)
+      #      - Auto-loaded when plugin :rodauth is called
       #      - Uses different token format than Rack::Protection
       #      - Runs during omniauth_request_validation_phase
       #

@@ -85,7 +85,7 @@ module Onetime
       # 3. For each domain, validates:
       #    - The domain format is valid
       #    - The provided old domain ID matches calculated ID
-      #    - The domain exists in customdomain:display_domains
+      #    - The domain exists in custom_domain:display_domains
       #
       # @return [Boolean] True if all validations pass
       # @raise [RuntimeError] If any validation fails, with a descriptive error message
@@ -132,7 +132,7 @@ module Onetime
           end
 
           # Check domain exists in display_domains
-          display_domains_id = Onetime::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
+          display_domains_id = Onetime::CustomDomain.dbclient.hget('custom_domain:display_domains', domain)
           if display_domains_id.to_s.empty?
             raise "ERROR: Domain '#{domain}' not found in display_domains mapping"
           end

@@ -35,7 +35,9 @@ require 'securerandom'
 class CustomerIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_'
   COUNTER_FIELDS  = %w[secrets_created secrets_shared secrets_burned emails_sent].freeze
-  VALID_ROLES     = %w[colonel customer anonymous].freeze
+  # NOTE: 'recipient' is also valid in V2 but not used in V1 data
+  # 'user_deleted_self' tracks accounts that users deleted themselves
+  VALID_ROLES     = %w[colonel customer anonymous recipient user_deleted_self].freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file = input_file
@@ -54,6 +56,8 @@ class CustomerIndexCreator
       extid_lookups: 0,
       objid_lookups: 0,
       role_entries: Hash.new(0),
+      missing_roles: 0,           # Customers with nil/empty role
+      invalid_roles: Hash.new(0), # Customers with role not in VALID_ROLES
       counters: Hash.new(0),
       skipped: 0,
       errors: [],
@@ -79,6 +83,7 @@ class CustomerIndexCreator
       case record[:key]
       when 'onetime:customer'
         # Store for later processing after we have email->objid mapping
+        instance_index_record = record
         @stats[:instance_index_source] = 'existing'
       when /:object$/
         # Collect for processing
@@ -321,10 +326,15 @@ class CustomerIndexCreator
     @stats[:objid_lookups] += 1
 
     # Role index
+    # Track customers without valid roles for data quality reporting
     role = fields['role']
-    if role && VALID_ROLES.include?(role)
+    if role.nil? || role.empty?
+      @stats[:missing_roles] += 1
+    elsif VALID_ROLES.include?(role)
       commands << { command: 'SADD', key: "customer:role_index:#{role}", args: [objid] }
       @stats[:role_entries][role] += 1
+    else
+      @stats[:invalid_roles][role] += 1
     end
   end
 
@@ -394,10 +404,19 @@ class CustomerIndexCreator
     puts
 
     puts 'Role Index:'
+    total_with_roles = @stats[:role_entries].values.sum
     @stats[:role_entries].each do |role, count|
       puts "  #{role}: #{count}"
     end
     puts '  (no role entries)' if @stats[:role_entries].empty?
+    # Warn about data quality issues with roles
+    if @stats[:missing_roles] > 0 || @stats[:invalid_roles].any?
+      puts "  WARNING: #{@stats[:objects_processed]} objects, #{total_with_roles} with valid roles"
+      puts "    Missing role: #{@stats[:missing_roles]}" if @stats[:missing_roles] > 0
+      @stats[:invalid_roles].each do |role, count|
+        puts "    Invalid role '#{role}': #{count}"
+      end
+    end
     puts
 
     puts 'Class Counters:'

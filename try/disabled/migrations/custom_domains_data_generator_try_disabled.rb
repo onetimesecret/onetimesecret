@@ -35,11 +35,11 @@ customer_keys.map { |k| Customer.load(k.split(':').last) }.compact.all? { |c| c.
 #=> true
 
 ## Verify domain data exists in Redis
-CustomDomain.dbclient.keys('customdomain:*').size >= 18
+CustomDomain.dbclient.keys('custom_domain:*').size >= 18
 #=> true
 
 ## Sample a domain to verify org_id is set
-sample_domain_key = CustomDomain.dbclient.keys('customdomain:*').first
+sample_domain_key = CustomDomain.dbclient.keys('custom_domain:*').first
 domain_data = CustomDomain.dbclient.hgetall(sample_domain_key)
 !domain_data['org_id'].nil? && !domain_data['org_id'].empty?
 #=> true

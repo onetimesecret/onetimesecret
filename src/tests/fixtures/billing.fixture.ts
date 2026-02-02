@@ -6,8 +6,8 @@ import type {
   PlanChangePreviewResponse,
   SubscriptionStatusResponse,
 } from '@/services/billing.service';
+import type { ExtId, ObjId } from '@/types/identifiers';
 import type { Organization } from '@/types/organization';
-import type { ObjId, ExtId } from '@/types/identifiers';
 
 /**
  * Plan tier type for billing fixtures
@@ -254,9 +254,7 @@ export const mockSubscriptionStatuses = {
 /**
  * Factory for creating mock organizations with billing data
  */
-export function createMockOrganization(
-  overrides: Partial<Organization> = {}
-): Organization {
+export function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
   return {
     id: 'org_obj_123' as ObjId,
     extid: 'org_ext_123' as ExtId,
@@ -264,8 +262,8 @@ export function createMockOrganization(
     description: 'A test organization',
     contact_email: 'billing@example.com',
     is_default: true,
-    created_at: new Date('2024-01-01'),
-    updated_at: new Date('2024-01-01'),
+    created: new Date('2024-01-01'),
+    updated: new Date('2024-01-01'),
     owner_extid: 'cust_ext_456' as ExtId,
     member_count: 5,
     current_user_role: 'owner',

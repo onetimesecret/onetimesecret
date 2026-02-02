@@ -92,3 +92,6 @@ export type { ColonelInfoDetails } from './api/account/endpoints/colonel';
 export type { BaseModel, CustomDomain, Customer, Feedback, Receipt, Secret } from './models';
 
 export * from './i18n';
+
+// UI schemas (forms, layouts, local receipt storage)
+export * from './ui';

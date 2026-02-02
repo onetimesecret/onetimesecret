@@ -128,6 +128,12 @@ Onetime::Middleware::Security.middleware_components = {
         # SSO routes use OAuth state parameter for CSRF protection
         return true if req.path.start_with?('/auth/sso/')
 
+        # Magic link routes: The email-auth token itself provides CSRF protection
+        # - Token is cryptographically random, one-time use, and time-limited
+        # - User arrives from external email client without existing session/CSRF token
+        # - Similar to SSO: the authentication token validates the request
+        return true if req.path == '/auth/email-login'
+
         # API routes bypass CSRF entirely:
         # - API v1 only accepts Basic Auth or anonymous (no session auth)
         # - API v2/v3 with session auth are accessed via frontend which sends CSRF tokens

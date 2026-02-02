@@ -102,7 +102,7 @@ RSpec.describe Migration::Transforms::Organization::Generator do
         expect(result[:v2_fields]['owner_id']).to eq(customer_objid)
         expect(result[:v2_fields]['contact_email']).to eq('user@example.com')
         expect(result[:v2_fields]['billing_email']).to eq('user@example.com')
-        expect(result[:v2_fields]['is_default']).to eq('true')
+        expect(result[:v2_fields]['is_default']).to be true  # Native boolean, not string
       end
 
       it 'derives display_name from email domain' do
@@ -117,7 +117,7 @@ RSpec.describe Migration::Transforms::Organization::Generator do
         expect(result[:v2_fields]['v1_identifier']).to eq('customer:user@example.com:object')
         expect(result[:v2_fields]['v1_source_custid']).to eq('user@example.com')
         expect(result[:v2_fields]['migration_status']).to eq('completed')
-        expect(result[:v2_fields]['migrated_at']).to eq(migrated_at.to_f.to_s)
+        expect(result[:v2_fields]['migrated_at']).to eq(migrated_at.to_f)  # Native float
       end
 
       it 'copies Stripe fields from customer' do
@@ -137,14 +137,14 @@ RSpec.describe Migration::Transforms::Organization::Generator do
       it 'uses customer created timestamp' do
         result = generator.process(customer_record)
 
-        expect(result[:v2_fields]['created']).to eq('1706140800')
+        expect(result[:v2_fields]['created']).to eq(1706140800.0)  # Native float
         expect(result[:created]).to eq(1706140800)
       end
 
       it 'sets updated to migrated_at' do
         result = generator.process(customer_record)
 
-        expect(result[:v2_fields]['updated']).to eq(migrated_at.to_f.to_s)
+        expect(result[:v2_fields]['updated']).to eq(migrated_at.to_f)  # Native float
       end
 
       it 'increments organizations_generated stat' do

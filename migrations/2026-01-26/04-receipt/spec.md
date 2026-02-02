@@ -62,7 +62,7 @@ Lookup Indexes
 
 Participation Indexes
   organization:{org_id}:receipts    Sorted Set    Add objid with score=created
-  customdomain:{domain_id}:receipts Sorted Set    Add objid with score=created
+  custom_domain:{domain_id}:receipts Sorted Set    Add objid with score=created
   customer:{owner_id}:receipts      Sorted Set    Add objid (for V1 compat)
 
 Other Indexes
@@ -126,7 +126,7 @@ rebuild_indexes(v2_record):
   if v2_record.org_id:
     ZADD organization:{v2_record.org_id}:receipts created objid
   if v2_record.domain_id:
-    ZADD customdomain:{v2_record.domain_id}:receipts created objid
+    ZADD custom_domain:{v2_record.domain_id}:receipts created objid
   if v2_record.owner_id and v2_record.owner_id != 'anon':
     ZADD customer:{v2_record.owner_id}:receipts created objid
 

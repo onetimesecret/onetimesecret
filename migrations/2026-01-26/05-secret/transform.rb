@@ -27,7 +27,7 @@
 #   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
-# Output: secrets_transformed.jsonl with V2 records in Redis DUMP format.
+# Output: secret_transformed.jsonl with V2 records in Redis DUMP format.
 #
 # Required index files (from prior migration phases):
 #   - results/customer/customer_indexes.jsonl (email -> customer_objid)
@@ -39,9 +39,52 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+require 'familia'
 
 class SecretTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_secret_'
+
+  # Field types for Familia v2 JSON serialization
+  # Used to convert string values from Redis to proper Ruby types before JSON encoding
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (secret.rb)
+    'objid' => :string,
+    'state' => :string,
+    'lifespan' => :integer,
+    'receipt_identifier' => :string,
+    'receipt_shortid' => :string,
+    'owner_id' => :string,
+    # Encrypted fields - keep exactly as-is
+    'ciphertext' => :string,
+    'passphrase' => :string,
+    'value_encryption' => :string,
+    'passphrase_encryption' => :string,
+    # Required fields - timestamps stored as floats
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields
+    'v1_key' => :string,
+    'v1_identifier' => :string,
+    'v1_custid' => :string,
+    'v1_original_size' => :integer,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # Relationship fields (added during transformation)
+    'org_id' => :string,
+    'domain_id' => :string,
+    # Deprecated fields (features/deprecated_fields.rb)
+    'value' => :string,        # plaintext value in v1 (deprecated)
+    'key' => :string,          # legacy key field
+    'custid' => :string,       # legacy owner field
+    'share_domain' => :string,
+    'verification' => :string,
+    'metadata_key' => :string, # use receipt_identifier
+    'truncated' => :boolean,
+    'secret_key' => :string,
+  }.freeze
 
   # Fields to copy directly without transformation
   # CRITICAL: ciphertext, value, value_encryption, passphrase, passphrase_encryption
@@ -83,6 +126,7 @@ class SecretTransformer
       transformed_objects: 0,
       skipped_secrets: 0,
       anonymous_secrets: 0,
+      related_passthrough: 0,
       state_transforms: Hash.new(0),
       original_size_migrated: 0,
       missing_customer_lookup: 0,
@@ -143,10 +187,11 @@ class SecretTransformer
     end
     puts "Loaded #{@email_to_org.size} email->org mappings"
 
-    # Load from customdomain_indexes.jsonl: customdomain:display_domain_index -> fqdn -> domain_objid
+    # Load from customdomain_indexes.jsonl: custom_domain:display_domain_index -> fqdn -> domain_objid
+    # NOTE: Key uses underscore (custom_domain) to match V2 model naming convention
     domain_file = File.join(@exports_dir, DOMAIN_INDEXES_FILE)
     validate_index_file!(domain_file, 'customdomain')
-    load_index_file(domain_file, 'customdomain:display_domain_index') do |fqdn, domain_objid|
+    load_index_file(domain_file, 'custom_domain:display_domain_index') do |fqdn, domain_objid|
       @fqdn_to_domain[fqdn] = domain_objid
     end
     puts "Loaded #{@fqdn_to_domain.size} fqdn->domain mappings"
@@ -193,17 +238,48 @@ class SecretTransformer
     @redis.close
   end
 
+  # Serialize hash fields for Familia v2 JSON format
+  # Empty strings become 'null', all other values are JSON-encoded with proper types
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == ''
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  # Convert string values from Redis to proper Ruby types based on FIELD_TYPES
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f  # timestamps stored as floats
+    when :boolean then value == 'true'
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
+  end
+
   def process_record(line)
     return [] if line.empty?
 
     record = JSON.parse(line, symbolize_names: true)
     key    = record[:key]
 
-    # Only process :object keys
-    return [] unless key&.end_with?(':object')
-
-    # Must be a secret key pattern: secret:{objid}:object
+    # Must be a secret key pattern: secret:{objid}:{suffix}
     return [] unless key.start_with?('secret:')
+
+    # Only transform :object keys; pass through related records (e.g., :email)
+    unless key.end_with?(':object')
+      @stats[:related_passthrough] += 1
+      return []
+    end
 
     return [] if @dry_run
 
@@ -284,9 +360,12 @@ class SecretTransformer
     # Filter out nil values - Redis doesn't accept them
     v2_fields_clean = v2_fields.compact
 
+    # Serialize fields for Familia v2 JSON format
+    v2_fields_serialized = serialize_for_v2(v2_fields_clean)
+
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     v2_dump_b64 = begin
-      @redis.hmset(temp_key, v2_fields_clean.to_a.flatten)
+      @redis.hmset(temp_key, v2_fields_serialized.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
@@ -365,7 +444,7 @@ class SecretTransformer
 
   def write_output(records)
     FileUtils.mkdir_p(@output_dir)
-    output_file = File.join(@output_dir, 'secrets_transformed.jsonl')
+    output_file = File.join(@output_dir, 'secret_transformed.jsonl')
 
     File.open(output_file, 'w') do |f|
       records.each do |record|
@@ -387,6 +466,7 @@ class SecretTransformer
     puts 'V2 Records Written:'
     puts "  Total: #{@stats[:v2_records_written]}"
     puts "  Transformed objects: #{@stats[:transformed_objects]}"
+    puts "  Related records passed through: #{@stats[:related_passthrough]}"
     puts
 
     puts 'Ownership:'
@@ -474,7 +554,7 @@ def parse_args(args)
           --dry-run           Parse and count without writing output
           --help              Show this help
 
-        Output file: secrets_transformed.jsonl
+        Output file: secret_transformed.jsonl
 
         Required index files (loaded automatically from exports-dir):
           - customer/customer_indexes.jsonl

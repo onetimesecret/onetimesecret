@@ -9,14 +9,14 @@
  * 3. Routes to appropriate destinations based on current subscription state
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useAuth } from '@/shared/composables/useAuth';
-import { setupTestPinia } from '../setup';
-import type AxiosMockAdapter from 'axios-mock-adapter';
-import { getRouter } from 'vue-router-mock';
-import { useRouter, useRoute } from 'vue-router';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { Organization } from '@/types/organization';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { useRoute, useRouter } from 'vue-router';
+import { getRouter } from 'vue-router-mock';
+import { setupTestPinia } from '../setup';
 
 // Mock vue-router - must be before any imports that use it
 vi.mock('vue-router');
@@ -47,8 +47,8 @@ function createMockOrganization(overrides: Partial<Organization> = {}): Organiza
     extid: 'on1234abc' as Organization['extid'],
     display_name: 'Test Organization',
     is_default: true,
-    created_at: new Date(),
-    updated_at: new Date(),
+    created: new Date(),
+    updated: new Date(),
     planid: null,
     entitlements: null,
     limits: null,
@@ -59,11 +59,14 @@ function createMockOrganization(overrides: Partial<Organization> = {}): Organiza
 /**
  * Helper to set up bootstrapStore with authentication and billing configuration
  */
-function setupBootstrapStoreState(store: ReturnType<typeof useBootstrapStore>, config: {
-  authenticated?: boolean;
-  billing_enabled?: boolean;
-  shrimp?: string;
-} = {}) {
+function setupBootstrapStoreState(
+  store: ReturnType<typeof useBootstrapStore>,
+  config: {
+    authenticated?: boolean;
+    billing_enabled?: boolean;
+    shrimp?: string;
+  } = {}
+) {
   store.authenticated = config.authenticated ?? true;
   store.billing_enabled = config.billing_enabled ?? true;
   store.shrimp = config.shrimp ?? 'test-shrimp-token';
@@ -135,7 +138,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
 
       // Mock organizations fetch
       axiosMock.onGet('/api/organizations').reply(200, {
-        records: [createMockOrganization()], count: 1,
+        records: [createMockOrganization()],
+        count: 1,
       });
 
       await login('test@example.com', 'password123');
@@ -155,7 +159,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       });
 
       axiosMock.onGet('/api/organizations').reply(200, {
-        records: [createMockOrganization()], count: 1,
+        records: [createMockOrganization()],
+        count: 1,
       });
 
       await login('test@example.com', 'password123');
@@ -264,7 +269,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
 
       // No organizations
       axiosMock.onGet('/api/organizations').reply(200, {
-        records: [], count: 0,
+        records: [],
+        count: 0,
       });
 
       await login('test@example.com', 'password123');
@@ -336,7 +342,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       });
 
       axiosMock.onGet('/api/organizations').reply(200, {
-        records: [createMockOrganization()], count: 1,
+        records: [createMockOrganization()],
+        count: 1,
       });
 
       // Should not throw, should handle gracefully
@@ -381,7 +388,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       });
 
       axiosMock.onGet('/api/organizations').reply(200, {
-        records: [createMockOrganization()], count: 1,
+        records: [createMockOrganization()],
+        count: 1,
       });
 
       await login('test@example.com', 'password123');
@@ -483,7 +491,8 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     });
 
     axiosMock.onGet('/api/organizations').reply(200, {
-      records: [createMockOrganization()], count: 1,
+      records: [createMockOrganization()],
+      count: 1,
     });
 
     await login('test@example.com', 'password123');
@@ -509,7 +518,8 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
 
     const org = createMockOrganization({ planid: null });
     axiosMock.onGet('/api/organizations').reply(200, {
-      records: [org], count: 1,
+      records: [org],
+      count: 1,
     });
 
     await login('test@example.com', 'password123');
@@ -591,7 +601,8 @@ describe('useAuth - Subscription Status Checks (Future)', () => {
       // Future: could include subscription details
     });
     axiosMock.onGet('/api/organizations').reply(200, {
-      records: [org], count: 1,
+      records: [org],
+      count: 1,
     });
 
     await login('test@example.com', 'password123');
@@ -616,7 +627,8 @@ describe('useAuth - Subscription Status Checks (Future)', () => {
       planid: 'identity',
     });
     axiosMock.onGet('/api/organizations').reply(200, {
-      records: [org], count: 1,
+      records: [org],
+      count: 1,
     });
 
     await login('test@example.com', 'password123');
@@ -642,7 +654,8 @@ describe('useAuth - Subscription Status Checks (Future)', () => {
       planid: 'free',
     });
     axiosMock.onGet('/api/organizations').reply(200, {
-      records: [org], count: 1,
+      records: [org],
+      count: 1,
     });
 
     await login('test@example.com', 'password123');

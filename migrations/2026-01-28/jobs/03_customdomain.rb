@@ -67,10 +67,11 @@ class CustomdomainJob
 
     puts "CustomDomain Transform Job (Phase #{PHASE})"
     puts '=' * 50
-    puts "Input:  #{@input_file}"
-    puts "Output: #{output_file}"
-    puts "Lookup: #{lookup_file}"
-    puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
+    puts "Input:   #{@input_file}"
+    puts "Output:  #{output_file}"
+    puts "Indexes: #{indexes_file}"
+    puts "Lookup:  #{lookup_file}"
+    puts "Mode:    #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
 
     if @dry_run
@@ -110,6 +111,10 @@ class CustomdomainJob
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
+  def indexes_file
+    File.join(@output_dir, "#{MODEL}_indexes.jsonl")
+  end
+
   def lookup_file
     File.join(@output_dir, 'lookups', 'fqdn_to_domain_objid.json')
   end
@@ -140,17 +145,23 @@ class CustomdomainJob
     registry.require_lookup(:email_to_customer, for_phase: PHASE)
     registry.require_lookup(:email_to_org, for_phase: PHASE)
 
+    # Pre-build identifier mapping for related record renaming
+    # Maps v1_id → objid so brand/logo/icon keys can be renamed
+    identifier_mapping = build_identifier_mapping(@input_file, redis_helper)
+    puts "Built identifier mapping: #{identifier_mapping.size} entries"
+
     # Build and run Kiba job
-    job = build_kiba_job(redis_helper, registry)
+    job = build_kiba_job(redis_helper, registry, identifier_mapping)
     Kiba.run(job)
   ensure
     redis_helper&.cleanup!
     redis_helper&.disconnect!
   end
 
-  def build_kiba_job(redis_helper, registry)
+  def build_kiba_job(redis_helper, registry, identifier_mapping)
     input_file = @input_file
     output_file_path = output_file
+    indexes_file_path = indexes_file
     lookup_file_path = lookup_file
     stats = @stats
     job_started_at = Time.now
@@ -195,10 +206,12 @@ class CustomdomainJob
       end
 
       # Transform: apply field transformations with lookups
+      # identifier_mapping enables renaming related keys (brand, logo, icon)
       transform Migration::Transforms::Customdomain::FieldTransformer,
                 registry: registry,
                 stats: stats,
-                migrated_at: job_started_at
+                migrated_at: job_started_at,
+                identifier_mapping: identifier_mapping
 
       # Transform: validate V2 output structure
       transform Migration::Transforms::SchemaValidator,
@@ -213,28 +226,90 @@ class CustomdomainJob
                 fields_key: :v2_fields,
                 stats: stats
 
+      # Transform: generate index commands
+      transform Migration::Transforms::Customdomain::IndexGenerator,
+                stats: stats
+
       # Transform: count records being written
       transform do |record|
-        stats[:records_written] += 1
+        stats[:records_written] += 1 unless record[:command]
         record
       end
 
-      # Destination: write transformed JSONL and lookup file
-      destination Migration::Destinations::CompositeDestination,
-                  destinations: [
-                    [Migration::Destinations::JsonlDestination, {
-                      file: output_file_path,
-                      exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors transform_error],
+      # Destination: route records to appropriate outputs
+      destination Migration::Destinations::RoutingDestination,
+                  routes: {
+                    data: [Migration::Destinations::CompositeDestination, {
+                      destinations: [
+                        [Migration::Destinations::JsonlDestination, {
+                          file: output_file_path,
+                          exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors transform_error],
+                        }],
+                        [Migration::Destinations::LookupDestination, {
+                          file: lookup_file_path,
+                          key_field: :display_domain,
+                          value_field: :objid,
+                          phase: PHASE,
+                          stats: stats,
+                        }],
+                      ],
                     }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: lookup_file_path,
-                      key_field: :display_domain,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
+                    indexes: [Migration::Destinations::JsonlDestination, {
+                      file: indexes_file_path,
                     }],
-                  ]
+                  },
+                  stats: stats
     end
+  end
+
+  # Pre-build mapping from v1_id → objid for related record renaming.
+  # This enables renaming brand/logo/icon keys regardless of dump order.
+  #
+  # Uses a temporary Redis connection to decode DUMP data and extract
+  # created timestamps for UUIDv7 generation.
+  #
+  # @param input_file [String] Path to the dump JSONL file
+  # @param redis_helper [RedisTempKey] Redis helper for decoding
+  # @return [Hash] Mapping of v1_id → objid
+  def build_identifier_mapping(input_file, redis_helper)
+    mapping = {}
+    uuid_generator = Migration::Shared::UuidV7Generator.new
+
+    File.foreach(input_file) do |line|
+      record = JSON.parse(line, symbolize_names: true)
+
+      # Only process :object records to build mapping
+      next unless record[:key]&.end_with?(':object')
+
+      # Extract v1_id from key: customdomain:<v1_id>:object
+      v1_id = record[:key].split(':')[1]
+
+      # Skip if already has objid (enriched dump)
+      if record[:objid] && !record[:objid].empty?
+        mapping[v1_id] = record[:objid]
+        next
+      end
+
+      # Decode DUMP to get created timestamp
+      next unless record[:dump]
+
+      begin
+        fields = redis_helper.restore_and_read_hash(record[:dump])
+        created = fields['created']&.to_f
+        next unless created && created > 0
+
+        # Generate deterministic objid from timestamp
+        objid, _extid = uuid_generator.generate_identifiers(created, prefix: 'cd')
+        mapping[v1_id] = objid
+      rescue StandardError
+        # Skip records that fail to decode
+        next
+      end
+    rescue JSON::ParserError
+      next
+    end
+
+    mapping
   end
 
   def print_summary
@@ -247,10 +322,22 @@ class CustomdomainJob
     puts "Records written:     #{@stats[:records_written]}"
     puts "Lookup entries:      #{@stats[:lookup_entries]}"
     puts
+    puts "Indexes generated:   #{@stats[:indexes_generated] || 0}"
+    puts "  Instance entries:  #{@stats[:domain_instance_entries] || 0}"
+    puts "  Display lookups:   #{@stats[:domain_display_lookups] || 0}"
+    puts "  ExtID lookups:     #{@stats[:domain_extid_lookups] || 0}"
+    puts "  ObjID lookups:     #{@stats[:domain_objid_lookups] || 0}"
+    puts "  Owner mappings:    #{@stats[:domain_owner_mappings] || 0}"
+    puts "  Org participations:#{@stats[:org_domain_participations] || 0}"
+    puts
     puts 'Validation:'
     puts "  Validated:         #{@stats[:validated]}"
     puts "  Failures:          #{@stats[:validation_failures]}"
     puts "  Skipped:           #{@stats[:validation_skipped]}"
+    puts
+    puts 'Related records (brand/logo/icon):'
+    puts "  Renamed:           #{@stats[:related_renamed] || 0}"
+    puts "  No objid found:    #{@stats[:related_no_objid] || 0}"
     puts
     puts 'Skipped records:'
     puts "  Non-object:        #{@stats[:skipped_non_object]}"

@@ -50,6 +50,7 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'redis'
+require 'familia'
 
 class OriginalRecordEnricher
   TEMP_KEY_PREFIX = '_enrich_tmp_'
@@ -71,12 +72,12 @@ class OriginalRecordEnricher
       # NOTE: metadata becomes receipt, but dump file is still metadata
       # The transformed file lives in results/metadata/ with plural name
       dump_file: 'metadata_dump.jsonl',
-      transformed_file: 'receipts_transformed.jsonl',
+      transformed_file: 'receipt_transformed.jsonl',
       binary_safe: false,
     },
     'secret' => {
       dump_file: 'secret_dump.jsonl',
-      transformed_file: 'secrets_transformed.jsonl',
+      transformed_file: 'secret_transformed.jsonl',
       binary_safe: true,
     },
   }.freeze
@@ -249,7 +250,9 @@ class OriginalRecordEnricher
       return record
     end
 
-    v1_key = v2_fields['v1_identifier']
+    # Deserialize v1_identifier - transform scripts write v2 JSON-serialized values
+    # e.g., "customer:email@example.com:object" is stored as "\"customer:email@example.com:object\""
+    v1_key = deserialize_v2_value(v2_fields['v1_identifier'])
 
     unless v1_key
       stats[:not_found] += 1
@@ -286,6 +289,17 @@ class OriginalRecordEnricher
     nil
   ensure
     @redis&.del(temp_key)
+  end
+
+  # Deserialize a single v2 JSON-encoded value back to Ruby type
+  # Transform scripts write JSON-serialized values (e.g., "value" -> "\"value\"")
+  def deserialize_v2_value(raw_value)
+    return nil if raw_value.nil? || raw_value == 'null'
+    return raw_value if raw_value.empty?
+
+    Familia::JsonSerializer.parse(raw_value)
+  rescue Familia::SerializerError
+    raw_value # Fallback for non-JSON values
   end
 
   def create_dump_from_hash(fields)

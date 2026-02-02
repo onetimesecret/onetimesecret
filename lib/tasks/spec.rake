@@ -231,8 +231,6 @@ namespace :vcr do
         apps/web/billing/spec/cli/products_spec.rb
       ].join(' ')
 
-      p [:vcr_billing_record, specs, env.keys]
-
       sh env, "bundle exec rspec #{specs} #{rspec_format_options}"
     end
 

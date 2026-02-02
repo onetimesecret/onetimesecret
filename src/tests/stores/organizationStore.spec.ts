@@ -5,8 +5,8 @@ import { setupWindowState } from '../setupWindow';
 
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type AxiosMockAdapter from 'axios-mock-adapter';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Organization Store', () => {
   let axiosMock: AxiosMockAdapter | null;
@@ -19,8 +19,8 @@ describe('Organization Store', () => {
     display_name: 'Test Organization',
     description: 'A test organization',
     is_default: false,
-    created_at: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
-    updated_at: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
+    created: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
+    updated: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
   };
 
   // Transformed format (Date objects) for expectations
@@ -30,8 +30,8 @@ describe('Organization Store', () => {
     display_name: 'Test Organization',
     description: 'A test organization',
     is_default: false,
-    created_at: new Date('2024-01-01T00:00:00Z'),
-    updated_at: new Date('2024-01-01T00:00:00Z'),
+    created: new Date('2024-01-01T00:00:00Z'),
+    updated: new Date('2024-01-01T00:00:00Z'),
   };
 
   beforeEach(async () => {
@@ -520,9 +520,7 @@ describe('Organization Store', () => {
         await store.revokeInvitation('on123abc', 'token-to-revoke');
 
         expect(store.invitations).toHaveLength(initialCount - 1);
-        expect(
-          store.invitations.find((inv) => inv.token === 'token-to-revoke')
-        ).toBeUndefined();
+        expect(store.invitations.find((inv) => inv.token === 'token-to-revoke')).toBeUndefined();
       });
 
       it('sets loading state during revoke', async () => {

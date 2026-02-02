@@ -477,8 +477,8 @@ export const useOrganizationStore = defineStore('organization', () => {
           planid: bootstrapOrg.planid ?? null,
           current_user_role: bootstrapOrg.current_user_role ?? null,
           // These fields will be populated when full org is fetched
-          created_at: new Date(),
-          updated_at: new Date(),
+          created: new Date(),
+          updated: new Date(),
         } as Organization;
 
         loggingService.debug('[organizationStore] Initialized from bootstrap', { id: bootstrapOrg.id });

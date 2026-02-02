@@ -195,7 +195,7 @@ RSpec.describe Migration::Transforms::Receipt::FieldTransformer do
         expect(result[:v2_fields]['migration_status']).to eq('completed')
       end
 
-      it 'adds migrated_at as float string' do
+      it 'adds migrated_at as native float' do
         transformer = described_class.new(
           migrated_at: fixed_time,
           stats: stats,
@@ -204,7 +204,7 @@ RSpec.describe Migration::Transforms::Receipt::FieldTransformer do
 
         result = transformer.process(v1_record)
 
-        expect(result[:v2_fields]['migrated_at']).to eq(fixed_time.to_f.to_s)
+        expect(result[:v2_fields]['migrated_at']).to eq(fixed_time.to_f)
       end
 
       it 'renames key from metadata to receipt format' do

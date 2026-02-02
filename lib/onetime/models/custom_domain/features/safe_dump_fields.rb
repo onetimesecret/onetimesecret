@@ -22,7 +22,6 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :tld
       base.safe_dump_field :sld
       base.safe_dump_field :is_apex, ->(obj) { obj.apex? }
-      base.safe_dump_field :_original_value
       base.safe_dump_field :txt_validation_host
       base.safe_dump_field :txt_validation_value
       base.safe_dump_field :brand, ->(obj) { obj.brand_settings.to_h } # until we can call obj.brand.to_h

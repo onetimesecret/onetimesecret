@@ -5,7 +5,7 @@
 #
 # Reads a JSONL dump file, groups records by domain, and applies transformations
 # based on the migration spec. This includes:
-# - Renaming keys from customdomain:{domainid} to custom_domain:{objid}
+# - Renaming keys from custom_domain:{domainid} to custom_domain:{objid}
 # - Transforming custid (email) -> org_id (organization objid) + owner_id (customer objid)
 # - Preserving original custid as v1_custid
 # - Creating new Redis DUMPs for transformed objects
@@ -34,12 +34,47 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+require 'familia'
 
 class CustomDomainTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_domain_'
 
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (custom_domain.rb)
+    'domainid' => :string,
+    'objid' => :string,
+    'extid' => :string,
+    'display_domain' => :string,
+    'org_id' => :string,
+    'base_domain' => :string,
+    'subdomain' => :string,
+    'trd' => :string,
+    'tld' => :string,
+    'sld' => :string,
+    'txt_validation_host' => :string,
+    'txt_validation_value' => :string,
+    'status' => :string,
+    'vhost' => :string,  # JSON string stored as string
+    'verified' => :boolean,
+    'resolving' => :boolean,
+    '_original_value' => :string,
+    # V1 legacy field (custid was used before org_id)
+    'custid' => :string,
+    # Required fields - timestamps stored as floats
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields
+    'v1_identifier' => :string,
+    'v1_custid' => :string,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+  }.freeze
+
   # V1 index keys that should be skipped (not domain-specific records)
-  # These are 2-part keys like customdomain:owners, customdomain:display_domains
+  # These are 2-part keys like custom_domain:owners, custom_domain:display_domains
   V1_INDEX_KEYS = %w[owners display_domains instances values].freeze
 
   # Fields to copy directly without transformation
@@ -154,6 +189,9 @@ class CustomDomainTransformer
         @redis.restore(temp_key, 0, dump_data, replace: true)
         fields = @redis.hgetall(temp_key)
 
+        # Customer transform writes v2 JSON-serialized values, so deserialize
+        fields = deserialize_v2_fields(fields)
+
         email                     = fields['v1_custid'] || fields['email']
         @email_to_customer[email] = objid if email && !email.empty?
       rescue Redis::CommandError => ex
@@ -198,12 +236,12 @@ class CustomDomainTransformer
       key = record[:key]
       next unless key
 
-      # Parse key parts: customdomain:{identifier}:{type} or customdomain:{identifier}
+      # Parse key parts: custom_domain:{identifier}:{type} or custom_domain:{identifier}
       key_parts = key.split(':')
       next unless key_parts.first == 'customdomain' && key_parts.size >= 2
 
       # Skip V1 index keys (2-part keys where second part is an index name)
-      # e.g., customdomain:owners, customdomain:display_domains, customdomain:values
+      # e.g., custom_domain:owners, custom_domain:display_domains, custom_domain:values
       if key_parts.size == 2 && V1_INDEX_KEYS.include?(key_parts[1])
         # Store instance indexes for later processing if needed
         groups['__instance_index__'] << record if key_parts[1] == 'values'
@@ -305,10 +343,11 @@ class CustomDomainTransformer
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
 
-    # Create new dump for the transformed hash
+    # Create new dump for the transformed hash with Familia v2 JSON serialization
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     v2_dump_b64 = begin
-      @redis.hmset(temp_key, v2_fields.to_a.flatten)
+      serialized_fields = serialize_for_v2(v2_fields)
+      @redis.hmset(temp_key, serialized_fields.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
@@ -338,18 +377,64 @@ class CustomDomainTransformer
 
   def rename_related_records(records, objid)
     records.map do |record|
-      v2_record = record.dup
-      key_parts = record[:key].split(':')  # customdomain:{domainid}:{type}
-
-      # Get the data type (brand, logo, icon, etc.)
+      key_parts = record[:key].split(':')  # custom_domain:{domainid}:{type}
       data_type = key_parts.last
 
-      # Rename key with underscore: customdomain -> custom_domain
-      new_key                              = "custom_domain:#{objid}:#{data_type}"
-      v2_record[:key]                      = new_key
-      @stats[:renamed_related][data_type] += 1
+      # Transform the hash data with v2 JSON serialization
+      v2_record = transform_related_hash(record, objid, data_type)
 
+      @stats[:renamed_related][data_type] += 1
       v2_record
+    end
+  end
+
+  # Transform related hashes (brand, logo, icon) with v2 JSON serialization
+  # These hashes don't have strict field type definitions, so we serialize
+  # all values as strings (the most common case for branding data)
+  def transform_related_hash(record, objid, data_type)
+    new_key = "custom_domain:#{objid}:#{data_type}"
+
+    # Restore the original dump and read fields
+    temp_key  = "#{TEMP_KEY_PREFIX}related_#{SecureRandom.hex(8)}"
+    dump_data = Base64.strict_decode64(record[:dump])
+
+    begin
+      @redis.restore(temp_key, 0, dump_data, replace: true)
+      v1_fields = @redis.hgetall(temp_key)
+
+      # Serialize all fields for v2 JSON format
+      # For related hashes (brand, logo), treat all values as strings
+      v2_serialized = v1_fields.each_with_object({}) do |(key, value), result|
+        result[key] = if value.nil? || value == ''
+                        'null'
+                      else
+                        Familia::JsonSerializer.dump(value)
+                      end
+      end
+
+      # Create new dump with serialized values
+      @redis.del(temp_key)
+      @redis.hmset(temp_key, v2_serialized.to_a.flatten)
+      new_dump_data = @redis.dump(temp_key)
+      new_dump_b64  = Base64.strict_encode64(new_dump_data)
+
+      {
+        key: new_key,
+        type: record[:type],
+        ttl_ms: record[:ttl_ms],
+        db: record[:db],
+        dump: new_dump_b64,
+      }
+    rescue Redis::CommandError => ex
+      @stats[:errors] << { key: record[:key], error: "Related hash transform failed: #{ex.message}" }
+      # Fall back to just renaming the key without transformation
+      record.merge(key: new_key)
+    ensure
+      begin
+        @redis.del(temp_key)
+      rescue StandardError
+        nil
+      end
     end
   end
 
@@ -378,6 +463,49 @@ class CustomDomainTransformer
     extid ||= fields['extid']
 
     [objid, extid]
+  end
+
+  # Serialize field values for Familia v2 JSON format
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == ''
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  # Deserialize a single v2 JSON-encoded value back to Ruby type
+  # Used when reading data from upstream transforms that already wrote v2 format
+  def deserialize_v2_value(raw_value)
+    return nil if raw_value.nil? || raw_value == 'null'
+    return raw_value if raw_value.empty?
+
+    Familia::JsonSerializer.parse(raw_value)
+  rescue Familia::SerializerError
+    raw_value # Fallback for non-JSON values
+  end
+
+  # Deserialize all fields in a hash from v2 JSON format
+  def deserialize_v2_fields(fields)
+    fields.transform_values { |v| deserialize_v2_value(v) }
+  end
+
+  # Parse string value to appropriate Ruby type based on FIELD_TYPES
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f  # timestamps stored as floats
+    when :boolean then value == 'true'
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
   end
 
   def write_output(records)
@@ -543,7 +671,7 @@ def parse_args(args)
           Requires Phase 1 (Customer) and Phase 2 (Organization) to be complete.
 
         Key transformations:
-          - Key prefix: customdomain:{id} -> custom_domain:{objid}
+          - Key prefix: custom_domain:{id} -> custom_domain:{objid}
           - custid (email) -> org_id (organization objid) + owner_id (customer objid)
           - Preserves v1_custid for rollback
           - Renames related hashes (brand, logo, icon)

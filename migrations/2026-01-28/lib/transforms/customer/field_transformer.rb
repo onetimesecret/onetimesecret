@@ -88,9 +88,57 @@ module Migration
           # Add migration tracking
           v2_fields['v1_identifier'] = record[:key]
           v2_fields['migration_status'] = 'completed'
-          v2_fields['migrated_at'] = @migrated_at.to_f.to_s
+          v2_fields['migrated_at'] = @migrated_at.to_f
+
+          # === Type Conversions: V1 strings → V2 native JSON types ===
+
+          # Booleans: "true"/"false" → true/false
+          %w[verified active contributor notify_on_reveal].each do |field|
+            next unless v2_fields.key?(field)
+
+            v2_fields[field] = to_boolean(v2_fields[field])
+          end
+
+          # Integers: "123" → 123 (counters default to 0)
+          %w[secrets_created secrets_burned secrets_shared emails_sent].each do |field|
+            next unless v2_fields.key?(field)
+
+            v2_fields[field] = v2_fields[field].to_i
+          end
+
+          # passphrase_encryption: only convert if present and non-empty
+          # Missing value means no passphrase set (anonymous users)
+          if v2_fields.key?('passphrase_encryption')
+            val = v2_fields['passphrase_encryption']
+            v2_fields['passphrase_encryption'] = val.to_s.empty? ? nil : val.to_i
+          end
+
+          # Numbers (timestamps): "1706140800.0" → 1706140800.0
+          %w[created updated].each do |field|
+            next unless v2_fields.key?(field) && v2_fields[field]
+            next if v2_fields[field].to_s.empty?
+
+            v2_fields[field] = v2_fields[field].to_f
+          end
+
+          # Nullable number: empty string → nil, otherwise float
+          # last_login can be empty for users who never logged in
+          if v2_fields.key?('last_login')
+            val = v2_fields['last_login']
+            v2_fields['last_login'] = val.to_s.empty? ? nil : val.to_f
+          end
 
           v2_fields
+        end
+
+        # Convert V1 string boolean to native boolean
+        # Handles: "true", "false", "1", "0", "", nil
+        def to_boolean(value)
+          case value
+          when true, 'true', '1', 1 then true
+          when false, 'false', '0', 0, '', nil then false
+          else false
+          end
         end
 
         def build_v2_record(record, v2_fields, objid, extid)

@@ -40,6 +40,7 @@ pnpm-debug.log*
 appendonlydir/
 data
 exports
+results
 doc/
 node_modules/
 vendor/

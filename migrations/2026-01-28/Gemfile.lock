@@ -12,6 +12,10 @@ GEM
       regexp_parser (~> 2.0)
       simpleidn (~> 0.2)
     kiba (4.0.0)
+    oj (3.16.13)
+      bigdecimal (>= 3.0)
+      ostruct (>= 0.2)
+    ostruct (0.6.3)
     redis (5.4.1)
       redis-client (>= 0.22.0)
     redis-client (0.26.4)
@@ -40,6 +44,7 @@ DEPENDENCIES
   base64
   json_schemer (~> 2.0)
   kiba (~> 4.0)
+  oj (~> 3.16)
   redis (~> 5.0)
   rspec (~> 3.12)
 

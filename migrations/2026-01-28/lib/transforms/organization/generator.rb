@@ -130,6 +130,8 @@ module Migration
                              planid:, created:, stripe_customer_id:,
                              stripe_subscription_id:, stripe_checkout_email:,
                              customer_fields:, customer_record:)
+          # Use native Ruby types - RedisDumpEncoder will JSON-serialize them.
+          # Boolean true (not string "true"), Float for timestamps (not strings).
           fields = {
             'objid' => org_objid,
             'extid' => org_extid,
@@ -138,10 +140,10 @@ module Migration
             'owner_id' => customer_objid,
             'contact_email' => email,
             'billing_email' => email,
-            'is_default' => 'true',
+            'is_default' => true,                    # Boolean, not string
             'planid' => planid,
-            'created' => created.to_s,
-            'updated' => @migrated_at.to_f.to_s,
+            'created' => created.to_f,               # Float, not string
+            'updated' => @migrated_at.to_f,          # Float, not string
 
             # Billing fields from customer
             'stripe_customer_id' => stripe_customer_id,
@@ -152,7 +154,7 @@ module Migration
             'v1_identifier' => customer_record[:key],
             'v1_source_custid' => customer_fields['v1_custid'] || customer_fields['email'],
             'migration_status' => 'completed',
-            'migrated_at' => @migrated_at.to_f.to_s,
+            'migrated_at' => @migrated_at.to_f,      # Float, not string
           }
 
           # Remove nil values

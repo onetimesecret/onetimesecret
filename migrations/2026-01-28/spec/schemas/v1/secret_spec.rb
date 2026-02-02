@@ -17,7 +17,7 @@ RSpec.describe 'Migration::Schemas::V1::SECRET' do
       'value_checksum' => 'sha256:abc123',
       'custid' => 'user@example.com',
       'state' => 'new',
-      'passphrase' => '1',
+      'passphrase' => '$2a$12$examplehashvalue',
       'secret_ttl' => '86400',
       'created' => '1706140800.0',
       'updated' => '1706140900.0',
@@ -154,22 +154,20 @@ RSpec.describe 'Migration::Schemas::V1::SECRET' do
     end
   end
 
-  describe 'passphrase field (boolean string)' do
-    %w[0 1 true false].each do |valid_value|
-      it "passes with passphrase='#{valid_value}'" do
-        secret = valid_secret.merge('passphrase' => valid_value)
+  describe 'passphrase field (bcrypt hash or empty)' do
+    # The passphrase field contains the actual bcrypt hash, not a boolean indicator.
+    # Any string value is valid since bcrypt hashes are arbitrary strings.
 
-        expect(Migration::Schemas.valid?(:secret_v1, secret)).to be true
-      end
+    it 'passes with bcrypt hash' do
+      secret = valid_secret.merge('passphrase' => '$2a$12$abc123hashvalue')
+
+      expect(Migration::Schemas.valid?(:secret_v1, secret)).to be true
     end
 
-    it 'fails with non-boolean string' do
-      secret = valid_secret.merge('passphrase' => 'yes')
+    it 'passes with any string value' do
+      secret = valid_secret.merge('passphrase' => 'any-value-is-valid')
 
-      errors = Migration::Schemas.validate(:secret_v1, secret)
-
-      expect(errors).not_to be_empty
-      expect(errors.any? { |e| e.include?('passphrase') }).to be true
+      expect(Migration::Schemas.valid?(:secret_v1, secret)).to be true
     end
 
     it 'passes when passphrase is absent (optional)' do

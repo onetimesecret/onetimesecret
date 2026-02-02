@@ -24,7 +24,7 @@
 #   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
-# Output: receipts_transformed.jsonl with V2 records in Redis DUMP format.
+# Output: receipt_transformed.jsonl with V2 records in Redis DUMP format.
 #
 # Required index files (from prior migration phases):
 #   - results/customer/customer_indexes.jsonl (email -> customer_objid)
@@ -36,9 +36,79 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+require 'familia'
 
 class ReceiptTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_receipt_'
+
+  # Field type mappings for Familia v2 JSON serialization
+  # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
+  FIELD_TYPES = {
+    # Core fields (receipt.rb)
+    'objid' => :string,
+    'extid' => :string,
+    'owner_id' => :string,
+    'state' => :string,
+    'secret_identifier' => :string,
+    'secret_shortid' => :string,
+    'secret_ttl' => :integer,
+    'lifespan' => :integer,
+    'share_domain' => :string,
+    'passphrase' => :string,
+    'org_id' => :string,
+    'domain_id' => :string,
+    'recipients' => :string,  # JSON array stored as string
+    'memo' => :string,
+    # Required fields - timestamps stored as floats
+    'created' => :timestamp,
+    'updated' => :timestamp,
+    # Migration fields
+    'v1_identifier' => :string,
+    'v1_key' => :string,
+    'v1_custid' => :string,
+    'migration_status' => :string,
+    'migrated_at' => :timestamp,
+    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # Deprecated fields (features/deprecated_fields.rb)
+    'key' => :string,
+    'viewed' => :timestamp,    # renamed to 'previewed' in v2
+    'received' => :timestamp,  # renamed to 'revealed' in v2
+    'shared' => :timestamp,
+    'burned' => :timestamp,
+    'custid' => :string,       # legacy owner field
+    'truncate' => :boolean,
+    'secret_key' => :string,   # use secret_identifier
+    'previewed' => :timestamp,
+    'revealed' => :timestamp,
+  }.freeze
+
+  # Serialize hash fields for Familia v2 JSON format
+  # Empty strings become 'null', typed values are JSON-encoded
+  def serialize_for_v2(fields)
+    fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value == ''
+                      'null'
+                    else
+                      ruby_val = parse_to_ruby_type(key, value)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+  end
+
+  # Convert string value to appropriate Ruby type based on FIELD_TYPES
+  def parse_to_ruby_type(key, value)
+    field_type = FIELD_TYPES[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+
+    case field_type
+    when :string then value
+    when :integer then value.to_i
+    when :float, :timestamp then value.to_f  # timestamps stored as floats
+    when :boolean then value == 'true'
+    else
+      raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
+  end
 
   # Fields to copy directly without transformation
   DIRECT_COPY_FIELDS = %w[
@@ -57,6 +127,11 @@ class ReceiptTransformer
   CUSTOMER_INDEXES_FILE = 'customer/customer_indexes.jsonl'
   ORG_INDEXES_FILE      = 'organization/organization_indexes.jsonl'
   DOMAIN_INDEXES_FILE   = 'customdomain/customdomain_indexes.jsonl'
+
+  # Index key names (must match what create_indexes.rb writes)
+  CUSTOMER_EMAIL_INDEX_KEY = 'customer:email_index'
+  ORG_CONTACT_EMAIL_KEY    = 'organization:contact_email_index'
+  DOMAIN_DISPLAY_INDEX_KEY = 'custom_domain:display_domain_index'  # Note: underscore in custom_domain
 
   def initialize(input_file:, output_dir:, exports_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file  = input_file
@@ -124,7 +199,7 @@ class ReceiptTransformer
     # Load from customer_indexes.jsonl: customer:email_index -> email -> objid
     customer_file = File.join(@exports_dir, CUSTOMER_INDEXES_FILE)
     validate_index_file!(customer_file, 'customer')
-    load_index_file(customer_file, 'customer:email_index') do |email, objid|
+    load_index_file(customer_file, CUSTOMER_EMAIL_INDEX_KEY) do |email, objid|
       @email_to_customer[email] = objid
     end
     puts "Loaded #{@email_to_customer.size} email->customer mappings"
@@ -132,15 +207,15 @@ class ReceiptTransformer
     # Load from organization_indexes.jsonl: organization:contact_email_index -> email -> org_objid
     org_file = File.join(@exports_dir, ORG_INDEXES_FILE)
     validate_index_file!(org_file, 'organization')
-    load_index_file(org_file, 'organization:contact_email_index') do |email, org_objid|
+    load_index_file(org_file, ORG_CONTACT_EMAIL_KEY) do |email, org_objid|
       @email_to_org[email] = org_objid
     end
     puts "Loaded #{@email_to_org.size} email->org mappings"
 
-    # Load from customdomain_indexes.jsonl: customdomain:display_domain_index -> fqdn -> domain_objid
+    # Load from customdomain_indexes.jsonl: custom_domain:display_domain_index -> fqdn -> domain_objid
     domain_file = File.join(@exports_dir, DOMAIN_INDEXES_FILE)
     validate_index_file!(domain_file, 'customdomain')
-    load_index_file(domain_file, 'customdomain:display_domain_index') do |fqdn, domain_objid|
+    load_index_file(domain_file, DOMAIN_DISPLAY_INDEX_KEY) do |fqdn, domain_objid|
       @fqdn_to_domain[fqdn] = domain_objid
     end
     puts "Loaded #{@fqdn_to_domain.size} fqdn->domain mappings"
@@ -271,9 +346,12 @@ class ReceiptTransformer
     # Filter out nil values - Redis doesn't accept them
     v2_fields_clean = v2_fields.compact
 
+    # Serialize values for Familia v2 JSON format
+    v2_fields_serialized = serialize_for_v2(v2_fields_clean)
+
     temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     v2_dump_b64 = begin
-      @redis.hmset(temp_key, v2_fields_clean.to_a.flatten)
+      @redis.hmset(temp_key, v2_fields_serialized.to_a.flatten)
       dump_data = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
@@ -351,7 +429,7 @@ class ReceiptTransformer
 
   def write_output(records)
     FileUtils.mkdir_p(@output_dir)
-    output_file = File.join(@output_dir, 'receipts_transformed.jsonl')
+    output_file = File.join(@output_dir, 'receipt_transformed.jsonl')
 
     File.open(output_file, 'w') do |f|
       records.each do |record|
@@ -456,7 +534,7 @@ def parse_args(args)
           --dry-run           Parse and count without writing output
           --help              Show this help
 
-        Output file: receipts_transformed.jsonl
+        Output file: receipt_transformed.jsonl
 
         Required index files (loaded automatically from exports-dir):
           - customer/customer_indexes.jsonl

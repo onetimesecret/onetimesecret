@@ -112,7 +112,8 @@ module Onetime
 
     def list_members
       # Bulk loading with auto-generated members collection
-      Customer.load_multi(members.to_a)
+      # compact filters stale references (IDs in set but record deleted/not migrated)
+      Customer.load_multi(members.to_a).compact
     end
 
     # Invitation management
@@ -124,7 +125,8 @@ module Onetime
 
     def list_pending_invitations
       # Bulk loading with manually-managed pending_invitations collection
-      OrganizationMembership.load_multi(pending_invitations.to_a)
+      # compact filters stale references (IDs in set but record deleted/not migrated)
+      OrganizationMembership.load_multi(pending_invitations.to_a).compact
     end
 
     # Domain management - Familia v2 auto-generated methods wrapper
@@ -150,7 +152,8 @@ module Onetime
       return [] if domains.empty?
 
       # Bulk loading with auto-generated domains collection
-      CustomDomain.load_multi(domains.to_a)
+      # compact filters stale references (IDs in set but record deleted/not migrated)
+      CustomDomain.load_multi(domains.to_a).compact
     end
 
     def domain_count

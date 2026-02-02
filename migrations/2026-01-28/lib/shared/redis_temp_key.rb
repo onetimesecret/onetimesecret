@@ -5,6 +5,7 @@
 require 'redis'
 require 'base64'
 require 'securerandom'
+require 'oj'
 
 module Migration
   module Shared
@@ -67,11 +68,12 @@ module Migration
       #
       # @param dump_b64 [String] Base64-encoded Redis DUMP data
       # @param original_key [String] Original key name (for error messages)
+      # @param deserialize_values [Boolean] JSON-deserialize values (default: false for v1 compat)
       # @return [Hash] Hash fields from the restored key
       # @raise [Base64FormatError] If Base64 encoding is invalid
       # @raise [RestoreError] If Redis restore fails
       #
-      def restore_and_read_hash(dump_b64, original_key: 'unknown')
+      def restore_and_read_hash(dump_b64, original_key: 'unknown', deserialize_values: false)
         ensure_connected!
         validate_base64!(dump_b64, original_key)
         temp_key = generate_temp_key
@@ -81,7 +83,10 @@ module Migration
         begin
           @redis.restore(temp_key, 0, dump_data, replace: true)
           @temp_keys_created << temp_key
-          @redis.hgetall(temp_key)
+          fields = @redis.hgetall(temp_key)
+
+          # Optionally deserialize JSON-encoded values (for reading v2-encoded data)
+          deserialize_values ? deserialize_field_values(fields) : fields
         rescue Redis::CommandError => ex
           raise RestoreError.new(original_key, ex.message)
         ensure
@@ -91,10 +96,15 @@ module Migration
 
       # Create a hash in Redis, dump it, return base64.
       #
+      # Field values are JSON-serialized for Familia v2 compatibility.
+      # This ensures strings like "email@example.com" are stored as
+      # "\"email@example.com\"" which Familia v2 can properly deserialize.
+      #
       # @param fields [Hash] Hash fields to store
+      # @param serialize_values [Boolean] JSON-serialize values for Familia v2 (default: true)
       # @return [String] Base64-encoded DUMP data
       #
-      def create_dump_from_hash(fields)
+      def create_dump_from_hash(fields, serialize_values: true)
         ensure_connected!
 
         # Filter out nil values
@@ -104,10 +114,17 @@ module Migration
           raise ArgumentError, 'Cannot create dump from empty hash'
         end
 
+        # JSON-serialize each field value for Familia v2 compatibility
+        stored_fields = if serialize_values
+                          serialize_field_values(clean_fields)
+                        else
+                          clean_fields
+                        end
+
         temp_key = generate_temp_key
 
         begin
-          @redis.hset(temp_key, clean_fields)
+          @redis.hset(temp_key, stored_fields)
           @temp_keys_created << temp_key
           dump_data = @redis.dump(temp_key)
           Base64.strict_encode64(dump_data)
@@ -185,6 +202,42 @@ module Migration
         @temp_keys_created.delete(key)
       rescue StandardError
         # Ignore cleanup errors
+      end
+
+      # JSON-deserialize field values from Familia v2 format.
+      #
+      # Reverses the JSON encoding done by serialize_field_values.
+      # Used when reading data that was previously encoded.
+      #
+      # @param fields [Hash] Hash with JSON-encoded string values
+      # @return [Hash] Hash with native Ruby values
+      #
+      def deserialize_field_values(fields)
+        fields.transform_values do |value|
+          next value if value.nil?
+
+          Oj.load(value, mode: :strict)
+        rescue Oj::ParseError
+          # If parsing fails, return the original value
+          value
+        end
+      end
+
+      # JSON-serialize field values for Familia v2 compatibility.
+      #
+      # Familia v2 expects all hash field values to be JSON strings:
+      #   - "email@example.com" -> "\"email@example.com\""
+      #   - 123 -> "123"
+      #   - true -> "true"
+      #   - nil -> "null" (but nils are filtered before this)
+      #
+      # @param fields [Hash] Hash with field values
+      # @return [Hash] Hash with JSON-serialized values
+      #
+      def serialize_field_values(fields)
+        fields.transform_values do |value|
+          Oj.dump(value, mode: :strict)
+        end
       end
 
       # Error classes

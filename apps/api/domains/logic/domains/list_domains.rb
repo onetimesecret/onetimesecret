@@ -42,9 +42,7 @@ module DomainsAPI::Logic
 
         OT.ld "[ListDomains] Processing #{domains.size} domains for org #{target_organization.objid}"
 
-        @custom_domains = domains.map do |domain|
-          domain.safe_dump
-        end
+        @custom_domains = domains.map(&:safe_dump)
 
         success_data
       end

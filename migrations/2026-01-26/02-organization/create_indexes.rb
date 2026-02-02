@@ -4,19 +4,19 @@
 # Creates Organization indexes from generated organization records.
 # Reads the output of generate.rb and produces index commands.
 #
-# Run AFTER generate.rb which creates organization_generated.jsonl
+# Run AFTER generate.rb which creates organization_transformed.jsonl
 #
 # Usage:
 #   ruby scripts/migrations/2026-01-26/02-organization/create_indexes.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL file (default: results/organization/organization_generated.jsonl)
+#   --input-file=FILE   Input JSONL file (default: results/organization/organization_transformed.jsonl)
 #   --output-dir=DIR    Output directory (default: results/organization)
 #   --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
 #   --temp-db=N         Temp database for restore operations (default: 15)
 #   --dry-run           Show what would be created without writing
 #
-# Input: results/organization/organization_generated.jsonl (from generate.rb)
+# Input: results/organization/organization_transformed.jsonl (from generate.rb)
 # Output: results/organization/organization_indexes.jsonl (Redis commands)
 
 require 'json'
@@ -24,6 +24,7 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'redis'
+require 'familia'
 
 class OrganizationIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_idx_'
@@ -201,7 +202,9 @@ class OrganizationIndexCreator
 
     begin
       @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
+      raw_fields = @redis.hgetall(temp_key)
+      # Deserialize v2 JSON-encoded values written by generate.rb
+      deserialize_v2_fields(raw_fields)
     rescue Redis::CommandError => ex
       @stats[:errors] << { key: record[:key], error: "RESTORE failed: #{ex.message}" }
       nil
@@ -212,6 +215,24 @@ class OrganizationIndexCreator
         nil
       end
     end
+  end
+
+  # Deserialize a single v2 JSON-encoded value back to Ruby type
+  # Values written by generate.rb are JSON-serialized (e.g., "cus_xxx" -> "\"cus_xxx\"")
+  def deserialize_v2_value(raw_value)
+    return nil if raw_value.nil? || raw_value == 'null'
+    return raw_value if raw_value.empty?
+
+    Familia::JsonSerializer.parse(raw_value)
+  rescue Familia::SerializerError
+    raw_value # Fallback for non-JSON values
+  end
+
+  # Deserialize all fields in a hash from v2 JSON format
+  def deserialize_v2_fields(fields)
+    return {} if fields.nil?
+
+    fields.transform_values { |v| deserialize_v2_value(v) }
   end
 
   def add_command(cmd, key, args)
@@ -264,7 +285,7 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/organization/organization_generated.jsonl',
+    input_file: 'results/organization/organization_transformed.jsonl',
     output_dir: 'results/organization',
     redis_url: 'redis://127.0.0.1:6379',
     temp_db: 15,
@@ -283,10 +304,10 @@ def parse_args(args)
         Usage: ruby #{__FILE__} [OPTIONS]
 
         Creates Organization indexes from generated organization records.
-        Run AFTER generate.rb which creates organization_generated.jsonl.
+        Run AFTER generate.rb which creates organization_transformed.jsonl.
 
         Options:
-          --input-file=FILE   Input JSONL (default: results/organization/organization_generated.jsonl)
+          --input-file=FILE   Input JSONL (default: results/organization/organization_transformed.jsonl)
           --output-dir=DIR    Output directory (default: results/organization)
           --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
           --temp-db=N         Temp database number (default: 15)

@@ -72,11 +72,11 @@ SCRIPTS
 
 1. generate.rb   - Creates organization records from transformed customer data
                    Input:  exports/customer/customer_transformed.jsonl
-                   Output: exports/organization/organization_generated.jsonl
+                   Output: exports/organization/organization_transformed.jsonl
                            exports/organization/customer_to_org_lookup.json
 
 2. create_indexes.rb - Creates index commands from generated organizations
-                       Input:  exports/organization/organization_generated.jsonl
+                       Input:  exports/organization/organization_transformed.jsonl
                        Output: exports/organization/organization_indexes.jsonl
 
 Run order: generate.rb -> create_indexes.rb

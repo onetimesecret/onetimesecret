@@ -54,11 +54,12 @@ class SecretJob
       objects_found: 0,
       secrets_transformed: 0,
       records_written: 0,
-      lookup_entries: 0,
       owner_resolved: 0,
       owner_not_found: 0,
       org_resolved: 0,
       org_not_found: 0,
+      domain_resolved: 0,
+      domain_unresolved: 0,
       anonymous_secrets: 0,
       validated: 0,
       validation_failures: 0,
@@ -76,10 +77,10 @@ class SecretJob
 
     puts "Secret Transform Job (Phase #{PHASE})"
     puts '=' * 50
-    puts "Input:  #{@input_file}"
-    puts "Output: #{output_file}"
-    puts "Lookup: #{lookup_file}"
-    puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
+    puts "Input:   #{@input_file}"
+    puts "Output:  #{output_file}"
+    puts "Indexes: #{indexes_file}"
+    puts "Mode:    #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
 
     if @dry_run
@@ -117,6 +118,13 @@ class SecretJob
       raise ArgumentError, "Phase 2 prerequisite missing: #{e.message}"
     end
 
+    begin
+      data = registry.require_lookup(:fqdn_to_domain, for_phase: PHASE)
+      puts "Loaded lookup: fqdn_to_domain (#{data.size} entries)"
+    rescue Migration::Shared::LookupRegistry::LookupNotFoundError => e
+      raise ArgumentError, "Phase 3 prerequisite missing: #{e.message}"
+    end
+
     puts
   end
 
@@ -124,8 +132,8 @@ class SecretJob
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
-  def lookup_file
-    File.join(@output_dir, 'lookups', 'secret_key_to_objid.json')
+  def indexes_file
+    File.join(@output_dir, "#{MODEL}_indexes.jsonl")
   end
 
   def run_dry
@@ -166,7 +174,7 @@ class SecretJob
   def build_kiba_job(redis_helper, registry)
     input_file = @input_file
     output_file_path = output_file
-    lookup_file_path = lookup_file
+    indexes_file_path = indexes_file
     stats = @stats
     job_started_at = Time.now
     strict_validation = @strict_validation
@@ -175,7 +183,6 @@ class SecretJob
       # Pre-process: setup directories
       pre_process do
         FileUtils.mkdir_p(File.dirname(output_file_path))
-        FileUtils.mkdir_p(File.dirname(lookup_file_path))
       end
 
       # Source: read JSONL
@@ -229,27 +236,28 @@ class SecretJob
                 fields_key: :v2_fields,
                 stats: stats
 
+      # Transform: generate index commands
+      transform Migration::Transforms::Secret::IndexGenerator,
+                stats: stats
+
       # Transform: count records being written
       transform do |record|
-        stats[:records_written] += 1
+        stats[:records_written] += 1 unless record[:command]
         record
       end
 
-      # Destination: write transformed JSONL and lookup file
-      destination Migration::Destinations::CompositeDestination,
-                  destinations: [
-                    [Migration::Destinations::JsonlDestination, {
+      # Destination: route records to appropriate outputs
+      destination Migration::Destinations::RoutingDestination,
+                  routes: {
+                    data: [Migration::Destinations::JsonlDestination, {
                       file: output_file_path,
                       exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
                     }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: lookup_file_path,
-                      key_field: :secret_key,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
+                    indexes: [Migration::Destinations::JsonlDestination, {
+                      file: indexes_file_path,
                     }],
-                  ]
+                  },
+                  stats: stats
     end
   end
 
@@ -261,7 +269,10 @@ class SecretJob
     puts "Secrets transformed:  #{@stats[:secrets_transformed]}"
     puts
     puts "Records written:      #{@stats[:records_written]}"
-    puts "Lookup entries:       #{@stats[:lookup_entries]}"
+    puts
+    puts "Indexes generated:    #{@stats[:indexes_generated] || 0}"
+    puts "  Instance entries:   #{@stats[:secret_instance_entries] || 0}"
+    puts "  ObjID lookups:      #{@stats[:secret_objid_lookups] || 0}"
     puts
     puts 'Owner resolution:'
     puts "  Resolved:           #{@stats[:owner_resolved]}"
@@ -271,6 +282,10 @@ class SecretJob
     puts 'Organization resolution:'
     puts "  Resolved:           #{@stats[:org_resolved]}"
     puts "  Not found:          #{@stats[:org_not_found]}"
+    puts
+    puts 'Domain resolution:'
+    puts "  Resolved:           #{@stats[:domain_resolved]}"
+    puts "  Not found:          #{@stats[:domain_unresolved]}"
     puts
     puts 'Validation:'
     puts "  Validated:          #{@stats[:validated]}"

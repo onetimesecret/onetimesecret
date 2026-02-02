@@ -1,34 +1,17 @@
 // src/shared/stores/localReceiptStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
+import {
+  guestReceiptsResponseSchema,
+  localReceiptsArraySchema,
+  type LocalReceipt,
+} from '@/schemas/ui/local-receipt';
 import { loggingService } from '@/services/logging.service';
-import { type LocalReceipt } from '@/types/ui/local-receipt';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
 
 interface StoreOptions extends PiniaPluginOptions {}
-
-/**
- * Response from the batch receipts status API
- * Fields match Receipt safe_dump output from backend
- */
-export interface GuestReceiptsResponse {
-  records: Array<{
-    /** Full receipt identifier for matching */
-    identifier: string;
-    /** Receipt shortid (first 8 chars) */
-    shortid: string;
-    /** Secret shortid for cross-reference if needed */
-    secret_shortid: string;
-    is_previewed?: boolean;
-    is_revealed?: boolean;
-    is_burned?: boolean;
-    is_expired?: boolean;
-    is_destroyed?: boolean;
-  }>;
-  count: number;
-}
 
 /**
  * Type definition for LocalReceiptStore.
@@ -65,16 +48,28 @@ const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
 const MAX_STORED_RECEIPTS = 25;
 
 /**
- * Loads local receipts from sessionStorage
+ * Loads local receipts from sessionStorage with schema validation.
+ * Gracefully handles corrupted, tampered, or version-mismatched data.
  */
 function loadFromStorage(): LocalReceipt[] {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const now = Date.now();
-      const parsed = JSON.parse(stored) as LocalReceipt[];
+      const parsed = JSON.parse(stored);
+      const result = localReceiptsArraySchema.safeParse(parsed);
+
+      if (!result.success) {
+        // Data is malformed - clear it and start fresh
+        loggingService.warn(
+          `Invalid local receipts in storage, clearing: ${result.error.message}`
+        );
+        sessionStorage.removeItem(STORAGE_KEY);
+        return [];
+      }
+
       // Filter out expired entries (createdAt + ttl has passed)
-      return parsed.filter((r) => r.createdAt + r.ttl * 1000 > now);
+      const now = Date.now();
+      return result.data.filter((r) => r.createdAt + r.ttl * 1000 > now);
     }
   } catch (error) {
     loggingService.error(new Error(`Failed to load local receipts from storage: ${error}`));
@@ -246,11 +241,20 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     const identifiers = localReceipts.value.map((r) => r.receiptExtid);
 
     try {
-      const response = await $api.post<GuestReceiptsResponse>('/api/v3/guest/receipts', {
+      const response = await $api.post('/api/v3/guest/receipts', {
         identifiers,
       });
 
-      const { records } = response.data;
+      // Validate API response with schema
+      const parseResult = guestReceiptsResponseSchema.safeParse(response.data);
+      if (!parseResult.success) {
+        loggingService.error(
+          new Error(`Invalid API response from guest/receipts: ${parseResult.error.message}`)
+        );
+        return false;
+      }
+
+      const { records } = parseResult.data;
       let hasUpdates = false;
 
       // Update local receipts with server status

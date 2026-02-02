@@ -52,7 +52,6 @@ class ReceiptJob
       objects_found: 0,
       objects_transformed: 0,
       records_written: 0,
-      lookup_entries: 0,
       owner_resolved: 0,
       owner_unresolved: 0,
       org_resolved: 0,
@@ -76,10 +75,10 @@ class ReceiptJob
 
     puts "Receipt Transform Job (Phase #{PHASE})"
     puts '=' * 50
-    puts "Input:  #{@input_file}"
-    puts "Output: #{output_file}"
-    puts "Lookup: #{lookup_file}"
-    puts "Mode:   #{@dry_run ? 'DRY RUN' : 'LIVE'}"
+    puts "Input:   #{@input_file}"
+    puts "Output:  #{output_file}"
+    puts "Indexes: #{indexes_file}"
+    puts "Mode:    #{@dry_run ? 'DRY RUN' : 'LIVE'}"
     puts
     puts 'Required lookups:'
     puts "  - #{email_to_customer_lookup}"
@@ -120,8 +119,8 @@ class ReceiptJob
     File.join(@output_dir, "#{MODEL}_transformed.jsonl")
   end
 
-  def lookup_file
-    File.join(@output_dir, 'lookups', 'metadata_key_to_receipt_objid.json')
+  def indexes_file
+    File.join(@output_dir, "#{MODEL}_indexes.jsonl")
   end
 
   def email_to_customer_lookup
@@ -175,7 +174,7 @@ class ReceiptJob
   def build_kiba_job(redis_helper, registry)
     input_file = @input_file
     output_file_path = output_file
-    lookup_file_path = lookup_file
+    indexes_file_path = indexes_file
     stats = @stats
     job_started_at = Time.now
     strict_validation = @strict_validation
@@ -184,7 +183,6 @@ class ReceiptJob
       # Pre-process: setup directories
       pre_process do
         FileUtils.mkdir_p(File.dirname(output_file_path))
-        FileUtils.mkdir_p(File.dirname(lookup_file_path))
       end
 
       # Source: read metadata JSONL
@@ -237,27 +235,28 @@ class ReceiptJob
                 fields_key: :v2_fields,
                 stats: stats
 
+      # Transform: generate index commands
+      transform Migration::Transforms::Receipt::IndexGenerator,
+                stats: stats
+
       # Transform: count records being written
       transform do |record|
-        stats[:records_written] += 1
+        stats[:records_written] += 1 unless record[:command]
         record
       end
 
-      # Destination: write transformed JSONL and lookup file
-      destination Migration::Destinations::CompositeDestination,
-                  destinations: [
-                    [Migration::Destinations::JsonlDestination, {
+      # Destination: route records to appropriate outputs
+      destination Migration::Destinations::RoutingDestination,
+                  routes: {
+                    data: [Migration::Destinations::JsonlDestination, {
                       file: output_file_path,
                       exclude_fields: %i[fields v2_fields decode_error encode_error validation_errors],
                     }],
-                    [Migration::Destinations::LookupDestination, {
-                      file: lookup_file_path,
-                      key_field: :secret_key,
-                      value_field: :objid,
-                      phase: PHASE,
-                      stats: stats,
+                    indexes: [Migration::Destinations::JsonlDestination, {
+                      file: indexes_file_path,
                     }],
-                  ]
+                  },
+                  stats: stats
     end
   end
 
@@ -267,9 +266,16 @@ class ReceiptJob
     puts "Records read:           #{@stats[:records_read]}"
     puts "Objects found:          #{@stats[:objects_found]}"
     puts "Objects transformed:    #{@stats[:objects_transformed]}"
-    puts
     puts "Records written:        #{@stats[:records_written]}"
-    puts "Lookup entries:         #{@stats[:lookup_entries]}"
+    puts
+    puts "Indexes generated:      #{@stats[:indexes_generated] || 0}"
+    puts "  Instance entries:     #{@stats[:receipt_instance_entries] || 0}"
+    puts "  ObjID lookups:        #{@stats[:receipt_objid_lookups] || 0}"
+    puts "  Expiration entries:   #{@stats[:receipt_expiration_entries] || 0}"
+    puts "  Customer receipts:    #{@stats[:customer_receipt_entries] || 0}"
+    puts "  Org receipts:         #{@stats[:org_receipt_entries] || 0}"
+    puts "  Domain receipts:      #{@stats[:domain_receipt_entries] || 0}"
+    puts "  Anonymous:            #{@stats[:anonymous_receipts] || 0}"
     puts
     puts 'Ownership resolution:'
     puts "  Owner resolved:       #{@stats[:owner_resolved]}"
@@ -284,6 +290,11 @@ class ReceiptJob
     puts "  Validated:            #{@stats[:validated]}"
     puts "  Failures:             #{@stats[:validation_failures]}"
     puts "  Skipped:              #{@stats[:validation_skipped]}"
+
+    # Print detailed validation error summaries
+    Migration::Transforms::SchemaValidator.print_summary(@stats, :metadata_v1)
+    Migration::Transforms::SchemaValidator.print_summary(@stats, :receipt_v2)
+
     puts
     puts 'Skipped records:'
     puts "  Non-metadata objects: #{@stats[:skipped_non_metadata_object]}"

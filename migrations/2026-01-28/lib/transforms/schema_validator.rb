@@ -26,6 +26,9 @@ module Migration
     class SchemaValidator < BaseTransform
       attr_reader :schema_name, :field, :strict
 
+      # Maximum number of sample errors to collect for reporting
+      MAX_ERROR_SAMPLES = 5
+
       # @param schema [Symbol] Name of the registered schema
       # @param field [Symbol] Record field to validate (default: :fields)
       # @param strict [Boolean] Filter out invalid records (default: false)
@@ -36,6 +39,11 @@ module Migration
         @schema_name = schema
         @field = field
         @strict = strict
+
+        # Store error tracking in stats hash for access after job completes
+        stats_key = :"#{schema_name}_errors"
+        @stats[stats_key] ||= { samples: [], counts: Hash.new(0) }
+        @error_data = @stats[stats_key]
 
         unless Schemas.registered?(schema)
           raise ArgumentError, "Schema not registered: #{schema}"
@@ -71,18 +79,56 @@ module Migration
       def handle_validation_errors(record, errors)
         increment_stat(:validation_failures)
 
+        # Track error frequency by type
+        errors.each do |err|
+          # Extract field path from error (e.g., "/burned:" -> "burned")
+          field_path = err[%r{^/(\w+):}, 1] || 'unknown'
+          @error_data[:counts][field_path] += 1
+        end
+
+        # Collect sample errors for reporting
+        if @error_data[:samples].size < MAX_ERROR_SAMPLES
+          key = record[:key] || 'unknown'
+          @error_data[:samples] << { key: key, errors: errors }
+        end
+
         # Attach errors to record for inspection
         record[:validation_errors] ||= []
         record[:validation_errors].concat(errors.map { |e| "[#{@schema_name}] #{e}" })
 
         if @strict
-          # Log the key for debugging
           key = record[:key] || 'unknown'
           increment_stat(:filtered_invalid)
           warn "SchemaValidator: Filtered invalid record #{key}: #{errors.first}"
           nil
         else
           record
+        end
+      end
+
+      # Print validation summary from stats hash.
+      # Call from job's print_summary method.
+      #
+      # @param stats [Hash] Stats hash containing error data
+      # @param schema_name [Symbol] Schema name to report on
+      #
+      def self.print_summary(stats, schema_name)
+        stats_key = :"#{schema_name}_errors"
+        error_data = stats[stats_key]
+        return unless error_data && !error_data[:counts].empty?
+
+        puts "\n  [#{schema_name}] Validation Issues:"
+        puts "    Fields with errors (by frequency):"
+        error_data[:counts].sort_by { |_, count| -count }.first(10).each do |field, count|
+          puts "      #{field}: #{count}"
+        end
+
+        return if error_data[:samples].empty?
+
+        puts "    Sample errors (first #{error_data[:samples].size}):"
+        error_data[:samples].each do |sample|
+          puts "      #{sample[:key]}:"
+          sample[:errors].first(3).each { |e| puts "        - #{e}" }
         end
       end
     end
