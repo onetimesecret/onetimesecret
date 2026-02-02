@@ -101,8 +101,8 @@ module Onetime
     def member?(customer)
       return false unless customer
 
-      # members is auto-generated sorted_set
-      members.member?(customer.objid)
+      # Pass the Familia object so serialize_value extracts identifier without JSON encoding
+      members.member?(customer)
     end
 
     def member_count

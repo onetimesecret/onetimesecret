@@ -77,6 +77,36 @@ class CustomDomainTransformer
   # These are 2-part keys like custom_domain:owners, custom_domain:display_domains
   V1_INDEX_KEYS = %w[owners display_domains instances values].freeze
 
+  # Field type mappings for brand hash (from src/schemas/models/domain/brand.ts)
+  BRAND_FIELD_TYPES = {
+    'primary_color' => :string,
+    'colour' => :string,
+    'instructions_pre_reveal' => :string,
+    'instructions_reveal' => :string,
+    'instructions_post_reveal' => :string,
+    'description' => :string,
+    'button_text_light' => :boolean,
+    'allow_public_homepage' => :boolean,
+    'allow_public_api' => :boolean,
+    'font_family' => :string,
+    'corner_style' => :string,
+    'locale' => :string,
+    'default_ttl' => :integer,
+    'passphrase_required' => :boolean,
+    'notify_enabled' => :boolean,
+  }.freeze
+
+  # Field type mappings for logo/icon hash (from src/schemas/models/domain/brand.ts imagePropsSchema)
+  IMAGE_FIELD_TYPES = {
+    'encoded' => :string,
+    'content_type' => :string,
+    'filename' => :string,
+    'bytes' => :integer,
+    'width' => :integer,
+    'height' => :integer,
+    'ratio' => :float,
+  }.freeze
+
   # Fields to copy directly without transformation
   DIRECT_COPY_FIELDS = %w[
     domainid display_domain base_domain subdomain trd tld sld
@@ -389,8 +419,7 @@ class CustomDomainTransformer
   end
 
   # Transform related hashes (brand, logo, icon) with v2 JSON serialization
-  # These hashes don't have strict field type definitions, so we serialize
-  # all values as strings (the most common case for branding data)
+  # Uses type-specific field mappings for proper Ruby type conversion before serialization
   def transform_related_hash(record, objid, data_type)
     new_key = "custom_domain:#{objid}:#{data_type}"
 
@@ -402,13 +431,20 @@ class CustomDomainTransformer
       @redis.restore(temp_key, 0, dump_data, replace: true)
       v1_fields = @redis.hgetall(temp_key)
 
-      # Serialize all fields for v2 JSON format
-      # For related hashes (brand, logo), treat all values as strings
+      # Select appropriate field type mapping based on data_type
+      field_types = case data_type
+                    when 'brand' then BRAND_FIELD_TYPES
+                    when 'logo', 'icon' then IMAGE_FIELD_TYPES
+                    else {}
+                    end
+
+      # Serialize fields with proper type conversion
       v2_serialized = v1_fields.each_with_object({}) do |(key, value), result|
         result[key] = if value.nil? || value == ''
                         'null'
                       else
-                        Familia::JsonSerializer.dump(value)
+                        ruby_val = parse_related_field(key, value, field_types)
+                        Familia::JsonSerializer.dump(ruby_val)
                       end
       end
 
@@ -505,6 +541,22 @@ class CustomDomainTransformer
     when :boolean then value == 'true'
     else
       raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
+    end
+  end
+
+  # Parse related hash field value to Ruby type (lenient - unknown fields default to string)
+  def parse_related_field(key, value, field_types)
+    field_type = field_types[key.to_s]
+
+    # Unknown fields default to string (related hashes may have additional fields)
+    return value unless field_type
+
+    case field_type
+    when :string then value
+    when :integer then value.to_i
+    when :float then value.to_f
+    when :boolean then value == 'true'
+    else value
     end
   end
 

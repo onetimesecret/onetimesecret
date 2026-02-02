@@ -192,11 +192,19 @@ module OTS
       def build_transformed_fields(obj, overrides)
         fields = {}
 
-        # Copy existing fields
-        %w[state secret_identifier secret_shortid secret_ttl lifespan
-           share_domain passphrase recipients memo created updated].each do |field|
+        # Copy existing fields (excluding renamed fields handled below)
+        %w[state secret_ttl lifespan share_domain passphrase recipients memo created updated].each do |field|
           val = obj.send(field) rescue nil
           fields[field] = val.to_s if val
+        end
+
+        # Field rename: secret_key (v1) -> secret_identifier (v2)
+        # In v1 metadata, the secret's identifier was stored as 'secret_key'
+        secret_key_val = (obj.secret_key rescue nil) || (obj.secret_identifier rescue nil)
+        if secret_key_val.to_s.present?
+          fields['secret_identifier'] = secret_key_val.to_s
+          # Derive secret_shortid from the first 8 characters
+          fields['secret_shortid'] = secret_key_val.to_s.slice(0, 8)
         end
 
         # Apply overrides
