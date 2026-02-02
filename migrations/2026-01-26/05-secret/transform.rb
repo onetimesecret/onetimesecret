@@ -126,6 +126,7 @@ class SecretTransformer
       transformed_objects: 0,
       skipped_secrets: 0,
       anonymous_secrets: 0,
+      related_passthrough: 0,
       state_transforms: Hash.new(0),
       original_size_migrated: 0,
       missing_customer_lookup: 0,
@@ -271,11 +272,14 @@ class SecretTransformer
     record = JSON.parse(line, symbolize_names: true)
     key    = record[:key]
 
-    # Only process :object keys
-    return [] unless key&.end_with?(':object')
-
-    # Must be a secret key pattern: secret:{objid}:object
+    # Must be a secret key pattern: secret:{objid}:{suffix}
     return [] unless key.start_with?('secret:')
+
+    # Only transform :object keys; pass through related records (e.g., :email)
+    unless key.end_with?(':object')
+      @stats[:related_passthrough] += 1
+      return []
+    end
 
     return [] if @dry_run
 
@@ -462,6 +466,7 @@ class SecretTransformer
     puts 'V2 Records Written:'
     puts "  Total: #{@stats[:v2_records_written]}"
     puts "  Transformed objects: #{@stats[:transformed_objects]}"
+    puts "  Related records passed through: #{@stats[:related_passthrough]}"
     puts
 
     puts 'Ownership:'

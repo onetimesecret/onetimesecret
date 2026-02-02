@@ -21,7 +21,8 @@ module Migration
       #   transform Customer::IndexGenerator, stats: stats
       #
       class IndexGenerator < IndexGeneratorBase
-        VALID_ROLES = %w[colonel customer anonymous recipient].freeze
+        # 'user_deleted_self' tracks accounts that users deleted themselves
+        VALID_ROLES = %w[colonel customer anonymous recipient user_deleted_self].freeze
 
         def generate_indexes(record)
           commands = []

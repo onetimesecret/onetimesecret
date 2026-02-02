@@ -36,7 +36,8 @@ class CustomerIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_'
   COUNTER_FIELDS  = %w[secrets_created secrets_shared secrets_burned emails_sent].freeze
   # NOTE: 'recipient' is also valid in V2 but not used in V1 data
-  VALID_ROLES     = %w[colonel customer anonymous recipient].freeze
+  # 'user_deleted_self' tracks accounts that users deleted themselves
+  VALID_ROLES     = %w[colonel customer anonymous recipient user_deleted_self].freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file = input_file
