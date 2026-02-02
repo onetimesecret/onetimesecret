@@ -582,7 +582,7 @@ DEPENDENCIES
   bunny (~> 2.22)
   bunny-mock (~> 1.7)
   climate_control
-  connection_pool (~> 2.4)
+  connection_pool (~> 2.5)
   database_cleaner-sequel (~> 2.0)
   debug
   dry-cli (~> 1.2)

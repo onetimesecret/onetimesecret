@@ -105,7 +105,7 @@ gem 'stringio', '~> 3.1.6'
 # ====================================
 
 gem 'bunny', '~> 2.22'           # RabbitMQ AMQP client
-gem 'connection_pool', '~> 2.4'  # Thread-safe connection pooling
+gem 'connection_pool', '~> 2.5'  # Thread-safe connection pooling
 gem 'kicks', '~> 3.0'            # RabbitMQ worker framework (Sneakers successor)
 gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 
