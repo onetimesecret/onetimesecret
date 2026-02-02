@@ -65,6 +65,7 @@ class SecretTransformer
     'created' => :timestamp,
     'updated' => :timestamp,
     # Migration fields
+    'v1_key' => :string,
     'v1_identifier' => :string,
     'v1_custid' => :string,
     'v1_original_size' => :integer,

@@ -38,6 +38,7 @@ class CustomerTransformer
     # Core fields (customer.rb)
     'custid' => :string,
     'email' => :string,
+    'key' => :string,
     'locale' => :string,
     'planid' => :string,
     'last_password_update' => :timestamp,
@@ -56,6 +57,7 @@ class CustomerTransformer
     'contributor' => :string,
     'stripe_customer_id' => :string,
     'stripe_subscription_id' => :string,
+    'stripe_checkout_email' => :string,
     # Counter fields (features/counter_fields.rb)
     'secrets_created' => :integer,
     'secrets_burned' => :integer,
