@@ -143,7 +143,7 @@ Test Cases:
 - Counter aggregation (secrets_created, etc.)
 - Backfill for customers missing from v1 instance index
 - organization:contact_email_index maps email->org_objid
-- customdomain:display_domain_index maps fqdn->domain_objid
+- custom_domain:display_domain_index maps fqdn->domain_objid
 ```
 
 ### 1.8 KeyLoader (`load_keys.rb`)
@@ -287,7 +287,7 @@ Test Cases:
 - customer:instances ZCARD == customer object count
 - customer:email_index HLEN == customers with email
 - organization:instances ZCARD == organization count
-- customdomain:display_domain_index HLEN == custom domain count
+- custom_domain:display_domain_index HLEN == custom domain count
 - receipt:instances ZCARD == receipt object count
 - secret:instances ZCARD == secret object count
 ```

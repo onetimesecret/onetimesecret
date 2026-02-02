@@ -13,7 +13,7 @@ Provides
 
 KEY PATTERN
 
-V1: customdomain:{domainid}
+V1: custom_domain:{domainid}
 V2: custom_domain:{objid}
 
 Change: Prefix adds underscore, Identifier change (domainid (hexadecimal) -> objid (UUID v7))
@@ -53,7 +53,7 @@ Hash        custom_domain:{objid}:icon           Rename key, Copy as-is
 INDEXES
 
 Instance Index
-  V1 key: customdomain:values (rename to custom_domain:instances)
+  V1 key: custom_domain:values (rename to custom_domain:instances)
 
 Lookup Indexes
   custom_domain:display_domain_index  Hash    fqdn -> "objid" (JSON quoted)

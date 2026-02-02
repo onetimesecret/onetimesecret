@@ -15,7 +15,6 @@ import { z } from 'zod/v4';
 const redisDbsSchema = z.object({
   session: z.number().int().min(0).max(15).default(0),
   custom_domain: z.number().int().min(0).max(15).default(0),
-  customdomain: z.number().int().min(0).max(15).default(0), // Alias
   customer: z.number().int().min(0).max(15).default(0),
   metadata: z.number().int().min(0).max(15).default(0),
   secret: z.number().int().min(0).max(15).default(0),
@@ -34,12 +33,14 @@ const redisSchema = z.object({
  * Storage schema (wraps redis for consistency with historical schema)
  */
 const storageSchema = z.object({
-  db: z.object({
-    connection: z.object({
-      url: z.string().default('redis://localhost:6379'),
-    }),
-    database_mapping: z.record(z.string(), z.number().nullable()).optional(),
-  }).optional(),
+  db: z
+    .object({
+      connection: z.object({
+        url: z.string().default('redis://localhost:6379'),
+      }),
+      database_mapping: z.record(z.string(), z.number().nullable()).optional(),
+    })
+    .optional(),
 });
 
-export { redisSchema, redisDbsSchema, storageSchema };
+export { redisDbsSchema, redisSchema, storageSchema };

@@ -6,7 +6,7 @@
 # CustomDomain Migration: v1 -> v2
 #
 # Transforms CustomDomain records to use organization ownership:
-# - Key pattern: unchanged (customdomain:{domainid}:object)
+# - Key pattern: unchanged (custom_domain:{domainid}:object)
 # - custid (email) -> org_id (Organization objid)
 # - Add v1_custid to preserve original email
 # - Add domain to organization's domains collection (Familia v2 participation)

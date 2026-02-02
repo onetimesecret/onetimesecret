@@ -369,7 +369,7 @@ def parse_args(args)
       puts opts
       puts
       puts 'Redis cleanup (DB 0):'
-      puts '  Deletes keys: customer:*, organization:*, customdomain:*,'
+      puts '  Deletes keys: customer:*, organization:*, custom_domain:*,'
       puts '                receipt:*, secret:*'
       puts
       puts 'File cleanup:'

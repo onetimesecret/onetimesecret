@@ -27,7 +27,7 @@
 #
 # ExtID prefixes by model (ObjectIdentifier only):
 #   - customer:     ur
-#   - customdomain: cd
+#   - custom_domain: cd
 #   - organization: on (generated during org creation)
 #
 # Note: metadata (receipt) and secret use VerifiableIdentifier - no objid/extid
@@ -291,7 +291,7 @@ def parse_args(args)
 
         ExtID prefixes (ObjectIdentifier models only):
           customer:     ur (e.g., ur0abc123...)
-          customdomain: cd (e.g., cd0xyz789...)
+          custom_domain: cd (e.g., cd0xyz789...)
 
         Note: metadata/receipts and secret use VerifiableIdentifier (no objid/extid)
       HELP
