@@ -72,6 +72,9 @@ class SecretTransformer
     'migration_status' => :string,
     'migrated_at' => :timestamp,
     '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # Relationship fields (added during transformation)
+    'org_id' => :string,
+    'domain_id' => :string,
     # Deprecated fields (features/deprecated_fields.rb)
     'value' => :string,        # plaintext value in v1 (deprecated)
     'key' => :string,          # legacy key field

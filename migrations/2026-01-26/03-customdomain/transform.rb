@@ -377,18 +377,64 @@ class CustomDomainTransformer
 
   def rename_related_records(records, objid)
     records.map do |record|
-      v2_record = record.dup
       key_parts = record[:key].split(':')  # custom_domain:{domainid}:{type}
-
-      # Get the data type (brand, logo, icon, etc.)
       data_type = key_parts.last
 
-      # Rename key with underscore: customdomain -> custom_domain
-      new_key                              = "custom_domain:#{objid}:#{data_type}"
-      v2_record[:key]                      = new_key
-      @stats[:renamed_related][data_type] += 1
+      # Transform the hash data with v2 JSON serialization
+      v2_record = transform_related_hash(record, objid, data_type)
 
+      @stats[:renamed_related][data_type] += 1
       v2_record
+    end
+  end
+
+  # Transform related hashes (brand, logo, icon) with v2 JSON serialization
+  # These hashes don't have strict field type definitions, so we serialize
+  # all values as strings (the most common case for branding data)
+  def transform_related_hash(record, objid, data_type)
+    new_key = "custom_domain:#{objid}:#{data_type}"
+
+    # Restore the original dump and read fields
+    temp_key  = "#{TEMP_KEY_PREFIX}related_#{SecureRandom.hex(8)}"
+    dump_data = Base64.strict_decode64(record[:dump])
+
+    begin
+      @redis.restore(temp_key, 0, dump_data, replace: true)
+      v1_fields = @redis.hgetall(temp_key)
+
+      # Serialize all fields for v2 JSON format
+      # For related hashes (brand, logo), treat all values as strings
+      v2_serialized = v1_fields.each_with_object({}) do |(key, value), result|
+        result[key] = if value.nil? || value == ''
+                        'null'
+                      else
+                        Familia::JsonSerializer.dump(value)
+                      end
+      end
+
+      # Create new dump with serialized values
+      @redis.del(temp_key)
+      @redis.hmset(temp_key, v2_serialized.to_a.flatten)
+      new_dump_data = @redis.dump(temp_key)
+      new_dump_b64  = Base64.strict_encode64(new_dump_data)
+
+      {
+        key: new_key,
+        type: record[:type],
+        ttl_ms: record[:ttl_ms],
+        db: record[:db],
+        dump: new_dump_b64,
+      }
+    rescue Redis::CommandError => ex
+      @stats[:errors] << { key: record[:key], error: "Related hash transform failed: #{ex.message}" }
+      # Fall back to just renaming the key without transformation
+      record.merge(key: new_key)
+    ensure
+      begin
+        @redis.del(temp_key)
+      rescue StandardError
+        nil
+      end
     end
   end
 

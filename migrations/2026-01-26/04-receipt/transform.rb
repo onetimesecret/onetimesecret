@@ -128,6 +128,11 @@ class ReceiptTransformer
   ORG_INDEXES_FILE      = 'organization/organization_indexes.jsonl'
   DOMAIN_INDEXES_FILE   = 'customdomain/customdomain_indexes.jsonl'
 
+  # Index key names (must match what create_indexes.rb writes)
+  CUSTOMER_EMAIL_INDEX_KEY = 'customer:email_index'
+  ORG_CONTACT_EMAIL_KEY    = 'organization:contact_email_index'
+  DOMAIN_DISPLAY_INDEX_KEY = 'custom_domain:display_domain_index'  # Note: underscore in custom_domain
+
   def initialize(input_file:, output_dir:, exports_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file  = input_file
     @output_dir  = output_dir
@@ -194,7 +199,7 @@ class ReceiptTransformer
     # Load from customer_indexes.jsonl: customer:email_index -> email -> objid
     customer_file = File.join(@exports_dir, CUSTOMER_INDEXES_FILE)
     validate_index_file!(customer_file, 'customer')
-    load_index_file(customer_file, 'customer:email_index') do |email, objid|
+    load_index_file(customer_file, CUSTOMER_EMAIL_INDEX_KEY) do |email, objid|
       @email_to_customer[email] = objid
     end
     puts "Loaded #{@email_to_customer.size} email->customer mappings"
@@ -202,15 +207,15 @@ class ReceiptTransformer
     # Load from organization_indexes.jsonl: organization:contact_email_index -> email -> org_objid
     org_file = File.join(@exports_dir, ORG_INDEXES_FILE)
     validate_index_file!(org_file, 'organization')
-    load_index_file(org_file, 'organization:contact_email_index') do |email, org_objid|
+    load_index_file(org_file, ORG_CONTACT_EMAIL_KEY) do |email, org_objid|
       @email_to_org[email] = org_objid
     end
     puts "Loaded #{@email_to_org.size} email->org mappings"
 
-    # Load from customdomain_indexes.jsonl: customdomain:display_domain_index -> fqdn -> domain_objid
+    # Load from customdomain_indexes.jsonl: custom_domain:display_domain_index -> fqdn -> domain_objid
     domain_file = File.join(@exports_dir, DOMAIN_INDEXES_FILE)
     validate_index_file!(domain_file, 'customdomain')
-    load_index_file(domain_file, 'customdomain:display_domain_index') do |fqdn, domain_objid|
+    load_index_file(domain_file, DOMAIN_DISPLAY_INDEX_KEY) do |fqdn, domain_objid|
       @fqdn_to_domain[fqdn] = domain_objid
     end
     puts "Loaded #{@fqdn_to_domain.size} fqdn->domain mappings"

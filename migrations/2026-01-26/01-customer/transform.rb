@@ -94,6 +94,7 @@ class CustomerTransformer
       transformed_objects: 0,
       renamed_related: Hash.new(0),
       skipped_customers: 0,
+      skipped_non_customer_keys: [],  # Keys that don't match customer:{id}:{suffix} pattern
       errors: [],
     }
   end
@@ -156,7 +157,13 @@ class CustomerTransformer
       record                    = JSON.parse(line, symbolize_names: true)
 
       key_parts = record[:key].split(':')
-      next unless key_parts.first == 'customer' && key_parts.size > 2
+
+      # Track keys that don't match customer:{id}:{suffix} pattern
+      # These are global keys (like onetime:customer) or malformed entries
+      unless key_parts.first == 'customer' && key_parts.size > 2
+        @stats[:skipped_non_customer_keys] << record[:key]
+        next
+      end
 
       custid = key_parts[1]
       groups[custid] << record
@@ -346,6 +353,14 @@ class CustomerTransformer
     end
     puts '  (none)' if @stats[:renamed_related].empty?
     puts
+
+    # Show keys that were skipped (don't match customer:{id}:{suffix} pattern)
+    skipped_keys = @stats[:skipped_non_customer_keys]
+    if skipped_keys.any?
+      puts "Non-customer keys skipped: #{skipped_keys.size}"
+      skipped_keys.each { |key| puts "  - #{key}" }
+      puts
+    end
 
     return unless @stats[:errors].any?
 

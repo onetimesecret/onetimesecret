@@ -24,6 +24,7 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'redis'
+require 'familia'
 
 class OrganizationIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_idx_'
@@ -201,7 +202,9 @@ class OrganizationIndexCreator
 
     begin
       @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
+      raw_fields = @redis.hgetall(temp_key)
+      # Deserialize v2 JSON-encoded values written by generate.rb
+      deserialize_v2_fields(raw_fields)
     rescue Redis::CommandError => ex
       @stats[:errors] << { key: record[:key], error: "RESTORE failed: #{ex.message}" }
       nil
@@ -212,6 +215,24 @@ class OrganizationIndexCreator
         nil
       end
     end
+  end
+
+  # Deserialize a single v2 JSON-encoded value back to Ruby type
+  # Values written by generate.rb are JSON-serialized (e.g., "cus_xxx" -> "\"cus_xxx\"")
+  def deserialize_v2_value(raw_value)
+    return nil if raw_value.nil? || raw_value == 'null'
+    return raw_value if raw_value.empty?
+
+    Familia::JsonSerializer.parse(raw_value)
+  rescue Familia::SerializerError
+    raw_value # Fallback for non-JSON values
+  end
+
+  # Deserialize all fields in a hash from v2 JSON format
+  def deserialize_v2_fields(fields)
+    return {} if fields.nil?
+
+    fields.transform_values { |v| deserialize_v2_value(v) }
   end
 
   def add_command(cmd, key, args)
