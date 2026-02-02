@@ -1,9 +1,8 @@
-# apps/web/auth/spec/integration/password_migration_spec.rb
+# spec/integration/full/password_migration_spec.rb
 #
 # frozen_string_literal: true
 
-require_relative '../../../../../spec/integration/integration_spec_helper'
-require_relative '../spec_helper'
+require_relative '../integration_spec_helper'
 require 'rack/test'
 require 'bcrypt'
 require 'argon2'
@@ -25,7 +24,16 @@ require 'argon2'
 #
 RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
   include Rack::Test::Methods
-  include ProductionConfigHelper
+
+  # Rack::Test requires an `app` method
+  def app
+    Onetime::Application::Registry.generate_rack_url_map
+  end
+
+  # Access auth database for direct assertions
+  def auth_db
+    Auth::Database.connection
+  end
 
   # Unique test data for isolation
   let(:test_email) { "migration-test-#{SecureRandom.hex(8)}@example.com" }
