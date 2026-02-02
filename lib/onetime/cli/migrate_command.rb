@@ -65,7 +65,7 @@ module Onetime
         elsif rollback
           run_rollback(runner, rollback)
         elsif status || (migration_id.nil? && !run)
-          show_status(runner)
+          show_status(runner, run: run)
         elsif migration_id
           run_single_migration(migration_id, run: run)
         else
@@ -112,7 +112,7 @@ module Onetime
         end
       end
 
-      def show_status(runner)
+      def show_status(runner, run: false)
         puts 'Migration Status'
         puts '=' * 70
 
@@ -139,7 +139,7 @@ module Onetime
         puts '-' * 70
         puts "Total: #{status_list.size} (#{applied_count} applied, #{pending_count} pending)"
 
-        if pending_count > 0 && !options[:run]
+        if pending_count > 0 && !run
           puts
           puts 'Run with --run to apply pending migrations'
         end
