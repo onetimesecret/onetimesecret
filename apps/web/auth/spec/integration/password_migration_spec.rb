@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../../../spec/integration/integration_spec_helper'
 require_relative '../spec_helper'
 require 'rack/test'
 require 'bcrypt'
