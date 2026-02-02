@@ -142,12 +142,12 @@ resp = JSON.parse(last_response.body)
 #=> [200, 'Final Org Name', 'Final description', @final_email]
 
 ## Updated timestamp changes after update
-original_updated = JSON.parse(last_response.body)['record']['updated_at']
+original_updated = JSON.parse(last_response.body)['record']['updated']
 sleep 0.01
 put "/api/organizations/#{@extid}",
   { display_name: 'Timestamp Test' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
-new_updated = JSON.parse(last_response.body)['record']['updated_at']
+new_updated = JSON.parse(last_response.body)['record']['updated']
 new_updated > original_updated
 #=> true
 
