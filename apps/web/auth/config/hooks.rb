@@ -46,6 +46,7 @@ module Auth::Config::Hooks
   require_relative 'hooks/mfa'
   require_relative 'hooks/omniauth'
   require_relative 'hooks/password'
+  require_relative 'hooks/password_migration'
   require_relative 'hooks/email_auth'
   require_relative 'hooks/webauthn'
 end
