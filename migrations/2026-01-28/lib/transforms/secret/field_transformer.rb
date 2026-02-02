@@ -23,7 +23,8 @@ module Migration
       #   transform Secret::FieldTransformer, stats: stats, registry: registry
       #
       class FieldTransformer < BaseTransform
-        requires_lookups :email_to_customer, :email_to_org
+        # NOTE: fqdn_to_domain resolves share_domain FQDN to domain_id
+        requires_lookups :email_to_customer, :email_to_org, :fqdn_to_domain
 
         attr_reader :migrated_at, :uuid_generator
 
@@ -98,6 +99,15 @@ module Migration
 
           # CRITICAL: value and value_checksum are preserved exactly as-is
           # They are already in v2_fields from the dup above
+
+          # Lookup domain_id from share_domain (FQDN)
+          share_domain = v1_fields['share_domain']
+          if share_domain && !share_domain.empty?
+            domain_id = lookup(:fqdn_to_domain, share_domain, strict: false)
+            v2_fields['domain_id'] = domain_id if domain_id
+            increment_stat(:domain_resolved) if domain_id
+            increment_stat(:domain_unresolved) unless domain_id
+          end
 
           # Add migration tracking
           v2_fields['v1_identifier'] = record[:key]

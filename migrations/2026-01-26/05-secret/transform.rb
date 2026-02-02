@@ -186,10 +186,11 @@ class SecretTransformer
     end
     puts "Loaded #{@email_to_org.size} email->org mappings"
 
-    # Load from customdomain_indexes.jsonl: customdomain:display_domain_index -> fqdn -> domain_objid
+    # Load from customdomain_indexes.jsonl: custom_domain:display_domain_index -> fqdn -> domain_objid
+    # NOTE: Key uses underscore (custom_domain) to match V2 model naming convention
     domain_file = File.join(@exports_dir, DOMAIN_INDEXES_FILE)
     validate_index_file!(domain_file, 'customdomain')
-    load_index_file(domain_file, 'customdomain:display_domain_index') do |fqdn, domain_objid|
+    load_index_file(domain_file, 'custom_domain:display_domain_index') do |fqdn, domain_objid|
       @fqdn_to_domain[fqdn] = domain_objid
     end
     puts "Loaded #{@fqdn_to_domain.size} fqdn->domain mappings"

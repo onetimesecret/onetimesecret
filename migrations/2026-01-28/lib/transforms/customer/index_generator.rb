@@ -52,10 +52,15 @@ module Migration
           increment_stat(:customer_objid_lookups)
 
           # Role index: customer:role_index:{role}
+          # Track customers without valid roles for data quality reporting
           role = v2_fields['role']
-          if role && VALID_ROLES.include?(role)
+          if role.nil? || role.to_s.empty?
+            increment_stat(:customer_missing_roles)
+          elsif VALID_ROLES.include?(role)
             commands << sadd("customer:role_index:#{role}", objid)
             increment_stat(:customer_role_entries)
+          else
+            increment_stat(:customer_invalid_roles)
           end
 
           commands

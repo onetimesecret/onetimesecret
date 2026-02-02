@@ -72,7 +72,8 @@ class OrganizationGenerator
     @redis      = nil
 
     @stats = {
-      customers_read: 0,
+      records_read: 0,          # Total lines read from JSONL (includes related records)
+      customer_objects: 0,      # Customer :object records processed
       organizations_created: 0,
       stripe_customers: 0,
       stripe_subscriptions: 0,
@@ -170,15 +171,16 @@ class OrganizationGenerator
 
   def process_customers
     File.foreach(@input_file) do |line|
-      @stats[:customers_read] += 1
-      record                   = JSON.parse(line, symbolize_names: true)
+      @stats[:records_read] += 1
+      record                 = JSON.parse(line, symbolize_names: true)
 
-      # Only process :object records
+      # Only process :object records (skip related records like receipts, domains)
       next unless record[:key]&.end_with?(':object')
 
+      @stats[:customer_objects] += 1
       process_customer_record(record)
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:customers_read], error: "JSON parse: #{ex.message}" }
+      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
     end
   end
 
@@ -389,7 +391,8 @@ class OrganizationGenerator
   def print_summary
     puts "\n=== Organization Generation Summary ==="
     puts "Input file: #{@input_file}"
-    puts "Customers read: #{@stats[:customers_read]}"
+    puts "Records read: #{@stats[:records_read]}"
+    puts "Customer objects: #{@stats[:customer_objects]}"
     puts "Organizations created: #{@stats[:organizations_created]}"
     puts "  With Stripe customer: #{@stats[:stripe_customers]}"
     puts "  With Stripe subscription: #{@stats[:stripe_subscriptions]}"

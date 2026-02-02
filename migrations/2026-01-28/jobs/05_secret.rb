@@ -58,6 +58,8 @@ class SecretJob
       owner_not_found: 0,
       org_resolved: 0,
       org_not_found: 0,
+      domain_resolved: 0,
+      domain_unresolved: 0,
       anonymous_secrets: 0,
       validated: 0,
       validation_failures: 0,
@@ -114,6 +116,13 @@ class SecretJob
       puts "Loaded lookup: email_to_org (#{data.size} entries)"
     rescue Migration::Shared::LookupRegistry::LookupNotFoundError => e
       raise ArgumentError, "Phase 2 prerequisite missing: #{e.message}"
+    end
+
+    begin
+      data = registry.require_lookup(:fqdn_to_domain, for_phase: PHASE)
+      puts "Loaded lookup: fqdn_to_domain (#{data.size} entries)"
+    rescue Migration::Shared::LookupRegistry::LookupNotFoundError => e
+      raise ArgumentError, "Phase 3 prerequisite missing: #{e.message}"
     end
 
     puts
@@ -273,6 +282,10 @@ class SecretJob
     puts 'Organization resolution:'
     puts "  Resolved:           #{@stats[:org_resolved]}"
     puts "  Not found:          #{@stats[:org_not_found]}"
+    puts
+    puts 'Domain resolution:'
+    puts "  Resolved:           #{@stats[:domain_resolved]}"
+    puts "  Not found:          #{@stats[:domain_unresolved]}"
     puts
     puts 'Validation:'
     puts "  Validated:          #{@stats[:validated]}"
