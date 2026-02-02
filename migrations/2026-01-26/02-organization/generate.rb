@@ -138,6 +138,22 @@ class OrganizationGenerator
     end
   end
 
+  # Deserialize a single v2 JSON-encoded value back to Ruby type
+  # Used when reading data from upstream transforms that already wrote v2 format
+  def deserialize_v2_value(raw_value)
+    return nil if raw_value.nil? || raw_value == 'null'
+    return raw_value if raw_value.empty?
+
+    Familia::JsonSerializer.parse(raw_value)
+  rescue Familia::SerializerError
+    raw_value # Fallback for non-JSON values
+  end
+
+  # Deserialize all fields in a hash from v2 JSON format
+  def deserialize_v2_fields(fields)
+    fields.transform_values { |v| deserialize_v2_value(v) }
+  end
+
   def parse_to_ruby_type(key, value)
     field_type = FIELD_TYPES[key.to_s]
     raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
@@ -177,8 +193,12 @@ class OrganizationGenerator
     return if @dry_run
 
     # Decode customer fields from DUMP
+    # NOTE: Customer transform writes v2 JSON-serialized values, so we must
+    # deserialize them before using for comparisons/lookups
     customer_fields = restore_and_read_hash(record)
     return unless customer_fields
+
+    customer_fields = deserialize_v2_fields(customer_fields)
 
     # Generate organization record
     org_record = generate_organization(customer_objid, customer_fields, record)
