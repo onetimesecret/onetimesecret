@@ -14,6 +14,7 @@ import { classifyError } from '@/schemas/errors';
 import { BillingService, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
+import { isLegacyPlan, getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -113,6 +114,16 @@ const currentTier = computed((): string => {
   return 'free';
 });
 
+// Legacy plan detection for grandfathered customers
+const isLegacyCustomer = computed(() =>
+  selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
+);
+
+// Get display name for current plan (handles legacy naming)
+const currentPlanDisplayName = computed(() =>
+  selectedOrg.value?.planid ? getPlanDisplayName(selectedOrg.value.planid) : null
+);
+
 // Filter plans by selected billing interval
 // When freePlanStandalone is true, exclude free plans (they show in banner)
 // When freePlanStandalone is false, include free plans in the grid
@@ -156,6 +167,12 @@ const canDowngrade = (plan: BillingPlan): boolean => {
 const getButtonLabel = (plan: BillingPlan): string => {
   if (isPlanCurrent(plan)) return t('web.billing.plans.current');
   if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
+
+  // For Free plan: show "Cancel to downgrade" since there's no checkout for free
+  if (plan.tier === 'free' && currentTier.value !== 'free') {
+    return t('web.billing.plans.cancel_to_downgrade');
+  }
+
   if (canDowngrade(plan)) return t('web.billing.plans.downgrade');
   return t('web.billing.plans.select_plan');
 };
@@ -354,6 +371,32 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Legacy Plan Notice (Early Supporter) -->
+      <div
+        v-if="isLegacyCustomer && !isLoadingContent"
+        class="rounded-lg border-2 border-amber-300 bg-amber-50 p-5 dark:border-amber-600 dark:bg-amber-900/30">
+        <div class="flex items-start gap-4">
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
+            <OIcon
+              collection="heroicons"
+              name="star"
+              class="size-6 text-amber-600 dark:text-amber-300"
+              aria-hidden="true" />
+          </div>
+          <div class="flex-1">
+            <h3 class="text-base font-semibold text-amber-800 dark:text-amber-200">
+              {{ currentPlanDisplayName }}
+            </h3>
+            <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+              {{ t('web.billing.plans.legacy_plan_info') }}
+            </p>
+            <p class="mt-2 text-sm text-amber-600 dark:text-amber-400">
+              {{ t('web.billing.plans.legacy_plan_warning') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Billing Interval Toggle -->
       <div class="flex items-center justify-center gap-3"
 role="group"
@@ -470,9 +513,9 @@ aria-live="polite">
         </div>
       </div>
 
-      <!-- Cancel Subscription (only shown for active paid subscriptions NOT already scheduled for cancellation) -->
+      <!-- Cancel Subscription (shown for active paid subscriptions OR legacy customers, NOT already scheduled for cancellation) -->
       <div
-        v-if="hasActiveSubscription && currentTier !== 'free' && !isCancelScheduled"
+        v-if="(hasActiveSubscription || isLegacyCustomer) && currentTier !== 'free' && !isCancelScheduled"
         class="text-center">
         <button
           type="button"

@@ -87,6 +87,10 @@
     "text": "Identity Plus (Early Supporter)",
     "sha256": "a3b4c5d6"
   },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "Switching plans will forfeit your grandfathered rate. This cannot be undone.",
+    "sha256": "b7c8d9e0"
+  },
   "web.billing.overview.no_payment_method": {
     "text": "No payment method on file",
     "sha256": "77f71037"
@@ -318,6 +322,10 @@
   "web.billing.plans.downgrade": {
     "text": "Downgrade",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Cancel to switch",
+    "sha256": "f1g2h3i4"
   },
   "web.billing.plans.monthly": {
     "text": "Monthly",
