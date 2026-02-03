@@ -72,7 +72,14 @@ vi.mock('@/schemas/errors', () => ({
   classifyError: (err: unknown) => ({ message: err instanceof Error ? err.message : 'Unknown error' }),
 }));
 vi.mock('@/types/billing', () => ({
-  getPlanDisplayName: (id: string) => ({ identity_plus_v1_monthly: 'Identity Plus' }[id] || id),
+  getPlanDisplayName: (id: string) => {
+    const names: Record<string, string> = {
+      identity_plus_v1_monthly: 'Identity Plus',
+      identity: 'Identity Plus (Early Supporter)',
+    };
+    return names[id] || id;
+  },
+  isLegacyPlan: (planId: string) => planId === 'identity',
 }));
 
 // Use shared fixture factory for overview response
