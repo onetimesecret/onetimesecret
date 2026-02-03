@@ -13,7 +13,7 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
-import { getPlanDisplayName } from '@/types/billing';
+import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -139,7 +139,7 @@ const handleManageOrganization = (org: Organization) => {
               - This prevents both CTAs from appearing simultaneously and provides contextual action based on user state
             -->
             <button
-              v-if="hasOrganizations"
+              v-if="false"
               @click="handleCreateOrganization"
               class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
               <OIcon
@@ -200,9 +200,15 @@ data-testid="organizations-list">
                   </p>
                 </div>
                 <div class="ml-4 flex shrink-0 items-center gap-2">
-                  <!-- Pro badge for paid plans -->
+                  <!-- Early Supporter badge for legacy plans -->
                   <span
-                    v-if="hasPaidPlan(org)"
+                    v-if="org.planid && isLegacyPlan(org.planid)"
+                    class="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                    {{ t('web.organizations.early_supporter_badge') }}
+                  </span>
+                  <!-- Pro badge for other paid plans -->
+                  <span
+                    v-else-if="hasPaidPlan(org)"
                     class="inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
                     {{ t('web.organizations.paid_badge') }}
                   </span>

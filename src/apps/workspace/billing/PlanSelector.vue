@@ -101,6 +101,10 @@ const currentTier = computed((): string => {
   const matchingPlan = plans.value.find(p => p.id === planid);
   if (matchingPlan) return matchingPlan.tier;
 
+  // Handle legacy plans that aren't in the active plans list
+  // Legacy 'identity' plan has team features equivalent to single_team tier
+  if (planid === 'identity') return 'single_team';
+
   // Fallback: try to infer tier from planid naming convention
   // e.g., 'identity_plus_v1_monthly' -> look for known tier patterns
   if (planid.includes('multi_team') || planid.includes('team_plus')) return 'multi_team';
