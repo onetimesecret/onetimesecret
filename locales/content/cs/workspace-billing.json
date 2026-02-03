@@ -414,6 +414,10 @@
     "text": "Selhalo",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Koncept",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "Nepodařilo se načíst faktury",
     "sha256": "0b0cb3f7"

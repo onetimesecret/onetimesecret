@@ -416,6 +416,10 @@
     "text": "Başarısız",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Taslak",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "Faturalar yüklenemedi",
     "sha256": "0b0cb3f7"

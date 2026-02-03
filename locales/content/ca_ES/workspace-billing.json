@@ -414,6 +414,10 @@
     "text": "Fallat",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Esborrany",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "No s'han pogut carregar les factures",
     "sha256": "0b0cb3f7"

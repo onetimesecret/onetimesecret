@@ -414,6 +414,10 @@
     "text": "Fallito",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Bozza",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "Impossibile caricare le fatture",
     "sha256": "0b0cb3f7"

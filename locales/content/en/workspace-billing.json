@@ -539,6 +539,10 @@
     "text": "Failed",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Draft",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "Failed to load invoices",
     "sha256": "0b0cb3f7"
