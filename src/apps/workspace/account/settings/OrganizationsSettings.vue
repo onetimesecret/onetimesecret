@@ -203,13 +203,13 @@ data-testid="organizations-list">
                   <!-- Early Supporter badge for legacy plans -->
                   <span
                     v-if="org.planid && isLegacyPlan(org.planid)"
-                    class="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                    class="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                     {{ t('web.organizations.early_supporter_badge') }}
                   </span>
                   <!-- Pro badge for other paid plans -->
                   <span
                     v-else-if="hasPaidPlan(org)"
-                    class="inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+                    class="inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
                     {{ t('web.organizations.paid_badge') }}
                   </span>
                   <!-- Default badge -->
