@@ -75,6 +75,18 @@
     "text": "Change Plan",
     "sha256": "2d0b195b"
   },
+  "web.billing.overview.manage_subscription": {
+    "text": "Manage Subscription",
+    "sha256": "e5f6g7h8"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "You're on a grandfathered plan with special pricing.",
+    "sha256": "i9j0k1l2"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Early Supporter)",
+    "sha256": "a3b4c5d6"
+  },
   "web.billing.overview.no_payment_method": {
     "text": "No payment method on file",
     "sha256": "77f71037"
