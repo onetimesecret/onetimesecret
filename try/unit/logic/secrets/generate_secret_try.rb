@@ -57,7 +57,7 @@ logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {'secret' 
   logic.recipient,
   logic.recipient_safe,
 ]
-#=> ['test secret value', 'testpass123', 7200, ['recipient@example.com'], ["re*****@e*****.com"]]
+#=> ['test secret value', 'testpass123', 7200, ['recipient@example.com'], ["re***@e***.com"]]
 
 # ShowSecret Tests
 
