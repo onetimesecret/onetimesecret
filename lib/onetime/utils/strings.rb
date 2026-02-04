@@ -124,13 +124,13 @@ module Onetime
       # @param raw [String] Raw email address to mask
       # @return [String] Masked email address, or original if parsing fails
       def mask_email_address(raw)
-        addr = Mail::Address.new(raw)
+        addr = ::Mail::Address.new(raw)
         return raw unless addr.local && addr.domain
 
         local  = mask_string_head(addr.local, EMAIL_MASK_MIN_LOCAL)
         domain = mask_domain(addr.domain)
         "#{local}@#{domain}"
-      rescue Mail::Field::ParseError
+      rescue ::Mail::Field::ParseError
         raw
       end
 
