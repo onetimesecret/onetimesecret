@@ -85,7 +85,8 @@ module Onetime
       def get_validation_strategy
         conf = OT.conf
         if conf.nil?
-          puts 'Warning: Configuration not loaded, using passthrough strategy'
+          puts "Warning: OT.conf is nil, can't read features.domains.validation_strategy"
+          puts 'Using passthrough strategy (live checks disabled)'
           return Onetime::DomainValidation::PassthroughStrategy.new({})
         end
         Onetime::DomainValidation::Strategy.for_config(conf)
