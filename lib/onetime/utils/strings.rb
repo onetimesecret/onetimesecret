@@ -72,13 +72,14 @@ module Onetime
       # Supports: local-part@domain where local-part allows dots, plus, etc.
       # This pattern is intentionally permissive to catch edge cases while
       # Mail::Address handles validation during parsing.
+      # Uses atomic group (?>) on local part to prevent ReDoS attacks.
       EMAIL_PATTERN = /
         \b
-        [A-Z0-9._%+'-]+   # local part: alphanumeric, dots, plus, etc.
+        (?>[A-Z0-9._%+'-]+)  # local part: atomic group prevents backtracking
         @
-        [A-Z0-9.-]+       # domain: alphanumeric, dots, hyphens
+        [A-Z0-9.-]+          # domain: alphanumeric, dots, hyphens
         \.
-        [A-Z]{2,}         # TLD: at least 2 letters
+        [A-Z]{2,}            # TLD: at least 2 letters
         \b
       /ix
 
@@ -130,7 +131,9 @@ module Onetime
         local  = mask_string_head(addr.local, EMAIL_MASK_MIN_LOCAL)
         domain = mask_domain(addr.domain)
         "#{local}@#{domain}"
-      rescue ::Mail::Field::ParseError
+      rescue StandardError
+        # Mail gem can raise various exceptions (ParseError, ArgumentError,
+        # Encoding::CompatibilityError). Return raw input for robustness.
         raw
       end
 
