@@ -89,7 +89,7 @@ export function getPlanLabel(planType: PlanType | string): string {
   }
 
   // Fallback: convert snake_case to Title Case
-  return planType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return planType.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
 }
 
 /**
@@ -107,6 +107,12 @@ export function getPlanLabel(planType: PlanType | string): string {
 export function getPlanDisplayName(planId: string): string {
   if (!planId) return 'Free';
 
+  // Check for legacy plans first (centralized logic)
+  const legacyInfo = getLegacyPlanInfo(planId);
+  if (legacyInfo) {
+    return legacyInfo.displayName;
+  }
+
   // Known plan name mappings (plan ID patterns -> display name)
   // Order matters: more specific patterns must come before general ones
   const planPatterns: [RegExp, string][] = [
@@ -114,7 +120,6 @@ export function getPlanDisplayName(planId: string): string {
     [/identity_plus/i, 'Identity Plus'],
     [/team_plus|multi_team/i, 'Team Plus'],
     [/single_team/i, 'Single Team'],
-    [/^identity$/i, 'Identity Plus (Early Supporter)'], // Legacy grandfathered plan (exact match)
     [/identity(?!_plus)/i, 'Identity'], // Other identity-prefixed plans
   ];
 
