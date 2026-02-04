@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'mail'
+require 'public_suffix'
 
 module Onetime
   module Utils
@@ -134,34 +135,26 @@ module Onetime
       end
 
       # Splits domain and masks the host portion, preserving TLD
+      # Uses PublicSuffix for reliable TLD detection (handles .co.uk, .com.au, etc.)
       # @param domain [String] Full domain (e.g., "mail.example.co.uk")
       # @return [String] Masked domain (e.g., "m***.co.uk")
       def mask_domain(domain)
-        parts = domain.split('.')
-        return domain if parts.size < 2
+        parsed = PublicSuffix.parse(domain, ignore_private: true)
 
-        # Extract TLD - handle country-code TLDs like .co.uk, .com.au
-        # Strategy: take last part, then extend if it's a 2-letter ccTLD
-        tld_parts = [parts.pop]
+        # Build host from subdomain (trd) and second-level domain (sld)
+        host = parsed.trd ? "#{parsed.trd}.#{parsed.sld}" : parsed.sld
+        tld  = parsed.tld
 
-        # Extend for country-code TLDs (e.g., .co.uk, .com.au, .org.uk)
-        # Only extend if the current TLD is 2 chars (country code) and there's more
-        if tld_parts.first.length == 2 && parts.any? && parts.last.length <= 3
-          tld_parts.unshift(parts.pop)
-        end
-
-        # If we consumed everything, restore one part as host
-        if parts.empty? && tld_parts.size > 1
-          parts.push(tld_parts.shift)
-        end
-
-        host = parts.join('.')
-        tld  = tld_parts.join('.')
-
-        return tld if host.empty?
+        return tld if host.nil? || host.empty?
 
         masked_host = mask_string_head(host, 1)
         "#{masked_host}.#{tld}"
+      rescue PublicSuffix::DomainNotAllowed, PublicSuffix::DomainInvalid
+        # Fallback for invalid/unlisted domains: mask first part, keep rest
+        parts = domain.split('.')
+        return domain if parts.size < 2
+
+        "#{mask_string_head(parts.first, 1)}.#{parts[1..].join('.')}"
       end
 
       # Masks a string keeping only the first N characters visible
