@@ -117,7 +117,8 @@ module Onetime
         puts
 
         puts "Timestamp:          #{result[:timestamp]}"
-        puts "Strategy:           #{strategy.strategy_name} (live checks: #{strategy.manages_certificates?})"
+        puts "Strategy:           #{strategy.strategy_name}"
+        puts "Live checks:        #{refresh && strategy.manages_certificates? ? 'performed' : 'skipped (use --refresh)'}"
         puts
 
         display_stored_state(result[:stored_state])
