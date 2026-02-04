@@ -2,10 +2,10 @@
 #
 # frozen_string_literal: true
 
-require 'web/billing/metadata'
-require 'web/billing/models/plan'
-require 'web/billing/lib/billing_service'
-require 'web/billing/lib/plan_validator'
+require 'billing/metadata'
+require 'billing/models/plan'
+require 'billing/lib/billing_service'
+require 'billing/lib/plan_validator'
 
 module Onetime
   module Models

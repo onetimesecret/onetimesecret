@@ -1,4 +1,4 @@
-# lib/onetime/cli/sync_auth_accounts_command.rb
+# lib/onetime/cli/customers/sync_auth_accounts_command.rb
 #
 # frozen_string_literal: true
 
@@ -59,7 +59,7 @@ module Onetime
             This command is only useful when switching from simple to full mode.
             Please set authentication.mode to 'full' in your config or use:
 
-              AUTHENTICATION_MODE=full bin/ots sync-auth-accounts
+              AUTHENTICATION_MODE=full bin/ots customers sync-auth-accounts
 
           MESSAGE
           return
@@ -255,7 +255,7 @@ module Onetime
           puts <<~MESSAGE
 
             To execute synchronization, run:
-              bin/ots sync-auth-accounts --run
+              bin/ots customers sync-auth-accounts --run
 
           MESSAGE
         else
@@ -264,7 +264,8 @@ module Onetime
             ✅ Synchronization complete!
 
             Next steps:
-            1. Verify accounts in database: sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts;"
+            1. Verify accounts in database using your DB client
+               Example: SELECT COUNT(*) FROM accounts;
             2. Test login with existing credentials
             3. Update authentication.mode to 'full' in config if not already set
 
@@ -286,7 +287,7 @@ module Onetime
           Auth Account Synchronization Tool
 
           Usage:
-            bin/ots sync-auth-accounts [options]
+            bin/ots customers sync-auth-accounts [options]
 
           Description:
             Synchronizes customer records from Redis to the Auth SQL database.
@@ -301,13 +302,13 @@ module Onetime
 
           Examples:
             # Preview synchronization
-            bin/ots sync-auth-accounts
+            bin/ots customers sync-auth-accounts
 
             # Execute synchronization
-            bin/ots sync-auth-accounts --run
+            bin/ots customers sync-auth-accounts --run
 
             # Execute with detailed progress
-            bin/ots sync-auth-accounts --run --verbose
+            bin/ots customers sync-auth-accounts --run --verbose
 
           Notes:
             - Command is idempotent (safe to run multiple times)
@@ -321,6 +322,6 @@ module Onetime
       end
     end
 
-    register 'sync-auth-accounts', SyncAuthAccountsCommand
+    register 'customers sync-auth-accounts', SyncAuthAccountsCommand
   end
 end
