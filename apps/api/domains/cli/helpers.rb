@@ -81,6 +81,26 @@ module Onetime
       rescue StandardError
         'invalid'
       end
+
+      def get_validation_strategy
+        conf = OT.conf
+        if conf.nil?
+          puts 'Warning: Configuration not loaded, using passthrough strategy'
+          return Onetime::DomainValidation::PassthroughStrategy.new({})
+        end
+        Onetime::DomainValidation::Strategy.for_config(conf)
+      end
+
+      def format_verification_state(state)
+        state.to_s.upcase
+      end
+
+      def format_brand_summary(domain)
+        flags = []
+        flags << 'homepage' if domain.allow_public_homepage?
+        flags << 'api' if domain.allow_public_api?
+        flags.empty? ? 'none' : flags.join(', ')
+      end
     end
   end
 end
