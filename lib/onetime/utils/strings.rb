@@ -80,7 +80,7 @@ module Onetime
         \.
         [A-Z]{2,}         # TLD: at least 2 letters
         \b
-      /ix.freeze
+      /ix
 
       # Obscures email addresses by replacing most characters with asterisks
       # while preserving a minimal prefix for partial readability. Uses the
