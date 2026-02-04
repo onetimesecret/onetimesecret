@@ -33,8 +33,8 @@ Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 @org.members.size
 #=> 1
 
-## Check if customer.objid is in org.members
-@org.members.member?(@customer.objid)
+## Check if customer.objid is in org.members (using wrapper that handles serialization)
+@org.member?(@customer.objid)
 #=> true
 
 ## Check if org has add_members_instance method

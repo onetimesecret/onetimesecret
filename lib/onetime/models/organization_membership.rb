@@ -227,10 +227,12 @@ module Onetime
       # Add customer to organization's member sorted set directly
       # We bypass add_members_instance because that uses :through which would
       # try to create a new OrganizationMembership (we already have one - this invitation)
+      # NOTE: Pass the Customer object (not objid string) so Familia v2 serialize_value
+      # extracts the identifier consistently (strings get JSON-encoded, objects don't)
       org   = organization
       score = Familia.now.to_f
       if org
-        org.members.add(customer.objid, score)
+        org.members.add(customer, score)
         org.pending_invitations.remove(objid) # Remove from pending set
       end
       true

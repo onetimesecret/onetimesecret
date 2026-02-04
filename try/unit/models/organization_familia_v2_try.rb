@@ -46,8 +46,8 @@ OT.info "Cleaned Redis for fresh test run"
 @org.members.class
 #=> Familia::SortedSet
 
-## Members collection contains owner objid
-@org.members.member?(@owner.objid)
+## Members collection contains owner objid (using wrapper for Familia v2 serialization)
+@org.member?(@owner.objid)
 #=> true
 
 ## Owner helpers
