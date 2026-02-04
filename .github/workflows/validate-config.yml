@@ -38,7 +38,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c
         with:
-          ruby-version: '3.4'
+          ruby-version: '3.4.8'
           bundler-cache: true
 
       - name: Set up Node.js
