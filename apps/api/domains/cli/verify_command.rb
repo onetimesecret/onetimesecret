@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require 'onetime/operations/verify_domain'
 
 module Onetime
   module CLI
@@ -179,19 +180,74 @@ module Onetime
         puts
 
         if result.success?
-          puts 'Verification Results:'
-          puts "  DNS Validated:    #{format_bool(result.dns_validated)}"
-          puts "  SSL Ready:        #{format_bool(result.ssl_ready)}"
-          puts "  Is Resolving:     #{format_bool(result.is_resolving)}"
-          puts
-          puts 'State:'
-          puts "  Previous:         #{result.previous_state}"
-          puts "  Current:          #{result.current_state}"
-          puts "  Changed:          #{result.changed? ? 'yes' : 'no'}"
-          puts "  Persisted:        #{result.persisted ? 'yes' : 'no'}"
+          output_verification_results(result, domain)
+          output_state_info(result)
+          output_diagnostic_commands(result, domain)
         else
           puts "ERROR: #{result.error}"
         end
+        puts
+      end
+
+      def output_verification_results(result, _domain)
+        puts 'Verification Results:'
+        puts "  DNS Validated:    #{format_bool(result.dns_validated)}"
+        puts "  SSL Ready:        #{format_bool(result.ssl_ready)}"
+        puts "  Is Resolving:     #{format_bool(result.is_resolving)}"
+        puts
+      end
+
+      def output_state_info(result)
+        puts 'State:'
+        puts "  Previous:         #{result.previous_state}"
+        puts "  Current:          #{result.current_state}"
+        puts "  Changed:          #{result.changed? ? 'yes' : 'no'}"
+        puts "  Persisted:        #{result.persisted ? 'yes' : 'no'}"
+        puts
+      end
+
+      def output_diagnostic_commands(result, domain)
+        puts 'Manual Verification Commands:'
+        puts '-' * 70
+
+        # DNS ownership validation
+        txt_host  = domain.txt_validation_host
+        txt_value = domain.txt_validation_value
+        if txt_host && txt_value
+          full_txt_host = "#{txt_host}.#{domain.base_domain}"
+          puts
+          puts '1. DNS Ownership (TXT record):'
+          puts "   Status: #{result.dns_validated ? 'PASS' : 'FAIL'}"
+          puts "   Expected: TXT record at #{full_txt_host}"
+          puts "   Value:    #{txt_value}"
+          puts
+          puts '   # Check TXT record:'
+          puts "   dig TXT #{full_txt_host} +short"
+          puts
+        else
+          puts
+          puts '1. DNS Ownership: No TXT validation configured for this domain'
+          puts
+        end
+
+        # CNAME/A record resolution
+        puts '2. DNS Resolution (CNAME/A record):'
+        puts "   Status: #{result.is_resolving ? 'PASS' : 'FAIL'}"
+        puts '   Domain should resolve to the proxy server'
+        puts
+        puts '   # Check CNAME record:'
+        puts "   dig CNAME #{domain.display_domain} +short"
+        puts
+        puts '   # Check A record (if no CNAME):'
+        puts "   dig A #{domain.display_domain} +short"
+        puts
+
+        # SSL certificate
+        puts '3. SSL Certificate:'
+        puts "   Status: #{result.ssl_ready ? 'PASS' : 'PENDING'}"
+        puts
+        puts '   # Check SSL certificate:'
+        puts "   echo | openssl s_client -connect #{domain.display_domain}:443 -servername #{domain.display_domain} 2>/dev/null | openssl x509 -noout -dates"
         puts
       end
 

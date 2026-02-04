@@ -144,8 +144,10 @@ module Onetime
         status_result = check_status(domain)
 
         # Persist changes if enabled
+        # Always persist when @persist is true - the validation results determine
+        # WHAT we persist (verified/unverified), not WHETHER we persist
         persisted = false
-        if @persist && (dns_result[:validated] || status_result[:is_resolving])
+        if @persist
           persisted = persist_changes(domain, dns_result, status_result)
         end
 
