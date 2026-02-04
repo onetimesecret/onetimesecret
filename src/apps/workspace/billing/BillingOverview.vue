@@ -125,12 +125,16 @@ const daysUntilBilling = computed(() => {
 
 // Billing email inline edit handlers
 const handleEditBillingEmail = () => {
-  billingEmailForm.value.email = selectedOrg.value?.contact_email || '';
+  billingEmailForm.value.email = selectedOrg.value?.billing_email
+    || selectedOrg.value?.contact_email
+    || '';
   isEditingBillingEmail.value = true;
 };
 
 const handleCancelBillingEmailEdit = () => {
-  billingEmailForm.value.email = selectedOrg.value?.contact_email || '';
+  billingEmailForm.value.email = selectedOrg.value?.billing_email
+    || selectedOrg.value?.contact_email
+    || '';
   isEditingBillingEmail.value = false;
 };
 
@@ -138,7 +142,8 @@ const handleSaveBillingEmail = async () => {
   if (!selectedOrg.value) return;
 
   const newEmail = billingEmailForm.value.email.trim();
-  if (newEmail === (selectedOrg.value.contact_email || '')) {
+  const currentEmail = selectedOrg.value.billing_email || selectedOrg.value.contact_email || '';
+  if (newEmail === currentEmail) {
     isEditingBillingEmail.value = false;
     return;
   }
@@ -168,7 +173,7 @@ const handleSaveBillingEmail = async () => {
 // Watch for org changes to update billing email form
 watch(selectedOrg, (org) => {
   if (org) {
-    billingEmailForm.value.email = org.contact_email || '';
+    billingEmailForm.value.email = org.billing_email || org.contact_email || '';
   }
 });
 
@@ -382,7 +387,7 @@ onMounted(async () => {
               <!-- Display Mode: Show email as text with Edit button -->
               <div v-if="!isEditingBillingEmail" class="mt-2 flex items-center gap-3">
                 <span class="text-sm text-gray-900 dark:text-white">
-                  {{ selectedOrg?.contact_email || t('web.COMMON.not_set') }}
+                  {{ selectedOrg?.billing_email || selectedOrg?.contact_email || t('web.COMMON.not_set') }}
                 </span>
                 <button
                   type="button"

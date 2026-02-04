@@ -197,6 +197,56 @@ describe('Organization Store', () => {
     });
   });
 
+  describe('Organization with billing_email', () => {
+    it('preserves billing_email in organization data', async () => {
+      const orgWithBillingEmail = {
+        ...mockOrganizationRaw,
+        billing_email: 'billing@example.com',
+        contact_email: 'contact@example.com',
+      };
+      axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
+        record: orgWithBillingEmail,
+      });
+
+      const org = await store.fetchOrganization('on123abc');
+
+      expect(org.billing_email).toBe('billing@example.com');
+      expect(org.contact_email).toBe('contact@example.com');
+    });
+
+    it('handles null billing_email gracefully', async () => {
+      const orgWithoutBillingEmail = {
+        ...mockOrganizationRaw,
+        billing_email: null,
+        contact_email: 'contact@example.com',
+      };
+      axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
+        record: orgWithoutBillingEmail,
+      });
+
+      const org = await store.fetchOrganization('on123abc');
+
+      expect(org.billing_email).toBeNull();
+      expect(org.contact_email).toBe('contact@example.com');
+    });
+
+    it('handles undefined billing_email gracefully', async () => {
+      const orgWithUndefinedBillingEmail = {
+        ...mockOrganizationRaw,
+        contact_email: 'contact@example.com',
+        // billing_email not present in response
+      };
+      axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
+        record: orgWithUndefinedBillingEmail,
+      });
+
+      const org = await store.fetchOrganization('on123abc');
+
+      expect(org.billing_email).toBeUndefined();
+      expect(org.contact_email).toBe('contact@example.com');
+    });
+  });
+
   describe('Organization Invitations', () => {
     // Mock invitation data
     const mockInvitationRaw = {
