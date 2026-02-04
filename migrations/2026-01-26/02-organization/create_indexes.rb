@@ -44,6 +44,7 @@ class OrganizationIndexCreator
       stripe_customer_indexes: 0,
       stripe_subscription_indexes: 0,
       stripe_checkout_email_indexes: 0,
+      billing_email_indexes: 0,
       member_entries: 0,
       skipped: 0,
       errors: [],
@@ -136,6 +137,7 @@ class OrganizationIndexCreator
     stripe_customer_id     = org_fields['stripe_customer_id']
     stripe_subscription_id = org_fields['stripe_subscription_id']
     stripe_checkout_email  = org_fields['stripe_checkout_email']
+    billing_email          = org_fields['billing_email']
 
     created = created || org_fields['created']&.to_i || Time.now.to_i
 
@@ -145,6 +147,11 @@ class OrganizationIndexCreator
     # Lookup indexes (Hash type, JSON-quoted values for Familia compatibility)
     if contact_email && !contact_email.empty?
       add_command('HSET', 'organization:contact_email_index', [contact_email, org_objid.to_json])
+    end
+
+    if billing_email && !billing_email.empty?
+      add_command('HSET', 'organization:billing_email_index', [billing_email, org_objid.to_json])
+      @stats[:billing_email_indexes] += 1
     end
 
     add_command('HSET', 'organization:extid_lookup', [org_extid, org_objid.to_json])
@@ -267,6 +274,7 @@ class OrganizationIndexCreator
     puts "  Stripe customer indexes: #{@stats[:stripe_customer_indexes]}"
     puts "  Stripe subscription indexes: #{@stats[:stripe_subscription_indexes]}"
     puts "  Stripe checkout email indexes: #{@stats[:stripe_checkout_email_indexes]}"
+    puts "  Billing email indexes: #{@stats[:billing_email_indexes]}"
     puts
     puts 'Participation Indexes:'
     puts "  Member entries: #{@stats[:member_entries]}"
