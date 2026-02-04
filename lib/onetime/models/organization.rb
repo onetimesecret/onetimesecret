@@ -176,8 +176,9 @@ module Onetime
 
       # Accept either a CustomDomain object or a string objid/domainid
       # Familia v2 serialize_value extracts identifier from objects but JSON-encodes strings
+      # NOTE: CustomDomain.load requires (display_domain, org_id), so use find_by_identifier
       domain = if domain_or_objid.is_a?(String)
-                 CustomDomain.load(domain_or_objid)
+                 CustomDomain.find_by_identifier(domain_or_objid, check_exists: false)
                else
                  domain_or_objid
                end
@@ -200,7 +201,7 @@ module Onetime
       # Accept either a Receipt object or a string objid
       # Familia v2 serialize_value extracts identifier from objects but JSON-encodes strings
       receipt = if receipt_or_objid.is_a?(String)
-                  Receipt.load(receipt_or_objid)
+                  Receipt.find_by_identifier(receipt_or_objid, check_exists: false)
                 else
                   receipt_or_objid
                 end
