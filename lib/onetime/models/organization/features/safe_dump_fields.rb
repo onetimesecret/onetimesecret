@@ -21,6 +21,7 @@ module Onetime::Organization::Features
       base.safe_dump_field :description
       base.safe_dump_field :owner_id
       base.safe_dump_field :contact_email
+      base.safe_dump_field :billing_email
       base.safe_dump_field :is_default
       base.safe_dump_field :planid
       base.safe_dump_field :member_count, ->(org) { org.member_count }
