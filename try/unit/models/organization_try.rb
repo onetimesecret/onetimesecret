@@ -191,10 +191,11 @@ true
 #=> "Acme Industries"
 
 ## Can update organization contact email
-@org.contact_email = "admin@acme.com"
+@updated_contact_email = "admin#{@test_suffix}@acme.com"
+@org.contact_email = @updated_contact_email
 @org.save
 @org.contact_email
-#=> "admin@acme.com"
+#=> @updated_contact_email
 
 ## Organization has created timestamp (Familia v2 uses Float for timestamps)
 @org.created.class
@@ -224,7 +225,7 @@ Onetime::Organization.load("nonexistent123")
 ## Can reload organization and verify persistence
 reloaded_org = Onetime::Organization.load(@org.objid)
 [reloaded_org.display_name, reloaded_org.contact_email]
-#=> ["Updated Org Name", "admin@acme.com"]
+#=> ["Updated Org Name", @updated_contact_email]
 
 # Teardown
 @org.destroy!
