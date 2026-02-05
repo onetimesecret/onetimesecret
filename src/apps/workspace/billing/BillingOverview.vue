@@ -11,7 +11,7 @@ import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
-import { getPlanDisplayName } from '@/types/billing';
+import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
 
@@ -60,6 +60,11 @@ const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free')
 
 // Billing email is only editable for paid plans
 const hasPaidPlan = computed(() => planStatus.value === 'active');
+
+// Legacy plan detection for grandfathered customers
+const isLegacyCustomer = computed(() =>
+  selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
+);
 
 const loadOrganizationData = async (extid: string) => {
   isLoading.value = true;
@@ -120,12 +125,16 @@ const daysUntilBilling = computed(() => {
 
 // Billing email inline edit handlers
 const handleEditBillingEmail = () => {
-  billingEmailForm.value.email = selectedOrg.value?.contact_email || '';
+  billingEmailForm.value.email = selectedOrg.value?.billing_email
+    || selectedOrg.value?.contact_email
+    || '';
   isEditingBillingEmail.value = true;
 };
 
 const handleCancelBillingEmailEdit = () => {
-  billingEmailForm.value.email = selectedOrg.value?.contact_email || '';
+  billingEmailForm.value.email = selectedOrg.value?.billing_email
+    || selectedOrg.value?.contact_email
+    || '';
   isEditingBillingEmail.value = false;
 };
 
@@ -133,7 +142,8 @@ const handleSaveBillingEmail = async () => {
   if (!selectedOrg.value) return;
 
   const newEmail = billingEmailForm.value.email.trim();
-  if (newEmail === (selectedOrg.value.contact_email || '')) {
+  const currentEmail = selectedOrg.value.billing_email || selectedOrg.value.contact_email || '';
+  if (newEmail === currentEmail) {
     isEditingBillingEmail.value = false;
     return;
   }
@@ -163,7 +173,7 @@ const handleSaveBillingEmail = async () => {
 // Watch for org changes to update billing email form
 watch(selectedOrg, (org) => {
   if (org) {
-    billingEmailForm.value.email = org.contact_email || '';
+    billingEmailForm.value.email = org.billing_email || org.contact_email || '';
   }
 });
 
@@ -296,10 +306,10 @@ onMounted(async () => {
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
-                  name="arrow-up-circle"
+                  :name="isLegacyCustomer ? 'cog-6-tooth' : 'arrow-up-circle'"
                   class="size-4"
                   aria-hidden="true" />
-                {{ planStatus === 'free' ? t('web.billing.overview.upgrade_plan') : t('web.billing.overview.change_plan') }}
+                {{ planStatus === 'free' ? t('web.billing.overview.upgrade_plan') : (isLegacyCustomer ? t('web.billing.overview.manage_subscription') : t('web.billing.overview.change_plan')) }}
               </router-link>
             </div>
 
@@ -377,7 +387,7 @@ onMounted(async () => {
               <!-- Display Mode: Show email as text with Edit button -->
               <div v-if="!isEditingBillingEmail" class="mt-2 flex items-center gap-3">
                 <span class="text-sm text-gray-900 dark:text-white">
-                  {{ selectedOrg?.contact_email || t('web.COMMON.not_set') }}
+                  {{ selectedOrg?.billing_email || selectedOrg?.contact_email || t('web.COMMON.not_set') }}
                 </span>
                 <button
                   type="button"

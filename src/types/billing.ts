@@ -32,6 +32,44 @@ export {
 } from '@/schemas/models/billing';
 
 /**
+ * Legacy plan detection
+ *
+ * Grandfathered plans that are no longer available for new subscriptions
+ * but continue to be honored for existing customers.
+ */
+const LEGACY_PLAN_IDS = ['identity'] as const;
+
+/**
+ * Check if a plan ID represents a legacy/grandfathered plan
+ *
+ * @param planId - The plan ID to check
+ * @returns true if this is a legacy plan that should be displayed specially
+ */
+export function isLegacyPlan(planId: string): boolean {
+  if (!planId) return false;
+  return LEGACY_PLAN_IDS.some((legacy) => planId === legacy);
+}
+
+/**
+ * Get detailed information about a legacy plan
+ *
+ * @param planId - The plan ID to check
+ * @returns Legacy plan info object, or null if not a legacy plan
+ */
+export function getLegacyPlanInfo(
+  planId: string
+): { isLegacy: boolean; displayName: string; tier: string } | null {
+  if (planId === 'identity') {
+    return {
+      isLegacy: true,
+      displayName: 'Identity Plus (Early Supporter)',
+      tier: 'single_team', // Same tier as identity_plus for feature parity
+    };
+  }
+  return null;
+}
+
+/**
  * Display helpers
  */
 import type { InvoiceStatus, PlanType, SubscriptionStatus } from '@/schemas/models/billing';
@@ -51,7 +89,7 @@ export function getPlanLabel(planType: PlanType | string): string {
   }
 
   // Fallback: convert snake_case to Title Case
-  return planType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return planType.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
 }
 
 /**
@@ -69,13 +107,20 @@ export function getPlanLabel(planType: PlanType | string): string {
 export function getPlanDisplayName(planId: string): string {
   if (!planId) return 'Free';
 
+  // Check for legacy plans first (centralized logic)
+  const legacyInfo = getLegacyPlanInfo(planId);
+  if (legacyInfo) {
+    return legacyInfo.displayName;
+  }
+
   // Known plan name mappings (plan ID patterns -> display name)
+  // Order matters: more specific patterns must come before general ones
   const planPatterns: [RegExp, string][] = [
     [/^free/i, 'Free'],
     [/identity_plus/i, 'Identity Plus'],
     [/team_plus|multi_team/i, 'Team Plus'],
     [/single_team/i, 'Single Team'],
-    [/identity(?!_plus)/i, 'Identity'],
+    [/identity(?!_plus)/i, 'Identity'], // Other identity-prefixed plans
   ];
 
   for (const [pattern, displayName] of planPatterns) {

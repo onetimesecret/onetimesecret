@@ -84,6 +84,7 @@ export const organizationSchema = z.object({
   display_name: z.string().min(1).max(100),
   description: z.string().max(500).nullish(),
   contact_email: z.email().nullish(),
+  billing_email: z.email().nullish(),
   is_default: z.preprocess((v) => v ?? false, z.boolean()),
   // Backend returns timestamps as strings from Redis, coerce to number then Date
   created: z.coerce.number().transform((val) => new Date(val * 1000)),

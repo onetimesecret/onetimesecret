@@ -2,10 +2,10 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../../../apps/web/billing/metadata'
-require_relative '../../../../../apps/web/billing/models/plan'
-require_relative '../../../../../apps/web/billing/lib/billing_service'
-require_relative '../../../../../apps/web/billing/lib/plan_validator'
+require 'billing/metadata'
+require 'billing/models/plan'
+require 'billing/lib/billing_service'
+require 'billing/lib/plan_validator'
 
 module Onetime
   module Models
@@ -36,6 +36,7 @@ module Onetime
           base.unique_index :stripe_customer_id, :stripe_customer_id_index
           base.unique_index :stripe_subscription_id, :stripe_subscription_id_index
           base.unique_index :stripe_checkout_email, :stripe_checkout_email_index
+          base.unique_index :billing_email, :billing_email_index
         end
 
         module InstanceMethods

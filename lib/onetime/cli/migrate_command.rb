@@ -54,9 +54,19 @@ module Onetime
       def call(migration_id: nil, run: false, status: false, rollback: nil, validate: false, dir: nil, **)
         boot_application!
 
-        # Load migrations from directory
+        specific_file = nil
+
+        # If migration_id looks like a file path, extract directory and track the specific file
+        if migration_id && migration_id.include?('/')
+          specific_file  = File.expand_path(migration_id)
+          specific_file += '.rb' unless specific_file.end_with?('.rb')
+          dir          ||= File.dirname(specific_file)
+          migration_id   = File.basename(migration_id, '.rb')
+        end
+
+        # Load migrations from directory (or just the specific file)
         migration_dir = dir || default_migration_dir
-        load_migrations(migration_dir)
+        load_migrations(migration_dir, specific_file: specific_file)
 
         runner = Familia::Migration::Runner.new
 
@@ -82,7 +92,8 @@ module Onetime
         dirs.first || migrations_root
       end
 
-      def load_migrations(dir)
+      def load_migrations(dir, specific_file: nil)
+        dir = File.expand_path(dir)
         unless Dir.exist?(dir)
           puts "Migration directory not found: #{dir}"
           puts 'Available directories:'
@@ -90,13 +101,33 @@ module Onetime
           exit 1
         end
 
+        # Ensure Familia::Migration is loaded (not auto-required by familia gem)
+        require 'familia/migration'
+
         # Load helper first if exists
         helper_path = File.join(dir, 'lib', 'migration_helper.rb')
         require helper_path if File.exist?(helper_path)
 
+        # If a specific file was requested, only load that one
+        # (avoids class name collisions in legacy migrations)
+        if specific_file
+          unless File.exist?(specific_file)
+            puts "Migration file not found: #{specific_file}"
+            exit 1
+          end
+          require specific_file
+          puts "Loaded migration from #{specific_file}"
+          return
+        end
+
         # Load all migration files in order
+        # Try specific patterns first, fall back to all .rb files
         migration_files  = Dir.glob(File.join(dir, '*_migration.rb'))
         migration_files += Dir.glob(File.join(dir, '*_generator.rb'))
+
+        # If no specifically-named files found, load all .rb files
+        # (Familia::Migration only registers classes that inherit from Base/Pipeline/Model)
+        migration_files = Dir.glob(File.join(dir, '*.rb')) if migration_files.empty?
 
         migration_files.uniq.sort.each do |file|
           require file
@@ -170,8 +201,11 @@ module Onetime
       end
 
       def run_single_migration(migration_id, run:)
+        search_term     = migration_id.downcase
         migration_class = Familia::Migration.migrations.find do |m|
-          m.migration_id == migration_id || m.name.include?(migration_id)
+          m.migration_id == migration_id ||
+            m.migration_id.to_s.include?(search_term) ||
+            m.name.downcase.include?(search_term.tr('_', ''))
         end
 
         unless migration_class

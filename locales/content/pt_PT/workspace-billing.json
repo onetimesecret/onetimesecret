@@ -414,6 +414,10 @@
     "text": "Falhado",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Rascunho",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "Falha ao carregar faturas",
     "sha256": "0b0cb3f7"

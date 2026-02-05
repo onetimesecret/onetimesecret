@@ -414,6 +414,10 @@
     "text": "נכשל",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "טיוטה",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "טעינת החשבוניות נכשלה",
     "sha256": "0b0cb3f7"

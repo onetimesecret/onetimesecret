@@ -98,6 +98,7 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
   end
 
   it 'New customer is member of the created org' do
-    expect(@workspace[:organization].members.member?(@new_customer.objid)).to eq(true)
+    # Use wrapper method for Familia v2 serialization compatibility
+    expect(@workspace[:organization].member?(@new_customer.objid)).to eq(true)
   end
 end

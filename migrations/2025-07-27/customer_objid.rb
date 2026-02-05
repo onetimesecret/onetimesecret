@@ -27,15 +27,18 @@
 #   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --run
 #
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
-require 'onetime/migration'
+require 'familia/migration'
 require 'onetime/refinements/uuidv7_refinements'
 
 module Onetime
-  class Migration < PipelineMigration
-    using Onetime::UUIDv7Refinements
+  module Migrations
+    # Populate objid/extid fields for existing Customer records
+    class CustomerObjid < Familia::Migration::Pipeline
+      self.migration_id = '20250727_05_customer_objid'
+      self.description = 'Populate objid (UUIDv7) and extid for Customer records'
+      self.dependencies = ['20250727_03_customer_cleanup']
+
+      using Onetime::UUIDv7Refinements
 
     def prepare
       @model_class = Onetime::Customer
@@ -63,6 +66,7 @@ module Onetime
         objid: new_objid,
         extid: obj.extid || Tools.derive_extid_from_uuid(new_objid),
       }
+    end
     end
   end
 end
@@ -97,5 +101,5 @@ end
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.cli_run)
+  exit(Onetime::Migrations::CustomerObjid.cli_run)
 end

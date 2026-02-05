@@ -26,18 +26,20 @@
 #   2. Creates a new config file with reorganized hierarchy
 #   3. Replaces the original with the reorganized version
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'onetime'
-require 'onetime/migration'
+require 'familia/migration'
 require 'yaml'
 require 'fileutils'
 require 'json'
 require 'shellwords'
 
 module Onetime
-  class Migration < BaseMigration
+  module Migrations
+    # Reorganize config.yaml hierarchy using yq transformations
+    class ReorganizeConfigStructure < Familia::Migration::Base
+      self.migration_id = '20250727_02_reorganize_config_structure'
+      self.description = 'Reorganize config.yaml hierarchy (redis→database, emailer→mail)'
+      self.dependencies = ['20250727_01_convert_symbol_keys']
     # Configuration mapping: 'from' path in old config → 'to' path in new config
     # If 'default' is provided, it's used when the source path doesn't exist
     CONFIG_MAPPINGS = [
@@ -91,7 +93,7 @@ module Onetime
     ].freeze
 
     def prepare
-      @base_path               = BASE_PATH
+      @base_path               = OT::HOME
       @source_config           = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix           = Time.now.strftime('%Y%m%d%H%M%S')
       @temp_config             = File.join(@base_path, 'etc', 'config.reorganized.yaml')
@@ -287,11 +289,12 @@ module Onetime
         track_stat(:config_finalized)
       end
     end
+    end
   end
 end
 
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.cli_run)
+  exit(Onetime::Migrations::ReorganizeConfigStructure.cli_run)
 end

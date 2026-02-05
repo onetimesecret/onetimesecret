@@ -414,6 +414,10 @@
     "text": "I Rahua",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Tauira",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "I rahua te uta i ngā pire",
     "sha256": "0b0cb3f7"

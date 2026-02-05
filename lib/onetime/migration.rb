@@ -2,6 +2,16 @@
 #
 # frozen_string_literal: true
 
-require_relative 'migration/base_migration'
-require_relative 'migration/model_migration'
-require_relative 'migration/pipeline_migration'
+# Migration infrastructure is provided by Familia gem (v2.1+)
+#
+# The original OTS migration classes (BaseMigration, ModelMigration,
+# PipelineMigration) were upstreamed to Familia::Migration in v2.1.
+#
+# Use directly:
+#   - Familia::Migration::Base
+#   - Familia::Migration::Model
+#   - Familia::Migration::Pipeline
+#   - Familia::Migration::Runner
+#
+# @see https://github.com/delano/familia
+require 'familia/migration'

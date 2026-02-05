@@ -25,17 +25,19 @@
 #   2. Creates a new config file with reorganized hierarchy
 #   3. Replaces the original with the reorganized version
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
-require 'onetime/migration'
+require 'familia/migration'
 require 'yaml'
 require 'fileutils'
 require 'json'
 require 'shellwords'
 
 module Onetime
-  class Migration < BaseMigration
+  module Migrations
+    # Large-scale config reorganization with extended mappings
+    class BigReorganizeConfigStructure < Familia::Migration::Base
+      self.migration_id = '20250727_02b_big_reorganize_config_structure'
+      self.description = 'Extended config.yaml hierarchy reorganization'
+      self.dependencies = ['20250727_01_convert_symbol_keys']
     # Configuration mapping: 'from' path in old config → 'to' path in new config
     # If 'default' is provided, it's used when the source path doesn't exist
     CONFIG_MAPPINGS = [
@@ -285,11 +287,12 @@ module Onetime
         track_stat(:config_finalized)
       end
     end
+    end
   end
 end
 
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.cli_run)
+  exit(Onetime::Migrations::BigReorganizeConfigStructure.cli_run)
 end

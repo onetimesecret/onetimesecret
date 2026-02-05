@@ -414,6 +414,10 @@
     "text": "Не удалось",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Черновик",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "Не удалось загрузить счета",
     "sha256": "0b0cb3f7"

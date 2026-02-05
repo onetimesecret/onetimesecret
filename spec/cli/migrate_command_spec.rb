@@ -4,6 +4,7 @@
 
 require_relative 'cli_spec_helper'
 
+# Tests for migrate_command.rb using Familia::Migration framework (v2.1+)
 RSpec.describe 'Migrate Command', type: :cli do
   # Migration file that follows the Familia::Migration::Base pattern
   let(:migration_content) do

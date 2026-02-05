@@ -1363,5 +1363,9 @@
   "api.errors.request_processing_error": {
     "text": "Unable to process your request at this time",
     "context": "Error message for recoverable server errors"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Upgrade to unlock more features",
+    "context": "Description shown for free plan users encouraging upgrade"
   }
 }
