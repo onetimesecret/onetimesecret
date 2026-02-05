@@ -25,6 +25,7 @@ require 'redis'
 require 'json'
 require 'base64'
 require 'uri'
+require 'set'
 
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/load_keys.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
@@ -49,6 +50,10 @@ class KeyLoader
     @skip_indexes  = skip_indexes
     @skip_records  = skip_records
     @redis_clients = {}
+
+    # Track unique keys for reconciliation
+    @record_keys = Set.new
+    @index_keys  = Set.new
 
     @stats = Hash.new do |h, k|
       h[k] = {
@@ -181,6 +186,7 @@ class KeyLoader
     end
 
     if @dry_run
+      @record_keys << key
       @stats[model_name][:records_restored] += 1
       return
     end
@@ -195,6 +201,7 @@ class KeyLoader
 
     # RESTORE key ttl serialized-value REPLACE
     redis.restore(key, restore_ttl, dump_data, replace: true)
+    @record_keys << key
     @stats[model_name][:records_restored] += 1
   rescue ArgumentError => ex
     @stats[model_name][:records_skipped] += 1
@@ -238,6 +245,7 @@ class KeyLoader
     end
 
     if @dry_run
+      @index_keys << key
       @stats[model_name][:indexes_executed] += 1
       return
     end
@@ -257,6 +265,7 @@ class KeyLoader
       redis.incrby(key, args.first.to_i)
     end
 
+    @index_keys << key
     @stats[model_name][:indexes_executed] += 1
   rescue Redis::CommandError => ex
     @stats[model_name][:indexes_skipped] += 1
@@ -312,6 +321,9 @@ class KeyLoader
     puts "  Total errors:          #{total_errors}"
     puts
 
+    # Reconciliation: compare expected vs actual key counts
+    print_reconciliation
+
     return unless total_errors > 0
 
     puts 'ERRORS (first 20):'
@@ -326,6 +338,29 @@ class KeyLoader
       break if error_count >= 20
     end
     puts "  ... and #{total_errors - 20} more" if total_errors > 20
+  end
+
+  def print_reconciliation
+    puts '-' * 60
+    puts 'RECONCILIATION (Script Accounting):'
+    puts
+
+    record_count = @record_keys.size
+    index_count  = @index_keys.size
+    total_unique = (@record_keys | @index_keys).size
+
+    puts '  Keys tracked by this script:'
+    puts "    Record keys (RESTORE):   #{record_count}"
+    puts "    Index keys (commands):   #{index_count}"
+    puts "    Total unique keys:       #{total_unique}"
+
+    if @dry_run
+      puts
+      puts '  Mode: dry-run (no data written to Redis)'
+    end
+    puts
+    puts '  To verify in Redis: valkey-cli -u $VALKEY_URL info keyspace'
+    puts
   end
 
   def exit_with_status
