@@ -26,9 +26,8 @@ require 'json'
 require 'base64'
 require 'uri'
 
-# Calculate project root from script location
-PROJECT_ROOT     = File.expand_path('../../..', __dir__)
-DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
+# Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/load_keys.rb
+DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class KeyLoader
   # Models in dependency order with their target databases

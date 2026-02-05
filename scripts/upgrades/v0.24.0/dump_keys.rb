@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+
+# scripts/upgrades/v0.24.0/dump_keys.rb
+#
 # frozen_string_literal: true
 
 # Dumps Redis keys to JSONL format for migration, organized by model.
@@ -24,9 +27,8 @@ require 'base64'
 require 'fileutils'
 require 'uri'
 
-# Calculate project root from script location (scripts/upgrades/v0.24.0/)
-PROJECT_ROOT     = File.expand_path('../../..', __dir__)
-DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
+# Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/dump_keys.rb
+DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class KeyDumper
   MIGRATION_DBS = [6, 7, 8, 11].freeze

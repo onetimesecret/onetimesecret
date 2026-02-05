@@ -53,9 +53,8 @@ require 'redis'
 require 'familia'
 require 'uri'
 
-# Calculate project root from script location
-PROJECT_ROOT     = File.expand_path('../../..', __dir__)
-DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
+# Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb
+DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class OriginalRecordEnricher
   TEMP_KEY_PREFIX = '_enrich_tmp_'

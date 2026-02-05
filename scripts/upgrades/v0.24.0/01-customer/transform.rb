@@ -31,8 +31,8 @@ require 'familia'
 require 'uri'
 
 # Calculate project root from script location
-PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
-DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
+# Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/01-customer/transform.rb
+DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class CustomerTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_transform_'

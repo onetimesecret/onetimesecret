@@ -38,8 +38,8 @@ require 'familia'
 require 'uri'
 
 # Calculate project root from script location
-PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
-DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
+# Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/03-customdomain/transform.rb
+DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class CustomDomainTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_domain_'
@@ -692,8 +692,8 @@ def parse_args(args)
   options = {
     input_file: File.join(DEFAULT_DATA_DIR, 'customdomain/customdomain_dump.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'customdomain'),
-    email_to_org: 'data/upgrades/v0.24.0/organization/email_to_org_objid.json',
-    email_to_customer: 'data/upgrades/v0.24.0/customer/customer_transformed.jsonl',
+    email_to_org: File.join(DEFAULT_DATA_DIR, 'organization/email_to_org_objid.json'),
+    email_to_customer: File.join(DEFAULT_DATA_DIR, 'customer/customer_transformed.jsonl'),
     redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
     dry_run: false,
