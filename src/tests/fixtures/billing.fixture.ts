@@ -475,4 +475,14 @@ export const mockOverviewResponses = {
       limits: { teams: 1 },
     },
   }),
+  /**
+   * Organization with federation notification - subscription synced from another region.
+   * Used when a customer's subscription benefits are federated across regions.
+   */
+  withFederationNotification: createMockOverviewResponse({
+    federation_notification: {
+      show: true,
+      source_region: 'EU',
+    },
+  }),
 };

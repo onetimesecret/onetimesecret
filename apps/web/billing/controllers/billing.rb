@@ -635,6 +635,39 @@ module Billing
         json_error('Failed to change plan', status: 500)
       end
 
+      # Dismiss federation notification
+      #
+      # Records that the user has dismissed the federation notification.
+      # The notification won't be shown again until subscription_federated_at
+      # is updated (new federation event).
+      #
+      # POST /billing/api/org/:extid/dismiss-federation-notification
+      #
+      # @return [Hash] Success response
+      def dismiss_federation_notification
+        org = load_organization(req.params['extid'])
+
+        org.dismiss_federation_notification!
+        org.save
+
+        billing_logger.info 'Federation notification dismissed',
+          {
+            orgid: org.objid,
+            extid: org.extid,
+          }
+
+        json_response({ success: true })
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue StandardError => ex
+        billing_logger.error 'Failed to dismiss federation notification',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error('Failed to dismiss notification', status: 500)
+      end
+
       # Cancel subscription at period end
       #
       # Schedules the organization's subscription for cancellation at the end

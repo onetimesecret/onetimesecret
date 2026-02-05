@@ -37,6 +37,7 @@ GET    /api/org/:extid/subscription              Billing::Controllers::BillingCo
 POST   /api/org/:extid/preview-plan-change       Billing::Controllers::BillingController#preview_plan_change response=json auth=sessionauth
 POST   /api/org/:extid/change-plan               Billing::Controllers::BillingController#change_plan response=json auth=sessionauth
 POST   /api/org/:extid/cancel-subscription       Billing::Controllers::BillingController#cancel_subscription response=json auth=sessionauth
+POST   /api/org/:extid/dismiss-federation-notification Billing::Controllers::BillingController#dismiss_federation_notification response=json auth=sessionauth
 
 # Entitlement checking API endpoints (authenticated only)
 GET    /api/entitlements                         Billing::Controllers::Entitlements#list response=json auth=sessionauth

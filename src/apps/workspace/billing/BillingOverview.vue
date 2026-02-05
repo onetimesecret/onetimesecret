@@ -6,9 +6,10 @@ import { useRoute } from 'vue-router';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
+import FederationNotification from './FederationNotification.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
-import { BillingService } from '@/services/billing.service';
+import { BillingService, type FederationNotification as FederationNotificationData } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
 import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
@@ -26,6 +27,7 @@ const selectedOrg = ref<Organization | null>(null);
 const paymentMethod = ref<PaymentMethod | null>(null);
 const nextBillingDate = ref<Date | null>(null);
 const planFeatures = ref<string[]>([]);
+const federationNotification = ref<FederationNotificationData | null>(null);
 const isLoading = ref(false);
 const error = ref('');
 const success = ref('');
@@ -66,6 +68,16 @@ const isLegacyCustomer = computed(() =>
   selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
 );
 
+// Extract billing overview state updates to reduce complexity
+const applyBillingOverview = (overview: Awaited<ReturnType<typeof BillingService.getOverview>>) => {
+  nextBillingDate.value = overview.subscription?.period_end
+    ? new Date(overview.subscription.period_end * 1000)
+    : null;
+  planFeatures.value = overview.plan?.features || [];
+  paymentMethod.value = overview.payment_method || null;
+  federationNotification.value = overview.federation_notification || null;
+};
+
 const loadOrganizationData = async (extid: string) => {
   isLoading.value = true;
   error.value = '';
@@ -86,19 +98,7 @@ const loadOrganizationData = async (extid: string) => {
     // Load billing overview data from API
     if (org.extid) {
       const overview = await BillingService.getOverview(org.extid);
-
-      // Update next billing date from subscription
-      if (overview.subscription?.period_end) {
-        nextBillingDate.value = new Date(overview.subscription.period_end * 1000);
-      } else {
-        nextBillingDate.value = null;
-      }
-
-      // Store plan features (i18n locale keys)
-      planFeatures.value = overview.plan?.features || [];
-
-      // Payment method coming from backend in future update
-      paymentMethod.value = overview.payment_method || null;
+      applyBillingOverview(overview);
     }
   } catch (err) {
     const classified = classifyError(err);
@@ -177,6 +177,11 @@ watch(selectedOrg, (org) => {
   }
 });
 
+// Handle federation notification dismissal
+const handleFederationNotificationDismissed = () => {
+  federationNotification.value = null;
+};
+
 onMounted(async () => {
   try {
     // Initialize entitlement definitions for formatting
@@ -217,6 +222,13 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+
+      <!-- Federation Notification (cross-region subscription sync) -->
+      <FederationNotification
+        v-if="federationNotification?.show"
+        :org-extid="orgExtid"
+        :notification="federationNotification"
+        @dismissed="handleFederationNotificationDismissed" />
 
       <!-- Error Alert -->
       <BasicFormAlerts v-if="error" :error="error" />

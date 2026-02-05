@@ -37,7 +37,7 @@ const handleDismiss = async () => {
   isDismissing.value = true;
 
   try {
-    await $api.post(`/api/v2/billing/org/${props.orgExtid}/dismiss-federation-notification`);
+    await $api.post(`/billing/api/org/${props.orgExtid}/dismiss-federation-notification`);
     isDismissed.value = true;
     emit('dismissed');
   } catch (err: unknown) {
