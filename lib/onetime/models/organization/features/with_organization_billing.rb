@@ -6,6 +6,7 @@ require 'billing/metadata'
 require 'billing/models/plan'
 require 'billing/lib/billing_service'
 require 'billing/lib/plan_validator'
+require 'onetime/utils/email_hash'
 
 module Onetime
   module Models
@@ -42,6 +43,10 @@ module Onetime
           # Track when subscription was federated (not owned) - for notification UX
           # Unix timestamp, nil if owner or no subscription
           base.field :subscription_federated_at
+
+          # Track when user dismissed the federation notification - for UX
+          # Unix timestamp, nil if never dismissed
+          base.field :federation_notification_dismissed_at
 
           # Add indexes. e.g. unique_index :extid, :extid_index, within: Onetime::Organization
           base.unique_index :stripe_customer_id, :stripe_customer_id_index
@@ -137,7 +142,6 @@ module Onetime
           # @raise [Onetime::Problem] If FEDERATION_HMAC_SECRET is not configured
           #
           def compute_email_hash!
-            require 'onetime/utils/email_hash'
             self.email_hash           = Onetime::Utils::EmailHash.compute(billing_email)
             self.email_hash_synced_at = Time.now.utc.strftime('%Y-%m-%d@%H:%MZ')
             email_hash
@@ -185,6 +189,37 @@ module Onetime
           #
           def clear_federated_status!
             self.subscription_federated_at = nil
+          end
+
+          # Check if the federation notification should be shown
+          #
+          # Shows notification if:
+          # - Organization is federated (has subscription_federated_at)
+          # - User has NOT dismissed the notification
+          #
+          # @return [Boolean] True if notification should be shown
+          #
+          def show_federation_notification?
+            subscription_federated? && federation_notification_dismissed_at.to_s.empty?
+          end
+
+          # Dismiss the federation notification
+          #
+          # Records when the user dismissed the notification so it won't show again.
+          #
+          # @return [Integer] The timestamp when dismissed
+          #
+          def dismiss_federation_notification!
+            self.federation_notification_dismissed_at = Familia.now.to_i
+            federation_notification_dismissed_at.to_i
+          end
+
+          # Check if federation notification was dismissed
+          #
+          # @return [Boolean] True if notification was dismissed
+          #
+          def federation_notification_dismissed?
+            !federation_notification_dismissed_at.to_s.empty?
           end
 
           # Update billing fields from Stripe subscription
