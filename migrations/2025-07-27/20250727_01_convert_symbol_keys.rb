@@ -1,11 +1,7 @@
-# migrations/2025-07-27/convert_symbol_keys.rb
+# migrations/2025-07-27/20250727_01_convert_symbol_keys.rb
 #
 # frozen_string_literal: true
 
-# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
-# Use scripts/upgrades/v0.24.0/ instead.
-#
-# ---
 #
 # Migration 1 of 2: Convert YAML Symbol Keys to Strings
 #
@@ -16,8 +12,8 @@
 # comments, and formatting.
 #
 # Usage:
-#   bin/ots migrate 20250727-1523_01_convert_symbol_keys.rb           # Preview changes
-#   bin/ots migrate --run 20250727-1523_01_convert_symbol_keys.rb     # Execute migration
+#   bin/ots migrate 20250727_01_convert_symbol_keys           # Preview changes
+#   bin/ots migrate --run 20250727_01_convert_symbol_keys     # Execute migration
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml

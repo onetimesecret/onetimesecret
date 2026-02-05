@@ -1,11 +1,7 @@
-# migrations/2025-07-27/customer_cleanup.rb
+# migrations/2025-07-27/20250727_02_customer_cleanup.rb
 #
 # frozen_string_literal: true
 
-# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
-# Use scripts/upgrades/v0.24.0/ instead.
-#
-# ---
 #
 # Customer Cleanup - Remove anonymous, known test users - Pipeline
 #
@@ -15,8 +11,8 @@
 # - created: missing or before 2010 -> remove
 #
 # Usage:
-#   bin/ots migrate 1512_customer_cleanup.rb # Preview changes
-#   bin/ots migrate --run 1512_customer_cleanup.rb
+#   bin/ots migrate 20250727_02_customer_cleanup # Preview changes
+#   bin/ots migrate --run 20250727_02_customer_cleanup
 #
 
 require 'familia/migration'
@@ -25,7 +21,7 @@ module Onetime
   module Migrations
     # Remove anonymous and test customer records
     class CustomerCleanup < Familia::Migration::Pipeline
-      self.migration_id = '20250727_03_customer_cleanup'
+      self.migration_id = '20250727_02_customer_cleanup'
       self.description = 'Remove anonymous, test users (anon, tryouts*)'
       self.dependencies = []
     def prepare

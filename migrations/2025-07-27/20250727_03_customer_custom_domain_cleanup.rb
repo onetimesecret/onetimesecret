@@ -1,11 +1,7 @@
-# migrations/2025-07-27/customer_custom_domain_cleanup.rb
+# migrations/2025-07-27/20250727_03_customer_custom_domain_cleanup.rb
 #
 # frozen_string_literal: true
 
-# DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
-# Use scripts/upgrades/v0.24.0/ instead.
-#
-# ---
 #
 # Custom Domain Cleanup - Remove test user domains
 #
@@ -14,8 +10,8 @@
 # - Verifies no related customer object exists before deletion
 #
 # Usage:
-#   bin/ots migrate 1512_02_custom_domain_cleanup.rb # Preview changes
-#   bin/ots migrate --run 1512_02_custom_domain_cleanup.rb
+#   bin/ots migrate 20250727_03_customer_custom_domain_cleanup # Preview changes
+#   bin/ots migrate --run 20250727_03_customer_custom_domain_cleanup
 #
 
 require 'familia/migration'
@@ -24,7 +20,7 @@ module Onetime
   module Migrations
     # Remove orphaned custom domain records for test users
     class CustomerCustomDomainCleanup < Familia::Migration::Model
-      self.migration_id = '20250727_04_customer_custom_domain_cleanup'
+      self.migration_id = '20250727_03_customer_custom_domain_cleanup'
       self.description = 'Remove orphaned custom_domain records for test users'
       self.dependencies = ['20250727_03_customer_cleanup']
     def prepare
