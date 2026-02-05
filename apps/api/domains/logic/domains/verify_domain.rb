@@ -4,6 +4,7 @@
 
 require 'onetime/domain_validation/features'
 require 'onetime/domain_validation/strategy'
+require 'onetime/operations/verify_domain'
 require_relative 'get_domain'
 
 module DomainsAPI::Logic
@@ -12,17 +13,20 @@ module DomainsAPI::Logic
       def process
         super
 
-        # Use the configured strategy to refresh status and validate
-        strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+        # Delegate to shared operations layer
+        result = Onetime::Operations::VerifyDomain.new(
+          domain: custom_domain,
+          persist: true,
+        ).call
 
-        refresh_status(strategy)
-        refresh_validation(strategy)
+        OT.info "[VerifyDomain.process] #{display_domain} -> validated=#{result.dns_validated}, resolving=#{result.is_resolving}"
 
         success_data
       end
 
       # Refresh the domain status (SSL, resolving, etc.)
       # If the vhost doesn't exist in Approximated, try to create it first.
+      # @deprecated Use Onetime::Operations::VerifyDomain directly
       def refresh_status(strategy)
         result = strategy.check_status(custom_domain)
 
@@ -51,6 +55,7 @@ module DomainsAPI::Logic
       end
 
       # Check if the result indicates vhost was not found (404 from Approximated)
+      # @deprecated Use Onetime::Operations::VerifyDomain directly
       def vhost_not_found?(result)
         return false unless result.is_a?(Hash)
 
@@ -60,6 +65,7 @@ module DomainsAPI::Logic
 
       # Ensure the vhost exists in Approximated, creating it if necessary.
       # This handles cases where the initial vhost creation failed during domain addition.
+      # @deprecated Use Onetime::Operations::VerifyDomain directly
       def ensure_vhost_exists(strategy)
         result = strategy.request_certificate(custom_domain)
 
@@ -80,6 +86,7 @@ module DomainsAPI::Logic
       end
 
       # Validate domain ownership via TXT record
+      # @deprecated Use Onetime::Operations::VerifyDomain directly
       def refresh_validation(strategy)
         result = strategy.validate_ownership(custom_domain)
 
