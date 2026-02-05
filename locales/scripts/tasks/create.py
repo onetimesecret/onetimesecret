@@ -77,9 +77,7 @@ def get_leaf_key(key_path: str) -> str:
     return parts[-1]
 
 
-def group_keys_by_level(
-    keys: dict[str, str]
-) -> dict[str, dict[str, str]]:
+def group_keys_by_level(keys: dict[str, str]) -> dict[str, dict[str, str]]:
     """Group keys by their parent level.
 
     Args:
@@ -155,19 +153,25 @@ def generate_tasks(
             stats["total_levels"] += 1
 
             if dry_run:
-                print(f"LEVEL: {file_name}:{level_path} ({len(keys_dict)} keys)")
+                print(
+                    f"LEVEL: {file_name}:{level_path} ({len(keys_dict)} keys)"
+                )
 
-            tasks.append(TranslationTask(
-                file=file_name,
-                level_path=level_path,
-                locale=locale,
-                keys_json=json.dumps(keys_dict, ensure_ascii=False),
-            ))
+            tasks.append(
+                TranslationTask(
+                    file=file_name,
+                    level_path=level_path,
+                    locale=locale,
+                    keys_json=json.dumps(keys_dict, ensure_ascii=False),
+                )
+            )
 
     return tasks, stats
 
 
-def insert_tasks(tasks: list[TranslationTask]) -> tuple[sqlite3.Connection, int]:
+def insert_tasks(
+    tasks: list[TranslationTask],
+) -> tuple[sqlite3.Connection, int]:
     """Insert translation tasks into the database.
 
     Uses INSERT OR REPLACE to handle existing levels (updates them).
