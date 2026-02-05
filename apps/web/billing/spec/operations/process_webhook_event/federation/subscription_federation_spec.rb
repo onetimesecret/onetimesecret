@@ -317,8 +317,10 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
           .and_return([])
       end
 
-      it 'returns :not_found (discards webhook, does not error)' do
-        expect(operation.call).to eq(:not_found)
+      it 'returns :pending_stored (stores subscription for future matching)' do
+        # When no org is found, federation stores subscription data for future matching
+        # when a user creates an account with a matching email_hash
+        expect(operation.call).to eq(:pending_stored)
       end
 
       it 'does not raise an error' do

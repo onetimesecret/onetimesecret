@@ -176,6 +176,44 @@ federated_results.map(&:objid).include?(@federated_for_filter.objid) &&
   !federated_results.map(&:objid).include?(@owner_for_filter.objid)
 #=> true
 
+## show_federation_notification? returns true when federated and not dismissed
+@notify_org = create_test_org('Notification Test', @customer)
+@notify_org.stripe_customer_id = nil
+@notify_org.subscription_federated_at = Familia.now.to_i.to_s
+@notify_org.federation_notification_dismissed_at = nil
+@notify_org.save
+@notify_org.show_federation_notification?
+#=> true
+
+## show_federation_notification? returns false when dismissed
+@notify_org.dismiss_federation_notification!
+@notify_org.save
+@notify_org.show_federation_notification?
+#=> false
+
+## dismiss_federation_notification! sets timestamp
+@dismiss_test_org = create_test_org('Dismiss Test', @customer)
+@dismiss_test_org.stripe_customer_id = nil
+@dismiss_test_org.subscription_federated_at = Familia.now.to_i.to_s
+@dismiss_test_org.federation_notification_dismissed_at = nil
+@dismiss_test_org.save
+@dismiss_test_org.dismiss_federation_notification!
+!@dismiss_test_org.federation_notification_dismissed_at.to_s.empty?
+#=> true
+
+## federation_notification_dismissed? returns true after dismiss
+@dismiss_test_org.federation_notification_dismissed?
+#=> true
+
+## show_federation_notification? returns false when not federated
+@not_federated = create_test_org('Not Federated Show', @customer)
+@not_federated.stripe_customer_id = nil
+@not_federated.subscription_federated_at = nil
+@not_federated.federation_notification_dismissed_at = nil
+@not_federated.save
+@not_federated.show_federation_notification?
+#=> false
+
 # Teardown - Clean up test data
 @created_orgs.each { |org| org.destroy! rescue nil }
 @customer.destroy! rescue nil
