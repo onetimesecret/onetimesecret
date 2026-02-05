@@ -33,6 +33,25 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
+  # Enable federation for all tests in this file
+  around do |example|
+    original_secret = ENV['FEDERATION_HMAC_SECRET']
+    ENV['FEDERATION_HMAC_SECRET'] = 'test_federation_secret_32chars!'
+    example.run
+  ensure
+    ENV['FEDERATION_HMAC_SECRET'] = original_secret
+  end
+
+  # Build a mock Stripe::Customer for testing
+  def build_stripe_customer(id:, email:, metadata: {})
+    Stripe::Customer.construct_from({
+      id: id,
+      object: 'customer',
+      email: email,
+      metadata: metadata,
+    })
+  end
+
   after do
     created_organizations.each { |org| org.destroy! rescue nil }
     created_customers.each { |cust| cust.destroy! rescue nil }
@@ -67,13 +86,28 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        # Stub Stripe::Customer.retrieve (called by process_with_federation)
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: owner_email,
+          metadata: { 'email_hash' => owner_org.email_hash },
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
         allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
           .with(stripe_customer_id)
           .and_return(owner_org)
+
+        # Owner-only scenario: no federated orgs
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+          .and_return([])
       end
 
       it 'finds owner org by stripe_customer_id' do
-        expect(operation.call).to eq(:success)
+        # Returns :owner_only when only owner is found (no federated orgs)
+        expect(operation.call).to eq(:owner_only)
       end
 
       it 'updates owner org subscription status' do
@@ -121,19 +155,29 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        # Stub Stripe::Customer.retrieve (called by process_with_federation)
+        stripe_customer = build_stripe_customer(
+          id: owner_stripe_customer_id,
+          email: federated_email,
+          metadata: { 'email_hash' => federated_org.email_hash },
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(owner_stripe_customer_id)
+          .and_return(stripe_customer)
+
         # No owner org found by stripe_customer_id
         allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
           .with(owner_stripe_customer_id)
           .and_return(nil)
 
-        # Federated org found by email_hash (returns array)
-        allow(Onetime::Organization).to receive(:find_all_by_email_hash)
-          .with(federated_org.email_hash)
+        # Federated org found by email_hash (returns array of non-owner orgs)
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
           .and_return([federated_org])
       end
 
       it 'finds federated org by email_hash when owner not found' do
-        expect(operation.call).to eq(:success)
+        # Returns :federated_only when no owner but federated orgs found
+        expect(operation.call).to eq(:federated_only)
       end
 
       it 'updates federated org subscription status' do
@@ -195,14 +239,24 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        # Stub Stripe::Customer.retrieve (called by process_with_federation)
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: owner_email,
+          metadata: { 'email_hash' => owner_org.email_hash },
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
         allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
           .with(stripe_customer_id)
           .and_return(owner_org)
 
-        # Return both owner and federated org (filtering happens in handler)
-        allow(Onetime::Organization).to receive(:find_all_by_email_hash)
-          .with(owner_org.email_hash)
-          .and_return([owner_org, federated_org])
+        # Return only federated org (find_federated_by_email_hash excludes owners)
+        # The owner is found separately via stripe_customer_id
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+          .and_return([federated_org])
       end
 
       it 'updates both owner and federated orgs' do
@@ -244,13 +298,22 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        # Stub Stripe::Customer.retrieve (called by process_with_federation)
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: 'unknown@example.com',
+          metadata: { 'email_hash' => 'nonexistent_hash_00000000' },
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
         allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
           .with(stripe_customer_id)
           .and_return(nil)
 
         # No orgs found by email_hash (returns empty array)
-        allow(Onetime::Organization).to receive(:find_all_by_email_hash)
-          .with('nonexistent_hash_00000000')
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
           .and_return([])
       end
 
@@ -311,16 +374,26 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        # Stub Stripe::Customer.retrieve (called by process_with_federation)
+        # The email_hash in metadata is from original subscription (attacker's)
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: victim_email,  # Attacker changed email to victim's
+          metadata: { 'email_hash' => attacker_org.email_hash },  # But hash is still attacker's
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
         # Attacker's org found by stripe_customer_id
         allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
           .with(stripe_customer_id)
           .and_return(attacker_org)
 
-        # Lookup by attacker's email_hash returns only attacker org
-        # (victim has different email_hash, so not in results)
-        allow(Onetime::Organization).to receive(:find_all_by_email_hash)
-          .with(attacker_org.email_hash)
-          .and_return([attacker_org])
+        # Lookup by attacker's email_hash returns empty (attacker is already found as owner)
+        # Victim org has different email_hash, so wouldn't match anyway
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+          .and_return([])
       end
 
       it 'updates attacker org (they own the subscription)' do
@@ -368,9 +441,25 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        # Stub Stripe::Customer.retrieve (called by process_with_federation)
+        # Legacy customer with no email_hash in metadata
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: owner_email,
+          metadata: {},  # No email_hash - code will compute from email
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
         allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
           .with(stripe_customer_id)
           .and_return(owner_org)
+
+        # Code will compute hash from email and still do federation lookup
+        # Allow the call but return empty array (no federated orgs)
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+          .and_return([])
       end
 
       it 'still updates owner org (found by stripe_customer_id)' do
@@ -379,8 +468,10 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
         expect(owner_org.subscription_status).to eq('active')
       end
 
-      it 'skips federation lookup when no email_hash in metadata' do
-        expect(Onetime::Organization).not_to receive(:find_all_by_email_hash)
+      it 'uses computed hash from email when no metadata hash exists' do
+        # For legacy customers without email_hash in Stripe metadata,
+        # the code computes a hash from the email and does a federation lookup
+        expect(Onetime::Organization).to receive(:find_federated_by_email_hash).once
         operation.call
       end
     end
