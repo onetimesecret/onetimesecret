@@ -103,7 +103,7 @@ module Onetime
 
       # Extract objid without loading the full object from Redis
       objid = customer_or_objid.is_a?(String) ? customer_or_objid : customer_or_objid.objid
-      return false unless objid
+      return false if objid.nil? || objid.empty?
 
       # Create a lightweight, temporary customer instance for the membership check.
       # This avoids a database call while still using Familia's serialization correctly.
@@ -172,7 +172,7 @@ module Onetime
 
       # Extract objid without loading the full object from Redis
       objid = domain_or_objid.is_a?(String) ? domain_or_objid : domain_or_objid.objid
-      return false unless objid
+      return false if objid.nil? || objid.empty?
 
       # Create a lightweight, temporary domain instance for the membership check.
       # This avoids a database call while still using Familia's serialization correctly.
@@ -192,7 +192,7 @@ module Onetime
 
       # Extract objid without loading the full object from Redis
       objid = receipt_or_objid.is_a?(String) ? receipt_or_objid : receipt_or_objid.objid
-      return false unless objid
+      return false if objid.nil? || objid.empty?
 
       # Create a lightweight, temporary receipt instance for the membership check.
       # This avoids a database call while still using Familia's serialization correctly.

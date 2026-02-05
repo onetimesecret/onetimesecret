@@ -221,17 +221,14 @@ module Onetime
     def receipt?(receipt_or_objid)
       return false unless receipt_or_objid
 
-      # Accept either a Receipt object or a string objid
-      # Familia v2 serialize_value extracts identifier from objects but JSON-encodes strings
-      receipt = if receipt_or_objid.is_a?(String)
-                  Onetime::Receipt.find_by_identifier(receipt_or_objid, check_exists: false)
-                else
-                  receipt_or_objid
-                end
+      # Extract objid without loading the full object from Redis
+      objid = receipt_or_objid.is_a?(String) ? receipt_or_objid : receipt_or_objid.objid
+      return false unless objid
 
-      return false unless receipt
-
-      receipts.member?(receipt)
+      # Create a lightweight, temporary receipt instance for the membership check.
+      # This avoids a database call while still using Familia's serialization correctly.
+      dummy_receipt = Onetime::Receipt.new(objid: objid)
+      receipts.member?(dummy_receipt)
     end
 
     # Destroy the custom domain record

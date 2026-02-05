@@ -227,6 +227,32 @@ reloaded_org = Onetime::Organization.load(@org.objid)
 [reloaded_org.display_name, reloaded_org.contact_email]
 #=> ["Updated Org Name", @updated_contact_email]
 
+# Edge case tests for optimized membership check methods
+
+## member? returns false for non-existent string objid
+@org.member?("nonexistent_objid_123456")
+#=> false
+
+## member? returns false for empty string
+@org.member?("")
+#=> false
+
+## domain? returns false for non-existent string objid
+@org.domain?("nonexistent_objid_123456")
+#=> false
+
+## domain? returns false for empty string
+@org.domain?("")
+#=> false
+
+## receipt? returns false for non-existent string objid
+@org.receipt?("nonexistent_objid_123456")
+#=> false
+
+## receipt? returns false for empty string
+@org.receipt?("")
+#=> false
+
 # Teardown
 @org.destroy!
 @owner.destroy!
