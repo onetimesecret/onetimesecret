@@ -15,18 +15,19 @@
 #   2. Parsed from etc/config.yaml site.host (if readable)
 #   3. Default: localhost:3000
 
-set -e
+set -euo pipefail
 
 if [ -f .env.sh ]; then
   source .env.sh
 fi
 
 # Resolve the host
-if [ -n "$HOST" ]; then
+if [ -n "${HOST:-}" ]; then
   WEBHOOK_HOST="$HOST"
 elif [ -f etc/config.yaml ]; then
   # Extract site.host from config (handles simple YAML, not ERB)
-  WEBHOOK_HOST=$(grep -A1 '^site:' etc/config.yaml | grep 'host:' | sed 's/.*host:[[:space:]]*//' | tr -d "'" | tr -d '"')
+  # Uses awk to find host: within the site: block, robust to comments/spacing
+  WEBHOOK_HOST=$(awk '/^site:/,/^[^ ]/ { if (/^[[:space:]]+host:/) { sub(/.*host:[[:space:]]*/, ""); gsub(/['\''"]/, ""); print; exit } }' etc/config.yaml)
 fi
 
 # Fall back to default
