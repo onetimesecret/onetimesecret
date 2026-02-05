@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/utils/email_hash'
+require_relative '../../models/pending_federated_subscription'
 
 module Billing
   module Operations
@@ -171,11 +172,40 @@ module Billing
             yield org, false if block_given?
           end
 
-          return :not_found unless found_any
+          unless found_any
+            # No account exists yet - store for future matching
+            store_pending_federation(email_hash, subscription, stripe_customer)
+            return :pending_stored
+          end
+
           return :owner_only if owner_org && federated.empty?
           return :federated_only if owner_org.nil? && federated.any?
 
           :success
+        end
+
+        # Store subscription data for future account creation matching
+        #
+        # When a webhook fires but no account exists in this region, we store
+        # the subscription state (NOT PII) keyed by email_hash. When the user
+        # later creates an account and verifies their email, we match by hash
+        # and apply the benefits.
+        #
+        # @param email_hash [String] HMAC hash from Stripe customer metadata
+        # @param subscription [Stripe::Subscription] Stripe subscription
+        # @param stripe_customer [Stripe::Customer] Stripe customer (for region)
+        # @return [Billing::PendingFederatedSubscription, nil]
+        #
+        def store_pending_federation(email_hash, subscription, stripe_customer)
+          return nil if email_hash.to_s.empty?
+
+          home_region = stripe_customer&.metadata&.[]('home_region')
+
+          Billing::PendingFederatedSubscription.store_from_webhook(
+            email_hash: email_hash,
+            subscription: subscription,
+            home_region: home_region,
+          )
         end
       end
     end
