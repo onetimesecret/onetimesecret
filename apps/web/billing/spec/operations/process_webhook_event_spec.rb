@@ -18,6 +18,15 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
+  # Disable federation for these tests (federation has its own dedicated spec file)
+  around do |example|
+    original_secret = ENV['FEDERATION_HMAC_SECRET']
+    ENV.delete('FEDERATION_HMAC_SECRET')
+    example.run
+  ensure
+    ENV['FEDERATION_HMAC_SECRET'] = original_secret if original_secret
+  end
+
   after do
     created_organizations.each(&:destroy!)
     created_customers.each(&:destroy!)
@@ -87,17 +96,16 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
           .and_return([])
       end
 
-      # Note: :owner_only is a successful result - it means the owner org was found
-      # and processed, but no federated orgs exist. The tests verify context options
-      # are accepted, not the specific federation outcome.
+      # Note: subscription_updated finds org directly by subscription_id,
+      # bypassing federation lookup, and returns :success.
       it 'accepts replay context flag' do
         operation = described_class.new(event: event, context: { replay: true })
-        expect(operation.call).to eq(:owner_only)
+        expect(operation.call).to eq(:success)
       end
 
       it 'accepts skip_notifications context flag' do
         operation = described_class.new(event: event, context: { skip_notifications: true })
-        expect(operation.call).to eq(:owner_only)
+        expect(operation.call).to eq(:success)
       end
 
       it 'accepts worker source context' do
@@ -105,7 +113,7 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
           event: event,
           context: { source: :async_worker, source_message_id: 'msg_123', received_at: Time.now },
         )
-        expect(operation.call).to eq(:owner_only)
+        expect(operation.call).to eq(:success)
       end
     end
   end
