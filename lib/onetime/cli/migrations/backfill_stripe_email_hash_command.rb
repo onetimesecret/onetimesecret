@@ -24,7 +24,8 @@ module Onetime
 
       # Conservative rate limit: 10 requests/second (100ms delay)
       # Stripe allows 100 req/sec in live mode, but we're conservative for safety
-      BATCH_DELAY_SECONDS = 0.1
+      BATCH_DELAY_SECONDS    = 0.1
+      MAX_RATE_LIMIT_RETRIES = 3
 
       option :run,
         type: :boolean,
@@ -116,8 +117,10 @@ module Onetime
       end
 
       def process_stripe_customer(org, idx, total_orgs, stats, dry_run, verbose)
-        stats[:total] += 1
-        customer       = Stripe::Customer.retrieve(org.stripe_customer_id)
+        stats[:total]     += 1
+        rate_limit_retries = 0
+
+        customer = Stripe::Customer.retrieve(org.stripe_customer_id)
 
         if customer_has_hash?(customer, org, idx, total_orgs, stats, verbose)
           return
@@ -129,10 +132,16 @@ module Onetime
         update_stripe_customer(org, customer, email_hash, idx, total_orgs, dry_run, verbose)
         stats[:updated] += 1
         print_progress(stats[:total], total_orgs, verbose, 10, 'customers')
-      rescue Stripe::RateLimitError
-        puts "  [#{idx + 1}/#{total_orgs}] Rate limited, waiting 5 seconds..."
-        sleep(5)
-        retry
+      rescue Stripe::RateLimitError => ex
+        rate_limit_retries += 1
+        if rate_limit_retries <= MAX_RATE_LIMIT_RETRIES
+          backoff = 5 * rate_limit_retries
+          puts "  [#{idx + 1}/#{total_orgs}] Rate limited (attempt #{rate_limit_retries}/#{MAX_RATE_LIMIT_RETRIES}), waiting #{backoff}s..."
+          sleep(backoff)
+          retry
+        else
+          record_stripe_error(org, ex, idx, total_orgs, stats)
+        end
       rescue Stripe::StripeError => ex
         record_stripe_error(org, ex, idx, total_orgs, stats)
       rescue StandardError => ex

@@ -150,7 +150,8 @@ module Billing
         #
         def process_with_federation(subscription)
           stripe_customer_id = subscription.customer
-          stripe_customer    = Stripe::Customer.retrieve(stripe_customer_id)
+          stripe_customer    = retrieve_stripe_customer(stripe_customer_id)
+          return :stripe_error unless stripe_customer
 
           # Get email hash - prefer metadata (immutable), fall back to computed
           email_hash   = get_stripe_email_hash(stripe_customer)
@@ -182,6 +183,24 @@ module Billing
           return :federated_only if owner_org.nil? && federated.any?
 
           :success
+        end
+
+        # Retrieve Stripe customer with error handling
+        #
+        # Wraps Stripe::Customer.retrieve with proper error handling and logging.
+        # Returns nil on failure rather than raising, allowing graceful degradation.
+        #
+        # @param stripe_customer_id [String] Stripe customer ID
+        # @return [Stripe::Customer, nil] Customer object or nil on error
+        #
+        def retrieve_stripe_customer(stripe_customer_id)
+          Stripe::Customer.retrieve(stripe_customer_id)
+        rescue Stripe::InvalidRequestError => ex
+          OT.le "[SubscriptionFederation] Customer not found: #{stripe_customer_id} - #{ex.message}"
+          nil
+        rescue Stripe::StripeError => ex
+          OT.le "[SubscriptionFederation] Stripe error retrieving customer #{stripe_customer_id}: #{ex.message}"
+          nil
         end
 
         # Store subscription data for future account creation matching

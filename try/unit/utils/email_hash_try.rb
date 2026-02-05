@@ -11,7 +11,7 @@
 # Security model:
 # - Hash is computed at subscription creation and stored immutably in Stripe metadata
 # - Email changes post-subscription do NOT update the hash (prevents email-swap attacks)
-# - Uses HMAC-SHA256 with VERIFIABLE_ID_HMAC_SECRET for domain separation
+# - Uses HMAC-SHA256 with FEDERATION_HMAC_SECRET for domain separation
 #
 # Run: pnpm run test:tryouts:agent try/unit/utils/email_hash_try.rb
 
