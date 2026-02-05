@@ -34,10 +34,10 @@ $LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 require 'yaml'
 require 'fileutils'
 
-require 'onetime/migration'
+require 'familia/migration'
 
 module Onetime
-  class Migration < BaseMigration
+  class Migration < Familia::Migration::Base
     def prepare
       @base_path     = OT::HOME
       @config_file   = File.join(@base_path, 'etc', 'config.yaml')

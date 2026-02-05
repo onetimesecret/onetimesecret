@@ -28,14 +28,14 @@
 BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
 $LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
-require 'onetime/migration'
+require 'familia/migration'
 require 'yaml'
 require 'fileutils'
 require 'json'
 require 'shellwords'
 
 module Onetime
-  class Migration < BaseMigration
+  class Migration < Familia::Migration::Base
     # Configuration mapping: 'from' path in old config → 'to' path in new config
     # If 'default' is provided, it's used when the source path doesn't exist
     CONFIG_MAPPINGS = [

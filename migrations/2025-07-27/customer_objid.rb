@@ -30,11 +30,11 @@
 BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
 $LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
-require 'onetime/migration'
+require 'familia/migration'
 require 'onetime/refinements/uuidv7_refinements'
 
 module Onetime
-  class Migration < PipelineMigration
+  class Migration < Familia::Migration::Pipeline
     using Onetime::UUIDv7Refinements
 
     def prepare

@@ -21,10 +21,10 @@
 BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
 $LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
-require 'onetime/migration'
+require 'familia/migration'
 
 module Onetime
-  class Migration < ModelMigration
+  class Migration < Familia::Migration::Model
     def prepare
       @model_class  = Onetime::Customer
       @batch_size   = 1000
