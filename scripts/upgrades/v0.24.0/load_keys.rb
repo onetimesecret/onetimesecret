@@ -5,7 +5,7 @@
 # Processes both transformed records (RESTORE) and index commands (ZADD/HSET/etc).
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/load_keys.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/load_keys.rb [OPTIONS]
 #
 # Options:
 #   --input-dir=DIR      Input directory with model subdirs (default: results)
@@ -115,10 +115,10 @@ class KeyLoader
     parts.join(', ')
   end
 
-  def load_model(model_name, dir_name=nil)
+  def load_model(model_name, dir_name = nil)
     dir_name ||= model_name
     puts "=== Loading #{model_name} (via #{dir_name}) ==="
-    model_dir = File.join(@input_dir, dir_name)
+    model_dir  = File.join(@input_dir, dir_name)
 
     unless Dir.exist?(model_dir)
       puts "  Skipping: directory not found (#{model_dir})"
@@ -356,7 +356,7 @@ def parse_args(args)
       options[:skip_records] = true
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/migrations/2026-01-26/load_keys.rb [OPTIONS]
+        Usage: ruby scripts/upgrades/v0.24.0/load_keys.rb [OPTIONS]
 
         Loads migrated data into Valkey/Redis from transformed JSONL files.
 

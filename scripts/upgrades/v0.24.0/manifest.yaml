@@ -1,0 +1,57 @@
+# v0.24.0 Data Transform Manifest
+#
+# Transforms Redis data from Familia v1 (0.23.x) to v2 (0.24.x) model structures.
+# These are data transforms, not schema migrations - they reshape existing data
+# to match the new model expectations.
+
+version: "0.24.0"
+from_version: "0.23.x"
+description: "Familia v1 to v2 data transforms"
+
+# Execution order matters - dependencies must run first
+transforms:
+  - name: customer
+    path: 01-customer/transform.rb
+    description: "Transform Customer records"
+
+  - name: organization
+    path: 02-organization/generate.rb
+    description: "Generate Organization records from Customers"
+    depends_on: [customer]
+
+  - name: customdomain
+    path: 03-customdomain/transform.rb
+    description: "Transform CustomDomain records"
+    depends_on: [organization]
+
+  - name: receipt
+    path: 04-receipt/transform.rb
+    description: "Transform Receipt records"
+    depends_on: [customer, organization]
+
+  - name: secret
+    path: 05-secret/transform.rb
+    description: "Transform Secret records"
+    depends_on: [customer]
+
+# Validation scripts
+validators:
+  - path: 01-customer/validate_instance_index.rb
+  - path: 02-organization/validate_instance_index.rb
+  - path: 03-customdomain/validate_instance_index.rb
+
+# Utility scripts
+utilities:
+  - path: analyze_keyspace.rb
+    description: "Analyze Redis keyspace for migration planning"
+  - path: dump_keys.rb
+    description: "Dump keys to JSON for analysis"
+  - path: enrich_with_identifiers.rb
+    description: "Add identifiers to dumped records"
+  - path: enrich_with_original_record.rb
+    description: "Fetch original record data"
+  - path: load_keys.rb
+    description: "Load transformed data back to Redis"
+
+# Run all transforms in order
+entrypoint: run_all.sh

@@ -14,7 +14,7 @@
 # - Outputting a new JSONL file with V2 records
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/04-receipt/transform.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/04-receipt/transform.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE   Input JSONL dump file (default: results/metadata/metadata_dump.jsonl)
@@ -131,7 +131,7 @@ class ReceiptTransformer
   # Index key names (must match what create_indexes.rb writes)
   CUSTOMER_EMAIL_INDEX_KEY = 'customer:email_index'
   ORG_CONTACT_EMAIL_KEY    = 'organization:contact_email_index'
-  DOMAIN_DISPLAY_INDEX_KEY = 'custom_domain:display_domain_index'  # Note: underscore in custom_domain
+  DOMAIN_DISPLAY_INDEX_KEY = 'custom_domain:display_domain_index'  # NOTE: underscore in custom_domain
 
   def initialize(input_file:, output_dir:, exports_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file  = input_file

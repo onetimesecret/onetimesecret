@@ -17,7 +17,7 @@
 # passphrase_encryption) are preserved exactly - no re-encryption.
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/05-secret/transform.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/05-secret/transform.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE   Input JSONL dump file (default: results/secret/secret_dump.jsonl)

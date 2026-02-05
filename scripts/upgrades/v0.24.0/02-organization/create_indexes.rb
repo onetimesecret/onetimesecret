@@ -7,7 +7,7 @@
 # Run AFTER generate.rb which creates organization_transformed.jsonl
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/02-organization/create_indexes.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/02-organization/create_indexes.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE   Input JSONL file (default: results/organization/organization_transformed.jsonl)

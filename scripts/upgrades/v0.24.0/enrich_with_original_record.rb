@@ -15,7 +15,7 @@
 # 5. Writes the enriched transformed file
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/enrich_with_original_record.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb [OPTIONS]
 #
 # Options:
 #   --input-dir=DIR    Input directory with dump/transformed files (default: results)
@@ -374,7 +374,7 @@ def parse_args(args)
       options[:dry_run] = true
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/migrations/2026-01-26/enrich_with_original_record.rb [OPTIONS]
+        Usage: ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb [OPTIONS]
 
         Enriches transformed JSONL files with _original_record for rollback/audit.
 

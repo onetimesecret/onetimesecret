@@ -12,7 +12,7 @@
 # 3. The score (timestamp) matches the object's created field.
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/02-organization/validate_instance_index.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/02-organization/validate_instance_index.rb [OPTIONS]
 #
 # Options:
 #   --org-input-file=FILE       Input org JSONL dump (default: results/organization/organization_transformed.jsonl)
@@ -218,7 +218,7 @@ def parse_args(args)
       options[:temp_db] = Regexp.last_match(1).to_i
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/migrations/2026-01-26/02-organization/validate_instance_index.rb [OPTIONS]
+        Usage: ruby scripts/upgrades/v0.24.0/02-organization/validate_instance_index.rb [OPTIONS]
 
         Validates organization:instances index against v1 customer records and v2 organization objects.
 

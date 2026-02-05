@@ -12,7 +12,7 @@
 # 4. The org_id correctly maps back to the original customer's email.
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/03-customdomain/validate_instance_index.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/03-customdomain/validate_instance_index.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE   Input JSONL dump (default: results/customdomain/customdomain_dump.jsonl)
@@ -243,7 +243,7 @@ def parse_args(args)
       options[:temp_db] = Regexp.last_match(1).to_i
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/migrations/2026-01-26/03-customdomain/validate_instance_index.rb [OPTIONS]
+        Usage: ruby scripts/upgrades/v0.24.0/03-customdomain/validate_instance_index.rb [OPTIONS]
 
         Validates custom_domain:instances index and ownership migration.
 

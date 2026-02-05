@@ -7,7 +7,7 @@
 # This script runs BEFORE create_indexes.rb to establish org_objid values.
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/02-organization/generate.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/02-organization/generate.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE   Input JSONL file (default: results/customer/customer_transformed.jsonl)
@@ -163,7 +163,7 @@ class OrganizationGenerator
     when :string then value.to_s
     when :integer then value.to_i
     when :float, :timestamp then value.to_f  # timestamps stored as floats
-    when :boolean then value == 'true' || value == true
+    when :boolean then ['true', true].include?(value)
     else
       raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
     end
@@ -287,8 +287,8 @@ class OrganizationGenerator
 
     # Create Redis DUMP for the organization hash
     # Serialize values for Familia v2 JSON format before writing to Redis
-    temp_key       = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
-    serialized     = serialize_for_v2(org_fields)
+    temp_key     = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
+    serialized   = serialize_for_v2(org_fields)
     org_dump_b64 = begin
       @redis.hmset(temp_key, serialized.to_a.flatten)
       dump_data = @redis.dump(temp_key)

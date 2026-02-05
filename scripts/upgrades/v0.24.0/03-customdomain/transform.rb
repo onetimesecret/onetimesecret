@@ -12,7 +12,7 @@
 # - Outputting a new JSONL file with V2 records
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/03-customdomain/transform.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/03-customdomain/transform.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE        Input JSONL dump file (default: results/customdomain/customdomain_dump.jsonl)
@@ -378,7 +378,7 @@ class CustomDomainTransformer
     v2_dump_b64 = begin
       serialized_fields = serialize_for_v2(v2_fields)
       @redis.hmset(temp_key, serialized_fields.to_a.flatten)
-      dump_data = @redis.dump(temp_key)
+      dump_data         = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
       @redis.del(temp_key)
@@ -538,7 +538,7 @@ class CustomDomainTransformer
     when :string then value
     when :integer then value.to_i
     when :float, :timestamp then value.to_f  # timestamps stored as floats
-    when :boolean then ['true', '1'].include?(value.to_s.downcase)
+    when :boolean then %w[true 1].include?(value.to_s.downcase)
     else
       raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
     end
@@ -555,7 +555,7 @@ class CustomDomainTransformer
     when :string then value
     when :integer then value.to_i
     when :float then value.to_f
-    when :boolean then ['true', '1'].include?(value.to_s.downcase)
+    when :boolean then %w[true 1].include?(value.to_s.downcase)
     else value
     end
   end

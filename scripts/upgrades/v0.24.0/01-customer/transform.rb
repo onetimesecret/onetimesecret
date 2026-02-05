@@ -11,7 +11,7 @@
 # - Outputting a new JSONL file with the V2 records.
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/01-customer/transform.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/01-customer/transform.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE   Input JSONL dump file (default: results/customer/customer_dump.jsonl)
@@ -231,7 +231,7 @@ class CustomerTransformer
       # NOTE: hmset is deprecated, but redis-rb gem maps it to HMSET for older redis-server versions
       # For modern Redis, this would be `hset(temp_key, v2_serialized)`
       @redis.hmset(temp_key, v2_serialized.to_a.flatten)
-      dump_data = @redis.dump(temp_key)
+      dump_data     = @redis.dump(temp_key)
       Base64.strict_encode64(dump_data)
     ensure
       @redis.del(temp_key)

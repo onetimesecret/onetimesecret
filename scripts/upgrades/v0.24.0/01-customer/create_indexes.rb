@@ -83,7 +83,7 @@ class CustomerIndexCreator
       case record[:key]
       when 'onetime:customer'
         # Store for later processing after we have email->objid mapping
-        instance_index_record = record
+        instance_index_record          = record
         @stats[:instance_index_source] = 'existing'
       when /:object$/
         # Collect for processing

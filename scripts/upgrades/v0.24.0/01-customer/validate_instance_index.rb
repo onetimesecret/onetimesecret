@@ -11,7 +11,7 @@
 # 3. The email->objid mapping is correct for migration
 #
 # Usage:
-#   ruby scripts/migrations/2026-01-26/validate_instance_index.rb [OPTIONS]
+#   ruby scripts/upgrades/v0.24.0/validate_instance_index.rb [OPTIONS]
 #
 # Options:
 #   --input-file=FILE   Input JSONL dump (default: results/customer/customer_dump.jsonl)
@@ -216,7 +216,7 @@ def parse_args(args)
       options[:temp_db] = Regexp.last_match(1).to_i
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/migrations/2026-01-26/validate_instance_index.rb [OPTIONS]
+        Usage: ruby scripts/upgrades/v0.24.0/validate_instance_index.rb [OPTIONS]
 
         Validates onetime:customer index against customer objects.
 
