@@ -4,6 +4,7 @@
 
 require_relative 'helpers'
 require 'onetime/operations/verify_domain'
+require 'json'
 
 module Onetime
   module CLI
@@ -36,7 +37,7 @@ module Onetime
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Perform checks without persisting changes'
+        desc: 'Perform checks without persisting changes (read-only health check)'
 
       option :json,
         type: :boolean,
@@ -96,6 +97,7 @@ module Onetime
           puts 'Error: Provide a domain name or use --all for bulk mode'
           puts 'Usage:'
           puts '  bin/ots domains verify example.com'
+          puts '  bin/ots domains verify example.com --dry-run  # read-only check'
           puts '  bin/ots domains verify --all --unverified'
           exit 1
         end
@@ -149,11 +151,19 @@ module Onetime
         end
       end
 
-      def load_filtered_domains(orphaned:, verified:, unverified:, org_id:, limit:)
+      # Load all domains using pipelining to avoid N+1 queries
+      #
+      # @return [Array<CustomDomain>] All domain objects
+      def load_all_domains
         all_domain_ids = Onetime::CustomDomain.instances.all
-        all_domains    = all_domain_ids.map do |did|
-          Onetime::CustomDomain.find_by_identifier(did)
-        end.compact
+        return [] if all_domain_ids.empty?
+
+        # Use Familia's batch loading (pipelined HGETALL internally)
+        Onetime::CustomDomain.load_multi(all_domain_ids).compact
+      end
+
+      def load_filtered_domains(orphaned:, verified:, unverified:, org_id:, limit:)
+        all_domains = load_all_domains
 
         filtered = apply_filters(
           all_domains,
@@ -182,6 +192,8 @@ module Onetime
         if result.success?
           output_verification_results(result, domain)
           output_state_info(result)
+          output_organization_info(domain) if dry_run
+          output_brand_info(domain) if dry_run
           output_diagnostic_commands(result, domain)
         else
           puts "ERROR: #{result.error}"
@@ -203,6 +215,31 @@ module Onetime
         puts "  Current:          #{result.current_state}"
         puts "  Changed:          #{result.changed? ? 'yes' : 'no'}"
         puts "  Persisted:        #{result.persisted ? 'yes' : 'no'}"
+        puts
+      end
+
+      def output_organization_info(domain)
+        puts 'Organization:'
+        if domain.org_id.to_s.empty?
+          puts '  Status:           ORPHANED'
+        else
+          org = domain.primary_organization
+          if org
+            puts '  Status:           OK'
+            puts "  Org ID:           #{org.org_id}"
+            puts "  Display Name:     #{org.display_name || org.org_id}"
+          else
+            puts '  Status:           ORG_NOT_FOUND'
+            puts "  Org ID:           #{domain.org_id} (MISSING)"
+          end
+        end
+        puts
+      end
+
+      def output_brand_info(domain)
+        puts 'Brand Settings:'
+        puts "  Public Homepage:  #{domain.allow_public_homepage?}"
+        puts "  Public API:       #{domain.allow_public_api?}"
         puts
       end
 
@@ -265,6 +302,9 @@ module Onetime
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
+        # Show state distribution
+        output_state_distribution(result)
+
         # Show individual results
         if result.results.any?
           puts 'Results:'
@@ -286,16 +326,92 @@ module Onetime
         puts
       end
 
+      def output_state_distribution(result)
+        state_counts = Hash.new(0)
+        result.results.each do |r|
+          state                = r.current_state.to_s
+          state_counts[state] += 1
+        end
+
+        total = result.total.to_f
+        total = 1.0 if total.zero?
+
+        puts 'State Distribution:'
+        %w[verified resolving pending unverified].each do |state|
+          count = state_counts[state] || 0
+          pct   = (count / total * 100).round(1)
+          puts format('  %-16s %3d (%5.1f%%)', state, count, pct)
+        end
+        puts
+      end
+
       # JSON output for single domain
       def output_json_single(result, dry_run:)
-        output = result.to_h.merge(dry_run: dry_run)
+        domain = result.domain
+        output = result.to_h.merge(
+          dry_run: dry_run,
+          timestamp: Time.now.utc.iso8601,
+        )
+
+        # Add extended info for dry-run mode (health check mode)
+        if dry_run
+          output[:organization] = build_organization_json(domain)
+          output[:brand]        = {
+            allow_public_homepage: domain.allow_public_homepage?,
+            allow_public_api: domain.allow_public_api?,
+          }
+        end
+
         puts JSON.pretty_generate(output)
       end
 
       # JSON output for bulk verification
       def output_json_bulk(result, dry_run:)
-        output = result.to_h.merge(dry_run: dry_run)
+        # Build state distribution
+        state_counts = Hash.new(0)
+        result.results.each do |r|
+          state                = r.current_state.to_s
+          state_counts[state] += 1
+        end
+
+        # Build issues summary
+        issues = { orphaned: [], org_not_found: [], dns_failed: [], ssl_failed: [] }
+        result.results.each do |r|
+          domain = r.domain
+          issues[:orphaned] << domain.display_domain if domain.org_id.to_s.empty?
+          if !domain.org_id.to_s.empty? && domain.primary_organization.nil?
+            issues[:org_not_found] << domain.display_domain
+          end
+          issues[:dns_failed] << domain.display_domain unless r.dns_validated
+          issues[:ssl_failed] << domain.display_domain unless r.ssl_ready
+        end
+
+        output = result.to_h.merge(
+          dry_run: dry_run,
+          timestamp: Time.now.utc.iso8601,
+          state_distribution: state_counts,
+          issues: issues.transform_values(&:size),
+          issue_details: issues,
+        )
+
         puts JSON.pretty_generate(output)
+      end
+
+      def build_organization_json(domain)
+        if domain.org_id.to_s.empty?
+          { status: 'ORPHANED', org_id: nil, display_name: nil }
+        else
+          org = domain.primary_organization
+          if org
+            {
+              status: 'OK',
+              org_id: org.org_id,
+              display_name: org.display_name || org.org_id,
+            }
+          else
+            { status: 'ORG_NOT_FOUND', org_id: domain.org_id, display_name: nil }
+          end
+        end
       end
 
       def format_bool(value)
