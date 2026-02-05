@@ -2,27 +2,32 @@
 """
 Add SHA256 hashes to source language keys.
 
-Hashes are computed from normalized English source text and stored in each
-locale file. The hash represents the English source version that the
-translation was based on.
+Hashes are computed from normalized source text and stored in each locale
+file. The hash represents the source version that the translation was
+based on.
 
-When the English text changes, its hash updates. Translators can compare
-their locale's stored hash against the current English hash to detect
+When the source text changes, its hash updates. Translators can compare
+their locale's stored hash against the current source hash to detect
 which strings need re-translation.
 
+The source locale defaults to 'en' but can be overridden via the
+I18N_DEFAULT_LOCALE environment variable.
+
 Usage:
-    python add_hashes.py              # Add/update hashes in en, init missing in locales
+    python add_hashes.py              # Add/update hashes in source, init missing in locales
     python add_hashes.py --dry-run    # Show what would be done
+    I18N_DEFAULT_LOCALE=de python add_hashes.py  # Use German as source
 """
 
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
 CONTENT_DIR = SCRIPT_DIR.parent / "content"
-SOURCE_LOCALE = "en"
+SOURCE_LOCALE = os.environ.get("I18N_DEFAULT_LOCALE", "en")
 
 
 def normalize_source_message(text: str) -> str:
