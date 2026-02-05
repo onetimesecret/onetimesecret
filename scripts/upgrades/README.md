@@ -13,7 +13,7 @@ contains scripts to migrate data from the previous version.
 
 Each upgrade directory contains:
 - `manifest.yaml` - Transform definitions and execution order
-- `run_all.sh` - Execute all transforms in dependency order
+- `run_pipeline.sh` - Execute all transforms in dependency order
 - `README.md` - Version-specific documentation
 - Numbered subdirectories for each entity type
 
@@ -21,7 +21,7 @@ Each upgrade directory contains:
 
 ```bash
 # Run all transforms for an upgrade
-./scripts/upgrades/v0.24.0/run_all.sh
+./scripts/upgrades/v0.24.0/run_pipeline.sh
 
 # Run individual transforms
 ruby scripts/upgrades/v0.24.0/01-customer/transform.rb --help

@@ -24,6 +24,7 @@ module Onetime
       self.migration_id = '20250727_02_customer_cleanup'
       self.description  = 'Remove anonymous, test users (anon, tryouts*)'
       self.dependencies = []
+
       def prepare
         @model_class = Onetime::Customer
         @batch_size  = 1000

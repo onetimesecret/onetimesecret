@@ -14,6 +14,7 @@
 #   --org-lookup=PATH      Path to customer objid→org objid JSON map (default: data/upgrades/v0.24.0/organization/customer_objid_to_org_objid.json)
 #   --domain-lookup=PATH   Path to domain fqdn→objid JSON map (default: data/upgrades/v0.24.0/customdomain/fqdn_to_objid.json)
 #   --redis-url=URL        Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
+#   --temp-db=N            Temp database number (default: 15)
 #   --dry-run              Show what would be created without writing
 #   --help                 Show this help
 #
@@ -42,13 +43,14 @@ class ReceiptIndexCreator
   DEFAULT_ORG_LOOKUP      = 'data/upgrades/v0.24.0/organization/customer_objid_to_org_objid.json'
   DEFAULT_DOMAIN_LOOKUP   = 'data/upgrades/v0.24.0/customdomain/fqdn_to_objid.json'
 
-  def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, redis_url:, dry_run: false)
+  def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, redis_url:, temp_db:, dry_run: false)
     @input_file           = input_file
     @output_dir           = output_dir
     @customer_lookup_path = customer_lookup_path
     @org_lookup_path      = org_lookup_path
     @domain_lookup_path   = domain_lookup_path
     @redis_url            = redis_url
+    @temp_db              = temp_db
     @dry_run              = dry_run
 
     @customer_lookup = load_lookup(@customer_lookup_path, 'customer')
@@ -130,9 +132,9 @@ class ReceiptIndexCreator
   end
 
   def process_input_file(out)
-    # Connect to Redis temp DB for decode operations (DB 15 for safety)
+    # Connect to Redis temp DB for decode operations
     uri      = URI.parse(@redis_url)
-    uri.path = '/15'
+    uri.path = "/#{@temp_db}"
     redis    = Redis.new(url: uri.to_s)
 
     File.foreach(@input_file) do |line|
@@ -393,6 +395,7 @@ def parse_args(args)
     org_lookup: ReceiptIndexCreator::DEFAULT_ORG_LOOKUP,
     domain_lookup: ReceiptIndexCreator::DEFAULT_DOMAIN_LOOKUP,
     redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
+    temp_db: 15,
     dry_run: false,
   }
 
@@ -410,6 +413,8 @@ def parse_args(args)
       options[:domain_lookup] = Regexp.last_match(1)
     when /^--redis-url=(.+)$/
       options[:redis_url] = Regexp.last_match(1)
+    when /^--temp-db=(\d+)$/
+      options[:temp_db] = Regexp.last_match(1).to_i
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
@@ -428,6 +433,7 @@ def parse_args(args)
           --domain-lookup=PATH   JSON file mapping fqdn -> objid
                                  (default: data/upgrades/v0.24.0/customdomain/fqdn_to_objid.json)
           --redis-url=URL        Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
+          --temp-db=N            Temp database number (default: 15)
           --dry-run              Show what would be created
           --help                 Show this help
 
@@ -471,6 +477,7 @@ if __FILE__ == $0
     org_lookup_path: options[:org_lookup],
     domain_lookup_path: options[:domain_lookup],
     redis_url: options[:redis_url],
+    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
 

@@ -37,10 +37,10 @@ module Onetime
       self.dependencies = []
 
       def prepare
-      @base_path     = OT::HOME
-      @config_file   = File.join(@base_path, 'etc', 'config.yaml')
-      @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
-      @findings      = []  # Store findings for consolidated output
+        @base_path     = OT::HOME
+        @config_file   = File.join(@base_path, 'etc', 'config.yaml')
+        @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
+        @findings      = []  # Store findings for consolidated output
       end
 
       def migration_needed?

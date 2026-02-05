@@ -54,4 +54,4 @@ utilities:
     description: "Load transformed data back to Redis"
 
 # Run all transforms in order
-entrypoint: run_all.sh
+entrypoint: run_pipeline.sh

@@ -22,7 +22,7 @@ module Onetime
     class CustomerCustomDomainCleanup < Familia::Migration::Model
       self.migration_id = '20250727_03_customer_custom_domain_cleanup'
       self.description  = 'Remove orphaned custom_domain records for test users'
-      self.dependencies = ['20250727_03_customer_cleanup']
+      self.dependencies = ['20250727_02_customer_cleanup']
 
       def prepare
         @model_class  = Onetime::Customer
