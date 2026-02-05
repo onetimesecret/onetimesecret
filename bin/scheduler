@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# bin/scheduler
+
+set -euo pipefail
+
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
+
+bundle exec bin/ots scheduler "$@"
