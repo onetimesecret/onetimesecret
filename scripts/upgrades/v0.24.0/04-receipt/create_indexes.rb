@@ -28,6 +28,7 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+require 'uri'
 
 # Calculate project root from script location
 PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
@@ -130,7 +131,9 @@ class ReceiptIndexCreator
 
   def process_input_file(out)
     # Connect to Redis temp DB for decode operations (DB 15 for safety)
-    redis = Redis.new(url: "#{@redis_url}/15")
+    uri      = URI.parse(@redis_url)
+    uri.path = '/15'
+    redis    = Redis.new(url: uri.to_s)
 
     File.foreach(@input_file) do |line|
       @stats[:records_read] += 1

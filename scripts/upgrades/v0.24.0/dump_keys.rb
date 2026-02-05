@@ -22,6 +22,7 @@ require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
+require 'uri'
 
 # Calculate project root from script location (scripts/upgrades/v0.24.0/)
 PROJECT_ROOT     = File.expand_path('../../..', __dir__)
@@ -53,8 +54,15 @@ class KeyDumper
     @model_stats = Hash.new { |h, k| h[k] = { total: 0, dumped: 0, skipped: 0, errors: [] } }
   end
 
+  # Build Redis URL with specified database number, properly handling existing path/query
+  def redis_url_for_db(db_number)
+    uri      = URI.parse(@redis_url)
+    uri.path = "/#{db_number}"
+    uri.to_s
+  end
+
   def dump_database(db_number)
-    redis = Redis.new(url: "#{@redis_url}/#{db_number}")
+    redis = Redis.new(url: redis_url_for_db(db_number))
 
     if @dry_run
       puts "DRY RUN: Would dump DB #{db_number}"
@@ -85,7 +93,7 @@ class KeyDumper
     # Process all databases in one pass, collecting into model files
     MIGRATION_DBS.each do |db|
       puts "Processing DB #{db}..."
-      redis = Redis.new(url: "#{@redis_url}/#{db}")
+      redis = Redis.new(url: redis_url_for_db(db))
 
       if @dry_run
         stats = { total: 0, dumped: 0, skipped: 0, errors: [] }

@@ -40,6 +40,7 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'familia'
+require 'uri'
 
 # Calculate project root from script location
 PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
@@ -226,7 +227,9 @@ class SecretTransformer
   end
 
   def connect_redis
-    @redis = Redis.new(url: "#{@redis_url}/#{@temp_db}")
+    uri      = URI.parse(@redis_url)
+    uri.path = "/#{@temp_db}"
+    @redis   = Redis.new(url: uri.to_s)
     @redis.ping
   end
 

@@ -24,6 +24,7 @@
 require 'redis'
 require 'json'
 require 'base64'
+require 'uri'
 
 # Calculate project root from script location
 PROJECT_ROOT     = File.expand_path('../../..', __dir__)
@@ -265,9 +266,9 @@ class KeyLoader
 
   def get_redis(db)
     @redis_clients[db] ||= begin
-      # Strip any existing database number from the URL before appending the target DB
-      base_url = @valkey_url.sub(%r{/\d+$}, '')
-      client   = Redis.new(url: "#{base_url}/#{db}")
+      uri      = URI.parse(@valkey_url)
+      uri.path = "/#{db}"
+      client   = Redis.new(url: uri.to_s)
       client.ping # Verify connection
       client
     rescue Redis::CannotConnectError => ex

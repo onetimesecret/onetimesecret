@@ -22,9 +22,6 @@ echo "Redis: ${VALKEY_URL:-$REDIS_URL}"
 echo "Data:  $PROJECT_ROOT/data/upgrades/v0.24.0"
 echo ""
 
-echo "=== Dump and generate data ==="
-ruby "$DIR/dump_keys.rb" --all
-
 echo "=== Enriching with identifiers ==="
 ruby "$DIR/enrich_with_identifiers.rb"
 

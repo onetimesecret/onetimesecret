@@ -11,6 +11,7 @@
 
 require 'redis'
 require 'json'
+require 'uri'
 
 class KeyspaceAnalyzer
   # Known Familia class prefixes - preserve these as literals
@@ -37,7 +38,9 @@ class KeyspaceAnalyzer
 
   def initialize(db_number, redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil))
     @db_number   = db_number
-    @redis       = Redis.new(url: "#{redis_url}/#{db_number}")
+    uri          = URI.parse(redis_url)
+    uri.path     = "/#{db_number}"
+    @redis       = Redis.new(url: uri.to_s)
     @patterns    = Hash.new { |h, k| h[k] = { count: 0, samples: [], types: Set.new } }
     @hash_fields = Hash.new { |h, k| h[k] = { samples: [], field_sets: [] } }
     @index_stats = {}  # zset index name => { member_count, sample_members }
