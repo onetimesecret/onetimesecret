@@ -414,6 +414,10 @@
     "text": "실패",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "초안",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "청구서 로드 실패",
     "sha256": "0b0cb3f7"

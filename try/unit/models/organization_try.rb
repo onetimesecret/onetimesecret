@@ -191,10 +191,11 @@ true
 #=> "Acme Industries"
 
 ## Can update organization contact email
-@org.contact_email = "admin@acme.com"
+@updated_contact_email = "admin#{@test_suffix}@acme.com"
+@org.contact_email = @updated_contact_email
 @org.save
 @org.contact_email
-#=> "admin@acme.com"
+#=> @updated_contact_email
 
 ## Organization has created timestamp (Familia v2 uses Float for timestamps)
 @org.created.class
@@ -224,7 +225,33 @@ Onetime::Organization.load("nonexistent123")
 ## Can reload organization and verify persistence
 reloaded_org = Onetime::Organization.load(@org.objid)
 [reloaded_org.display_name, reloaded_org.contact_email]
-#=> ["Updated Org Name", "admin@acme.com"]
+#=> ["Updated Org Name", @updated_contact_email]
+
+# Edge case tests for optimized membership check methods
+
+## member? returns false for non-existent string objid
+@org.member?("nonexistent_objid_123456")
+#=> false
+
+## member? returns false for empty string
+@org.member?("")
+#=> false
+
+## domain? returns false for non-existent string objid
+@org.domain?("nonexistent_objid_123456")
+#=> false
+
+## domain? returns false for empty string
+@org.domain?("")
+#=> false
+
+## receipt? returns false for non-existent string objid
+@org.receipt?("nonexistent_objid_123456")
+#=> false
+
+## receipt? returns false for empty string
+@org.receipt?("")
+#=> false
 
 # Teardown
 @org.destroy!

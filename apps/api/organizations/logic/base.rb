@@ -77,7 +77,7 @@ module OrganizationAPI
       #
       # Uses Organization#safe_dump as the base and adds:
       # - `id` alias for `objid` (frontend convention)
-      # - `created_at`/`updated_at` aliases for `created`/`updated`
+      # - `created`/`updated` aliases for `created`/`updated`
       # - `current_user_role` (context-dependent, requires current user)
       #
       # @param organization [Onetime::Organization] Organization to serialize
@@ -88,9 +88,7 @@ module OrganizationAPI
         record = organization.safe_dump
 
         # Add frontend-expected aliases
-        record[:id]         = record[:objid]
-        record[:created_at] = record[:created]
-        record[:updated_at] = record[:updated]
+        record[:id]      = record[:objid]
 
         # Convert owner_id (custid) to owner_extid (Customer#extid) for opaque identifier pattern
         # This prevents internal ID exposure in API responses

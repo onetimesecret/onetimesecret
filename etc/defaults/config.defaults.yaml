@@ -393,7 +393,6 @@ redis:
   # by setting environment variables or modifying the values below.
   dbs:
     custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
-    customdomain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
     customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 0 %>
     metadata: <%= ENV['VALKEY_DBS_METADATA'] || ENV['REDIS_DBS_METADATA'] || 0 %>
     secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 0 %>

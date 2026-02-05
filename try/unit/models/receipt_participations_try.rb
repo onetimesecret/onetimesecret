@@ -96,7 +96,7 @@ OT.info 'Cleaned Redis for fresh test run'
 #=> @org.objid
 
 ## Receipt appears in organization's receipts collection
-@org.receipts.member?(@receipt.objid)
+@org.receipt?(@receipt.objid)
 #=> true
 
 ## Organization receipts size incremented
@@ -111,7 +111,7 @@ OT.info 'Cleaned Redis for fresh test run'
 #=> @domain.objid
 
 ## Receipt appears in domain's receipts collection
-@domain.receipts.member?(@receipt.objid)
+@domain.receipt?(@receipt.objid)
 #=> true
 
 ## Domain receipts size incremented
@@ -199,7 +199,7 @@ OT.info 'Cleaned Redis for fresh test run'
 #=> 2
 
 ## Receipt no longer in organization collection
-@org.receipts.member?(@receipt2.objid)
+@org.receipt?(@receipt2.objid)
 #=> false
 
 ## Receipt participations updated after removal
@@ -212,7 +212,7 @@ OT.info 'Cleaned Redis for fresh test run'
 #=> 1
 
 ## Receipt no longer in domain collection
-@domain.receipts.member?(@receipt3.objid)
+@domain.receipt?(@receipt3.objid)
 #=> false
 
 ## Create second organization for isolation testing
@@ -230,11 +230,11 @@ OT.info 'Cleaned Redis for fresh test run'
 
 ## Receipt destroy cleans up participations
 @receipt.destroy!
-@org.receipts.member?(@receipt.objid)
+@org.receipt?(@receipt.objid)
 #=> false
 
 ## Domain participations cleaned after receipt destroy
-@domain.receipts.member?(@receipt.objid)
+@domain.receipt?(@receipt.objid)
 #=> false
 
 ## Organization receipts size decremented after destroy

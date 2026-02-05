@@ -24,7 +24,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
-import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
+import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
 // LAUNCH: Identity-only - CreateInvitationPayload hidden until team features enabled
 import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -191,6 +191,11 @@ const isDirty = computed(() => {
 
 // Billing email is only shown for paid plans (organizations with a planid set)
 const hasPaidPlan = computed(() => !!organization.value?.planid);
+
+// Legacy plan detection for grandfathered Early Supporter customers
+const isLegacyCustomer = computed(() =>
+  organization.value?.planid ? isLegacyPlan(organization.value.planid) : false
+);
 
 const loadOrganization = async () => {
   isLoading.value = true;
@@ -1088,7 +1093,9 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 
                   <!-- Action Buttons -->
                   <div class="flex flex-wrap gap-3 pt-4">
+                    <!-- Hide upgrade button for legacy customers - they're already valued supporters -->
                     <router-link
+                      v-if="!isLegacyCustomer"
                       :to="`/billing/${orgId}/plans`"
                       class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                       <OIcon
@@ -1096,7 +1103,7 @@ watch(orgId, async (newOrgId, oldOrgId) => {
                         name="arrow-up-circle"
                         class="size-4"
                         aria-hidden="true" />
-                      {{ t('web.billing.overview.upgrade_plan') }}
+                      {{ t('web.billing.overview.change_plan') }}
                     </router-link>
                     <router-link
                       :to="`/billing/${orgId}/overview`"
@@ -1107,6 +1114,48 @@ watch(orgId, async (newOrgId, oldOrgId) => {
                         class="size-4"
                         aria-hidden="true" />
                       {{ t('web.billing.overview.manage_billing') }}
+                    </router-link>
+                    <router-link
+                      :to="`/billing/${orgId}/invoices`"
+                      class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+                      <OIcon
+                        collection="heroicons"
+                        name="document-text"
+                        class="size-4"
+                        aria-hidden="true" />
+                      {{ t('web.billing.overview.view_invoices') }}
+                    </router-link>
+                  </div>
+                </div>
+
+                <!-- Legacy Plan (Early Supporter) - no modern subscription record but has planid -->
+                <div v-else-if="isLegacyCustomer" class="space-y-4">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        {{ t('web.billing.subscription.catalog_name') }}
+                      </p>
+                      <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                        {{ t('web.billing.plans.early_supporter_plan') }}
+                      </p>
+                    </div>
+                    <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                      {{ t('web.organizations.early_supporter_badge') }}
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ t('web.billing.plans.legacy_plan_info') }}
+                  </p>
+                  <div class="flex flex-wrap gap-3 pt-4">
+                    <router-link
+                      :to="`/billing/${orgId}/overview`"
+                      class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                      <OIcon
+                        collection="heroicons"
+                        name="cog-6-tooth"
+                        class="size-4"
+                        aria-hidden="true" />
+                      {{ t('web.billing.overview.manage_subscription') }}
                     </router-link>
                     <router-link
                       :to="`/billing/${orgId}/invoices`"
@@ -1132,7 +1181,7 @@ watch(orgId, async (newOrgId, oldOrgId) => {
                     {{ t('web.billing.plans.free_plan') }}
                   </h3>
                   <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Upgrade to unlock more teams and features
+                    {{ t('web.COMMON.upgrade_description') }}
                   </p>
                   <router-link
                     :to="`/billing/${orgId}/plans`"

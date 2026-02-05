@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base_handler'
+require 'onetime/utils/email_hash'
 
 module Billing
   module Operations
@@ -11,6 +12,19 @@ module Billing
       #
       # Creates or updates organization subscription when checkout completes.
       # Skips one-time payments (sessions without subscriptions).
+      #
+      # ## Federation: Email Hash in Stripe Metadata
+      #
+      # At checkout completion, this handler sets the `email_hash` in Stripe
+      # customer metadata for cross-region subscription federation. The hash:
+      #
+      # - Is computed from the Stripe customer's email using HMAC-SHA256
+      # - Is IMMUTABLE once set (never updated even if email changes)
+      # - Enables subscription benefit federation across regions
+      # - Prevents email-swap attacks (hash computed at creation, not at use)
+      #
+      # @see Onetime::Utils::EmailHash
+      # @see SubscriptionFederation
       #
       class CheckoutCompleted < BaseHandler
         # UUID format: 8-4-4-4-12 hex chars (e.g., 019b1598-b0ec-760a-85ae-a1391283a1dc)
@@ -87,6 +101,14 @@ module Billing
 
           org.update_from_stripe_subscription(subscription)
 
+          # Set email_hash in Stripe customer metadata for federation
+          # This enables cross-region subscription benefit sharing
+          stripe_customer_id = @data_object&.customer
+          set_stripe_customer_email_hash(stripe_customer_id)
+
+          # Ensure organization has email_hash computed from billing_email
+          ensure_org_email_hash!(org)
+
           billing_logger.info 'Checkout completed - organization subscription activated',
             {
               orgid: org.objid,
@@ -112,6 +134,104 @@ module Billing
             billing_logger.error 'Customer not found', { customer_extid: customer_extid }
           end
           customer
+        end
+
+        # Set email_hash in Stripe customer metadata for cross-region federation
+        #
+        # CRITICAL: This hash is computed at subscription creation and MUST NEVER
+        # be updated, even if the customer's email changes. This immutability is
+        # the primary defense against email-swap attacks.
+        #
+        # The hash enables subscription benefits to flow to organizations in other
+        # regions that share the same billing email (matched by hash).
+        #
+        # @param stripe_customer_id [String] Stripe customer ID
+        # @return [void]
+        #
+        def set_stripe_customer_email_hash(stripe_customer_id)
+          return if stripe_customer_id.to_s.empty?
+
+          begin
+            stripe_customer = Stripe::Customer.retrieve(stripe_customer_id)
+
+            # Check if email_hash already exists (immutability - never overwrite)
+            existing_hash = stripe_customer.metadata['email_hash']
+            if existing_hash.to_s.length.positive?
+              billing_logger.debug 'Stripe customer already has email_hash (preserving immutability)',
+                {
+                  stripe_customer_id: stripe_customer_id,
+                  hash_prefix: existing_hash[0..7],
+                }
+              return
+            end
+
+            # Compute hash from Stripe customer email
+            email = stripe_customer.email
+            if email.to_s.empty?
+              billing_logger.warn 'Stripe customer has no email - cannot set email_hash',
+                { stripe_customer_id: stripe_customer_id }
+              return
+            end
+
+            email_hash = Onetime::Utils::EmailHash.compute(email)
+            if email_hash.nil?
+              billing_logger.warn 'Could not compute email_hash',
+                { stripe_customer_id: stripe_customer_id }
+              return
+            end
+
+            # Fetch existing metadata and merge (Stripe replaces all metadata on update)
+            existing_metadata = stripe_customer.metadata.to_h
+            merged_metadata   = existing_metadata.merge(
+              'email_hash' => email_hash,
+              'email_hash_created_at' => Time.now.to_i.to_s,
+              'home_region' => OT.conf.dig(:site, :region) || 'default',
+            )
+
+            Stripe::Customer.update(stripe_customer_id, metadata: merged_metadata)
+
+            billing_logger.info 'Set email_hash in Stripe customer metadata',
+              {
+                stripe_customer_id: stripe_customer_id,
+                hash_prefix: email_hash[0..7],
+              }
+          rescue Stripe::StripeError, Onetime::Problem => ex
+            # Log but don't fail checkout - federation is a secondary concern
+            billing_logger.error 'Failed to set email_hash in Stripe metadata',
+              {
+                stripe_customer_id: stripe_customer_id,
+                error: ex.message,
+              }
+          end
+        end
+
+        # Ensure organization has computed email_hash
+        #
+        # Computes and saves email_hash if not already present. This ensures
+        # the organization can be found by federated lookups.
+        #
+        # @param org [Onetime::Organization] Organization to update
+        # @return [void]
+        #
+        def ensure_org_email_hash!(org)
+          return if org.email_hash.to_s.length.positive?
+          return if org.billing_email.to_s.empty?
+
+          org.compute_email_hash!
+          org.save
+
+          billing_logger.debug 'Computed organization email_hash',
+            {
+              orgid: org.objid,
+              hash_prefix: org.email_hash[0..7],
+            }
+        rescue StandardError => ex
+          # Log but don't fail checkout
+          billing_logger.error 'Failed to compute organization email_hash',
+            {
+              orgid: org.objid,
+              error: ex.message,
+            }
         end
 
         # Find the target organization for this checkout

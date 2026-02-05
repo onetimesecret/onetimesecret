@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# bin/backend
+
+# Ensure ONETIME_DEBUG is exported so it's available to the
+# bundle process and the subsequent ruby process.
+export ONETIME_DEBUG=${ONETIME_DEBUG:-0}
+
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
+
+bundle exec bin/ots server "$@"

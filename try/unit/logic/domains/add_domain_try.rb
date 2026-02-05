@@ -179,8 +179,8 @@ end
 @membership.organization_objid
 #=> @org2.objid
 
-## Owner1's objid is in org2's members set
-@org2.members.member?(@owner1.objid)
+## Owner1's objid is in org2's members set (using wrapper for Familia v2 serialization)
+@org2.member?(@owner1.objid)
 #=> true
 
 ## Owner1 is now member of org2 (via member? helper)

@@ -39,25 +39,65 @@ Onetime::Utils.strand.size
 Onetime::Utils.strand(20).size
 #=> 20
 
-## Obscure email address (6 or more chars)
+## Obscure email address (standard email)
 Onetime::Utils.obscure_email('tryouts@onetimesecret.com')
-#=> 'tr*****@o*****.com'
+#=> 'tr***@o***.com'
 
-## Obscure email address (4 or more chars)
+## Obscure email address (4 chars local)
 Onetime::Utils.obscure_email('dave@onetimesecret.com')
-#=> 'da*****@o*****.com'
+#=> 'da***@o***.com'
 
-## Obscure email address (less than 4 chars)
+## Obscure email address (2 chars local - at MIN_LOCAL threshold)
 Onetime::Utils.obscure_email('dm@onetimesecret.com')
-#=> 'dm*****@o*****.com'
+#=> 'dm@o***.com'
 
-## Obscure email address (single char)
+## Obscure email address (single char local - below MIN_LOCAL)
 Onetime::Utils.obscure_email('r@onetimesecret.com')
-#=> 'r*****@o*****.com'
+#=> 'r@o***.com'
 
-## Obscure email address (Long)
+## Obscure email address (long local and domain)
 Onetime::Utils.obscure_email('readyreadyreadyready@onetimesecretonetimesecretonetimesecret.com')
-#=> 're*****@o*****.com'
+#=> 're***@o***.com'
+
+## Obscure email in sentence context
+Onetime::Utils.obscure_email('Contact tom@myspace.com please')
+#=> 'Contact to***@m***.com please'
+
+## Obscure email with country-code TLD (.co.uk)
+Onetime::Utils.obscure_email('user@example.co.uk')
+#=> 'us***@e***.co.uk'
+
+## Obscure email with subdomain
+Onetime::Utils.obscure_email('admin@mail.example.org')
+#=> 'ad***@m***.org'
+
+## Obscure multiple emails in text
+Onetime::Utils.obscure_email('From: alice@foo.com To: bob@bar.org')
+#=> 'From: al***@f***.com To: bo***@b***.org'
+
+## Obscure email with plus addressing
+Onetime::Utils.obscure_email('user+tag@example.com')
+#=> 'us***@e***.com'
+
+## Obscure email with dots in local part
+Onetime::Utils.obscure_email('first.last@example.com')
+#=> 'fi***@e***.com'
+
+## Handle nil input gracefully
+Onetime::Utils.obscure_email(nil)
+#=> nil
+
+## Handle empty string gracefully
+Onetime::Utils.obscure_email('')
+#=> ''
+
+## Handle text without email addresses
+Onetime::Utils.obscure_email('No email here')
+#=> 'No email here'
+
+## Handle complex TLD (.com.au)
+Onetime::Utils.obscure_email('user@domain.com.au')
+#=> 'us***@d***.com.au'
 
 ## random_fortune returns a string
 ## Create a mock fortunes collection

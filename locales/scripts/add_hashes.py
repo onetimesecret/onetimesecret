@@ -1,23 +1,33 @@
 #!/usr/bin/env python3
 """
-Add SHA256 hashes to source language keys and propagate to all locales.
+Add SHA256 hashes to source language keys.
 
-Hashes are computed from normalized source text (lowercase, stripped whitespace)
-to ensure stability across minor formatting changes.
+Hashes are computed from normalized source text and stored in each locale
+file. The hash represents the source version that the translation was
+based on.
+
+When the source text changes, its hash updates. Translators can compare
+their locale's stored hash against the current source hash to detect
+which strings need re-translation.
+
+The source locale defaults to 'en' but can be overridden via the
+I18N_DEFAULT_LOCALE environment variable.
 
 Usage:
-    python add_hashes.py              # Add hashes to en, copy to all locales
+    python add_hashes.py              # Add/update hashes in source, init missing in locales
     python add_hashes.py --dry-run    # Show what would be done
+    I18N_DEFAULT_LOCALE=de python add_hashes.py  # Use German as source
 """
 
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
 CONTENT_DIR = SCRIPT_DIR.parent / "content"
-SOURCE_LOCALE = "en"
+SOURCE_LOCALE = os.environ.get("I18N_DEFAULT_LOCALE", "en")
 
 
 def normalize_source_message(text: str) -> str:
@@ -81,10 +91,15 @@ def add_hashes_to_source(dry_run: bool = False) -> dict[str, dict[str, str]]:
     return all_hashes
 
 
-def propagate_hashes_to_locales(
+def init_missing_hashes_in_locales(
     source_hashes: dict[str, dict[str, str]], dry_run: bool = False
 ) -> None:
-    """Copy source hashes to all locale files."""
+    """Initialize missing hashes in locale files.
+
+    Only adds hashes to entries that don't have one yet. Existing hashes
+    are preserved so translators can compare against current English hashes
+    to detect which strings need re-translation.
+    """
     locale_dirs = [
         d
         for d in CONTENT_DIR.iterdir()
@@ -112,7 +127,9 @@ def propagate_hashes_to_locales(
                 if not isinstance(entry, dict):
                     continue
 
-                if entry.get("sha256") != source_hash:
+                # Only set hash if missing — preserve existing hashes
+                # so translators can detect when source text changed
+                if "sha256" not in entry:
                     entry["sha256"] = source_hash
                     modified = True
                     updates += 1
@@ -123,8 +140,8 @@ def propagate_hashes_to_locales(
                     f.write("\n")
 
         if updates > 0:
-            action = "would update" if dry_run else "updated"
-            print(f"{locale}: {action} {updates} hashes")
+            action = "would add" if dry_run else "added"
+            print(f"{locale}: {action} {updates} missing hashes")
 
 
 def main() -> None:
@@ -142,8 +159,8 @@ def main() -> None:
     print("=== Adding hashes to source ===")
     source_hashes = add_hashes_to_source(dry_run=args.dry_run)
 
-    print("\n=== Propagating to locales ===")
-    propagate_hashes_to_locales(source_hashes, dry_run=args.dry_run)
+    print("\n=== Initializing missing hashes in locales ===")
+    init_missing_hashes_in_locales(source_hashes, dry_run=args.dry_run)
 
     print("\nDone.")
 

@@ -63,7 +63,9 @@ def update_task(
         )
 
     if status and status not in VALID_STATUSES:
-        raise ValueError(f"Invalid status: {status}. Must be one of: {VALID_STATUSES}")
+        raise ValueError(
+            f"Invalid status: {status}. Must be one of: {VALID_STATUSES}"
+        )
 
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -72,7 +74,9 @@ def update_task(
         cursor = conn.cursor()
 
         # Verify task exists
-        cursor.execute("SELECT * FROM translation_tasks WHERE id = ?", (task_id,))
+        cursor.execute(
+            "SELECT * FROM translation_tasks WHERE id = ?", (task_id,)
+        )
         row = cursor.fetchone()
         if not row:
             raise ValueError(f"Task {task_id} not found")
@@ -105,7 +109,9 @@ def update_task(
 
         params.append(task_id)
 
-        query = f"UPDATE translation_tasks SET {', '.join(updates)} WHERE id = ?"
+        query = (
+            f"UPDATE translation_tasks SET {', '.join(updates)} WHERE id = ?"
+        )
         cursor.execute(query, params)
         conn.commit()
 
@@ -159,7 +165,9 @@ def validate_translations(keys_json: str, translations_json: str) -> list[str]:
     extra = provided_keys - expected_keys
 
     if missing:
-        warnings.append(f"Missing translations for: {', '.join(sorted(missing))}")
+        warnings.append(
+            f"Missing translations for: {', '.join(sorted(missing))}"
+        )
     if extra:
         warnings.append(f"Extra keys not in source: {', '.join(sorted(extra))}")
 
@@ -192,12 +200,14 @@ Examples:
         help="JSON string of translations (key: translation pairs)",
     )
     parser.add_argument(
-        "--file", "-f",
+        "--file",
+        "-f",
         dest="translations_file",
         help="Read translations from JSON file instead of argument",
     )
     parser.add_argument(
-        "--status", "-s",
+        "--status",
+        "-s",
         choices=VALID_STATUSES,
         help="Set task status (default: completed when providing translations)",
     )
@@ -207,11 +217,13 @@ Examples:
         help="Mark task as skipped (shortcut for --status skipped)",
     )
     parser.add_argument(
-        "--note", "-n",
+        "--note",
+        "-n",
         help="Add a note to the task",
     )
     parser.add_argument(
-        "--json", "-j",
+        "--json",
+        "-j",
         action="store_true",
         help="Output result as JSON",
     )
@@ -234,7 +246,10 @@ Examples:
         try:
             translations_path = Path(args.translations_file)
             if not translations_path.exists():
-                print(f"Error: File not found: {args.translations_file}", file=sys.stderr)
+                print(
+                    f"Error: File not found: {args.translations_file}",
+                    file=sys.stderr,
+                )
                 return 1
             translations_json = translations_path.read_text(encoding="utf-8")
         except Exception as e:
@@ -260,7 +275,9 @@ Examples:
                 print(f"Error: Task {args.task_id} not found", file=sys.stderr)
                 return 1
 
-            warnings = validate_translations(task["keys_json"], translations_json)
+            warnings = validate_translations(
+                task["keys_json"], translations_json
+            )
             if warnings:
                 for warning in warnings:
                     print(f"Warning: {warning}", file=sys.stderr)

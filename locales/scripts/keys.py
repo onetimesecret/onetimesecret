@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any, Iterator
 
 
-def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]]:
+def walk_keys(
+    obj: dict[str, Any], prefix: str = ""
+) -> Iterator[tuple[str, str]]:
     """Walk a dict, yielding (key_path, text_value) tuples.
 
     Supports two formats:

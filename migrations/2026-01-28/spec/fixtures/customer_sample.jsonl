@@ -1,2 +1,0 @@
-{"key":"customer:test@example.com:object","type":"hash","ttl_ms":-1,"db":6,"dump":"EMNASkBVH1UAAAAIAIZjdXN0aWQHkHRlc3RAZXhhbXBsZS5jb20RH4djcmVhdGVkCPOApLFlBYRwbGFuBYRmcmVlBYVlbWFpAWwG4AkzAP8LAGdG1e98Yx+p","created":1706140800,"objid":"0194a700-1234-7abc-8def-0123456789ab","extid":"ur0abc123def456ghi789jkl"}
-{"key":"customer:test@example.com:secrets","type":"zset","ttl_ms":-1,"db":6,"dump":"ERgYAAAAAgCJc2VjcmV0MTIzCvOApLFlBf8LAAR1E55utyO4"}

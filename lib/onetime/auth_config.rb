@@ -153,9 +153,8 @@ module Onetime
     end
 
     # Reload configuration (useful for testing)
-    # Also picks up any changes to AuthConfig.path
     def reload!
-      @path = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
+      @path = Onetime::Utils::ConfigResolver.resolve('auth')
       load_config
       self
     end

@@ -126,8 +126,8 @@ CustomDomain.owners.class
 
 ## CustomDomain.values Redis key is correctly prefixed
 CustomDomain.instances.dbkey
-#=> "customdomain:values"
+#=> "custom_domain:instances"
 
 ## CustomDomain.owners Redis key is correctly prefixed
 CustomDomain.owners.dbkey
-#=> "customdomain:owners"
+#=> "custom_domain:owners"

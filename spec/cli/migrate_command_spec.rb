@@ -4,78 +4,136 @@
 
 require_relative 'cli_spec_helper'
 
+# Tests for migrate_command.rb using Familia::Migration framework (v2.1+)
 RSpec.describe 'Migrate Command', type: :cli do
+  # Migration file that follows the Familia::Migration::Base pattern
   let(:migration_content) do
     <<~RUBY
-      module Onetime
-        class Migration
-          def self.run(run: false)
-            true
+      require 'familia/migration'
+
+      module OTS
+        module Migration
+          class TestMigration#{SecureRandom.hex(4)} < Familia::Migration::Base
+            self.migration_id = 'test_migration'
+            self.description = 'Test migration for specs'
+            self.dependencies = []
+
+            def migration_needed?
+              true
+            end
+
+            def migrate
+              track_stat(:records_processed, 0)
+            end
           end
         end
       end
     RUBY
   end
 
-  describe 'without arguments' do
-    it 'displays usage and available migrations' do
-      output = run_cli_command_quietly('migrate')
-      expect(output[:stdout]).to include('Usage: ots migrate MIGRATION_SCRIPT')
-      expect(output[:stdout]).to include('Available migrations')
-    end
-  end
+  let(:failing_migration_content) do
+    <<~RUBY
+      require 'familia/migration'
 
-  describe 'with migration file' do
-    before do
-      @migration_path = create_temp_migration('test_migration.rb', migration_content)
-    end
+      module OTS
+        module Migration
+          class FailingMigration#{SecureRandom.hex(4)} < Familia::Migration::Base
+            self.migration_id = 'failing_migration'
+            self.description = 'Failing migration for specs'
+            self.dependencies = []
 
-    it 'runs migration in dry-run mode by default' do
-      output = run_cli_command_quietly('migrate', @migration_path)
-      expect(output[:stdout]).to include('Dry run completed successfully')
-    end
+            def migration_needed?
+              true
+            end
 
-    it 'runs migration with --run flag' do
-      output = run_cli_command_quietly('migrate', @migration_path, '--run')
-      expect(output[:stdout]).to include('Migration completed successfully')
-    end
-
-    it 'handles migration failure' do
-      # Create a migration that fails
-      failing_migration = <<~RUBY
-        module Onetime
-          class Migration
-            def self.run(run: false)
-              false
+            def migrate
+              raise "Migration failed intentionally"
             end
           end
         end
-      RUBY
-      failing_path = create_temp_migration('failing_migration.rb', failing_migration)
-
-      expect {
-        run_cli_command('migrate', failing_path)
-      }.to raise_error(SystemExit) do |error|
-        expect(error.status).to eq(1)
       end
+    RUBY
+  end
+
+  before(:each) do
+    # Clear migration registry to prevent pollution between tests
+    Familia::Migration.migrations.clear if defined?(Familia::Migration)
+  end
+
+  describe 'without arguments' do
+    it 'displays migration status' do
+      output = run_cli_command_quietly('migrate', '--status')
+      expect(output[:stdout]).to match(/Migration Status|No migrations registered/)
+    end
+  end
+
+  describe 'with migration directory' do
+    before do
+      @migration_path = create_temp_migration('01_test_migration.rb', migration_content)
+      @migration_dir = File.dirname(@migration_path)
+    end
+
+    it 'loads migrations from custom directory' do
+      output = run_cli_command_quietly('migrate', '--dir', @migration_dir, '--status')
+      expect(output[:stdout]).to include('Loaded 1 migrations from')
+    end
+
+    it 'runs migration in dry-run mode by default' do
+      output = run_cli_command_quietly('migrate', 'test_migration', '--dir', @migration_dir)
+      expect(output[:stdout]).to include('DRY RUN')
+    end
+
+    it 'runs migration with --run flag' do
+      output = run_cli_command_quietly('migrate', 'test_migration', '--dir', @migration_dir, '--run')
+      expect(output[:stdout]).to include('EXECUTE')
     end
   end
 
   describe 'with non-existent migration' do
+    before do
+      @migration_path = create_temp_migration('01_test_migration.rb', migration_content)
+      @migration_dir = File.dirname(@migration_path)
+    end
+
     it 'reports migration not found' do
-      output = run_cli_command_quietly('migrate', 'nonexistent.rb')
-      expect(output[:stdout]).to include('Migration script not found')
+      output = run_cli_command_quietly('migrate', 'nonexistent', '--dir', @migration_dir)
+      expect(output[:stdout]).to include('Migration not found')
+    end
+  end
+
+  describe 'with non-existent directory' do
+    it 'reports directory not found' do
+      output = run_cli_command_quietly('migrate', '--dir', '/nonexistent/path')
+      expect(output[:stdout]).to include('Migration directory not found')
     end
   end
 
   describe 'argument variations' do
     before do
-      @migration_path = create_temp_migration('test_migration.rb', migration_content)
+      @migration_path = create_temp_migration('01_test_migration.rb', migration_content)
+      @migration_dir = File.dirname(@migration_path)
     end
 
     it 'accepts -r short flag' do
-      output = run_cli_command_quietly('migrate', @migration_path, '-r')
-      expect(output[:stdout]).to include('Migration completed successfully')
+      output = run_cli_command_quietly('migrate', 'test_migration', '--dir', @migration_dir, '-r')
+      expect(output[:stdout]).to include('EXECUTE')
+    end
+
+    it 'accepts -d short flag for directory' do
+      output = run_cli_command_quietly('migrate', '-d', @migration_dir, '--status')
+      expect(output[:stdout]).to include('Loaded 1 migrations from')
+    end
+  end
+
+  describe 'validation' do
+    before do
+      @migration_path = create_temp_migration('01_test_migration.rb', migration_content)
+      @migration_dir = File.dirname(@migration_path)
+    end
+
+    it 'validates migration dependencies' do
+      output = run_cli_command_quietly('migrate', '--dir', @migration_dir, '--validate')
+      expect(output[:stdout]).to include('Validating migration dependencies')
     end
   end
 end

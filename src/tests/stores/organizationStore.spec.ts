@@ -5,8 +5,8 @@ import { setupWindowState } from '../setupWindow';
 
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type AxiosMockAdapter from 'axios-mock-adapter';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Organization Store', () => {
   let axiosMock: AxiosMockAdapter | null;
@@ -19,8 +19,8 @@ describe('Organization Store', () => {
     display_name: 'Test Organization',
     description: 'A test organization',
     is_default: false,
-    created_at: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
-    updated_at: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
+    created: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
+    updated: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
   };
 
   // Transformed format (Date objects) for expectations
@@ -30,8 +30,8 @@ describe('Organization Store', () => {
     display_name: 'Test Organization',
     description: 'A test organization',
     is_default: false,
-    created_at: new Date('2024-01-01T00:00:00Z'),
-    updated_at: new Date('2024-01-01T00:00:00Z'),
+    created: new Date('2024-01-01T00:00:00Z'),
+    updated: new Date('2024-01-01T00:00:00Z'),
   };
 
   beforeEach(async () => {
@@ -194,6 +194,56 @@ describe('Organization Store', () => {
       expect(store.organizations).toEqual([]);
       expect(store.currentOrganization).toBeNull();
       expect(store._initialized).toBe(false);
+    });
+  });
+
+  describe('Organization with billing_email', () => {
+    it('preserves billing_email in organization data', async () => {
+      const orgWithBillingEmail = {
+        ...mockOrganizationRaw,
+        billing_email: 'billing@example.com',
+        contact_email: 'contact@example.com',
+      };
+      axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
+        record: orgWithBillingEmail,
+      });
+
+      const org = await store.fetchOrganization('on123abc');
+
+      expect(org.billing_email).toBe('billing@example.com');
+      expect(org.contact_email).toBe('contact@example.com');
+    });
+
+    it('handles null billing_email gracefully', async () => {
+      const orgWithoutBillingEmail = {
+        ...mockOrganizationRaw,
+        billing_email: null,
+        contact_email: 'contact@example.com',
+      };
+      axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
+        record: orgWithoutBillingEmail,
+      });
+
+      const org = await store.fetchOrganization('on123abc');
+
+      expect(org.billing_email).toBeNull();
+      expect(org.contact_email).toBe('contact@example.com');
+    });
+
+    it('handles undefined billing_email gracefully', async () => {
+      const orgWithUndefinedBillingEmail = {
+        ...mockOrganizationRaw,
+        contact_email: 'contact@example.com',
+        // billing_email not present in response
+      };
+      axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
+        record: orgWithUndefinedBillingEmail,
+      });
+
+      const org = await store.fetchOrganization('on123abc');
+
+      expect(org.billing_email).toBeUndefined();
+      expect(org.contact_email).toBe('contact@example.com');
     });
   });
 
@@ -520,9 +570,7 @@ describe('Organization Store', () => {
         await store.revokeInvitation('on123abc', 'token-to-revoke');
 
         expect(store.invitations).toHaveLength(initialCount - 1);
-        expect(
-          store.invitations.find((inv) => inv.token === 'token-to-revoke')
-        ).toBeUndefined();
+        expect(store.invitations.find((inv) => inv.token === 'token-to-revoke')).toBeUndefined();
       });
 
       it('sets loading state during revoke', async () => {

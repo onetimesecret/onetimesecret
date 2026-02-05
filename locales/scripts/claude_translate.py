@@ -22,6 +22,7 @@ Batch Processing:
 """
 
 import argparse
+import asyncio
 import json
 import re
 import subprocess
@@ -31,18 +32,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import asyncio
-
 # SDK imports - optional, used for batch mode
 try:
     from claude_agent_sdk import (
         AssistantMessage,
         ClaudeAgentOptions,
         ClaudeSDKError,
-        query,
         ResultMessage,
         TextBlock,
+        query,
     )
+
     HAS_SDK = True
 except ImportError:
     HAS_SDK = False
@@ -523,7 +523,11 @@ def apply_translations_with_sed(
         # For the search pattern, escape regex metacharacters and sed delimiters
         old_escaped = re.escape(entry.english).replace("/", r"\/")
         # For replacement, escape backslashes first, then & and /
-        new_escaped = translated.replace("\\", r"\\").replace("&", r"\&").replace("/", r"\/")
+        new_escaped = (
+            translated.replace("\\", r"\\")
+            .replace("&", r"\&")
+            .replace("/", r"\/")
+        )
 
         # Use sed to replace on specific line: sed -i '' 'LINEs/old/new/' file (macOS)
         sed_cmd = [

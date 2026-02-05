@@ -414,6 +414,10 @@
     "text": "失败",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "草稿",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "加载发票失败",
     "sha256": "0b0cb3f7"

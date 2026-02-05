@@ -1,45 +1,10 @@
 // src/types/ui/forms.ts
 
-import type { z } from 'zod';
+/**
+ * Form-related types
+ *
+ * Re-exports from schemas. Types are defined in schemas/ui/forms.ts
+ * as the single source of truth.
+ */
 
-export type FormSubmissionOptions<ResponseSchema extends z.ZodType = z.ZodAny> = {
-  /**
-   * URL to submit the form to. If not provided, form's action attribute will be used
-   */
-  url?: string;
-
-  /**
-   * Message to display on successful form submission
-   */
-  successMessage: string;
-
-  /**
-   * URL to redirect to after successful form submission
-   */
-  redirectUrl?: string;
-
-  /**
-   * Delay in milliseconds before redirecting (default: 3000)
-   */
-  redirectDelay?: number;
-
-  /**
-   * Optional function to get form data instead of using standard form submission
-   */
-  getFormData?: () => FormData | URLSearchParams;
-
-  /**
-   * Optional schema to validate the response data
-   */
-  schema?: ResponseSchema;
-
-  /**
-   * Called after successful form submission with the transformed response data
-   */
-  onSuccess?: (data: z.infer<ResponseSchema>) => void | Promise<void>;
-
-  /**
-   * Called after failed form submission with the error response
-   */
-  onError?: (error: unknown) => void | Promise<void>;
-};
+export type { FormSubmissionOptions } from '@/schemas/ui/forms';
