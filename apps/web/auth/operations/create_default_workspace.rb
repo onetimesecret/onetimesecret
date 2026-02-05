@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../billing/models/pending_federated_subscription'
+
 #
 # CANONICAL SOURCE FOR DEFAULT WORKSPACE CREATION
 #
@@ -92,10 +94,69 @@ module Auth
         # Mark as default workspace (prevents deletion)
         org.is_default! true
 
+        # Check for pending federated subscription (cross-region benefit)
+        apply_pending_federation!(org)
+
         org
       rescue StandardError => ex
         auth_logger.error "[create-default-workspace] Failed to create organization: #{ex.message}"
         raise
+      end
+
+      # Check for and apply pending federated subscription
+      #
+      # When a Stripe webhook fired before this account existed, the subscription
+      # state was stored keyed by email_hash. Now that the user has verified their
+      # email (by creating an account), we can apply those benefits.
+      #
+      # @param org [Onetime::Organization] Newly created organization
+      # @return [Boolean] True if pending subscription was applied
+      #
+      def apply_pending_federation!(org)
+        # Ensure billing_email is set (may not be set by Organization.create!)
+        org.billing_email ||= org.contact_email || @customer.email
+        return false if org.billing_email.to_s.empty?
+
+        # Compute org's email_hash for matching
+        begin
+          org.compute_email_hash!
+        rescue StandardError => ex
+          auth_logger.warn '[create-default-workspace] Failed to compute email_hash (federation disabled?)',
+            { error: ex.message }
+          return false
+        end
+
+        return false if org.email_hash.to_s.empty?
+
+        # Check for pending subscription
+        pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
+        return false unless pending
+        return false unless pending.active?
+
+        # Apply subscription benefits
+        org.subscription_status     = pending.subscription_status
+        org.planid                  = pending.planid if pending.planid
+        org.subscription_period_end = pending.subscription_period_end
+        org.mark_subscription_federated!
+        org.save
+
+        auth_logger.info '[create-default-workspace] Applied pending federated subscription',
+          {
+            org: org.extid,
+            hash_prefix: org.email_hash[0..7],
+            plan: pending.planid,
+            status: pending.subscription_status,
+          }
+
+        # Consume the pending record (it's been used)
+        pending.destroy!
+
+        true
+      rescue StandardError => ex
+        # Log but don't fail account creation - federation is secondary
+        auth_logger.error '[create-default-workspace] Failed to apply pending federation',
+          { error: ex.message, org: org.extid }
+        false
       end
     end
   end

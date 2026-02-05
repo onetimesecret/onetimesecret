@@ -40,7 +40,9 @@ def validate_json_file(file_path: Path) -> tuple[bool, str]:
         return False, str(e)
 
 
-def validate_locale(locale_dir: Path, verbose: bool = False, quiet: bool = False) -> int:
+def validate_locale(
+    locale_dir: Path, verbose: bool = False, quiet: bool = False
+) -> int:
     """Validate all JSON files in a locale directory.
 
     Args:
@@ -111,7 +113,9 @@ def main():
 
     if not locales_dir.is_dir():
         if not args.quiet:
-            print(f"Locales directory not found: {locales_dir}", file=sys.stderr)
+            print(
+                f"Locales directory not found: {locales_dir}", file=sys.stderr
+            )
         return 1
 
     # Determine which locales to check
@@ -141,7 +145,9 @@ def main():
 
     for locale in sorted(locales_to_check):
         locale_dir = locales_dir / locale
-        errors = validate_locale(locale_dir, verbose=args.verbose, quiet=args.quiet)
+        errors = validate_locale(
+            locale_dir, verbose=args.verbose, quiet=args.quiet
+        )
         total_errors += errors
 
     # Exit with error code if any validation failed

@@ -18,9 +18,23 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
+  # Disable federation for these tests (federation has its own dedicated spec file)
+  around do |example|
+    original_secret = ENV['FEDERATION_HMAC_SECRET']
+    ENV.delete('FEDERATION_HMAC_SECRET')
+    example.run
+  ensure
+    ENV['FEDERATION_HMAC_SECRET'] = original_secret if original_secret
+  end
+
   after do
     created_organizations.each(&:destroy!)
     created_customers.each(&:destroy!)
+  end
+
+  # Helper to build a mock Stripe::Customer object for federation stubs
+  def build_stripe_customer(id:, email:, metadata: {})
+    double('Stripe::Customer', id: id, email: email, metadata: metadata)
   end
 
   describe '#call' do
@@ -63,8 +77,27 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
         allow(Onetime::Organization).to receive(:find_by_stripe_subscription_id)
           .with(stripe_subscription_id)
           .and_return(organization)
+
+        # Stub Stripe::Customer.retrieve for federation lookup
+        stripe_customer = build_stripe_customer(
+          id: 'cus_ctx_123',
+          email: customer.email,
+          metadata: {},
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with('cus_ctx_123')
+          .and_return(stripe_customer)
+
+        # Stub federation lookups (these tests focus on context options, not federation)
+        allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
+          .with('cus_ctx_123')
+          .and_return(organization)
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+          .and_return([])
       end
 
+      # Note: subscription_updated finds org directly by subscription_id,
+      # bypassing federation lookup, and returns :success.
       it 'accepts replay context flag' do
         operation = described_class.new(event: event, context: { replay: true })
         expect(operation.call).to eq(:success)

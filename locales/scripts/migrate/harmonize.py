@@ -173,9 +173,7 @@ def main():
     script_dir = Path(__file__).parent
     content_dir = script_dir.parent.parent / "content"  # locales/content/
     base_dir = (
-        Path(args.base_dir)
-        if args.base_dir
-        else content_dir / args.base_locale
+        Path(args.base_dir) if args.base_dir else content_dir / args.base_locale
     )
     locale_dir = content_dir / args.locale
 
@@ -253,7 +251,9 @@ def main():
 
     if error_count > 0:
         if not args.quiet:
-            print(f"Failed to harmonize {error_count} file(s):", file=sys.stderr)
+            print(
+                f"Failed to harmonize {error_count} file(s):", file=sys.stderr
+            )
             for failed_file in failed_files:
                 print(f"  {failed_file}", file=sys.stderr)
         return 1

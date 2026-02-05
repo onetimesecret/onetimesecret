@@ -122,6 +122,61 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
 
       expect(last_response.status).to eq(401)
     end
+
+    context 'federation notification' do
+      it 'includes federation_notification when organization is federated and not dismissed' do
+        # Set up federated organization (has subscription_federated_at but no stripe_customer_id)
+        organization.subscription_federated_at = Time.now.to_i
+        organization.save
+
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(last_response.status).to eq(200)
+
+        data = JSON.parse(last_response.body)
+        expect(data).to have_key('federation_notification')
+        expect(data['federation_notification']['show']).to be(true)
+        expect(data['federation_notification']['source_region']).to be_a(String)
+      end
+
+      it 'does not include federation_notification when organization is not federated' do
+        # Organization has no subscription_federated_at set
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(last_response.status).to eq(200)
+
+        data = JSON.parse(last_response.body)
+        expect(data).not_to have_key('federation_notification')
+      end
+
+      it 'does not include federation_notification when dismissed' do
+        # Set up federated organization with dismissed notification
+        organization.subscription_federated_at = Time.now.to_i
+        organization.federation_notification_dismissed_at = Time.now.to_i
+        organization.save
+
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(last_response.status).to eq(200)
+
+        data = JSON.parse(last_response.body)
+        expect(data).not_to have_key('federation_notification')
+      end
+
+      it 'does not include federation_notification when organization is subscription owner' do
+        # Organization owns subscription (has stripe_customer_id)
+        organization.subscription_federated_at = Time.now.to_i
+        organization.stripe_customer_id = 'cus_test123'
+        organization.save
+
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(last_response.status).to eq(200)
+
+        data = JSON.parse(last_response.body)
+        expect(data).not_to have_key('federation_notification')
+      end
+    end
   end
 
   describe 'POST /billing/api/org/:extid/checkout' do

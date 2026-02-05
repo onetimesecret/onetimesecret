@@ -31,7 +31,7 @@ from typing import Optional
 # Add parent scripts directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from keys import load_json_file, save_json_file, walk_keys
+from keys import load_json_file, save_json_file
 
 # SDK imports - optional, allows --mock fallback
 try:
@@ -39,10 +39,11 @@ try:
         AssistantMessage,
         ClaudeAgentOptions,
         ClaudeSDKError,
-        query,
         ResultMessage,
         TextBlock,
+        query,
     )
+
     HAS_SDK = True
 except ImportError:
     HAS_SDK = False
@@ -121,11 +122,13 @@ def get_pending_tasks(
             if locale_entry.get("skip"):
                 continue
 
-            tasks.append(TranslationTask(
-                file=file_name,
-                key=key,
-                source=source,
-            ))
+            tasks.append(
+                TranslationTask(
+                    file=file_name,
+                    key=key,
+                    source=source,
+                )
+            )
 
             if limit and len(tasks) >= limit:
                 return tasks
@@ -167,10 +170,7 @@ def build_prompt(
     Returns:
         Formatted prompt string.
     """
-    items = [
-        {"key": t.key, "english": t.source}
-        for t in tasks
-    ]
+    items = [{"key": t.key, "english": t.source} for t in tasks]
 
     prompt = f"""Translate these UI strings from English to {locale} for OneTime Secret.
 
@@ -211,23 +211,27 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
     for task in tasks:
         # Skip empty English text
         if not task.source.strip():
-            results.append({
-                "key": task.key,
-                "english": task.source,
-                "translated": "",
-                "skipped": True,
-                "reason": "empty_source",
-            })
+            results.append(
+                {
+                    "key": task.key,
+                    "english": task.source,
+                    "translated": "",
+                    "skipped": True,
+                    "reason": "empty_source",
+                }
+            )
             continue
 
         # Generate placeholder translation
         translated = f"[{locale.upper()}] {task.source}"
 
-        results.append({
-            "key": task.key,
-            "english": task.source,
-            "translated": translated,
-        })
+        results.append(
+            {
+                "key": task.key,
+                "english": task.source,
+                "translated": translated,
+            }
+        )
 
     return results
 
@@ -274,10 +278,14 @@ def extract_json_from_response(text: str) -> list[dict]:
         except json.JSONDecodeError:
             pass
 
-    raise ValueError(f"Could not extract JSON array from response: {text[:200]}...")
+    raise ValueError(
+        f"Could not extract JSON array from response: {text[:200]}..."
+    )
 
 
-async def _invoke_claude_async(prompt: str, verbose: bool = False) -> list[dict]:
+async def _invoke_claude_async(
+    prompt: str, verbose: bool = False
+) -> list[dict]:
     """Async implementation of Claude invocation.
 
     Args:
@@ -337,7 +345,9 @@ async def _invoke_claude_async(prompt: str, verbose: bool = False) -> list[dict]
         raise RuntimeError(f"Claude SDK error: {e}") from e
 
 
-def invoke_claude(prompt: str, locale: str, verbose: bool = False) -> list[dict]:
+def invoke_claude(
+    prompt: str, locale: str, verbose: bool = False
+) -> list[dict]:
     """Invoke Claude to translate strings.
 
     Args:
@@ -468,7 +478,8 @@ Examples:
         help="Show what would be translated without making changes",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Verbose output",
     )
@@ -527,7 +538,9 @@ Examples:
     else:
         print("Invoking Claude...")
         try:
-            translations = invoke_claude(prompt, args.locale, verbose=args.verbose)
+            translations = invoke_claude(
+                prompt, args.locale, verbose=args.verbose
+            )
         except RuntimeError as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1

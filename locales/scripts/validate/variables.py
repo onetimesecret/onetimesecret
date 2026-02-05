@@ -210,7 +210,9 @@ def audit_locale(
 
             # Check wrong format in translation too
             if locale_text and key in locale_data:
-                wrong_format_locale = check_wrong_format(locale_text, en_file.name)
+                wrong_format_locale = check_wrong_format(
+                    locale_text, en_file.name
+                )
                 if wrong_format_locale:
                     issues[en_file.name].append(
                         {
@@ -343,7 +345,9 @@ def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
                 print(f"  {locale}:".ljust(12) + f'"{issue["locale_text"]}"')
                 if issue.get("wrong_format"):
                     source = issue.get("wrong_format_source", "unknown")
-                    print(f"  wrong_fmt: {', '.join(issue['wrong_format'])} (in {source})")
+                    print(
+                        f"  wrong_fmt: {', '.join(issue['wrong_format'])} (in {source})"
+                    )
                     print(f"  hint:     {issue.get('hint', '')}")
                 if issue.get("missing"):
                     print(f"  missing:  {', '.join(issue['missing'])}")

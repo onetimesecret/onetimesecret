@@ -28,6 +28,7 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'digest'
+require 'openssl'
 require 'familia'
 require 'uri'
 
@@ -52,6 +53,8 @@ class OrganizationGenerator
     # Billing fields (features/with_organization_billing.rb)
     'planid' => :string,
     'billing_email' => :string,
+    'email_hash' => :string,
+    'email_hash_synced_at' => :string,  # ISO-ish format: "2024-02-04@15:00Z"
     'stripe_customer_id' => :string,
     'stripe_subscription_id' => :string,
     'stripe_checkout_email' => :string,
@@ -109,6 +112,16 @@ class OrganizationGenerator
   end
 
   private
+
+  def compute_email_hash(email)
+    return nil if email.to_s.strip.empty?
+
+    secret = ENV['FEDERATION_HMAC_SECRET']
+    return nil if secret.to_s.empty?
+
+    normalized = email.to_s.downcase.strip
+    OpenSSL::HMAC.hexdigest('sha256', secret, normalized)[0...32]
+  end
 
   def validate_input_file
     unless File.exist?(@input_file)
@@ -271,6 +284,8 @@ class OrganizationGenerator
       'owner_id' => customer_objid,
       'contact_email' => email,
       'billing_email' => email,
+      'email_hash' => compute_email_hash(email),
+      'email_hash_synced_at' => Time.now.utc.strftime('%Y-%m-%d@%H:%MZ'),
       'is_default' => 'true',
       'planid' => planid,
       'created' => created.to_s,
