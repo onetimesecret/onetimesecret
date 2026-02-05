@@ -202,7 +202,7 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-tailwindcss": "4.0.0-beta.0",
-    "eslint-plugin-vue": "^10.6.2",
+    "eslint-plugin-vue": "^10.7.0",
     "fs-extra": "^11.3.3",
     "git-json-merge": "^1.0.0",
     "glob": "^13.0.0",
