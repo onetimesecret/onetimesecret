@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#
+# bin/stripe-dev-webhook
+#
+# Forwards Stripe webhook events to your local development server.
+# Requires: stripe CLI (brew install stripe/stripe-cli/stripe)
+#
+# Usage examples:
+#   HOST=dev.onetime.dev bin/stripe-dev-webhook
+#   bin/stripe-dev-webhook                           # uses config or localhost:3000
+#   bin/stripe-dev-webhook --events payment_intent.* # filter events
+#
+# Host resolution order:
+#   1. HOST environment variable
+#   2. Parsed from etc/config.yaml site.host (if readable)
+#   3. Default: localhost:3000
+
+set -e
+
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
+
+# Resolve the host
+if [ -n "$HOST" ]; then
+  WEBHOOK_HOST="$HOST"
+elif [ -f etc/config.yaml ]; then
+  # Extract site.host from config (handles simple YAML, not ERB)
+  WEBHOOK_HOST=$(grep -A1 '^site:' etc/config.yaml | grep 'host:' | sed 's/.*host:[[:space:]]*//' | tr -d "'" | tr -d '"')
+fi
+
+# Fall back to default
+WEBHOOK_HOST="${WEBHOOK_HOST:-localhost:3000}"
+
+# Determine protocol (assume https unless localhost)
+if [[ "$WEBHOOK_HOST" == localhost* ]] || [[ "$WEBHOOK_HOST" == 127.0.0.1* ]]; then
+  WEBHOOK_URL="http://${WEBHOOK_HOST}/billing/webhook"
+else
+  WEBHOOK_URL="https://${WEBHOOK_HOST}/billing/webhook"
+fi
+
+echo "Forwarding Stripe webhooks to: $WEBHOOK_URL"
+exec stripe listen --forward-to "$WEBHOOK_URL" "$@"

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#
+# bin/scheduler
+
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
+
+bundle exec bin/ots scheduler "$@"
