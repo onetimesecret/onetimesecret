@@ -3,7 +3,7 @@
   "version": "0.0.0-rc0",
   "description": "",
   "type": "module",
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "prebuild": "pnpm run locales:sync",
     "build": "vite build --config vite.config.ts",
