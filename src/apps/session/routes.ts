@@ -15,6 +15,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.signin',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -50,6 +51,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signup',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -68,6 +70,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.forgot_password',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -168,6 +171,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.reset_password',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,

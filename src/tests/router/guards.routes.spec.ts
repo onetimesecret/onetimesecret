@@ -91,7 +91,8 @@ describe('Router Guards', () => {
   it('should redirect authenticated users from auth routes', async () => {
     setupRouterGuards(router);
 
-    const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+    // Index 1: main guard (index 0 is the feature-check guard)
+    const guard = vi.mocked(router.beforeEach).mock.calls[1][0];
     const to = {
       meta: { isAuthRoute: true },
       query: {},
@@ -115,7 +116,8 @@ describe('Router Guards', () => {
   it('should handle root path redirect for authenticated users', async () => {
     setupRouterGuards(router);
 
-    const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+    // Index 1: main guard (index 0 is the feature-check guard)
+    const guard = vi.mocked(router.beforeEach).mock.calls[1][0];
     const to = {
       path: '/',
       query: {},
@@ -134,6 +136,123 @@ describe('Router Guards', () => {
     const result = await guard(to as any);
 
     expect(result).toEqual({ name: 'Dashboard' });
+  });
+
+  describe('disabled auth feature guard', () => {
+    it('should redirect /signup to / when signup is disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: false, signin: true },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
+        path: '/signup',
+        name: 'Sign Up',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/signup',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as any);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should allow /signup when signup is enabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: true, signin: true },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
+        path: '/signup',
+        name: 'Sign Up',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/signup',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as any);
+      expect(result).toBe(true);
+    });
+
+    it('should redirect /signin to / when signin is disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: true, signin: false },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
+        path: '/signin',
+        name: 'Sign In',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/signin',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as any);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should redirect when auth is entirely disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: false, signup: true, signin: true },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
+        path: '/signup',
+        name: 'Sign Up',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/signup',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as any);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should not redirect routes without requiresFeature', () => {
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: {},
+        path: '/some-page',
+        name: 'Some Page',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/some-page',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as any);
+      expect(result).toBe(true);
+    });
   });
 
   describe('validateAuthentication', () => {

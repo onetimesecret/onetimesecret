@@ -4,8 +4,10 @@
 import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { hasPasswordlessMethods } from '@/utils/features';
+import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -14,6 +16,9 @@ const route = useRoute();
 const router = useRouter();
 
 const languageStore = useLanguageStore();
+const bootstrapStore = useBootstrapStore();
+const { authentication } = storeToRefs(bootstrapStore);
+const signupEnabled = computed(() => authentication.value.signup);
 
 // Handle auth errors passed via query params (from SSO/magic link failures)
 const authError = ref<string | null>(null);
@@ -96,15 +101,17 @@ const handleModeChange = (_mode: AuthMode) => {
             class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
             {{ t('web.login.need_help') }}
           </router-link>
-          <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
-          <router-link
-            :to="signupLink"
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
-            {{ t('web.login.create_account') }}
-          </router-link>
+          <template v-if="signupEnabled">
+            <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
+            <router-link
+              :to="signupLink"
+              class="text-gray-500 transition-colors duration-200 hover:text-gray-700 hover:underline dark:text-gray-400 dark:hover:text-gray-300">
+              {{ t('web.login.create_account') }}
+            </router-link>
+          </template>
         </template>
         <!-- Password-only mode (no passwordless methods enabled): original footer -->
-        <template v-else>
+        <template v-else-if="signupEnabled">
           <span class="text-gray-600 dark:text-gray-400">
             {{ t('web.login.alternate_prefix') }}
           </span>
