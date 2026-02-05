@@ -33,7 +33,7 @@ module Onetime
     # Convert YAML symbol keys to string keys in config files
     class ConvertSymbolKeys < Familia::Migration::Base
       self.migration_id = '20250727_01_convert_symbol_keys'
-      self.description = 'Convert YAML symbol keys (:key:) to string keys (key:)'
+      self.description  = 'Convert YAML symbol keys (:key:) to string keys (key:)'
       self.dependencies = []
 
       def prepare
@@ -41,54 +41,54 @@ module Onetime
       @config_file   = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
       @findings      = []  # Store findings for consolidated output
-    end
-
-    def migration_needed?
-      unless File.exist?(@config_file)
-        error "Config file does not exist: #{@config_file}"
-        return false
       end
 
-      scan_for_symbol_keys
-    end
-
-    def migrate
-      # Print consolidated header
-      mode_label = dry_run? ? '(dry-run)' : ''
-      info "Symbol Key Migration #{mode_label}".strip
-      info "File: #{relative_path(@config_file)}"
-      info ''
-
-      # Show what will change
-      @findings.each do |finding|
-        info "  Line #{finding[:line_num].to_s.rjust(4)}: :#{finding[:key]}: → #{finding[:key]}:"
-      end
-      info ''
-
-      # Capture count before validation resets @findings
-      keys_to_convert = @findings.size
-
-      # Perform migration steps
-      backup_path = backup_config
-      convert_symbols_to_strings
-      success     = validate_conversion
-
-      # Result line
-      if success
-        if dry_run?
-          info "Would convert #{keys_to_convert} key(s) - no changes made"
-        else
-          info "Converted #{keys_to_convert} key(s)"
-          info "Backup: #{relative_path(backup_path)}" if backup_path
+      def migration_needed?
+        unless File.exist?(@config_file)
+          error "Config file does not exist: #{@config_file}"
+          return false
         end
-      else
-        error "Conversion failed - restore from backup: #{relative_path(backup_path)}"
+
+        scan_for_symbol_keys
       end
 
-      success
-    end
+      def migrate
+        # Print consolidated header
+        mode_label = dry_run? ? '(dry-run)' : ''
+        info "Symbol Key Migration #{mode_label}".strip
+        info "File: #{relative_path(@config_file)}"
+        info ''
 
-    private
+        # Show what will change
+        @findings.each do |finding|
+          info "  Line #{finding[:line_num].to_s.rjust(4)}: :#{finding[:key]}: → #{finding[:key]}:"
+        end
+        info ''
+
+        # Capture count before validation resets @findings
+        keys_to_convert = @findings.size
+
+        # Perform migration steps
+        backup_path = backup_config
+        convert_symbols_to_strings
+        success     = validate_conversion
+
+        # Result line
+        if success
+          if dry_run?
+            info "Would convert #{keys_to_convert} key(s) - no changes made"
+          else
+            info "Converted #{keys_to_convert} key(s)"
+            info "Backup: #{relative_path(backup_path)}" if backup_path
+          end
+        else
+          error "Conversion failed - restore from backup: #{relative_path(backup_path)}"
+        end
+
+        success
+      end
+
+      private
 
     def relative_path(path)
       path.sub("#{@base_path}/", '')

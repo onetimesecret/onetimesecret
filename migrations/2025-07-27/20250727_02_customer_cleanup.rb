@@ -22,28 +22,28 @@ module Onetime
     # Remove anonymous and test customer records
     class CustomerCleanup < Familia::Migration::Pipeline
       self.migration_id = '20250727_02_customer_cleanup'
-      self.description = 'Remove anonymous, test users (anon, tryouts*)'
+      self.description  = 'Remove anonymous, test users (anon, tryouts*)'
       self.dependencies = []
-    def prepare
-      @model_class = Onetime::Customer
-      @batch_size  = 1000
-    end
-
-    # Override to handle deletions instead of field updates
-    def execute_update(pipe, obj, fields, original_key = nil)
-      # Use original_key for records that can't generate valid keys
-      dbkey = original_key || obj.dbkey
-
-      for_realsies_this_time? do
-        pipe.del dbkey
+      def prepare
+        @model_class = Onetime::Customer
+        @batch_size  = 1000
       end
 
-      dry_run_only? do
-        debug("Would update #{@model_class}: #{fields}")
-      end
-    end
+      # Override to handle deletions instead of field updates
+      def execute_update(pipe, obj, fields, original_key = nil)
+        # Use original_key for records that can't generate valid keys
+        dbkey = original_key || obj.dbkey
 
-    private
+        for_realsies_this_time? do
+          pipe.del dbkey
+        end
+
+        dry_run_only? do
+          debug("Would update #{@model_class}: #{fields}")
+        end
+      end
+
+      private
 
     def should_process?(obj)
       should_remove = false
