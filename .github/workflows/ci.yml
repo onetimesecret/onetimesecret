@@ -74,7 +74,7 @@ jobs:
     steps:
       - &checkout-step
         name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Check for CI flags
         id: check-flags
@@ -171,9 +171,9 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
+      - uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c
         with:
-          ruby-version: '3.4'
+          ruby-version: '3.4.8'
           bundler-cache: true
 
       - name: Run Rubocop
@@ -480,7 +480,7 @@ jobs:
     services:
       redis: *valkey-service
       postgres:
-        image: postgres:17@sha256:929190a12e0833c89276f78c7cf665aaaa62b5930e6f852e9f733f8b737d3f8f
+        image: postgres:17@sha256:7352e0c4d62bbac8aa69d95e40220a60967c4a19f9c4f65b4d118175f7ce9e3b
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -695,7 +695,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           sparse-checkout: .github/scripts
           sparse-checkout-cone-mode: false

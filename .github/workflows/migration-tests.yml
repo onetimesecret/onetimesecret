@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Ruby environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -91,7 +91,7 @@ jobs:
         run: sudo sysctl -w vm.overcommit_memory=1
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
         if: inputs.debug_enabled == true
         with:
           detached: true
@@ -160,7 +160,7 @@ jobs:
           - 2121:6379
 
       postgres:
-        image: postgres:17@sha256:929190a12e0833c89276f78c7cf665aaaa62b5930e6f852e9f733f8b737d3f8f
+        image: postgres:17@sha256:7352e0c4d62bbac8aa69d95e40220a60967c4a19f9c4f65b4d118175f7ce9e3b
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -175,7 +175,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Ruby environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -186,7 +186,7 @@ jobs:
         run: sudo sysctl -w vm.overcommit_memory=1
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
         if: inputs.debug_enabled == true
         with:
           detached: true
@@ -324,7 +324,7 @@ jobs:
           - 2121:6379
 
       postgres:
-        image: postgres:17@sha256:929190a12e0833c89276f78c7cf665aaaa62b5930e6f852e9f733f8b737d3f8f
+        image: postgres:17@sha256:7352e0c4d62bbac8aa69d95e40220a60967c4a19f9c4f65b4d118175f7ce9e3b
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -339,7 +339,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Ruby environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -350,7 +350,7 @@ jobs:
         run: sudo sysctl -w vm.overcommit_memory=1
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
         if: inputs.debug_enabled == true
         with:
           detached: true
@@ -465,7 +465,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           sparse-checkout: .github/scripts
           sparse-checkout-cone-mode: false
