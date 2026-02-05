@@ -141,22 +141,22 @@
   },
   "web.regions.changing_regions_title": {
     "text": "Changing Regions",
-    "sha256": ""
+    "sha256": "189d6685"
   },
   "web.regions.changing_regions_description": {
     "text": "Our policy is to never transfer data between regions. Each region operates as a completely independent environment.",
-    "sha256": ""
+    "sha256": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
     "text": "To use a different region, create a new account there using the same email address associated with your billing contact email.",
-    "sha256": ""
+    "sha256": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
     "text": "If your billing contact email differs from your Onetime Secret account email, use the billing contact email for the new region account to maintain your subscription benefits.",
-    "sha256": ""
+    "sha256": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Your subscription benefits will automatically apply to any account created with your billing email address.",
-    "sha256": ""
+    "sha256": "5b2238b2"
   }
 }

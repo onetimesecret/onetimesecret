@@ -870,7 +870,8 @@
   },
   "web.LABELS.benefits": {
     "text": "Benefits",
-    "context": "Section header for listing benefits"
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
     "text": "Creating links for",
@@ -1238,7 +1239,8 @@
   },
   "web.TITLES.passkeys": {
     "text": "Passkeys",
-    "context": "Page title for passkey management"
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "API Settings",
@@ -1346,26 +1348,32 @@
   },
   "web.COMMON.enter_password_to_continue": {
     "text": "Enter your password to continue",
-    "context": "Prompt for password confirmation modal"
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
   },
   "web.COMMON.password_required_for_action": {
     "text": "Your password is required to complete this action",
-    "context": "Description for password confirmation modal"
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
   },
   "api.errors.unexpected_error": {
     "text": "An unexpected error occurred",
-    "context": "Generic error message for unhandled exceptions in API"
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
   },
   "api.errors.service_unavailable": {
     "text": "Service temporarily unavailable. Please try again shortly.",
-    "context": "Error message when database connection fails"
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
     "text": "Unable to process your request at this time",
-    "context": "Error message for recoverable server errors"
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
     "text": "Upgrade to unlock more features",
-    "context": "Description shown for free plan users encouraging upgrade"
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }
