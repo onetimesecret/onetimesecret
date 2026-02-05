@@ -51,168 +51,181 @@ module Onetime
         puts "\nStripe Customer Email Hash Backfill"
         puts '=' * 60
 
-        # Verify Stripe is configured
-        unless defined?(Stripe) && !Stripe.api_key.to_s.empty?
-          puts "\nStripe API not configured. Please set STRIPE_SECRET_KEY."
-          return
-        end
+        return unless verify_stripe_configured!
+        return unless verify_federation_configured!
 
-        # Verify FEDERATION_HMAC_SECRET is configured
-        begin
-          Onetime::Utils::EmailHash.compute('test@example.com')
-        rescue Onetime::Problem => ex
-          puts "\nConfiguration Error: #{ex.message}"
-          puts "\nTo configure, set FEDERATION_HMAC_SECRET in your environment"
-          puts 'or add site.federation_hmac_secret to your config file.'
-          return
-        end
-
-        # Find organizations with stripe_customer_id
-        all_org_ids      = Onetime::Organization.instances.all
-        orgs_with_stripe = []
-
-        all_org_ids.each do |objid|
-          org = Onetime::Organization.load(objid)
-          next unless org && !org.stripe_customer_id.to_s.empty?
-
-          orgs_with_stripe << org
-        end
+        orgs_with_stripe = find_orgs_with_stripe
+        return if orgs_with_stripe.empty?
 
         total_orgs = orgs_with_stripe.size
+        dry_run    = !run
+        print_mode_banner(dry_run)
 
-        if total_orgs.zero?
-          puts "\nNo organizations with Stripe customer IDs found."
-          return
+        stats = { total: 0, updated: 0, skipped_no_email: 0, skipped_has_hash: 0, errors: [] }
+
+        orgs_with_stripe.each_with_index do |org, idx|
+          process_stripe_customer(org, idx, total_orgs, stats, dry_run, verbose)
         end
 
-        puts "\nDiscovered #{total_orgs} organizations with Stripe customers"
+        print_results(stats, dry_run, verbose, 'Stripe customers')
+        print_next_steps(dry_run, stats[:updated], 'backfill-stripe-email-hash')
+      end
 
-        dry_run = !run
+      private
+
+      def verify_stripe_configured!
+        return true if defined?(Stripe) && !Stripe.api_key.to_s.empty?
+
+        puts "\nStripe API not configured. Please set STRIPE_SECRET_KEY."
+        false
+      end
+
+      def verify_federation_configured!
+        Onetime::Utils::EmailHash.compute('test@example.com')
+        true
+      rescue Onetime::Problem => ex
+        puts "\nConfiguration Error: #{ex.message}"
+        puts "\nTo configure, set FEDERATION_HMAC_SECRET in your environment"
+        puts 'or add site.federation_hmac_secret to your config file.'
+        false
+      end
+
+      def find_orgs_with_stripe
+        all_org_ids = Onetime::Organization.instances.all
+        orgs        = all_org_ids.filter_map do |objid|
+          org = Onetime::Organization.load(objid)
+          org if org && !org.stripe_customer_id.to_s.empty?
+        end
+
+        if orgs.empty?
+          puts "\nNo organizations with Stripe customer IDs found."
+        else
+          puts "\nDiscovered #{orgs.size} organizations with Stripe customers"
+        end
+
+        orgs
+      end
+
+      def print_mode_banner(dry_run)
         if dry_run
           puts "\nDRY RUN MODE - No changes will be made to Stripe"
           puts "To execute backfill, run with --run flag\n"
         else
           puts "\nRate limit: #{(1 / BATCH_DELAY_SECONDS).to_i} requests/second"
         end
+      end
 
-        stats = {
-          total: 0,
-          updated: 0,
-          skipped_no_email: 0,
-          skipped_has_hash: 0,
-          errors: [],
-        }
+      def process_stripe_customer(org, idx, total_orgs, stats, dry_run, verbose)
+        stats[:total] += 1
+        customer       = Stripe::Customer.retrieve(org.stripe_customer_id)
 
-        region = OT.conf.dig(:site, :region) || 'default'
-
-        orgs_with_stripe.each_with_index do |org, idx|
-          stats[:total] += 1
-
-          begin
-            # Retrieve Stripe customer
-            customer = Stripe::Customer.retrieve(org.stripe_customer_id)
-
-            # Skip if already has email_hash in metadata
-            unless customer.metadata['email_hash'].to_s.empty?
-              stats[:skipped_has_hash] += 1
-              if verbose
-                puts "  [#{idx + 1}/#{total_orgs}] Skipping (has hash): #{org.stripe_customer_id}"
-              end
-              next
-            end
-
-            # Compute hash from org's billing_email (source of truth)
-            email_hash = Onetime::Utils::EmailHash.compute(org.billing_email)
-            if email_hash.nil?
-              stats[:skipped_no_email] += 1
-              if verbose
-                puts "  [#{idx + 1}/#{total_orgs}] Skipping (no billing_email): #{org.extid}"
-              end
-              next
-            end
-
-            # Merge with existing metadata (preserve any existing fields)
-            merged_metadata = customer.metadata.to_h.merge(
-              'email_hash' => email_hash,
-              'email_hash_created_at' => Time.now.to_i.to_s,
-              'email_hash_migrated' => 'true',
-              'home_region' => region,
-            )
-
-            if dry_run
-              puts "  [#{idx + 1}/#{total_orgs}] Would update: #{org.stripe_customer_id} (#{OT::Utils.obscure_email(org.billing_email)})"
-            else
-              Stripe::Customer.update(org.stripe_customer_id, metadata: merged_metadata)
-              sleep(BATCH_DELAY_SECONDS) # Rate limiting
-
-              if verbose
-                puts "  [#{idx + 1}/#{total_orgs}] Updated: #{org.stripe_customer_id} -> #{email_hash[0..7]}..."
-              end
-            end
-
-            stats[:updated] += 1
-
-            # Progress indicator for non-verbose mode
-            if !verbose && (stats[:total] % 10).zero?
-              print "\r  Progress: #{stats[:total]}/#{total_orgs} customers processed"
-            end
-          rescue Stripe::InvalidRequestError => ex
-            # Customer may have been deleted in Stripe
-            error_msg = "#{org.stripe_customer_id}: #{ex.message}"
-            stats[:errors] << error_msg
-            puts "  [#{idx + 1}/#{total_orgs}] Stripe error: #{error_msg}"
-            OT.le "[BackfillStripeEmailHash] Stripe error for #{org.stripe_customer_id}: #{ex.message}"
-          rescue Stripe::RateLimitError => ex
-            # Back off and retry once
-            error_msg = "#{org.stripe_customer_id}: Rate limited, backing off"
-            puts "  [#{idx + 1}/#{total_orgs}] Rate limited, waiting 5 seconds..."
-            sleep(5)
-            retry
-          rescue Stripe::StripeError => ex
-            error_msg = "#{org.stripe_customer_id}: #{ex.message}"
-            stats[:errors] << error_msg
-            puts "  [#{idx + 1}/#{total_orgs}] Stripe error: #{error_msg}"
-            OT.le "[BackfillStripeEmailHash] Stripe error for #{org.stripe_customer_id}: #{ex.message}"
-          rescue StandardError => ex
-            error_msg = "#{org.extid}: #{ex.message}"
-            stats[:errors] << error_msg
-            puts "  [#{idx + 1}/#{total_orgs}] Error: #{error_msg}"
-            OT.le "[BackfillStripeEmailHash] Error for #{org.extid}: #{ex.message}"
-          end
+        if customer_has_hash?(customer, org, idx, total_orgs, stats, verbose)
+          return
         end
 
-        # Clear progress line
+        email_hash = compute_org_email_hash(org, idx, total_orgs, stats, verbose)
+        return unless email_hash
+
+        update_stripe_customer(org, customer, email_hash, idx, total_orgs, dry_run, verbose)
+        stats[:updated] += 1
+        print_progress(stats[:total], total_orgs, verbose, 10, 'customers')
+      rescue Stripe::RateLimitError
+        puts "  [#{idx + 1}/#{total_orgs}] Rate limited, waiting 5 seconds..."
+        sleep(5)
+        retry
+      rescue Stripe::StripeError => ex
+        record_stripe_error(org, ex, idx, total_orgs, stats)
+      rescue StandardError => ex
+        record_general_error(org, ex, idx, total_orgs, stats)
+      end
+
+      def customer_has_hash?(customer, org, idx, total_orgs, stats, verbose)
+        return false if customer.metadata['email_hash'].to_s.empty?
+
+        stats[:skipped_has_hash] += 1
+        puts "  [#{idx + 1}/#{total_orgs}] Skipping (has hash): #{org.stripe_customer_id}" if verbose
+        true
+      end
+
+      def compute_org_email_hash(org, idx, total_orgs, stats, verbose)
+        email_hash = Onetime::Utils::EmailHash.compute(org.billing_email)
+        return email_hash if email_hash
+
+        stats[:skipped_no_email] += 1
+        puts "  [#{idx + 1}/#{total_orgs}] Skipping (no billing_email): #{org.extid}" if verbose
+        nil
+      end
+
+      def update_stripe_customer(org, customer, email_hash, idx, total_orgs, dry_run, verbose)
+        region          = OT.conf.dig(:site, :region) || 'default'
+        merged_metadata = customer.metadata.to_h.merge(
+          'email_hash' => email_hash,
+          'email_hash_created_at' => Time.now.to_i.to_s,
+          'email_hash_migrated' => 'true',
+          'home_region' => region,
+        )
+
+        if dry_run
+          puts "  [#{idx + 1}/#{total_orgs}] Would update: #{org.stripe_customer_id} (#{OT::Utils.obscure_email(org.billing_email)})"
+        else
+          Stripe::Customer.update(org.stripe_customer_id, metadata: merged_metadata)
+          sleep(BATCH_DELAY_SECONDS)
+          puts "  [#{idx + 1}/#{total_orgs}] Updated: #{org.stripe_customer_id} -> #{email_hash[0..7]}..." if verbose
+        end
+      end
+
+      def record_stripe_error(org, ex, idx, total_orgs, stats)
+        error_msg = "#{org.stripe_customer_id}: #{ex.message}"
+        stats[:errors] << error_msg
+        puts "  [#{idx + 1}/#{total_orgs}] Stripe error: #{error_msg}"
+        OT.le "[BackfillStripeEmailHash] Stripe error for #{org.stripe_customer_id}: #{ex.message}"
+      end
+
+      def record_general_error(org, ex, idx, total_orgs, stats)
+        error_msg = "#{org.extid}: #{ex.message}"
+        stats[:errors] << error_msg
+        puts "  [#{idx + 1}/#{total_orgs}] Error: #{error_msg}"
+        OT.le "[BackfillStripeEmailHash] Error for #{org.extid}: #{ex.message}"
+      end
+
+      def print_progress(current, total, verbose, interval, label)
+        return if verbose
+        return unless (current % interval).zero?
+
+        print "\r  Progress: #{current}/#{total} #{label} processed"
+      end
+
+      def print_results(stats, dry_run, verbose, label)
         print "\r" + (' ' * 80) + "\r" unless verbose
 
-        # Report results
         puts "\n" + ('=' * 60)
         puts "Backfill #{dry_run ? 'Preview' : 'Complete'}"
         puts '=' * 60
         puts "\nStatistics:"
-        puts "  Total Stripe customers:     #{stats[:total]}"
-        puts "  Updated:                    #{stats[:updated]}"
-        puts "  Skipped (no billing_email): #{stats[:skipped_no_email]}"
-        puts "  Skipped (already has hash): #{stats[:skipped_has_hash]}"
+        puts "  Total #{label}:".ljust(30) + stats[:total].to_s
+        puts '  Updated:'.ljust(30) + stats[:updated].to_s
+        puts '  Skipped (no billing_email):'.ljust(30) + stats[:skipped_no_email].to_s
+        puts '  Skipped (already has hash):'.ljust(30) + stats[:skipped_has_hash].to_s
 
-        if stats[:errors].any?
-          puts "\n  Errors:                     #{stats[:errors].size}"
-          if verbose
-            puts "\n  Error details:"
-            stats[:errors].each { |err| puts "    - #{err}" }
-          end
-        end
+        return unless stats[:errors].any?
 
-        return unless dry_run && stats[:updated] > 0
+        puts "\n  Errors:".ljust(30) + stats[:errors].size.to_s
+        return unless verbose
+
+        puts "\n  Error details:"
+        stats[:errors].each { |err| puts "    - #{err}" }
+      end
+
+      def print_next_steps(dry_run, updated_count, command_name)
+        return unless dry_run && updated_count > 0
 
         puts <<~MESSAGE
 
           To execute backfill, run:
-            bin/ots migrations backfill-stripe-email-hash --run
+            bin/ots migrations #{command_name} --run
 
         MESSAGE
       end
-
-      private
 
       def show_usage_help
         puts <<~USAGE

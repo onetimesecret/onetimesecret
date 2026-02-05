@@ -47,99 +47,119 @@ module Onetime
         puts "\nOrganization Email Hash Backfill"
         puts '=' * 60
 
-        # Verify FEDERATION_HMAC_SECRET is configured
-        begin
-          Onetime::Utils::EmailHash.compute('test@example.com')
-        rescue Onetime::Problem => ex
-          puts "\nConfiguration Error: #{ex.message}"
-          puts "\nTo configure, set FEDERATION_HMAC_SECRET in your environment"
-          puts 'or add site.federation_hmac_secret to your config file.'
-          return
-        end
+        return unless verify_federation_configured!
 
-        all_org_ids = Onetime::Organization.instances.all
-        total_orgs  = all_org_ids.size
+        all_org_ids = find_all_organizations
+        return if all_org_ids.empty?
 
-        if total_orgs.zero?
-          puts "\nNo organizations found in Redis."
-          return
-        end
+        total_orgs = all_org_ids.size
+        dry_run    = !run
+        print_mode_banner(dry_run)
 
-        puts "\nDiscovered #{total_orgs} organizations"
-
-        dry_run = !run
-        if dry_run
-          puts "\nDRY RUN MODE - No changes will be made"
-          puts "To execute backfill, run with --run flag\n"
-        end
-
-        stats = {
-          total: 0,
-          updated: 0,
-          skipped_no_email: 0,
-          skipped_has_hash: 0,
-          errors: [],
-        }
+        stats = { total: 0, updated: 0, skipped_no_email: 0, skipped_has_hash: 0, errors: [] }
 
         all_org_ids.each_with_index do |objid, idx|
-          stats[:total] += 1
-
-          begin
-            org = Onetime::Organization.load(objid)
-
-            unless org
-              stats[:errors] << "#{objid}: Organization not found"
-              next
-            end
-
-            # Skip if no billing_email
-            if org.billing_email.to_s.strip.empty?
-              stats[:skipped_no_email] += 1
-              if verbose
-                puts "  [#{idx + 1}/#{total_orgs}] Skipping (no billing_email): #{org.extid}"
-              end
-              next
-            end
-
-            # Skip if already has email_hash
-            unless org.email_hash.to_s.strip.empty?
-              stats[:skipped_has_hash] += 1
-              if verbose
-                puts "  [#{idx + 1}/#{total_orgs}] Skipping (has hash): #{org.extid}"
-              end
-              next
-            end
-
-            # Compute and store hash
-            email_hash = org.compute_email_hash!
-
-            if dry_run
-              puts "  [#{idx + 1}/#{total_orgs}] Would update: #{org.extid} (#{OT::Utils.obscure_email(org.billing_email)})"
-            else
-              org.save
-              if verbose
-                puts "  [#{idx + 1}/#{total_orgs}] Updated: #{org.extid} -> #{email_hash[0..7]}..."
-              end
-            end
-
-            stats[:updated] += 1
-
-            # Progress indicator for non-verbose mode
-            if !verbose && (stats[:total] % 50).zero?
-              print "\r  Progress: #{stats[:total]}/#{total_orgs} organizations processed"
-            end
-          rescue StandardError => ex
-            error_msg = "#{org&.extid || objid}: #{ex.message}"
-            stats[:errors] << error_msg
-            puts "  [#{idx + 1}/#{total_orgs}] Error: #{error_msg}"
-            OT.le "[BackfillEmailHash] Error for #{objid}: #{ex.message}"
-          end
+          process_organization(objid, idx, total_orgs, stats, dry_run, verbose)
         end
 
-        # Clear progress line
+        print_results(stats, dry_run, verbose)
+        print_next_steps(dry_run, stats[:updated])
+      end
+
+      private
+
+      def verify_federation_configured!
+        Onetime::Utils::EmailHash.compute('test@example.com')
+        true
+      rescue Onetime::Problem => ex
+        puts "\nConfiguration Error: #{ex.message}"
+        puts "\nTo configure, set FEDERATION_HMAC_SECRET in your environment"
+        puts 'or add site.federation_hmac_secret to your config file.'
+        false
+      end
+
+      def find_all_organizations
+        all_org_ids = Onetime::Organization.instances.all
+
+        if all_org_ids.empty?
+          puts "\nNo organizations found in Redis."
+        else
+          puts "\nDiscovered #{all_org_ids.size} organizations"
+        end
+
+        all_org_ids
+      end
+
+      def print_mode_banner(dry_run)
+        return unless dry_run
+
+        puts "\nDRY RUN MODE - No changes will be made"
+        puts "To execute backfill, run with --run flag\n"
+      end
+
+      def process_organization(objid, idx, total_orgs, stats, dry_run, verbose)
+        stats[:total] += 1
+        org            = Onetime::Organization.load(objid)
+
+        unless org
+          stats[:errors] << "#{objid}: Organization not found"
+          return
+        end
+
+        return if skip_no_email?(org, idx, total_orgs, stats, verbose)
+        return if skip_has_hash?(org, idx, total_orgs, stats, verbose)
+
+        update_organization(org, idx, total_orgs, dry_run, verbose)
+        stats[:updated] += 1
+        print_progress(stats[:total], total_orgs, verbose)
+      rescue StandardError => ex
+        record_error(org, objid, ex, idx, total_orgs, stats)
+      end
+
+      def skip_no_email?(org, idx, total_orgs, stats, verbose)
+        return false unless org.billing_email.to_s.strip.empty?
+
+        stats[:skipped_no_email] += 1
+        puts "  [#{idx + 1}/#{total_orgs}] Skipping (no billing_email): #{org.extid}" if verbose
+        true
+      end
+
+      def skip_has_hash?(org, idx, total_orgs, stats, verbose)
+        return false if org.email_hash.to_s.strip.empty?
+
+        stats[:skipped_has_hash] += 1
+        puts "  [#{idx + 1}/#{total_orgs}] Skipping (has hash): #{org.extid}" if verbose
+        true
+      end
+
+      def update_organization(org, idx, total_orgs, dry_run, verbose)
+        email_hash = org.compute_email_hash!
+
+        if dry_run
+          puts "  [#{idx + 1}/#{total_orgs}] Would update: #{org.extid} (#{OT::Utils.obscure_email(org.billing_email)})"
+        else
+          org.save
+          puts "  [#{idx + 1}/#{total_orgs}] Updated: #{org.extid} -> #{email_hash[0..7]}..." if verbose
+        end
+      end
+
+      def record_error(org, objid, ex, idx, total_orgs, stats)
+        error_msg = "#{org&.extid || objid}: #{ex.message}"
+        stats[:errors] << error_msg
+        puts "  [#{idx + 1}/#{total_orgs}] Error: #{error_msg}"
+        OT.le "[BackfillEmailHash] Error for #{objid}: #{ex.message}"
+      end
+
+      def print_progress(current, total, verbose)
+        return if verbose
+        return unless (current % 50).zero?
+
+        print "\r  Progress: #{current}/#{total} organizations processed"
+      end
+
+      def print_results(stats, dry_run, verbose)
         print "\r" + (' ' * 80) + "\r" unless verbose
 
-        # Report results
         puts "\n" + ('=' * 60)
         puts "Backfill #{dry_run ? 'Preview' : 'Complete'}"
         puts '=' * 60
@@ -149,15 +169,17 @@ module Onetime
         puts "  Skipped (no billing_email): #{stats[:skipped_no_email]}"
         puts "  Skipped (already has hash): #{stats[:skipped_has_hash]}"
 
-        if stats[:errors].any?
-          puts "\n  Errors:                     #{stats[:errors].size}"
-          if verbose
-            puts "\n  Error details:"
-            stats[:errors].each { |err| puts "    - #{err}" }
-          end
-        end
+        return unless stats[:errors].any?
 
-        return unless dry_run && stats[:updated] > 0
+        puts "\n  Errors:                     #{stats[:errors].size}"
+        return unless verbose
+
+        puts "\n  Error details:"
+        stats[:errors].each { |err| puts "    - #{err}" }
+      end
+
+      def print_next_steps(dry_run, updated_count)
+        return unless dry_run && updated_count > 0
 
         puts <<~MESSAGE
 
@@ -166,8 +188,6 @@ module Onetime
 
         MESSAGE
       end
-
-      private
 
       def show_usage_help
         puts <<~USAGE
