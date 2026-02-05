@@ -100,8 +100,12 @@ module Billing
 
         # Update federated organization with subscription data
         #
+        # IMPORTANT: Federated orgs do NOT get stripe_customer_id or stripe_subscription_id.
+        # They only receive subscription status/plan fields. The absence of stripe_customer_id
+        # is what distinguishes federated orgs from owners.
+        #
         # Marks the organization as federated (if first time) and updates
-        # subscription fields from the Stripe subscription.
+        # subscription status fields from the Stripe subscription.
         #
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription
@@ -110,8 +114,19 @@ module Billing
         def update_federated_org(org, subscription)
           first_federation = !org.subscription_federated?
 
-          # Update subscription fields (status, plan, etc.)
-          org.update_from_stripe_subscription(subscription)
+          # Update ONLY status fields - NOT stripe_customer_id or stripe_subscription_id
+          # Federated orgs don't own the subscription, they just receive benefits
+          org.subscription_status     = subscription.status
+          period_end                  = subscription.items.data.first&.current_period_end
+          org.subscription_period_end = period_end.to_s if period_end
+
+          # Extract plan ID using the same logic as update_from_stripe_subscription
+          price    = subscription.items.data.first&.price
+          price_id = price&.id
+          if price_id
+            plan_id    = Billing::PlanValidator.resolve_plan_id(price_id)
+            org.planid = plan_id if plan_id
+          end
 
           # Mark as federated if first time
           org.mark_subscription_federated! if first_federation
