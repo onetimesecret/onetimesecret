@@ -35,6 +35,14 @@ module Billing
           usage: build_usage_data(org),
         }
 
+        # Include federation notification when org is federated and not dismissed
+        if org.show_federation_notification?
+          data[:federation_notification] = {
+            show: true,
+            source_region: region,
+          }
+        end
+
         json_response(data)
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
