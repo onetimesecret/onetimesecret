@@ -67,7 +67,7 @@ module Onetime
 
         if org.nil?
           puts "No organization found with Stripe customer: #{stripe_customer_id}"
-          exit 1
+          return
         end
 
         sync_organization(org, stripe_customer_id, apply: apply, update_contact_email: update_contact_email)
