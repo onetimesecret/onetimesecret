@@ -19,13 +19,15 @@
 #   bin/ots migrate --run 1512_customer_cleanup.rb
 #
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'familia/migration'
 
 module Onetime
-  class Migration < Familia::Migration::Pipeline
+  module Migrations
+    # Remove anonymous and test customer records
+    class CustomerCleanup < Familia::Migration::Pipeline
+      self.migration_id = '20250727_03_customer_cleanup'
+      self.description = 'Remove anonymous, test users (anon, tryouts*)'
+      self.dependencies = []
     def prepare
       @model_class = Onetime::Customer
       @batch_size  = 1000
@@ -96,11 +98,12 @@ module Onetime
       track_stat("removal_#{field}")
       debug("Removing objid=#{obj.objid} #{field}=#{obj.send(field)}")
     end
+    end
   end
 end
 
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.cli_run)
+  exit(Onetime::Migrations::CustomerCleanup.cli_run)
 end

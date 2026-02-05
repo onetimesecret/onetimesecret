@@ -28,17 +28,19 @@
 #   - Top-level:  `:key:` → `key:`
 #   - Nested:     `  :key:` → `  key:`
 #   - Array items: `- :key:` → `- key:`
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'yaml'
 require 'fileutils'
-
 require 'familia/migration'
 
 module Onetime
-  class Migration < Familia::Migration::Base
-    def prepare
+  module Migrations
+    # Convert YAML symbol keys to string keys in config files
+    class ConvertSymbolKeys < Familia::Migration::Base
+      self.migration_id = '20250727_01_convert_symbol_keys'
+      self.description = 'Convert YAML symbol keys (:key:) to string keys (key:)'
+      self.dependencies = []
+
+      def prepare
       @base_path     = OT::HOME
       @config_file   = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
@@ -171,11 +173,12 @@ module Onetime
         false
       end
     end
+    end
   end
 end
 
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.cli_run)
+  exit(Onetime::Migrations::ConvertSymbolKeys.cli_run)
 end

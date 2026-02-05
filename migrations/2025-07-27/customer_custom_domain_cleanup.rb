@@ -18,13 +18,15 @@
 #   bin/ots migrate --run 1512_02_custom_domain_cleanup.rb
 #
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'familia/migration'
 
 module Onetime
-  class Migration < Familia::Migration::Model
+  module Migrations
+    # Remove orphaned custom domain records for test users
+    class CustomerCustomDomainCleanup < Familia::Migration::Model
+      self.migration_id = '20250727_04_customer_custom_domain_cleanup'
+      self.description = 'Remove orphaned custom_domain records for test users'
+      self.dependencies = ['20250727_03_customer_cleanup']
     def prepare
       @model_class  = Onetime::Customer
       @batch_size   = 1000
@@ -99,11 +101,12 @@ module Onetime
     def test_domain_pattern?(dbkey)
       dbkey.to_s.match?(/\Atryouts[a-z0-9.-]*onetimesecret\.com\z/i)
     end
+    end
   end
 end
 
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.cli_run)
+  exit(Onetime::Migrations::CustomerCustomDomainCleanup.cli_run)
 end

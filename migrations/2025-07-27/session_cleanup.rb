@@ -20,15 +20,18 @@
 #   bin/ots migrate --run 1512_03_session_cleanup.rb
 #
 
-BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..', '..')
-$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
-
 require 'familia/migration'
-require 'familia/refinements/time_utils'
+require 'familia/refinements/time_literals'
 
 module Onetime
-  class Migration < Familia::Migration::Pipeline
-    using Familia::Refinements::TimeLiterals
+  module Migrations
+    # Remove sessions without TTL (created by bug, never expire)
+    class SessionCleanup < Familia::Migration::Pipeline
+      self.migration_id = '20250727_06_session_cleanup'
+      self.description = 'Remove stale sessions without TTL (older than 7 days)'
+      self.dependencies = []
+
+      using Familia::Refinements::TimeLiterals
 
     def prepare
       @model_class = V2::Session
@@ -80,11 +83,12 @@ module Onetime
       # defines its own execute_update.
       {}
     end
+    end
   end
 end
 
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.cli_run)
+  exit(Onetime::Migrations::SessionCleanup.cli_run)
 end
