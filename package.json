@@ -179,7 +179,7 @@
     "@playwright/test": "^1.57.0",
     "@prettier/plugin-ruby": "^4.0.4",
     "@sentry/cli": "^3.1.0",
-    "@sentry/vite-plugin": "^4.6.1",
+    "@sentry/vite-plugin": "^4.7.0",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
