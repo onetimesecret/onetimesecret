@@ -56,6 +56,7 @@ class CustomerIndexCreator
       records_read: 0,
       objects_processed: 0,
       instance_index_source: nil,  # 'existing' or 'generated'
+      instance_index_source_records: 0,  # Count of onetime:customer records (should be 0 or 1)
       instance_entries: 0,
       email_lookups: 0,
       extid_lookups: 0,
@@ -88,8 +89,9 @@ class CustomerIndexCreator
       case record[:key]
       when 'onetime:customer'
         # Store for later processing after we have email->objid mapping
-        instance_index_record          = record
-        @stats[:instance_index_source] = 'existing'
+        instance_index_record                   = record
+        @stats[:instance_index_source]          = 'existing'
+        @stats[:instance_index_source_records] += 1
       when /:object$/
         # Collect for processing
         customer_object_records << record
@@ -394,8 +396,15 @@ class CustomerIndexCreator
     puts "Lookup: #{File.join(@output_dir, 'email_to_objid.json')}"
     puts
     puts "Records read: #{@stats[:records_read]}"
-    puts "Objects processed: #{@stats[:objects_processed]}"
-    puts "Skipped records: #{@stats[:skipped]}"
+    puts "  Customer objects: #{@stats[:objects_processed]}"
+    puts "  Instance index source: #{@stats[:instance_index_source_records]}"
+    puts "  Skipped: #{@stats[:skipped]}"
+    reconciled = @stats[:objects_processed] + @stats[:instance_index_source_records] + @stats[:skipped]
+    if reconciled == @stats[:records_read]
+      puts "  (Reconciled: #{reconciled} = #{@stats[:records_read]} ✓)"
+    else
+      puts "  WARNING: Reconciliation mismatch: #{reconciled} != #{@stats[:records_read]}"
+    end
     puts
 
     puts 'Instance Index:'
