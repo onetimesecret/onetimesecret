@@ -23,6 +23,11 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.updated', :integratio
     created_customers.each(&:destroy!)
   end
 
+  # Helper to build mock Stripe::Customer for federation stubs
+  def build_stripe_customer(id:, email:, metadata: {})
+    double('Stripe::Customer', id: id, email: email, metadata: metadata)
+  end
+
   context 'with existing organization' do
     let!(:customer) { create_test_customer(email: test_email) }
     let!(:organization) do
@@ -49,6 +54,23 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.updated', :integratio
       allow(Onetime::Organization).to receive(:find_by_stripe_subscription_id)
         .with(stripe_subscription_id)
         .and_return(organization)
+
+      # Stub Stripe::Customer.retrieve for federation lookup
+      stripe_customer = build_stripe_customer(
+        id: stripe_customer_id,
+        email: test_email,
+        metadata: {},
+      )
+      allow(Stripe::Customer).to receive(:retrieve)
+        .with(stripe_customer_id)
+        .and_return(stripe_customer)
+
+      # Stub federation lookups
+      allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
+        .with(stripe_customer_id)
+        .and_return(organization)
+      allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+        .and_return([])
     end
 
     include_examples 'handles event successfully'
@@ -77,6 +99,23 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.updated', :integratio
       allow(Onetime::Organization).to receive(:find_by_stripe_subscription_id)
         .with(stripe_subscription_id)
         .and_return(nil)
+
+      # Stub Stripe::Customer.retrieve for federation lookup
+      stripe_customer = build_stripe_customer(
+        id: stripe_customer_id,
+        email: 'unknown@example.com',
+        metadata: {},
+      )
+      allow(Stripe::Customer).to receive(:retrieve)
+        .with(stripe_customer_id)
+        .and_return(stripe_customer)
+
+      # Stub federation lookups (no matches)
+      allow(Onetime::Organization).to receive(:find_by_stripe_customer_id)
+        .with(stripe_customer_id)
+        .and_return(nil)
+      allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+        .and_return([])
     end
 
     include_examples 'logs warning for missing organization'
