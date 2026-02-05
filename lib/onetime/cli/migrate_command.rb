@@ -90,6 +90,9 @@ module Onetime
           exit 1
         end
 
+        # Ensure Familia::Migration is loaded (not auto-required by familia gem)
+        require 'familia/migration'
+
         # Load helper first if exists
         helper_path = File.join(dir, 'lib', 'migration_helper.rb')
         require helper_path if File.exist?(helper_path)
