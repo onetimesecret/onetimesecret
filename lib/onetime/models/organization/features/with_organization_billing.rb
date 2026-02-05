@@ -6,7 +6,7 @@ require 'billing/metadata'
 require 'billing/models/plan'
 require 'billing/lib/billing_service'
 require 'billing/lib/plan_validator'
-require 'onetime/utils/email_hash'
+require_relative '../../../utils/email_hash'
 
 module Onetime
   module Models
