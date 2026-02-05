@@ -36,8 +36,8 @@ nil
 @org.members.size
 #=> 1
 
-## After add - org.members contains customer.objid
-@org.members.member?(@cust.objid)
+## After add - org.members contains customer.objid (using wrapper for Familia v2 serialization)
+@org.member?(@cust.objid)
 #=> true
 
 ## Check what methods are available on org

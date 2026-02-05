@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "Subscription Synced",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "Your subscription benefits have been synced from another region.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "Upgrade Required",
     "sha256": "16487236"
@@ -74,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "Change Plan",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "Manage Subscription",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "You're on a grandfathered plan with special pricing.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Early Supporter)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "Switching plans will forfeit your grandfathered rate. This cannot be undone.",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "No payment method on file",
@@ -307,6 +331,10 @@
     "text": "Downgrade",
     "sha256": "d955b7e8"
   },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Cancel to switch",
+    "sha256": "1c4cda89"
+  },
   "web.billing.plans.monthly": {
     "text": "Monthly",
     "sha256": "9b11f6b7"
@@ -526,6 +554,10 @@
   "web.billing.invoices.failed": {
     "text": "Failed",
     "sha256": "031a8f0f"
+  },
+  "web.billing.invoices.draft": {
+    "text": "Draft",
+    "sha256": "ebf12ef4"
   },
   "web.billing.invoices.load_error": {
     "text": "Failed to load invoices",

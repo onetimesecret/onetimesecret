@@ -289,7 +289,9 @@ def export_tables(table: Optional[str] = None) -> None:
 
                 cols_str = ", ".join(columns)
                 vals_str = ", ".join(values)
-                lines.append(f"INSERT INTO {tbl} ({cols_str}) VALUES ({vals_str});")
+                lines.append(
+                    f"INSERT INTO {tbl} ({cols_str}) VALUES ({vals_str});"
+                )
 
             output_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
             print(f"{tbl}: exported {count} rows to {output_file.name}")
@@ -312,7 +314,7 @@ def _generate_checksums() -> None:
 
     if lines:
         checksum_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        print(f"checksums.sha256: updated")
+        print("checksums.sha256: updated")
 
 
 def import_tables(file_path: Optional[str] = None, verify: bool = True) -> None:
@@ -379,7 +381,9 @@ def import_tables(file_path: Optional[str] = None, verify: bool = True) -> None:
                     cursor = conn.cursor()
                     cursor.execute(f"SELECT COUNT(*) FROM {table_name}")  # noqa: S608
                     count = cursor.fetchone()[0]
-                    print(f"{sql_file.name}: imported ({count} rows in {table_name})")
+                    print(
+                        f"{sql_file.name}: imported ({count} rows in {table_name})"
+                    )
                 else:
                     print(f"{sql_file.name}: imported")
 

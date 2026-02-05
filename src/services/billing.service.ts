@@ -15,6 +15,14 @@ const $api = createApi();
 /**
  * Billing overview response from the API
  */
+/**
+ * Federation notification data for cross-region subscription sync
+ */
+export interface FederationNotification {
+  show: boolean;
+  source_region?: string;
+}
+
 export interface BillingOverviewResponse {
   organization: {
     id: string;
@@ -45,6 +53,8 @@ export interface BillingOverviewResponse {
     members: number;
   };
   payment_method?: PaymentMethod;
+  /** Federation notification for cross-region subscription sync */
+  federation_notification?: FederationNotification;
 }
 
 /**

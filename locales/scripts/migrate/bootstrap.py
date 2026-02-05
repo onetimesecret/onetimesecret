@@ -122,7 +122,9 @@ def bootstrap_locale(
     is_english = locale == "en"
 
     if not locale_dir.exists():
-        print(f"Error: Locale directory not found: {locale_dir}", file=sys.stderr)
+        print(
+            f"Error: Locale directory not found: {locale_dir}", file=sys.stderr
+        )
         return None
 
     stats: dict[str, dict[str, int]] = {}
@@ -158,14 +160,18 @@ def bootstrap_locale(
         stats[file_name] = file_stats
 
         if dry_run:
-            print(f"  [DRY-RUN] {file_name}: "
-                  f"{file_stats['with_text']} with text, "
-                  f"{file_stats['skipped']} skipped")
+            print(
+                f"  [DRY-RUN] {file_name}: "
+                f"{file_stats['with_text']} with text, "
+                f"{file_stats['skipped']} skipped"
+            )
         else:
             save_json_file(output_file, content)
-            print(f"  {file_name}: "
-                  f"{file_stats['with_text']} with text, "
-                  f"{file_stats['skipped']} skipped")
+            print(
+                f"  {file_name}: "
+                f"{file_stats['with_text']} with text, "
+                f"{file_stats['skipped']} skipped"
+            )
 
     return stats
 
@@ -185,14 +191,21 @@ def print_summary(all_stats: dict[str, dict[str, dict[str, int]]]) -> None:
                 locale_total[key] += stats[key]
                 grand_total[key] += stats[key]
 
-        pct = (locale_total["with_text"] / locale_total["total"] * 100
-               if locale_total["total"] > 0 else 0)
-        print(f"  {locale}: {locale_total['with_text']}/{locale_total['total']} "
-              f"({pct:.1f}% with text)")
+        pct = (
+            locale_total["with_text"] / locale_total["total"] * 100
+            if locale_total["total"] > 0
+            else 0
+        )
+        print(
+            f"  {locale}: {locale_total['with_text']}/{locale_total['total']} "
+            f"({pct:.1f}% with text)"
+        )
 
     if len(all_stats) > 1:
         print("-" * 60)
-        print(f"  Total: {grand_total['total']} keys across {len(all_stats)} locales")
+        print(
+            f"  Total: {grand_total['total']} keys across {len(all_stats)} locales"
+        )
 
 
 def main() -> int:

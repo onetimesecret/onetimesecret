@@ -169,7 +169,7 @@ module Onetime
                     domain            = domain_info['domain']
                     stored_domain_id  = domain_info['old_id']
                     # Check display_domains mapping still exists
-                    current_domain_id = Onetime::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
+                    current_domain_id = Onetime::CustomDomain.dbclient.hget('custom_domain:display_domains', domain)
 
                     if current_domain_id == stored_domain_id
                       puts "  ✓ Domain #{index+1}: #{domain} still correctly mapped to #{current_domain_id}"

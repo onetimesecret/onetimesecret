@@ -31,7 +31,7 @@ The S6 overlay provides a production-ready init system (PID 1) and process super
 ## Directory Structure
 
 ```
-scripts/s6-rc.d/
+docker/s6/services/
 ├── redis-ready/          # Oneshot: Redis connectivity check
 │   ├── type
 │   └── up

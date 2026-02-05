@@ -414,6 +414,10 @@
     "text": "失敗",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "下書き",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "請求書の読み込みに失敗しました",
     "sha256": "0b0cb3f7"

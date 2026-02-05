@@ -38,7 +38,6 @@ describe('domainsStore', () => {
       trd: '',
       tld: 'com',
       sld: 'example',
-      _original_value: 'example.com',
       txt_validation_host: '_validate.example.com',
       txt_validation_value: 'validate123',
       is_apex: false,

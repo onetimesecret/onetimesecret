@@ -1,11 +1,11 @@
 // src/tests/apps/workspace/account/OrganizationSettings.spec.ts
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
-import { createTestingPinia } from '@pinia/testing';
 import OrganizationSettings from '@/apps/workspace/account/settings/OrganizationSettings.vue';
+import { createTestingPinia } from '@pinia/testing';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
+import { createI18n } from 'vue-i18n';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -82,8 +82,8 @@ const mockOrganization = {
   description: 'A test organization',
   contact_email: 'billing@example.com',
   is_default: true,
-  created_at: new Date('2024-01-01'),
-  updated_at: new Date('2024-01-01'),
+  created: new Date('2024-01-01'),
+  updated: new Date('2024-01-01'),
   entitlements: ['manage_members'],
   limits: { teams: 1 },
   planid: 'plan_starter', // Required for billing email field to be visible
@@ -155,7 +155,8 @@ const i18n = createI18n({
           update_success: 'Organization updated',
           update_error: 'Failed to update organization',
           billing_email_updated: 'Billing email updated successfully',
-          billing_email_managed_on_billing: 'Billing email can be changed on the Billing Overview page',
+          billing_email_managed_on_billing:
+            'Billing email can be changed on the Billing Overview page',
           general_settings: 'General Settings',
           display_name: 'Display Name',
           description: 'Description',

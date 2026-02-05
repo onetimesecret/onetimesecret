@@ -152,3 +152,9 @@ The `SecretLinksTableRow` component supports multiple visual variants:
 - Unified border opacity at `/60` across all cards
 - Reduced section heading from `text-xl` to `text-lg` with lighter color
 - Tightened spacing rhythm (`mb-6` → `mb-4`, `mb-12` → `mb-10`, `pb-24` → `pb-16`)
+
+### 2026-02-03: Early Supporter status color
+- Added amber palette for grandfathered/legacy plan badges
+- `amber-100/700/800` (light) and `amber-900/30, amber-400` (dark)
+- Chose amber over green (success) or purple (premium) to convey warmth and appreciation for early adopters
+- Complements brand orange without competing for attention

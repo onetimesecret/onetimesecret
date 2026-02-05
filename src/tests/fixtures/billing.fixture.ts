@@ -6,8 +6,8 @@ import type {
   PlanChangePreviewResponse,
   SubscriptionStatusResponse,
 } from '@/services/billing.service';
+import type { ExtId, ObjId } from '@/types/identifiers';
 import type { Organization } from '@/types/organization';
-import type { ObjId, ExtId } from '@/types/identifiers';
 
 /**
  * Plan tier type for billing fixtures
@@ -50,6 +50,24 @@ export const mockPlans: Record<string, Plan> = {
     features: ['Basic secret sharing'],
     limits: { teams: 0, members_per_team: 0 },
     entitlements: [],
+  }),
+  /**
+   * Legacy "identity" plan - grandfathered Early Supporter plan.
+   * This plan is NOT available for new subscriptions but is honored for existing customers.
+   * Maps to single_team tier for feature parity with Identity Plus.
+   */
+  legacy_identity: createMockPlan({
+    id: 'identity',
+    stripe_price_id: null, // Legacy plans may not have Stripe price IDs
+    name: 'Identity Plus (Early Supporter)',
+    tier: 'single_team', // Same tier as identity_plus for feature parity
+    interval: 'month', // Assumed monthly billing
+    amount: 1900, // Original early supporter price
+    display_order: -1, // Not shown in plan selector (legacy)
+    plan_code: 'identity',
+    features: ['Custom domains', 'API access', 'Branding', 'Early Supporter perks'],
+    limits: { teams: 1, members_per_team: 10 },
+    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
   single_team_monthly: createMockPlan({
     id: 'identity_plus_v1_monthly',
@@ -249,23 +267,31 @@ export const mockSubscriptionStatuses = {
     subscription_status: 'trialing',
     current_period_end: Math.floor(Date.now() / 1000) + 86400 * 14,
   }),
+  /**
+   * Legacy "identity" plan subscriber - Early Supporter with grandfathered pricing.
+   * Note: current_plan is 'identity' (not 'identity_plus_v1_monthly').
+   */
+  legacyIdentity: createMockSubscriptionStatus({
+    current_plan: 'identity',
+    current_price_id: undefined, // Legacy plans may not have Stripe price IDs
+    subscription_status: 'active',
+  }),
 };
 
 /**
  * Factory for creating mock organizations with billing data
  */
-export function createMockOrganization(
-  overrides: Partial<Organization> = {}
-): Organization {
+export function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
   return {
     id: 'org_obj_123' as ObjId,
     extid: 'org_ext_123' as ExtId,
     display_name: 'Test Organization',
     description: 'A test organization',
-    contact_email: 'billing@example.com',
+    contact_email: 'contact@example.com',
+    billing_email: 'billing@example.com',
     is_default: true,
-    created_at: new Date('2024-01-01'),
-    updated_at: new Date('2024-01-01'),
+    created: new Date('2024-01-01'),
+    updated: new Date('2024-01-01'),
     owner_extid: 'cust_ext_456' as ExtId,
     member_count: 5,
     current_user_role: 'owner',
@@ -301,6 +327,17 @@ export const mockOrganizations = {
       'audit_logs',
     ],
     limits: { teams: 5, members_per_team: 25, custom_domains: 10 },
+  }),
+  /**
+   * Legacy "identity" plan - grandfathered Early Supporter plan
+   * These customers have single_team tier features but their planid is just 'identity'
+   * (not 'identity_plus_v1_monthly'). Display should show "Identity Plus (Early Supporter)".
+   */
+  legacyIdentity: createMockOrganization({
+    planid: 'identity',
+    display_name: 'Early Supporter Org',
+    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
+    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
   }),
   noOrg: null,
 };
@@ -420,6 +457,32 @@ export const mockOverviewResponses = {
       active: true,
       past_due: true,
       canceled: false,
+    },
+  }),
+  /**
+   * Legacy "identity" plan subscriber - Early Supporter with grandfathered pricing.
+   * Plan ID is 'identity' and display name includes "(Early Supporter)" suffix.
+   */
+  legacyIdentity: createMockOverviewResponse({
+    plan: {
+      id: 'identity',
+      name: 'Identity Plus (Early Supporter)',
+      tier: 'single_team',
+      interval: 'month',
+      amount: 1900,
+      currency: 'usd',
+      features: ['web.billing.features.feature1', 'web.billing.features.feature2'],
+      limits: { teams: 1 },
+    },
+  }),
+  /**
+   * Organization with federation notification - subscription synced from another region.
+   * Used when a customer's subscription benefits are federated across regions.
+   */
+  withFederationNotification: createMockOverviewResponse({
+    federation_notification: {
+      show: true,
+      source_region: 'EU',
     },
   }),
 };

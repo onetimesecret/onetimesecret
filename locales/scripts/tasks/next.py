@@ -210,7 +210,9 @@ def format_task_human(task: dict) -> str:
     title = f"**Task {task['id']}** · `{task['file']}` · `{task['level_path']}` · {num_keys} keys"
 
     # Build table with rich
-    table = Table(show_header=True, header_style="bold", box=None, pad_edge=False)
+    table = Table(
+        show_header=True, header_style="bold", box=None, pad_edge=False
+    )
     table.add_column("Key", justify="right", style="cyan", min_width=28)
     table.add_column("English", justify="left", width=60, overflow="fold")
     table.add_column("Esperanto", justify="left", width=60, overflow="fold")
@@ -274,7 +276,8 @@ Examples:
         help="Filter tasks by key path prefix (e.g., 'web.COMMON')",
     )
     parser.add_argument(
-        "--json", "-j",
+        "--json",
+        "-j",
         action="store_true",
         help="Output as JSON",
     )

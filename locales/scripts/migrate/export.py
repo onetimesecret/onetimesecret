@@ -152,7 +152,10 @@ def export_locale(
                     # Remove skip flag if present (now has translation)
                     if "skip" in content[full_key]:
                         del content[full_key]["skip"]
-                    if "note" in content[full_key] and content[full_key]["note"] == "empty":
+                    if (
+                        "note" in content[full_key]
+                        and content[full_key]["note"] == "empty"
+                    ):
                         del content[full_key]["note"]
                 else:
                     # Create new entry
@@ -214,12 +217,14 @@ Examples:
         help="Show what would be exported without making changes",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Verbose output",
     )
     parser.add_argument(
-        "-q", "--quiet",
+        "-q",
+        "--quiet",
         action="store_true",
         help="Quiet output (only errors)",
     )
@@ -244,7 +249,9 @@ Examples:
         if stats:
             total = sum(stats.values())
             if not args.dry_run and not args.quiet:
-                print(f"\nExported {total} translations across {len(stats)} files")
+                print(
+                    f"\nExported {total} translations across {len(stats)} files"
+                )
             return 0
         else:
             # No tasks exported - return non-zero for scripting

@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Passkey",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Need help?",
@@ -69,39 +69,39 @@
   },
   "web.login.or_continue_with": {
     "text": "Or continue with",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Sign in with SSO",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Sign in with {provider}",
-    "sha256": ""
+    "sha256": "b8794f11"
   },
   "web.auth.sso.signing_in": {
     "text": "Redirecting to identity provider...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "SSO sign-in failed. Please try again.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "SSO authentication failed. Please try again or use password login.",
-    "sha256": ""
+    "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
     "text": "The authentication link is incomplete. Please request a new sign-in link.",
-    "sha256": ""
+    "sha256": "f4a10652"
   },
   "web.login.errors.token_expired": {
     "text": "This sign-in link has expired. Please request a new one.",
-    "sha256": ""
+    "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
     "text": "This sign-in link is invalid. Please request a new one.",
-    "sha256": ""
+    "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
     "text": "Create Your Account",

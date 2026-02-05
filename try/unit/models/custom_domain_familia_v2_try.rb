@@ -66,7 +66,7 @@ OT.info "Cleaned Redis for fresh test run"
 #=> false
 
 ## Domain appears in organization's domains collection
-@org.domains.member?(@domain.objid)
+@org.domain?(@domain.objid)
 #=> true
 
 ## Domains collection size incremented
@@ -148,7 +148,7 @@ end
 #=> false
 
 ## Domain no longer in organization's collection
-@org.domains.member?(@domain2.objid)
+@org.domain?(@domain2.objid)
 #=> false
 
 ## Bidirectional add using domain method
@@ -157,7 +157,7 @@ end
 #=> 2
 
 ## Organization collection updated after bidirectional add
-@org.domains.member?(@domain2.objid)
+@org.domain?(@domain2.objid)
 #=> true
 
 ## Bidirectional remove using domain method
@@ -231,7 +231,7 @@ end
 #=> false
 
 ## Domain removed from organization's collection after destroy
-@org.domains.member?(@domain.objid)
+@org.domain?(@domain.objid)
 #=> false
 
 ## Organization deletion validation when domains exist

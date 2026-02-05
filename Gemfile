@@ -68,7 +68,7 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-gem 'familia', '~> 2.0.0.pre26'
+gem 'familia', '2.1.1'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
@@ -105,7 +105,7 @@ gem 'stringio', '~> 3.1.6'
 # ====================================
 
 gem 'bunny', '~> 2.22'           # RabbitMQ AMQP client
-gem 'connection_pool', '~> 2.4'  # Thread-safe connection pooling
+gem 'connection_pool', '~> 2.5'  # Thread-safe connection pooling
 gem 'kicks', '~> 3.0'            # RabbitMQ worker framework (Sneakers successor)
 gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 

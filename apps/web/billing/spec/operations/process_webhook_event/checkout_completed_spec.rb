@@ -18,6 +18,26 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
+  # Helper to build mock Stripe::Customer for federation stubs
+  def build_stripe_customer_mock(id:, email:, metadata: {})
+    double('Stripe::Customer', id: id, email: email, metadata: metadata)
+  end
+
+  # Shared setup: stub Stripe::Customer.retrieve for all checkout tests
+  # This prevents VCR from recording 404s for mock customer IDs
+  before do
+    stripe_customer = build_stripe_customer_mock(
+      id: stripe_customer_id,
+      email: test_email,
+      metadata: {},
+    )
+    allow(Stripe::Customer).to receive(:retrieve)
+      .with(stripe_customer_id)
+      .and_return(stripe_customer)
+    allow(Stripe::Customer).to receive(:update)
+      .and_return(stripe_customer)
+  end
+
   let(:session) do
     build_stripe_session(
       id: 'cs_test_123',
@@ -253,6 +273,184 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
 
     it 'returns :not_found when customer does not exist' do
       expect(operation.call).to eq(:not_found)
+    end
+  end
+
+  # ============================================================================
+  # Email Hash Federation Tests
+  # ============================================================================
+  #
+  # Tests for setting email_hash in Stripe customer metadata at checkout completion.
+  # This enables cross-region subscription federation.
+  #
+  # @see Onetime::Utils::EmailHash
+  # @see Billing::Operations::WebhookHandlers::SubscriptionFederation
+
+  describe 'email_hash federation' do
+    let!(:customer) { create_test_customer(email: test_email) }
+    let(:stripe_customer_email) { 'subscriber@example.com' }
+
+    let(:stripe_customer) do
+      build_customer(
+        'id' => stripe_customer_id,
+        'email' => stripe_customer_email,
+        'metadata' => {},
+      )
+    end
+
+    let(:subscription) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: { 'customer_extid' => customer.extid },
+      )
+    end
+
+    before do
+      # Stub FEDERATION_HMAC_SECRET for email hash computation
+      ENV['FEDERATION_HMAC_SECRET'] ||= 'test-hmac-secret-for-federation'
+
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .with(stripe_subscription_id)
+        .and_return(subscription)
+    end
+
+    context 'when Stripe customer has no email_hash in metadata' do
+      before do
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+        allow(Stripe::Customer).to receive(:update)
+          .and_return(stripe_customer)
+      end
+
+      it 'sets email_hash in Stripe customer metadata' do
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          hash_including(
+            metadata: hash_including(
+              'email_hash' => a_string_matching(/\A[0-9a-f]{32}\z/),
+              'email_hash_created_at' => a_string_matching(/\A\d+\z/),
+              'home_region' => anything,
+            ),
+          ),
+        )
+        operation.call
+      end
+
+      it 'computes email_hash from Stripe customer email' do
+        expected_hash = Onetime::Utils::EmailHash.compute(stripe_customer_email)
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          hash_including(
+            metadata: hash_including('email_hash' => expected_hash),
+          ),
+        )
+        operation.call
+      end
+    end
+
+    context 'when Stripe customer already has email_hash (immutability)' do
+      let(:existing_hash) { 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4' }
+      let(:stripe_customer_with_hash) do
+        build_customer(
+          'id' => stripe_customer_id,
+          'email' => stripe_customer_email,
+          'metadata' => { 'email_hash' => existing_hash },
+        )
+      end
+
+      before do
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer_with_hash)
+      end
+
+      it 'does NOT overwrite existing email_hash' do
+        expect(Stripe::Customer).not_to receive(:update)
+        operation.call
+      end
+
+      it 'still returns :success' do
+        expect(operation.call).to eq(:success)
+      end
+    end
+
+    context 'when Stripe customer has no email' do
+      let(:stripe_customer_no_email) do
+        build_customer(
+          'id' => stripe_customer_id,
+          'email' => nil,
+          'metadata' => {},
+        )
+      end
+
+      before do
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer_no_email)
+      end
+
+      it 'does NOT set email_hash (cannot compute without email)' do
+        expect(Stripe::Customer).not_to receive(:update)
+        operation.call
+      end
+
+      it 'still returns :success (federation is secondary)' do
+        expect(operation.call).to eq(:success)
+      end
+    end
+
+    context 'when Stripe API call fails' do
+      before do
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_raise(Stripe::APIConnectionError.new('Connection refused'))
+      end
+
+      it 'does NOT fail the checkout (federation is secondary)' do
+        expect { operation.call }.not_to raise_error
+      end
+
+      it 'still returns :success' do
+        expect(operation.call).to eq(:success)
+      end
+    end
+
+    context 'organization email_hash computation' do
+      let!(:existing_org) do
+        org = create_test_organization(customer: customer, default: true)
+        org.billing_email = 'org-billing@example.com'
+        org.save
+        org
+      end
+
+      before do
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+        allow(Stripe::Customer).to receive(:update)
+          .and_return(stripe_customer)
+      end
+
+      it 'computes email_hash for organization if not present' do
+        expect(existing_org.email_hash).to be_nil
+        operation.call
+        existing_org.refresh!
+        expect(existing_org.email_hash).not_to be_nil
+        expect(existing_org.email_hash.length).to eq(32)
+        expect(existing_org.email_hash).to match(/\A[0-9a-f]{32}\z/)
+      end
+
+      it 'does NOT overwrite existing organization email_hash' do
+        existing_org.email_hash = 'existing_org_hash_value_1234567'
+        existing_org.save
+
+        operation.call
+        existing_org.refresh!
+        expect(existing_org.email_hash).to eq('existing_org_hash_value_1234567')
+      end
     end
   end
 end

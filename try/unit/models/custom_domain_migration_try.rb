@@ -74,16 +74,16 @@ Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 @organization.domains.size >= 2
 #=> true
 
-## Validation: Domain is in organization's domains collection
-@organization.domains.member?(@domain1.domainid)
+## Validation: Domain is in organization's domains collection (using wrapper for Familia v2)
+@organization.domain?(@domain1.domainid)
 #=> true
 
-## Validation: Second organization has its domain
-@organization2.domains.member?(@domain3.domainid)
+## Validation: Second organization has its domain (using wrapper for Familia v2)
+@organization2.domain?(@domain3.domainid)
 #=> true
 
-## Validation: Domains are not cross-contaminated between orgs
-@organization.domains.member?(@domain3.domainid)
+## Validation: Domains are not cross-contaminated between orgs (using wrapper for Familia v2)
+@organization.domain?(@domain3.domainid)
 #=> false
 
 ## Validation: Domain count matches instances index

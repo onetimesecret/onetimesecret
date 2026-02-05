@@ -1,7 +1,36 @@
 // src/types/ui/layouts.ts
 
 /**
- * Logo configuration for masthead and other layout components
+ * Layout type definitions for Vue components
+ *
+ * WHY EXPLICIT INTERFACES (not z.infer)?
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Vue's <script setup> macro uses compile-time type analysis for defineProps<T>().
+ * The compiler-sfc performs STATIC analysis - it parses TypeScript AST without
+ * executing any code. This means:
+ *
+ *   1. z.infer<typeof schema> cannot be resolved because it requires Zod's
+ *      type-level computation at compile time
+ *   2. Re-exports of z.infer types fail with "Unresolvable type reference"
+ *   3. Only directly-defined interfaces/types in the imported module work
+ *
+ * Error you'll see if you try z.infer with defineProps:
+ *   [@vue/compiler-sfc] Unresolvable type reference or unsupported built-in utility type
+ *
+ * PATTERN FOR ZOD + VUE:
+ * ─────────────────────────────────────────────────────────────────────────────
+ *   - src/schemas/ui/*.ts  → Zod schemas for runtime validation
+ *   - src/types/ui/*.ts    → Explicit interfaces for Vue component props
+ *
+ * The schemas and interfaces must be kept in sync manually. When updating
+ * schema fields, update the corresponding interface here.
+ *
+ * The schemas are still re-exported below for runtime validation use cases
+ * (e.g., validating props from route meta or external API responses).
+ */
+
+/**
+ * Logo configuration for masthead and other layout components.
  */
 export interface LogoConfig {
   /** Logo URL (image path or component name ending with .vue) */
@@ -27,7 +56,7 @@ export interface LogoConfig {
 }
 
 /**
- * UI display configuration for layout components
+ * UI display configuration for layout components.
  */
 export interface LayoutDisplay {
   displayGlobalBroadcast: boolean;
@@ -43,9 +72,18 @@ export interface LayoutDisplay {
 
 /**
  * Single interface for all layout properties.
- * Update as new fields become necessary.
+ * All LayoutDisplay properties are optional.
  */
-export interface LayoutProps extends Partial<LayoutDisplay> {
+export interface LayoutProps {
+  displayGlobalBroadcast?: boolean;
+  displayMasthead?: boolean;
+  displayNavigation?: boolean;
+  displayPrimaryNav?: boolean;
+  displayFooterLinks?: boolean;
+  displayFeedback?: boolean;
+  displayVersion?: boolean;
+  displayPoweredBy?: boolean;
+  displayToggles?: boolean;
   /** Logo configuration for the layout */
   logo?: LogoConfig;
   /** Colonel mode enables admin features */
@@ -53,7 +91,7 @@ export interface LayoutProps extends Partial<LayoutDisplay> {
 }
 
 /**
- * Extended layout properties for ImprovedLayout component
+ * Extended layout properties for ImprovedLayout component.
  */
 export interface ImprovedLayoutProps extends LayoutProps {
   /** Whether to show the sidebar */
@@ -61,3 +99,11 @@ export interface ImprovedLayoutProps extends LayoutProps {
   /** Sidebar position */
   sidebarPosition?: 'left' | 'right';
 }
+
+// Re-export schemas for runtime validation use cases
+export {
+  improvedLayoutPropsSchema,
+  layoutDisplaySchema,
+  layoutPropsSchema,
+  logoConfigSchema,
+} from '@/schemas/ui/layouts';

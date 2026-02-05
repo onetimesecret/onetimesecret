@@ -39,6 +39,35 @@
             :current-jurisdiction="currentJurisdiction" />
         </div>
       </section>
+
+      <!-- Changing Regions Guidance -->
+      <section
+        class="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800/50 dark:bg-amber-900/20">
+        <div class="border-b border-amber-200 px-6 py-4 dark:border-amber-800/50">
+          <h2 class="text-lg font-semibold text-amber-900 dark:text-amber-200">
+            {{ t('web.regions.changing_regions_title') }}
+          </h2>
+        </div>
+
+        <div class="space-y-4 p-6">
+          <p class="text-sm text-amber-800 dark:text-amber-300">
+            {{ t('web.regions.changing_regions_description') }}
+          </p>
+
+          <div class="rounded-md bg-white/60 p-4 dark:bg-gray-800/40">
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {{ t('web.regions.changing_regions_how_to') }}
+            </p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.regions.changing_regions_billing_note') }}
+            </p>
+          </div>
+
+          <p class="text-sm text-amber-700 dark:text-amber-400">
+            {{ t('web.regions.changing_regions_subscription_note') }}
+          </p>
+        </div>
+      </section>
     </div>
   </SettingsLayout>
 </template>

@@ -181,7 +181,9 @@ def sync_locale(
         stats[file_name] = len(translations)
 
         if dry_run:
-            print(f"\n[DRY-RUN] Would update {file_name} ({len(translations)} keys)")
+            print(
+                f"\n[DRY-RUN] Would update {file_name} ({len(translations)} keys)"
+            )
             if verbose:
                 sample = list(translations.items())[:5]
                 for key, value in sample:
@@ -199,7 +201,10 @@ def sync_locale(
                 set_nested_value(target_data, key, translation, strict=True)
             except KeyPathConflictError as e:
                 print(f"Error in {file_name}: {e}", file=sys.stderr)
-                print("  This indicates conflicting key structures.", file=sys.stderr)
+                print(
+                    "  This indicates conflicting key structures.",
+                    file=sys.stderr,
+                )
                 print("  Fix the source data before syncing.", file=sys.stderr)
                 return {}
 
@@ -272,7 +277,9 @@ def sync_locale_merged(
         return 0
 
     if dry_run:
-        print(f"\n[DRY-RUN] Would write {output_dir / f'{locale}.json'} ({len(all_translations)} keys)")
+        print(
+            f"\n[DRY-RUN] Would write {output_dir / f'{locale}.json'} ({len(all_translations)} keys)"
+        )
         if verbose:
             sample = list(all_translations.items())[:5]
             for key, value in sample:
@@ -289,7 +296,9 @@ def sync_locale_merged(
             set_nested_value(merged_data, key, translation, strict=True)
         except KeyPathConflictError as e:
             print(f"Error in {locale}: {e}", file=sys.stderr)
-            print("  This indicates conflicting key structures.", file=sys.stderr)
+            print(
+                "  This indicates conflicting key structures.", file=sys.stderr
+            )
             print("  Fix the source data before syncing.", file=sys.stderr)
             sys.exit(1)
 
@@ -347,7 +356,8 @@ Examples:
         help="Replace target files entirely instead of merging with existing",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Verbose output",
     )
@@ -378,11 +388,15 @@ Examples:
 
     # Determine which locales to sync
     if args.all:
-        locale_dirs = sorted([d.name for d in CONTENT_DIR.iterdir() if d.is_dir()])
+        locale_dirs = sorted(
+            [d.name for d in CONTENT_DIR.iterdir() if d.is_dir()]
+        )
         if not locale_dirs:
             print(f"No locale directories found in {CONTENT_DIR}")
             return 1
-        print(f"Syncing {len(locale_dirs)} locales: {', '.join(locale_dirs[:5])}{'...' if len(locale_dirs) > 5 else ''}")
+        print(
+            f"Syncing {len(locale_dirs)} locales: {', '.join(locale_dirs[:5])}{'...' if len(locale_dirs) > 5 else ''}"
+        )
         print()
     else:
         locale_dirs = [args.locale]
@@ -399,9 +413,9 @@ Examples:
         for locale in locale_dirs:
             if args.verbose:
                 if args.all:
-                    print(f"\n{'='*60}")
+                    print(f"\n{'=' * 60}")
                     print(f"Locale: {locale}")
-                    print(f"{'='*60}")
+                    print(f"{'=' * 60}")
 
                 print(f"Syncing translations for '{locale}' (merged mode)")
                 print(f"  From: {CONTENT_DIR / locale}")
@@ -425,25 +439,41 @@ Examples:
             source_key_count = len(source_keys)
 
             # Calculate completion stats for each locale
-            locale_stats: dict[str, tuple[int, int, bool]] = {}  # locale -> (translated, total, has_orphans)
+            locale_stats: dict[
+                str, tuple[int, int, bool]
+            ] = {}  # locale -> (translated, total, has_orphans)
             for locale in all_key_counts:
                 locale_keys = _get_source_keys(CONTENT_DIR / locale)
-                translated = len(source_keys & locale_keys)  # Keys in both source and locale
-                has_orphans = bool(locale_keys - source_keys)  # Keys in locale but not in source
-                locale_stats[locale] = (translated, all_key_counts[locale], has_orphans)
+                translated = len(
+                    source_keys & locale_keys
+                )  # Keys in both source and locale
+                has_orphans = bool(
+                    locale_keys - source_keys
+                )  # Keys in locale but not in source
+                locale_stats[locale] = (
+                    translated,
+                    all_key_counts[locale],
+                    has_orphans,
+                )
 
             # Sort by percentage descending (excluding source locale)
-            other_locales = [(loc, stats) for loc, stats in locale_stats.items() if loc != default_locale]
+            other_locales = [
+                (loc, stats)
+                for loc, stats in locale_stats.items()
+                if loc != default_locale
+            ]
             other_locales.sort(key=lambda x: x[1][0], reverse=True)
 
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"Locale sync complete ({len(all_key_counts)} locales)")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
 
             # Show source locale first
             if default_locale in locale_stats:
                 translated, total, _ = locale_stats[default_locale]
-                print(f"  {default_locale:8} {source_key_count:5} keys (100.0%)")
+                print(
+                    f"  {default_locale:8} {source_key_count:5} keys (100.0%)"
+                )
                 print()
 
             # Show other locales sorted by completion percentage
@@ -457,8 +487,10 @@ Examples:
                 marker = " *" if has_orphans else ""
                 print(f"  {locale:8} {translated:5} keys ({pct_str}){marker}")
 
-            print(f"{'='*60}")
-            print(f"Total: {grand_total} keys  (* = has orphaned keys not in source)")
+            print(f"{'=' * 60}")
+            print(
+                f"Total: {grand_total} keys  (* = has orphaned keys not in source)"
+            )
 
         return 0
 
@@ -467,9 +499,9 @@ Examples:
 
     for locale in locale_dirs:
         if args.all:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"Locale: {locale}")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
 
         print(f"Syncing translations for '{locale}'")
         print(f"  From: {CONTENT_DIR / locale}")
@@ -488,19 +520,21 @@ Examples:
             all_stats[locale] = stats
             if not args.dry_run and not args.all:
                 total = sum(stats.values())
-                print(f"\nSynced {total} translations across {len(stats)} files")
+                print(
+                    f"\nSynced {total} translations across {len(stats)} files"
+                )
 
     # Summary for --all mode
     if args.all and all_stats and not args.dry_run:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Summary")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         grand_total = 0
         for locale, stats in sorted(all_stats.items()):
             locale_total = sum(stats.values())
             grand_total += locale_total
             print(f"  {locale}: {locale_total} keys across {len(stats)} files")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Total: {grand_total} keys across {len(all_stats)} locales")
 
     return 0

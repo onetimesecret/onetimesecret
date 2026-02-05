@@ -414,6 +414,10 @@
     "text": "Neuspelo",
     "sha256": "031a8f0f"
   },
+  "web.billing.invoices.draft": {
+    "text": "Osnutek",
+    "sha256": "d2e16e61"
+  },
   "web.billing.invoices.load_error": {
     "text": "Nalaganje računov ni uspelo",
     "sha256": "0b0cb3f7"

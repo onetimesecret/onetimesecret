@@ -539,6 +539,10 @@
     "text": "Pro",
     "sha256": "957b0b87"
   },
+  "web.organizations.early_supporter_badge": {
+    "text": "Early Supporter",
+    "sha256": "e67d2ef8"
+  },
   "web.organizations.member_count": {
     "text": "{count} member | {count} members",
     "sha256": "f652af0c"

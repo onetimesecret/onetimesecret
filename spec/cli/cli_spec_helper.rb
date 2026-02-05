@@ -136,7 +136,12 @@ RSpec.configure do |config|
       lrange: [],
       llen: 0,
       flushdb: true,
-      ping: 'PONG'
+      ping: 'PONG',
+      # Migration infrastructure needs sorted set operations
+      zrange: [],
+      zadd: true,
+      zrem: true,
+      zscore: nil
     )
     allow(Familia).to receive(:dbclient).and_return(redis_mock)
 

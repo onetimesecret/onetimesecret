@@ -40,7 +40,6 @@ export const customDomainSchema = createModelSchema({
   trd: z.string(),
   tld: z.string(),
   sld: z.string(),
-  _original_value: z.string(),
 
   // Boolean fields that come as strings from API
   is_apex: transforms.fromString.boolean,

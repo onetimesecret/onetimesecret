@@ -260,13 +260,13 @@ COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
-COPY --chown=appuser:appuser scripts/entrypoint*.sh ./bin/
-COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
 
 # Copy S6 service definitions (as root for proper ownership)
-COPY --chown=root:root scripts/s6-rc.d /etc/s6-overlay/s6-rc.d
+COPY --chown=root:root docker/s6/services /etc/s6-overlay/s6-rc.d
 
 # Set permissions on service scripts
 RUN find /etc/s6-overlay/s6-rc.d -type f -name "run" -exec chmod +x {} \; && \
@@ -296,7 +296,7 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/update-version.sh
+    chmod +x bin/entrypoint.sh
 
 EXPOSE 3000
 
@@ -362,8 +362,8 @@ COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
-COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
-COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
 
@@ -391,7 +391,7 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/update-version.sh
+    chmod +x bin/entrypoint.sh
 
 EXPOSE 3000
 
