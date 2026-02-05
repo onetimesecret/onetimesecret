@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # DEPRECATED: REFERENCE ONLY - DO NOT EXECUTE
-# Use the 2026-01-26 migration scripts instead.
+# Use scripts/upgrades/v0.24.0/ instead.
 #
 # ---
 #
