@@ -101,18 +101,14 @@ module Onetime
     def member?(customer_or_objid)
       return false unless customer_or_objid
 
-      # Accept either a Customer object or a string objid
-      # Familia v2 serialize_value extracts identifier from objects but JSON-encodes strings,
-      # so we must pass objects to get consistent lookup behavior
-      customer = if customer_or_objid.is_a?(String)
-                   Customer.load(customer_or_objid)
-                 else
-                   customer_or_objid
-                 end
+      # Extract objid without loading the full object from Redis
+      objid = customer_or_objid.is_a?(String) ? customer_or_objid : customer_or_objid.objid
+      return false unless objid
 
-      return false unless customer
-
-      members.member?(customer)
+      # Create a lightweight, temporary customer instance for the membership check.
+      # This avoids a database call while still using Familia's serialization correctly.
+      dummy_customer = Customer.new(objid: objid)
+      members.member?(dummy_customer)
     end
 
     def member_count
@@ -174,18 +170,14 @@ module Onetime
     def domain?(domain_or_objid)
       return false unless domain_or_objid
 
-      # Accept either a CustomDomain object or a string objid/domainid
-      # Familia v2 serialize_value extracts identifier from objects but JSON-encodes strings
-      # NOTE: CustomDomain.load requires (display_domain, org_id), so use find_by_identifier
-      domain = if domain_or_objid.is_a?(String)
-                 CustomDomain.find_by_identifier(domain_or_objid, check_exists: false)
-               else
-                 domain_or_objid
-               end
+      # Extract objid without loading the full object from Redis
+      objid = domain_or_objid.is_a?(String) ? domain_or_objid : domain_or_objid.objid
+      return false unless objid
 
-      return false unless domain
-
-      domains.member?(domain)
+      # Create a lightweight, temporary domain instance for the membership check.
+      # This avoids a database call while still using Familia's serialization correctly.
+      dummy_domain = CustomDomain.new(objid: objid)
+      domains.member?(dummy_domain)
     end
 
     # Receipt management - Familia v2 auto-generated methods wrapper
@@ -198,17 +190,14 @@ module Onetime
     def receipt?(receipt_or_objid)
       return false unless receipt_or_objid
 
-      # Accept either a Receipt object or a string objid
-      # Familia v2 serialize_value extracts identifier from objects but JSON-encodes strings
-      receipt = if receipt_or_objid.is_a?(String)
-                  Receipt.find_by_identifier(receipt_or_objid, check_exists: false)
-                else
-                  receipt_or_objid
-                end
+      # Extract objid without loading the full object from Redis
+      objid = receipt_or_objid.is_a?(String) ? receipt_or_objid : receipt_or_objid.objid
+      return false unless objid
 
-      return false unless receipt
-
-      receipts.member?(receipt)
+      # Create a lightweight, temporary receipt instance for the membership check.
+      # This avoids a database call while still using Familia's serialization correctly.
+      dummy_receipt = Receipt.new(objid: objid)
+      receipts.member?(dummy_receipt)
     end
 
     # Authorization helpers
