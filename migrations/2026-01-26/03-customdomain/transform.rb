@@ -538,7 +538,7 @@ class CustomDomainTransformer
     when :string then value
     when :integer then value.to_i
     when :float, :timestamp then value.to_f  # timestamps stored as floats
-    when :boolean then value == 'true'
+    when :boolean then ['true', '1'].include?(value.to_s.downcase)
     else
       raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
     end
@@ -555,7 +555,7 @@ class CustomDomainTransformer
     when :string then value
     when :integer then value.to_i
     when :float then value.to_f
-    when :boolean then value == 'true'
+    when :boolean then ['true', '1'].include?(value.to_s.downcase)
     else value
     end
   end

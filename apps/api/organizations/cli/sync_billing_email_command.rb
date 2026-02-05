@@ -93,6 +93,9 @@ module Onetime
 
         stats = { unchanged: 0, updated: 0, errors: 0 }
 
+        # NOTE: index.all uses HGETALL which loads all entries into memory.
+        # For large datasets, consider using hscan_each if Familia adds support.
+        # Current usage is admin CLI with ~hundreds of orgs, so acceptable.
         index.all.each do |stripe_customer_id, org_objid|
           org = Onetime::Organization.load(org_objid)
 
@@ -184,23 +187,22 @@ module Onetime
         end
 
         org.billing_email = stripe_email
+        status            = 'UPDATED'
 
         # Optionally update contact_email
         if update_contact_email
           existing_contact = Onetime::Organization.find_by_contact_email(stripe_email)
           if existing_contact && existing_contact.objid != org.objid
             # billing_email updated but contact_email conflict
-            org.save
-            'UPDATED (billing only - contact conflict)'
+            status = 'UPDATED (billing only - contact conflict)'
           else
             org.contact_email = stripe_email
-            org.save
-            'UPDATED (both)'
+            status            = 'UPDATED (both)'
           end
-        else
-          org.save
-          'UPDATED'
         end
+
+        org.save
+        status
       end
 
       def truncate_email(email)

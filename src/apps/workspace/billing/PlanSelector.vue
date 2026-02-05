@@ -168,12 +168,13 @@ const getButtonLabel = (plan: BillingPlan): string => {
   if (isPlanCurrent(plan)) return t('web.billing.plans.current');
   if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
 
-  // For Free plan: show "Cancel to downgrade" since there's no checkout for free
-  if (plan.tier === 'free' && currentTier.value !== 'free') {
-    return t('web.billing.plans.cancel_to_downgrade');
+  if (canDowngrade(plan)) {
+    // For Free plan: show "Cancel to downgrade" since there's no checkout for free
+    if (plan.tier === 'free') {
+      return t('web.billing.plans.cancel_to_downgrade');
+    }
+    return t('web.billing.plans.downgrade');
   }
-
-  if (canDowngrade(plan)) return t('web.billing.plans.downgrade');
   return t('web.billing.plans.select_plan');
 };
 
