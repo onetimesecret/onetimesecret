@@ -22,6 +22,7 @@ module Onetime
           OT.ld "[features] #{base}: #{name}"
 
           base.include InstanceMethods
+          base.extend ClassMethods
 
           # Stripe billing fields
           base.field :stripe_customer_id       # Stripe Customer ID
@@ -32,11 +33,48 @@ module Onetime
           base.field :subscription_period_end  # Unix timestamp when current period ends
           base.field :stripe_checkout_email    # Not necessarily the same as billing_email
 
+          # HMAC email hash for cross-region federation (computed from billing_email)
+          # Used to match accounts across regions without exposing email addresses.
+          # The hash is immutable once set in Stripe customer metadata.
+          base.field :email_hash
+          base.field :email_hash_synced_at  # Format: YYYY-MM-DD@HH:MMZ
+
+          # Track when subscription was federated (not owned) - for notification UX
+          # Unix timestamp, nil if owner or no subscription
+          base.field :subscription_federated_at
+
           # Add indexes. e.g. unique_index :extid, :extid_index, within: Onetime::Organization
           base.unique_index :stripe_customer_id, :stripe_customer_id_index
           base.unique_index :stripe_subscription_id, :stripe_subscription_id_index
           base.unique_index :stripe_checkout_email, :stripe_checkout_email_index
           base.unique_index :billing_email, :billing_email_index
+          base.multi_index :email_hash, :email_hash_index
+        end
+
+        # Class methods for Organization federation lookups
+        module ClassMethods
+          # Find organizations with matching email_hash that don't own a subscription
+          #
+          # "Federated" orgs have the same email as a subscription owner in another region,
+          # but don't have their own direct Stripe link (no stripe_customer_id).
+          #
+          # @param email_hash [String] HMAC hash of email address
+          # @return [Array<Onetime::Organization>] Organizations with matching hash and no stripe_customer_id
+          #
+          # @example
+          #   federated = Organization.find_federated_by_email_hash('a1b2c3...')
+          #   federated.each { |org| org.update_from_stripe_subscription(sub) }
+          #
+          def find_federated_by_email_hash(email_hash)
+            return [] if email_hash.to_s.empty?
+
+            # Use multi_index to find all orgs with matching hash
+            all_matching = find_all_by_email_hash(email_hash)
+            return [] unless all_matching
+
+            # Filter to only those without stripe_customer_id (not owners)
+            all_matching.select { |org| org.stripe_customer_id.to_s.empty? }
+          end
         end
 
         module InstanceMethods
@@ -83,6 +121,70 @@ module Onetime
           # @return [Boolean] True if subscription status is 'canceled'
           def canceled?
             subscription_status.to_s == 'canceled'
+          end
+
+          # Federation Methods
+          # ------------------
+          # These methods support cross-region subscription federation using HMAC email hashes.
+          # See: https://github.com/onetimesecret/onetimesecret/issues/2471
+
+          # Compute and store the HMAC email hash from billing_email
+          #
+          # The hash is computed using FEDERATION_HMAC_SECRET and is deterministic:
+          # same email + same secret = same hash across all regions.
+          #
+          # @return [String, nil] The computed email hash, or nil if billing_email is empty
+          # @raise [Onetime::Problem] If FEDERATION_HMAC_SECRET is not configured
+          #
+          def compute_email_hash!
+            require 'onetime/utils/email_hash'
+            self.email_hash           = Onetime::Utils::EmailHash.compute(billing_email)
+            self.email_hash_synced_at = Time.now.utc.strftime('%Y-%m-%d@%H:%MZ')
+            email_hash
+          end
+
+          # Check if this organization owns a subscription (has direct Stripe link)
+          #
+          # Owners have stripe_customer_id set, meaning they created the subscription.
+          # Non-owners receive benefits via federation (matching email_hash).
+          #
+          # @return [Boolean] True if organization has a stripe_customer_id
+          #
+          def subscription_owner?
+            !stripe_customer_id.to_s.empty?
+          end
+
+          # Check if this organization received subscription benefits via federation
+          #
+          # Federated orgs have subscription_federated_at set but are not owners.
+          # This is used to show a one-time notification to users.
+          #
+          # @return [Boolean] True if subscription was federated (not owned)
+          #
+          def subscription_federated?
+            !subscription_federated_at.to_s.empty? && !subscription_owner?
+          end
+
+          # Mark this organization as having received federated subscription benefits
+          #
+          # Only marks non-owners; owners should never be marked as federated.
+          # Uses Unix timestamp for consistency with other timestamp fields.
+          #
+          # @return [Integer, nil] The timestamp set, or nil if organization is an owner
+          #
+          def mark_subscription_federated!
+            return nil if subscription_owner?
+
+            self.subscription_federated_at = Familia.now.to_i
+            subscription_federated_at.to_i
+          end
+
+          # Clear the federated status (e.g., when org becomes a direct subscriber)
+          #
+          # @return [void]
+          #
+          def clear_federated_status!
+            self.subscription_federated_at = nil
           end
 
           # Update billing fields from Stripe subscription
