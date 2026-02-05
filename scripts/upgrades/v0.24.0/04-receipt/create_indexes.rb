@@ -8,11 +8,12 @@
 #   ruby scripts/migrations/jan24/create_indexes_receipt.rb [OPTIONS]
 #
 # Options:
-#   --input-file=PATH      Input JSONL file (default: results/metadata/metadata_dump.jsonl)
-#   --output-dir=DIR       Output directory (default: results/metadata)
-#   --customer-lookup=PATH Path to customer email→objid JSON map (default: results/customer/email_to_objid.json)
-#   --org-lookup=PATH      Path to customer objid→org objid JSON map (default: results/organization/customer_objid_to_org_objid.json)
-#   --domain-lookup=PATH   Path to domain fqdn→objid JSON map (default: results/customdomain/fqdn_to_objid.json)
+#   --input-file=PATH      Input JSONL file (default: data/upgrades/v0.24.0/metadata/metadata_dump.jsonl)
+#   --output-dir=DIR       Output directory (default: data/upgrades/v0.24.0/metadata)
+#   --customer-lookup=PATH Path to customer email→objid JSON map (default: data/upgrades/v0.24.0/customer/email_to_objid.json)
+#   --org-lookup=PATH      Path to customer objid→org objid JSON map (default: data/upgrades/v0.24.0/organization/customer_objid_to_org_objid.json)
+#   --domain-lookup=PATH   Path to domain fqdn→objid JSON map (default: data/upgrades/v0.24.0/customdomain/fqdn_to_objid.json)
+#   --redis-url=URL        Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
 #   --dry-run              Show what would be created without writing
 #   --help                 Show this help
 #
@@ -28,20 +29,25 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 
-class ReceiptIndexCreator
-  DEFAULT_INPUT           = 'results/metadata/metadata_dump.jsonl'
-  DEFAULT_OUTPUT_DIR      = 'results/metadata'
-  OUTPUT_FILENAME         = 'receipt_indexes.jsonl'
-  DEFAULT_CUSTOMER_LOOKUP = 'results/customer/email_to_objid.json'
-  DEFAULT_ORG_LOOKUP      = 'results/organization/customer_objid_to_org_objid.json'
-  DEFAULT_DOMAIN_LOOKUP   = 'results/customdomain/fqdn_to_objid.json'
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
-  def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, dry_run: false)
+class ReceiptIndexCreator
+  DEFAULT_INPUT           = 'data/upgrades/v0.24.0/metadata/metadata_dump.jsonl'
+  DEFAULT_OUTPUT_DIR      = 'data/upgrades/v0.24.0/metadata'
+  OUTPUT_FILENAME         = 'receipt_indexes.jsonl'
+  DEFAULT_CUSTOMER_LOOKUP = 'data/upgrades/v0.24.0/customer/email_to_objid.json'
+  DEFAULT_ORG_LOOKUP      = 'data/upgrades/v0.24.0/organization/customer_objid_to_org_objid.json'
+  DEFAULT_DOMAIN_LOOKUP   = 'data/upgrades/v0.24.0/customdomain/fqdn_to_objid.json'
+
+  def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, redis_url:, dry_run: false)
     @input_file           = input_file
     @output_dir           = output_dir
     @customer_lookup_path = customer_lookup_path
     @org_lookup_path      = org_lookup_path
     @domain_lookup_path   = domain_lookup_path
+    @redis_url            = redis_url
     @dry_run              = dry_run
 
     @customer_lookup = load_lookup(@customer_lookup_path, 'customer')
@@ -124,7 +130,7 @@ class ReceiptIndexCreator
 
   def process_input_file(out)
     # Connect to Redis temp DB for decode operations (DB 15 for safety)
-    redis = Redis.new(url: 'redis://127.0.0.1:6379/15')
+    redis = Redis.new(url: "#{@redis_url}/15")
 
     File.foreach(@input_file) do |line|
       @stats[:records_read] += 1
@@ -383,6 +389,7 @@ def parse_args(args)
     customer_lookup: ReceiptIndexCreator::DEFAULT_CUSTOMER_LOOKUP,
     org_lookup: ReceiptIndexCreator::DEFAULT_ORG_LOOKUP,
     domain_lookup: ReceiptIndexCreator::DEFAULT_DOMAIN_LOOKUP,
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     dry_run: false,
   }
 
@@ -398,6 +405,8 @@ def parse_args(args)
       options[:org_lookup] = Regexp.last_match(1)
     when /^--domain-lookup=(.+)$/
       options[:domain_lookup] = Regexp.last_match(1)
+    when /^--redis-url=(.+)$/
+      options[:redis_url] = Regexp.last_match(1)
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
@@ -407,14 +416,15 @@ def parse_args(args)
         Creates V2 index commands for Receipt model from V1 metadata dump.
 
         Options:
-          --input-file=PATH      Input JSONL (default: results/metadata/metadata_dump.jsonl)
-          --output-dir=DIR       Output directory (default: results/metadata)
+          --input-file=PATH      Input JSONL (default: data/upgrades/v0.24.0/metadata/metadata_dump.jsonl)
+          --output-dir=DIR       Output directory (default: data/upgrades/v0.24.0/metadata)
           --customer-lookup=PATH JSON file mapping email -> customer objid
-                                 (default: results/customer/email_to_objid.json)
+                                 (default: data/upgrades/v0.24.0/customer/email_to_objid.json)
           --org-lookup=PATH      JSON file mapping customer objid -> org objid
-                                 (default: results/organization/customer_objid_to_org_objid.json)
+                                 (default: data/upgrades/v0.24.0/organization/customer_objid_to_org_objid.json)
           --domain-lookup=PATH   JSON file mapping fqdn -> objid
-                                 (default: results/customdomain/fqdn_to_objid.json)
+                                 (default: data/upgrades/v0.24.0/customdomain/fqdn_to_objid.json)
+          --redis-url=URL        Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
           --dry-run              Show what would be created
           --help                 Show this help
 
@@ -446,12 +456,18 @@ end
 if __FILE__ == $0
   options = parse_args(ARGV)
 
+  unless options[:redis_url]
+    warn 'Error: --redis-url is required'
+    exit 1
+  end
+
   creator = ReceiptIndexCreator.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
     customer_lookup_path: options[:customer_lookup],
     org_lookup_path: options[:org_lookup],
     domain_lookup_path: options[:domain_lookup],
+    redis_url: options[:redis_url],
     dry_run: options[:dry_run],
   )
 

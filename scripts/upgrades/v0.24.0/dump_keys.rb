@@ -10,11 +10,11 @@
 # Options:
 #   --db=N           Database number to dump (required, or use --all)
 #   --all            Dump all migration databases (6, 7, 8, 11)
-#   --redis-url=URL  Redis URL (default: redis://127.0.0.1:6379)
-#   --output-dir=DIR Output directory (default: results)
+#   --redis-url=URL  Redis URL (env: VALKEY_URL or REDIS_URL)
+#   --output-dir=DIR Output directory (default: data/upgrades/v0.24.0 in project root)
 #   --dry-run        Show what would be dumped without writing
 #
-# Output files per model: results/customer/customer_dump.jsonl, results/metadata/metadata_dump.jsonl, etc.
+# Output files per model: data/upgrades/v0.24.0/customer/customer_dump.jsonl, etc.
 # Includes 'created' timestamp for UUIDv7 generation during transform.
 # Idempotent: each run overwrites existing model files.
 
@@ -22,6 +22,10 @@ require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
+
+# Calculate project root from script location (scripts/upgrades/v0.24.0/)
+PROJECT_ROOT     = File.expand_path('../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class KeyDumper
   MIGRATION_DBS = [6, 7, 8, 11].freeze
@@ -239,8 +243,8 @@ end
 
 def parse_args(args)
   options = {
-    redis_url: 'redis://127.0.0.1:6379',
-    output_dir: 'results',
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
+    output_dir: DEFAULT_DATA_DIR,
     dry_run: false,
     db: nil,
     all: false,
@@ -260,22 +264,22 @@ def parse_args(args)
       options[:dry_run] = true
     when '--help', '-h'
       puts <<~HELP
-        Usage: ruby scripts/dump_keys.rb [OPTIONS]
+        Usage: ruby scripts/upgrades/v0.24.0/dump_keys.rb [OPTIONS]
 
         Options:
           --db=N           Database number to dump
           --all            Dump migration databases (6, 7, 8, 11)
-          --redis-url=URL  Redis URL (default: redis://127.0.0.1:6379)
-          --output-dir=DIR Output directory (default: results)
+          --redis-url=URL  Redis URL (env: VALKEY_URL or REDIS_URL)
+          --output-dir=DIR Output directory (default: #{DEFAULT_DATA_DIR})
           --dry-run        Show what would be dumped
           --help           Show this help
 
         Output files per model (in subdirectories):
-          results/customer/customer_dump.jsonl
-          results/customdomain/customdomain_dump.jsonl
-          results/metadata/metadata_dump.jsonl
-          results/secret/secret_dump.jsonl
-          results/feedback/feedback_dump.jsonl
+          data/upgrades/v0.24.0/customer/customer_dump.jsonl
+          data/upgrades/v0.24.0/customdomain/customdomain_dump.jsonl
+          data/upgrades/v0.24.0/metadata/metadata_dump.jsonl
+          data/upgrades/v0.24.0/secret/secret_dump.jsonl
+          data/upgrades/v0.24.0/feedback/feedback_dump.jsonl
 
         Each record includes 'created' timestamp for UUIDv7 generation.
       HELP

@@ -9,9 +9,9 @@
 #   ruby scripts/migrations/jan24/create_indexes_customer.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump file (default: results/customer/customer_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: results/customer)
-#   --redis-url=URL     Redis URL for temporary restore (default: redis://127.0.0.1:6379)
+#   --input-file=FILE   Input JSONL dump file (default: data/upgrades/v0.24.0/customer/customer_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/customer)
+#   --redis-url=URL     Redis URL for temporary restore (env: VALKEY_URL or REDIS_URL)
 #   --temp-db=N         Temporary database for restore operations (default: 15)
 #   --dry-run           Parse and count without writing output
 #
@@ -31,6 +31,10 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class CustomerIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_'
@@ -442,9 +446,9 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/customer/customer_dump.jsonl',
-    output_dir: 'results/customer',
-    redis_url: 'redis://127.0.0.1:6379',
+    input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_dump.jsonl'),
+    output_dir: File.join(DEFAULT_DATA_DIR, 'customer'),
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
     dry_run: false,
   }
@@ -468,9 +472,9 @@ def parse_args(args)
         Creates customer indexes from dump file.
 
         Options:
-          --input-file=FILE   Input JSONL dump (default: results/customer/customer_dump.jsonl)
-          --output-dir=DIR    Output directory (default: results/customer)
-          --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
+          --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.0/customer/customer_dump.jsonl)
+          --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/customer)
+          --redis-url=URL     Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse without writing output
           --help              Show this help

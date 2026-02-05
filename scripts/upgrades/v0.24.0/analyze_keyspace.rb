@@ -35,7 +35,7 @@ class KeyspaceAnalyzer
 
   HASH_SAMPLE_SIZE = 5  # Number of hash keys to sample per pattern
 
-  def initialize(db_number, redis_url: 'redis://127.0.0.1:6379')
+  def initialize(db_number, redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil))
     @db_number   = db_number
     @redis       = Redis.new(url: "#{redis_url}/#{db_number}")
     @patterns    = Hash.new { |h, k| h[k] = { count: 0, samples: [], types: Set.new } }

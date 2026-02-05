@@ -14,13 +14,17 @@
 #   ruby scripts/upgrades/v0.24.0/validate_instance_index.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump (default: results/customer/customer_dump.jsonl)
-#   --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
+#   --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.0/customer/customer_dump.jsonl)
+#   --redis-url=URL     Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
 #   --temp-db=N         Temp database number (default: 15)
 
 require 'redis'
 require 'json'
 require 'base64'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class InstanceIndexValidator
   TEMP_KEY_PREFIX = '_validate_tmp_'
@@ -201,8 +205,8 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/customer/customer_dump.jsonl',
-    redis_url: 'redis://127.0.0.1:6379',
+    input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_dump.jsonl'),
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
   }
 
@@ -221,8 +225,8 @@ def parse_args(args)
         Validates onetime:customer index against customer objects.
 
         Options:
-          --input-file=FILE   Input JSONL dump (default: results/customer/customer_dump.jsonl)
-          --redis-url=URL     Redis URL for temp restore (default: redis://127.0.0.1:6379)
+          --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.0/customer/customer_dump.jsonl)
+          --redis-url=URL     Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
           --temp-db=N         Temp database number (default: 15)
           --help              Show this help
 

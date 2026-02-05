@@ -10,14 +10,14 @@
 #   ruby scripts/upgrades/v0.24.0/02-organization/create_indexes.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL file (default: results/organization/organization_transformed.jsonl)
-#   --output-dir=DIR    Output directory (default: results/organization)
-#   --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
+#   --input-file=FILE   Input JSONL file (default: data/upgrades/v0.24.0/organization/organization_transformed.jsonl)
+#   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/organization)
+#   --redis-url=URL     Redis URL for DUMP decoding (env: VALKEY_URL or REDIS_URL)
 #   --temp-db=N         Temp database for restore operations (default: 15)
 #   --dry-run           Show what would be created without writing
 #
-# Input: results/organization/organization_transformed.jsonl (from generate.rb)
-# Output: results/organization/organization_indexes.jsonl (Redis commands)
+# Input: data/upgrades/v0.24.0/organization/organization_transformed.jsonl (from generate.rb)
+# Output: data/upgrades/v0.24.0/organization/organization_indexes.jsonl (Redis commands)
 
 require 'json'
 require 'base64'
@@ -25,6 +25,10 @@ require 'fileutils'
 require 'securerandom'
 require 'redis'
 require 'familia'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class OrganizationIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_idx_'
@@ -293,9 +297,9 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/organization/organization_transformed.jsonl',
-    output_dir: 'results/organization',
-    redis_url: 'redis://127.0.0.1:6379',
+    input_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_transformed.jsonl'),
+    output_dir: File.join(DEFAULT_DATA_DIR, 'organization'),
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
     dry_run: false,
   }
@@ -315,9 +319,9 @@ def parse_args(args)
         Run AFTER generate.rb which creates organization_transformed.jsonl.
 
         Options:
-          --input-file=FILE   Input JSONL (default: results/organization/organization_transformed.jsonl)
-          --output-dir=DIR    Output directory (default: results/organization)
-          --redis-url=URL     Redis URL for DUMP decoding (default: redis://127.0.0.1:6379)
+          --input-file=FILE   Input JSONL (default: data/upgrades/v0.24.0/organization/organization_transformed.jsonl)
+          --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/organization)
+          --redis-url=URL     Redis URL for DUMP decoding (env: VALKEY_URL or REDIS_URL)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Show what would be created without writing
           --help              Show this help

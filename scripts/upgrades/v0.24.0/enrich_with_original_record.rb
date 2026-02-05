@@ -18,16 +18,16 @@
 #   ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb [OPTIONS]
 #
 # Options:
-#   --input-dir=DIR    Input directory with dump/transformed files (default: results)
+#   --input-dir=DIR    Input directory with dump/transformed files (default: data/upgrades/v0.24.0)
 #   --output-dir=DIR   Output directory (default: results, overwrites in place)
 #   --dry-run          Show what would be generated without writing
 #
 # Input:
-#   results/{model}/{model}_dump.jsonl        (original v1 dump - source of v1_fields)
-#   results/{model}/{model}_transformed.jsonl (transformed v2 records - to be enriched)
+#   data/upgrades/v0.24.0/{model}/{model}_dump.jsonl        (original v1 dump - source of v1_fields)
+#   data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (transformed v2 records - to be enriched)
 #
 # Output:
-#   results/{model}/{model}_transformed.jsonl (enriched with _original_record in dump)
+#   data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (enriched with _original_record in dump)
 #
 # For :object records, adds _original_record hash field with structure:
 #   {
@@ -52,6 +52,10 @@ require 'securerandom'
 require 'redis'
 require 'familia'
 
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
+
 class OriginalRecordEnricher
   TEMP_KEY_PREFIX = '_enrich_tmp_'
 
@@ -70,7 +74,7 @@ class OriginalRecordEnricher
     },
     'metadata' => {
       # NOTE: metadata becomes receipt, but dump file is still metadata
-      # The transformed file lives in results/metadata/ with plural name
+      # The transformed file lives in data/upgrades/v0.24.0/metadata/ with plural name
       dump_file: 'metadata_dump.jsonl',
       transformed_file: 'receipt_transformed.jsonl',
       binary_safe: false,
@@ -353,9 +357,9 @@ end
 
 def parse_args(args)
   options = {
-    input_dir: 'results',
-    output_dir: 'results',
-    redis_url: 'redis://127.0.0.1:6379',
+    input_dir: DEFAULT_DATA_DIR,
+    output_dir: DEFAULT_DATA_DIR,
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
     dry_run: false,
   }
@@ -379,19 +383,19 @@ def parse_args(args)
         Enriches transformed JSONL files with _original_record for rollback/audit.
 
         Options:
-          --input-dir=DIR    Input directory (default: results)
-          --output-dir=DIR   Output directory (default: results)
-          --redis-url=URL    Redis URL for temp operations (default: redis://127.0.0.1:6379)
+          --input-dir=DIR    Input directory (default: data/upgrades/v0.24.0)
+          --output-dir=DIR   Output directory (default: data/upgrades/v0.24.0)
+          --redis-url=URL    Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
           --temp-db=N        Temp database number (default: 15)
           --dry-run          Preview without writing
           --help             Show this help
 
         Input files:
-          results/{model}/{model}_dump.jsonl        (v1 source)
-          results/{model}/{model}_transformed.jsonl (to be enriched)
+          data/upgrades/v0.24.0/{model}/{model}_dump.jsonl        (v1 source)
+          data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (to be enriched)
 
         Output:
-          results/{model}/{model}_transformed.jsonl (with _original_record)
+          data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (with _original_record)
 
         For each :object record, adds _original_record hash field with:
           - object: Original v1 hash fields (binary-safe for secret)

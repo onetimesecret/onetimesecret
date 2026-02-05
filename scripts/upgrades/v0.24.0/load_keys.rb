@@ -8,8 +8,8 @@
 #   ruby scripts/upgrades/v0.24.0/load_keys.rb [OPTIONS]
 #
 # Options:
-#   --input-dir=DIR      Input directory with model subdirs (default: results)
-#   --valkey-url=URL     Valkey/Redis URL (default: redis://127.0.0.1:6379)
+#   --input-dir=DIR      Input directory with model subdirs (default: data/upgrades/v0.24.0)
+#   --valkey-url=URL     Valkey/Redis URL (env: VALKEY_URL or REDIS_URL)
 #   --model=NAME         Load only specific model (customer, organization, customdomain, receipt, secret)
 #   --dry-run            Count records without loading
 #   --skip-indexes       Load only transformed records (skip index commands)
@@ -24,6 +24,10 @@
 require 'redis'
 require 'json'
 require 'base64'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class KeyLoader
   # Models in dependency order with their target databases
@@ -332,8 +336,8 @@ end
 
 def parse_args(args)
   options = {
-    input_dir: 'results',
-    valkey_url: 'redis://127.0.0.1:6379',
+    input_dir: DEFAULT_DATA_DIR,
+    valkey_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     model: nil,
     dry_run: false,
     skip_indexes: false,
@@ -361,8 +365,8 @@ def parse_args(args)
         Loads migrated data into Valkey/Redis from transformed JSONL files.
 
         Options:
-          --input-dir=DIR      Input directory with model subdirs (default: results)
-          --valkey-url=URL     Valkey/Redis URL (default: redis://127.0.0.1:6379)
+          --input-dir=DIR      Input directory with model subdirs (default: data/upgrades/v0.24.0)
+          --valkey-url=URL     Valkey/Redis URL (env: VALKEY_URL or REDIS_URL)
           --model=NAME         Load only specific model
           --dry-run            Count records without loading
           --skip-indexes       Load only transformed records (skip index commands)

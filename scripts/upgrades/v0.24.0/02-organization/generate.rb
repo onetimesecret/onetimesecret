@@ -10,17 +10,17 @@
 #   ruby scripts/upgrades/v0.24.0/02-organization/generate.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL file (default: results/customer/customer_transformed.jsonl)
-#   --output-dir=DIR    Output directory (default: results/organization)
-#   --redis-url=URL     Redis URL for temporary operations (default: redis://127.0.0.1:6379)
+#   --input-file=FILE   Input JSONL file (default: data/upgrades/v0.24.0/customer/customer_transformed.jsonl)
+#   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/organization)
+#   --redis-url=URL     Redis URL for temporary operations (env: VALKEY_URL or REDIS_URL)
 #   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
-# Input: results/customer/customer_transformed.jsonl (V2 customer records)
+# Input: data/upgrades/v0.24.0/customer/customer_transformed.jsonl (V2 customer records)
 # Output:
-#   - results/organization/organization_transformed.jsonl (V2 organization records)
-#   - results/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
-#   - results/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
+#   - data/upgrades/v0.24.0/organization/organization_transformed.jsonl (V2 organization records)
+#   - data/upgrades/v0.24.0/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
+#   - data/upgrades/v0.24.0/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
 
 require 'redis'
 require 'json'
@@ -29,6 +29,10 @@ require 'fileutils'
 require 'securerandom'
 require 'digest'
 require 'familia'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class OrganizationGenerator
   TEMP_KEY_PREFIX = '_migrate_tmp_org_'
@@ -408,9 +412,9 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/customer/customer_transformed.jsonl',
-    output_dir: 'results/organization',
-    redis_url: 'redis://127.0.0.1:6379',
+    input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_transformed.jsonl'),
+    output_dir: File.join(DEFAULT_DATA_DIR, 'organization'),
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
     dry_run: false,
   }
@@ -430,9 +434,9 @@ def parse_args(args)
         Organizations are NEW in V2 - one is created per Customer.
 
         Options:
-          --input-file=FILE   Input JSONL (default: results/customer/customer_transformed.jsonl)
-          --output-dir=DIR    Output directory (default: results/organization)
-          --redis-url=URL     Redis URL for temp operations (default: redis://127.0.0.1:6379)
+          --input-file=FILE   Input JSONL (default: data/upgrades/v0.24.0/customer/customer_transformed.jsonl)
+          --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/organization)
+          --redis-url=URL     Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output
           --help              Show this help

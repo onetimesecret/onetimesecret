@@ -9,10 +9,10 @@
 #   ruby scripts/migrations/jan24/create_indexes_customdomain.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE       Input JSONL dump file (default: results/customdomain/customdomain_dump.jsonl)
-#   --output-dir=DIR        Output directory (default: results/customdomain)
-#   --customer-lookup=FILE  Email->org_objid JSON map (default: results/organization/email_to_org_objid.json)
-#   --redis-url=URL         Redis URL for temporary restore (default: redis://127.0.0.1:6379)
+#   --input-file=FILE       Input JSONL dump file (default: data/upgrades/v0.24.0/customdomain/customdomain_dump.jsonl)
+#   --output-dir=DIR        Output directory (default: data/upgrades/v0.24.0/customdomain)
+#   --customer-lookup=FILE  Email->org_objid JSON map (default: data/upgrades/v0.24.0/organization/email_to_org_objid.json)
+#   --redis-url=URL         Redis URL for temporary restore (env: VALKEY_URL or REDIS_URL)
 #   --temp-db=N             Temporary database for restore operations (default: 15)
 #   --dry-run               Parse and count without writing output
 #
@@ -30,6 +30,10 @@ require 'json'
 require 'base64'
 require 'fileutils'
 require 'securerandom'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class CustomDomainIndexCreator
   TEMP_KEY_PREFIX = '_migrate_tmp_'
@@ -375,10 +379,10 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/customdomain/customdomain_dump.jsonl',
-    output_dir: 'results/customdomain',
-    customer_lookup: 'results/organization/email_to_org_objid.json',
-    redis_url: 'redis://127.0.0.1:6379',
+    input_file: File.join(DEFAULT_DATA_DIR, 'customdomain/customdomain_dump.jsonl'),
+    output_dir: File.join(DEFAULT_DATA_DIR, 'customdomain'),
+    customer_lookup: 'data/upgrades/v0.24.0/organization/email_to_org_objid.json',
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
     dry_run: false,
   }
@@ -404,10 +408,10 @@ def parse_args(args)
         Creates CustomDomain indexes from dump file.
 
         Options:
-          --input-file=FILE       Input JSONL dump (default: results/customdomain/customdomain_dump.jsonl)
-          --output-dir=DIR        Output directory (default: results/customdomain)
-          --customer-lookup=FILE  Email->org_objid JSON map (default: results/organization/email_to_org_objid.json)
-          --redis-url=URL         Redis URL for temp restore (default: redis://127.0.0.1:6379)
+          --input-file=FILE       Input JSONL dump (default: data/upgrades/v0.24.0/customdomain/customdomain_dump.jsonl)
+          --output-dir=DIR        Output directory (default: data/upgrades/v0.24.0/customdomain)
+          --customer-lookup=FILE  Email->org_objid JSON map (default: data/upgrades/v0.24.0/organization/email_to_org_objid.json)
+          --redis-url=URL         Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
           --temp-db=N             Temp database number (default: 15)
           --dry-run               Parse without writing output
           --help                  Show this help

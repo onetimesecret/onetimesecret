@@ -8,11 +8,11 @@
 #   ruby scripts/migrations/jan24/create_indexes_secret.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input dump file (default: results/secret/secret_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: results/secret)
+#   --input-file=FILE   Input dump file (default: data/upgrades/v0.24.0/secret/secret_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/secret)
 #   --dry-run           Show what would be created without writing
 #
-# Output: results/secret/secret_indexes.jsonl
+# Output: data/upgrades/v0.24.0/secret/secret_indexes.jsonl
 #
 # Indexes created:
 #   - secret:instances (sorted set): score=created, member=objid
@@ -21,6 +21,10 @@
 require 'json'
 require 'base64'
 require 'fileutils'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class SecretIndexCreator
   # Pattern to extract objid from key: secret:<objid>:object
@@ -182,8 +186,8 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/secret/secret_dump.jsonl',
-    output_dir: 'results/secret',
+    input_file: File.join(DEFAULT_DATA_DIR, 'secret/secret_dump.jsonl'),
+    output_dir: File.join(DEFAULT_DATA_DIR, 'secret'),
     dry_run: false,
   }
 
@@ -202,8 +206,8 @@ def parse_args(args)
         Creates index records for Secret model from dump file.
 
         Options:
-          --input-file=FILE   Input dump file (default: results/secret/secret_dump.jsonl)
-          --output-dir=DIR    Output directory (default: results/secret)
+          --input-file=FILE   Input dump file (default: data/upgrades/v0.24.0/secret/secret_dump.jsonl)
+          --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/secret)
           --dry-run           Show what would be created without writing
           --help              Show this help
 

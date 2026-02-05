@@ -17,19 +17,19 @@
 #   ruby scripts/upgrades/v0.24.0/04-receipt/transform.rb [OPTIONS]
 #
 # Options:
-#   --input-file=FILE   Input JSONL dump file (default: results/metadata/metadata_dump.jsonl)
-#   --output-dir=DIR    Output directory (default: results/metadata)
-#   --exports-dir=DIR   Base exports directory for loading indexes (default: results)
-#   --redis-url=URL     Redis URL for temporary operations (default: redis://127.0.0.1:6379)
+#   --input-file=FILE   Input JSONL dump file (default: data/upgrades/v0.24.0/metadata/metadata_dump.jsonl)
+#   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/metadata)
+#   --exports-dir=DIR   Base exports directory for loading indexes (default: data/upgrades/v0.24.0)
+#   --redis-url=URL     Redis URL for temporary operations (env: VALKEY_URL or REDIS_URL)
 #   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
 # Output: receipt_transformed.jsonl with V2 records in Redis DUMP format.
 #
 # Required index files (from prior migration phases):
-#   - results/customer/customer_indexes.jsonl (email -> customer_objid)
-#   - results/organization/organization_indexes.jsonl (email -> org_objid)
-#   - results/customdomain/customdomain_indexes.jsonl (fqdn -> domain_objid)
+#   - data/upgrades/v0.24.0/customer/customer_indexes.jsonl (email -> customer_objid)
+#   - data/upgrades/v0.24.0/organization/organization_indexes.jsonl (email -> org_objid)
+#   - data/upgrades/v0.24.0/customdomain/customdomain_indexes.jsonl (fqdn -> domain_objid)
 
 require 'redis'
 require 'json'
@@ -37,6 +37,10 @@ require 'base64'
 require 'fileutils'
 require 'securerandom'
 require 'familia'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class ReceiptTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_receipt_'
@@ -503,10 +507,10 @@ end
 
 def parse_args(args)
   options = {
-    input_file: 'results/metadata/metadata_dump.jsonl',
-    output_dir: 'results/metadata',
-    exports_dir: 'results',
-    redis_url: 'redis://127.0.0.1:6379',
+    input_file: File.join(DEFAULT_DATA_DIR, 'metadata/metadata_dump.jsonl'),
+    output_dir: File.join(DEFAULT_DATA_DIR, 'metadata'),
+    exports_dir: DEFAULT_DATA_DIR,
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
     dry_run: false,
   }
@@ -526,10 +530,10 @@ def parse_args(args)
         Transforms Receipt (Metadata) data from V1 dump to V2 format.
 
         Options:
-          --input-file=FILE   Input JSONL dump (default: results/metadata/metadata_dump.jsonl)
-          --output-dir=DIR    Output directory (default: results/metadata)
-          --exports-dir=DIR   Base exports directory for index files (default: results)
-          --redis-url=URL     Redis URL for temp operations (default: redis://127.0.0.1:6379)
+          --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.0/metadata/metadata_dump.jsonl)
+          --output-dir=DIR    Output directory (default: data/upgrades/v0.24.0/metadata)
+          --exports-dir=DIR   Base exports directory for index files (default: data/upgrades/v0.24.0)
+          --redis-url=URL     Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
           --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output
           --help              Show this help

@@ -11,12 +11,12 @@
 #   ruby scripts/migrations/jan24/enrich_with_identifiers.rb [OPTIONS]
 #
 # Options:
-#   --input-dir=DIR    Input directory with dump files (default: results)
+#   --input-dir=DIR    Input directory with dump files (default: data/upgrades/v0.24.0)
 #   --output-dir=DIR   Output directory (default: results, overwrites in place)
 #   --dry-run          Show what would be generated without writing
 #
-# Input: results/{model}/{model}_dump.jsonl
-# Output: results/{model}/{model}_dump.jsonl (enriched with objid, extid)
+# Input: data/upgrades/v0.24.0/{model}/{model}_dump.jsonl
+# Output: data/upgrades/v0.24.0/{model}/{model}_dump.jsonl (enriched with objid, extid)
 #
 # For :object records with 'created' field:
 #   - objid: UUIDv7 generated from created timestamp
@@ -36,6 +36,10 @@ require 'json'
 require 'securerandom'
 require 'digest'
 require 'fileutils'
+
+# Calculate project root from script location
+PROJECT_ROOT     = File.expand_path('../../..', __dir__)
+DEFAULT_DATA_DIR = File.join(PROJECT_ROOT, 'data/upgrades/v0.24.0')
 
 class IdentifierEnricher
   # Model name -> extid prefix mapping
@@ -256,8 +260,8 @@ end
 
 def parse_args(args)
   options = {
-    input_dir: 'results',
-    output_dir: 'results',
+    input_dir: DEFAULT_DATA_DIR,
+    output_dir: DEFAULT_DATA_DIR,
     dry_run: false,
   }
 
@@ -276,14 +280,14 @@ def parse_args(args)
         Enriches dump JSONL files with UUIDv7 objid and derived extid.
 
         Options:
-          --input-dir=DIR    Input directory (default: results)
-          --output-dir=DIR   Output directory (default: results)
+          --input-dir=DIR    Input directory (default: data/upgrades/v0.24.0)
+          --output-dir=DIR   Output directory (default: data/upgrades/v0.24.0)
           --dry-run          Preview without writing
           --help             Show this help
 
         Input files (from dump_keys.rb):
-          results/customer/customer_dump.jsonl
-          results/customdomain/customdomain_dump.jsonl
+          data/upgrades/v0.24.0/customer/customer_dump.jsonl
+          data/upgrades/v0.24.0/customdomain/customdomain_dump.jsonl
 
         For each :object record with 'created' field, adds:
           - objid: UUIDv7 generated from created timestamp
