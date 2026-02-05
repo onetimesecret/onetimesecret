@@ -17,7 +17,7 @@ require 'familia'
 # These are exact copies from the transform.rb files
 
 module MigrationFieldTypes
-  # From migrations/2026-01-26/01-customer/transform.rb
+  # From scripts/upgrades/v0.24.0/01-customer/transform.rb
   CUSTOMER_FIELD_TYPES = {
     # Core fields (customer.rb)
     'custid' => :string,
@@ -60,7 +60,7 @@ module MigrationFieldTypes
     'migrated_at' => :timestamp,
   }.freeze
 
-  # From migrations/2026-01-26/02-organization/generate.rb
+  # From scripts/upgrades/v0.24.0/02-organization/generate.rb
   ORGANIZATION_FIELD_TYPES = {
     # Core fields (organization.rb)
     'objid' => :string,
@@ -88,7 +88,7 @@ module MigrationFieldTypes
     'migrated_at' => :timestamp,
   }.freeze
 
-  # From migrations/2026-01-26/03-customdomain/transform.rb
+  # From scripts/upgrades/v0.24.0/03-customdomain/transform.rb
   CUSTOMDOMAIN_FIELD_TYPES = {
     # Core fields (custom_domain.rb)
     'domainid' => :string,
@@ -120,7 +120,7 @@ module MigrationFieldTypes
     'migrated_at' => :timestamp,
   }.freeze
 
-  # From migrations/2026-01-26/04-receipt/transform.rb
+  # From scripts/upgrades/v0.24.0/04-receipt/transform.rb
   RECEIPT_FIELD_TYPES = {
     # Core fields (receipt.rb)
     'objid' => :string,
@@ -159,7 +159,7 @@ module MigrationFieldTypes
     'revealed' => :timestamp,
   }.freeze
 
-  # From migrations/2026-01-26/05-secret/transform.rb
+  # From scripts/upgrades/v0.24.0/05-secret/transform.rb
   SECRET_FIELD_TYPES = {
     # Core fields (secret.rb)
     'objid' => :string,

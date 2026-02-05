@@ -44,6 +44,7 @@ AllCops:
     - 'try/**/*'
     - 'apps/**/try/**/*'
     - 'scripts/*'
+    - 'scripts/upgrades/**/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
 
