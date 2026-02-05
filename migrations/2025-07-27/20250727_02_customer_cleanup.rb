@@ -8,7 +8,7 @@
 # Purpose: Removes Customer records based on the following criteria:
 # - custid: is empty, anon, or matches "tryouts*onetimesecret.com" -> remove
 # - email: is empty or matches "tryouts*onetimesecret.com" -> remove
-# - created: missing or before 2010 -> remove
+# - created: missing or before 2021 -> remove
 #
 # Usage:
 #   bin/ots migrate 20250727_02_customer_cleanup # Preview changes
@@ -87,7 +87,7 @@ module Onetime
     end
 
     def invalid_created_date?(created)
-      created.nil? || created.to_i < Time.new(2010, 1, 1).to_i
+      created.nil? || created.to_i < Time.new(2021, 1, 1).to_i
     end
 
     def track_removal_reason(obj, field)
