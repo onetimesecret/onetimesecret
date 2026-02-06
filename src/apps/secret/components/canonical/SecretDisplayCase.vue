@@ -5,12 +5,18 @@
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import SecretDisplayHelpContent from '@/apps/secret/components/SecretDisplayHelpContent.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { Secret, SecretDetails } from '@/schemas/models';
   import { computed } from 'vue';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
   const { t } = useI18n();
+  const bootstrapStore = useBootstrapStore();
+  const signinEnabled = computed(
+    () => bootstrapStore.authentication.enabled
+      && bootstrapStore.authentication.signin
+  );
 
   interface Props {
     record: Secret | null;
@@ -232,7 +238,7 @@
           </p>
         </div>
         <div
-          v-else
+          v-else-if="signinEnabled"
           class="mt-16">
           <a
             href="/signin"

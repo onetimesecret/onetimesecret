@@ -147,10 +147,7 @@ function handleMfaAccess(
  * master AUTH_ENABLED toggle), the user is redirected to '/'.
  */
 function handleDisabledAuthFeature(to: RouteLocationNormalized) {
-  const feature = to.meta?.requiresFeature as
-    | 'signup'
-    | 'signin'
-    | undefined;
+  const feature = to.meta.requiresFeature;
   if (!feature) return null;
 
   const bootstrapStore = useBootstrapStore();

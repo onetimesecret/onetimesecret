@@ -18,7 +18,9 @@ const router = useRouter();
 const languageStore = useLanguageStore();
 const bootstrapStore = useBootstrapStore();
 const { authentication } = storeToRefs(bootstrapStore);
-const signupEnabled = computed(() => authentication.value.signup);
+const signupEnabled = computed(
+  () => authentication.value.enabled && authentication.value.signup
+);
 
 // Handle auth errors passed via query params (from SSO/magic link failures)
 const authError = ref<string | null>(null);
