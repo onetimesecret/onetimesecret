@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "На основе Onetime Secret",
-    "sha256": "935442d0"
+    "text": "На основе {product_name}",
+    "sha256": "eff8e046"
   },
   "web.branding.heading_logo": {
     "text": "Логотип {0}",

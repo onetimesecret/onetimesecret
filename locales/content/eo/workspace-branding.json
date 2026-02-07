@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Funkciigita de Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Funkciigita de {product_name}",
+    "sha256": "2e4ca498"
   },
   "web.branding.heading_logo": {
     "text": "{0} logo",

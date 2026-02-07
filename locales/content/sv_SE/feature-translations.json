@@ -64,8 +64,8 @@
     "sha256": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Följande personer har donerat sin tid för att hjälpa till att utöka räckvidden för Onetime Secret:",
-    "sha256": "85a766af"
+    "text": "Följande personer har donerat sin tid för att hjälpa till att utöka räckvidden för {product_name}:",
+    "sha256": "2d3641ab"
   },
   "web.translations.translations": {
     "text": "Översättningar",
@@ -84,8 +84,8 @@
     "sha256": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Sedan 2012 har Onetime Secret tillhandahållit ett säkert sätt att dela känslig information världen över. Med användare i regioner där engelska inte är huvudspråket är korrekta översättningar avgörande för att göra säker kommunikation tillgänglig för alla.",
-    "sha256": "87a6e9af"
+    "text": "Sedan 2012 har {product_name} tillhandahållit ett säkert sätt att dela känslig information världen över. Med användare i regioner där engelska inte är huvudspråket är korrekta översättningar avgörande för att göra säker kommunikation tillgänglig för alla.",
+    "sha256": "5dcbc611"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Hjälp säker kommunikation att nå hela världen",

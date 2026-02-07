@@ -456,8 +456,8 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Naučite se, kako integrirati Onetime Secret v svoje aplikacije",
-    "sha256": "6e8f910f"
+    "text": "Naučite se, kako integrirati {product_name} v svoje aplikacije",
+    "sha256": "922efcdb"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Referenca REST API",

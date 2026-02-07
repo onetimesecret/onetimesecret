@@ -140,8 +140,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "أنت تشاهد رسالة آمنة تمت مشاركتها معك عبر Onetime Secret. يتم عرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا.",
-    "sha256": "e0f1a10c"
+    "text": "أنت تشاهد رسالة آمنة تمت مشاركتها معك عبر {product_name}. يتم عرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا.",
+    "sha256": "34acfee0"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "هل يمكنني عرض هذا السر مرة أخرى لاحقاً؟",
@@ -256,8 +256,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "زيارة الصفحة الرئيسية لـ Onetime Secret",
-    "sha256": "625556d2"
+    "text": "زيارة الصفحة الرئيسية لـ {product_name}",
+    "sha256": "6bad5026"
   },
   "web.layout.footer_navigation": {
     "text": "تنقل التذييل",

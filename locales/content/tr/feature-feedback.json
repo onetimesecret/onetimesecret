@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Onetime Secret'ı geliştirmeye yardımcı olduğunuz için teşekkürler. Bu çok şey ifade ediyor."
+    "text": "{product_name}'ı geliştirmeye yardımcı olduğunuz için teşekkürler. Bu çok şey ifade ediyor.",
+    "sha256": "6cffe761"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Hassas bilgileri güvenli bir şekilde paylaşmanıza yardımcı olmak için bu aracı oluşturduk ve gerçek dünya deneyimleriniz çabalarımızı odaklamak için çok önemlidir. Sırada ne üzerinde çalışacağımızı ve hizmeti herkes için nasıl daha iyi hale getireceğimizi anlamamıza yardımcı olur."
@@ -41,7 +42,8 @@
     "text": "Merhaba, geri bildirim sayfamıza uğradığınız için teşekkürler. Girdileriniz sadece hoş karşılanmakla kalmaz, aynı zamanda çok önemlidir."
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Onetime Secret'ın kurucusu Delano'dan bir not"
+    "text": "{product_name}'ın kurucusu Delano'dan bir not",
+    "sha256": "a532f52b"
   },
   "web.feedback.open_feedback_form": {
     "text": "Geri bildirim formunu aç",

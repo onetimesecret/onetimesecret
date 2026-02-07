@@ -64,8 +64,8 @@
     "sha256": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "以下人员捐献了他们的时间来帮助扩大 Onetime Secret 的覆盖范围：",
-    "sha256": "85a766af"
+    "text": "以下人员捐献了他们的时间来帮助扩大 {product_name} 的覆盖范围：",
+    "sha256": "b0aa689e"
   },
   "web.translations.translations": {
     "text": "翻译",
@@ -84,8 +84,8 @@
     "sha256": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "自 2012 年以来，Onetime Secret 一直在全球提供安全的方式来分享敏感信息。由于用户遍布英语不是主要语言的地区，准确的翻译对于让每个人都能使用安全通信至关重要。",
-    "sha256": "87a6e9af"
+    "text": "自 2012 年以来，{product_name} 一直在全球提供安全的方式来分享敏感信息。由于用户遍布英语不是主要语言的地区，准确的翻译对于让每个人都能使用安全通信至关重要。",
+    "sha256": "f8aca669"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "帮助安全通信走向全球",

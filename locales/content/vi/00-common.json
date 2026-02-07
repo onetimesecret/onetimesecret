@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Luôn xác minh bạn đang ở trên trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới.",
-    "sha256": "b588f5b2"
+    "text": "Luôn xác minh bạn đang ở trên trang web chính thức của {product_name}. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới.",
+    "sha256": "43066772"
   },
   "web.STATUS.previewed": {
     "text": "Đã xem trước",

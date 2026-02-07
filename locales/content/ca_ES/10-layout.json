@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Estàs veient un missatge segur que s'ha compartit amb tu a través d'Onetime Secret. Aquest contingut es mostra només una vegada i després s'elimina permanentment dels nostres servidors.",
-    "sha256": "e0f1a10c"
+    "text": "Estàs veient un missatge segur que s'ha compartit amb tu a través d'{product_name}. Aquest contingut es mostra només una vegada i després s'elimina permanentment dels nostres servidors.",
+    "sha256": "0a15d2bf"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Puc veure aquest secret més tard?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visitar la pàgina d'inici d'Onetime Secret",
-    "sha256": "625556d2"
+    "text": "Visitar la pàgina d'inici d'{product_name}",
+    "sha256": "fc891baa"
   },
   "web.layout.footer_navigation": {
     "text": "Navegació del peu de pàgina",

@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secret aracılığıyla sizinle paylaşılan güvenli bir mesajı görüntülüyorsunuz. Bu içerik yalnızca bir kez gösterilir ve ardından sunucularımızdan kalıcı olarak silinir.",
-    "sha256": "e0f1a10c"
+    "text": "{product_name} aracılığıyla sizinle paylaşılan güvenli bir mesajı görüntülüyorsunuz. Bu içerik yalnızca bir kez gösterilir ve ardından sunucularımızdan kalıcı olarak silinir.",
+    "sha256": "286d3ca0"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Bu gizli mesajı daha sonra tekrar görüntüleyebilir miyim?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secret ana sayfasını ziyaret et",
-    "sha256": "625556d2"
+    "text": "{product_name} ana sayfasını ziyaret et",
+    "sha256": "fbbc04fa"
   },
   "web.layout.footer_navigation": {
     "text": "Altbilgi navigasyonu",

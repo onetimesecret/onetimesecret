@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "E tiro ana koe i tētahi karere haumaru i tohatohaina ki a koe mā Onetime Secret. Kotahi noa te wā e whakaatuhia ai tēnei ihirangi, kātahi ka mukua pūmau mai i ā mātou tūmau.",
-    "sha256": "e0f1a10c"
+    "text": "E tiro ana koe i tētahi karere haumaru i tohatohaina ki a koe mā {product_name}. Kotahi noa te wā e whakaatuhia ai tēnei ihirangi, kātahi ka mukua pūmau mai i ā mātou tūmau.",
+    "sha256": "d3f6db05"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Ka taea e au te tiro anō i tēnei karere huna ā muri ake?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Toro atu ki te whārangi kāinga o Onetime Secret",
-    "sha256": "625556d2"
+    "text": "Toro atu ki te whārangi kāinga o {product_name}",
+    "sha256": "8bc77c1d"
   },
   "web.layout.footer_navigation": {
     "text": "Whakatere waewae",

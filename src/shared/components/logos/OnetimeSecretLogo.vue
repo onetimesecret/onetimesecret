@@ -1,7 +1,7 @@
 <!-- src/shared/components/logos/OnetimeSecretLogo.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import OnetimeSecretIcon from '@/shared/components/icons/OnetimeSecretIcon.vue';
@@ -24,11 +24,11 @@
     // showRegionSelector: true,
   });
 
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
 
   // Core logo properties
-  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one_time_secret_literal'));
-  const siteName = computed(() => props.siteName || t('web.homepage.one_time_secret_literal'));
+  const ariaLabel = computed(() => props.ariaLabel || bt('web.homepage.one_time_secret_literal'));
+  const siteName = computed(() => props.siteName || bt('web.homepage.one_time_secret_literal'));
   const showSiteName = computed(() => !props.isUserPresent && !!siteName.value);
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64

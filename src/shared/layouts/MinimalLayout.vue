@@ -1,14 +1,14 @@
 <!-- src/shared/layouts/MinimalLayout.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
 
   import BaseLayout from './BaseLayout.vue';
 
-  const { t } = useI18n();
+  const { bt } = useBrandI18n();
 
   const bootstrapStore = useBootstrapStore();
   const { site_host } = storeToRefs(bootstrapStore);
@@ -49,8 +49,8 @@
           :href="`https://${site_host}`"
           class="text-[0.7rem] text-gray-300 transition-colors duration-200 hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-600 dark:hover:text-gray-500"
           rel="noopener noreferrer"
-          :aria-label="t('web.homepage.visit_onetime_secret_home')">
-          {{ t('web.branding.powered_by_onetime_secret') }}
+          :aria-label="bt('web.homepage.visit_onetime_secret_home')">
+          {{ bt('web.branding.powered_by_onetime_secret') }}
         </a>
       </div>
     </template>

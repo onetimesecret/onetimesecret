@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Hvala, da pomagate izboljšati Onetime Secret. To nam veliko pomeni."
+    "text": "Hvala, da pomagate izboljšati {product_name}. To nam veliko pomeni.",
+    "sha256": "129d42e0"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "To orodje smo zgradili, da vam pomagamo varno deliti občutljive informacije, in vaše izkušnje iz resničnega sveta so ključnega pomena za osredotočanje naših prizadevanj. Pomaga nam ugotoviti, na čem delati naprej in kako storitev izboljšati za vse."
@@ -41,7 +42,8 @@
     "text": "Pozdravljeni, hvala, da ste obiskali našo stran za povratne informacije. Vaš prispevek ni samo dobrodošel - je ključnega pomena."
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Opomba od Delana, ustanovitelja Onetime Secret"
+    "text": "Opomba od Delana, ustanovitelja {product_name}",
+    "sha256": "052e758d"
   },
   "web.feedback.open_feedback_form": {
     "text": "Odpri obrazec za povratne informacije",

@@ -1,9 +1,9 @@
 <!-- src/apps/secret/components/layout/SecretFooterAttribution.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
 
-const { t } = useI18n();
+const { t, bt } = useBrandI18n();
 
   defineProps<{
     siteHost: string;
@@ -25,8 +25,8 @@ const { t } = useI18n();
         class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="t('web.layout.visit_onetime_secret_homepage')">
-        {{ t('web.branding.powered_by_onetime_secret') }}
+        :aria-label="bt('web.layout.visit_onetime_secret_homepage')">
+        {{ bt('web.branding.powered_by_onetime_secret') }}
       </a>
 
       <template v-if="showTerms">
@@ -63,8 +63,8 @@ const { t } = useI18n();
           dark:text-gray-600 dark:hover:text-gray-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="t('web.layout.visit_onetime_secret_homepage')">
-        {{ t('web.branding.powered_by_onetime_secret') }}
+        :aria-label="bt('web.layout.visit_onetime_secret_homepage')">
+        {{ bt('web.branding.powered_by_onetime_secret') }}
       </a>
     </div>
   </footer>

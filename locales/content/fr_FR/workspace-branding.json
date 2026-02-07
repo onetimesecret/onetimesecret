@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Propulsé par Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Propulsé par {product_name}",
+    "sha256": "f8cd6c67"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}",

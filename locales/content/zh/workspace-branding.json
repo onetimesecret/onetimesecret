@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "由 Onetime Secret 提供支持",
-    "sha256": "935442d0"
+    "text": "由 {product_name} 提供支持",
+    "sha256": "23ca0fc3"
   },
   "web.branding.heading_logo": {
     "text": "{0} 标志",

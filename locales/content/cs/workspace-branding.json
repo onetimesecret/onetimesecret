@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Provozováno službou Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Provozováno službou {product_name}",
+    "sha256": "0edd945c"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}",

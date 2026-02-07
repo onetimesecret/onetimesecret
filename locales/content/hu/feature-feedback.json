@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Köszönjük, hogy segít az Onetime Secret fejlesztésében. Sokat jelent."
+    "text": "Köszönjük, hogy segít az {product_name} fejlesztésében. Sokat jelent.",
+    "sha256": "876dbded"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Ezt az eszközt azért hoztuk létre, hogy segítsünk biztonságosan megosztani érzékeny információkat, és valós tapasztalatai kulcsfontosságúak erőfeszítéseink fókuszálásához. Segít megértenünk, min dolgozzunk tovább, és hogyan tegyük jobbá a szolgáltatást mindenki számára."
@@ -41,7 +42,8 @@
     "text": "Szia, köszönjük, hogy felkereste visszajelzési oldalunkat. Észrevételei nem csak szívesen látottak - létfontosságúak."
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Üzenet Delanótól, az Onetime Secret alapítójától"
+    "text": "Üzenet Delanótól, az {product_name} alapítójától",
+    "sha256": "f01a5a91"
   },
   "web.feedback.open_feedback_form": {
     "text": "Visszajelzési űrlap megnyitása",

@@ -1,13 +1,13 @@
 <!-- src/apps/workspace/account/region/AvailableRegions.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import JurisdictionList from '@/shared/components/modals/settings/JurisdictionList.vue';
   import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
   import { computed, onMounted } from 'vue';
 
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
   const jurisdictionStore = useJurisdictionStore();
 
   const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
@@ -59,7 +59,7 @@
               {{ t('web.regions.changing_regions_how_to') }}
             </p>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.regions.changing_regions_billing_note') }}
+              {{ bt('web.regions.changing_regions_billing_note') }}
             </p>
           </div>
 

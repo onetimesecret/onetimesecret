@@ -112,8 +112,8 @@
     "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Onetime Secret je na voljo v več jezikih. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nerodno izražanje. Vaše povratne informacije nam pomagajo izboljšati - če opazite težave, {send-feedback}",
-    "sha256": "3b482d7f"
+    "text": "{product_name} je na voljo v več jezikih. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nerodno izražanje. Vaše povratne informacije nam pomagajo izboljšati - če opazite težave, {send-feedback}",
+    "sha256": "285d0fc1"
   },
   "web.meta.translations_are_new_spotted_an_error": {
     "text": "Prevodi so novi. Opazili ste napako? {send-feedback}",
@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Gledate varno sporočilo, ki vam je bilo posredovano prek Onetime Secret. Ta vsebina se prikaže samo enkrat in je nato trajno izbrisana z naših strežnikov.",
-    "sha256": "e0f1a10c"
+    "text": "Gledate varno sporočilo, ki vam je bilo posredovano prek {product_name}. Ta vsebina se prikaže samo enkrat in je nato trajno izbrisana z naših strežnikov.",
+    "sha256": "87ecf3c5"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Ali si lahko to skrivnost ogledam še kdaj?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Obiščite domačo stran Onetime Secret",
-    "sha256": "625556d2"
+    "text": "Obiščite domačo stran {product_name}",
+    "sha256": "2326b3b0"
   },
   "web.layout.footer_navigation": {
     "text": "Navigacija v nogi",

@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "请确认您访问的是 Onetime Secret 官方网站。不法分子有时会创建与 Onetime Secret 外观完全相同的虚假网站来窃取您的信息。为避免钓鱼攻击，请在创建新链接前核实域名。",
-    "sha256": "b588f5b2"
+    "text": "请确认您访问的是 {product_name} 官方网站。不法分子有时会创建与 {product_name} 外观完全相同的虚假网站来窃取您的信息。为避免钓鱼攻击，请在创建新链接前核实域名。",
+    "sha256": "a36c3fc3"
   },
   "web.STATUS.previewed": {
     "text": "已预览",

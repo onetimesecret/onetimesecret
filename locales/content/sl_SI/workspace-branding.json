@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Poganja Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Poganja {product_name}",
+    "sha256": "bd52d961"
   },
   "web.branding.heading_logo": {
     "text": "Logotip {0}",

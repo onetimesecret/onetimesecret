@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Bekræft altid at du er på den officielle Onetime Secret-hjemmeside. Svindlere opretter nogle gange falske hjemmesider der ligner Onetime Secret for at stjæle dine beskeder. For at undgå phishing-angreb, tjek regiondomænet før du opretter nye links.",
-    "sha256": "b588f5b2"
+    "text": "Bekræft altid at du er på den officielle {product_name}-hjemmeside. Svindlere opretter nogle gange falske hjemmesider der ligner {product_name} for at stjæle dine beskeder. For at undgå phishing-angreb, tjek regiondomænet før du opretter nye links.",
+    "sha256": "4aa7f8af"
   },
   "web.STATUS.previewed": {
     "text": "Forhåndsvist",
