@@ -299,6 +299,11 @@ site:
     csp:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
+branding:
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] || '#dc4a22' %>
+  product_name: <%= ENV['BRAND_PRODUCT_NAME'] || 'Onetime Secret' %>
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'] || nil %>
+
 features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
