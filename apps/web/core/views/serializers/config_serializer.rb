@@ -46,6 +46,10 @@ module Core
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''
 
+        # Branding config for frontend stores
+        output['brand_primary_color'] = view_vars['brand_primary_color']
+        output['brand_product_name']  = view_vars['brand_product_name']
+
         # Pass development config to frontend (includes domain_context_enabled)
         output['development'] = {
           'enabled' => development['enabled'] || false,
@@ -75,6 +79,8 @@ module Core
         def output_template
           {
             'authentication' => nil,
+            'brand_primary_color' => nil,
+            'brand_product_name' => nil,
             'd9s_enabled' => nil,
             'development' => nil,
             'diagnostics' => nil,

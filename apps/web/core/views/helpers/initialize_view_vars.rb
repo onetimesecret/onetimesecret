@@ -176,6 +176,11 @@ module Core
         base_scheme          = safe_site['ssl'] ? 'https://' : 'http://'
         baseuri              = base_scheme + site_host
 
+        # Branding config for templates (theme-color meta tags, etc.)
+        branding_config      = OT.conf.fetch('branding', {})
+        brand_primary_color  = branding_config['primary_color'] || '#dc4a22'
+        brand_product_name   = branding_config['product_name'] || 'Onetime Secret'
+
         # Return all view variables as a hash
         {
           'authenticated' => authenticated,
@@ -204,6 +209,8 @@ module Core
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,
+          'brand_primary_color' => brand_primary_color,
+          'brand_product_name' => brand_product_name,
         }
       end
 

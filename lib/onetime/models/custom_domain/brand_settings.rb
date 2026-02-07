@@ -21,6 +21,8 @@ module Onetime
     #   BrandSettings.valid_font?('sans')      #=> true
     #
     module BrandSettingsConstants
+      # Static fallback defaults used when OT.conf is not available (e.g. during boot).
+      # At runtime, use BrandSettingsConstants.defaults which reads from config.
       DEFAULTS = {
         font_family: 'sans',
         corner_style: 'rounded',
@@ -33,6 +35,15 @@ module Onetime
         passphrase_required: false,
         notify_enabled: false,
       }.freeze
+
+      # Returns defaults with primary_color resolved from branding config.
+      # Falls back to DEFAULTS when OT.conf is not available.
+      def self.defaults
+        color = if defined?(OT) && OT.respond_to?(:conf) && OT.conf
+                  OT.conf.dig('branding', 'primary_color')
+                end
+        DEFAULTS.merge(primary_color: color || DEFAULTS[:primary_color])
+      end
 
       BOOLEAN_FIELDS = %w[
         allow_public_homepage
@@ -82,9 +93,9 @@ module Onetime
           normalized[field_sym] = coerce_boolean(normalized[field_sym])
         end
 
-        # Build full hash with nil defaults for all members, then apply DEFAULTS, then user values
+        # Build full hash with nil defaults for all members, then apply defaults, then user values
         all_nil = members.each_with_object({}) { |m, h| h[m] = nil }
-        new(**all_nil, **BrandSettingsConstants::DEFAULTS, **normalized)
+        new(**all_nil, **BrandSettingsConstants.defaults, **normalized)
       end
 
       # Coerces a value to boolean
