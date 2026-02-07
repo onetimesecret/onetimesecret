@@ -6,11 +6,13 @@
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import StatusBar from '@/shared/components/ui/StatusBar.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
+  import { useBrandTheme } from '@/shared/composables/useBrandTheme';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { locale } = useI18n();
+  useBrandTheme();
   const route = useRoute();
 
   const defaultProps: LayoutProps = {

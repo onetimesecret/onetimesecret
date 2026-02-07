@@ -69,8 +69,10 @@
   // Right button focus ring (respects right corner rounding)
   const rightButtonFocusClass = computed(() => `${corners.value.rightCorner}`);
 
-  // Compute the ring color based on primaryColor availability
-  const ringColorStyle = computed(() => props.primaryColor ? props.primaryColor : 'var(--color-brand-600)');
+  // Ring and shadow colors resolve via CSS variables (set by useBrandTheme)
+  const ringColorStyle = computed(() => props.primaryColor || 'var(--color-brand-600)');
+  const bgColorStyle = computed(() => props.primaryColor || 'var(--color-brand-500)');
+  const shadowColorStyle = computed(() => props.primaryColor || 'var(--color-brand-500)');
 
   // Button labels based on selected action
   const buttonLabel = computed(() => {
@@ -155,11 +157,11 @@
         },
       ]"
       :style="{
-        backgroundColor: `${primaryColor}`,
-        borderColor: `${primaryColor}`,
+        backgroundColor: bgColorStyle,
+        borderColor: bgColorStyle,
         '--tw-ring-color': ringColorStyle,
         '--tw-ring-opacity': '0.2',
-        '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
+        '--button-shadow-color': shadowColorStyle,
       }"
       :disabled="isMainButtonDisabled"
       :aria-label="buttonLabel">
@@ -223,11 +225,11 @@ ry="2" />
         'active:scale-[0.98]',
       ]"
       :style="{
-        backgroundColor: `${primaryColor}`,
-        borderColor: `${primaryColor}`,
+        backgroundColor: bgColorStyle,
+        borderColor: bgColorStyle,
         '--tw-ring-color': ringColorStyle,
         '--tw-ring-opacity': '0.2',
-        '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
+        '--button-shadow-color': shadowColorStyle,
       }"
       @click="handleDropdownToggle"
       aria-label="Show more actions"
