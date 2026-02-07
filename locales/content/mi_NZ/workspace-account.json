@@ -456,8 +456,8 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Akohia me pēhea te whakahono i a Onetime Secret ki ō taupānga",
-    "sha256": "6e8f910f"
+    "text": "Akohia me pēhea te whakahono i a {product_name} ki ō taupānga",
+    "sha256": "cc288933"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Tohutoro REST API",

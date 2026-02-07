@@ -1,7 +1,7 @@
 <!-- src/shared/components/logos/LegacyLogo.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
   import OnetimeSecretIcon from '@/shared/components/icons/OnetimeSecretIcon.vue';
 import { type LogoConfig } from '@/types/ui/layouts';
   import { computed } from 'vue';
@@ -18,9 +18,9 @@ import { type LogoConfig } from '@/types/ui/layouts';
     }
   );
 
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
 
-  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one_time_secret_literal'));
+  const ariaLabel = computed(() => props.ariaLabel || bt('web.homepage.one_time_secret_literal'));
 
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64

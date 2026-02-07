@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Ngā mihi mō tō āwhina ki a Onetime Secret ki te whakapai ake. He mea nui tēnei."
+    "text": "Ngā mihi mō tō āwhina ki a {product_name} ki te whakapai ake. He mea nui tēnei.",
+    "sha256": "e31cbf58"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Kua hangaia e mātou tēnei taputapu hei āwhina i a koe ki te tuari mōhiohio tairongo i runga i te haumaru, ā, he mea nui ō wheako ao-tūturu mō te arotahi i ā mātou mahi. Ka āwhina i a mātou ki te whakatau he aha te mahi ā muri ake nei me te pēhea te whakapai ake i te ratonga mō te katoa."
@@ -41,7 +42,8 @@
     "text": "Tēnā koe, ngā mihi mō tō toro mai ki tā mātou whārangi urupare. Ehara tō kōrero i te mea pōwhiri noa - he mea nui."
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "He tuhipoka mai i a Delano, kaiwhakarewa o Onetime Secret"
+    "text": "He tuhipoka mai i a Delano, kaiwhakarewa o {product_name}",
+    "sha256": "a170a2d6"
   },
   "web.feedback.open_feedback_form": {
     "text": "Huaki puka urupare",

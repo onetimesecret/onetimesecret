@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Impulsat per Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Impulsat per {product_name}",
+    "sha256": "8d62d940"
   },
   "web.branding.heading_logo": {
     "text": "Logotip de {0}",

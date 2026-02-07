@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "אתה צופה בהודעה מאובטחת ששותפה איתך דרך Onetime Secret. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו.",
-    "sha256": "e0f1a10c"
+    "text": "אתה צופה בהודעה מאובטחת ששותפה איתך דרך {product_name}. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו.",
+    "sha256": "d6945d55"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "האם אוכל לצפות בסוד זה שוב מאוחר יותר?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "ביקור בדף הבית של Onetime Secret",
-    "sha256": "625556d2"
+    "text": "ביקור בדף הבית של {product_name}",
+    "sha256": "59e146fb"
   },
   "web.layout.footer_navigation": {
     "text": "ניווט תחתון",

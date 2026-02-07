@@ -1,7 +1,7 @@
 <!-- src/shared/components/layout/MastHead.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { useAuthStore } from '@/shared/stores/authStore';
@@ -36,7 +36,7 @@
   const isUserPresent = computed(() => authStore.isUserPresent);
 
   // i18n setup
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
 
   // Header configuration
   const headerConfig = computed(() => ui.value?.header);
@@ -47,7 +47,7 @@
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
+  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || bt('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   // Custom domain logos are larger to emphasize brand identity
   const isCustomDomainLogo = computed(() => !!domain_logo.value);
@@ -60,7 +60,7 @@
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
   const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
+  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || bt('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -229,7 +229,7 @@
             <router-link
               v-if="authentication.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret')"
+              :title="bt('web.homepage.log_in_to_onetime_secret')"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ t('web.COMMON.header_sign_in') }}

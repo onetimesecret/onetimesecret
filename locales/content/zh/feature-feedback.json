@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "感谢您帮助 Onetime Secret 改进。这意义重大。"
+    "text": "感谢您帮助 {product_name} 改进。这意义重大。",
+    "sha256": "8a94cbdd"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "我们构建了这个工具来帮助您安全地分享敏感信息，您的实际使用体验对于我们集中精力至关重要。它帮助我们确定下一步要做什么以及如何为每个人改进服务。"
@@ -41,7 +42,8 @@
     "text": "嘿，感谢您访问我们的反馈页面。您的意见不仅受欢迎，而且至关重要。"
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "来自 Onetime Secret 创始人 Delano 的一封信"
+    "text": "来自 {product_name} 创始人 Delano 的一封信",
+    "sha256": "f9258ee6"
   },
   "web.feedback.open_feedback_form": {
     "text": "打开反馈表单",

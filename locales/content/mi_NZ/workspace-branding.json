@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Nā Onetime Secret te mana",
-    "sha256": "935442d0"
+    "text": "Nā {product_name} te mana",
+    "sha256": "eb66485c"
   },
   "web.branding.heading_logo": {
     "text": "Moko {0}",

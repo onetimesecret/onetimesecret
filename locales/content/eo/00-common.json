@@ -1248,8 +1248,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de Onetime Secret. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn.",
-    "sha256": "b588f5b2"
+    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de {product_name}. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel {product_name} por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn.",
+    "sha256": "cf3f4b4d"
   },
   "web.pricing.title": {
     "text": "Simplaj, travideblaj prezoj",

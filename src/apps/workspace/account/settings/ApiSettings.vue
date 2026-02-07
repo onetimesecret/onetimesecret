@@ -1,7 +1,7 @@
 <!-- src/apps/workspace/account/settings/ApiSettings.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
   import APIKeyForm from '@/apps/workspace/components/account/APIKeyForm.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
@@ -9,7 +9,7 @@
   import { storeToRefs } from 'pinia';
   import { onMounted } from 'vue';
 
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
   const accountStore = useAccountStore();
   const { account } = storeToRefs(accountStore);
 
@@ -65,7 +65,7 @@
 
         <div class="p-6">
           <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            {{ t('web.settings.api.documentation_description') }}
+            {{ bt('web.settings.api.documentation_description') }}
           </p>
 
           <div class="space-y-3">

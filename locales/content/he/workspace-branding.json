@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "מופעל על ידי Onetime Secret",
-    "sha256": "935442d0"
+    "text": "מופעל על ידי {product_name}",
+    "sha256": "d2ef2680"
   },
   "web.branding.heading_logo": {
     "text": "לוגו {0}",

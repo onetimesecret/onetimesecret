@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Onetime Secret 개선에 도움을 주셔서 감사합니다. 정말 소중합니다."
+    "text": "{product_name} 개선에 도움을 주셔서 감사합니다. 정말 소중합니다.",
+    "sha256": "cad168eb"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "저희는 민감한 정보를 안전하게 공유할 수 있도록 이 도구를 만들었으며, 귀하의 실제 경험은 저희의 노력을 집중하는 데 중요합니다. 이는 다음에 무엇을 작업할지, 모든 사용자를 위해 서비스를 어떻게 개선할지 파악하는 데 도움이 됩니다."
@@ -41,7 +42,8 @@
     "text": "안녕하세요, 저희 피드백 페이지를 방문해 주셔서 감사합니다. 귀하의 의견은 단순히 환영하는 것이 아니라 매우 중요합니다."
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Onetime Secret 창립자 Delano의 메시지"
+    "text": "{product_name} 창립자 Delano의 메시지",
+    "sha256": "593897f4"
   },
   "web.feedback.open_feedback_form": {
     "text": "의견 양식 열기",

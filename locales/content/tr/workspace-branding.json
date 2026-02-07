@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Onetime Secret tarafından desteklenmektedir",
-    "sha256": "935442d0"
+    "text": "{product_name} tarafından desteklenmektedir",
+    "sha256": "a4f548c5"
   },
   "web.branding.heading_logo": {
     "text": "{0} Logo",

@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Her zaman resmi Onetime Secret web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için Onetime Secret'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce alan adını kontrol edin.",
-    "sha256": "b588f5b2"
+    "text": "Her zaman resmi {product_name} web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için {product_name}'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce alan adını kontrol edin.",
+    "sha256": "07b5e36a"
   },
   "web.STATUS.previewed": {
     "text": "Önizlendi",

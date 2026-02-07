@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "مدعوم بواسطة Onetime Secret",
-    "sha256": "935442d0"
+    "text": "مدعوم بواسطة {product_name}",
+    "sha256": "684a42ee"
   },
   "web.branding.heading_logo": {
     "text": "شعار {0}",

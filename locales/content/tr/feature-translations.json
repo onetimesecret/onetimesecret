@@ -64,8 +64,8 @@
     "sha256": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Aşağıdaki kişiler, Onetime Secret'ın erişimini genişletmeye yardımcı olmak için zamanlarını bağışladılar:",
-    "sha256": "85a766af"
+    "text": "Aşağıdaki kişiler, {product_name}'ın erişimini genişletmeye yardımcı olmak için zamanlarını bağışladılar:",
+    "sha256": "d0ee13e5"
   },
   "web.translations.translations": {
     "text": "Çeviriler",
@@ -84,8 +84,8 @@
     "sha256": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "2012'den beri Onetime Secret, dünya çapında hassas bilgileri paylaşmanın güvenli bir yolunu sunmaktadır. İngilizce'nin birincil dil olmadığı bölgelerdeki kullanıcılarla, güvenli iletişimi herkes için erişilebilir kılmak için doğru çeviriler esastır.",
-    "sha256": "87a6e9af"
+    "text": "2012'den beri {product_name}, dünya çapında hassas bilgileri paylaşmanın güvenli bir yolunu sunmaktadır. İngilizce'nin birincil dil olmadığı bölgelerdeki kullanıcılarla, güvenli iletişimi herkes için erişilebilir kılmak için doğru çeviriler esastır.",
+    "sha256": "e2c20887"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Güvenli İletişimi Küresel Hale Getirmeye Yardımcı Olun",

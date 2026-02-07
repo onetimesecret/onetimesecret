@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Zobrazujete zabezpečenou zprávu, která s vámi byla sdílena prostřednictvím Onetime Secret. Tento obsah se zobrazí pouze jednou a poté je trvale smazán z našich serverů.",
-    "sha256": "e0f1a10c"
+    "text": "Zobrazujete zabezpečenou zprávu, která s vámi byla sdílena prostřednictvím {product_name}. Tento obsah se zobrazí pouze jednou a poté je trvale smazán z našich serverů.",
+    "sha256": "e1e82a79"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Mohu toto tajemství zobrazit znovu později?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Navštívit domovskou stránku Onetime Secret",
-    "sha256": "625556d2"
+    "text": "Navštívit domovskou stránku {product_name}",
+    "sha256": "0ef2774e"
   },
   "web.layout.footer_navigation": {
     "text": "Navigace zápatí",

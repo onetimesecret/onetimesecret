@@ -456,8 +456,8 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Ismerje meg, hogyan integrálhatja az Onetime Secret-et alkalmazásaiba",
-    "sha256": "6e8f910f"
+    "text": "Ismerje meg, hogyan integrálhatja az {product_name}-et alkalmazásaiba",
+    "sha256": "19b398ad"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API referencia",

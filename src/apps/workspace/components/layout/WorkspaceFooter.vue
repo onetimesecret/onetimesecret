@@ -7,7 +7,7 @@
   - Added: Standard SaaS footer links (API Docs, Branding Guide, Feedback)
 -->
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
@@ -23,7 +23,7 @@
     displayPoweredBy: true,
   });
 
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
   const { ot_version, ot_version_long, domains_enabled } = storeToRefs(bootstrapStore);
@@ -200,7 +200,7 @@
         <div class="flex items-center gap-x-3">
           <span
             v-if="displayVersion"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               target="_blank"
@@ -217,13 +217,13 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
               {{ t('web.COMMON.powered_by') }}
-              {{ t('web.homepage.onetime_secret_literal') }}
+              {{ bt('web.homepage.onetime_secret_literal') }}
             </a>
           </span>
         </div>

@@ -64,8 +64,8 @@
     "sha256": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "다음 분들이 Onetime Secret의 도달 범위를 확장하는 데 시간을 기부해 주셨습니다:",
-    "sha256": "85a766af"
+    "text": "다음 분들이 {product_name}의 도달 범위를 확장하는 데 시간을 기부해 주셨습니다:",
+    "sha256": "b551eb93"
   },
   "web.translations.translations": {
     "text": "번역",
@@ -84,8 +84,8 @@
     "sha256": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "2012년부터 Onetime Secret은 전 세계적으로 민감한 정보를 안전하게 공유하는 방법을 제공해 왔습니다. 영어가 주요 언어가 아닌 지역의 사용자들이 있어, 정확한 번역은 모든 사람이 안전한 통신에 접근할 수 있도록 하는 데 필수적입니다.",
-    "sha256": "87a6e9af"
+    "text": "2012년부터 {product_name}은 전 세계적으로 민감한 정보를 안전하게 공유하는 방법을 제공해 왔습니다. 영어가 주요 언어가 아닌 지역의 사용자들이 있어, 정확한 번역은 모든 사람이 안전한 통신에 접근할 수 있도록 하는 데 필수적입니다.",
+    "sha256": "d4799cc1"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "안전한 소통을 전 세계로 확장하는 데 도움을 주세요",

@@ -152,8 +152,8 @@
     "sha256": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "If your billing contact email differs from your Onetime Secret account email, use the billing contact email for the new region account to maintain your subscription benefits.",
-    "sha256": "dac1cc28"
+    "text": "If your billing contact email differs from your {product_name} account email, use the billing contact email for the new region account to maintain your subscription benefits.",
+    "sha256": "d49662b0"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Your subscription benefits will automatically apply to any account created with your billing email address.",

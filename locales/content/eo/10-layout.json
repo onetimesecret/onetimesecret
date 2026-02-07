@@ -140,8 +140,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Vi rigardas sekuran mesaĝon kiu estis kunhavigita kun vi per Onetime Secret. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj.",
-    "sha256": "e0f1a10c"
+    "text": "Vi rigardas sekuran mesaĝon kiu estis kunhavigita kun vi per {product_name}. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj.",
+    "sha256": "c7aba1df"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Ĉu mi povas vidi ĉi tiun sekreton denove poste?",
@@ -256,8 +256,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Viziti Onetime Secret hejmpaĝon",
-    "sha256": "625556d2"
+    "text": "Viziti {product_name} hejmpaĝon",
+    "sha256": "f414520f"
   },
   "web.layout.footer_navigation": {
     "text": "Piedteksta navigado",

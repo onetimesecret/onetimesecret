@@ -1,9 +1,9 @@
 <!-- src/apps/secret/components/SecretDisplayHelpContent.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
 
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
 </script>
 
 <template>
@@ -22,7 +22,7 @@
           {{ t('web.help.secret_view_faq.what_am_i_looking_at.title') }}
         </h3>
         <p>
-          {{ t('web.help.secret_view_faq.what_am_i_looking_at.description') }}
+          {{ bt('web.help.secret_view_faq.what_am_i_looking_at.description') }}
         </p>
       </div>
 

@@ -2,9 +2,9 @@
 
 /** eslint-disable tailwindcss/classnames-order */
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
 
-const { t } = useI18n();
+const { t, bt } = useBrandI18n();
 
   interface Props {}
   defineProps<Props>();
@@ -26,7 +26,7 @@ const { t } = useI18n();
           {{ t('web.secrets.what_is_this') }}
         </h3>
         <p>
-          {{ t('web.secrets.onetime_secret_is_a_secure_way_to_share_sensitiv') }}
+          {{ bt('web.secrets.onetime_secret_is_a_secure_way_to_share_sensitiv') }}
         </p>
       </div>
 

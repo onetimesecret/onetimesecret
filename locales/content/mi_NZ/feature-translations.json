@@ -64,8 +64,8 @@
     "sha256": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Kua koha te hunga e whai ake nei i tō rātou wā ki te āwhina i te horopaki o Onetime Secret:",
-    "sha256": "85a766af"
+    "text": "Kua koha te hunga e whai ake nei i tō rātou wā ki te āwhina i te horopaki o {product_name}:",
+    "sha256": "2de1d0a2"
   },
   "web.translations.translations": {
     "text": "Whakamāoritanga",
@@ -84,8 +84,8 @@
     "sha256": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Mai i te tau 2012, kua whakarato a Onetime Secret i tētahi huarahi haumaru ki te tuari i ngā mōhiohio tairongo puta noa i te ao. Me ngā kaiwhakamahi puta noa i ngā rohe kāore te reo Pākehā i te reo matua, he mea nui ngā whakamaoritanga tika mō te whakarite i te whakawhitiwhiti haumaru ki te katoa.",
-    "sha256": "87a6e9af"
+    "text": "Mai i te tau 2012, kua whakarato a {product_name} i tētahi huarahi haumaru ki te tuari i ngā mōhiohio tairongo puta noa i te ao. Me ngā kaiwhakamahi puta noa i ngā rohe kāore te reo Pākehā i te reo matua, he mea nui ngā whakamaoritanga tika mō te whakarite i te whakawhitiwhiti haumaru ki te katoa.",
+    "sha256": "ed4c32e2"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Āwhinatia te Whakapānga Haumaru Kia Ao Whānui",

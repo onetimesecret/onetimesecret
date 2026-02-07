@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。",
-    "sha256": "e0f1a10c"
+    "text": "{product_name}を通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。",
+    "sha256": "9a85bafc"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "このシークレットを後で再度表示できますか?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secretホームページへ",
-    "sha256": "625556d2"
+    "text": "{product_name}ホームページへ",
+    "sha256": "42c44371"
   },
   "web.layout.footer_navigation": {
     "text": "フッターナビゲーション",

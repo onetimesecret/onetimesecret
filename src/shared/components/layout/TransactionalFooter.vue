@@ -1,7 +1,7 @@
 <!-- src/shared/components/layout/TransactionalFooter.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import JurisdictionToggle from '@/shared/components/ui/JurisdictionToggle.vue';
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
@@ -21,7 +21,7 @@
     displayPoweredBy: true,
   });
 
-  const { t } = useI18n();
+  const { t, bt } = useBrandI18n();
   const bootstrapStore = useBootstrapStore();
   const {
     regions_enabled,
@@ -78,7 +78,7 @@
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               :aria-label="t('web.layout.release_notes')">
@@ -92,13 +92,13 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
               {{ t('web.COMMON.powered_by') }}
-              {{ t('web.homepage.onetime_secret_literal') }}
+              {{ bt('web.homepage.onetime_secret_literal') }}
             </a>
           </span>
         </div>
