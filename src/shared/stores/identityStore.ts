@@ -1,14 +1,18 @@
 // src/shared/stores/identityStore.ts
 
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
+import {
+  DEFAULT_BUTTON_TEXT_LIGHT,
+  DEFAULT_CORNER_CLASS,
+  DEFAULT_PRIMARY_COLOR,
+} from '@/shared/constants/brand';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useBootstrapStore } from './bootstrapStore';
 
-export const DEFAULT_PRIMARY_COLOR = '#dc4a22';
-export const DEFAULT_CORNER_CLASS = 'rounded-lg';
-export const DEFAULT_BUTTON_TEXT_LIGHT = true; // light text for default colour
+// Re-export for existing consumers
+export { DEFAULT_BUTTON_TEXT_LIGHT, DEFAULT_CORNER_CLASS, DEFAULT_PRIMARY_COLOR };
 
 /**
  * Represents the product's identity state for a given domain context

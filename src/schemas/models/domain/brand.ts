@@ -2,6 +2,7 @@
 
 import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
+import { DEFAULT_PRIMARY_COLOR } from '@/shared/constants/brand';
 import { z } from 'zod';
 
 /**
@@ -76,13 +77,13 @@ export const brandSettingschema = z
     primary_color: z
       .string()
       .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
-      .default('#dc4a22'), // Default to Onetime Secret brand colour
+      .default(DEFAULT_PRIMARY_COLOR), // Default to Onetime Secret brand colour
     colour: z.string().optional(),
     instructions_pre_reveal: z.string().nullish(),
     instructions_reveal: z.string().nullish(),
     instructions_post_reveal: z.string().nullish(),
     description: z.string().optional(),
-    button_text_light: transforms.fromString.boolean.default(false),
+    button_text_light: transforms.fromString.boolean.default(true),
     allow_public_homepage: transforms.fromString.boolean.default(false),
     allow_public_api: transforms.fromString.boolean.default(false),
     font_family: z.enum(fontOptions).default(FontFamily.SANS),

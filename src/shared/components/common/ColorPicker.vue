@@ -1,7 +1,8 @@
 <!-- src/shared/components/common/ColorPicker.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import { DEFAULT_PRIMARY_COLOR } from '@/shared/constants/brand';
+import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 
 import HoverTooltip from './HoverTooltip.vue';
@@ -14,7 +15,7 @@ const props = withDefaults(defineProps<{
   label: string;
   id?: string;
 }>(), {
-  modelValue: '#dc4a22', // Provide default color
+  modelValue: DEFAULT_PRIMARY_COLOR,
   id: undefined
 });
 
@@ -26,7 +27,7 @@ const emit = defineEmits<{
 const label = computed(() => props.label || t('web.branding.color_picker'));
 const id = computed(() => props.id || 'color-picker');
 const name = computed(() => props.name || 'color');
-const currentColor = computed(() => props.modelValue || '#dc4a22');
+const currentColor = computed(() => props.modelValue || DEFAULT_PRIMARY_COLOR);
 
 const updateColor = (event: Event, isText = false) => {
   const target = event.target as HTMLInputElement;
