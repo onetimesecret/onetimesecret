@@ -78,7 +78,7 @@ const { t } = useI18n();
           hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
           dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
         :style="{
-          backgroundColor: brandSettings.primary_color ?? 'var(--color-brand-500)',
+          backgroundColor: brandSettings?.primary_color ?? 'var(--color-brand-500)',
           color: brandSettings?.button_text_light ?? true ? '#ffffff' : '#222222',
         }">
         {{ t('web.layout.return_to_home') }}
