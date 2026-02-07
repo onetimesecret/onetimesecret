@@ -36,8 +36,11 @@ interface IdentityState {
 }
 
 /**
- * Zod validator for primary color field
- * Ensures color values conform to brand schema requirements
+ * Zod validator extracted from the brand schema's primary_color field.
+ * Used to validate (not default) the color value before entering the
+ * fallback chain. Returns the validated hex string, or null/undefined
+ * when the field is absent — which lets ?? fall through to the next
+ * source in the chain.
  */
 const primaryColorValidator = brandSettingschema.shape.primary_color;
 
@@ -71,7 +74,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   function getInitialState(): IdentityState {
     const brand = brandSettingschema.parse(domain_branding.value ?? {});
 
-    // Parse with fallback chain: domain brand -> bootstrap config -> hardcoded default
+    // 3-step fallback chain for primary color resolution:
+    //   1. Per-domain color from Redis (custom domain branding)
+    //   2. Per-installation color from config (branding.primary_color)
+    //   3. Hardcoded default (#dc4a22)
+    // This supports both multi-tenant (step 1 per domain, step 3
+    // as shared default) and single-tenant elite (step 2 from ENV).
+    // The brand schema uses .nullish() instead of .default() so that
+    // absent domain colors fall through to steps 2 and 3.
     const primaryColor =
       primaryColorValidator.parse(brand.primary_color) ??
       bootstrapStore.brand_primary_color ??
@@ -95,7 +105,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   const state = reactive<IdentityState>(getInitialState());
 
-  // Watch for domain branding changes to update derived state
+  // Watch for domain branding changes — re-evaluate the fallback chain
   watch(domain_branding, (newBranding) => {
     const brand = brandSettingschema.parse(newBranding ?? {});
     state.brand = brand;
