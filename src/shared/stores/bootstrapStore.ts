@@ -16,6 +16,7 @@ import type {
   UiInterface,
 } from '@/types/declarations/bootstrap';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
+import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import { defineStore } from 'pinia';
 import { computed, Ref, ref } from 'vue';
 import type { FallbackLocale } from 'vue-i18n';
@@ -59,7 +60,7 @@ const DEFAULTS: BootstrapPayload = {
   shrimp: '',
 
   // Branding
-  brand_primary_color: '#dc4a22',
+  brand_primary_color: DEFAULT_BRAND_HEX,
   brand_product_name: 'Onetime Secret',
 
   // Feature flags

@@ -1,12 +1,13 @@
 // src/shared/stores/identityStore.ts
 
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
+import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useBootstrapStore } from './bootstrapStore';
 
-export const DEFAULT_PRIMARY_COLOR = '#dc4a22';
+export const DEFAULT_PRIMARY_COLOR = DEFAULT_BRAND_HEX;
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
 export const DEFAULT_BUTTON_TEXT_LIGHT = true; // light text for default colour
 

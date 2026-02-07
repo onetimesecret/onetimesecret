@@ -2,12 +2,13 @@
 
 import { responseSchemas } from '@/schemas/api/v3';
 import type { BrandSettings, ImageProps } from '@/schemas/models';
+import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';
 
 const defaultBranding: BrandSettings = {
-  primary_color: '#dc4a22',
+  primary_color: DEFAULT_BRAND_HEX,
   font_family: 'sans',
   corner_style: 'rounded',
   button_text_light: true,
