@@ -296,6 +296,10 @@ site:
     csp:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
+brand:
+  primary_color: "<%= ENV['BRAND_PRIMARY_COLOR'] || '#dc4a22' %>"
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] || 'support@onetimesecret.com' %>
+
 features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
