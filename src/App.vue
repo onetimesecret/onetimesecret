@@ -9,9 +9,11 @@
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
+  import { useBrandTheme } from '@/shared/composables/useBrandTheme';
 
   const { locale } = useI18n();
   const route = useRoute();
+  useBrandTheme();
 
   const defaultProps: LayoutProps = {
     displayMasthead: true,
