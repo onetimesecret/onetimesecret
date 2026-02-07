@@ -200,12 +200,12 @@
       <button
         @click="copySecretContent"
         :title="isCopiedText"
-        class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
-        :class="[fontFamilyClass, cornerClass]"
-        :style="{
-          backgroundColor: brandSettings?.primary_color ??' #dc4a22',
-          color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#000000'
-        }"
+        class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2.5 text-sm font-medium shadow-sm transition-colors duration-150 ease-in-out hover:bg-brand-600 hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        :class="[
+          fontFamilyClass,
+          cornerClass,
+          (brandSettings?.button_text_light ?? true) ? 'text-white' : 'text-gray-900',
+        ]"
         aria-live="polite"
         :aria-label="isCopied ? t('web.COMMON.secret_copied_to_clipboard') : t('web.COMMON.copy_secret_to_clipboard')"
         :aria-pressed="isCopied">
