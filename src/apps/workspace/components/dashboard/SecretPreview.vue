@@ -180,7 +180,7 @@ const fontFamilyClass = computed(() => {
         class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
         :class="[cornerClass, fontFamilyClass]"
         :style="{
-          backgroundColor: domainBranding.primary_color ??' #dc4a22',
+          backgroundColor: domainBranding.primary_color ?? 'var(--color-brand-500)',
           color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
         }"
         @click="toggleReveal"
