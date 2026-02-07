@@ -187,7 +187,7 @@
     "@types/estree": "1.0.8",
     "@types/fs-extra": "11.0.4",
     "@types/jsdom": "27.0.0",
-    "@types/node": "22.19.5",
+    "@types/node": "22.19.9",
     "@types/qrcode": "1.5.6",
     "@typescript-eslint/eslint-plugin": "^8.52.0",
     "@typescript-eslint/parser": "^8.52.0",
