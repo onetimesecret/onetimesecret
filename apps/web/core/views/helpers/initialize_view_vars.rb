@@ -171,6 +171,11 @@ module Core
         frontend_development = development['enabled']
         script_element_id    = 'onetime-state'
 
+        # Brand config for templates (error pages, head-base, etc.)
+        brand_config         = OT.conf.fetch('brand', {})
+        brand_color          = brand_config['primary_color'] || '#dc4a22'
+        support_email        = brand_config['support_email'] || 'support@onetimesecret.com'
+
         # URI helpers for templates
         site_host            = safe_site['host']
         base_scheme          = safe_site['ssl'] ? 'https://' : 'http://'
@@ -181,6 +186,7 @@ module Core
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
+          'brand_color' => brand_color,
           'cust' => cust,
           'description' => description,
           'development' => development,
@@ -204,6 +210,7 @@ module Core
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,
+          'support_email' => support_email,
         }
       end
 

@@ -50,6 +50,13 @@ module Core
           output['domain_logo'] = has_logo ? "/imagine/#{custom_domain.extid}/logo.png" : nil
         end
 
+        # Ensure domain_branding is always populated with at least the
+        # canonical brand color, so the frontend never receives nil branding.
+        if output['domain_branding'].nil? || output['domain_branding'].empty?
+          brand_config              = OT.conf['brand'] || {}
+          output['domain_branding'] = { 'primary_color' => brand_config['primary_color'] || '#dc4a22' }
+        end
+
         # There's no custom domain list when the feature is disabled
         # or when the user is not logged in.
         if is_authenticated && domains_enabled
