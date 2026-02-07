@@ -70,9 +70,11 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   function getInitialState(): IdentityState {
     const brand = brandSettingschema.parse(domain_branding.value ?? {});
 
-    // Parse with fallback values
+    // Parse with fallback chain: domain brand -> bootstrap config -> hardcoded default
     const primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
+      primaryColorValidator.parse(brand.primary_color) ??
+      bootstrapStore.brand_primary_color ??
+      DEFAULT_PRIMARY_COLOR;
     const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     const allowPublicHomepage = brand.allow_public_homepage ?? false;
 
@@ -97,7 +99,9 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const brand = brandSettingschema.parse(newBranding ?? {});
     state.brand = brand;
     state.primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
+      primaryColorValidator.parse(brand.primary_color) ??
+      bootstrapStore.brand_primary_color ??
+      DEFAULT_PRIMARY_COLOR;
     state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     state.allowPublicHomepage = brand.allow_public_homepage ?? false;
   });

@@ -134,6 +134,12 @@ export interface BootstrapPayload {
   shrimp: string;
 
   site_host: string;
+
+  /** Brand primary color from server config (hex string, e.g. '#dc4a22') */
+  brand_primary_color?: string;
+  /** Brand product name from server config (e.g. 'Onetime Secret') */
+  brand_product_name?: string;
+
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
   authentication: AuthenticationSettings; // TODO: May need to offer default values

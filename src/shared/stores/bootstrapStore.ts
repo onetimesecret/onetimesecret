@@ -58,6 +58,10 @@ const DEFAULTS: BootstrapPayload = {
   ruby_version: '',
   shrimp: '',
 
+  // Branding
+  brand_primary_color: '#dc4a22',
+  brand_product_name: 'Onetime Secret',
+
   // Feature flags
   billing_enabled: false,
   regions_enabled: false,
@@ -238,6 +242,10 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const ruby_version = ref<string>(DEFAULTS.ruby_version);
   const shrimp = ref<string>(DEFAULTS.shrimp);
 
+  // Branding
+  const brand_primary_color = ref<string>(DEFAULTS.brand_primary_color!);
+  const brand_product_name = ref<string>(DEFAULTS.brand_product_name!);
+
   // Feature flags
   const billing_enabled = ref<boolean | undefined>(DEFAULTS.billing_enabled);
   const regions_enabled = ref<boolean>(DEFAULTS.regions_enabled);
@@ -354,6 +362,8 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(ot_version_long, data.ot_version_long);
     updateIfDefined(ruby_version, data.ruby_version);
     updateIfDefined(shrimp, data.shrimp);
+    updateIfDefined(brand_primary_color, data.brand_primary_color);
+    updateIfDefined(brand_product_name, data.brand_product_name);
   }
 
   function hydrateFeatureFlags(data: Partial<BootstrapPayload>): void {
@@ -446,6 +456,8 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     ot_version_long.value = DEFAULTS.ot_version_long;
     ruby_version.value = DEFAULTS.ruby_version;
     shrimp.value = DEFAULTS.shrimp;
+    brand_primary_color.value = DEFAULTS.brand_primary_color!;
+    brand_product_name.value = DEFAULTS.brand_product_name!;
   }
 
   function resetFeatureFlags(): void {
@@ -619,6 +631,10 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     ot_version_long,
     ruby_version,
     shrimp,
+
+    // State - Branding
+    brand_primary_color,
+    brand_product_name,
 
     // State - Feature flags
     billing_enabled,

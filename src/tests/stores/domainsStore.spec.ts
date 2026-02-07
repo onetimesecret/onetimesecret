@@ -1,6 +1,7 @@
 // src/tests/stores/domainsStore.spec.ts
 
 import { useDomainsStore } from '@/shared/stores/domainsStore';
+import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -43,7 +44,7 @@ describe('domainsStore', () => {
       is_apex: false,
       verified: false,
       brand: {
-        primary_color: '#dc4a22',
+        primary_color: DEFAULT_BRAND_HEX,
         font_family: 'sans',
         corner_style: 'rounded',
         button_text_light: false,
