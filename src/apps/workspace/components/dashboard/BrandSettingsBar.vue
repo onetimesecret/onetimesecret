@@ -68,7 +68,7 @@
             <!-- Color Picker -->
             <div class="flex min-w-0 shrink items-center gap-4">
               <ColorPicker
-                :model-value="modelValue.primary_color"
+                :model-value="modelValue.primary_color ?? undefined"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
                 name="brand[primary_color]"
                 :label="t('web.branding.brand_color')"

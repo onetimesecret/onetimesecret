@@ -2,7 +2,6 @@
 
 import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
-import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import { z } from 'zod';
 
 /**
@@ -15,6 +14,23 @@ import { z } from 'zod';
  * 3. It allows direct imports of Brand-specific logic where needed
  * 4. It keeps Domain model focused on core domain logic
  *
+ * Default Value Strategy:
+ * This schema intentionally avoids Zod .default() for primary_color.
+ * The schema's job is validation (is this a valid hex color?), not
+ * defaulting. Default resolution is handled by identityStore's
+ * 3-step fallback chain:
+ *
+ *   1. domain_branding.primary_color  (per-domain, from Redis)
+ *   2. bootstrapStore.brand_primary_color  (per-installation, from config)
+ *   3. DEFAULT_BRAND_HEX  (hardcoded fallback)
+ *
+ * If the schema eagerly fills in a default via .default(), the nullish
+ * coalescing (??) in the fallback chain never reaches step 2, making
+ * the global branding config ineffective. This matters for:
+ *   - Multi-tenant: domains without a color fall through to the
+ *     installation default (step 2) or the hardcoded default (step 3)
+ *   - Single-tenant elite: the installation sets its brand color in
+ *     config (step 2), and the schema must not mask it
  */
 
 // 1. Base enums
@@ -77,7 +93,7 @@ export const brandSettingschema = z
     primary_color: z
       .string()
       .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
-      .default(DEFAULT_BRAND_HEX), // Default to Onetime Secret brand colour
+      .nullish(), // No default here — identityStore fallback chain handles defaults
     colour: z.string().optional(),
     instructions_pre_reveal: z.string().nullish(),
     instructions_reveal: z.string().nullish(),
