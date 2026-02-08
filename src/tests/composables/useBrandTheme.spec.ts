@@ -33,12 +33,15 @@ vi.mock('@/shared/composables/useAsyncHandler', () => ({
   },
 }));
 
+const mockBrand = ref<{ favicon_url?: string } | undefined>(undefined);
+
 vi.mock('pinia', async (importOriginal) => {
   const actual = await importOriginal<typeof import('pinia')>();
   return {
     ...actual,
     storeToRefs: () => ({
       primaryColor: mockPrimaryColor,
+      brand: mockBrand,
     }),
   };
 });
