@@ -398,6 +398,122 @@ test.describe('Brand Customization - Page Rendering', () => {
   });
 });
 
+// ─── Test: No hardcoded hex in inline styles ─────────
+
+test.describe('Brand Customization - No Hardcoded Hex', () => {
+  test.beforeEach(async ({ page }) => {
+    page.setDefaultTimeout(15000);
+  });
+
+  test('no visible elements have hardcoded #dc4a22 in inline styles', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const hardcodedElements = await page.evaluate((legacyHex: string) => {
+      const all = document.querySelectorAll('*[style]');
+      const matches: string[] = [];
+      const hexLower = legacyHex.toLowerCase();
+
+      for (const el of Array.from(all)) {
+        const inlineStyle = el.getAttribute('style') ?? '';
+        if (inlineStyle.toLowerCase().includes(hexLower)) {
+          matches.push(
+            `<${el.tagName.toLowerCase()}> style="${inlineStyle.substring(0, 120)}"`
+          );
+        }
+      }
+      return matches;
+    }, DEFAULT_BRAND_HEX);
+
+    expect(
+      hardcodedElements,
+      `Found ${hardcodedElements.length} element(s) with hardcoded ${DEFAULT_BRAND_HEX} in inline styles: ${hardcodedElements.join('; ')}`
+    ).toHaveLength(0);
+  });
+
+  test('no hardcoded #dc4a22 in inline styles after dark mode toggle', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await page.evaluate(() => {
+      document.documentElement.classList.add('dark');
+    });
+    await page.waitForTimeout(300);
+
+    const hardcodedElements = await page.evaluate((legacyHex: string) => {
+      const all = document.querySelectorAll('*[style]');
+      const matches: string[] = [];
+      const hexLower = legacyHex.toLowerCase();
+
+      for (const el of Array.from(all)) {
+        const inlineStyle = el.getAttribute('style') ?? '';
+        if (inlineStyle.toLowerCase().includes(hexLower)) {
+          matches.push(
+            `<${el.tagName.toLowerCase()}> style="${inlineStyle.substring(0, 120)}"`
+          );
+        }
+      }
+      return matches;
+    }, DEFAULT_BRAND_HEX);
+
+    expect(
+      hardcodedElements,
+      `Found hardcoded ${DEFAULT_BRAND_HEX} in dark mode inline styles: ${hardcodedElements.join('; ')}`
+    ).toHaveLength(0);
+  });
+
+  test('elements with brand Tailwind classes have non-transparent computed colors', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const probeResults = await page.evaluate(() => {
+      const findings: {
+        selector: string;
+        backgroundColor: string;
+        color: string;
+      }[] = [];
+
+      const bgElements = document.querySelectorAll('[class*="bg-brand-"]');
+      for (const el of Array.from(bgElements).slice(0, 5)) {
+        const cs = getComputedStyle(el);
+        findings.push({
+          selector: `bg: ${el.tagName}.${Array.from(el.classList).find((c) => c.includes('bg-brand-')) ?? ''}`,
+          backgroundColor: cs.backgroundColor,
+          color: cs.color,
+        });
+      }
+
+      const textElements = document.querySelectorAll('[class*="text-brand-"]');
+      for (const el of Array.from(textElements).slice(0, 5)) {
+        const cs = getComputedStyle(el);
+        findings.push({
+          selector: `text: ${el.tagName}.${Array.from(el.classList).find((c) => c.includes('text-brand-')) ?? ''}`,
+          backgroundColor: cs.backgroundColor,
+          color: cs.color,
+        });
+      }
+
+      return findings;
+    });
+
+    if (probeResults.length === 0) {
+      return;
+    }
+
+    for (const finding of probeResults) {
+      const isBackgroundBrand = finding.selector.startsWith('bg:');
+      const relevantColor = isBackgroundBrand
+        ? finding.backgroundColor
+        : finding.color;
+
+      expect(
+        relevantColor,
+        `${finding.selector} should have a resolved color, got: ${relevantColor}`
+      ).not.toBe('rgba(0, 0, 0, 0)');
+    }
+  });
+});
+
 // ─── Test: Custom brand color override ───────────────
 
 test.describe('Brand Customization - Custom Color Override', () => {
