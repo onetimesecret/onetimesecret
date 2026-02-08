@@ -20,6 +20,7 @@
     cust,
     ui,
     domain_logo,
+    domain_branding,
     brand_product_name,
   } = storeToRefs(bootstrapStore);
 
@@ -52,6 +53,9 @@
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   // Custom domain logos are larger to emphasize brand identity
   const isCustomDomainLogo = computed(() => !!domain_logo.value);
+  // Dark-mode logo variant from brand settings (logo_dark_url)
+  const darkLogoUrl = computed(() => domain_branding.value?.logo_dark_url ?? null);
+  const hasDarkLogo = computed(() => isCustomDomainLogo.value && !!darkLogoUrl.value);
   // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
   // Custom domain logos remain at 80px, unauthenticated users get 64px
   const getLogoSize = () => {
@@ -162,10 +166,27 @@
               :href="logoConfig.href"
               class="flex items-center gap-3"
               :aria-label="logoConfig.alt">
+              <!-- Light-mode logo (hidden in dark mode when dark variant exists) -->
               <img
                 id="logo"
                 :src="logoConfig.url"
                 class="transition-transform"
+                :class="[
+                  hasDarkLogo ? 'dark:hidden' : '',
+                  isCustomDomainLogo
+                    ? 'size-20'
+                    : isUserPresent
+                      ? 'size-10'
+                      : 'size-12'
+                ]"
+                :height="logoConfig.size"
+                :width="logoConfig.size"
+                :alt="logoConfig.alt" />
+              <!-- Dark-mode logo (only shown when dark variant is configured) -->
+              <img
+                v-if="hasDarkLogo"
+                :src="darkLogoUrl!"
+                class="hidden transition-transform dark:block"
                 :class="[
                   isCustomDomainLogo
                     ? 'size-20'

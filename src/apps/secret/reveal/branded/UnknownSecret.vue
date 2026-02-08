@@ -4,9 +4,10 @@
   import { useI18n } from 'vue-i18n';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
-  import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
 
 const { t } = useI18n();
+const { cornerClass, fontFamilyClass } = useProductIdentity();
 
   interface Props {
     brandSettings?: BrandSettings;
@@ -19,7 +20,9 @@ const { t } = useI18n();
 <template>
   <BaseUnknownSecret
     :branded="true"
-    :brand-settings="brandSettings">
+    :brand-settings="brandSettings"
+    :corner-class="cornerClass"
+    :font-class="fontFamilyClass">
     <!-- Header with icon and title -->
     <template #header="{ }">
       <div class="mb-8 flex items-center space-x-4">
@@ -42,9 +45,7 @@ const { t } = useI18n();
           <!-- prettier-ignore-attribute class -->
           <h2
             class="text-xl font-semibold text-gray-900 dark:text-white"
-            :class="brandSettings?.font_family
-              ? fontFamilyClasses[brandSettings.font_family as FontFamily]
-              : ''">
+            :class="fontFamilyClass">
             {{ t('web.COMMON.not_found') }}
           </h2>
         </div>

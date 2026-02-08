@@ -321,5 +321,83 @@ export function generateBrandPalette(
 export const DEFAULT_BRAND_PALETTE: BrandPalette =
   generateBrandPalette(DEFAULT_BRAND_HEX);
 
+// ─── WCAG Contrast ──────────────────────────────────
+
+/**
+ * Compute WCAG 2.x relative luminance from a hex color.
+ * Uses the sRGB linearization already available in this module.
+ * Formula: L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+ * where R, G, B are linearized sRGB channels.
+ */
+function relativeLuminance(hex: string): number {
+  const [r, g, b] = hexToSrgb(hex);
+  return (
+    0.2126 * srgbToLinear(r) +
+    0.7152 * srgbToLinear(g) +
+    0.0722 * srgbToLinear(b)
+  );
+}
+
+/**
+ * WCAG 2.x contrast ratio between two hex colors.
+ * Returns a value between 1 (identical) and 21 (black vs white).
+ */
+export function contrastRatio(hex1: string, hex2: string): number {
+  const l1 = relativeLuminance(hex1);
+  const l2 = relativeLuminance(hex2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/** WCAG AA minimum contrast for normal text */
+const WCAG_AA_NORMAL = 4.5;
+/** WCAG AA minimum contrast for large text / UI components */
+const WCAG_AA_LARGE = 3.0;
+
+export interface ContrastCheck {
+  /** Contrast ratio (1–21) */
+  ratio: number;
+  /** Passes WCAG AA for normal text (>= 4.5:1) */
+  passesAA: boolean;
+  /** Passes WCAG AA for large text / UI components (>= 3.0:1) */
+  passesAALarge: boolean;
+  /** Whether white text is recommended over dark text */
+  useWhiteText: boolean;
+}
+
+/**
+ * Check WCAG contrast for a brand color against white and black text.
+ *
+ * Returns contrast info for the brand-500 shade against white (#ffffff),
+ * along with a recommendation for button_text_light (whether to use
+ * white or dark text on this background).
+ *
+ * @param brandHex The brand primary color (6-digit hex)
+ * @returns Contrast check result
+ */
+export function checkBrandContrast(brandHex: string): ContrastCheck {
+  const safeHex = (brandHex && isValidHex(brandHex))
+    ? normalizeHex(brandHex)
+    : DEFAULT_BRAND_HEX;
+
+  const vsWhite = contrastRatio(safeHex, '#ffffff');
+  const vsBlack = contrastRatio(safeHex, '#000000');
+
+  // White text is better when the color is dark enough for sufficient
+  // contrast against white. If neither passes, prefer whichever is higher.
+  const useWhiteText = vsWhite >= vsBlack;
+
+  // Report the contrast of the recommended text color
+  const ratio = useWhiteText ? vsWhite : vsBlack;
+
+  return {
+    ratio,
+    passesAA: ratio >= WCAG_AA_NORMAL,
+    passesAALarge: ratio >= WCAG_AA_LARGE,
+    useWhiteText,
+  };
+}
+
 // Re-export for use in tests and composables
 export { isValidHex, hexToOklch, oklchToHex };

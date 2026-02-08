@@ -166,5 +166,13 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Switch to Safari preview",
     "sha256": "f24ac447"
+  },
+  "web.branding.low_contrast_warning": {
+    "text": "Low contrast ({0}:1) — text on this color may be hard to read",
+    "sha256": "00000000"
+  },
+  "web.branding.contrast_ratio_label": {
+    "text": "Contrast ratio: {0}:1",
+    "sha256": "00000000"
   }
 }
