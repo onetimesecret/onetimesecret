@@ -179,10 +179,10 @@ module Core
         base_scheme          = safe_site['ssl'] ? 'https://' : 'http://'
         baseuri              = base_scheme + site_host
 
-        # Branding config for templates (theme-color meta tags, etc.)
-        branding_config      = OT.conf.fetch('branding', {})
-        brand_primary_color  = branding_config['primary_color'] || '#dc4a22'
-        brand_product_name   = branding_config['product_name'] || 'Onetime Secret'
+        # Brand config for templates (theme-color meta tags, etc.)
+        brand_config         = OT.conf.fetch('brand', {})
+        brand_primary_color  = brand_config['primary_color'] || '#dc4a22'
+        brand_product_name   = brand_config['product_name'] || 'Onetime Secret'
 
         # Return all view variables as a hash
         {

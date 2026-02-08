@@ -48,7 +48,7 @@ ctx = Onetime::Mail::Templates::Base::TemplateContext.new({ product_name: 'My Br
 ctx.logo_alt
 #=> 'My Brand'
 
-## TemplateContext site_product_name reads branding config first
+## TemplateContext site_product_name reads brand config first
 OT.boot! :test, false
 ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 name = ctx.send(:site_product_name)

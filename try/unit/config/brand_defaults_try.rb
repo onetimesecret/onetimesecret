@@ -2,9 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Tests for the branding configuration resolution chain.
+# Tests for the brand configuration resolution chain.
 #
-# The branding config section in config.defaults.yaml provides:
+# The brand config section in config.defaults.yaml provides:
 # - primary_color: from ENV['BRAND_PRIMARY_COLOR'] or '#dc4a22'
 # - product_name: from ENV['BRAND_PRODUCT_NAME'] or 'Onetime Secret'
 # - product_domain: from ENV['BRAND_PRODUCT_DOMAIN'] or nil
@@ -16,17 +16,17 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test, false
 
-## Config has a branding section
-OT.conf.key?('branding')
+## Config has a brand section
+OT.conf.key?('brand')
 #=> true
 
-## Branding primary_color has a default value
-color = OT.conf.dig('branding', 'primary_color')
+## Brand primary_color has a default value
+color = OT.conf.dig('brand', 'primary_color')
 color.nil? || color.match?(/^#[0-9A-Fa-f]{6}$/)
 #=> true
 
-## Branding product_name has a default value
-name = OT.conf.dig('branding', 'product_name')
+## Brand product_name has a default value
+name = OT.conf.dig('brand', 'product_name')
 name.nil? || name.is_a?(String)
 #=> true
 
@@ -41,7 +41,7 @@ defaults[:primary_color].match?(/^#[0-9A-Fa-f]{6}$/)
 
 ## BrandSettingsConstants.defaults reads from config when available
 defaults = Onetime::CustomDomain::BrandSettingsConstants.defaults
-config_color = OT.conf.dig('branding', 'primary_color')
+config_color = OT.conf.dig('brand', 'primary_color')
 # If config has a color, defaults should use it; otherwise falls back to DEFAULTS
 if config_color
   defaults[:primary_color] == config_color
@@ -64,13 +64,13 @@ settings.primary_color
 with_env('BRAND_PRIMARY_COLOR', '#00FF00') do
   # Re-load config to pick up env change
   config = Onetime::Config.load
-  config.dig('branding', 'primary_color')
+  config.dig('brand', 'primary_color')
 end
 #=> '#00FF00'
 
 ## ENV override for brand product name works
 with_env('BRAND_PRODUCT_NAME', 'My Custom App') do
   config = Onetime::Config.load
-  config.dig('branding', 'product_name')
+  config.dig('brand', 'product_name')
 end
 #=> 'My Custom App'

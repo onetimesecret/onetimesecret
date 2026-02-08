@@ -263,7 +263,7 @@ module Onetime
           # Brand color helper - resolves from data, config, or default
           # @return [String] Hex color string
           def brand_color
-            @data[:brand_color] || conf_dig('branding', 'primary_color') || '#dc4a22'
+            @data[:brand_color] || conf_dig('brand', 'primary_color') || '#dc4a22'
           end
 
           # Logo alt text helper - delegates to product_name
@@ -274,7 +274,7 @@ module Onetime
 
           # Get product name from site config
           def site_product_name
-            @site_product_name ||= conf_dig('branding', 'product_name') || conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
+            @site_product_name ||= conf_dig('brand', 'product_name') || conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
           end
 
           # Get host from site config
