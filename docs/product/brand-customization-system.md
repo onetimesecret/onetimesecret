@@ -28,17 +28,16 @@ polish.
 5. [Dogfood Readiness Assessment](#5-dogfood-readiness-assessment)
 6. [Competitive Landscape](#6-competitive-landscape)
 7. [Gap Analysis](#7-gap-analysis)
-8. [Phased Roadmap](#8-phased-roadmap)
-9. [Design Token Architecture](#9-design-token-architecture)
-10. [Dual-Lifecycle Model](#10-dual-lifecycle-model)
-11. [Accessibility & Contrast](#11-accessibility--contrast)
-12. [Security Considerations](#12-security-considerations)
-13. [Email Branding](#13-email-branding)
-14. [Operator Documentation](#14-operator-documentation)
-15. [Open Questions](#15-open-questions)
-16. [Document Management Notes](#16-document-management-notes)
-17. [Decision Log](#17-decision-log)
-18. [Change History](#18-change-history)
+8. [Design Token Architecture](#8-design-token-architecture)
+9. [Dual-Lifecycle Model](#9-dual-lifecycle-model)
+10. [Accessibility & Contrast](#10-accessibility--contrast)
+11. [Security Considerations](#11-security-considerations)
+12. [Email Branding](#12-email-branding)
+13. [Operator Documentation](#13-operator-documentation)
+14. [Open Questions](#14-open-questions)
+15. [Document Management Notes](#15-document-management-notes)
+16. [Decision Log](#16-decision-log)
+17. [Change History](#17-change-history)
 
 ---
 
@@ -56,7 +55,7 @@ still have gaps.
 
 **Impact of not completing**: Self-hosted operators see OTS branding despite configuring
 their own. Mid-tier SaaS customers can't fully express their brand on custom domains.
-Enterprise white-label prospects hit a ceiling.
+Enterprise private-label prospects hit a ceiling.
 
 ---
 
@@ -229,7 +228,7 @@ Organized as three concentric rings:
 
 | Item | Status | Impact |
 |------|--------|--------|
-| Logo config field | Missing | Every white-label needs their own logo |
+| Logo config field | Missing | Every private-label needs their own logo |
 | Favicon | Hardcoded `#DC4A22` in SVG | Browser tab shows OTS orange |
 | Email logo | Hardcoded `/img/onetime-logo-v3-xl.svg` in 9 templates | All emails show OTS 秘 icon |
 | Zilla Slab font loading | Always loads regardless of `font_family` config | 100KB of OTS-specific assets |
@@ -242,7 +241,7 @@ Organized as three concentric rings:
 | Item | Status | Notes |
 |------|--------|-------|
 | GitHub/docs URLs | Hardcoded in ~10 components | Links to upstream repo |
-| "Powered by" toggle | Not configurable | Enterprise white-label need |
+| "Powered by" toggle | Not configurable | Enterprise private-label need |
 | Terms/Privacy URLs | Not configurable | Compliance need |
 | Dynamic PWA manifest | Static file | Can't reflect per-domain brand |
 | `<meta name="theme-color">` | Not set from brand | Browser chrome color |
@@ -300,7 +299,7 @@ Organized as three concentric rings:
 1. **Logo support** — GitLab (3 slots), Chatwoot (3 variants), Mattermost (1),
    Documenso (1), Rallly (2). OTS has zero.
 
-2. **Favicon** — GitLab has it. Standard white-label expectation.
+2. **Favicon** — GitLab has it. Standard private-label expectation.
 
 3. **Admin brand UI** — GitLab has a full Appearance admin panel with API. Mattermost has
    System Console. Chatwoot has Super Admin. OTS requires config file or ENV editing.
@@ -344,7 +343,7 @@ These are blocking issues for the dogfood claim. A self-hosted install with
 
 #### P2 — Missing config dimensions
 
-Based on competitive analysis, these are expected by mature white-label systems:
+Based on competitive analysis, these are expected by mature private-label systems:
 - Logo URL (install + email)
 - Favicon config
 - "Powered by" toggle
@@ -363,79 +362,15 @@ Based on competitive analysis, these are expected by mature white-label systems:
 
 ### Gap Count by Ring
 
-| Ring | Description | Items | Effort Estimate |
-|------|-------------|-------|-----------------|
-| Ring 1 | Text Identity | ~11 fallback strings | 1-2 days |
-| Ring 2 | Visual Identity | 7 features | 3-5 days |
-| Ring 3 | Contextual Identity | 10+ items | 1-2 weeks |
+| Ring | Description | Items |
+|------|-------------|-------|
+| Ring 1 | Text Identity | ~11 fallback strings |
+| Ring 2 | Visual Identity | 7 features |
+| Ring 3 | Contextual Identity | 10+ items |
 
 ---
 
-## 8. Phased Roadmap
-
-### Phase 1: Neutralize Defaults (1-2 days)
-
-**Goal**: A self-hosted install with brand config sees zero OTS text branding.
-
-- [ ] Change all `'Onetime Secret'` fallbacks to `'My App'` in active codebase
-- [ ] Change all `'support@onetimesecret.com'` fallbacks to `'support@example.com'`
-- [ ] Change all `'onetimesecret.com'` fallbacks to `'localhost'`
-- [ ] Make TOTP issuer read from `brand.product_name` (`mfa.rb`, `totp.rb`)
-- [ ] Fix `error.rue` to use template variable for support email
-- [ ] Audit deprecated `apps/web/auth/mailer.rb` for active references; delete if safe (see Open Question 8)
-- [ ] Make `bootstrapStore` default `brand_product_name` neutral
-- [ ] Make `usePageTitle` derive `DEFAULT_APP_NAME` from bootstrapStore
-
-**Validation**: Deploy a test instance with custom brand config. Grep all rendered HTML,
-emails, and TOTP QR codes for "Onetime Secret" or "onetimesecret" — zero matches expected.
-
-### Phase 2: Visual Identity Config (3-5 days)
-
-**Goal**: OTS's own visual identity is expressed through config. Default installation
-renders with neutral visuals.
-
-- [ ] Add `brand.logo_url` config field (ENV: `BRAND_LOGO_URL`). URL validation: `https://` only, no redirects, max 2MB. See Security (Section 12).
-- [ ] Wire logo_url into MastHead as install-level fallback
-- [ ] Wire logo_url into email templates (replacing hardcoded SVG path)
-- [ ] Generate SVG favicon from brand primary color
-- [ ] Add dynamic `<meta name="theme-color">` from brand color
-- [ ] Implement `corner_style` runtime bridge (composable or CSS var)
-- [ ] Conditional font loading — only load Zilla Slab when `font_family: serif`
-- [ ] Create neutral default logo asset (geometric, uses brand color via currentColor)
-- [ ] Write operator guide: `docs/operators/brand-customization.md` (see Section 14)
-
-**Validation**: Two test instances side by side — one with OTS config, one with custom
-brand. Both should look equally polished. The custom brand instance should have zero OTS
-visual artifacts.
-
-### Phase 3: Polish and Differentiation (1-2 weeks)
-
-**Goal**: Best-in-class white-label system. Features no competitor offers.
-
-- [ ] Auto-compute text contrast per shade (oklch lightness threshold L > 0.623)
-- [ ] FOUC prevention — inject brand CSS inline in `<head>` before Vue hydrates
-- [ ] "Powered by" toggle (`brand.show_attribution`)
-- [ ] Configurable GitHub/docs URLs or conditional display
-- [ ] Terms/Privacy URL config fields
-- [ ] Dynamic PWA manifest endpoint
-- [ ] Email dark mode resilience audit
-- [ ] Social preview image generation (or configurable og:image URL)
-- [ ] Brand preview mode in admin/settings
-
-### Phase 4: Strategic (Future)
-
-- [ ] Admin brand settings UI panel
-- [ ] Login/signup page customization (background image, hero text)
-- [ ] Custom CSS injection (escape hatch)
-- [ ] Semantic color aliases (`--brand-surface`, `--brand-solid`, `--brand-text`)
-- [ ] Dark theme auto-generation from same primary color
-- [ ] Per-organization branding (multi-tenant within an installation)
-- [ ] Custom email sender name/domain
-- [ ] Font file upload
-
----
-
-## 9. Design Token Architecture
+## 8. Design Token Architecture
 
 ### Current: Numbered Shades
 
@@ -502,7 +437,7 @@ Safari Technology Preview.
 
 ---
 
-## 10. Dual-Lifecycle Model
+## 9. Dual-Lifecycle Model
 
 ### Install-Time vs Page-Load-Time
 
@@ -523,8 +458,8 @@ Based on competitive analysis, a reasonable feature set for custom domain custom
 **Should have** (page-load-time, per-domain):
 - Brand primary color (already working)
 - Product name (already working)
-- Logo URL (planned — Phase 2)
-- Favicon color (planned — Phase 2)
+- Logo URL (planned)
+- Favicon color (planned)
 
 **Install-only** (self-hosted operators):
 - Font family
@@ -551,7 +486,7 @@ paint and only activates on runtime changes (e.g., navigating between custom dom
 
 ---
 
-## 11. Accessibility & Contrast
+## 10. Accessibility & Contrast
 
 ### The Problem
 
@@ -581,11 +516,11 @@ enabling components to always use readable text without manual configuration.
 
 The Accessible Perceptual Contrast Algorithm accounts for font size and weight, producing
 more nuanced contrast decisions than WCAG 2.1's simple luminance ratio. Worth considering
-for Phase 4 when the system needs to handle arbitrary typography.
+when the system needs to handle arbitrary typography.
 
 ---
 
-## 12. Security Considerations
+## 11. Security Considerations
 
 Brand customization introduces user-controlled inputs that render in HTML, CSS, email
 templates, and PWA manifests. Each input is an attack surface.
@@ -600,9 +535,9 @@ templates, and PWA manifests. Each input is an attack surface.
 | `support_email` | Email header injection, phishing | Validate email format. No newlines or special chars. |
 | `font_family` | Enum — no injection risk | Already constrained to `sans`/`serif`/`mono` |
 | `corner_style` | Enum — no injection risk | Already constrained to `rounded`/`square`/`pill` |
-| Custom CSS (Phase 4) | XSS via `expression()`, `url()`, `@import`, `-moz-binding` | CSS sanitizer required. Strip all `url()`, `@import`, `expression()`, `behavior`, `-moz-binding`. Consider using a CSS parser (e.g., csstree) rather than regex. |
-| Font file upload (Phase 4) | Executable code in font files. License violations. | Format allowlist (woff2 only). Size limit (500KB). No server-side font parsing. Serve via CDN with `Content-Type: font/woff2`. |
-| PWA manifest (Phase 3) | XSS if `name`/`description` rendered in admin UI | JSON-encode all values. Never render manifest fields as raw HTML. |
+| Custom CSS (planned) | XSS via `expression()`, `url()`, `@import`, `-moz-binding` | CSS sanitizer required. Strip all `url()`, `@import`, `expression()`, `behavior`, `-moz-binding`. Consider using a CSS parser (e.g., csstree) rather than regex. |
+| Font file upload (planned) | Executable code in font files. License violations. | Format allowlist (woff2 only). Size limit (500KB). No server-side font parsing. Serve via CDN with `Content-Type: font/woff2`. |
+| PWA manifest (planned) | XSS if `name`/`description` rendered in admin UI | JSON-encode all values. Never render manifest fields as raw HTML. |
 
 ### Content Security Policy (CSP) Implications
 
@@ -610,7 +545,7 @@ Adding configurable logos and fonts means CSP directives must be updated:
 
 ```
 img-src 'self' https:;       ← allow external logo URLs (https only)
-font-src 'self' https:;      ← allow external font URLs (Phase 4)
+font-src 'self' https:;      ← allow external font URLs (when supported)
 style-src 'self' 'unsafe-inline';  ← required for runtime CSS var injection
 ```
 
@@ -637,7 +572,7 @@ owners). These users are authenticated but potentially untrusted:
 
 ---
 
-## 13. Email Branding
+## 12. Email Branding
 
 ### Current State
 
@@ -669,7 +604,7 @@ owners). These users are authenticated but potentially untrusted:
 
 ---
 
-## 14. Operator Documentation
+## 13. Operator Documentation
 
 ### Current State
 
@@ -699,30 +634,24 @@ bible.
    - WCAG contrast warnings for chosen color
    - All brand fields resolved (no fallback to OTS defaults)
 
-### Deliverables
+---
 
-- [ ] `docs/operators/brand-customization.md` — Phase 2 task
-- [ ] `bin/ots brand validate` CLI command — Phase 3 task
-- [ ] Inline help in `config.defaults.yaml` comments — Phase 1 (improve existing)
+## 14. Open Questions
+
+| # | Question | Owner | Status |
+|---|----------|-------|--------|
+| 1 | Should defaults be truly neutral (`'My App'`, `#0066FF` blue) or should the config file ship with OTS values and the code have neutral fallbacks? | Product | Open |
+| 2 | Should `corner_style` be a CSS custom property (`--brand-radius`) or a composable that returns Tailwind classes? | Engineering | Open |
+| 3 | What level of customization should page-load-time (custom domain) customers get? Logo? Font? Corner style? | Product | Open |
+| 4 | Should we build an admin Brand Settings UI, or is ENV/config sufficient for v1? | Product | Open |
+| 5 | Should `button_text_light` become auto-computed (removing the config field) or remain as a manual override? | Engineering | Open |
+| 6 | Implement server-side brand CSS injection in `<head>` or accept FOUC? | Engineering | Open |
+| 7 | Should email templates support a dark logo variant, or is transparent-background sufficient? | Design | Open |
+| 8 | Audit `apps/web/auth/mailer.rb` for active references before deletion | Engineering | Open — prerequisite |
 
 ---
 
-## 15. Open Questions
-
-| # | Question | Owner | Blocker For | Status |
-|---|----------|-------|-------------|--------|
-| 1 | Should defaults be truly neutral (`'My App'`, `#0066FF` blue) or should the config file ship with OTS values and the code have neutral fallbacks? | Product | Phase 1 | Open |
-| 2 | Should `corner_style` be a CSS custom property (`--brand-radius`) or a composable that returns Tailwind classes? | Engineering | Phase 2 | Open |
-| 3 | What level of customization should page-load-time (custom domain) customers get? Logo? Font? Corner style? | Product | Phase 2 | Open |
-| 4 | Should we build an admin Brand Settings UI, or is ENV/config sufficient for v1? | Product | Phase 4 | Open |
-| 5 | Should `button_text_light` become auto-computed (removing the config field) or remain as a manual override? | Engineering | Phase 3 | Open |
-| 6 | Implement server-side brand CSS injection in `<head>` or accept FOUC? | Engineering | Phase 3 | Open |
-| 7 | Should email templates support a dark logo variant, or is transparent-background sufficient? | Design | Phase 3 | Open |
-| 8 | Audit `apps/web/auth/mailer.rb` for active references before deletion | Engineering | Phase 1 | Open — prerequisite |
-
----
-
-## 16. Document Management Notes
+## 15. Document Management Notes
 
 ### Why Markdown (and Its Limits)
 
@@ -736,8 +665,6 @@ Where it falls short:
   and filtering. Consider exporting to a spreadsheet for stakeholder presentations.
 - **No visual diffing** — When brand palettes change, a visual comparison tool (e.g.,
   Figma, Storybook) would show the actual color difference better than hex codes.
-- **No task tracking** — The roadmap checklists here are snapshots. The canonical task
-  tracker should be GitHub Issues with the `brand-system` label.
 - **No living metrics** — Success metrics (adoption counts, hardcoded-value counts) go
   stale. Consider a script that counts `brand-*` class usage vs hardcoded colors and
   outputs a freshness report.
@@ -746,25 +673,22 @@ Where it falls short:
 
 | Tool | Purpose | When to Use |
 |------|---------|-------------|
-| GitHub Issues | Task tracking for roadmap items | Create issues from Phase 1-4 checklists |
-| GitHub Project Board | Visual progress across phases | Track phase completion |
-| Storybook | Visual component library with brand variants | Phase 3+ |
+| GitHub Issues | Task tracking for brand system work items | Ongoing |
+| Storybook | Visual component library with brand variants | When component coverage warrants it |
 | ADR files (`docs/architecture/decision-records/`) | Record key decisions from Open Questions | As questions are resolved |
 | `brand-audit.sh` script | Automated count of hardcoded values | Run before each release |
 
 ### Keeping This Document Fresh
 
-1. **After each phase completion**: Update the checklist, move items from "planned" to
-   "done", update the readiness percentage.
-2. **After competitive research**: Update Section 6 with new findings.
-3. **After resolving an Open Question**: Move it to Section 15 (Decision Log) with the
+1. **After competitive research**: Update Section 6 with new findings.
+2. **After resolving an Open Question**: Move it to Section 16 (Decision Log) with the
    resolution.
-4. **Quarterly**: Re-run the automated audit (grep for hardcoded values) and update
+3. **Quarterly**: Re-run the automated audit (grep for hardcoded values) and update
    Section 5 counts.
 
 ---
 
-## 17. Decision Log
+## 16. Decision Log
 
 Decisions made during the brand system development. For significant architectural
 decisions, create a formal ADR in `docs/architecture/decision-records/`.
@@ -780,12 +704,12 @@ decisions, create a formal ADR in `docs/architecture/decision-records/`.
 
 ---
 
-## 18. Change History
+## 17. Change History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-02-08 | Product/Engineering | Initial document from 4-agent dogfood audit |
-| 1.1 | 2026-02-08 | Product/Engineering | Added security section (12), operator docs (14). Fixed palette count, font_family gap, open question ownership. Fresh-eyes review feedback. |
+| 1.1 | 2026-02-08 | Product/Engineering | Added security section (11), operator docs (13). Fixed palette count, font_family gap, open question ownership. Fresh-eyes review feedback. |
 
 ---
 

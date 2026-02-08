@@ -15,7 +15,7 @@ export const DEFAULT_BUTTON_TEXT_LIGHT = true;
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
 
 /**
- * Neutral brand defaults for self-hosted / white-label instances.
+ * Neutral brand defaults for self-hosted / private-label instances.
  * These are intentionally NOT OTS-branded — they provide a clean
  * starting point that installations customize via config.
  *
