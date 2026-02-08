@@ -263,7 +263,13 @@ module Onetime
           # Brand color helper - resolves from data, config, or default
           # @return [String] Hex color string
           def brand_color
-            @data[:brand_color] || conf_dig('brand', 'primary_color') || '#dc4a22'
+            @brand_color ||= @data[:brand_color] || conf_dig('brand', 'primary_color') || '#dc4a22'
+          end
+
+          # Support email helper - resolves from config or default
+          # @return [String]
+          def support_email
+            @support_email ||= conf_dig('brand', 'support_email') || 'support@onetimesecret.com'
           end
 
           # Logo alt text helper - delegates to product_name

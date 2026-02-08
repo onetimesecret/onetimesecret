@@ -28,7 +28,7 @@ module Onetime
         corner_style: 'rounded',
         primary_color: '#dc4a22',
         locale: 'en',
-        button_text_light: false,
+        button_text_light: true,
         allow_public_homepage: false,
         allow_public_api: false,
         default_ttl: nil,

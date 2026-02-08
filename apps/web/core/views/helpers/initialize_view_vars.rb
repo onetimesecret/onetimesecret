@@ -183,6 +183,7 @@ module Core
         brand_config         = OT.conf.fetch('brand', {})
         brand_primary_color  = brand_config['primary_color'] || '#dc4a22'
         brand_product_name   = brand_config['product_name'] || 'Onetime Secret'
+        support_email        = brand_config['support_email'] || 'support@onetimesecret.com'
 
         # Return all view variables as a hash
         {
@@ -214,6 +215,7 @@ module Core
           'site_host' => site_host,
           'brand_primary_color' => brand_primary_color,
           'brand_product_name' => brand_product_name,
+          'support_email' => support_email,
         }
       end
 
