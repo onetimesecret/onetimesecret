@@ -10,22 +10,20 @@ This ticket tracks closing those gaps across four priority levels (P0-P3), ranke
 
 Reference: `docs/product/brand-customization-system.md` (Sections 5 and 7)
 
-
 ## What's Working (and distinctive)
 
 The oklch palette generator is genuinely unique among OSS SaaS projects. No other project we surveyed (GitLab, Mattermost, Chatwoot, Cal.com, Plausible, Documenso, Sentry) generates a full shade palette from a single hex input. The architecture is sound, and this table captures what an executor can treat as settled ground.
 
-| Area | Status | Evidence |
-|------|--------|----------|
-| Color palette generation | Production-ready | 44 CSS vars across 4 palettes (brand, brandcomp, branddim, branddimcomp) x 11 shades, oklch, gamut clipping |
-| Brand CSS class adoption | Strong | 131 files, 404 `brand-*` class usages |
-| Dark mode pairing | Good | Consistent `bg-brand-600 dark:bg-brand-500` patterns |
-| Semantic color separation | Correct | red/amber/green for UX feedback, NOT brand classes |
-| i18n product name | Mostly done | `$t()` with `{ product_name }` in most user-facing strings |
-| Email inline hex | Correct | `brand_color` helper outputs hex, not CSS vars (correct for email clients) |
-| 3-layer fallback chain | Working | domain -> install -> default resolves correctly |
-| MastHead logo chain | Well-designed | props -> custom domain -> config -> default |
-
+| Area                      | Status           | Evidence                                                                                                    |
+| ------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| Color palette generation  | Production-ready | 44 CSS vars across 4 palettes (brand, brandcomp, branddim, branddimcomp) x 11 shades, oklch, gamut clipping |
+| Brand CSS class adoption  | Strong           | 131 files, 404 `brand-*` class usages                                                                       |
+| Dark mode pairing         | Good             | Consistent `bg-brand-600 dark:bg-brand-500` patterns                                                        |
+| Semantic color separation | Correct          | red/amber/green for UX feedback, NOT brand classes                                                          |
+| i18n product name         | Mostly done      | `$t()` with `{ product_name }` in most user-facing strings                                                  |
+| Email inline hex          | Correct          | `brand_color` helper outputs hex, not CSS vars (correct for email clients)                                  |
+| 3-layer fallback chain    | Working          | domain -> install -> default resolves correctly                                                             |
+| MastHead logo chain       | Well-designed    | props -> custom domain -> config -> default                                                                 |
 
 ## P0 — Operator WILL see OTS branding despite configuring their own
 
@@ -52,7 +50,6 @@ A self-hosted operator who has set their brand config will still encounter OTS b
   - [ ] Wire `logo_url` into MastHead as install-level fallback
   - [ ] Create neutral default logo asset (geometric, uses brand color via `currentColor`; all current logo files are OTS-branded)
 
-
 ## P1 — Config dimensions that exist but don't work at runtime
 
 These are design dimensions that have schema fields or partial implementation but produce no runtime effect, plus the long tail of hardcoded OTS-specific fallback strings scattered across the codebase.
@@ -75,7 +72,6 @@ These are design dimensions that have schema fields or partial implementation bu
 
 **Validation (visual identity)**: Two test instances side by side — one with OTS config, one with custom brand. Both should look equally polished. The custom brand instance should have zero OTS visual artifacts.
 
-
 ## P2 — Missing config dimensions (based on OSS survey)
 
 These are capabilities that comparable OSS projects offer but OTS does not yet expose as configuration.
@@ -91,7 +87,6 @@ These are capabilities that comparable OSS projects offer but OTS does not yet e
 - [ ] **Email dark mode resilience audit**
 - [ ] **Brand preview mode** in admin/settings
 - [ ] **DnsWidget brand colors** (~20 hardcoded hex values in third-party widget)
-
 
 ## P3 — Quick wins and long-tail enhancements
 
@@ -111,18 +106,33 @@ Short-effort improvements and longer-horizon private-label capabilities.
 - [ ] Font file upload support — operators cannot upload custom woff2 fonts; see product bible Section 11 for security considerations
 - [ ] Per-domain theme extension — operators limited to `primary_color`; no mechanism to set additional CSS custom properties per-domain
 
-
 ## Deliverables
 
 - [ ] `docs/operators/brand-customization.md` — operator-facing quick-start and reference. Assume a very competent executor but no prior knowledge of OTS codebase.
 - [ ] Toolchain support for token management, integration, linting, validation and regression testing
 - [ ] Improved inline help in `config.defaults.yaml` comments
+- [ ] At the end, translate this document into a list of criteria that must be met for ongoing QA
 
 ## Resolved questions
 
-| # | Question | Resolution |
-|---|----------|------------|
-| 1 | Should defaults be truly neutral or should config ship with OTS values while code has neutral fallbacks? | Truly neutral, with OTS customization shipped as a complete, working example. |
-| 2 | Should `corner_style` be a CSS custom property or a composable returning Tailwind classes? | Not a CSS custom property. `corner_style` is meant as proxy for simplifying common brand elements. We can achieve that in more extensible and expressable ways now with Tailwind v4. |
-| 3 | What customization level for custom domain customers? Logo? Font? Corner style? | Logo, favicon, social/unfurl content, UI toggles, and custom Tailwind v4 css JIT style. See docs/product/tailwind-v4-capabilities.txt |
-| 8 | Audit `apps/web/auth/mailer.rb` for active references before deletion | Just remove. It is based on 10 year old code. |
+| #   | Question                                                                                                 | Resolution                                                                                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Should defaults be truly neutral or should config ship with OTS values while code has neutral fallbacks? | Truly neutral, with OTS customization shipped as a complete, working example.                                                                                                        |
+| 2   | Should `corner_style` be a CSS custom property or a composable returning Tailwind classes?               | Not a CSS custom property. `corner_style` is meant as proxy for simplifying common brand elements. We can achieve that in more extensible and expressable ways now with Tailwind v4. |
+| 3   | What customization level for custom domain customers? Logo? Font? Corner style?                          | Logo, favicon, social/unfurl content, UI toggles, and custom Tailwind v4 css JIT style. See docs/product/tailwind-v4-capabilities.txt                                                |
+| 8   | Audit `apps/web/auth/mailer.rb` for active references before deletion                                    | Just remove. It is based on 10 year old code.                                                                                                                                        |
+
+## Open Questions
+
+| #   | Question                                                                                                                                               | Owner       | Status   |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- | -------- |
+| 4   | Should we build an admin Brand Settings UI, or is ENV/config sufficient? No admin.                                                                     | Product     | Answered |
+| 5   | Should `button_text_light` become auto-computed (removing the config field)? Yes                                                                       | Engineering | Answered |
+| 6   | Implement server-side brand CSS injection in `<head>` or accept FOUC? Server-side injection                                                            | Engineering | Answered |
+| 7   | Should email templates support a dark logo variant, or is transparent-background sufficient? Transparent                                               | Design      | Answered |
+| 9   | Additional CSS properties per-domain beyond `primary_color`? Full `@theme` override or a curated subset?                                               | Engineering | Open     |
+| 10  | What login/signup page elements should be configurable — background image only, or also hero text and layout?                                          | Product     | Open     |
+| 11  | Should dark theme auto-generation remap semantic aliases automatically, or require explicit dark palette config?                                       | Engineering | Open     |
+| 12  | How should per-organization branding interact with per-domain branding when both are configured? Which takes precedence? Domain determines organization; site uses organization's branding.                              | Product     | Answered     |
+| 13  | Should custom email sender domain require DNS verification at config time, or validate lazily on first send?  At customization time.                                        | Engineering | Answered     |
+| 14  | Should font file upload be exposed via admin UI, or config/CLI only? What about license compliance checking?  Skip font uploading                                         | Product     | Answered     |
