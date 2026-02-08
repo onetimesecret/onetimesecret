@@ -36,11 +36,11 @@ module Onetime
         notify_enabled: false,
       }.freeze
 
-      # Returns defaults with primary_color resolved from branding config.
+      # Returns defaults with primary_color resolved from brand config.
       # Falls back to DEFAULTS when OT.conf is not available.
       def self.defaults
         color = if defined?(OT) && OT.respond_to?(:conf) && OT.conf
-                  OT.conf.dig('branding', 'primary_color')
+                  OT.conf.dig('brand', 'primary_color')
                 end
         DEFAULTS.merge(primary_color: color || DEFAULTS[:primary_color])
       end
