@@ -57,21 +57,10 @@ Best-in-class private-label.
 - [ ] Social preview image generation (or configurable `og:image` URL)
 - [ ] Brand preview mode in admin/settings
 
-### Future considerations (not scoped here)
-
-- Admin brand settings UI panel
-- Login/signup page customization (background image, hero text)
-- Custom CSS injection (escape hatch — requires CSS sanitizer, see product bible Section 11)
-- Semantic color aliases (`--brand-surface`, `--brand-solid`, `--brand-text`)
-- Dark theme auto-generation from same primary color
-- Per-organization branding (multi-tenant within an installation)
-- Custom email sender name/domain
-- Font file upload (woff2 only, 500KB limit)
-
 ## Deliverables
 
 - [ ] `docs/operators/brand-customization.md` — operator-facing quick-start and reference. Assume a very competent executor but no prior knowledge of OTS codebase.
-- [ ] `bin/ots brand validate` CLI command — hex format, logo URL reachability, WCAG contrast warnings
+- [ ] Toolchain support for token management, integration, linting, validation and regression testing
 - [ ] Improved inline help in `config.defaults.yaml` comments
 
 ## Resolved questions
