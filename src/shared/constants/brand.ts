@@ -4,6 +4,7 @@
 // Backend equivalent: lib/onetime/models/custom_domain/brand_settings.rb
 
 import type { BrandSettings } from '@/schemas/models/domain/brand';
+import { CornerStyle, FontFamily } from '@/schemas/models/domain/brand';
 
 export { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 
@@ -21,14 +22,25 @@ export const DEFAULT_CORNER_CLASS = 'rounded-lg';
  * The 3-step fallback chain in identityStore uses these as the
  * final fallback (step 3) when neither per-domain nor per-installation
  * brand settings are available.
+ *
+ * Values are derived from the schema enums (FontFamily, CornerStyle)
+ * to prevent drift between constants and schema definitions.
  */
 export const NEUTRAL_BRAND_DEFAULTS: Pick<
   BrandSettings,
-  'primary_color' | 'product_name' | 'button_text_light' | 'corner_style' | 'font_family'
+  | 'primary_color'
+  | 'product_name'
+  | 'button_text_light'
+  | 'corner_style'
+  | 'font_family'
+  | 'allow_public_homepage'
+  | 'allow_public_api'
 > = {
   primary_color: '#3B82F6',
   product_name: 'My App',
   button_text_light: DEFAULT_BUTTON_TEXT_LIGHT,
-  corner_style: 'rounded',
-  font_family: 'sans',
+  corner_style: CornerStyle.ROUNDED,
+  font_family: FontFamily.SANS,
+  allow_public_homepage: true,
+  allow_public_api: true,
 };
