@@ -69,6 +69,9 @@ const DEFAULTS: BootstrapPayload = {
   brand_allow_public_homepage: true,
   brand_allow_public_api: true,
 
+  // Documentation / support
+  docs_host: 'docs.onetimesecret.com',
+
   // Feature flags
   billing_enabled: false,
   regions_enabled: false,
@@ -258,6 +261,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const brand_button_text_light = ref<boolean>(DEFAULTS.brand_button_text_light!);
   const brand_allow_public_homepage = ref<boolean>(DEFAULTS.brand_allow_public_homepage!);
   const brand_allow_public_api = ref<boolean>(DEFAULTS.brand_allow_public_api!);
+  const docs_host = ref<string>(DEFAULTS.docs_host!);
 
   // Feature flags
   const billing_enabled = ref<boolean | undefined>(DEFAULTS.billing_enabled);
@@ -383,6 +387,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(brand_button_text_light, data.brand_button_text_light);
     updateIfDefined(brand_allow_public_homepage, data.brand_allow_public_homepage);
     updateIfDefined(brand_allow_public_api, data.brand_allow_public_api);
+    updateIfDefined(docs_host, data.docs_host);
   }
 
   function hydrateFeatureFlags(data: Partial<BootstrapPayload>): void {
@@ -483,6 +488,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     brand_button_text_light.value = DEFAULTS.brand_button_text_light!;
     brand_allow_public_homepage.value = DEFAULTS.brand_allow_public_homepage!;
     brand_allow_public_api.value = DEFAULTS.brand_allow_public_api!;
+    docs_host.value = DEFAULTS.docs_host!;
   }
 
   function resetFeatureFlags(): void {
@@ -666,6 +672,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     brand_button_text_light,
     brand_allow_public_homepage,
     brand_allow_public_api,
+    docs_host,
 
     // State - Feature flags
     billing_enabled,

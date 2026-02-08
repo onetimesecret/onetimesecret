@@ -55,6 +55,7 @@ module Core
         output['brand_button_text_light']     = view_vars['brand_button_text_light']
         output['brand_allow_public_homepage'] = view_vars['brand_allow_public_homepage']
         output['brand_allow_public_api']      = view_vars['brand_allow_public_api']
+        output['docs_host']                   = view_vars['docs_host']
 
         # Pass development config to frontend (includes domain_context_enabled)
         output['development'] = {
@@ -95,6 +96,7 @@ module Core
             'd9s_enabled' => nil,
             'development' => nil,
             'diagnostics' => nil,
+            'docs_host' => nil,
             'domains' => nil,
             'domains_enabled' => nil,
             'features' => nil,

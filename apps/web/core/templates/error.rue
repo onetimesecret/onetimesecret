@@ -155,7 +155,7 @@ const schema = z.object({
         <div class="error-details">
           <p>
             Error ID: <code>{{error_id}}</code><br />
-            If this problem persists, please contact support@onetimesecret.com
+            If this problem persists, please contact {{support_email}}
           </p>
         </div>
         {{/if}}

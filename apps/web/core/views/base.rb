@@ -121,6 +121,7 @@ module Core
           'site_host' => view_vars['site_host'],
           'no_cache' => view_vars['no_cache'],
           'brand_primary_color' => view_vars['brand_primary_color'],
+          'support_email' => view_vars['support_email'],
           'vite_assets_html' => vite_assets(
             nonce: view_vars['nonce'],
             development: view_vars['frontend_development'],

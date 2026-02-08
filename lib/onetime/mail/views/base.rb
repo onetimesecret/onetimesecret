@@ -269,13 +269,20 @@ module Onetime
           # Support email helper - resolves from config or default
           # @return [String]
           def support_email
-            @support_email ||= conf_dig('brand', 'support_email') || 'support@onetimesecret.com'
+            @support_email ||= conf_dig('brand', 'support_email') ||
+                               Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
           end
 
           # Logo alt text helper - delegates to product_name
           # @return [String]
           def logo_alt
             product_name
+          end
+
+          # Logo URL helper - resolves from config or default path
+          # @return [String] Absolute URL to logo image
+          def logo_url
+            @logo_url ||= conf_dig('brand', 'logo_url') || "#{baseuri}/img/onetime-logo-v3-xl.svg"
           end
 
           # Get product name from site config
