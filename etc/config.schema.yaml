@@ -13,7 +13,6 @@
 #
 
 site: include('site')
-brand: include('brand', required=False)
 features: include('features')
 redis: include('redis')
 emailer: include('emailer')
@@ -73,12 +72,6 @@ site:
     secret_key: any(str(), int())
   support:
     host: str(required=False)
-
-brand:
-  primary_color: str(required=False)
-  product_name: str(required=False)
-  product_domain: str(required=False)
-  support_email: str(required=False)
 
 features:
   regions:
