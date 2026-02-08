@@ -10,8 +10,27 @@ const ALL_KEYS = Object.keys(generateBrandPalette(DEFAULT_BRAND_HEX));
 // Mock the identity store with a controllable reactive ref
 const mockPrimaryColor = ref<string>(DEFAULT_BRAND_HEX);
 
+// Track onError callbacks registered via useAsyncHandler
+let capturedOnError: ((error: unknown) => void) | undefined;
+
 vi.mock('@/shared/stores/identityStore', () => ({
   useProductIdentity: () => ({}),
+}));
+
+vi.mock('@/shared/composables/useAsyncHandler', () => ({
+  useAsyncHandler: (options: { onError?: (error: unknown) => void }) => {
+    capturedOnError = options?.onError;
+    return {
+      wrap: vi.fn(async <T>(fn: () => Promise<T>) => {
+        try {
+          return await fn();
+        } catch (error) {
+          capturedOnError?.(error);
+          return undefined;
+        }
+      }),
+    };
+  },
 }));
 
 vi.mock('pinia', async (importOriginal) => {

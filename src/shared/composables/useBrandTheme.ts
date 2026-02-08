@@ -10,6 +10,7 @@ import {
   DEFAULT_BRAND_HEX,
 } from '@/utils/brand-palette';
 import { useProductIdentity } from '@/shared/stores/identityStore';
+import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 import { watch, onScopeDispose } from 'vue';
 import { storeToRefs } from 'pinia';
 
@@ -33,6 +34,14 @@ function isDefaultColor(hex: string | null | undefined): boolean {
     === DEFAULT_BRAND_HEX.toLowerCase().replace('#', '');
 }
 
+/** Remove all 44 brand CSS overrides so @theme compiled defaults apply */
+function clearOverrides(): void {
+  const el = document.documentElement;
+  for (const key of ALL_KEYS) {
+    el.style.removeProperty(key);
+  }
+}
+
 /**
  * Injects brand palette CSS variables onto the document root
  * element, reactively tracking the identity store's primaryColor.
@@ -43,39 +52,31 @@ export function useBrandTheme(): void {
   const identityStore = useProductIdentity();
   const { primaryColor } = storeToRefs(identityStore);
 
-  function applyPalette(color: string | null | undefined): void {
-    const el = document.documentElement;
+  const asyncHandlerOptions: AsyncHandlerOptions = {
+    notify: false,
+    onError: () => clearOverrides(),
+  };
 
+  const { wrap } = useAsyncHandler(asyncHandlerOptions);
+
+  function applyPalette(color: string | null | undefined): void {
     if (isDefaultColor(color)) {
-      // Remove overrides — let @theme compiled defaults apply
-      for (const key of ALL_KEYS) {
-        el.style.removeProperty(key);
-      }
+      clearOverrides();
       return;
     }
 
-    try {
+    wrap(async () => {
       const palette = memoizedGeneratePalette(color as string);
+      const el = document.documentElement;
       for (const [key, value] of Object.entries(palette)) {
         el.style.setProperty(key, value);
       }
-    } catch {
-      // Palette generation failed — remove overrides so @theme defaults apply
-      for (const key of ALL_KEYS) {
-        el.style.removeProperty(key);
-      }
-    }
+    });
   }
 
   watch(primaryColor, (newColor) => {
     applyPalette(newColor);
   }, { immediate: true });
 
-  onScopeDispose(() => {
-    // Clean up all 44 CSS variables on scope disposal
-    const el = document.documentElement;
-    for (const key of ALL_KEYS) {
-      el.style.removeProperty(key);
-    }
-  });
+  onScopeDispose(() => clearOverrides());
 }
