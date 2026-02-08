@@ -1,6 +1,6 @@
 # Brand Customization System — Product Bible
 
-Version: 1.3 | Status: Living Document | Owner: Product/Engineering
+Version: 1.4 | Status: Living Document | Owner: Product/Engineering
 PRD Reference: PR #2483 — Centralize brand customization system
 Last Audit: 2026-02-08
 
@@ -17,31 +17,49 @@ logo) should be expressible purely as a configuration of this system.** If we ca
 own dogfood, every self-hosted operator and custom-domain customer gets the same level of
 polish.
 
+This document is organized in five parts: Context (the problem, personas, current state,
+and gaps), Architecture (the solution), Cross-Cutting Concerns (accessibility, security,
+QA), Implementation Specifics (email branding, operator docs), and Meta-Content (open
+questions, decision log, document maintenance).
+
 ---
 
 ## Table of Contents
 
-1. [Problem Statement](#1-problem-statement)
-2. [User Personas](#2-user-personas)
-3. [Architecture](#3-architecture)
-4. [Current Config Fields](#4-current-config-fields)
-5. [Dogfood Readiness Assessment](#5-dogfood-readiness-assessment)
-6. [Gap Analysis](#6-gap-analysis)
-7. [Design Token Architecture](#7-design-token-architecture)
-8. [Dual-Lifecycle Model](#8-dual-lifecycle-model)
-9. [Accessibility & Contrast](#9-accessibility--contrast)
-10. [Security Considerations](#10-security-considerations)
-11. [Quality Assurance: Linting & Visual Regression](#11-quality-assurance-linting--visual-regression)
-12. [Email Branding](#12-email-branding)
-13. [Operator Documentation](#13-operator-documentation)
-14. [Open Questions](#14-open-questions)
-15. [Document Management Notes](#15-document-management-notes)
-16. [Decision Log](#16-decision-log)
-17. [Change History](#17-change-history)
+### Part 1: Context
+- 1.1 [Problem Statement](#11-problem-statement)
+- 1.2 [User Personas](#12-user-personas)
+- 1.3 [Current State](#13-current-state)
+- 1.4 [Dogfood Readiness Assessment](#14-dogfood-readiness-assessment)
+- 1.5 [Gap Analysis: Ring Model](#15-gap-analysis-ring-model)
+
+### Part 2: Architecture
+- 2.1 [Core Architecture](#21-core-architecture)
+- 2.2 [Design Token Architecture](#22-design-token-architecture)
+- 2.3 [Dual-Lifecycle Model](#23-dual-lifecycle-model)
+
+### Part 3: Cross-Cutting Concerns
+- 3.1 [Accessibility & Contrast](#31-accessibility--contrast)
+- 3.2 [Security Considerations](#32-security-considerations)
+- 3.3 [Quality Assurance: Linting & Visual Regression](#33-quality-assurance-linting--visual-regression)
+
+### Part 4: Implementation Specifics
+- 4.1 [Email Branding](#41-email-branding)
+- 4.2 [Operator Documentation](#42-operator-documentation)
+
+### Part 5: Meta-Content
+- 5.1 [Open Questions](#51-open-questions)
+- 5.2 [Decision Log](#52-decision-log)
+- 5.3 [Document Management Notes](#53-document-management-notes)
+- 5.4 [Change History](#54-change-history)
 
 ---
 
-## 1. Problem Statement
+# Part 1: Context
+
+---
+
+## 1.1 Problem Statement
 
 **Before PR #2483**: ~60 hardcoded `#dc4a22` occurrences across 30+ files. Three
 disconnected branding subsystems (CSS @theme, JS identityStore, backend
@@ -59,7 +77,7 @@ Enterprise private-label prospects hit a ceiling.
 
 ---
 
-## 2. User Personas
+## 1.2 User Personas
 
 ### Self-Hosted Operator (Install-Time Customization)
 
@@ -90,78 +108,11 @@ Enterprise private-label prospects hit a ceiling.
 
 ---
 
-## 3. Architecture
+## 1.3 Current State
 
-### Three-Layer Brand Resolution
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Page Render                              │
-│                                                             │
-│  primaryColor = domain_branding.primary_color               │
-│               ?? bootstrapStore.brand_primary_color          │
-│               ?? DEFAULT_PRIMARY_COLOR                       │
-│                                                             │
-│  Layer 1: Per-Domain (Redis)     ← page-load-time           │
-│  Layer 2: Per-Installation (ENV/config) ← install-time      │
-│  Layer 3: Hardcoded Fallback     ← compile-time             │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Data Flow
-
-```
-Install-Time Path:
-  ENV vars → config.defaults.yaml → OT.conf → ConfigSerializer
-  → bootstrap payload → bootstrapStore → useBrandTheme → CSS vars on :root
-
-Page-Load-Time Path:
-  Redis brand_settings → API response → identityStore
-  → useBrandTheme → CSS vars on :root (overrides install defaults)
-
-Email Path:
-  OT.conf → TemplateContext helpers (brand_color, product_name, support_email)
-  → ERB templates → inline hex + text (no CSS vars — email clients don't support them)
-```
-
-### Key Design Decision: Shared Mechanism
-
-Both lifecycle paths resolve through the same CSS custom property layer.
-Tailwind v4's theme system is CSS-native — the `@theme` block in `style.css` defines
-build-time color defaults as CSS custom properties, and `useBrandTheme` overrides those
-same `--color-brand-*` variables at runtime. (The project retains `tailwind.config.ts` for
-content paths, plugin registration, and font family declarations — but all brand color
-definitions live in the CSS `@theme` block, not in JS config.) Tailwind v4's cascade layers
-(`@layer base`, `@layer components`, etc.) provide a clear specificity hierarchy, though
-brand overrides themselves operate via inline styles on `:root` set by `useBrandTheme`,
-which take precedence over all layer-scoped declarations by design.
-
-This is architecturally rare. Most OSS SaaS projects (Mattermost, Chatwoot) bolt
-per-tenant theming on as a separate system from install-level branding, creating
-maintenance burden and feature asymmetry. OTS's unified approach means every new brand
-config field automatically works at both levels.
-
-### Key Files
-
-| File                                                  | Role                                                     |
-| ----------------------------------------------------- | -------------------------------------------------------- |
-| `src/utils/brand-palette.ts`                          | oklch palette generator — 44 CSS vars from 1 hex         |
-| `src/shared/composables/useBrandTheme.ts`             | Watches identityStore, injects/removes CSS vars on :root |
-| `src/shared/constants/brand.ts`                       | Frontend defaults and neutral brand constants            |
-| `src/shared/stores/identityStore.ts`                  | Holds current domain's brand settings                    |
-| `src/shared/stores/bootstrapStore.ts`                 | Holds installation-level brand config                    |
-| `src/assets/style.css`                                | `@theme` block — build-time Tailwind defaults            |
-| `etc/defaults/config.defaults.yaml`                   | Backend brand config with ENV overrides                  |
-| `lib/onetime/models/custom_domain/brand_settings.rb`  | Per-domain brand in Redis                                |
-| `lib/onetime/mail/views/base.rb`                      | Email template brand helpers                             |
-| `apps/web/core/views/helpers/initialize_view_vars.rb` | View bootstrapper                                        |
-
----
-
-## 4. Current Config Fields
-
-The `brand:` section in `config.defaults.yaml` exposes 9 fields:
+The `brand:` section in `config.defaults.yaml` (see Decision D6) exposes 9 fields.
+The brand schema uses Zod `.nullish()` rather than `.default()` so that validation
+and default resolution remain separate concerns (see Decision D3).
 
 | Field                   | Type       | Default                     | ENV Override                  | Purpose                             |
 | ----------------------- | ---------- | --------------------------- | ----------------------------- | ----------------------------------- |
@@ -197,13 +148,13 @@ The `brand:` section in `config.defaults.yaml` exposes 9 fields:
 
 ---
 
-## 5. Dogfood Readiness Assessment
+## 1.4 Dogfood Readiness Assessment
 
 See [brand-dogfood-gaps-ticket.md](brand-dogfood-gaps-ticket.md).
 
 ---
 
-## 6. Ring Model
+## 1.5 Gap Analysis: Ring Model
 
 ### Layers of Brand Identity
 
@@ -258,9 +209,88 @@ P0 (operators hit it immediately). Both framings are useful for planning.
 
 ---
 
-## 7. Design Token Architecture
+# Part 2: Architecture
+
+---
+
+## 2.1 Core Architecture
+
+### Three-Layer Brand Resolution
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Page Render                              │
+│                                                             │
+│  primaryColor = domain_branding.primary_color               │
+│               ?? bootstrapStore.brand_primary_color          │
+│               ?? DEFAULT_PRIMARY_COLOR                       │
+│                                                             │
+│  Layer 1: Per-Domain (Redis)     ← page-load-time           │
+│  Layer 2: Per-Installation (ENV/config) ← install-time      │
+│  Layer 3: Hardcoded Fallback     ← compile-time             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+```
+Install-Time Path:
+  ENV vars → config.defaults.yaml → OT.conf → ConfigSerializer
+  → bootstrap payload → bootstrapStore → useBrandTheme → CSS vars on :root
+
+Page-Load-Time Path:
+  Redis brand_settings → API response → identityStore
+  → useBrandTheme → CSS vars on :root (overrides install defaults)
+
+Email Path:
+  OT.conf → TemplateContext helpers (brand_color, product_name, support_email)
+  → ERB templates → inline hex + text (no CSS vars — email clients don't support them)
+```
+
+Product name flows through standard `t()` i18n with an explicit `{ product_name }`
+parameter rather than a custom composable (see Decision D5).
+
+### Key Design Decision: Shared Mechanism
+
+Both lifecycle paths resolve through the same CSS custom property layer.
+Tailwind v4's theme system is CSS-native — the `@theme` block in `style.css` defines
+build-time color defaults as CSS custom properties, and `useBrandTheme` overrides those
+same `--color-brand-*` variables at runtime. (The project retains `tailwind.config.ts` for
+content paths, plugin registration, and font family declarations — but all brand color
+definitions live in the CSS `@theme` block, not in JS config (see Decision D4).) Tailwind v4's cascade layers
+(`@layer base`, `@layer components`, etc.) provide a clear specificity hierarchy, though
+brand overrides themselves operate via inline styles on `:root` set by `useBrandTheme`,
+which take precedence over all layer-scoped declarations by design.
+
+This is architecturally rare. Most OSS SaaS projects (Mattermost, Chatwoot) bolt
+per-tenant theming on as a separate system from install-level branding, creating
+maintenance burden and feature asymmetry. OTS's unified approach means every new brand
+config field automatically works at both levels.
+
+### Key Files
+
+| File                                                  | Role                                                     |
+| ----------------------------------------------------- | -------------------------------------------------------- |
+| `src/utils/brand-palette.ts`                          | oklch palette generator — 44 CSS vars from 1 hex         |
+| `src/shared/composables/useBrandTheme.ts`             | Watches identityStore, injects/removes CSS vars on :root |
+| `src/shared/constants/brand.ts`                       | Frontend defaults and neutral brand constants            |
+| `src/shared/stores/identityStore.ts`                  | Holds current domain's brand settings                    |
+| `src/shared/stores/bootstrapStore.ts`                 | Holds installation-level brand config                    |
+| `src/assets/style.css`                                | `@theme` block — build-time Tailwind defaults            |
+| `etc/defaults/config.defaults.yaml`                   | Backend brand config with ENV overrides                  |
+| `lib/onetime/models/custom_domain/brand_settings.rb`  | Per-domain brand in Redis                                |
+| `lib/onetime/mail/views/base.rb`                      | Email template brand helpers                             |
+| `apps/web/core/views/helpers/initialize_view_vars.rb` | View bootstrapper                                        |
+
+---
+
+## 2.2 Design Token Architecture
 
 ### Current: Numbered Shades
+
+The palette generator uses the oklch color space (see Decision D1) and produces 4
+palette variants from a single hex input (see Decision D2).
 
 ```
 --color-brand-50    (lightest)
@@ -355,22 +385,21 @@ Safari Technology Preview.
 ### Design Token Tooling
 
 The current token pipeline (hex input → `brand-palette.ts` → 44 CSS vars → `useBrandTheme`
-→ `:root`) is self-contained. If the system grows to support cross-platform output (e.g.,
-native mobile clients, design tool integration), these tools produce CSS custom properties
-from the same token definitions:
+→ `:root`) is self-contained. Two external tools are planned to extend the pipeline into
+design tooling and runtime theme switching:
 
-| Tool                 | Relevance to OTS                                                                                                                                            |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Style Dictionary** | Cross-platform token transformation — could generate iOS/Android equivalents of the `--color-brand-*` palette from a shared token source                    |
-| **Penpot**           | Open-source design tool with native W3C DTCG token support; self-hostable. Useful for maintaining a shared design spec that stays in sync with the CSS vars |
-| **TokiForge**        | Runtime token consumption with theme switching — relevant if the semantic alias layer needs dynamic remapping beyond what `useBrandTheme` currently handles |
+| Tool                 | Status      | Role in OTS                                                                                                                                                  |
+| -------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Penpot**           | **Planned** | Open-source design tool with native W3C DTCG token support; self-hostable. Maintains a shared design spec that stays in sync with the `--color-brand-*` vars |
+| **TokiForge**        | **Planned** | Runtime token consumption with theme switching — handles dynamic remapping of the semantic alias layer beyond what `useBrandTheme` currently covers           |
+| **Style Dictionary** | Future      | Cross-platform token transformation — generates iOS/Android equivalents from a shared token source. Relevant if native clients need the brand palette         |
 
-These are not prerequisites for the current architecture. They become relevant when tokens
-need to flow beyond CSS custom properties into other platforms or design tooling.
+Penpot and TokiForge are the next integration targets. Style Dictionary becomes relevant
+only if tokens need to flow beyond CSS custom properties into native mobile platforms.
 
 ---
 
-## 8. Dual-Lifecycle Model
+## 2.3 Dual-Lifecycle Model
 
 ### Install-Time vs Page-Load-Time
 
@@ -453,7 +482,11 @@ paint and only activates on runtime changes (e.g., navigating between custom dom
 
 ---
 
-## 9. Accessibility & Contrast
+# Part 3: Cross-Cutting Concerns
+
+---
+
+## 3.1 Accessibility & Contrast
 
 ### The Problem
 
@@ -488,7 +521,7 @@ when the system needs to handle arbitrary typography.
 
 ---
 
-## 10. Security Considerations
+## 3.2 Security Considerations
 
 Brand customization introduces user-controlled inputs that render in HTML, CSS, email
 templates, and PWA manifests. Each input is an attack surface.
@@ -506,7 +539,7 @@ templates, and PWA manifests. Each input is an attack surface.
 | Per-domain theme extension (planned) | Values flow through CSS custom properties, same as `primary_color`. Risk is limited to property values, not arbitrary selectors or rules. | Validate values with the same pipeline used for `primary_color` (strict format regex per property type). No raw CSS blocks — only named properties with typed values. |
 | Font file upload (planned)           | Executable code in font files. License violations.                                                                                        | Format allowlist (woff2 only). Size limit (500KB). No server-side font parsing. Serve via CDN with `Content-Type: font/woff2`.                                        |
 | PWA manifest (planned)               | XSS if `name`/`description` rendered in admin UI                                                                                          | JSON-encode all values. Never render manifest fields as raw HTML.                                                                                                     |
-| Email sender name/domain (planned)   | SPF/DKIM/DMARC misconfiguration leading to email delivery failures or spoofing. Phishing via impersonated sender addresses.               | Validate domain ownership via DNS TXT record. Require SPF/DKIM alignment before enabling custom sender. Restrict to verified domains only. See Section 12.            |
+| Email sender name/domain (planned)   | SPF/DKIM/DMARC misconfiguration leading to email delivery failures or spoofing. Phishing via impersonated sender addresses.               | Validate domain ownership via DNS TXT record. Require SPF/DKIM alignment before enabling custom sender. Restrict to verified domains only. See Section 4.1.           |
 
 ### Content Security Policy (CSP) Implications
 
@@ -541,11 +574,11 @@ owners). These users are authenticated but potentially untrusted:
 
 ---
 
-## 11. Quality Assurance: Linting & Visual Regression
+## 3.3 Quality Assurance: Linting & Visual Regression
 
 ### CSS Linting
 
-The brand system's goal of eliminating hardcoded `#dc4a22` occurrences (Section 1) benefits
+The brand system's goal of eliminating hardcoded `#dc4a22` occurrences (Section 1.1) benefits
 from automated enforcement. **Stylelint** can catch regressions at commit time:
 
 - **Token naming conventions** — Custom rules to flag CSS values that should use
@@ -576,12 +609,16 @@ under 3–4 representative brand colors (the default `#dc4a22`, a very light col
 dark color, and a cool-toned color). Compare against baselines on each PR that touches
 `brand-palette.ts`, `useBrandTheme.ts`, or `style.css`.
 
-For email templates (Section 12), Litmus and Email on Acid remain the right tools — visual
+For email templates (Section 4.1), Litmus and Email on Acid remain the right tools — visual
 regression via Playwright does not cover email client rendering differences.
 
 ---
 
-## 12. Email Branding
+# Part 4: Implementation Specifics
+
+---
+
+## 4.1 Email Branding
 
 ### Current State
 
@@ -627,7 +664,7 @@ the sender name or domain.
 **Requirements:**
 
 - Sender domain must have valid SPF, DKIM, and DMARC records aligned with the sending
-  infrastructure (see Section 10 for security implications)
+  infrastructure (see Section 3.2 for security implications)
 - `email_sender_name` falls back to `brand.product_name` if not explicitly set
 - Validation: domain ownership should be confirmed via DNS TXT record before activation
 - This is an install-time-only feature — per-domain email sender customization introduces
@@ -635,7 +672,7 @@ the sender name or domain.
 
 ---
 
-## 13. Operator Documentation
+## 4.2 Operator Documentation
 
 ### Current State
 
@@ -667,29 +704,32 @@ bible.
 
 ---
 
-## 14. Open Questions
-
-| #   | Question                                                                                                                                             | Owner       | Status              |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------------- |
-| 1   | Should defaults be truly neutral (`'My App'`, `#0066FF` blue) or should the config file ship with OTS values and the code have neutral fallbacks?    | Product     | Open                |
-| 2   | Should `corner_style` be a CSS custom property (`--brand-radius`) or a composable that returns Tailwind classes?                                     | Engineering | Open                |
-| 3   | What level of customization should page-load-time (custom domain) customers get? Logo? Font? Corner style?                                           | Product     | Open                |
-| 4   | Should we build an admin Brand Settings UI, or is ENV/config sufficient for v1?                                                                      | Product     | Open                |
-| 5   | Should `button_text_light` become auto-computed (removing the config field) or remain as a manual override?                                          | Engineering | Open                |
-| 6   | Implement server-side brand CSS injection in `<head>` or accept FOUC?                                                                                | Engineering | Open                |
-| 7   | Should email templates support a dark logo variant, or is transparent-background sufficient?                                                         | Design      | Open                |
-| 8   | Audit `apps/web/auth/mailer.rb` for active references before deletion                                                                                | Engineering | Open — prerequisite |
-| 9   | What additional CSS custom properties should per-domain theme extension support beyond `primary_color`? Full `@theme` override or a curated subset?  | Engineering | Open                |
-| 10  | What login/signup page elements should be configurable — background image only, or also hero text and layout?                                        | Product     | Open                |
-| 11  | Should dark theme auto-generation remap semantic aliases automatically, or require explicit dark palette config?                                     | Engineering | Open                |
-| 12  | How should per-organization branding interact with per-domain branding when both are configured? Which takes precedence?                             | Product     | Open                |
-| 13  | Should custom email sender domain require DNS verification at config time, or validate lazily on first send?                                         | Engineering | Open                |
-| 14  | Should font file upload be exposed via admin UI, or config/CLI only? What about license compliance checking?                                         | Product     | Open                |
-| 15  | For semantic color aliases, should the initial set be `--brand-surface`/`--brand-solid`/`--brand-text` only, or include the full set from Section 7? | Engineering | Open                |
+# Part 5: Meta-Content
 
 ---
 
-## 15. Document Management Notes
+## 5.1 Open Questions
+
+
+## 5.2 Decision Log
+
+Decisions made during the brand system development. For significant architectural
+decisions, create a formal ADR in `docs/architecture/decision-records/`.
+
+| #   | Date    | Decision                                                   | Rationale                                                                                                         | ADR |
+| --- | ------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --- |
+| D1  | 2026-01 | Use oklch color space for palette generation               | Perceptually uniform, handles gamut clipping, modern browser support                                              | —   |
+| D2  | 2026-01 | Generate 4 palettes from 1 hex (brand, comp, dim, dimcomp) | Covers light/dark and accent needs without additional config                                                      | —   |
+| D3  | 2026-01 | Zod `.nullish()` not `.default()` for brand schema         | Schema validates format only; the store resolves defaults. This preserves the 3-layer fallback chain.             | —   |
+| D4  | 2026-01 | Remove `extend.colors` from `tailwind.config.ts`           | Tailwind v4 uses CSS-only `@theme`. Config colors were a v3 holdover causing dual-source confusion.               | —   |
+| D5  | 2026-01 | Replace `useBrandI18n` composable with standard `t()`      | Standard i18n with explicit `{ product_name }` parameter is simpler and more consistent than a custom composable. | —   |
+| D6  | 2026-02 | Rename config key from `branding:` to `brand:`             | Shorter, consistent with other config section naming (site:, redis:, etc.)                                        | —   |
+
+We will move this content to a single, focus ADR file once the system is stable and the major decisions are finalized. For now, this log captures the evolving decision landscape during development.
+
+---
+
+## 5.3 Document Management Notes
 
 ### Why Markdown (and Its Limits)
 
@@ -711,14 +751,16 @@ Where it falls short:
 
 ### Suggested Complementary Tools
 
-| Tool                                              | Purpose                                                                       | When to Use                          |
-| ------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------ |
-| GitHub Issues                                     | Task tracking for brand system work items                                     | Ongoing                              |
-| Storybook                                         | Visual component library with brand variants                                  | When component coverage warrants it  |
-| ADR files (`docs/architecture/decision-records/`) | Record key decisions from Open Questions                                      | As questions are resolved            |
-| `brand-audit.sh` script                           | Automated count of hardcoded values                                           | Run before each release              |
-| Stylelint                                         | Enforce token naming conventions, catch hardcoded hex values (see Section 11) | On commit / in CI                    |
-| Playwright visual regression                      | Screenshot baselines across brand color variants (see Section 11)             | On PRs touching brand pipeline files |
+| Tool                                              | Purpose                                                                           | When to Use                          |
+| ------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------ |
+| **Penpot**                                        | Shared design spec with W3C DTCG tokens synced to `--color-brand-*` vars          | Design ↔ code sync                   |
+| **TokiForge**                                     | Runtime token consumption and theme switching for semantic alias remapping         | Semantic alias layer, dark theme     |
+| GitHub Issues                                     | Task tracking for brand system work items                                         | Ongoing                              |
+| Storybook                                         | Visual component library with brand variants                                      | When component coverage warrants it  |
+| ADR files (`docs/architecture/decision-records/`) | Record key decisions from Open Questions                                          | As questions are resolved            |
+| `brand-audit.sh` script                           | Automated count of hardcoded values                                               | Run before each release              |
+| Stylelint                                         | Enforce token naming conventions, catch hardcoded hex values (see Section 3.3)    | On commit / in CI                    |
+| Playwright visual regression                      | Screenshot baselines across brand color variants (see Section 3.3)                | On PRs touching brand pipeline files |
 
 ### CI/CD Pipeline for Brand Integrity
 
@@ -738,31 +780,15 @@ pipeline that TypeScript and unit tests do not reach.
 
 ### Keeping This Document Fresh
 
-1. **After competitive research**: Update Section 6 with new findings.
-2. **After resolving an Open Question**: Move it to Section 16 (Decision Log) with the
+1. **After competitive research**: Update Section 1.5 with new findings.
+2. **After resolving an Open Question**: Move it to Section 5.2 (Decision Log) with the
    resolution.
 3. **Quarterly**: Re-run the automated audit (grep for hardcoded values) and update
-   Section 5 counts.
+   Section 1.4 counts.
 
 ---
 
-## 16. Decision Log
-
-Decisions made during the brand system development. For significant architectural
-decisions, create a formal ADR in `docs/architecture/decision-records/`.
-
-| #   | Date    | Decision                                                   | Rationale                                                                                                         | ADR |
-| --- | ------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --- |
-| D1  | 2026-01 | Use oklch color space for palette generation               | Perceptually uniform, handles gamut clipping, modern browser support                                              | —   |
-| D2  | 2026-01 | Generate 4 palettes from 1 hex (brand, comp, dim, dimcomp) | Covers light/dark and accent needs without additional config                                                      | —   |
-| D3  | 2026-01 | Zod `.nullish()` not `.default()` for brand schema         | Schema validates format only; the store resolves defaults. This preserves the 3-layer fallback chain.             | —   |
-| D4  | 2026-01 | Remove `extend.colors` from `tailwind.config.ts`           | Tailwind v4 uses CSS-only `@theme`. Config colors were a v3 holdover causing dual-source confusion.               | —   |
-| D5  | 2026-01 | Replace `useBrandI18n` composable with standard `t()`      | Standard i18n with explicit `{ product_name }` parameter is simpler and more consistent than a custom composable. | —   |
-| D6  | 2026-02 | Rename config key from `branding:` to `brand:`             | Shorter, consistent with other config section naming (site:, redis:, etc.)                                        | —   |
-
----
-
-## 17. Change History
+## 5.4 Change History
 
 | Version | Date       | Author              | Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------- | ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -770,6 +796,7 @@ decisions, create a formal ADR in `docs/architecture/decision-records/`.
 | 1.1     | 2026-02-08 | Product/Engineering | Added security section (11), operator docs (13). Fixed palette count, font_family gap, open question ownership. Fresh-eyes review feedback.                                                                                                                                                                                                                                                                                                                                    |
 | 1.2     | 2026-02-08 | Product/Engineering | Added 7 planned features: login page customization, per-domain theme extension, semantic color aliases, dark theme auto-generation, per-org branding, custom email sender, font file upload. Reframed custom CSS as Tailwind v4 theme extension. Expanded Sections 5, 6, 7, 8, 9, 11, 12, 14.                                                                                                                                                                                  |
 | 1.3     | 2026-02-08 | Product/Engineering | Fact-check pass against Tailwind v4 capabilities reference. Corrected "100% CSS" claim to scope it to theme definitions (Section 3). Fixed `branddimcomp-*` palette prefix to `brandcompdim-*` (Section 7). Added design token tooling subsection (Section 7). Added Section 11: CSS linting (Stylelint) and visual regression testing (Playwright, Lost Pixel). Expanded Section 15 with CI/CD pipeline pattern for brand integrity. Renumbered sections sequentially (1–17). |
+| 1.4     | 2026-02-08 | Product/Engineering | Restructured into five-part layout: Context, Architecture, Cross-Cutting Concerns, Implementation Specifics, Meta-Content. Nested Design Token Architecture and Dual-Lifecycle Model under Architecture. Added Decision Log cross-references (D1–D6). No content rewritten.                                                                                                                                                                                                    |
 
 ---
 
