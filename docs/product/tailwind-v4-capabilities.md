@@ -28,9 +28,24 @@ Tailwind v4's cascade layers provide clear separation between:
 
 This hierarchy ensures brand customizations take precedence without conflicts.
 
+### About OKLCH in CSS
+
+oklch() is a new way to define CSS colors. In oklch(L C H) or oklch(L C H / a), each item corresponds as follows:
+L is perceived lightness (0-1). “Perceived” means that it has consistent lightness for our eyes, unlike L in hsl().
+C is chroma, from gray to the most saturated color.
+H is the hue angle (0-360).
+
+```css
+a is opacity (0-1 or 0-100%). a:hover {
+  color: oklch(0.45 0.26 264); /* blue */
+  color: oklch(1 0 0); /* white */
+  color: oklch(0 0 0 / 50%); /* black with 50% opacity */
+}
+```
+
 ## Customization Scope
 
-Typical whitelabel scenarios include dynamic control over:
+Typical private-label scenarios include dynamic control over:
 
 - Color palettes (primary, secondary, accent)
 - Typography (font families, sizes, weights)
@@ -94,6 +109,8 @@ Tailwind v4 itself uses Vitest + Playwright. Recommended pipeline:
 - [How to use custom color themes in TailwindCSS v4 - Stack Overflow](https://stackoverflow.com/questions/79499818/how-to-use-custom-color-themes-in-tailwindcss-v4)
 - [TailwindCSS v4 responsive and custom CSS not applied - Stack Overflow](https://stackoverflow.com/questions/79560404/tailwindcss-v4-responsive-and-custom-css-not-applied)
 - [Tailwind CSS v4 Architecture: JIT & Production Patterns](https://learnwebcraft.com/learn/css/tailwind-v4-essential-cheat-sheet)
+- [OKLCH in CSS: why we moved from RGB and HSL](https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl)
+- [OKLCH Color Picker & Converter](https://oklch.com/#0.7,0.1,116,100)
 
 ### Design Tokens
 
