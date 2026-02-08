@@ -5,12 +5,6 @@
   import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
-  import {
-    CornerStyle,
-    FontFamily,
-    cornerStyleClasses,
-    fontFamilyClasses
-  } from '@/schemas/models/domain/brand';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
 
@@ -32,20 +26,11 @@
 
   const productIdentity = useProductIdentity();
   const brandSettings = productIdentity.brand; // Not reactive
+  const { cornerClass, fontFamilyClass } = productIdentity;
   const defaultBranding = brandSettingschema.parse({});
   const safeBrandSettings = computed(() =>
     brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
   );
-
-  const cornerClass = computed(() => {
-    const style = safeBrandSettings.value?.corner_style as CornerStyle | undefined;
-    return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
-  });
-
-  const fontFamilyClass = computed(() => {
-    const font = safeBrandSettings.value?.font_family as FontFamily | undefined;
-    return fontFamilyClasses[font ?? FontFamily.SANS];
-  });
 
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,

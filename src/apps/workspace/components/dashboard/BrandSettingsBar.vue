@@ -20,6 +20,7 @@
 
   import ColorPicker from '@/shared/components/common/ColorPicker.vue';
   import CycleButton from '@/shared/components/common/CycleButton.vue';
+  import { checkBrandContrast } from '@/utils/brand-palette';
 
   const { t } = useI18n();
 
@@ -46,6 +47,10 @@
     });
   };
 
+  const contrastCheck = computed(() =>
+    checkBrandContrast(props.modelValue.primary_color ?? '')
+  );
+
   const isDisabled = computed(() => props.isLoading || !props.hasUnsavedChanges);
 
   const buttonText = computed(() => props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save'));
@@ -66,13 +71,24 @@
           <!-- Left section - wrap in flex container -->
           <div class="flex min-w-0 shrink items-center gap-4">
             <!-- Color Picker -->
-            <div class="flex min-w-0 shrink items-center gap-4">
+            <div class="flex min-w-0 shrink items-center gap-2">
               <ColorPicker
                 :model-value="modelValue.primary_color ?? undefined"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
                 name="brand[primary_color]"
                 :label="t('web.branding.brand_color')"
                 id="brand-color" />
+              <span
+                v-if="!contrastCheck.passesAALarge"
+                :title="t('web.branding.low_contrast_warning', [contrastCheck.ratio.toFixed(1)])"
+                :aria-label="t('web.branding.low_contrast_warning', [contrastCheck.ratio.toFixed(1)])"
+                class="shrink-0 text-amber-500"
+                role="img">
+                <OIcon
+                  collection="mdi"
+                  name="alert-outline"
+                  class="size-5" />
+              </span>
             </div>
 
             <!-- UI Elements -->
