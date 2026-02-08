@@ -1,13 +1,16 @@
 <!-- src/apps/workspace/account/region/AvailableRegions.vue -->
 
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import JurisdictionList from '@/shared/components/modals/settings/JurisdictionList.vue';
   import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
   import { computed, onMounted } from 'vue';
 
-  const { t, bt } = useBrandI18n();
+  const { t } = useI18n();
+  const { brand_product_name } = storeToRefs(useBootstrapStore());
   const jurisdictionStore = useJurisdictionStore();
 
   const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
@@ -59,7 +62,7 @@
               {{ t('web.regions.changing_regions_how_to') }}
             </p>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {{ bt('web.regions.changing_regions_billing_note') }}
+              {{ t('web.regions.changing_regions_billing_note', { product_name: brand_product_name }) }}
             </p>
           </div>
 

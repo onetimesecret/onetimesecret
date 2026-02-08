@@ -2,9 +2,12 @@
 
 /** eslint-disable tailwindcss/classnames-order */
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
-const { t, bt } = useBrandI18n();
+const { t } = useI18n();
+const { brand_product_name } = storeToRefs(useBootstrapStore());
 
   interface Props {}
   defineProps<Props>();
@@ -26,7 +29,7 @@ const { t, bt } = useBrandI18n();
           {{ t('web.secrets.what_is_this') }}
         </h3>
         <p>
-          {{ bt('web.secrets.onetime_secret_is_a_secure_way_to_share_sensitiv') }}
+          {{ t('web.secrets.onetime_secret_is_a_secure_way_to_share_sensitiv', { product_name: brand_product_name }) }}
         </p>
       </div>
 

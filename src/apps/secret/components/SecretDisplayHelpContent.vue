@@ -1,9 +1,12 @@
 <!-- src/apps/secret/components/SecretDisplayHelpContent.vue -->
 
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
-  const { t, bt } = useBrandI18n();
+  const { t } = useI18n();
+  const { brand_product_name } = storeToRefs(useBootstrapStore());
 </script>
 
 <template>
@@ -22,7 +25,7 @@
           {{ t('web.help.secret_view_faq.what_am_i_looking_at.title') }}
         </h3>
         <p>
-          {{ bt('web.help.secret_view_faq.what_am_i_looking_at.description') }}
+          {{ t('web.help.secret_view_faq.what_am_i_looking_at.description', { product_name: brand_product_name }) }}
         </p>
       </div>
 

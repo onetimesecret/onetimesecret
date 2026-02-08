@@ -7,7 +7,7 @@
   - Wider, changing max-w-2xl to max-w-4xl
 -->
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import JurisdictionToggle from '@/shared/components/ui/JurisdictionToggle.vue';
@@ -29,7 +29,7 @@
     displayPoweredBy: true,
   });
 
-  const { t, bt } = useBrandI18n();
+  const { t } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
   const {
@@ -41,6 +41,7 @@
     ot_version_long,
     ui,
     domains_enabled,
+    brand_product_name,
   } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
@@ -182,7 +183,7 @@
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} Version`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               :aria-label="t('web.layout.release_notes')">
@@ -197,13 +198,13 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} Version`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
               {{ t('web.COMMON.powered_by') }}
-              {{ bt('web.homepage.onetime_secret_literal') }}
+              {{ t('web.homepage.onetime_secret_literal', { product_name: brand_product_name }) }}
             </a>
           </span>
         </div>

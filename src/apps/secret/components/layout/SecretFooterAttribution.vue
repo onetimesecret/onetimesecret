@@ -1,9 +1,12 @@
 <!-- src/apps/secret/components/layout/SecretFooterAttribution.vue -->
 
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
-const { t, bt } = useBrandI18n();
+const { t } = useI18n();
+const { brand_product_name } = storeToRefs(useBootstrapStore());
 
   defineProps<{
     siteHost: string;
@@ -25,8 +28,8 @@ const { t, bt } = useBrandI18n();
         class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="bt('web.layout.visit_onetime_secret_homepage')">
-        {{ bt('web.branding.powered_by_onetime_secret') }}
+        :aria-label="t('web.layout.visit_onetime_secret_homepage', { product_name: brand_product_name })">
+        {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name }) }}
       </a>
 
       <template v-if="showTerms">
@@ -63,8 +66,8 @@ const { t, bt } = useBrandI18n();
           dark:text-gray-600 dark:hover:text-gray-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="bt('web.layout.visit_onetime_secret_homepage')">
-        {{ bt('web.branding.powered_by_onetime_secret') }}
+        :aria-label="t('web.layout.visit_onetime_secret_homepage', { product_name: brand_product_name })">
+        {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name }) }}
       </a>
     </div>
   </footer>
