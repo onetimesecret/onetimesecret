@@ -1,6 +1,6 @@
 # Brand Customization System — Product Bible
 
-Version: 1.2 | Status: Living Document | Owner: Product/Engineering
+Version: 1.3 | Status: Living Document | Owner: Product/Engineering
 PRD Reference: PR #2483 — Centralize brand customization system
 Last Audit: 2026-02-08
 
@@ -26,12 +26,12 @@ polish.
 3. [Architecture](#3-architecture)
 4. [Current Config Fields](#4-current-config-fields)
 5. [Dogfood Readiness Assessment](#5-dogfood-readiness-assessment)
-6. [Competitive Landscape](#6-competitive-landscape)
-7. [Gap Analysis](#7-gap-analysis)
-8. [Design Token Architecture](#8-design-token-architecture)
-9. [Dual-Lifecycle Model](#9-dual-lifecycle-model)
-10. [Accessibility & Contrast](#10-accessibility--contrast)
-11. [Security Considerations](#11-security-considerations)
+6. [Gap Analysis](#6-gap-analysis)
+7. [Design Token Architecture](#7-design-token-architecture)
+8. [Dual-Lifecycle Model](#8-dual-lifecycle-model)
+9. [Accessibility & Contrast](#9-accessibility--contrast)
+10. [Security Considerations](#10-security-considerations)
+11. [Quality Assurance: Linting & Visual Regression](#11-quality-assurance-linting--visual-regression)
 12. [Email Branding](#12-email-branding)
 13. [Operator Documentation](#13-operator-documentation)
 14. [Open Questions](#14-open-questions)
@@ -62,6 +62,7 @@ Enterprise private-label prospects hit a ceiling.
 ## 2. User Personas
 
 ### Self-Hosted Operator (Install-Time Customization)
+
 - **Role**: DevOps/IT at a company running their own OTS instance
 - **Pain points**: Wants zero OTS branding visible to their users. Needs ENV/config-only
   setup — no frontend rebuilds, no forking.
@@ -70,6 +71,7 @@ Enterprise private-label prospects hit a ceiling.
   error pages, TOTP issuer
 
 ### Custom Domain Customer (Page-Load-Time Customization)
+
 - **Role**: Mid-tier SaaS customer with their own domain (e.g., secrets.acme.com)
 - **Pain points**: Wants their brand visible when employees/clients use the service.
   Currently limited to color and name in the domain settings panel.
@@ -78,6 +80,7 @@ Enterprise private-label prospects hit a ceiling.
   corner style, or deep theming (those remain install-level).
 
 ### OTS Product Team (Dogfood Operator)
+
 - **Role**: The OTS team itself, running onetimesecret.com
 - **Pain points**: Must validate that the brand system works by using it for the primary
   product. Currently, OTS's own identity leaks through hardcoded defaults rather than
@@ -125,8 +128,14 @@ Email Path:
 ### Key Design Decision: Shared Mechanism
 
 Both lifecycle paths resolve through the same CSS custom property layer.
-Tailwind v4 is 100% CSS — the `@theme` block in `style.css` defines build-time defaults,
-and `useBrandTheme` overrides those same `--color-brand-*` variables at runtime.
+Tailwind v4's theme system is CSS-native — the `@theme` block in `style.css` defines
+build-time color defaults as CSS custom properties, and `useBrandTheme` overrides those
+same `--color-brand-*` variables at runtime. (The project retains `tailwind.config.ts` for
+content paths, plugin registration, and font family declarations — but all brand color
+definitions live in the CSS `@theme` block, not in JS config.) Tailwind v4's cascade layers
+(`@layer base`, `@layer components`, etc.) provide a clear specificity hierarchy, though
+brand overrides themselves operate via inline styles on `:root` set by `useBrandTheme`,
+which take precedence over all layer-scoped declarations by design.
 
 This is architecturally rare. Most OSS SaaS projects (Mattermost, Chatwoot) bolt
 per-tenant theming on as a separate system from install-level branding, creating
@@ -135,18 +144,18 @@ config field automatically works at both levels.
 
 ### Key Files
 
-| File | Role |
-|------|------|
-| `src/utils/brand-palette.ts` | oklch palette generator — 44 CSS vars from 1 hex |
-| `src/shared/composables/useBrandTheme.ts` | Watches identityStore, injects/removes CSS vars on :root |
-| `src/shared/constants/brand.ts` | Frontend defaults and neutral brand constants |
-| `src/shared/stores/identityStore.ts` | Holds current domain's brand settings |
-| `src/shared/stores/bootstrapStore.ts` | Holds installation-level brand config |
-| `src/assets/style.css` | `@theme` block — build-time Tailwind defaults |
-| `etc/defaults/config.defaults.yaml` | Backend brand config with ENV overrides |
-| `lib/onetime/models/custom_domain/brand_settings.rb` | Per-domain brand in Redis |
-| `lib/onetime/mail/views/base.rb` | Email template brand helpers |
-| `apps/web/core/views/helpers/initialize_view_vars.rb` | View bootstrapper |
+| File                                                  | Role                                                     |
+| ----------------------------------------------------- | -------------------------------------------------------- |
+| `src/utils/brand-palette.ts`                          | oklch palette generator — 44 CSS vars from 1 hex         |
+| `src/shared/composables/useBrandTheme.ts`             | Watches identityStore, injects/removes CSS vars on :root |
+| `src/shared/constants/brand.ts`                       | Frontend defaults and neutral brand constants            |
+| `src/shared/stores/identityStore.ts`                  | Holds current domain's brand settings                    |
+| `src/shared/stores/bootstrapStore.ts`                 | Holds installation-level brand config                    |
+| `src/assets/style.css`                                | `@theme` block — build-time Tailwind defaults            |
+| `etc/defaults/config.defaults.yaml`                   | Backend brand config with ENV overrides                  |
+| `lib/onetime/models/custom_domain/brand_settings.rb`  | Per-domain brand in Redis                                |
+| `lib/onetime/mail/views/base.rb`                      | Email template brand helpers                             |
+| `apps/web/core/views/helpers/initialize_view_vars.rb` | View bootstrapper                                        |
 
 ---
 
@@ -154,19 +163,20 @@ config field automatically works at both levels.
 
 The `brand:` section in `config.defaults.yaml` exposes 9 fields:
 
-| Field | Type | Default | ENV Override | Purpose |
-|-------|------|---------|-------------|---------|
-| `primary_color` | hex string | `#dc4a22` | `BRAND_PRIMARY_COLOR` | Generates 44-shade oklch palette |
-| `product_name` | string | `Onetime Secret` | `BRAND_PRODUCT_NAME` | Displayed in UI, emails, TOTP |
-| `corner_style` | enum | `rounded` | `BRAND_CORNER_STYLE` | `rounded` / `square` / `pill` |
-| `font_family` | enum | `serif` | `BRAND_FONT_FAMILY` | `sans` / `serif` / `mono` |
-| `button_text_light` | boolean | `true` | `BRAND_BUTTON_TEXT_LIGHT` | Light or dark text on brand buttons |
-| `support_email` | string | `support@onetimesecret.com` | `BRAND_SUPPORT_EMAIL` | Contact email in UI and emails |
-| `product_domain` | string | — | `BRAND_PRODUCT_DOMAIN` | Canonical domain for the product |
-| `allow_public_homepage` | boolean | `true` | `BRAND_ALLOW_PUBLIC_HOMEPAGE` | Show public landing page |
-| `allow_public_api` | boolean | `true` | `BRAND_ALLOW_PUBLIC_API` | Expose public API |
+| Field                   | Type       | Default                     | ENV Override                  | Purpose                             |
+| ----------------------- | ---------- | --------------------------- | ----------------------------- | ----------------------------------- |
+| `primary_color`         | hex string | `#dc4a22`                   | `BRAND_PRIMARY_COLOR`         | Generates 44-shade oklch palette    |
+| `product_name`          | string     | `Onetime Secret`            | `BRAND_PRODUCT_NAME`          | Displayed in UI, emails, TOTP       |
+| `corner_style`          | enum       | `rounded`                   | `BRAND_CORNER_STYLE`          | `rounded` / `square` / `pill`       |
+| `font_family`           | enum       | `serif`                     | `BRAND_FONT_FAMILY`           | `sans` / `serif` / `mono`           |
+| `button_text_light`     | boolean    | `true`                      | `BRAND_BUTTON_TEXT_LIGHT`     | Light or dark text on brand buttons |
+| `support_email`         | string     | `support@onetimesecret.com` | `BRAND_SUPPORT_EMAIL`         | Contact email in UI and emails      |
+| `product_domain`        | string     | —                           | `BRAND_PRODUCT_DOMAIN`        | Canonical domain for the product    |
+| `allow_public_homepage` | boolean    | `true`                      | `BRAND_ALLOW_PUBLIC_HOMEPAGE` | Show public landing page            |
+| `allow_public_api`      | boolean    | `true`                      | `BRAND_ALLOW_PUBLIC_API`      | Expose public API                   |
 
 ### Fields That Work End-to-End
+
 - `primary_color` — Fully functional. Generates palette, flows through CSS vars.
 - `product_name` — Mostly functional. Flows through i18n in most places. Some fallbacks
   still hardcode "Onetime Secret."
@@ -176,6 +186,7 @@ The `brand:` section in `config.defaults.yaml` exposes 9 fields:
 - `allow_public_homepage`, `allow_public_api` — Work as feature toggles.
 
 ### Fields With Gaps
+
 - `corner_style` — Schema exists, `CornerStyle` enum defined, but **no runtime
   mechanism** applies it to component classes. Components hardcode `rounded-md`,
   `rounded-lg`, etc.
@@ -188,208 +199,66 @@ The `brand:` section in `config.defaults.yaml` exposes 9 fields:
 
 ## 5. Dogfood Readiness Assessment
 
-**Overall: ~70% ready.** Color system is production-grade. Non-color dimensions have
-significant gaps.
-
-### What's Working
-
-| Area | Status | Evidence |
-|------|--------|----------|
-| Color palette generation | Production-ready | 44 CSS vars, oklch, gamut clipping |
-| Brand CSS class adoption | Strong | 131 files, 404 `brand-*` class usages |
-| Dark mode pairing | Good | Consistent `bg-brand-600 dark:bg-brand-500` patterns |
-| Semantic color separation | Correct | red/amber/green for UX feedback, NOT brand |
-| i18n product name | Mostly done | `$t()` with `{ product_name }` in most places |
-| Email inline hex | Correct | `brand_color` helper outputs hex, not CSS vars |
-| 3-layer fallback chain | Working | domain → install → default resolves correctly |
-| MastHead logo chain | Well-designed | props → custom domain → config → default |
-
-### What's Broken or Missing
-
-Organized as three concentric rings:
-
-#### Ring 1: Text Identity (cheapest fixes)
-
-| Item | Location | Current | Should Be |
-|------|----------|---------|-----------|
-| bootstrapStore default | `bootstrapStore.ts:64` | `'Onetime Secret'` | Neutral or derived from config |
-| usePageTitle default | `usePageTitle.ts:36` | `'Onetime Secret'` | Derive from bootstrapStore |
-| TOTP issuer | `mfa.rb:24`, `totp.rb:23,51` | `'OneTimeSecret'` | Read from `brand.product_name` |
-| Error page email | `error.rue:158` | `support@onetimesecret.com` | Template variable |
-| Email support_email fallback | `base.rb:272` | `support@onetimesecret.com` | `support@example.com` |
-| Email site_host fallback | `base.rb:288` | `onetimesecret.com` | `localhost` |
-| View bootstrapper fallbacks | `initialize_view_vars.rb:168,181-183` | OTS-specific | Neutral defaults |
-| Mail base.rb outer method | `base.rb:161-163` | `'Onetime Secret'` | Match inner method's chain |
-| OtpSetupWizard fallback | `OtpSetupWizard.vue:37` | `'Onetime Secret'` | Use brand_product_name |
-| OnetimeSecretIcon title | `OnetimeSecretIcon.vue:55` | `'Onetime Secret'` | Brand product_name |
-| Config site_name default | `config.defaults.yaml:88` | `'One-Time Secret'` | Neutral |
-
-#### Ring 2: Visual Identity (medium effort)
-
-| Item | Status | Impact |
-|------|--------|--------|
-| Logo config field | Missing | Every private-label needs their own logo |
-| Favicon | Hardcoded `#DC4A22` in SVG | Browser tab shows OTS orange |
-| Email logo | Hardcoded `/img/onetime-logo-v3-xl.svg` in 9 templates | All emails show OTS 秘 icon |
-| Zilla Slab font loading | Always loads regardless of `font_family` config | 100KB of OTS-specific assets |
-| corner_style runtime | Config exists, nothing applies it | Components hardcode border-radius |
-| Logo assets | All files are OTS-branded | No neutral default |
-| Social preview image | Static OTS-branded PNG | og:image shows OTS when links shared |
-| Login/signup page | Not customizable | No background image or hero text config; only homepage toggle exists |
-| Dark theme auto-generation | No single-step dark mode | `branddim-*` palette exists but no automated light-to-dark theme derivation from primary color |
-
-#### Ring 3: Contextual Identity (long tail)
-
-| Item | Status | Notes |
-|------|--------|-------|
-| GitHub/docs URLs | Hardcoded in ~10 components | Links to upstream repo |
-| "Powered by" toggle | Not configurable | Enterprise private-label need |
-| Terms/Privacy URLs | Not configurable | Compliance need |
-| Dynamic PWA manifest | Static file | Can't reflect per-domain brand |
-| `<meta name="theme-color">` | Not set from brand | Browser chrome color |
-| Dynamic OG images | No generation pipeline | Social sharing previews |
-| Error pages | Partially branded | `error.rue` hardcodes email |
-| DnsWidget colors | ~20 hardcoded hex values | Third-party widget |
-| Auth API response | Returns `'OneTimeSecret'` | Internal/diagnostic only |
-| Deprecated mailer | Contains OTS fallbacks | `apps/web/auth/mailer.rb` should be deleted |
-| Per-organization branding | Not supported | Multi-tenant orgs within one install share a single brand identity |
-| Custom email sender name/domain | Not configurable | All emails sent from installation default sender; see Section 12 |
-| Font file upload | Not supported | Operators cannot upload custom woff2 fonts; see Section 11 for security |
-| Per-domain theme extension | Not supported | Operators limited to `primary_color`; no mechanism to set additional CSS custom properties per-domain |
+See [brand-dogfood-gaps-ticket.md](brand-dogfood-gaps-ticket.md).
 
 ---
 
-## 6. Competitive Landscape
+## 6. Ring Model
 
-### Comparison Matrix
+### Layers of Brand Identity
 
-| Capability | OTS | GitLab | Mattermost | Cal.com | Chatwoot | Documenso | Plausible |
-|-----------|-----|--------|------------|---------|----------|-----------|-----------|
-| Single-color palette gen | 44-shade oklch | No | No | No | No | No | No |
-| Color config | 1 hex → full palette | 2 colors | 20+ tokens (user) | CSS file edit | No | No | Embed theme |
-| Logo | None | 3 slots | 1 (login) | Fork source | 3 variants | 1 (email) | None |
-| Favicon | None | Yes | No | Fork | No | No | No |
-| PWA manifest | None | Yes (full) | No | No | No | No | No |
-| Product name | Yes | Yes | Yes (30 char) | ENV var | Yes | No | No |
-| Font config | Yes | Nav theme | No | No | No | No | No |
-| Corner style | Yes (broken) | No | No | No | No | No | No |
-| Button text color | Yes | No | No | No | No | No | No |
-| Support email | Yes | Help links | Support links | ENV var | No | No | No |
-| Email branding | Color + alt text | Logo + toggle | Full HTML edit | No | No | Logo + footer | No |
-| Login page | Toggle only | Full custom | Image + text + desc | Fork | No | No | N/A |
-| Dark mode | Auto palette | Nav presets | 5 themes + custom | Light/dark tokens | LOGO_DARK | No | Light/dark embed |
-| Powered by toggle | No | No | No | No | Widget URL | No | Embed removes |
-| Admin brand UI | No | Yes (API too) | System Console | No | Super Admin | Org settings | No |
-| Install vs tenant | Shared mechanism | Install only | Separate systems | Shared CSS | Separate systems | Shared schema | N/A |
-| Runtime (no rebuild) | Yes | Yes | Restart for email | No (source edit) | Yes (DB) | Yes | N/A |
-| Theme extension | Tailwind v4 `@theme` | No | No | Fork | No | No | No |
-| Font upload | None | No | No | No | No | No | No |
-| Email sender domain | No | Yes | No | No | No | No | No |
-| Per-org branding | No | No | No | No | No | Org settings | No |
+The priority levels above (P0-P3) rank work by dogfood impact — what hurts operators most.
+The ring model provides a complementary lens: **what kind of intervention each item requires**.
+The rings describe concentric layers of brand identity, ordered by distance from core:
 
-### Where OTS Leads
+```
+┌─────────────────────────────────────────────┐
+│           Ring 3: Contextual Identity       │
+│  ┌───────────────────────────────────────┐  │
+│  │       Ring 2: Visual Identity         │  │
+│  │  ┌─────────────────────────────────┐  │  │
+│  │  │    Ring 1: Text Identity        │  │  │
+│  │  │                                 │  │  │
+│  │  │  Product name, support email,   │  │  │
+│  │  │  TOTP issuer, error messages    │  │  │
+│  │  └─────────────────────────────────┘  │  │
+│  │                                       │  │
+│  │  Logo, favicon, fonts, color config,  │  │
+│  │  corner style, theme-color meta       │  │
+│  └───────────────────────────────────────┘  │
+│                                             │
+│  PWA manifest, og:image, "Powered by",      │
+│  per-org branding, email sender domain,     │
+│  terms/privacy URLs, GitHub/docs links      │
+└─────────────────────────────────────────────┘
+```
 
-1. **Single-color palette generation** — No other project generates a full shade palette
-   from one hex. GitLab needs 2 colors, Mattermost needs 20+, Cal.com needs manual hex
-   editing. OTS's oklch approach is unique among surveyed projects.
+**Ring 1 — Text Identity**: The innermost layer. If you grep rendered output, does the
+wrong brand name appear? Work here is mechanical — string replacements and fallback chain
+fixes. Low complexity, high item count.
 
-2. **Shared customization mechanism** — Both install-time and page-load-time flow through
-   the same CSS custom properties. Only Cal.com (just colors) and Documenso (just email)
-   are similar. Most projects have separate systems for each level.
+**Ring 2 — Visual Identity**: The next layer out. Does the product _look_ like someone
+else's? Logo, favicon, fonts, color pipeline. Work here requires config plumbing and
+asset management. Medium complexity.
 
-3. **Runtime palette without rebuild** — Most competitors require restart or rebuild for
-   color changes. OTS applies instantly via CSS vars.
+**Ring 3 — Contextual Identity**: The outermost layer. Does the product _behave_ like
+someone else's in surrounding contexts — browser chrome, app stores, social previews,
+legal pages, third-party integrations? Work here touches new subsystems and external
+surfaces. Highest architectural surface area.
 
-4. **Corner style and font family** — No other surveyed project offers these config fields.
+The ring tells you the _shape_ of the work. Priority tells you the _urgency_. An item
+can be Ring 1 (text fix) but P1 (not a dogfood blocker), or Ring 3 (new subsystem) but
+P0 (operators hit it immediately). Both framings are useful for planning.
 
-5. **Button text contrast** — No other project has this nuance.
-
-### Where OTS Trails
-
-1. **Logo support** — GitLab (3 slots), Chatwoot (3 variants), Mattermost (1),
-   Documenso (1), Rallly (2). OTS has zero.
-
-2. **Favicon** — GitLab has it. Standard private-label expectation.
-
-3. **Admin brand UI** — GitLab has a full Appearance admin panel with API. Mattermost has
-   System Console. Chatwoot has Super Admin. OTS requires config file or ENV editing.
-
-4. **Login page customization** — GitLab (title + description + logo), Mattermost
-   (image + text + description). OTS only has a public homepage toggle.
-
-5. **Email branding with logo** — 5 projects support logo in emails. OTS only has
-   `brand_color` and `logo_alt` text.
-
-### Potential Differentiators (Nobody Does These)
-
-- **Brand preview mode** — No surveyed project offers admin-level preview of brand
-  changes before applying. This could be a compelling feature.
-- **Auto-contrast computation** — Automatic text color selection per shade using oklch
-  lightness. Could make `button_text_light` config obsolete.
-- **Single-source palette** — Already a differentiator. Could be enhanced with semantic
-  aliases and dark theme auto-generation.
-- **Dark theme auto-generation** — No surveyed project generates a complete dark theme
-  from the same primary color used for light theme. The `branddim-*` palette is a partial
-  implementation, but a fully automated light-to-dark semantic alias remapping (see
-  Section 8) would be unique among surveyed projects.
+| Ring   | Description         | Nature of Work                            | Items                |
+| ------ | ------------------- | ----------------------------------------- | -------------------- |
+| Ring 1 | Text Identity       | Grep-and-replace, fallback neutralization | ~11 fallback strings |
+| Ring 2 | Visual Identity     | Config wiring, asset pipelines            | 9 features           |
+| Ring 3 | Contextual Identity | New subsystems, external integrations     | 14+ items            |
 
 ---
 
-## 7. Gap Analysis
-
-### By Priority
-
-#### P0 — Self-hosted operator WILL see OTS branding despite configuring their own
-
-These are blocking issues for the dogfood claim. A self-hosted install with
-`BRAND_PRODUCT_NAME=Acme` and `BRAND_PRIMARY_COLOR=#0066FF` will still show:
-- OTS 秘 logo in emails (9 templates)
-- OTS orange favicon in browser tab
-- "OneTimeSecret" in authenticator apps (TOTP)
-- "support@onetimesecret.com" on error pages
-- "Onetime Secret" in page titles (fallback)
-
-#### P1 — Config fields exist but don't work
-
-- `corner_style` has no runtime mechanism
-- `font_family` always loads Zilla Slab
-- ~12 backend fallback strings are OTS-specific
-
-#### P2 — Missing config dimensions
-
-Based on competitive analysis, these are expected by mature private-label systems:
-- Logo URL (install + email)
-- Favicon config
-- "Powered by" toggle
-- Terms/Privacy URLs
-- Dynamic PWA manifest
-- Custom email sender name/domain (see Section 12)
-- Font file upload (woff2, 500KB limit; see Section 11)
-- Per-domain theme extension — additional CSS custom properties through the same `useBrandTheme` pipeline (see Section 11)
-
-#### P3 — Polish and differentiation
-
-- Auto-contrast per shade
-- Dynamic `<meta name="theme-color">`
-- SVG favicon from brand color
-- FOUC prevention
-- Semantic color aliases
-- Dynamic OG images
-- Login page customization
-- Dark theme auto-generation from primary color
-- Per-organization branding (multi-tenant within one installation)
-
-### Gap Count by Ring
-
-| Ring | Description | Items |
-|------|-------------|-------|
-| Ring 1 | Text Identity | ~11 fallback strings |
-| Ring 2 | Visual Identity | 9 features |
-| Ring 3 | Contextual Identity | 14+ items |
-
----
-
-## 8. Design Token Architecture
+## 7. Design Token Architecture
 
 ### Current: Numbered Shades
 
@@ -408,9 +277,10 @@ Based on competitive analysis, these are expected by mature private-label system
 ```
 
 Plus three additional palettes:
+
 - `brandcomp-*` — complementary color (auto-generated)
 - `branddim-*` — dimmed variant for dark contexts
-- `branddimcomp-*` — dimmed complementary
+- `brandcompdim-*` — dimmed complementary
 
 ### Future Consideration: Semantic Aliases
 
@@ -434,11 +304,11 @@ shade for a solid background. The numbered scale remains available for fine-tuni
 
 Three aliases form the minimum viable semantic layer:
 
-| Alias | Light Theme Mapping | Purpose |
-|-------|-------------------|---------|
-| `--brand-surface` | `var(--color-brand-50)` | Background for brand-tinted containers, cards, panels |
-| `--brand-solid` | `var(--color-brand-500)` | Primary buttons, active indicators, solid brand elements |
-| `--brand-text` | `var(--color-brand-900)` | Text rendered on `--brand-surface` backgrounds |
+| Alias             | Light Theme Mapping      | Purpose                                                  |
+| ----------------- | ------------------------ | -------------------------------------------------------- |
+| `--brand-surface` | `var(--color-brand-50)`  | Background for brand-tinted containers, cards, panels    |
+| `--brand-solid`   | `var(--color-brand-500)` | Primary buttons, active indicators, solid brand elements |
+| `--brand-text`    | `var(--color-brand-900)` | Text rendered on `--brand-surface` backgrounds           |
 
 These would be defined in `useBrandTheme` alongside the numbered palette variables. Components
 would migrate from `bg-brand-50` to `bg-brand-surface`, decoupling usage intent from specific
@@ -482,37 +352,55 @@ The threshold 0.623 closely predicts both WCAG 2.1 and APCA contrast requirement
 minimal computational overhead. CSS `contrast-color()` is emerging but currently only in
 Safari Technology Preview.
 
+### Design Token Tooling
+
+The current token pipeline (hex input → `brand-palette.ts` → 44 CSS vars → `useBrandTheme`
+→ `:root`) is self-contained. If the system grows to support cross-platform output (e.g.,
+native mobile clients, design tool integration), these tools produce CSS custom properties
+from the same token definitions:
+
+| Tool                 | Relevance to OTS                                                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Style Dictionary** | Cross-platform token transformation — could generate iOS/Android equivalents of the `--color-brand-*` palette from a shared token source                    |
+| **Penpot**           | Open-source design tool with native W3C DTCG token support; self-hostable. Useful for maintaining a shared design spec that stays in sync with the CSS vars |
+| **TokiForge**        | Runtime token consumption with theme switching — relevant if the semantic alias layer needs dynamic remapping beyond what `useBrandTheme` currently handles |
+
+These are not prerequisites for the current architecture. They become relevant when tokens
+need to flow beyond CSS custom properties into other platforms or design tooling.
+
 ---
 
-## 9. Dual-Lifecycle Model
+## 8. Dual-Lifecycle Model
 
 ### Install-Time vs Page-Load-Time
 
-| Dimension | Install-Time (Self-Hosted) | Page-Load-Time (Custom Domain) | Parity? |
-|-----------|---------------------------|-------------------------------|---------|
-| Primary color | ENV → config → bootstrap → CSS vars | Redis → identityStore → CSS vars | Yes |
-| Product name | ENV → config → bootstrap → i18n | Redis → identityStore → i18n | Yes |
-| Support email | ENV → config → bootstrap | Redis → identityStore | Yes |
-| Logo | **Not configurable** | Custom domain logo in MastHead | **No** |
-| Corner style | Config exists, **no runtime effect** | Same gap | Parity (broken) |
-| Font family | Config exists, **Zilla Slab always loads** | Same gap | Parity (broken) |
-| Email branding | Logo hardcoded, color configurable | No per-domain email logo | Parity |
-| Theme extension | Additional `@theme` properties via config | Additional CSS custom properties via Redis | Planned — same mechanism |
-| Font file upload | **Not configurable** | Not applicable — install-only feature | Install-only |
-| Email sender name/domain | **Not configurable** | Not applicable — install-only feature | Install-only |
-| Per-org branding | **Not supported** | Not applicable — requires new resolution layer | N/A |
+| Dimension                | Install-Time (Self-Hosted)                 | Page-Load-Time (Custom Domain)                 | Parity?                  |
+| ------------------------ | ------------------------------------------ | ---------------------------------------------- | ------------------------ |
+| Primary color            | ENV → config → bootstrap → CSS vars        | Redis → identityStore → CSS vars               | Yes                      |
+| Product name             | ENV → config → bootstrap → i18n            | Redis → identityStore → i18n                   | Yes                      |
+| Support email            | ENV → config → bootstrap                   | Redis → identityStore                          | Yes                      |
+| Logo                     | **Not configurable**                       | Custom domain logo in MastHead                 | **No**                   |
+| Corner style             | Config exists, **no runtime effect**       | Same gap                                       | Parity (broken)          |
+| Font family              | Config exists, **Zilla Slab always loads** | Same gap                                       | Parity (broken)          |
+| Email branding           | Logo hardcoded, color configurable         | No per-domain email logo                       | Parity                   |
+| Theme extension          | Additional `@theme` properties via config  | Additional CSS custom properties via Redis     | Planned — same mechanism |
+| Font file upload         | **Not configurable**                       | Not applicable — install-only feature          | Install-only             |
+| Email sender name/domain | **Not configurable**                       | Not applicable — install-only feature          | Install-only             |
+| Per-org branding         | **Not supported**                          | Not applicable — requires new resolution layer | N/A                      |
 
 ### What Mid-Tier SaaS Customers Should Get
 
 Based on competitive analysis, a reasonable feature set for custom domain customers:
 
 **Should have** (page-load-time, per-domain):
+
 - Brand primary color (already working)
 - Product name (already working)
 - Logo URL (planned)
 - Favicon color (planned)
 
 **Install-only** (self-hosted operators):
+
 - Font family
 - Corner style
 - Support email
@@ -545,6 +433,7 @@ The brand resolution chain would check org membership before falling back to
 installation defaults.
 
 Key considerations:
+
 - Organization identity must be determined from the authenticated session, not the URL
 - Brand settings storage would extend `brand_settings.rb` with an org-scoped key prefix
 - The existing `useBrandTheme` composable already watches reactive state, so org-level
@@ -564,7 +453,7 @@ paint and only activates on runtime changes (e.g., navigating between custom dom
 
 ---
 
-## 10. Accessibility & Contrast
+## 9. Accessibility & Contrast
 
 ### The Problem
 
@@ -573,6 +462,7 @@ Users pick arbitrary brand colors. The system must ensure text remains readable.
 ### Current Approach
 
 Manual `button_text_light` boolean toggle in config. Works but:
+
 - Requires the operator to understand contrast
 - Only covers buttons, not all brand-colored surfaces
 - Binary (light/dark) rather than per-shade
@@ -598,25 +488,25 @@ when the system needs to handle arbitrary typography.
 
 ---
 
-## 11. Security Considerations
+## 10. Security Considerations
 
 Brand customization introduces user-controlled inputs that render in HTML, CSS, email
 templates, and PWA manifests. Each input is an attack surface.
 
 ### Input Validation Requirements
 
-| Field | Threat | Mitigation |
-|-------|--------|------------|
-| `primary_color` | CSS injection via malformed hex (e.g., `#fff; background: url(...)`) | Strict hex regex: `/^#[0-9a-fA-F]{3,8}$/` — already validated by Zod schema |
-| `product_name` | XSS in HTML contexts, email header injection | HTML-escape on render. Max length 100 chars. No newlines. |
-| `logo_url` (planned) | SSRF via `file://`, `data:`, internal IPs. Tracking pixels in emails. | Scheme allowlist: `https://` only. No redirects. Validate reachable. Max size 2MB. CSP `img-src` directive. |
-| `support_email` | Email header injection, phishing | Validate email format. No newlines or special chars. |
-| `font_family` | Enum — no injection risk | Already constrained to `sans`/`serif`/`mono` |
-| `corner_style` | Enum — no injection risk | Already constrained to `rounded`/`square`/`pill` |
+| Field                                | Threat                                                                                                                                    | Mitigation                                                                                                                                                            |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `primary_color`                      | CSS injection via malformed hex (e.g., `#fff; background: url(...)`)                                                                      | Strict hex regex: `/^#[0-9a-fA-F]{3,8}$/` — already validated by Zod schema                                                                                           |
+| `product_name`                       | XSS in HTML contexts, email header injection                                                                                              | HTML-escape on render. Max length 100 chars. No newlines.                                                                                                             |
+| `logo_url` (planned)                 | SSRF via `file://`, `data:`, internal IPs. Tracking pixels in emails.                                                                     | Scheme allowlist: `https://` only. No redirects. Validate reachable. Max size 2MB. CSP `img-src` directive.                                                           |
+| `support_email`                      | Email header injection, phishing                                                                                                          | Validate email format. No newlines or special chars.                                                                                                                  |
+| `font_family`                        | Enum — no injection risk                                                                                                                  | Already constrained to `sans`/`serif`/`mono`                                                                                                                          |
+| `corner_style`                       | Enum — no injection risk                                                                                                                  | Already constrained to `rounded`/`square`/`pill`                                                                                                                      |
 | Per-domain theme extension (planned) | Values flow through CSS custom properties, same as `primary_color`. Risk is limited to property values, not arbitrary selectors or rules. | Validate values with the same pipeline used for `primary_color` (strict format regex per property type). No raw CSS blocks — only named properties with typed values. |
-| Font file upload (planned) | Executable code in font files. License violations. | Format allowlist (woff2 only). Size limit (500KB). No server-side font parsing. Serve via CDN with `Content-Type: font/woff2`. |
-| PWA manifest (planned) | XSS if `name`/`description` rendered in admin UI | JSON-encode all values. Never render manifest fields as raw HTML. |
-| Email sender name/domain (planned) | SPF/DKIM/DMARC misconfiguration leading to email delivery failures or spoofing. Phishing via impersonated sender addresses. | Validate domain ownership via DNS TXT record. Require SPF/DKIM alignment before enabling custom sender. Restrict to verified domains only. See Section 12. |
+| Font file upload (planned)           | Executable code in font files. License violations.                                                                                        | Format allowlist (woff2 only). Size limit (500KB). No server-side font parsing. Serve via CDN with `Content-Type: font/woff2`.                                        |
+| PWA manifest (planned)               | XSS if `name`/`description` rendered in admin UI                                                                                          | JSON-encode all values. Never render manifest fields as raw HTML.                                                                                                     |
+| Email sender name/domain (planned)   | SPF/DKIM/DMARC misconfiguration leading to email delivery failures or spoofing. Phishing via impersonated sender addresses.               | Validate domain ownership via DNS TXT record. Require SPF/DKIM alignment before enabling custom sender. Restrict to verified domains only. See Section 12.            |
 
 ### Content Security Policy (CSP) Implications
 
@@ -648,6 +538,46 @@ owners). These users are authenticated but potentially untrusted:
 - All brand fields must be validated on write (domain settings API) not just on read
 - Rate limit brand settings changes (prevent abuse of palette generation CPU)
 - Log brand setting changes for audit trail
+
+---
+
+## 11. Quality Assurance: Linting & Visual Regression
+
+### CSS Linting
+
+The brand system's goal of eliminating hardcoded `#dc4a22` occurrences (Section 1) benefits
+from automated enforcement. **Stylelint** can catch regressions at commit time:
+
+- **Token naming conventions** — Custom rules to flag CSS values that should use
+  `--color-brand-*` variables instead of raw hex (e.g., disallow `#dc4a22`, `#c43d1b`,
+  or any hex matching the generated palette)
+- **Variable usage patterns** — Enforce that brand-colored elements reference CSS custom
+  properties, not Tailwind color utilities like `bg-orange-600`
+- **Plugin architecture** — Extend with `stylelint-order` for property ordering or custom
+  plugins for project-specific conventions
+
+Recommended baseline config: `stylelint-config-standard` with project-specific overrides
+for the `--color-brand-*` and `--color-brandcomp-*` namespaces.
+
+### Visual Regression Testing
+
+The brand system accepts arbitrary hex input from operators and custom domain owners. A color
+that passes Zod validation can still produce a palette that breaks visual layouts (e.g., very
+light primaries where brand-50 and brand-100 become indistinguishable from white backgrounds).
+Visual regression testing catches these failures before they reach users.
+
+| Tool           | Approach                                      | Fit                                                                                                     |
+| -------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Playwright** | Screenshot comparison with browser automation | Already in the stack (`pnpm run playwright`). Extend existing E2E suite with brand-variant screenshots. |
+| **Lost Pixel** | Full-page and component-level visual testing  | Lower setup cost for component-level coverage without full E2E harness                                  |
+
+**Recommended approach**: Extend the existing Playwright E2E suite to capture screenshots
+under 3–4 representative brand colors (the default `#dc4a22`, a very light color, a very
+dark color, and a cool-toned color). Compare against baselines on each PR that touches
+`brand-palette.ts`, `useBrandTheme.ts`, or `style.css`.
+
+For email templates (Section 12), Litmus and Email on Acid remain the right tools — visual
+regression via Playwright does not cover email client rendering differences.
 
 ---
 
@@ -689,14 +619,15 @@ the sender name or domain.
 
 **Proposed config fields:**
 
-| Field | Type | Default | ENV Override | Purpose |
-|-------|------|---------|-------------|---------|
-| `email_sender_name` | string | (product_name) | `BRAND_EMAIL_SENDER_NAME` | Display name in email From header |
-| `email_sender_domain` | string | (installation domain) | `BRAND_EMAIL_SENDER_DOMAIN` | Domain portion of From address |
+| Field                 | Type   | Default               | ENV Override                | Purpose                           |
+| --------------------- | ------ | --------------------- | --------------------------- | --------------------------------- |
+| `email_sender_name`   | string | (product_name)        | `BRAND_EMAIL_SENDER_NAME`   | Display name in email From header |
+| `email_sender_domain` | string | (installation domain) | `BRAND_EMAIL_SENDER_DOMAIN` | Domain portion of From address    |
 
 **Requirements:**
+
 - Sender domain must have valid SPF, DKIM, and DMARC records aligned with the sending
-  infrastructure (see Section 11 for security implications)
+  infrastructure (see Section 10 for security implications)
 - `email_sender_name` falls back to `brand.product_name` if not explicitly set
 - Validation: domain ownership should be confirmed via DNS TXT record before activation
 - This is an install-time-only feature — per-domain email sender customization introduces
@@ -738,23 +669,23 @@ bible.
 
 ## 14. Open Questions
 
-| # | Question | Owner | Status |
-|---|----------|-------|--------|
-| 1 | Should defaults be truly neutral (`'My App'`, `#0066FF` blue) or should the config file ship with OTS values and the code have neutral fallbacks? | Product | Open |
-| 2 | Should `corner_style` be a CSS custom property (`--brand-radius`) or a composable that returns Tailwind classes? | Engineering | Open |
-| 3 | What level of customization should page-load-time (custom domain) customers get? Logo? Font? Corner style? | Product | Open |
-| 4 | Should we build an admin Brand Settings UI, or is ENV/config sufficient for v1? | Product | Open |
-| 5 | Should `button_text_light` become auto-computed (removing the config field) or remain as a manual override? | Engineering | Open |
-| 6 | Implement server-side brand CSS injection in `<head>` or accept FOUC? | Engineering | Open |
-| 7 | Should email templates support a dark logo variant, or is transparent-background sufficient? | Design | Open |
-| 8 | Audit `apps/web/auth/mailer.rb` for active references before deletion | Engineering | Open — prerequisite |
-| 9 | What additional CSS custom properties should per-domain theme extension support beyond `primary_color`? Full `@theme` override or a curated subset? | Engineering | Open |
-| 10 | What login/signup page elements should be configurable — background image only, or also hero text and layout? | Product | Open |
-| 11 | Should dark theme auto-generation remap semantic aliases automatically, or require explicit dark palette config? | Engineering | Open |
-| 12 | How should per-organization branding interact with per-domain branding when both are configured? Which takes precedence? | Product | Open |
-| 13 | Should custom email sender domain require DNS verification at config time, or validate lazily on first send? | Engineering | Open |
-| 14 | Should font file upload be exposed via admin UI, or config/CLI only? What about license compliance checking? | Product | Open |
-| 15 | For semantic color aliases, should the initial set be `--brand-surface`/`--brand-solid`/`--brand-text` only, or include the full set from Section 8? | Engineering | Open |
+| #   | Question                                                                                                                                             | Owner       | Status              |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------------- |
+| 1   | Should defaults be truly neutral (`'My App'`, `#0066FF` blue) or should the config file ship with OTS values and the code have neutral fallbacks?    | Product     | Open                |
+| 2   | Should `corner_style` be a CSS custom property (`--brand-radius`) or a composable that returns Tailwind classes?                                     | Engineering | Open                |
+| 3   | What level of customization should page-load-time (custom domain) customers get? Logo? Font? Corner style?                                           | Product     | Open                |
+| 4   | Should we build an admin Brand Settings UI, or is ENV/config sufficient for v1?                                                                      | Product     | Open                |
+| 5   | Should `button_text_light` become auto-computed (removing the config field) or remain as a manual override?                                          | Engineering | Open                |
+| 6   | Implement server-side brand CSS injection in `<head>` or accept FOUC?                                                                                | Engineering | Open                |
+| 7   | Should email templates support a dark logo variant, or is transparent-background sufficient?                                                         | Design      | Open                |
+| 8   | Audit `apps/web/auth/mailer.rb` for active references before deletion                                                                                | Engineering | Open — prerequisite |
+| 9   | What additional CSS custom properties should per-domain theme extension support beyond `primary_color`? Full `@theme` override or a curated subset?  | Engineering | Open                |
+| 10  | What login/signup page elements should be configurable — background image only, or also hero text and layout?                                        | Product     | Open                |
+| 11  | Should dark theme auto-generation remap semantic aliases automatically, or require explicit dark palette config?                                     | Engineering | Open                |
+| 12  | How should per-organization branding interact with per-domain branding when both are configured? Which takes precedence?                             | Product     | Open                |
+| 13  | Should custom email sender domain require DNS verification at config time, or validate lazily on first send?                                         | Engineering | Open                |
+| 14  | Should font file upload be exposed via admin UI, or config/CLI only? What about license compliance checking?                                         | Product     | Open                |
+| 15  | For semantic color aliases, should the initial set be `--brand-surface`/`--brand-solid`/`--brand-text` only, or include the full set from Section 7? | Engineering | Open                |
 
 ---
 
@@ -763,11 +694,13 @@ bible.
 ### Why Markdown (and Its Limits)
 
 This document captures the full picture in a single file. Markdown works well for:
+
 - Version control alongside code (git diff, PR review)
 - Searchability (grep, IDE search)
 - Portability (renders on GitHub, in editors, as HTML)
 
 Where it falls short:
+
 - **No interactive tables** — The comparison matrix would benefit from sortable columns
   and filtering. Consider exporting to a spreadsheet for stakeholder presentations.
 - **No visual diffing** — When brand palettes change, a visual comparison tool (e.g.,
@@ -778,12 +711,30 @@ Where it falls short:
 
 ### Suggested Complementary Tools
 
-| Tool | Purpose | When to Use |
-|------|---------|-------------|
-| GitHub Issues | Task tracking for brand system work items | Ongoing |
-| Storybook | Visual component library with brand variants | When component coverage warrants it |
-| ADR files (`docs/architecture/decision-records/`) | Record key decisions from Open Questions | As questions are resolved |
-| `brand-audit.sh` script | Automated count of hardcoded values | Run before each release |
+| Tool                                              | Purpose                                                                       | When to Use                          |
+| ------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------ |
+| GitHub Issues                                     | Task tracking for brand system work items                                     | Ongoing                              |
+| Storybook                                         | Visual component library with brand variants                                  | When component coverage warrants it  |
+| ADR files (`docs/architecture/decision-records/`) | Record key decisions from Open Questions                                      | As questions are resolved            |
+| `brand-audit.sh` script                           | Automated count of hardcoded values                                           | Run before each release              |
+| Stylelint                                         | Enforce token naming conventions, catch hardcoded hex values (see Section 11) | On commit / in CI                    |
+| Playwright visual regression                      | Screenshot baselines across brand color variants (see Section 11)             | On PRs touching brand pipeline files |
+
+### CI/CD Pipeline for Brand Integrity
+
+The `brand-audit.sh` script is a starting point. A full CI gate for brand system integrity
+follows this pipeline pattern:
+
+1. **Lint CSS on commit** — Stylelint catches hardcoded colors and naming violations
+2. **Visual regression against brand configurations** — Playwright screenshots under
+   3–4 representative colors, compared against baselines
+3. **Token schema validation** — Verify that `brand-palette.ts` output matches the
+   expected 44-variable schema (11 shades × 4 palettes)
+4. **Block deployment on failure** — Any of the above failing prevents merge
+
+This runs alongside existing checks (`pnpm run lint`, `pnpm run type-check`,
+`pnpm run test:all:clean`). The brand-specific steps add coverage for the CSS variable
+pipeline that TypeScript and unit tests do not reach.
 
 ### Keeping This Document Fresh
 
@@ -800,24 +751,25 @@ Where it falls short:
 Decisions made during the brand system development. For significant architectural
 decisions, create a formal ADR in `docs/architecture/decision-records/`.
 
-| # | Date | Decision | Rationale | ADR |
-|---|------|----------|-----------|-----|
-| D1 | 2026-01 | Use oklch color space for palette generation | Perceptually uniform, handles gamut clipping, modern browser support | — |
-| D2 | 2026-01 | Generate 4 palettes from 1 hex (brand, comp, dim, dimcomp) | Covers light/dark and accent needs without additional config | — |
-| D3 | 2026-01 | Zod `.nullish()` not `.default()` for brand schema | Schema validates format only; the store resolves defaults. This preserves the 3-layer fallback chain. | — |
-| D4 | 2026-01 | Remove `extend.colors` from `tailwind.config.ts` | Tailwind v4 uses CSS-only `@theme`. Config colors were a v3 holdover causing dual-source confusion. | — |
-| D5 | 2026-01 | Replace `useBrandI18n` composable with standard `t()` | Standard i18n with explicit `{ product_name }` parameter is simpler and more consistent than a custom composable. | — |
-| D6 | 2026-02 | Rename config key from `branding:` to `brand:` | Shorter, consistent with other config section naming (site:, redis:, etc.) | — |
+| #   | Date    | Decision                                                   | Rationale                                                                                                         | ADR |
+| --- | ------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --- |
+| D1  | 2026-01 | Use oklch color space for palette generation               | Perceptually uniform, handles gamut clipping, modern browser support                                              | —   |
+| D2  | 2026-01 | Generate 4 palettes from 1 hex (brand, comp, dim, dimcomp) | Covers light/dark and accent needs without additional config                                                      | —   |
+| D3  | 2026-01 | Zod `.nullish()` not `.default()` for brand schema         | Schema validates format only; the store resolves defaults. This preserves the 3-layer fallback chain.             | —   |
+| D4  | 2026-01 | Remove `extend.colors` from `tailwind.config.ts`           | Tailwind v4 uses CSS-only `@theme`. Config colors were a v3 holdover causing dual-source confusion.               | —   |
+| D5  | 2026-01 | Replace `useBrandI18n` composable with standard `t()`      | Standard i18n with explicit `{ product_name }` parameter is simpler and more consistent than a custom composable. | —   |
+| D6  | 2026-02 | Rename config key from `branding:` to `brand:`             | Shorter, consistent with other config section naming (site:, redis:, etc.)                                        | —   |
 
 ---
 
 ## 17. Change History
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | 2026-02-08 | Product/Engineering | Initial document from 4-agent dogfood audit |
-| 1.1 | 2026-02-08 | Product/Engineering | Added security section (11), operator docs (13). Fixed palette count, font_family gap, open question ownership. Fresh-eyes review feedback. |
-| 1.2 | 2026-02-08 | Product/Engineering | Added 7 planned features: login page customization, per-domain theme extension, semantic color aliases, dark theme auto-generation, per-org branding, custom email sender, font file upload. Reframed custom CSS as Tailwind v4 theme extension. Expanded Sections 5, 6, 7, 8, 9, 11, 12, 14. |
+| Version | Date       | Author              | Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------- | ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0     | 2026-02-08 | Product/Engineering | Initial document from 4-agent dogfood audit                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 1.1     | 2026-02-08 | Product/Engineering | Added security section (11), operator docs (13). Fixed palette count, font_family gap, open question ownership. Fresh-eyes review feedback.                                                                                                                                                                                                                                                                                                                                    |
+| 1.2     | 2026-02-08 | Product/Engineering | Added 7 planned features: login page customization, per-domain theme extension, semantic color aliases, dark theme auto-generation, per-org branding, custom email sender, font file upload. Reframed custom CSS as Tailwind v4 theme extension. Expanded Sections 5, 6, 7, 8, 9, 11, 12, 14.                                                                                                                                                                                  |
+| 1.3     | 2026-02-08 | Product/Engineering | Fact-check pass against Tailwind v4 capabilities reference. Corrected "100% CSS" claim to scope it to theme definitions (Section 3). Fixed `branddimcomp-*` palette prefix to `brandcompdim-*` (Section 7). Added design token tooling subsection (Section 7). Added Section 11: CSS linting (Stylelint) and visual regression testing (Playwright, Lost Pixel). Expanded Section 15 with CI/CD pipeline pattern for brand integrity. Renumbered sections sequentially (1–17). |
 
 ---
 
@@ -828,3 +780,4 @@ decisions, create a formal ADR in `docs/architecture/decision-records/`.
 - Serena memory: `branding-centralization-architecture`
 - Design system guide: `style.css` @theme block
 - Email templates: `lib/onetime/mail/views/`
+- Tailwind v4 capabilities reference: `docs/product/tailwind-v4-capabilities.md`
