@@ -22,11 +22,11 @@ import { z } from 'zod';
  *
  *   1. domain_branding.primary_color  (per-domain, from Redis)
  *   2. bootstrapStore.brand_primary_color  (per-installation, from config)
- *   3. DEFAULT_BRAND_HEX  (hardcoded fallback)
+ *   3. NEUTRAL_BRAND_DEFAULTS.primary_color  (hardcoded fallback)
  *
  * If the schema eagerly fills in a default via .default(), the nullish
  * coalescing (??) in the fallback chain never reaches step 2, making
- * the global branding config ineffective. This matters for:
+ * the global brand config ineffective. This matters for:
  *   - Multi-tenant: domains without a color fall through to the
  *     installation default (step 2) or the hardcoded default (step 3)
  *   - Single-tenant elite: the installation sets its brand color in
@@ -88,18 +88,25 @@ const cornerStyleIconMap: Record<CornerStyle, string> = {
   [CornerStyle.SQUARE]: 'tabler-border-corner-square',
 };
 
-export const brandSettingschema = z
+export const brandSettingSchema = z
   .object({
     primary_color: z
       .string()
       .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
       .nullish(), // No default here — identityStore fallback chain handles defaults
     colour: z.string().optional(),
+    product_name: z.string().nullish(),
+    product_domain: z.string().nullish(),
+    support_email: z.string().email().nullish(),
+    footer_text: z.string().nullish(),
+    logo_url: z.string().url().nullish(),
+    logo_dark_url: z.string().url().nullish(),
+    favicon_url: z.string().url().nullish(),
     instructions_pre_reveal: z.string().nullish(),
     instructions_reveal: z.string().nullish(),
     instructions_post_reveal: z.string().nullish(),
     description: z.string().optional(),
-    button_text_light: transforms.fromString.boolean.default(false),
+    button_text_light: transforms.fromString.boolean.default(true),
     allow_public_homepage: transforms.fromString.boolean.default(false),
     allow_public_api: transforms.fromString.boolean.default(false),
     font_family: z.enum(fontOptions).default(FontFamily.SANS),
@@ -110,6 +117,9 @@ export const brandSettingschema = z
     notify_enabled: transforms.fromString.boolean.default(false),
   })
   .partial(); // Makes all fields optional;
+
+/** @deprecated Use brandSettingSchema instead */
+export const brandSettingschema = brandSettingSchema;
 
 export const imagePropsSchema = z
   .object({
@@ -123,7 +133,7 @@ export const imagePropsSchema = z
   })
   .partial(); // Makes all fields optional
 
-export type BrandSettings = z.infer<typeof brandSettingschema>;
+export type BrandSettings = z.infer<typeof brandSettingSchema>;
 export type ImageProps = z.infer<typeof imagePropsSchema>;
 
 export {
