@@ -36,6 +36,14 @@ module Onetime
         notify_enabled: false,
       }.freeze
 
+      # Global brand defaults for site-wide settings that are not per-domain.
+      # These are NOT members of the BrandSettings Data class and are not
+      # stored in Redis per-domain. Used as fallbacks in email templates,
+      # views, and initializers.
+      GLOBAL_DEFAULTS = {
+        support_email: 'support@onetimesecret.com',
+      }.freeze
+
       # Returns defaults with primary_color resolved from brand config.
       # Falls back to DEFAULTS when OT.conf is not available.
       def self.defaults
@@ -108,6 +116,45 @@ module Onetime
         value.to_s == 'true'
       end
 
+      # Validates a hash of brand settings, raising on invalid values.
+      # Intended for write paths (API endpoints) to enforce strict input.
+      # Does NOT validate on read (from_hash remains tolerant for existing Redis data).
+      #
+      # Only validates fields that are present in the hash; missing fields are not errors.
+      #
+      # @param hash [Hash] Input hash with string or symbol keys
+      # @raise [Onetime::Problem] If any provided value is invalid
+      # @return [void]
+      def self.validate!(hash)
+        return if hash.nil? || hash.empty?
+
+        normalized = hash.transform_keys(&:to_sym).slice(*members)
+
+        if normalized.key?(:primary_color) && !normalized[:primary_color].nil? && !valid_color?(normalized[:primary_color])
+            raise Onetime::Problem, 'Invalid primary color format - must be hex code (e.g. #FF0000)'
+          end
+
+        if normalized.key?(:font_family) && !normalized[:font_family].nil? && !valid_font?(normalized[:font_family])
+            raise Onetime::Problem, "Invalid font family - must be one of: #{BrandSettingsConstants::FONTS.join(', ')}"
+          end
+
+        if normalized.key?(:corner_style) && !normalized[:corner_style].nil? && !valid_corner_style?(normalized[:corner_style])
+            raise Onetime::Problem, "Invalid corner style - must be one of: #{BrandSettingsConstants::CORNERS.join(', ')}"
+          end
+
+        return unless normalized.key?(:default_ttl) && !normalized[:default_ttl].nil?
+
+        ttl = normalized[:default_ttl]
+        begin
+          ttl = Integer(ttl, 10) if ttl.is_a?(String)
+        rescue ArgumentError
+          raise Onetime::Problem, 'Invalid default TTL - must be a positive integer (seconds)'
+        end
+        return if ttl.is_a?(Integer) && ttl.positive?
+
+        raise Onetime::Problem, 'Invalid default TTL - must be a positive integer (seconds)'
+      end
+
       # Validates a hex color string.
       #
       # @param color [String, nil] Color to validate
@@ -116,6 +163,20 @@ module Onetime
         return false if color.nil? || color.empty?
 
         color.match?(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+      end
+
+      # Normalizes a hex color to 6-digit form.
+      # Expands 3-digit shorthand (#F00 -> #FF0000) and uppercases.
+      # Returns nil for invalid colors.
+      #
+      # @param color [String, nil] Color to normalize
+      # @return [String, nil] Normalized 6-digit hex color or nil
+      def self.normalize_color(color)
+        return nil unless valid_color?(color)
+
+        hex = color.delete('#')
+        hex = hex.chars.map { |c| c * 2 }.join if hex.length == 3
+        "##{hex.upcase}"
       end
 
       # Validates a font family string.
