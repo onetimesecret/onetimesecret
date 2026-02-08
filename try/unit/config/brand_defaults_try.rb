@@ -74,3 +74,23 @@ with_env('BRAND_PRODUCT_NAME', 'My Custom App') do
   config.dig('brand', 'product_name')
 end
 #=> 'My Custom App'
+
+## Brand totp_issuer has a default value
+issuer = OT.conf.dig('brand', 'totp_issuer')
+issuer.nil? || issuer.is_a?(String)
+#=> true
+
+## Brand totp_issuer defaults to OneTimeSecret
+OT.conf.dig('brand', 'totp_issuer')
+#=> 'OneTimeSecret'
+
+## ENV override for brand totp_issuer works
+with_env('BRAND_TOTP_ISSUER', 'My Custom Issuer') do
+  config = Onetime::Config.load
+  config.dig('brand', 'totp_issuer')
+end
+#=> 'My Custom Issuer'
+
+## TOTP utility default_issuer reads from config
+Onetime::Utils::TOTP.default_issuer
+#=> 'OneTimeSecret'
