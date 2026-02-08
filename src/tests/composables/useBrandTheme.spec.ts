@@ -176,6 +176,36 @@ describe('useBrandTheme', () => {
     scope.stop();
   });
 
+  it('gracefully handles palette generation errors', async () => {
+    // Mock generateBrandPalette to throw on a specific input
+    const generateSpy = vi.spyOn(
+      await import('@/utils/brand-palette'),
+      'generateBrandPalette'
+    );
+    generateSpy.mockImplementationOnce(() => {
+      throw new Error('Simulated palette failure');
+    });
+
+    const scope = effectScope();
+    scope.run(() => {
+      useBrandTheme();
+    });
+
+    // Set a custom color that will trigger the mocked throw
+    mockPrimaryColor.value = '#ff0000';
+    await nextTick();
+
+    // Error should be caught — overrides removed, not set
+    for (const key of ALL_KEYS) {
+      expect(
+        document.documentElement.style.getPropertyValue(key)
+      ).toBe('');
+    }
+
+    generateSpy.mockRestore();
+    scope.stop();
+  });
+
   it('falls back to default palette for invalid hex input', async () => {
     const scope = effectScope();
     scope.run(() => {
