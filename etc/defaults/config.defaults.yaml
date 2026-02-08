@@ -306,6 +306,15 @@ brand:
   button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
   allow_public_homepage: <%= ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'] != 'false' %>
   allow_public_api: <%= ENV['BRAND_ALLOW_PUBLIC_API'] != 'false' %>
+  # Logo URL for email templates. When set, overrides the default logo path.
+  # Must be an absolute URL (e.g. https://example.com/logo.png).
+  # ENV: BRAND_LOGO_URL (default: nil, falls back to baseuri + /img/onetime-logo-v3-xl.svg)
+  logo_url: <%= ENV['BRAND_LOGO_URL'] || nil %>
+  # TOTP issuer name shown in authenticator apps (e.g. Google Authenticator).
+  # Changing this after users have enrolled is cosmetic only—existing codes
+  # still work, but the label shown in their authenticator is frozen at
+  # enrollment time.
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'] || 'OneTimeSecret' %>
 
 features:
   regions:

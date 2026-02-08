@@ -181,6 +181,7 @@ module Core
         brand_primary_color         = brand_config['primary_color'] || '#dc4a22'
         brand_product_name          = brand_config['product_name'] || 'Onetime Secret'
         support_email               = brand_config['support_email'] || 'support@onetimesecret.com'
+        docs_host                   = site_config.dig('support', 'host') || 'docs.onetimesecret.com'
         brand_corner_style          = brand_config['corner_style'] || 'rounded'
         brand_font_family           = brand_config['font_family'] || 'sans'
         brand_button_text_light     = brand_config.fetch('button_text_light', true)
@@ -223,6 +224,7 @@ module Core
           'brand_allow_public_homepage' => brand_allow_public_homepage,
           'brand_allow_public_api' => brand_allow_public_api,
           'support_email' => support_email,
+          'docs_host' => docs_host,
         }
       end
 

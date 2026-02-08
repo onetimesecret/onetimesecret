@@ -55,7 +55,7 @@ const isPlanTestModalOpen = ref(false);
 const { isTestModeActive } = useTestPlanMode();
 
 const bootstrapStore = useBootstrapStore();
-const { billing_enabled } = storeToRefs(bootstrapStore);
+const { billing_enabled, docs_host } = storeToRefs(bootstrapStore);
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -139,7 +139,7 @@ const menuItems = computed<MenuItem[]>(() => [
   // Help
   {
     id: 'help',
-    href: 'https://docs.onetimesecret.com',
+    href: `https://${docs_host.value}`,
     label: t('web.TITLES.help'),
     icon: { collection: 'heroicons', name: 'question-mark-circle' },
     condition: () => !props.awaitingMfa,

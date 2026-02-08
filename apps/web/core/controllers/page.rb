@@ -65,6 +65,34 @@ module Core
         res.write(logic.icon_data)
         res.finish
       end
+
+      # Dynamic site.webmanifest generated from brand config
+      def webmanifest
+        brand_conf   = OT.conf['brand'] || {}
+        OT.conf['site'] || {}
+        product_name = brand_conf['product_name'] || 'Onetime Secret'
+        theme_color  = brand_conf['primary_color'] || '#dc4a22'
+
+        manifest = {
+          name: product_name,
+          short_name: product_name,
+          start_url: '/',
+          display: 'standalone',
+          theme_color: theme_color,
+          background_color: '#ffffff',
+          icons: [
+            {
+              src: '/img/onetime-logo-v3-xl.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
+            },
+          ],
+        }
+
+        res['content-type']  = 'application/manifest+json'
+        res['cache-control'] = 'public, max-age=3600' # Cache for 1 hour
+        res.body             = JSON.generate(manifest)
+      end
     end
   end
 end
