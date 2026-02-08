@@ -140,6 +140,16 @@ export interface BootstrapPayload {
   brand_primary_color?: string;
   /** Brand product name from server config (e.g. 'Onetime Secret') */
   brand_product_name?: string;
+  /** Brand corner style from server config ('rounded' | 'pill' | 'square') */
+  brand_corner_style?: string;
+  /** Brand font family from server config ('sans' | 'serif' | 'mono') */
+  brand_font_family?: string;
+  /** Whether brand buttons use light text (default: true) */
+  brand_button_text_light?: boolean;
+  /** Whether public homepage is allowed (default: true) */
+  brand_allow_public_homepage?: boolean;
+  /** Whether public API access is allowed (default: true) */
+  brand_allow_public_api?: boolean;
 
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
