@@ -132,7 +132,7 @@
           :size="svgSize"
           :aria-label="ariaLabel"
           :brightness="svgBrightness"
-          class="shrink-0 rounded-lg"
+          class="shrink-0 rounded-lg text-slate-700 dark:text-slate-800"
           :style="{ width: `${svgSize}px`, height: `${svgSize}px` }" /></a>
 
       <!-- Jurisdiction selector button -->
@@ -235,7 +235,7 @@
       <a
         :href="props.href"
         class="transition-opacity hover:opacity-80">
-        <div :class="['font-brand text-xl font-bold leading-tight transition-colors']">
+        <div :class="['font-brand text-xl font-bold leading-tight text-slate-700 transition-colors dark:text-slate-100']">
           {{ siteName }}
         </div>
         <!-- Tagline -->
