@@ -87,7 +87,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       bootstrapStore.brand_primary_color ??
       DEFAULT_PRIMARY_COLOR;
     const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    const allowPublicHomepage = brand.allow_public_homepage ?? false;
+    // 3-step fallback chain for allow_public_homepage:
+    //   1. Per-domain setting from Redis (custom domain branding)
+    //   2. Per-installation setting from config (brand.allow_public_homepage)
+    //   3. Hardcoded default (true — public homepage enabled by default)
+    const allowPublicHomepage =
+      brand.allow_public_homepage ??
+      bootstrapStore.brand_allow_public_homepage ??
+      true;
 
     return {
       domainStrategy: domain_strategy.value,
@@ -114,7 +121,10 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       bootstrapStore.brand_primary_color ??
       DEFAULT_PRIMARY_COLOR;
     state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    state.allowPublicHomepage = brand.allow_public_homepage ?? false;
+    state.allowPublicHomepage =
+      brand.allow_public_homepage ??
+      bootstrapStore.brand_allow_public_homepage ??
+      true;
   });
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)

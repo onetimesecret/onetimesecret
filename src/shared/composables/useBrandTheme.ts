@@ -16,6 +16,17 @@ import { storeToRefs } from 'pinia';
 /** All 44 CSS variable keys produced by generateBrandPalette */
 const ALL_KEYS = Object.keys(generateBrandPalette(DEFAULT_BRAND_HEX));
 
+/** Single-entry memoization cache for palette generation */
+let cachedHex: string | null = null;
+let cachedPalette: Record<string, string> | null = null;
+
+function memoizedGeneratePalette(hex: string): Record<string, string> {
+  if (hex === cachedHex && cachedPalette) return cachedPalette;
+  cachedPalette = generateBrandPalette(hex);
+  cachedHex = hex;
+  return cachedPalette;
+}
+
 function isDefaultColor(hex: string | null | undefined): boolean {
   if (!hex) return true;
   return hex.toLowerCase().replace('#', '')
@@ -43,9 +54,16 @@ export function useBrandTheme(): void {
       return;
     }
 
-    const palette = generateBrandPalette(color as string);
-    for (const [key, value] of Object.entries(palette)) {
-      el.style.setProperty(key, value);
+    try {
+      const palette = memoizedGeneratePalette(color as string);
+      for (const [key, value] of Object.entries(palette)) {
+        el.style.setProperty(key, value);
+      }
+    } catch {
+      // Palette generation failed — remove overrides so @theme defaults apply
+      for (const key of ALL_KEYS) {
+        el.style.removeProperty(key);
+      }
     }
   }
 

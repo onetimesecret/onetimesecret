@@ -252,10 +252,8 @@ test.describe('Brand Customization - Dark Mode', () => {
       document.documentElement.classList.add('dark');
     });
 
-    // TODO: Replace waitForTimeout with waitForFunction or assertion
-    // retries (e.g. expect(brandBar).toHaveCSS(...)). All 6
-    // waitForTimeout calls in this file are flakiness risks on slow CI.
-    await page.waitForTimeout(300);
+    // Wait for dark class to be applied before asserting
+    await expect(page.locator('html')).toHaveClass(/dark/);
 
     const brandBar = page.locator('div.bg-brand-500');
     await expect(brandBar).toBeVisible();
@@ -276,7 +274,7 @@ test.describe('Brand Customization - Dark Mode', () => {
     await page.evaluate(() => {
       document.documentElement.classList.add('dark');
     });
-    await page.waitForTimeout(300);
+    await expect(page.locator('html')).toHaveClass(/dark/);
 
     // CSS variables should still resolve (they are theme-level,
     // not mode-dependent)
@@ -308,9 +306,10 @@ test.describe('Brand Customization - Dark Mode', () => {
     }
 
     await themeToggle.first().click();
-    await page.waitForTimeout(500);
+    // Wait for DOM to settle after theme toggle
+    await page.waitForLoadState('domcontentloaded');
 
-    // After toggling, <html> should have 'dark' class
+    // After toggling, <html> may or may not have 'dark' class
     const hasDark = await page.evaluate(() =>
       document.documentElement.classList.contains('dark')
     );
@@ -438,7 +437,7 @@ test.describe('Brand Customization - No Hardcoded Hex', () => {
     await page.evaluate(() => {
       document.documentElement.classList.add('dark');
     });
-    await page.waitForTimeout(300);
+    await expect(page.locator('html')).toHaveClass(/dark/);
 
     const hardcodedElements = await page.evaluate((legacyHex: string) => {
       const all = document.querySelectorAll('*[style]');
@@ -544,7 +543,8 @@ test.describe('Brand Customization - Custom Color Override', () => {
       document.documentElement.style.setProperty('--color-brand-500', hex);
     }, customHex);
 
-    await page.waitForTimeout(200);
+    // Wait for CSS var to be applied on the html element
+    await expect(page.locator('html')).toHaveAttribute('style', /--color-brand-500/);
 
     // The brand bar should now reflect the custom color
     const brandBar = page.locator('div.bg-brand-500').first();
@@ -573,13 +573,16 @@ test.describe('Brand Customization - Custom Color Override', () => {
     await page.evaluate(() => {
       document.documentElement.style.setProperty('--color-brand-500', '#3b82f6');
     });
-    await page.waitForTimeout(100);
+    await expect(page.locator('html')).toHaveAttribute('style', /--color-brand-500/);
 
     // Remove it (this is what useBrandTheme does for default color)
     await page.evaluate(() => {
       document.documentElement.style.removeProperty('--color-brand-500');
     });
-    await page.waitForTimeout(100);
+    // Wait for the CSS var removal to take effect
+    await page.waitForFunction(
+      () => !document.documentElement.style.getPropertyValue('--color-brand-500')
+    );
 
     // Should fall back to the @theme default
     const brand500 = await page.evaluate(() => {

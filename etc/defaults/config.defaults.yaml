@@ -304,8 +304,8 @@ brand:
   corner_style: <%= ENV['BRAND_CORNER_STYLE'] || 'rounded' %>
   font_family: <%= ENV['BRAND_FONT_FAMILY'] || 'sans' %>
   button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
-  allow_public_homepage: <%= ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'] == 'true' || true %>
-  allow_public_api: <%= ENV['BRAND_ALLOW_PUBLIC_API'] == 'true' || true %>
+  allow_public_homepage: <%= ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'] != 'false' %>
+  allow_public_api: <%= ENV['BRAND_ALLOW_PUBLIC_API'] != 'false' %>
 
 features:
   regions:

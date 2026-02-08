@@ -107,8 +107,8 @@ export const brandSettingSchema = z
     instructions_post_reveal: z.string().nullish(),
     description: z.string().optional(),
     button_text_light: transforms.fromString.boolean.default(true),
-    allow_public_homepage: transforms.fromString.boolean.default(false),
-    allow_public_api: transforms.fromString.boolean.default(false),
+    allow_public_homepage: transforms.fromString.boolean.nullish(), // No default — identityStore fallback chain handles defaults
+    allow_public_api: transforms.fromString.boolean.nullish(), // No default — identityStore fallback chain handles defaults
     font_family: z.enum(fontOptions).default(FontFamily.SANS),
     corner_style: z.enum(cornerStyleOptions).default(CornerStyle.ROUNDED),
     locale: localeSchema.default('en'),
