@@ -1,6 +1,6 @@
 # Brand Customization System — Product Bible
 
-Version: 1.1 | Status: Living Document | Owner: Product/Engineering
+Version: 1.2 | Status: Living Document | Owner: Product/Engineering
 PRD Reference: PR #2483 — Centralize brand customization system
 Last Audit: 2026-02-08
 
@@ -235,6 +235,8 @@ Organized as three concentric rings:
 | corner_style runtime | Config exists, nothing applies it | Components hardcode border-radius |
 | Logo assets | All files are OTS-branded | No neutral default |
 | Social preview image | Static OTS-branded PNG | og:image shows OTS when links shared |
+| Login/signup page | Not customizable | No background image or hero text config; only homepage toggle exists |
+| Dark theme auto-generation | No single-step dark mode | `branddim-*` palette exists but no automated light-to-dark theme derivation from primary color |
 
 #### Ring 3: Contextual Identity (long tail)
 
@@ -250,6 +252,10 @@ Organized as three concentric rings:
 | DnsWidget colors | ~20 hardcoded hex values | Third-party widget |
 | Auth API response | Returns `'OneTimeSecret'` | Internal/diagnostic only |
 | Deprecated mailer | Contains OTS fallbacks | `apps/web/auth/mailer.rb` should be deleted |
+| Per-organization branding | Not supported | Multi-tenant orgs within one install share a single brand identity |
+| Custom email sender name/domain | Not configurable | All emails sent from installation default sender; see Section 12 |
+| Font file upload | Not supported | Operators cannot upload custom woff2 fonts; see Section 11 for security |
+| Per-domain theme extension | Not supported | Operators limited to `primary_color`; no mechanism to set additional CSS custom properties per-domain |
 
 ---
 
@@ -276,6 +282,10 @@ Organized as three concentric rings:
 | Admin brand UI | No | Yes (API too) | System Console | No | Super Admin | Org settings | No |
 | Install vs tenant | Shared mechanism | Install only | Separate systems | Shared CSS | Separate systems | Shared schema | N/A |
 | Runtime (no rebuild) | Yes | Yes | Restart for email | No (source edit) | Yes (DB) | Yes | N/A |
+| Theme extension | Tailwind v4 `@theme` | No | No | Fork | No | No | No |
+| Font upload | None | No | No | No | No | No | No |
+| Email sender domain | No | Yes | No | No | No | No | No |
+| Per-org branding | No | No | No | No | No | Org settings | No |
 
 ### Where OTS Leads
 
@@ -318,6 +328,10 @@ Organized as three concentric rings:
   lightness. Could make `button_text_light` config obsolete.
 - **Single-source palette** — Already a differentiator. Could be enhanced with semantic
   aliases and dark theme auto-generation.
+- **Dark theme auto-generation** — No surveyed project generates a complete dark theme
+  from the same primary color used for light theme. The `branddim-*` palette is a partial
+  implementation, but a fully automated light-to-dark semantic alias remapping (see
+  Section 8) would be unique among surveyed projects.
 
 ---
 
@@ -349,6 +363,9 @@ Based on competitive analysis, these are expected by mature private-label system
 - "Powered by" toggle
 - Terms/Privacy URLs
 - Dynamic PWA manifest
+- Custom email sender name/domain (see Section 12)
+- Font file upload (woff2, 500KB limit; see Section 11)
+- Per-domain theme extension — additional CSS custom properties through the same `useBrandTheme` pipeline (see Section 11)
 
 #### P3 — Polish and differentiation
 
@@ -359,14 +376,16 @@ Based on competitive analysis, these are expected by mature private-label system
 - Semantic color aliases
 - Dynamic OG images
 - Login page customization
+- Dark theme auto-generation from primary color
+- Per-organization branding (multi-tenant within one installation)
 
 ### Gap Count by Ring
 
 | Ring | Description | Items |
 |------|-------------|-------|
 | Ring 1 | Text Identity | ~11 fallback strings |
-| Ring 2 | Visual Identity | 7 features |
-| Ring 3 | Contextual Identity | 10+ items |
+| Ring 2 | Visual Identity | 9 features |
+| Ring 3 | Contextual Identity | 14+ items |
 
 ---
 
@@ -411,6 +430,34 @@ names. This makes the system self-documenting:
 Developers would use `bg-brand-solid` instead of needing to know that 500 is the right
 shade for a solid background. The numbered scale remains available for fine-tuning.
 
+#### Implementation: Core Semantic Aliases
+
+Three aliases form the minimum viable semantic layer:
+
+| Alias | Light Theme Mapping | Purpose |
+|-------|-------------------|---------|
+| `--brand-surface` | `var(--color-brand-50)` | Background for brand-tinted containers, cards, panels |
+| `--brand-solid` | `var(--color-brand-500)` | Primary buttons, active indicators, solid brand elements |
+| `--brand-text` | `var(--color-brand-900)` | Text rendered on `--brand-surface` backgrounds |
+
+These would be defined in `useBrandTheme` alongside the numbered palette variables. Components
+would migrate from `bg-brand-50` to `bg-brand-surface`, decoupling usage intent from specific
+shade numbers.
+
+#### Dark Theme Remapping
+
+The same semantic aliases enable dark theme auto-generation without additional config. In dark
+mode, the alias mappings shift:
+
+```
+Light:  --brand-surface → var(--color-brand-50)   --brand-solid → var(--color-brand-500)  --brand-text → var(--color-brand-900)
+Dark:   --brand-surface → var(--color-brand-950)  --brand-solid → var(--color-brand-400)   --brand-text → var(--color-brand-100)
+```
+
+The `branddim-*` palette already provides darker shade values. The semantic layer would select
+from either the `brand-*` or `branddim-*` palette based on the current color scheme, giving
+operators a coherent dark theme from the same single primary color input.
+
 ### DaisyUI's `-content` Pattern
 
 For every background color, generate a matching readable text color:
@@ -450,6 +497,10 @@ Safari Technology Preview.
 | Corner style | Config exists, **no runtime effect** | Same gap | Parity (broken) |
 | Font family | Config exists, **Zilla Slab always loads** | Same gap | Parity (broken) |
 | Email branding | Logo hardcoded, color configurable | No per-domain email logo | Parity |
+| Theme extension | Additional `@theme` properties via config | Additional CSS custom properties via Redis | Planned — same mechanism |
+| Font file upload | **Not configurable** | Not applicable — install-only feature | Install-only |
+| Email sender name/domain | **Not configurable** | Not applicable — install-only feature | Install-only |
+| Per-org branding | **Not supported** | Not applicable — requires new resolution layer | N/A |
 
 ### What Mid-Tier SaaS Customers Should Get
 
@@ -468,11 +519,38 @@ Based on competitive analysis, a reasonable feature set for custom domain custom
 - Terms/Privacy URLs
 - "Powered by" toggle
 - PWA manifest details
-- Custom CSS
+- Per-domain theme extension (additional CSS custom properties)
 
 **Rationale**: Color, name, and logo are the core brand elements customers expect to
 customize. Typography and layout details are installation-level decisions that affect
 the entire product experience.
+
+### Per-Organization Branding
+
+Per-organization branding introduces a potential fourth resolution layer between
+per-installation and per-domain. In a multi-tenant deployment, distinct organizations
+within a single installation may require separate brand identities.
+
+```
+Per-Org Resolution (proposed):
+  Layer 1: Per-Domain (Redis)          ← page-load-time
+  Layer 1.5: Per-Organization (Redis)  ← org-scoped, page-load-time
+  Layer 2: Per-Installation (ENV/config) ← install-time
+  Layer 3: Hardcoded Fallback          ← compile-time
+```
+
+This differs from per-domain branding in scope: a single organization may span multiple
+custom domains, or multiple organizations may share one installation without custom domains.
+The brand resolution chain would check org membership before falling back to
+installation defaults.
+
+Key considerations:
+- Organization identity must be determined from the authenticated session, not the URL
+- Brand settings storage would extend `brand_settings.rb` with an org-scoped key prefix
+- The existing `useBrandTheme` composable already watches reactive state, so org-level
+  changes would propagate through the same CSS variable mechanism
+- Interaction with per-domain branding needs a clear precedence rule (domain wins, org
+  wins, or merge?)
 
 ### Performance: Runtime CSS Injection at Scale
 
@@ -535,9 +613,10 @@ templates, and PWA manifests. Each input is an attack surface.
 | `support_email` | Email header injection, phishing | Validate email format. No newlines or special chars. |
 | `font_family` | Enum — no injection risk | Already constrained to `sans`/`serif`/`mono` |
 | `corner_style` | Enum — no injection risk | Already constrained to `rounded`/`square`/`pill` |
-| Custom CSS (planned) | XSS via `expression()`, `url()`, `@import`, `-moz-binding` | CSS sanitizer required. Strip all `url()`, `@import`, `expression()`, `behavior`, `-moz-binding`. Consider using a CSS parser (e.g., csstree) rather than regex. |
+| Per-domain theme extension (planned) | Values flow through CSS custom properties, same as `primary_color`. Risk is limited to property values, not arbitrary selectors or rules. | Validate values with the same pipeline used for `primary_color` (strict format regex per property type). No raw CSS blocks — only named properties with typed values. |
 | Font file upload (planned) | Executable code in font files. License violations. | Format allowlist (woff2 only). Size limit (500KB). No server-side font parsing. Serve via CDN with `Content-Type: font/woff2`. |
 | PWA manifest (planned) | XSS if `name`/`description` rendered in admin UI | JSON-encode all values. Never render manifest fields as raw HTML. |
+| Email sender name/domain (planned) | SPF/DKIM/DMARC misconfiguration leading to email delivery failures or spoofing. Phishing via impersonated sender addresses. | Validate domain ownership via DNS TXT record. Require SPF/DKIM alignment before enabling custom sender. Restrict to verified domains only. See Section 12. |
 
 ### Content Security Policy (CSP) Implications
 
@@ -602,6 +681,27 @@ owners). These users are authenticated but potentially untrusted:
 - Consider `@media (prefers-color-scheme: dark)` blocks where supported
 - Test with Litmus or Email on Acid for cross-client rendering
 
+### Custom Email Sender Name and Domain
+
+Currently, all transactional emails (secret share notifications, verification, password
+reset) are sent from the installation's default sender address. Operators cannot customize
+the sender name or domain.
+
+**Proposed config fields:**
+
+| Field | Type | Default | ENV Override | Purpose |
+|-------|------|---------|-------------|---------|
+| `email_sender_name` | string | (product_name) | `BRAND_EMAIL_SENDER_NAME` | Display name in email From header |
+| `email_sender_domain` | string | (installation domain) | `BRAND_EMAIL_SENDER_DOMAIN` | Domain portion of From address |
+
+**Requirements:**
+- Sender domain must have valid SPF, DKIM, and DMARC records aligned with the sending
+  infrastructure (see Section 11 for security implications)
+- `email_sender_name` falls back to `brand.product_name` if not explicitly set
+- Validation: domain ownership should be confirmed via DNS TXT record before activation
+- This is an install-time-only feature — per-domain email sender customization introduces
+  significant deliverability and abuse risks
+
 ---
 
 ## 13. Operator Documentation
@@ -648,6 +748,13 @@ bible.
 | 6 | Implement server-side brand CSS injection in `<head>` or accept FOUC? | Engineering | Open |
 | 7 | Should email templates support a dark logo variant, or is transparent-background sufficient? | Design | Open |
 | 8 | Audit `apps/web/auth/mailer.rb` for active references before deletion | Engineering | Open — prerequisite |
+| 9 | What additional CSS custom properties should per-domain theme extension support beyond `primary_color`? Full `@theme` override or a curated subset? | Engineering | Open |
+| 10 | What login/signup page elements should be configurable — background image only, or also hero text and layout? | Product | Open |
+| 11 | Should dark theme auto-generation remap semantic aliases automatically, or require explicit dark palette config? | Engineering | Open |
+| 12 | How should per-organization branding interact with per-domain branding when both are configured? Which takes precedence? | Product | Open |
+| 13 | Should custom email sender domain require DNS verification at config time, or validate lazily on first send? | Engineering | Open |
+| 14 | Should font file upload be exposed via admin UI, or config/CLI only? What about license compliance checking? | Product | Open |
+| 15 | For semantic color aliases, should the initial set be `--brand-surface`/`--brand-solid`/`--brand-text` only, or include the full set from Section 8? | Engineering | Open |
 
 ---
 
@@ -710,6 +817,7 @@ decisions, create a formal ADR in `docs/architecture/decision-records/`.
 |---------|------|--------|---------|
 | 1.0 | 2026-02-08 | Product/Engineering | Initial document from 4-agent dogfood audit |
 | 1.1 | 2026-02-08 | Product/Engineering | Added security section (11), operator docs (13). Fixed palette count, font_family gap, open question ownership. Fresh-eyes review feedback. |
+| 1.2 | 2026-02-08 | Product/Engineering | Added 7 planned features: login page customization, per-domain theme extension, semantic color aliases, dark theme auto-generation, per-org branding, custom email sender, font file upload. Reframed custom CSS as Tailwind v4 theme extension. Expanded Sections 5, 6, 7, 8, 9, 11, 12, 14. |
 
 ---
 
