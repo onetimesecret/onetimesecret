@@ -24,5 +24,12 @@ declare module 'vue-router' {
 
     /** Scope switcher visibility configuration for this route */
     scopesAvailable?: ScopesAvailable;
+
+    /**
+     * Auth feature required to access this route.
+     * When set, the route guard checks bootstrapStore.authentication[feature]
+     * and redirects to '/' if the feature is disabled.
+     */
+    requiresFeature?: 'signup' | 'signin';
   }
 }

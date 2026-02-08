@@ -69,4 +69,5 @@ export interface RouteMeta {
   layout?: string;
   layoutProps?: Record<string, unknown>;
   scopesAvailable?: ScopesAvailable;
+  requiresFeature?: 'signup' | 'signin';
 }

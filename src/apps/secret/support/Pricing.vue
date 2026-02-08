@@ -9,6 +9,7 @@
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import { classifyError } from '@/schemas/errors';
   import { BillingService, type Plan as BillingPlan } from '@/services/billing.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { BillingInterval } from '@/types/billing';
   import { computed, onMounted, ref, watch } from 'vue';
 
@@ -24,6 +25,14 @@
 
   const { t } = useI18n();
   const route = useRoute();
+  const bootstrapStore = useBootstrapStore();
+  const { authentication } = bootstrapStore;
+  const signupEnabled = computed(
+    () => authentication.enabled && authentication.signup
+  );
+  const signinEnabled = computed(
+    () => authentication.enabled && authentication.signin
+  );
 
   // Map URL interval slugs to internal billing interval
   // Supports: month, monthly -> 'month' and year, yearly, annual -> 'year'
@@ -247,6 +256,7 @@
             </p>
           </div>
           <RouterLink
+            v-if="signupEnabled"
             to="/signup"
             class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
             {{ t('web.pricing.get_started_free') }}
@@ -268,6 +278,7 @@
           class="w-full max-w-sm sm:w-80">
           <template #action="{ plan: currentPlan }">
             <RouterLink
+              v-if="signupEnabled"
               :to="getSignupUrl(currentPlan)"
               :class="[
                 'block w-full rounded-md px-4 py-2 text-center text-sm font-semibold transition-colors',
@@ -312,7 +323,9 @@
       </div>
 
       <!-- Sign in prompt for existing users -->
-      <div class="mt-8 text-center">
+      <div
+        v-if="signinEnabled"
+        class="mt-8 text-center">
         <p class="text-sm text-gray-600 dark:text-gray-400">
           {{ t('web.pricing.already_have_account') }}
           <RouterLink
