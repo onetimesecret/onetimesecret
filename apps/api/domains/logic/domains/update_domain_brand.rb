@@ -83,6 +83,18 @@ module DomainsAPI::Logic
         false
       end
 
+      # Free-text fields that may render in HTML contexts (page titles,
+      # email templates, alt attributes, meta tags, TOTP URIs). These are
+      # sanitized at the write boundary to strip HTML tags before storage.
+      TEXT_FIELDS = %w[
+        product_name
+        footer_text
+        instructions_pre_reveal
+        instructions_reveal
+        instructions_post_reveal
+        description
+      ].freeze
+
       private
 
       def validate_domain
@@ -121,20 +133,31 @@ module DomainsAPI::Logic
       end
 
       def validate_brand_values
+        sanitize_text_fields
         validate_color
         validate_font
         validate_corner_style
         validate_default_ttl
+
+        # Model-level validation as defense-in-depth. The per-field checks
+        # above produce specific form errors with logging; this catches
+        # anything that might slip through on future field additions.
+        Onetime::CustomDomain::BrandSettings.validate!(@brand_settings)
+      rescue Onetime::Problem => ex
+        raise_form_error ex.message
       end
 
       def validate_color
         color = @brand_settings['primary_color']
         return if color.nil?
 
-        return if Onetime::CustomDomain::BrandSettings.valid_color?(color)
+        unless Onetime::CustomDomain::BrandSettings.valid_color?(color)
+          OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
+          raise_form_error 'Invalid primary color format - must be hex code (e.g. #FF0000)'
+        end
 
-        OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
-        raise_form_error 'Invalid primary color format - must be hex code (e.g. #FF0000)'
+        # Normalize 3-digit hex to 6-digit (e.g. #F00 -> #FF0000)
+        @brand_settings['primary_color'] = Onetime::CustomDomain::BrandSettings.normalize_color(color)
       end
 
       def validate_font
@@ -201,6 +224,17 @@ module DomainsAPI::Logic
 
         # Update the brand_settings hash with the coerced value
         @brand_settings['default_ttl'] = ttl_value
+      end
+
+      # Strip HTML tags from free-text brand settings to prevent XSS.
+      # Uses sanitize_plain_text from InputSanitizers which strips all
+      # HTML via the Sanitize gem and normalizes whitespace.
+      def sanitize_text_fields
+        TEXT_FIELDS.each do |field|
+          next unless @brand_settings.key?(field) && @brand_settings[field].is_a?(String)
+
+          @brand_settings[field] = sanitize_plain_text(@brand_settings[field], max_length: 500)
+        end
       end
 
       # Validate extid format (lowercase alphanumeric only)
