@@ -1,7 +1,8 @@
 <!-- src/apps/workspace/account/settings/ApiSettings.vue -->
 
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import APIKeyForm from '@/apps/workspace/components/account/APIKeyForm.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
@@ -9,7 +10,8 @@
   import { storeToRefs } from 'pinia';
   import { onMounted } from 'vue';
 
-  const { t, bt } = useBrandI18n();
+  const { t } = useI18n();
+  const { brand_product_name } = storeToRefs(useBootstrapStore());
   const accountStore = useAccountStore();
   const { account } = storeToRefs(accountStore);
 
@@ -65,7 +67,7 @@
 
         <div class="p-6">
           <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            {{ bt('web.settings.api.documentation_description') }}
+            {{ t('web.settings.api.documentation_description', { product_name: brand_product_name }) }}
           </p>
 
           <div class="space-y-3">

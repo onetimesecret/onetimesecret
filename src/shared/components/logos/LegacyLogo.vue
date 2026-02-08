@@ -1,7 +1,9 @@
 <!-- src/shared/components/logos/LegacyLogo.vue -->
 
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import OnetimeSecretIcon from '@/shared/components/icons/OnetimeSecretIcon.vue';
 import { type LogoConfig } from '@/types/ui/layouts';
   import { computed } from 'vue';
@@ -18,9 +20,10 @@ import { type LogoConfig } from '@/types/ui/layouts';
     }
   );
 
-  const { t, bt } = useBrandI18n();
+  const { t } = useI18n();
+  const { brand_product_name } = storeToRefs(useBootstrapStore());
 
-  const ariaLabel = computed(() => props.ariaLabel || bt('web.homepage.one_time_secret_literal'));
+  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name.value }));
 
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64

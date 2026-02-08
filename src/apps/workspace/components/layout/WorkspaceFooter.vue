@@ -7,7 +7,7 @@
   - Added: Standard SaaS footer links (API Docs, Branding Guide, Feedback)
 -->
 <script setup lang="ts">
-  import { useBrandI18n } from '@/shared/composables/useBrandI18n';
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
@@ -23,10 +23,10 @@
     displayPoweredBy: true,
   });
 
-  const { t, bt } = useBrandI18n();
+  const { t } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, brand_product_name } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
@@ -200,7 +200,7 @@
         <div class="flex items-center gap-x-3">
           <span
             v-if="displayVersion"
-            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} Version`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               target="_blank"
@@ -217,13 +217,13 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${bt('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} Version`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
               {{ t('web.COMMON.powered_by') }}
-              {{ bt('web.homepage.onetime_secret_literal') }}
+              {{ t('web.homepage.onetime_secret_literal', { product_name: brand_product_name }) }}
             </a>
           </span>
         </div>
