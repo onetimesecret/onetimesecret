@@ -84,8 +84,9 @@ site:
             alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
             # Where the logo links to when clicked
             href: <%= ENV['LOGO_LINK'] || '/' %>
-          # Company name override (falls back to i18n if not set)
-          site_name: <%= ENV['SITE_NAME'] || 'OTS' %>
+          # DEPRECATED: site_name is deprecated in favor of brand.product_name
+          # Use brand.product_name instead (configured in branding section above)
+          # site_name: <%= ENV['SITE_NAME'] || 'OTS' %>
         # Navigation configuration
         navigation:
           # Enable/disable header navigation entirely
