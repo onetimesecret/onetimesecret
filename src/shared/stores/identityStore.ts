@@ -2,9 +2,9 @@
 
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
 import {
-  NEUTRAL_BRAND_DEFAULTS,
   DEFAULT_BUTTON_TEXT_LIGHT,
   DEFAULT_CORNER_CLASS,
+  NEUTRAL_BRAND_DEFAULTS,
 } from '@/shared/constants/brand';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
@@ -13,8 +13,11 @@ import { useBootstrapStore } from './bootstrapStore';
 
 // Re-export for backwards compatibility
 /** @deprecated Use NEUTRAL_BRAND_DEFAULTS.primary_color instead */
-export { DEFAULT_BRAND_HEX as DEFAULT_PRIMARY_COLOR } from '@/shared/constants/brand';
-export { DEFAULT_CORNER_CLASS, DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/constants/brand';
+export {
+  DEFAULT_BUTTON_TEXT_LIGHT,
+  DEFAULT_CORNER_CLASS,
+  DEFAULT_BRAND_HEX as DEFAULT_PRIMARY_COLOR,
+} from '@/shared/constants/brand';
 
 /**
  * Represents the product's identity state for a given domain context
@@ -86,7 +89,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     //
     // Philosophy: Step 3 should NEVER show OTS branding. If bootstrap fails to provide
     // brand data, the UI degrades to neutral blue (#3B82F6), not accidentally advertising
-    // OTS. This supports white-label / private-label deployments.
+    // OTS. This supports private-label / private-label deployments.
     //
     // Step 2 inherits from backend BrandSettingsConstants.defaults which reads
     // OT.conf['brand']['primary_color'] at runtime. This ensures frontend brand
@@ -104,9 +107,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     //   2. Per-installation setting from config (brand.allow_public_homepage)
     //   3. Hardcoded default (true — public homepage enabled by default)
     const allowPublicHomepage =
-      brand.allow_public_homepage ??
-      bootstrapStore.brand_allow_public_homepage ??
-      true;
+      brand.allow_public_homepage ?? bootstrapStore.brand_allow_public_homepage ?? true;
 
     return {
       domainStrategy: domain_strategy.value,
@@ -134,9 +135,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       NEUTRAL_BRAND_DEFAULTS.primary_color;
     state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     state.allowPublicHomepage =
-      brand.allow_public_homepage ??
-      bootstrapStore.brand_allow_public_homepage ??
-      true;
+      brand.allow_public_homepage ?? bootstrapStore.brand_allow_public_homepage ?? true;
   });
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
@@ -165,12 +164,13 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const displayName = computed(() => state.brand?.description || state.displayDomain);
 
   /** Logo URL for custom domain, pre-computed by backend with correct extid */
-  const logoUri = computed(() =>
-    // Backend provides the correct logo URL using extid (external ID).
-    // Returns null if no logo is uploaded for this custom domain.
-    // Note: Client-side URL generation is not possible since we only have
-    // the internal domainId, not the public extid needed for the /imagine route.
-    domain_logo.value
+  const logoUri = computed(
+    () =>
+      // Backend provides the correct logo URL using extid (external ID).
+      // Returns null if no logo is uploaded for this custom domain.
+      // Note: Client-side URL generation is not possible since we only have
+      // the internal domainId, not the public extid needed for the /imagine route.
+      domain_logo.value
   );
 
   const cornerClass = computed(() => {
