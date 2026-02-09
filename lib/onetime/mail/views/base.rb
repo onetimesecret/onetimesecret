@@ -158,9 +158,9 @@ module Onetime
         # Site product name configuration helper
         # @return [String]
         def site_product_name
-          return 'Onetime Secret' unless defined?(OT) && OT.respond_to?(:conf)
+          return 'OTS' unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'product_name') || 'Onetime Secret'
+          OT.conf.dig('site', 'product_name') || 'OTS'
         end
 
         # Product name with fallback to site config

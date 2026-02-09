@@ -52,7 +52,7 @@
       opacity: svgOpacity,
       filter: `brightness(${svgBrightness})`
     }">
-    <title>{{ props.title || 'Onetime Secret' }}</title>
+    <title>{{ props.title || 'OTS' }}</title>
     <path
       d="M0 0 C476.85 0 953.7 0 1445 0 C1445 476.85 1445 953.7 1445 1445 C968.15 1445 491.3 1445 0 1445 C0 968.15 0 491.3 0 0 Z "
       :fill="fillColor"

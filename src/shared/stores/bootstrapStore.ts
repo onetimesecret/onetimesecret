@@ -62,7 +62,7 @@ const DEFAULTS: BootstrapPayload = {
 
   // Branding
   brand_primary_color: DEFAULT_BRAND_HEX,
-  brand_product_name: 'Onetime Secret',
+  brand_product_name: 'OTS',
   brand_corner_style: 'rounded',
   brand_font_family: 'sans',
   brand_button_text_light: true,

@@ -50,7 +50,7 @@ RSpec.describe Core::Views::BaseView do
     it 'sets basic template variables' do
       expect(subject.view_vars['description']).to eq('Test Description')
       expect(subject.view_vars['keywords']).to eq('test,keywords')
-      expect(subject.view_vars['page_title']).to eq('One-Time Secret')
+      expect(subject.view_vars['page_title']).to eq('OTS')
     end
 
     it 'initializes JavaScript variables' do
