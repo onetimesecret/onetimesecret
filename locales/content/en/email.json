@@ -684,7 +684,7 @@
     "sha256": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "{product_name}",
+    "text": "%{product_name}",
     "sha256": "7bec5899"
   }
 }
