@@ -3,18 +3,18 @@
 import { z } from 'zod';
 
 /**
- * Validates ISO language codes:
- * - 2-letter code (en)
- * - 4-letter codes with separator (en, pt_PT, DE-at)
- * Case insensitive. Must match entire string.
+ * Validates BCP 47 language tags:
+ * - 2-letter language code (en, fr)
+ * - Language + region with separator (en_CA, pt-BR, DE-at, eo)
+ * Case insensitive.
  */
-export const localeSchema = z
+export const localeCodeSchema = z
   .string()
   .min(2)
   .max(5)
-  .regex(/^([a-z]{2})([_\-]([a-z]{2}))?$/i, 'Invalid locale format');
+  .regex(/^[a-z]{2}(?:[_-][a-z]{2})?$/i, 'Invalid locale format');
 
-export type Locale = z.infer<typeof localeSchema>;
+export type Locale = z.infer<typeof localeCodeSchema>;
 
 /**
  * Schema for a single entry in locales/content/{locale}/*.json files.

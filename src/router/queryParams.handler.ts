@@ -1,7 +1,7 @@
 // src/router/queryParams.handler.ts
 
+import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { useTheme } from '@/shared/composables/useTheme';
-import { localeSchema } from '@/schemas/i18n/locale';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 
 interface QueryParamHandler {
@@ -13,7 +13,7 @@ interface QueryParamHandler {
 export const queryParamHandlers: QueryParamHandler[] = [
   {
     key: 'locale',
-    validate: (locale: string) => localeSchema.safeParse(locale).success,
+    validate: (locale: string) => localeCodeSchema.safeParse(locale).success,
     process: (locale: string) => {
       const languageStore = useLanguageStore();
       languageStore.setCurrentLocale(locale);

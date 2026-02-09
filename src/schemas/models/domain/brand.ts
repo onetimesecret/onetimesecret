@@ -1,6 +1,6 @@
 // src/schemas/models/domain/brand.ts
 
-import { localeSchema } from '@/schemas/i18n/locale';
+import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
@@ -142,7 +142,7 @@ export const brandSettingSchema = z
     allow_public_api: transforms.fromString.boolean.nullish(), // No default — identityStore fallback chain handles defaults
     font_family: z.enum(fontOptions).default(FontFamily.SANS),
     corner_style: z.enum(cornerStyleOptions).default(CornerStyle.ROUNDED),
-    locale: localeSchema.default('en'),
+    locale: localeCodeSchema.default('en'),
     default_ttl: transforms.fromString.number.nullish(),
     passphrase_required: transforms.fromString.boolean.default(false),
     notify_enabled: transforms.fromString.boolean.default(false),
