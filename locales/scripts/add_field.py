@@ -2,7 +2,7 @@
 """
 Add a field to all entries in locale content JSON files.
 
-Inserts the field after "text" and before "sha256" for consistent
+Inserts the field after "text" and before "content_hash"/"source_hash" for consistent
 ordering. Entries that already have the field are skipped.
 
 Usage:

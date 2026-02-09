@@ -54,7 +54,7 @@ SKIP_KEYS: set[str] = set()
 EXCLUDE_KEYS: set[str] = set()
 
 
-def compute_sha256_prefix(text: str) -> str:
+def compute_content_hash(text: str) -> str:
     """Compute the first 8 chars of SHA-256 hex digest, matching the
     convention used in the locale JSON files."""
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
@@ -125,8 +125,8 @@ def scan_file(
 
             if apply:
                 entry["text"] = new_text
-                # Update sha256 to match the new text
-                entry["sha256"] = compute_sha256_prefix(new_text)
+                # Update content_hash to match the new text
+                entry["content_hash"] = compute_content_hash(new_text)
                 modified = True
 
     if apply and modified:
