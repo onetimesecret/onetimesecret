@@ -76,9 +76,6 @@ export type LocaleContentEntryInput = z.input<typeof localeContentEntrySchema>;
 /**
  * Complete locale file: flat key -> entry mapping.
  */
-export const localeFileSchema = z.record(
-  z.string(),
-  localeContentEntrySchema
-);
+export const localeFileSchema = z.record(z.string(), localeContentEntrySchema);
 
 export type LocaleFile = z.infer<typeof localeFileSchema>;
