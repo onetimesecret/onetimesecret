@@ -22,6 +22,12 @@ and independent editing.
 
 ---
 
+## Quick Start
+
+**Self-hosters:** See [Self-Hosting Brand Customization Guide](SELF-HOSTING-GUIDE.md) for practical configuration instructions.
+
+---
+
 ## Table of Contents
 
 ### [Part 1: Context](brand-part1-context.md)
