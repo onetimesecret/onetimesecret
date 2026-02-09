@@ -1,638 +1,638 @@
 {
   "web.account.settings": {
     "text": "Ustawienia",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.account.change_password": {
     "text": "Zmień hasło",
-    "sha256": "a949f462"
+    "source_hash": "a949f462"
   },
   "web.account.close_account": {
     "text": "Zamknij konto",
-    "sha256": "e1513814"
+    "source_hash": "e1513814"
   },
   "web.account.verify_account": {
     "text": "Zweryfikuj konto",
-    "sha256": "2f3ea760"
+    "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
     "text": "Subskrypcja",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.account.manage_subscription": {
     "text": "Zarządzaj subskrypcją",
-    "sha256": "cbc4ef92"
+    "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
     "text": "Informacje o kliencie",
-    "sha256": "8258db6d"
+    "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
     "text": "Klient od:",
-    "sha256": "0b37cff3"
+    "source_hash": "0b37cff3"
   },
   "web.account.email": {
     "text": "E-mail:",
-    "sha256": "17507dcf"
+    "source_hash": "17507dcf"
   },
   "web.account.region": {
     "text": "Region",
-    "sha256": "d3a008ef"
+    "source_hash": "d3a008ef"
   },
   "web.account.account_balance": {
     "text": "Saldo:",
-    "sha256": "e0351221"
+    "source_hash": "e0351221"
   },
   "web.account.default_payment_method": {
     "text": "Domyślna metoda płatności",
-    "sha256": "c60f014b"
+    "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
     "text": "kończąca się na",
-    "sha256": "0195bccf"
+    "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
     "text": "Subskrypcje",
-    "sha256": "a151f2e9"
+    "source_hash": "a151f2e9"
   },
   "web.account.quantity": {
     "text": "Ilość:",
-    "sha256": "d4b2cb96"
+    "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
     "text": "Następna data płatności:",
-    "sha256": "8e6f9cfe"
+    "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
     "text": "Nazwa użytkownika",
-    "sha256": "e3b89e9d"
+    "source_hash": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
     "text": "Aktualne hasło",
-    "sha256": "8ac76099"
+    "source_hash": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
     "text": "Nowe hasło",
-    "sha256": "7c451e0f"
+    "source_hash": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
     "text": "Potwierdź",
-    "sha256": "eebdd24a"
+    "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
     "text": "Zaktualizuj hasło",
-    "sha256": "557be0da"
+    "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
     "text": "Aktualizowanie...",
-    "sha256": "0a4e0b71"
+    "source_hash": "0a4e0b71"
   },
   "web.account.timezone": {
     "text": "Strefa czasowa",
-    "sha256": "4ceca1d5"
+    "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
     "text": "ID klienta",
-    "sha256": "62566c64"
+    "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
     "text": "ID konta",
-    "sha256": "919bb4cb"
+    "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
     "text": "Utworzono {0} wiadomości od {1}.",
-    "sha256": "8cb99810"
+    "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
     "text": "Usuń konto",
-    "sha256": "c031bf99"
+    "source_hash": "c031bf99"
   },
   "web.account.api_key": {
     "text": "Klucz API",
-    "sha256": "23189d55"
+    "source_hash": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
     "text": "Typ konta: {0}",
-    "sha256": "617bfe67"
+    "source_hash": "617bfe67"
   },
   "web.account.your_account": {
     "text": "Twoje konto",
-    "sha256": "89e60bfb"
+    "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
     "text": "Szczegóły wsparcia",
-    "sha256": "cbad8751"
+    "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
     "text": "Powrót do szczegółów",
-    "sha256": "f6f841b9"
+    "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
     "text": "ID klienta: {0}",
-    "sha256": "7e2d4201"
+    "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
     "text": "Token wygenerowany.",
-    "sha256": "05986d95"
+    "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
     "text": "🔐 Chroń ten token! Zapewnia on pełny dostęp do Twojego konta.",
-    "sha256": "8839aa4d"
+    "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
     "text": "Potwierdź swoim hasłem",
-    "sha256": "ff2147fd"
+    "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Czy na pewno chcesz trwale usunąć swoje konto? Tej akcji nie można cofnąć.",
-    "sha256": "4fa3e4b8"
+    "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
     "text": "Potwierdź usunięcie konta",
-    "sha256": "bb3fc7e5"
+    "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
     "text": "Usuwanie {0}",
-    "sha256": "81d21828"
+    "source_hash": "81d21828"
   },
   "web.account.permanently_delete_account": {
     "text": "Trwale usuń konto",
-    "sha256": "f894e42c"
+    "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
     "text": "trwałe i nieodwracalne.",
-    "sha256": "6121225e"
+    "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
     "text": "Usunięcie Twojego konta jest",
-    "sha256": "ec31577b"
+    "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
     "text": "zniszcz je przed kontynuowaniem",
-    "sha256": "f89a5794"
+    "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
     "text": "Wszelkie sekrety, które chcesz usunąć,",
-    "sha256": "b45e2dd5"
+    "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "Wiadomości pozostaną aktywne do czasu wygaśnięcia.",
-    "sha256": "ddb4e2b5"
+    "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
     "text": "Informujemy:",
-    "sha256": "086020fd"
+    "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
     "text": "Konto usunięte pomyślnie.",
-    "sha256": "afcfdd58"
+    "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
     "text": "Dezaktywuj",
-    "sha256": "fb1e6fa5"
+    "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
     "text": "Czy na pewno chcesz dezaktywować swoje konto? Wszystkie Twoje dane zostaną trwale usunięte z naszych serwerów na zawsze. Tej akcji nie można cofnąć.",
-    "sha256": "4940e20a"
+    "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
     "text": "Dezaktywuj konto",
-    "sha256": "5e31b73d"
+    "source_hash": "5e31b73d"
   },
   "web.settings.title": {
     "text": "Ustawienia",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.settings.description": {
     "text": "Zarządzaj ustawieniami i preferencjami konta",
-    "sha256": "2ff0853c"
+    "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Zarządzaj ustawieniami konta i preferencjami",
-    "sha256": "2ff0853c"
+    "source_hash": "2ff0853c"
   },
   "web.settings.general": {
     "text": "Ogólne",
-    "sha256": "c910d474"
+    "source_hash": "c910d474"
   },
   "web.settings.preferences": {
     "text": "Preferencje",
-    "sha256": "66962f72"
+    "source_hash": "66962f72"
   },
   "web.settings.appearance": {
     "text": "Wygląd",
-    "sha256": "3907fa7f"
+    "source_hash": "3907fa7f"
   },
   "web.settings.theme.title": {
     "text": "Motyw",
-    "sha256": "efb52e71"
+    "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
     "text": "Wybierz jasny lub ciemny motyw",
-    "sha256": "ff0ae84f"
+    "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
     "text": "Wybierz jasny lub ciemny motyw",
-    "sha256": "ff0ae84f"
+    "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
     "text": "Język",
-    "sha256": "a4fe6526"
+    "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
     "text": "Wybierz preferowany język",
-    "sha256": "475bba7a"
+    "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
     "text": "Wybierz preferowany język",
-    "sha256": "475bba7a"
+    "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
     "text": "Zarządzaj uwierzytelnianiem i bezpieczeństwem konta",
-    "sha256": "945109d1"
+    "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
     "text": "Zarządzaj informacjami o koncie",
-    "sha256": "4a23a29f"
+    "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
     "text": "Profil",
-    "sha256": "d696a35b"
+    "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
     "text": "Zmień e-mail",
-    "sha256": "18c3f2d5"
+    "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
     "text": "Bieżący e-mail",
-    "sha256": "5f1cab64"
+    "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
     "text": "Aktualne hasło",
-    "sha256": "8ac76099"
+    "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
     "text": "Nowy e-mail",
-    "sha256": "5bafb4be"
+    "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
     "text": "Wprowadź swoje aktualne hasło",
-    "sha256": "27814c03"
+    "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
     "text": "Twoje hasło jest wymagane ze względów bezpieczeństwa",
-    "sha256": "d18f62f2"
+    "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "E-mail weryfikacyjny zostanie wysłany na nowy adres",
-    "sha256": "575082a1"
+    "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
     "text": "Zaktualizuj e-mail",
-    "sha256": "6ec61b2e"
+    "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
     "text": "Zaktualizuj adres e-mail powiązany z Twoim kontem",
-    "sha256": "636abb16"
+    "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Wszystkie pola są wymagane",
-    "sha256": "04814271"
+    "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
     "text": "Wprowadź prawidłowy adres e-mail",
-    "sha256": "b00f7e3a"
+    "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
     "text": "Nowy e-mail musi być inny niż bieżący e-mail",
-    "sha256": "f7cfed6e"
+    "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
     "text": "E-mail zaktualizowany pomyślnie. Sprawdź swoją skrzynkę odbiorczą, aby zweryfikować nowy adres e-mail.",
-    "sha256": "58de2536"
+    "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
     "text": "Nie udało się zaktualizować e-maila. Spróbuj ponownie.",
-    "sha256": "aeba6591"
+    "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
     "text": "Aktywne sesje",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
     "text": "Zarządzaj aktywnymi sesjami",
-    "sha256": "e5646da4"
+    "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
     "text": "Zarządzaj aktywnymi sesjami",
-    "sha256": "e5646da4"
+    "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
     "text": "Hasło",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
     "text": "Zaktualizuj hasło do konta",
-    "sha256": "cb3ae40b"
+    "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
     "text": "Zaktualizuj hasło do konta",
-    "sha256": "cb3ae40b"
+    "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
     "text": "Usuń konto",
-    "sha256": "c031bf99"
+    "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
     "text": "Trwale usuń swoje konto i wszystkie dane",
-    "sha256": "7a3a6da2"
+    "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
     "text": "Trwale usuń swoje konto i wszystkie dane",
-    "sha256": "7a3a6da2"
+    "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
     "text": "Wynik bezpieczeństwa",
-    "sha256": "02d2f374"
+    "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
     "text": "Ogólny stan bezpieczeństwa Twojego konta",
-    "sha256": "cf20935e"
+    "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
     "text": "Doskonałe",
-    "sha256": "0dc8ee55"
+    "source_hash": "0dc8ee55"
   },
   "web.settings.security.good": {
     "text": "Dobre",
-    "sha256": "c939327c"
+    "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
     "text": "W porządku",
-    "sha256": "f7b19afc"
+    "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
     "text": "Słabe",
-    "sha256": "8d6cea25"
+    "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
     "text": "Popraw swoje bezpieczeństwo",
-    "sha256": "c38bcbf5"
+    "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
     "text": "Włącz uwierzytelnianie dwuskładnikowe dla silniejszej ochrony",
-    "sha256": "6beda528"
+    "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Wygeneruj kody odzyskiwania jako kopię zapasową",
-    "sha256": "eb5f3ebd"
+    "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
     "text": "Skonfigurowane",
-    "sha256": "84aebc69"
+    "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
     "text": "Zmień",
-    "sha256": "c0bf75bd"
+    "source_hash": "c0bf75bd"
   },
   "web.settings.security.manage": {
     "text": "Zarządzaj",
-    "sha256": "5a234448"
+    "source_hash": "5a234448"
   },
   "web.settings.security.enable": {
     "text": "Włącz",
-    "sha256": "5342e09f"
+    "source_hash": "5342e09f"
   },
   "web.settings.security.codes_available": {
     "text": "{0} kodów dostępnych",
-    "sha256": "76d6236d"
+    "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
     "text": "Brak wygenerowanych kodów",
-    "sha256": "3b2eae20"
+    "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
     "text": "{0} aktywna sesja | {0} aktywne sesje | {0} aktywnych sesji",
-    "sha256": "30737484"
+    "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
     "text": "Najlepsze praktyki bezpieczeństwa",
-    "sha256": "fd71b2da"
+    "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
     "text": "Używaj silnego, unikalnego hasła do swojego konta",
-    "sha256": "5fc8cbf4"
+    "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
     "text": "Włącz uwierzytelnianie dwuskładnikowe dla dodatkowej ochrony",
-    "sha256": "107e4898"
+    "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
     "text": "Zapisz kody odzyskiwania w bezpiecznym miejscu",
-    "sha256": "605513fc"
+    "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
     "text": "Regularnie przeglądaj i unieważniaj nieużywane sesje",
-    "sha256": "efe59445"
+    "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
     "text": "Zobacz szczegóły",
-    "sha256": "d1bf045b"
+    "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
     "text": "API i integracje",
-    "sha256": "21fc84f3"
+    "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
     "text": "Zarządzaj kluczami API i integracjami",
-    "sha256": "70976099"
+    "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
     "text": "Zarządzaj kluczami API i integracjami",
-    "sha256": "70976099"
+    "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
     "text": "Dokumentacja API",
-    "sha256": "1cc77e60"
+    "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
     "text": "Dowiedz się, jak zintegrować {product_name} ze swoimi aplikacjami",
-    "sha256": "a9bc84ec"
+    "source_hash": "a9bc84ec"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Dokumentacja REST API",
-    "sha256": "26a5af61"
+    "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
     "text": "Kompletna dokumentacja API i endpointy",
-    "sha256": "c1c87ad8"
+    "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
     "text": "Przykłady kodu",
-    "sha256": "216d28e4"
+    "source_hash": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
     "text": "Przykładowy kod i biblioteki klienckie",
-    "sha256": "61c5956f"
+    "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
     "text": "Najlepsze praktyki bezpieczeństwa",
-    "sha256": "fd71b2da"
+    "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
     "text": "Nigdy nie commituj kluczy API do kontroli wersji",
-    "sha256": "cc8c327e"
+    "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
     "text": "Używaj zmiennych środowiskowych do przechowywania kluczy API",
-    "sha256": "c05e8802"
+    "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
     "text": "Regularnie rotuj klucze API dla bezpieczeństwa",
-    "sha256": "eda6a5db"
+    "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
     "text": "Zawsze używaj HTTPS podczas wykonywania żądań API",
-    "sha256": "b3f405ef"
+    "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
     "text": "Monitoruj użycie API i skonfiguruj alerty",
-    "sha256": "abb08beb"
+    "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
     "text": "Ważna informacja",
-    "sha256": "03d3ba93"
+    "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
     "text": "Ponowne wygenerowanie klucza API unieważni bieżący klucz. Zaktualizuj wszystkie aplikacje używające starego klucza.",
-    "sha256": "ab168f83"
+    "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
     "text": "Ustawienia prywatności",
-    "sha256": "eefad6ba"
+    "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
     "text": "Zarządzaj preferencjami prywatności",
-    "sha256": "add087da"
+    "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
     "text": "Twoja prywatność",
-    "sha256": "cad972db"
+    "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
     "text": "Niepodlegające negocjacjom",
-    "sha256": "ad090a29"
+    "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "To nie jest ustawienie",
-    "sha256": "41278ece"
+    "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
     "text": "Bez analityki. Bez śledzenia. Kropka.",
-    "sha256": "3e154b1c"
+    "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
     "text": "To nie jest ustawienie, ponieważ nie ma niczego do włączenia lub wyłączenia. Twoja prywatność jest wbudowana w sposób, w jaki działamy.",
-    "sha256": "ed943792"
+    "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
     "text": "Ustawienia powiadomień",
-    "sha256": "07a063ca"
+    "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
     "text": "Zarządzaj sposobem otrzymywania powiadomień",
-    "sha256": "148c5ff6"
+    "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
     "text": "Nie udało się zaktualizować preferencji powiadomień. Spróbuj ponownie.",
-    "sha256": "c08abc04"
+    "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
     "text": "Powiadomienia o wyświetleniu sekretu",
-    "sha256": "c0fb2e25"
+    "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Otrzymuj e-mail, gdy ktoś wyświetli Twój sekret",
-    "sha256": "a3a67095"
+    "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
     "text": "Otrzymasz powiadomienie za każdym razem, gdy odbiorca wyświetli jeden z Twoich sekretów",
-    "sha256": "ba93106d"
+    "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
     "text": "E-maile z powiadomieniami zawierają tylko znacznik czasu i ID sekretu. Informacje o przeglądającym nigdy nie są zawarte.",
-    "sha256": "7aac282f"
+    "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
     "text": "Strefa ostrożności",
-    "sha256": "fe27a3a8"
+    "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
     "text": "Zaawansowane ustawienia i zarządzanie danymi",
-    "sha256": "223ee55d"
+    "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
     "text": "Eksport danych",
-    "sha256": "bdcea052"
+    "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
     "text": "Eksportuj dane swojego konta",
-    "sha256": "dc5ffcb0"
+    "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
     "text": "Poproś o pełną kopię danych Twojego konta w formacie do odczytu maszynowego",
-    "sha256": "369c3391"
+    "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
     "text": "Poproś o eksport danych",
-    "sha256": "902394be"
+    "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
     "text": "Czas przetwarzania eksportu",
-    "sha256": "2ebb2d44"
+    "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
     "text": "Eksporty są przetwarzane w ciągu 24 godzin i wysyłane na Twój adres e-mail",
-    "sha256": "a2f81e3b"
+    "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
     "text": "Usunięcie konta spowoduje:",
-    "sha256": "17a8a676"
+    "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
     "text": "Trwałe usunięcie wszystkich Twoich sekretów",
-    "sha256": "974ccdb9"
+    "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
     "text": "Usunięcie wszystkich metadanych sekretów i historii",
-    "sha256": "ec4ee372"
+    "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "Unieważnij wszystkie klucze API",
-    "sha256": "7581333b"
+    "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Tej operacji nie można cofnąć",
-    "sha256": "02ccc074"
+    "source_hash": "02ccc074"
   },
   "web.account.deleting_ellipsis": {
     "text": "Usuwanie...",
-    "sha256": "685ecb98"
+    "source_hash": "685ecb98"
   },
   "web.settings.back_to_dashboard": {
     "text": "Powrót do panelu",
-    "sha256": "97ba1d39"
+    "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
     "text": "Konto",
-    "sha256": "7e1b0d56"
+    "source_hash": "7e1b0d56"
   },
   "web.settings.sections.billing": {
     "text": "Płatności",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
     "text": "Zaawansowane",
-    "sha256": "9f088dbe"
+    "source_hash": "9f088dbe"
   }
 }

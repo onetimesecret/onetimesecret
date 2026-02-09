@@ -1,170 +1,170 @@
 {
   "web.branding.color_picker": {
     "text": "منتقي الألوان",
-    "sha256": "ba42602c"
+    "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
     "text": "{0} الحالي: {1}. انقر للتنقل بين الخيارات.",
-    "sha256": "84bf49e6"
+    "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
     "text": "استخدام الإعداد",
-    "sha256": "8a18d118"
+    "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
     "text": "نوع الخط",
-    "sha256": "f81339da"
+    "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
     "text": "نمط الزوايا",
-    "sha256": "fcb3ecdf"
+    "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
     "text": "لون العلامة التجارية",
-    "sha256": "db3183e3"
+    "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "معاينة عرض المستلم عند الوصول إلى رابطك الآمن",
-    "sha256": "199c165f"
+    "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
     "text": "معاينة وتخصيص",
-    "sha256": "215d3659"
+    "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "التبديل لعرض متصفح Safari",
-    "sha256": "6e0fe791"
+    "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge",
-    "sha256": "951e7f89"
+    "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
     "text": "تكبير النافذة",
-    "sha256": "45d23969"
+    "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
     "text": "تصغير النافذة",
-    "sha256": "5cd54386"
+    "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
     "text": "التبديل لعرض متصفح Edge",
-    "sha256": "a8fcd82d"
+    "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 حرف",
-    "sha256": "e36598ef"
+    "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
     "text": "استخدم هاتفك لمسح رمز QR",
-    "sha256": "99ecf59f"
+    "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
     "text": "تواصل مع onboarding{'@'}example.com لأي أسئلة",
-    "sha256": "bee120a7"
+    "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "ستُعرض هذه التعليمات للمستلمين قبل الكشف عن محتوى السر",
-    "sha256": "9d5a6334"
+    "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
     "text": "ستُعرض هذه التعليمات للمستلمين بعد الكشف عن السر",
-    "sha256": "9f82bd94"
+    "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
     "text": "تعليمات ما قبل الكشف",
-    "sha256": "a299422e"
+    "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
     "text": "تعليمات ما بعد الكشف",
-    "sha256": "72ecc23a"
+    "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
     "text": "التعليمات",
-    "sha256": "934652dc"
+    "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
     "text": "عناصر التحكم بالشعار",
-    "sha256": "43e9a2d7"
+    "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "انقر لتحميل شعار. الحجم الموصى به: 128×128 بكسل. الحد الأقصى لحجم الملف: 1 ميجابايت. التنسيقات المدعومة: PNG، JPG، SVG",
-    "sha256": "a35452bf"
+    "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
     "text": "رفع الشعار",
-    "sha256": "c3330082"
+    "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
     "text": "جاري تحميل المعاينة...",
-    "sha256": "c02130fa"
+    "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "معاينة كيف سيرى المستلمون أسرارك باختبار زر \"عرض السر\"",
-    "sha256": "3b58a297"
+    "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
     "text": "أيقونة العين",
-    "sha256": "7f605d3c"
+    "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
     "text": "انقر على صورة المعاينة أدناه لتحديث شعارك (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت)",
-    "sha256": "77a19049"
+    "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
     "text": "أيقونة الصورة",
-    "sha256": "b0d64fcf"
+    "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
     "text": "استخدم عناصر التحكم أعلاه لتخصيص لون العلامة التجارية والأنماط وتعليمات المستلم",
-    "sha256": "d6287134"
+    "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
     "text": "أيقونة التخصيص",
-    "sha256": "bde04d31"
+    "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
     "text": "لديك تغييرات غير محفوظة. هل أنت متأكد؟",
-    "sha256": "184b6a83"
+    "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
     "text": "فشل تحميل إعدادات العلامة التجارية",
-    "sha256": "a7a1575e"
+    "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
     "text": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - رفع شعار (يُنصح بحد أدنى 128×128 بكسل، الحد الأقصى 1 ميغابايت) - اختبار المعاينة باستخدام زر \"عرض السر\"",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - تحميل شعار (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت) - اختبار المعاينة باستخدام زر \"عرض السر\"",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
     "text": "حرف كانجي ياباني '秘' (هيميتسو) يعني 'سر' أو 'سري'",
-    "sha256": "1e04ba2e"
+    "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "مدعوم بواسطة {product_name}",
-    "sha256": "684a42ee"
+    "source_hash": "684a42ee"
   },
   "web.branding.heading_logo": {
     "text": "شعار {0}",
-    "sha256": "3a3c98ed"
+    "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
     "text": "Edge",
-    "sha256": "0f82fe72"
+    "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
     "text": "التبديل لمعاينة Edge",
-    "sha256": "83883d84"
+    "source_hash": "83883d84"
   },
   "web.branding.safari": {
     "text": "Safari",
-    "sha256": "5f033039"
+    "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
     "text": "التبديل لمعاينة Safari",
-    "sha256": "f24ac447"
+    "source_hash": "f24ac447"
   }
 }

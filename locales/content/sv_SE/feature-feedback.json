@@ -1,39 +1,39 @@
 {
   "web.feedback.your_feedback": {
     "text": "Din återkoppling",
-    "sha256": "cdb1c0a5"
+    "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
     "text": "All återkoppling är välkommen!",
-    "sha256": "c57d3006"
+    "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
     "text": "Hjälp oss förbättra",
-    "sha256": "f35439c4"
+    "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
     "text": "Stäng återkopplingsmodal",
-    "sha256": "41689bb4"
+    "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
     "text": "Dela din återkoppling",
-    "sha256": "6d62dfbd"
+    "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum",
-    "sha256": "6da0b72b"
+    "source_hash": "6da0b72b"
   },
   "web.feedback.delano": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
     "text": "Hjälpinnehåll placeras här.",
-    "sha256": "796979ea"
+    "source_hash": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Tack för att du hjälper {product_name} att förbättras. Det betyder mycket.",
-    "sha256": "641cb279"
+    "source_hash": "641cb279"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Vi har byggt detta verktyg för att hjälpa dig att dela känslig information säkert, och dina verkliga erfarenheter är avgörande för att fokusera våra ansträngningar. Det hjälper oss att avgöra vad vi ska arbeta med härnäst och hur vi kan göra tjänsten bättre för alla."
@@ -43,26 +43,26 @@
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
     "text": "En notering från Delano, grundare av {product_name}",
-    "sha256": "f3c959a5"
+    "source_hash": "f3c959a5"
   },
   "web.feedback.open_feedback_form": {
     "text": "Öppna återkopplingsformulär",
-    "sha256": "acd8409b"
+    "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
     "text": "Ange din återkoppling",
-    "sha256": "1bb310f4"
+    "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
     "text": "Skicka återkoppling",
-    "sha256": "8235980b"
+    "source_hash": "8235980b"
   },
   "web.feedback.founder_note_line1": {
     "text": "Jag läser varje återkoppling som kommer in här. Det är så jag tar reda på vad jag ska lägga tid på.",
-    "sha256": "8b430d93"
+    "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
     "text": "Om något inte stämmer, eller om du har idéer om hur det borde fungera, är detta rätt ställe.",
-    "sha256": "d4b8f073"
+    "source_hash": "d4b8f073"
   }
 }

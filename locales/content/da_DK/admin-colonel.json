@@ -1,315 +1,315 @@
 {
   "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
     "text": "{0}/{1}/{2} [{3}]",
-    "sha256": "98ba1771"
+    "source_hash": "98ba1771"
   },
   "web.colonel.customer_verified_verified_not_verified_0": {
     "text": "`+kunde.verificeret ? `verificeret` : `ikke-verificeret",
-    "sha256": "52e93cc0"
+    "source_hash": "52e93cc0"
   },
   "web.colonel.customers_details_counts_recent_customer_count_o_0": {
     "text": "Kunder ({0} af {1})",
-    "sha256": "eb88db1d"
+    "source_hash": "eb88db1d"
   },
   "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
     "text": "Brugerfeedback (i alt: {0})",
-    "sha256": "d4a80454"
+    "source_hash": "d4a80454"
   },
   "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
     "text": "Metadata/hemmeligheder: {0}/{1} ({2}/{3}/{4} i alt)",
-    "sha256": "5a341707"
+    "source_hash": "5a341707"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
     "text": "Hemmeligheder ({0})",
-    "sha256": "dd1c471a"
+    "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
     "text": "(aktiv inden for de seneste 5 minutter)",
-    "sha256": "a2b19058"
+    "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
     "text": "Indstillinger",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
     "text": "Rediger systemkonfigurationsindstillinger. Ændringer træder i kraft umiddelbart efter gemning.",
-    "sha256": "6025d269"
+    "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
     "text": "Ugyldig JSON i {section}-sektionen",
-    "sha256": "a75ac7a3"
+    "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
     "text": "Valideringsfejl",
-    "sha256": "2aa2d0b4"
+    "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
     "text": "Fejl ved indlæsning af konfiguration",
-    "sha256": "08baf6d2"
+    "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
     "text": "Fejl ved gemning af konfiguration",
-    "sha256": "48df54c7"
+    "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
     "text": "Konfiguration gemt succesfuldt",
-    "sha256": "93b3d3e4"
+    "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
     "text": "Konfiguration skal være et JSON-objekt",
-    "sha256": "74e8897e"
+    "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
     "text": "Flere sektioner har valideringsfejl: {sections}",
-    "sha256": "71fdaea1"
+    "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
     "text": "{section} har valideringsfejl: {error}",
-    "sha256": "e5e01aa0"
+    "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
     "text": "{section} gemt succesfuldt",
-    "sha256": "7be1d5d2"
+    "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
     "text": "Gem {section}",
-    "sha256": "4a379f10"
+    "source_hash": "4a379f10"
   },
   "web.colonel.saveAll": {
     "text": "Gem alle",
-    "sha256": "d3c54e39"
+    "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
     "text": "Ikke-gemte ændringer",
-    "sha256": "a710c2b9"
+    "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
     "text": "Skemavalideringsfejl: {message} ({path})",
-    "sha256": "5f838cb2"
+    "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
     "text": "Ukendt valideringsfejl: {error}",
-    "sha256": "b6cf56ca"
+    "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
     "text": "{section}-sektionen har ingen konfigurerede værdier",
-    "sha256": "efb63b77"
+    "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
     "text": "Oversigt",
-    "sha256": "67b69646"
+    "source_hash": "67b69646"
   },
   "web.colonel.admin": {
     "text": "Admin",
-    "sha256": "c1c224b0"
+    "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
     "text": "Aktivitet",
-    "sha256": "38da1505"
+    "source_hash": "38da1505"
   },
   "web.colonel.accounts": {
     "text": "Konti",
-    "sha256": "8a7c8b67"
+    "source_hash": "8a7c8b67"
   },
   "web.colonel.users": {
     "text": "Brugere",
-    "sha256": "6b0cc904"
+    "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
     "text": "Administrer brugerkonti og tilladelser",
-    "sha256": "6cfc012c"
+    "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
     "text": "Domæner",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   },
   "web.colonel.settings": {
     "text": "Indstillinger",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.colonel.system": {
     "text": "System",
-    "sha256": "6725e7bb"
+    "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
     "text": "Velkommen til Colonel",
-    "sha256": "7881ca9e"
+    "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
     "text": "Administrativt kontrolpanel for OneTimeSecret",
-    "sha256": "57c1e752"
+    "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
     "text": "Hurtige handlinger",
-    "sha256": "2cc2b6f7"
+    "source_hash": "2cc2b6f7"
   },
   "web.colonel.recentActivity": {
     "text": "Seneste aktivitet",
-    "sha256": "9ef7d438"
+    "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
     "text": "Vis alle",
-    "sha256": "ff5573a6"
+    "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
     "text": "Aktivitetsdata vil blive vist her",
-    "sha256": "aaf9e948"
+    "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Beskeder i alt",
-    "sha256": "e17a5459"
+    "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
     "text": "Aktive brugere",
-    "sha256": "5639b9f1"
+    "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
     "text": "Beskeder i dag",
-    "sha256": "aefbd2db"
+    "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
     "text": "Oprettede beskeder",
-    "sha256": "a97ee479"
+    "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
     "text": "Delte beskeder",
-    "sha256": "5deb082c"
+    "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
     "text": "Brugere i alt",
-    "sha256": "0ca3aa44"
+    "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
     "text": "E-mails sendt",
-    "sha256": "87cfb3ab"
+    "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Systemsundhed",
-    "sha256": "c3d66242"
+    "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
     "text": "Sund",
-    "sha256": "7f1e323b"
+    "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Vis aktivitet",
-    "sha256": "9c28f55c"
+    "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
     "text": "Overvåg systemaktivitet og brug",
-    "sha256": "f88e9eda"
+    "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Administrer konti",
-    "sha256": "9d114268"
+    "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
     "text": "Administration af brugerkonti",
-    "sha256": "d73af927"
+    "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Konfigurer domæner",
-    "sha256": "74402af9"
+    "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
     "text": "Domæne- og DNS-indstillinger",
-    "sha256": "1f712094"
+    "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Systemindstillinger",
-    "sha256": "1f87f883"
+    "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
     "text": "Applikationskonfiguration",
-    "sha256": "923dc672"
+    "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
     "text": "Baggrundsjobs",
-    "sha256": "48937049"
+    "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
     "text": "Køstatus",
-    "sha256": "3421ffa8"
+    "source_hash": "3421ffa8"
   },
   "web.colonel.queueName": {
     "text": "Kø",
-    "sha256": "3b2fe03e"
+    "source_hash": "3b2fe03e"
   },
   "web.colonel.pendingMessages": {
     "text": "Afventer",
-    "sha256": "331551b0"
+    "source_hash": "331551b0"
   },
   "web.colonel.consumers": {
     "text": "Forbrugere",
-    "sha256": "212b350d"
+    "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
     "text": "Sats/sek",
-    "sha256": "cfde439c"
+    "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
     "text": "Forbindelsesstatus",
-    "sha256": "3693e288"
+    "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
     "text": "Worker-tilstand",
-    "sha256": "52be3ac1"
+    "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
     "text": "aktive workers",
-    "sha256": "ea68cfee"
+    "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
     "text": "Ingen kødata tilgængelig",
-    "sha256": "331ffa6b"
+    "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
     "text": "Indlæser kødata...",
-    "sha256": "a3762a00"
+    "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
     "text": "Test-abonnementstilstand",
-    "sha256": "eba59223"
+    "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
     "text": "Tester som {planName}",
-    "sha256": "b3032f1a"
+    "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
     "text": "Klik for at nulstille",
-    "sha256": "4b25034d"
+    "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
     "text": "Vælg et abonnement at teste",
-    "sha256": "9e6e12fe"
+    "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
     "text": "Nulstil til faktisk abonnement",
-    "sha256": "2cea3f92"
+    "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
     "text": "Nuværende abonnement",
-    "sha256": "37ca715f"
+    "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
     "text": "Tilgængelige abonnementer",
-    "sha256": "20efa44d"
+    "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
     "text": "Aktivér testtilstand",
-    "sha256": "0f469baa"
+    "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
     "text": "Testtilstand aktiv",
-    "sha256": "ae2c8dd9"
+    "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
     "text": "Test din applikation med forskellige abonnementsrettigheder. Ændringer er midlertidige og påvirker kun din session.",
-    "sha256": "be03a409"
+    "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
     "text": "Du tester med {planName}-rettigheder (midlertidig sessionsoverskrivning).",
-    "sha256": "1a8aecf1"
+    "source_hash": "1a8aecf1"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Når du sender feedback, vil vi se:"
@@ -322,326 +322,326 @@
   },
   "web.colonel.bannedIps.title": {
     "text": "Blokerede IP-adresser",
-    "sha256": "0ece5643"
+    "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
     "text": "Administrer IP-blokeringsliste",
-    "sha256": "dd0d2614"
+    "source_hash": "dd0d2614"
   },
   "web.colonel.customDomains.title": {
     "text": "Brugerdefinerede domæner",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
     "text": "Administrer brugerdefinerede domæner og branding",
-    "sha256": "808ee2cb"
+    "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
     "text": "Send feedback",
-    "sha256": "8235980b"
+    "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
     "text": "Sender...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Når du sender feedback, kan vi se:",
-    "sha256": "fe77172e"
+    "source_hash": "fe77172e"
   },
   "web.colonel.organizations.title": {
     "text": "Organisationer",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
     "text": "Overvåg organisations-faktureringssync-sundhed",
-    "sha256": "d8f4398b"
+    "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
     "text": "Faktureringssundhedsovervågning",
-    "sha256": "9ef57da4"
+    "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
     "text": "{count} organisationer",
-    "sha256": "bc2feb56"
+    "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
     "text": "{count} kræver opmærksomhed",
-    "sha256": "1c8e5840"
+    "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
     "text": "{count} ukendte",
-    "sha256": "b7bf2cf1"
+    "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
     "text": "Ingen organisationer fundet",
-    "sha256": "538995db"
+    "source_hash": "538995db"
   },
   "web.colonel.organizations.actions.investigate": {
     "text": "Undersøg",
-    "sha256": "e2641093"
+    "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
     "text": "Tjekker...",
-    "sha256": "2e5f79bb"
+    "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.columns.account": {
     "text": "Konto",
-    "sha256": "7e1b0d56"
+    "source_hash": "7e1b0d56"
   },
   "web.colonel.organizations.columns.billing": {
     "text": "Fakturering",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.colonel.organizations.columns.status": {
     "text": "Status",
-    "sha256": "920e413c"
+    "source_hash": "920e413c"
   },
   "web.colonel.organizations.columns.usage": {
     "text": "Forbrug",
-    "sha256": "8d59829c"
+    "source_hash": "8d59829c"
   },
   "web.colonel.organizations.columns.created": {
     "text": "Oprettet",
-    "sha256": "d70b9e24"
+    "source_hash": "d70b9e24"
   },
   "web.colonel.organizations.columns.details": {
     "text": "Detaljer",
-    "sha256": "45989de4"
+    "source_hash": "45989de4"
   },
   "web.colonel.organizations.columns.owner": {
     "text": "Ejer",
-    "sha256": "4b1b8aa3"
+    "source_hash": "4b1b8aa3"
   },
   "web.colonel.organizations.columns.plan": {
     "text": "Abonnement",
-    "sha256": "fa8ed0bd"
+    "source_hash": "fa8ed0bd"
   },
   "web.colonel.organizations.columns.members": {
     "text": "Medlemmer",
-    "sha256": "1044a4c0"
+    "source_hash": "1044a4c0"
   },
   "web.colonel.organizations.columns.domains": {
     "text": "Domæner",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   },
   "web.colonel.organizations.columns.subscription": {
     "text": "Abonnement",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
     "text": "Standard arbejdsområde",
-    "sha256": "53aa279e"
+    "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
     "text": "Har fakturering",
-    "sha256": "db0628ed"
+    "source_hash": "db0628ed"
   },
   "web.colonel.organizations.expanded.customer": {
     "text": "Kunde",
-    "sha256": "bf376338"
+    "source_hash": "bf376338"
   },
   "web.colonel.organizations.expanded.subscription": {
     "text": "Abonnement",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
     "text": "Org-ID",
-    "sha256": "5e6b9932"
+    "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.filters.syncStatus": {
     "text": "Synkroniseringsstatus",
-    "sha256": "b3998276"
+    "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
     "text": "Abonnement",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.filters.all": {
     "text": "Alle",
-    "sha256": "a52ace42"
+    "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
     "text": "Potentielt forældet",
-    "sha256": "40137b37"
+    "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
     "text": "Ukendt",
-    "sha256": "b764cdc0"
+    "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.filters.synced": {
     "text": "Synkroniseret",
-    "sha256": "5da22fe4"
+    "source_hash": "5da22fe4"
   },
   "web.colonel.organizations.filters.active": {
     "text": "Aktiv",
-    "sha256": "92340695"
+    "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
     "text": "Prøveperiode",
-    "sha256": "3792573d"
+    "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
     "text": "Forfalden",
-    "sha256": "2bda1c7b"
+    "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
     "text": "Annulleret",
-    "sha256": "13ca2ee2"
+    "source_hash": "13ca2ee2"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "Undersøgelse mislykkedes",
-    "sha256": "193aa900"
+    "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
     "text": "Undersøgelsesresultat",
-    "sha256": "2dbc5cc3"
+    "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
     "text": "Bekræftet synkroniseret",
-    "sha256": "d92625c2"
+    "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
     "text": "Uoverensstemmelse fundet",
-    "sha256": "361d22f3"
+    "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
     "text": "Kan ikke sammenligne",
-    "sha256": "64c822ee"
+    "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
     "text": "Stripe-abonnementsdetaljer",
-    "sha256": "53a7b0ea"
+    "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
     "text": "Status",
-    "sha256": "920e413c"
+    "source_hash": "920e413c"
   },
   "web.colonel.organizations.investigation.product": {
     "text": "Produkt",
-    "sha256": "fb9ef894"
+    "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
     "text": "Løst abonnement",
-    "sha256": "17c5b37a"
+    "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
     "text": "Pris-ID",
-    "sha256": "b39a8f3e"
+    "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
     "text": "Lokal",
-    "sha256": "8c31e6e7"
+    "source_hash": "8c31e6e7"
   },
   "web.colonel.organizations.investigation.stripe": {
     "text": "Stripe",
-    "sha256": "961a6062"
+    "source_hash": "961a6062"
   },
   "web.colonel.organizations.legacy.title": {
     "text": "Organisationsfaktureringsadmin",
-    "sha256": "5c7e07e7"
+    "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
     "text": "Administrer organisationer og overvåg faktureringssync-sundhed ({total} total)",
-    "sha256": "996b446d"
+    "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
     "text": "Ingen organisationer fundet",
-    "sha256": "538995db"
+    "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
     "text": "potentielt forældet",
-    "sha256": "3ddfec45"
+    "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
     "text": "Forældet",
-    "sha256": "40c9e59c"
+    "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
     "text": "Ukendt",
-    "sha256": "b764cdc0"
+    "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.status.active": {
     "text": "aktiv",
-    "sha256": "96879611"
+    "source_hash": "96879611"
   },
   "web.colonel.organizations.usage.members": {
     "text": "{count} medlemmer",
-    "sha256": "201eb3d9"
+    "source_hash": "201eb3d9"
   },
   "web.colonel.organizations.usage.domains": {
     "text": "{count} domæner",
-    "sha256": "cf548c8c"
+    "source_hash": "cf548c8c"
   },
   "web.colonel.secrets.title": {
     "text": "Beskeder",
-    "sha256": "d8707d41"
+    "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
     "text": "Se og administrer alle beskeder",
-    "sha256": "48f8052e"
+    "source_hash": "48f8052e"
   },
   "web.colonel.systemSettings.title": {
     "text": "System",
-    "sha256": "6725e7bb"
+    "source_hash": "6725e7bb"
   },
   "web.colonel.systemSettings.description": {
     "text": "Systemindstillinger, databaser og konfiguration",
-    "sha256": "7690b296"
+    "source_hash": "7690b296"
   },
   "web.colonel.titles.index": {
     "text": "Administration",
-    "sha256": "4b42c669"
+    "source_hash": "4b42c669"
   },
   "web.colonel.titles.users": {
     "text": "Brugeradministration",
-    "sha256": "fe45f3a1"
+    "source_hash": "fe45f3a1"
   },
   "web.colonel.titles.secrets": {
     "text": "Beskedadministration",
-    "sha256": "af69773b"
+    "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
     "text": "Brugerdefinerede domæner",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {
     "text": "System",
-    "sha256": "6725e7bb"
+    "source_hash": "6725e7bb"
   },
   "web.colonel.titles.maindb": {
     "text": "Hoveddatabase",
-    "sha256": "c4545e98"
+    "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
     "text": "Auth-database",
-    "sha256": "c683c9a6"
+    "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
     "text": "Blokerede IP-adresser",
-    "sha256": "0ece5643"
+    "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
     "text": "Forbrugseksport",
-    "sha256": "10a0cb94"
+    "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
     "text": "Systeminformation",
-    "sha256": "8ad54ec1"
+    "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {
     "text": "Organisationer",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.colonel.titles.redis": {
     "text": "Redis",
-    "sha256": "a7f64157"
+    "source_hash": "a7f64157"
   },
   "web.colonel.usageExport.title": {
     "text": "Forbrugseksport",
-    "sha256": "10a0cb94"
+    "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
     "text": "Eksporter forbrugsdata og statistik",
-    "sha256": "2fd0a2e2"
+    "source_hash": "2fd0a2e2"
   }
 }

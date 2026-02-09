@@ -1,334 +1,334 @@
 {
   "web.footer.api_docs": {
     "text": "Documentazione API",
-    "sha256": "f4137804"
+    "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
     "text": "Guida al branding",
-    "sha256": "53f994c5"
+    "source_hash": "53f994c5"
   },
   "web.footer.customize": {
     "text": "Personalizza",
-    "sha256": "c5276e27"
+    "source_hash": "c5276e27"
   },
   "web.footer.plans": {
     "text": "Piani",
-    "sha256": "dfe8b2f0"
+    "source_hash": "dfe8b2f0"
   },
   "web.footer.security": {
     "text": "Sicurezza",
-    "sha256": "8f6fb4eb"
+    "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
     "text": "Scopri le nostre misure di sicurezza",
-    "sha256": "16c8adae"
+    "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
     "text": "Visualizza i nostri Termini e condizioni",
-    "sha256": "0dde60b7"
+    "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
     "text": "Termini",
-    "sha256": "ede54899"
+    "source_hash": "ede54899"
   },
   "web.footer.privacy": {
     "text": "Privacy",
-    "sha256": "54a57c31"
+    "source_hash": "54a57c31"
   },
   "web.footer.contact": {
     "text": "Contatti",
-    "sha256": "2b5c3d26"
+    "source_hash": "2b5c3d26"
   },
   "web.footer.support": {
     "text": "Supporto",
-    "sha256": "be91940b"
+    "source_hash": "be91940b"
   },
   "web.footer.legals": {
     "text": "Note legali",
-    "sha256": "0a410c78"
+    "source_hash": "0a410c78"
   },
   "web.footer.read_our_privacy_policy": {
     "text": "Leggi la nostra Informativa sulla privacy",
-    "sha256": "eb443229"
+    "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
     "text": "Controlla lo stato del servizio",
-    "sha256": "1f04937e"
+    "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
     "text": "Esplora la documentazione API",
-    "sha256": "45beb8f8"
+    "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
     "text": "Documentazione",
-    "sha256": "7af023c4"
+    "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
     "text": "Accedi alla documentazione",
-    "sha256": "37686da2"
+    "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
     "text": "Visualizza il codice sorgente su GitHub",
-    "sha256": "d5def0ab"
+    "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
     "text": "Risorse",
-    "sha256": "e89b30aa"
+    "source_hash": "e89b30aa"
   },
   "web.footer.blog": {
     "text": "Blog",
-    "sha256": "8c6bc099"
+    "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
     "text": "Leggi i nostri ultimi articoli del blog",
-    "sha256": "77468d43"
+    "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
     "text": "Visualizza i prezzi degli abbonamenti",
-    "sha256": "55f1f590"
+    "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
     "text": "Scopri la nostra azienda",
-    "sha256": "780e18cd"
+    "source_hash": "780e18cd"
   },
   "web.footer.company": {
     "text": "Azienda",
-    "sha256": "de4743c8"
+    "source_hash": "de4743c8"
   },
   "web.navigation.billing": {
     "text": "Fatturazione",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
     "text": "Panoramica",
-    "sha256": "d4b1ea57"
+    "source_hash": "d4b1ea57"
   },
   "web.navigation.organizations": {
     "text": "Organizzazioni",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.site.website_version": {
     "text": "Versione sito",
-    "sha256": "4d4a570f"
+    "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
     "text": "Stiamo rendendo {onetime-secret} disponibile in più lingue. Poiché si tratta di una nuova funzionalità, è possibile che si verifichino errori di traduzione o frasi imbarazzanti. Il tuo feedback ci aiuta a migliorare: se noti qualche problema, ti preghiamo di {send-feedback}",
-    "sha256": "3b482d7f"
+    "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
     "text": "Le traduzioni sono nuove. Hai notato un errore? {send-feedback}",
-    "sha256": "31eca08d"
+    "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
     "text": "Abbiamo recentemente aggiunto le traduzioni. Hai notato un errore? {send-feedback}",
-    "sha256": "6e2455c1"
+    "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "La privacy e la sicurezza dovrebbero essere accessibili a tutti, indipendentemente dalla lingua. Stiamo aggiungendo traduzioni per aiutare sia i nostri utenti che i destinatari dei messaggi a capire meglio come utilizzare e accedere in modo sicuro a messaggi e link sicuri. Trattandosi di una nuova funzione, è possibile che si verifichino errori di traduzione o istruzioni poco chiare. Per aiutarci a migliorare la chiarezza e l'accuratezza delle nostre traduzioni, soprattutto per i contenuti critici relativi alla sicurezza, vi preghiamo di {send-feedback} se notate qualche problema",
-    "sha256": "1b8bb38f"
+    "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
     "text": "Scopri di più",
-    "sha256": "1445799c"
+    "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
     "text": "Cosa sto visualizzando?",
-    "sha256": "b9766df3"
+    "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
     "text": "Stai visualizzando un messaggio sicuro che è stato condiviso con te tramite {product_name}. Questo contenuto viene mostrato una sola volta e poi eliminato permanentemente dai nostri server.",
-    "sha256": "9a0c8806"
+    "source_hash": "9a0c8806"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Posso visualizzare questo segreto di nuovo più tardi?",
-    "sha256": "c8c2c9da"
+    "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
     "text": "No. Per motivi di sicurezza, questo segreto può essere visualizzato una sola volta. Dopo aver chiuso questa pagina, il contenuto verrà eliminato permanentemente e non potrà essere recuperato da nessuno, inclusi noi.",
-    "sha256": "4bf980a4"
+    "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
     "text": "Come posso salvare queste informazioni?",
-    "sha256": "90deddbb"
+    "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
     "text": "Usa il pulsante 'Copia negli appunti' per copiare l'intero segreto. Per segreti più lunghi, assicurati di verificare di aver copiato il contenuto completo prima di lasciare questa pagina.",
-    "sha256": "440aa828"
+    "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
     "text": "La visualizzazione di questo segreto viene tracciata?",
-    "sha256": "90145e28"
+    "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
     "text": "Il mittente verrà notificato che il suo segreto è stato visualizzato, ma non tracciamo chi lo ha visualizzato o da quale posizione. La tua privacy è protetta.",
-    "sha256": "70737473"
+    "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
     "text": "Una volta che lasci o aggiorni questa pagina, questo segreto verrà eliminato permanentemente e non potrà essere recuperato da nessuno.",
-    "sha256": "47feab6e"
+    "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
     "text": "Torna alla pagina precedente",
-    "sha256": "1778f2e7"
+    "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
     "text": "Piè di pagina del sito",
-    "sha256": "6ca09429"
+    "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
     "text": "Attiva/disattiva modalità scura",
-    "sha256": "ffe32a00"
+    "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
     "text": "Invia feedback",
-    "sha256": "a70766ae"
+    "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
     "text": "Logo aziendale",
-    "sha256": "87a86135"
+    "source_hash": "87a86135"
   },
   "web.layout.brand_logo": {
     "text": "Logo del brand",
-    "sha256": "e458e2b5"
+    "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
     "text": "Navigazione dashboard",
-    "sha256": "da5c1c43"
+    "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
     "text": "Navigazione mobile",
-    "sha256": "ccea1730"
+    "source_hash": "ccea1730"
   },
   "web.layout.main_navigation": {
     "text": "Navigazione principale",
-    "sha256": "56ea852a"
+    "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
     "text": "{count} elementi",
-    "sha256": "f65216b3"
+    "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
     "text": "Note di rilascio",
-    "sha256": "bd4702c1"
+    "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
     "text": "Caricamento contenuto impostazioni...",
-    "sha256": "81a2a30e"
+    "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
     "text": "Sezioni impostazioni",
-    "sha256": "e26d51d3"
+    "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
     "text": "Chiudi impostazioni",
-    "sha256": "0ccfef82"
+    "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
     "text": "Sezioni impostazioni",
-    "sha256": "e26d51d3"
+    "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
     "text": "Personalizza le preferenze e le impostazioni dell'app",
-    "sha256": "00d74c98"
+    "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
     "text": "Torna alla home",
-    "sha256": "bbcc935e"
+    "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
     "text": "Torna alla home page",
-    "sha256": "8d27b81d"
+    "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
     "text": "Torna alla home",
-    "sha256": "299291b0"
+    "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
     "text": "Visualizza Informativa sulla privacy",
-    "sha256": "377733b6"
+    "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
     "text": "Visualizza Termini di servizio",
-    "sha256": "e2f124cd"
+    "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
     "text": "Visita la home page di {product_name}",
-    "sha256": "fb94187d"
+    "source_hash": "fb94187d"
   },
   "web.layout.footer_navigation": {
     "text": "Navigazione piè di pagina",
-    "sha256": "76363a64"
+    "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
     "text": "Termini di servizio",
-    "sha256": "4afa55bf"
+    "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
     "text": "Informativa sulla privacy",
-    "sha256": "506ff394"
+    "source_hash": "506ff394"
   },
   "web.layout.icon_library": {
     "text": "Libreria icone",
-    "sha256": "a73f4c07"
+    "source_hash": "a73f4c07"
   },
   "web.layout.google_material": {
     "text": "Google Material",
-    "sha256": "7c7afa99"
+    "source_hash": "7c7afa99"
   },
   "web.layout.material_design_icons": {
     "text": "Material Design Icons",
-    "sha256": "0fb27437"
+    "source_hash": "0fb27437"
   },
   "web.layout.heroicons": {
     "text": "Heroicons",
-    "sha256": "5e7cc07e"
+    "source_hash": "5e7cc07e"
   },
   "web.layout.carbon": {
     "text": "Carbon",
-    "sha256": "694c87c2"
+    "source_hash": "694c87c2"
   },
   "web.layout.font_awesome_6": {
     "text": "Font Awesome 6",
-    "sha256": "d4eedb15"
+    "source_hash": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
     "text": "Visualizza sorgente su GitHub",
-    "sha256": "75e96614"
+    "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
     "text": "Versione sito: v{0}",
-    "sha256": "343f57de"
+    "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
     "text": "Cambia lingua. Lingua attuale: {0}",
-    "sha256": "77f9c322"
+    "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
     "text": "Lingua cambiata in {0}",
-    "sha256": "1680f4fe"
+    "source_hash": "1680f4fe"
   },
   "web.layout.switch_to_blank_mode": {
     "text": "Passa alla modalità {0}",
-    "sha256": "c8b909e0"
+    "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
     "text": "Modalità {0} attivata",
-    "sha256": "e1d200cb"
+    "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
     "text": "Area di lavoro",
-    "sha256": "87bb59ba"
+    "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
     "text": "Contesto area di lavoro",
-    "sha256": "dc6fa4f5"
+    "source_hash": "dc6fa4f5"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Quando invii un feedback, vedremo:",
-    "sha256": "fe77172e"
+    "source_hash": "fe77172e"
   },
   "web.layout.reset_to_default_language": {
     "text": "Reimposta a {0}",
-    "sha256": "c0cfa9b2"
+    "source_hash": "c0cfa9b2"
   }
 }

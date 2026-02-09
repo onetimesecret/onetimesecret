@@ -6,1334 +6,1334 @@
   },
   "web.COMMON.tagline": {
     "text": "Liên kết an toàn chỉ hoạt động một lần",
-    "sha256": "9da7aece"
+    "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
     "text": "Cung cấp bởi",
-    "sha256": "fdc5d2e9"
+    "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
     "text": "https://onetimesecret.com/vi",
-    "sha256": "440f5303"
+    "source_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
     "text": "Tạo mật khẩu",
-    "sha256": "fdcbfcc7"
+    "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
     "text": "Tạo mật khẩu bị vô hiệu hóa khi biểu mẫu hợp lệ",
-    "sha256": "dc0e2b8c"
+    "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
     "text": "ví dụ tom{'@'}myspace.com",
-    "sha256": "f2350739"
+    "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
     "text": "Nhập mật khẩu của bạn",
-    "sha256": "c06bf967"
+    "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
     "text": "Tên miền tùy chỉnh",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
     "text": "Tăng cường kết nối và xây dựng lòng tin với liên kết bí mật mang thương hiệu riêng của bạn.",
-    "sha256": "71fddc05"
+    "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
     "text": "Bắt đầu",
-    "sha256": "983f3110"
+    "source_hash": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
     "text": "Xác nhận mật khẩu của bạn",
-    "sha256": "bfd8c343"
+    "source_hash": "bfd8c343"
   },
   "web.COMMON.header_settings": {
     "text": "Cài đặt",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.COMMON.submit_with": {
     "text": "Gửi",
-    "sha256": "155f816c"
+    "source_hash": "155f816c"
   },
   "web.COMMON.submitting": {
     "text": "Đang gửi...",
-    "sha256": "64115d5b"
+    "source_hash": "64115d5b"
   },
   "web.COMMON.processing": {
     "text": "Đang xử lý...",
-    "sha256": "f40a853e"
+    "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
     "text": "Giữ thông tin nhạy cảm khỏi nhật ký chat và email. Chia sẻ liên kết bí mật chỉ khả dụng một lần.",
-    "sha256": "4c895f85"
+    "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Cụm mật khẩu không đúng",
-    "sha256": "a55f9636"
+    "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
     "text": "bí mật,tạo mật khẩu,chia sẻ bí mật,onetime",
-    "sha256": "52728258"
+    "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
     "text": "Tạo liên kết bí mật",
-    "sha256": "a3e07632"
+    "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
     "text": "Hoặc tạo mật khẩu ngẫu nhiên",
-    "sha256": "8c1c764b"
+    "source_hash": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
     "text": "Tùy chọn quyền riêng tư",
-    "sha256": "643a6921"
+    "source_hash": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
     "text": "Cụm mật khẩu",
-    "sha256": "e7611f05"
+    "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
     "text": "Một từ hoặc cụm từ khó đoán",
-    "sha256": "29d0cf13"
+    "source_hash": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
     "text": "Địa chỉ người nhận",
-    "sha256": "f6f6311d"
+    "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
     "text": "Nội dung bí mật ở đây...",
-    "sha256": "54630bab"
+    "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
     "text": "Tạo tài khoản",
-    "sha256": "0dffe234"
+    "source_hash": "0dffe234"
   },
   "web.COMMON.about": {
     "text": "Giới thiệu",
-    "sha256": "4efca0d1"
+    "source_hash": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
     "text": "Đăng nhập",
-    "sha256": "bcc0bcc9"
+    "source_hash": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
     "text": "Tài khoản",
-    "sha256": "7e1b0d56"
+    "source_hash": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
     "text": "Đăng xuất",
-    "sha256": "d0527e4b"
+    "source_hash": "d0527e4b"
   },
   "web.COMMON.secret": {
     "text": "Bí mật | Bí mật",
-    "sha256": "c7ebd045"
+    "source_hash": "c7ebd045"
   },
   "web.COMMON.recent": {
     "text": "Gần đây",
-    "sha256": "690dbe9d"
+    "source_hash": "690dbe9d"
   },
   "web.COMMON.received": {
     "text": "Đã nhận",
-    "sha256": "49f19bee"
+    "source_hash": "49f19bee"
   },
   "web.COMMON.burn": {
     "text": "Xóa vĩnh viễn",
-    "sha256": "926c5b43"
+    "source_hash": "926c5b43"
   },
   "web.COMMON.burned": {
     "text": "Đã xóa vĩnh viễn",
-    "sha256": "6d747b33"
+    "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
     "text": "Hết hạn sau",
-    "sha256": "de996752"
+    "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
     "text": "Xóa vĩnh viễn bí mật này",
-    "sha256": "ffff30e8"
+    "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
     "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được đọc (nhấn để xác nhận)",
-    "sha256": "c6a8b145"
+    "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
     "text": "Xóa vĩnh viễn bí mật là hành động không thể hoàn tác",
-    "sha256": "ab774967"
+    "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
     "text": "Kiểm tra email của bạn",
-    "sha256": "77322879"
+    "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
     "text": "Nhấn để hiển thị →",
-    "sha256": "41658f99"
+    "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
     "text": "Tiếp tục để xác minh tài khoản:",
-    "sha256": "954d6fc9"
+    "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
     "text": "Bạn chưa cung cấp nội dung để chia sẻ",
-    "sha256": "9ac6488f"
+    "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
     "text": "Kiểm tra lại cụm mật khẩu",
-    "sha256": "b582f3a6"
+    "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
     "text": "Nhập cụm mật khẩu tại đây",
-    "sha256": "ee855dad"
+    "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
     "text": "Xem bí mật",
-    "sha256": "01835e7c"
+    "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
     "text": "Cẩn thận: chúng tôi chỉ hiển thị một lần.",
-    "sha256": "d29e2820"
+    "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
     "text": "Cảnh báo",
-    "sha256": "e981ddae"
+    "source_hash": "e981ddae"
   },
   "web.COMMON.oops": {
     "text": "Rất tiếc!",
-    "sha256": "8344947a"
+    "source_hash": "8344947a"
   },
   "web.COMMON.error": {
     "text": "Lỗi",
-    "sha256": "54a0e8c1"
+    "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
     "text": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
-    "sha256": "e198269c"
+    "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
     "text": "Nội dung đã bị cắt ngắn",
-    "sha256": "1d1730d4"
+    "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
     "text": "Đăng ký để có thêm",
-    "sha256": "cc1421d0"
+    "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
     "text": "Đăng nhập vào tài khoản",
-    "sha256": "62f1fe13"
+    "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
     "text": "Gửi đến:",
-    "sha256": "e79c8bcb"
+    "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
     "text": "Email",
-    "sha256": "969ccbd3"
+    "source_hash": "969ccbd3"
   },
   "web.COMMON.field_password": {
     "text": "Mật khẩu",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
     "text": "Xác nhận mật khẩu",
-    "sha256": "c292210c"
+    "source_hash": "c292210c"
   },
   "web.COMMON.button_create_account": {
     "text": "Tạo tài khoản",
-    "sha256": "0dffe234"
+    "source_hash": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
     "text": "Chia sẻ bí mật",
-    "sha256": "5384461b"
+    "source_hash": "5384461b"
   },
   "web.COMMON.title_home": {
     "text": "Trang chủ",
-    "sha256": "3a786953"
+    "source_hash": "3a786953"
   },
   "web.COMMON.word_none": {
     "text": "Không có",
-    "sha256": "dc937b59"
+    "source_hash": "dc937b59"
   },
   "web.COMMON.word_burned": {
     "text": "đã xóa vĩnh viễn",
-    "sha256": "2f79ea62"
+    "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
     "text": "đã nhận",
-    "sha256": "318c5ad5"
+    "source_hash": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
     "text": "Xác nhận",
-    "sha256": "eebdd24a"
+    "source_hash": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
     "text": "Hủy",
-    "sha256": "19766ed6"
+    "source_hash": "19766ed6"
   },
   "web.COMMON.word_continue": {
     "text": "Tiếp tục",
-    "sha256": "31fbef16"
+    "source_hash": "31fbef16"
   },
   "web.COMMON.word_done": {
     "text": "Xong",
-    "sha256": "11a6767d"
+    "source_hash": "11a6767d"
   },
   "web.COMMON.back": {
     "text": "Quay lại",
-    "sha256": "76900f1b"
+    "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
     "text": "Chia sẻ suy nghĩ, ý tưởng hoặc trải nghiệm của bạn...",
-    "sha256": "6bd0351a"
+    "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
     "text": "Gửi phản hồi",
-    "sha256": "84195de9"
+    "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
     "text": "Đã gửi xác minh đến",
-    "sha256": "62da29c0"
+    "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
     "text": "Tài khoản đã được tạo. Vui lòng đăng nhập.",
-    "sha256": "fd3610bf"
+    "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
     "text": "Nếu tồn tại tài khoản với email này, bạn sẽ nhận được email xác minh.",
-    "sha256": "f596cdd0"
+    "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
     "text": "Xóa vĩnh viễn bí mật này",
-    "sha256": "0a7afc29"
+    "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
     "text": "Vui lòng xác nhận",
-    "sha256": "dcd78dfb"
+    "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
     "text": "Bạn có chắc muốn xóa vĩnh viễn bí mật này không? Hành động này không thể hoàn tác.",
-    "sha256": "5dde5dd9"
+    "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
     "text": "Có, xóa vĩnh viễn bí mật này",
-    "sha256": "6e5b02a7"
+    "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
     "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được nhận.",
-    "sha256": "b4c8bbc3"
+    "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
     "text": "Để bảo mật, hãy chia sẻ liên kết này riêng biệt với các thông tin khác.",
-    "sha256": "c46e6204"
+    "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
     "text": "Đã sao chép vào clipboard",
-    "sha256": "d37078fe"
+    "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
     "text": "Tạo liên kết nhận",
-    "sha256": "5bb95106"
+    "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
     "text": "Câu hỏi thường gặp",
-    "sha256": "bd7394ac"
+    "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
     "text": "Xác minh không hợp lệ",
-    "sha256": "abf07ced"
+    "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
     "text": "Không thể xác minh tài khoản khi bạn đã đăng nhập",
-    "sha256": "f0a17c5f"
+    "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
     "text": "Hiển thị mật khẩu",
-    "sha256": "6aeaa6a5"
+    "source_hash": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
     "text": "Ẩn mật khẩu",
-    "sha256": "a60a56c5"
+    "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
     "text": "Mật khẩu phải có ít nhất 8 ký tự",
-    "sha256": "e3b8d09d"
+    "source_hash": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
     "text": "Mật khẩu phải có ít nhất 8 ký tự",
-    "sha256": "e5054833"
+    "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
     "text": "Mật khẩu không khớp",
-    "sha256": "b6eb82cd"
+    "source_hash": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
     "text": "Trường này là bắt buộc",
-    "sha256": "6876f12e"
+    "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
     "text": "Đang xử lý yêu cầu của bạn",
-    "sha256": "a512a73b"
+    "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
     "text": "Giữ đăng nhập trong 30 ngày",
-    "sha256": "6e069c11"
+    "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
     "text": "Đang chuyển hướng...",
-    "sha256": "cd23991b"
+    "source_hash": "cd23991b"
   },
   "web.COMMON.continue": {
     "text": "Tiếp tục",
-    "sha256": "31fbef16"
+    "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
     "text": "Bạn có chắc không?",
-    "sha256": "f0762c4f"
+    "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
     "text": "Vùng nguy hiểm",
-    "sha256": "3c1c01b4"
+    "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
     "text": "Vùng cần cân nhắc kỹ",
-    "sha256": "fe27a3a8"
+    "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
     "text": "Menu người dùng",
-    "sha256": "6fa25be1"
+    "source_hash": "6fa25be1"
   },
   "web.COMMON.security": {
     "text": "Bảo mật",
-    "sha256": "8f6fb4eb"
+    "source_hash": "8f6fb4eb"
   },
   "web.COMMON.manage": {
     "text": "Quản lý",
-    "sha256": "5a234448"
+    "source_hash": "5a234448"
   },
   "web.COMMON.loading": {
     "text": "Đang tải...",
-    "sha256": "47d2a515"
+    "source_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
     "text": "Lưu thay đổi",
-    "sha256": "35322b5b"
+    "source_hash": "35322b5b"
   },
   "web.COMMON.saving": {
     "text": "Đang lưu...",
-    "sha256": "dc85af8f"
+    "source_hash": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
     "text": "Đang thêm",
-    "sha256": "0a6691ef"
+    "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
     "text": "ví dụ",
-    "sha256": "a79b4bf9"
+    "source_hash": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
     "text": "ví dụ {example}",
-    "sha256": "cc921aaa"
+    "source_hash": "cc921aaa"
   },
   "web.COMMON.status": {
     "text": "Trạng thái",
-    "sha256": "920e413c"
+    "source_hash": "920e413c"
   },
   "web.COMMON.escape": {
     "text": "Escape",
-    "sha256": "037c9684"
+    "source_hash": "037c9684"
   },
   "web.COMMON.active": {
     "text": "Hoạt động",
-    "sha256": "92340695"
+    "source_hash": "92340695"
   },
   "web.COMMON.preview": {
     "text": "Xem trước",
-    "sha256": "324b134f"
+    "source_hash": "324b134f"
   },
   "web.COMMON.remove": {
     "text": "Xóa",
-    "sha256": "c3812fc4"
+    "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
     "text": "Nhấn ESC để đóng",
-    "sha256": "5aa83883"
+    "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
     "text": "Enter",
-    "sha256": "dc8659db"
+    "source_hash": "dc8659db"
   },
   "web.COMMON.important": {
     "text": "Quan trọng",
-    "sha256": "ddca9a57"
+    "source_hash": "ddca9a57"
   },
   "web.COMMON.language": {
     "text": "Ngôn ngữ",
-    "sha256": "a4fe6526"
+    "source_hash": "a4fe6526"
   },
   "web.COMMON.theme": {
     "text": "Giao diện",
-    "sha256": "efb52e71"
+    "source_hash": "efb52e71"
   },
   "web.COMMON.appearance": {
     "text": "Giao diện",
-    "sha256": "3907fa7f"
+    "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
     "text": "Xong",
-    "sha256": "11a6767d"
+    "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
     "text": "Kết thúc",
-    "sha256": "f4db1e48"
+    "source_hash": "f4db1e48"
   },
   "web.COMMON.general": {
     "text": "Chung",
-    "sha256": "c910d474"
+    "source_hash": "c910d474"
   },
   "web.COMMON.note": {
     "text": "Ghi chú",
-    "sha256": "d8da2c49"
+    "source_hash": "d8da2c49"
   },
   "web.COMMON.monthly": {
     "text": "Hàng tháng",
-    "sha256": "9b11f6b7"
+    "source_hash": "9b11f6b7"
   },
   "web.COMMON.yearly": {
     "text": "Hàng năm",
-    "sha256": "6e69b59e"
+    "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
     "text": "Tiếp tục đi.",
-    "sha256": "fb697cc7"
+    "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
     "text": "Đang tải...",
-    "sha256": "47d2a515"
+    "source_hash": "47d2a515"
   },
   "web.COMMON.not_received": {
     "text": "CHƯA NHẬN",
-    "sha256": "d84ee92c"
+    "source_hash": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
     "text": "Xác nhận mật khẩu",
-    "sha256": "5ac265f3"
+    "source_hash": "5ac265f3"
   },
   "web.COMMON.new_password": {
     "text": "Mật khẩu mới",
-    "sha256": "3dd9df44"
+    "source_hash": "3dd9df44"
   },
   "web.COMMON.email_address": {
     "text": "Địa chỉ email",
-    "sha256": "f2488fd4"
+    "source_hash": "f2488fd4"
   },
   "web.COMMON.switch": {
     "text": "chuyển đổi",
-    "sha256": "78b49fb2"
+    "source_hash": "78b49fb2"
   },
   "web.COMMON.features": {
     "text": "Tính năng",
-    "sha256": "5697d03d"
+    "source_hash": "5697d03d"
   },
   "web.COMMON.not_found": {
     "text": "Không tìm thấy",
-    "sha256": "0019dfc4"
+    "source_hash": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
     "text": "❌",
-    "sha256": "2b2966a5"
+    "source_hash": "2b2966a5"
   },
   "web.COMMON.emoji_checkmark": {
     "text": "✅",
-    "sha256": "1d456424"
+    "source_hash": "1d456424"
   },
   "web.COMMON.supported": {
     "text": "Được hỗ trợ",
-    "sha256": "c1658000"
+    "source_hash": "c1658000"
   },
   "web.COMMON.version": {
     "text": "Phiên bản",
-    "sha256": "dd167905"
+    "source_hash": "dd167905"
   },
   "web.COMMON.other": {
     "text": "Khác",
-    "sha256": "f97e9da0"
+    "source_hash": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)",
-    "sha256": "c8a306d0"
+    "source_hash": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
     "text": "Ctrl + Enter",
-    "sha256": "78192e6e"
+    "source_hash": "78192e6e"
   },
   "web.COMMON.enter_0": {
     "text": "⌘ + Enter",
-    "sha256": "558acbab"
+    "source_hash": "558acbab"
   },
   "web.COMMON.mac": {
     "text": "Mac",
-    "sha256": "8b3795aa"
+    "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
     "text": "Đã sao chép địa chỉ email vào clipboard!",
-    "sha256": "23238b4e"
+    "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
     "text": "Giá trị",
-    "sha256": "8e37953d"
+    "source_hash": "8e37953d"
   },
   "web.COMMON.host": {
     "text": "Máy chủ",
-    "sha256": "4a823118"
+    "source_hash": "4a823118"
   },
   "web.COMMON.type": {
     "text": "Loại",
-    "sha256": "baaddf70"
+    "source_hash": "baaddf70"
   },
   "web.COMMON.previous": {
     "text": "Trước",
-    "sha256": "a57b08a4"
+    "source_hash": "a57b08a4"
   },
   "web.COMMON.next": {
     "text": "Tiếp",
-    "sha256": "1ff57a29"
+    "source_hash": "1ff57a29"
   },
   "web.COMMON.password_strength": {
     "text": "Độ mạnh mật khẩu:",
-    "sha256": "663d6499"
+    "source_hash": "663d6499"
   },
   "web.COMMON.great": {
     "text": "Tuyệt vời",
-    "sha256": "c8cc1c7b"
+    "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
     "text": "Khá tốt",
-    "sha256": "521a41b6"
+    "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
     "text": "Tạm được",
-    "sha256": "f7b19afc"
+    "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
     "text": "Tạm được",
-    "sha256": "8b0d6190"
+    "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
     "text": "Không tốt lắm",
-    "sha256": "00561207"
+    "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
     "text": "Mở tùy chọn",
-    "sha256": "3dc08503"
+    "source_hash": "3dc08503"
   },
   "web.COMMON.inactive": {
     "text": "Không hoạt động",
-    "sha256": "ac7c949f"
+    "source_hash": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
     "text": "Đã xảy ra lỗi",
-    "sha256": "ddf785b7"
+    "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
     "text": "Sao chép bí mật vào clipboard",
-    "sha256": "a2ceff6d"
+    "source_hash": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
     "text": "Đã sao chép bí mật vào clipboard",
-    "sha256": "da84ff02"
+    "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
     "text": "Kiểm tra lại cụm mật khẩu",
-    "sha256": "b582f3a6"
+    "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
     "text": "Nhấn nút sao chép bên dưới.",
-    "sha256": "77fcf6fb"
+    "source_hash": "77fcf6fb"
   },
   "web.LABELS.view_toggle.show": {
     "text": "Hiển thị",
-    "sha256": "0df6f1ca"
+    "source_hash": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
     "text": "Ẩn",
-    "sha256": "ac20a57b"
+    "source_hash": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
     "text": "Hiển thị thêm",
-    "sha256": "ba8a80fd"
+    "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
     "text": "Thu gọn",
-    "sha256": "0264d7b0"
+    "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
     "text": "Bật",
-    "sha256": "5342e09f"
+    "source_hash": "5342e09f"
   },
   "web.LABELS.disable": {
     "text": "Tắt",
-    "sha256": "b7e3e4aa"
+    "source_hash": "b7e3e4aa"
   },
   "web.LABELS.stats": {
     "text": "Thống kê",
-    "sha256": "b4a73657"
+    "source_hash": "b4a73657"
   },
   "web.LABELS.timeline": {
     "text": "Dòng thời gian",
-    "sha256": "9dcff98e"
+    "source_hash": "9dcff98e"
   },
   "web.LABELS.lifespan": {
     "text": "Thời hạn",
-    "sha256": "58994285"
+    "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
     "text": "Thời gian hết hạn",
-    "sha256": "c5db84a8"
+    "source_hash": "c5db84a8"
   },
   "web.LABELS.close": {
     "text": "Đóng",
-    "sha256": "7d9eb7ac"
+    "source_hash": "7d9eb7ac"
   },
   "web.LABELS.loading": {
     "text": "Đang tải...",
-    "sha256": "47d2a515"
+    "source_hash": "47d2a515"
   },
   "web.LABELS.cancel": {
     "text": "Hủy",
-    "sha256": "19766ed6"
+    "source_hash": "19766ed6"
   },
   "web.LABELS.saving": {
     "text": "Đang lưu...",
-    "sha256": "dc85af8f"
+    "source_hash": "dc85af8f"
   },
   "web.LABELS.saved": {
     "text": "Đã lưu",
-    "sha256": "b5c120b3"
+    "source_hash": "b5c120b3"
   },
   "web.LABELS.save": {
     "text": "Lưu",
-    "sha256": "1509f561"
+    "source_hash": "1509f561"
   },
   "web.LABELS.save_all": {
     "text": "Lưu tất cả",
-    "sha256": "d3c54e39"
+    "source_hash": "d3c54e39"
   },
   "web.LABELS.details": {
     "text": "Chi tiết",
-    "sha256": "45989de4"
+    "source_hash": "45989de4"
   },
   "web.LABELS.encrypted": {
     "text": "Đã mã hóa",
-    "sha256": "f45aef6e"
+    "source_hash": "f45aef6e"
   },
   "web.LABELS.secret_status": {
     "text": "Trạng thái bí mật",
-    "sha256": "57330d93"
+    "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
     "text": "Cần trợ giúp?",
-    "sha256": "c225cdfb"
+    "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
     "text": "Tạo bí mật mới",
-    "sha256": "311d266c"
+    "source_hash": "311d266c"
   },
   "web.LABELS.actions": {
     "text": "Hành động",
-    "sha256": "ff8059dc"
+    "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
     "text": "Không yêu cầu cụm mật khẩu",
-    "sha256": "6b43174d"
+    "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
     "text": "Sao chép vào clipboard",
-    "sha256": "b749e205"
+    "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
     "text": "Biên lai",
-    "sha256": "60a627df"
+    "source_hash": "60a627df"
   },
   "web.LABELS.share": {
     "text": "Chia sẻ",
-    "sha256": "29887a5f"
+    "source_hash": "29887a5f"
   },
   "web.LABELS.secret_link": {
     "text": "Liên kết bí mật",
-    "sha256": "a02fb1cd"
+    "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
     "text": "Bỏ qua",
-    "sha256": "48845bff"
+    "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
     "text": "Chi tiết bảo mật",
-    "sha256": "96d2098c"
+    "source_hash": "96d2098c"
   },
   "web.LABELS.items_count": {
     "text": "{count} mục",
-    "sha256": "63e0dea7"
+    "source_hash": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
     "text": "{count} người nhận",
-    "sha256": "48187543"
+    "source_hash": "48187543"
   },
   "web.LABELS.view": {
     "text": "Xem",
-    "sha256": "dcc839a4"
+    "source_hash": "dcc839a4"
   },
   "web.LABELS.views": {
     "text": "Lượt xem",
-    "sha256": "69c40459"
+    "source_hash": "69c40459"
   },
   "web.LABELS.times_viewed": {
     "text": "lần xem",
-    "sha256": "73758343"
+    "source_hash": "73758343"
   },
   "web.LABELS.view_progress": {
     "text": "Xem tiến trình",
-    "sha256": "6c072c1f"
+    "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
     "text": "Phần trợ giúp",
-    "sha256": "614e14f0"
+    "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
     "text": "Được bảo vệ bằng cụm mật khẩu",
-    "sha256": "a52b9edf"
+    "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
     "text": "Đã nhận phản hồi.",
-    "sha256": "3fa595ef"
+    "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
     "text": "Đang gửi...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
     "text": "Bí mật gần đây",
-    "sha256": "0b907f8b"
+    "source_hash": "0b907f8b"
   },
   "web.LABELS.pricing": {
     "text": "Bảng giá",
-    "sha256": "dfe95783"
+    "source_hash": "dfe95783"
   },
   "web.LABELS.refresh": {
     "text": "Làm mới",
-    "sha256": "0e916101"
+    "source_hash": "0e916101"
   },
   "web.LABELS.reload": {
     "text": "Tải lại",
-    "sha256": "bdc090ec"
+    "source_hash": "bdc090ec"
   },
   "web.LABELS.caption_recent_secrets": {
     "text": "Liên kết bí mật đã tạo trong phiên này",
-    "sha256": "6c7ceab8"
+    "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
     "text": "Tạo liên kết",
-    "sha256": "cac74fdb"
+    "source_hash": "cac74fdb"
   },
   "web.LABELS.create_link": {
     "text": "Tạo liên kết bí mật",
-    "sha256": "a30a47b9"
+    "source_hash": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
     "text": "Tạo yêu cầu",
-    "sha256": "71a0bd40"
+    "source_hash": "71a0bd40"
   },
   "web.LABELS.create_request": {
     "text": "Tạo liên kết yêu cầu",
-    "sha256": "190463dc"
+    "source_hash": "190463dc"
   },
   "web.LABELS.related_settings": {
     "text": "Cài đặt liên quan",
-    "sha256": "68574b20"
+    "source_hash": "68574b20"
   },
   "web.LABELS.creating_links_for": {
     "text": "Đang tạo liên kết cho",
-    "sha256": "57db069e"
+    "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
     "text": "Đang tạo bí mật trong {domain}",
-    "sha256": "3bbed96b"
+    "source_hash": "3bbed96b"
   },
   "web.STATUS.new": {
     "text": "Mới",
-    "sha256": "18fdd549"
+    "source_hash": "18fdd549"
   },
   "web.STATUS.unread": {
     "text": "Chưa đọc",
-    "sha256": "1b9f384c"
+    "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
     "text": "Liên kết đã mở",
-    "sha256": "66844573"
+    "source_hash": "66844573"
   },
   "web.STATUS.received": {
     "text": "Đã nhận",
-    "sha256": "49f19bee"
+    "source_hash": "49f19bee"
   },
   "web.STATUS.burned": {
     "text": "Đã xóa vĩnh viễn",
-    "sha256": "6d747b33"
+    "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
     "text": "Đã hủy",
-    "sha256": "ff49630c"
+    "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
     "text": "Sắp hết hạn",
-    "sha256": "0259442c"
+    "source_hash": "0259442c"
   },
   "web.STATUS.created": {
     "text": "Đã tạo",
-    "sha256": "d70b9e24"
+    "source_hash": "d70b9e24"
   },
   "web.STATUS.expires": {
     "text": "Hết hạn",
-    "sha256": "f6725f3a"
+    "source_hash": "f6725f3a"
   },
   "web.STATUS.expired": {
     "text": "Đã hết hạn",
-    "sha256": "424a2551"
+    "source_hash": "424a2551"
   },
   "web.STATUS.orphaned": {
     "text": "Bị bỏ rơi",
-    "sha256": "8d827807"
+    "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
     "text": "Đã bảo mật",
-    "sha256": "b0cbaa5b"
+    "source_hash": "b0cbaa5b"
   },
   "web.STATUS.securing": {
     "text": "Đang bảo mật",
-    "sha256": "37c84053"
+    "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
     "text": "Đã sao chép",
-    "sha256": "8d525e5f"
+    "source_hash": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
     "text": "Thời gian còn lại",
-    "sha256": "9e65f559"
+    "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
     "text": "Liên kết bí mật đã được tạo và chưa được xem",
-    "sha256": "447c4445"
+    "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
     "text": "Liên kết bí mật đã được tạo và chưa được xem",
-    "sha256": "83b9a0ca"
+    "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
     "text": "Liên kết bí mật đã được mở và sẵn sàng để xem",
-    "sha256": "f392af12"
+    "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
     "text": "Bí mật đã được hiển thị cho người nhận",
-    "sha256": "ceb756b4"
+    "source_hash": "ceb756b4"
   },
   "web.STATUS.burned_description": {
     "text": "Bí mật đã được xóa vĩnh viễn thủ công trước khi được xem",
-    "sha256": "e7aa1ec1"
+    "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
     "text": "Bí mật đã bị hủy vĩnh viễn",
-    "sha256": "9bcb9949"
+    "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
     "text": "Bí mật sẽ sớm hết hạn",
-    "sha256": "e182e8f4"
+    "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
     "text": "Bí mật đã bị bỏ rơi và sẽ sớm bị hủy",
-    "sha256": "49b87422"
+    "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
     "text": "Bí mật đã hết hạn trước khi được xem",
-    "sha256": "f527de55"
+    "source_hash": "f527de55"
   },
   "web.STATUS.success": {
     "text": "Thành công",
-    "sha256": "c88a0b90"
+    "source_hash": "c88a0b90"
   },
   "web.STATUS.delivered": {
     "text": "Đã gửi",
-    "sha256": "90611565"
+    "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
     "text": "DNS không đúng",
-    "sha256": "7848d601"
+    "source_hash": "7848d601"
   },
   "web.STATUS.active": {
     "text": "Hoạt động",
-    "sha256": "92340695"
+    "source_hash": "92340695"
   },
   "web.STATUS.inactive": {
     "text": "Không hoạt động",
-    "sha256": "ac7c949f"
+    "source_hash": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
     "text": "Xem không giới hạn",
-    "sha256": "3f6859b0"
+    "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
     "text": "Thương hiệu tên miền đáng tin cậy",
-    "sha256": "5e39b05c"
+    "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
     "text": "Mã hóa khi truyền và khi lưu trữ",
-    "sha256": "314c7974"
+    "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
     "text": "{count} {unit}",
-    "sha256": "e6c9e0e6"
+    "source_hash": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
     "text": "ngày | ngày",
-    "sha256": "6ac0d345"
+    "source_hash": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
     "text": "giờ | giờ",
-    "sha256": "f4fef91b"
+    "source_hash": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
     "text": "phút | phút",
-    "sha256": "08d71a9f"
+    "source_hash": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
     "text": "giây | giây",
-    "sha256": "e655e068"
+    "source_hash": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
     "text": "---",
-    "sha256": "cb3f91d5"
+    "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
     "text": "Còn {count} {unit}",
-    "sha256": "18f6c6e8"
+    "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
     "text": "còn ngày | còn ngày",
-    "sha256": "6702855e"
+    "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
     "text": "còn giờ | còn giờ",
-    "sha256": "2eaebd6f"
+    "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
     "text": "còn phút | còn phút",
-    "sha256": "26c80140"
+    "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
     "text": "còn giây | còn giây",
-    "sha256": "01159ce3"
+    "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
     "text": "---",
-    "sha256": "cb3f91d5"
+    "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
     "text": "Giới hạn {count} lượt xem",
-    "sha256": "8db0e228"
+    "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
     "text": "Còn {count} ngày",
-    "sha256": "398e4024"
+    "source_hash": "398e4024"
   },
   "web.UNITS.hours_remaining": {
     "text": "Còn {count} giờ",
-    "sha256": "717b6d58"
+    "source_hash": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
     "text": "Còn {count} phút",
-    "sha256": "d322f4c5"
+    "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
     "text": "Bí mật đến",
-    "sha256": "883dbca9"
+    "source_hash": "883dbca9"
   },
   "web.TITLES.feedback": {
     "text": "Phản hồi",
-    "sha256": "aac77df3"
+    "source_hash": "aac77df3"
   },
   "web.TITLES.signin": {
     "text": "Đăng nhập",
-    "sha256": "bcc0bcc9"
+    "source_hash": "bcc0bcc9"
   },
   "web.TITLES.signup": {
     "text": "Tạo tài khoản",
-    "sha256": "0dffe234"
+    "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
     "text": "Quên mật khẩu",
-    "sha256": "fdfd41de"
+    "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
     "text": "Đặt lại mật khẩu",
-    "sha256": "4e70f1fd"
+    "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
     "text": "Đang đăng xuất",
-    "sha256": "afbce8a6"
+    "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
     "text": "Xác minh tài khoản",
-    "sha256": "2f3ea760"
+    "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
     "text": "Xác thực hai yếu tố",
-    "sha256": "bc074b60"
+    "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
     "text": "Đăng nhập bằng email",
-    "sha256": "c316e3d7"
+    "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
     "text": "Chấp nhận lời mời",
-    "sha256": "ce7cfeaf"
+    "source_hash": "ce7cfeaf"
   },
   "web.TITLES.secret": {
     "text": "Bí mật",
-    "sha256": "7e32a729"
+    "source_hash": "7e32a729"
   },
   "web.TITLES.metadata": {
     "text": "Chi tiết bí mật",
-    "sha256": "c11bd410"
+    "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
     "text": "Biên lai bí mật",
-    "sha256": "fe0c79e9"
+    "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
     "text": "Xóa vĩnh viễn bí mật",
-    "sha256": "28785b83"
+    "source_hash": "28785b83"
   },
   "web.TITLES.dashboard": {
     "text": "Bảng điều khiển",
-    "sha256": "67b69646"
+    "source_hash": "67b69646"
   },
   "web.TITLES.recent": {
     "text": "Bí mật gần đây",
-    "sha256": "0b907f8b"
+    "source_hash": "0b907f8b"
   },
   "web.TITLES.domains": {
     "text": "Tên miền tùy chỉnh",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.TITLES.domain_add": {
     "text": "Thêm tên miền",
-    "sha256": "0f09df73"
+    "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
     "text": "Xác minh tên miền",
-    "sha256": "b416f537"
+    "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
     "text": "Tên miền thương hiệu",
-    "sha256": "35e4dfbe"
+    "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
     "text": "Tài khoản",
-    "sha256": "7e1b0d56"
+    "source_hash": "7e1b0d56"
   },
   "web.TITLES.data_region": {
     "text": "Vùng dữ liệu",
-    "sha256": "a1c6039f"
+    "source_hash": "a1c6039f"
   },
   "web.TITLES.current_region": {
     "text": "Vùng hiện tại",
-    "sha256": "b92e254d"
+    "source_hash": "b92e254d"
   },
   "web.TITLES.available_regions": {
     "text": "Vùng khả dụng",
-    "sha256": "ee788590"
+    "source_hash": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
     "text": "Tại sao chủ quyền dữ liệu quan trọng",
-    "sha256": "67de6cf7"
+    "source_hash": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
     "text": "Cài đặt hồ sơ",
-    "sha256": "4f1063c9"
+    "source_hash": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
     "text": "Tùy chọn",
-    "sha256": "66962f72"
+    "source_hash": "66962f72"
   },
   "web.TITLES.privacy_settings": {
     "text": "Quyền riêng tư",
-    "sha256": "54a57c31"
+    "source_hash": "54a57c31"
   },
   "web.TITLES.notification_settings": {
     "text": "Thông báo",
-    "sha256": "78801183"
+    "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
     "text": "Đổi email",
-    "sha256": "18c3f2d5"
+    "source_hash": "18c3f2d5"
   },
   "web.TITLES.security_overview": {
     "text": "Bảo mật",
-    "sha256": "8f6fb4eb"
+    "source_hash": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
     "text": "Đổi mật khẩu",
-    "sha256": "a949f462"
+    "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
     "text": "Xác thực hai yếu tố",
-    "sha256": "bc074b60"
+    "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
     "text": "Phiên hoạt động",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
     "text": "Mã khôi phục",
-    "sha256": "579c7f4e"
+    "source_hash": "579c7f4e"
   },
   "web.TITLES.api_settings": {
     "text": "Cài đặt API",
-    "sha256": "6c2a9675"
+    "source_hash": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
     "text": "Cài đặt nâng cao",
-    "sha256": "22d4f608"
+    "source_hash": "22d4f608"
   },
   "web.TITLES.system_settings": {
     "text": "Cài đặt hệ thống",
-    "sha256": "1f87f883"
+    "source_hash": "1f87f883"
   },
   "web.TITLES.not_found": {
     "text": "Không tìm thấy trang",
-    "sha256": "cb2f00d1"
+    "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
     "text": "Tổ chức",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.TITLES.organization_settings": {
     "text": "Cài đặt tổ chức",
-    "sha256": "cc1d9e61"
+    "source_hash": "cc1d9e61"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "Tiêu điểm hiện đang ở vùng văn bản chính",
-    "sha256": "e00dd260"
+    "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
     "text": "Hướng dẫn chia sẻ",
-    "sha256": "1a450046"
+    "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
     "text": "Chia sẻ liên kết với người nhận dự định",
-    "sha256": "43bdee1d"
+    "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
     "text": "Chia sẻ cụm mật khẩu riêng biệt qua kênh an toàn",
-    "sha256": "c348d386"
+    "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
     "text": "Sử dụng kênh an toàn khác để chia sẻ thông tin nhạy cảm",
-    "sha256": "fc78d9cb"
+    "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
     "text": "Luôn xác minh bạn đang ở trên trang web chính thức của {product_name}. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới.",
-    "sha256": "43066772"
+    "source_hash": "43066772"
   },
   "web.STATUS.previewed": {
     "text": "Đã xem trước",
-    "sha256": "3d391a9b"
+    "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
     "text": "Đã hiển thị",
-    "sha256": "17376ee4"
+    "source_hash": "17376ee4"
   },
   "web.STATUS.previewed_description": {
     "text": "Liên kết bí mật đã được mở và sẵn sàng để hiển thị",
-    "sha256": "cc7d1e92"
+    "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
     "text": "Nội dung bí mật đã được hiển thị cho người nhận",
-    "sha256": "39b32f80"
+    "source_hash": "39b32f80"
   },
   "web.COMMON.not_set": {
     "text": "Chưa đặt",
-    "sha256": "4895f731"
+    "source_hash": "4895f731"
   },
   "web.COMMON.word_edit": {
     "text": "Chỉnh sửa",
-    "sha256": "464c4ffd"
+    "source_hash": "464c4ffd"
   },
   "web.COMMON.word_save": {
     "text": "Lưu",
-    "sha256": "1509f561"
+    "source_hash": "1509f561"
   },
   "web.LABELS.secret_ttl": {
     "text": "Hết hạn sau",
-    "sha256": "de996752"
+    "source_hash": "de996752"
   },
   "web.LABELS.filter": {
     "text": "Lọc",
-    "sha256": "638e249f"
+    "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
     "text": "Xóa",
-    "sha256": "83b12c22"
+    "source_hash": "83b12c22"
   },
   "web.LABELS.add_note": {
     "text": "Thêm ghi chú...",
-    "sha256": "32738894"
+    "source_hash": "32738894"
   },
   "web.LABELS.edit_note": {
     "text": "Sửa ghi chú",
-    "sha256": "299e604c"
+    "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
     "text": "Thêm ghi nhớ...",
-    "sha256": "02384c53"
+    "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
     "text": "Sửa ghi nhớ",
-    "sha256": "0ec1a5db"
+    "source_hash": "0ec1a5db"
   },
   "web.TITLES.help": {
     "text": "Trợ giúp",
-    "sha256": "b79cac92"
+    "source_hash": "b79cac92"
   },
   "web.TITLES.pricing": {
     "text": "Bảng giá",
-    "sha256": "dfe95783"
+    "source_hash": "dfe95783"
   },
   "web.pricing.title": {
     "text": "Bảng giá đơn giản, minh bạch",
-    "sha256": "97e283c7"
+    "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
     "text": "Chọn gói phù hợp với nhu cầu của bạn. Tất cả các gói đều bao gồm chia sẻ bí mật không giới hạn và thiết kế ưu tiên quyền riêng tư.",
-    "sha256": "9204dff4"
+    "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
     "text": "Bắt đầu miễn phí",
-    "sha256": "6bb5a4a7"
+    "source_hash": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
     "text": "Bắt đầu",
-    "sha256": "983f3110"
+    "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
     "text": "Đã có tài khoản?",
-    "sha256": "e77fea93"
+    "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
     "text": "Đăng nhập",
-    "sha256": "bfd402b2"
+    "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
     "text": "Đề xuất cho bạn",
-    "sha256": "00093fbd"
+    "source_hash": "00093fbd"
   },
   "web.pricing.free_tier_description": {
     "text": "Tạo và chia sẻ bí mật với các tính năng cơ bản. Không cần thẻ tín dụng.",
-    "sha256": "3a4f2bc0"
+    "source_hash": "3a4f2bc0"
   }
 }

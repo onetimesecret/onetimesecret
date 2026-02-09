@@ -2,192 +2,192 @@
   "email.incomingsupport.subject": {
     "text": "[Ticket: %s]",
     "renderer": "erb",
-    "sha256": "9e2074ae"
+    "content_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
     "text": "A customer has sent the following info",
     "renderer": "erb",
-    "sha256": "9c965ab8"
+    "content_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} sent you a secret",
     "renderer": "erb",
-    "sha256": "3156abde"
+    "content_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
     "text": "sent you a secret:",
     "renderer": "erb",
-    "sha256": "c0571266"
+    "content_hash": "c0571266"
   },
   "email.secret_link.important_label": {
     "text": "Important:",
     "renderer": "erb",
-    "sha256": "496d6960"
+    "content_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
     "text": "This link will only work once. After viewing, the secret will be permanently deleted.",
     "renderer": "erb",
-    "sha256": "fecaf0a1"
+    "content_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
     "text": "Sent via",
     "renderer": "erb",
-    "sha256": "d01479b3"
+    "content_hash": "d01479b3"
   },
   "email.welcome.subject": {
     "text": "Welcome to %{product_name} - Please verify your email",
     "renderer": "erb",
-    "sha256": "96008c17"
+    "content_hash": "96008c17"
   },
   "email.welcome.title": {
     "text": "Welcome to %{product_name}!",
     "renderer": "erb",
-    "sha256": "77e7dda4"
+    "content_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
     "text": "Please verify your email address by clicking the link below:",
     "renderer": "erb",
-    "sha256": "e373dcee"
+    "content_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
     "text": "Verify Email Address",
     "renderer": "erb",
-    "sha256": "d261b9df"
+    "content_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Or copy and paste this link:",
     "renderer": "erb",
-    "sha256": "88c72144"
+    "content_hash": "88c72144"
   },
   "email.welcome.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.welcome.postscript": {
     "text": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message.",
     "renderer": "erb",
-    "sha256": "05709148"
+    "content_hash": "05709148"
   },
   "email.password_request.subject": {
     "text": "Reset your password (%{display_domain})",
     "renderer": "erb",
-    "sha256": "a9882af1"
+    "content_hash": "a9882af1"
   },
   "email.password_request.title": {
     "text": "Reset Your Password",
     "renderer": "erb",
-    "sha256": "0568c7b0"
+    "content_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
     "text": "We received a request to reset your password for %{product_name}.",
     "renderer": "erb",
-    "sha256": "4ad3b5cd"
+    "content_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
     "text": "Reset Password",
     "renderer": "erb",
-    "sha256": "4e70f1fd"
+    "content_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
     "text": "Or copy and paste this link:",
     "renderer": "erb",
-    "sha256": "88c72144"
+    "content_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
     "text": "If you did not request a password reset, you can safely ignore this email.",
     "renderer": "erb",
-    "sha256": "fbb7eb2d"
+    "content_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.password_request.postscript": {
     "text": "P.S. This email was sent to %{email_address}.",
     "renderer": "erb",
-    "sha256": "8ab1dbea"
+    "content_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
     "text": "Sign in to %{display_domain}",
     "renderer": "erb",
-    "sha256": "2967293e"
+    "content_hash": "2967293e"
   },
   "email.magic_link.title": {
     "text": "Sign In with Magic Link",
     "renderer": "erb",
-    "sha256": "0b84879b"
+    "content_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
     "text": "You requested a login link for your %{product_name} account.",
     "renderer": "erb",
-    "sha256": "3a34aa1f"
+    "content_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
     "text": "Sign In",
     "renderer": "erb",
-    "sha256": "bcc0bcc9"
+    "content_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "Or copy and paste this link:",
     "renderer": "erb",
-    "sha256": "88c72144"
+    "content_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
     "text": "This link will expire in 15 minutes.",
     "renderer": "erb",
-    "sha256": "a6967fa7"
+    "content_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
     "text": "If you did not request this link, you can safely ignore this email.",
     "renderer": "erb",
-    "sha256": "1863f5be"
+    "content_hash": "1863f5be"
   },
   "email.magic_link.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
     "text": "P.S. This email was sent to %{email_address}.",
     "renderer": "erb",
-    "sha256": "8ab1dbea"
+    "content_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "You've received a secret message",
     "renderer": "erb",
-    "sha256": "c7c36a80"
+    "content_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
     "text": "You've received a secure message:",
     "renderer": "erb",
-    "sha256": "7d3cd4cb"
+    "content_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
     "text": "Memo:",
     "renderer": "erb",
-    "sha256": "8bab5066"
+    "content_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Someone has sent you a secure message through %{display_domain}.",
     "renderer": "erb",
-    "sha256": "12ac0a81"
+    "content_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
     "text": "To view this secret, click the link below:",
     "renderer": "erb",
-    "sha256": "1dcdc014"
+    "content_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
     "text": "Important:",
     "renderer": "erb",
-    "sha256": "496d6960"
+    "content_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
     "text": "This link will only work once. After viewing, the secret will be permanently deleted.",
     "renderer": "erb",
-    "sha256": "fecaf0a1"
+    "content_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
     "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
@@ -200,222 +200,222 @@
   "email.incoming_secret.sent_via": {
     "text": "Sent via",
     "renderer": "erb",
-    "sha256": "d01479b3"
+    "content_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
     "text": "Your secret was viewed",
     "renderer": "erb",
-    "sha256": "0767ae45"
+    "content_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
     "text": "Your Secret Was Viewed",
     "renderer": "erb",
-    "sha256": "6a530d71"
+    "content_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
     "text": "Your secret was viewed on %{date}.",
     "renderer": "erb",
-    "sha256": "6a3d346c"
+    "content_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
     "text": "Secret ID:",
     "renderer": "erb",
-    "sha256": "ab567438"
+    "content_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
     "text": "This is an automated notification. No action is required.",
     "renderer": "erb",
-    "sha256": "3f6b45dd"
+    "content_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Manage notification preferences",
     "renderer": "erb",
-    "sha256": "a76d7ce0"
+    "content_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
     "text": "To manage your notification preferences:",
     "renderer": "erb",
-    "sha256": "83cbd163"
+    "content_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
     "text": "Your secret link will expire soon",
     "renderer": "erb",
-    "sha256": "74813c5f"
+    "content_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
     "text": "Your secret link will expire in %{time_remaining}",
     "renderer": "erb",
-    "sha256": "e7bb47f6"
+    "content_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
     "text": "View your secret before it expires",
     "renderer": "erb",
-    "sha256": "9e7d7396"
+    "content_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Reminder:",
     "renderer": "erb",
-    "sha256": "e945d640"
+    "content_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
     "text": "After expiration, the secret will be permanently deleted and cannot be recovered.",
     "renderer": "erb",
-    "sha256": "deb92a01"
+    "content_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
     "text": "Sent via",
     "renderer": "erb",
-    "sha256": "d01479b3"
+    "content_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "View it before it's gone:",
     "renderer": "erb",
-    "sha256": "30342c04"
+    "content_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "After expiration, the secret will be permanently deleted.",
     "renderer": "erb",
-    "sha256": "bd0a9bee"
+    "content_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
     "text": "Feedback on %{date} via %{display_domain} (%{strategy})",
     "renderer": "erb",
-    "sha256": "f7498c8b"
+    "content_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
     "text": "User Feedback",
     "renderer": "erb",
-    "sha256": "47296999"
+    "content_hash": "47296999"
   },
   "email.feedback_email.from_label": {
     "text": "From:",
     "renderer": "erb",
-    "sha256": "dc45d36f"
+    "content_hash": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
     "text": "Domain:",
     "renderer": "erb",
-    "sha256": "a4c7de06"
+    "content_hash": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
     "text": "Strategy:",
     "renderer": "erb",
-    "sha256": "8132ec6b"
+    "content_hash": "8132ec6b"
   },
   "email.feedback_email.message_label": {
     "text": "Message:",
     "renderer": "erb",
-    "sha256": "f5394f72"
+    "content_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
     "text": "Secret Support",
     "renderer": "erb",
-    "sha256": "f6a6c90f"
+    "content_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
     "text": "You've been invited to join %{organization_name}",
     "renderer": "erb",
-    "sha256": "58591e00"
+    "content_hash": "58591e00"
   },
   "email.organization_invitation.title": {
     "text": "You've been invited to join %{organization_name}!",
     "renderer": "erb",
-    "sha256": "19548dfd"
+    "content_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
     "renderer": "erb",
-    "sha256": "e4d3fb65"
+    "content_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
     "text": "Accept Invitation",
     "renderer": "erb",
-    "sha256": "ce7cfeaf"
+    "content_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Or copy and paste this link:",
     "renderer": "erb",
-    "sha256": "88c72144"
+    "content_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "This invitation will expire in %{days} days.",
     "renderer": "erb",
-    "sha256": "dabc54d5"
+    "content_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
     "text": "If you don't want to join, you can simply ignore this email or decline the invitation.",
     "renderer": "erb",
-    "sha256": "734882d2"
+    "content_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
     "renderer": "erb",
-    "sha256": "608e2b40"
+    "content_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
     "text": "a member",
     "renderer": "erb",
-    "sha256": "efdef688"
+    "content_hash": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
     "text": "an administrator",
     "renderer": "erb",
-    "sha256": "603fd5c3"
+    "content_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
     "text": "Your password was changed (%{display_domain})",
     "renderer": "erb",
-    "sha256": "b030deff"
+    "content_hash": "b030deff"
   },
   "email.password_changed.title": {
     "text": "Your Password Was Changed",
     "renderer": "erb",
-    "sha256": "adb1f471"
+    "content_hash": "adb1f471"
   },
   "email.password_changed.body": {
     "text": "Your password for %{product_name} was changed on %{date} at %{time}.",
     "renderer": "erb",
-    "sha256": "21f5117c"
+    "content_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
     "text": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
     "renderer": "erb",
-    "sha256": "be92cff3"
+    "content_hash": "be92cff3"
   },
   "email.password_changed.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.email_changed.subject": {
     "text": "Your email address was changed (%{display_domain})",
     "renderer": "erb",
-    "sha256": "d68d2f4c"
+    "content_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
     "text": "Your Email Address Was Changed",
     "renderer": "erb",
-    "sha256": "62b07299"
+    "content_hash": "62b07299"
   },
   "email.email_changed.body": {
     "text": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
     "renderer": "erb",
-    "sha256": "6f3419d1"
+    "content_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "If you did not make this change, please contact support immediately as your account may be compromised.",
     "renderer": "erb",
-    "sha256": "f505b562"
+    "content_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
     "text": "The email address on your %{product_name} account has been changed.",
@@ -444,7 +444,7 @@
   "email.email_changed.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
     "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
@@ -493,22 +493,22 @@
   "email.email_change_confirmation.subject": {
     "text": "Verify your new email address (%{display_domain})",
     "renderer": "erb",
-    "sha256": "6caae414"
+    "content_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
     "text": "Verify Your New Email Address",
     "renderer": "erb",
-    "sha256": "0ec73977"
+    "content_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
     "text": "Please verify this email address to complete the change for your %{product_name} account.",
     "renderer": "erb",
-    "sha256": "4df742ab"
+    "content_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Verify Email Address",
     "renderer": "erb",
-    "sha256": "d261b9df"
+    "content_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
@@ -521,7 +521,7 @@
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Or copy and paste this link:",
     "renderer": "erb",
-    "sha256": "88c72144"
+    "content_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
     "text": "This link will expire in %{hours} hours.",
@@ -534,7 +534,7 @@
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
     "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
@@ -543,296 +543,296 @@
   "email.mfa_enabled.subject": {
     "text": "Two-factor authentication enabled (%{display_domain})",
     "renderer": "erb",
-    "sha256": "c067e466"
+    "content_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
     "text": "Two-Factor Authentication Enabled",
     "renderer": "erb",
-    "sha256": "2398ed9e"
+    "content_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
     "text": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
     "renderer": "erb",
-    "sha256": "9f6be43f"
+    "content_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
     "text": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
     "renderer": "erb",
-    "sha256": "e7c11bb0"
+    "content_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
     "text": "Two-factor authentication disabled (%{display_domain})",
     "renderer": "erb",
-    "sha256": "228a686a"
+    "content_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
     "text": "Two-Factor Authentication Disabled",
     "renderer": "erb",
-    "sha256": "372d577a"
+    "content_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
     "text": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
     "renderer": "erb",
-    "sha256": "0248389d"
+    "content_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
     "renderer": "erb",
-    "sha256": "97ef0a3e"
+    "content_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
     "text": "New sign-in to your account (%{display_domain})",
     "renderer": "erb",
-    "sha256": "a704f0bb"
+    "content_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
     "text": "New Sign-In Detected",
     "renderer": "erb",
-    "sha256": "61172ee4"
+    "content_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
     "text": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
     "renderer": "erb",
-    "sha256": "040f8f48"
+    "content_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
     "text": "Device:",
     "renderer": "erb",
-    "sha256": "9f8d3539"
+    "content_hash": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
     "text": "Location:",
     "renderer": "erb",
-    "sha256": "bbdffe25"
+    "content_hash": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "IP Address:",
     "renderer": "erb",
-    "sha256": "a2cb73e4"
+    "content_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "If this wasn't you, your account may be compromised.",
     "renderer": "erb",
-    "sha256": "e2f819c9"
+    "content_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Secure Your Account",
     "renderer": "erb",
-    "sha256": "450c54c5"
+    "content_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.member_removed.subject": {
     "text": "You've been removed from %{organization_name}",
     "renderer": "erb",
-    "sha256": "9e35b86b"
+    "content_hash": "9e35b86b"
   },
   "email.member_removed.title": {
     "text": "You've Been Removed from %{organization_name}",
     "renderer": "erb",
-    "sha256": "6cf4ee6a"
+    "content_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
     "text": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
     "renderer": "erb",
-    "sha256": "d442beed"
+    "content_hash": "d442beed"
   },
   "email.member_removed.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.role_changed.subject": {
     "text": "Your role was changed in %{organization_name}",
     "renderer": "erb",
-    "sha256": "f987a7ad"
+    "content_hash": "f987a7ad"
   },
   "email.role_changed.title": {
     "text": "Your Role Was Changed",
     "renderer": "erb",
-    "sha256": "8f892809"
+    "content_hash": "8f892809"
   },
   "email.role_changed.body": {
     "text": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
     "renderer": "erb",
-    "sha256": "c2280c0c"
+    "content_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
     "text": "Organization \"%{organization_name}\" was deleted",
     "renderer": "erb",
-    "sha256": "056a9921"
+    "content_hash": "056a9921"
   },
   "email.organization_deleted.title": {
     "text": "Organization Deleted",
     "renderer": "erb",
-    "sha256": "41cff705"
+    "content_hash": "41cff705"
   },
   "email.organization_deleted.body": {
     "text": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
     "renderer": "erb",
-    "sha256": "7095fc69"
+    "content_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
     "text": "Payment receipt for %{product_name}",
     "renderer": "erb",
-    "sha256": "a1b5cc04"
+    "content_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
     "text": "Payment Receipt",
     "renderer": "erb",
-    "sha256": "7e677ab8"
+    "content_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
     "text": "Thank you for your payment. Here are your payment details:",
     "renderer": "erb",
-    "sha256": "a1fb6502"
+    "content_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
     "text": "Amount:",
     "renderer": "erb",
-    "sha256": "cdf45632"
+    "content_hash": "cdf45632"
   },
   "email.payment_receipt.date_label": {
     "text": "Date:",
     "renderer": "erb",
-    "sha256": "b51489bd"
+    "content_hash": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
     "text": "Plan:",
     "renderer": "erb",
-    "sha256": "c6c28dbb"
+    "content_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
     "text": "View Invoice",
     "renderer": "erb",
-    "sha256": "36008943"
+    "content_hash": "36008943"
   },
   "email.payment_receipt.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
     "text": "Payment failed for %{product_name}",
     "renderer": "erb",
-    "sha256": "77f18a23"
+    "content_hash": "77f18a23"
   },
   "email.payment_failed.title": {
     "text": "Payment Failed",
     "renderer": "erb",
-    "sha256": "a287ab86"
+    "content_hash": "a287ab86"
   },
   "email.payment_failed.body": {
     "text": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
     "renderer": "erb",
-    "sha256": "6496ef22"
+    "content_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
     "text": "Update Payment Method",
     "renderer": "erb",
-    "sha256": "926406b1"
+    "content_hash": "926406b1"
   },
   "email.payment_failed.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
     "text": "Your %{product_name} trial expires in %{days_remaining} days",
     "renderer": "erb",
-    "sha256": "82114f95"
+    "content_hash": "82114f95"
   },
   "email.trial_expiring.title": {
     "text": "Your Trial Is Ending Soon",
     "renderer": "erb",
-    "sha256": "36200518"
+    "content_hash": "36200518"
   },
   "email.trial_expiring.body": {
     "text": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
     "renderer": "erb",
-    "sha256": "17fc32dd"
+    "content_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Upgrade Now",
     "renderer": "erb",
-    "sha256": "66a1419e"
+    "content_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
     "text": "Your %{product_name} subscription was changed",
     "renderer": "erb",
-    "sha256": "c9b61a4d"
+    "content_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
     "text": "Subscription Changed",
     "renderer": "erb",
-    "sha256": "7523a022"
+    "content_hash": "7523a022"
   },
   "email.subscription_changed.body": {
     "text": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
     "renderer": "erb",
-    "sha256": "72f81a65"
+    "content_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
     "text": "This change is effective %{date}.",
     "renderer": "erb",
-    "sha256": "5a96ae38"
+    "content_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
     "text": "Delano",
     "renderer": "erb",
-    "sha256": "f58154f7"
+    "content_hash": "f58154f7"
   },
   "email.common.greeting": {
     "text": "Hello,",
     "renderer": "erb",
-    "sha256": "dafe7694"
+    "content_hash": "dafe7694"
   },
   "email.common.thanks": {
     "text": "Thanks,",
     "renderer": "erb",
-    "sha256": "11dfba8f"
+    "content_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
     "text": "Unsubscribe",
     "renderer": "erb",
-    "sha256": "3e92efb7"
+    "content_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
     "text": "View in browser",
     "renderer": "erb",
-    "sha256": "be843876"
+    "content_hash": "be843876"
   },
   "email.common.onetime_secret": {
     "text": "%{product_name}",
     "renderer": "erb",
-    "sha256": "7bec5899"
+    "content_hash": "7bec5899"
   }
 }

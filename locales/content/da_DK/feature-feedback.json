@@ -1,39 +1,39 @@
 {
   "web.feedback.your_feedback": {
     "text": "Din feedback",
-    "sha256": "cdb1c0a5"
+    "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
     "text": "Al feedback er velkommen!",
-    "sha256": "c57d3006"
+    "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
     "text": "Hjælp os med at forbedre",
-    "sha256": "f35439c4"
+    "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
     "text": "Luk feedbackvindue",
-    "sha256": "41689bb4"
+    "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
     "text": "Del din feedback",
-    "sha256": "6d62dfbd"
+    "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum",
-    "sha256": "6da0b72b"
+    "source_hash": "6da0b72b"
   },
   "web.feedback.delano": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
     "text": "Hjælpeindhold vises her.",
-    "sha256": "796979ea"
+    "source_hash": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
     "text": "Tak, fordi du hjalp {product_name} med at blive bedre. Det betyder meget.",
-    "sha256": "90869fa7"
+    "source_hash": "90869fa7"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Vi har bygget dette værktøj for at hjælpe dig med at dele følsomme oplysninger sikkert, og dine erfaringer fra den virkelige verden er afgørende for at fokusere vores indsats. Det hjælper os med at finde ud af, hvad vi skal arbejde videre med, og hvordan vi kan gøre tjenesten bedre for alle."
@@ -43,26 +43,26 @@
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
     "text": "En note fra Delano, grundlægger af {product_name}",
-    "sha256": "8a984466"
+    "source_hash": "8a984466"
   },
   "web.feedback.open_feedback_form": {
     "text": "Åbn feedbackformular",
-    "sha256": "acd8409b"
+    "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
     "text": "Indtast din feedback",
-    "sha256": "1bb310f4"
+    "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
     "text": "Send feedback",
-    "sha256": "8235980b"
+    "source_hash": "8235980b"
   },
   "web.feedback.founder_note_line1": {
     "text": "Jeg læser hver eneste feedback der kommer ind her. Det er sådan jeg finder ud af, hvad jeg skal bruge tid på.",
-    "sha256": "8b430d93"
+    "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
     "text": "Hvis noget er galt, eller du har idéer til hvordan det burde fungere, er dette det rette sted.",
-    "sha256": "d4b8f073"
+    "source_hash": "d4b8f073"
   }
 }

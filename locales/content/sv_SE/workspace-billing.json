@@ -1,833 +1,833 @@
 {
   "web.billing.upgrade.required": {
     "text": "Uppgradering krävs",
-    "sha256": "16487236"
+    "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
     "text": "Visa planer",
-    "sha256": "a865d424"
+    "source_hash": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
     "text": "Teamhantering kräver Identity Plus eller högre",
-    "sha256": "95bdda65"
+    "source_hash": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
     "text": "Egna domäner kräver Identity Plus eller högre",
-    "sha256": "e8af8484"
+    "source_hash": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
     "text": "API-åtkomst kräver Identity Plus eller högre",
-    "sha256": "ab8be865"
+    "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
     "text": "Granskningsloggar kräver Multi-Team-plan eller högre",
-    "sha256": "91df96b0"
+    "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
     "text": "Hantera din prenumeration, organisationer och faktureringsinställningar",
-    "sha256": "3995095c"
+    "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
     "text": "Faktureringsöversikt",
-    "sha256": "479a3c4c"
+    "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
     "text": "Visa och hantera din prenumeration och betalningsuppgifter",
-    "sha256": "60e5a00e"
+    "source_hash": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Välj organisation"
   },
   "web.billing.overview.current_plan": {
     "text": "Nuvarande plan",
-    "sha256": "5d856320"
+    "source_hash": "5d856320"
   },
   "web.billing.overview.plan_features": {
     "text": "Planfunktioner",
-    "sha256": "fbab9086"
+    "source_hash": "fbab9086"
   },
   "web.billing.overview.payment_method": {
     "text": "Betalningsmetod",
-    "sha256": "f89a4e17"
+    "source_hash": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
     "text": "Nästa faktureringsdatum",
-    "sha256": "3d1df54e"
+    "source_hash": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
     "text": "Snabbåtgärder",
-    "sha256": "2cc2b6f7"
+    "source_hash": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
     "text": "Hantera fakturering",
-    "sha256": "6d3a16f5"
+    "source_hash": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
     "text": "Visa fakturor",
-    "sha256": "cfc0404e"
+    "source_hash": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
     "text": "Uppgradera plan",
-    "sha256": "17787ab7"
+    "source_hash": "17787ab7"
   },
   "web.billing.overview.change_plan": {
     "text": "Ändra plan",
-    "sha256": "2d0b195b"
+    "source_hash": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Ingen betalningsmetod registrerad",
-    "sha256": "77f71037"
+    "source_hash": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
     "text": "Ingen kommande fakturering",
-    "sha256": "746314de"
+    "source_hash": "746314de"
   },
   "web.billing.overview.days_remaining": {
     "text": "dagar kvar",
-    "sha256": "385438a3"
+    "source_hash": "385438a3"
   },
   "web.billing.overview.billing_on": {
     "text": "Fakturering {date}",
-    "sha256": "40dcb7cf"
+    "source_hash": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
     "text": "Visa planer",
-    "sha256": "a865d424"
+    "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
     "text": "Jämför och uppgradera",
-    "sha256": "40e02bff"
+    "source_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
     "text": "Visa fakturor",
-    "sha256": "cfc0404e"
+    "source_hash": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
     "text": "Ladda ner historik",
-    "sha256": "b8ff5cac"
+    "source_hash": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
     "text": "Hantera fakturering",
-    "sha256": "6d3a16f5"
+    "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
     "text": "Uppdatera betalningsuppgifter",
-    "sha256": "1f981aaf"
+    "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
     "text": "Inga organisationer",
-    "sha256": "12420110"
+    "source_hash": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
     "text": "Skapa en organisation för att hantera din fakturering och prenumeration",
-    "sha256": "41e922d2"
+    "source_hash": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Skapa hemligheter",
-    "sha256": "0320541d"
+    "source_hash": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
     "text": "Visa kvitton",
-    "sha256": "6c664c31"
+    "source_hash": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "API-åtkomst",
-    "sha256": "5f31cc2f"
+    "source_hash": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
     "text": "Egna domäner",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
     "text": "Anpassade integritetsinställningar",
-    "sha256": "e677e27d"
+    "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
     "text": "Förlängd standardutgångstid",
-    "sha256": "19b19637"
+    "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
     "text": "Anpassade e-postinställningar",
-    "sha256": "95aebfb9"
+    "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "Egen varumärkesprofil",
-    "sha256": "237dabec"
+    "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
     "text": "Varumärkesprofilerad startsida",
-    "sha256": "e355a396"
+    "source_hash": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Inkommande hemligheter",
-    "sha256": "883dbca9"
+    "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
     "text": "Hantera organisationer",
-    "sha256": "be0fe4c3"
+    "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Hantera team",
-    "sha256": "2a52d5b4"
+    "source_hash": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
     "text": "Hantera medlemmar",
-    "sha256": "af812b01"
+    "source_hash": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
     "text": "Granskningsloggar",
-    "sha256": "5428d7fe"
+    "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Enkel inloggning",
-    "sha256": "cf7cd744"
+    "source_hash": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Prioriterad support",
-    "sha256": "ed8a65c8"
+    "source_hash": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
     "text": "Servicenivåavtal",
-    "sha256": "436f2550"
+    "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
     "text": "Kunde inte ladda funktionsdetaljer",
-    "sha256": "c350973c"
+    "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
     "text": "Inga funktioner tillgängliga",
-    "sha256": "03d195e8"
+    "source_hash": "03d195e8"
   },
   "web.billing.plans.title": {
     "text": "Välj en plan",
-    "sha256": "79506c82"
+    "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
     "text": "Välj den plan som passar dina behov",
-    "sha256": "5f039cb9"
+    "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
     "text": "Välj den perfekta planen för din organisation",
-    "sha256": "308076f2"
+    "source_hash": "308076f2"
   },
   "web.billing.plans.current": {
     "text": "Nuvarande plan",
-    "sha256": "5d856320"
+    "source_hash": "5d856320"
   },
   "web.billing.plans.current_badge": {
     "text": "Nuvarande",
-    "sha256": "e0d1b682"
+    "source_hash": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
     "text": "Uppgradera",
-    "sha256": "7ec0261b"
+    "source_hash": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
     "text": "Nedgradera",
-    "sha256": "d955b7e8"
+    "source_hash": "d955b7e8"
   },
   "web.billing.plans.monthly": {
     "text": "Månadsvis",
-    "sha256": "9b11f6b7"
+    "source_hash": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
     "text": "Årligen",
-    "sha256": "6e69b59e"
+    "source_hash": "6e69b59e"
   },
   "web.billing.plans.per_month": {
     "text": "/månad",
-    "sha256": "eec5d08b"
+    "source_hash": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
     "text": "Spara {percent}% med årlig fakturering",
-    "sha256": "88c451f2"
+    "source_hash": "88c451f2"
   },
   "web.billing.plans.free_plan": {
     "text": "Gratis",
-    "sha256": "f411a1fb"
+    "source_hash": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
     "text": "Ett team",
-    "sha256": "267ad4cf"
+    "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
     "text": "Flera team",
-    "sha256": "ffc73d2c"
+    "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
     "text": "Individuellt konto",
-    "sha256": "324221e2"
+    "source_hash": "324221e2"
   },
   "web.billing.plans.team_account": {
     "text": "Teamkonto",
-    "sha256": "44e90aad"
+    "source_hash": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
     "text": "Organisationskonto",
-    "sha256": "86e3a165"
+    "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
     "text": "Funktioner",
-    "sha256": "5697d03d"
+    "source_hash": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
     "text": "Obegränsade hemligheter",
-    "sha256": "0f077568"
+    "source_hash": "0f077568"
   },
   "web.billing.plans.api_access": {
     "text": "API-åtkomst",
-    "sha256": "923fd434"
+    "source_hash": "923fd434"
   },
   "web.billing.plans.priority_support": {
     "text": "Prioriterad support",
-    "sha256": "acea4b40"
+    "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
     "text": "Välj plan",
-    "sha256": "8709f894"
+    "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
     "text": "Kontakta försäljning",
-    "sha256": "484aa053"
+    "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
     "text": "Har du frågor eller behöver något anpassat?",
-    "sha256": "2f68484c"
+    "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
     "text": "Vi vill gärna höra från dig. Berätta vad du letar efter.",
-    "sha256": "a6b7f407"
+    "source_hash": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} team | {count} team",
-    "sha256": "a83641bc"
+    "source_hash": "a83641bc"
   },
   "web.billing.plans.members_limit": {
     "text": "{count} medlem per team | {count} medlemmar per team",
-    "sha256": "54fb2b4b"
+    "source_hash": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
     "text": "Obegränsade team",
-    "sha256": "6d9fde65"
+    "source_hash": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
     "text": "Obegränsade medlemmar per team",
-    "sha256": "728ecef0"
+    "source_hash": "728ecef0"
   },
   "web.billing.plans.most_popular": {
     "text": "Mest populär",
-    "sha256": "9e1006a4"
+    "source_hash": "9e1006a4"
   },
   "web.billing.plans.suggested": {
     "text": "Rekommenderad",
-    "sha256": "93b63bab"
+    "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
     "text": "Inkluderar allt i {plan}",
-    "sha256": "1c73c298"
+    "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
     "text": "Inga {interval}-planer tillgängliga just nu.",
-    "sha256": "d8454436"
+    "source_hash": "d8454436"
   },
   "web.billing.plans.change_immediate": {
     "text": "Din plan ändras omedelbart.",
-    "sha256": "889d13be"
+    "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
     "text": "Nuvarande plan:",
-    "sha256": "648a0ab2"
+    "source_hash": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
     "text": "Ny plan:",
-    "sha256": "edb868c4"
+    "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
     "text": "Kredit för oanvänd tid:",
-    "sha256": "001e4901"
+    "source_hash": "001e4901"
   },
   "web.billing.plans.next_invoice": {
     "text": "Nästa faktura",
-    "sha256": "5670e027"
+    "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
     "text": "Dina funktionsgränser uppdateras omedelbart efter planändringen.",
-    "sha256": "9cb09f73"
+    "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
     "text": "Planändring misslyckades. Försök igen.",
-    "sha256": "a4e86372"
+    "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
     "text": "Bekräfta uppgradering",
-    "sha256": "71a4ab02"
+    "source_hash": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
     "text": "Bekräfta nedgradering",
-    "sha256": "deaf8189"
+    "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
     "text": "Uppgradera till {plan}?",
-    "sha256": "b1e4e88c"
+    "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
     "text": "Nedgradera till {plan}?",
-    "sha256": "8eb8ea81"
+    "source_hash": "8eb8ea81"
   },
   "web.billing.invoices.title": {
     "text": "Faktureringshistorik",
-    "sha256": "5ade0861"
+    "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
     "text": "Visa din faktureringshistorik och ladda ner fakturor",
-    "sha256": "eb72573c"
+    "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Datum",
-    "sha256": "99c40ab4"
+    "source_hash": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
     "text": "Belopp",
-    "sha256": "49e96d7c"
+    "source_hash": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
     "text": "Status",
-    "sha256": "920e413c"
+    "source_hash": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
     "text": "Ladda ner",
-    "sha256": "d6eafe82"
+    "source_hash": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
     "text": "Inga fakturor ännu",
-    "sha256": "92d2d0ce"
+    "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
     "text": "Betald",
-    "sha256": "fb81b961"
+    "source_hash": "fb81b961"
   },
   "web.billing.invoices.pending": {
     "text": "Väntande",
-    "sha256": "331551b0"
+    "source_hash": "331551b0"
   },
   "web.billing.invoices.failed": {
     "text": "Misslyckad",
-    "sha256": "031a8f0f"
+    "source_hash": "031a8f0f"
   },
   "web.billing.invoices.draft": {
     "text": "Utkast",
-    "sha256": "d2e16e61"
+    "source_hash": "d2e16e61"
   },
   "web.billing.invoices.load_error": {
     "text": "Kunde inte ladda fakturor",
-    "sha256": "0b0cb3f7"
+    "source_hash": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
     "text": "Fakturering hanteras av {orgName}",
-    "sha256": "6cfe0fb4"
+    "source_hash": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
     "text": "Visa organisationens fakturering",
-    "sha256": "2ae16262"
+    "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
     "text": "Du har nått medlemsgränsen för detta team",
-    "sha256": "ce8f2a24"
+    "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
     "text": "Uppgradera för att lägga till fler medlemmar",
-    "sha256": "602bdef4"
+    "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
     "text": "Prenumeration",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.billing.subscription.status": {
     "text": "Prenumerationsstatus",
-    "sha256": "c7a08e1d"
+    "source_hash": "c7a08e1d"
   },
   "web.billing.subscription.active": {
     "text": "Aktiv",
-    "sha256": "92340695"
+    "source_hash": "92340695"
   },
   "web.billing.subscription.inactive": {
     "text": "Inaktiv",
-    "sha256": "ac7c949f"
+    "source_hash": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
     "text": "Förfallen",
-    "sha256": "2bda1c7b"
+    "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
     "text": "Avslutad",
-    "sha256": "13ca2ee2"
+    "source_hash": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
     "text": "Plan",
-    "sha256": "fa8ed0bd"
+    "source_hash": "fa8ed0bd"
   },
   "web.billing.portal.title": {
     "text": "Faktureringsportal",
-    "sha256": "9baaf69e"
+    "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
     "text": "Hantera din prenumeration, betalningsmetoder och faktureringshistorik",
-    "sha256": "1a8f3c19"
+    "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
     "text": "Öppna faktureringsportal",
-    "sha256": "23fbfa2b"
+    "source_hash": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
     "text": "Omdirigerar till faktureringsportalen...",
-    "sha256": "b6f47df3"
+    "source_hash": "b6f47df3"
   },
   "web.billing.start_today": {
     "text": "Börja idag",
-    "sha256": "80e73fc7"
+    "source_hash": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
     "text": "Börja idag med Identity Plus",
-    "sha256": "cce4c7d7"
+    "source_hash": "cce4c7d7"
   },
   "web.billing.per_month": {
     "text": "per månad",
-    "sha256": "88b1d1a6"
+    "source_hash": "88b1d1a6"
   },
   "web.billing.full_api_access": {
     "text": "Full API-åtkomst",
-    "sha256": "f5bedf1c"
+    "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
     "text": "Integritet i första hand",
-    "sha256": "587d738c"
+    "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus",
-    "sha256": "bb273516"
+    "source_hash": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
     "text": "Klicka på denna blixt för att uppgradera för anpassade domäner",
-    "sha256": "84cb4258"
+    "source_hash": "84cb4258"
   },
   "web.billing.maybe_later": {
     "text": "Kanske senare",
-    "sha256": "166b26ab"
+    "source_hash": "166b26ab"
   },
   "web.billing.upgrade_account": {
     "text": "Uppgradera konto",
-    "sha256": "4799b02e"
+    "source_hash": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
     "text": "Uppgradera till Identity Plus",
-    "sha256": "272d3c80"
+    "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
     "text": "Uppgradera för team",
-    "sha256": "90dfb533"
+    "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
     "text": "Fördelar med",
-    "sha256": "75403743"
+    "source_hash": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
     "text": "{0}: Identity Plus",
-    "sha256": "f13e5f3e"
+    "source_hash": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
     "text": "Uppgradera till",
-    "sha256": "2ecdd437"
+    "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
     "text": "Uppgradera för secrets.dindomän.se",
-    "sha256": "8e4d766a"
+    "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Alla planer inkluderar integritetsfunktioner och obegränsad delningskapacitet",
-    "sha256": "e728e4e1"
+    "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
     "text": "Alla planer inkluderar val av dataplacering: {0} regioner",
-    "sha256": "22a60b49"
+    "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
     "text": "Kom igång",
-    "sha256": "61e8d44a"
+    "source_hash": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
     "text": "{0} prenumeration",
-    "sha256": "eaf5e2ef"
+    "source_hash": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
     "text": "Förhöj din säkra delning med anpassade domäner, obegränsad kapacitet och funktioner i företagsklass.",
-    "sha256": "db458d30"
+    "source_hash": "db458d30"
   },
   "web.billing.payment_frequency": {
     "text": "Betalningsfrekvens",
-    "sha256": "b2c87e39"
+    "source_hash": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
     "text": "Säkra ditt varumärke och bygg kundförtroende med länkar från din domän. Perfekt för företag som värdesätter integritet och professionalism.",
-    "sha256": "c07cd25c"
+    "source_hash": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
     "text": "Säkra länkar, starkare relationer",
-    "sha256": "dd8dae5d"
+    "source_hash": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "Identity-nivå hittades inte i produktnivåer",
-    "sha256": "d0204fc4"
+    "source_hash": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
     "text": "Avsluta prenumeration",
-    "sha256": "3f85967f"
+    "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Avsluta prenumeration",
-    "sha256": "882e0c83"
+    "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
     "text": "Är du säker på att du vill avsluta din {plan}-prenumeration?",
-    "sha256": "f4d1b6ee"
+    "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
     "text": "Vad som händer när du avslutar:",
-    "sha256": "4d8f5751"
+    "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
     "text": "Du behåller åtkomst till alla funktioner till {date}",
-    "sha256": "eab1efe3"
+    "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
     "text": "Du behåller åtkomst till slutet av din nuvarande faktureringsperiod",
-    "sha256": "1b07a54a"
+    "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
     "text": "Du debiteras inte igen",
-    "sha256": "a01cdc16"
+    "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
     "text": "Ditt konto återgår till gratisplanen",
-    "sha256": "e01b3fc3"
+    "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Behåll prenumeration",
-    "sha256": "31e80c41"
+    "source_hash": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Avsluta prenumeration",
-    "sha256": "882e0c83"
+    "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
     "text": "Din prenumeration har avslutats. Du behåller åtkomst till slutet av din faktureringsperiod.",
-    "sha256": "e18fd9d5"
+    "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
     "text": "Kunde inte avsluta prenumeration. Försök igen.",
-    "sha256": "68e8bdde"
+    "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Avslutning av prenumeration schemalagd",
-    "sha256": "1427d139"
+    "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Din prenumeration förblir aktiv till {date}. Du fortsätter ha full åtkomst till alla funktioner till dess.",
-    "sha256": "aab4b1dc"
+    "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Ångrat dig? Du kan återaktivera din prenumeration när som helst innan avslutningsdatumet.",
-    "sha256": "c94d5527"
+    "source_hash": "c94d5527"
   },
   "web.billing.features.create_secrets": {
     "text": "Skapa och dela hemligheter",
-    "sha256": "303f9386"
+    "source_hash": "303f9386"
   },
   "web.billing.features.api_access": {
     "text": "API-åtkomst",
-    "sha256": "5f31cc2f"
+    "source_hash": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
     "text": "Egna domäner",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.billing.features.custom_domain": {
     "text": "1 egen domän",
-    "sha256": "6a6be744"
+    "source_hash": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
     "text": "Obegränsade egna domäner",
-    "sha256": "53eb7521"
+    "source_hash": "53eb7521"
   },
   "web.billing.features.custom_branding": {
     "text": "Egen varumärkesprofil",
-    "sha256": "237dabec"
+    "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
     "text": "Varumärkesprofilerad startsida",
-    "sha256": "e355a396"
+    "source_hash": "e355a396"
   },
   "web.billing.features.manage_teams": {
     "text": "Teamhantering",
-    "sha256": "6bcbac8f"
+    "source_hash": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
     "text": "Medlemshantering",
-    "sha256": "b38b89db"
+    "source_hash": "b38b89db"
   },
   "web.billing.features.audit_logs": {
     "text": "Granskningsloggar",
-    "sha256": "5428d7fe"
+    "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
     "text": "Enkel inloggning (SSO)",
-    "sha256": "5db5c812"
+    "source_hash": "5db5c812"
   },
   "web.billing.features.priority_support": {
     "text": "Prioriterad support",
-    "sha256": "ed8a65c8"
+    "source_hash": "ed8a65c8"
   },
   "web.billing.features.sla": {
     "text": "Servicenivåavtal",
-    "sha256": "436f2550"
+    "source_hash": "436f2550"
   },
   "web.billing.features.centralized_billing": {
     "text": "Centraliserad fakturering",
-    "sha256": "62042d3b"
+    "source_hash": "62042d3b"
   },
   "web.billing.features.audit_trail": {
     "text": "Granskningsspår",
-    "sha256": "d52b4039"
+    "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
     "text": "Aktivitetsflöde",
-    "sha256": "b9c6cba7"
+    "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
     "text": "Överlämningsarbetsflöden",
-    "sha256": "07202af3"
+    "source_hash": "07202af3"
   },
   "web.billing.features.extended_retention": {
     "text": "30 dagars hemlighetslagring",
-    "sha256": "21d6d514"
+    "source_hash": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
     "text": "Startsidehemligheter",
-    "sha256": "6360f7ec"
+    "source_hash": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Inkommande hemligheter",
-    "sha256": "883dbca9"
+    "source_hash": "883dbca9"
   },
   "web.billing.features.team_members_5": {
     "text": "Upp till 5 teammedlemmar",
-    "sha256": "e7518d07"
+    "source_hash": "e7518d07"
   },
   "web.billing.features.team_members_10": {
     "text": "Upp till 10 teammedlemmar",
-    "sha256": "0c64c064"
+    "source_hash": "0c64c064"
   },
   "web.billing.features.team_members_25": {
     "text": "Upp till 25 teammedlemmar",
-    "sha256": "bf3b84c8"
+    "source_hash": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
     "text": "Upp till 50 teammedlemmar",
-    "sha256": "3c2d9a14"
+    "source_hash": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
     "text": "Obegränsat antal teammedlemmar",
-    "sha256": "b7491ee9"
+    "source_hash": "b7491ee9"
   },
   "web.billing.features.notifications": {
     "text": "E-postaviseringar",
-    "sha256": "04e0f1e9"
+    "source_hash": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
     "text": "IP-åtkomstregler",
-    "sha256": "db966d47"
+    "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
     "text": "Arbetsytans varumärkesprofil",
-    "sha256": "e7acbf6f"
+    "source_hash": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
     "text": "Dedikerad infrastruktur",
-    "sha256": "0c10aea7"
+    "source_hash": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
     "text": "Delade arbetsflöden",
-    "sha256": "158f558e"
+    "source_hash": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
     "text": "Fakturering för denna organisation",
-    "sha256": "21806992"
+    "source_hash": "21806992"
   },
   "web.billing.overview.upgrade_success": {
     "text": "Din plan har uppgraderats",
-    "sha256": "00ac43f8"
+    "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
     "text": "Din nya plan är nu aktiv. Tack för ditt köp.",
-    "sha256": "fd1caeb1"
+    "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
     "text": "Faktureringskontakt",
-    "sha256": "8f782ad8"
+    "source_hash": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
     "text": "Startsidehemligheter",
-    "sha256": "6360f7ec"
+    "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
     "text": "E-postaviseringar",
-    "sha256": "04e0f1e9"
+    "source_hash": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
     "text": "IP-åtkomstregler",
-    "sha256": "db966d47"
+    "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
     "text": "Arbetsytans varumärkesprofil",
-    "sha256": "e7acbf6f"
+    "source_hash": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
     "text": "Att betala idag:",
-    "sha256": "e370e3aa"
+    "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
     "text": "Nästa fakturering ({date}):",
-    "sha256": "a6846a85"
+    "source_hash": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
     "text": "Hur din kredit tillämpas:",
-    "sha256": "a0943c3b"
+    "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
     "text": "Nästa fakturabelopp:",
-    "sha256": "526ad28f"
+    "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
     "text": "Tillgodokredit:",
-    "sha256": "e5f2e81a"
+    "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
     "text": "Belopp att betala vid nästa fakturering:",
-    "sha256": "22ee868a"
+    "source_hash": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
     "text": "Återstående kontokredit:",
-    "sha256": "eedd0c0a"
+    "source_hash": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
     "text": "Tillämpas på framtida fakturor",
-    "sha256": "5007add6"
+    "source_hash": "5007add6"
   },
   "web.billing.subscription.team_usage": {
     "text": "Teamanvändning",
-    "sha256": "f9989642"
+    "source_hash": "f9989642"
   },
   "web.billing.subscription.teams_used": {
     "text": "{used} av {limit} team",
-    "sha256": "1db6b53c"
+    "source_hash": "1db6b53c"
   }
 }

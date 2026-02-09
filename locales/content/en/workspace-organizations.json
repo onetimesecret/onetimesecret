@@ -1,582 +1,582 @@
 {
   "web.organizations.title": {
     "text": "Organizations",
-    "sha256": "2730183d"
+    "content_hash": "2730183d"
   },
   "web.organizations.organization": {
     "text": "Organization",
-    "sha256": "d764d425"
+    "content_hash": "d764d425"
   },
   "web.organizations.organization_plural": {
     "text": "Organizations",
-    "sha256": "2730183d"
+    "content_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
     "text": "Manage your organizations",
-    "sha256": "dbaa4f92"
+    "content_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
     "text": "Organizations",
-    "sha256": "2730183d"
+    "content_hash": "2730183d"
   },
   "web.organizations.manage_organizations": {
     "text": "Manage Organizations",
-    "sha256": "be0fe4c3"
+    "content_hash": "be0fe4c3"
   },
   "web.organizations.new_organization": {
     "text": "New Organization",
-    "sha256": "4876e647"
+    "content_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
     "text": "No organizations yet",
-    "sha256": "5b7a7cbd"
+    "content_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
     "text": "Organizations provide unified billing and administration. Get started by creating your first organization.",
-    "sha256": "deab4304"
+    "content_hash": "deab4304"
   },
   "web.organizations.no_description": {
     "text": "No description provided",
-    "sha256": "41183d01"
+    "content_hash": "41183d01"
   },
   "web.organizations.default": {
     "text": "Default",
-    "sha256": "21b111cb"
+    "content_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
     "text": "Create Organization",
-    "sha256": "e27f4540"
+    "content_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
     "text": "Create First Organization",
-    "sha256": "27bae486"
+    "content_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
     "text": "Create a new organization",
-    "sha256": "67cd5950"
+    "content_hash": "67cd5950"
   },
   "web.organizations.create": {
     "text": "Create",
-    "sha256": "4759498a"
+    "content_hash": "4759498a"
   },
   "web.organizations.create_error": {
     "text": "Failed to create organization",
-    "sha256": "f2204373"
+    "content_hash": "f2204373"
   },
   "web.organizations.organization_name": {
     "text": "Organization Name",
-    "sha256": "4cbd9073"
+    "content_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "e.g. Acme Corporation",
-    "sha256": "ac1c804b"
+    "content_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
     "text": "Organization Name",
-    "sha256": "4cbd9073"
+    "content_hash": "4cbd9073"
   },
   "web.organizations.description": {
     "text": "Description",
-    "sha256": "526e0087"
+    "content_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
     "text": "What is this organization for?",
-    "sha256": "27d7edae"
+    "content_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
     "text": "Billing Email",
-    "sha256": "513332d3"
+    "content_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
     "text": "Primary contact for billing and administrative notifications",
-    "sha256": "ee81c03d"
+    "content_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
     "text": "Select an organization",
-    "sha256": "48326f52"
+    "content_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
     "text": "Organization switching not available on this page",
-    "sha256": "da0cf810"
+    "content_hash": "da0cf810"
   },
   "web.organizations.not_found": {
     "text": "Organization not found",
-    "sha256": "00c50f7a"
+    "content_hash": "00c50f7a"
   },
   "web.organizations.load_error": {
     "text": "Failed to load organization",
-    "sha256": "6b5fa342"
+    "content_hash": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
     "text": "Failed to load organization",
-    "sha256": "6b5fa342"
+    "content_hash": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
     "text": "Failed to load organizations",
-    "sha256": "03b30208"
+    "content_hash": "03b30208"
   },
   "web.organizations.organization_information": {
     "text": "Organization Information",
-    "sha256": "85274cee"
+    "content_hash": "85274cee"
   },
   "web.organizations.created": {
     "text": "Created",
-    "sha256": "d70b9e24"
+    "content_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
     "text": "Last Updated",
-    "sha256": "048c7f2e"
+    "content_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
     "text": "Organization Settings",
-    "sha256": "cc1d9e61"
+    "content_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
     "text": "Update your organization name and description",
-    "sha256": "2d8b5b2b"
+    "content_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
     "text": "General Settings",
-    "sha256": "de322f87"
+    "content_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
     "text": "Billing & Subscription",
-    "sha256": "896913f0"
+    "content_hash": "896913f0"
   },
   "web.organizations.save_changes": {
     "text": "Save Changes",
-    "sha256": "35322b5b"
+    "content_hash": "35322b5b"
   },
   "web.organizations.update_success": {
     "text": "Organization updated successfully",
-    "sha256": "af39d0f3"
+    "content_hash": "af39d0f3"
   },
   "web.organizations.update_error": {
     "text": "Failed to update organization",
-    "sha256": "bc2b59b8"
+    "content_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
     "text": "Billing email updated successfully",
-    "sha256": "080a7f11"
+    "content_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
     "text": "Billing email can be changed on the Billing Overview page",
-    "sha256": "8a131415"
+    "content_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
     "text": "Billing Integration Coming Soon",
-    "sha256": "d3e0ec75"
+    "content_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
     "text": "Unified billing and subscription management will be available in a future release.",
-    "sha256": "8836108f"
+    "content_hash": "8836108f"
   },
   "web.organizations.about_title": {
     "text": "About Organizations",
-    "sha256": "2f3e2ad8"
+    "content_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
     "text": "Organizations provide unified billing and administration for centralized management.",
-    "sha256": "910f97a8"
+    "content_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
     "text": "Manage Your Organization",
-    "sha256": "810a6c86"
+    "content_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
     "text": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
-    "sha256": "96b2e4b5"
+    "content_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
     "text": "Getting Started with Organizations",
-    "sha256": "2871e738"
+    "content_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
     "text": "Create your first organization to manage your company information and prepare for future branding features.",
-    "sha256": "0487f33a"
+    "content_hash": "0487f33a"
   },
   "web.organizations.page_description": {
     "text": "Manage your organizations and team members",
-    "sha256": "2d026be4"
+    "content_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
     "text": "Settings",
-    "sha256": "74a883a0"
+    "content_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Company Branding",
-    "sha256": "7ecc5d35"
+    "content_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
     "text": "Team",
-    "sha256": "5985039f"
+    "content_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
     "text": "Billing",
-    "sha256": "3ac8bbca"
+    "content_hash": "3ac8bbca"
   },
   "web.organizations.tabs.subscription": {
     "text": "Subscription",
-    "sha256": "4999c6c6"
+    "content_hash": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Danger Zone",
-    "sha256": "3c1c01b4"
+    "content_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
     "text": "Delete Organization",
-    "sha256": "54b2edc7"
+    "content_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
     "text": "This will permanently delete the organization. This action cannot be undone.",
-    "sha256": "ab2d2c05"
+    "content_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
     "text": "Delete",
-    "sha256": "e2d0a549"
+    "content_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
     "text": "Delete Organization",
-    "sha256": "54b2edc7"
+    "content_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
     "text": "Are you sure you want to delete {name}? This action cannot be undone.",
-    "sha256": "db7e1f9d"
+    "content_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
     "text": "Failed to delete organization",
-    "sha256": "a8e5bb28"
+    "content_hash": "a8e5bb28"
   },
   "web.organizations.members.title": {
     "text": "Members",
-    "sha256": "1044a4c0"
+    "content_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
     "text": "Manage organization members and their roles",
-    "sha256": "1353774c"
+    "content_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
     "text": "Current Members",
-    "sha256": "cfc156ae"
+    "content_hash": "cfc156ae"
   },
   "web.organizations.members.member": {
     "text": "Member",
-    "sha256": "7c968fb7"
+    "content_hash": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
     "text": "member",
-    "sha256": "e31ab643"
+    "content_hash": "e31ab643"
   },
   "web.organizations.members.member_plural": {
     "text": "members",
-    "sha256": "17373ca1"
+    "content_hash": "17373ca1"
   },
   "web.organizations.members.name": {
     "text": "Name",
-    "sha256": "dcd1d522"
+    "content_hash": "dcd1d522"
   },
   "web.organizations.members.email": {
     "text": "Email",
-    "sha256": "969ccbd3"
+    "content_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
     "text": "Role",
-    "sha256": "14736a2e"
+    "content_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
     "text": "Joined",
-    "sha256": "69318b0c"
+    "content_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
     "text": "Actions",
-    "sha256": "ff8059dc"
+    "content_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
     "text": "No members yet. Invite team members to get started.",
-    "sha256": "6cbc5271"
+    "content_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
     "text": "This organization has no members yet.",
-    "sha256": "61dd2085"
+    "content_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
     "text": "Member role updated successfully",
-    "sha256": "d0d332c6"
+    "content_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
     "text": "Failed to update member role",
-    "sha256": "17d5ca66"
+    "content_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
     "text": "Member removed from organization",
-    "sha256": "210a187b"
+    "content_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
     "text": "Failed to remove member",
-    "sha256": "1cff79b7"
+    "content_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
     "text": "Remove Member",
-    "sha256": "2b98b194"
+    "content_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
     "text": "Are you sure you want to remove {name} from this organization?",
-    "sha256": "36695d98"
+    "content_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "You cannot change your own role",
-    "sha256": "0d874f75"
+    "content_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
     "text": "You cannot remove yourself from the organization",
-    "sha256": "ab358307"
+    "content_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
     "text": "You cannot remove the organization owner",
-    "sha256": "c92ed0f4"
+    "content_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "You do not have permission to manage members",
-    "sha256": "d6239f33"
+    "content_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
     "text": "Owner",
-    "sha256": "4b1b8aa3"
+    "content_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
     "text": "Admin",
-    "sha256": "c1c224b0"
+    "content_hash": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
     "text": "Member",
-    "sha256": "7c968fb7"
+    "content_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
     "text": "Full access to all organization settings and members",
-    "sha256": "d49381bf"
+    "content_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "Can manage members and most organization settings",
-    "sha256": "3d7ade92"
+    "content_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
     "text": "Basic access to organization resources",
-    "sha256": "0ddca91a"
+    "content_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
     "text": "Organization Invitations",
-    "sha256": "0289d92d"
+    "content_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
     "text": "Invite Member",
-    "sha256": "8e8a0b88"
+    "content_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
     "text": "Invite New Member",
-    "sha256": "0bfb50ed"
+    "content_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
     "text": "Pending Invitations",
-    "sha256": "b327e8a8"
+    "content_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
     "text": "No pending invitations",
-    "sha256": "275814da"
+    "content_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
     "text": "Email Address",
-    "sha256": "09bf25ef"
+    "content_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
     "text": "member{'@'}example.com",
-    "sha256": "7fd425f7"
+    "content_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
     "text": "Role",
-    "sha256": "14736a2e"
+    "content_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
     "text": "Send Invitation",
-    "sha256": "d076aa0f"
+    "content_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
     "text": "Invitation sent successfully",
-    "sha256": "81facbe6"
+    "content_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
     "text": "Failed to send invitation",
-    "sha256": "cedbf507"
+    "content_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
     "text": "Resend",
-    "sha256": "1f948437"
+    "content_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
     "text": "Revoke",
-    "sha256": "87e6d00b"
+    "content_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
     "text": "Invitation resent successfully",
-    "sha256": "099eb255"
+    "content_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
     "text": "Failed to resend invitation",
-    "sha256": "82750487"
+    "content_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
     "text": "Invitation revoked successfully",
-    "sha256": "4ce1262c"
+    "content_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
     "text": "Failed to revoke invitation",
-    "sha256": "9dbd2a60"
+    "content_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
     "text": "Invited by",
-    "sha256": "c7a6f156"
+    "content_hash": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
     "text": "Invited",
-    "sha256": "63b17bec"
+    "content_hash": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
     "text": "Expires",
-    "sha256": "f6725f3a"
+    "content_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
     "text": "Resent {count} time",
-    "sha256": "e71d1c6d"
+    "content_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
     "text": "Resent {count} times",
-    "sha256": "e58d803d"
+    "content_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
     "text": "Pending",
-    "sha256": "331551b0"
+    "content_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
     "text": "Accepted",
-    "sha256": "a00fb0c5"
+    "content_hash": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
     "text": "Declined",
-    "sha256": "dce083a2"
+    "content_hash": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
     "text": "Expired",
-    "sha256": "424a2551"
+    "content_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
     "text": "Member",
-    "sha256": "7c968fb7"
+    "content_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Admin",
-    "sha256": "c1c224b0"
+    "content_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
     "text": "Accept Invitation",
-    "sha256": "ce7cfeaf"
+    "content_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
     "text": "Decline Invitation",
-    "sha256": "f6e06ada"
+    "content_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
     "text": "Invitation Details",
-    "sha256": "59936259"
+    "content_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
     "text": "You've been invited to join",
-    "sha256": "60e635c6"
+    "content_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
     "text": "You've been invited as a",
-    "sha256": "f9809eae"
+    "content_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Invitation accepted successfully",
-    "sha256": "7eb6b234"
+    "content_hash": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
     "text": "Failed to accept invitation",
-    "sha256": "3ecc8b0f"
+    "content_hash": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
     "text": "Invitation declined",
-    "sha256": "31bffdcb"
+    "content_hash": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
     "text": "Failed to decline invitation",
-    "sha256": "2bccbd56"
+    "content_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
     "text": "This invitation has expired",
-    "sha256": "b72770d7"
+    "content_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
     "text": "Invalid or expired invitation",
-    "sha256": "6c0fc3de"
+    "content_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
     "text": "Please sign in to accept this invitation",
-    "sha256": "469fc705"
+    "content_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Loading invitation details",
-    "sha256": "58884885"
+    "content_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
     "text": "Upgrade your plan to invite team members",
-    "sha256": "5e3f8df8"
+    "content_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
     "text": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization.",
-    "sha256": "cf10d623"
+    "content_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
-    "sha256": "957b0b87"
+    "content_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
     "text": "Early Supporter",
-    "sha256": "e67d2ef8"
+    "content_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} member | {count} members",
-    "sha256": "f652af0c"
+    "content_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
     "text": "{count} domain | {count} domains",
-    "sha256": "09f52efa"
+    "content_hash": "09f52efa"
   },
   "web.organizations.tabs.domains": {
     "text": "Domains",
-    "sha256": "ced67718"
+    "content_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Wrong Account",
-    "sha256": "80c8ffa7"
+    "content_hash": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "This invitation was sent to {invitedEmail}, but you're signed in as {currentEmail}.",
-    "sha256": "937e08e7"
+    "content_hash": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
     "text": "Sign In with Different Account",
-    "sha256": "71b2bdf3"
+    "content_hash": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d left",
-    "sha256": "50ff6f2b"
+    "content_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
     "text": "{hours}h left",
-    "sha256": "ff56d105"
+    "content_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
     "text": "Expires soon",
-    "sha256": "a5dcfef9"
+    "content_hash": "a5dcfef9"
   }
 }
