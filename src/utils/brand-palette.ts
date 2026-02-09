@@ -30,7 +30,12 @@ const DIM_L_FACTOR = 0.84;
 const DIM_C_FACTOR = 0.90;
 
 /**
- * Emergency fallback color when bootstrap data is completely unavailable.
+ * OTS canonical brand color (burnt orange). This is specific to the Onetime Secret
+ * product and should NOT be used as a generic/neutral default for self-hosted
+ * or white-label deployments. For brand-agnostic defaults, use
+ * NEUTRAL_BRAND_DEFAULTS from '@/shared/constants/brand'.
+ *
+ * Kept as an emergency fallback when bootstrap data is completely unavailable.
  * Aligns with backend BrandSettingsConstants::DEFAULTS[:primary_color].
  *
  * Normal fallback chain (see identityStore.ts):
