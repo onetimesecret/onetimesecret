@@ -106,8 +106,8 @@ describe('identityStore - partial-override fallback chain', () => {
 
       const identityStore = useProductIdentity();
 
-      // Should fall through to the hardcoded default (#dc4a22)
-      expect(identityStore.primaryColor).toBe('#dc4a22');
+      // Should fall through to NEUTRAL_BRAND_DEFAULTS (blue #3B82F6, not OTS orange)
+      expect(identityStore.primaryColor).toBe('#3B82F6');
     });
   });
 

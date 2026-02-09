@@ -158,9 +158,9 @@ module Onetime
         # Site product name configuration helper
         # @return [String]
         def site_product_name
-          return 'OTS' unless defined?(OT) && OT.respond_to?(:conf)
+          return Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name] unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'product_name') || 'OTS'
+          OT.conf.dig('brand', 'product_name') || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
         end
 
         # Product name with fallback to site config
@@ -263,7 +263,7 @@ module Onetime
           # Brand color helper - resolves from data, config, or default
           # @return [String] Hex color string
           def brand_color
-            @brand_color ||= @data[:brand_color] || conf_dig('brand', 'primary_color') || '#dc4a22'
+            @brand_color ||= @data[:brand_color] || conf_dig('brand', 'primary_color') || Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
           end
 
           # Support email helper - resolves from config or default

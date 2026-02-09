@@ -2,7 +2,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { nextTick, ref, effectScope } from 'vue';
-import { generateBrandPalette, DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
+import { generateBrandPalette } from '@/utils/brand-palette';
+import { DEFAULT_BRAND_HEX } from '@/shared/constants/brand';
 
 // The 44 CSS variable keys
 const ALL_KEYS = Object.keys(generateBrandPalette(DEFAULT_BRAND_HEX));

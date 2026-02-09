@@ -1,7 +1,7 @@
 // src/tests/stores/domainsStore.spec.ts
 
 import { useDomainsStore } from '@/shared/stores/domainsStore';
-import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
+import { DEFAULT_BRAND_HEX } from '@/shared/constants/brand';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

@@ -23,7 +23,7 @@ module Onetime
       def self.default_issuer
         if defined?(OT) && OT.respond_to?(:conf) && OT.conf
           OT.conf.dig('brand', 'totp_issuer')
-        end || 'OTS'
+        end || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer]
       end
 
       def self.generate(secret, issuer: default_issuer, drift: 15)

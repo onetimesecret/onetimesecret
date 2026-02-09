@@ -395,6 +395,90 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         described_class.validate!(nil)
       end.not_to raise_error
     end
+
+    context 'WCAG accessibility validation' do
+      it 'accepts colors with sufficient contrast (OTS orange)' do
+        expect do
+          described_class.validate!(primary_color: '#dc4a22')
+        end.not_to raise_error
+      end
+
+      it 'accepts dark colors with high contrast' do
+        expect do
+          described_class.validate!(primary_color: '#000080')
+        end.not_to raise_error
+      end
+
+      it 'rejects very light colors (insufficient contrast)' do
+        expect do
+          described_class.validate!(primary_color: '#F0F0F0')
+        end.to raise_error(Onetime::Problem, /WCAG AA accessibility/)
+      end
+
+      it 'rejects light gray' do
+        expect do
+          described_class.validate!(primary_color: '#E0E0E0')
+        end.to raise_error(Onetime::Problem, /contrast.*with white/)
+      end
+
+      it 'error message includes contrast ratio' do
+        expect do
+          described_class.validate!(primary_color: '#EEEEEE')
+        end.to raise_error(Onetime::Problem, /contrast \d+\.\d+:1/)
+      end
+
+      it 'error message includes minimum requirements' do
+        expect do
+          described_class.validate!(primary_color: '#F5F5F5')
+        end.to raise_error(Onetime::Problem, /minimum 3:1/)
+      end
+
+      it 'skips validation when primary_color is nil' do
+        expect do
+          described_class.validate!(font_family: 'sans')
+        end.not_to raise_error
+      end
+    end
+  end
+
+  describe '.contrast_ratio' do
+    it 'calculates correct ratio for black and white' do
+      ratio = described_class.contrast_ratio('#000000', '#FFFFFF')
+      expect(ratio.round(2)).to eq(21.0)
+    end
+
+    it 'is symmetric' do
+      ratio1 = described_class.contrast_ratio('#FF0000', '#FFFFFF')
+      ratio2 = described_class.contrast_ratio('#FFFFFF', '#FF0000')
+      expect((ratio1 - ratio2).abs).to be < 0.01
+    end
+
+    it 'returns 1.0 for identical colors' do
+      ratio = described_class.contrast_ratio('#FF0000', '#FF0000')
+      expect(ratio.round(2)).to eq(1.0)
+    end
+
+    it 'handles 3-digit hex colors' do
+      ratio1 = described_class.contrast_ratio('#F00', '#FFF')
+      ratio2 = described_class.contrast_ratio('#FF0000', '#FFFFFF')
+      expect((ratio1 - ratio2).abs).to be < 0.01
+    end
+  end
+
+  describe '.relative_luminance' do
+    it 'returns 0.0 for black' do
+      expect(described_class.relative_luminance('#000000')).to eq(0.0)
+    end
+
+    it 'returns 1.0 for white' do
+      expect(described_class.relative_luminance('#FFFFFF')).to eq(1.0)
+    end
+
+    it 'handles 3-digit hex colors' do
+      l1 = described_class.relative_luminance('#F00')
+      l2 = described_class.relative_luminance('#FF0000')
+      expect((l1 - l2).abs).to be < 0.001
+    end
   end
 
   describe 'immutability' do

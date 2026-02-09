@@ -169,7 +169,7 @@ module Core
         # This provides a default title for initial page load before Vue takes over title management.
         site_name            = site_config.dig('interface', 'ui', 'header', 'branding', 'site_name')
         brand_config         = OT.conf.fetch('brand', {})
-        brand_product_name   = brand_config['product_name'] || 'OTS'
+        brand_product_name   = brand_config['product_name'] || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
         page_title           = display_domain || site_name || brand_product_name
         no_cache             = false
         frontend_host        = development['frontend_host']
@@ -182,8 +182,8 @@ module Core
         baseuri              = base_scheme + site_host
 
         # Brand config for templates (theme-color meta tags, etc.)
-        brand_primary_color         = brand_config['primary_color'] || '#dc4a22'
-        support_email               = brand_config['support_email'] || 'support@onetimesecret.com'
+        brand_primary_color         = brand_config['primary_color'] || Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
+        support_email               = brand_config['support_email'] || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
         docs_host                   = site_config.dig('support', 'host') || 'docs.onetimesecret.com'
         brand_corner_style          = brand_config['corner_style'] || 'rounded'
         brand_font_family           = brand_config['font_family'] || 'sans'
