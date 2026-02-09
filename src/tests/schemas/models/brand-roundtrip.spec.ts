@@ -103,6 +103,45 @@ describe('brand color round-trip validation', () => {
     });
   });
 
+  describe('XSS defense: stripHtmlTags in text fields', () => {
+    it('strips simple HTML tags from product_name', () => {
+      const parsed = brandSettingSchema.safeParse({ product_name: '<b>Bold</b> Name' });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data!.product_name).toBe('Bold Name');
+    });
+
+    it('strips nested/split tags that bypass single-pass regex', () => {
+      // This is the CodeQL js/incomplete-multi-character-sanitization case:
+      // <scr<script>ipt> → loop strips tags, then stray <> are removed
+      const parsed = brandSettingSchema.safeParse({
+        product_name: '<scr<script>ipt>alert("xss")</scr</script>ipt>',
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data!.product_name).not.toContain('<');
+      expect(parsed.data!.product_name).not.toContain('>');
+      // Residual fragments "ipt" from split tags are harmless text
+      expect(parsed.data!.product_name).toBe('iptalert("xss")ipt');
+    });
+
+    it('strips deeply nested split tags', () => {
+      const parsed = brandSettingSchema.safeParse({
+        footer_text: '<<b>script>evil</<b>script>',
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data!.footer_text).not.toContain('<');
+    });
+
+    it('preserves null and undefined text fields', () => {
+      const parsed = brandSettingSchema.safeParse({
+        product_name: null,
+        footer_text: undefined,
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data!.product_name).toBeNull();
+      expect(parsed.data!.footer_text).toBeUndefined();
+    });
+  });
+
   describe('invalid colors', () => {
     it('invalid hex string fails Zod validation', () => {
       const parsed = brandSettingSchema.safeParse({ primary_color: 'not-a-color' });

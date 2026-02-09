@@ -6,13 +6,25 @@ import { z } from 'zod';
 
 /**
  * Strips HTML tags from a string for XSS prevention at the schema boundary.
- * Defense-in-depth: primary sanitization happens server-side in Ruby.
+ * Defense-in-depth: primary sanitization happens server-side in Ruby (Sanitize gem).
+ * This regex approach is adequate because these fields only receive API response
+ * data that the backend already sanitized. If these fields ever accept direct
+ * user input on the frontend (bypassing the API), replace this with DOMPurify
+ * or the browser's native DOMParser.
  * @param val - The string value to sanitize, or null/undefined
  * @returns The sanitized string with HTML tags removed, or null/undefined
  */
 function stripHtmlTags(val: string | null | undefined): string | null | undefined {
   if (val == null) return val;
-  return val.replace(/<[^>]*>/g, '').trim();
+  // Loop until stable to handle nested tags like <scr<script>ipt>
+  let result = val;
+  let prev: string;
+  do {
+    prev = result;
+    result = result.replace(/<[^>]*>/g, '');
+  } while (result !== prev);
+  // Strip stray angle brackets left by split-tag attacks
+  return result.replace(/[<>]/g, '').trim();
 }
 
 /**
