@@ -121,7 +121,7 @@ site:
                 external: <%= ENV['STATUS_EXTERNAL'] || true %>
                 icon: signal
               - text: About
-                i18n_key: web.COMMON.about
+                i18n_key: web.COMMON.header_about
                 # Replace with your about page URL
                 url: <%= ENV['ABOUT_URL'] %>
                 external: <%= ENV['ABOUT_EXTERNAL'] || false %>
