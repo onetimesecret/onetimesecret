@@ -9,6 +9,7 @@ import type {
   SecretOptions,
 } from '@/schemas/models';
 import { getBootstrapSnapshot } from '@/services/bootstrap.service';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import type {
   BootstrapPayload,
   FooterLinksConfig,
@@ -16,7 +17,6 @@ import type {
   UiInterface,
 } from '@/types/declarations/bootstrap';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
-import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { defineStore } from 'pinia';
 import { computed, Ref, ref } from 'vue';
 import type { FallbackLocale } from 'vue-i18n';
@@ -33,7 +33,7 @@ import type { FallbackLocale } from 'vue-i18n';
  * Brand values (brand_primary_color, brand_product_name) are populated from
  * backend bootstrap, which inherits from BrandSettingsConstants.defaults.
  * The hardcoded values here use NEUTRAL_BRAND_DEFAULTS (blue, "My App") to
- * provide a generic white-label appearance if bootstrap completely fails.
+ * provide a generic private-label appearance if bootstrap completely fails.
  */
 const DEFAULTS: BootstrapPayload = {
   // Authentication state
@@ -65,7 +65,7 @@ const DEFAULTS: BootstrapPayload = {
   ruby_version: '',
   shrimp: '',
 
-  // Branding - neutral defaults for white-label deployments
+  // Branding - neutral defaults for private-label deployments
   brand_primary_color: NEUTRAL_BRAND_DEFAULTS.primary_color,
   brand_product_name: NEUTRAL_BRAND_DEFAULTS.product_name,
   brand_corner_style: NEUTRAL_BRAND_DEFAULTS.corner_style,
@@ -282,7 +282,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const display_domain = ref<string>(DEFAULTS.display_domain);
   const domain_branding = ref<BrandSettings>(DEFAULTS.domain_branding);
   const domain_logo = ref<string | null>(DEFAULTS.domain_logo);
-  const domain_context = ref<string | null>(DEFAULTS.domain_context ?? null as string | null);
+  const domain_context = ref<string | null>(DEFAULTS.domain_context ?? (null as string | null));
   const custom_domains = ref<string[] | undefined>(DEFAULTS.custom_domains);
 
   // Regions configuration
