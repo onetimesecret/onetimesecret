@@ -44,7 +44,7 @@
             :key="link.url || `link-${linkIndex}`">
             <!-- prettier-ignore-attribute class -->
             <a
-              v-if="link.url && link.url.trim()"
+              v-if="(link.url && link.url.trim()) && !link.hide"
               :href="link.url"
               :target="link.external ? '_blank' : '_self'"
               :rel="link.external ? 'noopener noreferrer' : ''"
@@ -62,11 +62,6 @@
                   collection="heroicons"
                   :name="link.icon"
                   class="size-3.5 shrink-0 opacity-60" />
-                <OIcon
-                  v-if="link.external"
-                  collection="heroicons"
-                  name="arrow-top-right-on-square"
-                  class="size-3 shrink-0 opacity-50" />
               </span>
             </a>
             <!-- Fallback for missing/empty URLs -->
