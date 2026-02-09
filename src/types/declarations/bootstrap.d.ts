@@ -57,7 +57,6 @@ export interface HeaderLogo {
 
 export interface HeaderBranding {
   logo: HeaderLogo;
-  site_name?: string;
 }
 
 export interface HeaderNavigation {
