@@ -1,594 +1,742 @@
 {
   "email.incomingsupport.subject": {
     "text": "[Заявка: %s]",
+    "renderer": "erb",
     "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
     "text": "Клієнт надіслав наступну інформацію",
+    "renderer": "erb",
     "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} надіслав(-ла) Вам таємницю",
+    "renderer": "erb",
     "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
     "text": "надіслав(-ла) Вам таємницю:",
+    "renderer": "erb",
     "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
     "text": "Важливо:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
     "text": "Це посилання працюватиме лише один раз. Після перегляду таємницю буде остаточно видалено.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
     "text": "Надіслано через",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.welcome.subject": {
     "text": "Ласкаво просимо до %{product_name} - Будь ласка, підтвердіть Вашу електронну адресу",
+    "renderer": "erb",
     "sha256": "96008c17"
   },
   "email.welcome.title": {
     "text": "Ласкаво просимо до %{product_name}!",
+    "renderer": "erb",
     "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
     "text": "Будь ласка, підтвердіть Вашу електронну адресу, натиснувши на посилання нижче:",
+    "renderer": "erb",
     "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
     "text": "Підтвердити електронну адресу",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Або скопіюйте та вставте це посилання:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.welcome.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
     "text": "P.S. Цей лист було надіслано на %{email_address}. Якщо Ви не створювали обліковий запис, Ви можете спокійно проігнорувати це повідомлення.",
+    "renderer": "erb",
     "sha256": "05709148"
   },
   "email.password_request.subject": {
     "text": "Скидання пароля (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a9882af1"
   },
   "email.password_request.title": {
     "text": "Скидання Вашого пароля",
+    "renderer": "erb",
     "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
     "text": "Ми отримали запит на скидання Вашого пароля для %{product_name}.",
+    "renderer": "erb",
     "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
     "text": "Скинути пароль",
+    "renderer": "erb",
     "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
     "text": "Або скопіюйте та вставте це посилання:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
     "text": "Якщо Ви не запитували скидання пароля, Ви можете спокійно проігнорувати цей лист.",
+    "renderer": "erb",
     "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
     "text": "P.S. Цей лист було надіслано на %{email_address}.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
     "text": "Увійти до %{display_domain}",
+    "renderer": "erb",
     "sha256": "2967293e"
   },
   "email.magic_link.title": {
     "text": "Увійти за допомогою магічного посилання",
+    "renderer": "erb",
     "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
     "text": "Ви запросили посилання для входу до Вашого облікового запису %{product_name}.",
+    "renderer": "erb",
     "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
     "text": "Увійти",
+    "renderer": "erb",
     "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "Або скопіюйте та вставте це посилання:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
     "text": "Термін дії цього посилання закінчується через 15 хвилин.",
+    "renderer": "erb",
     "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
     "text": "Якщо Ви не запитували це посилання, Ви можете спокійно проігнорувати цей лист.",
+    "renderer": "erb",
     "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
     "text": "P.S. Цей лист було надіслано на %{email_address}.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "Ви отримали таємне повідомлення",
+    "renderer": "erb",
     "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
     "text": "Ви отримали захищене повідомлення:",
+    "renderer": "erb",
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
     "text": "Нагадування:",
+    "renderer": "erb",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Хтось надіслав Вам захищене повідомлення через %{display_domain}.",
+    "renderer": "erb",
     "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
     "text": "Щоб переглянути цю таємницю, натисніть на посилання нижче:",
+    "renderer": "erb",
     "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
     "text": "Важливо:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
     "text": "Це посилання працюватиме лише один раз. Після перегляду таємницю буде остаточно видалено.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
     "text": "Надіслано через",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
     "text": "Вашу таємницю переглянули",
+    "renderer": "erb",
     "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
     "text": "Вашу таємницю переглянули",
+    "renderer": "erb",
     "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
     "text": "Вашу таємницю переглянули %{date}.",
+    "renderer": "erb",
     "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
     "text": "ID таємниці:",
+    "renderer": "erb",
     "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Це автоматичне сповіщення. Дії не потрібні.",
+    "renderer": "erb",
     "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Керувати налаштуваннями сповіщень",
+    "renderer": "erb",
     "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
     "text": "Щоб керувати налаштуваннями сповіщень:",
+    "renderer": "erb",
     "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
     "text": "Термін дії Вашого таємного посилання скоро закінчиться",
+    "renderer": "erb",
     "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
     "text": "Термін дії Вашого таємного посилання закінчується через %{time_remaining}",
+    "renderer": "erb",
     "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
     "text": "Переглянути таємницю до закінчення терміну дії",
+    "renderer": "erb",
     "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Нагадування:",
+    "renderer": "erb",
     "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
     "text": "Після закінчення терміну дії таємницю буде остаточно видалено і неможливо буде відновити.",
+    "renderer": "erb",
     "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
     "text": "Надіслано через",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "Перегляньте, поки не зникло:",
+    "renderer": "erb",
     "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "Після закінчення терміну дії таємницю буде остаточно видалено.",
+    "renderer": "erb",
     "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
     "text": "Відгук за %{date} через %{display_domain} (%{strategy})",
+    "renderer": "erb",
     "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
     "text": "Відгук користувача",
+    "renderer": "erb",
     "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
     "text": "Від:",
+    "renderer": "erb",
     "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
     "text": "Домен:",
+    "renderer": "erb",
     "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
     "text": "Стратегія:",
+    "renderer": "erb",
     "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
     "text": "Повідомлення:",
+    "renderer": "erb",
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
     "text": "Служба підтримки Secret",
+    "renderer": "erb",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
     "text": "Вас запрошено приєднатися до %{organization_name}",
+    "renderer": "erb",
     "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
     "text": "Вас запрошено приєднатися до %{organization_name}!",
+    "renderer": "erb",
     "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} запросив Вас приєднатися до «%{organization_name}» як %{role_description}.",
+    "renderer": "erb",
     "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
     "text": "Прийняти запрошення",
+    "renderer": "erb",
     "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Або скопіюйте та вставте це посилання:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "Термін дії цього запрошення закінчується через %{days} днів.",
+    "renderer": "erb",
     "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
     "text": "Якщо Ви не хочете приєднуватися, Ви можете просто проігнорувати цей лист або відхилити запрошення.",
+    "renderer": "erb",
     "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. Цей лист було надіслано на %{invited_email}. Якщо Ви не очікували цього запрошення, Ви можете спокійно проігнорувати це повідомлення.",
+    "renderer": "erb",
     "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
     "text": "учасник",
+    "renderer": "erb",
     "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
     "text": "адміністратор",
+    "renderer": "erb",
     "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
     "text": "Ваш пароль було змінено (%{display_domain})",
+    "renderer": "erb",
     "sha256": "b030deff"
   },
   "email.password_changed.title": {
     "text": "Ваш пароль було змінено",
+    "renderer": "erb",
     "sha256": "adb1f471"
   },
   "email.password_changed.body": {
     "text": "Ваш пароль для %{product_name} було змінено %{date} о %{time}.",
+    "renderer": "erb",
     "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
     "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно захистіть свій обліковий запис, скинувши пароль та зв'язавшись зі службою підтримки.",
+    "renderer": "erb",
     "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
     "text": "Вашу електронну адресу було змінено (%{display_domain})",
+    "renderer": "erb",
     "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
     "text": "Вашу електронну адресу було змінено",
+    "renderer": "erb",
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
     "text": "Електронну адресу для Вашого облікового запису %{product_name} було змінено на %{new_email_masked} %{date}.",
+    "renderer": "erb",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Якщо Ви не робили цієї зміни, будь ласка, негайно зверніться до служби підтримки, оскільки Ваш обліковий запис може бути скомпрометовано.",
+    "renderer": "erb",
     "sha256": "f505b562"
   },
   "email.email_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
     "text": "Підтвердіть Вашу нову електронну адресу (%{display_domain})",
+    "renderer": "erb",
     "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
     "text": "Підтвердіть Вашу нову електронну адресу",
+    "renderer": "erb",
     "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
     "text": "Будь ласка, підтвердіть цю електронну адресу, щоб завершити зміну для Вашого облікового запису %{product_name}.",
+    "renderer": "erb",
     "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Підтвердити електронну адресу",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Або скопіюйте та вставте це посилання:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
     "text": "Двофакторну автентифікацію увімкнено (%{display_domain})",
+    "renderer": "erb",
     "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
     "text": "Двофакторну автентифікацію увімкнено",
+    "renderer": "erb",
     "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
     "text": "Двофакторну автентифікацію було увімкнено для Вашого облікового запису %{product_name} %{date}.",
+    "renderer": "erb",
     "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
     "text": "Ваш обліковий запис тепер більш захищений. Вам потрібно буде вводити код підтвердження з Вашого додатку автентифікації під час входу.",
+    "renderer": "erb",
     "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
     "text": "Двофакторну автентифікацію вимкнено (%{display_domain})",
+    "renderer": "erb",
     "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
     "text": "Двофакторну автентифікацію вимкнено",
+    "renderer": "erb",
     "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
     "text": "Двофакторну автентифікацію було вимкнено для Вашого облікового запису %{product_name} %{date}.",
+    "renderer": "erb",
     "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Ваш обліковий запис тепер менш захищений. Якщо Ви не робили цієї зміни, будь ласка, негайно захистіть свій обліковий запис.",
+    "renderer": "erb",
     "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
     "text": "Новий вхід до Вашого облікового запису (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
     "text": "Виявлено новий вхід",
+    "renderer": "erb",
     "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
     "text": "Виявлено новий вхід до Вашого облікового запису %{product_name} %{date} о %{time}.",
+    "renderer": "erb",
     "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
     "text": "Пристрій:",
+    "renderer": "erb",
     "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
     "text": "Місцезнаходження:",
+    "renderer": "erb",
     "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "IP-адреса:",
+    "renderer": "erb",
     "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "Якщо це були не Ви, Ваш обліковий запис може бути скомпрометовано.",
+    "renderer": "erb",
     "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Захистити Ваш обліковий запис",
+    "renderer": "erb",
     "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
     "text": "Вас видалено з %{organization_name}",
+    "renderer": "erb",
     "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
     "text": "Вас видалено з %{organization_name}",
+    "renderer": "erb",
     "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
     "text": "Вас видалено з організації «%{organization_name}» на %{product_name}.",
+    "renderer": "erb",
     "sha256": "d442beed"
   },
   "email.member_removed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
     "text": "Вашу роль змінено в %{organization_name}",
+    "renderer": "erb",
     "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
     "text": "Вашу роль змінено",
+    "renderer": "erb",
     "sha256": "8f892809"
   },
   "email.role_changed.body": {
     "text": "Вашу роль в «%{organization_name}» було змінено з %{old_role} на %{new_role}.",
+    "renderer": "erb",
     "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
     "text": "Організацію «%{organization_name}» видалено",
+    "renderer": "erb",
     "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
     "text": "Організацію видалено",
+    "renderer": "erb",
     "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
     "text": "Організацію «%{organization_name}» було видалено з %{product_name}. Усі пов'язані дані було видалено.",
+    "renderer": "erb",
     "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
     "text": "Квитанція про оплату за %{product_name}",
+    "renderer": "erb",
     "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
     "text": "Квитанція про оплату",
+    "renderer": "erb",
     "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
     "text": "Дякуємо за Вашу оплату. Ось деталі Вашого платежу:",
+    "renderer": "erb",
     "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
     "text": "Сума:",
+    "renderer": "erb",
     "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
     "text": "Дата:",
+    "renderer": "erb",
     "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
     "text": "План:",
+    "renderer": "erb",
     "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
     "text": "Переглянути рахунок",
+    "renderer": "erb",
     "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
     "text": "Помилка оплати для %{product_name}",
+    "renderer": "erb",
     "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
     "text": "Помилка оплати",
+    "renderer": "erb",
     "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
     "text": "Нам не вдалося обробити Вашу оплату за %{product_name}. Будь ласка, оновіть спосіб оплати, щоб уникнути перерви в обслуговуванні.",
+    "renderer": "erb",
     "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
     "text": "Оновити спосіб оплати",
+    "renderer": "erb",
     "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
     "text": "Ваш пробний період %{product_name} закінчується через %{days_remaining} днів",
+    "renderer": "erb",
     "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
     "text": "Ваш пробний період скоро закінчується",
+    "renderer": "erb",
     "sha256": "36200518"
   },
   "email.trial_expiring.body": {
     "text": "Ваш безкоштовний пробний період %{product_name} закінчується через %{days_remaining} днів. Оновіть зараз, щоб зберегти доступ до всіх функцій.",
+    "renderer": "erb",
     "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Оновити зараз",
+    "renderer": "erb",
     "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
     "text": "Вашу підписку на %{product_name} змінено",
+    "renderer": "erb",
     "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
     "text": "Підписку змінено",
+    "renderer": "erb",
     "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
     "text": "Вашу підписку на %{product_name} було змінено з %{old_plan} на %{new_plan}.",
+    "renderer": "erb",
     "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
     "text": "Ця зміна набуває чинності %{date}.",
+    "renderer": "erb",
     "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.common.greeting": {
     "text": "Вітаємо,",
+    "renderer": "erb",
     "sha256": "dafe7694"
   },
   "email.common.thanks": {
     "text": "Дякуємо,",
+    "renderer": "erb",
     "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
     "text": "Відписатися",
+    "renderer": "erb",
     "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
     "text": "Переглянути у браузері",
+    "renderer": "erb",
     "sha256": "be843876"
   },
   "email.common.onetime_secret": {
     "text": "%{product_name}",
+    "renderer": "erb",
     "sha256": "7bec5899"
   }
 }

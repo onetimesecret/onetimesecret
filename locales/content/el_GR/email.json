@@ -1,594 +1,742 @@
 {
   "email.incomingsupport.subject": {
     "text": "[Αίτημα: %s]",
+    "renderer": "erb",
     "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
     "text": "Ένας πελάτης έστειλε τις ακόλουθες πληροφορίες",
+    "renderer": "erb",
     "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
     "text": "Ο/Η %{sender_email} σας έστειλε ένα μυστικό",
+    "renderer": "erb",
     "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
     "text": "σας έστειλε ένα μυστικό:",
+    "renderer": "erb",
     "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
     "text": "Σημαντικό:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
     "text": "Αυτός ο σύνδεσμος θα λειτουργήσει μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
     "text": "Στάλθηκε μέσω",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.welcome.subject": {
     "text": "Καλώς ήρθατε στο %{product_name} - Επαληθεύστε το email σας",
+    "renderer": "erb",
     "sha256": "96008c17"
   },
   "email.welcome.title": {
     "text": "Καλώς ήρθατε στο %{product_name}!",
+    "renderer": "erb",
     "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
     "text": "Επαληθεύστε τη διεύθυνση email σας κάνοντας κλικ στον παρακάτω σύνδεσμο:",
+    "renderer": "erb",
     "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
     "text": "Επαλήθευση διεύθυνσης email",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.welcome.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
     "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}. Εάν δεν δημιουργήσατε λογαριασμό, μπορείτε να αγνοήσετε με ασφάλεια αυτό το μήνυμα.",
+    "renderer": "erb",
     "sha256": "05709148"
   },
   "email.password_request.subject": {
     "text": "Επαναφορά του κωδικού σας (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a9882af1"
   },
   "email.password_request.title": {
     "text": "Επαναφορά του κωδικού σας",
+    "renderer": "erb",
     "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
     "text": "Λάβαμε αίτημα επαναφοράς του κωδικού σας για το %{product_name}.",
+    "renderer": "erb",
     "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
     "text": "Επαναφορά κωδικού",
+    "renderer": "erb",
     "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
     "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
     "text": "Εάν δεν ζητήσατε επαναφορά κωδικού, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
+    "renderer": "erb",
     "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
     "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
     "text": "Σύνδεση στο %{display_domain}",
+    "renderer": "erb",
     "sha256": "2967293e"
   },
   "email.magic_link.title": {
     "text": "Σύνδεση με μαγικό σύνδεσμο",
+    "renderer": "erb",
     "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
     "text": "Ζητήσατε έναν σύνδεσμο σύνδεσης για τον λογαριασμό σας στο %{product_name}.",
+    "renderer": "erb",
     "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
     "text": "Σύνδεση",
+    "renderer": "erb",
     "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
     "text": "Αυτός ο σύνδεσμος θα λήξει σε 15 λεπτά.",
+    "renderer": "erb",
     "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
     "text": "Εάν δεν ζητήσατε αυτόν τον σύνδεσμο, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
+    "renderer": "erb",
     "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
     "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "Λάβατε ένα μυστικό μήνυμα",
+    "renderer": "erb",
     "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
     "text": "Λάβατε ένα ασφαλές μήνυμα:",
+    "renderer": "erb",
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
     "text": "Υπόμνημα:",
+    "renderer": "erb",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Κάποιος σας έστειλε ένα ασφαλές μήνυμα μέσω του %{display_domain}.",
+    "renderer": "erb",
     "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
     "text": "Για να δείτε αυτό το μυστικό, κάντε κλικ στον παρακάτω σύνδεσμο:",
+    "renderer": "erb",
     "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
     "text": "Σημαντικό:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
     "text": "Αυτός ο σύνδεσμος θα λειτουργήσει μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
     "text": "Στάλθηκε μέσω",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
     "text": "Το μυστικό σας προβλήθηκε",
+    "renderer": "erb",
     "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
     "text": "Το μυστικό σας προβλήθηκε",
+    "renderer": "erb",
     "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
     "text": "Το μυστικό σας προβλήθηκε στις %{date}.",
+    "renderer": "erb",
     "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
     "text": "ID μυστικού:",
+    "renderer": "erb",
     "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Αυτή είναι μια αυτοματοποιημένη ειδοποίηση. Δεν απαιτείται καμία ενέργεια.",
+    "renderer": "erb",
     "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Διαχείριση προτιμήσεων ειδοποιήσεων",
+    "renderer": "erb",
     "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
     "text": "Για να διαχειριστείτε τις προτιμήσεις ειδοποιήσεών σας:",
+    "renderer": "erb",
     "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
     "text": "Ο μυστικός σας σύνδεσμος θα λήξει σύντομα",
+    "renderer": "erb",
     "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
     "text": "Ο μυστικός σας σύνδεσμος θα λήξει σε %{time_remaining}",
+    "renderer": "erb",
     "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
     "text": "Δείτε το μυστικό σας πριν λήξει",
+    "renderer": "erb",
     "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Υπενθύμιση:",
+    "renderer": "erb",
     "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
     "text": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά και δεν μπορεί να ανακτηθεί.",
+    "renderer": "erb",
     "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
     "text": "Στάλθηκε μέσω",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "Δείτε το πριν χαθεί:",
+    "renderer": "erb",
     "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά.",
+    "renderer": "erb",
     "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
     "text": "Σχόλια στις %{date} μέσω %{display_domain} (%{strategy})",
+    "renderer": "erb",
     "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
     "text": "Σχόλια χρήστη",
+    "renderer": "erb",
     "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
     "text": "Από:",
+    "renderer": "erb",
     "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
     "text": "Τομέας:",
+    "renderer": "erb",
     "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
     "text": "Στρατηγική:",
+    "renderer": "erb",
     "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
     "text": "Μήνυμα:",
+    "renderer": "erb",
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
     "text": "Υποστήριξη μυστικών",
+    "renderer": "erb",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
     "text": "Σας προσκάλεσαν να συμμετάσχετε στο %{organization_name}",
+    "renderer": "erb",
     "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
     "text": "Σας προσκάλεσαν να συμμετάσχετε στο %{organization_name}!",
+    "renderer": "erb",
     "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
     "text": "Ο/Η %{inviter_email} σας προσκάλεσε να συμμετάσχετε στο \"%{organization_name}\" ως %{role_description}.",
+    "renderer": "erb",
     "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
     "text": "Αποδοχή πρόσκλησης",
+    "renderer": "erb",
     "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "Αυτή η πρόσκληση θα λήξει σε %{days} ημέρες.",
+    "renderer": "erb",
     "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
     "text": "Εάν δεν θέλετε να συμμετάσχετε, μπορείτε απλά να αγνοήσετε αυτό το email ή να απορρίψετε την πρόσκληση.",
+    "renderer": "erb",
     "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
     "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{invited_email}. Εάν δεν περιμένατε αυτήν την πρόσκληση, μπορείτε να αγνοήσετε με ασφάλεια αυτό το μήνυμα.",
+    "renderer": "erb",
     "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
     "text": "μέλος",
+    "renderer": "erb",
     "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
     "text": "διαχειριστής",
+    "renderer": "erb",
     "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
     "text": "Ο κωδικός πρόσβασής σας άλλαξε (%{display_domain})",
+    "renderer": "erb",
     "sha256": "b030deff"
   },
   "email.password_changed.title": {
     "text": "Ο κωδικός πρόσβασής σας άλλαξε",
+    "renderer": "erb",
     "sha256": "adb1f471"
   },
   "email.password_changed.body": {
     "text": "Ο κωδικός πρόσβασής σας για το %{product_name} άλλαξε στις %{date} στις %{time}.",
+    "renderer": "erb",
     "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
     "text": "Εάν δεν κάνατε εσείς αυτήν την αλλαγή, ασφαλίστε τον λογαριασμό σας αμέσως επαναφέροντας τον κωδικό σας και επικοινωνώντας με την υποστήριξη.",
+    "renderer": "erb",
     "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
     "text": "Η διεύθυνση email σας άλλαξε (%{display_domain})",
+    "renderer": "erb",
     "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
     "text": "Η διεύθυνση email σας άλλαξε",
+    "renderer": "erb",
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
     "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked} στις %{date}.",
+    "renderer": "erb",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Εάν δεν κάνατε εσείς αυτήν την αλλαγή, επικοινωνήστε αμέσως με την υποστήριξη καθώς ο λογαριασμός σας μπορεί να έχει παραβιαστεί.",
+    "renderer": "erb",
     "sha256": "f505b562"
   },
   "email.email_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
     "text": "Επαληθεύστε τη νέα σας διεύθυνση email (%{display_domain})",
+    "renderer": "erb",
     "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
     "text": "Επαληθεύστε τη νέα σας διεύθυνση email",
+    "renderer": "erb",
     "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
     "text": "Επαληθεύστε αυτή τη διεύθυνση email για να ολοκληρώσετε την αλλαγή του λογαριασμού σας στο %{product_name}.",
+    "renderer": "erb",
     "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Επαλήθευση διεύθυνσης email",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
     "text": "Η επαλήθευση δύο παραγόντων ενεργοποιήθηκε (%{display_domain})",
+    "renderer": "erb",
     "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
     "text": "Η επαλήθευση δύο παραγόντων ενεργοποιήθηκε",
+    "renderer": "erb",
     "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
     "text": "Η επαλήθευση δύο παραγόντων ενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}.",
+    "renderer": "erb",
     "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
     "text": "Ο λογαριασμός σας είναι τώρα πιο ασφαλής. Θα χρειαστεί να εισάγετε έναν κωδικό επαλήθευσης από την εφαρμογή ταυτοποίησης κατά τη σύνδεση.",
+    "renderer": "erb",
     "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
     "text": "Η επαλήθευση δύο παραγόντων απενεργοποιήθηκε (%{display_domain})",
+    "renderer": "erb",
     "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
     "text": "Η επαλήθευση δύο παραγόντων απενεργοποιήθηκε",
+    "renderer": "erb",
     "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
     "text": "Η επαλήθευση δύο παραγόντων απενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}.",
+    "renderer": "erb",
     "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Ο λογαριασμός σας είναι τώρα λιγότερο ασφαλής. Εάν δεν κάνατε εσείς αυτήν την αλλαγή, ασφαλίστε τον λογαριασμό σας αμέσως.",
+    "renderer": "erb",
     "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
     "text": "Νέα σύνδεση στον λογαριασμό σας (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
     "text": "Εντοπίστηκε νέα σύνδεση",
+    "renderer": "erb",
     "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
     "text": "Εντοπίστηκε νέα σύνδεση στον λογαριασμό σας στο %{product_name} στις %{date} στις %{time}.",
+    "renderer": "erb",
     "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
     "text": "Συσκευή:",
+    "renderer": "erb",
     "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
     "text": "Τοποθεσία:",
+    "renderer": "erb",
     "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "Διεύθυνση IP:",
+    "renderer": "erb",
     "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "Εάν δεν ήσασταν εσείς, ο λογαριασμός σας μπορεί να έχει παραβιαστεί.",
+    "renderer": "erb",
     "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Ασφαλίστε τον λογαριασμό σας",
+    "renderer": "erb",
     "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
     "text": "Αφαιρεθήκατε από τον οργανισμό %{organization_name}",
+    "renderer": "erb",
     "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
     "text": "Αφαιρεθήκατε από τον οργανισμό %{organization_name}",
+    "renderer": "erb",
     "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
     "text": "Αφαιρεθήκατε από τον οργανισμό \"%{organization_name}\" στο %{product_name}.",
+    "renderer": "erb",
     "sha256": "d442beed"
   },
   "email.member_removed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
     "text": "Ο ρόλος σας άλλαξε στο %{organization_name}",
+    "renderer": "erb",
     "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
     "text": "Ο ρόλος σας άλλαξε",
+    "renderer": "erb",
     "sha256": "8f892809"
   },
   "email.role_changed.body": {
     "text": "Ο ρόλος σας στο \"%{organization_name}\" άλλαξε από %{old_role} σε %{new_role}.",
+    "renderer": "erb",
     "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
     "text": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε",
+    "renderer": "erb",
     "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
     "text": "Ο οργανισμός διαγράφηκε",
+    "renderer": "erb",
     "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
     "text": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε από το %{product_name}. Όλα τα σχετικά δεδομένα αφαιρέθηκαν.",
+    "renderer": "erb",
     "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
     "text": "Απόδειξη πληρωμής για το %{product_name}",
+    "renderer": "erb",
     "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
     "text": "Απόδειξη πληρωμής",
+    "renderer": "erb",
     "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
     "text": "Σας ευχαριστούμε για την πληρωμή σας. Ακολουθούν τα στοιχεία πληρωμής σας:",
+    "renderer": "erb",
     "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
     "text": "Ποσό:",
+    "renderer": "erb",
     "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
     "text": "Ημερομηνία:",
+    "renderer": "erb",
     "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
     "text": "Πλάνο:",
+    "renderer": "erb",
     "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
     "text": "Προβολή τιμολογίου",
+    "renderer": "erb",
     "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
     "text": "Η πληρωμή απέτυχε για το %{product_name}",
+    "renderer": "erb",
     "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
     "text": "Η πληρωμή απέτυχε",
+    "renderer": "erb",
     "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
     "text": "Δεν μπορέσαμε να επεξεργαστούμε την πληρωμή σας για το %{product_name}. Ενημερώστε τη μέθοδο πληρωμής σας για να αποφύγετε τη διακοπή της υπηρεσίας.",
+    "renderer": "erb",
     "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
     "text": "Ενημέρωση μεθόδου πληρωμής",
+    "renderer": "erb",
     "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
     "text": "Η δοκιμαστική σας περίοδος στο %{product_name} λήγει σε %{days_remaining} ημέρες",
+    "renderer": "erb",
     "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
     "text": "Η δοκιμαστική περίοδος τελειώνει σύντομα",
+    "renderer": "erb",
     "sha256": "36200518"
   },
   "email.trial_expiring.body": {
     "text": "Η δωρεάν δοκιμαστική σας περίοδος στο %{product_name} θα λήξει σε %{days_remaining} ημέρες. Αναβαθμίστε τώρα για να διατηρήσετε την πρόσβαση σε όλες τις λειτουργίες.",
+    "renderer": "erb",
     "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Αναβάθμιση τώρα",
+    "renderer": "erb",
     "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
     "text": "Η συνδρομή σας στο %{product_name} άλλαξε",
+    "renderer": "erb",
     "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
     "text": "Η συνδρομή άλλαξε",
+    "renderer": "erb",
     "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
     "text": "Η συνδρομή σας στο %{product_name} άλλαξε από %{old_plan} σε %{new_plan}.",
+    "renderer": "erb",
     "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
     "text": "Αυτή η αλλαγή τίθεται σε ισχύ στις %{date}.",
+    "renderer": "erb",
     "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.common.greeting": {
     "text": "Γεια σας,",
+    "renderer": "erb",
     "sha256": "dafe7694"
   },
   "email.common.thanks": {
     "text": "Ευχαριστούμε,",
+    "renderer": "erb",
     "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
     "text": "Κατάργηση εγγραφής",
+    "renderer": "erb",
     "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
     "text": "Προβολή στο πρόγραμμα περιήγησης",
+    "renderer": "erb",
     "sha256": "be843876"
   },
   "email.common.onetime_secret": {
     "text": "%{product_name}",
+    "renderer": "erb",
     "sha256": "7bec5899"
   }
 }
