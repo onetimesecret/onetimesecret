@@ -108,7 +108,7 @@
     "text": "Создать аккаунт",
     "sha256": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "О сервисе",
     "sha256": "4efca0d1"
   },
