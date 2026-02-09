@@ -136,17 +136,17 @@ emailer:
   tls: ~
 
 brand:
-  primary_color: '#dc4a22'
-  product_name: 'Onetime Secret'
+  primary_color: ~
+  product_name: ~
   product_domain: ~
-  support_email: 'support@onetimesecret.com'
+  support_email: ~
   corner_style: 'rounded'
   font_family: 'sans'
   button_text_light: true
   allow_public_homepage: true
   allow_public_api: true
   logo_url: ~
-  totp_issuer: 'OneTimeSecret'
+  totp_issuer: ~
 
 mail:
   truemail:

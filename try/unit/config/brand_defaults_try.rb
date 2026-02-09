@@ -61,16 +61,18 @@ settings.primary_color
 #=> '#FF0000'
 
 ## ENV override for brand primary color works
+# Must load the ERB-templated defaults file (not the static test config)
+# to verify ENV substitution in the config template.
+@defaults_path = File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml')
 with_env('BRAND_PRIMARY_COLOR', '#00FF00') do
-  # Re-load config to pick up env change
-  config = Onetime::Config.load
+  config = Onetime::Config.load(@defaults_path)
   config.dig('brand', 'primary_color')
 end
 #=> '#00FF00'
 
 ## ENV override for brand product name works
 with_env('BRAND_PRODUCT_NAME', 'My Custom App') do
-  config = Onetime::Config.load
+  config = Onetime::Config.load(@defaults_path)
   config.dig('brand', 'product_name')
 end
 #=> 'My Custom App'
@@ -80,18 +82,19 @@ issuer = OT.conf.dig('brand', 'totp_issuer')
 issuer.nil? || issuer.is_a?(String)
 #=> true
 
-## Brand totp_issuer defaults to OneTimeSecret
+## Brand totp_issuer is nil when not configured
 OT.conf.dig('brand', 'totp_issuer')
-#=> 'OneTimeSecret'
+#=> nil
 
 ## ENV override for brand totp_issuer works
 with_env('BRAND_TOTP_ISSUER', 'My Custom Issuer') do
-  config = Onetime::Config.load
+  config = Onetime::Config.load(@defaults_path)
   config.dig('brand', 'totp_issuer')
 end
 #=> 'My Custom Issuer'
 
 ## TOTP utility default_issuer reads from config
+require_relative '../../../lib/onetime/utils/totp'
 Onetime::Utils::TOTP.default_issuer
 #=> 'OneTimeSecret'
 
