@@ -10,7 +10,7 @@ export interface Testimonial {
 
 export const testimonials: Array<Testimonial> = [
   {
-    quote: "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
+    quote: "This service helps us share sensitive information securely while maintaining our professional facade.",
     name: "Aisha",
     company: "SameDay Financial",
     uri: "",
