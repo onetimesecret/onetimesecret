@@ -300,10 +300,10 @@ site:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
 brand:
-  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] || '#dc4a22' %>
-  product_name: <%= ENV['BRAND_PRODUCT_NAME'] || 'Onetime Secret' %>
+  primary_color: '<%= ENV['BRAND_PRIMARY_COLOR'] %>'
+  product_name: <%= ENV['BRAND_PRODUCT_NAME'] || nil %>
   product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'] || nil %>
-  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] || 'support@onetimesecret.com' %>
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] || nil %>
   corner_style: <%= ENV['BRAND_CORNER_STYLE'] || 'rounded' %>
   font_family: <%= ENV['BRAND_FONT_FAMILY'] || 'sans' %>
   button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
@@ -317,7 +317,7 @@ brand:
   # Changing this after users have enrolled is cosmetic only—existing codes
   # still work, but the label shown in their authenticator is frozen at
   # enrollment time.
-  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'] || 'OneTimeSecret' %>
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'] || nil %>
 
 features:
   regions:
