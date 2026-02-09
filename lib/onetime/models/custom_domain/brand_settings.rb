@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'uri'
+
 module Onetime
   class CustomDomain
     # Centralized schema for CustomDomain brand settings using Ruby 3.2+ Data.define.
@@ -138,18 +140,49 @@ module Onetime
 
         normalized = hash.transform_keys(&:to_sym).slice(*members)
 
-        if normalized.key?(:primary_color) && !normalized[:primary_color].nil? && !valid_color?(normalized[:primary_color])
-            raise Onetime::Problem, 'Invalid primary color format - must be hex code (e.g. #FF0000)'
-          end
+        validate_color_field!(normalized)
+        validate_font_field!(normalized)
+        validate_corner_style_field!(normalized)
+        validate_url_fields!(normalized)
+        validate_ttl_field!(normalized)
+      end
 
-        if normalized.key?(:font_family) && !normalized[:font_family].nil? && !valid_font?(normalized[:font_family])
-            raise Onetime::Problem, "Invalid font family - must be one of: #{BrandSettingsConstants::FONTS.join(', ')}"
-          end
+      # @api private
+      def self.validate_color_field!(normalized)
+        return unless normalized.key?(:primary_color) && !normalized[:primary_color].nil?
+        return if valid_color?(normalized[:primary_color])
 
-        if normalized.key?(:corner_style) && !normalized[:corner_style].nil? && !valid_corner_style?(normalized[:corner_style])
-            raise Onetime::Problem, "Invalid corner style - must be one of: #{BrandSettingsConstants::CORNERS.join(', ')}"
-          end
+        raise Onetime::Problem, 'Invalid primary color format - must be hex code (e.g. #FF0000)'
+      end
 
+      # @api private
+      def self.validate_font_field!(normalized)
+        return unless normalized.key?(:font_family) && !normalized[:font_family].nil?
+        return if valid_font?(normalized[:font_family])
+
+        raise Onetime::Problem, "Invalid font family - must be one of: #{BrandSettingsConstants::FONTS.join(', ')}"
+      end
+
+      # @api private
+      def self.validate_corner_style_field!(normalized)
+        return unless normalized.key?(:corner_style) && !normalized[:corner_style].nil?
+        return if valid_corner_style?(normalized[:corner_style])
+
+        raise Onetime::Problem, "Invalid corner style - must be one of: #{BrandSettingsConstants::CORNERS.join(', ')}"
+      end
+
+      # @api private
+      def self.validate_url_fields!(normalized)
+        [:logo_url, :logo_dark_url, :favicon_url].each do |url_field|
+          next unless normalized.key?(url_field) && !normalized[url_field].nil?
+          next if valid_url?(normalized[url_field])
+
+          raise Onetime::Problem, "Invalid #{url_field.to_s.tr('_', ' ')} - must be https:// URL or relative path starting with /"
+        end
+      end
+
+      # @api private
+      def self.validate_ttl_field!(normalized)
         return unless normalized.key?(:default_ttl) && !normalized[:default_ttl].nil?
 
         ttl = normalized[:default_ttl]
@@ -205,6 +238,34 @@ module Onetime
         return false if style.nil?
 
         BrandSettingsConstants::CORNERS.include?(style.to_s.downcase)
+      end
+
+      # Validates a URL string for logo/favicon fields.
+      # Accepts https:// URLs or relative paths starting with /.
+      # Enforces max length of 2048 chars to prevent abuse.
+      #
+      # @param url [String, nil] URL to validate
+      # @return [Boolean] true if valid URL
+      def self.valid_url?(url)
+        return false if url.nil? || url.empty?
+        return false if url.length > 2048
+
+        # Reject protocol-relative URLs (//)
+        return false if url.start_with?('//')
+
+        # Allow relative paths starting with / (but not //)
+        return true if url.start_with?('/')
+
+        # Require https:// for absolute URLs with valid host
+        begin
+          uri = URI.parse(url)
+          return false unless uri.is_a?(URI::HTTPS)
+          return false if uri.host.nil? || uri.host.empty?
+
+          true
+        rescue URI::InvalidURIError
+          false
+        end
       end
 
       # Converts to a hash suitable for Redis storage.
