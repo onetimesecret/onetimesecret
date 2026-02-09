@@ -85,7 +85,7 @@ site:
             # Where the logo links to when clicked
             href: <%= ENV['LOGO_LINK'] || '/' %>
           # Company name override (falls back to i18n if not set)
-          site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
+          site_name: <%= ENV['SITE_NAME'] || 'OTS' %>
         # Navigation configuration
         navigation:
           # Enable/disable header navigation entirely

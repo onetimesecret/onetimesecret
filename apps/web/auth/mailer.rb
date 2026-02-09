@@ -377,7 +377,7 @@ module Auth
       end
 
       def determine_subject_prefix
-        ENV['EMAIL_SUBJECT_PREFIX'] || '[OneTimeSecret] '
+        ENV['EMAIL_SUBJECT_PREFIX'] || '[OTS] '
       end
 
       def validate_configuration!

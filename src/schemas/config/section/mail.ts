@@ -77,7 +77,7 @@ const mailConnectionSchema = z.object({
   auth: z.string().default('login'),
   region: z.string().optional(),
   from: z.string().default('noreply@example.com'),
-  fromname: z.string().default('OneTimeSecret'),
+  fromname: z.string().default('OTS'),
   host: z.string().optional(),
   port: z.number().optional(),
   user: nullableString,

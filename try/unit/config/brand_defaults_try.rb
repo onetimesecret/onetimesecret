@@ -6,7 +6,7 @@
 #
 # The brand config section in config.defaults.yaml provides:
 # - primary_color: from ENV['BRAND_PRIMARY_COLOR'] or '#dc4a22'
-# - product_name: from ENV['BRAND_PRODUCT_NAME'] or 'Onetime Secret'
+# - product_name: from ENV['BRAND_PRODUCT_NAME'] or 'OTS'
 # - product_domain: from ENV['BRAND_PRODUCT_DOMAIN'] or nil
 #
 # BrandSettingsConstants.defaults reads primary_color from OT.conf
@@ -96,7 +96,7 @@ end
 ## TOTP utility default_issuer reads from config
 require_relative '../../../lib/onetime/utils/totp'
 Onetime::Utils::TOTP.default_issuer
-#=> 'OneTimeSecret'
+#=> 'OTS'
 
 ## BrandSettings.members includes product_name
 Onetime::CustomDomain::BrandSettings.members.include?(:product_name)

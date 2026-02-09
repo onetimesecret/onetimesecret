@@ -33,7 +33,7 @@ import { computed, watch } from 'vue';
  * });
  */
 
-const DEFAULT_APP_NAME = 'Onetime Secret';
+const DEFAULT_APP_NAME = 'OTS';
 const TITLE_SEPARATOR = ' - ';
 
 export function usePageTitle() {
