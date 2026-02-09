@@ -178,6 +178,70 @@ The palette is WCAG-contrast-safe. Dark shades maintain vibrancy through oklch's
 
 ---
 
+## WCAG Color Accessibility Requirements
+
+Brand colors must meet WCAG AA standards for visual accessibility. The system validates your `BRAND_PRIMARY_COLOR` at boot to ensure sufficient contrast.
+
+### Minimum Contrast Requirements
+
+**3:1 contrast ratio** against white backgrounds for interactive elements (buttons, links, UI components).
+
+This is the WCAG AA standard for "non-text contrast" (SC 1.4.11), which applies to:
+- Button backgrounds
+- Interactive controls
+- Focus indicators
+- Branded UI elements
+
+**Why this matters:** Users with low vision, color blindness, or viewing screens in bright light need sufficient contrast to perceive interactive elements.
+
+### Examples
+
+**Passing colors** (3:1 or higher):
+- `#dc4a22` (OTS orange) → 4.16:1 contrast on white
+- `#2563eb` (blue) → 4.74:1 contrast on white
+- `#059669` (green) → 3.42:1 contrast on white
+
+**Failing colors** (below 3:1):
+- `#fbbf24` (yellow) → 1.37:1 contrast on white
+- `#f472b6` (light pink) → 1.96:1 contrast on white
+- `#93c5fd` (light blue) → 1.64:1 contrast on white
+
+### Validation Errors
+
+If your brand color fails validation, the backend logs an error at boot:
+
+```
+[ERROR] Brand validation failed:
+  - brand_primary_color '#fbbf24' has insufficient contrast (1.37:1).
+    WCAG AA requires 3:1 minimum for UI components.
+    Consider darkening the color or choosing a different shade.
+```
+
+The system will use fallback color `#dc4a22` (OTS orange) if validation fails.
+
+### Testing Your Color
+
+Before deployment, verify your brand color meets requirements:
+
+**Online Contrast Checkers:**
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) — comprehensive tool with WCAG level indicators
+- [Coolors Contrast Checker](https://coolors.co/contrast-checker) — clean interface, color picker
+- [Accessible Colors](https://accessible-colors.com/) — suggests accessible alternatives
+
+**Input your color** (hex format) and white background `#ffffff`. Look for the "Non-text" or "UI Component" result — it should show 3:1 or higher.
+
+### Choosing Accessible Brand Colors
+
+**Guidelines:**
+- Prefer saturated, medium-to-dark colors for brand primaries
+- Avoid pastels and very light tints as primary colors
+- Test against both white and dark backgrounds if supporting dark mode
+- The palette generator will create accessible light/dark shades automatically
+
+**Quick rule:** If your color looks "vibrant" or "bold" to the eye, it likely passes. If it looks "pale" or "washed out," it probably fails.
+
+---
+
 ## Verification Checklist
 
 After configuration, verify your brand appears:
