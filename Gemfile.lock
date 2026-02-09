@@ -140,7 +140,7 @@ GEM
       redis (>= 4.8.1, < 6.0)
       stringio (~> 3.1.1)
       uri-valkey (~> 1.4)
-    faraday (2.14.0)
+    faraday (2.14.1)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -182,7 +182,7 @@ GEM
       reline (>= 0.4.2)
     jaro_winkler (1.6.1)
     jmespath (1.6.2)
-    json (2.18.0)
+    json (2.18.1)
     json-jwt (1.17.0)
       activesupport (>= 4.2)
       aes_key_wrap
