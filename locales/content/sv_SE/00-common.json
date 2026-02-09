@@ -106,7 +106,7 @@
     "text": "Skapa konto",
     "sha256": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Om",
     "sha256": "4efca0d1"
   },
