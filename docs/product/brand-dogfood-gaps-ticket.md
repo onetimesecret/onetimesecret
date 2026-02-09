@@ -76,8 +76,8 @@ These are design dimensions that have schema fields or partial implementation bu
 
 These are capabilities that comparable OSS projects offer but OTS does not yet expose as configuration.
 
-- [ ] **Logo upload/URL** (header + email) — Who has it: GitLab (3 slots), Chatwoot (3), Mattermost, Documenso, Rallly — Impact: High — every white-label needs this
-- [ ] **"Powered by" toggle** (`brand.show_attribution`) — Who has it: Rallly, Plausible, Chatwoot — Impact: Medium — enterprise white-label
+- [ ] **Logo upload/URL** (header + email) — Who has it: GitLab (3 slots), Chatwoot (3), Mattermost, Documenso, Rallly — Impact: High — every private-label needs this
+- [ ] **"Powered by" toggle** (`brand.show_attribution`) — Who has it: Rallly, Plausible, Chatwoot — Impact: Medium — enterprise private-label
 - [ ] **Terms/Privacy URLs** — Who has it: Mattermost, Cal.com — Impact: Medium — compliance
 - [ ] **GitHub/docs URLs hardcoded** in ~10 frontend components — Who has it: None configurable — Impact: Medium — links to upstream
 - [ ] **Dynamic PWA manifest** endpoint (currently a static file that cannot reflect per-domain brand) — Who has it: GitLab — Impact: Medium — mobile installs

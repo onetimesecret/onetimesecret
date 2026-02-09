@@ -144,7 +144,7 @@ OTS vulnerability: OTS is a client-rendered SPA. The sequence is:
 3. `useBrandTheme()` runs in `App.vue`, watches `primaryColor`, calls `applyPalette()`.
 4. 44 `style.setProperty()` calls override the `@theme` defaults.
 
-Between steps 1 and 4, the user sees the default OTS orange. For a white-labeled instance with a blue brand, this is a visible flash of orange-to-blue. The duration
+Between steps 1 and 4, the user sees the default OTS orange. For a private-labeled instance with a blue brand, this is a visible flash of orange-to-blue. The duration
 depends on JS parse/execute time, but it is noticeable on slower connections.
 
 Mitigation strategies (from the landscape and general practice):
@@ -205,7 +205,7 @@ Recommendations:
 ├─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────┼────────┤
 │ Centralize cornerClass/fontFamilyClass to identityStore (stop re-deriving in 6+ components) │ Medium                           │ Low    │
 ├─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────┼────────┤
-│ FOUC: pre-compute palette server-side, embed in bootstrap                                   │ High for white-label deployments │ Medium │
+│ FOUC: pre-compute palette server-side, embed in bootstrap                                   │ High for private-label deployments │ Medium │
 ├─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────┼────────┤
 │ Dark-mode logo toggling (dark:hidden / dark:block)                                          │ Medium                           │ Low    │
 ├─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────┼────────┤

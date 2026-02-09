@@ -17,7 +17,7 @@
 
 **Gated Behind Mid/Premium Tiers ($50-100+/mo):**
 
-- Full white-label (complete removal of vendor identity)
+- Full private-label (complete removal of vendor identity)
 - Custom domains with SSL (the most common premium gate)
 - Custom email templates with own branding
 - Custom login/auth page branding
@@ -62,7 +62,7 @@ Mapping to OTS's existing tiers:
 
 **How other projects handle Stripe Checkout branding:**
 
-Most projects surveyed do NOT attempt to white-label Stripe Checkout itself. Stripe's Checkout and Customer Portal have their own branding controls (set in Stripe Dashboard under Settings > Branding), and these are account-wide, not per-customer.
+Most projects surveyed do NOT attempt to private-label Stripe Checkout itself. Stripe's Checkout and Customer Portal have their own branding controls (set in Stripe Dashboard under Settings > Branding), and these are account-wide, not per-customer.
 
 **Key observations:**
 
@@ -158,9 +158,9 @@ OTS is open source. Anyone can fork the code and remove branding restrictions. G
 | --------: | ------------------------------------------ | -------------------------------------------------------------------------: |
 |    GitLab | Brand features in EE (proprietary license) |               Clear boundary; CE users cannot easily get EE brand features |
 | Plausible | AGPL + hosted-only premium features        |                       Self-hosted gets everything; hosted gets convenience |
-|   Cal.com | "Cal.com Platform" license for white-label | Self-hosted gets basic brand; full white-label requires commercial license |
+|   Cal.com | "Cal.com Platform" license for private-label | Self-hosted gets basic brand; full private-label requires commercial license |
 |  Chatwoot | Feature flags + hosted-only enforcement    |                  Self-hosted can toggle flags but features may be degraded |
-|  Metabase | OSS vs Pro editions (separate builds)      |                     OSS has no white-label; Pro has it via separate binary |
+|  Metabase | OSS vs Pro editions (separate builds)      |                     OSS has no private-label; Pro has it via separate binary |
 |    Sentry | BSL (Business Source License)              |                        Prevents other projects from offering hosted Sentry |
 | Discourse | Hosted-only premium themes + enterprise    |              Self-hosted gets basic themes; premium themes are hosted-only |
 
@@ -170,7 +170,7 @@ OTS is open source. Anyone can fork the code and remove branding restrictions. G
 2. Make the hosted value proposition about convenience, not restriction. Brand settings that "just work" with automatic SSL, domain verification, email deliverability, and Stripe billing integration are worth paying for even when the code is open.
 3. Backend enforcement on hosted. The allow_public_homepage and allow_public_api flags are infrastructure-level controls that only matter on the hosted service. Self-hosted operators control their own infrastructure anyway.
 4. Configuration vs code. Storing brand feature flags in the config file (config.defaults.yaml under branding:) with defaults that enable everything for self-hosted is the prevailing approach. The hosted service overrides these defaults via environment/config to enforce plan gating.
-5. License consideration. If full white-label is a significant revenue driver, a dual-license model where the brand customization system specifically is under a more restrictive license is an option observed in the ecosystem (Cal.com, Metabase). This is a business decision, not a technical one.
+5. License consideration. If full private-label is a significant revenue driver, a dual-license model where the brand customization system specifically is under a more restrictive license is an option observed in the ecosystem (Cal.com, Metabase). This is a business decision, not a technical one.
 
 **How this maps to OTS's architecture:**
 The existing architecture with branding: in config.defaults.yaml already supports this pattern. Self-hosted users set their own brand config freely. The hosted service reads plan capabilities from Stripe to determine which brand settings to honor. The code path is:

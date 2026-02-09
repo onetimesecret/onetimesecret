@@ -120,7 +120,7 @@ The Rodauth configuration at `/Users/d/Projects/opensource/onetime/onetimesecret
 utility class at `/Users/d/Projects/opensource/onetime/onetimesecret/lib/onetime/utils/totp.rb:23` also hardcodes `issuer: 'OneTimeSecret'` as a default parameter, and line 51
 hardcodes it in `verify` without even accepting it as a parameter.
 
-This matters: When a self-hosted operator white-labels the product as "AcmeCorp Secrets" and their users set up TOTP, their authenticator app shows "OneTimeSecret" as the
+This matters: When a self-hosted operator private-labels the product as "AcmeCorp Secrets" and their users set up TOTP, their authenticator app shows "OneTimeSecret" as the
 issuer. This undermines the branding effort at a critical trust point. If the user doesn't recognize "OneTimeSecret," they may not associate the TOTP entry with their
 AcmeCorp account.
 
