@@ -29,6 +29,15 @@ const DIM_L_FACTOR = 0.84;
 /** Chroma multiplier for dim palette base */
 const DIM_C_FACTOR = 0.90;
 
+/**
+ * Emergency fallback color when bootstrap data is completely unavailable.
+ * Aligns with backend BrandSettingsConstants::DEFAULTS[:primary_color].
+ *
+ * Normal fallback chain (see identityStore.ts):
+ *   1. domain_branding (per-domain Redis)
+ *   2. bootstrapStore.brand_primary_color (config via bootstrap)
+ *   3. DEFAULT_BRAND_HEX (this constant - true edge case)
+ */
 export const DEFAULT_BRAND_HEX = '#dc4a22';
 
 // ─── Color Space Conversions ─────────────────────────

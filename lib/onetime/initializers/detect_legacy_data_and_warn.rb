@@ -130,7 +130,7 @@ module Onetime
           3. Use SKIP_LEGACY_DATA_CHECK=true if you're certain no data exists
 
           See the Redis Data Migration Guide for detailed instructions.
-          Contact #{OT.conf.dig('brand', 'support_email') || 'support@onetimesecret.com'} if you need assistance.
+          Contact #{OT.conf.dig('brand', 'support_email') || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]} if you need assistance.
 
         REMEDIATION_MESSAGE
 

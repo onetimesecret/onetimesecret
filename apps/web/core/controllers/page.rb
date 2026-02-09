@@ -69,8 +69,8 @@ module Core
       # Dynamic site.webmanifest generated from brand config
       def webmanifest
         brand_conf   = OT.conf['brand'] || {}
-        product_name = brand_conf['product_name'] || 'OTS'
-        theme_color  = brand_conf['primary_color'] || '#dc4a22'
+        product_name = brand_conf['product_name'] || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+        theme_color  = brand_conf['primary_color'] || Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
 
         manifest = {
           name: product_name,

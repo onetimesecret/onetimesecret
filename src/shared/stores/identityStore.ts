@@ -1,15 +1,20 @@
 // src/shared/stores/identityStore.ts
 
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
-import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
+import {
+  NEUTRAL_BRAND_DEFAULTS,
+  DEFAULT_BUTTON_TEXT_LIGHT,
+  DEFAULT_CORNER_CLASS,
+} from '@/shared/constants/brand';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useBootstrapStore } from './bootstrapStore';
 
-export const DEFAULT_PRIMARY_COLOR = DEFAULT_BRAND_HEX;
-export const DEFAULT_CORNER_CLASS = 'rounded-lg';
-export const DEFAULT_BUTTON_TEXT_LIGHT = true; // light text for default colour
+// Re-export for backwards compatibility
+/** @deprecated Use NEUTRAL_BRAND_DEFAULTS.primary_color instead */
+export { DEFAULT_BRAND_HEX as DEFAULT_PRIMARY_COLOR } from '@/shared/constants/brand';
+export { DEFAULT_CORNER_CLASS, DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/constants/brand';
 
 /**
  * Represents the product's identity state for a given domain context
@@ -75,17 +80,24 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const brand = brandSettingschema.parse(domain_branding.value ?? {});
 
     // 3-step fallback chain for primary color resolution:
-    //   1. Per-domain color from Redis (custom domain branding)
-    //   2. Per-installation color from config (branding.primary_color)
-    //   3. Hardcoded default (#dc4a22)
-    // This supports both multi-tenant (step 1 per domain, step 3
-    // as shared default) and single-tenant elite (step 2 from ENV).
-    // The brand schema uses .nullish() instead of .default() so that
-    // absent domain colors fall through to steps 2 and 3.
+    //   1. domain_branding      - Per-domain color from Redis (custom domain branding)
+    //   2. brand_primary_color  - Site-wide default from backend (OT.conf via BrandSettingsConstants)
+    //   3. NEUTRAL_BRAND_DEFAULTS - Generic neutral theme when bootstrap completely fails
+    //
+    // Philosophy: Step 3 should NEVER show OTS branding. If bootstrap fails to provide
+    // brand data, the UI degrades to neutral blue (#3B82F6), not accidentally advertising
+    // OTS. This supports white-label / private-label deployments.
+    //
+    // Step 2 inherits from backend BrandSettingsConstants.defaults which reads
+    // OT.conf['brand']['primary_color'] at runtime. This ensures frontend brand
+    // values come from backend config, not hardcoded frontend constants.
+    //
+    // The brand schema uses .nullish() instead of .default() so absent domain
+    // colors fall through to steps 2 and 3.
     const primaryColor =
       primaryColorValidator.parse(brand.primary_color) ??
       bootstrapStore.brand_primary_color ??
-      DEFAULT_PRIMARY_COLOR;
+      NEUTRAL_BRAND_DEFAULTS.primary_color;
     const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     // 3-step fallback chain for allow_public_homepage:
     //   1. Per-domain setting from Redis (custom domain branding)
@@ -119,7 +131,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     state.primaryColor =
       primaryColorValidator.parse(brand.primary_color) ??
       bootstrapStore.brand_primary_color ??
-      DEFAULT_PRIMARY_COLOR;
+      NEUTRAL_BRAND_DEFAULTS.primary_color;
     state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     state.allowPublicHomepage =
       brand.allow_public_homepage ??

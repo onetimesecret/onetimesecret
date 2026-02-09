@@ -16,7 +16,7 @@ import type {
   UiInterface,
 } from '@/types/declarations/bootstrap';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
-import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { defineStore } from 'pinia';
 import { computed, Ref, ref } from 'vue';
 import type { FallbackLocale } from 'vue-i18n';
@@ -29,6 +29,11 @@ import type { FallbackLocale } from 'vue-i18n';
  *
  * Type-safe defaults ensure the store always has valid values even before
  * server data is hydrated.
+ *
+ * Brand values (brand_primary_color, brand_product_name) are populated from
+ * backend bootstrap, which inherits from BrandSettingsConstants.defaults.
+ * The hardcoded values here use NEUTRAL_BRAND_DEFAULTS (blue, "My App") to
+ * provide a generic white-label appearance if bootstrap completely fails.
  */
 const DEFAULTS: BootstrapPayload = {
   // Authentication state
@@ -59,14 +64,14 @@ const DEFAULTS: BootstrapPayload = {
   ruby_version: '',
   shrimp: '',
 
-  // Branding
-  brand_primary_color: DEFAULT_BRAND_HEX,
-  brand_product_name: 'OTS',
-  brand_corner_style: 'rounded',
-  brand_font_family: 'sans',
-  brand_button_text_light: true,
-  brand_allow_public_homepage: true,
-  brand_allow_public_api: true,
+  // Branding - neutral defaults for white-label deployments
+  brand_primary_color: NEUTRAL_BRAND_DEFAULTS.primary_color,
+  brand_product_name: NEUTRAL_BRAND_DEFAULTS.product_name,
+  brand_corner_style: NEUTRAL_BRAND_DEFAULTS.corner_style,
+  brand_font_family: NEUTRAL_BRAND_DEFAULTS.font_family,
+  brand_button_text_light: NEUTRAL_BRAND_DEFAULTS.button_text_light,
+  brand_allow_public_homepage: NEUTRAL_BRAND_DEFAULTS.allow_public_homepage,
+  brand_allow_public_api: NEUTRAL_BRAND_DEFAULTS.allow_public_api,
 
   // Documentation / support
   docs_host: 'docs.onetimesecret.com',
