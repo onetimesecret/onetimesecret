@@ -14,6 +14,14 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
       expected_members = %i[
         logo
         primary_color
+        product_name
+        product_domain
+        support_email
+        footer_text
+        description
+        logo_url
+        logo_dark_url
+        favicon_url
         instructions_pre_reveal
         instructions_reveal
         instructions_post_reveal
