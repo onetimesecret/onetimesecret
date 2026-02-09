@@ -300,7 +300,7 @@ site:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
 brand:
-  primary_color: '<%= ENV['BRAND_PRIMARY_COLOR'] %>'
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] || nil %>
   product_name: <%= ENV['BRAND_PRODUCT_NAME'] || nil %>
   product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'] || nil %>
   support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] || nil %>
