@@ -10,7 +10,7 @@
 //
 // Philosophy: Step 3 should NEVER show OTS branding. If bootstrap fails to provide
 // brand data, the UI degrades to a neutral "My App" blue appearance, not accidentally
-// advertising OTS. This supports white-label / private-label deployments.
+// advertising OTS. This supports private-label / private-label deployments.
 //
 // See identityStore.ts for the implementation of this fallback chain.
 
@@ -32,7 +32,7 @@ export const DEFAULT_BUTTON_TEXT_LIGHT = true;
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
 
 /**
- * Neutral brand defaults for white-label / private-label instances.
+ * Neutral brand defaults for private-label / private-label instances.
  * These are intentionally NOT OTS-branded — they provide a clean, generic
  * appearance when bootstrap data is unavailable.
  *

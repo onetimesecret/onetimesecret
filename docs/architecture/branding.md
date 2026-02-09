@@ -2,7 +2,7 @@
 
 ## Overview
 
-The OTS brand system supports white-label/private-label deployments through a three-tier fallback chain that resolves brand values from the most specific (per-domain) to the most generic (neutral defaults). This architecture ensures branding never accidentally shows OTS identity when bootstrap fails or when running as a private-label instance.
+The OTS brand system supports private-label deployments through a three-tier fallback chain that resolves brand values from the most specific (per-domain) to the most generic (neutral defaults). This architecture ensures branding never accidentally shows OTS identity when bootstrap fails or when running as a private-label instance.
 
 ## 3-Step Brand Fallback Chain
 
@@ -85,7 +85,7 @@ const primaryColor =
 
 When bootstrap completely fails or returns no brand data, the frontend uses generic neutral defaults.
 
-**Philosophy**: NEVER show OTS branding accidentally. Degrading to neutral blue (#3B82F6) "My App" theme prevents unintended advertising and supports white-label instances.
+**Philosophy**: NEVER show OTS branding accidentally. Degrading to neutral blue (#3B82F6) "My App" theme prevents unintended advertising and supports private-label instances.
 
 **Constants** (`src/shared/constants/brand.ts`):
 ```typescript
@@ -354,7 +354,7 @@ When migrating from OTS-branded defaults to neutral defaults:
 
 ## White-Label Deployment Checklist
 
-For deploying OTS as a white-label product:
+For deploying OTS as a private-label product:
 
 - [ ] Set `brand.primary_color` in config to your brand color
 - [ ] Set `brand.product_name` to your product name
