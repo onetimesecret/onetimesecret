@@ -63,9 +63,9 @@
     if (isCustomDomainLogo.value) return 80;
     return isUserPresent.value ? 40 : 64;
   };
-  // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name.value });
+  // Hide site name when custom domain logo is displayed OR when user is authenticated (unless explicitly configured)
+  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value || isUserPresent.value ? false : !!headerConfig.value?.branding?.site_name);
+  const getSiteName = () => props.logo?.siteName || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name.value });
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
