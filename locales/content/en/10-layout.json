@@ -47,6 +47,10 @@
     "text": "Legals",
     "sha256": "0a410c78"
   },
+  "web.footer.product": {
+    "text": "Product",
+    "sha256": null
+  },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "When you submit feedback, we'll see:",
     "sha256": "fe77172e"
@@ -78,6 +82,10 @@
   "web.footer.resources": {
     "text": "Resources",
     "sha256": "e89b30aa"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "GitHub",
+    "sha256": null
   },
   "web.footer.blog": {
     "text": "Blog",

@@ -35,6 +35,7 @@ export interface FooterLink {
   i18n_key?: string;
   url: string;
   external?: boolean;
+  hide?: boolean;
   icon?: string;
 }
 
@@ -214,15 +215,17 @@ export interface BootstrapPayload {
      * OmniAuth/SSO authentication via external identity providers.
      * Can be boolean (false when disabled) or object with config when enabled.
      */
-    omniauth?: boolean | {
-      enabled: boolean;
-      /** Display name for the SSO provider (e.g., "Zitadel", "Okta") */
-      display_name?: string;
-      /** @deprecated Use display_name instead */
-      provider_name?: string;
-      /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
-      route_name?: string;
-    };
+    omniauth?:
+      | boolean
+      | {
+          enabled: boolean;
+          /** Display name for the SSO provider (e.g., "Zitadel", "Okta") */
+          display_name?: string;
+          /** @deprecated Use display_name instead */
+          provider_name?: string;
+          /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
+          route_name?: string;
+        };
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;
   };
