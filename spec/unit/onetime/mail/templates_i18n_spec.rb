@@ -248,7 +248,11 @@ RSpec.describe 'Email template i18n integration' do
         # Check for translated strings
         expect(text).to include('sent you a secret')
         expect(text).to include('This link will only work once')
-        expect(text).to include('Onetime Secret')
+        # The i18n key email.common.onetime_secret uses %{product_name} (Ruby I18n
+        # interpolation) and the ERB template passes product_name: product_name,
+        # so it resolves to the configured product name (falls back to GLOBAL_DEFAULTS).
+        expect(text).not_to include('{product_name}')
+        expect(text).to include('OTS')
       end
 
       it 'includes the secret URL path' do
@@ -274,7 +278,9 @@ RSpec.describe 'Email template i18n integration' do
         expect(html).to include('sent you a secret')
         expect(html).to include('Important:')
         expect(html).to include('This link will only work once')
-        expect(html).to include('Onetime Secret')
+        # Product name should be interpolated (see render_text test above)
+        expect(html).not_to include('{product_name}')
+        expect(html).to include('OTS')
       end
 
       it 'includes properly escaped content' do
