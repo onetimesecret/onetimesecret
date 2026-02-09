@@ -62,9 +62,16 @@ the sender name or domain.
 
 ### Current State
 
-No operator-facing documentation exists for brand customization. The only reference is
-the `brand:` section in `config.defaults.yaml` (with ENV var comments) and this product
-bible.
+**✅ Completed (v0.24):** [Self-Hosting Brand Customization Guide](SELF-HOSTING-GUIDE.md) provides:
+- Quick-start (3 environment variables)
+- Complete configuration reference
+- SITE_NAME deprecation migration guide
+- Logo options (PNG vs Vue component)
+- Troubleshooting common issues
+- Real-world examples
+
+The guide is now the primary reference for self-hosters. The `brand:` section in
+`config.defaults.yaml` remains as inline documentation for developers.
 
 ### What Operators Need
 
