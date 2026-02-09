@@ -95,7 +95,9 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
 
       expect(settings.font_family).to eq('sans')
       expect(settings.corner_style).to eq('rounded')
-      expect(settings.primary_color).to eq('#dc4a22')
+      # primary_color comes from config at runtime, falls back to #dc4a22
+      expect(settings.primary_color).to be_a(String)
+      expect(settings.primary_color).to match(/^#[A-Fa-f0-9]{6}$/)
     end
 
     it 'ignores invalid keys' do
@@ -262,6 +264,136 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         expect(described_class.valid_corner_style?('')).to be false
         expect(described_class.valid_corner_style?(nil)).to be false
       end
+    end
+
+    describe '.valid_url?' do
+      it 'accepts valid HTTPS URLs' do
+        expect(described_class.valid_url?('https://example.com/logo.png')).to be true
+        expect(described_class.valid_url?('https://cdn.example.com/images/logo.svg')).to be true
+      end
+
+      it 'accepts relative paths starting with /' do
+        expect(described_class.valid_url?('/images/logo.png')).to be true
+        expect(described_class.valid_url?('/assets/favicon.ico')).to be true
+      end
+
+      it 'rejects HTTP URLs (non-HTTPS)' do
+        expect(described_class.valid_url?('http://example.com/logo.png')).to be false
+      end
+
+      it 'rejects URLs without protocol' do
+        expect(described_class.valid_url?('example.com/logo.png')).to be false
+        expect(described_class.valid_url?('//cdn.example.com/logo.png')).to be false
+      end
+
+      it 'rejects URLs exceeding 2048 characters' do
+        long_url = 'https://example.com/' + ('a' * 2048)
+        expect(described_class.valid_url?(long_url)).to be false
+      end
+
+      it 'rejects empty and nil values' do
+        expect(described_class.valid_url?('')).to be false
+        expect(described_class.valid_url?(nil)).to be false
+      end
+
+      it 'rejects malformed URLs' do
+        expect(described_class.valid_url?('not a url')).to be false
+        expect(described_class.valid_url?('https://')).to be false
+      end
+    end
+  end
+
+  describe '.validate!' do
+    it 'accepts valid settings' do
+      expect do
+        described_class.validate!(
+          primary_color: '#FF0000',
+          font_family: 'sans',
+          corner_style: 'rounded',
+          logo_url: 'https://example.com/logo.png',
+          default_ttl: 3600
+        )
+      end.not_to raise_error
+    end
+
+    it 'raises on invalid primary_color' do
+      expect do
+        described_class.validate!(primary_color: 'red')
+      end.to raise_error(Onetime::Problem, /Invalid primary color format/)
+    end
+
+    it 'raises on invalid font_family' do
+      expect do
+        described_class.validate!(font_family: 'comic-sans')
+      end.to raise_error(Onetime::Problem, /Invalid font family/)
+    end
+
+    it 'raises on invalid corner_style' do
+      expect do
+        described_class.validate!(corner_style: 'circular')
+      end.to raise_error(Onetime::Problem, /Invalid corner style/)
+    end
+
+    it 'raises on invalid logo_url (HTTP)' do
+      expect do
+        described_class.validate!(logo_url: 'http://example.com/logo.png')
+      end.to raise_error(Onetime::Problem, /Invalid logo url/)
+    end
+
+    it 'raises on invalid logo_dark_url' do
+      expect do
+        described_class.validate!(logo_dark_url: 'not a url')
+      end.to raise_error(Onetime::Problem, /Invalid logo dark url/)
+    end
+
+    it 'raises on invalid favicon_url' do
+      expect do
+        described_class.validate!(favicon_url: '//cdn.example.com/favicon.ico')
+      end.to raise_error(Onetime::Problem, /Invalid favicon url/)
+    end
+
+    it 'raises on invalid default_ttl (string)' do
+      expect do
+        described_class.validate!(default_ttl: 'not a number')
+      end.to raise_error(Onetime::Problem, /Invalid default TTL/)
+    end
+
+    it 'raises on invalid default_ttl (negative)' do
+      expect do
+        described_class.validate!(default_ttl: -100)
+      end.to raise_error(Onetime::Problem, /Invalid default TTL/)
+    end
+
+    it 'accepts relative URLs for logo fields' do
+      expect do
+        described_class.validate!(
+          logo_url: '/images/logo.png',
+          logo_dark_url: '/images/logo-dark.png',
+          favicon_url: '/favicon.ico'
+        )
+      end.not_to raise_error
+    end
+
+    it 'accepts nil values (no validation on nil)' do
+      expect do
+        described_class.validate!(
+          primary_color: nil,
+          logo_url: nil,
+          default_ttl: nil
+        )
+      end.not_to raise_error
+    end
+
+    it 'accepts empty hash' do
+      expect do
+        described_class.validate!({})
+      end.not_to raise_error
+    end
+
+    it 'accepts nil' do
+      expect do
+        described_class.validate!(nil)
+      end.not_to raise_error
     end
   end
 

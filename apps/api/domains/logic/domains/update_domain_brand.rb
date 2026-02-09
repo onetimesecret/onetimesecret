@@ -69,10 +69,26 @@ module DomainsAPI::Logic
         success_data
       end
 
-      # Validate URL format
+      # Validate URL format for logo/favicon fields.
+      # Accepts https:// URLs or relative paths starting with /.
+      # Enforces max length of 2048 chars to prevent abuse.
+      # Rejects http:// to prevent mixed content and potential SSRF.
       def valid_url?(url)
+        return false if url.nil? || url.empty?
+        return false if url.length > 2048
+
+        # Reject protocol-relative URLs (//)
+        return false if url.start_with?('//')
+
+        # Allow relative paths starting with / (but not //)
+        return true if url.start_with?('/')
+
+        # Require https:// for absolute URLs with valid host
         uri = URI.parse(url)
-        uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+        return false unless uri.is_a?(URI::HTTPS)
+        return false if uri.host.nil? || uri.host.empty?
+
+        true
       rescue URI::InvalidURIError
         false
       end
@@ -132,6 +148,7 @@ module DomainsAPI::Logic
         validate_font
         validate_corner_style
         validate_default_ttl
+        validate_urls
 
         # Model-level validation as defense-in-depth. The per-field checks
         # above produce specific form errors with logging; this catches
@@ -196,6 +213,18 @@ module DomainsAPI::Logic
 
         # Update the brand_settings hash with the coerced value
         @brand_settings['default_ttl'] = ttl_value
+      end
+
+      def validate_urls
+        %w[logo_url logo_dark_url favicon_url].each do |url_field|
+          url = @brand_settings[url_field]
+          next if url.nil?
+
+          unless valid_url?(url)
+            OT.ld "[UpdateDomainBrand] Error: Invalid URL format for '#{url_field}': #{url}"
+            raise_form_error "Invalid #{url_field.tr('_', ' ')} - must be https:// URL or relative path starting with /"
+          end
+        end
       end
 
       # Strip HTML tags from free-text brand settings to prevent XSS.
