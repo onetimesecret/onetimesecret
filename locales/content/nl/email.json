@@ -1,594 +1,742 @@
 {
   "email.incomingsupport.subject": {
     "text": "[Ticket: %s]",
+    "renderer": "erb",
     "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
     "text": "Een klant heeft de volgende informatie verzonden",
+    "renderer": "erb",
     "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} heeft je een bericht gestuurd",
+    "renderer": "erb",
     "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
     "text": "heeft je een bericht gestuurd:",
+    "renderer": "erb",
     "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
     "text": "Belangrijk:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
     "text": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
     "text": "Verzonden via",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.welcome.subject": {
     "text": "Welkom bij %{product_name} - Verifieer alsjeblieft je e-mail",
+    "renderer": "erb",
     "sha256": "96008c17"
   },
   "email.welcome.title": {
     "text": "Welkom bij %{product_name}!",
+    "renderer": "erb",
     "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
     "text": "Verifieer je e-mailadres door op de onderstaande link te klikken:",
+    "renderer": "erb",
     "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
     "text": "E-mailadres verifiëren",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Of kopieer en plak deze link:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.welcome.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
     "text": "P.S. Deze e-mail is verzonden naar %{email_address}. Als je geen account hebt aangemaakt, kun je dit bericht veilig negeren.",
+    "renderer": "erb",
     "sha256": "05709148"
   },
   "email.password_request.subject": {
     "text": "Reset je wachtwoord (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a9882af1"
   },
   "email.password_request.title": {
     "text": "Reset je wachtwoord",
+    "renderer": "erb",
     "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
     "text": "We hebben een verzoek ontvangen om je wachtwoord te resetten voor %{product_name}.",
+    "renderer": "erb",
     "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
     "text": "Wachtwoord resetten",
+    "renderer": "erb",
     "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
     "text": "Of kopieer en plak deze link:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
     "text": "Als je geen wachtwoordreset hebt aangevraagd, kun je deze e-mail veilig negeren.",
+    "renderer": "erb",
     "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
     "text": "P.S. Deze e-mail is verzonden naar %{email_address}.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
     "text": "Inloggen bij %{display_domain}",
+    "renderer": "erb",
     "sha256": "2967293e"
   },
   "email.magic_link.title": {
     "text": "Inloggen met magische link",
+    "renderer": "erb",
     "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
     "text": "Je hebt een inloglink aangevraagd voor je %{product_name}-account.",
+    "renderer": "erb",
     "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
     "text": "Inloggen",
+    "renderer": "erb",
     "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "Of kopieer en plak deze link:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
     "text": "Deze link verloopt over 15 minuten.",
+    "renderer": "erb",
     "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
     "text": "Als je deze link niet hebt aangevraagd, kun je deze e-mail veilig negeren.",
+    "renderer": "erb",
     "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
     "text": "P.S. Deze e-mail is verzonden naar %{email_address}.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "Je hebt een beveiligd bericht ontvangen",
+    "renderer": "erb",
     "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
     "text": "Je hebt een beveiligd bericht ontvangen:",
+    "renderer": "erb",
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
     "text": "Memo:",
+    "renderer": "erb",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Iemand heeft je een beveiligd bericht gestuurd via %{display_domain}.",
+    "renderer": "erb",
     "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
     "text": "Klik op de onderstaande link om dit bericht te bekijken:",
+    "renderer": "erb",
     "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
     "text": "Belangrijk:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
     "text": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
     "text": "Verzonden via",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
     "text": "Je bericht is bekeken",
+    "renderer": "erb",
     "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
     "text": "Je bericht is bekeken",
+    "renderer": "erb",
     "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
     "text": "Je bericht is bekeken op %{date}.",
+    "renderer": "erb",
     "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
     "text": "Bericht-ID:",
+    "renderer": "erb",
     "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Dit is een automatische melding. Er is geen actie vereist.",
+    "renderer": "erb",
     "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Meldingsvoorkeuren beheren",
+    "renderer": "erb",
     "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
     "text": "Om je meldingsvoorkeuren te beheren:",
+    "renderer": "erb",
     "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
     "text": "Je beveiligde link verloopt binnenkort",
+    "renderer": "erb",
     "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
     "text": "Je beveiligde link verloopt over %{time_remaining}",
+    "renderer": "erb",
     "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
     "text": "Bekijk je bericht voordat het verloopt",
+    "renderer": "erb",
     "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Herinnering:",
+    "renderer": "erb",
     "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
     "text": "Na verlopen wordt het bericht permanent verwijderd en kan het niet worden hersteld.",
+    "renderer": "erb",
     "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
     "text": "Verzonden via",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "Bekijk het voordat het verdwijnt:",
+    "renderer": "erb",
     "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "Na verlopen wordt het bericht permanent verwijderd.",
+    "renderer": "erb",
     "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
     "text": "Feedback op %{date} via %{display_domain} (%{strategy})",
+    "renderer": "erb",
     "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
     "text": "Gebruikersfeedback",
+    "renderer": "erb",
     "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
     "text": "Van:",
+    "renderer": "erb",
     "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
     "text": "Domein:",
+    "renderer": "erb",
     "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
     "text": "Strategie:",
+    "renderer": "erb",
     "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
     "text": "Bericht:",
+    "renderer": "erb",
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
     "text": "Secret Support",
+    "renderer": "erb",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
     "text": "Je bent uitgenodigd om deel te nemen aan %{organization_name}",
+    "renderer": "erb",
     "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
     "text": "Je bent uitgenodigd om deel te nemen aan %{organization_name}!",
+    "renderer": "erb",
     "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} heeft je uitgenodigd om deel te nemen aan \"%{organization_name}\" als %{role_description}.",
+    "renderer": "erb",
     "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
     "text": "Uitnodiging accepteren",
+    "renderer": "erb",
     "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Of kopieer en plak deze link:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "Deze uitnodiging verloopt over %{days} dagen.",
+    "renderer": "erb",
     "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
     "text": "Als je niet wilt deelnemen, kun je deze e-mail gewoon negeren of de uitnodiging afwijzen.",
+    "renderer": "erb",
     "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. Deze e-mail is verzonden naar %{invited_email}. Als je deze uitnodiging niet verwachtte, kun je dit bericht veilig negeren.",
+    "renderer": "erb",
     "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
     "text": "een lid",
+    "renderer": "erb",
     "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
     "text": "een beheerder",
+    "renderer": "erb",
     "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
     "text": "Je wachtwoord is gewijzigd (%{display_domain})",
+    "renderer": "erb",
     "sha256": "b030deff"
   },
   "email.password_changed.title": {
     "text": "Je wachtwoord is gewijzigd",
+    "renderer": "erb",
     "sha256": "adb1f471"
   },
   "email.password_changed.body": {
     "text": "Je wachtwoord voor %{product_name} is gewijzigd op %{date} om %{time}.",
+    "renderer": "erb",
     "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
     "text": "Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account door je wachtwoord te resetten en contact op te nemen met de ondersteuning.",
+    "renderer": "erb",
     "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
     "text": "Je e-mailadres is gewijzigd (%{display_domain})",
+    "renderer": "erb",
     "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
     "text": "Je e-mailadres is gewijzigd",
+    "renderer": "erb",
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
     "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked} op %{date}.",
+    "renderer": "erb",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met de ondersteuning, omdat je account mogelijk is gehackt.",
+    "renderer": "erb",
     "sha256": "f505b562"
   },
   "email.email_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
     "text": "Verifieer je nieuwe e-mailadres (%{display_domain})",
+    "renderer": "erb",
     "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
     "text": "Verifieer je nieuwe e-mailadres",
+    "renderer": "erb",
     "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
     "text": "Verifieer dit e-mailadres om de wijziging voor je %{product_name}-account te voltooien.",
+    "renderer": "erb",
     "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
     "text": "E-mailadres verifiëren",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Of kopieer en plak deze link:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
     "text": "Tweefactorauthenticatie ingeschakeld (%{display_domain})",
+    "renderer": "erb",
     "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
     "text": "Tweefactorauthenticatie ingeschakeld",
+    "renderer": "erb",
     "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
     "text": "Tweefactorauthenticatie is ingeschakeld voor je %{product_name}-account op %{date}.",
+    "renderer": "erb",
     "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
     "text": "Je account is nu veiliger. Je moet een verificatiecode van je authenticator-app invoeren bij het inloggen.",
+    "renderer": "erb",
     "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
     "text": "Tweefactorauthenticatie uitgeschakeld (%{display_domain})",
+    "renderer": "erb",
     "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
     "text": "Tweefactorauthenticatie uitgeschakeld",
+    "renderer": "erb",
     "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
     "text": "Tweefactorauthenticatie is uitgeschakeld voor je %{product_name}-account op %{date}.",
+    "renderer": "erb",
     "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Je account is nu minder veilig. Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account.",
+    "renderer": "erb",
     "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
     "text": "Nieuwe aanmelding bij je account (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
     "text": "Nieuwe aanmelding gedetecteerd",
+    "renderer": "erb",
     "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
     "text": "Er is een nieuwe aanmelding bij je %{product_name}-account gedetecteerd op %{date} om %{time}.",
+    "renderer": "erb",
     "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
     "text": "Apparaat:",
+    "renderer": "erb",
     "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
     "text": "Locatie:",
+    "renderer": "erb",
     "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "IP-adres:",
+    "renderer": "erb",
     "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "Als jij dit niet was, is je account mogelijk gehackt.",
+    "renderer": "erb",
     "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Beveilig je account",
+    "renderer": "erb",
     "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
     "text": "Je bent verwijderd uit %{organization_name}",
+    "renderer": "erb",
     "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
     "text": "Je bent verwijderd uit %{organization_name}",
+    "renderer": "erb",
     "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
     "text": "Je bent verwijderd uit de organisatie \"%{organization_name}\" op %{product_name}.",
+    "renderer": "erb",
     "sha256": "d442beed"
   },
   "email.member_removed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
     "text": "Je rol is gewijzigd in %{organization_name}",
+    "renderer": "erb",
     "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
     "text": "Je rol is gewijzigd",
+    "renderer": "erb",
     "sha256": "8f892809"
   },
   "email.role_changed.body": {
     "text": "Je rol in \"%{organization_name}\" is gewijzigd van %{old_role} naar %{new_role}.",
+    "renderer": "erb",
     "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
     "text": "Organisatie \"%{organization_name}\" is verwijderd",
+    "renderer": "erb",
     "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
     "text": "Organisatie verwijderd",
+    "renderer": "erb",
     "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
     "text": "De organisatie \"%{organization_name}\" is verwijderd van %{product_name}. Alle bijbehorende gegevens zijn verwijderd.",
+    "renderer": "erb",
     "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
     "text": "Betalingsbewijs voor %{product_name}",
+    "renderer": "erb",
     "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
     "text": "Betalingsbewijs",
+    "renderer": "erb",
     "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
     "text": "Bedankt voor je betaling. Hier zijn je betalingsgegevens:",
+    "renderer": "erb",
     "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
     "text": "Bedrag:",
+    "renderer": "erb",
     "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
     "text": "Datum:",
+    "renderer": "erb",
     "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
     "text": "Plan:",
+    "renderer": "erb",
     "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
     "text": "Factuur bekijken",
+    "renderer": "erb",
     "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
     "text": "Betaling mislukt voor %{product_name}",
+    "renderer": "erb",
     "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
     "text": "Betaling mislukt",
+    "renderer": "erb",
     "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
     "text": "We konden je betaling voor %{product_name} niet verwerken. Werk je betaalmethode bij om onderbreking van de dienst te voorkomen.",
+    "renderer": "erb",
     "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
     "text": "Betaalmethode bijwerken",
+    "renderer": "erb",
     "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
     "text": "Je %{product_name}-proefperiode verloopt over %{days_remaining} dagen",
+    "renderer": "erb",
     "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
     "text": "Je proefperiode loopt bijna af",
+    "renderer": "erb",
     "sha256": "36200518"
   },
   "email.trial_expiring.body": {
     "text": "Je gratis proefperiode van %{product_name} verloopt over %{days_remaining} dagen. Upgrade nu om toegang te behouden tot alle functies.",
+    "renderer": "erb",
     "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Nu upgraden",
+    "renderer": "erb",
     "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
     "text": "Je %{product_name}-abonnement is gewijzigd",
+    "renderer": "erb",
     "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
     "text": "Abonnement gewijzigd",
+    "renderer": "erb",
     "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
     "text": "Je %{product_name}-abonnement is gewijzigd van %{old_plan} naar %{new_plan}.",
+    "renderer": "erb",
     "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
     "text": "Deze wijziging gaat in op %{date}.",
+    "renderer": "erb",
     "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.common.greeting": {
     "text": "Hallo,",
+    "renderer": "erb",
     "sha256": "dafe7694"
   },
   "email.common.thanks": {
     "text": "Bedankt,",
+    "renderer": "erb",
     "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
     "text": "Uitschrijven",
+    "renderer": "erb",
     "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
     "text": "Bekijk in browser",
+    "renderer": "erb",
     "sha256": "be843876"
   },
   "email.common.onetime_secret": {
     "text": "%{product_name}",
+    "renderer": "erb",
     "sha256": "7bec5899"
   }
 }

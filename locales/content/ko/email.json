@@ -1,594 +1,742 @@
 {
   "email.incomingsupport.subject": {
     "text": "[티켓: %s]",
+    "renderer": "erb",
     "sha256": "9e2074ae"
   },
   "email.incomingsupport.body1": {
     "text": "고객이 다음 정보를 보냈습니다",
+    "renderer": "erb",
     "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email}님이 비밀 메시지를 보냈습니다",
+    "renderer": "erb",
     "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
     "text": "님이 비밀 메시지를 보냈습니다:",
+    "renderer": "erb",
     "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
     "text": "중요:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
     "text": "이 링크는 한 번만 작동합니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
     "text": "발송 경로:",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.welcome.subject": {
     "text": "%{product_name}에 오신 것을 환영합니다 - 이메일을 인증해 주세요",
+    "renderer": "erb",
     "sha256": "96008c17"
   },
   "email.welcome.title": {
     "text": "%{product_name}에 오신 것을 환영합니다!",
+    "renderer": "erb",
     "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
     "text": "아래 링크를 클릭하여 이메일 주소를 인증해 주세요:",
+    "renderer": "erb",
     "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
     "text": "이메일 주소 인증",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
     "text": "또는 이 링크를 복사하여 붙여넣으세요:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.welcome.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
     "text": "추신: 이 이메일은 %{email_address}(으)로 발송되었습니다. 계정을 만들지 않으셨다면 이 메시지를 무시하셔도 됩니다.",
+    "renderer": "erb",
     "sha256": "05709148"
   },
   "email.password_request.subject": {
     "text": "비밀번호 재설정 (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a9882af1"
   },
   "email.password_request.title": {
     "text": "비밀번호 재설정",
+    "renderer": "erb",
     "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
     "text": "%{product_name}의 비밀번호 재설정 요청을 받았습니다.",
+    "renderer": "erb",
     "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
     "text": "비밀번호 재설정",
+    "renderer": "erb",
     "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
     "text": "또는 이 링크를 복사하여 붙여넣으세요:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
     "text": "비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다.",
+    "renderer": "erb",
     "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.password_request.postscript": {
     "text": "추신: 이 이메일은 %{email_address}(으)로 발송되었습니다.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.magic_link.subject": {
     "text": "%{display_domain}에 로그인",
+    "renderer": "erb",
     "sha256": "2967293e"
   },
   "email.magic_link.title": {
     "text": "매직 링크로 로그인",
+    "renderer": "erb",
     "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
     "text": "%{product_name} 계정의 로그인 링크를 요청하셨습니다.",
+    "renderer": "erb",
     "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
     "text": "로그인",
+    "renderer": "erb",
     "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "또는 이 링크를 복사하여 붙여넣으세요:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
     "text": "이 링크는 15분 후에 만료됩니다.",
+    "renderer": "erb",
     "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
     "text": "이 링크를 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다.",
+    "renderer": "erb",
     "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.magic_link.postscript": {
     "text": "추신: 이 이메일은 %{email_address}(으)로 발송되었습니다.",
+    "renderer": "erb",
     "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "비밀 메시지를 받았습니다",
+    "renderer": "erb",
     "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
     "text": "보안 메시지를 받았습니다:",
+    "renderer": "erb",
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
     "text": "메모:",
+    "renderer": "erb",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
     "text": "누군가 %{display_domain}을(를) 통해 보안 메시지를 보냈습니다.",
+    "renderer": "erb",
     "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
     "text": "이 비밀 메시지를 보려면 아래 링크를 클릭하세요:",
+    "renderer": "erb",
     "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
     "text": "중요:",
+    "renderer": "erb",
     "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
     "text": "이 링크는 한 번만 작동합니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다.",
+    "renderer": "erb",
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
     "text": "발송 경로:",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
     "text": "비밀 메시지가 조회되었습니다",
+    "renderer": "erb",
     "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
     "text": "비밀 메시지가 조회되었습니다",
+    "renderer": "erb",
     "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
     "text": "비밀 메시지가 %{date}에 조회되었습니다.",
+    "renderer": "erb",
     "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
     "text": "비밀 메시지 ID:",
+    "renderer": "erb",
     "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
     "text": "자동 알림입니다. 별도의 조치가 필요하지 않습니다.",
+    "renderer": "erb",
     "sha256": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "알림 설정 관리",
+    "renderer": "erb",
     "sha256": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
     "text": "알림 설정을 관리하려면:",
+    "renderer": "erb",
     "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
     "text": "비밀 링크가 곧 만료됩니다",
+    "renderer": "erb",
     "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
     "text": "비밀 링크가 %{time_remaining} 후에 만료됩니다",
+    "renderer": "erb",
     "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
     "text": "만료되기 전에 비밀 메시지 보기",
+    "renderer": "erb",
     "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
     "text": "알림:",
+    "renderer": "erb",
     "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
     "text": "만료 후 비밀 메시지는 영구적으로 삭제되며 복구할 수 없습니다.",
+    "renderer": "erb",
     "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
     "text": "발송 경로:",
+    "renderer": "erb",
     "sha256": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "사라지기 전에 확인하세요:",
+    "renderer": "erb",
     "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "만료 후 비밀 메시지는 영구적으로 삭제됩니다.",
+    "renderer": "erb",
     "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
     "text": "%{date}에 %{display_domain}을(를) 통한 의견 (%{strategy})",
+    "renderer": "erb",
     "sha256": "f7498c8b"
   },
   "email.feedback_email.title": {
     "text": "사용자 의견",
+    "renderer": "erb",
     "sha256": "47296999"
   },
   "email.feedback_email.from_label": {
     "text": "보낸 사람:",
+    "renderer": "erb",
     "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
     "text": "도메인:",
+    "renderer": "erb",
     "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
     "text": "전략:",
+    "renderer": "erb",
     "sha256": "8132ec6b"
   },
   "email.feedback_email.message_label": {
     "text": "메시지:",
+    "renderer": "erb",
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
     "text": "Secret Support",
+    "renderer": "erb",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
     "text": "%{organization_name}에 초대되었습니다",
+    "renderer": "erb",
     "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
     "text": "%{organization_name}에 초대되었습니다!",
+    "renderer": "erb",
     "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email}님이 \"%{organization_name}\"에 %{role_description}(으)로 초대했습니다.",
+    "renderer": "erb",
     "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
     "text": "초대 수락",
+    "renderer": "erb",
     "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
     "text": "또는 이 링크를 복사하여 붙여넣으세요:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "이 초대는 %{days}일 후에 만료됩니다.",
+    "renderer": "erb",
     "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
     "text": "참여를 원하지 않으시면 이 이메일을 무시하거나 초대를 거절하시면 됩니다.",
+    "renderer": "erb",
     "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
     "text": "추신: 이 이메일은 %{invited_email}(으)로 발송되었습니다. 이 초대를 예상하지 않으셨다면 이 메시지를 무시하셔도 됩니다.",
+    "renderer": "erb",
     "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
     "text": "멤버",
+    "renderer": "erb",
     "sha256": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
     "text": "관리자",
+    "renderer": "erb",
     "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
     "text": "비밀번호가 변경되었습니다 (%{display_domain})",
+    "renderer": "erb",
     "sha256": "b030deff"
   },
   "email.password_changed.title": {
     "text": "비밀번호가 변경되었습니다",
+    "renderer": "erb",
     "sha256": "adb1f471"
   },
   "email.password_changed.body": {
     "text": "%{product_name}의 비밀번호가 %{date} %{time}에 변경되었습니다.",
+    "renderer": "erb",
     "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
     "text": "본인이 변경하지 않았다면 즉시 비밀번호를 재설정하고 고객 지원에 문의하여 계정을 보호해 주세요.",
+    "renderer": "erb",
     "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
     "text": "이메일 주소가 변경되었습니다 (%{display_domain})",
+    "renderer": "erb",
     "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
     "text": "이메일 주소가 변경되었습니다",
+    "renderer": "erb",
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
     "text": "%{product_name} 계정의 이메일 주소가 %{date}에 %{new_email_masked}(으)로 변경되었습니다.",
+    "renderer": "erb",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "본인이 변경하지 않았다면 계정이 손상되었을 수 있으니 즉시 고객 지원에 문의해 주세요.",
+    "renderer": "erb",
     "sha256": "f505b562"
   },
   "email.email_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
     "text": "새 이메일 주소 인증 (%{display_domain})",
+    "renderer": "erb",
     "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
     "text": "새 이메일 주소 인증",
+    "renderer": "erb",
     "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
     "text": "%{product_name} 계정 변경을 완료하려면 이 이메일 주소를 인증해 주세요.",
+    "renderer": "erb",
     "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
     "text": "이메일 주소 인증",
+    "renderer": "erb",
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "또는 이 링크를 복사하여 붙여넣으세요:",
+    "renderer": "erb",
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_enabled.subject": {
     "text": "2단계 인증 활성화됨 (%{display_domain})",
+    "renderer": "erb",
     "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
     "text": "2단계 인증 활성화됨",
+    "renderer": "erb",
     "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
     "text": "%{product_name} 계정의 2단계 인증이 %{date}에 활성화되었습니다.",
+    "renderer": "erb",
     "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
     "text": "계정 보안이 강화되었습니다. 로그인 시 인증 앱의 인증 코드를 입력해야 합니다.",
+    "renderer": "erb",
     "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
     "text": "2단계 인증 비활성화됨 (%{display_domain})",
+    "renderer": "erb",
     "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
     "text": "2단계 인증 비활성화됨",
+    "renderer": "erb",
     "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
     "text": "%{product_name} 계정의 2단계 인증이 %{date}에 비활성화되었습니다.",
+    "renderer": "erb",
     "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
     "text": "계정 보안이 약해졌습니다. 본인이 변경하지 않았다면 즉시 계정을 보호해 주세요.",
+    "renderer": "erb",
     "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
     "text": "계정에 새 로그인 (%{display_domain})",
+    "renderer": "erb",
     "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
     "text": "새 로그인 감지됨",
+    "renderer": "erb",
     "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
     "text": "%{product_name} 계정에 %{date} %{time}에 새 로그인이 감지되었습니다.",
+    "renderer": "erb",
     "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
     "text": "기기:",
+    "renderer": "erb",
     "sha256": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
     "text": "위치:",
+    "renderer": "erb",
     "sha256": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "IP 주소:",
+    "renderer": "erb",
     "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "본인이 아니라면 계정이 손상되었을 수 있습니다.",
+    "renderer": "erb",
     "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
     "text": "계정 보호",
+    "renderer": "erb",
     "sha256": "450c54c5"
   },
   "email.new_login_alert.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
     "text": "%{organization_name}에서 제외되었습니다",
+    "renderer": "erb",
     "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
     "text": "%{organization_name}에서 제외되었습니다",
+    "renderer": "erb",
     "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
     "text": "%{product_name}의 \"%{organization_name}\" 조직에서 제외되었습니다.",
+    "renderer": "erb",
     "sha256": "d442beed"
   },
   "email.member_removed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
     "text": "%{organization_name}에서 역할이 변경되었습니다",
+    "renderer": "erb",
     "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
     "text": "역할이 변경되었습니다",
+    "renderer": "erb",
     "sha256": "8f892809"
   },
   "email.role_changed.body": {
     "text": "\"%{organization_name}\"에서의 역할이 %{old_role}에서 %{new_role}(으)로 변경되었습니다.",
+    "renderer": "erb",
     "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.organization_deleted.subject": {
     "text": "\"%{organization_name}\" 조직이 삭제되었습니다",
+    "renderer": "erb",
     "sha256": "056a9921"
   },
   "email.organization_deleted.title": {
     "text": "조직 삭제됨",
+    "renderer": "erb",
     "sha256": "41cff705"
   },
   "email.organization_deleted.body": {
     "text": "\"%{organization_name}\" 조직이 %{product_name}에서 삭제되었습니다. 모든 관련 데이터가 제거되었습니다.",
+    "renderer": "erb",
     "sha256": "7095fc69"
   },
   "email.organization_deleted.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_receipt.subject": {
     "text": "%{product_name} 결제 영수증",
+    "renderer": "erb",
     "sha256": "a1b5cc04"
   },
   "email.payment_receipt.title": {
     "text": "결제 영수증",
+    "renderer": "erb",
     "sha256": "7e677ab8"
   },
   "email.payment_receipt.body": {
     "text": "결제해 주셔서 감사합니다. 결제 세부정보는 다음과 같습니다:",
+    "renderer": "erb",
     "sha256": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
     "text": "금액:",
+    "renderer": "erb",
     "sha256": "cdf45632"
   },
   "email.payment_receipt.date_label": {
     "text": "날짜:",
+    "renderer": "erb",
     "sha256": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
     "text": "요금제:",
+    "renderer": "erb",
     "sha256": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
     "text": "청구서 보기",
+    "renderer": "erb",
     "sha256": "36008943"
   },
   "email.payment_receipt.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.payment_failed.subject": {
     "text": "%{product_name} 결제 실패",
+    "renderer": "erb",
     "sha256": "77f18a23"
   },
   "email.payment_failed.title": {
     "text": "결제 실패",
+    "renderer": "erb",
     "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
     "text": "%{product_name}의 결제를 처리할 수 없었습니다. 서비스 중단을 방지하려면 결제 방법을 업데이트해 주세요.",
+    "renderer": "erb",
     "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
     "text": "결제 방법 업데이트",
+    "renderer": "erb",
     "sha256": "926406b1"
   },
   "email.payment_failed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
     "text": "%{product_name} 체험 기간이 %{days_remaining}일 후에 만료됩니다",
+    "renderer": "erb",
     "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
     "text": "체험 기간이 곧 종료됩니다",
+    "renderer": "erb",
     "sha256": "36200518"
   },
   "email.trial_expiring.body": {
     "text": "%{product_name} 무료 체험이 %{days_remaining}일 후에 만료됩니다. 모든 기능에 계속 접근하려면 지금 업그레이드하세요.",
+    "renderer": "erb",
     "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "지금 업그레이드",
+    "renderer": "erb",
     "sha256": "66a1419e"
   },
   "email.trial_expiring.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
     "text": "%{product_name} 구독이 변경되었습니다",
+    "renderer": "erb",
     "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
     "text": "구독 변경됨",
+    "renderer": "erb",
     "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
     "text": "%{product_name} 구독이 %{old_plan}에서 %{new_plan}(으)로 변경되었습니다.",
+    "renderer": "erb",
     "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
     "text": "이 변경은 %{date}부터 적용됩니다.",
+    "renderer": "erb",
     "sha256": "5a96ae38"
   },
   "email.subscription_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "sha256": "f58154f7"
   },
   "email.common.greeting": {
     "text": "안녕하세요,",
+    "renderer": "erb",
     "sha256": "dafe7694"
   },
   "email.common.thanks": {
     "text": "감사합니다,",
+    "renderer": "erb",
     "sha256": "11dfba8f"
   },
   "email.common.unsubscribe": {
     "text": "구독 취소",
+    "renderer": "erb",
     "sha256": "3e92efb7"
   },
   "email.common.view_in_browser": {
     "text": "브라우저에서 보기",
+    "renderer": "erb",
     "sha256": "be843876"
   },
   "email.common.onetime_secret": {
     "text": "%{product_name}",
+    "renderer": "erb",
     "sha256": "7bec5899"
   }
 }
