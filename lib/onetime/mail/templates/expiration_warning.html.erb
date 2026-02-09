@@ -57,7 +57,7 @@
 
                 <!-- Signature -->
                 <p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 32px;">
-                  <em><%= t('email.expiration_warning.sent_via') %> <a href="<%= baseuri %>" style="color: <%= brand_color %>;" rel="noopener noreferrer"><%= t('email.common.onetime_secret') %></a></em>
+                  <em><%= t('email.expiration_warning.sent_via') %> <a href="<%= baseuri %>" style="color: <%= brand_color %>;" rel="noopener noreferrer"><%= t('email.common.onetime_secret', product_name: product_name) %></a></em>
                 </p>
               </td>
             </tr>
