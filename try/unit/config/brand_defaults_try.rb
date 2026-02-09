@@ -94,3 +94,72 @@ end
 ## TOTP utility default_issuer reads from config
 Onetime::Utils::TOTP.default_issuer
 #=> 'OneTimeSecret'
+
+## BrandSettings.members includes product_name
+Onetime::CustomDomain::BrandSettings.members.include?(:product_name)
+#=> true
+
+## BrandSettings.members includes footer_text
+Onetime::CustomDomain::BrandSettings.members.include?(:footer_text)
+#=> true
+
+## BrandSettings.members includes description
+Onetime::CustomDomain::BrandSettings.members.include?(:description)
+#=> true
+
+## BrandSettings.members includes product_domain
+Onetime::CustomDomain::BrandSettings.members.include?(:product_domain)
+#=> true
+
+## BrandSettings.members includes support_email
+Onetime::CustomDomain::BrandSettings.members.include?(:support_email)
+#=> true
+
+## BrandSettings.members includes all expected text fields
+expected = %i[product_name footer_text description product_domain support_email]
+(expected - Onetime::CustomDomain::BrandSettings.members).empty?
+#=> true
+
+## BrandSettings.from_hash preserves product_name when provided
+settings = Onetime::CustomDomain::BrandSettings.from_hash(product_name: 'My App')
+settings.product_name
+#=> 'My App'
+
+## BrandSettings.from_hash preserves footer_text when provided
+settings = Onetime::CustomDomain::BrandSettings.from_hash(footer_text: 'Custom footer')
+settings.footer_text
+#=> 'Custom footer'
+
+## BrandSettings.from_hash preserves description when provided
+settings = Onetime::CustomDomain::BrandSettings.from_hash(description: 'A brief summary')
+settings.description
+#=> 'A brief summary'
+
+## BrandSettings.from_hash preserves product_domain when provided
+settings = Onetime::CustomDomain::BrandSettings.from_hash(product_domain: 'example.com')
+settings.product_domain
+#=> 'example.com'
+
+## BrandSettings.from_hash preserves support_email when provided
+settings = Onetime::CustomDomain::BrandSettings.from_hash(support_email: 'help@example.com')
+settings.support_email
+#=> 'help@example.com'
+
+## BrandSettings.from_hash defaults missing text fields to nil
+settings = Onetime::CustomDomain::BrandSettings.from_hash({})
+[settings.product_name, settings.footer_text, settings.description, settings.product_domain, settings.support_email]
+#=> [nil, nil, nil, nil, nil]
+
+## BrandSettings.from_hash accepts text fields alongside existing fields
+settings = Onetime::CustomDomain::BrandSettings.from_hash(
+  primary_color: '#FF0000',
+  product_name: 'Branded App',
+  footer_text: 'Powered by us'
+)
+[settings.primary_color, settings.product_name, settings.footer_text]
+#=> ['#FF0000', 'Branded App', 'Powered by us']
+
+## BrandSettings.from_hash with string keys preserves text fields
+settings = Onetime::CustomDomain::BrandSettings.from_hash('product_name' => 'String Key App', 'description' => 'Works too')
+[settings.product_name, settings.description]
+#=> ['String Key App', 'Works too']

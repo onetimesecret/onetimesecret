@@ -69,7 +69,6 @@ module Core
       # Dynamic site.webmanifest generated from brand config
       def webmanifest
         brand_conf   = OT.conf['brand'] || {}
-        OT.conf['site'] || {}
         product_name = brand_conf['product_name'] || 'Onetime Secret'
         theme_color  = brand_conf['primary_color'] || '#dc4a22'
 
