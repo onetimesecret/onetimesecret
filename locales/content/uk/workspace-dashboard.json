@@ -1,26 +1,26 @@
 {
   "web.dashboard.title_received": {
     "text": "Отримано",
-    "sha256": "49f19bee"
+    "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
     "text": "Не отримано",
-    "sha256": "a4cf12ca"
+    "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
     "text": "Немає нещодавніх таємниць",
-    "sha256": "02b7b86b"
+    "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "Почніть зі створення Вашої першої таємниці.",
-    "sha256": "e96db24d"
+    "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
     "text": "Не вдалося завантажити дані",
-    "sha256": "ba7df1be"
+    "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
     "text": "Виникла проблема із завантаженням Ваших даних. Будь ласка, спробуйте ще раз.",
-    "sha256": "ff0d904e"
+    "source_hash": "ff0d904e"
   }
 }

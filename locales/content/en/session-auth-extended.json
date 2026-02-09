@@ -50,16 +50,16 @@
   "web.auth.mfa_required": {
     "text": "MFA verification required",
     "context": "Page heading shown when user must complete MFA to proceed",
-    "sha256": "e93fd3a4"
+    "content_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
     "text": "MFA verification required to access your account",
     "context": "Explanatory text below the heading",
-    "sha256": "3cff3311"
+    "content_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "Complete MFA Verification",
-    "sha256": "0e681134"
+    "content_hash": "0e681134"
   },
   "web.auth.security._guidance": {
     "skip": true,
@@ -67,285 +67,285 @@
   },
   "web.auth.security.authentication_failed": {
     "text": "Authentication failed. Please verify your credentials and try again.",
-    "sha256": "b0eeece9"
+    "content_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
     "text": "Too many attempts. Please try again later.",
-    "sha256": "282db6f3"
+    "content_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
     "text": "Session expired. Please log in again.",
-    "sha256": "f6f51186"
+    "content_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
     "text": "Recovery code not found. Please verify you entered it correctly.",
-    "sha256": "f5f1bd09"
+    "content_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
     "text": "This recovery code has already been used. Each code can only be used once.",
-    "sha256": "b51d6820"
+    "content_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
     "text": "Network error. Please check your connection and try again.",
-    "sha256": "31f2678d"
+    "content_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
     "text": "An error occurred. Please try again.",
-    "sha256": "9c170dda"
+    "content_hash": "9c170dda"
   },
   "web.auth.methods.password": {
     "text": "Password",
-    "sha256": "e7cf3ef4"
+    "content_hash": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
     "text": "Email Link",
     "context": "Passwordless authentication via email link",
-    "sha256": "1b6ffed2"
+    "content_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
     "text": "Biometric",
-    "sha256": "ab2ba7db"
+    "content_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
     "text": "Sign in with Email",
-    "sha256": "79a864df"
+    "content_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
     "text": "We'll send you a secure login link",
-    "sha256": "5d75aeb0"
+    "content_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
     "text": "Enter your email",
-    "sha256": "2837f6fa"
+    "content_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
     "text": "Send Login Link",
-    "sha256": "f5f52392"
+    "content_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
     "text": "Check your email",
-    "sha256": "77322879"
+    "content_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
     "text": "We sent a login link to {email}",
-    "sha256": "d9193f59"
+    "content_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
     "text": "This link will expire in 15 minutes",
-    "sha256": "91b5f027"
+    "content_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
     "text": "Try a different email",
-    "sha256": "98657c0b"
+    "content_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
     "text": "No password needed — just click the link in your email",
-    "sha256": "5f539b97"
+    "content_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
     "text": "Network error. Please try again.",
-    "sha256": "9ff8cfaf"
+    "content_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
     "text": "Failed to send login link. Please try again.",
-    "sha256": "4c685e97"
+    "content_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
     "text": "Invalid or missing login link",
-    "sha256": "d726c0da"
+    "content_hash": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Login failed. Please try again.",
-    "sha256": "c95b4875"
+    "content_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
     "text": "Signing you in...",
-    "sha256": "9d432ef1"
+    "content_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
     "text": "Please wait while we verify your link",
-    "sha256": "81e4efed"
+    "content_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
     "text": "Authentication Error",
-    "sha256": "797b4f03"
+    "content_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
     "text": "Back to Sign In",
-    "sha256": "ee9eb75e"
+    "content_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
     "text": "Sign in with Face ID / Touch ID",
-    "sha256": "46f75469"
+    "content_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
     "text": "Set up biometric login",
-    "sha256": "7593dd46"
+    "content_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
     "text": "Biometric authentication is not supported in this browser",
-    "sha256": "fe2a2c2b"
+    "content_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
     "text": "Please use a modern browser that supports WebAuthn (Chrome, Safari, Firefox, or Edge)",
-    "sha256": "fd9752eb"
+    "content_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
     "text": "Biometric login has been enabled",
-    "sha256": "63407e97"
+    "content_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
     "text": "Failed to set up biometric login",
-    "sha256": "290cca44"
+    "content_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
     "text": "Password is required to set up a passkey",
-    "sha256": "085bb238"
+    "content_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
     "text": "Biometric authentication failed. Please try again.",
-    "sha256": "626b9ece"
+    "content_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
     "text": "Authentication was cancelled",
-    "sha256": "57461b04"
+    "content_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
     "text": "Authenticating...",
-    "sha256": "1f6087c2"
+    "content_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
     "text": "Use your fingerprint, face, or security key to sign in",
-    "sha256": "f02f0427"
+    "content_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
     "text": "Supports Face ID, Touch ID, Windows Hello, and security keys",
-    "sha256": "3ea1c1a2"
+    "content_hash": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
     "text": "Passkeys",
     "context": "Title for passkey management section",
-    "sha256": "c87ccdb4"
+    "content_hash": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
     "text": "Sign in with Face ID, Touch ID, Windows Hello, or security key",
     "context": "Description of passkey authentication",
-    "sha256": "a513ed5c"
+    "content_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
     "text": "Passkeys let you sign in securely without a password",
     "context": "Setup page description",
-    "sha256": "85630bef"
+    "content_hash": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
     "text": "Not configured",
     "context": "Status when no passkeys are registered",
-    "sha256": "dd1841d2"
+    "content_hash": "dd1841d2"
   },
   "web.auth.passkeys.count": {
     "text": "{count} passkey registered | {count} passkeys registered",
     "context": "Number of registered passkeys",
-    "sha256": "82e6681f"
+    "content_hash": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
     "text": "Add Passkey",
     "context": "Button to add a new passkey",
-    "sha256": "93713ad7"
+    "content_hash": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
     "text": "Register Passkey",
     "context": "Button to register a new passkey",
-    "sha256": "26db6968"
+    "content_hash": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
     "text": "Remove Passkey",
     "context": "Button to remove a passkey",
-    "sha256": "67b1d47c"
+    "content_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
     "text": "Are you sure you want to remove this passkey? You will no longer be able to sign in with it.",
     "context": "Confirmation message for passkey removal",
-    "sha256": "487ab72c"
+    "content_hash": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
     "text": "Passkey removed successfully",
     "context": "Success message after removing passkey",
-    "sha256": "436c1050"
+    "content_hash": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
     "text": "Passkey registered successfully",
     "context": "Success message after registering passkey",
-    "sha256": "fbfb0713"
+    "content_hash": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
     "text": "No passkeys registered",
     "context": "Empty state when no passkeys exist",
-    "sha256": "1d97fde4"
+    "content_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
     "text": "Add a passkey to sign in more securely without entering a password",
     "context": "Description for empty state",
-    "sha256": "e5bc07f1"
+    "content_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
     "text": "Passkey Name",
     "context": "Label for passkey name field",
-    "sha256": "22eefa67"
+    "content_hash": "22eefa67"
   },
   "web.auth.passkeys.created": {
     "text": "Created",
     "context": "Label for creation date",
-    "sha256": "d70b9e24"
+    "content_hash": "d70b9e24"
   },
   "web.auth.passkeys.last_used": {
     "text": "Last used: {time}",
     "context": "Last used timestamp",
-    "sha256": "e1af94fe"
+    "content_hash": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
     "text": "Never used",
     "context": "Status when passkey has not been used",
-    "sha256": "24d3236c"
+    "content_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
     "text": "More secure than passwords - resistant to phishing attacks",
     "context": "Passkey benefit",
-    "sha256": "41afb6ec"
+    "content_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
     "text": "Fast and easy - just use your fingerprint, face, or security key",
     "context": "Passkey benefit",
-    "sha256": "5a0ce96c"
+    "content_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
     "text": "Synced across your devices when using platform authenticators",
     "context": "Passkey benefit",
-    "sha256": "7480c7ae"
+    "content_hash": "7480c7ae"
   },
   "web.auth.passkeys.link_title": {
     "text": "Passkeys",
     "context": "Navigation link title",
-    "sha256": "c87ccdb4"
+    "content_hash": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
     "text": "Warning: {count} login attempt(s) remaining",
-    "sha256": "151dcb5e"
+    "content_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
     "text": "Account locked due to too many failed login attempts",
-    "sha256": "5247f389"
+    "content_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
     "text": "Your account is locked until {time}",
-    "sha256": "1a8f382e"
+    "content_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
     "text": "Contact support if you need immediate access",
-    "sha256": "23d82e46"
+    "content_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
     "text": "You can reset your password instead",
-    "sha256": "a98a3f9d"
+    "content_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
     "skip": true,
@@ -353,358 +353,358 @@
   },
   "web.auth.sessions.title": {
     "text": "Active Sessions",
-    "sha256": "b58fa4e0"
+    "content_hash": "b58fa4e0"
   },
   "web.auth.sessions.current": {
     "text": "Current Session",
-    "sha256": "386c7932"
+    "content_hash": "386c7932"
   },
   "web.auth.sessions.other": {
     "text": "Other Sessions",
-    "sha256": "8409f445"
+    "content_hash": "8409f445"
   },
   "web.auth.sessions.device": {
     "text": "Device",
-    "sha256": "6ba0bdec"
+    "content_hash": "6ba0bdec"
   },
   "web.auth.sessions.location": {
     "text": "Location",
-    "sha256": "15b61974"
+    "content_hash": "15b61974"
   },
   "web.auth.sessions.ip_address": {
     "text": "IP Address",
-    "sha256": "3c3de0c9"
+    "content_hash": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
     "text": "Last Active",
-    "sha256": "b6dc1b95"
+    "content_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
     "text": "Created",
-    "sha256": "d70b9e24"
+    "content_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
     "text": "Remove",
-    "sha256": "c3812fc4"
+    "content_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
     "text": "Logout All Other Sessions",
-    "sha256": "412bb9e2"
+    "content_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
     "text": "Are you sure you want to remove this session?",
-    "sha256": "ef12c1ba"
+    "content_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
     "text": "This will log you out from all other devices. Are you sure?",
-    "sha256": "4a1a73e9"
+    "content_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
     "text": "No other active sessions",
-    "sha256": "b83317f2"
+    "content_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
     "text": "Session removed successfully",
-    "sha256": "6d27d44a"
+    "content_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
     "text": "All other sessions have been logged out",
-    "sha256": "1b49e75c"
+    "content_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
     "text": "Active Sessions",
-    "sha256": "b58fa4e0"
+    "content_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
     "text": "Two-Factor Authentication",
-    "sha256": "bc074b60"
+    "content_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
     "text": "Two-factor authentication is enabled",
-    "sha256": "d27a70c6"
+    "content_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
     "text": "Two-factor authentication is disabled",
-    "sha256": "0af18e50"
+    "content_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
     "text": "Enable Two-Factor Authentication",
-    "sha256": "9b83e658"
+    "content_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
     "text": "Disable Two-Factor Authentication",
-    "sha256": "c9698815"
+    "content_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
     "text": "Set Up Two-Factor Authentication",
-    "sha256": "04e05601"
+    "content_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
     "text": "Add an extra layer of security to your account",
-    "sha256": "d47240b9"
+    "content_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
     "text": "1. Scan QR Code",
-    "sha256": "efd0134a"
+    "content_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
     "text": "2. Verify Setup",
-    "sha256": "59bba5f7"
+    "content_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
     "text": "Scan this QR code with your authenticator app",
-    "sha256": "65752db3"
+    "content_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
     "text": "Or enter this code manually",
-    "sha256": "3ea15b3e"
+    "content_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
     "text": "Enter the 6-digit code from your app",
-    "sha256": "38f61733"
+    "content_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
     "text": "Enter authentication code",
-    "sha256": "186a582a"
+    "content_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
     "text": "Verify and Enable",
-    "sha256": "7c08f68d"
+    "content_hash": "7c08f68d"
   },
   "web.auth.mfa.verify_login": {
     "text": "Verify",
-    "sha256": "eea2745e"
+    "content_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
     "text": "Authentication code is required",
-    "sha256": "217de0fc"
+    "content_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
     "text": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.",
-    "sha256": "94b58889"
+    "content_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
     "text": "Two-factor authentication has been enabled",
-    "sha256": "e5aff73d"
+    "content_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
     "text": "Two-factor authentication has been disabled",
-    "sha256": "4fd6b4b4"
+    "content_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
     "text": "Enter your password to disable 2FA",
-    "sha256": "c384b93c"
+    "content_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "Password",
-    "sha256": "e7cf3ef4"
+    "content_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
     "text": "Confirm your identity to modify two-factor authentication settings",
-    "sha256": "09a96c07"
+    "content_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
     "text": "Last used: {time}",
-    "sha256": "e1af94fe"
+    "content_hash": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
     "text": "Never used",
-    "sha256": "24d3236c"
+    "content_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
     "text": "Use a recovery code instead",
-    "sha256": "23d3441a"
+    "content_hash": "23d3441a"
   },
   "web.auth.mfa.use_recovery_code_short": {
     "text": "Use recovery code",
-    "sha256": "50d5790d"
+    "content_hash": "50d5790d"
   },
   "web.auth.mfa.back_to_code": {
     "text": "Back to authentication code",
-    "sha256": "6fa090b4"
+    "content_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
     "text": "Cancel and return to sign in",
-    "sha256": "83256742"
+    "content_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
     "text": "Cancel sign in",
-    "sha256": "1bebad2f"
+    "content_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
     "text": "Loading MFA status...",
-    "sha256": "01919f0e"
+    "content_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
     "text": "Your account is protected with two-factor authentication",
-    "sha256": "02b9d169"
+    "content_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
     "text": "Protect your account with an additional layer of security",
-    "sha256": "06d9123b"
+    "content_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
     "text": "Prevent unauthorized access even if your password is compromised",
-    "sha256": "61d99c71"
+    "content_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "Works with Google Authenticator, Authy, and other TOTP apps",
-    "sha256": "6ee8ab12"
+    "content_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
     "text": "Backup recovery codes for emergency access",
-    "sha256": "747917bb"
+    "content_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
     "text": "Enter your password",
-    "sha256": "c06bf967"
+    "content_hash": "c06bf967"
   },
   "web.auth.mfa.disabling": {
     "text": "Disabling...",
-    "sha256": "e4080e19"
+    "content_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
     "text": "Disable 2FA",
-    "sha256": "1c3193f3"
+    "content_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
     "text": "Generating QR code...",
-    "sha256": "8eab9da9"
+    "content_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
     "text": "Use Google Authenticator, Authy, or any TOTP app",
-    "sha256": "a8eaef9d"
+    "content_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
     "text": "Continue to Verification",
-    "sha256": "4da96e87"
+    "content_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
     "text": "Enter the 6-digit code from your authenticator app",
-    "sha256": "a160dee6"
+    "content_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
     "text": "Enable MFA",
-    "sha256": "37c8090d"
+    "content_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
     "text": "Complete Setup",
-    "sha256": "30e87601"
+    "content_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
     "text": "Enter one of your recovery codes",
-    "sha256": "91ab44cf"
+    "content_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "Recovery Code",
-    "sha256": "cf25d0fc"
+    "content_hash": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
     "text": "Enter recovery code",
-    "sha256": "586d719c"
+    "content_hash": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
     "text": "Verify Recovery Code",
-    "sha256": "c244c7bd"
+    "content_hash": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
     "text": "Enter 6-digit authentication code",
-    "sha256": "36a438ba"
+    "content_hash": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
     "text": "Recovery code mode active",
-    "sha256": "c895f08b"
+    "content_hash": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
     "text": "Authentication code mode active",
-    "sha256": "8c44a306"
+    "content_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
     "text": "Please enter all 6 digits to continue",
-    "sha256": "7914f7b2"
+    "content_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "Digit {current} of {total}",
-    "sha256": "879df41a"
+    "content_hash": "879df41a"
   },
   "web.auth.recovery_codes.title": {
     "text": "Recovery Codes",
-    "sha256": "579c7f4e"
+    "content_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
     "text": "Save these codes in a safe place. Each can be used once if you lose access to your authenticator.",
-    "sha256": "87aebdfb"
+    "content_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
     "text": "These codes will only be shown once",
-    "sha256": "d13f2877"
+    "content_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
     "text": "You must download or copy your recovery codes before completing setup.",
-    "sha256": "6b97bc6d"
+    "content_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
     "text": "Generate New Codes",
-    "sha256": "4025779e"
+    "content_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
     "text": "Regenerate Codes",
-    "sha256": "aa652d21"
+    "content_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
     "text": "This will invalidate all existing recovery codes",
-    "sha256": "9795a175"
+    "content_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
     "text": "Download Codes",
-    "sha256": "9c23dbba"
+    "content_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
     "text": "Recovery codes downloaded",
-    "sha256": "10486340"
+    "content_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
     "text": "Print Codes",
-    "sha256": "ff940182"
+    "content_hash": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
     "text": "Copy All Codes",
-    "sha256": "ee956b2b"
+    "content_hash": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
     "text": "Codes copied to clipboard",
-    "sha256": "06ebb466"
+    "content_hash": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
     "text": "Failed to copy codes to clipboard",
-    "sha256": "e8be6a51"
+    "content_hash": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
     "text": "Used",
-    "sha256": "ae7d8dfa"
+    "content_hash": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
     "text": "Unused",
-    "sha256": "231aedff"
+    "content_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
     "text": "{count} of {limit} recovery codes remaining",
-    "sha256": "b5d484e7"
+    "content_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
     "text": "Each code can only be used once. Regenerate codes if you're running low.",
-    "sha256": "737a7702"
+    "content_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "No recovery codes remaining",
-    "sha256": "9ae26d68"
+    "content_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
     "text": "New recovery codes have been generated",
-    "sha256": "831cb1aa"
+    "content_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Recovery Codes",
-    "sha256": "579c7f4e"
+    "content_hash": "579c7f4e"
   }
 }
