@@ -27,6 +27,8 @@ import { developmentSchema } from './section/development';
 import { userInterfaceSchema, apiSchema } from './section/ui';
 import { limitsSchema } from './section/limits';
 import { secretOptionsSchema } from './section/secret_options';
+import { brandSchema } from './section/brand';
+import { jobsSchema } from './section/jobs';
 
 // ============================================================================
 // Flexible Type Helpers (for API response parsing)
@@ -300,7 +302,7 @@ export const apiFeaturesSchema = z.object({
     .object({
       enabled: booleanOrString,
       default: z.string().nullable().optional(),
-      strategy: z.string().nullable().optional(),
+      validation_strategy: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),
@@ -368,6 +370,8 @@ export const staticConfigSchema = z.object({
   internationalization: i18nSchema.optional(),
   diagnostics: diagnosticsSchema.optional(),
   development: developmentSchema.optional(),
+  brand: brandSchema.optional(),
+  jobs: jobsSchema.optional(),
 });
 
 /**
@@ -439,6 +443,8 @@ export {
   apiSchema,
   limitsSchema,
   secretOptionsSchema,
+  brandSchema,
+  jobsSchema,
 };
 
 // Aliases for backward compatibility
