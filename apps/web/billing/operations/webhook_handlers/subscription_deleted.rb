@@ -93,7 +93,7 @@ module Billing
 
           # Fall back to config if env var not set and OT.conf is available
           if secret.to_s.empty? && defined?(OT) && OT.respond_to?(:conf) && OT.conf
-            secret = OT.conf.dig(:site, :federation_hmac_secret)
+            secret = OT.conf.dig('features', 'regions', 'federation_hmac_secret')
           end
 
           !secret.to_s.empty?

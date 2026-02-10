@@ -102,9 +102,13 @@ module Billing
       plan = ::Billing::Plan.load(plan_id)
       return true if plan&.exists?
 
-      # Check static config as fallback
-      config_plans = Onetime.conf.dig(:billing, :plans) || {}
-      config_plans.key?(plan_id.to_sym)
+      # Check static config as fallback.
+      #
+      # OT.conf is always string-keyed (loaded from YAML with symbolize_names: false).
+      # The plan IDs within are also string keys (e.g. "identity_plus_v1_monthly"),
+      # so we look up plan_id as a string — no .to_sym conversion needed.
+      config_plans = Onetime.conf.dig('billing', 'plans') || {}
+      config_plans.key?(plan_id.to_s)
     end
 
     # =========================================================================
