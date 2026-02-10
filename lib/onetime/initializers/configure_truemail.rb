@@ -50,6 +50,15 @@ module Onetime
               value = value.transform_keys(&:to_s).transform_values(&:to_sym)
             end
 
+            # Convert logger hash for Truemail's keyword-arg API (**options).
+            # YAML delivers string keys and string values, but Truemail needs
+            # symbol keys (for **splat) and symbol tracking_event (validated
+            # against Truemail::Log::Event::TRACKING_EVENTS which has symbol keys).
+            if key == 'logger' && value.is_a?(Hash)
+              value                  = value.transform_keys(&:to_sym)
+              value[:tracking_event] = value[:tracking_event].to_sym if value[:tracking_event] in String
+            end
+
             config.send("#{actual_key}=", value)
           end
         end
