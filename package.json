@@ -26,7 +26,7 @@
     "openapi:poc": "tsx src/scripts/openapi/poc.ts",
     "schemas:generate": "tsx src/scripts/json-schema/generate.ts",
     "schemas:generate:dry-run": "tsx src/scripts/json-schema/generate.ts --dry-run",
-    "config:validate": "yamale -s etc/config.schema.yaml etc/config.yaml",
+    "config:validate": "pnpm run schemas:generate",
     "predev": "pnpm run i18n:generate-types",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
