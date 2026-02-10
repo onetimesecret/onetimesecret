@@ -58,6 +58,10 @@ module Onetime
   end
 end
 
+# Load config management commands (no boot required)
+require_relative 'cli/config_command'
+require_relative 'cli/validate_command'
+
 # Load core CLI commands
 require_relative 'cli/simple_commands'
 require_relative 'cli/status_command'
