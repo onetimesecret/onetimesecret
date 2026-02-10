@@ -50,6 +50,26 @@ import { generatePayloadSchema } from './api/v3/payloads/generate';
 import { responseSchemas } from './api/v3/responses';
 
 // =============================================================================
+// Billing Schemas
+// =============================================================================
+import {
+  BillingCatalogSchema,
+  PlanDefinitionSchema,
+  EntitlementDefinitionSchema,
+} from './config/billing';
+
+// =============================================================================
+// Config Schemas
+// =============================================================================
+import {
+  staticConfigSchema,
+  mutableConfigSchema,
+  runtimeConfigSchema,
+} from './config/config';
+import { authConfigSchema } from './config/auth';
+import { loggingConfigSchema } from './config/logging';
+
+// =============================================================================
 // Schema Categories
 // =============================================================================
 
@@ -78,6 +98,26 @@ export const apiV3Schemas = {
   'api/v3/conceal-data-response': responseSchemas.concealData,
 } as const;
 
+/**
+ * Billing schemas - catalog and component definitions
+ */
+export const billingSchemas = {
+  'billing/catalog': BillingCatalogSchema,
+  'billing/plan-definition': PlanDefinitionSchema,
+  'billing/entitlement-definition': EntitlementDefinitionSchema,
+} as const;
+
+/**
+ * Config schemas - application configuration files
+ */
+export const configSchemas = {
+  'config/static': staticConfigSchema,
+  'config/mutable': mutableConfigSchema,
+  'config/runtime': runtimeConfigSchema,
+  'config/auth': authConfigSchema,
+  'config/logging': loggingConfigSchema,
+} as const;
+
 // =============================================================================
 // Combined Registry
 // =============================================================================
@@ -89,6 +129,8 @@ export const apiV3Schemas = {
 export const schemaRegistry = {
   ...modelSchemas,
   ...apiV3Schemas,
+  ...billingSchemas,
+  ...configSchemas,
 } as const;
 
 export type SchemaKey = keyof typeof schemaRegistry;
@@ -104,6 +146,8 @@ export function getSchemasByCategory(): Record<string, SchemaKey[]> {
   const categories: Record<string, SchemaKey[]> = {
     models: [],
     'api/v3': [],
+    billing: [],
+    config: [],
   };
 
   for (const key of Object.keys(schemaRegistry) as SchemaKey[]) {
@@ -111,6 +155,10 @@ export function getSchemasByCategory(): Record<string, SchemaKey[]> {
       categories.models.push(key);
     } else if (key.startsWith('api/v3/')) {
       categories['api/v3'].push(key);
+    } else if (key.startsWith('billing/')) {
+      categories.billing.push(key);
+    } else if (key.startsWith('config/')) {
+      categories.config.push(key);
     }
   }
 
