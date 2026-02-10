@@ -102,6 +102,7 @@ const passwordGenerationCharacterSetsSchema = z.object({
 
 const passwordGenerationSchema = z.object({
   default_length: z.number().int().positive().default(12),
+  length_options: z.array(z.union([z.string(), z.number()])).optional(),
   character_sets: passwordGenerationCharacterSetsSchema,
 });
 
@@ -110,7 +111,7 @@ const passwordGenerationSchema = z.object({
  */
 const siteSecretOptionsSchema = z.object({
   default_ttl: z.number().int().positive().nullable().optional(),
-  ttl_options: z.string().nullable().optional(), // Raw string from env, parsed elsewhere
+  ttl_options: z.any().nullable().optional(),
   passphrase: passphraseSchema,
   password_generation: passwordGenerationSchema,
 });
