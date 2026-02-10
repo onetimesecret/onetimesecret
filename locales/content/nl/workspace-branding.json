@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Mogelijk gemaakt door Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Mogelijk gemaakt door {product_name}",
+    "sha256": "cdf0bfe6"
   },
   "web.branding.heading_logo": {
     "text": "{0}-logo",

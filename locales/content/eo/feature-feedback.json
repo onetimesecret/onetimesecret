@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Dankon pro helpi Onetime Secret pliboniĝi. Tio signifas multe."
+    "text": "Dankon pro helpi {product_name} pliboniĝi. Tio signifas multe.",
+    "sha256": "fb995087"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Ni konstruis ĉi tiun ilon por helpi vin sekure kunhavigi sentivajn informojn, kaj viaj realmondaj spertoj estas decidaj por fokusigi niajn klopodojn. Tio helpas nin kompreni pri kio labori poste kaj kiel plibonigi la servon por ĉiuj."
@@ -41,7 +42,8 @@
     "text": "Saluton, dankon pro viziti nian retrosciigan paĝon. Via kontribuo ne nur estas bonvena - ĝi estas decida."
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Noto de Delano, fondinto de Onetime Secret"
+    "text": "Noto de Delano, fondinto de {product_name}",
+    "sha256": "5c95a87d"
   },
   "web.feedback.open_feedback_form": {
     "text": "Malfermi revoĵan formularon",

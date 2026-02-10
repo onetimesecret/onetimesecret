@@ -472,8 +472,8 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Научете как да интегрирате Onetime Secret във вашите приложения",
-    "sha256": "6e8f910f"
+    "text": "Научете как да интегрирате {product_name} във вашите приложения",
+    "sha256": "f41b8960"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API справка",

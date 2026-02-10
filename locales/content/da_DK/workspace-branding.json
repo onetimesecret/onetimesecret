@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Drevet af Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Drevet af {product_name}",
+    "sha256": "5088735d"
   },
   "web.branding.heading_logo": {
     "text": "{0} Logo",

@@ -456,8 +456,8 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Onetime Secret을 애플리케이션에 통합하는 방법 알아보기",
-    "sha256": "6e8f910f"
+    "text": "{product_name}을 애플리케이션에 통합하는 방법 알아보기",
+    "sha256": "0184e829"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API 참조",

@@ -25,7 +25,6 @@
   import { storeToRefs } from 'pinia';
   import {
     DEFAULT_CORNER_CLASS,
-    DEFAULT_PRIMARY_COLOR,
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
@@ -42,8 +41,6 @@
   export interface Props {
     /** Corner styling class */
     cornerClass?: string;
-    /** Primary brand color */
-    primaryColor?: string;
     /** Whether button text should be light */
     buttonTextLight?: boolean;
   }
@@ -51,7 +48,6 @@
   // Props not destructured - accessed via template bindings or unprefixed in script
   withDefaults(defineProps<Props>(), {
     cornerClass: DEFAULT_CORNER_CLASS,
-    primaryColor: DEFAULT_PRIMARY_COLOR,
     buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
   });
 
@@ -434,7 +430,6 @@
                 <SplitButton
                   :with-generate="true"
                   :corner-class="cornerClass"
-                  :primary-color="primaryColor"
                   :button-text-light="buttonTextLight"
                   :disabled="selectedAction === 'create-link' && !hasContent"
                   :disable-generate="selectedAction === 'create-link' && hasContent"

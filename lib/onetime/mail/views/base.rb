@@ -260,9 +260,27 @@ module Onetime
             @data[:display_domain] || @data[:share_domain] || site_host
           end
 
+          # Brand color helper - resolves from data, config, or default
+          # @return [String] Hex color string
+          def brand_color
+            @brand_color ||= @data[:brand_color] || conf_dig('brand', 'primary_color') || '#dc4a22'
+          end
+
+          # Support email helper - resolves from config or default
+          # @return [String]
+          def support_email
+            @support_email ||= conf_dig('brand', 'support_email') || 'support@onetimesecret.com'
+          end
+
+          # Logo alt text helper - delegates to product_name
+          # @return [String]
+          def logo_alt
+            product_name
+          end
+
           # Get product name from site config
           def site_product_name
-            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
+            @site_product_name ||= conf_dig('brand', 'product_name') || conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
           end
 
           # Get host from site config

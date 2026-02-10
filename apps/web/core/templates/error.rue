@@ -66,11 +66,11 @@ const schema = z.object({
         transition: all 0.2s;
       }
       .btn-primary {
-        background-color: #1478a6;
+        background-color: {{brand_primary_color}};
         color: white;
       }
       .btn-primary:hover {
-        background-color: #23b5dd;
+        opacity: 0.85;
       }
       .btn-secondary {
         background-color: #f3f4f6;

@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Onetime Secret 제공",
-    "sha256": "935442d0"
+    "text": "{product_name} 제공",
+    "sha256": "f9c15030"
   },
   "web.branding.heading_logo": {
     "text": "{0} 로고",

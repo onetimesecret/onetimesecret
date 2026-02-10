@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser ett säkert meddelande som delades med dig via Onetime Secret. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar.",
-    "sha256": "e0f1a10c"
+    "text": "Du ser ett säkert meddelande som delades med dig via {product_name}. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar.",
+    "sha256": "27c88619"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Kan jag visa denna hemlighet igen senare?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Besök Onetime Secrets startsida",
-    "sha256": "625556d2"
+    "text": "Besök {product_name}s startsida",
+    "sha256": "9667e3ed"
   },
   "web.layout.footer_navigation": {
     "text": "Sidfotnavigering",

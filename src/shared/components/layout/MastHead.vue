@@ -20,6 +20,7 @@
     cust,
     ui,
     domain_logo,
+    brand_product_name,
   } = storeToRefs(bootstrapStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -47,7 +48,7 @@
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
+  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name.value });
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   // Custom domain logos are larger to emphasize brand identity
   const isCustomDomainLogo = computed(() => !!domain_logo.value);
@@ -60,7 +61,7 @@
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
   const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
+  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name.value });
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -229,7 +230,7 @@
             <router-link
               v-if="authentication.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret')"
+              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: brand_product_name })"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ t('web.COMMON.header_sign_in') }}

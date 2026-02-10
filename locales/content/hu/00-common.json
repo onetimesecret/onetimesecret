@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint a Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a domain-t új linkek létrehozása előtt.",
-    "sha256": "b588f5b2"
+    "text": "Mindig ellenőrizze, hogy a hivatalos {product_name} weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint a {product_name}, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a domain-t új linkek létrehozása előtt.",
+    "sha256": "b4287d8f"
   },
   "web.STATUS.previewed": {
     "text": "Előnézetben megtekintve",

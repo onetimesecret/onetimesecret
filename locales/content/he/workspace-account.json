@@ -456,8 +456,8 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "למד כיצד לשלב את Onetime Secret באפליקציות שלך",
-    "sha256": "6e8f910f"
+    "text": "למד כיצד לשלב את {product_name} באפליקציות שלך",
+    "sha256": "3faf3f59"
   },
   "web.settings.api.rest_api_reference": {
     "text": "מדריך REST API",

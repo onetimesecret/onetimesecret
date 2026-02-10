@@ -32,7 +32,8 @@
     "sha256": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Obrigado por ajudar o Onetime Secret a melhorar. Significa muito."
+    "text": "Obrigado por ajudar o {product_name} a melhorar. Significa muito.",
+    "sha256": "09b30fcb"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Construímos esta ferramenta para ajudá-lo a compartilhar informações sensíveis com segurança, e suas experiências do mundo real são cruciais para focar nossos esforços. Isso nos ajuda a descobrir no que trabalhar a seguir e como tornar o serviço melhor para todos."
@@ -41,7 +42,8 @@
     "text": "Olá, obrigado por visitar nossa página de feedback. Sua opinião não é apenas bem-vinda - é crucial."
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Uma nota de Delano, fundador do Onetime Secret"
+    "text": "Uma nota de Delano, fundador do {product_name}",
+    "sha256": "273a1475"
   },
   "web.feedback.open_feedback_form": {
     "text": "Abrir formulário de feedback",

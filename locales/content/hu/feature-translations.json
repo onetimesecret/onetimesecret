@@ -64,8 +64,8 @@
     "sha256": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "A következő emberek adományozták idejüket az Onetime Secret elérésének kiterjesztéséhez:",
-    "sha256": "85a766af"
+    "text": "A következő emberek adományozták idejüket az {product_name} elérésének kiterjesztéséhez:",
+    "sha256": "992303f8"
   },
   "web.translations.translations": {
     "text": "Fordítások",
@@ -84,8 +84,8 @@
     "sha256": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "2012 óta az Onetime Secret biztonságos módot nyújt érzékeny információk megosztásához világszerte. Mivel felhasználóink olyan régiókban vannak, ahol az angol nem az elsődleges nyelv, a pontos fordítások elengedhetetlenek a biztonságos kommunikáció mindenki számára elérhetővé tételéhez.",
-    "sha256": "87a6e9af"
+    "text": "2012 óta az {product_name} biztonságos módot nyújt érzékeny információk megosztásához világszerte. Mivel felhasználóink olyan régiókban vannak, ahol az angol nem az elsődleges nyelv, a pontos fordítások elengedhetetlenek a biztonságos kommunikáció mindenki számára elérhetővé tételéhez.",
+    "sha256": "90c11118"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Segítsen a biztonságos kommunikációnak globálissá válni",

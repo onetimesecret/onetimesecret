@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Cung cấp bởi Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Cung cấp bởi {product_name}",
+    "sha256": "93501abd"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}",

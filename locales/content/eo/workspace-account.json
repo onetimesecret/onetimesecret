@@ -472,8 +472,8 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Lernu kiel integri Onetime Secret en viajn aplikaĵojn",
-    "sha256": "6e8f910f"
+    "text": "Lernu kiel integri {product_name} en viajn aplikaĵojn",
+    "sha256": "65af6ba5"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API Referenco",

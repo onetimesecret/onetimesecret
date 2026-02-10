@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Wyświetlasz bezpieczną wiadomość, która została Ci udostępniona przez Onetime Secret. Ta treść jest wyświetlana tylko raz, a następnie trwale usuwana z naszych serwerów.",
-    "sha256": "e0f1a10c"
+    "text": "Wyświetlasz bezpieczną wiadomość, która została Ci udostępniona przez {product_name}. Ta treść jest wyświetlana tylko raz, a następnie trwale usuwana z naszych serwerów.",
+    "sha256": "51bd8525"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Czy mogę wyświetlić ten sekret ponownie później?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Odwiedź stronę główną Onetime Secret",
-    "sha256": "625556d2"
+    "text": "Odwiedź stronę główną {product_name}",
+    "sha256": "245be509"
   },
   "web.layout.footer_navigation": {
     "text": "Nawigacja stopki",

@@ -140,8 +140,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers.",
-    "sha256": "e0f1a10c"
+    "text": "You're viewing a secure message that was shared with you through {product_name}. This content is displayed only once and then permanently deleted from our servers.",
+    "sha256": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Can I view this secret again later?",
@@ -256,8 +256,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visit Onetime Secret homepage",
-    "sha256": "625556d2"
+    "text": "Visit {product_name} homepage",
+    "sha256": "87802af5"
   },
   "web.layout.footer_navigation": {
     "text": "Footer navigation",

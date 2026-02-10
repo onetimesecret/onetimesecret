@@ -46,6 +46,15 @@ module Core
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''
 
+        # Branding config for frontend stores
+        output['brand_primary_color']         = view_vars['brand_primary_color']
+        output['brand_product_name']          = view_vars['brand_product_name']
+        output['brand_corner_style']          = view_vars['brand_corner_style']
+        output['brand_font_family']           = view_vars['brand_font_family']
+        output['brand_button_text_light']     = view_vars['brand_button_text_light']
+        output['brand_allow_public_homepage'] = view_vars['brand_allow_public_homepage']
+        output['brand_allow_public_api']      = view_vars['brand_allow_public_api']
+
         # Pass development config to frontend (includes domain_context_enabled)
         output['development'] = {
           'enabled' => development['enabled'] || false,
@@ -75,6 +84,13 @@ module Core
         def output_template
           {
             'authentication' => nil,
+            'brand_primary_color' => nil,
+            'brand_product_name' => nil,
+            'brand_corner_style' => nil,
+            'brand_font_family' => nil,
+            'brand_button_text_light' => nil,
+            'brand_allow_public_homepage' => nil,
+            'brand_allow_public_api' => nil,
             'd9s_enabled' => nil,
             'development' => nil,
             'diagnostics' => nil,

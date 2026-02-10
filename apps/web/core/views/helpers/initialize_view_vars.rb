@@ -176,6 +176,17 @@ module Core
         base_scheme          = safe_site['ssl'] ? 'https://' : 'http://'
         baseuri              = base_scheme + site_host
 
+        # Brand config for templates (theme-color meta tags, etc.)
+        brand_config                = OT.conf.fetch('brand', {})
+        brand_primary_color         = brand_config['primary_color'] || '#dc4a22'
+        brand_product_name          = brand_config['product_name'] || 'Onetime Secret'
+        support_email               = brand_config['support_email'] || 'support@onetimesecret.com'
+        brand_corner_style          = brand_config['corner_style'] || 'rounded'
+        brand_font_family           = brand_config['font_family'] || 'sans'
+        brand_button_text_light     = brand_config.fetch('button_text_light', true)
+        brand_allow_public_homepage = brand_config.fetch('allow_public_homepage', true)
+        brand_allow_public_api      = brand_config.fetch('allow_public_api', true)
+
         # Return all view variables as a hash
         {
           'authenticated' => authenticated,
@@ -204,6 +215,14 @@ module Core
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,
+          'brand_primary_color' => brand_primary_color,
+          'brand_product_name' => brand_product_name,
+          'brand_corner_style' => brand_corner_style,
+          'brand_font_family' => brand_font_family,
+          'brand_button_text_light' => brand_button_text_light,
+          'brand_allow_public_homepage' => brand_allow_public_homepage,
+          'brand_allow_public_api' => brand_allow_public_api,
+          'support_email' => support_email,
         }
       end
 

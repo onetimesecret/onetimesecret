@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Sempre verifique se você está no site oficial do Onetime Secret. Fraudadores às vezes criam sites falsos que parecem exatamente com o Onetime Secret para roubar suas informações confidenciais. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links.",
-    "sha256": "b588f5b2"
+    "text": "Sempre verifique se você está no site oficial do {product_name}. Fraudadores às vezes criam sites falsos que parecem exatamente com o {product_name} para roubar suas informações confidenciais. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links.",
+    "sha256": "0ec55110"
   },
   "web.STATUS.previewed": {
     "text": "Pré-visualizado",

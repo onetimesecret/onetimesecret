@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Me manatoko koe kei runga koe i te paetukutuku mana o Onetime Secret. I ētahi wā ka hangaia e ngā kaihangarau ngā paetukutuku teka e rite ana ki a Onetime Secret ki te tāhae i ō karere huna. Kia karo i ngā whakaekehanga tīpako, tirohia te rohe i mua i te hanga hononga hou.",
-    "sha256": "b588f5b2"
+    "text": "Me manatoko koe kei runga koe i te paetukutuku mana o {product_name}. I ētahi wā ka hangaia e ngā kaihangarau ngā paetukutuku teka e rite ana ki a {product_name} ki te tāhae i ō karere huna. Kia karo i ngā whakaekehanga tīpako, tirohia te rohe i mua i te hanga hononga hou.",
+    "sha256": "bd3cb26b"
   },
   "web.STATUS.previewed": {
     "text": "Kua arokitea",

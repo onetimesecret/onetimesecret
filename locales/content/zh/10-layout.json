@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "您正在查看通过 Onetime Secret 分享给您的安全信息。此内容仅显示一次，然后将从我们的服务器永久删除。",
-    "sha256": "e0f1a10c"
+    "text": "您正在查看通过 {product_name} 分享给您的安全信息。此内容仅显示一次，然后将从我们的服务器永久删除。",
+    "sha256": "96f05825"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "我可以稍后再次查看此内容吗？",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "访问 Onetime Secret 主页",
-    "sha256": "625556d2"
+    "text": "访问 {product_name} 主页",
+    "sha256": "e0e39d8f"
   },
   "web.layout.footer_navigation": {
     "text": "页脚导航",

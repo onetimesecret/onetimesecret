@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Предоставено от Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Предоставено от {product_name}",
+    "sha256": "683da73e"
   },
   "web.branding.heading_logo": {
     "text": "{0} Лого",

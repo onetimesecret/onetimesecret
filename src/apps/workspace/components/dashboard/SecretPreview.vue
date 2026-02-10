@@ -10,6 +10,7 @@ FontFamily,
 cornerStyleClasses,
 fontFamilyClasses
 } from '@/schemas/models/domain/brand';
+import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import { computed, ref } from 'vue';
 import { Composer, useI18n } from 'vue-i18n';
 
@@ -180,7 +181,7 @@ const fontFamilyClass = computed(() => {
         class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
         :class="[cornerClass, fontFamilyClass]"
         :style="{
-          backgroundColor: domainBranding.primary_color ??' #dc4a22',
+          backgroundColor: domainBranding.primary_color ?? DEFAULT_BRAND_HEX,
           color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
         }"
         @click="toggleReveal"

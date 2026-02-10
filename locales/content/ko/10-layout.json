@@ -136,8 +136,8 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secret을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 한 번만 표시된 후 서버에서 영구적으로 삭제됩니다.",
-    "sha256": "e0f1a10c"
+    "text": "{product_name}을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 한 번만 표시된 후 서버에서 영구적으로 삭제됩니다.",
+    "sha256": "241e2f29"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "이 비밀 메시지를 나중에 다시 볼 수 있나요?",
@@ -252,8 +252,8 @@
     "sha256": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secret 홈페이지 방문",
-    "sha256": "625556d2"
+    "text": "{product_name} 홈페이지 방문",
+    "sha256": "ac756819"
   },
   "web.layout.footer_navigation": {
     "text": "푸터 탐색",

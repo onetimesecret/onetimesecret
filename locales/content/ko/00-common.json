@@ -1237,8 +1237,8 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "항상 공식 Onetime Secret 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 Onetime Secret과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요.",
-    "sha256": "b588f5b2"
+    "text": "항상 공식 {product_name} 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 {product_name}과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요.",
+    "sha256": "6e73ee50"
   },
   "web.STATUS.previewed": {
     "text": "미리보기됨",

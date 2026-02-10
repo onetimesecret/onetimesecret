@@ -16,6 +16,7 @@ import type {
   UiInterface,
 } from '@/types/declarations/bootstrap';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
+import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import { defineStore } from 'pinia';
 import { computed, Ref, ref } from 'vue';
 import type { FallbackLocale } from 'vue-i18n';
@@ -57,6 +58,15 @@ const DEFAULTS: BootstrapPayload = {
   ot_version_long: '',
   ruby_version: '',
   shrimp: '',
+
+  // Branding
+  brand_primary_color: DEFAULT_BRAND_HEX,
+  brand_product_name: 'Onetime Secret',
+  brand_corner_style: 'rounded',
+  brand_font_family: 'sans',
+  brand_button_text_light: true,
+  brand_allow_public_homepage: true,
+  brand_allow_public_api: true,
 
   // Feature flags
   billing_enabled: false,
@@ -238,6 +248,15 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const ruby_version = ref<string>(DEFAULTS.ruby_version);
   const shrimp = ref<string>(DEFAULTS.shrimp);
 
+  // Branding
+  const brand_primary_color = ref<string>(DEFAULTS.brand_primary_color!);
+  const brand_product_name = ref<string>(DEFAULTS.brand_product_name!);
+  const brand_corner_style = ref<string>(DEFAULTS.brand_corner_style!);
+  const brand_font_family = ref<string>(DEFAULTS.brand_font_family!);
+  const brand_button_text_light = ref<boolean>(DEFAULTS.brand_button_text_light!);
+  const brand_allow_public_homepage = ref<boolean>(DEFAULTS.brand_allow_public_homepage!);
+  const brand_allow_public_api = ref<boolean>(DEFAULTS.brand_allow_public_api!);
+
   // Feature flags
   const billing_enabled = ref<boolean | undefined>(DEFAULTS.billing_enabled);
   const regions_enabled = ref<boolean>(DEFAULTS.regions_enabled);
@@ -354,6 +373,13 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(ot_version_long, data.ot_version_long);
     updateIfDefined(ruby_version, data.ruby_version);
     updateIfDefined(shrimp, data.shrimp);
+    updateIfDefined(brand_primary_color, data.brand_primary_color);
+    updateIfDefined(brand_product_name, data.brand_product_name);
+    updateIfDefined(brand_corner_style, data.brand_corner_style);
+    updateIfDefined(brand_font_family, data.brand_font_family);
+    updateIfDefined(brand_button_text_light, data.brand_button_text_light);
+    updateIfDefined(brand_allow_public_homepage, data.brand_allow_public_homepage);
+    updateIfDefined(brand_allow_public_api, data.brand_allow_public_api);
   }
 
   function hydrateFeatureFlags(data: Partial<BootstrapPayload>): void {
@@ -446,6 +472,13 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     ot_version_long.value = DEFAULTS.ot_version_long;
     ruby_version.value = DEFAULTS.ruby_version;
     shrimp.value = DEFAULTS.shrimp;
+    brand_primary_color.value = DEFAULTS.brand_primary_color!;
+    brand_product_name.value = DEFAULTS.brand_product_name!;
+    brand_corner_style.value = DEFAULTS.brand_corner_style!;
+    brand_font_family.value = DEFAULTS.brand_font_family!;
+    brand_button_text_light.value = DEFAULTS.brand_button_text_light!;
+    brand_allow_public_homepage.value = DEFAULTS.brand_allow_public_homepage!;
+    brand_allow_public_api.value = DEFAULTS.brand_allow_public_api!;
   }
 
   function resetFeatureFlags(): void {
@@ -619,6 +652,15 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     ot_version_long,
     ruby_version,
     shrimp,
+
+    // State - Branding
+    brand_primary_color,
+    brand_product_name,
+    brand_corner_style,
+    brand_font_family,
+    brand_button_text_light,
+    brand_allow_public_homepage,
+    brand_allow_public_api,
 
     // State - Feature flags
     billing_enabled,

@@ -144,8 +144,8 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Με την υποστήριξη του Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Με την υποστήριξη του {product_name}",
+    "sha256": "f99fa7a9"
   },
   "web.branding.heading_logo": {
     "text": "Λογότυπο {0}",
