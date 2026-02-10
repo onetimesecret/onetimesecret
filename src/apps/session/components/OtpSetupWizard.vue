@@ -21,7 +21,7 @@ const notificationsStore = useNotificationsStore();
 const { copyToClipboard } = useClipboard();
 
 const bootstrapStore = useBootstrapStore();
-const { ui, email, brand_product_name } = storeToRefs(bootstrapStore);
+const { email, brand_product_name } = storeToRefs(bootstrapStore);
 
 // Simplified wizard: setup or codes
 const currentStep = ref<'setup' | 'codes'>('setup');
@@ -34,7 +34,7 @@ const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 // Auto-load QR code on mount (without password initially)
 onMounted(async () => {
   // Get site name and user email from bootstrap store
-  const siteName = ui.value?.header?.branding?.site_name || brand_product_name.value || 'OTS';
+  const siteName = brand_product_name.value || 'OTS';
   const userEmail = email.value || '';
 
   await setupMfa(siteName, userEmail);
