@@ -15,8 +15,8 @@ module V2::Logic
 
       def raise_concerns
         # Check if feature is enabled
-        incoming_config = OT.conf.dig(:features, :incoming) || {}
-        unless incoming_config[:enabled]
+        incoming_config = OT.conf.dig('features', 'incoming') || {}
+        unless incoming_config['enabled']
           raise_form_error 'Incoming secrets feature is not enabled'
         end
 
@@ -24,13 +24,13 @@ module V2::Logic
       end
 
       def process
-        incoming_config = OT.conf.dig(:features, :incoming) || {}
+        incoming_config = OT.conf.dig('features', 'incoming') || {}
 
         # Use hashed recipients to prevent email exposure
         @config_data = {
-          enabled: incoming_config[:enabled] || false,
-          memo_max_length: incoming_config[:memo_max_length] || 50,
-          default_ttl: incoming_config[:default_ttl] || 604_800,
+          enabled: incoming_config['enabled'] || false,
+          memo_max_length: incoming_config['memo_max_length'] || 50,
+          default_ttl: incoming_config['default_ttl'] || 604_800,
           recipients: OT.incoming_public_recipients,  # Returns hashed version
         }
 
