@@ -531,7 +531,7 @@ mail:
     # write access to the log file. The log file will be created if it
     # does not exist. Log file rotation is not handled by the app.
     logger:
-      # One of: :error (default), :unrecognized_error, :recognized_error, :all.
+      # One of: error (default), unrecognized_error, recognized_error, all.
       tracking_event: 'error'
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
