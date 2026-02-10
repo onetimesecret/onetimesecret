@@ -49,6 +49,7 @@ const featuresRegionJurisdictionSchema = z.object({
 const featuresRegionsSchema = z.object({
   enabled: z.boolean().default(false),
   current_jurisdiction: nullableString,
+  federation_hmac_secret: nullableString,
   jurisdictions: z.array(featuresRegionJurisdictionSchema).optional(),
 });
 
@@ -69,7 +70,7 @@ const featuresDomainsProxySchema = z.object({
 const featuresDomainsAcmeSchema = z.object({
   enabled: z.boolean().default(false),
   listen_address: z.string().default('127.0.0.1'),
-  port: z.string().default('12020'),
+  port: z.union([z.string(), z.number()]).default('12020'),
 });
 
 /**
@@ -78,8 +79,8 @@ const featuresDomainsAcmeSchema = z.object({
 const featuresDomainsSchema = z.object({
   enabled: z.boolean().default(false),
   default: nullableString,
-  strategy: z.enum(['passthrough', 'approximated', 'caddy_on_demand']).default('passthrough'),
-  cluster: featuresDomainsProxySchema.optional(),
+  validation_strategy: z.enum(['passthrough', 'approximated', 'caddy_on_demand']).default('passthrough'),
+  approximated: featuresDomainsProxySchema.optional(),
   acme: featuresDomainsAcmeSchema.optional(),
 });
 
