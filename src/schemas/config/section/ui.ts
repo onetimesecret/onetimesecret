@@ -92,10 +92,24 @@ const uiSchema = z.object({
 });
 
 /**
+ * Guest API routes configuration
+ */
+const guestRoutesSchema = z.object({
+  enabled: z.boolean().default(true),
+  conceal: z.boolean().default(true),
+  generate: z.boolean().default(true),
+  reveal: z.boolean().default(true),
+  burn: z.boolean().default(true),
+  show: z.boolean().default(true),
+  receipt: z.boolean().default(true),
+});
+
+/**
  * API configuration schema
  */
 const apiSchema = z.object({
   enabled: z.boolean().default(true),
+  guest_routes: guestRoutesSchema.optional(),
 });
 
 /**
@@ -110,6 +124,7 @@ export {
   userInterfaceSchema,
   uiSchema,
   apiSchema,
+  guestRoutesSchema,
   userInterfaceLogoSchema,
   userInterfaceHeaderSchema,
   userInterfaceFooterLinksSchema,
