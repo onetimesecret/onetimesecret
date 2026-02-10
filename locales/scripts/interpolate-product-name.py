@@ -23,6 +23,7 @@ After applying, re-run compile.py to regenerate the nested runtime files:
 import argparse
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -31,6 +32,7 @@ from typing import Any
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
 CONTENT_DIR = LOCALES_DIR / "content"
+SOURCE_LOCALE = os.environ.get("I18N_DEFAULT_LOCALE", "en")
 
 # Patterns to replace, ordered by specificity (longest first)
 # "One-Time Secret" is a variant spelling used in some keys
@@ -56,8 +58,11 @@ EXCLUDE_KEYS: set[str] = set()
 
 def compute_content_hash(text: str) -> str:
     """Compute the first 8 chars of SHA-256 hex digest, matching the
-    convention used in the locale JSON files."""
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
+    convention used in the locale JSON files.
+
+    Uses the same normalization as add_hashes.py (strip whitespace).
+    """
+    return hashlib.sha256(text.strip().encode("utf-8")).hexdigest()[:8]
 
 
 def replace_product_name(text: str) -> tuple[str, int]:
@@ -83,12 +88,16 @@ def replace_product_name(text: str) -> tuple[str, int]:
 
 
 def scan_file(
-    file_path: Path, apply: bool = False
+    file_path: Path, apply: bool = False, *, is_source_locale: bool = False
 ) -> list[dict[str, Any]]:
     """Scan a single JSON file for product name occurrences.
 
     Returns a list of change records. If apply=True, writes changes
     back to the file.
+
+    Only source locale files get their content_hash updated after text
+    changes. Translation locale files leave source_hash untouched —
+    that field is a staleness watermark managed by add_hashes.py.
     """
     with open(file_path, encoding="utf-8") as f:
         data = json.load(f)
@@ -125,8 +134,11 @@ def scan_file(
 
             if apply:
                 entry["text"] = new_text
-                # Update content_hash to match the new text
-                entry["content_hash"] = compute_content_hash(new_text)
+                # Only recompute content_hash for source locale entries.
+                # Translation entries keep their source_hash unchanged —
+                # it tracks source staleness, not translation content.
+                if is_source_locale:
+                    entry["content_hash"] = compute_content_hash(new_text)
                 modified = True
 
     if apply and modified:
@@ -155,9 +167,10 @@ def scan_all(
         )
 
     for locale_dir in locale_dirs:
+        is_source = locale_dir.name == SOURCE_LOCALE
         json_files = sorted(locale_dir.glob("*.json"))
         for json_file in json_files:
-            changes = scan_file(json_file, apply=apply)
+            changes = scan_file(json_file, apply=apply, is_source_locale=is_source)
             all_changes.extend(changes)
 
     return all_changes
