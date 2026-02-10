@@ -338,6 +338,7 @@ features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+    federation_hmac_secret: <%= ENV['FEDERATION_HMAC_SECRET'] || nil %>
   # Incoming Secrets Feature
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
