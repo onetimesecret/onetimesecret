@@ -5,6 +5,7 @@
 # rubocop:disable Metrics/ModuleLength
 
 require 'stripe'
+require 'json_schemer'
 require_relative '../metadata'
 require_relative '../config'
 require_relative '../region_normalizer'
@@ -1147,6 +1148,8 @@ module Billing
       # @param plans_hash [Hash] All plans hash for resolving includes_plan_name
       # @return [Hash] Normalized plan hash
       def config_plan_to_hash(plan_id, plan_def, plans_hash = {})
+        validate_plan_definition(plan_def, context: "config_plan_to_hash(#{plan_id})")
+
         # Convert limits to flattened format (e.g., "teams" -> "teams.max")
         limits = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
         limits = limits.transform_values do |v|
@@ -1175,6 +1178,33 @@ module Billing
           features: plan_def['features'] || [],
           limits: limits,
         }
+      end
+
+      # Lazily load and memoize the generated PlanDefinition JSON Schema.
+      # Returns nil if the schema file does not exist (e.g., dev environments
+      # that haven't run the schema generator).
+      def plan_definition_schema
+        @plan_definition_schema ||= begin
+          schema_path = File.join(
+            Onetime::HOME, 'generated', 'schemas', 'billing', 'plan-definition.schema.json'
+          )
+          if File.exist?(schema_path)
+            JSONSchemer.schema(JSON.parse(File.read(schema_path)))
+          end
+        end
+      end
+
+      # Validate a raw plan definition hash against the generated JSON Schema.
+      # Logs warnings on validation failures — never raises, so the system
+      # continues to operate even with schema mismatches.
+      def validate_plan_definition(plan_def, context:)
+        return unless plan_definition_schema
+
+        errors = plan_definition_schema.validate(plan_def).to_a
+        return if errors.empty?
+
+        error_messages = errors.map { |e| "#{e['data_pointer']}: #{e['error']}" }
+        OT.lw "[Plan.#{context}] Schema validation warnings: #{error_messages.join('; ')}"
       end
     end
 
