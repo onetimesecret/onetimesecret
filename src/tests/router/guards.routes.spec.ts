@@ -93,7 +93,7 @@ describe('Router Guards', () => {
 
     // Index 1: main guard (index 0 is the feature-check guard)
     const guard = vi.mocked(router.beforeEach).mock.calls[1][0];
-    const to = {
+    const to: RouteLocationNormalized = {
       meta: { isAuthRoute: true },
       query: {},
       path: '/auth',
@@ -106,9 +106,9 @@ describe('Router Guards', () => {
     };
 
     const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
-    vi.mocked(useAuthStore).mockReturnValue(authStore as any);
+    vi.mocked(useAuthStore).mockReturnValue(authStore as ReturnType<typeof useAuthStore>);
 
-    const result = await guard(to as any);
+    const result = await guard(to);
 
     expect(result).toEqual({ name: 'Dashboard' });
   });
@@ -118,7 +118,7 @@ describe('Router Guards', () => {
 
     // Index 1: main guard (index 0 is the feature-check guard)
     const guard = vi.mocked(router.beforeEach).mock.calls[1][0];
-    const to = {
+    const to: RouteLocationNormalized = {
       path: '/',
       query: {},
       name: 'Home',
@@ -131,9 +131,9 @@ describe('Router Guards', () => {
     };
 
     const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
-    vi.mocked(useAuthStore).mockReturnValue(authStore as any);
+    vi.mocked(useAuthStore).mockReturnValue(authStore as ReturnType<typeof useAuthStore>);
 
-    const result = await guard(to as any);
+    const result = await guard(to);
 
     expect(result).toEqual({ name: 'Dashboard' });
   });
@@ -159,7 +159,7 @@ describe('Router Guards', () => {
         redirectedFrom: undefined,
       };
 
-      const result = guard(to as any);
+      const result = guard(to as RouteLocationNormalized);
       expect(result).toEqual({ path: '/' });
     });
 
@@ -183,7 +183,7 @@ describe('Router Guards', () => {
         redirectedFrom: undefined,
       };
 
-      const result = guard(to as any);
+      const result = guard(to as RouteLocationNormalized);
       expect(result).toBe(true);
     });
 
@@ -207,7 +207,7 @@ describe('Router Guards', () => {
         redirectedFrom: undefined,
       };
 
-      const result = guard(to as any);
+      const result = guard(to as RouteLocationNormalized);
       expect(result).toEqual({ path: '/' });
     });
 
@@ -231,7 +231,175 @@ describe('Router Guards', () => {
         redirectedFrom: undefined,
       };
 
-      const result = guard(to as any);
+      const result = guard(to as RouteLocationNormalized);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should redirect /mfa-verify to / when signin is disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: true, signin: false },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
+        path: '/mfa-verify',
+        name: 'MFA Verify',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/mfa-verify',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as RouteLocationNormalized);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should redirect /reset-password to / when signin is disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: true, signin: false },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
+        path: '/reset-password',
+        name: 'Reset Password (Rodauth)',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/reset-password',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as RouteLocationNormalized);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should block signin sub-routes when auth is entirely disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: false, signup: true, signin: true },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
+        path: '/email-login',
+        name: 'Email Login',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/email-login',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as RouteLocationNormalized);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should redirect /forgot to / when signin is disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: true, signin: false },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
+        path: '/forgot',
+        name: 'Forgot Password',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/forgot',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as RouteLocationNormalized);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should allow /mfa-verify when signin is enabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: true, signin: true },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
+        path: '/mfa-verify',
+        name: 'MFA Verify',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/mfa-verify',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as RouteLocationNormalized);
+      expect(result).toBe(true);
+    });
+
+    it('should redirect /email-login to / when signin is disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: true, signin: false },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
+        path: '/email-login',
+        name: 'Email Login',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/email-login',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as RouteLocationNormalized);
+      expect(result).toEqual({ path: '/' });
+    });
+
+    it('should redirect /signup/:planCode to / when signup is disabled', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authentication: { enabled: true, signup: false, signin: true },
+      });
+
+      setupRouterGuards(router);
+      const guard = vi.mocked(router.beforeEach).mock.calls[0][0];
+      const to = {
+        meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
+        path: '/signup/professional',
+        name: 'Sign Up with Plan',
+        query: {},
+        params: { planCode: 'professional' },
+        hash: '',
+        fullPath: '/signup/professional',
+        matched: [],
+        redirectedFrom: undefined,
+      };
+
+      const result = guard(to as RouteLocationNormalized);
       expect(result).toEqual({ path: '/' });
     });
 
@@ -250,7 +418,7 @@ describe('Router Guards', () => {
         redirectedFrom: undefined,
       };
 
-      const result = guard(to as any);
+      const result = guard(to as RouteLocationNormalized);
       expect(result).toBe(true);
     });
   });
