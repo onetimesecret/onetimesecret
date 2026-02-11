@@ -58,7 +58,7 @@ ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
 ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bbc49173621b513e33c4add027747db0c41d540c86492cca66e90814a7518c84
-ARG NODE_IMAGE_TAG=22@sha256:cd7bcd2e7a1e6f72052feb023c7f6b722205d3fcab7bbcbd2d1bfdab10b1e935
+ARG NODE_IMAGE_TAG=22@sha256:379c51ac7bbf9bffe16769cfda3eb027d59d9c66ac314383da3fcf71b46d026c
 
 ##
 # NODE: Node.js source for copying binaries
