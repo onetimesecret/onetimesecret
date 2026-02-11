@@ -288,6 +288,8 @@
               ]">
               {{ getCtaLabel(currentPlan) }}
             </RouterLink>
+            <!-- Explicit empty slot content prevents PlanCard fallback button -->
+            <span v-else ></span>
           </template>
         </PlanCard>
       </div>
