@@ -39,6 +39,7 @@ validators:
   - path: 01-customer/validate_instance_index.rb
   - path: 02-organization/validate_instance_index.rb
   - path: 03-customdomain/validate_instance_index.rb
+  - path: 04-receipt/validate_instance_index.rb
 
 # Utility scripts
 utilities:
