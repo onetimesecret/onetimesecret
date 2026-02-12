@@ -22,39 +22,34 @@ module Onetime
 
       # Check for legacy data distribution before connecting to databases
       def detect_legacy_data_and_warn
-      # This check runs once and then sets a marker to prevent the expensive
-      # scan on every startup.
-      completion_key = 'onetime:system:legacy_check_complete'
-      check_complete = false
-      begin
+        # This check runs once and then sets a marker to prevent the expensive
+        # scan on every startup.
+        completion_key = 'onetime:system:legacy_check_complete'
+        check_complete = false
+
         Familia.with_isolated_dbclient(0) do |client|
           check_complete = client.get(completion_key) == 'true'
         end
-      rescue Redis::BaseError => ex
-        OT.ld "[init] Detect legacy data: Could not check for completion flag: #{ex.message}"
-      end
 
-      if check_complete
-        OT.ld "[init] Detect legacy data: Check previously ran. Skipping. (delete '#{completion_key}' to re-run)"
-        return
-      end
+        if check_complete
+          OT.boot_logger.info "[init] Detect legacy data: Check previously ran. Skipping. (delete '#{completion_key}' to re-run)"
+          return
+        end
 
-      # Run the actual detection
-      detection_result = detect_legacy_data
-      return if detection_result[:legacy_locations].empty?
+        # Run the actual detection
+        detection_result = detect_legacy_data
+        return if detection_result[:legacy_locations].empty?
 
-      # If we found data, warn the user...
-      warn_about_legacy_data(detection_result)
+        # If we found data, warn the user...
+        warn_about_legacy_data(detection_result)
 
-      # ...and then set the marker so we don't do this again.
-      begin
+        # ...and then set the marker so we don't do this again.
         Familia.with_isolated_dbclient(0) do |client|
           client.set(completion_key, 'true')
           OT.ld '[init] Detect legacy data: Set completion marker to prevent future checks.'
         end
       rescue Redis::BaseError => ex
-        OT.ld "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
-      end
+        OT.boot_logger.error "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
       end
 
       # Detects legacy data distribution across multiple Redis databases
@@ -62,7 +57,7 @@ module Onetime
       def detect_legacy_data
         return { legacy_locations: {}, needs_auto_config: false } if skip_legacy_data_check?
 
-        OT.ld '[init] Detect legacy data: Scanning for existing data distribution...'
+        OT.boot_logger.info '[init] Detect legacy data: Scanning for existing data distribution...'
 
         legacy_locations = {}
 
@@ -96,7 +91,7 @@ module Onetime
           found_count         = scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations)
           models_found_count += found_count
 
-          OT.ld "[init] Detect legacy data: Database #{db_num}: #{found_count} legacy records found"
+          OT.boot_logger.info "[init] Detect legacy data: Database #{db_num}: #{found_count} legacy records found"
           found_count
         end.compact
 
@@ -104,7 +99,7 @@ module Onetime
         needs_auto_config = legacy_locations.any? && using_default_database_config?(current_dbs, legacy_locations)
 
         total_model_types = models_found_count
-        OT.ld <<~SCAN_COMPLETE_MESSAGE
+        OT.boot_logger.info <<~SCAN_COMPLETE_MESSAGE
           [init] Detect legacy data: Scan complete.
           Found #{legacy_locations.size} model types with existing data across #{legacy_counts.size} databases.
           [init] Detect legacy data: Total model instances found: #{total_model_types}
@@ -113,8 +108,8 @@ module Onetime
 
         { legacy_locations: legacy_locations, needs_auto_config: needs_auto_config }
       rescue RuntimeError => ex
-        OT.le "[init] Detect legacy data: Error during legacy data detection: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
+        OT.boot_logger.error "[init] Detect legacy data: Error during legacy data detection: #{ex.message}"
+        OT.boot_logger.debug ex.backtrace.join("\n")
 
         # Even though we want the update to v0.23 to be easy and not require
         # manual intervention, we still need to handle an error here gracefully.
