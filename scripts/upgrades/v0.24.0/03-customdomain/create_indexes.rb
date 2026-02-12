@@ -79,7 +79,7 @@ class CustomDomainIndexCreator
       record                 = JSON.parse(line, symbolize_names: true)
 
       case record[:key]
-      when 'custom_domain:values'
+      when 'customdomain:values'
         # Existing instance index - rename it
         commands.concat(process_instance_index(record))
       when /:object$/
@@ -92,10 +92,8 @@ class CustomDomainIndexCreator
       @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
 
-    # If no instance index was found, generate from objects
-    if @stats[:instance_index_source].nil?
-      @stats[:instance_index_source] = 'generated'
-    end
+    # Instance index is always generated from V2 objects (V1 hex IDs != V2 UUIDs)
+    @stats[:instance_index_source] = 'generated'
 
     # Write output
     write_output(commands) unless @dry_run
@@ -147,14 +145,11 @@ class CustomDomainIndexCreator
     @redis.close
   end
 
+  # Read V1 ZSET for validation/reporting only. Members are V1 hex IDs which
+  # don't match V2 UUIDs, so the actual instance index must be generated from
+  # transformed objects (the "generated" path in process_customdomain_object).
   def process_instance_index(record)
-    @stats[:instance_index_source] = 'existing'
-    commands                       = []
-
-    if @dry_run
-      @stats[:instance_entries] = 'unknown (dry-run)'
-      return commands
-    end
+    return [] if @dry_run
 
     temp_key  = "#{TEMP_KEY_PREFIX}instance_index"
     dump_data = Base64.strict_decode64(record[:dump])
@@ -162,15 +157,7 @@ class CustomDomainIndexCreator
     begin
       @redis.restore(temp_key, 0, dump_data, replace: true)
       members_with_scores = @redis.zrange(temp_key, 0, -1, with_scores: true)
-
-      members_with_scores.each do |member, score|
-        commands << {
-          command: 'ZADD',
-          key: 'custom_domain:instances',
-          args: [score.to_i, member],
-        }
-        @stats[:instance_entries] += 1
-      end
+      @stats[:v1_instance_members] = members_with_scores.size
     rescue Redis::CommandError => ex
       @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
     ensure
@@ -181,7 +168,7 @@ class CustomDomainIndexCreator
       end
     end
 
-    commands
+    [] # No commands — V2 index is generated from objects
   end
 
   def process_customdomain_object(record)
@@ -344,6 +331,9 @@ class CustomDomainIndexCreator
     puts 'Instance Index:'
     puts "  Source: #{@stats[:instance_index_source] || 'none'}"
     puts "  Entries: #{@stats[:instance_entries]}"
+    if @stats[:v1_instance_members]
+      puts "  V1 ZSET members: #{@stats[:v1_instance_members]} (read-only, not used for V2 index)"
+    end
     puts
 
     puts 'Lookup Indexes:'

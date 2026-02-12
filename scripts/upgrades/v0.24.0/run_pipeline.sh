@@ -26,56 +26,70 @@ fi
 
 pipeline_start=$SECONDS
 
-echo "=== v0.24.0 Upgrade Scripts ==="
+echo "=== v0.24.0 Upgrade Scripts ============================================="
 echo "Redis: ${VALKEY_URL:-$REDIS_URL}"
 echo "Data:  data/upgrades/v0.24.0"
 echo ""
 
+echo ""
+echo ""
 phase_start=$SECONDS
-echo "=== Enriching with identifiers ==="
+echo "=== Enriching with identifiers ============================================="
 ruby scripts/upgrades/v0.24.0/enrich_with_identifiers.rb
 echo "  Enrichment completed in $((SECONDS - phase_start))s"
 
+echo ""
+echo ""
 phase_start=$SECONDS
-echo "=== Customer ==="
+echo "=== Customer ============================================="
 ruby scripts/upgrades/v0.24.0/01-customer/transform.rb
 ruby scripts/upgrades/v0.24.0/01-customer/create_indexes.rb
 ruby scripts/upgrades/v0.24.0/01-customer/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Customer completed in $((SECONDS - phase_start))s"
 
+echo ""
+echo ""
 phase_start=$SECONDS
-echo "=== Organization ==="
+echo "=== Organization ============================================="
 ruby scripts/upgrades/v0.24.0/02-organization/generate.rb
 ruby scripts/upgrades/v0.24.0/02-organization/create_indexes.rb
 ruby scripts/upgrades/v0.24.0/02-organization/validate_instance_index.rb
 echo "  Organization completed in $((SECONDS - phase_start))s"
 
+echo ""
+echo ""
 phase_start=$SECONDS
-echo "=== Domain ==="
+echo "=== Domain ============================================="
 ruby scripts/upgrades/v0.24.0/03-customdomain/transform.rb
 ruby scripts/upgrades/v0.24.0/03-customdomain/create_indexes.rb
 ruby scripts/upgrades/v0.24.0/03-customdomain/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Domain completed in $((SECONDS - phase_start))s"
 
+echo ""
+echo ""
 phase_start=$SECONDS
-echo "=== Receipt ==="
+echo "=== Receipt ============================================="
 ruby scripts/upgrades/v0.24.0/04-receipt/transform.rb
 ruby scripts/upgrades/v0.24.0/04-receipt/create_indexes.rb
 ruby scripts/upgrades/v0.24.0/04-receipt/validate_instance_index.rb
 echo "  Receipt completed in $((SECONDS - phase_start))s"
 
+echo ""
+echo ""
 phase_start=$SECONDS
-echo "=== Secret ==="
+echo "=== Secret ============================================="
 ruby scripts/upgrades/v0.24.0/05-secret/transform.rb
 ruby scripts/upgrades/v0.24.0/05-secret/create_indexes.rb
 ruby scripts/upgrades/v0.24.0/05-secret/validate_instance_index.rb
 echo "  Secret completed in $((SECONDS - phase_start))s"
 
+echo ""
+echo ""
 phase_start=$SECONDS
-echo "=== Restoring original records ==="
+echo "=== Restoring original records ============================================="
 ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb \
   --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Original records restoration completed in $((SECONDS - phase_start))s"
 
 echo ""
-echo "=== Done in $((SECONDS - pipeline_start))s ==="
+echo "=== Done in $((SECONDS - pipeline_start))s ============================================="

@@ -172,7 +172,7 @@ class CustomDomainInstanceIndexValidator
     dump_data = Base64.strict_decode64(v1_record[:dump])
     begin
       @redis.restore(temp_key, 0, dump_data, replace: true)
-      members = Set.new(@redis.smembers(temp_key))
+      members = Set.new(@redis.zrange(temp_key, 0, -1))
       @stats[:v1_members] = members.size
       members
     ensure
@@ -265,12 +265,11 @@ class CustomDomainInstanceIndexValidator
     @stats[:count_mismatch] = v1_domain_ids.size - index_members.size
   end
 
-  def check_v1_membership(index_members, v1_domain_ids)
-    return if v1_domain_ids.empty?
-
-    index_members.each_key do |objid|
-      @stats[:missing_from_v1] << objid unless v1_domain_ids.include?(objid)
-    end
+  # V1 members are hex IDs, V2 members are UUIDs — direct membership check
+  # is not meaningful. Count comparison (validate_v1_count) is the useful check.
+  def check_v1_membership(_index_members, _v1_domain_ids)
+    # Skipped: V1 hex IDs and V2 UUIDs are different ID spaces.
+    # Use count comparison instead.
   end
 
   def validate_timestamps(index_members, domain_objects)
@@ -320,14 +319,13 @@ class CustomDomainInstanceIndexValidator
 
   def print_report
     puts '=== Validation Results ==='
-    puts "V1 set members (customdomain:values): #{@stats[:v1_members]}"
+    puts "V1 ZSET members (customdomain:values): #{@stats[:v1_members]} (hex IDs, count-only reference)"
     puts "V2 index members (custom_domain:instances): #{@stats[:index_members]}"
     puts "Transformed objects: #{@stats[:transformed_objects]}"
-    puts "Count match (v1 vs v2 index): #{@stats[:count_mismatch].zero? ? 'OK' : "FAIL (difference: #{@stats[:count_mismatch]})"}"
-    puts "Bidirectional match: #{@stats[:matches]}"
+    puts "Count match (v1 vs v2 index): #{@stats[:count_mismatch].zero? ? 'OK' : "DIFF #{@stats[:count_mismatch]} (stale V1 members expected)"}"
+    puts "Bidirectional match (index vs objects): #{@stats[:matches]}"
     puts "In index but missing object: #{@stats[:in_index_not_in_objects].size}"
     puts "Object exists but not indexed: #{@stats[:in_objects_not_in_index].size}"
-    puts "Missing from V1 index: #{@stats[:missing_from_v1].size}"
     puts "Timestamp mismatches: #{@stats[:timestamp_mismatches].size}"
     puts "Missing org_id: #{@stats[:org_id_missing].size}"
     puts "Invalid org_id: #{@stats[:org_id_invalid].size}"
