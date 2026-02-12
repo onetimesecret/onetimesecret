@@ -30,6 +30,12 @@ conn.close
 
 ## Inspect queues
 
+> **Why pool-per-check?** `Bunny::NotFound` is a channel-level AMQP exception —
+> the broker closes the channel, not just the operation. If you reuse a single
+> pooled channel across the loop, the first `NotFound` kills it and every
+> subsequent check fails. Acquiring a fresh channel from the pool for each queue
+> isolates failures and keeps the pool consistent (no leaked or stale channels).
+
 ```ruby
 # Single queue
 $rmq_channel_pool.with do |ch|
@@ -38,14 +44,13 @@ $rmq_channel_pool.with do |ch|
   q.consumer_count
 end
 
-# All queues — Bunny::NotFound closes the channel, so recreate it
-$rmq_channel_pool.with do |ch|
-  Onetime::Jobs::QueueConfig::QUEUES.each_key do |name|
+# All queues — Bunny::NotFound closes the channel, so we acquire a fresh one per check.
+Onetime::Jobs::QueueConfig::QUEUES.each_key do |name|
+  $rmq_channel_pool.with do |ch|
     q = ch.queue(name, passive: true)
     puts "#{name}: #{q.message_count} msgs, #{q.consumer_count} consumers"
   rescue Bunny::NotFound
     puts "#{name}: NOT DECLARED"
-    ch = $rmq_conn.create_channel
   end
 end
 ```
@@ -53,13 +58,12 @@ end
 ## Dead letter queues
 
 ```ruby
-$rmq_channel_pool.with do |ch|
-  Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_value do |cfg|
+Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_value do |cfg|
+  $rmq_channel_pool.with do |ch|
     q = ch.queue(cfg[:queue], passive: true)
     puts "#{cfg[:queue]}: #{q.message_count} msgs"
   rescue Bunny::NotFound
     puts "#{cfg[:queue]}: NOT DECLARED"
-    ch = $rmq_conn.create_channel
   end
 end
 ```
