@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { Jurisdiction } from '@/schemas/models';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -20,6 +21,7 @@ withDefaults(defineProps<Props>(), {
 })
 
 const route = useRoute();
+const bootstrapStore = useBootstrapStore();
 const { signup, isLoading, error, fieldError, clearErrors } = useAuth();
 
 const { t } = useI18n();
@@ -37,6 +39,7 @@ const togglePasswordVisibility = () => {
 
 const handleSubmit = async () => {
   clearErrors();
+  await bootstrapStore.refresh();
   await signup(email.value, password.value, termsAgreed.value);
   // Navigation handled by useAuth composable
 };

@@ -5,6 +5,7 @@
 import LockoutAlert from '@/apps/session/components/LockoutAlert.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -21,6 +22,7 @@ withDefaults(defineProps<Props>(), {
   locale: 'en',
 })
 
+const bootstrapStore = useBootstrapStore();
 const { login, isLoading, error, lockoutStatus, clearErrors } = useAuth();
 
 // Prefill email from query param (e.g., from invitation flow)
@@ -36,6 +38,7 @@ const togglePasswordVisibility = () => {
 
 const handleSubmit = async () => {
   clearErrors();
+  await bootstrapStore.refresh();
   await login(email.value, password.value, rememberMe.value);
   // Navigation handled by useAuth composable
 };
