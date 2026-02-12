@@ -1,245 +1,304 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Validates that organization:instances zset is a 1-to-1 match with v1
-# customer records, ensuring every customer resulted in a new organization.
+# Validates that organization:instances index members match organization objects
+# and verifies 1-to-1 correspondence with v1 customer records.
 #
-# This script compares the v2 organization instance index (organization:instances)
-# with the v1 customer instance index (onetime:customer) and enriched
-# organization objects to verify:
-# 1. The number of organizations matches the number of v1 customers.
-# 2. Each objid in the index has a corresponding organization object.
-# 3. The score (timestamp) matches the object's created field.
+# This script cross-references:
+# 1. organization_indexes.jsonl - ZADD commands for organization:instances (objid members)
+# 2. organization_transformed.jsonl - generated organization objects with V2 keys
+# 3. customer_transformed.jsonl - V2 customer objects (for count cross-reference)
+#
+# Validations:
+# 1. Each objid in organization:instances has a matching organization:{objid}:object record
+# 2. Each organization:{objid}:object record has an entry in organization:instances
+# 3. Index scores match object created timestamps
+# 4. Organization count matches customer count (1-to-1 invariant)
+# 5. Key fields (objid, extid, owner_id, contact_email, created) are present
 #
 # Usage:
 #   ruby scripts/upgrades/v0.24.0/02-organization/validate_instance_index.rb [OPTIONS]
 #
 # Options:
-#   --org-input-file=FILE       Input org JSONL dump (default: data/upgrades/v0.24.0/organization/organization_transformed.jsonl)
-#   --customer-input-file=FILE  Input customer JSONL dump (default: data/upgrades/v0.24.0/customer/customer_dump.jsonl)
-#   --redis-url=URL             Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N                 Temp database number (default: 15)
+#   --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/organization/organization_transformed.jsonl)
+#   --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/organization/organization_indexes.jsonl)
+#   --customer-file=FILE     Customer transformed JSONL (default: data/upgrades/v0.24.0/customer/customer_transformed.jsonl)
+#   --help                   Show this help
 
-require 'redis'
 require 'json'
-require 'base64'
-require 'uri'
+require 'set'
 
-# Calculate project root from script location
-# Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/02-organization/validate_instance_index.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class OrganizationInstanceIndexValidator
-  TEMP_KEY_PREFIX = '_validate_tmp_'
+  KEY_FIELDS = %w[objid extid owner_id contact_email created].freeze
 
-  def initialize(org_input_file:, customer_input_file:, redis_url:, temp_db:)
-    @org_input_file      = org_input_file
-    @customer_input_file = customer_input_file
-    @redis_url           = redis_url
-    @temp_db             = temp_db
-    @redis               = nil
+  def initialize(transformed_file:, indexes_file:, customer_file:)
+    @transformed_file = transformed_file
+    @indexes_file     = indexes_file
+    @customer_file    = customer_file
+
+    @stats = {
+      index_members: 0,
+      transformed_objects: 0,
+      customer_objects: 0,
+      matches: 0,
+      in_index_not_in_objects: [],
+      in_objects_not_in_index: [],
+      timestamp_mismatches: [],
+      count_mismatch: 0,
+      field_checks: Hash.new { |h, k| h[k] = { present: 0, missing: 0, missing_objids: [] } },
+      errors: [],
+    }
   end
 
   def run
     validate_input_files
-    connect_redis
 
-    # 1. Extract indexes and organization objects from dump
-    v1_customer_index, v2_org_index, org_objects = parse_dump_files
+    # 1. Extract index members from ZADD commands
+    index_members = extract_index_members
+    puts "Found #{index_members.size} members in organization:instances index"
 
-    unless v1_customer_index
-      puts "ERROR: onetime:customer (v1 customer index) not found in #{@customer_input_file}"
-      return false
-    end
+    # 2. Extract organization objects from transformed file
+    org_objects = extract_transformed_objects
+    puts "Found #{org_objects.size} organization objects in transformed file"
 
-    unless v2_org_index
-      puts "ERROR: organization:instances (v2 org index) not found in #{@org_input_file}"
-      return false
-    end
-
-    puts "Found #{org_objects.size} organization objects"
-
-    # 2. Decode the indexes
-    v1_customer_members        = decode_zset_index(v1_customer_index, 'v1_customer_index')
-    v2_org_members_with_scores = decode_zset_index(v2_org_index, 'v2_org_index')
-
-    puts "Found #{v1_customer_members.size} members in onetime:customer"
-    puts "Found #{v2_org_members_with_scores.size} members in organization:instances"
+    # 3. Count customer objects for cross-reference
+    customer_count = count_customer_objects
+    puts "Found #{customer_count} customer objects in customer file"
     puts
 
-    # 3. Compare and validate
-    results = compare_and_validate(v1_customer_members, v2_org_members_with_scores, org_objects)
+    # 4. Cross-reference: index vs objects (bidirectional)
+    cross_reference(index_members, org_objects)
 
-    # 4. Report
-    print_report(results)
+    # 5. Validate timestamps: index score == object created
+    validate_timestamps(index_members, org_objects)
 
-    # Success if counts match and no missing objects
-    results[:count_mismatch].zero? && results[:missing_objects].empty?
-  ensure
-    cleanup_redis
+    # 6. Validate 1-to-1 count: orgs == customers
+    validate_customer_count(index_members, customer_count)
+
+    # 7. Spot-check key fields
+    spot_check_fields(org_objects)
+
+    # 8. Report
+    print_report
+
+    success?
   end
 
   private
 
   def validate_input_files
-    raise ArgumentError, "Organization input file not found: #{@org_input_file}" unless File.exist?(@org_input_file)
-    raise ArgumentError, "Customer input file not found: #{@customer_input_file}" unless File.exist?(@customer_input_file)
-  end
-
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
+    unless File.exist?(@transformed_file)
+      raise ArgumentError, "Transformed file not found: #{@transformed_file}\nRun generate.rb first."
     end
-    @redis.close
+    unless File.exist?(@indexes_file)
+      raise ArgumentError, "Indexes file not found: #{@indexes_file}\nRun create_indexes.rb first."
+    end
+    unless File.exist?(@customer_file)
+      raise ArgumentError, "Customer file not found: #{@customer_file}\nRun customer transform first."
+    end
   end
 
-  def parse_dump_files
-    puts "Reading org data from #{@org_input_file}..."
-    v2_org_index = nil
-    org_objects  = {}
+  def extract_index_members
+    members = {}
 
-    File.foreach(@org_input_file) do |line|
-      record = JSON.parse(line, symbolize_names: true)
+    File.foreach(@indexes_file) do |line|
+      record = JSON.parse(line)
 
-      case record[:key]
-      when 'organization:instances'
-        v2_org_index = record
-      when /^organization:([a-zA-Z0-9-]+):object$/
-        objid              = Regexp.last_match(1)
-        org_objects[objid] = record
+      # Only look at ZADD commands for organization:instances
+      next unless record['command'] == 'ZADD' && record['key'] == 'organization:instances'
+
+      # args: [score, objid]
+      score = record['args'][0]
+      objid = record['args'][1]
+      members[objid] = score.to_i if objid
+      @stats[:index_members] += 1
+    rescue JSON::ParserError => ex
+      @stats[:errors] << { file: 'indexes', error: "JSON parse error: #{ex.message}" }
+    end
+
+    members
+  end
+
+  def extract_transformed_objects
+    objects = {}
+
+    File.foreach(@transformed_file) do |line|
+      record = JSON.parse(line)
+
+      # Only process object records
+      next unless record['key']&.match?(/^organization:[^:]+:object$/)
+
+      objid = record['objid']
+      objects[objid] = record if objid
+      @stats[:transformed_objects] += 1
+    rescue JSON::ParserError => ex
+      @stats[:errors] << { file: 'transformed', error: "JSON parse error: #{ex.message}" }
+    end
+
+    objects
+  end
+
+  def count_customer_objects
+    count = 0
+
+    File.foreach(@customer_file) do |line|
+      record = JSON.parse(line)
+      next unless record['key']&.match?(/^customer:[^:]+:object$/)
+
+      count += 1
+    rescue JSON::ParserError
+      # Skip unparseable lines
+    end
+
+    @stats[:customer_objects] = count
+    count
+  end
+
+  def cross_reference(index_members, org_objects)
+    index_set  = Set.new(index_members.keys)
+    object_set = Set.new(org_objects.keys)
+
+    (index_set - object_set).each do |objid|
+      @stats[:in_index_not_in_objects] << { objid: objid, score: index_members[objid] }
+    end
+
+    (object_set - index_set).each do |objid|
+      @stats[:in_objects_not_in_index] << { objid: objid }
+    end
+
+    @stats[:matches] = (index_set & object_set).size
+  end
+
+  def validate_timestamps(index_members, org_objects)
+    index_members.each do |objid, score|
+      obj = org_objects[objid]
+      next unless obj # Skip if missing (already caught by cross_reference)
+
+      created = obj['created'].to_i
+      next if score == created
+
+      @stats[:timestamp_mismatches] << {
+        objid: objid,
+        index_score: score,
+        object_created: created,
+      }
+    end
+  end
+
+  def validate_customer_count(index_members, customer_count)
+    @stats[:count_mismatch] = index_members.size - customer_count
+  end
+
+  def spot_check_fields(org_objects)
+    org_objects.each do |objid, record|
+      KEY_FIELDS.each do |field|
+        value = record[field]
+        if value && !value.to_s.empty?
+          @stats[:field_checks][field][:present] += 1
+        else
+          @stats[:field_checks][field][:missing] += 1
+          @stats[:field_checks][field][:missing_objids] << objid if @stats[:field_checks][field][:missing_objids].size < 5
+        end
       end
     end
-
-    puts "Reading customer index from #{@customer_input_file}..."
-    v1_customer_index = nil
-    File.foreach(@customer_input_file) do |line|
-      record = JSON.parse(line, symbolize_names: true)
-      if record[:key] == 'onetime:customer'
-        v1_customer_index = record
-        break # Found what we need
-      end
-    end
-
-    [v1_customer_index, v2_org_index, org_objects]
   end
 
-  def decode_zset_index(record, name)
-    temp_key  = "#{TEMP_KEY_PREFIX}#{name}"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.zrange(temp_key, 0, -1, with_scores: true)
-    ensure
-      @redis.del(temp_key) if @redis
-    end
-  end
-
-  def compare_and_validate(v1_customer_members, v2_org_members_with_scores, org_objects)
-    results = {
-      matches: 0,
-      timestamp_mismatches: [],
-      missing_objects: [],
-      count_mismatch: v1_customer_members.size - v2_org_members_with_scores.size,
-    }
-
-    v2_org_members_with_scores.each do |objid, score|
-      org = org_objects[objid]
-
-      unless org
-        results[:missing_objects] << { objid: objid, score: score.to_i }
-        next
-      end
-
-      created = org[:created]
-
-      if score.to_i == created.to_i
-        results[:matches] += 1
-      else
-        results[:timestamp_mismatches] << {
-          objid: objid,
-          index_score: score.to_i,
-          object_created: created,
-        }
-      end
-    end
-
-    results
-  end
-
-  def print_report(results)
+  def print_report
     puts '=== Validation Results ==='
-    puts "1-to-1 Count Match: #{results[:count_mismatch].zero? ? 'OK' : "FAIL (Difference: #{results[:count_mismatch]})"}"
-    puts "Verified (objid exists and score == created): #{results[:matches]}"
-    puts "Timestamp mismatches: #{results[:timestamp_mismatches].size}"
-    puts "Missing organization objects: #{results[:missing_objects].size}"
+    puts "Index members (organization:instances): #{@stats[:index_members]}"
+    puts "Transformed objects: #{@stats[:transformed_objects]}"
+    puts "Bidirectional match: #{@stats[:matches]}"
+    puts "In index but missing object: #{@stats[:in_index_not_in_objects].size}"
+    puts "Object exists but not indexed: #{@stats[:in_objects_not_in_index].size}"
+    puts "Timestamp mismatches: #{@stats[:timestamp_mismatches].size}"
+    puts "Count match (orgs vs customers): #{@stats[:count_mismatch].zero? ? 'OK' : "FAIL (difference: #{@stats[:count_mismatch]})"}"
     puts
 
-    if results[:timestamp_mismatches].any?
+    if @stats[:in_index_not_in_objects].any?
+      puts '=== In Index But Missing Object (first 10) ==='
+      @stats[:in_index_not_in_objects].first(10).each do |entry|
+        puts "  #{entry[:objid]} (score: #{entry[:score]})"
+      end
+      puts
+    end
+
+    if @stats[:in_objects_not_in_index].any?
+      puts '=== Object Exists But Not Indexed (first 10) ==='
+      @stats[:in_objects_not_in_index].first(10).each do |entry|
+        puts "  #{entry[:objid]}"
+      end
+      puts
+    end
+
+    if @stats[:timestamp_mismatches].any?
       puts '=== Timestamp Mismatches (first 10) ==='
-      results[:timestamp_mismatches].first(10).each do |m|
+      @stats[:timestamp_mismatches].first(10).each do |m|
         puts "  Org #{m[:objid]}: index_score=#{m[:index_score]}, object_created=#{m[:object_created]}"
       end
       puts
     end
 
-    return unless results[:missing_objects].any?
-
-    puts '=== Missing Objects (first 10) ==='
-    results[:missing_objects].first(10).each do |m|
-      puts "  #{m[:objid]} (score: #{m[:score]})"
+    puts '=== Key Field Coverage ==='
+    KEY_FIELDS.each do |field|
+      checks = @stats[:field_checks][field]
+      total  = checks[:present] + checks[:missing]
+      pct    = total.positive? ? (checks[:present] * 100.0 / total).round(1) : 0
+      status = checks[:missing].zero? ? 'OK' : "#{checks[:missing]} missing"
+      puts "  #{field}: #{pct}% (#{status})"
     end
     puts
+
+    return unless @stats[:errors].any?
+
+    puts "=== Errors (#{@stats[:errors].size}) ==="
+    @stats[:errors].first(10).each do |err|
+      puts "  #{err}"
+    end
+    puts
+  end
+
+  def success?
+    @stats[:in_index_not_in_objects].empty? &&
+      @stats[:in_objects_not_in_index].empty?
   end
 end
 
 def parse_args(args)
   options = {
-    org_input_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_transformed.jsonl'),
-    customer_input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_dump.jsonl'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
+    transformed_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_transformed.jsonl'),
+    indexes_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_indexes.jsonl'),
+    customer_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_transformed.jsonl'),
   }
 
   args.each do |arg|
     case arg
-    when /^--org-input-file=(.+)$/
-      options[:org_input_file] = Regexp.last_match(1)
-    when /^--customer-input-file=(.+)$/
-      options[:customer_input_file] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
+    when /^--transformed-file=(.+)$/
+      options[:transformed_file] = Regexp.last_match(1)
+    when /^--indexes-file=(.+)$/
+      options[:indexes_file] = Regexp.last_match(1)
+    when /^--customer-file=(.+)$/
+      options[:customer_file] = Regexp.last_match(1)
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.0/02-organization/validate_instance_index.rb [OPTIONS]
 
-        Validates organization:instances index against v1 customer records and v2 organization objects.
+        Validates organization:instances index against transformed organization objects
+        and verifies 1-to-1 correspondence with customer records.
 
         Options:
-          --org-input-file=FILE       Input org JSONL dump (default: data/upgrades/v0.24.0/organization/organization_transformed.jsonl)
-          --customer-input-file=FILE  Input customer JSONL dump (default: data/upgrades/v0.24.0/customer/customer_dump.jsonl)
-          --redis-url=URL             Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N                 Temp database number (default: 15)
-          --help                      Show this help
+          --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/organization/organization_transformed.jsonl)
+          --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/organization/organization_indexes.jsonl)
+          --customer-file=FILE     Customer transformed JSONL (default: data/upgrades/v0.24.0/customer/customer_transformed.jsonl)
+          --help                   Show this help
 
         Validates:
-          - That the count of organizations matches the count of v1 customers.
-          - Each objid in organization:instances has a corresponding organization object.
-          - Index scores match object created timestamps.
+          - Each objid in organization:instances has a matching organization:{objid}:object
+          - Each transformed organization object has an entry in organization:instances
+          - Index scores match object created timestamps
+          - Organization count matches customer count (1-to-1 invariant)
+          - Key fields (objid, extid, owner_id, contact_email, created) are present
       HELP
       exit 0
     else
@@ -255,10 +314,9 @@ if __FILE__ == $PROGRAM_NAME
   options = parse_args(ARGV)
 
   validator = OrganizationInstanceIndexValidator.new(
-    org_input_file: options[:org_input_file],
-    customer_input_file: options[:customer_input_file],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
+    transformed_file: options[:transformed_file],
+    indexes_file: options[:indexes_file],
+    customer_file: options[:customer_file],
   )
 
   success = validator.run

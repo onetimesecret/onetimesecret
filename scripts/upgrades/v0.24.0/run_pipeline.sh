@@ -54,7 +54,7 @@ phase_start=$SECONDS
 echo "=== Domain ==="
 ruby scripts/upgrades/v0.24.0/03-customdomain/transform.rb
 ruby scripts/upgrades/v0.24.0/03-customdomain/create_indexes.rb
-ruby scripts/upgrades/v0.24.0/03-customdomain/validate_instance_index.rb
+ruby scripts/upgrades/v0.24.0/03-customdomain/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Domain completed in $((SECONDS - phase_start))s"
 
 phase_start=$SECONDS
