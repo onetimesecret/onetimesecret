@@ -68,7 +68,7 @@ vi.mock('@/shared/composables/usePageTitle', () => ({
 describe('Router Guards', () => {
   let router: Router;
   let pinia: ReturnType<typeof createTestingPinia>;
-  let _bootstrapStore: ReturnType<typeof useBootstrapStore>;
+
 
   beforeEach(() => {
     pinia = createTestingPinia({
@@ -86,7 +86,7 @@ describe('Router Guards', () => {
       },
     });
     setActivePinia(pinia);
-    _bootstrapStore = useBootstrapStore();
+    useBootstrapStore();
 
     router = {
       beforeEach: vi.fn(),
