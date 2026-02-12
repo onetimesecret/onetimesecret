@@ -261,6 +261,12 @@
             class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
             {{ t('web.pricing.get_started_free') }}
           </RouterLink>
+          <span
+            v-else
+            class="shrink-0 cursor-default rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-200 dark:bg-gray-800/50 dark:text-gray-500 dark:ring-gray-700"
+            aria-disabled="true">
+            {{ t('web.pricing.get_started_free') }}
+          </span>
         </div>
       </div>
 

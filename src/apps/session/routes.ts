@@ -106,6 +106,8 @@ const routes: Array<RouteRecordRaw> = [
       window.location.href = '/logout';
     },
   },
+  // Intentionally ungated: account verification must work regardless of
+  // signin/signup feature toggles since the flow starts from an email link.
   {
     path: '/verify-account',
     name: 'Verify Account',
@@ -185,6 +187,8 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  // Intentionally ungated: invitation acceptance must work regardless of
+  // signin/signup feature toggles since invitees follow a unique token link.
   {
     path: '/invite/:token',
     name: 'Accept Invitation',
