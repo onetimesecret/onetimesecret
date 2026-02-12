@@ -68,7 +68,7 @@ class OrganizationGenerator
     'v1_source_custid' => :string,
     'migration_status' => :string,
     'migrated_at' => :timestamp,
-    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
   }.freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
@@ -297,7 +297,7 @@ class OrganizationGenerator
       'stripe_checkout_email' => stripe_checkout_email,
 
       # Migration tracking
-      # NOTE: _original_record is added by enrich_with_original_record.rb
+      # NOTE: v1 original data is restored as _original_object hashkey by enrich_with_original_record.rb
       'v1_identifier' => customer_record[:key],
       'v1_source_custid' => customer_fields['v1_custid'] || customer_fields['email'],
       'migration_status' => 'completed',

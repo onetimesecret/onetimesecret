@@ -73,7 +73,7 @@ class ReceiptTransformer
     'v1_custid' => :string,
     'migration_status' => :string,
     'migrated_at' => :timestamp,
-    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
     # Deprecated fields (features/deprecated_fields.rb)
     'key' => :string,
     'viewed' => :timestamp,    # renamed to 'previewed' in v2
@@ -353,7 +353,7 @@ class ReceiptTransformer
     end
 
     # Add migration tracking fields
-    # NOTE: _original_record is added by enrich_with_original_record.rb
+    # NOTE: v1 original data is restored as _original_object hashkey by enrich_with_original_record.rb
     v2_fields['v1_key']           = v1_record[:key]
     v2_fields['v1_identifier']    = v1_record[:key]
     v2_fields['migration_status'] = 'completed'

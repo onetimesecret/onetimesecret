@@ -75,7 +75,7 @@ class CustomDomainTransformer
     'v1_custid' => :string,
     'migration_status' => :string,
     'migrated_at' => :timestamp,
-    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # _original_record removed: v1 data now stored as _original_* hashkeys via RESTORE
   }.freeze
 
   # V1 index keys that should be skipped (not domain-specific records)
@@ -375,7 +375,7 @@ class CustomDomainTransformer
     end
 
     # Add migration tracking fields
-    # NOTE: _original_record is added by enrich_with_original_record.rb
+    # NOTE: v1 original data is restored as _original_* hashkeys by enrich_with_original_record.rb
     v2_fields['v1_identifier']    = v1_record[:key]
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s

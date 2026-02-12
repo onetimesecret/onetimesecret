@@ -72,9 +72,10 @@ ruby scripts/upgrades/v0.24.0/05-secret/validate_instance_index.rb
 echo "  Secret completed in $((SECONDS - phase_start))s"
 
 phase_start=$SECONDS
-echo "=== Enriching with original records ==="
-ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb
-echo "  Original records enrichment completed in $((SECONDS - phase_start))s"
+echo "=== Restoring original records ==="
+ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb \
+  --redis-url="${VALKEY_URL:-$REDIS_URL}"
+echo "  Original records restoration completed in $((SECONDS - phase_start))s"
 
 echo ""
 echo "=== Done in $((SECONDS - pipeline_start))s ==="

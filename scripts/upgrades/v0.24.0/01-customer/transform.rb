@@ -81,7 +81,7 @@ class CustomerTransformer
     'v1_custid' => :string,
     'migration_status' => :string,
     'migrated_at' => :timestamp,
-    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
   }.freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
@@ -225,7 +225,7 @@ class CustomerTransformer
     v2_fields['custid'] = objid
 
     # Add migration tracking fields
-    # NOTE: _original_record is added by enrich_with_original_record.rb
+    # NOTE: v1 original data is restored as _original_object hashkey by enrich_with_original_record.rb
     v2_fields['v1_identifier']    = v1_record[:key]
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
