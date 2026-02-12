@@ -83,6 +83,7 @@ class ReceiptTransformer
     'custid' => :string,       # legacy owner field
     'truncate' => :boolean,
     'secret_key' => :string,   # use secret_identifier
+    'secret_shortkey' => :string,  # renamed to 'secret_shortid' in v2
     'previewed' => :timestamp,
     'revealed' => :timestamp,
   }.freeze
@@ -159,6 +160,7 @@ class ReceiptTransformer
       skipped_receipts: 0,
       anonymous_receipts: 0,
       state_transforms: Hash.new(0),
+      direct_copy_field_hits: DIRECT_COPY_FIELDS.each_with_object(Hash.new(0)) { |f, h| h[f] = 0 },
       missing_customer_lookup: 0,
       missing_org_lookup: 0,
       missing_domain_lookup: 0,
@@ -310,7 +312,10 @@ class ReceiptTransformer
 
     # Copy direct fields
     DIRECT_COPY_FIELDS.each do |field|
-      v2_fields[field] = v1_fields[field] if v1_fields.key?(field)
+      if v1_fields.key?(field)
+        v2_fields[field] = v1_fields[field]
+        @stats[:direct_copy_field_hits][field] += 1
+      end
     end
 
     # Ensure objid is set (Receipt uses VerifiableIdentifier - no extid)
@@ -340,6 +345,11 @@ class ReceiptTransformer
     if v1_fields.key?('received')
       v2_fields['revealed'] = v1_fields['received']
       v2_fields['received'] = v1_fields['received']  # Keep for backward compat
+    end
+
+    # Rename V1 secret_shortkey -> V2 secret_shortid
+    if v1_fields.key?('secret_shortkey') && !v2_fields.key?('secret_shortid')
+      v2_fields['secret_shortid'] = v1_fields['secret_shortkey']
     end
 
     # Add migration tracking fields
@@ -499,6 +509,16 @@ class ReceiptTransformer
     end
     puts '  (none)' if @stats[:state_transforms].empty?
     puts
+
+    # Warn about DIRECT_COPY_FIELDS that were never found in any v1 record
+    zero_hit_fields = @stats[:direct_copy_field_hits].select { |_, count| count.zero? }.keys
+    if zero_hit_fields.any? && @stats[:receipts_processed] > 0
+      puts 'Direct Copy Field Warnings:'
+      zero_hit_fields.each do |field|
+        puts "  WARNING: DIRECT_COPY_FIELDS entry '#{field}' had zero hits across #{@stats[:receipts_processed]} records"
+      end
+      puts
+    end
 
     return unless @stats[:errors].any?
 
