@@ -158,9 +158,9 @@ module Onetime
         # Site product name configuration helper
         # @return [String]
         def site_product_name
-          return 'Onetime Secret' unless defined?(OT) && OT.respond_to?(:conf)
+          return Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name] unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'product_name') || 'Onetime Secret'
+          OT.conf.dig('brand', 'product_name') || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
         end
 
         # Product name with fallback to site config
@@ -263,13 +263,14 @@ module Onetime
           # Brand color helper - resolves from data, config, or default
           # @return [String] Hex color string
           def brand_color
-            @brand_color ||= @data[:brand_color] || conf_dig('brand', 'primary_color') || '#dc4a22'
+            @brand_color ||= @data[:brand_color] || conf_dig('brand', 'primary_color') || Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
           end
 
           # Support email helper - resolves from config or default
           # @return [String]
           def support_email
-            @support_email ||= conf_dig('brand', 'support_email') || 'support@onetimesecret.com'
+            @support_email ||= conf_dig('brand', 'support_email') ||
+                               Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
           end
 
           # Logo alt text helper - delegates to product_name
@@ -278,9 +279,15 @@ module Onetime
             product_name
           end
 
+          # Logo URL helper - resolves from config or default path
+          # @return [String] Absolute URL to logo image
+          def logo_url
+            @logo_url ||= conf_dig('brand', 'logo_url') || "#{baseuri}/img/onetime-logo-v3-xl.svg"
+          end
+
           # Get product name from site config
           def site_product_name
-            @site_product_name ||= conf_dig('brand', 'product_name') || conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
+            @site_product_name ||= conf_dig('brand', 'product_name') || conf_dig('site', 'interface', 'ui', 'header', 'site_name') || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
           end
 
           # Get host from site config

@@ -1,9 +1,10 @@
 // src/shared/composables/useBrandTheme.ts
 //
-// Bridges the identity store's primaryColor to Tailwind CSS
-// variables on document.documentElement. When a custom domain
-// supplies a brand color, every `bg-brand-*` / `text-brand-*`
-// Tailwind class automatically reflects that color.
+// Bridges the identity store's brand settings to the DOM.
+// - Injects palette CSS variables so `bg-brand-*` / `text-brand-*`
+//   Tailwind classes reflect the custom domain's brand color.
+// - Replaces `<link rel="icon">` href when a custom favicon_url
+//   is provided via domain branding.
 
 import {
   generateBrandPalette,
@@ -42,6 +43,40 @@ function clearOverrides(): void {
   }
 }
 
+/** Snapshot of original favicon hrefs so we can restore on dispose */
+let originalFaviconHrefs: Map<Element, string> | null = null;
+
+/**
+ * Updates all `<link rel="icon">` and `<link rel="shortcut icon">` elements
+ * to point at the given URL. Saves originals for later restoration.
+ */
+function applyFavicon(url: string): void {
+  const links = document.querySelectorAll<HTMLLinkElement>(
+    'link[rel="icon"], link[rel="shortcut icon"]'
+  );
+  if (!links.length) return;
+
+  if (!originalFaviconHrefs) {
+    originalFaviconHrefs = new Map();
+    links.forEach((link) => originalFaviconHrefs!.set(link, link.href));
+  }
+
+  links.forEach((link) => {
+    link.href = url;
+  });
+}
+
+/** Restores original favicon hrefs captured before the first override */
+function restoreFavicons(): void {
+  if (!originalFaviconHrefs) return;
+  originalFaviconHrefs.forEach((href, link) => {
+    if (link instanceof HTMLLinkElement) {
+      link.href = href;
+    }
+  });
+  originalFaviconHrefs = null;
+}
+
 /**
  * Injects brand palette CSS variables onto the document root
  * element, reactively tracking the identity store's primaryColor.
@@ -50,7 +85,7 @@ function clearOverrides(): void {
  */
 export function useBrandTheme(): void {
   const identityStore = useProductIdentity();
-  const { primaryColor } = storeToRefs(identityStore);
+  const { primaryColor, brand } = storeToRefs(identityStore);
 
   const asyncHandlerOptions: AsyncHandlerOptions = {
     notify: false,
@@ -78,5 +113,22 @@ export function useBrandTheme(): void {
     applyPalette(newColor);
   }, { immediate: true });
 
-  onScopeDispose(() => clearOverrides());
+  // Favicon override: when brand settings include a custom favicon_url,
+  // update all <link rel="icon"> elements in the document head.
+  watch(
+    () => brand.value?.favicon_url,
+    (faviconUrl) => {
+      if (faviconUrl) {
+        applyFavicon(faviconUrl);
+      } else {
+        restoreFavicons();
+      }
+    },
+    { immediate: true }
+  );
+
+  onScopeDispose(() => {
+    clearOverrides();
+    restoreFavicons();
+  });
 }

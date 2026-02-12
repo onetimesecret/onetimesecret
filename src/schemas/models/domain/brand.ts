@@ -5,6 +5,29 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
+ * Strips HTML tags from a string for XSS prevention at the schema boundary.
+ * Defense-in-depth: primary sanitization happens server-side in Ruby (Sanitize gem).
+ * This regex approach is adequate because these fields only receive API response
+ * data that the backend already sanitized. If these fields ever accept direct
+ * user input on the frontend (bypassing the API), replace this with DOMPurify
+ * or the browser's native DOMParser.
+ * @param val - The string value to sanitize, or null/undefined
+ * @returns The sanitized string with HTML tags removed, or null/undefined
+ */
+function stripHtmlTags(val: string | null | undefined): string | null | undefined {
+  if (val == null) return val;
+  // Loop until stable to handle nested tags like <scr<script>ipt>
+  let result = val;
+  let prev: string;
+  do {
+    prev = result;
+    result = result.replace(/<[^>]*>/g, '');
+  } while (result !== prev);
+  // Strip stray angle brackets left by split-tag attacks
+  return result.replace(/[<>]/g, '').trim();
+}
+
+/**
  * @fileoverview Brand settings schema for API transformation boundaries
  *
  * Model Organization:
@@ -92,20 +115,28 @@ export const brandSettingSchema = z
   .object({
     primary_color: z
       .string()
-      .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
+      .regex(/^#(?:[0-9A-F]{6}|[0-9A-F]{3})$/i, 'Invalid hex color')
+      .transform((val) => {
+        // Normalize 3-digit hex to 6-digit (e.g. #F00 -> #FF0000)
+        if (val && /^#[0-9A-F]{3}$/i.test(val)) {
+          const [, r, g, b] = val.split('');
+          return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+        }
+        return val;
+      })
       .nullish(), // No default here — identityStore fallback chain handles defaults
     colour: z.string().optional(),
-    product_name: z.string().nullish(),
+    product_name: z.string().transform(stripHtmlTags).nullish(),
     product_domain: z.string().nullish(),
     support_email: z.string().email().nullish(),
-    footer_text: z.string().nullish(),
+    footer_text: z.string().transform(stripHtmlTags).nullish(),
     logo_url: z.string().url().nullish(),
     logo_dark_url: z.string().url().nullish(),
     favicon_url: z.string().url().nullish(),
-    instructions_pre_reveal: z.string().nullish(),
-    instructions_reveal: z.string().nullish(),
-    instructions_post_reveal: z.string().nullish(),
-    description: z.string().optional(),
+    instructions_pre_reveal: z.string().transform(stripHtmlTags).nullish(),
+    instructions_reveal: z.string().transform(stripHtmlTags).nullish(),
+    instructions_post_reveal: z.string().transform(stripHtmlTags).nullish(),
+    description: z.string().transform(stripHtmlTags).optional(),
     button_text_light: transforms.fromString.boolean.default(true),
     allow_public_homepage: transforms.fromString.boolean.nullish(), // No default — identityStore fallback chain handles defaults
     allow_public_api: transforms.fromString.boolean.nullish(), // No default — identityStore fallback chain handles defaults

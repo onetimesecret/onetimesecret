@@ -20,6 +20,7 @@ decisions, create a formal ADR in `docs/architecture/decision-records/`.
 | D5  | 2026-01 | Replace `useBrandI18n` composable with standard `t()`      | Standard i18n with explicit `{ product_name }` parameter is simpler and more consistent than a custom composable. | —   |
 | D6  | 2026-02 | Rename config key from `branding:` to `brand:`             | Shorter, consistent with other config section naming (site:, redis:, etc.)                                        | —   |
 | D7  | 2026-02 | Keep in-house token pipeline; do not adopt TokiForge       | No oklch support, no Tailwind v4, will continue with `brand-palette.ts`.                                          | —   |
+| D8  | 2026-02 | Deprecate `SITE_NAME` in favor of `BRAND_PRODUCT_NAME`    | Two competing product name sources caused self-hoster confusion. `BRAND_PRODUCT_NAME` is now the single source of truth across backend, frontend, emails, and API specs. | —   |
 
 We will move this content to a single, focus ADR file once the system is stable and the major decisions are finalized. For now, this log captures the evolving decision landscape during development.
 

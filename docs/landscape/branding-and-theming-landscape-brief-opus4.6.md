@@ -70,11 +70,11 @@ Documenso's migration off Next.js to React Router + Vite (citing 45+ second HMR 
 
 For self-hosted instances, modification targets `globals.css` directly; the documentation recommends creating new CSS files and importing them to reduce merge conflicts. For Platform plans, "Cal Atoms" (React components) accept styling props, but the exact CSS injection mechanism isn't documented publicly.
 
-**Chatwoot**: Edition-gated private-labeling. Community edition requires source code modification for logo changes at `app/javascript/dashboard/assets/images/woot-logo.svg` and various favicon/icon files in `public/`. Community forks exist that automate white-labeling: `jspenst/chatwoot-white-label`, `bendogabriel/chatwoot-whitelabel`. Configuration approaches from forks include environment variables for `LOGO_THUMBNAIL`, `LOGO`, `LOGO_DARK`; database modification in `installation_configs` table; and asset override via zip archive with `extract_brand_assets.sh` script. Files that can be overridden include `android-icon-36x36.png`, `apple-icon-180x180.png`, `favicon-16x16.png`, `ms-icon-310x310.png`, and similar platform icons. Enterprise edition exposes Super Admin settings at `/super_admin/settings`. Account-level settings allow name, language, widget positioning, and color palette selection. Widget customization is the most developed surface: a no-code builder for content, colors, positioning, and greeting messages.
+**Chatwoot**: Edition-gated private-labeling. Community edition requires source code modification for logo changes at `app/javascript/dashboard/assets/images/woot-logo.svg` and various favicon/icon files in `public/`. Community forks exist that automate private-labeling: `jspenst/chatwoot-private-label`, `bendogabriel/chatwoot-whitelabel`. Configuration approaches from forks include environment variables for `LOGO_THUMBNAIL`, `LOGO`, `LOGO_DARK`; database modification in `installation_configs` table; and asset override via zip archive with `extract_brand_assets.sh` script. Files that can be overridden include `android-icon-36x36.png`, `apple-icon-180x180.png`, `favicon-16x16.png`, `ms-icon-310x310.png`, and similar platform icons. Enterprise edition exposes Super Admin settings at `/super_admin/settings`. Account-level settings allow name, language, widget positioning, and color palette selection. Widget customization is the most developed surface: a no-code builder for content, colors, positioning, and greeting messages.
 
 **Documenso**: Organization-level Prisma schema (`OrganisationGlobalSettings`) stores `brandingEnabled`, `brandingLogo`, `brandingUrl`, `brandingCompanyDetails`. The `brandingLogo` field stores a reference to an uploaded asset (not a URL or base64); the upload flow is through the admin UI navigating to Organisation/Team Settings > Branding tab. Team-level settings (`TeamGlobalSettings`) can override organization defaults with nullable fields (null = inherit). Email branding includes custom sender domains with DKIM validation (`EmailDomain` model with public/private key pairs). Embedded signing flows expose CSS custom properties (`--documenso-primary-color`, `--documenso-accent-color`, `--documenso-border-radius`, `--documenso-text-color`). Per-org branding is a first-class database construct.
 
-**Plausible**: Minimal branding surface. Embed dashboards support `theme=light|dark|system`, `background=transparent|{color}`, and `width=manual` URL parameters. Custom CSS can target semantic classes in the iframe. No logo, favicon, or product name customization. The Stats API (v2) enables building a fully custom dashboard, which is the intended path for deep private-labeling. Open-source implementations using the Stats API include Prezly (powering analytics for customers including Shopify, Sennheiser), PayloadCMS dashboard analytics plugin, Laravel packages for Plausible API integration, and a Fivetran connector for data pipelines. No standalone open-source white-label dashboard project emerged from the search.
+**Plausible**: Minimal branding surface. Embed dashboards support `theme=light|dark|system`, `background=transparent|{color}`, and `width=manual` URL parameters. Custom CSS can target semantic classes in the iframe. No logo, favicon, or product name customization. The Stats API (v2) enables building a fully custom dashboard, which is the intended path for deep private-labeling. Open-source implementations using the Stats API include Prezly (powering analytics for customers including Shopify, Sennheiser), PayloadCMS dashboard analytics plugin, Laravel packages for Plausible API integration, and a Fivetran connector for data pipelines. No standalone open-source private-label dashboard project emerged from the search.
 
 **Zitadel**: Branding configurable at two levels: instance-level (default for all users) and organization-level (per-org overrides via `is_default` boolean). Customization options include logo upload (separate for light/dark themes), icon upload, colors (background, primary for buttons/links/highlights, warn for errors, font color), and font upload (TTF files). Advanced options: hide loginname suffix, hide ZITADEL watermark. A preview window shows changes before activation via an "Apply configuration" button. The Management API provides full CRUD endpoints for branding settings, including a `GetPreviewLabelPolicy` endpoint for testing changes before committing. Branding applies to login UI and emails. The two-tier hierarchy (instance with org override) is the most trust-aware branding architecture in this set.
 
@@ -178,7 +178,7 @@ Rating scale: **Deep** (comprehensive, well-developed), **Adequate** (functional
 
 **Outline**: Positions branding minimally. Accent color and logo are workspace settings, not a featured capability. Attribution removal is gated behind custom domains (a paid add-on for cloud, a configuration step for self-hosted).
 
-**Coolify** (PaaS): No official branding feature in Coolify's documentation or changelog. A community fork adding white-label branding exists, suggesting demand, but the feature isn't upstream. Included here as a data point: even infrastructure-layer projects face private-labeling requests.
+**Coolify** (PaaS): No official branding feature in Coolify's documentation or changelog. A community fork adding private-label branding exists, suggesting demand, but the feature isn't upstream. Included here as a data point: even infrastructure-layer projects face private-labeling requests.
 
 ### Unoccupied positioning space
 
@@ -198,10 +198,10 @@ Recurring pain points around brand removal:
 - Database modification workaround (`installation_configs` table) is non-obvious and undocumented in primary docs.
 - Community Edition vs Enterprise confusion: operators expect branding to be a basic feature, not an edition-gated one.
 - Cloudron users hit read-only filesystem issues that prevent source modification.
-- **Issue #13306** (open): "Chatwoot AI" tooltip in label suggestions cannot be configured, forcing white-label resellers to fork the frontend.
-- **Issue #13466** (open, Feb 2026): WhatsApp integration shows "Reply from Chatwoot," breaking white-label deployments.
+- **Issue #13306** (open): "Chatwoot AI" tooltip in label suggestions cannot be configured, forcing private-label resellers to fork the frontend.
+- **Issue #13466** (open, Feb 2026): WhatsApp integration shows "Reply from Chatwoot," breaking private-label deployments.
 - **Issue #1211** (open, 5+ years): Cannot set brand icon as agent avatar for multi-brand environments.
-- Community forks (`jspenst/chatwoot-white-label`, `bendogabriel/chatwoot-whitelabel`) exist specifically because the official white-labeling path is too difficult.
+- Community forks (`jspenst/chatwoot-private-label`, `bendogabriel/chatwoot-whitelabel`) exist specifically because the official private-labeling path is too difficult.
 
 ### Keycloak
 
@@ -230,9 +230,9 @@ Theme system power comes with significant operational friction:
 
 ### Plausible
 
-- Stats API requires development effort for custom dashboards. No ready-made white-label dashboard project exists.
+- Stats API requires development effort for custom dashboards. No ready-made private-label dashboard project exists.
 - Embed approach limits customization to theme and background color.
-- Privacy-first positioning, not white-label-first. Minimal community white-label requests.
+- Privacy-first positioning, not private-label-first. Minimal community private-label requests.
 
 ### Cross-project themes
 
@@ -380,7 +380,7 @@ No open-source project was found that generates full design system palettes from
 
 **Cal.com's commercial framing of private-labeling as a paid tier.** Even with thin technical implementation, Cal.com successfully monetizes branding through plan gating. This validates market demand for private-labeling features but also signals that the market may accept "remove our brand" as sufficient private-labeling for many use cases.
 
-**Rallly's recent private-labeling work** (v4.6.0, January 2026) in a similar-scope product validates that even simple tools see demand for white-labeling. Their implementation is straightforward (env vars + admin UI, primary colors per mode, logo slots, attribution toggle) and worth examining as a reference for minimum viable private-labeling.
+**Rallly's recent private-labeling work** (v4.6.0, January 2026) in a similar-scope product validates that even simple tools see demand for private-labeling. Their implementation is straightforward (env vars + admin UI, primary colors per mode, logo slots, attribution toggle) and worth examining as a reference for minimum viable private-labeling.
 
 **OKLCH adoption is growing in design tooling but not in application theming.** The ecosystem is rich with design-time tools (pickers, palette generators, Figma plugins) but no application-layer project uses oklch for runtime theming. OTS is early in an adoption curve that hasn't reached application infrastructure yet.
 
@@ -434,11 +434,11 @@ The visible gaps (logo, favicon, admin UI) determine whether operators take the 
 ## Appendix A: Projects Recommended for Hands-On Testing
 
 1. **Zitadel**: Most relevant architectural comparison. Trust-focused, two-tier branding, preview, API. Deploy and test the full branding pipeline including preview and org-level override.
-2. **Rallly**: Most similar scope. Recent white-label work (v4.6.0). Test the env-var + admin UI configuration flow.
+2. **Rallly**: Most similar scope. Recent private-label work (v4.6.0). Test the env-var + admin UI configuration flow.
 3. **Keycloak**: Most extensive theming. Test the effort level for basic brand customization, theme inheritance, and cache invalidation behavior.
 4. **Documenso**: Most complete multi-tenant branding. Test org-level branding, team override, email domain verification, and embedded signing CSS variables.
 5. **GitLab**: Most developed admin branding. Test the Appearance API CRUD, logo upload slots, and email branding toggle.
-6. **Chatwoot**: Test Community Edition white-labeling difficulty to establish the pain baseline.
+6. **Chatwoot**: Test Community Edition private-labeling difficulty to establish the pain baseline.
 
 ### Testing notes
 

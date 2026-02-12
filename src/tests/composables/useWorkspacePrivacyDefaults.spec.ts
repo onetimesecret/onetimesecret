@@ -5,7 +5,7 @@ import { ref, computed, nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
+import { DEFAULT_BRAND_HEX } from '@/shared/constants/brand';
 import type { BrandSettings } from '@/schemas/models/domain';
 
 // Mock formatDuration

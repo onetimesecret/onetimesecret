@@ -69,13 +69,41 @@ module DomainsAPI::Logic
         success_data
       end
 
-      # Validate URL format
+      # Validate URL format for logo/favicon fields.
+      # Accepts https:// URLs or relative paths starting with /.
+      # Enforces max length of 2048 chars to prevent abuse.
+      # Rejects http:// to prevent mixed content and potential SSRF.
       def valid_url?(url)
+        return false if url.nil? || url.empty?
+        return false if url.length > 2048
+
+        # Reject protocol-relative URLs (//)
+        return false if url.start_with?('//')
+
+        # Allow relative paths starting with / (but not //)
+        return true if url.start_with?('/')
+
+        # Require https:// for absolute URLs with valid host
         uri = URI.parse(url)
-        uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+        return false unless uri.is_a?(URI::HTTPS)
+        return false if uri.host.nil? || uri.host.empty?
+
+        true
       rescue URI::InvalidURIError
         false
       end
+
+      # Free-text fields that may render in HTML contexts (page titles,
+      # email templates, alt attributes, meta tags, TOTP URIs). These are
+      # sanitized at the write boundary to strip HTML tags before storage.
+      TEXT_FIELDS = %w[
+        product_name
+        footer_text
+        instructions_pre_reveal
+        instructions_reveal
+        instructions_post_reveal
+        description
+      ].freeze
 
       private
 
@@ -115,20 +143,32 @@ module DomainsAPI::Logic
       end
 
       def validate_brand_values
+        sanitize_text_fields
         validate_color
         validate_font
         validate_corner_style
         validate_default_ttl
+        validate_urls
+
+        # Model-level validation as defense-in-depth. The per-field checks
+        # above produce specific form errors with logging; this catches
+        # anything that might slip through on future field additions.
+        Onetime::CustomDomain::BrandSettings.validate!(@brand_settings)
+      rescue Onetime::Problem => ex
+        raise_form_error ex.message
       end
 
       def validate_color
         color = @brand_settings['primary_color']
         return if color.nil?
 
-        return if Onetime::CustomDomain::BrandSettings.valid_color?(color)
+        unless Onetime::CustomDomain::BrandSettings.valid_color?(color)
+          OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
+          raise_form_error 'Invalid primary color format - must be hex code (e.g. #FF0000)'
+        end
 
-        OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
-        raise_form_error 'Invalid primary color format - must be hex code (e.g. #FF0000)'
+        # Normalize 3-digit hex to 6-digit (e.g. #F00 -> #FF0000)
+        @brand_settings['primary_color'] = Onetime::CustomDomain::BrandSettings.normalize_color(color)
       end
 
       def validate_font
@@ -173,6 +213,29 @@ module DomainsAPI::Logic
 
         # Update the brand_settings hash with the coerced value
         @brand_settings['default_ttl'] = ttl_value
+      end
+
+      def validate_urls
+        %w[logo_url logo_dark_url favicon_url].each do |url_field|
+          url = @brand_settings[url_field]
+          next if url.nil?
+
+          unless valid_url?(url)
+            OT.ld "[UpdateDomainBrand] Error: Invalid URL format for '#{url_field}': #{url}"
+            raise_form_error "Invalid #{url_field.tr('_', ' ')} - must be https:// URL or relative path starting with /"
+          end
+        end
+      end
+
+      # Strip HTML tags from free-text brand settings to prevent XSS.
+      # Uses sanitize_plain_text from InputSanitizers which strips all
+      # HTML via the Sanitize gem and normalizes whitespace.
+      def sanitize_text_fields
+        TEXT_FIELDS.each do |field|
+          next unless @brand_settings.key?(field) && @brand_settings[field].is_a?(String)
+
+          @brand_settings[field] = sanitize_plain_text(@brand_settings[field], max_length: 500)
+        end
       end
 
       # Validate extid format (lowercase alphanumeric only)

@@ -8,7 +8,10 @@ import {
   hexToOklch,
   isValidHex,
   oklchToHex,
+  contrastRatio,
+  checkBrandContrast,
 } from '@/utils/brand-palette';
+import type { ContrastCheck } from '@/utils/brand-palette';
 
 const SHADE_STEPS = [
   '50', '100', '200', '300', '400', '500',
@@ -199,6 +202,184 @@ describe('brand-palette', () => {
         expect(Math.abs(g1 - g2)).toBeLessThanOrEqual(1);
         expect(Math.abs(b1 - b2)).toBeLessThanOrEqual(1);
       }
+    });
+  });
+
+  describe('WCAG contrast', () => {
+    describe('contrastRatio', () => {
+      it('returns 21:1 for black vs white', () => {
+        const ratio = contrastRatio('#000000', '#ffffff');
+        expect(ratio).toBeCloseTo(21, 0);
+      });
+
+      it('returns 1:1 for identical colors', () => {
+        const ratio = contrastRatio('#3b82f6', '#3b82f6');
+        expect(ratio).toBeCloseTo(1, 1);
+      });
+
+      it('is symmetric (order-independent)', () => {
+        const ab = contrastRatio('#dc4a22', '#ffffff');
+        const ba = contrastRatio('#ffffff', '#dc4a22');
+        expect(ab).toBeCloseTo(ba, 5);
+      });
+
+      it('returns a value between 1 and 21', () => {
+        const ratio = contrastRatio('#808080', '#ffffff');
+        expect(ratio).toBeGreaterThanOrEqual(1);
+        expect(ratio).toBeLessThanOrEqual(21);
+      });
+    });
+
+    describe('checkBrandContrast', () => {
+      // Edge-case colors for parameterized testing
+      // Edge-case colors with expected contrast behavior.
+      // useWhiteText is determined by which text color (white vs black)
+      // yields higher contrast. The ratio is for the RECOMMENDED text
+      // color, so it can be high even for near-white backgrounds (because
+      // black text on near-white is high contrast).
+      const edgeCases: Array<{
+        name: string;
+        hex: string;
+        expectWhiteText: boolean;
+        minRatio: number;
+      }> = [
+        {
+          name: 'default OTS orange (#dc4a22)',
+          hex: '#dc4a22',
+          expectWhiteText: false, // black text has 5.05:1 vs white's 4.16:1
+          minRatio: 4.5,
+        },
+        {
+          name: 'saturated blue (#3b82f6)',
+          hex: '#3b82f6',
+          expectWhiteText: false, // black text at 5.71:1 vs white's 3.68:1
+          minRatio: 4.5,
+        },
+        {
+          name: 'near-white (#f0f0f0)',
+          hex: '#f0f0f0',
+          expectWhiteText: false, // black text at 18.4:1 -- very high
+          minRatio: 14.0,
+        },
+        {
+          name: 'near-black (#1a1a1a)',
+          hex: '#1a1a1a',
+          expectWhiteText: true, // white text at 17.4:1 -- very high
+          minRatio: 14.0,
+        },
+        {
+          name: 'saturated yellow (#ffff00)',
+          hex: '#ffff00',
+          expectWhiteText: false, // black text at 19.6:1 despite low vs white
+          minRatio: 14.0,
+        },
+        {
+          name: 'mid-gray (#808080)',
+          hex: '#808080',
+          expectWhiteText: false, // black text at 5.32:1 vs white's 3.95:1
+          minRatio: 4.5,
+        },
+      ];
+
+      it.each(edgeCases)(
+        '$name: returns valid ContrastCheck',
+        ({ hex }) => {
+          const result: ContrastCheck = checkBrandContrast(hex);
+          expect(result.ratio).toBeGreaterThanOrEqual(1);
+          expect(result.ratio).toBeLessThanOrEqual(21);
+          expect(typeof result.passesAA).toBe('boolean');
+          expect(typeof result.passesAALarge).toBe('boolean');
+          expect(typeof result.useWhiteText).toBe('boolean');
+        }
+      );
+
+      it.each(edgeCases)(
+        '$name: recommends correct text color',
+        ({ hex, expectWhiteText }) => {
+          const result = checkBrandContrast(hex);
+          expect(result.useWhiteText).toBe(expectWhiteText);
+        }
+      );
+
+      it.each(edgeCases)(
+        '$name: contrast ratio meets minimum',
+        ({ hex, minRatio }) => {
+          const result = checkBrandContrast(hex);
+          expect(result.ratio).toBeGreaterThanOrEqual(minRatio);
+        }
+      );
+
+      it('near-white passes AA (black text recommended, 18:1+ contrast)', () => {
+        // Near-white backgrounds get black text which has very high contrast
+        const result = checkBrandContrast('#f0f0f0');
+        expect(result.passesAA).toBe(true);
+        expect(result.useWhiteText).toBe(false);
+      });
+
+      it('near-white vs white specifically has very low contrast', () => {
+        // The raw white-on-near-white contrast is < 1.2:1
+        const ratio = contrastRatio('#f0f0f0', '#ffffff');
+        expect(ratio).toBeLessThan(1.2);
+      });
+
+      it('near-black passes AA for normal text', () => {
+        const result = checkBrandContrast('#1a1a1a');
+        expect(result.passesAA).toBe(true);
+      });
+
+      it('saturated yellow fails AA Large on white', () => {
+        // Yellow (#ffff00) has very high luminance, so contrast
+        // against both white and black is relatively low
+        const result = checkBrandContrast('#ffff00');
+        // Black text on yellow should still pass large text
+        expect(result.useWhiteText).toBe(false);
+      });
+
+      it('passesAA implies passesAALarge', () => {
+        // If a color passes the stricter 4.5:1, it must also
+        // pass the more lenient 3.0:1
+        for (const { hex } of edgeCases) {
+          const result = checkBrandContrast(hex);
+          if (result.passesAA) {
+            expect(result.passesAALarge).toBe(true);
+          }
+        }
+      });
+
+      it('falls back to default color for invalid input', () => {
+        const invalid = checkBrandContrast('not-a-color');
+        const def = checkBrandContrast(DEFAULT_BRAND_HEX);
+        expect(invalid.ratio).toBeCloseTo(def.ratio, 2);
+      });
+    });
+
+    describe('brand vs brandcomp palette contrast for achromatic inputs', () => {
+      it('achromatic gray produces identical brand and brandcomp shades', () => {
+        // Mid-gray has no chroma, so 180deg hue rotation has no effect
+        const palette = generateBrandPalette('#808080');
+        for (const step of SHADE_STEPS) {
+          expect(palette[`--color-brand-${step}`]).toBe(
+            palette[`--color-brandcomp-${step}`]
+          );
+        }
+      });
+
+      it('achromatic near-white produces identical brand and brandcomp', () => {
+        const palette = generateBrandPalette('#f0f0f0');
+        for (const step of SHADE_STEPS) {
+          expect(palette[`--color-brand-${step}`]).toBe(
+            palette[`--color-brandcomp-${step}`]
+          );
+        }
+      });
+
+      it('chromatic input produces divergent brand and brandcomp', () => {
+        const palette = generateBrandPalette('#dc4a22');
+        // At least brand-500 should differ from brandcomp-500
+        expect(palette['--color-brand-500']).not.toBe(
+          palette['--color-brandcomp-500']
+        );
+      });
     });
   });
 });

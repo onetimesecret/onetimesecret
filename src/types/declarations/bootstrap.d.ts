@@ -35,6 +35,7 @@ export interface FooterLink {
   i18n_key?: string;
   url: string;
   external?: boolean;
+  hide?: boolean;
   icon?: string;
 }
 
@@ -57,7 +58,6 @@ export interface HeaderLogo {
 
 export interface HeaderBranding {
   logo: HeaderLogo;
-  site_name?: string;
 }
 
 export interface HeaderNavigation {
@@ -150,6 +150,9 @@ export interface BootstrapPayload {
   /** Whether public API access is allowed (default: true) */
   brand_allow_public_api?: boolean;
 
+  /** Documentation site host from server config (e.g. 'docs.onetimesecret.com') */
+  docs_host?: string;
+
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
   authentication: AuthenticationSettings; // TODO: May need to offer default values
@@ -207,15 +210,17 @@ export interface BootstrapPayload {
      * OmniAuth/SSO authentication via external identity providers.
      * Can be boolean (false when disabled) or object with config when enabled.
      */
-    omniauth?: boolean | {
-      enabled: boolean;
-      /** Display name for the SSO provider (e.g., "Zitadel", "Okta") */
-      display_name?: string;
-      /** @deprecated Use display_name instead */
-      provider_name?: string;
-      /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
-      route_name?: string;
-    };
+    omniauth?:
+      | boolean
+      | {
+          enabled: boolean;
+          /** Display name for the SSO provider (e.g., "Zitadel", "Okta") */
+          display_name?: string;
+          /** @deprecated Use display_name instead */
+          provider_name?: string;
+          /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
+          route_name?: string;
+        };
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;
   };

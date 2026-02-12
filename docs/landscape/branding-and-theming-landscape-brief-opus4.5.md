@@ -1,6 +1,6 @@
 # Private-Label Branding & Theming: Landscape Analysis
 
-This document maps how open-source projects approach white-label branding and theming customization. The analysis covers ten projects across identity, collaboration, scheduling, analytics, and documentation spaces.
+This document maps how open-source projects approach private-label branding and theming customization. The analysis covers ten projects across identity, collaboration, scheduling, analytics, and documentation spaces.
 
 ## Projects Surveyed
 
@@ -8,12 +8,12 @@ This document maps how open-source projects approach white-label branding and th
 |---------|----------|------------------|
 | GitLab | DevOps platform | Design token architecture reference |
 | Mattermost | Team messaging | CSS variable migration patterns |
-| Cal.com | Scheduling | Self-hosted white-labeling approach |
+| Cal.com | Scheduling | Self-hosted private-labeling approach |
 | Chatwoot | Customer support | Community Edition limitations |
 | Documenso | Document signing | shadcn/Tailwind token patterns |
-| Plausible | Analytics | Embedded dashboard white-labeling |
+| Plausible | Analytics | Embedded dashboard private-labeling |
 | Outline | Knowledge base | Accent color customization |
-| Rallly | Scheduling polls | Recent white-label implementation |
+| Rallly | Scheduling polls | Recent private-label implementation |
 | Zitadel | Identity/auth | Trust-sensitive branding model |
 | Keycloak | Identity/auth | Template-based theming system |
 
@@ -181,7 +181,7 @@ Rating scale:
 **Branding as core capability**:
 - Zitadel: Full branding in open-source, positioned as trust requirement
 - Keycloak: Complete theming in community edition
-- Rallly: Added white-labeling as enterprise add-on in v4.6.0 (January 2026)
+- Rallly: Added private-labeling as enterprise add-on in v4.6.0 (January 2026)
 
 **Branding as DIY**:
 - Plausible: Stats API for building custom dashboards, embed for quick wins
@@ -191,7 +191,7 @@ Rating scale:
 
 Zitadel and Keycloak (identity providers) treat branding as essential for user trust during authentication flows. Both emphasize that branded login screens reduce phishing suspicion. Zitadel's documentation explicitly frames branding as a trust mechanism.
 
-Plausible positions its white-label approach around client relationships: analytics providers need to present dashboards without third-party branding to maintain client confidence.
+Plausible positions its private-label approach around client relationships: analytics providers need to present dashboards without third-party branding to maintain client confidence.
 
 ---
 
@@ -221,7 +221,7 @@ Plausible positions its white-label approach around client relationships: analyt
 
 ### Unoccupied Space
 
-**Programmatic palette generation for self-hosted software**: Design tools (Figma plugins) generate palettes. SaaS platforms (Coolify fork, various) add white-labeling. No surveyed project combines runtime palette generation with self-hosted deployment.
+**Programmatic palette generation for self-hosted software**: Design tools (Figma plugins) generate palettes. SaaS platforms (Coolify fork, various) add private-labeling. No surveyed project combines runtime palette generation with self-hosted deployment.
 
 **OKLCH in production theming**: OKLCH adoption is concentrated in design tooling and CSS authoring. Runtime theming systems still use hex or HSL.
 
@@ -253,7 +253,7 @@ Projects earlier in this migration (or not undertaking it) face limitations in w
 
 ### White-Label as Product Tier
 
-Rallly's January 2026 addition of white-labeling as an enterprise add-on follows a pattern: simple open-source tools adding premium branding features. This indicates that white-labeling is becoming an expected capability in the self-hosted space, particularly for tools operators deploy for their own users.
+Rallly's January 2026 addition of private-labeling as an enterprise add-on follows a pattern: simple open-source tools adding premium branding features. This indicates that private-labeling is becoming an expected capability in the self-hosted space, particularly for tools operators deploy for their own users.
 
 ### Trust-Sensitive Applications
 
@@ -301,4 +301,4 @@ The following areas require hands-on testing:
 
 ### Source References
 
-GitLab Appearance API, Pajamas design token documentation, Mattermost issue #16028 and related PRs, Cal.com self-hosting documentation, Chatwoot developer FAQ and community forks, Documenso branding documentation, Plausible embed and Stats API documentation, Outline hosting documentation, Rallly v4.6.0 changelog and white-labeling documentation, Zitadel brand customization guide, Keycloak theme development documentation.
+GitLab Appearance API, Pajamas design token documentation, Mattermost issue #16028 and related PRs, Cal.com self-hosting documentation, Chatwoot developer FAQ and community forks, Documenso branding documentation, Plausible embed and Stats API documentation, Outline hosting documentation, Rallly v4.6.0 changelog and private-labeling documentation, Zitadel brand customization guide, Keycloak theme development documentation.

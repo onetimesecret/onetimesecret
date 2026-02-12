@@ -3,18 +3,29 @@
 <script setup lang="ts">
   import type { BrandSettings } from '@/schemas/models/domain/brand';
   import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
+  import { computed } from 'vue';
 
   export interface Props {
     branded?: boolean;
     brandSettings?: BrandSettings;
+    cornerClass?: string;
+    fontClass?: string;
   }
 
-  defineProps<Props>();
+  const props = defineProps<Props>();
 
   /**
    * Computes background color with 15% opacity for branded icon container
    */
   const getBackgroundColor = (color?: string): string => color ? `${color}15` : '';
+
+  /** Use provided fontClass or derive from brandSettings */
+  const resolvedFontClass = computed(() =>
+    props.fontClass ??
+    (props.branded && props.brandSettings?.font_family
+      ? fontFamilyClasses[props.brandSettings.font_family as FontFamily]
+      : '')
+  );
 </script>
 
 <template>
@@ -23,7 +34,7 @@
     :class="[
       branded ? 'w-full shadow-xl' : 'shadow-md',
       branded && brandSettings?.corner_style === 'sharp' ? 'rounded-none' : '',
-      branded && brandSettings?.font_family ? fontFamilyClasses[brandSettings.font_family as FontFamily] : ''
+      resolvedFontClass,
     ]">
     <!-- Header slot for icon and title -->
     <slot

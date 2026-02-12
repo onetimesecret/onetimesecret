@@ -47,6 +47,10 @@
     "text": "Legals",
     "sha256": "0a410c78"
   },
+  "web.footer.product": {
+    "text": "Product",
+    "sha256": null
+  },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "When you submit feedback, we'll see:",
     "sha256": "fe77172e"
@@ -78,6 +82,10 @@
   "web.footer.resources": {
     "text": "Resources",
     "sha256": "e89b30aa"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "GitHub",
+    "sha256": null
   },
   "web.footer.blog": {
     "text": "Blog",
@@ -330,5 +338,45 @@
   "web.layout.workspace_context": {
     "text": "Workspace context",
     "sha256": "dc6fa4f5"
+  },
+  "web.layout.quick_stats": {
+    "text": "Quick Stats",
+    "sha256": ""
+  },
+  "web.layout.create_new_secret": {
+    "text": "Create New Secret",
+    "sha256": ""
+  },
+  "web.layout.generate_api_key": {
+    "text": "Generate API Key",
+    "sha256": ""
+  },
+  "web.layout.active_secrets": {
+    "text": "Active Secrets",
+    "sha256": ""
+  },
+  "web.layout.total_shared": {
+    "text": "Total Shared",
+    "sha256": ""
+  },
+  "web.layout.storage_used": {
+    "text": "Storage Used",
+    "sha256": ""
+  },
+  "web.layout.documentation": {
+    "text": "Documentation",
+    "sha256": ""
+  },
+  "web.layout.api_reference": {
+    "text": "API Reference",
+    "sha256": ""
+  },
+  "web.layout.get_support": {
+    "text": "Get Support",
+    "sha256": ""
+  },
+  "web.layout.resources": {
+    "text": "Resources",
+    "sha256": ""
   }
 }

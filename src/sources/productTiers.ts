@@ -1,5 +1,7 @@
 // src/sources/productTiers.ts
 
+export const DEFAULT_DOCS_HOST = 'docs.onetimesecret.com';
+
 export interface PaymentFrequency {
   value: string;
   label: string;
@@ -23,69 +25,79 @@ export const paymentFrequencies: Array<PaymentFrequency> = [
   { value: 'annually', label: 'Yearly', priceSuffix: '/year' },
 ];
 
-export const productTiers: Array<ProductTier> = [
-  {
-    id: 'tier-free',
-    name: 'Basic',
-    href: '/plans/free',
-    cta: 'Get Started',
-    price: {
-      monthly: '$0',
-      annually: '$0',
+/**
+ * Builds product tier definitions with a configurable docs host.
+ * Self-hosted instances can pass their own docs host from config;
+ * falls back to the OTS hosted docs site.
+ */
+export function buildProductTiers(docsHost = DEFAULT_DOCS_HOST): Array<ProductTier> {
+  return [
+    {
+      id: 'tier-free',
+      name: 'Basic',
+      href: '/plans/free',
+      cta: 'Get Started',
+      price: {
+        monthly: '$0',
+        annually: '$0',
+      },
+      description: 'Essential secret sharing features casual use.',
+      features: [
+        'Share secrets securely',
+        'Email links to recipients',
+        'Automatic destruction',
+        'More expiration options',
+        'REST API',
+      ],
+      featured: false,
+      learn_more: `https://${docsHost}/en/secret-links/`,
     },
-    description: 'Essential secret sharing features casual use.',
-    features: [
-      'Share secrets securely',
-      'Email links to recipients',
-      'Automatic destruction',
-      'More expiration options',
-      'REST API',
-    ],
-    featured: false,
-    learn_more: 'https://docs.onetimesecret.com/en/secret-links/',
-  },
-  {
-    id: 'tier-identity',
-    name: 'Identity Plus',
-    href: '/plans/identity',
-    cta: 'Start today',
-    price: {
-      monthly: '$35',
-      annually: '$365',
+    {
+      id: 'tier-identity',
+      name: 'Identity Plus',
+      href: '/plans/identity',
+      cta: 'Start today',
+      price: {
+        monthly: '$35',
+        annually: '$365',
+      },
+      //description: "Secure sharing that elevates your brand and simplifies communication.",
+      //description: "Elevate your brand with secure sharing that simplifies communication.",
+      //description: "Elevate your brand with secure, streamlined communication.",
+      description:
+        'Elevate brand trust with secure sharing from your own domain. e.g. secrets.example.com.',
+      features: [
+        'Unlimited custom domains',
+        'Custom branding with your logo',
+        'Branded homepage destination',
+        'Privacy-first design',
+        'No rate limits',
+      ],
+      featured: false,
+      learn_more: `https://${docsHost}/en/custom-domains/`,
     },
-    //description: "Secure sharing that elevates your brand and simplifies communication.",
-    //description: "Elevate your brand with secure sharing that simplifies communication.",
-    //description: "Elevate your brand with secure, streamlined communication.",
-    description:
-      'Elevate brand trust with secure sharing from your own domain. e.g. secrets.example.com.',
-    features: [
-      'Unlimited custom domains',
-      'Custom branding with your logo',
-      'Branded homepage destination',
-      'Privacy-first design',
-      'No rate limits',
-    ],
-    featured: false,
-    learn_more: 'https://docs.onetimesecret.com/en/custom-domains/',
-  },
-  {
-    id: 'tier-dedicated',
-    name: 'Global Elite',
-    href: '/plans/dedicated',
-    cta: 'Reserve your spot',
-    price: {
-      monthly: '$125',
-      annually: '$1150',
-    },
-    description:
-      'Exclusive dedicated infrastructure with enterprise compliance features. Limited availability. Delivery within 5-7 business days.',
-    features: [
-      'Private cloud environment',
-      'Fully customizable',
-      'Professionally managed',
-      'Helps meet and exceed compliance requirements',
-    ],
+    {
+      id: 'tier-dedicated',
+      name: 'Global Elite',
+      href: '/plans/dedicated',
+      cta: 'Reserve your spot',
+      price: {
+        monthly: '$125',
+        annually: '$1150',
+      },
+      description:
+        'Exclusive dedicated infrastructure with enterprise compliance features. Limited availability. Delivery within 5-7 business days.',
+      features: [
+        'Private cloud environment',
+        'Fully customizable',
+        'Professionally managed',
+        'Helps meet and exceed compliance requirements',
+      ],
 
-    featured: true,
-  },
-];
+      featured: true,
+    },
+  ];
+}
+
+/** Default product tiers using the hosted docs site */
+export const productTiers: Array<ProductTier> = buildProductTiers();

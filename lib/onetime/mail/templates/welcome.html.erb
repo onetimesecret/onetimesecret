@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title><%= t('email.welcome.title', product_name: product_name) %></title>
+    <title><%= t('email.welcome.title', product_name: h(product_name)) %></title>
     <style type="text/css">
       body { margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
       table { border-spacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -27,13 +27,13 @@
             <tr>
               <td class="container-padding" align="left" style="padding: 24px; background-color: #ffffff;">
                 <!-- Logo -->
-                <img alt="<%= h(logo_alt) %>" src="<%= baseuri %>/img/onetime-logo-v3-xl.svg"
+                <img alt="<%= h(logo_alt) %>" src="<%= logo_url %>"
                    style="border: 0; display: block; margin: 0 0 32px 0; height: 48px; width: 48px; background-color: <%= brand_color %>;"
                    width="48" height="48" />
 
                 <!-- Title -->
                 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
-                  <p style="margin: 0;"><%= t('email.welcome.title', product_name: product_name) %></p>
+                  <p style="margin: 0;"><%= t('email.welcome.title', product_name: h(product_name)) %></p>
                 </div>
 
                 <!-- Body -->

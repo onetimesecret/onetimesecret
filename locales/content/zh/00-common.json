@@ -108,7 +108,7 @@
     "text": "创建账户",
     "sha256": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "关于",
     "sha256": "4efca0d1"
   },

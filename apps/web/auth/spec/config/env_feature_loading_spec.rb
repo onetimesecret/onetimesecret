@@ -101,7 +101,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     create_rodauth_app(db: db, features: features) do
       if respond_to?(:otp_issuer)
-        otp_issuer 'OneTimeSecret'
+        otp_issuer 'OTS'
         otp_keys_use_hmac? true
         otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
       end
@@ -398,7 +398,7 @@ RSpec.describe 'ENV-conditional feature loading' do
         app = create_rodauth_app(db: db, features: features) do
           session_inactivity_deadline 86_400
           max_invalid_logins 5
-          otp_issuer 'OneTimeSecret'
+          otp_issuer 'OTS'
           otp_keys_use_hmac? true
           email_auth_route 'email-login'
           webauthn_rp_name 'OnetimeSecret'
@@ -427,7 +427,7 @@ RSpec.describe 'ENV-conditional feature loading' do
         features = [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes]
 
         app = create_rodauth_app(db: db, features: features) do
-          otp_issuer 'OneTimeSecret'
+          otp_issuer 'OTS'
           otp_keys_use_hmac? true
         end
 

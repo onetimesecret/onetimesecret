@@ -135,6 +135,19 @@ emailer:
   auth: ~
   tls: ~
 
+brand:
+  primary_color: ~
+  product_name: ~
+  product_domain: ~
+  support_email: ~
+  corner_style: 'rounded'
+  font_family: 'sans'
+  button_text_light: true
+  allow_public_homepage: true
+  allow_public_api: true
+  logo_url: ~
+  totp_issuer: ~
+
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp

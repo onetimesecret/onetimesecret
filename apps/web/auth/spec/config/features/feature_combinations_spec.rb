@@ -47,7 +47,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
         max_invalid_logins 5
 
         # MFA configuration
-        otp_issuer 'OneTimeSecret'
+        otp_issuer 'OTS'
         otp_auth_failures_limit MFA_OTP_AUTH_FAILURES_LIMIT
         otp_keys_use_hmac? true
 
@@ -110,7 +110,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
           :two_factor_base, :otp, :recovery_codes
         ],
       ) do
-        otp_issuer 'OneTimeSecret'
+        otp_issuer 'OTS'
         otp_auth_failures_limit MFA_OTP_AUTH_FAILURES_LIMIT
       end
     end
