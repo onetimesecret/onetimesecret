@@ -44,7 +44,14 @@ const handleSubmit = async () => {
   isSubmitting.value = true;
   try {
     clearErrors();
-    await bootstrapStore.refresh();
+    // Best-effort token refresh: proceed with the existing CSRF token on failure.
+    // Plain try/catch (not useAsyncHandler) because this is intentionally non-fatal —
+    // Sentry reports and user notifications would fire for a non-event.
+    try {
+      await bootstrapStore.refresh();
+    } catch (refreshError) {
+      console.warn('[SignUpForm] Bootstrap refresh failed, proceeding with current token:', refreshError);
+    }
     await signup(email.value, password.value, termsAgreed.value);
     // Navigation handled by useAuth composable
   } finally {
