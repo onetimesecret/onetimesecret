@@ -124,9 +124,9 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         # Uses reset_ready! which sets @boot_state = nil (defaults to BOOT_NOT_STARTED)
         Onetime.reset_ready!
 
-        # Mock config to return our test config (but use real database)
-        allow(Onetime::Config).to receive(:load).and_return(test_config)
-        allow(Onetime::Config).to receive(:after_load).and_call_original
+        # Boot now uses Configurator.load! pipeline instead of Config.load/after_load.
+        # Config.path is set to test_config_path in the outer before block (line 89),
+        # so the Configurator will read the test config file directly.
 
         # Stub Familia.uri= to track calls but still set the real URI from ENV
         allow(Familia).to receive(:uri=).and_call_original
@@ -137,9 +137,10 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         expect(Onetime.mode).to eq(:test)
       end
 
-      it 'loads configuration file' do
+      it 'loads configuration via Configurator pipeline' do
         Onetime.boot!(:test)
-        expect(Onetime::Config).to have_received(:load)
+        expect(Onetime.conf).to be_a(Hash)
+        expect(Onetime.conf).not_to be_empty
       end
 
       it 'sets diagnostics to disabled when test conf has it enabled but dsn is nil' do
@@ -191,10 +192,8 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         Onetime.reset_ready!
       end
 
-      it 'calls Config.load and Config.after_load in correct order' do
-        expect(Onetime::Config).to receive(:load).and_return(test_config).ordered
-        # Let after_load process the config normally so initializers get valid data
-        expect(Onetime::Config).to receive(:after_load).with(test_config).and_call_original.ordered
+      it 'loads config through Configurator pipeline' do
+        expect(Onetime::Configurator).to receive(:load!).with(strict: false).and_call_original
 
         Onetime.boot!(:test)
       end
@@ -227,7 +226,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       end
 
       it 'handles OT::Problem exceptions' do
-        allow(Onetime::Config).to receive(:load).and_raise(OT::Problem.new("Config loading failed"))
+        allow(Onetime::Configurator).to receive(:load!).and_raise(OT::Problem.new("Config loading failed"))
         expect(Onetime).to receive(:le).with("Problem booting: Config loading failed") # a bug as of v0.20.5
         expect(Onetime).to receive(:ld) # For backtrace
         expect { Onetime.boot!(:test) }.to raise_error(OT::Problem)
@@ -244,7 +243,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       end
 
       it 'propagates unexpected errors' do
-        allow(Onetime::Config).to receive(:load).and_raise(StandardError.new("Something went wrong"))
+        allow(Onetime::Configurator).to receive(:load!).and_raise(StandardError.new("Something went wrong"))
         # Unlike OT::Problem and Redis::CannotConnectError, generic StandardError
         # is not caught and logged - it propagates directly
         expect { Onetime.boot!(:test) }.to raise_error(StandardError, "Something went wrong")
