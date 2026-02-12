@@ -15,6 +15,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.signin',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -50,6 +51,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signup',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -68,6 +70,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.forgot_password',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -103,6 +106,8 @@ const routes: Array<RouteRecordRaw> = [
       window.location.href = '/logout';
     },
   },
+  // Intentionally ungated: account verification must work regardless of
+  // signin/signup feature toggles since the flow starts from an email link.
   {
     path: '/verify-account',
     name: 'Verify Account',
@@ -129,6 +134,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.mfa_verify',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -148,6 +154,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.email_login',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -168,6 +175,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.reset_password',
       requiresAuth: false,
       isAuthRoute: true,
+      requiresFeature: 'signin',
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -179,6 +187,8 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  // Intentionally ungated: invitation acceptance must work regardless of
+  // signin/signup feature toggles since invitees follow a unique token link.
   {
     path: '/invite/:token',
     name: 'Accept Invitation',
