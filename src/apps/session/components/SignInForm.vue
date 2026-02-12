@@ -36,11 +36,19 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
+const isSubmitting = ref(false);
+
 const handleSubmit = async () => {
-  clearErrors();
-  await bootstrapStore.refresh();
-  await login(email.value, password.value, rememberMe.value);
-  // Navigation handled by useAuth composable
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
+  try {
+    clearErrors();
+    await bootstrapStore.refresh();
+    await login(email.value, password.value, rememberMe.value);
+    // Navigation handled by useAuth composable
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 
@@ -78,7 +86,7 @@ const handleSubmit = async () => {
           type="email"
           autocomplete="email"
           required
-          :disabled="isLoading"
+          :disabled="isSubmitting || isLoading"
           :aria-invalid="error && !lockoutStatus ? 'true' : undefined"
           :aria-describedby="error && !lockoutStatus ? 'signin-error' : undefined"
           class="block w-full appearance-none rounded-md
@@ -108,7 +116,7 @@ const handleSubmit = async () => {
             name="password"
             autocomplete="current-password"
             required
-            :disabled="isLoading"
+            :disabled="isSubmitting || isLoading"
             :aria-invalid="error && !lockoutStatus ? 'true' : undefined"
             :aria-describedby="error && !lockoutStatus ? 'signin-error' : undefined"
             class="block w-full appearance-none rounded-md
@@ -125,7 +133,7 @@ const handleSubmit = async () => {
           <button
             type="button"
             @click="togglePasswordVisibility"
-            :disabled="isLoading"
+            :disabled="isSubmitting || isLoading"
             :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
             class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
             <OIcon
@@ -146,7 +154,7 @@ const handleSubmit = async () => {
           id="remember-me"
           name="remember-me"
           type="checkbox"
-          :disabled="isLoading"
+          :disabled="isSubmitting || isLoading"
           aria-describedby="remember-me-description"
           class="size-4 rounded border-gray-300
                       text-brand-600
@@ -177,7 +185,7 @@ const handleSubmit = async () => {
     <div class="mt-5">
       <button
         type="submit"
-        :disabled="isLoading"
+        :disabled="isSubmitting || isLoading"
         class="group relative flex w-full justify-center
                      rounded-md
                      border border-transparent
@@ -187,12 +195,12 @@ const handleSubmit = async () => {
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:cursor-not-allowed disabled:opacity-50
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
-        <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+        <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
         <span v-else>{{ t('web.login.button_sign_in') }}</span>
       </button>
       <!-- Loading state announcement (screen reader only) -->
       <div
-        v-if="isLoading"
+        v-if="isSubmitting || isLoading"
         aria-live="polite"
         aria-atomic="true"
         class="sr-only">

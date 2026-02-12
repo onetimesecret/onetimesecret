@@ -37,11 +37,19 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
+const isSubmitting = ref(false);
+
 const handleSubmit = async () => {
-  clearErrors();
-  await bootstrapStore.refresh();
-  await signup(email.value, password.value, termsAgreed.value);
-  // Navigation handled by useAuth composable
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
+  try {
+    clearErrors();
+    await bootstrapStore.refresh();
+    await signup(email.value, password.value, termsAgreed.value);
+    // Navigation handled by useAuth composable
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 
@@ -120,7 +128,7 @@ const handleSubmit = async () => {
           type="email"
           autocomplete="email"
           required
-          :disabled="isLoading"
+          :disabled="isSubmitting || isLoading"
           focus
           tabindex="0"
           :aria-invalid="fieldError && fieldError[0] === 'login' ? 'true' : undefined"
@@ -152,7 +160,7 @@ const handleSubmit = async () => {
             name="password"
             autocomplete="new-password"
             required
-            :disabled="isLoading"
+            :disabled="isSubmitting || isLoading"
             tabindex="0"
             :aria-invalid="fieldError && fieldError[0] === 'password' ? 'true' : undefined"
             :aria-describedby="fieldError && fieldError[0] === 'password' ? 'password-error' : 'password-requirements'"
@@ -170,7 +178,7 @@ const handleSubmit = async () => {
           <button
             type="button"
             @click="togglePasswordVisibility"
-            :disabled="isLoading"
+            :disabled="isSubmitting || isLoading"
             :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
             class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
             <OIcon
@@ -196,7 +204,7 @@ const handleSubmit = async () => {
           name="agree"
           type="checkbox"
           required
-          :disabled="isLoading"
+          :disabled="isSubmitting || isLoading"
           tabindex="0"
           class="size-4 rounded border-gray-300
                       text-brand-600
@@ -230,7 +238,7 @@ const handleSubmit = async () => {
     <div class="mt-5">
       <button
         type="submit"
-        :disabled="isLoading"
+        :disabled="isSubmitting || isLoading"
         class="group relative flex w-full justify-center
                      rounded-md
                      border border-transparent
@@ -240,12 +248,12 @@ const handleSubmit = async () => {
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:cursor-not-allowed disabled:opacity-50
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
-        <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+        <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
         <span v-else>{{ t('web.COMMON.button_create_account') }}</span>
       </button>
       <!-- Loading state announcement (screen reader only) -->
       <div
-        v-if="isLoading"
+        v-if="isSubmitting || isLoading"
         aria-live="polite"
         aria-atomic="true"
         class="sr-only">

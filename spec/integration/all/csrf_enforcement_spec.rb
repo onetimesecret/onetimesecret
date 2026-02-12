@@ -404,4 +404,51 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       expect(response.status).to eq(403)
     end
   end
+
+  describe 'CSRF round-trip: page-rendered token accepted on POST' do
+    # Validates the invariant that tokens generated from rack.session
+    # during page render are accepted by Rack::Protection on subsequent
+    # POST. The tests above only confirm rejection (no token -> 403)
+    # but never confirm the page serves a valid, usable token.
+    it 'GET /signin serves a shrimp token that is accepted on POST /signin' do
+      require 'nokogiri'
+
+      # Step 1: GET the signin page to establish a session and receive HTML
+      get_response = @mock_request.get('/signin')
+      expect(get_response.status).to eq(200)
+
+      # Extract session cookie from Set-Cookie header
+      set_cookie = get_response.headers['set-cookie'] || get_response.headers['Set-Cookie']
+      expect(set_cookie).not_to be_nil, 'Expected Set-Cookie header from GET /signin'
+      session_cookie = set_cookie.split(';').first
+
+      # Step 2: Parse the HTML to extract shrimp from __BOOTSTRAP_STATE__
+      doc = Nokogiri::HTML(get_response.body)
+      state_script = doc.css('script[type="application/json"]').first
+      expect(state_script).not_to be_nil, 'Expected <script type="application/json"> in signin page'
+
+      state_data = JSON.parse(state_script.content)
+      shrimp = state_data['shrimp']
+      expect(shrimp).not_to be_nil, 'Expected shrimp in __BOOTSTRAP_STATE__'
+      expect(shrimp).not_to be_empty, 'Expected non-empty shrimp token'
+
+      # Step 3: POST /signin with session cookie + extracted shrimp
+      post_response = @mock_request.post('/signin', {
+        'HTTP_COOKIE' => session_cookie,
+        params: {
+          login: 'test@example.com',
+          pass: 'password123',
+          shrimp: shrimp
+        }
+      })
+
+      # Step 4: Assert NOT 403 -- the token from the page must be accepted
+      # The response will be a redirect or auth error (invalid credentials),
+      # but critically NOT a 403 CSRF rejection.
+      expect(post_response.status).not_to eq(403),
+        "CSRF round-trip failed: page-rendered shrimp was rejected. " \
+        "Status #{post_response.status}. This means the token generated " \
+        "during GET /signin is not valid for the subsequent POST."
+    end
+  end
 end
