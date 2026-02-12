@@ -58,7 +58,7 @@ const receiptRecordSchema = z.object({
   key: z.string(),
   custid: z.string().nullish(),
   owner_id: z.string().nullish(),
-  state: z.string(),
+  state: z.string().nullish(),
   secret_shortid: z.string().nullish(),
   shortid: z.string().nullish(),
   memo: z.string().nullish(),
@@ -90,7 +90,7 @@ const receiptRecordSchema = z.object({
 const secretRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
-  state: z.string(),
+  state: z.string().nullish(),
   shortid: z.string().nullish(),
   // Additional fields from actual API response
   secret_ttl: z.number().nullish(),
@@ -118,8 +118,8 @@ export const incomingSecretResponseSchema = z.object({
   }),
   details: z
     .object({
-      memo: z.string(),
-      recipient: z.string(),
+      memo: z.string().nullish(),
+      recipient: z.string().nullish(),
     })
     .nullish(),
 });
