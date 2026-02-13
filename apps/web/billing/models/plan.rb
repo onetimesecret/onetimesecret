@@ -194,11 +194,12 @@ module Billing
         missing  = REQUIRED_PRODUCT_METADATA - metadata.keys.map(&:to_s)
 
         if missing.any?
-          OT.lw '[Plan.validate_product_metadata] Product missing required metadata',
+          OT.lw '[Plan.validate_product_metadata] Stripe product not managed by catalog',
             {
               product_id: product.id,
               product_name: product.name,
               missing_keys: missing.join(', '),
+              hint: 'Add metadata via Stripe Dashboard or `bin/ots billing products update',
             }
         end
 
