@@ -55,6 +55,8 @@ OT.info 'Cleaned Redis for phantom domain tests'
 
 ## Create second domain for cross-contamination test
 @domain2 = Onetime::CustomDomain.create!("other-#{@timestamp}.test.com", @org.objid)
+@domain2.is_a?(Onetime::CustomDomain)
+#=> true
 
 ## Receipt with domain1 should NOT be in domain2's ZSET
 @domain2.receipt?(@receipt_with_domain.objid)

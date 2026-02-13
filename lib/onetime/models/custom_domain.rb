@@ -294,7 +294,6 @@ module Onetime
     def delete!(*args)
       OT.le '[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup'
       Onetime::CustomDomain.rem self
-      remove_from_all_indexes
       super # we may prefer to call self.clear here instead
     end
 
@@ -353,12 +352,9 @@ module Onetime
         remove_from_organization_domains(o)
       end
 
-      # Remove from manual class indexes (instances sorted set,
-      # display_domains hash, owners hash)
+      # Remove from all class indexes (instances sorted set,
+      # display_domains hash, owners hash, display_domain_index unique_index)
       self.class.rem(self)
-
-      # Remove from Familia auto-indexes (display_domain_index unique_index)
-      remove_from_all_indexes
 
       # Call Familia's built-in destroy which handles:
       # - Main object key deletion
@@ -830,6 +826,7 @@ module Onetime
         instances.remove fobj.to_s
         display_domains.remove fobj.display_domain
         owners.remove fobj.to_s
+        fobj.remove_from_all_indexes
       end
 
       def all
