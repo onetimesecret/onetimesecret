@@ -181,17 +181,30 @@ module Onetime
         raise Onetime::Problem, 'Domain already registered'
       end
 
-      # Remove old entries from both indexes
+      # Remove old entries from both indexes while field still has old value
       self.class.display_domains.remove(old_domain)
       remove_from_class_display_domain_index
 
-      # Update the field and save
+      # Update field and save. save triggers auto_update_class_indexes
+      # which adds new_domain to display_domain_index.
       self.display_domain = new_domain
       self.updated        = OT.now.to_i
-      save
 
-      # Add to manual index (save already handles display_domain_index via auto_update)
-      self.class.display_domains.put(new_domain, identifier)
+      begin
+        save
+        self.class.display_domains.put(new_domain, identifier)
+      rescue StandardError => ex
+        # Rollback: restore field and re-add old entries
+        self.display_domain = old_domain
+        self.class.display_domains.put(old_domain, identifier)
+        # Best-effort save to restore old auto-index entry
+        begin
+          save
+        rescue StandardError
+          nil
+        end
+        raise ex
+      end
     end
 
     # Generate a unique identifier for this customer's custom domain.
@@ -650,13 +663,14 @@ module Onetime
 
           end
 
+          # Load org BEFORE multi — reads inside MULTI return QUEUED
+          org = Onetime::Organization.load(org_id)
+
           dbclient.multi do |_multi|
             existing.org_id  = org_id
             existing.updated = OT.now.to_i
             existing.save
 
-            # Add to organization_domains collection
-            org = Onetime::Organization.load(org_id)
             existing.add_to_organization_domains(org) if org
 
             # Update owners hash (Location E) to reflect new org ownership
@@ -815,7 +829,6 @@ module Onetime
       def rem(fobj)
         instances.remove fobj.to_s
         display_domains.remove fobj.display_domain
-        display_domain_index.remove fobj.display_domain
         owners.remove fobj.to_s
       end
 
