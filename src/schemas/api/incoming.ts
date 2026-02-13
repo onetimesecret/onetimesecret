@@ -51,55 +51,57 @@ export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
 
 /**
  * Schema for receipt record in the response
- * Note: Many fields can be null from the API via safe_dump; use .nullable() (not .nullable())
- * so that undefined is still rejected — only explicit null is valid from the backend.
+ * Note: Many fields can be null or absent from the API via safe_dump.
+ * Use .nullish() to accept null, undefined, and missing fields.
+ * Fix for #2500: state was previously z.string() which rejected null.
  */
 const receiptRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
-  custid: z.string().nullable(),
-  owner_id: z.string().nullable(),
-  state: z.string().nullable(),
-  secret_shortid: z.string().nullable(),
-  shortid: z.string().nullable(),
-  memo: z.string().nullable(),
-  recipients: z.string().nullable(),
+  custid: z.string().nullish(),
+  owner_id: z.string().nullish(),
+  state: z.string().nullish(),
+  secret_shortid: z.string().nullish(),
+  shortid: z.string().nullish(),
+  memo: z.string().nullish(),
+  recipients: z.string().nullish(),
   // Additional fields from actual API response
-  secret_ttl: z.number().nullable(),
-  receipt_ttl: z.number().nullable(),
-  lifespan: z.number().nullable(),
-  share_domain: z.string().nullable(),
-  created: z.number().nullable(),
-  updated: z.number().nullable(),
-  shared: z.number().nullable(),
-  received: z.number().nullable(),
-  burned: z.number().nullable(),
-  viewed: z.number().nullable(),
-  show_recipients: z.boolean().nullable(),
-  is_viewed: z.boolean().nullable(),
-  is_received: z.boolean().nullable(),
-  is_burned: z.boolean().nullable(),
-  is_expired: z.boolean().nullable(),
-  is_orphaned: z.boolean().nullable(),
-  is_destroyed: z.boolean().nullable(),
-  has_passphrase: z.boolean().nullable(),
+  secret_ttl: z.number().nullish(),
+  receipt_ttl: z.number().nullish(),
+  lifespan: z.number().nullish(),
+  share_domain: z.string().nullish(),
+  created: z.number().nullish(),
+  updated: z.number().nullish(),
+  shared: z.number().nullish(),
+  received: z.number().nullish(),
+  burned: z.number().nullish(),
+  viewed: z.number().nullish(),
+  show_recipients: z.boolean().nullish(),
+  is_viewed: z.boolean().nullish(),
+  is_received: z.boolean().nullish(),
+  is_burned: z.boolean().nullish(),
+  is_expired: z.boolean().nullish(),
+  is_orphaned: z.boolean().nullish(),
+  is_destroyed: z.boolean().nullish(),
+  has_passphrase: z.boolean().nullish(),
 });
 
 /**
  * Schema for secret object in the response
+ * Fix for #2500: state was previously z.string() which rejected null.
  */
 const secretRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
-  state: z.string().nullable(),
-  shortid: z.string().nullable(),
+  state: z.string().nullish(),
+  shortid: z.string().nullish(),
   // Additional fields from actual API response
-  secret_ttl: z.number().nullable(),
-  lifespan: z.number().nullable(),
-  has_passphrase: z.boolean().nullable(),
-  verification: z.boolean().nullable(),
-  created: z.number().nullable(),
-  updated: z.number().nullable(),
+  secret_ttl: z.number().nullish(),
+  lifespan: z.number().nullish(),
+  has_passphrase: z.boolean().nullish(),
+  verification: z.boolean().nullish(),
+  created: z.number().nullish(),
+  updated: z.number().nullish(),
 });
 
 /**
@@ -110,19 +112,19 @@ const secretRecordSchema = z.object({
  */
 export const incomingSecretResponseSchema = z.object({
   success: z.boolean(),
-  message: z.string().nullable(),
-  shrimp: z.string().nullable(),
-  custid: z.string().nullable(),
+  message: z.string().nullish(),
+  shrimp: z.string().nullish(),
+  custid: z.string().nullish(),
   record: z.object({
     receipt: receiptRecordSchema,
     secret: secretRecordSchema,
   }),
   details: z
     .object({
-      memo: z.string().nullable(),
-      recipient: z.string().nullable(),
+      memo: z.string().nullish(),
+      recipient: z.string().nullish(),
     })
-    .nullable(),
+    .nullish(),
 });
 
 export type IncomingSecretResponse = z.infer<typeof incomingSecretResponseSchema>;
