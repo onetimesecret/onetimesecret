@@ -93,6 +93,13 @@ export const useCsrfStore = defineStore('csrf', () => {
     }
   });
 
+  // Sync CSRF token when bootstrap refreshes (e.g., native fetch bypasses axios)
+  watch(bootstrapShrimp, (newShrimp) => {
+    if (newShrimp && _initialized.value) {
+      shrimp.value = newShrimp;
+    }
+  });
+
   function updateShrimp(newShrimp: string) {
     shrimp.value = newShrimp;
   }

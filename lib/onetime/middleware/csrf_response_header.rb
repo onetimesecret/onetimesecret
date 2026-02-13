@@ -7,15 +7,19 @@ module Onetime
     ##
     # CsrfResponseHeader
     #
-    # Adds CSRF token to response headers for frontend consumption.
+    # Adds a masked CSRF token to response headers for frontend consumption.
     #
     # Rack::Protection::AuthenticityToken handles validation and stores
-    # the token in session[:csrf]. This middleware reads that token and
-    # exposes it via the X-CSRF-Token response header for axios to use.
+    # a raw token in session[:csrf]. Rather than exposing that raw token
+    # directly (which would be vulnerable to BREACH attacks on compressed
+    # HTTPS responses), this middleware uses AuthenticityToken.token() to
+    # return a per-request masked version. The masked token is XOR'd with
+    # a one-time pad, so the header value changes on every response while
+    # still validating against the same underlying session token.
     #
     # Usage:
     #   use Rack::Protection::AuthenticityToken  # validates requests
-    #   use Onetime::Middleware::CsrfResponseHeader  # exposes token
+    #   use Onetime::Middleware::CsrfResponseHeader  # exposes masked token
     #
     class CsrfResponseHeader
       def initialize(app)
@@ -25,12 +29,11 @@ module Onetime
       def call(env)
         status, headers, body = @app.call(env)
 
-        # Read CSRF token from session (Rack::Protection stores as :csrf)
-        session    = env['rack.session']
-        csrf_token = session&.[](:csrf) || session&.[]('csrf')
-
-        # Add to response headers if present
-        headers['X-CSRF-Token'] = csrf_token if csrf_token
+        session = env['rack.session']
+        if session
+          csrf_token              = Rack::Protection::AuthenticityToken.token(session)
+          headers['X-CSRF-Token'] = csrf_token if csrf_token
+        end
 
         [status, headers, body]
       end

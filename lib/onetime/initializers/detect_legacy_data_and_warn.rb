@@ -22,39 +22,43 @@ module Onetime
 
       # Check for legacy data distribution before connecting to databases
       def detect_legacy_data_and_warn
-      # This check runs once and then sets a marker to prevent the expensive
-      # scan on every startup.
-      completion_key = 'onetime:system:legacy_check_complete'
-      check_complete = false
-      begin
-        Familia.with_isolated_dbclient(0) do |client|
-          check_complete = client.get(completion_key) == 'true'
+        # This check runs once and then sets a marker to prevent the expensive
+        # scan on every startup.
+        completion_key = 'onetime:system:legacy_check_complete'
+        check_complete = false
+
+        # Rescue both hierarchies: Redis::BaseError covers the redis gem's
+        # high-level errors while RedisClient::Error covers lower-level
+        # protocol/connection failures from the underlying redis-client gem.
+        begin
+          Familia.with_isolated_dbclient(0) do |client|
+            check_complete = client.get(completion_key) == 'true'
+          end
+        rescue Redis::BaseError, RedisClient::Error => ex
+          OT.boot_logger.error "[init] Detect legacy data: Could not check completion marker: #{ex.message}"
         end
-      rescue Redis::BaseError => ex
-        OT.ld "[init] Detect legacy data: Could not check for completion flag: #{ex.message}"
-      end
 
-      if check_complete
-        OT.ld "[init] Detect legacy data: Check previously ran. Skipping. (delete '#{completion_key}' to re-run)"
-        return
-      end
-
-      # Run the actual detection
-      detection_result = detect_legacy_data
-      return if detection_result[:legacy_locations].empty?
-
-      # If we found data, warn the user...
-      warn_about_legacy_data(detection_result)
-
-      # ...and then set the marker so we don't do this again.
-      begin
-        Familia.with_isolated_dbclient(0) do |client|
-          client.set(completion_key, 'true')
-          OT.ld '[init] Detect legacy data: Set completion marker to prevent future checks.'
+        if check_complete
+          OT.boot_logger.info "[init] Detect legacy data: Check previously ran. Skipping. (delete '#{completion_key}' to re-run)"
+          return
         end
-      rescue Redis::BaseError => ex
-        OT.ld "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
-      end
+
+        # Run the actual detection
+        detection_result = detect_legacy_data
+        return if detection_result[:legacy_locations].empty?
+
+        # If we found data, warn the user...
+        warn_about_legacy_data(detection_result)
+
+        # ...and then set the marker so we don't do this again.
+        begin
+          Familia.with_isolated_dbclient(0) do |client|
+            client.set(completion_key, 'true')
+            OT.boot_logger.debug '[init] Detect legacy data: Set completion marker to prevent future checks.'
+          end
+        rescue Redis::BaseError, RedisClient::Error => ex
+          OT.boot_logger.error "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
+        end
       end
 
       # Detects legacy data distribution across multiple Redis databases
@@ -62,7 +66,7 @@ module Onetime
       def detect_legacy_data
         return { legacy_locations: {}, needs_auto_config: false } if skip_legacy_data_check?
 
-        OT.ld '[init] Detect legacy data: Scanning for existing data distribution...'
+        OT.boot_logger.info '[init] Detect legacy data: Scanning for existing data distribution...'
 
         legacy_locations = {}
 
@@ -96,7 +100,7 @@ module Onetime
           found_count         = scan_database_for_legacy_data(db_num, legacy_mappings, current_dbs, legacy_locations)
           models_found_count += found_count
 
-          OT.ld "[init] Detect legacy data: Database #{db_num}: #{found_count} legacy records found"
+          OT.boot_logger.info "[init] Detect legacy data: Database #{db_num}: #{found_count} legacy records found"
           found_count
         end.compact
 
@@ -104,7 +108,7 @@ module Onetime
         needs_auto_config = legacy_locations.any? && using_default_database_config?(current_dbs, legacy_locations)
 
         total_model_types = models_found_count
-        OT.ld <<~SCAN_COMPLETE_MESSAGE
+        OT.boot_logger.info <<~SCAN_COMPLETE_MESSAGE
           [init] Detect legacy data: Scan complete.
           Found #{legacy_locations.size} model types with existing data across #{legacy_counts.size} databases.
           [init] Detect legacy data: Total model instances found: #{total_model_types}
@@ -113,13 +117,13 @@ module Onetime
 
         { legacy_locations: legacy_locations, needs_auto_config: needs_auto_config }
       rescue RuntimeError => ex
-        OT.le "[init] Detect legacy data: Error during legacy data detection: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
+        OT.boot_logger.error "[init] Detect legacy data: Error during legacy data detection: #{ex.message}"
+        OT.boot_logger.debug ex.backtrace.join("\n")
 
         # Even though we want the update to v0.23 to be easy and not require
         # manual intervention, we still need to handle an error here gracefully.
         # The only responsible action here is to stop and suggest a remediation.
-        OT.le <<~REMEDIATION_MESSAGE
+        OT.boot_logger.warn <<~REMEDIATION_MESSAGE
 
           [init] Detect legacy data: Cannot determine if existing data is present in legacy databases.
           To protect against potential data loss, startup is halted.
@@ -173,7 +177,7 @@ module Onetime
             legacy_mappings.each do |model_name, expected_dbs|
             # Skip if this model already has legacy data detected in another database
             if legacy_locations.key?(model_name)
-              OT.ld "[scan_database_for_legacy_data] Skipping #{model_name} (already detected in another database)"
+              OT.boot_logger.debug "[scan_database_for_legacy_data] Skipping #{model_name} (already detected in another database)"
               next
             end
 
@@ -187,7 +191,7 @@ module Onetime
             else
               current_db = current_dbs[model_name] || 0
               if db_num == current_db
-                OT.ld "[scan_database_for_legacy_data] Skipping #{model_name} (already configured in this database)"
+                OT.boot_logger.debug "[scan_database_for_legacy_data] Skipping #{model_name} (already configured in this database)"
                 next
               end
             end
@@ -197,7 +201,7 @@ module Onetime
             keys        = scan_for_model_keys(client, key_pattern)
 
             if keys.empty?
-              OT.ld "[scan_database_for_legacy_data] 0 #{model_name} keys found in DB #{db_num}"
+              OT.boot_logger.debug "[scan_database_for_legacy_data] 0 #{model_name} keys found in DB #{db_num}"
               next
             end
 
@@ -213,14 +217,14 @@ module Onetime
               was_legacy_default: expected_dbs.include?(db_num),
             }
 
-            OT.ld "[init] Detect legacy data: Found #{keys.length} #{model_name} keys in DB #{db_num} (expected DB #{current_db})"
+            OT.boot_logger.debug "[init] Detect legacy data: Found #{keys.length} #{model_name} keys in DB #{db_num} (expected DB #{current_db})"
             end
           end
         rescue RedisClient::CommandError => ex
           # Handle "ERR DB index is out of range" when Redis/Valkey is configured
           # with fewer databases than we're scanning. Safe to assume no legacy data.
           if ex.message.include?('DB index is out of range')
-            OT.ld "[init] Detect legacy data: Database #{db_num} does not exist, skipping"
+            OT.boot_logger.debug "[init] Detect legacy data: Database #{db_num} does not exist, skipping"
             return 0
           end
           raise
@@ -236,7 +240,7 @@ module Onetime
         max_iterations = 10  # Limit scan iterations to prevent excessive startup time
         iterations     = 0
 
-        OT.ld "[scan_for_model_keys] Scanning for '#{pattern}' with #{client.inspect}"
+        OT.boot_logger.debug "[scan_for_model_keys] Scanning for '#{pattern}' with #{client.inspect}"
 
         loop do
           result      = client.scan(cursor, match: pattern, count: 100)
@@ -246,24 +250,24 @@ module Onetime
 
           # Stop after finding some keys (we just need to know data exists)
           unless keys.empty?
-            OT.ld "[scan_for_model_keys] Found keys: #{keys}"
+            OT.boot_logger.debug "[scan_for_model_keys] Found keys: #{keys}"
             break
           end
 
           # Stop if we've completed the scan
           if cursor == '0'
-            OT.ld "[scan_for_model_keys] Completed scan #{result}"
+            OT.boot_logger.debug "[scan_for_model_keys] Completed scan #{result}"
             break
           end
 
           # Safety valve: don't scan forever
           if iterations >= max_iterations
-            OT.ld '[scan_for_model_keys] Reached maximum iterations'
+            OT.boot_logger.debug '[scan_for_model_keys] Reached maximum iterations'
             break
           end
         end
 
-        OT.ld "[scan_for_model_keys] Found keys: #{keys} with #{iterations} iterations"
+        OT.boot_logger.debug "[scan_for_model_keys] Found keys: #{keys} with #{iterations} iterations"
         keys
       end
 
@@ -355,7 +359,7 @@ module Onetime
         current_conf['redis']        ||= {}
         current_conf['redis']['dbs'] ||= {}
 
-        OT.ld '[apply_auto_configuration] Applying auto-configuration for legacy data compatibility'
+        OT.boot_logger.info '[apply_auto_configuration] Applying auto-configuration for legacy data compatibility'
 
         # Configure each model to use its detected legacy database
         legacy_locations.each do |model, locations|
@@ -366,13 +370,13 @@ module Onetime
           # Update configuration to use the legacy database
           current_conf['redis']['dbs'][model] = legacy_db
 
-          OT.ld "[apply_auto_configuration] Configured #{model} to use database #{legacy_db}"
+          OT.boot_logger.debug "[apply_auto_configuration] Configured #{model} to use database #{legacy_db}"
         end
 
         # Replace the global configuration with our updated clone
         OT.replace_config!(current_conf)
 
-        OT.ld '[apply_auto_configuration] Auto-configuration complete'
+        OT.boot_logger.info '[apply_auto_configuration] Auto-configuration complete'
       end
 
       # Check if legacy data detection should be skipped
