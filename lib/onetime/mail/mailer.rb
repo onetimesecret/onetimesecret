@@ -233,7 +233,7 @@ module Onetime
         def emailer_config
           return {} unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf['emailer'] || OT.conf[:emailer] || {}
+          OT.conf['emailer'] || {}
         end
 
         def reply_to_address(template)

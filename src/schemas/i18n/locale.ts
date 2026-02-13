@@ -3,24 +3,52 @@
 import { z } from 'zod';
 
 /**
- * Validates ISO language codes:
- * - 2-letter code (en)
- * - 4-letter codes with separator (en, pt_PT, DE-at)
- * Case insensitive. Must match entire string.
+ * Validates BCP 47 language tags:
+ * - 2-letter language code (en, fr)
+ * - Language + region with separator (en_CA, pt-BR, DE-at, eo)
+ * Case insensitive.
  */
-export const localeSchema = z
+export const localeCodeSchema = z
   .string()
   .min(2)
   .max(5)
-  .regex(/^([a-z]{2})([_\-]([a-z]{2}))?$/i, 'Invalid locale format');
+  .regex(/^[a-z]{2}(?:[_-][a-z]{2})?$/i, 'Invalid locale format');
 
-export type Locale = z.infer<typeof localeSchema>;
+export type Locale = z.infer<typeof localeCodeSchema>;
+
+/**
+ * Source locale entry (e.g., en/00-common.json).
+ * content_hash is the SHA-256 prefix of this entry's own text,
+ * recomputed whenever the source text changes.
+ */
+export const sourceLocaleEntrySchema = z.object({
+  text: z.string(),
+  content_hash: z.string().length(8).optional(),
+  renderer: z.enum(['vue', 'erb']).default('vue'),
+});
+
+export type SourceLocaleEntry = z.infer<typeof sourceLocaleEntrySchema>;
+
+/**
+ * Translation locale entry (e.g., fr_FR/00-common.json).
+ * source_hash is the content_hash of the source locale entry
+ * at the time this translation was created or last updated.
+ * Staleness check: source_hash !== current source content_hash.
+ */
+export const translationLocaleEntrySchema = z.object({
+  text: z.string(),
+  source_hash: z.string().length(8).optional(),
+  renderer: z.enum(['vue', 'erb']).default('vue'),
+});
+
+export type TranslationLocaleEntry = z.infer<typeof translationLocaleEntrySchema>;
 
 /**
  * Schema for a single entry in locales/content/{locale}/*.json files.
  *
- * Each key maps to an object with text content, a content hash for
- * change detection, and an optional renderer hint.
+ * Accepts both content_hash (source locales) and source_hash (translations).
+ * Use this when the locale context is unknown, e.g. in generic tooling
+ * that processes all locale files uniformly.
  *
  * Renderer indicates which template engine consumes the entry:
  * - "vue" (default): Vue i18n / ICU MessageFormat. Interpolation: {variable}
@@ -32,7 +60,8 @@ export type Locale = z.infer<typeof localeSchema>;
  */
 export const localeContentEntrySchema = z.object({
   text: z.string(),
-  sha256: z.string().optional(),
+  content_hash: z.string().length(8).optional(),
+  source_hash: z.string().length(8).optional(),
   renderer: z.enum(['vue', 'erb']).default('vue'),
 });
 
@@ -43,3 +72,10 @@ export type LocaleContentEntry = z.infer<typeof localeContentEntrySchema>;
  * Use this when typing raw JSON data before Zod parsing.
  */
 export type LocaleContentEntryInput = z.input<typeof localeContentEntrySchema>;
+
+/**
+ * Complete locale file: flat key -> entry mapping.
+ */
+export const localeFileSchema = z.record(z.string(), localeContentEntrySchema);
+
+export type LocaleFile = z.infer<typeof localeFileSchema>;

@@ -14,21 +14,21 @@ module Onetime
     # This prevents email addresses from being exposed in API responses
     # while still allowing the backend to send notifications.
     def setup_incoming_recipients
-      return unless OT.conf.dig(:features, :incoming, :enabled)
+      return unless OT.conf.dig('features', 'incoming', 'enabled')
 
-      raw_recipients = OT.conf.dig(:features, :incoming, :recipients) || []
+      raw_recipients = OT.conf.dig('features', 'incoming', 'recipients') || []
 
       # Create lookup tables
       recipient_lookup  = {}
       public_recipients = []
 
       raw_recipients.each do |recipient|
-        email = recipient[:email]
-        name  = recipient[:name] || email.split('@').first
+        email = recipient['email']
+        name  = recipient['name'] || email.split('@').first
 
         # Generate a stable hash for this email
         # Use site secret as salt to ensure consistency across restarts
-        site_secret = OT.conf[:site][:secret] || 'default-secret'
+        site_secret = OT.conf.dig('site', 'secret') || 'default-secret'
         hash_key    = Digest::SHA256.hexdigest("#{email}:#{site_secret}")[0..15]
 
         # Store for backend lookup

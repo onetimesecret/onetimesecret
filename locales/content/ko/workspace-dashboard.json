@@ -1,26 +1,26 @@
 {
   "web.dashboard.title_received": {
     "text": "수신됨",
-    "sha256": "49f19bee"
+    "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
     "text": "수신되지 않음",
-    "sha256": "a4cf12ca"
+    "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
     "text": "최근 비밀 메시지 없음",
-    "sha256": "02b7b86b"
+    "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "첫 번째 비밀 메시지를 생성하여 시작하세요.",
-    "sha256": "e96db24d"
+    "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
     "text": "데이터를 로드할 수 없음",
-    "sha256": "ba7df1be"
+    "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
     "text": "데이터를 로드하는 데 문제가 발생했습니다. 다시 시도해 주세요.",
-    "sha256": "ff0d904e"
+    "source_hash": "ff0d904e"
   }
 }

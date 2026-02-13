@@ -1,315 +1,315 @@
 {
   "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
     "text": "{0}/{1}/{2} [{3}]",
-    "sha256": "98ba1771"
+    "source_hash": "98ba1771"
   },
   "web.colonel.customer_verified_verified_not_verified_0": {
     "text": "`+customer.verified ? `verified` : `not verified",
-    "sha256": "52e93cc0"
+    "source_hash": "52e93cc0"
   },
   "web.colonel.customers_details_counts_recent_customer_count_o_0": {
     "text": "Müşteriler ({1} kişiden {0})",
-    "sha256": "eb88db1d"
+    "source_hash": "eb88db1d"
   },
   "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
     "text": "Kullanıcı Geri Bildirimi (Toplam: {0})",
-    "sha256": "d4a80454"
+    "source_hash": "d4a80454"
   },
   "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
     "text": "Meta Veri / Mesajlar: {0}/{1} ({2}/{3}/{4} toplam)",
-    "sha256": "5a341707"
+    "source_hash": "5a341707"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
     "text": "Mesajlar ({0})",
-    "sha256": "dd1c471a"
+    "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
     "text": "(son 5 dakika içinde aktif)",
-    "sha256": "a2b19058"
+    "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
     "text": "Ayarlar",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
     "text": "Sistem yapılandırma ayarlarını düzenleyin. Değişiklikler kaydettikten sonra hemen uygulanır.",
-    "sha256": "6025d269"
+    "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
     "text": "{section} bölümünde geçersiz JSON",
-    "sha256": "a75ac7a3"
+    "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
     "text": "Doğrulama hatası",
-    "sha256": "2aa2d0b4"
+    "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
     "text": "Yapılandırma yüklenirken hata oluştu",
-    "sha256": "08baf6d2"
+    "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
     "text": "Yapılandırma kaydedilirken hata oluştu",
-    "sha256": "48df54c7"
+    "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
     "text": "Yapılandırma başarıyla kaydedildi",
-    "sha256": "93b3d3e4"
+    "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
     "text": "Yapılandırma bir JSON nesnesi olmalıdır",
-    "sha256": "74e8897e"
+    "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
     "text": "Birden fazla bölümde doğrulama hatası var: {sections}",
-    "sha256": "71fdaea1"
+    "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
     "text": "{section} bölümünde doğrulama hataları var: {error}",
-    "sha256": "e5e01aa0"
+    "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
     "text": "{section} başarıyla kaydedildi",
-    "sha256": "7be1d5d2"
+    "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
     "text": "{section} Kaydet",
-    "sha256": "4a379f10"
+    "source_hash": "4a379f10"
   },
   "web.colonel.saveAll": {
     "text": "Tümünü Kaydet",
-    "sha256": "d3c54e39"
+    "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
     "text": "Kaydedilmemiş değişiklikler",
-    "sha256": "a710c2b9"
+    "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
     "text": "Şema doğrulama hatası: {message} ({path})",
-    "sha256": "5f838cb2"
+    "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
     "text": "Bilinmeyen doğrulama hatası: {error}",
-    "sha256": "b6cf56ca"
+    "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
     "text": "{section} bölümünde yapılandırılmış değer yok",
-    "sha256": "efb63b77"
+    "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
     "text": "Kontrol Paneli",
-    "sha256": "67b69646"
+    "source_hash": "67b69646"
   },
   "web.colonel.admin": {
     "text": "Yönetici",
-    "sha256": "c1c224b0"
+    "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
     "text": "Etkinlik",
-    "sha256": "38da1505"
+    "source_hash": "38da1505"
   },
   "web.colonel.accounts": {
     "text": "Hesaplar",
-    "sha256": "8a7c8b67"
+    "source_hash": "8a7c8b67"
   },
   "web.colonel.users": {
     "text": "Kullanıcılar",
-    "sha256": "6b0cc904"
+    "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
     "text": "Kullanıcı hesaplarını ve izinleri yönetin",
-    "sha256": "6cfc012c"
+    "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
     "text": "Alan Adları",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   },
   "web.colonel.settings": {
     "text": "Ayarlar",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.colonel.system": {
     "text": "Sistem",
-    "sha256": "6725e7bb"
+    "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
     "text": "Colonel'e Hoş Geldiniz",
-    "sha256": "7881ca9e"
+    "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
     "text": "OneTimeSecret için yönetim kontrol paneli",
-    "sha256": "57c1e752"
+    "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
     "text": "Hızlı İşlemler",
-    "sha256": "2cc2b6f7"
+    "source_hash": "2cc2b6f7"
   },
   "web.colonel.recentActivity": {
     "text": "Son Etkinlik",
-    "sha256": "9ef7d438"
+    "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
     "text": "Tümünü Görüntüle",
-    "sha256": "ff5573a6"
+    "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
     "text": "Etkinlik verileri burada görüntülenecek",
-    "sha256": "aaf9e948"
+    "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
     "text": "Toplam Gizli Mesajlar",
-    "sha256": "e17a5459"
+    "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
     "text": "Aktif Kullanıcılar",
-    "sha256": "5639b9f1"
+    "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
     "text": "Bugünkü Gizli Mesajlar",
-    "sha256": "aefbd2db"
+    "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
     "text": "Oluşturulan Gizli Mesajlar",
-    "sha256": "a97ee479"
+    "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
     "text": "Paylaşılan Gizli Mesajlar",
-    "sha256": "5deb082c"
+    "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
     "text": "Toplam Kullanıcı",
-    "sha256": "0ca3aa44"
+    "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
     "text": "Gönderilen E-postalar",
-    "sha256": "87cfb3ab"
+    "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
     "text": "Sistem Durumu",
-    "sha256": "c3d66242"
+    "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
     "text": "Sağlıklı",
-    "sha256": "7f1e323b"
+    "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
     "text": "Etkinliği Görüntüle",
-    "sha256": "9c28f55c"
+    "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
     "text": "Sistem etkinliğini ve kullanımı izleyin",
-    "sha256": "f88e9eda"
+    "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
     "text": "Hesapları Yönet",
-    "sha256": "9d114268"
+    "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
     "text": "Kullanıcı hesabı yönetimi",
-    "sha256": "d73af927"
+    "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
     "text": "Alan Adlarını Yapılandır",
-    "sha256": "74402af9"
+    "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
     "text": "Alan adı ve DNS ayarları",
-    "sha256": "1f712094"
+    "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
     "text": "Sistem Ayarları",
-    "sha256": "1f87f883"
+    "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
     "text": "Uygulama yapılandırması",
-    "sha256": "923dc672"
+    "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
     "text": "Arka Plan İşleri",
-    "sha256": "48937049"
+    "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
     "text": "Kuyruk Durumu",
-    "sha256": "3421ffa8"
+    "source_hash": "3421ffa8"
   },
   "web.colonel.queueName": {
     "text": "Kuyruk",
-    "sha256": "3b2fe03e"
+    "source_hash": "3b2fe03e"
   },
   "web.colonel.pendingMessages": {
     "text": "Bekleyen",
-    "sha256": "331551b0"
+    "source_hash": "331551b0"
   },
   "web.colonel.consumers": {
     "text": "Tüketiciler",
-    "sha256": "212b350d"
+    "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
     "text": "Hız/sn",
-    "sha256": "cfde439c"
+    "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
     "text": "Bağlantı Durumu",
-    "sha256": "3693e288"
+    "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
     "text": "İşçi Durumu",
-    "sha256": "52be3ac1"
+    "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
     "text": "aktif işçiler",
-    "sha256": "ea68cfee"
+    "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
     "text": "Kuyruk verisi mevcut değil",
-    "sha256": "331ffa6b"
+    "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
     "text": "Kuyruk verileri yükleniyor...",
-    "sha256": "a3762a00"
+    "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
     "text": "Test Plan Modu",
-    "sha256": "eba59223"
+    "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
     "text": "{planName} olarak test ediliyor",
-    "sha256": "b3032f1a"
+    "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
     "text": "Sıfırlamak için tıklayın",
-    "sha256": "4b25034d"
+    "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
     "text": "Test etmek için bir plan seçin",
-    "sha256": "9e6e12fe"
+    "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
     "text": "Gerçek plana sıfırla",
-    "sha256": "2cea3f92"
+    "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
     "text": "Mevcut plan",
-    "sha256": "37ca715f"
+    "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
     "text": "Mevcut planlar",
-    "sha256": "20efa44d"
+    "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
     "text": "Test modunu etkinleştir",
-    "sha256": "0f469baa"
+    "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
     "text": "Test modu aktif",
-    "sha256": "ae2c8dd9"
+    "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
     "text": "Uygulamanızı farklı plan yetkilendirmeleriyle test edin. Değişiklikler geçicidir ve yalnızca oturumunuzu etkiler.",
-    "sha256": "be03a409"
+    "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
     "text": "{planName} yetkilendirmeleriyle test ediyorsunuz (geçici oturum geçersiz kılma).",
-    "sha256": "1a8aecf1"
+    "source_hash": "1a8aecf1"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Geribildirim gönderdiğinizde göreceğimiz bilgiler:"
@@ -322,326 +322,326 @@
   },
   "web.colonel.bannedIps.title": {
     "text": "Yasaklı IP'ler",
-    "sha256": "0ece5643"
+    "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
     "text": "IP yasaklama listesini yönetin",
-    "sha256": "dd0d2614"
+    "source_hash": "dd0d2614"
   },
   "web.colonel.customDomains.title": {
     "text": "Özel Alan Adları",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
     "text": "Özel alan adlarını ve markalaşmayı yönetin",
-    "sha256": "808ee2cb"
+    "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
     "text": "Geri bildirim gönder",
-    "sha256": "8235980b"
+    "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
     "text": "Gönderiliyor...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "Geri bildirim gönderdiğinizde şunları göreceğiz:",
-    "sha256": "fe77172e"
+    "source_hash": "fe77172e"
   },
   "web.colonel.organizations.title": {
     "text": "Kuruluşlar",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
     "text": "Kuruluş faturalandırma senkronizasyon durumunu izleyin",
-    "sha256": "d8f4398b"
+    "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
     "text": "Faturalandırma Durum İzleyicisi",
-    "sha256": "9ef57da4"
+    "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
     "text": "{count} kuruluş",
-    "sha256": "bc2feb56"
+    "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
     "text": "{count} dikkat gerektiriyor",
-    "sha256": "1c8e5840"
+    "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
     "text": "{count} bilinmiyor",
-    "sha256": "b7bf2cf1"
+    "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
     "text": "Kuruluş bulunamadı",
-    "sha256": "538995db"
+    "source_hash": "538995db"
   },
   "web.colonel.organizations.actions.investigate": {
     "text": "İncele",
-    "sha256": "e2641093"
+    "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
     "text": "Kontrol ediliyor...",
-    "sha256": "2e5f79bb"
+    "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.columns.account": {
     "text": "Hesap",
-    "sha256": "7e1b0d56"
+    "source_hash": "7e1b0d56"
   },
   "web.colonel.organizations.columns.billing": {
     "text": "Faturalandırma",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.colonel.organizations.columns.status": {
     "text": "Durum",
-    "sha256": "920e413c"
+    "source_hash": "920e413c"
   },
   "web.colonel.organizations.columns.usage": {
     "text": "Kullanım",
-    "sha256": "8d59829c"
+    "source_hash": "8d59829c"
   },
   "web.colonel.organizations.columns.created": {
     "text": "Oluşturulma",
-    "sha256": "d70b9e24"
+    "source_hash": "d70b9e24"
   },
   "web.colonel.organizations.columns.details": {
     "text": "Ayrıntılar",
-    "sha256": "45989de4"
+    "source_hash": "45989de4"
   },
   "web.colonel.organizations.columns.owner": {
     "text": "Sahip",
-    "sha256": "4b1b8aa3"
+    "source_hash": "4b1b8aa3"
   },
   "web.colonel.organizations.columns.plan": {
     "text": "Plan",
-    "sha256": "fa8ed0bd"
+    "source_hash": "fa8ed0bd"
   },
   "web.colonel.organizations.columns.members": {
     "text": "Üyeler",
-    "sha256": "1044a4c0"
+    "source_hash": "1044a4c0"
   },
   "web.colonel.organizations.columns.domains": {
     "text": "Alan Adları",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   },
   "web.colonel.organizations.columns.subscription": {
     "text": "Abonelik",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
     "text": "Varsayılan Çalışma Alanı",
-    "sha256": "53aa279e"
+    "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
     "text": "Faturalandırması Var",
-    "sha256": "db0628ed"
+    "source_hash": "db0628ed"
   },
   "web.colonel.organizations.expanded.customer": {
     "text": "Müşteri",
-    "sha256": "bf376338"
+    "source_hash": "bf376338"
   },
   "web.colonel.organizations.expanded.subscription": {
     "text": "Abonelik",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
     "text": "Kuruluş Kimliği",
-    "sha256": "5e6b9932"
+    "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.filters.syncStatus": {
     "text": "Senkronizasyon Durumu",
-    "sha256": "b3998276"
+    "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
     "text": "Abonelik",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.filters.all": {
     "text": "Tümü",
-    "sha256": "a52ace42"
+    "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
     "text": "Potansiyel Olarak Eski",
-    "sha256": "40137b37"
+    "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
     "text": "Bilinmiyor",
-    "sha256": "b764cdc0"
+    "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.filters.synced": {
     "text": "Senkronize",
-    "sha256": "5da22fe4"
+    "source_hash": "5da22fe4"
   },
   "web.colonel.organizations.filters.active": {
     "text": "Aktif",
-    "sha256": "92340695"
+    "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
     "text": "Deneme",
-    "sha256": "3792573d"
+    "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
     "text": "Vadesi Geçmiş",
-    "sha256": "2bda1c7b"
+    "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
     "text": "İptal Edildi",
-    "sha256": "13ca2ee2"
+    "source_hash": "13ca2ee2"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "İnceleme başarısız",
-    "sha256": "193aa900"
+    "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
     "text": "İnceleme Sonucu",
-    "sha256": "2dbc5cc3"
+    "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
     "text": "Doğrulanmış Senkronize",
-    "sha256": "d92625c2"
+    "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
     "text": "Uyumsuzluk Bulundu",
-    "sha256": "361d22f3"
+    "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
     "text": "Karşılaştırılamadı",
-    "sha256": "64c822ee"
+    "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
     "text": "Stripe Abonelik Ayrıntıları",
-    "sha256": "53a7b0ea"
+    "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
     "text": "Durum",
-    "sha256": "920e413c"
+    "source_hash": "920e413c"
   },
   "web.colonel.organizations.investigation.product": {
     "text": "Ürün",
-    "sha256": "fb9ef894"
+    "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
     "text": "Çözümlenen Plan",
-    "sha256": "17c5b37a"
+    "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
     "text": "Fiyat Kimliği",
-    "sha256": "b39a8f3e"
+    "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
     "text": "Yerel",
-    "sha256": "8c31e6e7"
+    "source_hash": "8c31e6e7"
   },
   "web.colonel.organizations.investigation.stripe": {
     "text": "Stripe",
-    "sha256": "961a6062"
+    "source_hash": "961a6062"
   },
   "web.colonel.organizations.legacy.title": {
     "text": "Kuruluşlar Faturalandırma Yönetimi",
-    "sha256": "5c7e07e7"
+    "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
     "text": "Kuruluşları yönetin ve faturalandırma senkronizasyon durumunu izleyin ({total} toplam)",
-    "sha256": "996b446d"
+    "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
     "text": "Kuruluş bulunamadı",
-    "sha256": "538995db"
+    "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
     "text": "potansiyel olarak eski",
-    "sha256": "3ddfec45"
+    "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
     "text": "Eski",
-    "sha256": "40c9e59c"
+    "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
     "text": "Bilinmiyor",
-    "sha256": "b764cdc0"
+    "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.status.active": {
     "text": "aktif",
-    "sha256": "96879611"
+    "source_hash": "96879611"
   },
   "web.colonel.organizations.usage.members": {
     "text": "{count} üye",
-    "sha256": "201eb3d9"
+    "source_hash": "201eb3d9"
   },
   "web.colonel.organizations.usage.domains": {
     "text": "{count} alan adı",
-    "sha256": "cf548c8c"
+    "source_hash": "cf548c8c"
   },
   "web.colonel.secrets.title": {
     "text": "Gizli Mesajlar",
-    "sha256": "d8707d41"
+    "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
     "text": "Tüm gizli mesajları görüntüleyin ve yönetin",
-    "sha256": "48f8052e"
+    "source_hash": "48f8052e"
   },
   "web.colonel.systemSettings.title": {
     "text": "Sistem",
-    "sha256": "6725e7bb"
+    "source_hash": "6725e7bb"
   },
   "web.colonel.systemSettings.description": {
     "text": "Sistem ayarları, veritabanları ve yapılandırma",
-    "sha256": "7690b296"
+    "source_hash": "7690b296"
   },
   "web.colonel.titles.index": {
     "text": "Yönetim",
-    "sha256": "4b42c669"
+    "source_hash": "4b42c669"
   },
   "web.colonel.titles.users": {
     "text": "Kullanıcı Yönetimi",
-    "sha256": "fe45f3a1"
+    "source_hash": "fe45f3a1"
   },
   "web.colonel.titles.secrets": {
     "text": "Gizli Mesaj Yönetimi",
-    "sha256": "af69773b"
+    "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
     "text": "Özel Alan Adları",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {
     "text": "Sistem",
-    "sha256": "6725e7bb"
+    "source_hash": "6725e7bb"
   },
   "web.colonel.titles.maindb": {
     "text": "Ana Veritabanı",
-    "sha256": "c4545e98"
+    "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
     "text": "Kimlik Doğrulama Veritabanı",
-    "sha256": "c683c9a6"
+    "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
     "text": "Yasaklı IP'ler",
-    "sha256": "0ece5643"
+    "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
     "text": "Kullanım Dışa Aktarımı",
-    "sha256": "10a0cb94"
+    "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
     "text": "Sistem Bilgileri",
-    "sha256": "8ad54ec1"
+    "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {
     "text": "Kuruluşlar",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.colonel.titles.redis": {
     "text": "Redis",
-    "sha256": "a7f64157"
+    "source_hash": "a7f64157"
   },
   "web.colonel.usageExport.title": {
     "text": "Kullanım Dışa Aktarımı",
-    "sha256": "10a0cb94"
+    "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
     "text": "Kullanım verilerini ve istatistikleri dışa aktarın",
-    "sha256": "2fd0a2e2"
+    "source_hash": "2fd0a2e2"
   }
 }

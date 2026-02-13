@@ -1,170 +1,170 @@
 {
   "web.branding.color_picker": {
     "text": "Kolorelektilo",
-    "sha256": "ba42602c"
+    "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
     "text": "Nuna {0}: {1}. Klaku por cikli tra opcioj.",
-    "sha256": "84bf49e6"
+    "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
     "text": "Uzu agordojn",
-    "sha256": "8a18d118"
+    "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
     "text": "Tipara familio",
-    "sha256": "f81339da"
+    "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
     "text": "Angula stilo",
-    "sha256": "fcb3ecdf"
+    "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
     "text": "Marka koloro",
-    "sha256": "db3183e3"
+    "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Antaŭvido de la ricevanta vido kiam aliras vian sekuran ligilon",
-    "sha256": "199c165f"
+    "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
     "text": "Antaŭrigardi kaj personecigi",
-    "sha256": "215d3659"
+    "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Ŝanĝu al Safari retumila vido",
-    "sha256": "6e0fe791"
+    "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge",
-    "sha256": "951e7f89"
+    "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
     "text": "Maksimumigi fenestron",
-    "sha256": "45d23969"
+    "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
     "text": "Minimumigi fenestron",
-    "sha256": "5cd54386"
+    "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
     "text": "Ŝanĝu al Edge retumila vido",
-    "sha256": "a8fcd82d"
+    "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 signoj",
-    "sha256": "e36598ef"
+    "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
     "text": "Uzu vian telefonon por skani la QR-kodon",
-    "sha256": "99ecf59f"
+    "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
     "text": "Kontaktu onboarding{'@'}example.com kun ajnaj demandoj",
-    "sha256": "bee120a7"
+    "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Ĉi tiuj instrukcioj estos montritaj al ricevantoj antaŭ ol ili malkaŝos la sekretan enhavon",
-    "sha256": "9d5a6334"
+    "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
     "text": "Ĉi tiuj instrukcioj estos montritaj al ricevantoj post kiam ili malkaŝos la sekreton",
-    "sha256": "9f82bd94"
+    "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
     "text": "Antaŭ-malkaŝaj instrukcioj",
-    "sha256": "a299422e"
+    "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
     "text": "Post-malkaŝaj instrukcioj",
-    "sha256": "72ecc23a"
+    "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
     "text": "Instrukcioj",
-    "sha256": "934652dc"
+    "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
     "text": "Logo-regiloj",
-    "sha256": "43e9a2d7"
+    "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "Klaku por alŝuti emblemon. Rekomendita grandeco: 128x128 pikseloj. Maksimuma dosiergrandeco: 1MB. Subtenataj formatoj: PNG, JPG, SVG",
-    "sha256": "a35452bf"
+    "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
     "text": "Alŝutu logon",
-    "sha256": "c3330082"
+    "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
     "text": "Ŝargante antaŭrigardon...",
-    "sha256": "c02130fa"
+    "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Antaŭvidu kiel ricevantoj vidos viajn sekretojn provante la butonon \"Vidi Sekreton\"",
-    "sha256": "3b58a297"
+    "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
     "text": "Okula ikono",
-    "sha256": "7f605d3c"
+    "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
     "text": "Klaku la antaŭrigardan bildon sube por ĝisdatigi vian logon (minimume 128x128 pikseloj rekomenditaj, maks 1MB)",
-    "sha256": "77a19049"
+    "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
     "text": "Bilda ikono",
-    "sha256": "b0d64fcf"
+    "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
     "text": "Uzu la suprajn regilojn por personecigi markkoloron, stilojn kaj ricevantajn instrukciojn",
-    "sha256": "d6287134"
+    "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
     "text": "Personeciga ikono",
-    "sha256": "bde04d31"
+    "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
     "text": "Vi havas nekonservitajn ŝanĝojn. Ĉu vi certas?",
-    "sha256": "184b6a83"
+    "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
     "text": "Malsukcesis ŝargi markajn agordojn",
-    "sha256": "a7a1575e"
+    "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
     "text": "Ĉi tio estas interaga antaŭrigardo de kiel ricevantoj vidos viajn sekurajn mesaĝojn. Vi povas: - Personecigi kolorojn kaj tiparojn per la regiloj supre - Alŝuti logon (minimume 128x128 pikseloj rekomenditaj, maks 1MB) - Testi la antaŭrigardon per la butono \"Vidi sekreton\"",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Ĉi tio estas interaga antaŭrigardo de kiel ricevantoj vidos viajn sekurajn mesaĝojn. Vi povas: - Personecigi kolorojn kaj tiparojn per la regiloj supre - Alŝuti logon (minimume 128x128 pikseloj rekomenditaj, maks 1MB) - Testi la antaŭrigardon per la butono \"Vidi sekreton\"",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
     "text": "Japana kanĵio '秘' (himitsu) signifanta 'sekreto' aŭ 'konfidenciala'",
-    "sha256": "1e04ba2e"
+    "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
     "text": "Funkciigita de {product_name}",
-    "sha256": "2e4ca498"
+    "source_hash": "2e4ca498"
   },
   "web.branding.heading_logo": {
     "text": "{0} logo",
-    "sha256": "3a3c98ed"
+    "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
     "text": "Edge",
-    "sha256": "0f82fe72"
+    "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
     "text": "Ŝanĝu al Edge antaŭrigardo",
-    "sha256": "83883d84"
+    "source_hash": "83883d84"
   },
   "web.branding.safari": {
     "text": "Safari",
-    "sha256": "5f033039"
+    "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
     "text": "Ŝanĝu al Safari antaŭrigardo",
-    "sha256": "f24ac447"
+    "source_hash": "f24ac447"
   }
 }

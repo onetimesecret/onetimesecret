@@ -312,7 +312,7 @@ site:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
 brand:
-  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] || nil %>
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] ? %Q("#{ENV['BRAND_PRIMARY_COLOR']}") : nil %>
   product_name: <%= ENV['BRAND_PRODUCT_NAME'] || nil %>
   product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'] || nil %>
   support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] || nil %>
@@ -335,6 +335,7 @@ features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+    federation_hmac_secret: <%= ENV['FEDERATION_HMAC_SECRET'] || nil %>
   # Incoming Secrets Feature
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
@@ -530,8 +531,8 @@ mail:
     # write access to the log file. The log file will be created if it
     # does not exist. Log file rotation is not handled by the app.
     logger:
-      # One of: :error (default), :unrecognized_error, :recognized_error, :all.
-      tracking_event: :error
+      # One of: error (default), unrecognized_error, recognized_error, all.
+      tracking_event: 'error'
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
 

@@ -1,134 +1,134 @@
 {
   "incoming.page_title": {
     "text": "シークレットを送信",
-    "sha256": "f83b6303"
+    "source_hash": "f83b6303"
   },
   "incoming.page_description": {
     "text": "サポートチームと機密情報を安全に共有",
-    "sha256": "08beca74"
+    "source_hash": "08beca74"
   },
   "incoming.loading_config": {
     "text": "読み込み中...",
-    "sha256": "47d2a515"
+    "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
     "text": "設定の読み込みに失敗しました",
-    "sha256": "6410ad42"
+    "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
     "text": "機能が利用できません",
-    "sha256": "bfd624f7"
+    "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
     "text": "この機能は現在無効になっています。サポートにお問い合わせください。",
-    "sha256": "f13fbf2b"
+    "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
     "text": "メモ",
-    "sha256": "64cecb8a"
+    "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
     "text": "簡単な説明(例: パスワードリセットのリクエスト)",
-    "sha256": "16bf83fd"
+    "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
     "text": "メッセージを適切な担当者に届けるためにご記入ください",
-    "sha256": "185a207e"
+    "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
     "text": "送信先",
-    "sha256": "9bcbb3bc"
+    "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
     "text": "受信者を選択",
-    "sha256": "4eb1ed54"
+    "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
     "text": "このシークレットの受信者を選択",
-    "sha256": "c98ac75f"
+    "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
     "text": "この安全なメッセージを受け取る人を選択",
-    "sha256": "0dfafc45"
+    "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
     "text": "受信者がいません",
-    "sha256": "62834334"
+    "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
     "text": "機密情報",
-    "sha256": "b4f8c120"
+    "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
     "text": "機密情報をここに貼り付け(パスワード、キーなど)",
-    "sha256": "7d7abb48"
+    "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
     "text": "この情報は暗号化され、1回のみ閲覧可能です",
-    "sha256": "f9151d61"
+    "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
     "text": "シークレットを送信",
-    "sha256": "2a09f5e0"
+    "source_hash": "2a09f5e0"
   },
   "incoming.submit_secret": {
     "text": "シークレットを送信",
-    "sha256": "2a09f5e0"
+    "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
     "text": "送信中...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "incoming.submitting": {
     "text": "送信中...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
     "text": "フォームをクリア",
-    "sha256": "f6c2bb83"
+    "source_hash": "f6c2bb83"
   },
   "incoming.reset_form": {
     "text": "フォームをクリア",
-    "sha256": "f6c2bb83"
+    "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
     "text": "送信完了",
-    "sha256": "261e9a7e"
+    "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
     "text": "安全なメッセージが配信されました。",
-    "sha256": "e1538e3e"
+    "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
     "text": "参照ID",
-    "sha256": "293aba9f"
+    "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
     "text": "次に何が起こりますか?",
-    "sha256": "c72895ba"
+    "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
     "text": "受信者はこのシークレットを1回のみ閲覧できます。閲覧後、シークレットは完全に削除されます。",
-    "sha256": "8120bd40"
+    "source_hash": "8120bd40"
   },
   "incoming.create_another": {
     "text": "別のシークレットを送信",
-    "sha256": "8a61d95c"
+    "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
     "text": "機密情報を安全に共有",
-    "sha256": "099ff0c7"
+    "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
     "text": "パスワードや個人データをメールやチャットログから守ります",
-    "sha256": "55566199"
+    "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
     "text": "記録のために{receipt}を保存してください。",
-    "sha256": "db3d9c98"
+    "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "受信確認",
-    "sha256": "6f328609"
+    "source_hash": "6f328609"
   }
 }

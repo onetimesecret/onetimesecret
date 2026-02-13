@@ -22,7 +22,7 @@
  * ```
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 // =============================================================================
 // Constants
@@ -124,7 +124,7 @@ export const PlanLimitsSchema = z.object({
   members_per_team: LimitValueSchema.describe('Maximum members per team'),
   custom_domains: LimitValueSchema.describe('Maximum custom domains'),
   secret_lifetime: LimitValueSchema.describe('Maximum secret lifetime in seconds'),
-  secrets_per_day: LimitValueSchema.describe('Daily secret creation limit'),
+  secrets_per_day: LimitValueSchema.optional().describe('Daily secret creation limit'),
 });
 
 export type PlanLimits = z.infer<typeof PlanLimitsSchema>;
@@ -154,10 +154,11 @@ export const PlanDefinitionSchema = z.object({
   name: z.string().min(1).describe('Display name for the plan'),
   tier: BillingTierSchema.optional().describe('Billing tier (optional for draft plans)'),
   tenancy: TenancyTypeSchema.optional().describe('Tenancy type (optional for draft plans)'),
-  region: z.string().optional().describe('Region identifier for composite matching (e.g., EU, US)'),
+  region: z.string().nullable().optional().describe('Region identifier for composite matching (e.g., EU, US)'),
   stripe_product_id: z
     .string()
     .regex(/^prod_/)
+    .nullable()
     .optional()
     .describe('Direct Stripe product ID binding (escape hatch for matching issues)'),
   plan_name_label: z.string().optional().describe('i18n key for plan category label'),
@@ -185,17 +186,24 @@ export const PlanDefinitionSchema = z.object({
     .optional()
     .describe('Array of i18n feature keys for UI display'),
   limits: PlanLimitsSchema,
-  prices: z.array(PlanPriceSchema).describe('Available pricing options'),
+  prices: z.array(PlanPriceSchema).nullable().describe('Available pricing options'),
 });
 
 export type PlanDefinition = z.infer<typeof PlanDefinitionSchema>;
 
 /**
  * Stripe Metadata Field Definition
+ *
+ * In billing.yaml, metadata fields are arrays of single-key objects:
+ *   required:
+ *     - app: "onetimesecret"
+ *     - tier: "Tier identifier..."
+ *
+ * This parses as [{app: "onetimesecret"}, {tier: "..."}] in JS,
+ * so each element is a record with one key-value pair.
  */
-export const MetadataFieldSchema = z.record(
-  z.string(),
-  z.string().describe('Field description or example value')
+export const MetadataFieldSchema = z.array(
+  z.record(z.string(), z.string().describe('Field description or example value'))
 );
 
 /**
@@ -234,6 +242,7 @@ export const BillingConfigSchema = z.object({
     .describe('Fields used to build composite match key for Stripe product identification'),
   region: z
     .string()
+    .nullable()
     .optional()
     .describe('Region filter for this catalog instance'),
 
@@ -259,6 +268,53 @@ export const BillingConfigSchema = z.object({
 });
 
 export type BillingConfig = z.infer<typeof BillingConfigSchema>;
+
+// =============================================================================
+// Catalog-Only Schema (no secrets/operational fields)
+// =============================================================================
+
+/**
+ * Billing Catalog Schema
+ * Subset of BillingConfigSchema for catalog validation without sensitive fields.
+ * Generated JSON Schema: generated/schemas/billing/catalog.schema.json
+ */
+export const BillingCatalogSchema = z.object({
+  schema_version: z.string().describe('Schema version'),
+  app_identifier: z.string().describe('Application identifier'),
+
+  match_fields: z
+    .array(z.string().min(1))
+    .min(1)
+    .default(['plan_id'])
+    .describe('Fields used to build composite match key for Stripe product identification'),
+  region: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('Region filter for this catalog instance'),
+
+  entitlements: z
+    .record(z.string(), EntitlementDefinitionSchema)
+    .describe('System-wide entitlement definitions'),
+
+  plans: z
+    .record(
+      z
+        .string()
+        .regex(
+          /^[a-z_]+(_v\d+)?$/,
+          'Plan ID must be lowercase with underscores (e.g., identity, identity_plus_v1)'
+        ),
+      PlanDefinitionSchema
+    )
+    .describe('Plan definitions by plan_id'),
+
+  stripe_metadata_schema: StripeMetadataSchemaDefinition.optional().describe(
+    'Stripe product metadata schema definition'
+  ),
+});
+
+export type BillingCatalog = z.infer<typeof BillingCatalogSchema>;
 
 // =============================================================================
 // Type Aliases
@@ -329,7 +385,7 @@ export function getPlanPrice(
   plan: PlanDefinition,
   interval: BillingInterval
 ): PlanPrice | undefined {
-  return plan.prices.find((p) => p.interval === interval);
+  return plan.prices?.find((p) => p.interval === interval);
 }
 
 export function formatLimitValue(value: LimitValue): string {

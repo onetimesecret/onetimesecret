@@ -121,20 +121,15 @@ module Onetime
       # doesn't get enabled even after loading config.
       OT.d9s_enabled = false
 
-      # Normalize environment variables prior to loading the YAML config
-      OT::Config.before_load
+      # Load, validate, process, and freeze configuration via the pipeline.
+      # EnvironmentContext handles env normalization (replaces Config.before_load).
+      # Schema validation is lenient during boot (strict: false) — mismatches are
+      # logged as warnings. Use `bin/ots config validate` for strict checking.
+      configurator = OT::Configurator.load!(strict: false)
 
-      # Loads the configuration and renders all value templates (ERB)
-      raw_conf = OT::Config.load
-
-      # SAFETY MEASURE: Freeze the (inevitably) shared config
-      # Skip freezing in test mode to allow config modifications for test isolation.
-      # Tests may need to modify config values without triggering FrozenError.
-      OT::Config.deep_freeze(raw_conf) unless OT.testing?
-
-      # Normalize the configuration and make it available to the rest
-      # of the initializers (via OT.conf).
-      @conf = OT::Config.after_load(raw_conf)
+      # Make the processed configuration available to the rest of the
+      # initializers (via OT.conf).
+      @conf = configurator.configuration
 
       # Phase 1: Create registry instance (pure DI architecture)
       @boot_registry = Boot::InitializerRegistry.new

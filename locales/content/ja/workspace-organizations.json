@@ -1,578 +1,578 @@
 {
   "web.organizations.title": {
     "text": "組織",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.organizations.organization": {
     "text": "組織",
-    "sha256": "d764d425"
+    "source_hash": "d764d425"
   },
   "web.organizations.organization_plural": {
     "text": "組織",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
     "text": "組織を管理",
-    "sha256": "dbaa4f92"
+    "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
     "text": "組織",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.organizations.manage_organizations": {
     "text": "組織を管理",
-    "sha256": "be0fe4c3"
+    "source_hash": "be0fe4c3"
   },
   "web.organizations.new_organization": {
     "text": "新しい組織",
-    "sha256": "4876e647"
+    "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
     "text": "組織がまだありません",
-    "sha256": "5b7a7cbd"
+    "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
     "text": "組織は統合された請求と管理を提供します。最初の組織を作成して始めましょう。",
-    "sha256": "deab4304"
+    "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
     "text": "説明がありません",
-    "sha256": "41183d01"
+    "source_hash": "41183d01"
   },
   "web.organizations.default": {
     "text": "デフォルト",
-    "sha256": "21b111cb"
+    "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
     "text": "組織を作成",
-    "sha256": "e27f4540"
+    "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
     "text": "最初の組織を作成",
-    "sha256": "27bae486"
+    "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
     "text": "新しい組織を作成",
-    "sha256": "67cd5950"
+    "source_hash": "67cd5950"
   },
   "web.organizations.create": {
     "text": "作成",
-    "sha256": "4759498a"
+    "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
     "text": "組織の作成に失敗しました",
-    "sha256": "f2204373"
+    "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
     "text": "組織名",
-    "sha256": "4cbd9073"
+    "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "例: 株式会社サンプル",
-    "sha256": "ac1c804b"
+    "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
     "text": "組織名",
-    "sha256": "4cbd9073"
+    "source_hash": "4cbd9073"
   },
   "web.organizations.description": {
     "text": "説明",
-    "sha256": "526e0087"
+    "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
     "text": "この組織の目的は?",
-    "sha256": "27d7edae"
+    "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
     "text": "請求メール",
-    "sha256": "513332d3"
+    "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
     "text": "請求と管理通知の主要連絡先",
-    "sha256": "ee81c03d"
+    "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
     "text": "組織を選択",
-    "sha256": "48326f52"
+    "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
     "text": "このページでは組織の切り替えは利用できません",
-    "sha256": "da0cf810"
+    "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
     "text": "組織が見つかりません",
-    "sha256": "00c50f7a"
+    "source_hash": "00c50f7a"
   },
   "web.organizations.load_error": {
     "text": "組織の読み込みに失敗しました",
-    "sha256": "6b5fa342"
+    "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
     "text": "組織の読み込みに失敗しました",
-    "sha256": "6b5fa342"
+    "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
     "text": "組織の読み込みに失敗しました",
-    "sha256": "03b30208"
+    "source_hash": "03b30208"
   },
   "web.organizations.organization_information": {
     "text": "組織情報",
-    "sha256": "85274cee"
+    "source_hash": "85274cee"
   },
   "web.organizations.created": {
     "text": "作成日",
-    "sha256": "d70b9e24"
+    "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
     "text": "最終更新",
-    "sha256": "048c7f2e"
+    "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
     "text": "組織設定",
-    "sha256": "cc1d9e61"
+    "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
     "text": "組織名と説明を更新",
-    "sha256": "2d8b5b2b"
+    "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
     "text": "一般設定",
-    "sha256": "de322f87"
+    "source_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
     "text": "請求とサブスクリプション",
-    "sha256": "896913f0"
+    "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
     "text": "変更を保存",
-    "sha256": "35322b5b"
+    "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
     "text": "組織が正常に更新されました",
-    "sha256": "af39d0f3"
+    "source_hash": "af39d0f3"
   },
   "web.organizations.update_error": {
     "text": "組織の更新に失敗しました",
-    "sha256": "bc2b59b8"
+    "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_coming_soon": {
     "text": "請求統合は近日公開",
-    "sha256": "d3e0ec75"
+    "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
     "text": "統合された請求とサブスクリプション管理は、将来のリリースで利用可能になります。",
-    "sha256": "8836108f"
+    "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
     "text": "組織について",
-    "sha256": "2f3e2ad8"
+    "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
     "text": "組織は、一元管理のための統合された請求と管理を提供します。",
-    "sha256": "910f97a8"
+    "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
     "text": "組織を管理",
-    "sha256": "810a6c86"
+    "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
     "text": "ここで会社名と組織の詳細を更新します。この情報はアカウントをパーソナライズし、将来のブランディング機能に使用できます。",
-    "sha256": "96b2e4b5"
+    "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
     "text": "組織を始める",
-    "sha256": "2871e738"
+    "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
     "text": "最初の組織を作成して、会社情報を管理し、将来のブランディング機能に備えましょう。",
-    "sha256": "0487f33a"
+    "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
     "text": "組織とチームメンバーを管理",
-    "sha256": "2d026be4"
+    "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
     "text": "設定",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
     "text": "会社ブランディング",
-    "sha256": "7ecc5d35"
+    "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
     "text": "チーム",
-    "sha256": "5985039f"
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
     "text": "請求",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
     "text": "危険ゾーン",
-    "sha256": "3c1c01b4"
+    "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
     "text": "組織を削除",
-    "sha256": "54b2edc7"
+    "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
     "text": "これにより組織が完全に削除されます。この操作は取り消せません。",
-    "sha256": "ab2d2c05"
+    "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
     "text": "削除",
-    "sha256": "e2d0a549"
+    "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
     "text": "組織を削除",
-    "sha256": "54b2edc7"
+    "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
     "text": "{name}を削除してもよろしいですか? この操作は取り消せません。",
-    "sha256": "db7e1f9d"
+    "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
     "text": "組織の削除に失敗しました",
-    "sha256": "a8e5bb28"
+    "source_hash": "a8e5bb28"
   },
   "web.organizations.members.title": {
     "text": "メンバー",
-    "sha256": "1044a4c0"
+    "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
     "text": "組織のメンバーと役割を管理",
-    "sha256": "1353774c"
+    "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
     "text": "現在のメンバー",
-    "sha256": "cfc156ae"
+    "source_hash": "cfc156ae"
   },
   "web.organizations.members.member": {
     "text": "メンバー",
-    "sha256": "7c968fb7"
+    "source_hash": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
     "text": "メンバー",
-    "sha256": "e31ab643"
+    "source_hash": "e31ab643"
   },
   "web.organizations.members.member_plural": {
     "text": "メンバー",
-    "sha256": "17373ca1"
+    "source_hash": "17373ca1"
   },
   "web.organizations.members.name": {
     "text": "名前",
-    "sha256": "dcd1d522"
+    "source_hash": "dcd1d522"
   },
   "web.organizations.members.email": {
     "text": "メール",
-    "sha256": "969ccbd3"
+    "source_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
     "text": "役割",
-    "sha256": "14736a2e"
+    "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
     "text": "参加日",
-    "sha256": "69318b0c"
+    "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
     "text": "操作",
-    "sha256": "ff8059dc"
+    "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
     "text": "メンバーがまだいません。チームメンバーを招待して始めましょう。",
-    "sha256": "6cbc5271"
+    "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
     "text": "この組織にはまだメンバーがいません。",
-    "sha256": "61dd2085"
+    "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
     "text": "メンバーの役割を更新しました",
-    "sha256": "d0d332c6"
+    "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
     "text": "メンバーの役割の更新に失敗しました",
-    "sha256": "17d5ca66"
+    "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
     "text": "メンバーを組織から削除しました",
-    "sha256": "210a187b"
+    "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
     "text": "メンバーの削除に失敗しました",
-    "sha256": "1cff79b7"
+    "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
     "text": "メンバーを削除",
-    "sha256": "2b98b194"
+    "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
     "text": "{name}をこの組織から削除してもよろしいですか?",
-    "sha256": "36695d98"
+    "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "自分の役割は変更できません",
-    "sha256": "0d874f75"
+    "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
     "text": "自分自身を組織から削除することはできません",
-    "sha256": "ab358307"
+    "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
     "text": "組織のオーナーは削除できません",
-    "sha256": "c92ed0f4"
+    "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "メンバーを管理する権限がありません",
-    "sha256": "d6239f33"
+    "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
     "text": "オーナー",
-    "sha256": "4b1b8aa3"
+    "source_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
     "text": "管理者",
-    "sha256": "c1c224b0"
+    "source_hash": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
     "text": "メンバー",
-    "sha256": "7c968fb7"
+    "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
     "text": "すべての組織設定とメンバーへのフルアクセス",
-    "sha256": "d49381bf"
+    "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "メンバーとほとんどの組織設定を管理可能",
-    "sha256": "3d7ade92"
+    "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
     "text": "組織リソースへの基本的なアクセス",
-    "sha256": "0ddca91a"
+    "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
     "text": "組織の招待",
-    "sha256": "0289d92d"
+    "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
     "text": "メンバーを招待",
-    "sha256": "8e8a0b88"
+    "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
     "text": "新しいメンバーを招待",
-    "sha256": "0bfb50ed"
+    "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
     "text": "保留中の招待",
-    "sha256": "b327e8a8"
+    "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
     "text": "保留中の招待はありません",
-    "sha256": "275814da"
+    "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
     "text": "メールアドレス",
-    "sha256": "09bf25ef"
+    "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
     "text": "member{'@'}example.com",
-    "sha256": "7fd425f7"
+    "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
     "text": "役割",
-    "sha256": "14736a2e"
+    "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
     "text": "招待を送信",
-    "sha256": "d076aa0f"
+    "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
     "text": "招待を正常に送信しました",
-    "sha256": "81facbe6"
+    "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
     "text": "招待の送信に失敗しました",
-    "sha256": "cedbf507"
+    "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
     "text": "再送信",
-    "sha256": "1f948437"
+    "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
     "text": "取り消し",
-    "sha256": "87e6d00b"
+    "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
     "text": "招待を再送信しました",
-    "sha256": "099eb255"
+    "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
     "text": "招待の再送信に失敗しました",
-    "sha256": "82750487"
+    "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
     "text": "招待を取り消しました",
-    "sha256": "4ce1262c"
+    "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
     "text": "招待の取り消しに失敗しました",
-    "sha256": "9dbd2a60"
+    "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
     "text": "招待者",
-    "sha256": "c7a6f156"
+    "source_hash": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
     "text": "招待日",
-    "sha256": "63b17bec"
+    "source_hash": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
     "text": "有効期限",
-    "sha256": "f6725f3a"
+    "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
     "text": "{count}回再送信済み",
-    "sha256": "e71d1c6d"
+    "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
     "text": "{count}回再送信済み",
-    "sha256": "e58d803d"
+    "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
     "text": "保留中",
-    "sha256": "331551b0"
+    "source_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
     "text": "承諾済み",
-    "sha256": "a00fb0c5"
+    "source_hash": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
     "text": "辞退済み",
-    "sha256": "dce083a2"
+    "source_hash": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
     "text": "期限切れ",
-    "sha256": "424a2551"
+    "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
     "text": "メンバー",
-    "sha256": "7c968fb7"
+    "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "管理者",
-    "sha256": "c1c224b0"
+    "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
     "text": "招待を承諾",
-    "sha256": "ce7cfeaf"
+    "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
     "text": "招待を辞退",
-    "sha256": "f6e06ada"
+    "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
     "text": "招待の詳細",
-    "sha256": "59936259"
+    "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
     "text": "以下の組織に招待されました:",
-    "sha256": "60e635c6"
+    "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
     "text": "以下の役割で招待されました:",
-    "sha256": "f9809eae"
+    "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
     "text": "招待を承諾しました",
-    "sha256": "7eb6b234"
+    "source_hash": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
     "text": "招待の承諾に失敗しました",
-    "sha256": "3ecc8b0f"
+    "source_hash": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
     "text": "招待を辞退しました",
-    "sha256": "31bffdcb"
+    "source_hash": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
     "text": "招待の辞退に失敗しました",
-    "sha256": "2bccbd56"
+    "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
     "text": "この招待は期限切れです",
-    "sha256": "b72770d7"
+    "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
     "text": "無効または期限切れの招待",
-    "sha256": "6c0fc3de"
+    "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
     "text": "この招待を承諾するにはログインしてください",
-    "sha256": "469fc705"
+    "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "招待の詳細を読み込み中",
-    "sha256": "58884885"
+    "source_hash": "58884885"
   },
   "web.organizations.billing_email_updated": {
     "text": "請求メールが正常に更新されました",
-    "sha256": "080a7f11"
+    "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
     "text": "請求メールは請求概要ページで変更できます",
-    "sha256": "8a131415"
+    "source_hash": "8a131415"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
-    "sha256": "957b0b87"
+    "source_hash": "957b0b87"
   },
   "web.organizations.member_count": {
     "text": "{count}人のメンバー",
-    "sha256": "f652af0c"
+    "source_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
     "text": "{count}件のドメイン",
-    "sha256": "09f52efa"
+    "source_hash": "09f52efa"
   },
   "web.organizations.invitations.upgrade_to_invite": {
     "text": "チームメンバーを招待するにはプランをアップグレード",
-    "sha256": "5e3f8df8"
+    "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
     "text": "チームメンバーの招待にはチーム管理機能を含むプランが必要です。組織にコラボレーターを追加するにはアップグレードしてください。",
-    "sha256": "cf10d623"
+    "source_hash": "cf10d623"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "アカウントが違います",
-    "sha256": "80c8ffa7"
+    "source_hash": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "この招待は{invitedEmail}に送信されましたが、現在{currentEmail}としてログインしています。",
-    "sha256": "937e08e7"
+    "source_hash": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
     "text": "別のアカウントでログイン",
-    "sha256": "71b2bdf3"
+    "source_hash": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "残り{days}日",
-    "sha256": "50ff6f2b"
+    "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
     "text": "残り{hours}時間",
-    "sha256": "ff56d105"
+    "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
     "text": "まもなく期限切れ",
-    "sha256": "a5dcfef9"
+    "source_hash": "a5dcfef9"
   },
   "web.organizations.tabs.subscription": {
     "text": "サブスクリプション",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.organizations.tabs.domains": {
     "text": "ドメイン",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   }
 }
