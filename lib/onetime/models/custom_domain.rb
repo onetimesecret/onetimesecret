@@ -185,23 +185,38 @@ module Onetime
       self.class.display_domains.remove(old_domain)
       remove_from_class_display_domain_index
 
-      # Update field and save. save triggers auto_update_class_indexes
-      # which adds new_domain to display_domain_index.
+      # Update field and re-parse derived domain parts (base_domain, trd,
+      # sld, tld) so that generate_txt_validation_record produces correct
+      # values for the new domain.
       self.display_domain = new_domain
       self.updated        = OT.now.to_i
+
+      # Re-parse derived fields from the new display_domain
+      ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
+      @base_domain = ps_domain.domain.to_s
+      @subdomain   = ps_domain.subdomain.to_s
+      @trd         = ps_domain.trd.to_s
+      @tld         = ps_domain.tld.to_s
+      @sld         = ps_domain.sld.to_s
 
       begin
         save
         self.class.display_domains.put(new_domain, identifier)
       rescue StandardError => ex
-        # Rollback: restore field and re-add old entries
+        # Rollback: restore field, derived parts, and re-add old entries
         self.display_domain = old_domain
+        old_ps              = PublicSuffix.parse(old_domain, default_rule: nil)
+        @base_domain        = old_ps.domain.to_s
+        @subdomain          = old_ps.subdomain.to_s
+        @trd                = old_ps.trd.to_s
+        @tld                = old_ps.tld.to_s
+        @sld                = old_ps.sld.to_s
         self.class.display_domains.put(old_domain, identifier)
         # Best-effort save to restore old auto-index entry
         begin
           save
-        rescue StandardError
-          nil
+        rescue StandardError => rollback_ex
+          OT.le "[CustomDomain.update_display_domain] Rollback save failed: #{rollback_ex.message}"
         end
         raise ex
       end
@@ -617,10 +632,11 @@ module Onetime
           instances.add obj.to_s
           owners.put obj.to_s, obj.org_id
         rescue StandardError => ex
-          # Rollback both display_domains entries on failure:
-          # the manual class_hashkey and the Familia unique_index
+          # Rollback all indexes on failure to prevent stale entries
           display_domains.remove(normalized_domain)
           obj.remove_from_class_display_domain_index
+          instances.remove(obj.to_s)
+          owners.remove(obj.to_s)
           raise ex
         end
 
@@ -661,6 +677,10 @@ module Onetime
 
           # Load org BEFORE multi — reads inside MULTI return QUEUED
           org = Onetime::Organization.load(org_id)
+          unless org
+            dbclient.unwatch
+            raise Onetime::Problem, "Organization #{org_id} not found"
+          end
 
           dbclient.multi do |_multi|
             existing.org_id  = org_id
