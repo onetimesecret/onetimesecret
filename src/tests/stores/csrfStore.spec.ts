@@ -6,7 +6,7 @@ import { setupWindowState } from '../setupWindow';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ComponentPublicInstance } from 'vue';
+import { nextTick, type ComponentPublicInstance } from 'vue';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import type { AxiosInstance } from 'axios';
 
@@ -119,6 +119,110 @@ describe('CSRF Store', () => {
       store.init();
 
       expect(store.shrimp).toBe('');
+    });
+  });
+
+  /**
+   * Bootstrap Shrimp Watcher Tests
+   *
+   * When bootstrapStore.refresh() fetches a new bootstrap payload (e.g.,
+   * before form submit on anonymous routes), the shrimp ref in bootstrapStore
+   * updates. The csrfStore watcher should reactively sync this new value,
+   * but only when the store is already initialized and the new value is
+   * truthy. This prevents race conditions during initialization and avoids
+   * clearing the token with empty values.
+   *
+   * Flow: bootstrapStore.refresh() -> bootstrapStore.shrimp changes
+   *       -> csrfStore watcher fires -> csrfStore.shrimp updated
+   */
+  describe('Bootstrap shrimp watcher', () => {
+    it('syncs shrimp when bootstrapShrimp changes after init', async () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: 'initial-token' });
+
+      const store = useCsrfStore();
+      store.init();
+      expect(store.shrimp).toBe('initial-token');
+
+      // Simulate what bootstrapStore.refresh() does: update shrimp
+      bootstrapStore.update({ shrimp: 'refreshed-token' });
+      await nextTick();
+
+      expect(store.shrimp).toBe('refreshed-token');
+    });
+
+    it('does NOT sync when store is not initialized', async () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: 'initial-token' });
+
+      // Create store but do NOT call init()
+      const store = useCsrfStore();
+      expect(store.shrimp).toBe('');
+
+      // Change bootstrapShrimp — watcher should NOT fire
+      bootstrapStore.update({ shrimp: 'new-token' });
+      await nextTick();
+
+      // shrimp should remain at default empty value
+      expect(store.shrimp).toBe('');
+    });
+
+    it('does NOT sync when new bootstrapShrimp is empty', async () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: 'initial-token' });
+
+      const store = useCsrfStore();
+      store.init();
+      expect(store.shrimp).toBe('initial-token');
+
+      // Update bootstrap with empty string — watcher should ignore
+      bootstrapStore.update({ shrimp: '' });
+      await nextTick();
+
+      // shrimp should keep the previous value
+      expect(store.shrimp).toBe('initial-token');
+    });
+
+    it('syncs multiple consecutive updates', async () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: 'token-1' });
+
+      const store = useCsrfStore();
+      store.init();
+
+      bootstrapStore.update({ shrimp: 'token-2' });
+      await nextTick();
+      expect(store.shrimp).toBe('token-2');
+
+      bootstrapStore.update({ shrimp: 'token-3' });
+      await nextTick();
+      expect(store.shrimp).toBe('token-3');
+    });
+
+    it('resumes syncing after re-init following reset', async () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: 'original' });
+
+      const store = useCsrfStore();
+      store.init();
+      expect(store.shrimp).toBe('original');
+
+      // Reset clears _initialized
+      store.$reset();
+
+      // While not initialized, updates should be ignored
+      bootstrapStore.update({ shrimp: 'during-reset' });
+      await nextTick();
+      expect(store.shrimp).not.toBe('during-reset');
+
+      // Re-init picks up the current bootstrap value
+      store.init();
+      expect(store.shrimp).toBe('during-reset');
+
+      // After re-init, watcher should work again
+      bootstrapStore.update({ shrimp: 'post-reinit' });
+      await nextTick();
+      expect(store.shrimp).toBe('post-reinit');
     });
   });
 

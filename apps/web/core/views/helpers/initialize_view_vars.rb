@@ -81,15 +81,18 @@ module Core
           authenticated   = strategy_result&.authenticated? || false
         end
 
-        # Generate masked CSRF token using Rack::Protection::AuthenticityToken.
-        # The raw token is stored in session[:csrf], but forms must submit the
-        # MASKED version which is different on each request (mitigates BREACH).
-        # AuthenticityToken.token() handles both token generation and masking.
-        shrimp = if sess
-                   Rack::Protection::AuthenticityToken.token(sess)
+        # Generate masked CSRF token from the canonical Rack session, NOT the
+        # strategy-resolved `sess` which may be a detached {} on anonymous
+        # routes (NoAuthStrategy). Using rack.session ensures the token is
+        # persisted in the same store that Rack::Protection checks on submit.
+        # AuthenticityToken.token() handles both generation and per-request
+        # masking (mitigates BREACH).
+        rack_session = req.env['rack.session']
+        shrimp       = if rack_session
+                   Rack::Protection::AuthenticityToken.token(rack_session)
                  end
 
-        awaiting_mfa  = sess&.[]('awaiting_mfa') || false
+        awaiting_mfa = sess&.[]('awaiting_mfa') || false
 
         # DEBUG: Log session state
         Onetime.session_logger.debug 'Session',
