@@ -196,12 +196,18 @@ module Onetime
       def process_batch(db, batch_ids, batch_start, existing_extids, stats, verbose_level, total, dry_run)
         batch_processed_extids = []
 
+        # Batch-load all customers in one pipelined Redis call
+        customers = Onetime::Customer.load_multi(batch_ids)
+
         db.transaction do
-          batch_ids.each_with_index do |objid, idx|
+          customers.each_with_index do |customer, idx|
             global_idx     = batch_start + idx
             stats[:total] += 1
 
-            customer = Onetime::Customer.load(objid)
+            unless customer
+              stats[:skipped_system] += 1
+              next
+            end
 
             # Skip anonymous customers (they shouldn't be in auth DB)
             if customer.anonymous?
