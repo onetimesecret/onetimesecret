@@ -308,6 +308,37 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
 
       expect(result[:prices_to_create].length).to eq(2) # monthly + yearly
     end
+
+    it 'skips creation for legacy plans when product not found' do
+      legacy_plan = plan_def.merge('legacy' => true, 'stripe_product_id' => 'prod_NotInRegion')
+      plans = { 'identity' => legacy_plan }
+      existing_products = {} # Product not found (e.g., filtered by region)
+      existing_prices = {}
+
+      result = capture_stdout do
+        command.send(:analyze_changes, plans, existing_products, existing_prices, false, match_fields)
+      end
+      # Re-run to get the actual return value (capture_stdout consumes it)
+      changes = command.send(:analyze_changes, plans, existing_products, existing_prices, false, match_fields)
+
+      expect(changes[:products_to_create]).to be_empty
+      expect(changes[:products_to_update]).to be_empty
+      expect(changes[:prices_to_create]).to be_empty
+    end
+
+    it 'still updates legacy plans when product exists in Stripe' do
+      legacy_plan = plan_def.merge('legacy' => true)
+      outdated_product = mock_product(name: 'Old Legacy Name')
+      plans = { 'identity' => legacy_plan }
+      existing_products = { 'identity' => outdated_product }
+      existing_prices = {}
+
+      changes = command.send(:analyze_changes, plans, existing_products, existing_prices, false, match_fields)
+
+      expect(changes[:products_to_create]).to be_empty
+      expect(changes[:products_to_update].length).to eq(1)
+      expect(changes[:products_to_update].first[:plan_id]).to eq('identity')
+    end
   end
 
   describe '#call' do
@@ -376,6 +407,36 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
       it 'reports Stripe is in sync' do
         output = capture_stdout { command.call }
         expect(output).to include('No changes needed - Stripe is in sync with catalog')
+      end
+    end
+
+    context 'with legacy plan whose product is not in Stripe' do
+      let(:legacy_plan) do
+        plan_def.merge(
+          'legacy' => true,
+          'stripe_product_id' => 'prod_NotInThisRegion',
+          'grandfathered_until' => '2028-01-31',
+        )
+      end
+
+      before do
+        allow(Billing::Config).to receive(:config_exists?).and_return(true)
+        allow(Billing::Config).to receive(:safe_load_config).and_return({
+          'app_identifier' => 'onetimesecret',
+          'match_fields' => %w[plan_id region],
+          'region' => 'UK',
+          'plans' => { 'identity' => legacy_plan },
+        })
+        allow(command).to receive(:fetch_existing_products).and_return({})
+        allow(command).to receive(:fetch_existing_prices).and_return({})
+      end
+
+      it 'reports no changes rather than creating a new product' do
+        output = capture_stdout { command.call(dry_run: true) }
+
+        expect(output).to include('skipping (legacy plan, product not found)')
+        expect(output).to include('No changes needed')
+        expect(output).not_to include('Products to CREATE')
       end
     end
 
