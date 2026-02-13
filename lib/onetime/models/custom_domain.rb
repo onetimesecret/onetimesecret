@@ -608,6 +608,9 @@ module Onetime
             # Add to organization_domains collection
             org = Onetime::Organization.load(org_id)
             existing.add_to_organization_domains(org) if org
+
+            # Update owners hash (Location E) to reflect new org ownership
+            owners.put existing.to_s, org_id
           end
         end
 
