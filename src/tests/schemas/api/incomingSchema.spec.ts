@@ -103,6 +103,20 @@ describe('incomingSecretResponseSchema', () => {
       expect(() => incomingSecretResponseSchema.parse(response)).not.toThrow();
     });
 
+    it('rejects response where receipt state is undefined', () => {
+      const response = buildResponse({
+        receipt: { state: undefined },
+      });
+      expect(() => incomingSecretResponseSchema.parse(response)).toThrow();
+    });
+
+    it('rejects response where secret state is undefined', () => {
+      const response = buildResponse({
+        secret: { state: undefined },
+      });
+      expect(() => incomingSecretResponseSchema.parse(response)).toThrow();
+    });
+
     it('accepts minimal response with most fields null', () => {
       const response = {
         success: true,
