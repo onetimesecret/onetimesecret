@@ -85,3 +85,4 @@ module Onetime
 end
 
 Onetime::CLI.register 'domains', Onetime::CLI::DomainsListCommand
+Onetime::CLI.register 'domain', Onetime::CLI::DomainsListCommand
