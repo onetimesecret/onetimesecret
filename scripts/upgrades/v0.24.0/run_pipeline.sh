@@ -1,5 +1,8 @@
 #!/bin/bash
-# Run all v0.24.0 upgrade stages
+# Run v0.24.0 transform pipeline (enrich, per-model transforms, validation).
+#
+# This script handles the TRANSFORM phase only. It is called by upgrade.sh
+# as Phase 2. Do not run this directly for a full upgrade — use upgrade.sh.
 #
 # Usage: Run from project root:
 #   scripts/upgrades/v0.24.0/run_pipeline.sh
@@ -82,14 +85,6 @@ ruby scripts/upgrades/v0.24.0/05-secret/transform.rb
 ruby scripts/upgrades/v0.24.0/05-secret/create_indexes.rb
 ruby scripts/upgrades/v0.24.0/05-secret/validate_instance_index.rb
 echo "  Secret completed in $((SECONDS - phase_start))s"
-
-echo ""
-echo ""
-phase_start=$SECONDS
-echo "=== Restoring original records ============================================="
-ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb \
-  --redis-url="${VALKEY_URL:-$REDIS_URL}"
-echo "  Original records restoration completed in $((SECONDS - phase_start))s"
 
 echo ""
 echo "=== Done in $((SECONDS - pipeline_start))s ============================================="
