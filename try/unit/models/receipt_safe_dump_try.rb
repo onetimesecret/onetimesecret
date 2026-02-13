@@ -45,6 +45,30 @@ dumped = receipt.safe_dump
 dumped[:secret_identifier]
 #=> nil
 
+## secret_shortid fallback: when empty, falls back to secret_identifier.slice(0,8)
+receipt = Receipt.new
+receipt.secret_identifier = @test_secret_identifier
+receipt.secret_shortid = nil
+dumped = receipt.safe_dump
+dumped[:secret_shortid]
+#=> @test_secret_identifier.slice(0, 8)
+
+## secret_shortid fallback: empty string also triggers fallback
+receipt = Receipt.new
+receipt.secret_identifier = @test_secret_identifier
+receipt.secret_shortid = ''
+dumped = receipt.safe_dump
+dumped[:secret_shortid]
+#=> @test_secret_identifier.slice(0, 8)
+
+## secret_shortid: when set, uses actual value (no fallback)
+receipt = Receipt.new
+receipt.secret_identifier = @test_secret_identifier
+receipt.secret_shortid = @test_secret_shortid
+dumped = receipt.safe_dump
+dumped[:secret_shortid]
+#=> @test_secret_shortid
+
 ## Receipt safe_dump includes both identifier and secret_identifier
 receipt = Receipt.new
 receipt.secret_identifier = @test_secret_identifier

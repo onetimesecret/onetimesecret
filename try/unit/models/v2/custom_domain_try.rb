@@ -100,7 +100,37 @@ Onetime::CustomDomain.instances.member?(@destroyed_id)
 Onetime::CustomDomain.display_domains.get(@destroyed_display).nil?
 #=> true
 
+## TC-CON-004: Re-create domain with same name after destroy succeeds
+@domain3 = Onetime::CustomDomain.create!(@destroyed_display, @org.objid)
+@domain3.class
+#=> Onetime::CustomDomain
+
+## Re-created domain has a new domainid (different from destroyed one)
+@domain3.domainid != @destroyed_id
+#=> true
+
+## Re-created domain display_domain matches original
+@domain3.display_domain
+#=> @destroyed_display
+
+## Re-created domain is in all indexes
+Onetime::CustomDomain.instances.member?(@domain3.domainid)
+#=> true
+
+## Re-created domain display_domains entry points to new domainid
+Onetime::CustomDomain.display_domains.get(@destroyed_display)
+#=> @domain3.domainid
+
+## Re-created domain owners hash has correct org_id
+Onetime::CustomDomain.owners.get(@domain3.domainid)
+#=> @org.objid
+
+## Re-created domain appears in org sorted set
+@org.domain?(@domain3.domainid)
+#=> true
+
 # Teardown
+@domain3.destroy! if @domain3&.exists?
 @domain.destroy! if @domain&.exists?
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?

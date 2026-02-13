@@ -20,7 +20,7 @@ OT.info "Cleaned Redis for fresh test run"
 @dummy_org = Onetime::Organization.create!("Dummy Org #{@timestamp}", @owner1, "dummy-#{@timestamp}@test.com")
 @claiming_org = Onetime::Organization.create!("Claiming Org #{@timestamp}", @owner2, "claiming-#{@timestamp}@test.com")
 
-## Create a domain normally, then orphan it
+## Create a domain normally
 @domain_name = "orphan-#{@timestamp}.example.com"
 @domain = Onetime::CustomDomain.create!(@domain_name, @dummy_org.objid)
 @domain.display_domain
@@ -30,29 +30,25 @@ OT.info "Cleaned Redis for fresh test run"
 @domain.org_id
 #=> @dummy_org.objid
 
-## Orphan the domain: clear org_id, remove from org ZSET, clear owners hash
-# Remove from org's domains ZSET via the org's remove_domain method
+## Orphan step 1: Remove from org's domains ZSET
 @dummy_org.remove_domain(@domain)
-# Delete the org_id field from the Redis hash entirely
+@dummy_org.domain?(@domain)
+#=> false
+
+## Orphan step 2: Clear org_id field directly in Redis
 Familia.dbclient.hdel(@domain.dbkey, 'org_id')
-# Remove from owners class hash via the rem class method logic
-Onetime::CustomDomain.owners.remove(@domain.to_s)
-# Reload to confirm orphaned state
-@domain = Onetime::CustomDomain.load(@domain.identifier)
+@domain = Onetime::CustomDomain.load_by_display_domain(@domain_name)
 @domain.org_id.to_s.empty?
+#=> true
+
+## Orphan step 3: Clear from owners hash
+Onetime::CustomDomain.owners.remove(@domain.to_s)
+Onetime::CustomDomain.owners.get(@domain.to_s).nil?
 #=> true
 
 ## Verify domain is recognized as orphaned
 Onetime::CustomDomain.orphaned?(@domain_name)
 #=> true
-
-## Verify owners hash has been cleared for this domain
-Onetime::CustomDomain.owners.get(@domain.to_s).nil?
-#=> true
-
-## Verify dummy_org no longer has the domain in its ZSET
-@dummy_org.domain?(@domain)
-#=> false
 
 ## Claim the orphaned domain via create! (triggers claim_orphaned_domain internally)
 @claimed = Onetime::CustomDomain.create!(@domain_name, @claiming_org.objid)
@@ -77,6 +73,23 @@ Onetime::CustomDomain.owners.get(@claimed.to_s)
 @in_org_zset = @claiming_org.domain?(@claimed)
 [@org_id_from_field == @claiming_org.objid, @org_id_from_owners == @claiming_org.objid, @in_org_zset]
 #=> [true, true, true]
+
+# TC-DIV-005: Display domain dual-index consistency after orphan claim.
+# After claim_orphaned_domain, both display_domains (manual) and
+# display_domain_index (auto) should still map correctly to this domain.
+
+## TC-DIV-005: display_domains (manual) maps to claimed domain after orphan claim
+Onetime::CustomDomain.display_domains.get(@domain_name) == @claimed.identifier
+#=> true
+
+## TC-DIV-005: display_domain_index (auto) maps to claimed domain after orphan claim
+Onetime::CustomDomain.display_domain_index.get(@domain_name).nil?
+#=> false
+
+## TC-DIV-005: load_by_display_domain finds the claimed domain
+@lookup = Onetime::CustomDomain.load_by_display_domain(@domain_name)
+@lookup.org_id == @claiming_org.objid
+#=> true
 
 # Teardown
 @claimed.destroy! if @claimed&.exists?

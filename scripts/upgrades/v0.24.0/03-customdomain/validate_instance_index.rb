@@ -75,6 +75,8 @@ class CustomDomainInstanceIndexValidator
       display_domain_index_entries: 0,
       live_instance_count: nil,
       live_count_mismatch: nil,
+      v1_residual_keys: [],
+      broken_owner_chains: [],
       field_checks: Hash.new { |h, k| h[k] = { present: 0, missing: 0, missing_objids: [] } },
       errors: [],
     }
@@ -143,7 +145,13 @@ class CustomDomainInstanceIndexValidator
     # 17. Live Redis count validation (post-RESTORE)
     validate_live_instance_count(index_members) if @live
 
-    # 18. Report
+    # 18. Check for V1-format residual keys (live Redis only)
+    validate_v1_keys_cleaned if @live
+
+    # 19. Chain validation: domain -> org -> owner -> customer (live Redis only)
+    validate_owner_chain(domain_objects) if @live
+
+    # 20. Report
     print_report
 
     success?
@@ -517,6 +525,77 @@ class CustomDomainInstanceIndexValidator
     @stats[:errors] << { file: 'live_redis', error: "Live Redis error: #{ex.message}" }
   end
 
+  # DOM-VAL-043: Scan live Redis for V1-format keys (customdomain:* without
+  # underscore). Remaining V1 keys indicate incomplete migration cleanup.
+  def validate_v1_keys_cleaned
+    connect_live_redis unless @live_redis
+
+    cursor = '0'
+    loop do
+      cursor, keys = @live_redis.scan(cursor, match: 'customdomain:*', count: 100)
+      keys.each do |key|
+        @stats[:v1_residual_keys] << key
+      end
+      break if cursor == '0'
+    end
+  rescue Redis::BaseError => ex
+    @stats[:errors] << { file: 'live_redis', error: "V1 key scan error: #{ex.message}" }
+  end
+
+  # DOM-VAL-050: Chain validation: domain -> org (via org_id) -> owner_id ->
+  # EXISTS customer:{owner_id}:object. Reports broken chains where an org was
+  # created for a customer that was later deleted or not migrated.
+  def validate_owner_chain(domain_objects)
+    connect_live_redis unless @live_redis
+
+    domain_objects.each do |objid, record|
+      org_id = record[:org_id]
+      next if org_id.nil? || org_id.to_s.empty?
+
+      # Check org exists
+      org_exists = @live_redis.exists?("organization:#{org_id}:object")
+      unless org_exists
+        @stats[:broken_owner_chains] << {
+          domain_objid: objid,
+          org_id: org_id,
+          reason: 'org object missing',
+        }
+        next
+      end
+
+      # Get org owner_id
+      owner_id = @live_redis.hget("organization:#{org_id}:object", 'owner_id')
+      if owner_id.nil? || owner_id.empty?
+        @stats[:broken_owner_chains] << {
+          domain_objid: objid,
+          org_id: org_id,
+          reason: 'org has no owner_id',
+        }
+        next
+      end
+
+      # owner_id may be JSON-quoted from Familia v2 serialization
+      begin
+        owner_id = JSON.parse(owner_id) if owner_id.start_with?('"')
+      rescue JSON::ParserError
+        # Use as-is
+      end
+
+      # Check customer exists
+      customer_exists = @live_redis.exists?("customer:#{owner_id}:object")
+      next if customer_exists
+
+      @stats[:broken_owner_chains] << {
+        domain_objid: objid,
+        org_id: org_id,
+        owner_id: owner_id,
+        reason: 'customer object missing',
+      }
+    end
+  rescue Redis::BaseError => ex
+    @stats[:errors] << { file: 'live_redis', error: "Owner chain validation error: #{ex.message}" }
+  end
+
   def print_report
     puts '=== Validation Results ==='
     puts "V1 ZSET members (customdomain:values): #{@stats[:v1_members]} (hex IDs, count-only reference)"
@@ -542,6 +621,8 @@ class CustomDomainInstanceIndexValidator
       puts "Live Redis ZCARD (custom_domain:instances): #{@stats[:live_instance_count]}"
       puts "Live vs JSONL count: #{mismatch.zero? ? 'OK' : "DIFF #{mismatch}"}"
     end
+    puts "V1 residual keys (customdomain:*): #{@stats[:v1_residual_keys].size}" if @live
+    puts "Broken owner chains: #{@stats[:broken_owner_chains].size}" if @live
     puts
 
     if @stats[:in_index_not_in_objects].any?
@@ -604,6 +685,25 @@ class CustomDomainInstanceIndexValidator
       puts '=== Duplicate display_domain Values (routing conflicts) ==='
       @stats[:duplicate_display_domains].first(10).each do |entry|
         puts "  #{entry[:display_domain]}: domainids=#{entry[:domainids].join(', ')}"
+      end
+      puts
+    end
+
+    if @stats[:v1_residual_keys].any?
+      puts '=== V1 Residual Keys (customdomain:* — incomplete cleanup) (first 20) ==='
+      @stats[:v1_residual_keys].first(20).each do |key|
+        puts "  #{key}"
+      end
+      puts
+    end
+
+    if @stats[:broken_owner_chains].any?
+      puts '=== Broken Owner Chains (domain -> org -> owner -> customer) (first 10) ==='
+      @stats[:broken_owner_chains].first(10).each do |entry|
+        parts = "  Domain #{entry[:domain_objid]}: org_id=#{entry[:org_id]}"
+        parts += ", owner_id=#{entry[:owner_id]}" if entry[:owner_id]
+        parts += " (#{entry[:reason]})"
+        puts parts
       end
       puts
     end

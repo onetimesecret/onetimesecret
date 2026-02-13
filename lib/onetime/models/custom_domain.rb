@@ -156,6 +156,44 @@ module Onetime
       super
     end
 
+    # Update the display_domain field while maintaining both index systems.
+    #
+    # When display_domain changes, two indexes must be updated:
+    #   1. display_domains (manual class_hashkey) - FQDN -> domain identifier
+    #   2. display_domain_index (auto unique_index) - FQDN -> identifier
+    #
+    # A plain save() only adds the NEW value to display_domain_index via
+    # auto_update_class_indexes, and never touches display_domains. This
+    # method properly cleans up old entries in both indexes.
+    #
+    # @param new_domain [String] The new display domain FQDN
+    # @return [void]
+    # @raise [Onetime::Problem] if new_domain is already taken
+    def update_display_domain(new_domain)
+      new_domain = new_domain.to_s.downcase
+      old_domain = display_domain.to_s.downcase
+
+      return if new_domain == old_domain
+
+      # Verify the new domain is not already taken in either index
+      existing = self.class.display_domains.get(new_domain)
+      if existing && existing != identifier
+        raise Onetime::Problem, 'Domain already registered'
+      end
+
+      # Remove old entries from both indexes
+      self.class.display_domains.remove(old_domain)
+      remove_from_class_display_domain_index
+
+      # Update the field and save
+      self.display_domain = new_domain
+      self.updated        = OT.now.to_i
+      save
+
+      # Add to manual index (save already handles display_domain_index via auto_update)
+      self.class.display_domains.put(new_domain, identifier)
+    end
+
     # Generate a unique identifier for this customer's custom domain.
     #
     # From a customer's perspective, the display_domain is what they see
@@ -243,6 +281,7 @@ module Onetime
     def delete!(*args)
       OT.le '[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup'
       Onetime::CustomDomain.rem self
+      remove_from_all_indexes
       super # we may prefer to call self.clear here instead
     end
 
@@ -291,6 +330,8 @@ module Onetime
     # - The main database key for the custom domain (`self.dbkey`)
     # - database keys of all related objects specified in `self.class.data_types`
     # - Familia v2 participations in organization.domains collections
+    # - Manual class indexes: instances, display_domains, owners
+    # - Auto unique_index: display_domain_index
     #
     # @return [void]
     def destroy!
@@ -298,6 +339,13 @@ module Onetime
       organization_instances.each do |o|
         remove_from_organization_domains(o)
       end
+
+      # Remove from manual class indexes (instances sorted set,
+      # display_domains hash, owners hash)
+      self.class.rem(self)
+
+      # Remove from Familia auto-indexes (display_domain_index unique_index)
+      remove_from_all_indexes
 
       # Call Familia's built-in destroy which handles:
       # - Main object key deletion
@@ -560,8 +608,10 @@ module Onetime
           instances.add obj.to_s
           owners.put obj.to_s, obj.org_id
         rescue StandardError => ex
-          # Rollback the display_domains entry on failure
+          # Rollback both display_domains entries on failure:
+          # the manual class_hashkey and the Familia unique_index
           display_domains.remove(normalized_domain)
+          obj.remove_from_class_display_domain_index
           raise ex
         end
 
@@ -765,6 +815,7 @@ module Onetime
       def rem(fobj)
         instances.remove fobj.to_s
         display_domains.remove fobj.display_domain
+        display_domain_index.remove fobj.display_domain
         owners.remove fobj.to_s
       end
 
