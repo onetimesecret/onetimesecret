@@ -197,6 +197,14 @@ class OrganizationGenerator
       # Only process :object records (skip related records like receipts, domains)
       next unless record[:key]&.end_with?(':object')
 
+      # Skip GLOBAL singleton records — not real customers.
+      # The renamed key (onetime:GLOBAL_STATS:object) won't match the customer:
+      # prefix check in process_customer_record, but skip explicitly for clarity.
+      if record[:key]&.include?(':GLOBAL:') || record[:key]&.include?(':GLOBAL_STATS:')
+        @stats[:skipped] += 1
+        next
+      end
+
       @stats[:customer_objects] += 1
       process_customer_record(record)
     rescue JSON::ParserError => ex

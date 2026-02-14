@@ -78,6 +78,12 @@ class CustomDomainIndexCreator
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
 
+      # Skip GLOBAL singleton records (should not be indexed as custom domains)
+      if record[:key]&.include?(':GLOBAL:') || record[:key]&.include?(':GLOBAL_STATS:')
+        @stats[:skipped] += 1
+        next
+      end
+
       case record[:key]
       when 'customdomain:values'
         # Existing instance index - rename it

@@ -27,6 +27,8 @@ DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class SecretIndexCreator
   # Pattern to extract objid from key: secret:<objid>:object
+  # NOTE: This strict pattern inherently excludes GLOBAL keys (e.g., customer:GLOBAL:object)
+  # since it requires the `secret:` prefix. No additional guard needed.
   KEY_PATTERN = /\Asecret:([^:]+):object\z/
 
   def initialize(input_file:, output_dir:, dry_run: false)
