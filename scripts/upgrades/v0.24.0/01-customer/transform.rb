@@ -37,6 +37,9 @@ DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 class CustomerTransformer
   TEMP_KEY_PREFIX = '_migrate_tmp_transform_'
 
+  # Counter fields that become standalone Redis String keys in v2 (Familia class_counter)
+  COUNTER_FIELDS = %w[secrets_created secrets_burned secrets_shared emails_sent].freeze
+
   # Field type mappings for Familia v2 JSON serialization
   # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
   FIELD_TYPES = {
@@ -97,9 +100,13 @@ class CustomerTransformer
       v1_records_read: 0,
       v2_records_written: 0,
       transformed_objects: 0,
+      externalized_counters: 0,
       renamed_related: Hash.new(0),
       skipped_customers: 0,
       skipped_non_customer_keys: [],  # Keys that don't match customer:{id}:{suffix} pattern
+      global_record_found: false,
+      global_counters: {},            # Counter values from GLOBAL record
+      tallied_counters: Hash.new(0),  # Tallied from individual customers
       errors: [],
     }
   end
@@ -182,6 +189,11 @@ class CustomerTransformer
   end
 
   def process_customer(custid, records)
+    # Handle GLOBAL singleton: rename and pass through without customer transformation
+    if custid == 'GLOBAL'
+      return process_global_record(records)
+    end
+
     object_record = records.find { |r| r[:key].end_with?(':object') }
     unless object_record
       @stats[:skipped_customers] += 1
@@ -200,19 +212,86 @@ class CustomerTransformer
       return []
     end
 
-    # Transform the main object
+    # Tally counter fields before removing them from the hash
+    tally_counters(v1_fields)
+
+    # Transform the main object (counters externalized, not included in v2 hash)
     v2_object_record = transform_customer_object(object_record, v1_fields, objid, extid)
+
+    # Externalize counter fields as standalone JSONL records
+    counter_records = externalize_counters(v1_fields, objid, object_record)
 
     # Rename related records
     related_records    = records.reject { |r| r[:key].end_with?(':object') }
     v2_related_records = rename_related_records(related_records, objid)
 
     @stats[:customers_processed] += 1
-    [v2_object_record].concat(v2_related_records)
+    [v2_object_record].concat(counter_records).concat(v2_related_records)
+  end
+
+  # Process the GLOBAL singleton record: rename key, decode counters for summary,
+  # and write through with new key name (preserving the original dump data).
+  def process_global_record(records)
+    object_record = records.find { |r| r[:key].end_with?(':object') }
+    unless object_record
+      @stats[:errors] << { customer: 'GLOBAL', error: 'No :object record found.' }
+      return []
+    end
+
+    @stats[:global_record_found] = true
+
+    return [] if @dry_run
+
+    # Decode GLOBAL hash to extract counter values for summary comparison
+    begin
+      global_fields = restore_and_read_hash(object_record)
+      COUNTER_FIELDS.each do |field|
+        @stats[:global_counters][field] = global_fields[field].to_i
+      end
+    rescue StandardError => ex
+      @stats[:errors] << { customer: 'GLOBAL', error: "Failed to decode counters: #{ex.message}" }
+    end
+
+    # Write through with renamed key, preserving original dump data
+    renamed_record = object_record.dup
+    renamed_record[:key] = 'onetime:GLOBAL_STATS:object'
+
+    [renamed_record]
+  end
+
+  # Tally counter fields from an individual customer for summary comparison
+  def tally_counters(v1_fields)
+    COUNTER_FIELDS.each do |field|
+      value = v1_fields[field].to_i
+      @stats[:tallied_counters][field] += value if value > 0
+    end
+  end
+
+  # Extract counter fields from customer hash and emit as standalone JSONL records.
+  # In v2, Familia class_counter fields are Redis String keys, not hash fields.
+  def externalize_counters(v1_fields, objid, original_record)
+    records = []
+    COUNTER_FIELDS.each do |field|
+      value = v1_fields[field].to_i
+      next if value.zero?
+
+      records << {
+        key: "customer:#{objid}:#{field}",
+        type: 'string',
+        value: value,
+        db: original_record[:db],
+        ttl_ms: -1,
+      }
+      @stats[:externalized_counters] += 1
+    end
+    records
   end
 
   def transform_customer_object(v1_record, v1_fields, objid, extid)
     v2_fields = v1_fields.dup
+
+    # Remove counter fields — they are externalized as standalone Redis String keys
+    COUNTER_FIELDS.each { |f| v2_fields.delete(f) }
 
     # Ensure the canonical identifiers are set in the hash
     v2_fields['objid'] = objid
@@ -352,6 +431,7 @@ class CustomerTransformer
     puts 'V2 Records Written:'
     puts "  Total: #{@stats[:v2_records_written]}"
     puts "  Transformed objects: #{@stats[:transformed_objects]}"
+    puts "  Externalized counters: #{@stats[:externalized_counters]}"
     puts
 
     puts 'Renamed Related Records:'
@@ -368,6 +448,21 @@ class CustomerTransformer
       skipped_keys.each { |key| puts "  - #{key}" }
       puts
     end
+
+    # GLOBAL vs tallied counter comparison
+    if @stats[:global_record_found]
+      puts 'GLOBAL vs Tallied Counter Comparison:'
+      puts '  (GLOBAL = value from customer:GLOBAL:object, Tallied = sum of individual customers)'
+      COUNTER_FIELDS.each do |field|
+        global_val  = @stats[:global_counters][field] || 0
+        tallied_val = @stats[:tallied_counters][field] || 0
+        match       = global_val == tallied_val ? 'OK' : 'MISMATCH'
+        puts "  #{field}: GLOBAL=#{global_val}, Tallied=#{tallied_val} [#{match}]"
+      end
+    else
+      puts 'GLOBAL record: not found in input'
+    end
+    puts
 
     return unless @stats[:errors].any?
 
