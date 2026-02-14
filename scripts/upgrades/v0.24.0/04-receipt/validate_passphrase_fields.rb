@@ -1,18 +1,19 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Validates passphrase data on receipt records after v1->v2 migration.
+# Validates the has_passphrase boolean field on receipt records after v1->v2
+# migration.
 #
-# Receipts store PLAINTEXT passphrases (not hashed). The v1->v2 transform
-# copies the passphrase field verbatim via DIRECT_COPY_FIELDS. Empty v1
-# passphrases ("") become the JSON string "null" via serialize_for_v2.
+# In v2, receipts no longer store the raw passphrase string. Instead, the
+# transform derives a boolean `has_passphrase` field from whether the v1
+# passphrase was non-empty, and explicitly drops the raw `passphrase` field.
 #
 # This script checks:
-# 1. Receipts WITH passphrases: value is a non-empty, non-"null" string
-# 2. Receipts WITHOUT passphrases: field is absent, empty, or JSON "null"
-#    (not a corrupted/partial value)
-# 3. Cross-reference with linked secret: if receipt has a passphrase,
-#    the corresponding secret should also have a hashed passphrase
+# 1. Every receipt has a `has_passphrase` field with a valid boolean value
+#    ("true" or "false" after JSON unwrapping)
+# 2. No receipt has a `passphrase` field (raw passphrase leak = migration error)
+# 3. Cross-reference with linked secret: if has_passphrase is true, the
+#    corresponding secret should also have a hashed passphrase
 #
 # Usage:
 #   ruby scripts/upgrades/v0.24.0/04-receipt/validate_passphrase_fields.rb [OPTIONS]
@@ -44,12 +45,13 @@ class ReceiptPassphraseValidator
 
     @stats = {
       total_receipts: 0,
-      with_passphrase: 0,
-      without_passphrase: 0,
-      literal_null_string: [],       # passphrase is the literal string "null" (bad serialization)
-      corrupted_values: [],          # non-empty but suspicious values on no-passphrase receipts
+      has_passphrase_true: 0,
+      has_passphrase_false: 0,
+      missing_has_passphrase: [],    # receipt missing the has_passphrase field entirely
+      invalid_has_passphrase: [],    # has_passphrase present but not a valid boolean
+      raw_passphrase_leak: [],       # receipt still has a raw passphrase field (migration error)
       cross_ref_checked: 0,
-      cross_ref_mismatches: [],      # receipt has passphrase but secret does not
+      cross_ref_mismatches: [],      # has_passphrase true but secret has no passphrase
       cross_ref_secret_missing: [],  # receipt references a secret not found in transformed file
       errors: [],
     }
@@ -63,7 +65,7 @@ class ReceiptPassphraseValidator
     secret_passphrases = load_secret_passphrases
     puts "Loaded #{secret_passphrases.size} secret records for cross-reference"
 
-    # 2. Scan receipt records and validate passphrase fields
+    # 2. Scan receipt records and validate has_passphrase field
     validate_receipts(secret_passphrases)
 
     # 3. Report
@@ -75,9 +77,9 @@ class ReceiptPassphraseValidator
   end
 
   def success?
-    @stats[:literal_null_string].empty? &&
-      @stats[:corrupted_values].empty? &&
-      @stats[:cross_ref_mismatches].empty?
+    @stats[:missing_has_passphrase].empty? &&
+      @stats[:invalid_has_passphrase].empty? &&
+      @stats[:raw_passphrase_leak].empty?
   end
 
   private
@@ -184,50 +186,67 @@ class ReceiptPassphraseValidator
       @stats[:total_receipts] += 1
 
       hash_fields = decode_hash_fields(record)
-      passphrase_raw = hash_fields['passphrase']
-      passphrase = unwrap_json_value(passphrase_raw)
 
-      if passphrase && !passphrase.empty?
-        # Receipt HAS a passphrase
-        @stats[:with_passphrase] += 1
-
-        # Check for literal "null" string (bad serialization artifact)
-        if passphrase == 'null'
-          @stats[:literal_null_string] << objid if @stats[:literal_null_string].size < 20
+      # CHECK 1: passphrase field must NOT exist on any receipt
+      if hash_fields.key?('passphrase')
+        passphrase_raw = hash_fields['passphrase']
+        # Only flag if the value is meaningful (not JSON null / empty)
+        passphrase_val = unwrap_json_value(passphrase_raw)
+        if passphrase_val && !passphrase_val.empty?
+          @stats[:raw_passphrase_leak] << {
+            objid: objid,
+            raw_preview: passphrase_raw.to_s[0..20],
+          } if @stats[:raw_passphrase_leak].size < 20
         end
+      end
 
-        # Cross-reference with linked secret
-        secret_shortid = unwrap_json_value(hash_fields['secret_shortid'])
-        if secret_shortid && !secret_shortid.empty?
-          @stats[:cross_ref_checked] += 1
+      # CHECK 2: has_passphrase field must exist with a valid boolean value
+      has_passphrase_raw = hash_fields['has_passphrase']
 
-          if secret_passphrases.key?(secret_shortid)
-            unless secret_passphrases[secret_shortid]
-              @stats[:cross_ref_mismatches] << {
-                receipt_objid: objid,
-                secret_shortid: secret_shortid,
-                issue: 'receipt has passphrase but secret does not',
-              } if @stats[:cross_ref_mismatches].size < 20
-            end
-          else
-            @stats[:cross_ref_secret_missing] << {
-              receipt_objid: objid,
-              secret_shortid: secret_shortid,
-            } if @stats[:cross_ref_secret_missing].size < 20
-          end
+      if has_passphrase_raw.nil?
+        @stats[:missing_has_passphrase] << objid if @stats[:missing_has_passphrase].size < 20
+        next
+      end
+
+      # Unwrap the JSON-encoded boolean: Familia v2 stores true as "true" in Redis.
+      # unwrap_json_value parses it to Ruby true, then .to_s gives "true".
+      has_passphrase_str = unwrap_json_value(has_passphrase_raw)
+
+      unless %w[true false].include?(has_passphrase_str)
+        @stats[:invalid_has_passphrase] << {
+          objid: objid,
+          raw_value: has_passphrase_raw.to_s[0..60],
+        } if @stats[:invalid_has_passphrase].size < 20
+        next
+      end
+
+      if has_passphrase_str == 'true'
+        @stats[:has_passphrase_true] += 1
+      else
+        @stats[:has_passphrase_false] += 1
+      end
+
+      # CHECK 3: Cross-reference with linked secret (only when has_passphrase is true)
+      next unless has_passphrase_str == 'true'
+
+      secret_shortid = unwrap_json_value(hash_fields['secret_shortid'])
+      next unless secret_shortid && !secret_shortid.empty?
+
+      @stats[:cross_ref_checked] += 1
+
+      if secret_passphrases.key?(secret_shortid)
+        unless secret_passphrases[secret_shortid]
+          @stats[:cross_ref_mismatches] << {
+            receipt_objid: objid,
+            secret_shortid: secret_shortid,
+            issue: 'has_passphrase is true but secret has no passphrase',
+          } if @stats[:cross_ref_mismatches].size < 20
         end
       else
-        # Receipt does NOT have a passphrase
-        @stats[:without_passphrase] += 1
-
-        # Verify the raw value is clean (absent, empty, or JSON "null")
-        # Anything else is suspicious
-        if passphrase_raw && passphrase_raw != 'null' && passphrase_raw != '' && passphrase_raw != '""'
-          @stats[:corrupted_values] << {
-            objid: objid,
-            raw_value: passphrase_raw.to_s[0..60],
-          } if @stats[:corrupted_values].size < 20
-        end
+        @stats[:cross_ref_secret_missing] << {
+          receipt_objid: objid,
+          secret_shortid: secret_shortid,
+        } if @stats[:cross_ref_secret_missing].size < 20
       end
     rescue JSON::ParserError => ex
       @stats[:errors] << { file: 'transformed', error: "JSON parse error: #{ex.message}" }
@@ -236,30 +255,43 @@ class ReceiptPassphraseValidator
 
   def print_report
     puts
-    puts '=== Receipt Passphrase Field Validation ==='
+    puts '=== Receipt has_passphrase Field Validation ==='
     puts "Total receipts scanned: #{@stats[:total_receipts]}"
-    puts "  With passphrase: #{@stats[:with_passphrase]}"
-    puts "  Without passphrase: #{@stats[:without_passphrase]}"
+    puts "  has_passphrase=true: #{@stats[:has_passphrase_true]}"
+    puts "  has_passphrase=false: #{@stats[:has_passphrase_false]}"
     puts
 
-    # Literal "null" string check
-    count = @stats[:literal_null_string].size
-    status = count.zero? ? 'OK' : 'WARN'
-    puts "Literal 'null' string passphrases: #{count} [#{status}]"
+    # Raw passphrase leak check (FAIL)
+    count = @stats[:raw_passphrase_leak].size
+    status = count.zero? ? 'OK' : 'FAIL'
+    puts "Raw passphrase field present on receipts: #{count} [#{status}]"
     if count > 0
-      puts '  These receipts have the string "null" as passphrase (bad serialization):'
-      @stats[:literal_null_string].first(10).each { |id| puts "    - #{id}" }
+      puts '  These receipts still have a raw passphrase value (should have been dropped by transform):'
+      @stats[:raw_passphrase_leak].first(10).each do |entry|
+        puts "    - #{entry[:objid]}: raw=#{entry[:raw_preview]}..."
+      end
       puts "    ... and #{count - 10} more" if count > 10
     end
     puts
 
-    # Corrupted values check
-    count = @stats[:corrupted_values].size
-    status = count.zero? ? 'OK' : 'WARN'
-    puts "Corrupted/unexpected empty-passphrase values: #{count} [#{status}]"
+    # Missing has_passphrase check (FAIL)
+    count = @stats[:missing_has_passphrase].size
+    status = count.zero? ? 'OK' : 'FAIL'
+    puts "Missing has_passphrase field: #{count} [#{status}]"
     if count > 0
-      puts '  Receipts without passphrase but with unexpected raw value:'
-      @stats[:corrupted_values].first(10).each do |entry|
+      puts '  These receipts have no has_passphrase field:'
+      @stats[:missing_has_passphrase].first(10).each { |id| puts "    - #{id}" }
+      puts "    ... and #{count - 10} more" if count > 10
+    end
+    puts
+
+    # Invalid has_passphrase value check (FAIL)
+    count = @stats[:invalid_has_passphrase].size
+    status = count.zero? ? 'OK' : 'FAIL'
+    puts "Invalid has_passphrase values: #{count} [#{status}]"
+    if count > 0
+      puts '  These receipts have has_passphrase with a non-boolean value:'
+      @stats[:invalid_has_passphrase].first(10).each do |entry|
         puts "    - #{entry[:objid]}: raw=#{entry[:raw_value]}"
       end
       puts "    ... and #{count - 10} more" if count > 10
@@ -272,7 +304,7 @@ class ReceiptPassphraseValidator
 
     count = @stats[:cross_ref_mismatches].size
     status = count.zero? ? 'OK' : 'WARN'
-    puts "Passphrase mismatches (receipt has, secret doesn't): #{count} [#{status}]"
+    puts "Passphrase mismatches (has_passphrase=true, secret lacks passphrase): #{count} [#{status}]"
     if count > 0
       @stats[:cross_ref_mismatches].first(10).each do |entry|
         puts "    - receipt=#{entry[:receipt_objid]} secret=#{entry[:secret_shortid]}"
@@ -292,9 +324,9 @@ class ReceiptPassphraseValidator
     puts
 
     if success?
-      puts 'OK: All receipt passphrase fields are consistent.'
+      puts 'OK: All receipt has_passphrase fields are valid and no raw passphrases leaked.'
     else
-      puts 'FAIL: Passphrase field inconsistencies detected.'
+      puts 'FAIL: Receipt passphrase field validation errors detected.'
     end
     puts
 
@@ -328,7 +360,10 @@ def parse_args(args)
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.0/04-receipt/validate_passphrase_fields.rb [OPTIONS]
 
-        Validates passphrase data on receipt records after v1->v2 migration.
+        Validates the has_passphrase boolean field on receipt records after v1->v2
+        migration. In v2, the raw passphrase is dropped from receipts and replaced
+        with a boolean has_passphrase field.
+
         Decodes dump blobs via Redis RESTORE + HGETALL to inspect hash fields.
 
         Options:
@@ -341,9 +376,9 @@ def parse_args(args)
           --help                          Show this help
 
         Validates:
-          - Receipts with passphrases have non-null, non-empty string values
-          - Receipts without passphrases have clean absent/null/empty fields
-          - Receipt-secret passphrase consistency (both have or both lack)
+          - FAIL if any receipt has a raw passphrase field (should have been dropped)
+          - FAIL if any receipt is missing has_passphrase or has an invalid value
+          - WARN if has_passphrase=true but linked secret has no passphrase
       HELP
       exit 0
     else

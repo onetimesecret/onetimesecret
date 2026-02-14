@@ -60,6 +60,7 @@ class ReceiptTransformer
     'lifespan' => :integer,
     'share_domain' => :string,
     'passphrase' => :string,
+    'has_passphrase' => :boolean,
     'org_id' => :string,
     'domain_id' => :string,
     'recipients' => :string,  # JSON array stored as string
@@ -122,7 +123,7 @@ class ReceiptTransformer
   # the transformed object to be valid. The rest are best-effort copies if present in the v1 data.
   DIRECT_COPY_FIELDS = %w[
     secret_ttl lifespan
-    share_domain passphrase recipients memo created updated burned
+    share_domain recipients memo created updated burned
     shared truncate key
   ].freeze
 
@@ -323,6 +324,13 @@ class ReceiptTransformer
 
     # Ensure objid is set (Receipt uses VerifiableIdentifier - no extid)
     v2_fields['objid'] = objid
+
+    # Derive has_passphrase boolean from v1 passphrase string.
+    # In v2, the receipt stores only whether a passphrase exists (boolean);
+    # the actual passphrase lives on the Secret, not the Receipt.
+    passphrase_val = v1_fields['passphrase']
+    v2_fields['has_passphrase'] = (!passphrase_val.nil? && !passphrase_val.empty?).to_s
+    v2_fields.delete('passphrase')  # Drop raw passphrase from receipt
 
     # Transform custid -> owner_id, org_id, domain_id
     custid = v1_fields['custid']

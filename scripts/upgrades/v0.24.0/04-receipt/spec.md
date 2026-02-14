@@ -23,7 +23,7 @@ FIELD TRANSFORMS
 
 Direct Copy (no transform)
   objid, secret_ttl, lifespan,
-  share_domain, passphrase, recipients, memo, created, updated, burned,
+  share_domain, recipients, memo, created, updated, burned,
   shared, truncate, key
 
 Transforms
