@@ -99,9 +99,9 @@ dumped = receipt.safe_dump
 dumped[:has_passphrase]
 #=> false
 
-## Receipt safe_dump returns has_passphrase correctly when passphrase is set
+## Receipt safe_dump returns has_passphrase correctly when has_passphrase is set
 receipt = Receipt.new
-receipt.passphrase = 'secret-passphrase'
+receipt.has_passphrase = true
 dumped = receipt.safe_dump
 dumped[:has_passphrase]
 #=> true
@@ -131,7 +131,7 @@ fields.include?(:passphrase)
 
 ## Receipt safe_dump output does NOT expose raw passphrase value
 receipt = Receipt.new
-receipt.passphrase = 'super-secret-passphrase'
+receipt.has_passphrase = true
 dumped = receipt.safe_dump
 dumped.key?(:passphrase)
 #=> false

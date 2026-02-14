@@ -62,6 +62,33 @@ module V2::Logic
         success_data
       end
 
+      def success_data
+        return nil unless secret
+
+        ret = {
+          record: secret.safe_dump,
+          details: {
+            continue: @continue,
+            is_owner: @is_owner,
+            show_secret: @show_secret,
+            correct_passphrase: @correct_passphrase,
+            display_lines: @display_lines,
+            one_liner: @one_liner,
+          },
+        }
+
+        # Add the secret_value only if the secret is viewable
+        ret[:record][:secret_value] = secret_value if show_secret && secret_value
+
+        ret
+      end
+
+      def one_liner
+        return if secret_value.to_s.empty? # return nil when the value is empty
+
+        secret_value.to_s.scan("\n").empty?
+      end
+
       private
 
       def verify_owner(owner)
@@ -103,37 +130,10 @@ module V2::Logic
         @share_domain = [base_scheme, domain].join
       end
 
-      def success_data
-        return nil unless secret
-
-        ret = {
-          record: secret.safe_dump,
-          details: {
-            continue: @continue,
-            is_owner: @is_owner,
-            show_secret: @show_secret,
-            correct_passphrase: @correct_passphrase,
-            display_lines: @display_lines,
-            one_liner: @one_liner,
-          },
-        }
-
-        # Add the secret_value only if the secret is viewable
-        ret[:record][:secret_value] = secret_value if show_secret && secret_value
-
-        ret
-      end
-
       def calculate_display_lines
         v   = secret_value.to_s
         ret = ((80 + v.size) / 80) + v.scan("\n").size + 3
         ret > 30 ? 30 : ret
-      end
-
-      def one_liner
-        return if secret_value.to_s.empty? # return nil when the value is empty
-
-        secret_value.to_s.scan("\n").empty?
       end
     end
   end
