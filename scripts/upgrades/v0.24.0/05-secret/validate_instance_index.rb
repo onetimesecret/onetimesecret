@@ -18,8 +18,8 @@
 #   ruby scripts/upgrades/v0.24.0/05-secret/validate_instance_index.rb [OPTIONS]
 #
 # Options:
-#   --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/metadata/secret_transformed.jsonl)
-#   --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/metadata/secret_indexes.jsonl)
+#   --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/secret/secret_transformed.jsonl)
+#   --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/secret/secret_indexes.jsonl)
 #   --help                   Show this help
 
 require 'json'
@@ -207,8 +207,8 @@ end
 
 def parse_args(args)
   options = {
-    transformed_file: File.join(DEFAULT_DATA_DIR, 'metadata/secret_transformed.jsonl'),
-    indexes_file: File.join(DEFAULT_DATA_DIR, 'metadata/secret_indexes.jsonl'),
+    transformed_file: File.join(DEFAULT_DATA_DIR, 'secret/secret_transformed.jsonl'),
+    indexes_file: File.join(DEFAULT_DATA_DIR, 'secret/secret_indexes.jsonl'),
     redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     temp_db: 15,
   }
@@ -230,8 +230,8 @@ def parse_args(args)
         Validates secret:instances index against transformed secret objects.
 
         Options:
-          --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/metadata/secret_transformed.jsonl)
-          --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/metadata/secret_indexes.jsonl)
+          --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/secret/secret_transformed.jsonl)
+          --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/secret/secret_indexes.jsonl)
           --redis-url=URL          Redis URL (env: VALKEY_URL or REDIS_URL) [reserved for future use]
           --temp-db=N              Temp database number (default: 15) [reserved for future use]
           --help                   Show this help
