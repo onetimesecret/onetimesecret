@@ -60,6 +60,7 @@ class ReceiptTransformer
     'lifespan' => :integer,
     'share_domain' => :string,
     'passphrase' => :string,
+    'has_passphrase' => :boolean,
     'org_id' => :string,
     'domain_id' => :string,
     'recipients' => :string,  # JSON array stored as string
@@ -73,7 +74,7 @@ class ReceiptTransformer
     'v1_custid' => :string,
     'migration_status' => :string,
     'migrated_at' => :timestamp,
-    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
     # Deprecated fields (features/deprecated_fields.rb)
     'key' => :string,
     'viewed' => :timestamp,    # renamed to 'previewed' in v2
@@ -83,6 +84,7 @@ class ReceiptTransformer
     'custid' => :string,       # legacy owner field
     'truncate' => :boolean,
     'secret_key' => :string,   # use secret_identifier
+    'secret_shortkey' => :string,  # renamed to 'secret_shortid' in v2
     'previewed' => :timestamp,
     'revealed' => :timestamp,
   }.freeze
@@ -116,10 +118,13 @@ class ReceiptTransformer
   end
 
   # Fields to copy directly without transformation
+  #
+  # NOTE: "objid", "secret_identifier", and "secret_shortid" must be populated correctly for
+  # the transformed object to be valid. The rest are best-effort copies if present in the v1 data.
   DIRECT_COPY_FIELDS = %w[
-    objid secret_identifier secret_shortid secret_ttl lifespan
-    share_domain passphrase recipients memo created updated burned
-    shared truncate secret_key key
+    secret_ttl lifespan
+    share_domain recipients memo created updated burned
+    shared truncate key
   ].freeze
 
   # State value transformations
@@ -159,6 +164,7 @@ class ReceiptTransformer
       skipped_receipts: 0,
       anonymous_receipts: 0,
       state_transforms: Hash.new(0),
+      direct_copy_field_hits: DIRECT_COPY_FIELDS.each_with_object(Hash.new(0)) { |f, h| h[f] = 0 },
       missing_customer_lookup: 0,
       missing_org_lookup: 0,
       missing_domain_lookup: 0,
@@ -310,11 +316,21 @@ class ReceiptTransformer
 
     # Copy direct fields
     DIRECT_COPY_FIELDS.each do |field|
-      v2_fields[field] = v1_fields[field] if v1_fields.key?(field)
+      if v1_fields.key?(field)
+        v2_fields[field] = v1_fields[field]
+        @stats[:direct_copy_field_hits][field] += 1
+      end
     end
 
     # Ensure objid is set (Receipt uses VerifiableIdentifier - no extid)
     v2_fields['objid'] = objid
+
+    # Derive has_passphrase boolean from v1 passphrase string.
+    # In v2, the receipt stores only whether a passphrase exists (boolean);
+    # the actual passphrase lives on the Secret, not the Receipt.
+    passphrase_val = v1_fields['passphrase']
+    v2_fields['has_passphrase'] = (!passphrase_val.nil? && !passphrase_val.empty?).to_s
+    v2_fields.delete('passphrase')  # Drop raw passphrase from receipt
 
     # Transform custid -> owner_id, org_id, domain_id
     custid = v1_fields['custid']
@@ -342,8 +358,18 @@ class ReceiptTransformer
       v2_fields['received'] = v1_fields['received']  # Keep for backward compat
     end
 
+    # Rename V1 secret_key -> V2 secret_identifier
+    if v1_fields.key?('secret_key') && !v2_fields.key?('secret_identifier')
+      v2_fields['secret_identifier'] = v1_fields['secret_key']
+    end
+
+    # Rename V1 secret_shortkey -> V2 secret_shortid
+    if v1_fields.key?('secret_shortkey') && !v2_fields.key?('secret_shortid')
+      v2_fields['secret_shortid'] = v1_fields['secret_shortkey']
+    end
+
     # Add migration tracking fields
-    # NOTE: _original_record is added by enrich_with_original_record.rb
+    # NOTE: v1 original data is restored as _original_object hashkey by enrich_with_original_record.rb
     v2_fields['v1_key']           = v1_record[:key]
     v2_fields['v1_identifier']    = v1_record[:key]
     v2_fields['migration_status'] = 'completed'
@@ -499,6 +525,16 @@ class ReceiptTransformer
     end
     puts '  (none)' if @stats[:state_transforms].empty?
     puts
+
+    # Warn about DIRECT_COPY_FIELDS that were never found in any v1 record
+    zero_hit_fields = @stats[:direct_copy_field_hits].select { |_, count| count.zero? }.keys
+    if zero_hit_fields.any? && @stats[:receipts_processed] > 0
+      puts 'Direct Copy Field Warnings:'
+      zero_hit_fields.each do |field|
+        puts "  WARNING: DIRECT_COPY_FIELDS entry '#{field}' had zero hits across #{@stats[:receipts_processed]} records"
+      end
+      puts
+    end
 
     return unless @stats[:errors].any?
 

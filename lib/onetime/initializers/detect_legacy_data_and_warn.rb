@@ -59,6 +59,8 @@ module Onetime
         rescue Redis::BaseError, RedisClient::Error => ex
           OT.boot_logger.error "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
         end
+      rescue Redis::CommandError => ex
+        OT.boot_logger.error "Problem with detection: #{ex}"
       end
 
       # Detects legacy data distribution across multiple Redis databases

@@ -25,6 +25,16 @@ module Onetime::CustomDomain::Features
 
       # Original v1 custid (email) for reference/rollback
       base.field :v1_custid  # Original email-based custid from v1
+
+      # Original v1 related data types stored as sibling hashkeys.
+      # Populated by RESTORE during migration enrichment with 30-day TTL.
+      # Only CustomDomain has these related data types in v1.
+      #   custom_domain:{objid}:_original_brand
+      #   custom_domain:{objid}:_original_logo
+      #   custom_domain:{objid}:_original_icon
+      base.hashkey :_original_brand
+      base.hashkey :_original_logo
+      base.hashkey :_original_icon
     end
 
     module ClassMethods

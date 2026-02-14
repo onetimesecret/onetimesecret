@@ -247,12 +247,7 @@ module ModelTestHelper
     # Stub field setters
     allow(receipt).to receive(:secret_identifier!).and_return(true)
     allow(receipt).to receive(:state!).and_return(true)
-    allow(receipt).to receive(:passphrase!).and_return(true)
-
-    # Implement has_passphrase? behavior
-    allow(receipt).to receive(:has_passphrase?).and_wrap_original do |original|
-      !receipt.passphrase.to_s.empty?
-    end
+    allow(receipt).to receive(:has_passphrase!).and_return(true)
 
     receipt
   end

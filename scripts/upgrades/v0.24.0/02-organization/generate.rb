@@ -68,7 +68,7 @@ class OrganizationGenerator
     'v1_source_custid' => :string,
     'migration_status' => :string,
     'migrated_at' => :timestamp,
-    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
   }.freeze
 
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
@@ -197,6 +197,14 @@ class OrganizationGenerator
       # Only process :object records (skip related records like receipts, domains)
       next unless record[:key]&.end_with?(':object')
 
+      # Skip GLOBAL singleton records — not real customers.
+      # The renamed key (onetime:GLOBAL_STATS:object) won't match the customer:
+      # prefix check in process_customer_record, but skip explicitly for clarity.
+      if record[:key]&.include?(':GLOBAL:') || record[:key]&.include?(':GLOBAL_STATS:')
+        @stats[:skipped] += 1
+        next
+      end
+
       @stats[:customer_objects] += 1
       process_customer_record(record)
     rescue JSON::ParserError => ex
@@ -297,7 +305,7 @@ class OrganizationGenerator
       'stripe_checkout_email' => stripe_checkout_email,
 
       # Migration tracking
-      # NOTE: _original_record is added by enrich_with_original_record.rb
+      # NOTE: v1 original data is restored as _original_object hashkey by enrich_with_original_record.rb
       'v1_identifier' => customer_record[:key],
       'v1_source_custid' => customer_fields['v1_custid'] || customer_fields['email'],
       'migration_status' => 'completed',

@@ -35,7 +35,7 @@ const linkTitle = computed(() => {
 }
 );
 
-const displayIdentifier = computed(() => `${props.secretReceipt.secret_shortid}`);
+const displayIdentifier = computed(() => props.secretReceipt.secret_shortid ?? '\u2014');
 
 const formattedDate = computed(() =>
   formatRelativeTime(props.secretReceipt.created)

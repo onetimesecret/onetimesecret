@@ -110,6 +110,9 @@ class OrganizationIndexCreator
 
       next unless record[:key]&.end_with?(':object')
 
+      # Skip GLOBAL singleton records (should not be indexed as organizations)
+      next if record[:key]&.include?(':GLOBAL:') || record[:key]&.include?(':GLOBAL_STATS:')
+
       @stats[:object_records] += 1
 
       process_organization_record(record)
