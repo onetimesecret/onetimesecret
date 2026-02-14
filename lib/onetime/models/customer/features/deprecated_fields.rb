@@ -19,6 +19,14 @@ module Onetime::Customer::Features
         base.field :apitoken # TODO: use sorted set?
         base.field :contributor
 
+        # These were used for the old counter fields implementation. We can
+        # remove these after v0.24 upgrade migrations which externalize the
+        # counters to separate keys. @see counter_fields.rb
+        # base.field :secrets_created # regular hashkey string field
+        # base.field :secrets_burned
+        # base.field :secrets_shared
+        # base.field :emails_sent
+
         # Needed for data migration. Moved to Organization.
         base.field :stripe_customer_id       # Stripe Customer ID
         base.field :stripe_subscription_id   # Active Stripe Subscription ID
