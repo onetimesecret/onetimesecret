@@ -55,6 +55,9 @@
 #
 #   # Unattended full reset (CI/staging)
 #   scripts/upgrades/v0.24.0/reset.sh --flush-target --yes
+#
+# See also:
+#   scripts/upgrades/v0.24.0/info.sh    -- inspect source/target keyspace (read-only)
 
 set -euo pipefail
 
@@ -375,6 +378,25 @@ elif $FLUSH_ORIGINALS; then
   fi
 
   echo ""
+fi
+
+# ── Reminder: target DB 0 ─────────────────────────────────────────────────────
+
+if ! $FLUSH_TARGET && ! $FLUSH_ORIGINALS && [ -n "${TARGET_VALKEY_URL:-}" ]; then
+  TARGET_DBSIZE=$(ruby -e "
+    require 'redis'
+    require 'uri'
+    u = URI.parse(ARGV[0]); u.path = '/0'
+    r = Redis.new(url: u.to_s, timeout: ARGV[1].to_i)
+    puts r.dbsize
+  " "$TARGET_VALKEY_URL" "$REDIS_TIMEOUT" 2>/dev/null || echo "unknown")
+
+  if [ "$TARGET_DBSIZE" != "0" ] && [ "$TARGET_DBSIZE" != "unknown" ]; then
+    echo ""
+    echo "  NOTE: Target Valkey DB 0 still contains $TARGET_DBSIZE keys."
+    echo "  For a clean re-run, add --flush-target to also flush DB 0."
+    echo ""
+  fi
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
