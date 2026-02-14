@@ -11,9 +11,9 @@
 # Validations:
 # 1. Each objid in secret:instances has a matching secret:{objid}:object record
 # 2. Each secret:{objid}:object record has an entry in secret:instances
-# 3. Key fields (owner_id, state, receipt_identifier, receipt_shortid,
-#    created, lifespan, migration_status) are non-nil inside the
-#    transformed Redis hash (decoded via RESTORE + HGETALL)
+# 3. Required fields must be present in every record (FAIL if missing)
+# 4. Expected fields should be present but may be conditional (WARN if missing)
+# 5. All observed fields are reported with presence rates for full visibility
 #
 # Usage:
 #   ruby scripts/upgrades/v0.24.0/05-secret/validate_instance_index.rb [OPTIONS]
@@ -35,7 +35,29 @@ DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class SecretInstanceIndexValidator
   TEMP_KEY_PREFIX = '_validate_secret_'
-  KEY_FIELDS = %w[owner_id state receipt_identifier receipt_shortid created lifespan migration_status].freeze
+
+  # Fields that MUST be present in every transformed record.
+  # Missing any of these is a validation failure.
+  REQUIRED_FIELDS = %w[
+    objid owner_id state created migration_status migrated_at
+    v1_key v1_identifier
+  ].freeze
+
+  # Fields that SHOULD be present but may be legitimately missing
+  # in some records (conditional on V1 data). Missing these is a warning.
+  EXPECTED_FIELDS = %w[
+    receipt_identifier receipt_shortid lifespan updated
+  ].freeze
+
+  # Known deprecated/migration fields that are acceptable to see.
+  # Presence is informational only (no warning or error).
+  KNOWN_OPTIONAL_FIELDS = %w[
+    ciphertext value value_encryption passphrase passphrase_encryption
+    share_domain verification truncated secret_key metadata_key
+    v1_custid v1_original_size custid key
+    previewed revealed viewed received
+    org_id domain_id
+  ].freeze
 
   def initialize(transformed_file:, indexes_file:, redis_url:, temp_db: 15)
     @transformed_file = transformed_file
@@ -50,7 +72,10 @@ class SecretInstanceIndexValidator
       matches: 0,
       in_index_not_in_objects: [],
       in_objects_not_in_index: [],
-      field_checks: Hash.new { |h, k| h[k] = { present: 0, missing: 0, missing_objids: [] } },
+      # Tracks presence of every field observed across all records
+      field_presence: Hash.new { |h, k| h[k] = { present: 0, missing: 0, missing_objids: [] } },
+      # Set of all field names observed in any record
+      all_observed_fields: Set.new,
       errors: [],
     }
   end
@@ -71,14 +96,17 @@ class SecretInstanceIndexValidator
     # 3. Cross-reference: index vs objects
     cross_reference(index_objids, transformed_objects)
 
-    # 4. Spot-check key fields by decoding dump blobs
-    spot_check_fields(transformed_objects)
+    # 4. Full field audit by decoding dump blobs
+    audit_fields(transformed_objects)
 
     # 5. Report
     print_report
 
-    # Success if no orphaned entries
-    @stats[:in_index_not_in_objects].empty? && @stats[:in_objects_not_in_index].empty?
+    # Success if no orphaned entries and no required field failures
+    success = @stats[:in_index_not_in_objects].empty? &&
+              @stats[:in_objects_not_in_index].empty? &&
+              REQUIRED_FIELDS.none? { |f| @stats[:field_presence][f][:missing] > 0 }
+    success
   ensure
     cleanup_redis
   end
@@ -193,14 +221,35 @@ class SecretInstanceIndexValidator
     end
   end
 
-  def spot_check_fields(transformed_objects)
+  # Audit all fields in every record: track presence for required/expected
+  # fields and discover any fields not in the known lists.
+  def audit_fields(transformed_objects)
+    all_check_fields = REQUIRED_FIELDS + EXPECTED_FIELDS
+
     transformed_objects.each do |objid, record|
       hash_fields = decode_hash_fields(record)
 
-      KEY_FIELDS.each do |field|
-        value = hash_fields[field]
-        check = @stats[:field_checks][field]
+      # Track every field name we see
+      hash_fields.each_key { |f| @stats[:all_observed_fields].add(f) }
 
+      # Check required + expected fields
+      all_check_fields.each do |field|
+        value = hash_fields[field]
+        check = @stats[:field_presence][field]
+
+        if value && !value.to_s.empty?
+          check[:present] += 1
+        else
+          check[:missing] += 1
+          check[:missing_objids] << objid if check[:missing_objids].size < 20
+        end
+      end
+
+      # Also track presence for any observed field not in required/expected
+      hash_fields.each do |field, value|
+        next if all_check_fields.include?(field)
+
+        check = @stats[:field_presence][field]
         if value && !value.to_s.empty?
           check[:present] += 1
         else
@@ -211,10 +260,24 @@ class SecretInstanceIndexValidator
     end
   end
 
+  def format_field_line(field, check, total)
+    pct = total > 0 ? (check[:present] * 100.0 / total).round(1) : 0
+    "#{field}: #{check[:present]}/#{total} present (#{pct}%)"
+  end
+
+  def print_missing_details(check)
+    return unless check[:missing] > 0 && check[:missing_objids].any?
+
+    puts "    Missing in: #{check[:missing_objids].first(5).join(', ')}"
+    puts "    ... and #{check[:missing_objids].size - 5} more" if check[:missing_objids].size > 5
+  end
+
   def print_report
+    total = @stats[:transformed_objects]
+
     puts '=== Secret Instance Index Validation ==='
     puts "Index members (secret:instances): #{@stats[:index_members]}"
-    puts "Transformed objects: #{@stats[:transformed_objects]}"
+    puts "Transformed objects: #{total}"
     puts "Matched: #{@stats[:matches]}"
     puts
 
@@ -239,20 +302,55 @@ class SecretInstanceIndexValidator
       puts
     end
 
-    puts '=== Key Field Checks ==='
-    KEY_FIELDS.each do |field|
-      check = @stats[:field_checks][field]
-      total = check[:present] + check[:missing]
-      pct   = total > 0 ? (check[:present] * 100.0 / total).round(1) : 0
-      status = check[:missing] > 0 ? 'WARN' : 'OK'
-      puts "  #{field}: #{check[:present]}/#{total} present (#{pct}%) [#{status}]"
-
-      next unless check[:missing] > 0 && check[:missing_objids].any?
-
-      puts "    Missing in: #{check[:missing_objids].first(5).join(', ')}"
-      puts "    ... and #{check[:missing_objids].size - 5} more" if check[:missing_objids].size > 5
+    # --- Required fields (FAIL if any missing) ---
+    puts '=== Required Field Checks ==='
+    required_ok = true
+    REQUIRED_FIELDS.each do |field|
+      check  = @stats[:field_presence][field]
+      status = check[:missing] > 0 ? 'FAIL' : 'OK'
+      required_ok = false if check[:missing] > 0
+      puts "  #{format_field_line(field, check, total)} [#{status}]"
+      print_missing_details(check)
     end
     puts
+    puts(required_ok ? '  All required fields present.' : '  FAILURES detected in required fields.')
+    puts
+
+    # --- Expected fields (WARN if missing) ---
+    puts '=== Expected Field Checks ==='
+    EXPECTED_FIELDS.each do |field|
+      check  = @stats[:field_presence][field]
+      status = check[:missing] > 0 ? 'WARN' : 'OK'
+      puts "  #{format_field_line(field, check, total)} [#{status}]"
+      print_missing_details(check)
+    end
+    puts
+
+    # --- All other observed fields (informational) ---
+    known_fields = Set.new(REQUIRED_FIELDS + EXPECTED_FIELDS + KNOWN_OPTIONAL_FIELDS)
+    other_fields = @stats[:all_observed_fields].select { |f| !REQUIRED_FIELDS.include?(f) && !EXPECTED_FIELDS.include?(f) }
+
+    if other_fields.any?
+      puts '=== Additional Observed Fields ==='
+      # Separate known optional from truly unexpected
+      known_others   = other_fields.select { |f| KNOWN_OPTIONAL_FIELDS.include?(f) }.sort
+      unknown_others = other_fields.reject { |f| KNOWN_OPTIONAL_FIELDS.include?(f) }.sort
+
+      known_others.each do |field|
+        check = @stats[:field_presence][field]
+        puts "  #{format_field_line(field, check, total)} [optional]"
+      end
+
+      if unknown_others.any?
+        puts
+        puts '  Unexpected fields (not in any known list):'
+        unknown_others.each do |field|
+          check = @stats[:field_presence][field]
+          puts "  #{format_field_line(field, check, total)} [UNKNOWN]"
+        end
+      end
+      puts
+    end
 
     return unless @stats[:errors].any?
 
@@ -294,10 +392,11 @@ def parse_args(args)
           --help                   Show this help
 
         Validates:
-          - Each objid in secret:instances has a matching secret:{objid}:object
-          - Each transformed secret object has an entry in secret:instances
-          - Key fields (owner_id, state, receipt_identifier, receipt_shortid,
-            created, lifespan, migration_status) are non-nil in decoded Redis hash
+          Required fields (FAIL):  objid, owner_id, state, created,
+            migration_status, migrated_at, v1_key, v1_identifier
+          Expected fields (WARN):  receipt_identifier, receipt_shortid,
+            lifespan, updated
+          All other fields:        reported with presence rates for visibility
       HELP
       exit 0
     else
