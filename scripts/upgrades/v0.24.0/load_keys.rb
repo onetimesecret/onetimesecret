@@ -359,7 +359,7 @@ class KeyLoader
       puts '  Mode: dry-run (no data written to Redis)'
     end
     puts
-    puts '  To verify in Redis: valkey-cli -u $VALKEY_URL info keyspace'
+    puts '  To verify: scripts/upgrades/v0.24.0/info.sh --target'
     puts
   end
 

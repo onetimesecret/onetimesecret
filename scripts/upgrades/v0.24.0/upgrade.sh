@@ -47,6 +47,10 @@
 #
 #   # Unattended run (CI/staging)
 #   scripts/upgrades/v0.24.0/upgrade.sh --execute --skip-gates
+#
+# See also:
+#   scripts/upgrades/v0.24.0/reset.sh   -- clean artifacts for re-run
+#   scripts/upgrades/v0.24.0/info.sh    -- inspect source/target keyspace (read-only)
 
 set -euo pipefail
 
@@ -101,10 +105,6 @@ fi
 
 mkdir -p "$LOG_DIR"
 
-# Duplicate all output to timestamped log file
-exec > >(while IFS= read -r line; do
-  printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$line"
-done | tee -a "$LOG_FILE") 2>&1
 
 log_phase() {
   local phase="$1" description="$2"
@@ -227,9 +227,11 @@ TARGET_HOST=$(ruby -e "require 'uri'; u = URI.parse(ARGV[0]); puts \"#{u.host}:#
 
 if [ "$SOURCE_HOST" = "$TARGET_HOST" ]; then
   echo ""
+  echo ""
   echo "  WARNING: Source and target resolve to the same host ($SOURCE_HOST)"
   echo "  This is valid for in-place migration (v1 uses DBs 6-11, v2 uses DB 0)"
   echo "  but verify you have backups before proceeding."
+  echo ""
   echo ""
 fi
 
@@ -238,8 +240,10 @@ if $EXECUTE && [ "$START_PHASE" -le 1 ]; then
   AVAIL_MB=$(df -m "$DATA_DIR" 2>/dev/null | awk 'NR==2{print $4}' || echo "0")
   if [ "$AVAIL_MB" -lt 1024 ] 2>/dev/null; then
     echo ""
+    echo ""
     echo "  WARNING: Less than 1 GB available on the data partition ($AVAIL_MB MB)"
     echo "  Large keyspaces may require several GB for JSONL dump files."
+    echo ""
     echo ""
   fi
 fi
@@ -264,7 +268,8 @@ confirm_gate() {
   echo "  before continuing to the next phase."
   echo ""
 
-  read -rp "  Continue to next phase? [y/N] " response
+  printf '  Continue to next phase? [y/N] ' > /dev/tty
+  read -r response < /dev/tty
   case "$response" in
     [yY]|[yY][eE][sS]) return 0 ;;
     *)
@@ -399,12 +404,16 @@ if [ "$START_PHASE" -le 3 ]; then
 
   if [ "$TARGET_DBSIZE" != "0" ] && [ "$TARGET_DBSIZE" != "unknown" ]; then
     echo ""
+    echo ""
     echo "  WARNING: Target DB 0 is not empty ($TARGET_DBSIZE keys)."
     echo "  load_keys.rb uses RESTORE REPLACE -- existing keys will be overwritten."
     echo "  Index commands (ZADD, HSET, SADD) will merge additively."
     echo ""
+    echo ""
+    echo ""
     if ! $SKIP_GATES; then
-      read -rp "  Continue loading into non-empty target? [y/N] " response
+      printf "  Continue loading into non-empty target? [y/N] " > /dev/tty
+      read -r response < /dev/tty
       case "$response" in
         [yY]|[yY][eE][sS]) ;;
         *)
@@ -507,7 +516,8 @@ if [ "$START_PHASE" -le 5 ]; then
     echo ""
 
     if ! $SKIP_GATES; then
-      read -rp "  Preview above. Execute the sync? [y/N] " response
+      printf "  Preview above. Execute the sync? [y/N] " > /dev/tty
+      read -r response < /dev/tty
       case "$response" in
         [yY]|[yY][eE][sS]) ;;
         *)
@@ -558,7 +568,7 @@ if $EXECUTE; then
   echo "|  Post-upgrade checklist:"
   echo "|"
   echo "|    [ ] Verify target keyspace counts match transform summaries"
-  echo "|        valkey-cli -u \$TARGET_VALKEY_URL INFO keyspace"
+  echo "|        scripts/upgrades/v0.24.0/info.sh --target"
   echo "|"
   echo "|    [ ] Spot-check customer records"
   echo "|        bin/ots customers --list"
