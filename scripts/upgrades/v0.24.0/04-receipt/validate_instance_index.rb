@@ -11,8 +11,8 @@
 # Validations:
 # 1. Each objid in receipt:instances has a matching receipt:{objid}:object record
 # 2. Each receipt:{objid}:object record has an entry in receipt:instances
-# 3. Key fields (secret_shortid, secret_identifier, owner_id) are non-nil in
-#    transformed records (spot-check)
+# 3. Key fields (secret_shortid, secret_identifier, owner_id, state) are non-nil
+#    inside the transformed Redis hash (decoded via RESTORE + HGETALL)
 #
 # Usage:
 #   ruby scripts/upgrades/v0.24.0/04-receipt/validate_instance_index.rb [OPTIONS]
@@ -20,20 +20,28 @@
 # Options:
 #   --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/metadata/receipt_transformed.jsonl)
 #   --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/metadata/receipt_indexes.jsonl)
+#   --redis-url=URL          Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
+#   --temp-db=N              Temp database number (default: 15)
 #   --help                   Show this help
 
 require 'json'
+require 'base64'
+require 'redis'
+require 'securerandom'
+require 'uri'
 
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class ReceiptInstanceIndexValidator
-  KEY_FIELDS = %w[secret_shortid secret_identifier owner_id].freeze
+  TEMP_KEY_PREFIX = '_validate_receipt_'
+  KEY_FIELDS = %w[secret_shortid secret_identifier owner_id state].freeze
 
-  def initialize(transformed_file:, indexes_file:, redis_url: nil, temp_db: 15)
+  def initialize(transformed_file:, indexes_file:, redis_url:, temp_db: 15)
     @transformed_file = transformed_file
     @indexes_file     = indexes_file
     @redis_url        = redis_url
     @temp_db          = temp_db
+    @redis            = nil
 
     @stats = {
       index_members: 0,
@@ -48,6 +56,7 @@ class ReceiptInstanceIndexValidator
 
   def run
     validate_input_files
+    connect_redis
 
     # 1. Extract objids from receipt:instances index commands
     index_objids = extract_index_objids
@@ -61,7 +70,7 @@ class ReceiptInstanceIndexValidator
     # 3. Cross-reference: index vs objects
     cross_reference(index_objids, transformed_objects)
 
-    # 4. Spot-check key fields in transformed records
+    # 4. Spot-check key fields by decoding dump blobs
     spot_check_fields(transformed_objects)
 
     # 5. Report
@@ -69,6 +78,8 @@ class ReceiptInstanceIndexValidator
 
     # Success if no orphaned entries
     @stats[:in_index_not_in_objects].empty? && @stats[:in_objects_not_in_index].empty?
+  ensure
+    cleanup_redis
   end
 
   private
@@ -80,6 +91,26 @@ class ReceiptInstanceIndexValidator
     unless File.exist?(@indexes_file)
       raise ArgumentError, "Indexes file not found: #{@indexes_file}\nRun create_indexes.rb first."
     end
+    raise ArgumentError, 'Redis URL required for dump blob decoding (set VALKEY_URL or REDIS_URL, or use --redis-url)' unless @redis_url
+  end
+
+  def connect_redis
+    uri      = URI.parse(@redis_url)
+    uri.path = "/#{@temp_db}"
+    @redis   = Redis.new(url: uri.to_s)
+    @redis.ping
+  end
+
+  def cleanup_redis
+    return unless @redis
+
+    cursor = '0'
+    loop do
+      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
+      @redis.del(*keys) unless keys.empty?
+      break if cursor == '0'
+    end
+    @redis.close
   end
 
   def extract_index_objids
@@ -139,10 +170,34 @@ class ReceiptInstanceIndexValidator
     @stats[:matches] = (index_objids & object_objids).size
   end
 
+  # Decode the dump blob via Redis RESTORE + HGETALL to inspect hash fields
+  def decode_hash_fields(record)
+    dump_b64 = record['dump']
+    return {} unless dump_b64
+
+    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
+    dump_data = Base64.strict_decode64(dump_b64)
+    begin
+      @redis.restore(temp_key, 0, dump_data, replace: true)
+      @redis.hgetall(temp_key)
+    rescue Redis::CommandError => ex
+      @stats[:errors] << { key: record['key'], error: "RESTORE failed: #{ex.message}" }
+      {}
+    ensure
+      begin
+        @redis.del(temp_key)
+      rescue StandardError
+        nil
+      end
+    end
+  end
+
   def spot_check_fields(transformed_objects)
     transformed_objects.each do |objid, record|
+      hash_fields = decode_hash_fields(record)
+
       KEY_FIELDS.each do |field|
-        value = record[field]
+        value = hash_fields[field]
         check = @stats[:field_checks][field]
 
         if value && !value.to_s.empty?
@@ -228,18 +283,20 @@ def parse_args(args)
         Usage: ruby scripts/upgrades/v0.24.0/04-receipt/validate_instance_index.rb [OPTIONS]
 
         Validates receipt:instances index against transformed receipt objects.
+        Decodes dump blobs via Redis RESTORE + HGETALL to inspect hash fields.
 
         Options:
           --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.0/metadata/receipt_transformed.jsonl)
           --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.0/metadata/receipt_indexes.jsonl)
-          --redis-url=URL          Redis URL (env: VALKEY_URL or REDIS_URL) [reserved for future use]
-          --temp-db=N              Temp database number (default: 15) [reserved for future use]
+          --redis-url=URL          Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
+          --temp-db=N              Temp database number (default: 15)
           --help                   Show this help
 
         Validates:
           - Each objid in receipt:instances has a matching receipt:{objid}:object
           - Each transformed receipt object has an entry in receipt:instances
-          - Key fields (secret_shortid, secret_identifier, owner_id) are non-nil
+          - Key fields (secret_shortid, secret_identifier, owner_id, state) are non-nil
+            inside the decoded Redis hash
       HELP
       exit 0
     else
