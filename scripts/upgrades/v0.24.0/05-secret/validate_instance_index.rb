@@ -11,8 +11,9 @@
 # Validations:
 # 1. Each objid in secret:instances has a matching secret:{objid}:object record
 # 2. Each secret:{objid}:object record has an entry in secret:instances
-# 3. Key fields (owner_id, state, receipt_identifier) are non-nil
-#    inside the transformed Redis hash (decoded via RESTORE + HGETALL)
+# 3. Key fields (owner_id, state, receipt_identifier, receipt_shortid,
+#    created, lifespan, migration_status) are non-nil inside the
+#    transformed Redis hash (decoded via RESTORE + HGETALL)
 #
 # Usage:
 #   ruby scripts/upgrades/v0.24.0/05-secret/validate_instance_index.rb [OPTIONS]
@@ -34,7 +35,7 @@ DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class SecretInstanceIndexValidator
   TEMP_KEY_PREFIX = '_validate_secret_'
-  KEY_FIELDS = %w[owner_id state receipt_identifier].freeze
+  KEY_FIELDS = %w[owner_id state receipt_identifier receipt_shortid created lifespan migration_status].freeze
 
   def initialize(transformed_file:, indexes_file:, redis_url:, temp_db: 15)
     @transformed_file = transformed_file
@@ -295,8 +296,8 @@ def parse_args(args)
         Validates:
           - Each objid in secret:instances has a matching secret:{objid}:object
           - Each transformed secret object has an entry in secret:instances
-          - Key fields (owner_id, state, receipt_identifier) are non-nil
-            inside the decoded Redis hash
+          - Key fields (owner_id, state, receipt_identifier, receipt_shortid,
+            created, lifespan, migration_status) are non-nil in decoded Redis hash
       HELP
       exit 0
     else
