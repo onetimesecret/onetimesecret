@@ -142,7 +142,7 @@ class CustomerIndexCreator
     accumulate_externalized_counters(externalized_counter_records)
 
     # Add counter commands (aggregate totals)
-    commands.concat(generate_counter_commands)
+    # commands.concat(generate_counter_commands)
 
     # Write output
     write_output(commands) unless @dry_run
@@ -406,22 +406,26 @@ class CustomerIndexCreator
     end
   end
 
-  def generate_counter_commands
-    commands = []
-
-    COUNTER_FIELDS.each do |field|
-      total = @stats[:counters][field]
-      next if total.zero?
-
-      commands << {
-        command: 'INCRBY',
-        key: "customer:#{field}",
-        args: [total.to_s],
-      }
-    end
-
-    commands
-  end
+  # NOTE: No longer needed b/c we simply rename the customer:GLOBAL:object key to
+  # an inert onetime:GLOBAL_STATS:object key that we can refer to later on after
+  # the upgrade.
+  #
+  # def generate_counter_commands
+  #   commands = []
+  #
+  #   COUNTER_FIELDS.each do |field|
+  #     total = @stats[:counters][field]
+  #     next if total.zero?
+  #
+  #     commands << {
+  #       command: 'INCRBY',
+  #       key: "customer:#{field}",
+  #       args: [total.to_s],
+  #     }
+  #   end
+  #
+  #   commands
+  # end
 
   def write_output(commands)
     FileUtils.mkdir_p(@output_dir)
