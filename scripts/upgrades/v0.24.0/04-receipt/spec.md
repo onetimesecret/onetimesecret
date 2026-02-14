@@ -22,9 +22,9 @@ Change: Prefix change (metadata -> receipt)
 FIELD TRANSFORMS
 
 Direct Copy (no transform)
-  objid, secret_identifier, secret_ttl, lifespan,
+  objid, secret_ttl, lifespan,
   share_domain, passphrase, recipients, memo, created, updated, burned,
-  shared, truncate, secret_key, key
+  shared, truncate, key
 
 Transforms
   custid (email) -> owner_id (customer objid)     Lookup: email_to_objid[custid]
@@ -34,6 +34,7 @@ Transforms
   state: 'received' -> state: 'revealed' Value transform
   viewed -> previewed                    Rename (keep original for compat)
   received -> revealed                 Rename (keep original for compat)
+  secret_key -> secret_identifier      Rename (V1 name differs from V2)
   secret_shortkey -> secret_shortid    Rename (V1 name differs from V2)
 
 New Fields (migration-only)

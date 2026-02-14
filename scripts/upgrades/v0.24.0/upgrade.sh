@@ -109,9 +109,11 @@ mkdir -p "$LOG_DIR"
 log_phase() {
   local phase="$1" description="$2"
   echo ""
-  echo "======================================================================="
+  echo ""
+  echo ""
+  echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
   echo "  Phase $phase: $description"
-  echo "======================================================================="
+  echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
   echo ""
 }
 
@@ -309,6 +311,7 @@ if [ "$START_PHASE" -le 1 ]; then
   if $EXECUTE && [ -d "$DATA_DIR" ]; then
     echo ""
     echo "  Dump files:"
+    printf "    %-8s %s\n" "SIZE" "FILEPATH"
     find "$DATA_DIR" -name '*_dump.jsonl' -exec ls -lh {} \; 2>/dev/null | \
       awk '{printf "    %-8s %s\n", $5, $NF}'
   fi

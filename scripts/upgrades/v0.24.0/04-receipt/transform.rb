@@ -117,10 +117,13 @@ class ReceiptTransformer
   end
 
   # Fields to copy directly without transformation
+  #
+  # NOTE: "objid", "secret_identifier", and "secret_shortid" must be populated correctly for
+  # the transformed object to be valid. The rest are best-effort copies if present in the v1 data.
   DIRECT_COPY_FIELDS = %w[
-    objid secret_identifier secret_shortid secret_ttl lifespan
+    secret_ttl lifespan
     share_domain passphrase recipients memo created updated burned
-    shared truncate secret_key key
+    shared truncate key
   ].freeze
 
   # State value transformations
@@ -345,6 +348,11 @@ class ReceiptTransformer
     if v1_fields.key?('received')
       v2_fields['revealed'] = v1_fields['received']
       v2_fields['received'] = v1_fields['received']  # Keep for backward compat
+    end
+
+    # Rename V1 secret_key -> V2 secret_identifier
+    if v1_fields.key?('secret_key') && !v2_fields.key?('secret_identifier')
+      v2_fields['secret_identifier'] = v1_fields['secret_key']
     end
 
     # Rename V1 secret_shortkey -> V2 secret_shortid
