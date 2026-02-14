@@ -275,12 +275,22 @@ class CustomerTransformer
       value = v1_fields[field].to_i
       next if value.zero?
 
+      # Create a proper Redis DUMP blob so load_keys.rb can RESTORE it
+      temp_key = "#{TEMP_KEY_PREFIX}ctr_#{SecureRandom.hex(4)}"
+      dump_b64 = begin
+        @redis.set(temp_key, value)
+        dump_data = @redis.dump(temp_key)
+        Base64.strict_encode64(dump_data)
+      ensure
+        @redis.del(temp_key)
+      end
+
       records << {
         key: "customer:#{objid}:#{field}",
         type: 'string',
-        value: value,
-        db: original_record[:db],
         ttl_ms: -1,
+        db: original_record[:db],
+        dump: dump_b64,
       }
       @stats[:externalized_counters] += 1
     end
