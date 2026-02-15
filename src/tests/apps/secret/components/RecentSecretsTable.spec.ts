@@ -267,7 +267,7 @@ describe('RecentSecretsTable', () => {
 
       const heading = wrapper.find('h2');
       expect(heading.exists()).toBe(true);
-      expect(heading.text()).toContain('web.COMMON.recent');
+      expect(heading.text()).toContain('web.LABELS.receipts');
     });
 
     it('shows items count when records exist', async () => {
