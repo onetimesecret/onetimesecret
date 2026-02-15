@@ -356,7 +356,7 @@ describe('RecentSecretsTable', () => {
         isExpired: false,
         isDestroyed: false,
         source: 'api',
-        originalRecord: {} as LocalReceipt, // API records have MetadataRecords
+        originalRecord: {} as LocalReceipt, // API records have receipt data
       };
 
       mockRecords.value = [createMockRecord('local-1'), apiRecord];

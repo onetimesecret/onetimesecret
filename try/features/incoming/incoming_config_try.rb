@@ -42,8 +42,8 @@ OT.incoming_public_recipients
 OT.lookup_incoming_recipient('unknown_hash_123')
 #=> nil
 
-## Can access memo field on Metadata model
-metadata = Onetime::Receipt.new
-metadata.memo = 'Test memo'
-metadata.memo
+## Can access memo field on Receipt model
+receipt = Onetime::Receipt.new
+receipt.memo = 'Test memo'
+receipt.memo
 #=> 'Test memo'

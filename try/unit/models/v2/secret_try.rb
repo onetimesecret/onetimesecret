@@ -52,7 +52,7 @@ unique_values.size
 [@receipt.nil?, @secret.nil?]
 #=> [false, false]
 
-## Private receipt key matches
+## Receipt key matches
 p [@secret.receipt_identifier, @receipt.identifier]
 [@secret.receipt_identifier.nil?, @secret.receipt_identifier == @receipt.identifier]
 #=> [false, true]
@@ -78,7 +78,7 @@ receipt.destroy!
 !receipt.exists?
 #=> true
 
-## Can set private secret to previewed state
+## Can set receipt to previewed state
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 receipt.previewed!
 [receipt.previewed, receipt.state]

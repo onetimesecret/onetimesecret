@@ -35,10 +35,10 @@ describe('Receipt Routes', () => {
     });
   });
 
-  describe('Legacy Private Link Route (/private)', () => {
-    it('should not define legacy private route', () => {
+  describe('Legacy Private Route (/private)', () => {
+    it('should not define legacy /private route', () => {
       const route = routes.find(
-        (route: RouteRecordRaw) => route.path === '/metadata/:receiptIdentifier'
+        (route: RouteRecordRaw) => route.path === '/private/:receiptIdentifier'
       );
       expect(route).toBeUndefined();
     });
