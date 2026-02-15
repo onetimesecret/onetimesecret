@@ -8,8 +8,8 @@
 // - Platform detection for shortcut hints
 
 import { createPinia, setActivePinia } from 'pinia';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ref, computed } from 'vue';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { computed, ref } from 'vue';
 
 describe('WorkspaceSecretForm Logic', () => {
   // --- Mock State ---
@@ -57,36 +57,28 @@ describe('WorkspaceSecretForm Logic', () => {
     describe('hasContent guard', () => {
       it('returns false when content is empty', () => {
         const content = ref('');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
 
         expect(hasContent.value).toBe(false);
       });
 
       it('returns false when content is only whitespace', () => {
         const content = ref('   \n\t  ');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
 
         expect(hasContent.value).toBe(false);
       });
 
       it('returns true when content has text', () => {
         const content = ref('my secret message');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
 
         expect(hasContent.value).toBe(true);
       });
 
       it('returns true when content has text with surrounding whitespace', () => {
         const content = ref('  secret  ');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
 
         expect(hasContent.value).toBe(true);
       });
@@ -95,9 +87,7 @@ describe('WorkspaceSecretForm Logic', () => {
     describe('shortcut submission guard', () => {
       it('allows submission when hasContent is true and not submitting', () => {
         const content = ref('content');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
         mockIsSubmitting.value = false;
 
         const canSubmit = hasContent.value && !mockIsSubmitting.value;
@@ -106,9 +96,7 @@ describe('WorkspaceSecretForm Logic', () => {
 
       it('blocks submission when hasContent is false', () => {
         const content = ref('');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
         mockIsSubmitting.value = false;
 
         const canSubmit = hasContent.value && !mockIsSubmitting.value;
@@ -117,9 +105,7 @@ describe('WorkspaceSecretForm Logic', () => {
 
       it('blocks submission when isSubmitting is true', () => {
         const content = ref('content');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
         mockIsSubmitting.value = true;
 
         const canSubmit = hasContent.value && !mockIsSubmitting.value;
@@ -128,9 +114,7 @@ describe('WorkspaceSecretForm Logic', () => {
 
       it('blocks submission when both conditions fail', () => {
         const content = ref('');
-        const hasContent = computed(
-          () => !!content.value && content.value.trim().length > 0
-        );
+        const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
         mockIsSubmitting.value = true;
 
         const canSubmit = hasContent.value && !mockIsSubmitting.value;
@@ -158,8 +142,7 @@ describe('WorkspaceSecretForm Logic', () => {
       });
 
       const isMac =
-        typeof navigator !== 'undefined' &&
-        /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+        typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
       const shortcutHint = isMac ? '\u2318 Enter' : 'Ctrl Enter';
 
       expect(isMac).toBe(true);
@@ -174,8 +157,7 @@ describe('WorkspaceSecretForm Logic', () => {
       });
 
       const isMac =
-        typeof navigator !== 'undefined' &&
-        /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+        typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
       const shortcutHint = isMac ? '\u2318 Enter' : 'Ctrl Enter';
 
       expect(isMac).toBe(false);
@@ -190,8 +172,7 @@ describe('WorkspaceSecretForm Logic', () => {
       });
 
       const isMac =
-        typeof navigator !== 'undefined' &&
-        /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+        typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
       const shortcutHint = isMac ? '\u2318 Enter' : 'Ctrl Enter';
 
       expect(isMac).toBe(false);
@@ -206,8 +187,7 @@ describe('WorkspaceSecretForm Logic', () => {
       });
 
       const isMac =
-        typeof navigator !== 'undefined' &&
-        /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+        typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
       expect(isMac).toBe(true);
     });
@@ -220,8 +200,7 @@ describe('WorkspaceSecretForm Logic', () => {
       });
 
       const isMac =
-        typeof navigator !== 'undefined' &&
-        /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+        typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
       expect(isMac).toBe(true);
     });
@@ -234,8 +213,7 @@ describe('WorkspaceSecretForm Logic', () => {
       });
 
       const isMac =
-        typeof navigator !== 'undefined' &&
-        /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+        typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
       expect(isMac).toBe(true);
     });
@@ -306,15 +284,15 @@ describe('WorkspaceSecretForm Logic', () => {
   });
 
   describe('Navigation Behavior', () => {
-    it('navigates to /private/{id} when workspaceMode is OFF', () => {
+    it('navigates to /receipt/{id} when workspaceMode is OFF', () => {
       const workspaceMode = false;
       const metadataIdentifier = 'abc123def456';
 
       if (!workspaceMode) {
-        mockRouterPush(`/private/${metadataIdentifier}`);
+        mockRouterPush(`/receipt/${metadataIdentifier}`);
       }
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/private/abc123def456');
+      expect(mockRouterPush).toHaveBeenCalledWith('/receipt/abc123def456');
     });
 
     it('does not navigate when workspaceMode is ON', () => {
@@ -322,7 +300,7 @@ describe('WorkspaceSecretForm Logic', () => {
       const metadataIdentifier = 'abc123def456';
 
       if (!workspaceMode) {
-        mockRouterPush(`/private/${metadataIdentifier}`);
+        mockRouterPush(`/receipt/${metadataIdentifier}`);
       }
 
       expect(mockRouterPush).not.toHaveBeenCalled();
@@ -332,18 +310,14 @@ describe('WorkspaceSecretForm Logic', () => {
       const workspaceMode = false;
 
       // Test with various identifier formats
-      const identifiers = [
-        'md1234567890abcdef',
-        'abc-123-def-456',
-        'simple',
-      ];
+      const identifiers = ['md1234567890abcdef', 'abc-123-def-456', 'simple'];
 
       identifiers.forEach((id) => {
         mockRouterPush.mockClear();
         if (!workspaceMode) {
-          mockRouterPush(`/private/${id}`);
+          mockRouterPush(`/receipt/${id}`);
         }
-        expect(mockRouterPush).toHaveBeenCalledWith(`/private/${id}`);
+        expect(mockRouterPush).toHaveBeenCalledWith(`/receipt/${id}`);
       });
     });
   });
@@ -447,9 +421,7 @@ describe('WorkspaceSecretForm Logic', () => {
   describe('Submit Button States', () => {
     it('button is disabled when content is empty', () => {
       const content = ref('');
-      const hasContent = computed(
-        () => !!content.value && content.value.trim().length > 0
-      );
+      const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
       mockIsSubmitting.value = false;
 
       const isDisabled = !hasContent.value || mockIsSubmitting.value;
@@ -459,9 +431,7 @@ describe('WorkspaceSecretForm Logic', () => {
 
     it('button is disabled when isSubmitting is true', () => {
       const content = ref('content');
-      const hasContent = computed(
-        () => !!content.value && content.value.trim().length > 0
-      );
+      const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
       mockIsSubmitting.value = true;
 
       const isDisabled = !hasContent.value || mockIsSubmitting.value;
@@ -471,9 +441,7 @@ describe('WorkspaceSecretForm Logic', () => {
 
     it('button is enabled when content exists and not submitting', () => {
       const content = ref('my secret');
-      const hasContent = computed(
-        () => !!content.value && content.value.trim().length > 0
-      );
+      const hasContent = computed(() => !!content.value && content.value.trim().length > 0);
       mockIsSubmitting.value = false;
 
       const isDisabled = !hasContent.value || mockIsSubmitting.value;

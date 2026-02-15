@@ -30,9 +30,9 @@ module V2::Logic
         :secret_value,
         :show_secret,
         :show_secret_link,
-        :show_metadata_link,
-        :metadata_attributes,
-        :show_metadata,
+        :show_receipt_link,
+        :receipt_attributes,
+        :show_receipt,
         :show_recipients,
         :share_domain,
         :is_orphaned,
@@ -155,7 +155,7 @@ module V2::Logic
         # A simple check to show the receipt link only for newly
         # created secrets.
         #
-        @show_metadata_link = receipt.state?(:new)
+        @show_receipt_link = receipt.state?(:new)
 
         # Allow the receipt to be shown if it hasn't been previewed/viewed yet OR
         # if the current user owns it (regardless of its previewed/viewed state).
@@ -164,16 +164,16 @@ module V2::Logic
         #   1. The receipt state is NOT 'previewed' or 'viewed', OR
         #   2. The current customer is the owner of the receipt
         #
-        @show_metadata = !(receipt.state?(:previewed) || receipt.state?(:viewed)) || receipt.owner?(cust)
+        @show_receipt = !(receipt.state?(:previewed) || receipt.state?(:viewed)) || receipt.owner?(cust)
 
         # Recipient information is only displayed when the receipt is
         # visible and there are actually recipients to show.
         #
         # It will be true if BOTH of these conditions are met:
-        #   1. The receipt should be shown (@show_metadata is true), AND
+        #   1. The receipt should be shown (@show_receipt is true), AND
         #   2. There are recipients specified (@recipients is not empty)
         #
-        @show_recipients = @show_metadata && !@recipients.empty?
+        @show_recipients = @show_receipt && !@recipients.empty?
 
         domain = if domains_enabled
                    if receipt.share_domain.to_s.empty?
@@ -190,7 +190,7 @@ module V2::Logic
         process_uris
 
         # Dump the receipt attributes before marking as previewed
-        @metadata_attributes = _metadata_attributes
+        @receipt_attributes = _receipt_attributes
 
         # We mark the receipt record previewed so that we can support showing the
         # secret link on the receipt page, just the one time.
@@ -207,14 +207,14 @@ module V2::Logic
 
       def success_data
         {
-          record: metadata_attributes,
+          record: receipt_attributes,
           details: ancillary_attributes,
         }
       end
 
       private
 
-      def _metadata_attributes
+      def _receipt_attributes
         # Start with safe receipt attributes
         attributes = receipt.safe_dump
 
@@ -254,16 +254,16 @@ module V2::Logic
           secret_value: secret_value,
           show_secret: show_secret,
           show_secret_link: show_secret_link,
-          show_metadata_link: show_metadata_link,
-          show_metadata: show_metadata,
+          show_receipt_link: show_receipt_link,
+          show_receipt: show_receipt,
           show_recipients: show_recipients,
         }
       end
 
       def process_uris
         @share_path    = build_path(:secret, secret_identifier)
-        @burn_path     = build_path(:private, receipt_identifier, 'burn')
-        @receipt_path  = build_path(:private, receipt_identifier)
+        @burn_path     = build_path(:receipt, receipt_identifier, 'burn')
+        @receipt_path  = build_path(:receipt, receipt_identifier)
         @metadata_path = @receipt_path # maintain public API
         @share_url     = build_url(share_domain, @share_path)
         @receipt_url   = build_url(baseuri, @receipt_path)

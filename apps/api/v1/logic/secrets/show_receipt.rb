@@ -11,12 +11,12 @@ module V1::Logic
       # Working variables
       attr_reader :key, :receipt, :secret
       # Template variables
-      attr_reader :metadata_key, :metadata_shortid, :secret_key, :secret_state,
+      attr_reader :receipt_key, :metadata_shortid, :secret_key, :secret_state,
             :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
-            :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
+            :show_secret, :show_secret_link, :show_receipt_link, :receipt_attributes,
             :show_metadata, :show_recipients, :share_domain, :is_orphaned,
             :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
             :metadata_url, :burn_url, :display_lines
@@ -34,8 +34,8 @@ module V1::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @receipt.load_secret
 
-        @metadata_key = receipt.key
-        @metadata_short_identifier = receipt.shortid
+        @receipt_key = receipt.key
+        @receipt_short_identifier = receipt.shortid
         @secret_key = receipt.secret_key
         @secret_shortid = receipt.secret_shortid
 
@@ -89,7 +89,7 @@ module V1::Logic
             @can_decrypt = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
-            # a secret we can show the received contents on the "/private/metadata_key"
+            # a secret we can show the received contents on the "/private/receipt_key"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
             @secret_value = secret.decrypted_value if @can_decrypt
@@ -122,7 +122,7 @@ module V1::Logic
         # A simple check to show the receipt link only for newly
         # created secrets.
         #
-        @show_metadata_link = receipt.state?(:new)
+        @show_receipt_link = receipt.state?(:new)
 
         # Allow the receipt to be shown if it hasn't been previewed/viewed yet OR
         # if the current user owns it (regardless of its previewed/viewed state).
@@ -157,7 +157,7 @@ module V1::Logic
         process_uris
 
         # Dump the receipt attributes before marking as previewed
-        @metadata_attributes = self._metadata_attributes
+        @receipt_attributes = self._receipt_attributes
 
         # We mark the receipt record previewed so that we can support showing the
         # secret link on the receipt page, just the one time.
@@ -171,14 +171,14 @@ module V1::Logic
 
       def success_data
         {
-          record: metadata_attributes,
+          record: receipt_attributes,
           details: ancillary_attributes,
         }
       end
 
       private
 
-      def _metadata_attributes
+      def _receipt_attributes
         # Start with safe receipt attributes
         attributes = receipt.safe_dump
 
@@ -215,7 +215,7 @@ module V1::Logic
           is_truncated: is_truncated,
           show_secret: show_secret,
           show_secret_link: show_secret_link,
-          show_metadata_link: show_metadata_link,
+          show_receipt_link: show_receipt_link,
           show_metadata: show_metadata,
           show_recipients: show_recipients,
         }
@@ -223,8 +223,8 @@ module V1::Logic
 
       def process_uris
         @share_path = build_path(:secret, secret_key)
-        @burn_path = build_path(:private, metadata_key, 'burn')
-        @metadata_path = build_path(:private, metadata_key)
+        @burn_path = build_path(:receipt, receipt_key, 'burn')
+        @metadata_path = build_path(:receipt, receipt_key)
         @share_url = build_url(share_domain, @share_path)
         @metadata_url = build_url(baseuri, @metadata_path)
         @burn_url = build_url(baseuri, @burn_path)

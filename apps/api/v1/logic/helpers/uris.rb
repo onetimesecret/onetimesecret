@@ -10,7 +10,7 @@ module V1
       include V1::TimeUtils
 
       def private_uri(obj)
-        format('/private/%s', obj.key)
+        format('/receipt/%s', obj.key)
       end
 
       def secret_uri(obj)

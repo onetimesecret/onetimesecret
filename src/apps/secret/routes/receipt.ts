@@ -100,7 +100,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/private/:receiptIdentifier/burn',
+    path: '/receipt/:receiptIdentifier/burn',
     name: 'Burn secret',
     component: BurnSecret,
     ...withValidatedReceiptKey,

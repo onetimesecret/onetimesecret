@@ -1,7 +1,7 @@
 // src/tests/stores/receiptListStore.spec.ts
 
-import { useReceiptListStore } from '@/shared/stores/receiptListStore';
 import { createApi } from '@/api';
+import { useReceiptListStore } from '@/shared/stores/receiptListStore';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
@@ -160,7 +160,7 @@ describe('receiptListStore', () => {
     });
 
     it('handles validation errors correctly', async () => {
-      axiosMock.onGet('/api/v3/private/recent').reply(200, {
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, {
         records: [{ invalid: 'data' }],
       });
 

@@ -189,7 +189,7 @@
         "tags": ["v1", "secrets", "reveal", "danger"]
       }
     },
-    "/v1/private/{metadata_key}/burn": {
+    "/v1/receipt/{metadata_key}/burn": {
       "post": {
         "summary": "Burn a secret",
         "parameters": [
@@ -210,7 +210,7 @@
         "tags": ["v1", "secrets", "metadata", "danger"]
       }
     },
-    "/v1/private/{metadata_key}": {
+    "/v1/receipt/{metadata_key}": {
       "post": {
         "summary": "Retrieve metadata",
         "parameters": [
@@ -231,7 +231,7 @@
         "tags": ["v1", "secrets", "metadata"]
       }
     },
-    "/v1/private/recent": {
+    "/v1/receipt/recent": {
       "get": {
         "summary": "Retrieve recent metadata",
         "responses": {
@@ -1575,10 +1575,10 @@
           "no_cache": {
             "type": "boolean"
           },
-          "show_metadata_link": {
+          "show_receipt_link": {
             "type": "boolean"
           },
-          "show_metadata": {
+          "show_receipt": {
             "type": "boolean"
           },
           "show_recipients": {
@@ -2586,10 +2586,10 @@
                   "no_cache": {
                     "type": "boolean"
                   },
-                  "show_metadata_link": {
+                  "show_receipt_link": {
                     "type": "boolean"
                   },
-                  "show_metadata": {
+                  "show_receipt": {
                     "type": "boolean"
                   },
                   "show_recipients": {
