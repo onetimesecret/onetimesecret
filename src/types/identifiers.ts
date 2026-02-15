@@ -106,8 +106,6 @@ const EXTID_PREFIXES = {
   organization: 'on',
   domain: 'cd',
   customer: 'ur',
-  secret: 'se',
-  metadata: 'md',
 } as const;
 
 /**
