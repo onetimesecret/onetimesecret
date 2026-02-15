@@ -194,6 +194,7 @@
     "@vitejs/plugin-vue": "^6.0.3",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
+    "@vue/compiler-dom": "^3.5.28",
     "@vue/test-utils": "^2.4.6",
     "axios-mock-adapter": "^2.1.0",
     "esbuild": "^0.27.2",
