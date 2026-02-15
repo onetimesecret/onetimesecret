@@ -59,7 +59,7 @@ describe('receiptStore', () => {
   });
 
   describe('fetch', () => {
-    it('should fetch and validate metadata successfully', async () => {
+    it('should fetch and validate receipt successfully', async () => {
       const testKey = mockReceiptRecord.key;
       const mockResponse = {
         record: mockReceiptRecordRaw,
@@ -74,7 +74,7 @@ describe('receiptStore', () => {
       expect(store.details).toEqual(mockReceiptDetails);
     });
 
-    it('should handle not found errors when fetching metadata', async () => {
+    it('should handle not found errors when fetching receipt', async () => {
       const testKey = mockReceiptRecord.key;
       const errorMessage = 'Request failed with status code 404';
 
@@ -90,7 +90,7 @@ describe('receiptStore', () => {
   });
 
   describe('burn', () => {
-    it('should burn metadata successfully', async () => {
+    it('should burn receipt successfully', async () => {
       const testKey = mockReceiptRecord.key;
       const mockResponse = {
         record: mockBurnedReceiptRecordRaw,
@@ -136,7 +136,7 @@ describe('receiptStore', () => {
       await expect(store.burn(testKey)).rejects.toThrow('Cannot burn this receipt');
     });
 
-    it('should burn metadata with passphrase', async () => {
+    it('should burn receipt with passphrase', async () => {
       const testKey = mockReceiptRecord.key;
       const passphrase = 'secret123';
       const { record, details } = createReceiptWithPassphrase(passphrase);
@@ -162,7 +162,7 @@ describe('receiptStore', () => {
       expect(store.details).toEqual(mockBurnedReceiptDetails);
     });
 
-    it('should handle errors when burning invalid metadata', async () => {
+    it('should handle errors when burning invalid receipt', async () => {
       const testKey = mockBurnedReceiptRecord.key;
       store.record = mockBurnedReceiptRecord;
 
@@ -239,7 +239,7 @@ describe('receiptStore', () => {
     });
   });
 
-  describe('Advanced Metadata Store Scenarios', () => {
+  describe('Advanced Receipt Store Scenarios', () => {
     // Initialization Flexibility
     describe('Store Initialization', () => {
       it('supports custom error handling during initialization', async () => {
@@ -301,7 +301,7 @@ describe('receiptStore', () => {
 
         // Simulate 403 Forbidden scenario
         axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply(403, {
-          message: 'Unauthorized to burn this metadata',
+          message: 'Unauthorized to burn this receipt',
         });
 
         // Setup initial state to allow burning

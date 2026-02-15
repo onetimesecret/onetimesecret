@@ -286,10 +286,10 @@ describe('WorkspaceSecretForm Logic', () => {
   describe('Navigation Behavior', () => {
     it('navigates to /receipt/{id} when workspaceMode is OFF', () => {
       const workspaceMode = false;
-      const metadataIdentifier = 'abc123def456';
+      const receiptIdentifier = 'abc123def456';
 
       if (!workspaceMode) {
-        mockRouterPush(`/receipt/${metadataIdentifier}`);
+        mockRouterPush(`/receipt/${receiptIdentifier}`);
       }
 
       expect(mockRouterPush).toHaveBeenCalledWith('/receipt/abc123def456');
@@ -297,10 +297,10 @@ describe('WorkspaceSecretForm Logic', () => {
 
     it('does not navigate when workspaceMode is ON', () => {
       const workspaceMode = true;
-      const metadataIdentifier = 'abc123def456';
+      const receiptIdentifier = 'abc123def456';
 
       if (!workspaceMode) {
-        mockRouterPush(`/receipt/${metadataIdentifier}`);
+        mockRouterPush(`/receipt/${receiptIdentifier}`);
       }
 
       expect(mockRouterPush).not.toHaveBeenCalled();
@@ -326,7 +326,7 @@ describe('WorkspaceSecretForm Logic', () => {
     it('constructs payload with correct structure', () => {
       const mockResponse = {
         record: {
-          metadata: { identifier: 'meta123' },
+          receipt: { identifier: 'receipt123' },
           secret: { identifier: 'secret456' },
         },
       };
@@ -336,7 +336,7 @@ describe('WorkspaceSecretForm Logic', () => {
 
       const newMessage = {
         id: 'nanoid123',
-        receipt_identifier: mockResponse.record.metadata.identifier,
+        receipt_identifier: mockResponse.record.receipt.identifier,
         secret_identifier: mockResponse.record.secret.identifier,
         response: mockResponse,
         clientInfo: {
@@ -346,7 +346,7 @@ describe('WorkspaceSecretForm Logic', () => {
         },
       };
 
-      expect(newMessage.receipt_identifier).toBe('meta123');
+      expect(newMessage.receipt_identifier).toBe('receipt123');
       expect(newMessage.secret_identifier).toBe('secret456');
       expect(newMessage.clientInfo.hasPassphrase).toBe(false);
       expect(newMessage.clientInfo.ttl).toBe(604800);

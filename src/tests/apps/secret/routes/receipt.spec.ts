@@ -35,8 +35,8 @@ describe('Receipt Routes', () => {
     });
   });
 
-  describe('Private Link Route (/private)', () => {
-    it('should not define private route with metadata path', () => {
+  describe('Legacy Private Link Route (/private)', () => {
+    it('should not define legacy private route', () => {
       const route = routes.find(
         (route: RouteRecordRaw) => route.path === '/metadata/:receiptIdentifier'
       );
@@ -44,8 +44,8 @@ describe('Receipt Routes', () => {
     });
   });
 
-  describe('Legacy Metadata Link Route (/metadata)', () => {
-    it('should not define legacy metadata route', () => {
+  describe('Legacy Metadata Route (/metadata)', () => {
+    it('should not define legacy /metadata route', () => {
       const route = routes.find(
         (route: RouteRecordRaw) => route.path === '/metadata/:receiptIdentifier'
       );

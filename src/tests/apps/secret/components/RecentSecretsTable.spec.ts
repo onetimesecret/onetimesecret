@@ -26,7 +26,7 @@ const createMockRecord = (id: string): RecentSecretRecord => {
   const message = createMockLocalReceipt(id);
   return {
     id,
-    extid: `metadata-${id}`,
+    extid: `receipt-${id}`,
     shortid: `short-${id}`,
     secretExtid: `secret-${id}`,
     hasPassphrase: false,
@@ -343,7 +343,7 @@ describe('RecentSecretsTable', () => {
       // Add API source record
       const apiRecord: RecentSecretRecord = {
         id: 'api-1',
-        extid: 'api-metadata-1',
+        extid: 'api-receipt-1',
         shortid: 'api-short-1',
         secretExtid: 'api-secret-1',
         hasPassphrase: true,
