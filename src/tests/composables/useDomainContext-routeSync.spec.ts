@@ -107,10 +107,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { currentContext, setContext } = useDomainContext();
+      const { currentContext, setContext, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       const initialDomain = currentContext.value.domain;
 
@@ -126,10 +126,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { getExtidByDomain } = useDomainContext();
+      const { getExtidByDomain, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       expect(getExtidByDomain('acme.example.com')).toBe('cd_acme_example_com');
     });
@@ -142,7 +142,7 @@ describe('useDomainContext route synchronization', () => {
       const api = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await api.initialized;
 
       expect(api).toHaveProperty('getDomainByExtid');
       expect(api).toHaveProperty('setContextByExtid');
@@ -153,10 +153,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { getDomainByExtid } = useDomainContext();
+      const { getDomainByExtid, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       expect(getDomainByExtid('cd_acme_example_com')).toBe('acme.example.com');
       expect(getDomainByExtid('cd_widgets_example_com')).toBe('widgets.example.com');
@@ -167,10 +167,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { getDomainByExtid } = useDomainContext();
+      const { getDomainByExtid, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       expect(getDomainByExtid('cd_unknown_domain')).toBeUndefined();
     });
@@ -180,10 +180,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { currentContext, setContextByExtid } = useDomainContext();
+      const { currentContext, setContextByExtid, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       expect(currentContext.value.domain).toBe('acme.example.com');
 
@@ -196,10 +196,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { currentContext, setContextByExtid } = useDomainContext();
+      const { currentContext, setContextByExtid, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       const initialDomain = currentContext.value.domain;
       await setContextByExtid('cd_unknown_domain');
@@ -213,10 +213,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { currentContext } = useDomainContext();
+      const { currentContext, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       expect(currentContext.value.domain).toBe('acme.example.com');
 
@@ -229,10 +229,10 @@ describe('useDomainContext route synchronization', () => {
       setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { currentContext, setContext } = useDomainContext();
+      const { currentContext, setContext, initialized } = useDomainContext();
 
       await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await initialized;
 
       expect(currentContext.value.domain).toBe('acme.example.com');
 

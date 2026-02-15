@@ -13,6 +13,7 @@
  * @see docs/product/interaction-modes.md - Domain Context concept
  */
 
+import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -299,7 +300,10 @@ export function useDomainContext() {
   const setContextByExtid = async (extid: string, skipBackendSync = true): Promise<void> => {
     const domain = getDomainByExtid(extid);
     if (domain) await setContext(domain, skipBackendSync);
-    else console.debug('[useDomainContext] No domain found for extid:', extid);
+    else loggingService.debug(
+      '[useDomainContext] No domain found for extid',
+      { extid }
+    );
   };
 
   return {

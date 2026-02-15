@@ -61,6 +61,7 @@ const {
   getDomainDisplayName,
   getExtidByDomain,
   setContextByExtid,
+  initialized,
 } = useDomainContext();
 
 /**
@@ -135,8 +136,9 @@ const shouldShow = computed(() => isContextActive.value);
 // Sync domain context when route :extid param changes (e.g., navigating to a domain detail page)
 watch(
   () => route.params.extid as string | undefined,
-  (extid) => {
+  async (extid) => {
     if (extid && shouldShow.value) {
+      await initialized;
       setContextByExtid(extid);
     }
   },
