@@ -24,7 +24,7 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 export interface RecentSecretRecord {
   /** Unique identifier for the record */
   id: string;
-  /** External ID for URL routing (metadata identifier) */
+  /** External ID for URL routing (receipt identifier) */
   extid: string;
   /** Short ID for display (truncated version) */
   shortid: string;

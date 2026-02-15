@@ -116,7 +116,7 @@
         <h2
           id="recent-secrets-heading"
           class="text-lg font-medium text-gray-600 dark:text-gray-300">
-          {{ t('web.COMMON.recent') }}
+          {{ t('web.LABELS.receipts') }}
         </h2>
         <p
           v-if="scopeDescription"

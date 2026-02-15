@@ -95,11 +95,11 @@
       <div class="mb-6">
         <h1
           v-if="details?.has_passphrase"
-          class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-200">
+          class="mt-2 text-xl font-medium text-gray-800 dark:text-gray-200">
           {{ t('web.COMMON.burn_this_secret_aria') }}
         </h1>
         <h2 class="text-xl text-gray-600 dark:text-gray-400">
-          {{ t('web.COMMON.secret') }}: {{ record?.secret_shortid }}
+          {{ t('web.COMMON.secret') }}: {{ record?.secret_shortid?.slice(0, 4) }}
         </h2>
       </div>
 
@@ -128,9 +128,9 @@
           type="submit"
           :disabled="isLoading"
           class="group flex w-full items-center justify-center rounded-md
-            bg-yellow-400 px-4 py-2 text-gray-800  duration-200
-            hover:bg-yellow-500
-            focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2
+            bg-amber-400 px-4 py-2 text-gray-800 duration-200
+            hover:bg-amber-500
+            focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2
             dark:focus:ring-offset-gray-800"
           aria-describedby="burn-action-description">
           <OIcon
@@ -148,13 +148,12 @@
             dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
           {{ t('web.COMMON.word_cancel') }}
         </a>
-        <div class="py-6"></div>
         <p
           id="burn-action-description"
-          class="text-center text-base text-gray-600 dark:text-gray-400">
+          class="mt-10 text-center text-base text-gray-600 dark:text-gray-400">
           {{ t('web.COMMON.burn_this_secret_confirm_hint') }}
         </p>
-        <div class="my-6 py-12"></div>
+        <div class="pb-16"></div>
       </form>
     </div>
   </div>

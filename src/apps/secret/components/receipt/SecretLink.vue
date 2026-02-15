@@ -72,7 +72,7 @@
             aria-hidden="true" />
           <div class="absolute inset-0 size-full rounded-full opacity-50"></div>
         </div>
-        <span>{{ t('web.private.created_success') }}</span>
+        <span>{{ t('web.receipt.created_success') }}</span>
       </div>
 
       <!-- Subsequent Message -->
@@ -86,7 +86,7 @@
           class="size-4 transition-transform duration-300 group-hover:rotate-12"
           aria-hidden="true" />
         <span class="transition-colors group-hover:text-brand-500 dark:group-hover:text-brand-400">
-          {{ record.secret_shortid }}
+          {{ record.secret_shortid?.slice(0, 4) }}
         </span>
       </div>
 

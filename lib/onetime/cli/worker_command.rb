@@ -100,17 +100,15 @@ module Onetime
           }
           bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
-          conn    = Bunny.new(amqp_url, **bunny_config)
+          conn = Bunny.new(amqp_url, **bunny_config)
           conn.start
-          channel = conn.create_channel
 
-          # Declare all exchanges and queues via QueueDeclarator (single source of truth)
-          Onetime::Jobs::QueueDeclarator.declare_all(channel)
+          # Declare all exchanges and queues via QueueDeclarator (single source of truth).
+          # This raises InfrastructureError if any queues are missing after declaration,
+          # preventing the worker from starting in a broken state.
+          Onetime::Jobs::QueueDeclarator.declare_all(conn)
 
-          channel.close
           conn.close
-        rescue StandardError => ex
-          Onetime.bunny_logger.error "[Worker] Failed to initialize infrastructure: #{ex.message}"
         end
 
         # Periodic heartbeat logging for observability

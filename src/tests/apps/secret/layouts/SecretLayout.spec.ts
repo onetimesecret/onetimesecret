@@ -65,7 +65,7 @@ const i18n = createI18n({
 /**
  * SecretLayout Component Tests
  *
- * Tests the secret layout for conceal, metadata, and incoming flows.
+ * Tests the secret layout for conceal, receipt, and incoming flows.
  * Composes BaseLayout with TransactionalHeader + TransactionalFooter.
  */
 describe('SecretLayout', () => {

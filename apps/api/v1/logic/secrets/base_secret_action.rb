@@ -69,7 +69,7 @@ module V1::Logic
       end
 
       def redirect_uri
-        ['/private/', receipt.key].join
+        ['/receipt/', receipt.key].join
       end
 
       protected

@@ -182,7 +182,7 @@ describe('useReceipt', () => {
     });
   });
 
-  describe('fetching metadata', () => {
+  describe('fetching receipt', () => {
     const store = {
       fetch: vi.fn().mockImplementation(async () => {
         store.record.value = mockReceiptRecord;
@@ -202,7 +202,7 @@ describe('useReceipt', () => {
       store.isLoading.value = false;
     });
 
-    it('should handle successful metadata fetch', async () => {
+    it('should handle successful receipt fetch', async () => {
       const { fetch, record, details, isLoading } = useReceipt('test-key');
 
       const promise = fetch();

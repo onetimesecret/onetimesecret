@@ -13,6 +13,7 @@
  * @see docs/product/interaction-modes.md - Domain Context concept
  */
 
+import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -60,6 +61,8 @@ function getConfig() {
     canonicalDomain: store.site_host,
     displayDomain: store.display_domain,
     serverDomainContext: store.domain_context,
+    domainStrategy: store.domain_strategy,
+    customDomains: store.custom_domains ?? [],
   };
 }
 
@@ -97,6 +100,14 @@ function findExtidByDomain(
   return storeDomains.find((d) => d.display_domain === domain)?.extid;
 }
 
+/** Find display_domain for a given extid from store domains */
+function findDomainByExtid(
+  storeDomains: Array<{ display_domain: string; extid: string }>,
+  extid: string
+): string | undefined {
+  return storeDomains.find((d) => d.extid === extid)?.display_domain;
+}
+
 /** Sync domain context to backend (fire-and-forget) */
 async function syncDomainContextToServer(
   $api: AxiosInstance | undefined,
@@ -107,6 +118,21 @@ async function syncDomainContextToServer(
     await $api.post('/api/account/update-domain-context', { domain });
   } catch (error) {
     console.warn('[useDomainContext] Failed to sync to server:', error);
+  }
+}
+
+/** Persist domain selection: custom domains sync to server + sessionStorage; others clear session */
+async function persistDomainContext(
+  $api: AxiosInstance | undefined,
+  domain: string,
+  skipBackendSync: boolean
+): Promise<void> {
+  const { customDomains } = getConfig();
+  if (customDomains.includes(domain)) {
+    sessionStorage.setItem('domainContext', domain);
+    if (!skipBackendSync) await syncDomainContextToServer($api, domain);
+  } else {
+    sessionStorage.removeItem('domainContext');
   }
 }
 
@@ -219,33 +245,23 @@ export function useDomainContext() {
   const domainsStore = useDomainsStore();
   const organizationStore = useOrganizationStore();
 
-  const availableDomains = computed<string[]>(() =>
-    buildAvailableDomains(domainsStore.domains || [])
-  );
+  const availableDomains = computed<string[]>(() => buildAvailableDomains(domainsStore.domains || []));
 
   const fetchDomainsForOrganization = createDomainFetcher(organizationStore, domainsStore);
 
-  // Set up module-level watcher ONCE (not per-composable-call)
-  // This prevents multiple watchers racing when org becomes available
+  // Set up module-level watcher ONCE to prevent multiple watchers racing
   if (!watcherInitialized) {
     watcherInitialized = true;
-
-    // Watch for organization changes (including initial load from null -> org)
-    // This handles the case where org isn't available during initial composable setup
-    // Using immediate: true ensures we catch the case where org is already set
     watch(
       () => organizationStore.currentOrganization?.id,
       async (newOrgId, oldOrgId) => {
         if (newOrgId && newOrgId !== oldOrgId) {
           const isCurrentRequest = await fetchDomainsForOrganization();
           if (!isCurrentRequest) return;
-
-          // First-time org load (initialization was deferred): run full domain selection
           if (!isInitialized.value) {
             currentDomain.value = selectBestDomain(availableDomains.value);
             isInitialized.value = true;
           } else if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-            // Org switch: only update if current domain is no longer available
             currentDomain.value = getPreferredDomain(availableDomains.value);
           }
         }
@@ -270,18 +286,24 @@ export function useDomainContext() {
     };
   });
 
-  /**
-   * Set the current domain context
-   * @param domain - The domain to set as active context
-   * @param skipBackendSync - If true, skips the backend sync (use when server already set the context)
-   */
   const setContext = async (domain: string, skipBackendSync = false): Promise<void> => {
     if (!availableDomains.value.includes(domain)) return;
     currentDomain.value = domain;
-    sessionStorage.setItem('domainContext', domain);
-    if (!skipBackendSync) {
-      await syncDomainContextToServer($api, domain);
-    }
+    await persistDomainContext($api, domain, skipBackendSync);
+  };
+
+  /** Reverse lookup: find display_domain for a given extid */
+  const getDomainByExtid = (extid: string): string | undefined =>
+    findDomainByExtid(domainsStore.domains || [], extid);
+
+  /** Set domain context by extid (route param). Skips backend sync by default. */
+  const setContextByExtid = async (extid: string, skipBackendSync = true): Promise<void> => {
+    const domain = getDomainByExtid(extid);
+    if (domain) await setContext(domain, skipBackendSync);
+    else loggingService.debug(
+      '[useDomainContext] No domain found for extid',
+      { extid }
+    );
   };
 
   return {
@@ -291,14 +313,12 @@ export function useDomainContext() {
     availableDomains,
     isLoadingDomains: computed(() => isLoadingDomains.value),
     setContext,
-    resetContext: () => {
-      const { canonicalDomain } = getConfig();
-      currentDomain.value = canonicalDomain || '';
-      sessionStorage.removeItem('domainContext');
-    },
+    resetContext: () => { currentDomain.value = getConfig().canonicalDomain || ''; sessionStorage.removeItem('domainContext'); },
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
     getExtidByDomain: (domain: string) => findExtidByDomain(domainsStore.domains || [], domain),
+    getDomainByExtid,
+    setContextByExtid,
     initialized: initPromise,
   };
 }

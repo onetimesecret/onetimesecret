@@ -96,7 +96,7 @@ module V2::Logic
           owner.verified    = true
           owner.verified_by = 'email'
           owner.save
-          sess.destroy!
+          sess.clear
           secret.received!
         else
           raise_form_error "You can't verify an account when you're already logged in."

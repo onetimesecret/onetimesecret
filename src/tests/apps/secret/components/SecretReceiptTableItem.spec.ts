@@ -90,7 +90,7 @@ describe('SecretReceiptTableItem', () => {
   it('displays secret_shortid when present', () => {
     const wrapper = mountComponent({ secret_shortid: 'abc123' });
     const identifier = wrapper.find('.font-mono');
-    expect(identifier.text()).toBe('abc123');
+    expect(identifier.text()).toBe('abc1');
   });
 
   it('displays em-dash when secret_shortid is undefined', () => {
@@ -122,10 +122,10 @@ describe('SecretReceiptTableItem', () => {
     expect(identifier.text()).toBe('\u2014');
   });
 
-  it('displays empty string secret_shortid as-is (not em-dash)', () => {
-    // Empty string is falsy but not nullish, so ?? won't trigger
+  it('displays em-dash when secret_shortid is empty string', () => {
+    // Empty string is falsy, so component returns em-dash
     const wrapper = mountComponent({ secret_shortid: '' });
     const identifier = wrapper.find('.font-mono');
-    expect(identifier.text()).toBe('');
+    expect(identifier.text()).toBe('\u2014');
   });
 });

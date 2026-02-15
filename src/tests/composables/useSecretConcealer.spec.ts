@@ -114,8 +114,8 @@ describe('useSecretConcealer', () => {
   describe('form mode handling', () => {
     beforeEach(() => {
       const store = {
-        conceal: vi.fn().mockResolvedValue({ record: { metadata: { key: 'test' } } }),
-        generate: vi.fn().mockResolvedValue({ record: { metadata: { key: 'test' } } }),
+        conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: vi.fn(),
       };
       vi.mocked(useSecretStore).mockReturnValue(store);
@@ -144,8 +144,8 @@ describe('useSecretConcealer', () => {
     beforeEach(() => {
       mockSetApiMode = vi.fn();
       const store = {
-        conceal: vi.fn().mockResolvedValue({ record: { metadata: { key: 'test' } } }),
-        generate: vi.fn().mockResolvedValue({ record: { metadata: { key: 'test' } } }),
+        conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: mockSetApiMode,
       };
       vi.mocked(useSecretStore).mockReturnValue(store);

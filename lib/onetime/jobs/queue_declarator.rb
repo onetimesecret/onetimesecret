@@ -26,8 +26,8 @@ module Onetime
     #   # Declare a queue via Bunny channel
     #   QueueDeclarator.declare_queue(channel, 'email.message.send')
     #
-    #   # Declare all exchanges and queues
-    #   QueueDeclarator.declare_all(channel)
+    #   # Declare all exchanges and queues (pass connection, not channel)
+    #   QueueDeclarator.declare_all(conn)
     #
     #   # Get options for Sneakers from_queue directive
     #   from_queue QUEUE_NAME,
@@ -39,6 +39,7 @@ module Onetime
     module QueueDeclarator
       class UnknownQueueError < StandardError; end
       class WorkerConfigMismatchError < StandardError; end
+      class InfrastructureError < StandardError; end
 
       class << self
         # Returns Bunny queue options for channel.queue() call
@@ -118,14 +119,32 @@ module Onetime
         # 3. Primary queues - with DLX arguments
         #
         # This is idempotent - safe to call from multiple processes.
+        # Each phase uses its own channel so a PreconditionFailed error
+        # (which closes the channel) doesn't prevent subsequent declarations.
         #
-        # @param channel [Bunny::Channel] Open channel
+        # @param conn [Bunny::Session] Open RabbitMQ connection
         # @return [void]
+        # @raise [InfrastructureError] if any queues are missing after declaration
         #
-        def declare_all(channel)
-          declare_dead_letter_exchanges(channel)
-          declare_dead_letter_queues(channel)
-          declare_primary_queues(channel)
+        def declare_all(conn)
+          errors = []
+
+          declare_dead_letter_exchanges(conn, errors)
+          declare_dead_letter_queues(conn, errors)
+          declare_primary_queues(conn, errors)
+
+          missing = verify_queues(conn)
+
+          if errors.any? || missing.any?
+            errors.each { |e| log_error "Declaration failed: #{e}" }
+            missing.each { |q| log_error "Missing after declaration: #{q}" }
+            raise InfrastructureError,
+              "#{errors.size} declaration error(s), #{missing.size} queue(s) missing: #{missing.join(', ')}. " \
+              'Run: bin/ots queue reset --force'
+          end
+
+          log_info "All #{QueueConfig::QUEUES.size} queues and " \
+                   "#{QueueConfig::DEAD_LETTER_CONFIG.size} DLX exchanges declared"
         end
 
         # Validates that a worker class configuration matches QueueConfig
@@ -211,26 +230,63 @@ module Onetime
           config
         end
 
-        def declare_dead_letter_exchanges(channel)
+        def declare_dead_letter_exchanges(conn, errors)
+          channel = conn.create_channel
           QueueConfig::DEAD_LETTER_CONFIG.each_key do |exchange_name|
             channel.fanout(exchange_name, durable: true)
             log_debug "Declared DLX '#{exchange_name}'"
+          rescue Bunny::PreconditionFailed => ex
+            errors << "DLX '#{exchange_name}': #{ex.message}"
+            log_error "Failed to declare DLX '#{exchange_name}': #{ex.message}"
+            channel = conn.create_channel
           end
+          channel.close if channel&.open?
         end
 
-        def declare_dead_letter_queues(channel)
+        def declare_dead_letter_queues(conn, errors)
+          channel = conn.create_channel
           QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
             queue = channel.queue(config[:queue], durable: true)
             queue.bind(exchange_name)
             log_debug "Declared and bound DLQ '#{config[:queue]}'"
+          rescue Bunny::PreconditionFailed => ex
+            errors << "DLQ '#{config[:queue]}': #{ex.message}"
+            log_error "Failed to declare DLQ '#{config[:queue]}': #{ex.message}"
+            channel = conn.create_channel
           end
+          channel.close if channel&.open?
         end
 
-        def declare_primary_queues(channel)
+        def declare_primary_queues(conn, errors)
+          channel = conn.create_channel
           QueueConfig::QUEUES.each_key do |queue_name|
             declare_queue(channel, queue_name)
             log_debug "Declared primary queue '#{queue_name}'"
+          rescue Bunny::PreconditionFailed => ex
+            errors << "Queue '#{queue_name}': #{ex.message}"
+            log_error "Failed to declare queue '#{queue_name}': #{ex.message}"
+            channel = conn.create_channel
           end
+          channel.close if channel&.open?
+        end
+
+        # Verify all expected primary queues exist after declaration
+        #
+        # @param conn [Bunny::Session] Open RabbitMQ connection
+        # @return [Array<String>] Names of missing queues
+        def verify_queues(conn)
+          missing = []
+          channel = conn.create_channel
+
+          QueueConfig::QUEUES.each_key do |queue_name|
+            channel.queue(queue_name, passive: true)
+          rescue Bunny::NotFound
+            missing << queue_name
+            channel = conn.create_channel
+          end
+
+          channel.close if channel&.open?
+          missing
         end
 
         def normalize_arguments(args)
@@ -240,6 +296,14 @@ module Onetime
 
         def log_debug(message)
           Onetime.bunny_logger&.debug("[QueueDeclarator] #{message}")
+        end
+
+        def log_info(message)
+          Onetime.bunny_logger&.info("[QueueDeclarator] #{message}")
+        end
+
+        def log_error(message)
+          Onetime.bunny_logger&.error("[QueueDeclarator] #{message}")
         end
       end
     end

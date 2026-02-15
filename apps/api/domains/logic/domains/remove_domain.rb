@@ -44,6 +44,11 @@ module DomainsAPI::Logic
         # vhost record.
         @custom_domain.destroy!
 
+        # Clear the session's domain context if it matches the removed domain
+        if sess && sess['domain_context'] == @display_domain
+          sess['domain_context'] = nil
+        end
+
         success_data
       end
 
