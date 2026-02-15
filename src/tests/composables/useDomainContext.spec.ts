@@ -936,4 +936,55 @@ describe('useDomainContext', () => {
       expect(currentContext.value.domain).toBe('');
     });
   });
+
+  describe('ghost domain fallback', () => {
+    it('falls back to preferred domain when serverDomainContext is not in available domains', async () => {
+      const { bootstrapStore } = setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Server references a domain that was removed (ghost domain)
+      bootstrapStore.domain_context = 'deleted-domain.example.com';
+
+      // Only these domains are actually available
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should skip the ghost domain and fall back to preferred (first custom)
+      expect(currentContext.value.domain).not.toBe('deleted-domain.example.com');
+      expect(currentContext.value.domain).toBe('acme.example.com');
+    });
+
+    it('falls back when both serverDomainContext and sessionStorage reference removed domain', async () => {
+      // Both persistence layers point to a domain that no longer exists
+      mockSessionStorage.setItem('domainContext', 'removed-domain.example.com');
+
+      const { bootstrapStore } = setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+      bootstrapStore.domain_context = 'removed-domain.example.com';
+
+      // The removed domain is not in the available list
+      setMockDomains(['surviving.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should fall back to first available custom domain
+      expect(currentContext.value.domain).toBe('surviving.example.com');
+      expect(currentContext.value.domain).not.toBe('removed-domain.example.com');
+    });
+  });
 });
