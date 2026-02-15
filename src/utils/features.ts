@@ -48,6 +48,18 @@ export function isOmniAuthEnabled(): boolean {
 }
 
 /**
+ * Checks if authentication mode is 'full' (Rodauth with SQL db).
+ * When mode is 'simple' (or undefined), security features like
+ * password change, MFA, sessions, and passkeys are not available.
+ */
+export function isFullAuthMode(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const authentication = getBootstrapValue('authentication');
+  return authentication?.mode === 'full';
+}
+
+/**
  * Gets all enabled authentication features
  */
 export function getAuthFeatures(): AuthFeatures {
