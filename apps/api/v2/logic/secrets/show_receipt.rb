@@ -11,7 +11,7 @@ module V2::Logic
       attr_reader :identifier, :receipt, :secret
       # Template variables
       attr_reader :receipt_identifier,
-        :metadata_shortid,
+        :receipt_shortid,
         :secret_identifier,
         :secret_state,
         :secret_shortid,
@@ -60,10 +60,10 @@ module V2::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @receipt.load_secret
 
-        @receipt_identifier        = receipt.identifier
-        @metadata_short_identifier = receipt.shortid
-        @secret_identifier         = receipt.secret_identifier
-        @secret_shortid            = receipt.secret_shortid
+        @receipt_identifier = receipt.identifier
+        @receipt_shortid    = receipt.shortid
+        @secret_identifier  = receipt.secret_identifier
+        @secret_shortid     = receipt.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't

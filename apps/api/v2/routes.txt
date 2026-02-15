@@ -5,7 +5,7 @@
 #
 # V2 API returns string values for all fields.
 
-# Secrets - Private (Authenticated)
+# Receipts (creator-facing secret metadata)
 GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=noauth
 POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
 GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=noauth

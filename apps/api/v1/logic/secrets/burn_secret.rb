@@ -85,6 +85,7 @@ module V1::Logic
             show_secret: false,
             show_secret_link: false,
             show_receipt_link: false, # maintain public API
+            show_receipt: true,
             show_metadata: true, # maintain public API
             show_recipients: !receipt.recipients.to_s.empty?,
             is_orphaned: false,

@@ -70,7 +70,7 @@ module V1
         end
       end
 
-      def show_metadata
+      def show_receipt
         authorized(true) do
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns

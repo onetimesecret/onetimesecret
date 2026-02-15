@@ -11,15 +11,16 @@ module V1::Logic
       # Working variables
       attr_reader :key, :receipt, :secret
       # Template variables
-      attr_reader :receipt_key, :metadata_shortid, :secret_key, :secret_state,
+      attr_reader :receipt_key, :receipt_shortid, :secret_key, :secret_state,
             :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
             :show_secret, :show_secret_link, :show_receipt_link, :receipt_attributes,
-            :show_metadata, :show_recipients, :share_domain, :is_orphaned,
-            :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
-            :metadata_url, :burn_url, :display_lines
+            :show_receipt, :show_recipients, :share_domain, :is_orphaned,
+            :share_path, :burn_path, :receipt_path, :share_url, :is_expired,
+            :receipt_url, :metadata_path, :metadata_url, :burn_url, :display_lines,
+            :show_metadata # maintain public API
 
       def process_params
         @key = sanitize_identifier(params['key'].to_s)
@@ -35,7 +36,7 @@ module V1::Logic
         @secret = @receipt.load_secret
 
         @receipt_key = receipt.key
-        @receipt_short_identifier = receipt.shortid
+        @receipt_shortid = receipt.shortid
         @secret_key = receipt.secret_key
         @secret_shortid = receipt.secret_shortid
 
@@ -89,7 +90,7 @@ module V1::Logic
             @can_decrypt = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
-            # a secret we can show the received contents on the "/private/receipt_key"
+            # a secret we can show the received contents on the "/receipt/receipt_key"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
             @secret_value = secret.decrypted_value if @can_decrypt
@@ -131,16 +132,17 @@ module V1::Logic
         #   1. The receipt state is NOT 'previewed' or 'viewed', OR
         #   2. The current customer is the owner of the receipt
         #
-        @show_metadata = !(receipt.state?(:previewed) || receipt.state?(:viewed)) || receipt.owner?(cust)
+        @show_receipt = !(receipt.state?(:previewed) || receipt.state?(:viewed)) || receipt.owner?(cust)
+        @show_metadata = @show_receipt # maintain public API
 
-        # Recipient information is only displayed when the metadata is
+        # Recipient information is only displayed when the receipt is
         # visible and there are actually recipients to show.
         #
         # It will be true if BOTH of these conditions are met:
-        #   1. The metadata should be shown (@show_metadata is true), AND
+        #   1. The receipt should be shown (@show_receipt is true), AND
         #   2. There are recipients specified (@recipients is not empty)
         #
-        @show_recipients = @show_metadata && !@recipients.empty?
+        @show_recipients = @show_receipt && !@recipients.empty?
 
         domain = if domains_enabled
                     if receipt.share_domain.to_s.empty?
@@ -193,9 +195,11 @@ module V1::Logic
           expiration_in_seconds: expiration_in_seconds,
           share_path: share_path,
           burn_path: burn_path,
-          metadata_path: metadata_path,
+          receipt_path: receipt_path,
+          metadata_path: metadata_path, # maintain public API
           share_url: share_url,
-          metadata_url: metadata_url,
+          receipt_url: receipt_url,
+          metadata_url: metadata_url, # maintain public API
           burn_url: burn_url,
         })
 
@@ -216,7 +220,8 @@ module V1::Logic
           show_secret: show_secret,
           show_secret_link: show_secret_link,
           show_receipt_link: show_receipt_link,
-          show_metadata: show_metadata,
+          show_receipt: show_receipt,
+          show_metadata: show_metadata, # maintain public API
           show_recipients: show_recipients,
         }
       end
@@ -224,9 +229,11 @@ module V1::Logic
       def process_uris
         @share_path = build_path(:secret, secret_key)
         @burn_path = build_path(:receipt, receipt_key, 'burn')
-        @metadata_path = build_path(:receipt, receipt_key)
+        @receipt_path = build_path(:receipt, receipt_key)
+        @metadata_path = @receipt_path # maintain public API
         @share_url = build_url(share_domain, @share_path)
-        @metadata_url = build_url(baseuri, @metadata_path)
+        @receipt_url = build_url(baseuri, @receipt_path)
+        @metadata_url = @receipt_url # maintain public API
         @burn_url = build_url(baseuri, @burn_path)
         @display_lines = calculate_display_lines
       end
