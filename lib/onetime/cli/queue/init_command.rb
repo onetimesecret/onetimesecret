@@ -222,16 +222,14 @@ module Onetime
           }
           bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
-          conn    = Bunny.new(amqp_url, **bunny_config)
+          conn = Bunny.new(amqp_url, **bunny_config)
           conn.start
-          channel = conn.create_channel
 
           begin
             # Declare all exchanges and queues via QueueDeclarator (single source of truth)
-            Onetime::Jobs::QueueDeclarator.declare_all(channel)
+            Onetime::Jobs::QueueDeclarator.declare_all(conn)
             puts '  Exchanges and queues declared'
           ensure
-            channel&.close
             conn&.close
           end
         rescue Bunny::TCPConnectionFailed => ex
