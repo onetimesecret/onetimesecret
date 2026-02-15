@@ -21,7 +21,7 @@ import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -60,6 +60,7 @@ const {
   setContext,
   getDomainDisplayName,
   getExtidByDomain,
+  setContextByExtid,
 } = useDomainContext();
 
 /**
@@ -130,6 +131,17 @@ const selectDomain = (domain: string): void => {
  * Should component be visible
  */
 const shouldShow = computed(() => isContextActive.value);
+
+// Sync domain context when route :extid param changes (e.g., navigating to a domain detail page)
+watch(
+  () => route.params.extid as string | undefined,
+  (extid) => {
+    if (extid && shouldShow.value) {
+      setContextByExtid(extid);
+    }
+  },
+  { immediate: true }
+);
 
 /**
  * Navigate to domains management page (org-qualified)
