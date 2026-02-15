@@ -277,7 +277,7 @@ class="group/row relative cursor-pointer transition-all duration-150 hover:shado
       <!-- Index prefix (links to receipt) -->
       <router-link
         :to="receiptRoute"
-        :aria-label="`${t('web.private.view_receipt')} #${index}`"
+        :aria-label="`${t('web.receipt.view_receipt')} #${index}`"
         class="cursor-pointer select-none px-1 py-0.5 text-gray-400 no-underline hover:underline dark:text-gray-500"
         @click.stop>
         #{{ index }}

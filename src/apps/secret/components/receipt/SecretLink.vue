@@ -72,7 +72,7 @@
             aria-hidden="true" />
           <div class="absolute inset-0 size-full rounded-full opacity-50"></div>
         </div>
-        <span>{{ t('web.private.created_success') }}</span>
+        <span>{{ t('web.receipt.created_success') }}</span>
       </div>
 
       <!-- Subsequent Message -->

@@ -166,7 +166,7 @@
                   name="warning"
                   class="size-4 shrink-0 text-amber-600 dark:text-amber-400"
                   aria-hidden="true" />
-                {{ t('web.private.only_see_once') }}
+                {{ t('web.receipt.only_see_once') }}
               </p>
               <CopyButton
                 v-if="details.secret_value"

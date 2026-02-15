@@ -46,7 +46,7 @@
                 name="document-text-solid"
                 class="mr-2 size-4 text-blue-500 dark:text-blue-400"
                 aria-hidden="true" />
-              {{ t('web.private.view_receipt') }}
+              {{ t('web.receipt.view_receipt') }}
             </router-link>
           </MenuItem>
           <MenuItem v-slot="{ active }">
@@ -64,7 +64,7 @@
                 name="link-20-solid"
                 class="mr-2 size-4 text-emerald-500 dark:text-emerald-400"
                 aria-hidden="true" />
-              {{ t('web.private.open_link') }}
+              {{ t('web.receipt.open_link') }}
             </router-link>
           </MenuItem>
         </div>
