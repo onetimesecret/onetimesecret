@@ -53,11 +53,9 @@ const withValidatedReceiptKey = {
 } as const;
 
 /**
- * Routes for viewing and managing receipt/secrets:
- * - /private/:receiptIdentifier - View receipt and secret details
- * - /receipt/:receiptIdentifier - Alternative path for viewing receipt and secret details
- * - /private/:receiptIdentifier/burn - Permanently delete a secret
- * - /receipt/:receiptIdentifier/burn - Alternative path for permanently deleting a secret
+ * Routes for viewing and managing receipts:
+ * - /receipt/:receiptIdentifier - View receipt and secret details
+ * - /receipt/:receiptIdentifier/burn - Permanently delete a secret
  */
 const routes: Array<RouteRecordRaw> = [
   {
