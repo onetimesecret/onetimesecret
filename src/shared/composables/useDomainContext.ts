@@ -60,6 +60,8 @@ function getConfig() {
     canonicalDomain: store.site_host,
     displayDomain: store.display_domain,
     serverDomainContext: store.domain_context,
+    domainStrategy: store.domain_strategy,
+    customDomains: store.custom_domains ?? [],
   };
 }
 
@@ -115,6 +117,21 @@ async function syncDomainContextToServer(
     await $api.post('/api/account/update-domain-context', { domain });
   } catch (error) {
     console.warn('[useDomainContext] Failed to sync to server:', error);
+  }
+}
+
+/** Persist domain selection: custom domains sync to server + sessionStorage; others clear session */
+async function persistDomainContext(
+  $api: AxiosInstance | undefined,
+  domain: string,
+  skipBackendSync: boolean
+): Promise<void> {
+  const { customDomains } = getConfig();
+  if (customDomains.includes(domain)) {
+    sessionStorage.setItem('domainContext', domain);
+    if (!skipBackendSync) await syncDomainContextToServer($api, domain);
+  } else {
+    sessionStorage.removeItem('domainContext');
   }
 }
 
@@ -271,8 +288,7 @@ export function useDomainContext() {
   const setContext = async (domain: string, skipBackendSync = false): Promise<void> => {
     if (!availableDomains.value.includes(domain)) return;
     currentDomain.value = domain;
-    sessionStorage.setItem('domainContext', domain);
-    if (!skipBackendSync) await syncDomainContextToServer($api, domain);
+    await persistDomainContext($api, domain, skipBackendSync);
   };
 
   /** Reverse lookup: find display_domain for a given extid */
