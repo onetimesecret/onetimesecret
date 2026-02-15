@@ -112,7 +112,7 @@
           bg-gradient-to-br from-white to-gray-50/30
           shadow-[0_4px_16px_rgb(0,0,0,0.08),0_1px_4px_rgb(0,0,0,0.06)]
           backdrop-blur-sm
-          dark:border-gray-700/40 dark:from-slate-900 dark:to-slate-800/30
+          dark:border-gray-700/60 dark:from-slate-900 dark:to-slate-800/30
           dark:shadow-none">
           <!-- Secret Link Header -->
           <section
@@ -143,7 +143,7 @@
           <section
             v-if="details.show_secret"
             class="border-y border-gray-200/60 bg-gray-50 p-4 sm:p-6
-            dark:border-gray-700/40 dark:bg-gray-800/60">
+            dark:border-gray-700/60 dark:bg-gray-800/60">
             <!-- prettier-ignore-attribute class -->
             <textarea
               readonly
@@ -180,7 +180,7 @@
           <section
             v-if="!details.show_secret && !record.is_destroyed"
             class="border-y border-gray-200/60 bg-gradient-to-r from-gray-200 to-gray-100 p-4 sm:p-6
-            dark:border-gray-700/40 dark:from-gray-800/80 dark:to-gray-800/30">
+            dark:border-gray-700/60 dark:from-gray-800/80 dark:to-gray-800/30">
             <!-- prettier-ignore-attribute class -->
             <div
               class="flex items-center justify-between py-2 font-mono
@@ -196,8 +196,9 @@
               </div>
               <!-- prettier-ignore-attribute class -->
               <span
-                class="rounded-full bg-gray-300/50 px-2 py-1
-                text-xs font-medium dark:bg-gray-700/50">
+                class="rounded-full bg-gray-50 px-2 py-1
+                text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/20
+                dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-500/30">
                 {{ t('web.LABELS.encrypted') }}
               </span>
             </div>
@@ -233,7 +234,7 @@
           <section
             v-if="isAvailable"
             class="border-t border-gray-200/60 bg-gray-50 p-4 sm:p-6
-            dark:border-gray-700/40 dark:bg-gray-800/30"
+            dark:border-gray-700/60 dark:bg-gray-800/30"
             aria-labelledby="section-actions">
             <h2
               id="section-actions"

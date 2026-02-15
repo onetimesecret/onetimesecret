@@ -253,7 +253,7 @@
 <template>
   <li ref="rowRef"
 :class="rowClasses"
-class="group/row relative cursor-pointer transition-all duration-150 hover:shadow-md"
+class="group/row relative cursor-pointer transition-all duration-150 hover:shadow-sm"
 @click="handleRowClick">
     <!-- Content wrapper: contains everything except separator, for watermark positioning -->
     <div class="relative">
@@ -506,7 +506,7 @@ class="flex flex-shrink-0 items-center gap-1 sm:gap-2"
     <!-- Separator line (if not last item) -->
     <div
       v-if="!isLast"
-      class="my-4 border-t border-dashed border-gray-300 transition-colors duration-150 group-hover/row:border-gray-400 dark:border-gray-600 dark:group-hover/row:border-gray-500"
+      class="my-4 border-t border-gray-200/60 transition-colors duration-150 group-hover/row:border-gray-300/80 dark:border-gray-700/60 dark:group-hover/row:border-gray-600/80"
       aria-hidden="true"></div>
   </li>
 </template>

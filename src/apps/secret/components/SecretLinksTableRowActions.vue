@@ -21,7 +21,7 @@
     <template #trigger>
       <button
         type="button"
-        class="inline-flex items-center justify-center rounded-md bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-gray-100 dark:focus:ring-blue-400"
+        class="inline-flex items-center justify-center rounded-md bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-gray-100 dark:focus:ring-brand-400"
         title="Actions">
         <OIcon
           collection="heroicons"
