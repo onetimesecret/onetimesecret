@@ -117,12 +117,16 @@ module V2::Logic
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
             #
-            # TODO: There's a bug here. If the UI that created this secret+receipt
-            # records doesn't immediately load the receipt page the receipt
-            # record stays in state=new allowing the next request through.
+            # Only show the decrypted value for generated passwords, and only
+            # within 60 seconds of creation. Concealed (user-typed) secrets are
+            # never shown on the receipt page — the user already knows the value.
             if secret && receipt.state?(:new)
-              OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
-              @secret_value = secret.decrypted_secret_value
+              receipt_age  = Familia.now.to_i - receipt.created.to_i
+              is_generated = receipt.kind.to_s == 'generate'
+              if is_generated && receipt_age < 60
+                OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
+                @secret_value = secret.decrypted_secret_value
+              end
             end
           end
         end
