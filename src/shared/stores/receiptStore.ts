@@ -177,12 +177,14 @@ export const useReceiptStore = defineStore('receipt', () => {
 
   /**
    * Resets store state to initial values.
-   * Clears record, details, API mode, and initialization status.
+   * apiMode is intentionally preserved: it's set by the consuming
+   * composable based on auth state, and resetting it here causes a
+   * race condition when Vue processes new component setup before
+   * old component unmount.
    */
   function $reset() {
     record.value = null;
     details.value = null;
-    apiMode.value = 'authenticated';
     _initialized.value = false;
   }
 
