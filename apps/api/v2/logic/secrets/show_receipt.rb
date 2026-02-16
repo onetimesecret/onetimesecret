@@ -123,7 +123,8 @@ module V2::Logic
             if secret && receipt.state?(:new)
               receipt_age  = Familia.now.to_i - receipt.created.to_i
               is_generated = receipt.kind.to_s == 'generate'
-              if is_generated && receipt_age < 60
+              display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              if is_generated && display_ttl.positive? && receipt_age < display_ttl
                 OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
                 @secret_value = secret.decrypted_secret_value
               end

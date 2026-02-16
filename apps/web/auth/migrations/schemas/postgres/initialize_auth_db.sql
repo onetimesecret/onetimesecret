@@ -161,30 +161,23 @@ ALTER DEFAULT PRIVILEGES FOR ROLE ots_migrator IN SCHEMA public
 --
 /*
 
+-- Drop databases
 DROP DATABASE IF EXISTS onetime_authdb;
+DROP DATABASE IF EXISTS onetime_authdb_test;
+
+-- Drop roles (must drop after databases that depend on them)
 DROP ROLE IF EXISTS ots_user;
 DROP ROLE IF EXISTS ots_migrator;
-DROP ROLE IF EXISTS onetime_authdb;
 
--- Drop the test database too
-DROP DATABASE IF EXISTS onetime_authdb;
+-- If you want to keep onetime_authdb_test, reassign ownership first:
 
--- Now drop the roles
-DROP ROLE IF EXISTS ots_user;
-DROP ROLE IF EXISTS onetime_authdb;
-
-Or if you want to keep onetime_authdb_test, reassign ownership first:
-
--- Reassign objects owned by these roles to postgres
 REASSIGN OWNED BY ots_user TO postgres;
-REASSIGN OWNED BY onetime_authdb TO postgres;
+REASSIGN OWNED BY ots_migrator TO postgres;
 
--- Revoke privileges
 REVOKE ALL PRIVILEGES ON DATABASE onetime_authdb_test FROM ots_user;
-REVOKE ALL PRIVILEGES ON DATABASE onetime_authdb_test FROM onetime_authdb;
+REVOKE ALL PRIVILEGES ON DATABASE onetime_authdb_test FROM ots_migrator;
 
--- Now drop
 DROP ROLE IF EXISTS ots_user;
-DROP ROLE IF EXISTS onetime_authdb;
+DROP ROLE IF EXISTS ots_migrator;
 
 */

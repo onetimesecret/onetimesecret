@@ -81,9 +81,9 @@ module Onetime
     end
 
     # Transparently decrypt the secret payload regardless of storage format.
-    # Routes on `value_encryption`: present means v1 (legacy OpenSSL via
-    # LegacyEncryptedFields#decrypted_value), absent means v2 (Familia
-    # encrypted_field with self-describing JSON envelope).
+    # Checks `ciphertext` first: present means v2 (Familia encrypted_field
+    # with self-describing JSON envelope). Falls back to `value_encryption`
+    # for v1 (legacy OpenSSL via LegacyEncryptedFields#decrypted_value).
     def decrypted_secret_value(passphrase_input: nil)
       if !ciphertext.to_s.empty?
         ciphertext.reveal { it }
