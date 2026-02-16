@@ -23,12 +23,15 @@ module DomainsAPI::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
+        require_entitlement!('custom_branding')
+
         OT.ld "[UpdateDomainBrand] Validating domain: #{@extid} with settings: #{@brand_settings.keys}"
 
         validate_domain
         validate_brand_settings
 
         validate_brand_values
+        validate_homepage_entitlement
       end
 
       def process
@@ -149,6 +152,13 @@ module DomainsAPI::Logic
 
         OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
         raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
+      end
+
+      def validate_homepage_entitlement
+        allow_homepage = @brand_settings['allow_public_homepage']
+        return if allow_homepage.nil? || allow_homepage == false || allow_homepage == 'false'
+
+        require_entitlement!('homepage_secrets')
       end
 
       def validate_default_ttl

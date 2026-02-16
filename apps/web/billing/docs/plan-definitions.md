@@ -38,7 +38,7 @@ Individuals
 - `custom_domains` - Can configure custom domains
 - `extended_default_expiration` - 30 days
 - `custom_branding`
-- `branded_homepage`
+- `homepage_secrets`
 
 **Limits:**
 - `teams`: 0
@@ -103,7 +103,7 @@ This plan is grandfathered in for all identity customers <= 2025-12-31.
 - `custom_domains`
 - `extended_default_expiration`
 - `custom_branding`
-- `branded_homepage`
+- `homepage_secrets`
 
 **Limits:**
 - `teams`: 1

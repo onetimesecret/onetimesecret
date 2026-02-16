@@ -55,7 +55,7 @@ export const ENTITLEMENTS = {
 
   // Branding
   CUSTOM_BRANDING: 'custom_branding',
-  BRANDED_HOMEPAGE: 'branded_homepage',
+  HOMEPAGE_SECRETS: 'homepage_secrets',
 
   // Secret Features
   INCOMING_SECRETS: 'incoming_secrets',

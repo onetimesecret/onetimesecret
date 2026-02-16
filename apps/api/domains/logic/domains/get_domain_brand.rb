@@ -15,6 +15,8 @@ module DomainsAPI::Logic
       end
 
       def raise_concerns
+        require_entitlement!('custom_branding')
+
         raise_form_error 'Please provide a domain ID' if @extid.empty?
 
         # Get customer's organization for domain ownership
