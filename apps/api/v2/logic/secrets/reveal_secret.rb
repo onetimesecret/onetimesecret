@@ -71,7 +71,7 @@ module V2::Logic
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
-          @secret_value = secret.decrypted_secret_value(passphrase: passphrase)
+          @secret_value = secret.decrypted_secret_value(passphrase_input: @passphrase)
 
           if verification
 

@@ -41,7 +41,7 @@ module V2::Logic
         @secret_identifier  = @secret.identifier
 
         if show_secret
-          @secret_value = secret.decrypted_secret_value(passphrase: passphrase)
+          @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
           owner         = secret.load_owner
 
           if verification
