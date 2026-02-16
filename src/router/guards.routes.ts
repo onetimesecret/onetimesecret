@@ -13,6 +13,28 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   const { setTitle } = usePageTitle();
   let currentTitle: string | null = null;
 
+  // Apply custom domain layout defaults for ALL routes.
+  // Prevents the canonical OTS logo/branding from leaking on custom domain
+  // pages that lack explicit beforeEnter guards. Runs before per-route
+  // beforeEnter guards, so route-specific overrides still take precedence.
+  router.beforeEach((to: RouteLocationNormalized) => {
+    const bootstrapStore = useBootstrapStore();
+    if (bootstrapStore.domain_strategy !== 'custom') return true;
+
+    const hasDomainLogo = !!bootstrapStore.domain_logo;
+    const existing = (to.meta.layoutProps ?? {}) as Record<string, unknown>;
+
+    to.meta.layoutProps = {
+      displayMasthead: hasDomainLogo,
+      displayNavigation: false,
+      displayFooterLinks: false,
+      displayFeedback: false,
+      ...existing,
+    };
+
+    return true;
+  });
+
   // Block access to routes for disabled auth features (e.g. signup, signin).
   // Runs as a separate guard to keep complexity per-function within limits.
   router.beforeEach((to: RouteLocationNormalized) => {
