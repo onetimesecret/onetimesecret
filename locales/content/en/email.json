@@ -327,9 +327,37 @@
     "text": "If you did not make this change, please contact support immediately as your account may be compromised.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "The email address on your %{product_name} account was recently changed.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "New email:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Changed at:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "If you made this change, no further action is required.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "If you did not make this change, your account may be compromised.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Contact Support",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "sha256": "475cae37"
   },
   "email.email_change_confirmation.subject": {
     "text": "Verify your new email address (%{display_domain})",
@@ -347,13 +375,33 @@
     "text": "Verify Email Address",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Confirm Email Change",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Or copy and paste this link:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "This link will expire in %{hours} hours.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Two-factor authentication enabled (%{display_domain})",

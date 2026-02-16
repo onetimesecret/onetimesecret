@@ -20,6 +20,8 @@ import {
   type VerifyAccountResponse,
   type ChangePasswordResponse,
   type CloseAccountResponse,
+  type EmailChangeRequestResponse,
+  type EmailChangeConfirmResponse,
   type BillingRedirect,
 } from '@/schemas/api/auth/endpoints/auth';
 import {
@@ -31,6 +33,8 @@ import {
   verifyAccountResponseSchema,
   changePasswordResponseSchema,
   closeAccountResponseSchema,
+  emailChangeRequestResponseSchema,
+  emailChangeConfirmResponseSchema,
 } from '@/schemas/api/auth/endpoints/auth';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -691,6 +695,76 @@ export function useAuth() {
     return result ?? false;
   }
 
+  /**
+   * Requests an email address change for the authenticated user.
+   * Sends a verification email to the new address.
+   *
+   * @param newEmail - Desired new email address
+   * @param password - Current password for confirmation
+   * @returns true if request was successful
+   */
+  async function requestEmailChange(
+    newEmail: string,
+    password: string
+  ): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<EmailChangeRequestResponse>(
+        '/api/account/change-email',
+        {
+          new_email: newEmail,
+          password,
+          shrimp: csrfStore.shrimp,
+          locale: locale.value,
+        }
+      );
+
+      const validated =
+        emailChangeRequestResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error'],
+        });
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
+  /**
+   * Confirms an email change using a verification token.
+   *
+   * @param token - Verification token from email link
+   * @returns true if confirmation was successful
+   */
+  async function confirmEmailChange(
+    token: string
+  ): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<EmailChangeConfirmResponse>(
+        '/api/account/confirm-email-change',
+        { token, shrimp: csrfStore.shrimp }
+      );
+
+      const validated =
+        emailChangeConfirmResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error');
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
   return {
     // State
     isLoading,
@@ -707,6 +781,8 @@ export function useAuth() {
     verifyAccount,
     changePassword,
     closeAccount,
+    requestEmailChange,
+    confirmEmailChange,
     clearErrors,
   };
 }

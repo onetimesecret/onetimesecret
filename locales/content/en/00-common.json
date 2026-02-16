@@ -1221,6 +1221,10 @@
     "text": "Change Email",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "Confirm Email Change",
+    "sha256": "a1b2c3d4"
+  },
   "web.TITLES.security_overview": {
     "text": "Security",
     "sha256": "8f6fb4eb"

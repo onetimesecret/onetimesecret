@@ -162,6 +162,8 @@ export function isAuthError(
     | VerifyAccountResponse
     | ChangePasswordResponse
     | CloseAccountResponse
+    | EmailChangeRequestResponse
+    | EmailChangeConfirmResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -316,3 +318,13 @@ export const mfaStatusResponseSchema = z.object({
   recovery_codes_limit: z.number(),
 });
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;
+
+// Email change request response
+export const emailChangeRequestResponseSchema = authResponseSchema;
+export type EmailChangeRequestResponse =
+  z.infer<typeof emailChangeRequestResponseSchema>;
+
+// Email change confirmation response
+export const emailChangeConfirmResponseSchema = authResponseSchema;
+export type EmailChangeConfirmResponse =
+  z.infer<typeof emailChangeConfirmResponseSchema>;

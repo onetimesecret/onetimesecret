@@ -634,5 +634,29 @@
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "This action cannot be undone",
     "sha256": "02ccc074"
+  },
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Confirm Email Change",
+    "sha256": "a1b2c3d4"
+  },
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "sha256": "e5f6a7b8"
+  },
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Verifying your new email address...",
+    "sha256": "c9d0e1f2"
+  },
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "This verification link is invalid or has expired.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Back to Account Settings",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Redirecting to sign in...",
+    "sha256": "c1d2e3f4"
   }
 }
