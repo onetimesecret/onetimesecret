@@ -81,18 +81,14 @@ module Onetime
     end
 
     # Transparently decrypt the secret payload regardless of storage format.
-    # V2 secrets use `ciphertext` (Familia encrypted_field), while v1 migrated
-    # secrets use `value` (legacy OpenSSL encryption via LegacyEncryptedFields).
-    #
-    # @param passphrase [String, nil] The plaintext passphrase for v1 secrets.
-    #   V1 encryption key derivation includes the passphrase, so it must be
-    #   provided here for passphrase-protected v1 secrets. V2 secrets handle
-    #   passphrase verification separately and don't need this parameter.
-    def decrypted_secret_value(passphrase: nil)
+    # Routes on `value_encryption`: present means v1 (legacy OpenSSL via
+    # LegacyEncryptedFields#decrypted_value), absent means v2 (Familia
+    # encrypted_field with self-describing JSON envelope).
+    def decrypted_secret_value(passphrase_input: nil)
       if !ciphertext.to_s.empty?
         ciphertext.reveal { it }
-      elsif !value.to_s.empty?
-        @passphrase_temp = passphrase
+      elsif !value_encryption.to_s.empty?
+        @passphrase_temp = passphrase_input.to_s.empty? ? nil : passphrase_input
         decrypted_value
       end
     end
