@@ -141,7 +141,7 @@
           <!-- Secret Value with Enhanced Styling -->
           <!-- prettier-ignore-attribute class -->
           <section
-            v-if="details.show_secret"
+            v-if="details.show_secret && details.secret_value"
             class="border-y border-gray-200/60 bg-gray-50 p-4 sm:p-6
             dark:border-gray-700/60 dark:bg-gray-800/60">
             <!-- prettier-ignore-attribute class -->
@@ -178,7 +178,7 @@
           <!-- Encrypted Content Placeholder -->
           <!-- prettier-ignore-attribute class -->
           <section
-            v-if="!details.show_secret && !record.is_destroyed"
+            v-if="(!details.show_secret || !details.secret_value) && !record.is_destroyed"
             class="border-y border-gray-200/60 bg-gradient-to-r from-gray-200 to-gray-100 p-4 sm:p-6
             dark:border-gray-700/60 dark:from-gray-800/80 dark:to-gray-800/30">
             <!-- prettier-ignore-attribute class -->

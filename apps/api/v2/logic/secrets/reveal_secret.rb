@@ -71,7 +71,7 @@ module V2::Logic
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
-          @secret_value = secret.ciphertext.reveal { it }
+          @secret_value = secret.decrypted_secret_value(passphrase_input: @passphrase)
 
           if verification
 
@@ -165,7 +165,6 @@ module V2::Logic
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
             secret.revealed!
-
           end
 
         elsif secret.has_passphrase? && !correct_passphrase

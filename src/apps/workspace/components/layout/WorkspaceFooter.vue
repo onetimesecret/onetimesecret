@@ -26,7 +26,7 @@
   const { t } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, support_host } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
@@ -84,16 +84,21 @@
   });
 
   // Standard SaaS footer links for authenticated users
+  const docsBase = computed(() => {
+    const host = support_host.value;
+    return host ? `https://${host}` : '';
+  });
+
   const footerLinks = computed((): FooterLink[] => [
     {
       label: t('web.footer.api_docs'),
-      href: '/docs/api',
-      external: false,
+      href: `${docsBase.value}/en/rest-api/`,
+      external: !!docsBase.value,
     },
     {
       label: t('web.footer.branding_guide'),
-      href: '/docs/branding',
-      external: false,
+      href: `${docsBase.value}/en/custom-domains/brand-guide/`,
+      external: !!docsBase.value,
     },
     {
       label: t('web.TITLES.feedback'),

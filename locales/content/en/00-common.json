@@ -440,6 +440,10 @@
     "text": "e.g. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "About",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Status",
     "sha256": "920e413c"

@@ -55,6 +55,7 @@ export const mockPreviewedReceiptRecordRaw = {
   secret_ttl: '3600',
   receipt_ttl: '7200',
   lifespan: '3600',
+  kind: 'conceal',
 };
 
 /**
@@ -99,6 +100,7 @@ export const mockRevealedReceiptRecordRaw = {
   secret_ttl: '3600',
   receipt_ttl: '7200',
   lifespan: '3600',
+  kind: 'conceal',
 };
 
 // =============================================================================
@@ -176,6 +178,7 @@ export const mockReceiptRecordRaw = {
   secret_ttl: null,
   receipt_ttl: null,
   lifespan: null,
+  kind: 'generate',
 };
 
 // Transformed format (after Zod transformation) - used for assertions
@@ -208,6 +211,7 @@ export const mockReceiptRecord: Receipt = {
   secret_ttl: null,
   receipt_ttl: null,
   lifespan: null,
+  kind: 'generate',
 };
 
 // Raw API response format for details

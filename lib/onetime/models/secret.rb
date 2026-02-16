@@ -80,6 +80,19 @@ module Onetime
       exists? && (!ciphertext.to_s.empty? || !value.to_s.empty?)
     end
 
+    # Transparently decrypt the secret payload regardless of storage format.
+    # Checks `ciphertext` first: present means v2 (Familia encrypted_field
+    # with self-describing JSON envelope). Falls back to `value_encryption`
+    # for v1 (legacy OpenSSL via LegacyEncryptedFields#decrypted_value).
+    def decrypted_secret_value(passphrase_input: nil)
+      if !ciphertext.to_s.empty?
+        ciphertext.reveal { it }
+      elsif !value_encryption.to_s.empty?
+        @passphrase_temp = passphrase_input.to_s.empty? ? nil : passphrase_input
+        decrypted_value
+      end
+    end
+
     def truncated?
       truncated.to_s == 'true'
     end

@@ -134,6 +134,7 @@ export interface BootstrapPayload {
   shrimp: string;
 
   site_host: string;
+  support_host: string;
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
   authentication: AuthenticationSettings; // TODO: May need to offer default values

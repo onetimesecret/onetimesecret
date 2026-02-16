@@ -29,11 +29,14 @@ module Onetime::Secret::Features
       end
 
       def viewable?
-        key?(:value) && (state?(:new) || state?(:previewed))
+        # Important: check Familia v2 field (ciphertext) first so that a non-empty
+        # value field doesn't interfere with the current v2 happy path
+        (key?(:ciphertext) || key?(:value)) && (state?(:new) || state?(:previewed))
       end
 
       def receivable?
-        key?(:value) && (state?(:new) || state?(:previewed))
+        # Important: See note in viewable?
+        (key?(:ciphertext) || key?(:value)) && (state?(:new) || state?(:previewed))
       end
 
       # MIGRATION NOTE: This method replaces the legacy `viewed!` method.
