@@ -210,7 +210,9 @@ logic.one_liner
 #=> nil
 
 ## Correctly determines if secret is a one-liner if the secret is readable
-receipt = @create_receipt.call
+receipt, _secret = Onetime::Receipt.spawn_pair(
+  @cust.custid, 3600, "This is a secret message", kind: 'generate'
+)
 params = {
   'identifier' => receipt.identifier
 }
@@ -233,7 +235,7 @@ logic.process
 
 ## Correctly determines if secret is NOT a one-liner if the secret is readable
 multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-receipt, _secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, multiline_content)
+receipt, _secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, multiline_content, kind: 'generate')
 params = {
   'identifier' => receipt.identifier
 }
@@ -244,7 +246,7 @@ logic.process
 
 ## Correctly determines display lines for multi-line secrets
 multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-receipt, _secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, multiline_content)
+receipt, _secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, multiline_content, kind: 'generate')
 params = {
   'identifier' => receipt.identifier
 }
