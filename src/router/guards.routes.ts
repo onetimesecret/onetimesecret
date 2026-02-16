@@ -24,12 +24,15 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     const hasDomainLogo = !!bootstrapStore.domain_logo;
     const existing = (to.meta.layoutProps ?? {}) as Record<string, unknown>;
 
+    // Guard overrides win over route-defined static defaults.
+    // Per-route beforeEnter guards run AFTER beforeEach and can
+    // still override these values for route-specific needs.
     to.meta.layoutProps = {
+      ...existing,
       displayMasthead: hasDomainLogo,
       displayNavigation: false,
       displayFooterLinks: false,
       displayFeedback: false,
-      ...existing,
     };
 
     return true;

@@ -10,8 +10,8 @@
   import OrganizationContextBar from '@/apps/workspace/components/navigation/OrganizationContextBar.vue';
   import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
   import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
+  import BrandedHeader from '@/apps/secret/components/layout/BrandedHeader.vue';
   import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
-  import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
@@ -60,8 +60,9 @@
       <ManagementHeader v-if="authenticated" v-bind="props">
         <OrganizationContextBar />
       </ManagementHeader>
-      <!-- Guest: TransactionalHeader (simpler) -->
-      <TransactionalHeader v-else v-bind="props" />
+      <!-- Guest: BrandedHeader switches to BrandedMastHead on custom domains,
+           preventing the canonical OTS logo/nav from leaking -->
+      <BrandedHeader v-else v-bind="props" />
     </template>
 
     <template #main>
