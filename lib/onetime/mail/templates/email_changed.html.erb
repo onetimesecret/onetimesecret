@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title><%= t('email.email_changed.title') %></title>
+    <style type="text/css">
+      body { margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+      table { border-spacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+      table td { border-collapse: collapse; }
+      .container { width: 600px; max-width: 600px; }
+      @media screen and (max-width: 599px) {
+        .container { width: 100% !important; max-width: 100% !important; }
+      }
+      @media screen and (max-width: 400px) {
+        .container-padding { padding-left: 12px !important; padding-right: 12px !important; }
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0" bgcolor="#ffffff">
+    <table border="0" width="100%" height="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff">
+      <tr>
+        <td align="center" valign="top" bgcolor="#ffffff">
+          <br />
+          <table border="0" width="600" cellpadding="0" cellspacing="0" class="container">
+            <tr>
+              <td class="container-padding" align="left" style="padding: 24px; background-color: #ffffff;">
+                <!-- Logo -->
+                <img alt="Onetime Secret" src="<%= baseuri %>/img/onetime-logo-v3-xl.svg"
+                   style="border: 0; display: block; margin: 0 0 32px 0; height: 48px; width: 48px; background-color: #dc4a22;"
+                   width="48" height="48" />
+
+                <!-- Title -->
+                <div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
+                  <p style="margin: 0;"><%= t('email.email_changed.title') %></p>
+                </div>
+
+                <!-- Body -->
+                <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
+                  <p><%= t('email.email_changed.change_notice', product_name: product_name) %></p>
+
+                  <table border="0" cellpadding="0" cellspacing="0" style="margin: 16px 0; background-color: #f5f5f5; border-radius: 4px; width: 100%;">
+                    <tr>
+                      <td style="padding: 12px 16px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
+                        <strong><%= t('email.email_changed.new_email_label') %></strong> <%= h(new_email_masked) %><br />
+                        <strong><%= t('email.email_changed.changed_at_label') %></strong> <%= h(changed_at_formatted) %>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <p><%= t('email.email_changed.if_you_initiated') %></p>
+
+                  <p style="color: #666666; background-color: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 24px;">
+                    <%= t('email.email_changed.not_you_notice') %>
+                    <a href="<%= baseuri %><%= support_path %>" style="color: #dc4a22;"><%= t('email.email_changed.contact_support') %></a>
+                  </p>
+                </div>
+
+                <!-- Signature -->
+                <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
+                  <p style="margin: 0;"><%= t('email.email_changed.signature') %><br />
+                    <a href="<%= baseuri %>" style="color: #dc4a22;"><%= baseuri %></a></p>
+                </div>
+
+                <!-- Postscript -->
+                <p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 24px;">
+                  <%= h(t('email.email_changed.postscript', email_address: old_email)) %>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
