@@ -32,6 +32,7 @@ module DomainsAPI::Logic
 
         validate_brand_values
         validate_homepage_entitlement
+        validate_privacy_defaults_entitlement
       end
 
       def process
@@ -154,6 +155,13 @@ module DomainsAPI::Logic
         raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
       end
 
+      def validate_privacy_defaults_entitlement
+        privacy_keys = %w[default_ttl passphrase_required notify_enabled]
+        return unless privacy_keys.any? { |k| @brand_settings.key?(k) }
+
+        require_entitlement!('custom_privacy_defaults')
+      end
+
       def validate_homepage_entitlement
         allow_homepage = @brand_settings['allow_public_homepage']
         return if allow_homepage.nil? || allow_homepage == false || allow_homepage == 'false'
@@ -179,6 +187,12 @@ module DomainsAPI::Logic
         unless ttl_value.is_a?(Integer) && ttl_value.positive?
           OT.ld "[UpdateDomainBrand] Error: Invalid default_ttl '#{ttl}'"
           raise_form_error 'Invalid default TTL - must be a positive integer (seconds)'
+        end
+
+        # Gate extended TTL values behind entitlement
+        free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+        if ttl_value > free_ttl
+          require_entitlement!('extended_default_expiration')
         end
 
         # Update the brand_settings hash with the coerced value
