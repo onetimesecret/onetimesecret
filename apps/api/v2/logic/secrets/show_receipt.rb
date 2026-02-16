@@ -122,7 +122,7 @@ module V2::Logic
             # record stays in state=new allowing the next request through.
             if secret && receipt.state?(:new)
               OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
-              @secret_value = secret.ciphertext.reveal { it }
+              @secret_value = secret.decrypted_secret_value(passphrase: passphrase)
             end
           end
         end
