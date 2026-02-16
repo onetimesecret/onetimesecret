@@ -278,7 +278,8 @@ describe('RecentSecretsTable', () => {
       expect(html).toContain('web.LABELS.items_count');
     });
 
-    it('renders dismiss button', async () => {
+    it('renders dismiss button when not authenticated', async () => {
+      mockIsAuthenticated.value = false;
       const wrapper = await mountComponent();
       await flushPromises();
 
@@ -286,7 +287,17 @@ describe('RecentSecretsTable', () => {
       expect(dismissButton.exists()).toBe(true);
     });
 
+    it('hides dismiss button when authenticated', async () => {
+      mockIsAuthenticated.value = true;
+      const wrapper = await mountComponent();
+      await flushPromises();
+
+      const dismissButton = wrapper.find('button[type="button"]');
+      expect(dismissButton.exists()).toBe(false);
+    });
+
     it('calls clear when dismiss button is clicked', async () => {
+      mockIsAuthenticated.value = false;
       const wrapper = await mountComponent();
       await flushPromises();
 

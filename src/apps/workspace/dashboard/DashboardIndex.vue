@@ -68,6 +68,6 @@
 
     <RecentSecretsTable
       ref="recentSecretsTableRef"
-      :show-workspace-mode-toggle="false" />
+      :show-workspace-mode-toggle="true" />
   </div>
 </template>
