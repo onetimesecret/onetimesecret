@@ -95,7 +95,7 @@ LOG_FILE="${LOG_DIR}/upgrade_${TIMESTAMP}.log"
 
 cd "$PROJECT_ROOT"
 
-if [ ! -f "CLAUDE.md" ] || [ ! -d "scripts/upgrades/v0.24.0" ]; then
+if [ ! -f "Gemfile" ] || [ ! -d "scripts/upgrades/v0.24.0" ]; then
   echo "FATAL: Script must run from the onetimesecret project root"
   echo "  Expected: $PROJECT_ROOT"
   exit 1
