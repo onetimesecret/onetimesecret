@@ -9,9 +9,12 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import PlanCard from '@/shared/components/billing/PlanCard.vue';
 import PlanChangeModal from './PlanChangeModal.vue';
 import CancelSubscriptionModal from './CancelSubscriptionModal.vue';
+import CurrencyMigrationModal from './CurrencyMigrationModal.vue';
+import PendingMigrationBanner from './PendingMigrationBanner.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
-import { BillingService, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
+import type { CurrencyConflictError } from '@/schemas/models/billing';
+import { BillingService, extractCurrencyConflict, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { isLegacyPlan, getPlanDisplayName } from '@/types/billing';
@@ -72,6 +75,17 @@ const targetPlan = ref<BillingPlan | null>(null);
 
 // Cancel subscription modal state
 const showCancelModal = ref(false);
+
+// Currency migration modal state
+const showCurrencyMigrationModal = ref(false);
+const currencyConflict = ref<CurrencyConflictError | null>(null);
+const isCompletingPendingMigration = ref(false);
+
+// Pending migration state (from subscription status)
+const pendingMigration = computed(() => subscriptionStatus.value?.pending_currency_migration ?? null);
+
+// Early currency mismatch detection
+const currentCurrency = computed(() => subscriptionStatus.value?.current_currency ?? null);
 
 // Current plan for the modal (find from plans list based on subscription)
 const currentPlanForModal = computed(() => {
@@ -202,12 +216,20 @@ const handlePlanSelect = async (plan: BillingPlan) => {
 
   // If user has active subscription, show plan change modal instead of checkout
   if (hasActiveSubscription.value) {
-    targetPlan.value = plan;
-    showPlanChangeModal.value = true;
-    return;
+    // Early currency mismatch detection: compare plan currency with subscription currency
+    // before making an API call. The 409 from the backend is the fallback.
+    if (currentCurrency.value && plan.currency && currentCurrency.value !== plan.currency) {
+      // Let the backend provide full conflict details via the 409 response
+      // so we get formatted prices, period end, etc.
+      // Fall through to the checkout call which will return the conflict.
+    } else {
+      targetPlan.value = plan;
+      showPlanChangeModal.value = true;
+      return;
+    }
   }
 
-  // New subscriber flow: redirect to Stripe Checkout
+  // New subscriber or currency-mismatch flow: redirect to Stripe Checkout
   isCreatingCheckout.value = true;
 
   try {
@@ -224,9 +246,16 @@ const handlePlanSelect = async (plan: BillingPlan) => {
       error.value = 'Failed to create checkout session';
     }
   } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || 'Failed to initiate checkout';
-    console.error('[PlanSelector] Checkout error:', err);
+    // Check for currency conflict before generic error handling
+    const conflict = extractCurrencyConflict(err);
+    if (conflict) {
+      currencyConflict.value = conflict;
+      showCurrencyMigrationModal.value = true;
+    } else {
+      const classified = classifyError(err);
+      error.value = classified.message || 'Failed to initiate checkout';
+      console.error('[PlanSelector] Checkout error:', err);
+    }
   } finally {
     isCreatingCheckout.value = false;
   }
@@ -269,6 +298,63 @@ const handleCancelSuccess = async () => {
     await loadSubscriptionStatus(orgExtid.value);
     const org = await organizationStore.fetchOrganization(orgExtid.value);
     selectedOrg.value = org;
+  }
+};
+
+// Currency migration handlers
+const handleCurrencyMigrationClose = () => {
+  showCurrencyMigrationModal.value = false;
+  currencyConflict.value = null;
+};
+
+const handleGracefulConfirmed = async (_cancelAt: number) => {
+  showCurrencyMigrationModal.value = false;
+  currencyConflict.value = null;
+  successMessage.value = t('web.billing.currency_migration.graceful_success');
+
+  // Refresh subscription status — will now include pending_migration
+  if (orgExtid.value) {
+    await loadSubscriptionStatus(orgExtid.value);
+    const org = await organizationStore.fetchOrganization(orgExtid.value);
+    selectedOrg.value = org;
+  }
+};
+
+const handleImmediateRedirect = (checkoutUrl: string) => {
+  showCurrencyMigrationModal.value = false;
+  currencyConflict.value = null;
+  // Redirect to Stripe Checkout for the new currency subscription
+  window.location.href = checkoutUrl;
+};
+
+// Handle "Complete Migration" from the PendingMigrationBanner
+const handleCompletePendingMigration = async () => {
+  if (!selectedOrg.value?.extid || !pendingMigration.value) return;
+
+  isCompletingPendingMigration.value = true;
+  error.value = '';
+
+  try {
+    // Create a new checkout session for the pending migration target plan
+    const response = await BillingService.createCheckoutSession(
+      selectedOrg.value.extid,
+      {
+        id: pendingMigration.value.target_price_id,
+        interval: '', // Backend resolves from price_id
+      }
+    );
+
+    if (response.checkout_url) {
+      window.location.href = response.checkout_url;
+    } else {
+      error.value = 'Failed to create checkout session';
+    }
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || 'Failed to initiate checkout';
+    console.error('[PlanSelector] Complete migration error:', err);
+  } finally {
+    isCompletingPendingMigration.value = false;
   }
 };
 
@@ -346,6 +432,16 @@ onMounted(async () => {
 <template>
   <BillingLayout>
     <div class="space-y-8">
+      <!-- Pending Currency Migration Banner -->
+      <PendingMigrationBanner
+        v-if="pendingMigration && !isLoadingContent"
+        :target-plan-name="pendingMigration.target_plan_name"
+        :target-currency="pendingMigration.target_currency"
+        :effective-date="pendingMigration.effective_after"
+        :is-completing-migration="isCompletingPendingMigration"
+        @complete-migration="handleCompletePendingMigration"
+      />
+
       <!-- Cancellation Scheduled Notice (most prominent placement - top of page) -->
       <div
         v-if="isCancelScheduled && cancelAtFormatted && !isLoadingContent"
@@ -558,6 +654,16 @@ aria-live="polite">
       :period-end="subscriptionStatus?.current_period_end ?? null"
       @close="handleCancelModalClose"
       @success="handleCancelSuccess"
+    />
+
+    <!-- Currency Migration Modal -->
+    <CurrencyMigrationModal
+      :open="showCurrencyMigrationModal"
+      :org-ext-id="selectedOrg?.extid ?? ''"
+      :conflict="currencyConflict"
+      @close="handleCurrencyMigrationClose"
+      @graceful-confirmed="handleGracefulConfirmed"
+      @immediate-redirect="handleImmediateRedirect"
     />
   </BillingLayout>
 </template>

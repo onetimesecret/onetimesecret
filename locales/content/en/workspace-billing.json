@@ -861,5 +861,88 @@
   "web.billing.features.shared_workflows": {
     "text": "Shared Workflows",
     "sha256": "158f558e"
+  },
+  "web.billing.currency_migration.title": {
+    "text": "Currency Change Required",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "a1b2c3d4"
+  },
+  "web.billing.currency_migration.description": {
+    "text": "Your current subscription uses {from}. The selected plan is billed in {to}. This requires migrating your subscription to the new currency.",
+    "sha256": "b2c3d4e5"
+  },
+  "web.billing.currency_migration.current_plan": {
+    "text": "Current plan:",
+    "sha256": "c3d4e5f6"
+  },
+  "web.billing.currency_migration.new_plan": {
+    "text": "New plan:",
+    "sha256": "d4e5f6a7"
+  },
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "Current period ends:",
+    "sha256": "e5f6a7b8"
+  },
+  "web.billing.currency_migration.choose_timing": {
+    "text": "When should the switch happen?",
+    "sha256": "f6a7b8c9"
+  },
+  "web.billing.currency_migration.graceful_title": {
+    "text": "Switch at end of billing period",
+    "sha256": "a7b8c9d0"
+  },
+  "web.billing.currency_migration.graceful_description": {
+    "text": "Your current plan stays active until {date}. After that, you'll complete checkout for your new plan.",
+    "sha256": "b8c9d0e1"
+  },
+  "web.billing.currency_migration.immediate_title": {
+    "text": "Switch immediately",
+    "sha256": "c9d0e1f2"
+  },
+  "web.billing.currency_migration.immediate_description": {
+    "text": "Your current plan is cancelled now. You'll receive a refund for your unused time and complete checkout for the new plan.",
+    "sha256": "d0e1f2a3"
+  },
+  "web.billing.currency_migration.confirm": {
+    "text": "Confirm Currency Change",
+    "sha256": "e1f2a3b4"
+  },
+  "web.billing.currency_migration.error": {
+    "text": "Currency migration failed. Please try again.",
+    "sha256": "f2a3b4c5"
+  },
+  "web.billing.currency_migration.success": {
+    "text": "Your subscription currency has been updated successfully.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.billing.currency_migration.graceful_success": {
+    "text": "Your current plan will remain active until the end of the billing period. You'll be prompted to complete checkout for your new plan after that.",
+    "sha256": "b4c5d6e7"
+  },
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "You have a credit balance in {currency} that cannot be transferred to the new currency.",
+    "sha256": "c5d6e7f8"
+  },
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "You have pending invoice items that will need to be resolved before migration.",
+    "sha256": "d6e7f8a9"
+  },
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "Active coupons on your account may not be compatible with the new currency.",
+    "sha256": "e7f8a9b0"
+  },
+  "web.billing.currency_migration.pending_title": {
+    "text": "Currency Migration Pending",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "f8a9b0c1"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "Your current plan ends on {date}. Complete your switch to {plan} ({currency}).",
+    "sha256": "a9b0c1d2"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "Complete Migration",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "b0c1d2e3"
   }
 }
