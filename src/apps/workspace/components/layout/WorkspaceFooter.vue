@@ -92,12 +92,12 @@
   const footerLinks = computed((): FooterLink[] => [
     {
       label: t('web.footer.api_docs'),
-      href: `${docsBase.value}/docs/api`,
+      href: `${docsBase.value}/en/rest-api/`,
       external: !!docsBase.value,
     },
     {
       label: t('web.footer.branding_guide'),
-      href: `${docsBase.value}/docs/branding`,
+      href: `${docsBase.value}/en/custom-domains/brand-guide/`,
       external: !!docsBase.value,
     },
     {
