@@ -80,9 +80,10 @@ receipt.destroy!
 
 ## Can set receipt to previewed state
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+now = Familia.now.to_i
 receipt.previewed!
-[receipt.previewed, receipt.state]
-#=> [Familia.now.to_i, 'previewed']
+[receipt.previewed.between?(now, now + 1), receipt.state]
+#=> [true, 'previewed']
 
 # NOTE: The received method has been removed from the Secret model.
 # The secret no longer keeps a reference to the receipt.
