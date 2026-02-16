@@ -55,6 +55,15 @@ module V1::Logic
         # Get base receipt attributes
         attributes = receipt.safe_dump
 
+        # Resolve the domain for URL generation: use the custom domain
+        # the secret was created on when available, otherwise canonical.
+        domain = if domains_enabled && !receipt.share_domain.to_s.empty?
+                   receipt.share_domain
+                 else
+                   site_host
+                 end
+        domain_uri = [base_scheme, domain].join
+
         # Add required URL fields
         attributes.merge!({
           # secret_state: 'burned',
@@ -64,9 +73,9 @@ module V1::Logic
           share_path: build_path(:secret, receipt.secret_key),
           burn_path: build_path(:receipt, receipt.key, 'burn'),
           metadata_path: build_path(:receipt, receipt.key), # maintain public API
-          share_url: build_url(baseuri, build_path(:secret, receipt.secret_key)),
-          metadata_url: build_url(baseuri, build_path(:receipt, receipt.key)), # maintain public API
-          burn_url: build_url(baseuri, build_path(:receipt, receipt.key, 'burn')),
+          share_url: build_url(domain_uri, build_path(:secret, receipt.secret_key)),
+          metadata_url: build_url(domain_uri, build_path(:receipt, receipt.key)), # maintain public API
+          burn_url: build_url(domain_uri, build_path(:receipt, receipt.key, 'burn')),
         })
 
         {

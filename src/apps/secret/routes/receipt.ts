@@ -30,9 +30,12 @@ const withValidatedReceiptKey = {
     const domainStrategy = bootstrapStore.domain_strategy as string;
 
     if (domainStrategy === 'custom') {
+      // Only show masthead if the custom domain has its own logo;
+      // otherwise hide it to avoid displaying the canonical OTS logo.
+      const hasDomainLogo = !!bootstrapStore.domain_logo;
       to.meta.layoutProps = {
         ...to.meta.layoutProps,
-        displayMasthead: true,
+        displayMasthead: hasDomainLogo,
         displayNavigation: false,
         displayFooterLinks: false,
         displayFeedback: false,
