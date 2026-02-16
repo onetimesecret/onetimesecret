@@ -267,7 +267,7 @@ module V2::Logic
 
       def create_secret_pair
         @receipt, @secret = Onetime::Receipt.spawn_pair(
-          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
+          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain, kind: kind
         )
 
         @greenlighted = receipt.valid? && secret.valid?

@@ -53,6 +53,7 @@ const DEFAULTS: BootstrapPayload = {
   baseuri: '',
   frontend_host: '',
   site_host: '',
+  support_host: '',
   ot_version: '',
   ot_version_long: '',
   ruby_version: '',
@@ -233,6 +234,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const baseuri = ref<string>(DEFAULTS.baseuri);
   const frontend_host = ref<string>(DEFAULTS.frontend_host);
   const site_host = ref<string>(DEFAULTS.site_host);
+  const support_host = ref<string>(DEFAULTS.support_host);
   const ot_version = ref<string>(DEFAULTS.ot_version);
   const ot_version_long = ref<string>(DEFAULTS.ot_version_long);
   const ruby_version = ref<string>(DEFAULTS.ruby_version);
@@ -350,6 +352,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(baseuri, data.baseuri);
     updateIfDefined(frontend_host, data.frontend_host);
     updateIfDefined(site_host, data.site_host);
+    updateIfDefined(support_host, data.support_host);
     updateIfDefined(ot_version, data.ot_version);
     updateIfDefined(ot_version_long, data.ot_version_long);
     updateIfDefined(ruby_version, data.ruby_version);
@@ -442,6 +445,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     baseuri.value = DEFAULTS.baseuri;
     frontend_host.value = DEFAULTS.frontend_host;
     site_host.value = DEFAULTS.site_host;
+    support_host.value = DEFAULTS.support_host;
     ot_version.value = DEFAULTS.ot_version;
     ot_version_long.value = DEFAULTS.ot_version_long;
     ruby_version.value = DEFAULTS.ruby_version;
@@ -615,6 +619,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     baseuri,
     frontend_host,
     site_host,
+    support_host,
     ot_version,
     ot_version_long,
     ruby_version,

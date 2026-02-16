@@ -99,6 +99,14 @@
     "text": "Company",
     "sha256": "de4743c8"
   },
+  "web.footer.product": {
+    "text": "Product",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Source Code",
+    "sha256": "29c5c68f"
+  },
   "web.navigation.billing": {
     "text": "Billing",
     "sha256": "3ac8bbca"

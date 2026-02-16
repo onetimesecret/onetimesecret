@@ -34,6 +34,7 @@ module Onetime
     field :lifespan
     field :share_domain
     field :has_passphrase
+    field :kind
 
     # Organization and domain tracking for scoped receipt queries
     field :org_id      # Organization objid (current context when created)
@@ -201,7 +202,7 @@ module Onetime
       #
       # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
       #
-      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
+      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil)
         secret  = Onetime::Secret.new(owner_id: owner_id)
         receipt = Onetime::Receipt.new(owner_id: owner_id)
 
@@ -234,6 +235,7 @@ module Onetime
         receipt.secret_ttl     = lifespan
         receipt.lifespan       = lifespan
         receipt.share_domain   = domain
+        receipt.kind           = kind
         receipt.save
 
         # Register for expiration warnings if feature is enabled and TTL is long enough

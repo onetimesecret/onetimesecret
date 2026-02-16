@@ -95,7 +95,7 @@ LOG_FILE="${LOG_DIR}/upgrade_${TIMESTAMP}.log"
 
 cd "$PROJECT_ROOT"
 
-if [ ! -f "CLAUDE.md" ] || [ ! -d "scripts/upgrades/v0.24.0" ]; then
+if [ ! -f "Gemfile" ] || [ ! -d "scripts/upgrades/v0.24.0" ]; then
   echo "FATAL: Script must run from the onetimesecret project root"
   echo "  Expected: $PROJECT_ROOT"
   exit 1
@@ -255,7 +255,7 @@ echo ""
 # ── Phase gate helper ───────────────────────────────────────────────────────────
 
 confirm_gate() {
-  local phase="$1" description="$2"
+  local phase="$1" description="$2" next_description="$3"
 
   if $SKIP_GATES; then
     echo "  (--skip-gates: proceeding automatically)"
@@ -269,8 +269,10 @@ confirm_gate() {
   echo "  Inspect the output above and files in $DATA_DIR/"
   echo "  before continuing to the next phase."
   echo ""
+  echo "  Next: Phase $((phase + 1)) -- $next_description"
+  echo ""
 
-  printf '  Continue to next phase? [y/N] ' > /dev/tty
+  printf '  Continue? [y/N] ' > /dev/tty
   read -r response < /dev/tty
   case "$response" in
     [yY]|[yY][eE][sS]) return 0 ;;
@@ -316,7 +318,7 @@ if [ "$START_PHASE" -le 1 ]; then
       awk '{printf "    %-8s %s\n", $5, $NF}'
   fi
 
-  confirm_gate 1 "Source data dumped to JSONL"
+  confirm_gate 1 "Source data dumped to JSONL" "Run transform pipeline (enrich, transform, validate)"
 fi
 
 # ── Phase 2: Transform pipeline ────────────────────────────────────────────────
@@ -379,7 +381,7 @@ if [ "$START_PHASE" -le 2 ]; then
       awk '{printf "    %-8s %s\n", $5, $NF}'
   fi
 
-  confirm_gate 2 "Transforms and validation complete"
+  confirm_gate 2 "Transforms and validation complete" "Load transformed data into target Valkey"
 fi
 
 # ── Phase 3: Load ──────────────────────────────────────────────────────────────
@@ -462,7 +464,7 @@ if [ "$START_PHASE" -le 3 ]; then
   echo ""
   echo "  Phase 3 completed in $((SECONDS - phase_start))s"
 
-  confirm_gate 3 "Data loaded into target Valkey"
+  confirm_gate 3 "Data loaded into target Valkey" "Archive original v1 records in target (30-day TTL)"
 fi
 
 # ── Phase 4: Archive original v1 records ────────────────────────────────────────
@@ -487,7 +489,7 @@ if [ "$START_PHASE" -le 4 ]; then
   echo ""
   echo "  Phase 4 completed in $((SECONDS - phase_start))s"
 
-  confirm_gate 4 "Original v1 records archived with 30-day TTL"
+  confirm_gate 4 "Original v1 records archived with 30-day TTL" "Sync customer accounts to Auth SQL database"
 fi
 
 # ── Phase 5: Sync to Auth SQL ──────────────────────────────────────────────────

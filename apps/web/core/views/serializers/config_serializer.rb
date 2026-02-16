@@ -30,6 +30,7 @@ module Core
         output['homepage_mode']  = view_vars['homepage_mode']
         output['secret_options'] = site['secret_options']
         output['site_host']      = site['host']
+        output['support_host']   = site.dig('support', 'host')
         regions                  = features.fetch('regions', {})
         domains                  = features.fetch('domains', {})
 
@@ -89,6 +90,7 @@ module Core
             'regions_enabled' => nil,
             'secret_options' => nil,
             'site_host' => nil,
+            'support_host' => nil,
             'ui' => nil,
           }
         end

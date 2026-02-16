@@ -166,6 +166,9 @@ site:
       maximum_length: <%= ENV['PASSPHRASE_MAX_LENGTH'] || 128 %>
       # Enforce complexity requirements (uppercase, lowercase, numbers, symbols)
       enforce_complexity: <%= ENV['PASSPHRASE_ENFORCE_COMPLEXITY'] == 'true' || false %>
+    # How long (in seconds) a generated password remains visible on the
+    # receipt page after creation. Set to 0 to disable receipt-page display.
+    generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>
     # Settings for password generation (when users click "Generate Password")
     password_generation:
       # Default length for generated passwords

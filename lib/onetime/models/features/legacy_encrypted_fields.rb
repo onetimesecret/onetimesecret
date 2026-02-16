@@ -56,7 +56,7 @@ module Onetime
 
         module InstanceMethods
           def encryption_key
-            Onetime::Secret.encryption_key OT.global_secret, objid
+            Onetime::Secret.encryption_key OT.global_secret, identifier
           end
 
           def encrypt_value(original_value, opts = {})
