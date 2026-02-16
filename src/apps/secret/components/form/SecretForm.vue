@@ -62,7 +62,11 @@
 
   // Get passphrase configuration for UI hints
   const bootstrapStore = useBootstrapStore();
-  const { secret_options: secretOptions } = storeToRefs(bootstrapStore);
+  const {
+    secret_options: secretOptions,
+    domain_strategy: domainStrategy,
+    display_domain: displayDomain,
+  } = storeToRefs(bootstrapStore);
 
   const passphraseConfig = computed(() => secretOptions.value?.passphrase);
   const isPassphraseRequired = computed(() => passphraseConfig.value?.required || false);
@@ -140,10 +144,20 @@
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
-  // Watch for domain context changes and update form
-  // Use immediate: true to ensure the initial value is captured
+  // Resolve the effective share domain for the form.
+  // The domain context composable works for authenticated users but for
+  // guest users on custom domains it falls back to canonical (no org
+  // context). In that case, use display_domain from the bootstrap store.
+  const effectiveShareDomain = computed(() => {
+    const contextDomain = currentContext.value.domain;
+    if (domainStrategy.value === 'custom' && displayDomain.value) {
+      return displayDomain.value;
+    }
+    return contextDomain;
+  });
+
   watch(
-    () => currentContext.value.domain,
+    effectiveShareDomain,
     (domain) => {
       if (domain) {
         operations.updateField('share_domain', domain);

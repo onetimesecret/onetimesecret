@@ -104,8 +104,8 @@ describe('Router Guards', () => {
   it('should redirect authenticated users from auth routes', async () => {
     setupRouterGuards(router);
 
-    // Index 1: main guard (index 0 is the feature-check guard)
-    const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as AuthGuard;
+    // Index 2: main guard (index 0 is custom-domain guard, index 1 is feature-check guard)
+    const guard = vi.mocked(router.beforeEach).mock.calls[2][0] as AuthGuard;
     const to: RouteLocationNormalized = {
       meta: { isAuthRoute: true },
       query: {},
@@ -129,8 +129,8 @@ describe('Router Guards', () => {
   it('should handle root path redirect for authenticated users', async () => {
     setupRouterGuards(router);
 
-    // Index 1: main guard (index 0 is the feature-check guard)
-    const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as AuthGuard;
+    // Index 2: main guard (index 0 is custom-domain guard, index 1 is feature-check guard)
+    const guard = vi.mocked(router.beforeEach).mock.calls[2][0] as AuthGuard;
     const to: RouteLocationNormalized = {
       path: '/',
       query: {},
@@ -159,7 +159,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup',
@@ -183,7 +183,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup',
@@ -207,7 +207,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/signin',
@@ -231,7 +231,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup',
@@ -255,7 +255,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/mfa-verify',
@@ -279,7 +279,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/reset-password',
@@ -303,7 +303,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/email-login',
@@ -327,7 +327,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/forgot',
@@ -351,7 +351,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/mfa-verify',
@@ -375,7 +375,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/email-login',
@@ -399,7 +399,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup/professional',
@@ -418,7 +418,7 @@ describe('Router Guards', () => {
 
     it('should not redirect routes without requiresFeature', () => {
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[0][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
       const to = {
         meta: {},
         path: '/some-page',

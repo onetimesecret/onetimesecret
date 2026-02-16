@@ -271,9 +271,9 @@ module V2::Logic
         @receipt_path  = build_path(:receipt, receipt_identifier)
         @metadata_path = @receipt_path # maintain public API
         @share_url     = build_url(share_domain, @share_path)
-        @receipt_url   = build_url(baseuri, @receipt_path)
+        @receipt_url   = build_url(share_domain, @receipt_path)
         @metadata_url  = @receipt_url # maintain public API
-        @burn_url      = build_url(baseuri, @burn_path)
+        @burn_url      = build_url(share_domain, @burn_path)
         @display_lines = calculate_display_lines
       end
 

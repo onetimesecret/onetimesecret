@@ -438,10 +438,10 @@ describe('receiptStore', () => {
       expect(store.apiMode).toBe('authenticated');
     });
 
-    it('$reset resets apiMode to authenticated', () => {
+    it('$reset preserves apiMode (avoids race condition on re-navigation)', () => {
       store.setApiMode('public');
       store.$reset();
-      expect(store.apiMode).toBe('authenticated');
+      expect(store.apiMode).toBe('public');
     });
 
     it('persists apiMode across multiple operations', async () => {
