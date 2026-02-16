@@ -143,7 +143,7 @@ module Onetime
         OT.log_box(
           [
             '✅ RABBITMQ: Connected to message broker',
-            "   #{url}",
+            "   #{sanitize_url(url)}",
             "   Pool size: #{pool_size} channels",
             "   Exchanges: #{Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.size} declared",
           ],
