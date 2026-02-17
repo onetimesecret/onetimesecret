@@ -48,6 +48,13 @@ module Onetime
           # Unix timestamp, nil if never dismissed
           base.field :federation_notification_dismissed_at
 
+          # Currency migration intent fields
+          # Set when user initiates graceful migration (cancel-at-period-end path).
+          # Frontend checks these to prompt user for new checkout after old sub ends.
+          base.field :pending_currency_migration      # 'true' when migration in progress
+          base.field :migration_target_price_id       # Stripe price ID for the new plan
+          base.field :migration_effective_after        # Unix timestamp (current_period_end)
+
           # Add indexes. e.g. unique_index :extid, :extid_index, within: Onetime::Organization
           base.unique_index :stripe_customer_id, :stripe_customer_id_index
           base.unique_index :stripe_subscription_id, :stripe_subscription_id_index
@@ -220,6 +227,38 @@ module Onetime
           #
           def federation_notification_dismissed?
             !federation_notification_dismissed_at.to_s.empty?
+          end
+
+          # Currency Migration Intent Methods
+          # ----------------------------------
+
+          # Check if this organization has a pending currency migration
+          #
+          # @return [Boolean] True if a graceful migration is in progress
+          def pending_currency_migration?
+            pending_currency_migration.to_s == 'true'
+          end
+
+          # Store migration intent for graceful (cancel-at-period-end) path
+          #
+          # @param target_price_id [String] Stripe price ID for the new plan
+          # @param effective_after [Integer] Unix timestamp when migration should proceed
+          # @return [void]
+          def set_currency_migration_intent!(target_price_id, effective_after)
+            self.pending_currency_migration = 'true'
+            self.migration_target_price_id  = target_price_id
+            self.migration_effective_after  = effective_after.to_s
+            save
+          end
+
+          # Clear migration intent (after migration completes or is canceled)
+          #
+          # @return [void]
+          def clear_currency_migration_intent!
+            self.pending_currency_migration = nil
+            self.migration_target_price_id  = nil
+            self.migration_effective_after  = nil
+            save
           end
 
           # Update billing fields from Stripe subscription

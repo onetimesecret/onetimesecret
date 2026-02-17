@@ -659,7 +659,10 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       it 'returns 400 when switching to same plan' do
         # Use StripeMockFactory to create a proper Stripe::Subscription object
+        # Note: 'currency' at subscription level must match the stub_test_plan_catalog!
+        # mock plan currency ('cad') so check_currency_conflict passes through.
         mock_subscription = build_subscription(
+          'currency' => 'cad',
           'items_data' => [{
             'id' => 'si_mock',
             'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
@@ -678,6 +681,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       it 'returns 400 when target price ID is not in plan catalog' do
         # Use StripeMockFactory to create a proper Stripe::Subscription object
         mock_subscription = build_subscription(
+          'currency' => 'cad',
           'items_data' => [{
             'id' => 'si_mock',
             'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
@@ -861,7 +865,10 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       it 'returns 400 when switching to same plan' do
         # Use StripeMockFactory to create a proper Stripe::Subscription object
+        # Note: 'currency' at subscription level must match the stub_test_plan_catalog!
+        # mock plan currency ('cad') so check_currency_conflict passes through.
         mock_subscription = build_subscription(
+          'currency' => 'cad',
           'items_data' => [{
             'id' => 'si_mock',
             'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
@@ -880,6 +887,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       it 'returns 400 when target price ID is not in plan catalog' do
         # Use StripeMockFactory to create a proper Stripe::Subscription object
         mock_subscription = build_subscription(
+          'currency' => 'cad',
           'items_data' => [{
             'id' => 'si_mock',
             'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
