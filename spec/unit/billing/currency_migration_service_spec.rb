@@ -400,6 +400,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     it 'issues prorated refund when credit is positive' do
       invoice = double(id: 'in_123', payment_intent: 'pi_123')
       allow(Stripe::Invoice).to receive(:list).and_return(double(data: [invoice]))
+      allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
       allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
 
       described_class.execute_immediate_migration(
