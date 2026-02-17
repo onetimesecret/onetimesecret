@@ -25,7 +25,8 @@ module AuthModeHelpers
 
     def initialize(mode, **options)
       @mode = mode.to_s
-      @hardening_enabled = options.fetch(:hardening_enabled, true)
+      @lockout_enabled = options.fetch(:lockout_enabled, true)
+      @password_requirements_enabled = options.fetch(:password_requirements_enabled, true)
       @active_sessions_enabled = options.fetch(:active_sessions_enabled, true)
       @remember_me_enabled = options.fetch(:remember_me_enabled, true)
       @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
@@ -49,8 +50,12 @@ module AuthModeHelpers
     end
 
     # Predicate methods matching AuthConfig interface
-    def hardening_enabled?
-      @hardening_enabled
+    def lockout_enabled?
+      @lockout_enabled
+    end
+
+    def password_requirements_enabled?
+      @password_requirements_enabled
     end
 
     def active_sessions_enabled?
@@ -85,11 +90,6 @@ module AuthModeHelpers
       return nil unless omniauth_enabled?
 
       @omniauth_provider_name
-    end
-
-    # DEPRECATED: Forwards to new methods for backward compatibility
-    def security_features_enabled?
-      hardening_enabled? && active_sessions_enabled? && remember_me_enabled?
     end
 
     def magic_links_enabled?

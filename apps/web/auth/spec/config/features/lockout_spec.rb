@@ -1,25 +1,25 @@
-# apps/web/auth/spec/config/features/hardening_spec.rb
+# apps/web/auth/spec/config/features/lockout_spec.rb
 #
 # frozen_string_literal: true
 
-# Tests for AUTH_HARDENING_ENABLED ENV variable
+# Tests for AUTH_LOCKOUT_ENABLED ENV variable
 #
-# Verifies that hardening features (lockout, password_requirements) are:
+# Verifies that lockout features (brute force protection) are:
 # - Enabled by default (when ENV not set or != 'false')
-# - Disabled when ENV['AUTH_HARDENING_ENABLED'] == 'false'
+# - Disabled when ENV['AUTH_LOCKOUT_ENABLED'] == 'false'
 #
-# Reference: apps/web/auth/config/features/hardening.rb
+# Reference: apps/web/auth/config/features/lockout.rb
 
 require_relative '../../spec_helper'
 
-RSpec.describe 'Auth::Config::Features::Hardening' do
+RSpec.describe 'Auth::Config::Features::Lockout' do
   let(:db) { create_test_database }
 
-  describe 'when AUTH_HARDENING_ENABLED is enabled (default)' do
+  describe 'when AUTH_LOCKOUT_ENABLED is enabled (default)' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout, :lockout, :login_password_requirements_base],
+        features: [:base, :login, :logout, :lockout],
       ) do
         max_invalid_logins 5
       end
@@ -36,12 +36,6 @@ RSpec.describe 'Auth::Config::Features::Hardening' do
 
       it 'provides unlock_account_route method' do
         expect(rodauth_responds_to?(app, :unlock_account_route)).to be true
-      end
-    end
-
-    describe 'password_requirements feature presence' do
-      it 'enables password validation' do
-        expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be true
       end
     end
 
@@ -63,7 +57,7 @@ RSpec.describe 'Auth::Config::Features::Hardening' do
     end
   end
 
-  describe 'when AUTH_HARDENING_ENABLED=false (disabled)' do
+  describe 'when AUTH_LOCKOUT_ENABLED=false (disabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,

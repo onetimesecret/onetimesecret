@@ -19,9 +19,10 @@ full:
   database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
 
   # Optional Rodauth features (matches auth.defaults.yaml format)
-  # For tests, hardening/sessions enabled by default; others disabled
+  # For tests, lockout/password_requirements/sessions enabled by default; others disabled
   features:
-    hardening: true
+    lockout: true
+    password_requirements: true
     active_sessions: true
     remember_me: true
     verify_account: false  # Disabled in test mode

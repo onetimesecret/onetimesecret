@@ -10,7 +10,7 @@
 #    session invalidation, error handling
 #
 # Security-critical paths covered:
-# - Password verification with and without ARGON2_SECRET pepper
+# - Password verification with and without AUTH_ARGON2_SECRET pepper
 # - Email sanitization (case folding, whitespace, HTML stripping)
 # - Cross-store update ordering (Auth DB before Redis)
 # - Expired/invalid token handling
