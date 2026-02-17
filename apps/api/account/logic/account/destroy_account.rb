@@ -131,8 +131,10 @@ module AccountAPI::Logic
         stored_hash = password_hash_row[:password_hash]
         return false if stored_hash.to_s.empty?
 
-        # Verify using Argon2 (same as Rodauth uses)
-        ::Argon2::Password.verify_password(password, stored_hash)
+        # Pass ARGON2_SECRET to match Rodauth's argon2_secret configuration.
+        # Without this, verification fails when the pepper is set.
+        argon2_secret = ENV.fetch('ARGON2_SECRET', nil)
+        ::Argon2::Password.verify_password(password, stored_hash, argon2_secret)
       rescue ::Argon2::ArgonHashFail => ex
         OT.le "[destroy-account] Argon2 verification failed: #{ex.message}"
         false
