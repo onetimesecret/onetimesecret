@@ -137,6 +137,7 @@ export interface SubscriptionStatusResponse {
     target_price_id: string;
     target_plan_name: string;
     target_currency: string;
+    target_plan_id: string;
     effective_after: number;
   } | null;
 }

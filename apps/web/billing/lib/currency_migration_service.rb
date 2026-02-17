@@ -194,8 +194,7 @@ module Billing
         success: true,
         migration: {
           mode: 'graceful',
-          current_subscription_ends: period_end,
-          new_price_id: new_price_id,
+          cancel_at: period_end,
         },
       }
     end
@@ -247,7 +246,7 @@ module Billing
 
         # Issue refund for prorated unused time if applicable
         if prorated_credit.positive?
-          issue_prorated_refund(customer_id, prorated_credit, old_currency)
+          issue_prorated_refund(customer_id, prorated_credit)
         end
       end
 
@@ -281,10 +280,9 @@ module Billing
         success: true,
         migration: {
           mode: 'immediate',
-          checkout_session_url: checkout_session.url,
-          session_id: checkout_session.id,
-          prorated_credit_amount: prorated_credit,
-          prorated_credit_formatted: format_amount(prorated_credit, subscription&.currency || 'usd'),
+          checkout_url: checkout_session.url,
+          refund_amount: prorated_credit,
+          refund_formatted: format_amount(prorated_credit, subscription&.currency || 'usd'),
         },
       }
     end
@@ -443,7 +441,7 @@ module Billing
     # @param amount [Integer] Refund amount in smallest currency unit
     # @param currency [String] Currency code
     # @return [Stripe::Refund, nil] The refund object or nil if no eligible invoice
-    def issue_prorated_refund(customer_id, amount, _currency)
+    def issue_prorated_refund(customer_id, amount)
       # Find the latest paid invoice with a payment intent
       invoices = Stripe::Invoice.list(
         customer: customer_id,

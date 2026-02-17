@@ -159,20 +159,20 @@ export type CurrencyMigrationWarnings = z.infer<typeof currencyMigrationWarnings
 export const currencyConflictErrorSchema = z.object({
   error: z.literal(true),
   code: z.literal('currency_conflict'),
-  message: z.string(),
+  message: z.string().optional(),
   details: z.object({
     existing_currency: z.string(),
     requested_currency: z.string(),
     current_plan: z.object({
       name: z.string(),
       price_formatted: z.string(),
-      current_period_end: z.string(),
-    }),
+      current_period_end: z.number(),
+    }).nullable(),
     requested_plan: z.object({
       name: z.string(),
       price_formatted: z.string(),
       price_id: z.string(),
-    }),
+    }).nullable(),
     warnings: currencyMigrationWarningsSchema,
   }),
 });
@@ -227,6 +227,7 @@ export const pendingMigrationSchema = z.object({
   target_price_id: z.string(),
   target_plan_name: z.string(),
   target_currency: z.string(),
+  target_plan_id: z.string(),
   effective_after: z.number(),
 });
 

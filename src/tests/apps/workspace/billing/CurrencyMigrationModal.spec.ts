@@ -61,7 +61,7 @@ vi.mock('@/schemas/errors', () => ({
   }),
 }));
 
-const futureDate = new Date(Date.now() + 86400 * 30 * 1000).toISOString();
+const futureDate = Math.floor((Date.now() + 86400 * 30 * 1000) / 1000);
 
 const mockConflict = {
   error: true as const,

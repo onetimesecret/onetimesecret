@@ -40,8 +40,8 @@ watch(() => props.open, (isOpen) => {
 const details = computed(() => props.conflict?.details ?? null);
 
 const formattedPeriodEnd = computed(() => {
-  if (!details.value?.current_plan.current_period_end) return null;
-  return new Date(details.value.current_plan.current_period_end).toLocaleDateString(undefined, {
+  if (!details.value?.current_plan?.current_period_end) return null;
+  return new Date(details.value.current_plan.current_period_end * 1000).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -75,7 +75,7 @@ async function handleConfirm() {
   try {
     const result = await BillingService.migrateCurrency(props.orgExtId, {
       mode: selectedMode.value,
-      new_price_id: details.value.requested_plan.price_id,
+      new_price_id: details.value.requested_plan?.price_id ?? '',
     });
 
     if (result.success) {
@@ -170,7 +170,7 @@ function handleClose() {
                         {{ t('web.billing.currency_migration.current_plan') }}
                       </span>
                       <span class="font-medium text-gray-900 dark:text-white">
-                        {{ details.current_plan.name }} ({{ details.current_plan.price_formatted }})
+                        {{ details.current_plan?.name }} ({{ details.current_plan?.price_formatted }})
                       </span>
                     </div>
                     <div class="flex justify-between">
@@ -178,7 +178,7 @@ function handleClose() {
                         {{ t('web.billing.currency_migration.new_plan') }}
                       </span>
                       <span class="font-medium text-gray-900 dark:text-white">
-                        {{ details.requested_plan.name }} ({{ details.requested_plan.price_formatted }})
+                        {{ details.requested_plan?.name }} ({{ details.requested_plan?.price_formatted }})
                       </span>
                     </div>
                     <div class="border-t border-gray-200 pt-3 dark:border-gray-700">

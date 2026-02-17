@@ -206,20 +206,26 @@ module Billing
               requested_currency: currencies[:requested_currency],
             }
 
-          # Build detailed assessment for the frontend migration prompt
-          assessment = Billing::CurrencyMigrationService.assess_migration(
-            org,
-            currencies[:existing_currency],
-            currencies[:requested_currency],
-            plan.stripe_price_id,
-          )
+          # Build detailed assessment for the frontend migration prompt.
+          # Wrap in rescue since assess_migration makes Stripe API calls
+          # that could raise inside this outer rescue block.
+          begin
+            assessment = Billing::CurrencyMigrationService.assess_migration(
+              org,
+              currencies[:existing_currency],
+              currencies[:requested_currency],
+              plan.stripe_price_id,
+            )
+          rescue Stripe::StripeError => assess_ex
+            billing_logger.error 'Failed to assess migration during currency conflict',
+              { exception: assess_ex, extid: req.params['extid'] }
+            assessment = { current_plan: nil, requested_plan: nil, warnings: {} }
+          end
 
           json_response(
             {
               error: true,
               code: 'currency_conflict',
-              message: "Your account has an active subscription in #{currencies[:existing_currency].upcase}. " \
-                       "To switch to a plan in #{currencies[:requested_currency].upcase}, a currency migration is required.",
               details: {
                 existing_currency: currencies[:existing_currency],
                 requested_currency: currencies[:requested_currency],
@@ -378,10 +384,7 @@ module Billing
 
           # Include pending migration info if present
           if org.pending_currency_migration?
-            data[:pending_currency_migration] = {
-              target_price_id: org.migration_target_price_id,
-              effective_after: org.migration_effective_after.to_i,
-            }
+            data[:pending_currency_migration] = pending_migration_data(org)
           end
 
           return json_response(data)
@@ -410,10 +413,7 @@ module Billing
 
         # Include pending migration info if present
         if org.pending_currency_migration?
-          data[:pending_currency_migration] = {
-            target_price_id: org.migration_target_price_id,
-            effective_after: org.migration_effective_after.to_i,
-          }
+          data[:pending_currency_migration] = pending_migration_data(org)
         end
 
         json_response(data)
@@ -451,19 +451,8 @@ module Billing
         end
 
         # Check for currency mismatch before calling Stripe
-        mismatch = Billing::CurrencyMigrationService.check_currency_mismatch(org, new_price_id)
-        if mismatch
-          return json_response(
-            {
-              error: true,
-              code: 'currency_conflict',
-              message: "Currency migration required: #{mismatch[:existing_currency].upcase} → #{mismatch[:requested_currency].upcase}",
-              existing_currency: mismatch[:existing_currency],
-              requested_currency: mismatch[:requested_currency],
-            },
-            status: 409,
-          )
-        end
+        conflict_response = check_currency_conflict(org, new_price_id)
+        return conflict_response if conflict_response
 
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
@@ -585,19 +574,8 @@ module Billing
         end
 
         # Check for currency mismatch before calling Stripe
-        mismatch = Billing::CurrencyMigrationService.check_currency_mismatch(org, new_price_id)
-        if mismatch
-          return json_response(
-            {
-              error: true,
-              code: 'currency_conflict',
-              message: "Currency migration required: #{mismatch[:existing_currency].upcase} → #{mismatch[:requested_currency].upcase}",
-              existing_currency: mismatch[:existing_currency],
-              requested_currency: mismatch[:requested_currency],
-            },
-            status: 409,
-          )
-        end
+        conflict_response = check_currency_conflict(org, new_price_id)
+        return conflict_response if conflict_response
 
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
@@ -1011,6 +989,46 @@ module Billing
 
       module PrivateMethods
         private
+
+        # Check for currency mismatch and return a 409 response if found.
+        #
+        # @param org [Onetime::Organization] Organization to check
+        # @param new_price_id [String] Target Stripe Price ID
+        # @return [Object, nil] JSON error response if conflict, nil otherwise
+        def check_currency_conflict(org, new_price_id)
+          mismatch = Billing::CurrencyMigrationService.check_currency_mismatch(org, new_price_id)
+          return nil unless mismatch
+
+          json_response(
+            {
+              error: true,
+              code: 'currency_conflict',
+              existing_currency: mismatch[:existing_currency],
+              requested_currency: mismatch[:requested_currency],
+            },
+            status: 409,
+          )
+        end
+
+        # Build pending migration data hash for subscription_status response
+        #
+        # Resolves plan name and currency from the stored target_price_id so
+        # the frontend PendingMigrationBanner has all the data it needs.
+        #
+        # @param org [Onetime::Organization] Organization with pending migration
+        # @return [Hash] Migration data matching pendingMigrationSchema
+        def pending_migration_data(org)
+          price_id = org.migration_target_price_id
+          plan     = ::Billing::Plan.find_by_stripe_price_id(price_id)
+
+          {
+            target_price_id: price_id,
+            target_plan_name: plan&.name || 'Unknown',
+            target_currency: plan&.currency || 'unknown',
+            target_plan_id: plan&.plan_id,
+            effective_after: org.migration_effective_after.to_i,
+          }
+        end
 
         # Check if invoice line item is a proration
         #

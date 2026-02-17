@@ -243,7 +243,7 @@ const handlePlanSelect = async (plan: BillingPlan) => {
     if (response.checkout_url) {
       window.location.href = response.checkout_url;
     } else {
-      error.value = 'Failed to create checkout session';
+      error.value = t('web.billing.checkout_session_failed');
     }
   } catch (err) {
     // Check for currency conflict before generic error handling
@@ -253,7 +253,7 @@ const handlePlanSelect = async (plan: BillingPlan) => {
       showCurrencyMigrationModal.value = true;
     } else {
       const classified = classifyError(err);
-      error.value = classified.message || 'Failed to initiate checkout';
+      error.value = classified.message || t('web.billing.checkout_initiate_failed');
       console.error('[PlanSelector] Checkout error:', err);
     }
   } finally {
@@ -269,7 +269,7 @@ const handlePlanChangeClose = () => {
 const handlePlanChangeSuccess = async (newPlan: string) => {
   showPlanChangeModal.value = false;
   targetPlan.value = null;
-  successMessage.value = `Successfully switched to ${newPlan}`;
+  successMessage.value = t('web.billing.plan_switch_success', { plan: newPlan });
 
   // Refresh subscription status and organization data
   if (orgExtid.value) {
@@ -335,23 +335,28 @@ const handleCompletePendingMigration = async () => {
   error.value = '';
 
   try {
-    // Create a new checkout session for the pending migration target plan
+    // Create a new checkout session for the pending migration target plan.
+    // target_plan_id is in "product_interval" format (e.g. "identity_plus_v1_monthly"),
+    // which createCheckoutSession can derive product + interval from.
+    const planId = pendingMigration.value.target_plan_id;
+    const isYearly = planId.endsWith('_yearly');
+    const interval = isYearly ? 'year' : 'month';
     const response = await BillingService.createCheckoutSession(
       selectedOrg.value.extid,
       {
-        id: pendingMigration.value.target_price_id,
-        interval: '', // Backend resolves from price_id
+        id: planId,
+        interval,
       }
     );
 
     if (response.checkout_url) {
       window.location.href = response.checkout_url;
     } else {
-      error.value = 'Failed to create checkout session';
+      error.value = t('web.billing.checkout_session_failed');
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to initiate checkout';
+    error.value = classified.message || t('web.billing.checkout_initiate_failed');
     console.error('[PlanSelector] Complete migration error:', err);
   } finally {
     isCompletingPendingMigration.value = false;

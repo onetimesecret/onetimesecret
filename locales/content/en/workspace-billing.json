@@ -944,5 +944,20 @@
     "text": "Complete Migration",
     "context": "Button to start checkout for the new currency plan",
     "sha256": "b0c1d2e3"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "Failed to create checkout session",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "c1d2e3f4"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "Failed to initiate checkout",
+    "context": "Fallback error for checkout failures",
+    "sha256": "d2e3f4a5"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "Successfully switched to {plan}",
+    "context": "Success message after plan change",
+    "sha256": "e3f4a5b6"
   }
 }
