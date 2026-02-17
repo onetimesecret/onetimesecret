@@ -164,8 +164,7 @@
                   text-gray-600 dark:text-gray-400">
                 {{
                   t(
-                    'web.settings.profile'
-                    + '.change_email_description'
+                    'web.settings.profile.change_email_description'
                   )
                 }}
               </p>
@@ -305,8 +304,7 @@
                   dark:text-gray-400">
                 {{
                   t(
-                    'web.settings.profile'
-                    + '.verification_email_notice'
+                    'web.settings.profile.verification_email_notice'
                   )
                 }}
               </p>
@@ -363,8 +361,7 @@
       "
       :description="
         t(
-          'web.settings.profile'
-          + '.password_required_for_security'
+          'web.settings.profile.password_required_for_security'
         )
       "
       :loading="isLoading"

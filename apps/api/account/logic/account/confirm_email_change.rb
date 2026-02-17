@@ -122,14 +122,61 @@ module AccountAPI::Logic
             count = db[:account_active_session_keys]
               .where(account_id: account[:id])
               .delete
-            OT.info "[confirm-email-change] Invalidated #{count} active session(s) for cid/#{customer.objid}"
+            OT.info "[confirm-email-change] Invalidated #{count} auth DB session(s) for cid/#{customer.objid}"
           end
         end
+
+        # Delete all Redis session keys belonging to this customer.
+        # Sessions are stored as session:<hex_id> with HMAC-signed JSON
+        # containing an external_id field that identifies the owner.
+        delete_redis_sessions(customer)
 
         # Also clear the current request's session if present
         sess.clear if sess
       rescue StandardError => ex
         OT.le "[confirm-email-change] Session invalidation error: #{ex.message}"
+      end
+
+      # Scan Redis for all session keys belonging to the given customer
+      # and delete them. Uses SCAN to avoid blocking Redis on large keyspaces.
+      #
+      # Session values are stored as "base64(json)--hmac". We decode and
+      # check whether external_id matches the customer's extid.
+      def delete_redis_sessions(customer)
+        extid = customer.extid
+        return if extid.nil? || extid.empty?
+
+        dbclient = Familia.dbclient
+        deleted  = 0
+
+        dbclient.scan_each(match: 'session:*') do |key|
+          session_extid = extract_session_extid(dbclient, key)
+          next unless session_extid == extid
+
+          dbclient.del(key)
+          deleted += 1
+        end
+
+        OT.info "[confirm-email-change] Deleted #{deleted} Redis session(s) for cid/#{customer.objid}"
+      rescue StandardError => ex
+        OT.le "[confirm-email-change] Redis session cleanup error: #{ex.message}"
+      end
+
+      # Extract the external_id from a stored session value without
+      # verifying the HMAC (we are deleting, not trusting the data).
+      # Returns nil if the value cannot be decoded.
+      def extract_session_extid(dbclient, key)
+        raw = dbclient.get(key)
+        return nil unless raw
+
+        data, _hmac = raw.split('--', 2)
+        return nil unless data
+
+        decoded = Base64.decode64(data)
+        parsed  = Familia::JsonSerializer.parse(decoded)
+        parsed['external_id']
+      rescue StandardError
+        nil
       end
     end
   end
