@@ -104,9 +104,12 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     let(:target_price_id) { 'price_usd_456' }
     let(:target_plan) { double(name: 'Plus Monthly (USD)', amount: '2900', interval: 'month') }
 
+    let(:current_plan) { double(name: 'Plus Monthly (EUR)') }
+
     before do
       allow(Stripe::Customer).to receive(:retrieve).with(customer_id).and_return(mock_customer)
       allow(::Billing::Plan).to receive(:find_by_stripe_price_id).with(target_price_id).and_return(target_plan)
+      allow(::Billing::Plan).to receive(:find_by_stripe_price_id).with('price_eur').and_return(current_plan)
     end
 
     context 'with active subscription and clean state' do
@@ -233,17 +236,13 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     context 'with amount-off coupon in old currency' do
       let(:subscription) do
-        sub = Stripe::Subscription.construct_from({
+        Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false,
+          cancel_at_period_end: false, discount: { coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } },
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
-        coupon = double(amount_off: 1000, currency: 'eur', id: 'coupon_10_eur', name: '10 EUR off')
-        discount = double(coupon: coupon)
-        allow(sub).to receive(:discount).and_return(discount)
-        sub
       end
 
       before do
@@ -399,7 +398,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     end
 
     it 'issues prorated refund when credit is positive' do
-      invoice = double(payment_intent: 'pi_123')
+      invoice = double(id: 'in_123', payment_intent: 'pi_123')
       allow(Stripe::Invoice).to receive(:list).and_return(double(data: [invoice]))
       allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
 
