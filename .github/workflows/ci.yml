@@ -35,6 +35,7 @@ on:
       - main
       - develop
       - 'rel/*'
+      - 'fix/*'
       - 'feature/*'
   workflow_dispatch:
     inputs:
