@@ -30,6 +30,7 @@
     isInitialized: boolean;
     previewI18n: Composer;
     hasUnsavedChanges: boolean;
+    disabled?: boolean;
   }>();
 
   const emit = defineEmits<{
@@ -69,7 +70,9 @@
           @submit.prevent="handleSubmit"
           class="flex min-w-0 items-center gap-4">
           <!-- Left section - wrap in flex container -->
-          <div class="flex min-w-0 shrink items-center gap-4">
+          <div
+            class="flex min-w-0 shrink items-center gap-4"
+            :class="{ 'pointer-events-none opacity-60': props.disabled }">
             <!-- Color Picker -->
             <div class="flex min-w-0 shrink items-center gap-2">
               <ColorPicker
@@ -123,7 +126,9 @@
           </div>
 
           <!-- Save Button -->
-          <div class="ml-auto shrink-0">
+          <div
+            v-if="!props.disabled"
+            class="ml-auto shrink-0">
             <!-- prettier-ignore-attribute class -->
             <button
               type="submit"

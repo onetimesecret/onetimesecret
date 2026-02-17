@@ -12,8 +12,11 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBranding } from '@/shared/composables/useBranding';
   import { useDomain } from '@/shared/composables/useDomain';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { createError } from '@/schemas/errors';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
   import { storeToRefs } from 'pinia';
   import { detectPlatform } from '@/utils';
   import { computed, onMounted, ref, watch } from 'vue';
@@ -52,8 +55,18 @@
     browserType.value = browserType.value === 'safari' ? 'edge' : 'safari';
   };
 
+  const upgradeBannerDismissed = ref(false);
+
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled } = storeToRefs(bootstrapStore);
+
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(() =>
+    organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+  const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 
   // Instructions fields configuration for the modal
   const instructionFields = computed(() => [
@@ -126,8 +139,11 @@
           :is-loading="isLoading"
           :is-initialized="isInitialized"
           :has-unsaved-changes="hasUnsavedChanges"
+          :disabled="!canBrand"
           @submit="() => saveBranding(brandSettings)">
-          <template #instructions-buttons>
+          <template
+            v-if="canBrand"
+            #instructions-buttons>
             <InstructionsModal
               :instruction-fields="instructionFields"
               :preview-i18n="previewI18n"
@@ -135,7 +151,9 @@
               @save="() => saveBranding(brandSettings)" />
           </template>
 
-          <template #language-button>
+          <template
+            v-if="canBrand"
+            #language-button>
             <LanguageSelector
               v-if="i18n_enabled"
               v-model="brandSettings.locale"
@@ -143,6 +161,43 @@
               @update:model-value="(value) => (brandSettings.locale = value)" />
           </template>
         </BrandSettingsBar>
+      </div>
+
+      <!-- Upgrade banner when custom_branding entitlement is missing -->
+      <div
+        v-if="!canBrand && !upgradeBannerDismissed"
+        class="mx-auto mt-8 max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+          <OIcon
+            collection="heroicons"
+            name="information-circle"
+            class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+            aria-hidden="true" />
+          <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+            {{ t('web.branding.upgrade_to_customize') }}
+          </p>
+          <RouterLink
+            :to="`/billing/${props.orgid}/plans`"
+            class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200">
+            {{ t('web.billing.overview.view_plans_action') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-right"
+              class="size-4"
+              aria-hidden="true" />
+          </RouterLink>
+          <button
+            type="button"
+            class="ml-2 rounded p-1 text-amber-500 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/40 dark:hover:text-amber-300"
+            :aria-label="t('web.LABELS.close')"
+            @click="upgradeBannerDismissed = true">
+            <OIcon
+              collection="heroicons"
+              name="x-mark"
+              class="size-4"
+              aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       <!-- Main Content -->
@@ -210,8 +265,8 @@
               :domain-branding="brandSettings"
               :logo-image="logoImage"
               :preview-i18n="previewI18n"
-              :on-logo-upload="handleLogoUpload"
-              :on-logo-remove="removeLogo"
+              :on-logo-upload="canBrand ? handleLogoUpload : undefined"
+              :on-logo-remove="canBrand ? removeLogo : undefined"
               secret-identifier="abcd"
               class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
           </BrowserPreviewFrame>
