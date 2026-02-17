@@ -36,7 +36,7 @@ module AccountAPI::Logic
 
       def process
         old_email = @owner.email
-        new_email = @secret.decrypted_secret_value.to_s.strip
+        new_email = sanitize_email(@secret.decrypted_secret_value)
 
         if new_email.empty?
           raise_form_error 'Unable to determine new email address', error_type: 'system_error'
@@ -49,7 +49,11 @@ module AccountAPI::Logic
 
         OT.info "[confirm-email-change] Confirming email change cid/#{@owner.objid} old/#{OT::Utils.obscure_email(old_email)} new/#{OT::Utils.obscure_email(new_email)}"
 
-        # Update email field first, then update the global index
+        # Update Auth DB first (transactional) so failure doesn't leave Redis in
+        # an inconsistent state. If this raises, Redis is untouched.
+        update_auth_database(@owner, new_email) if Onetime.auth_config.full_enabled?
+
+        # Update email field, then update the global index
         # (update_in_class_email_index reads the current email field for the new value)
         @owner.email = new_email
         @owner.update_in_class_email_index(old_email)
@@ -57,9 +61,6 @@ module AccountAPI::Logic
 
         # Update org-scoped email index if org context exists
         update_org_email_index(@owner, old_email)
-
-        # Update SQLite/PostgreSQL accounts table if in full auth mode
-        update_auth_database(@owner, new_email) if Onetime.auth_config.full_enabled?
 
         # Clear the pending change marker
         @owner.pending_email_change.delete!
@@ -87,7 +88,8 @@ module AccountAPI::Logic
           customer.update_in_organization_email_index(org, old_email)
         end
       rescue StandardError => ex
-        OT.le "[confirm-email-change] Org index update failed: #{ex.message}"
+        OT.le "[confirm-email-change] Org index update failed cid/#{customer.objid}: #{ex.message}"
+        OT.le ex.backtrace.first(5).join("\n")
       end
 
       def update_auth_database(customer, new_email)
@@ -106,7 +108,10 @@ module AccountAPI::Logic
       end
 
       def invalidate_sessions(_customer)
-        # Clear the current session to force re-login
+        # TODO: Only clears the current session. A full implementation
+        # should invalidate ALL sessions for this customer to prevent
+        # stale-email sessions from persisting. Requires enumerating
+        # session keys by customer — tracked for a follow-up PR.
         sess.clear if sess
       rescue StandardError => ex
         OT.le "[confirm-email-change] Session invalidation error: #{ex.message}"
