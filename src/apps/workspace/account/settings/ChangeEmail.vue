@@ -238,13 +238,13 @@
                   :disabled="isLoading"
                   :aria-invalid="
                     (!isValidEmail && newEmail)
-                      || fieldError?.[0] === 'email'
+                      || fieldError?.[0] === 'new_email'
                       ? 'true'
                       : undefined
                   "
                   :aria-describedby="
-                    fieldError?.[0] === 'email'
-                      ? 'email-error'
+                    fieldError?.[0] === 'new_email'
+                      ? 'new-email-error'
                       : undefined
                   "
                   :class="[
@@ -256,18 +256,22 @@
                     'disabled:cursor-not-allowed',
                     'disabled:opacity-50',
                     (!isValidEmail && newEmail)
-                      || fieldError?.[0] === 'email'
-                      ? 'border-red-300 bg-red-50'
-                        + ' text-red-900'
-                        + ' focus:border-red-500'
-                        + ' dark:border-red-700'
-                        + ' dark:bg-red-900/20'
-                        + ' dark:text-red-300'
-                      : 'border-gray-300 bg-white'
-                        + ' text-gray-900'
-                        + ' dark:border-gray-600'
-                        + ' dark:bg-gray-800'
-                        + ' dark:text-white',
+                      || fieldError?.[0] === 'new_email'
+                      ? [
+                          'border-red-300 bg-red-50',
+                          'text-red-900',
+                          'focus:border-red-500',
+                          'dark:border-red-700',
+                          'dark:bg-red-900/20',
+                          'dark:text-red-300',
+                        ]
+                      : [
+                          'border-gray-300 bg-white',
+                          'text-gray-900',
+                          'dark:border-gray-600',
+                          'dark:bg-gray-800',
+                          'dark:text-white',
+                        ],
                   ]"
                   @input="handleEmailInput" />
               </div>
@@ -280,8 +284,8 @@
                 }}
               </p>
               <p
-                v-else-if="fieldError?.[0] === 'email'"
-                id="email-error"
+                v-else-if="fieldError?.[0] === 'new_email'"
+                id="new-email-error"
                 role="alert"
                 class="mt-2 text-sm text-red-600
                   dark:text-red-400">
@@ -318,14 +322,18 @@
                   'focus:ring-brand-500',
                   'focus:ring-offset-2',
                   !canSubmit
-                    ? 'cursor-not-allowed bg-gray-300'
-                      + ' text-gray-500'
-                      + ' dark:bg-gray-700'
-                      + ' dark:text-gray-400'
-                    : 'bg-brand-600 text-white'
-                      + ' hover:bg-brand-700'
-                      + ' dark:bg-brand-500'
-                      + ' dark:hover:bg-brand-600',
+                    ? [
+                        'cursor-not-allowed bg-gray-300',
+                        'text-gray-500',
+                        'dark:bg-gray-700',
+                        'dark:text-gray-400',
+                      ]
+                    : [
+                        'bg-brand-600 text-white',
+                        'hover:bg-brand-700',
+                        'dark:bg-brand-500',
+                        'dark:hover:bg-brand-600',
+                      ],
                 ]">
                 <OIcon
                   v-if="isLoading"

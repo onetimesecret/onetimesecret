@@ -320,11 +320,26 @@ export const mfaStatusResponseSchema = z.object({
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;
 
 // Email change request response
-export const emailChangeRequestResponseSchema = authResponseSchema;
+// Backend returns { sent: true } on success (not { success: string })
+const emailChangeRequestSuccessSchema = z.object({
+  sent: z.boolean(),
+});
+export const emailChangeRequestResponseSchema = z.union([
+  emailChangeRequestSuccessSchema,
+  authErrorSchema,
+]);
 export type EmailChangeRequestResponse =
   z.infer<typeof emailChangeRequestResponseSchema>;
 
 // Email change confirmation response
-export const emailChangeConfirmResponseSchema = authResponseSchema;
+// Backend returns { confirmed: true, redirect: '/signin' } on success
+const emailChangeConfirmSuccessSchema = z.object({
+  confirmed: z.boolean(),
+  redirect: z.string(),
+});
+export const emailChangeConfirmResponseSchema = z.union([
+  emailChangeConfirmSuccessSchema,
+  authErrorSchema,
+]);
 export type EmailChangeConfirmResponse =
   z.infer<typeof emailChangeConfirmResponseSchema>;

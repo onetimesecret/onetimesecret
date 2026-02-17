@@ -17,6 +17,15 @@
   } = useAuth();
 
   const confirmed = ref(false);
+  const redirectCountdown = ref(5);
+  let countdownTimer: ReturnType<typeof setInterval> | undefined;
+
+  const redirectToSignin = () => {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+    }
+    router.push('/signin');
+  };
 
   onMounted(async () => {
     const token = route.params.token as string;
@@ -29,9 +38,12 @@
 
     if (success) {
       confirmed.value = true;
-      setTimeout(() => {
-        router.push('/signin');
-      }, 4000);
+      countdownTimer = setInterval(() => {
+        redirectCountdown.value -= 1;
+        if (redirectCountdown.value <= 0) {
+          redirectToSignin();
+        }
+      }, 1000);
     }
   });
 </script>
@@ -53,10 +65,7 @@
           class="mt-4 text-gray-600
             dark:text-gray-400">
           {{
-            t(
-              'web.settings.profile'
-              + '.email_confirm_verifying'
-            )
+            t('web.settings.profile.email_confirm_verifying')
           }}
         </p>
       </div>
@@ -78,32 +87,35 @@
           class="mt-6 text-2xl font-bold text-gray-900
             dark:text-white">
           {{
-            t(
-              'web.settings.profile'
-              + '.confirm_email_change_title'
-            )
+            t('web.settings.profile.confirm_email_change_title')
           }}
         </h1>
         <p
           class="mt-3 text-gray-600
             dark:text-gray-400">
           {{
-            t(
-              'web.settings.profile'
-              + '.email_confirmed_success'
-            )
+            t('web.settings.profile.email_confirmed_success')
           }}
         </p>
         <p
           class="mt-4 text-sm text-gray-500
             dark:text-gray-500">
           {{
-            t(
-              'web.settings.profile'
-              + '.redirecting_to_signin'
-            )
+            t('web.settings.profile.redirecting_to_signin')
           }}
         </p>
+        <router-link
+          to="/signin"
+          class="mt-4 inline-flex items-center gap-2
+            text-sm font-medium text-brand-600
+            hover:text-brand-700
+            dark:text-brand-400
+            dark:hover:text-brand-300"
+          @click.prevent="redirectToSignin">
+          {{
+            t('web.COMMON.sign_in')
+          }}
+        </router-link>
       </div>
 
       <!-- Error state -->
@@ -123,20 +135,14 @@
           class="mt-6 text-2xl font-bold text-gray-900
             dark:text-white">
           {{
-            t(
-              'web.settings.profile'
-              + '.confirm_email_change_title'
-            )
+            t('web.settings.profile.confirm_email_change_title')
           }}
         </h1>
         <p
           class="mt-3 text-red-600
             dark:text-red-400">
           {{
-            t(
-              'web.settings.profile'
-              + '.email_confirm_invalid'
-            )
+            t('web.settings.profile.email_confirm_invalid')
           }}
         </p>
         <router-link
@@ -148,10 +154,7 @@
             dark:bg-brand-500
             dark:hover:bg-brand-600">
           {{
-            t(
-              'web.settings.profile'
-              + '.email_confirm_back_to_settings'
-            )
+            t('web.settings.profile.email_confirm_back_to_settings')
           }}
         </router-link>
       </div>
