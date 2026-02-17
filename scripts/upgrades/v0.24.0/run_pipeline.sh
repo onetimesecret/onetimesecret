@@ -14,7 +14,7 @@
 set -e
 
 # Verify running from project root
-if [ ! -f "CLAUDE.md" ] || [ ! -d "scripts/upgrades/v0.24.0" ]; then
+if [ ! -f "Gemfile" ] || [ ! -d "scripts/upgrades/v0.24.0" ]; then
   echo "Error: Must run from project root directory"
   echo "Usage: scripts/upgrades/v0.24.0/run_pipeline.sh"
   exit 1

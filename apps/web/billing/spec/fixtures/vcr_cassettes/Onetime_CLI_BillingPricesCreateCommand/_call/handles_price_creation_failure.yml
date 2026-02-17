@@ -8,17 +8,17 @@ http_interactions:
       string: ''
     headers:
       User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
+      - Stripe/v1 RubyBindings/18.1.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_OvB9VvMZyc9zQo","request_duration_ms":392}}'
+      - '{"last_request_metrics":{"request_id":"req_opFwPCbe23OkeG","request_duration_ms":220}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      - '{"bindings_version":"18.1.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:05 PST
+        2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
@@ -31,11 +31,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:21:30 GMT
+      - Mon, 16 Feb 2026 12:12:37 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '323'
+      - '349'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=pUwHNoVEvRpzgW47LWvIEwRFAsXVnNkNKtL2fwcwZDo7Rw9k_m6kYKn-9bdIF9s0SbIkSFmJFGN7qooh
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=b9uRIVSFJLwl8uyfF9s8lrHKiA1xAI_2sVnbeIfBRJPH_VJ7UgM2lrEMjLh2Aqlf6r26oBnurtPyrFVj
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -76,9 +76,9 @@ http_interactions:
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
             "message": "No such product: 'prod_mock'",
             "param": "id",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_UVg8ekVudUVm0c?t=1766985690",
+            "request_log_url": "https://dashboard.stripe.com/acct_1SRUXQH54PcLeqtY/test/workbench/logs?object=req_wJo95FsoV7IKMn",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Mon, 29 Dec 2025 05:21:30 GMT
-recorded_with: VCR 6.3.1
+  recorded_at: Mon, 16 Feb 2026 12:12:37 GMT
+recorded_with: VCR 6.4.0

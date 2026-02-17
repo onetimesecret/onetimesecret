@@ -516,7 +516,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       end
 
       it 'allows guest burn (still enabled)' do
-        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(V3::Logic::Secrets::BurnSecret,
           params: { 'identifier' => receipt.identifier },
@@ -541,7 +541,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       end
 
       it 'allows guest receipt (still enabled)' do
-        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(V3::Logic::Secrets::ShowReceipt,
           params: { 'identifier' => receipt.identifier },

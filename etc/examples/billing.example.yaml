@@ -59,10 +59,10 @@ entitlements:
     description: Custom branding and styling
     display_name: web.billing.overview.entitlements.custom_branding
 
-  branded_homepage:
+  homepage_secrets:
     category: branding
     description: Branded homepage for custom domains
-    display_name: web.billing.overview.entitlements.branded_homepage
+    display_name: web.billing.overview.entitlements.homepage_secrets
 
   manage_teams:
     category: collaboration
