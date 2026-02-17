@@ -108,6 +108,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
       id: 'sub_test123',
       status: 'active',
       customer: 'cus_test123',
+      currency: 'usd',
       current_period_start: Time.now.to_i,
       current_period_end: (Time.now + 30 * 24 * 60 * 60).to_i,
       items: subscription_items,
