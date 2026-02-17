@@ -411,9 +411,42 @@ module Billing
 
     # Calculate prorated credit for unused subscription time
     #
+    # Uses Stripe's invoice preview API to get accurate proration that
+    # accounts for taxes, discounts, and Stripe's own proration logic.
+    # Falls back to manual calculation if the API call fails.
+    #
     # @param subscription [Stripe::Subscription] Active subscription
     # @return [Integer] Prorated amount in smallest currency unit
     def calculate_prorated_credit(subscription)
+      first_item = subscription.items.data.first
+      return 0 unless first_item
+
+      invoice = Stripe::Invoice.create_preview(
+        customer: subscription.customer,
+        subscription: subscription.id,
+        subscription_items: [{
+          id: first_item.id,
+          deleted: true,
+        }],
+        subscription_proration_behavior: 'create_prorations',
+        subscription_proration_date: Time.now.to_i,
+      )
+
+      # Credit lines have negative amounts
+      invoice.lines.data.select { |line| line.amount < 0 }.sum(&:amount).abs
+    rescue Stripe::StripeError => ex
+      OT.ld "[CurrencyMigrationService] Invoice preview failed (#{ex.message}), falling back to manual calculation"
+      manual_prorated_credit(subscription)
+    end
+
+    # Manual prorated credit calculation (fallback)
+    #
+    # Simple time-proportional estimate. Does not account for taxes,
+    # discounts, or Stripe's proration logic.
+    #
+    # @param subscription [Stripe::Subscription] Active subscription
+    # @return [Integer] Prorated amount in smallest currency unit
+    def manual_prorated_credit(subscription)
       first_item = subscription.items.data.first
       return 0 unless first_item
 

@@ -335,7 +335,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       Stripe::Subscription.construct_from({
         id: 'sub_123', object: 'subscription',
         customer: 'cus_123', status: 'active', currency: 'eur',
-        items: { data: [{ price: { id: 'price_eur', unit_amount: 2900 }, current_period_start: period_start, current_period_end: period_end }] },
+        items: { data: [{ id: 'si_123', price: { id: 'price_eur', unit_amount: 2900 }, current_period_start: period_start, current_period_end: period_end }] },
         metadata: {},
       })
     end
@@ -344,12 +344,23 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       double(id: 'cs_new_123', url: 'https://checkout.stripe.com/c/pay/cs_new_123')
     end
 
+    let(:proration_preview) do
+      Stripe::Invoice.construct_from({
+        id: 'in_preview',
+        lines: { data: [
+          { amount: -1450, description: 'Unused time on Plus Monthly' },
+          { amount: 0, description: 'Remaining time on Plus Monthly' },
+        ] },
+      })
+    end
+
     before do
       allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
       allow(Stripe::Subscription).to receive(:cancel).and_return(subscription)
       allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
       allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
       allow(Stripe::Invoice).to receive(:list).and_return(double(data: []))
+      allow(Stripe::Invoice).to receive(:create_preview).and_return(proration_preview)
       allow(Billing::StripeClient).to receive(:new).and_return(
         double(create: checkout_session)
       )
@@ -397,24 +408,50 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       expect(result[:success]).to be true
     end
 
-    it 'issues prorated refund when credit is positive' do
+    it 'issues prorated refund using Stripe invoice preview amount' do
       invoice = double(id: 'in_123', payment_intent: 'pi_123')
       allow(Stripe::Invoice).to receive(:list).and_return(double(data: [invoice]))
       allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
       allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
 
-      described_class.execute_immediate_migration(
+      result = described_class.execute_immediate_migration(
         org, 'price_usd_456',
         success_url: 'https://example.com/success',
         cancel_url: 'https://example.com/cancel',
       )
 
+      expect(Stripe::Invoice).to have_received(:create_preview).with(
+        hash_including(
+          customer: 'cus_123',
+          subscription: 'sub_123',
+          subscription_proration_behavior: 'create_prorations'
+        )
+      )
       expect(Stripe::Refund).to have_received(:create).with(
         hash_including(
           payment_intent: 'pi_123',
+          amount: 1450,
           reason: 'requested_by_customer'
         )
       )
+      expect(result[:migration][:refund_amount]).to eq(1450)
+    end
+
+    it 'falls back to manual calculation when invoice preview fails' do
+      allow(Stripe::Invoice).to receive(:create_preview)
+        .and_raise(Stripe::InvalidRequestError.new('No such subscription', 'subscription'))
+      allow(Stripe::Invoice).to receive(:void_invoice).and_return(nil)
+      allow(OT).to receive(:ld)
+
+      result = described_class.execute_immediate_migration(
+        org, 'price_usd_456',
+        success_url: 'https://example.com/success',
+        cancel_url: 'https://example.com/cancel',
+      )
+
+      # Manual calculation should produce a positive credit (halfway through period)
+      expect(result[:migration][:refund_amount]).to be > 0
+      expect(result[:migration][:refund_amount]).to be_a(Integer)
     end
   end
 end

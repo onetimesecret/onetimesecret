@@ -104,12 +104,8 @@ module Billing
         end
 
         # Build checkout session parameters
-        site_host = Onetime.conf['site']['host']
-        is_secure = Onetime.conf['site']['ssl']
-        protocol  = is_secure ? 'https' : 'http'
-
-        success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url  = "#{protocol}://#{site_host}/billing/#{org.extid}/plans"
+        success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
+        cancel_url  = "#{billing_base_url}/billing/#{org.extid}/plans"
 
         session_params = {
           mode: 'subscription',
@@ -382,10 +378,7 @@ module Billing
             current_plan: org.planid,
           }
 
-          # Include pending migration info if present
-          if org.pending_currency_migration?
-            data[:pending_currency_migration] = pending_migration_data(org)
-          end
+          enrich_with_pending_migration!(data, org)
 
           return json_response(data)
         end
@@ -411,10 +404,7 @@ module Billing
           cancel_at: subscription.cancel_at,
         }
 
-        # Include pending migration info if present
-        if org.pending_currency_migration?
-          data[:pending_currency_migration] = pending_migration_data(org)
-        end
+        enrich_with_pending_migration!(data, org)
 
         json_response(data)
       rescue OT::Problem => ex
@@ -944,12 +934,8 @@ module Billing
 
           Billing::CurrencyMigrationService.execute_graceful_migration(org, new_price_id)
         when 'immediate'
-          site_host = Onetime.conf['site']['host']
-          is_secure = Onetime.conf['site']['ssl']
-          protocol  = is_secure ? 'https' : 'http'
-
-          success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-          cancel_url  = "#{protocol}://#{site_host}/billing/#{org.extid}/plans"
+          success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
+          cancel_url  = "#{billing_base_url}/billing/#{org.extid}/plans"
 
           Billing::CurrencyMigrationService.execute_immediate_migration(
             org,
@@ -990,6 +976,16 @@ module Billing
       module PrivateMethods
         private
 
+        # Build the base URL (protocol + host) from site configuration
+        #
+        # @return [String] Base URL, e.g. "https://example.com"
+        def billing_base_url
+          site_host = Onetime.conf['site']['host']
+          is_secure = Onetime.conf['site']['ssl']
+          protocol  = is_secure ? 'https' : 'http'
+          "#{protocol}://#{site_host}"
+        end
+
         # Check for currency mismatch and return a 409 response if found.
         #
         # @param org [Onetime::Organization] Organization to check
@@ -1017,6 +1013,20 @@ module Billing
         #
         # @param org [Onetime::Organization] Organization with pending migration
         # @return [Hash] Migration data matching pendingMigrationSchema
+        # Enrich response data with pending currency migration info if present
+        #
+        # Checks whether the organization has a pending currency migration and,
+        # if so, adds the migration details to the response hash in-place.
+        #
+        # @param data [Hash] Response hash to enrich
+        # @param org [Onetime::Organization] Organization to check
+        # @return [void]
+        def enrich_with_pending_migration!(data, org)
+          return unless org.pending_currency_migration?
+
+          data[:pending_currency_migration] = pending_migration_data(org)
+        end
+
         def pending_migration_data(org)
           price_id = org.migration_target_price_id
           plan     = ::Billing::Plan.find_by_stripe_price_id(price_id)
