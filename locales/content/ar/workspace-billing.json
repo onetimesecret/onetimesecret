@@ -167,7 +167,7 @@
     "text": "العلامة التجارية المخصصة",
     "sha256": "237dabec"
   },
-  "web.billing.overview.entitlements.branded_homepage": {
+  "web.billing.overview.entitlements.homepage_secrets": {
     "text": "صفحة رئيسية بعلامتك التجارية",
     "sha256": "e355a396"
   },
@@ -235,7 +235,7 @@
     "text": "العلامة التجارية المخصصة",
     "sha256": "237dabec"
   },
-  "web.billing.features.branded_homepage": {
+  "web.billing.features.homepage_secrets": {
     "text": "صفحة رئيسية بعلامتك التجارية",
     "sha256": "e355a396"
   },

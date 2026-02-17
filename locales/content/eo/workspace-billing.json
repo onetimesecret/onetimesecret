@@ -163,7 +163,7 @@
     "text": "Propra marko",
     "sha256": "237dabec"
   },
-  "web.billing.overview.entitlements.branded_homepage": {
+  "web.billing.overview.entitlements.homepage_secrets": {
     "text": "Markita hejmpaĝo",
     "sha256": "e355a396"
   },
@@ -223,7 +223,7 @@
     "text": "Propra marko",
     "sha256": "237dabec"
   },
-  "web.billing.features.branded_homepage": {
+  "web.billing.features.homepage_secrets": {
     "text": "Markita hejmpaĝo",
     "sha256": "e355a396"
   },
