@@ -92,11 +92,16 @@ module AccountAPI::Logic
         OT.le ex.backtrace.first(5).join("\n")
       end
 
-      def update_auth_database(customer, new_email)
+      def find_auth_account(customer)
         db = Auth::Database.connection
-        return unless db
+        return nil, nil unless db
 
         account = db[:accounts].where(external_id: customer.extid).first
+        [db, account]
+      end
+
+      def update_auth_database(customer, new_email)
+        db, account = find_auth_account(customer)
         return unless account
 
         db[:accounts].where(id: account[:id]).update(email: new_email)
@@ -107,11 +112,21 @@ module AccountAPI::Logic
         raise_form_error 'Email change could not be completed', error_type: 'system_error'
       end
 
-      def invalidate_sessions(_customer)
-        # TODO: Only clears the current session. A full implementation
-        # should invalidate ALL sessions for this customer to prevent
-        # stale-email sessions from persisting. Requires enumerating
-        # session keys by customer — tracked for a follow-up PR.
+      def invalidate_sessions(customer)
+        # Delete all active session rows from the auth database.
+        # On next request, Rodauth's currently_active_session? finds no
+        # matching row and force-clears the stale Rack session.
+        if Onetime.auth_config.full_enabled?
+          db, account = find_auth_account(customer)
+          if account
+            count = db[:account_active_session_keys]
+              .where(account_id: account[:id])
+              .delete
+            OT.info "[confirm-email-change] Invalidated #{count} active session(s) for cid/#{customer.objid}"
+          end
+        end
+
+        # Also clear the current request's session if present
         sess.clear if sess
       rescue StandardError => ex
         OT.le "[confirm-email-change] Session invalidation error: #{ex.message}"

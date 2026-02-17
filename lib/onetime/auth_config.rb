@@ -55,6 +55,12 @@ module Onetime
       full['database_url_migrations']
     end
 
+    # Argon2 secret key (pepper) for password hashing defense-in-depth.
+    # Returns nil when unset — argon2id works fine without a pepper.
+    def argon2_secret
+      full['argon2_secret']
+    end
+
     # Whether full mode is enabled (Rodauth-based)
     def full_enabled?
       mode == 'full'

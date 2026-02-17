@@ -9,6 +9,7 @@ module Auth::Config::Base
     # Core features required for all authentication flows
     auth.enable :base, :json, :login, :logout, :external_identity
     auth.enable :hmac_secret_guard
+    auth.enable :internal_request
 
     # Block form defers evaluation until runtime, not class definition time.
     # Critical for testing: allows stubs to be installed after `require 'auth/config'`

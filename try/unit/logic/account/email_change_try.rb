@@ -249,6 +249,76 @@ obj = AccountAPI::Logic::Account::ConfirmEmailChange.new @strategy_result, { 'to
 obj.success_data
 #=> { confirmed: true, redirect: '/signin' }
 
+# --- ConfirmEmailChange: Session Invalidation ---
+
+## invalidate_sessions clears the rack session hash
+session_hash = { 'sid' => 'abc123', 'user' => 'test' }
+strategy = MockStrategyResult.new(session: session_hash, user: @cust)
+obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
+obj.send(:invalidate_sessions, @cust)
+session_hash.empty?
+#=> true
+
+## invalidate_sessions does not crash when sess is nil
+strategy = MockStrategyResult.new(session: nil, user: @cust)
+obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
+begin
+  obj.send(:invalidate_sessions, @cust)
+  true
+rescue => e
+  e.message
+end
+#=> true
+
+## invalidate_sessions handles customer with no extid gracefully
+@bare_cust = Onetime::Customer.new email: generate_unique_test_email('bare')
+strategy = MockStrategyResult.new(session: {}, user: @bare_cust)
+obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
+begin
+  obj.send(:invalidate_sessions, @bare_cust)
+  true
+rescue => e
+  e.message
+end
+#=> true
+
+## invalidate_sessions skips DB path in simple auth mode
+# In test env, auth mode is simple so full_enabled? is false.
+# The method should complete without touching Auth::Database.
+session_hash = { 'key' => 'value' }
+strategy = MockStrategyResult.new(session: session_hash, user: @cust)
+obj = AccountAPI::Logic::Account::ConfirmEmailChange.new strategy, { 'token' => '' }
+obj.send(:invalidate_sessions, @cust)
+[session_hash.empty?, Onetime.auth_config.full_enabled?]
+#=> [true, false]
+
+## E2E: session is cleared after email change confirmation
+@inv_old_email = generate_unique_test_email('inv-old')
+@inv_new_email = generate_unique_test_email('inv-new')
+@inv_session = { 'sid' => 'session-to-clear', 'authenticated' => true }
+@inv_cust = Onetime::Customer.new email: @inv_old_email
+@inv_cust.update_passphrase @password
+@inv_cust.save
+@inv_strategy = MockStrategyResult.new(session: @inv_session, user: @inv_cust)
+
+# Request email change
+req_params = { 'password' => @password, 'new_email' => @inv_new_email }
+req = AccountAPI::Logic::Account::RequestEmailChange.new @inv_strategy, req_params
+req.raise_concerns
+req.process
+
+# Confirm email change
+token = @inv_cust.pending_email_change.to_s
+confirm = AccountAPI::Logic::Account::ConfirmEmailChange.new @inv_strategy, { 'token' => token }
+confirm.raise_concerns
+confirm.process
+
+# Session should be cleared after confirmation
+@inv_session.empty?
+#=> true
+
 # Cleanup
+@bare_cust.delete! if defined?(@bare_cust) && @bare_cust
+@inv_cust.delete! if defined?(@inv_cust) && @inv_cust
 @cust.delete!
 @e2e_cust.delete!

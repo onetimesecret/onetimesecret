@@ -104,23 +104,14 @@ module AccountAPI::Logic
         end
       end
 
+      # Verify password against Rodauth's auth database (full mode).
+      # Uses Rodauth's internal_request feature which handles argon2 secret,
+      # password hash lookup, and verification internally.
       def verify_password_full_mode(password)
-        db = Auth::Database.connection
-        return false unless db
-
-        account = db[:accounts].where(external_id: cust.extid).first
-        return false unless account
-
-        password_hash_row = db[:account_password_hashes].where(id: account[:id]).first
-        return false unless password_hash_row
-
-        stored_hash = password_hash_row[:password_hash]
-        return false if stored_hash.to_s.empty?
-
-        # Pass ARGON2_SECRET to match Rodauth's argon2_secret configuration.
-        # Without this, verification fails when the pepper is set.
-        argon2_secret = ENV.fetch('ARGON2_SECRET', nil)
-        ::Argon2::Password.verify_password(password, stored_hash, argon2_secret)
+        Auth::Config.valid_login_and_password?(login: cust.email, password: password)
+      rescue Rodauth::InternalRequestError => ex
+        OT.le "[request-email-change] Rodauth verification failed: #{ex.message}"
+        false
       rescue StandardError => ex
         OT.le "[request-email-change] Password verification error: #{ex.message}"
         false

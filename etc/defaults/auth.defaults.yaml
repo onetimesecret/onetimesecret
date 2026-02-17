@@ -35,6 +35,12 @@ full:
   # NOTE: The double quotes prevent YAML issues when parsing `sqlite::memory:`
   database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>"
 
+  # Argon2 secret key (pepper) for password hashing defense-in-depth.
+  # Folded into password hashes — if the hash database is compromised,
+  # passwords remain protected unless this secret is also leaked.
+  # Leave unset (nil) to use argon2id without a pepper.
+  argon2_secret: <%= ENV['ARGON2_SECRET'].to_s.strip.empty? ? nil : ENV['ARGON2_SECRET'] %>
+
   # Migrations Connection (PostgreSQL, MySQL, MS SQL Server only)
   #
   # Used at deployment time to run all Rodauth migrations:
