@@ -105,7 +105,8 @@ module Auth
       enable :verify_account unless ENV['RACK_ENV'] == 'test'
       enable :otp, :recovery_codes
       # Granular security features (enabled by default)
-      enable :lockout, :login_password_requirements_base if ENV['AUTH_HARDENING_ENABLED'] != 'false'
+      enable :lockout if ENV['AUTH_LOCKOUT_ENABLED'] != 'false'
+      enable :login_password_requirements_base if ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false'
       enable :active_sessions if ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false'
       enable :remember if ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false'
       # Optional auth methods (disabled by default)

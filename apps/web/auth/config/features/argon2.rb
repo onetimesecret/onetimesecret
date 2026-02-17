@@ -11,7 +11,7 @@ module Auth::Config::Features
   # handles argon2 directly in the Customer model.
   #
   # Configuration:
-  #   Set ARGON2_SECRET environment variable (read via auth config YAML).
+  #   Set AUTH_ARGON2_SECRET environment variable (read via auth config YAML).
   #   This secret is folded into the hash and provides defense-in-depth
   #   if the password hash database is compromised.
   #

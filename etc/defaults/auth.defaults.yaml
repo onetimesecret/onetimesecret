@@ -35,12 +35,6 @@ full:
   # NOTE: The double quotes prevent YAML issues when parsing `sqlite::memory:`
   database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>"
 
-  # Argon2 secret key (pepper) for password hashing defense-in-depth.
-  # Folded into password hashes — if the hash database is compromised,
-  # passwords remain protected unless this secret is also leaked.
-  # Leave unset (nil) to use argon2id without a pepper.
-  argon2_secret: <%= ENV['ARGON2_SECRET'].to_s.strip.empty? ? nil : ENV['ARGON2_SECRET'] %>
-
   # Migrations Connection (PostgreSQL, MySQL, MS SQL Server only)
   #
   # Used at deployment time to run all Rodauth migrations:
@@ -65,8 +59,11 @@ full:
   #          Features default OFF use `== 'true'` (must explicitly enable)
   #
   features:
-    # Attack prevention: brute force lockout, password requirements (default: ON)
-    hardening: <%= ENV['AUTH_HARDENING_ENABLED'] != 'false' %>
+    # Brute force lockout protection (default: ON)
+    lockout: <%= ENV['AUTH_LOCKOUT_ENABLED'] != 'false' %>
+
+    # Password strength requirements (default: ON)
+    password_requirements: <%= ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false' %>
 
     # Session tracking: view and manage active sessions (default: ON)
     active_sessions: <%= ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false' %>
@@ -93,3 +90,9 @@ full:
     # SSO display name (shown on "Sign in with X" button)
     # If not set, generic "SSO" is used
     sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>
+
+  # Argon2 secret key (pepper) for password hashing defense-in-depth.
+  # Folded into password hashes — if the hash database is compromised,
+  # passwords remain protected unless this secret is also leaked.
+  # Leave unset (nil) to use argon2id without a pepper.
+  argon2_secret: <%= ENV["AUTH_ARGON2_SECRET"] || nil %>

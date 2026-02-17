@@ -91,9 +91,14 @@ module Auth
       Hooks::ErrorHandling.configure(self)
       RodauthOverrides.configure(self)
 
-      # Hardening: brute force protection, password requirements
-      if Onetime.auth_config.hardening_enabled?
-        Features::Hardening.configure(self)
+      # Lockout: brute force protection
+      if Onetime.auth_config.lockout_enabled?
+        Features::Lockout.configure(self)
+      end
+
+      # Password requirements: strength validation
+      if Onetime.auth_config.password_requirements_enabled?
+        Features::PasswordRequirements.configure(self)
       end
 
       # Active sessions: track and manage sessions across devices
