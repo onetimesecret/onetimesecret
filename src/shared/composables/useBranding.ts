@@ -68,15 +68,14 @@ export function useBranding(domainId?: string) {
     notify: (message, severity) => notifications.show(message, severity, 'top'),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
-      // Only redirect to NotFound for actual "not found" or "forbidden" errors
-      // 422 is a validation error - show the message, don't navigate away
-      if (err.code === 404 || err.code === 403) {
+      // 404 → domain not found, redirect to NotFound page
+      if (err.code === 404) {
         return router.push({ name: 'NotFound' });
       }
 
-      if ((err as ApplicationError).code !== 404) {
-        throw err;
-      }
+      // 403 → entitlement missing (e.g., custom_branding). Set error state
+      // so the component can render its upgrade banner instead of redirecting.
+      // 422 → validation error, also set error state and let component handle it.
       error.value = err;
     },
   };
@@ -112,13 +111,14 @@ export function useBranding(domainId?: string) {
         await setLocale(settings.locale);
       }
 
-      // Quietly handle 404 errors for logo fetch
+      // Quietly handle 404/403 errors for logo fetch
+      // 404 = no logo uploaded yet, 403 = entitlement missing
       try {
         const logo = await store.fetchLogo(extid);
         logoImage.value = logo;
       } catch (err) {
-        console.log(err);
-        if ((err as AxiosError).status !== 404) {
+        const status = (err as AxiosError).status;
+        if (status !== 404 && status !== 403) {
           throw err;
         }
       }

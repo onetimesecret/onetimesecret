@@ -135,7 +135,7 @@ module Billing
       #     "entitlements": {
       #       "core": ["api_access", "custom_privacy_defaults", "extended_default_expiration"],
       #       "collaboration": ["manage_orgs", "manage_teams", "manage_members"],
-      #       "infrastructure": ["custom_domains", "custom_branding", "branded_homepage"],
+      #       "infrastructure": ["custom_domains", "custom_branding", "homepage_secrets"],
       #       "communication": ["incoming_secrets", "custom_mail_defaults"],
       #       "advanced": ["audit_logs"]
       #     },
