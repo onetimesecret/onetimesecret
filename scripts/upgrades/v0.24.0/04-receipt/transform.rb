@@ -123,7 +123,7 @@ class ReceiptTransformer
   # the transformed object to be valid. The rest are best-effort copies if present in the v1 data.
   DIRECT_COPY_FIELDS = %w[
     secret_ttl lifespan
-    share_domain recipients memo created updated burned
+    share_domain recipients created updated burned
     shared truncate key
   ].freeze
 
