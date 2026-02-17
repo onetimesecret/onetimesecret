@@ -163,8 +163,10 @@ module DomainsAPI::Logic
       end
 
       def validate_homepage_entitlement
-        allow_homepage = @brand_settings['allow_public_homepage']
-        return if allow_homepage.nil? || allow_homepage == false || allow_homepage == 'false'
+        allow_homepage = Onetime::CustomDomain::BrandSettings.coerce_boolean(
+          @brand_settings['allow_public_homepage'],
+        )
+        return unless allow_homepage
 
         require_entitlement!('homepage_secrets')
       end

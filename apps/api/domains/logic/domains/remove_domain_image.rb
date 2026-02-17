@@ -21,6 +21,8 @@ module DomainsAPI::Logic
       end
 
       def raise_concerns
+        require_entitlement!('custom_branding')
+
         OT.ld "[#{self.class}] Raising concerns for extid: #{@extid}"
 
         raise_form_error 'Domain ID is required' if @extid.empty?
