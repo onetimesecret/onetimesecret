@@ -1,11 +1,4 @@
 GIT
-  remote: https://github.com/onetimesecret/lettermint-ruby.git
-  revision: aed9b86590574df80ebafdc0d6697a547bce2814
-  specs:
-    lettermint (0.1.0)
-      faraday (~> 2.0)
-
-GIT
   remote: https://github.com/rspec/rspec
   revision: 299be812ea79ee2a0c55c76053d3ed3cd1ffe9fe
   specs:
@@ -215,6 +208,8 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.5)
+    lettermint (0.1.0)
+      faraday (~> 2.0)
     lint_roller (1.1.0)
     listen (3.9.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -599,7 +594,7 @@ DEPENDENCIES
   json_schemer
   kanayago (~> 0.7)
   kicks (~> 3.0)
-  lettermint!
+  lettermint (~> 0.1.0)
   logger
   mail
   mustache
