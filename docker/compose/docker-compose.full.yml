@@ -44,17 +44,17 @@ services:
       dockerfile: Dockerfile
     container_name: onetime-app
     depends_on:
-      redis:
+      maindb:
         condition: service_healthy
     env_file:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - REDIS_URL=redis://redis:6379/0
-      - VALKEY_URL=redis://redis:6379/0
+      - REDIS_URL=redis://maindb:6379/0
+      - AUTH_DATABASE_URL=sqlite://data/auth.db
       - SECRET=${SECRET:?SECRET must be set in .env}
       - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set in .env}
-      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
+      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-full}
       - HMAC_SECRET=${HMAC_SECRET:?HMAC_SECRET must be set in .env}
       - VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET:?VERIFIABLE_ID_HMAC_SECRET must be set in .env}
       - FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET:?FEDERATION_HMAC_SECRET must be set in .env}
@@ -77,9 +77,9 @@ services:
       - ../../data:/app/data
       - ../../etc:/app/etc
 
-  redis:
+  maindb:
     image: valkey/valkey:8.0-bookworm@sha256:3fb1247c0ae098a109f49e86a00bbae330044d610a608228a8350c0287c1e4f1
-    container_name: onetime-redis
+    container_name: onetime-maindb
     command: >
       valkey-server
       --appendonly yes
@@ -105,7 +105,7 @@ services:
       - '6379'
     restart: unless-stopped
     volumes:
-      - redis-data:/data
+      - maindb-data:/data
     healthcheck:
       test: ['CMD', 'valkey-cli', 'ping']
       interval: 10s
@@ -147,7 +147,7 @@ services:
       dockerfile: Dockerfile
     container_name: onetime-worker-email
     depends_on:
-      redis:
+      maindb:
         condition: service_started
       rabbitmq:
         condition: service_healthy
@@ -155,8 +155,7 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - REDIS_URL=redis://redis:6379/0
-      - VALKEY_URL=redis://redis:6379/0
+      - REDIS_URL=redis://maindb:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       - ONETIME_HOME=/app
     command:
@@ -189,7 +188,7 @@ services:
       dockerfile: Dockerfile
     container_name: onetime-scheduler
     depends_on:
-      redis:
+      maindb:
         condition: service_started
       rabbitmq:
         condition: service_healthy
@@ -197,8 +196,8 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - REDIS_URL=redis://redis:6379/0
-      - VALKEY_URL=redis://redis:6379/0
+      - REDIS_URL=redis://maindb:6379/0
+      - VALKEY_URL=redis://maindb:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       - ONETIME_HOME=/app
     command: ['./bin/ots', 'jobs', 'scheduler', '--environment', 'production']
@@ -220,7 +219,7 @@ networks:
     name: onetime-network
 
 volumes:
-  redis-data:
+  maindb-data:
     name: onetime_maindb_data
   rabbitmq-data:
     name: onetime_rabbitmq_data

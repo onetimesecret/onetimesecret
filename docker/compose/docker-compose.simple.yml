@@ -16,14 +16,14 @@ services:
       dockerfile: Dockerfile
     container_name: onetime-app
     depends_on:
-      redis:
+      maindb:
         condition: service_healthy
     env_file:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - REDIS_URL=redis://redis:6379/0
-      - VALKEY_URL=redis://redis:6379/0
+      - REDIS_URL=redis://maindb:6379/0
+      - VALKEY_URL=redis://maindb:6379/0
       - SECRET=${SECRET:?SECRET must be set in .env}
       - SESSION_SECRET=${SESSION_SECRET:-${SECRET}}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
@@ -46,9 +46,9 @@ services:
       - ../../data:/app/data
       - ../../etc:/app/etc
 
-  redis:
+  maindb:
     image: valkey/valkey:8.0-bookworm@sha256:3fb1247c0ae098a109f49e86a00bbae330044d610a608228a8350c0287c1e4f1
-    container_name: onetime-redis
+    container_name: onetime-maindb
     command: >
       valkey-server
       --appendonly yes
@@ -71,7 +71,7 @@ services:
       - '6379:6379'
     restart: unless-stopped
     volumes:
-      - redis-data:/data
+      - maindb-data:/data
     healthcheck:
       test: ['CMD', 'valkey-cli', 'ping']
       interval: 10s
@@ -80,5 +80,5 @@ services:
       start_period: 10s
 
 volumes:
-  redis-data:
+  maindb-data:
     name: onetime_maindb_data
