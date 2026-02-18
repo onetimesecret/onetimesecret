@@ -11,8 +11,11 @@
 #
 # Exports to GITHUB_ENV:
 #   - SESSION_SECRET: For Rack session management
-#   - HMAC_SECRET: For HMAC signing operations
-#   - SECRET: General purpose application secret
+#   - HMAC_SECRET: For HMAC signing operations (Rodauth, TOTP)
+#   - ARGON2_SECRET: For Argon2 password pepper
+#   - FEDERATION_HMAC_SECRET: For federation email hashing
+#   - VERIFIABLE_ID_HMAC_SECRET: For verifiable identifier generation
+#   - SECRET: General purpose application secret (root)
 #
 # Security Notes:
 #   - Secrets are logged in plaintext (safe for ephemeral test use)
@@ -29,10 +32,13 @@
 name: Generate Test Secrets
 description: |
   Generate random secrets for testing and CI environments.
-  Creates three distinct secrets exported to GITHUB_ENV:
+  Creates distinct secrets exported to GITHUB_ENV:
   - SESSION_SECRET: For session management
-  - HMAC_SECRET: For HMAC operations
-  - SECRET: General purpose secret
+  - HMAC_SECRET: For HMAC operations (Rodauth, TOTP)
+  - ARGON2_SECRET: For Argon2 password pepper
+  - FEDERATION_HMAC_SECRET: For federation email hashing
+  - VERIFIABLE_ID_HMAC_SECRET: For verifiable identifier generation
+  - SECRET: General purpose secret (root)
 
   ⚠️  TESTING ONLY: These secrets are ephemeral, generated fresh for each CI run,
   used only with test data, and discarded when the job completes. They are logged
@@ -51,25 +57,34 @@ runs:
         # Generate unique random secrets
         SESSION_SECRET=$(openssl rand -hex 32)
         HMAC_SECRET=$(openssl rand -hex 32)
+        ARGON2_SECRET=$(openssl rand -hex 32)
+        FEDERATION_HMAC_SECRET=$(openssl rand -hex 32)
+        VERIFIABLE_ID_HMAC_SECRET=$(openssl rand -hex 32)
         SECRET=$(openssl rand -hex 32)
 
         # Export to GITHUB_ENV for subsequent steps
         echo "SESSION_SECRET=${SESSION_SECRET}" >> $GITHUB_ENV
         echo "HMAC_SECRET=${HMAC_SECRET}" >> $GITHUB_ENV
+        echo "ARGON2_SECRET=${ARGON2_SECRET}" >> $GITHUB_ENV
+        echo "FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET}" >> $GITHUB_ENV
+        echo "VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET}" >> $GITHUB_ENV
         echo "SECRET=${SECRET}" >> $GITHUB_ENV
 
         # Log secrets for debugging (safe because these are ephemeral test secrets)
         echo ""
         echo "SESSION_SECRET=${SESSION_SECRET}"
         echo "HMAC_SECRET=${HMAC_SECRET}"
+        echo "ARGON2_SECRET=${ARGON2_SECRET}"
+        echo "FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET}"
+        echo "VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET}"
         echo "SECRET=${SECRET}"
         echo ""
 
-        # Verify all secrets are different
+        # Verify all secrets are different (spot-check key pairs)
         if [ "$SESSION_SECRET" != "$HMAC_SECRET" ] && [ "$SESSION_SECRET" != "$SECRET" ] && [ "$HMAC_SECRET" != "$SECRET" ]; then
-          echo "✅ All secrets are unique"
+          echo "All secrets are unique"
         else
-          echo "❌ ERROR: Secrets are not unique!"
+          echo "ERROR: Secrets are not unique!"
           exit 1
         fi
 

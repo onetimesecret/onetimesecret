@@ -26,8 +26,11 @@ services:
       - VALKEY_URL=redis://maindb:6379/0
       - SECRET=${SECRET:?SECRET must be set — run rake ots:init}
       - SESSION_SECRET=${SESSION_SECRET:-}
+      - HMAC_SECRET=${HMAC_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
+      - ARGON2_SECRET=${ARGON2_SECRET:-}
       - FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET:-}
+      - VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET:-}
       - ONETIME_HOME=/app
     entrypoint: ['./bin/entrypoint.sh']
     stdin_open: true

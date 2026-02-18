@@ -79,6 +79,9 @@ jobs:
           echo "Starting container with generated secrets..."
           echo "SESSION_SECRET length: ${#SESSION_SECRET}"
           echo "HMAC_SECRET length: ${#HMAC_SECRET}"
+          echo "ARGON2_SECRET length: ${#ARGON2_SECRET}"
+          echo "FEDERATION_HMAC_SECRET length: ${#FEDERATION_HMAC_SECRET}"
+          echo "VERIFIABLE_ID_HMAC_SECRET length: ${#VERIFIABLE_ID_HMAC_SECRET}"
           echo "SECRET length: ${#SECRET}"
 
           docker run -d \
@@ -89,6 +92,9 @@ jobs:
             -e REDIS_DB="0" \
             -e SESSION_SECRET="${SESSION_SECRET}" \
             -e HMAC_SECRET="${HMAC_SECRET}" \
+            -e ARGON2_SECRET="${ARGON2_SECRET}" \
+            -e FEDERATION_HMAC_SECRET="${FEDERATION_HMAC_SECRET}" \
+            -e VERIFIABLE_ID_HMAC_SECRET="${VERIFIABLE_ID_HMAC_SECRET}" \
             -e SECRET="${SECRET}" \
             -e ONETIME_DEBUG=1 \
             -e RUBY_UNBUFFERED=1 \

@@ -670,6 +670,9 @@ jobs:
           environment-vars: |
             SESSION_SECRET=${{ env.SESSION_SECRET }}
             HMAC_SECRET=${{ env.HMAC_SECRET }}
+            ARGON2_SECRET=${{ env.ARGON2_SECRET }}
+            FEDERATION_HMAC_SECRET=${{ env.FEDERATION_HMAC_SECRET }}
+            VERIFIABLE_ID_HMAC_SECRET=${{ env.VERIFIABLE_ID_HMAC_SECRET }}
             SECRET=${{ env.SECRET }}
           test-endpoints: |
             /
