@@ -102,7 +102,7 @@ module Onetime
     # all regions are accepted (backward-compatible pass-through).
     def region
       val = config['region']
-      return nil if val.nil? || val.to_s.strip.empty?
+      return nil if val.to_s.strip.empty?
 
       val.to_s.strip.upcase
     end

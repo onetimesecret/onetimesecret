@@ -77,6 +77,9 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        # Global deployment (no region filter) — test billing.test.yaml has region: EU so stub nil
+        allow(Onetime.billing_config).to receive(:region).and_return(nil)
+
         # Stub Stripe API calls - handler fetches fresh data
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
 
@@ -125,6 +128,8 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        allow(Onetime.billing_config).to receive(:region).and_return(nil)
+
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
 
         price_list = instance_double(Stripe::ListObject)
@@ -197,6 +202,8 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
       before do
+        allow(Onetime.billing_config).to receive(:region).and_return(nil)
+
         allow(Stripe::Price).to receive(:retrieve).with('price_ots_monthly').and_return(recurring_price)
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
         allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })

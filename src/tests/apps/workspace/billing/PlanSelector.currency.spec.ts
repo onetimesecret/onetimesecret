@@ -241,7 +241,7 @@ describe('PlanSelector currency mismatch logic', () => {
       expect(wouldCompleteMigrationBail('on1abc123', null, 'usd')).toBe(true);
     });
 
-    it('bails when pending migration target_currency is empty', () => {
+    it('proceeds when pending migration target_currency is empty', () => {
       // Empty target_currency means !!'' is false, so the guard won't trigger,
       // but the checkout will proceed. This is the expected behavior since
       // the API should always provide a target_currency.

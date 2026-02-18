@@ -220,7 +220,7 @@ module Billing
       # Check whether a Stripe product belongs to the configured region
       #
       # Returns true when no region is configured (backward-compatible pass-through).
-      # When a region is configured, the product's region metadata must match exactly.
+      # When a region is configured, the product's region metadata must match case-insensitively.
       # Called by both collect_stripe_plans (refresh path) and the webhook handler.
       #
       # @param product [Stripe::Product] The Stripe product
