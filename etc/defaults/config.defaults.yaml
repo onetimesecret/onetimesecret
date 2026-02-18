@@ -355,7 +355,7 @@ emailer:
   mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   region: <%= ENV['EMAILER_REGION'] || nil %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
-  fromname: <%= ENV['FROMNAME'] || 'Support' %>
+  fromname: <%= ENV['FROM_NAME'] || ENV['FROMNAME'] || 'Support' %>
   host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   port: <%= ENV['SMTP_PORT'] || 587 %>
   user: <%= ENV['SMTP_USERNAME'] %>

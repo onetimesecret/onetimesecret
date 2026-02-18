@@ -49,7 +49,8 @@ module Onetime
         configured_mode = homepage_config[:mode]
         return nil unless %w[internal external].include?(configured_mode)
 
-        # Initialize CIDR matchers (cached at instance level for efficiency)
+        # Memoized per controller instance (i.e. per request); no cross-request benefit.
+        # Effectively compiled once since this method is only called once per request.
         @cidr_matchers ||= compile_homepage_cidrs(homepage_config)
 
         # Extract client IP
