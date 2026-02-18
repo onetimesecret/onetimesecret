@@ -36,22 +36,36 @@ export function useMagicLink() {
     sent.value = false;
   }
 
+  async function doMagicLinkRequest(email: string): Promise<boolean> {
+    const response = await $api.post<MagicLinkResponse>(
+      '/auth/email-login-request',
+      { login: email, shrimp: csrfStore.shrimp }
+    );
+    if (isError(response.data)) {
+      error.value = response.data.error;
+      fieldError.value = response.data['field-error'] || null;
+      return false;
+    }
+    sent.value = true;
+    return true;
+  }
+
   async function requestMagicLink(email: string): Promise<boolean> {
     clearState();
     isLoading.value = true;
     try {
-      const response = await $api.post<MagicLinkResponse>(
-        '/auth/email-login-request',
-        { login: email, shrimp: csrfStore.shrimp }
-      );
-      if (isError(response.data)) {
-        error.value = response.data.error;
-        fieldError.value = response.data['field-error'] || null;
-        return false;
-      }
-      sent.value = true;
-      return true;
+      return await doMagicLinkRequest(email);
     } catch (err: any) {
+      // On 403 (CSRF token rejection), the Axios error interceptor already
+      // refreshed the token from the response header. Retry once.
+      if (err.response?.status === 403) {
+        try {
+          return await doMagicLinkRequest(email);
+        } catch (_retryErr: any) {
+          error.value = t('web.auth.magicLink.sessionExpired');
+          return false;
+        }
+      }
       const [errMsg, fieldErr] = extractError(err, t, 'web.auth.magicLink.requestFailed');
       error.value = errMsg;
       fieldError.value = fieldErr;
