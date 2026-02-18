@@ -8,8 +8,11 @@ repository is archived as of v0.24.
 
 | File | Services | Use Case |
 |------|----------|----------|
-| `docker-compose.yml` | Caddy + App + Valkey + RabbitMQ + Worker + Scheduler | Full production deployment |
-| `docker-compose.simple.yml` | App + Valkey | Development, testing, or minimal deployments |
+| `docker-compose.yml` | Include wrapper | Root entry point — defaults to simple |
+| `docker/docker-compose.simple.yml` | App + Valkey | Development, testing, or minimal deployments |
+| `docker/docker-compose.full.yml` | Caddy + App + Valkey + RabbitMQ + Worker + Scheduler | Full production deployment |
+
+Switch between them by editing the `include` in the root `docker-compose.yml`.
 
 ## Architecture (Full Stack)
 
@@ -19,58 +22,47 @@ Internet → Caddy (80/443) → App (3000) → Redis (6379)
            └─ Static Assets   └─ Rack      └─ AOF/RDB
 ```
 
-## Quick Start
+## Quick Start (Simple)
 
-```bash
-# Setup
-cp --preserve --no-clobber .env.example .env
-cp --preserve --no-clobber ./etc/examples/Caddyfile-example ./etc/Caddyfile
-
-
-# Add secrets to your .env file
-echo "SECRET=$(openssl rand -hex 32)" >> .env
-echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
-
-# Configure (edit .env)
-DOMAIN=localhost
-CERTIFICATE_EMAIL=dev@localhost
-RACK_ENV=development
-
-# Start
-docker-compose up
-```
-
-Access: http://localhost
-
-## Simple Deployment
-
-For a minimal setup without the reverse proxy, message queue, or background workers:
+The default `docker compose up` runs the simple stack (App + Valkey):
 
 ```bash
 cp --preserve --no-clobber .env.example .env
 echo "SECRET=$(openssl rand -hex 32)" >> .env
 
-docker compose -f docker-compose.simple.yml up
+docker compose up
 ```
 
 Access: http://localhost:3000
 
-## Production
+## Full Production Stack
 
-Edit `.env`:
+Edit `docker-compose.yml` to switch the include:
+
+```yaml
+include:
+  # - path: docker/docker-compose.simple.yml
+  - path: docker/docker-compose.full.yml
+```
+
+Then configure and start:
+
 ```bash
+cp --preserve --no-clobber .env.example .env
+cp --preserve --no-clobber ./etc/examples/Caddyfile-example ./etc/Caddyfile
+
+echo "SECRET=$(openssl rand -hex 32)" >> .env
+echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
+
+# Edit .env
 DOMAIN=secrets.example.com
-CERTIFICATE_EMAIL=sandoval@example.com
+CERTIFICATE_EMAIL=admin@example.com
 RACK_ENV=production
-SECRET=<generated>
-SESSION_SECRET=<generated>
-REDIS_URL=redis://redis:6379/0
+
+docker compose up -d
 ```
 
-Start detached:
-```bash
-docker-compose up -d
-```
+Access: https://secrets.example.com
 
 
 ## Operations
