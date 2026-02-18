@@ -116,7 +116,7 @@ class OrganizationGenerator
   def compute_email_hash(email)
     return nil if email.to_s.strip.empty?
 
-    secret = ENV['FEDERATION_HMAC_SECRET']
+    secret = ENV['FEDERATION_SECRET']
     return nil if secret.to_s.empty?
 
     normalized = email.to_s.downcase.strip

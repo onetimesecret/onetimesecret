@@ -17,19 +17,25 @@ module Onetime
   # salt, keep the old one for migration).
   #
   #   SECRET (64 random bytes, operator-provided or generated)
-  #       ├── session        ← HKDF(SECRET, info="session",       len=64)
-  #       ├── familia-enc    ← HKDF(SECRET, info="familia-enc",   len=32)
-  #       ├── argon2-pepper  ← HKDF(SECRET, info="argon2-pepper", len=32)
-  #       └── federation     ← HKDF(SECRET, info="federation",    len=32)
+  #       ├── session        ← HKDF(SECRET, info="session",       len=64)  → SESSION_SECRET
+  #       ├── verifiable-id  ← HKDF(SECRET, info="verifiable-id", len=32)  → IDENTIFIER_SECRET
+  #       └── familia-enc    ← HKDF(SECRET, info="familia-enc",   len=32)  [runtime only]
   #
   module KeyDerivation
     SALT = 'onetimesecret-v1'
 
+    # Single source of truth for HKDF-derived keys (ADR-008 Category 1).
+    #
+    # Only secrets that are deterministically derived from SECRET belong here.
+    # Independent secrets (AUTH_SECRET, ARGON2_SECRET) and federation-shared
+    # secrets are managed separately.
+    #
+    # Entries with :env_var are written to .env by init.rake.
+    # Entries without :env_var (familia_enc) are derived at runtime only.
     PURPOSES = {
-      session: { info: 'session', length: 64 },
+      session: { info: 'session', length: 64, env_var: 'SESSION_SECRET' },
+      identifier: { info: 'verifiable-id', length: 32, env_var: 'IDENTIFIER_SECRET' },
       familia_enc: { info: 'familia-enc', length: 32 },
-      argon2_pepper: { info: 'argon2-pepper', length: 32 },
-      federation: { info: 'federation', length: 32 },
     }.freeze
 
     # Derive raw bytes for a given purpose.

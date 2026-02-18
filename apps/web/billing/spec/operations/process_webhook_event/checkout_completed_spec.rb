@@ -308,8 +308,8 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
 
     before do
-      # Stub FEDERATION_HMAC_SECRET for email hash computation
-      ENV['FEDERATION_HMAC_SECRET'] ||= 'test-hmac-secret-for-federation'
+      # Stub FEDERATION_SECRET for email hash computation
+      ENV['FEDERATION_SECRET'] ||= 'test-hmac-secret-for-federation'
 
       allow(Stripe::Subscription).to receive(:retrieve)
         .with(stripe_subscription_id)

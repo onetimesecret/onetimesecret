@@ -39,12 +39,8 @@ KD.derive(@secret, :session).bytesize
 KD.derive(@secret, :familia_enc).bytesize
 #=> 32
 
-## Argon2 pepper is 32 bytes
-KD.derive(@secret, :argon2_pepper).bytesize
-#=> 32
-
-## Federation key is 32 bytes
-KD.derive(@secret, :federation).bytesize
+## Identifier key is 32 bytes
+KD.derive(@secret, :identifier).bytesize
 #=> 32
 
 ## derive_hex returns hex string of correct length (familia_enc: 32 bytes = 64 hex chars)

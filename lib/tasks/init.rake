@@ -2,33 +2,15 @@
 #
 # frozen_string_literal: true
 
-require 'openssl'
 require 'securerandom'
-require 'base64'
+require_relative '../onetime/key_derivation'
 
-# HKDF helper — intentionally self-contained so this task works without
-# booting the application (no Redis, no config needed).
+# Env file helpers for secret initialization.
+# Delegates HKDF derivation to Onetime::KeyDerivation (single source of truth).
 module OTSInit
-  SALT = 'onetimesecret-v1'
-
-  DERIVED_KEYS = {
-    'SESSION_SECRET' => { info: 'session', length: 64 },
-    'HMAC_SECRET' => { info: 'hmac', length: 32 },
-    'ARGON2_SECRET' => { info: 'argon2-pepper', length: 32 },
-    'FEDERATION_HMAC_SECRET' => { info: 'federation', length: 32 },
-    'VERIFIABLE_ID_HMAC_SECRET' => { info: 'verifiable-id', length: 32 },
-  }.freeze
-
-  def self.hkdf_hex(secret, info:, length:)
-    raw = OpenSSL::KDF.hkdf(
-      secret,
-      salt: SALT,
-      info: info,
-      length: length,
-      hash: 'SHA256',
-    )
-    raw.unpack1('H*')
-  end
+  # Independent secrets (ADR-008 Category 2): generated with SecureRandom,
+  # NOT derived from SECRET. Must be backed up individually.
+  INDEPENDENT_SECRETS = %w[AUTH_SECRET ARGON2_SECRET].freeze
 
   def self.read_env(path)
     return {} unless File.exist?(path)
@@ -122,10 +104,46 @@ namespace :ots do
     updates           = {}
     updates['SECRET'] = secret unless derive
 
-    OTSInit::DERIVED_KEYS.each do |env_var, config|
-      value            = OTSInit.hkdf_hex(secret, info: config[:info], length: config[:length])
-      updates[env_var] = value
-      puts "  #{env_var} ← HKDF(SECRET, info=#{config[:info].inspect}, len=#{config[:length]})"
+    # Derived secrets (ADR-008 Category 1): deterministic HKDF from SECRET.
+    Onetime::KeyDerivation::PURPOSES.each do |purpose, config|
+      next unless config[:env_var] # skip runtime-only purposes (e.g. familia_enc)
+
+      value                     = Onetime::KeyDerivation.derive_hex(secret, purpose)
+      updates[config[:env_var]] = value
+      puts "  #{config[:env_var]} ← HKDF(SECRET, info=#{config[:info].inspect}, len=#{config[:length]})"
+    end
+
+    # Independent secrets (ADR-008 Category 2): random, NOT derived from SECRET.
+    OTSInit::INDEPENDENT_SECRETS.each do |env_var|
+      if existing[env_var] && !existing[env_var].empty? && existing[env_var] != 'CHANGEME'
+        puts "  #{env_var} already set (keeping existing value)"
+      else
+        updates[env_var] = SecureRandom.hex(32)
+        puts "  #{env_var} ← SecureRandom.hex(32) [independent]"
+      end
+    end
+
+    # Federation secret (ADR-008 Category 3): shared across instances.
+    # Never generated here — must be distributed manually or via passforge.
+    federation = existing['FEDERATION_SECRET']
+    if federation && !federation.empty? && federation != 'CHANGEME'
+      puts '  FEDERATION_SECRET already set (keeping existing value)'
+    else
+      require 'passforge/wordlist'
+      require 'passforge/passphrase'
+      suggested = PassForge::Passphrase.generate(words: 5, separator: '-', capitalize: false)
+
+      puts
+      puts '  FEDERATION_SECRET not set.'
+      puts '  Suggested value (generated via passforge):'
+      puts
+      puts "    #{suggested}"
+      puts
+      puts '  This must be identical across all instances in a federation group.'
+      puts '  Copy this value to FEDERATION_SECRET in .env on every instance,'
+      puts '  or generate your own with:'
+      puts '    bundle exec ruby -e "require \'passforge/wordlist\'; require \'passforge/passphrase\'; puts PassForge::Passphrase.generate(words: 5, separator: \'-\', capitalize: false)"'
+      puts
     end
 
     OTSInit.write_env(env_path, existing_lines, updates)
@@ -133,8 +151,8 @@ namespace :ots do
     puts
     puts "Written to #{env_path}"
     puts
-    puts 'IMPORTANT: Back up SECRET — it is the single root from which'
-    puts 'all other secrets are derived. If SECRET is lost, encrypted'
-    puts 'data (stored secrets, sessions) cannot be recovered.'
+    puts 'IMPORTANT: Back up SECRET and the independent secrets (AUTH_SECRET,'
+    puts 'ARGON2_SECRET). SECRET is the root for derived keys; independent'
+    puts 'secrets cannot be regenerated if lost.'
   end
 end

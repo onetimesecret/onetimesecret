@@ -53,6 +53,11 @@ module Onetime
         # during legacy data detection and other pre-connection operations
         Familia.uri = uri
 
+        # Compatibility bridge: Familia v2.1 reads VERIFIABLE_ID_HMAC_SECRET
+        # at require time for its verifiable_identifier module. Bridge the
+        # renamed env var until Familia is updated to read IDENTIFIER_SECRET.
+        ENV['VERIFIABLE_ID_HMAC_SECRET'] ||= ENV['IDENTIFIER_SECRET'] if ENV['IDENTIFIER_SECRET']
+
         # Encryption keys with versioning for key rotation.
         #
         # v1: Legacy SHA-256 derivation (reads existing encrypted data)

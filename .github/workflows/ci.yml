@@ -669,10 +669,10 @@ jobs:
           redis-url: 'redis://host.docker.internal:2121/0'
           environment-vars: |
             SESSION_SECRET=${{ env.SESSION_SECRET }}
-            HMAC_SECRET=${{ env.HMAC_SECRET }}
+            AUTH_SECRET=${{ env.AUTH_SECRET }}
             ARGON2_SECRET=${{ env.ARGON2_SECRET }}
-            FEDERATION_HMAC_SECRET=${{ env.FEDERATION_HMAC_SECRET }}
-            VERIFIABLE_ID_HMAC_SECRET=${{ env.VERIFIABLE_ID_HMAC_SECRET }}
+            FEDERATION_SECRET=${{ env.FEDERATION_SECRET }}
+            IDENTIFIER_SECRET=${{ env.IDENTIFIER_SECRET }}
             SECRET=${{ env.SECRET }}
           test-endpoints: |
             /
