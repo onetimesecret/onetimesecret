@@ -154,6 +154,10 @@
     "text": "Invalid or missing login link",
     "sha256": "d726c0da"
   },
+  "web.auth.magicLink.sessionExpired": {
+    "text": "Your session has expired. Please refresh the page and try again.",
+    "sha256": "a7c3e901"
+  },
   "web.auth.magicLink.loginFailed": {
     "text": "Login failed. Please try again.",
     "sha256": "c95b4875"

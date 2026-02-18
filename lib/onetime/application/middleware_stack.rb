@@ -11,6 +11,7 @@ require 'rack/utf8_sanitizer'
 require_relative '../session'
 require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
+require_relative '../middleware/csrf_response_header'
 require 'otto'
 
 module Onetime
@@ -190,6 +191,11 @@ module Onetime
             # Position Sentry middleware early to capture exceptions throughout the stack
             builder.use Sentry::Rack::CaptureExceptions
           end
+
+          # CSRF Response Header - MUST be before Security middleware so that
+          # 403 responses from AuthenticityToken also get a fresh masked token.
+          logger.debug 'Setting up CSRF Response Header middleware'
+          builder.use Onetime::Middleware::CsrfResponseHeader
 
           # Security Middleware Configuration
           # Configures security-related middleware components based on application settings

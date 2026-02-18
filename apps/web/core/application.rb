@@ -38,11 +38,6 @@ module Core
     # Initialize request context (nonce, locale) before other processing
     use Core::Middleware::RequestSetup
 
-    # CSRF Response Header
-    # Note: CSRF validation is handled by common Security middleware with
-    # allow_if to skip JSON/API requests. This just adds the response header.
-    use Onetime::Middleware::CsrfResponseHeader
-
     # Simplified error handling for Vue SPA - serves entry points
     # Must come after security but before router to catch all downstream errors
     use Core::Middleware::ErrorHandling
