@@ -108,12 +108,10 @@ site:
     :default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
     :default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
     :recipients:
-      - :email: support@example.com
-        :name: Support Team
-      - :email: security@example.com
-        :name: Security Team
-      - :email: helpdesk@example.com
-        :name: Help Desk
+      - <%= ENV['INCOMING_RECIPIENT_1']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_2']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_3']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_4']&.split(',') %>
 :emailer:
   :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   :region: 'ca-central-1'

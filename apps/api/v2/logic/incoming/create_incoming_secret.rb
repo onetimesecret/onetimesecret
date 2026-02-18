@@ -68,13 +68,14 @@ module V2::Logic
         # Create and encrypt secret using V2 pattern
         create_and_encrypt_secret
 
+        @greenlighted = metadata.valid? && secret.valid?
+        raise_form_error "Could not store your secret" unless greenlighted
+
         # Update stats
         update_customer_stats
 
         # Send notification email
         send_recipient_notification
-
-        @greenlighted = metadata.valid? && secret.valid?
       end
 
       def success_data
@@ -102,7 +103,10 @@ module V2::Logic
       private
 
       def create_and_encrypt_secret
-        # Use V2::Secret.spawn_pair to create linked secret and metadata
+        # Token is nil for incoming secrets: anonymous senders have no form
+        # token (honeypot/shrimp). Regular secret actions pass the token from
+        # the form submission; here nil is intentional and causes deliver_email
+        # to skip the token-based email suppression check.
         @metadata, @secret = V2::Secret.spawn_pair cust.custid, nil
 
         # Store incoming-specific fields
