@@ -37,7 +37,7 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
             .to raise_error(Onetime::Mail::DeliveryError) do |err|
               expect(err.transient?).to be true
               expect(err.original_error).to be_a(error_class)
-              expect(err.message).to include('Transient SMTP error')
+              expect(err.message).to include('SMTP delivery error')
             end
         end
       end
@@ -54,9 +54,9 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
     end
 
     context 'when a fatal error occurs' do
-      # Net::SMTPAuthenticationError is handled specially in #deliver:
+      # Net::SMTPAuthenticationError is handled specially in perform_delivery:
       # it triggers handle_auth_failure (retry without auth) before reaching
-      # the outer FATAL_ERRORS rescue. Test it separately below.
+      # Base's error handler. Test it separately below.
       fatal_errors_without_auth = described_class::FATAL_ERRORS - [Net::SMTPAuthenticationError]
 
       fatal_errors_without_auth.each do |error_class|
@@ -68,7 +68,7 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
             .to raise_error(Onetime::Mail::DeliveryError) do |err|
               expect(err.transient?).to be false
               expect(err.original_error).to be_a(error_class)
-              expect(err.message).to include('Fatal SMTP error')
+              expect(err.message).to include('SMTP delivery error')
             end
         end
       end

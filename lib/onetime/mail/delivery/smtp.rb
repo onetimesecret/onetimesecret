@@ -40,8 +40,7 @@ module Onetime
           Net::SMTPUnknownError,         # unexpected response
         ].freeze
 
-        def deliver(email)
-          email    = normalize_email(email)
+        def perform_delivery(email)
           settings = smtp_settings
 
           OT.ld "[smtp] Delivering to #{OT::Utils.obscure_email(email[:to])} via #{settings[:address]}:#{settings[:port]}"
@@ -55,31 +54,14 @@ module Onetime
             handle_auth_failure(mail_message, settings, ex)
           end
 
-          log_delivery(email)
           mail_message
-        rescue *TRANSIENT_ERRORS => ex
-          log_error(email, ex)
-          raise Onetime::Mail::DeliveryError.new(
-            "Transient SMTP error: #{ex.message}",
-            original_error: ex,
-            transient: true,
-          )
-        rescue *FATAL_ERRORS => ex
-          log_error(email, ex)
-          raise Onetime::Mail::DeliveryError.new(
-            "Fatal SMTP error: #{ex.message}",
-            original_error: ex,
-            transient: false,
-          )
-        rescue Onetime::Mail::DeliveryError
-          raise # Already wrapped, don't double-wrap
-        rescue StandardError => ex
-          log_error(email, ex)
-          raise Onetime::Mail::DeliveryError.new(
-            "SMTP delivery error: #{ex.message}",
-            original_error: ex,
-            transient: false,
-          )
+        end
+
+        def classify_error(error)
+          return :transient if TRANSIENT_ERRORS.any? { |klass| error.is_a?(klass) }
+          return :fatal if FATAL_ERRORS.any? { |klass| error.is_a?(klass) }
+
+          super # Base's network error check + :unknown fallback
         end
 
         protected
