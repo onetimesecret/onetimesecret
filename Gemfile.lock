@@ -107,7 +107,6 @@ GEM
       rexml
     crass (1.0.6)
     csv (3.3.5)
-    daemons (1.4.1)
     database_cleaner-core (2.0.1)
     database_cleaner-sequel (2.0.2)
       database_cleaner-core (~> 2.0.0)
@@ -127,7 +126,6 @@ GEM
     erb (6.0.1)
     et-orbi (1.4.0)
       tzinfo
-    eventmachine (1.2.7)
     facets (3.1.0)
     faker (3.5.3)
       i18n (>= 1.8.11, < 2)
@@ -197,6 +195,8 @@ GEM
       simpleidn (~> 0.2)
     jwt (3.1.2)
       base64
+    kanayago (0.7.0)
+      language_server-protocol (~> 3.17.0)
     kicks (3.2.0)
       bunny (~> 2.19)
       concurrent-ruby (~> 1.0)
@@ -500,11 +500,6 @@ GEM
       faraday-follow_redirects
     syntax_tree (6.3.0)
       prettier_print (>= 1.2.0)
-    thin (2.0.1)
-      daemons (~> 1.0, >= 1.0.9)
-      eventmachine (~> 1.0, >= 1.0.4)
-      logger
-      rack (>= 1, < 4)
     thor (1.5.0)
     tilt (2.7.0)
     timecop (0.9.10)
@@ -595,6 +590,7 @@ DEPENDENCIES
   i18n (~> 1.14)
   irb
   json_schemer
+  kanayago (~> 0.7)
   kicks (~> 3.0)
   logger
   mail
@@ -648,7 +644,6 @@ DEPENDENCIES
   stringio (~> 3.1.6)
   stripe
   syntax_tree
-  thin
   tilt
   timecop (~> 0.9)
   truemail
