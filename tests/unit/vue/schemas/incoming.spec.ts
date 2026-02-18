@@ -9,15 +9,15 @@ import {
 } from '@/schemas/api/incoming';
 
 /**
- * Fixtures modeled after actual V2 API responses.
- * The bugs we caught: secret_shortkey/memo/recipients returned as null
- * from the backend (not undefined), and details.recipient is an array.
+ * Fixtures modeled after actual V2 API responses from POST /api/v2/incoming/secret.
+ * The incoming endpoint returns details.recipient as a string (the recipient hash),
+ * not as an array. memo and recipients in metadata are optional strings.
  */
 
 const validMetadata = {
   identifier: 'md:abc123',
   key: 'abc123def456',
-  custid: 'user@example.com',
+  custid: 'anon',
   state: 'new',
   secret_shortkey: 'sk_xyz',
   shortkey: 'shortkey123',
@@ -35,16 +35,14 @@ const validSecret = {
 const validResponse = {
   success: true,
   shrimp: 'shrimp-token-abc',
-  custid: 'user@example.com',
+  custid: 'anon',
   record: {
     metadata: validMetadata,
     secret: validSecret,
   },
   details: {
-    kind: 'incoming',
     memo: 'test memo',
-    recipient: ['user@example.com'],
-    recipient_safe: ['u***@example.com'],
+    recipient: 'abc123hash',
   },
 };
 
@@ -167,131 +165,50 @@ describe('incomingSecretResponseSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  describe('metadata nullish fields (bug fix: backend returns null)', () => {
-    it('accepts null for secret_shortkey', () => {
+  describe('metadata optional fields', () => {
+    it('accepts undefined (omitted) memo', () => {
       const response = structuredClone(validResponse);
-      response.record.metadata.secret_shortkey = null as any;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts null for memo', () => {
-      const response = structuredClone(validResponse);
-      response.record.metadata.memo = null as any;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts null for recipients', () => {
-      const response = structuredClone(validResponse);
-      response.record.metadata.recipients = null as any;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts null for state', () => {
-      const response = structuredClone(validResponse);
-      response.record.metadata.state = null as any;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts undefined (omitted) for all nullish metadata fields', () => {
-      const response = structuredClone(validResponse);
-      delete (response.record.metadata as any).secret_shortkey;
       delete (response.record.metadata as any).memo;
-      delete (response.record.metadata as any).recipients;
-      delete (response.record.metadata as any).state;
       const result = incomingSecretResponseSchema.safeParse(response);
       expect(result.success).toBe(true);
     });
 
-    it('accepts empty string for nullish metadata fields', () => {
+    it('accepts undefined (omitted) recipients', () => {
       const response = structuredClone(validResponse);
-      response.record.metadata.secret_shortkey = '';
+      delete (response.record.metadata as any).recipients;
+      const result = incomingSecretResponseSchema.safeParse(response);
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts empty string for memo and recipients', () => {
+      const response = structuredClone(validResponse);
       response.record.metadata.memo = '';
       response.record.metadata.recipients = '';
-      response.record.metadata.state = '';
       const result = incomingSecretResponseSchema.safeParse(response);
       expect(result.success).toBe(true);
     });
   });
 
-  describe('secret record nullish fields', () => {
-    it('accepts null for secret state', () => {
+  describe('details.recipient as string (recipient hash)', () => {
+    it('accepts a hash string for recipient', () => {
       const response = structuredClone(validResponse);
-      response.record.secret.state = null as any;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-  });
-
-  describe('details.recipient as array (bug fix: was string, now array)', () => {
-    it('accepts an array of email strings', () => {
-      const response = structuredClone(validResponse);
-      response.details!.recipient = ['a@b.com', 'c@d.com'];
+      response.details!.recipient = 'abc123hash';
       const result = incomingSecretResponseSchema.safeParse(response);
       expect(result.success).toBe(true);
     });
 
-    it('accepts an empty array', () => {
+    it('accepts empty string for recipient', () => {
       const response = structuredClone(validResponse);
-      response.details!.recipient = [];
+      response.details!.recipient = '';
       const result = incomingSecretResponseSchema.safeParse(response);
       expect(result.success).toBe(true);
     });
 
-    it('accepts null for recipient', () => {
+    it('rejects an array for recipient', () => {
       const response = structuredClone(validResponse);
-      (response.details as any).recipient = null;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts undefined (omitted) for recipient', () => {
-      const response = structuredClone(validResponse);
-      delete (response.details as any).recipient;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('rejects a plain string for recipient (old incorrect shape)', () => {
-      const response = structuredClone(validResponse);
-      (response.details as any).recipient = 'user@example.com';
+      (response.details as any).recipient = ['a@b.com'];
       const result = incomingSecretResponseSchema.safeParse(response);
       expect(result.success).toBe(false);
-    });
-  });
-
-  describe('details.recipient_safe as array', () => {
-    it('accepts null for recipient_safe', () => {
-      const response = structuredClone(validResponse);
-      (response.details as any).recipient_safe = null;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts an array of masked strings', () => {
-      const response = structuredClone(validResponse);
-      response.details!.recipient_safe = ['u***@example.com'];
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-  });
-
-  describe('details.kind field', () => {
-    it('accepts kind as a string', () => {
-      const response = structuredClone(validResponse);
-      response.details!.kind = 'incoming';
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
-    });
-
-    it('accepts omitted kind', () => {
-      const response = structuredClone(validResponse);
-      delete (response.details as any).kind;
-      const result = incomingSecretResponseSchema.safeParse(response);
-      expect(result.success).toBe(true);
     });
   });
 
@@ -353,9 +270,9 @@ describe('incomingSecretResponseSchema', () => {
     });
   });
 
-  describe('realistic API response with all null optional fields', () => {
-    it('accepts a minimal response where backend returns nulls', () => {
-      const minimalResponse = {
+  describe('realistic API response', () => {
+    it('accepts a response with optional metadata fields omitted (via compact)', () => {
+      const result = incomingSecretResponseSchema.safeParse({
         success: true,
         shrimp: 'token',
         custid: 'anon',
@@ -364,27 +281,23 @@ describe('incomingSecretResponseSchema', () => {
             identifier: 'md:1',
             key: 'key1',
             custid: 'anon',
-            state: null,
-            secret_shortkey: null,
+            state: 'new',
+            secret_shortkey: 'sk_xyz',
             shortkey: 'sk1',
-            memo: null,
-            recipients: null,
+            // memo and recipients omitted (compacted out when nil)
           },
           secret: {
             identifier: 'se:1',
             key: 'key2',
-            state: null,
+            state: 'new',
             shortkey: 'sk2',
           },
         },
         details: {
-          kind: 'incoming',
-          memo: null,
-          recipient: null,
-          recipient_safe: null,
+          memo: '',
+          recipient: 'abc123hash',
         },
-      };
-      const result = incomingSecretResponseSchema.safeParse(minimalResponse);
+      });
       expect(result.success).toBe(true);
     });
   });
