@@ -18,8 +18,8 @@ module Onetime
       class Lettermint < Base
         def initialize(config = {})
           require 'lettermint'
-          configure_lettermint_defaults!
           super
+          configure_lettermint_defaults!
         end
 
         def perform_delivery(email)
@@ -35,19 +35,22 @@ module Onetime
           msg.deliver
         end
 
-        # Classify errors with specific types before the HttpRequestError
-        # catch-all. Order matters: RateLimitError and AuthenticationError
-        # are subclasses of HttpRequestError.
+        # Classify Lettermint SDK errors by type and HTTP status code.
+        # TimeoutError is always transient. HttpRequestError uses status
+        # codes: 429/5xx are transient, 4xx are fatal. ValidationError
+        # and ClientError are fatal (bad input, not retryable).
         def classify_error(error)
           case error
-          when ::Lettermint::TimeoutError, ::Lettermint::RateLimitError
+          when ::Lettermint::TimeoutError
             :transient
-          when ::Lettermint::AuthenticationError,
-               ::Lettermint::ValidationError,
+          when ::Lettermint::ValidationError,
                ::Lettermint::ClientError
             :fatal
           when ::Lettermint::HttpRequestError
-            error.status_code.between?(500, 599) ? :transient : :fatal
+            return :transient if error.status_code == 429
+            return :transient if error.status_code.between?(500, 599)
+
+            :fatal
           else
             super
           end

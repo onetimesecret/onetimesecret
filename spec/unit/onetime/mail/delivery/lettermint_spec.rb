@@ -35,7 +35,10 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
   end
 
   after do
-    ::Lettermint.reset_configuration!
+    ::Lettermint.configure do |c|
+      c.base_url = ::Lettermint::Configuration.new.base_url
+      c.timeout  = ::Lettermint::Configuration.new.timeout
+    end
   end
 
   describe '#deliver success' do
@@ -118,10 +121,10 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
       end
     end
 
-    context 'when SDK raises AuthenticationError (401/403)' do
+    context 'when SDK raises HttpRequestError with 401 (authentication)' do
       it 'raises fatal DeliveryError' do
         allow(mock_message).to receive(:deliver)
-          .and_raise(::Lettermint::AuthenticationError.new(
+          .and_raise(::Lettermint::HttpRequestError.new(
                        message: 'invalid api token',
                        status_code: 401,
                      ))
@@ -129,23 +132,23 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
         expect { backend.deliver(email) }
           .to raise_error(Onetime::Mail::DeliveryError) do |err|
             expect(err.transient?).to be false
-            expect(err.original_error).to be_a(::Lettermint::AuthenticationError)
+            expect(err.original_error).to be_a(::Lettermint::HttpRequestError)
           end
       end
     end
 
-    context 'when SDK raises RateLimitError (429)' do
+    context 'when SDK raises HttpRequestError with 429 (rate limit)' do
       it 'raises transient DeliveryError' do
         allow(mock_message).to receive(:deliver)
-          .and_raise(::Lettermint::RateLimitError.new(
+          .and_raise(::Lettermint::HttpRequestError.new(
                        message: 'too many requests',
-                       retry_after: 30,
+                       status_code: 429,
                      ))
 
         expect { backend.deliver(email) }
           .to raise_error(Onetime::Mail::DeliveryError) do |err|
             expect(err.transient?).to be true
-            expect(err.original_error).to be_a(::Lettermint::RateLimitError)
+            expect(err.original_error).to be_a(::Lettermint::HttpRequestError)
           end
       end
     end
