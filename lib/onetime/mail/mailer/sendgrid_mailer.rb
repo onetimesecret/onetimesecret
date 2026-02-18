@@ -19,7 +19,7 @@ module Onetime::Mail
 
         # Return early if there is no system email address to send from
         if self.from.to_s.empty?
-          OT.le "> [send-exception] No from address [to: #{obscured_address}]"
+          OT.le "> [send-exception] No from address [to: #{obscured_address}] (check FROM_EMAIL or FROM env var)"
           return
         end
 

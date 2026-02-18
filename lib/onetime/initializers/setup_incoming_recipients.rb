@@ -15,6 +15,8 @@ module Onetime
     def setup_incoming_recipients
       return unless OT.conf.dig(:features, :incoming, :enabled)
 
+      #
+      # e.g. INCOMING_RECIPIENT_1=support@example.com,Support
       raw_recipients = OT.conf.dig(:features, :incoming, :recipients) || []
 
       # Create lookup tables
@@ -22,8 +24,12 @@ module Onetime
       public_recipients = []
 
       raw_recipients.each do |recipient|
-        email = recipient[:email]
-        name = recipient[:name] || email.split('@').first
+        OT.info "[IncomingSecrets] Processing recipient config: #{recipient}"
+
+        next if recipient.nil? || recipient.empty?
+
+        email = recipient.first
+        name = recipient.last || email.split('@').first
 
         # Generate a stable hash for this email
         # Use site secret as salt to ensure consistency across restarts

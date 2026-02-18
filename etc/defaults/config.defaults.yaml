@@ -263,28 +263,36 @@ site:
       cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
 features:
-  # Incoming Secrets - Allows anonymous users to send secrets to pre-configured recipients
-  # IMPORTANT: Requires email configuration (:emailer section) to send notifications
+  # Incoming Secrets Feature
+  # Allows anonymous users to send encrypted secrets to pre-configured recipients
+  # via a dedicated web form at /incoming. Recipients receive email with link.
   incoming:
-    enabled: false
-    # Maximum length for the optional memo field (subject line in email)
-    memo_max_length: 50
-    # Optional passphrase applied to all incoming secrets (nil = no passphrase)
-    default_passphrase: null
-    # Default TTL in seconds (604800 = 7 days)
-    default_ttl: 604800
+    # Enable or disable the incoming secrets feature
+    enabled: <%= ENV['INCOMING_ENABLED'] == 'true' || false %>
+    # Maximum character length for the memo/subject field
+    memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>
+    # Default TTL for incoming secrets in seconds (7 days = 604800)
+    default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
+    # Optional default passphrase for all incoming secrets (nil = no passphrase)
+    default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
     # Recipients who can receive incoming secrets
-    # Format: Can be configured via ENV vars: INCOMING_RECIPIENT_N=email,name
-    # Email addresses are hashed at startup and never exposed in API responses
+    # Each recipient needs an email and optional display name.
+    # Email addresses are hashed at startup and never exposed in API responses.
+    #
+    # Environment Variable Format:
+    #   INCOMING_RECIPIENT_N=email[,name]
+    #   where N is 1, 2, 3, etc. and name is optional
+    #
     # Examples:
     #   INCOMING_RECIPIENT_1=support@example.com,Support Team
     #   INCOMING_RECIPIENT_2=security@example.com,Security Team
-    #   INCOMING_RECIPIENT_3=admin@example.com  (name defaults to 'admin')
+    #   INCOMING_RECIPIENT_3=admin@example.com   (name defaults to 'admin')
+    #
     recipients:
-      - email: 'support@example.com'
-        name: 'Support Team'
-      - email: 'security@example.com'
-        name: 'Security Team'
+      - <%= ENV['INCOMING_RECIPIENT_1']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_2']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_3']&.split(',') %>
+      - <%= ENV['INCOMING_RECIPIENT_4']&.split(',') %>
 # Redis Configuration
 redis:
   # Main Redis connection URI - Specify full connection string including auth
@@ -358,13 +366,14 @@ mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
     default_validation_type: :regex
-    # Required for :smtp validation
-    verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
-    #:verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
-    #:connection_timeout: 2
-    #:response_timeout: 2
-    #:connection_attempts: 3
-    #:validation_type_for:
+    # Required by Truemail, regardless of validation type.The value just needs
+    # to be present and syntactically valid to pass the configuration check.
+    verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'noreply@example.com' %>
+    #verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+    #connection_timeout: 2
+    #response_timeout: 2
+    #connection_attempts: 3
+    #validation_type_for:
     #  'example.com': :regex
     #
     # Truemail will only validate email addresses that match the
@@ -373,19 +382,19 @@ mail:
     allowed_domains_only: false
     #
     # Email addresses in this list will always be valid.
-    #:allowed_emails: []
+    #allowed_emails: []
     #
     # Email addresses in this list will always be invalid.
-    #:blocked_emails: []
+    #blocked_emails: []
     #
     # Addresses with these domains will always be valid
-    #:allowed_domains: []
+    #allowed_domains: []
     #
     # Addresses with these domains will always be invalid
-    #:blocked_domains: []
+    #blocked_domains: []
     #
     # Exclude these IP addresses from the MX lookup process.
-    #:blocked_mx_ip_addresses: []
+    #blocked_mx_ip_addresses: []
     #
     # Name servers to use for MX et al record lookup.
     # Default is CloudFlare, Google, Oracle/OpenDNS servers.

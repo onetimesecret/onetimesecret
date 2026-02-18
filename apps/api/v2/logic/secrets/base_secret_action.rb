@@ -45,14 +45,15 @@ module V2::Logic
         {
           success: greenlighted,
           record: {
-            metadata: metadata.safe_dump,
+            metadata: metadata.safe_dump.compact,
             secret: secret.safe_dump,
             share_domain: share_domain,
           },
           details: {
             kind: kind,
-            recipient: recipient,
+            recipient: recipient.first.to_s,
             recipient_safe: recipient_safe,
+            memo: metadata.memo.to_s,
           },
         }
       end

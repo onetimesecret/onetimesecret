@@ -81,7 +81,7 @@ module V2::Logic
         {
           success: greenlighted,
           record: {
-            metadata: metadata.safe_dump,
+            metadata: metadata.safe_dump.compact,
             secret: secret.safe_dump,
           },
           details: {

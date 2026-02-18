@@ -114,15 +114,31 @@ export const useIncomingStore = defineStore('incoming', () => {
       throw new Error('Incoming secrets feature is not enabled');
     }
 
-    // Use guest secret conceal endpoint
-    // Map incoming payload to conceal format
-    const response = await $api.post('/api/v2/guest/secret/conceal', {
-      secret: {
-        secret: payload.secret,
-        ttl: config.value.default_ttl,
-        // Note: recipient email resolution handled by backend incoming config
-      },
-    });
+    // useAuthStore must be called inside an action to avoid circular init issues
+    const { useAuthStore } = await import('./authStore');
+    const authStore = useAuthStore();
+
+    let response;
+    if (authStore.isAuthenticated) {
+      // Authenticated users use the dedicated incoming endpoint
+      response = await $api.post('/api/v2/incoming/secret', {
+        secret: {
+          secret: payload.secret,
+          memo: payload.memo,
+          recipient: payload.recipient,
+        },
+      });
+    } else {
+      // Unauthenticated users use the guest secret conceal endpoint
+      // Map incoming payload to conceal format
+      response = await $api.post('/api/v2/guest/secret/conceal', {
+        secret: {
+          secret: payload.secret,
+          ttl: config.value.default_ttl,
+          // Note: recipient email resolution handled by backend incoming config
+        },
+      });
+    }
 
     const validated = incomingSecretResponseSchema.parse(response.data);
     return validated;
