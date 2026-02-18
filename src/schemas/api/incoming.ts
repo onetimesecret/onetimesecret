@@ -47,11 +47,11 @@ const metadataRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
   custid: z.string(),
-  state: z.string().nullish(),
-  secret_shortkey: z.string().nullish(),
+  state: z.string(),
+  secret_shortkey: z.string(),
   shortkey: z.string(),
-  memo: z.string().nullish(),
-  recipients: z.string().nullish(),
+  memo: z.string().optional(),
+  recipients: z.string().optional(),
 });
 
 /**
@@ -60,7 +60,7 @@ const metadataRecordSchema = z.object({
 const secretRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
-  state: z.string().nullish(),
+  state: z.string(),
   shortkey: z.string(),
 });
 
@@ -77,14 +77,10 @@ export const incomingSecretResponseSchema = z.object({
     metadata: metadataRecordSchema,
     secret: secretRecordSchema,
   }),
-  details: z
-    .object({
-      kind: z.string().optional(),
-      memo: z.string().nullish(),
-      recipient: z.array(z.string()).nullish(),
-      recipient_safe: z.array(z.string()).nullish(),
-    })
-    .optional(),
+  details: z.object({
+    memo: z.string(),
+    recipient: z.string(),
+  }).optional(),
 });
 
 export type IncomingSecretResponse = z.infer<typeof incomingSecretResponseSchema>;
