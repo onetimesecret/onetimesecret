@@ -96,10 +96,7 @@ module Onetime
         'development' => {
           'enabled' => false,
           'frontend_host' => '',
-        },
-        'experimental' => {
           'allow_nil_global_secret' => false, # defaults to a secure setting
-          'rotated_secrets' => [],
         },
       }
 
@@ -288,7 +285,15 @@ module Onetime
       # Handle potential nil global secret
       # The global secret is critical for encrypting/decrypting secrets
       # Running without a global secret is only permitted in exceptional cases
-      allow_nil     = conf.dig('experimental', 'allow_nil_global_secret') || false
+      # Enforce development-mode constraint: allow_nil_global_secret is
+      # only effective when development.enabled is true. Normalize it here
+      # before the config is frozen so runtime code can read it directly.
+      if conf.dig('development', 'allow_nil_global_secret') && !conf.dig('development', 'enabled')
+        OT.le 'CONFIG WARNING: development.allow_nil_global_secret=true ignored because development.enabled is false'
+        conf['development']['allow_nil_global_secret'] = false
+      end
+
+      allow_nil     = conf.dig('development', 'allow_nil_global_secret') || false
       global_secret = conf.dig('site', 'secret') || nil
       global_secret = nil if global_secret.to_s.strip == 'CHANGEME'
 

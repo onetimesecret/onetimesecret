@@ -212,10 +212,6 @@ module ModelTestHelper
       !secret.passphrase.to_s.empty?
     end
 
-    # Mock the fallback secret methods
-    allow(secret).to receive(:has_fallback_secrets?).and_return(false)
-    allow(secret).to receive(:try_fallback_secrets).and_return(nil)
-
     # Return the stubbed object
     secret
   end

@@ -208,9 +208,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
               dsn:
             frontend:
               dsn:
-        experimental:
-          freeze_app: false
-          csp: {enabled: false}
         YAML
       end
 

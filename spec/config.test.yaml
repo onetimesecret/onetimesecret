@@ -266,21 +266,4 @@ development:
   enabled: false
   debug: false
   frontend_host: 'http://localhost:5173'
-
-experimental:
   allow_nil_global_secret: false
-  # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
-  # after initialization to prevent any runtime modifications to the app middleware chain.
-  # This is a security measure that prevents malicious code from injecting new middleware.
-  #
-  # Effects:
-  # - Freezes the middleware stack, preventing adding/removing middleware after boot
-  # - Freezes the app object passed to Rack::Builder
-  # - Does not affect request/response object mutability
-  #
-  # Note: This setting can help make your application more secure by preventing
-  # middleware chain manipulation at runtime. For most applications, this should
-  # be enabled in production environments.
-  freeze_app: true
-  csp:
-    enabled: false

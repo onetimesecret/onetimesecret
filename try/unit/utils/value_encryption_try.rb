@@ -56,7 +56,7 @@ begin
   Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
   result = begin
     decrypted = s.decrypted_value
-    # If allow_nil_global_secret is enabled in experimental config, decryption may succeed
+    # If allow_nil_global_secret is enabled in development config, decryption may succeed
     decrypted == 'plop' ? 'decryption_succeeded' : 'unexpected_result'
   rescue OpenSSL::Cipher::CipherError => e
     e.class

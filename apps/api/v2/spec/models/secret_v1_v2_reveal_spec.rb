@@ -10,9 +10,8 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
 
   before do
     allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
-      'experimental' => {
+      'development' => {
         'allow_nil_global_secret' => false,
-        'rotated_secrets' => [],
       },
     })
   end
@@ -352,30 +351,5 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
         'Decrypting with dbkey-based key must fail (identifier was used for encryption)'
     end
 
-    context 'with passphrase in key derivation' do
-      let(:passphrase) { 'test-passphrase-for-key' }
-
-      it 'try_fallback_secrets uses identifier in fallback key generation' do
-        fallback_secret = 'fallback-global-secret'
-        allow(OT).to receive(:conf).and_return({
-          'experimental' => {
-            'allow_nil_global_secret' => false,
-            'rotated_secrets' => [fallback_secret, 'another-secret'],
-          },
-        })
-        allow(secret).to receive(:has_fallback_secrets?).and_call_original
-        allow(secret).to receive(:try_fallback_secrets).and_call_original
-
-        # Encrypt with fallback secret and identifier (matching actual code)
-        secret.instance_variable_set(:@passphrase_temp, passphrase)
-        fallback_key = Onetime::Secret.encryption_key(fallback_secret, secret.identifier, passphrase)
-        encrypted = secret_value.encrypt(key: fallback_key)
-        secret.instance_variable_set(:@value, encrypted)
-        secret.instance_variable_set(:@value_encryption, 2)
-
-        result = secret.try_fallback_secrets(encrypted, {})
-        expect(result).to eq(secret_value)
-      end
-    end
   end
 end

@@ -1,11 +1,11 @@
-# spec/unit/onetime/experimental_config_spec.rb
+# spec/unit/onetime/development_config_spec.rb
 #
 # frozen_string_literal: true
 
 require 'spec_helper'
 require 'openssl'
 
-RSpec.describe "Experimental config settings" do
+RSpec.describe "Development config settings" do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
 
   describe "allow_nil_global_secret" do
@@ -42,7 +42,7 @@ RSpec.describe "Experimental config settings" do
     context "when allow_nil_global_secret is false (default)" do
       before do
         @context_config = OT::Config.deep_clone(processed_config)
-        @context_config['experimental']['allow_nil_global_secret'] = false
+        @context_config['development']['allow_nil_global_secret'] = false
 
         OT.instance_variable_set(:@conf, @context_config)
       end
@@ -89,7 +89,7 @@ RSpec.describe "Experimental config settings" do
     context "when allow_nil_global_secret is true" do
       before do
         @context_config = OT::Config.deep_clone(processed_config)
-        @context_config['experimental']['allow_nil_global_secret'] = true
+        @context_config['development']['allow_nil_global_secret'] = true
 
         OT.instance_variable_set(:@conf, @context_config)
       end
@@ -155,7 +155,7 @@ RSpec.describe "Experimental config settings" do
         Onetime::Runtime.update_security(global_secret: nil)
 
         # Enable fallback mechanism
-        @context_config['experimental']['allow_nil_global_secret'] = true
+        @context_config['development']['allow_nil_global_secret'] = true
 
         # The wrong key that will be used for primary decryption attempt
         wrong_key = Onetime::Secret.encryption_key(nil, secret.identifier, passphrase)
@@ -203,7 +203,7 @@ RSpec.describe "Experimental config settings" do
     context "when switching between nil and non-nil global secrets" do
       before do
         @context_config = OT::Config.deep_clone(processed_config)
-        @context_config['experimental']['allow_nil_global_secret'] = true
+        @context_config['development']['allow_nil_global_secret'] = true
 
         OT.instance_variable_set(:@conf, @context_config)
       end
@@ -224,8 +224,25 @@ RSpec.describe "Experimental config settings" do
         # Then try to decrypt with a nil global secret
         Onetime::Runtime.update_security(global_secret: nil)
 
-        # Enable fallback mechanism but mock it to fail
-        @context_config['experimental']['allow_nil_global_secret'] = true
+        # Enable nil fallback but mock it to also fail
+        @context_config['development']['allow_nil_global_secret'] = true
+
+        # The wrong key that will be used for the primary decryption attempt
+        wrong_key = Onetime::Secret.encryption_key(nil, secret.identifier, passphrase)
+
+        # Stub Encryptor.decrypt to fail deterministically on the wrong key.
+        # CBC mode only raises CipherError on padding failures (~1/256 chance of
+        # valid padding with wrong key). This ensures the primary decrypt always
+        # fails and we exercise the nil-secret fallback path.
+        allow(Encryptor).to receive(:decrypt).and_wrap_original do |method, *args|
+          opts = args.last.is_a?(Hash) ? args.last : {}
+          if opts[:key] == wrong_key
+            raise OpenSSL::Cipher::CipherError.new("wrong key - simulated for test")
+          end
+          method.call(*args)
+        end
+
+        # Also mock the nil fallback to fail
         allow(secret).to receive(:encryption_key_v2_with_nil).and_raise(OpenSSL::Cipher::CipherError)
 
         # Decryption should fail with CipherError
@@ -252,7 +269,7 @@ RSpec.describe "Experimental config settings" do
         Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # IMPORTANT: Completely disable the fallback
-        @context_config['experimental']['allow_nil_global_secret'] = false
+        @context_config['development']['allow_nil_global_secret'] = false
 
         # The decryption should fail since the key material is different
         set_passphrase_temp(secret, passphrase)
