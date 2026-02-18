@@ -1,4 +1,4 @@
-# lib/onetime/jobs/queue_config.rb
+# lib/onetime/jobs/queues/config.rb
 #
 # frozen_string_literal: true
 

@@ -32,7 +32,7 @@ require 'spec_helper'
 require 'support/amqp_stubs'
 require 'sneakers'
 require 'onetime/jobs/workers/notification_worker'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
   # Create test worker class with accessible delivery_info

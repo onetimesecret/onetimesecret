@@ -37,7 +37,7 @@
 require 'spec_helper'
 require 'support/amqp_stubs'
 require 'onetime/jobs/workers/base_worker'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 require 'sneakers'
 
 RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do

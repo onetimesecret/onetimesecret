@@ -22,7 +22,7 @@ require 'spec_helper'
 require 'bunny'
 require 'json'
 require 'timeout'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe 'DLQ Routing', :rabbitmq, type: :integration do
   let(:rabbitmq_url) { ENV.fetch('RABBITMQ_URL', 'amqp://localhost') }

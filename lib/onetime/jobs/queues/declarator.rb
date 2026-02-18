@@ -1,8 +1,8 @@
-# lib/onetime/jobs/queue_declarator.rb
+# lib/onetime/jobs/queues/declarator.rb
 #
 # frozen_string_literal: true
 
-require_relative 'queue_config'
+require_relative 'config'
 
 module Onetime
   module Jobs

@@ -41,7 +41,7 @@ require 'spec_helper'
 require 'support/amqp_stubs'
 require 'sneakers'
 require 'onetime/jobs/workers/email_worker'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
   # Create test worker class with accessible delivery_info

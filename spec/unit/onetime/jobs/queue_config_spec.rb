@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe Onetime::Jobs::QueueConfig do
   describe 'QUEUES' do

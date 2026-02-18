@@ -16,7 +16,7 @@
 
 require 'spec_helper'
 require 'sneakers'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/workers/notification_worker'
 require 'onetime/jobs/workers/billing_worker'

@@ -4,8 +4,8 @@
 
 require 'sneakers'
 require_relative 'base_worker'
-require_relative '../queue_config'
-require_relative '../queue_declarator'
+require_relative '../queues/config'
+require_relative '../queues/declarator'
 require_relative '../../mail'
 
 module Onetime

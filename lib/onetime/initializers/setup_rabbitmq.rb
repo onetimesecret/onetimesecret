@@ -4,8 +4,8 @@
 
 require 'bunny'
 require 'connection_pool'
-require_relative '../jobs/queue_config'
-require_relative '../jobs/queue_declarator'
+require_relative '../jobs/queues/config'
+require_relative '../jobs/queues/declarator'
 
 module Onetime
   module Initializers
