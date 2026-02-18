@@ -379,6 +379,68 @@ end
 [keys.uniq.length, keys.length]
 #=> [3, 3]
 
+# Rate limiting tests
+# Register events with string keys to match production behavior
+# (config is loaded via IndifferentHash which stores keys as strings)
+@orig_create_limit = RateLimit.event_limit(:create_secret)
+@orig_email_limit = RateLimit.event_limit(:email_recipient)
+RateLimit.register_event 'create_secret', 2
+RateLimit.register_event 'email_recipient', 100
+
+# Clear any accumulated counts from earlier tests
+@eid = @sess.external_identifier
+RateLimit.clear! @eid, :create_secret
+RateLimit.clear! @eid, :email_recipient
+
+## raise_concerns increments create_secret and email_recipient rate limit counters
+params = {
+  secret: {
+    memo: 'Rate Limit Test',
+    secret: 'test content',
+    recipient: @support_hash
+  }
+}
+logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
+logic.raise_concerns
+[@sess.event_get(:create_secret), @sess.event_get(:email_recipient)]
+#=> [1, 1]
+
+## Rate limit counters increment on subsequent calls to raise_concerns
+params = {
+  secret: {
+    memo: 'Rate Limit Test 2',
+    secret: 'more content',
+    recipient: @support_hash
+  }
+}
+logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
+logic.raise_concerns
+@sess.event_get(:create_secret)
+#=> 2
+
+## Exceeding create_secret rate limit raises LimitExceeded
+begin
+  params = {
+    secret: {
+      memo: 'Exceed Test',
+      secret: 'content',
+      recipient: @support_hash
+    }
+  }
+  logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
+  logic.raise_concerns
+  false
+rescue OT::LimitExceeded
+  true
+end
+#=> true
+
+# Restore original limits and clean up rate limit data
+RateLimit.register_event 'create_secret', @orig_create_limit
+RateLimit.register_event 'email_recipient', @orig_email_limit
+RateLimit.clear! @eid, :create_secret
+RateLimit.clear! @eid, :email_recipient
+
 # Teardown: Clean up test data
 @cust.destroy!
 ENV.delete('INCOMING_ENABLED')
