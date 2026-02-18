@@ -79,21 +79,31 @@ module Onetime
       DEAD_LETTER_CONFIG = {
         'dlx.email.message' => {
           queue: 'dlq.email.message',
-          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+          arguments: {},
         },
         'dlx.notifications.alert' => {
           queue: 'dlq.notifications.alert',
-          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+          arguments: {},
         },
         'dlx.webhooks.payload' => {
           queue: 'dlq.webhooks.payload',
-          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+          arguments: {},
         },
         'dlx.billing.event' => {
           queue: 'dlq.billing.event',
-          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+          arguments: {},
         },
       }.freeze
+
+      DLQ_POLICIES = [
+        {
+          name: 'dlq-ttl',
+          pattern: '^dlq\.',
+          definition: { 'message-ttl' => DLQ_MESSAGE_TTL },
+          apply_to: 'queues',
+          priority: 0,
+        },
+      ].freeze
 
       # TTL for processed message idempotency keys (1 hour)
       IDEMPOTENCY_TTL = 3600

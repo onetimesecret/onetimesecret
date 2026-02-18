@@ -63,6 +63,7 @@ module Onetime
             puts "  1. Create vhost '#{parsed[:vhost]}' (if not exists)"
             puts "  2. Set permissions for user '#{parsed[:user]}' on vhost '#{parsed[:vhost]}'"
             puts '  3. Declare exchanges and queues'
+            puts '  4. Apply DLQ policies (message TTL)'
             return
           end
 
@@ -83,6 +84,9 @@ module Onetime
 
           # Step 3: Declare exchanges and queues via AMQP
           declare_infrastructure(amqp_url)
+
+          # Step 4: Apply DLQ policies via Management API
+          set_dlq_policies(parsed)
 
           puts
           puts 'Initialization complete.'
@@ -238,6 +242,56 @@ module Onetime
         rescue StandardError => ex
           puts "  ERROR: #{ex.message}"
           exit 1
+        end
+
+        def set_dlq_policies(parsed)
+          vhost = parsed[:vhost]
+
+          puts 'Applying DLQ policies via Management API...'
+
+          Onetime::Jobs::QueueConfig::DLQ_POLICIES.each do |policy|
+            policy_name   = policy[:name]
+            encoded_vhost = URI.encode_www_form_component(vhost)
+            encoded_name  = URI.encode_www_form_component(policy_name)
+
+            uri      = URI.parse("#{management_url}/api/policies/#{encoded_vhost}/#{encoded_name}")
+            user, pw = management_credentials
+
+            http              = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl      = uri.scheme == 'https'
+            http.open_timeout = 5
+            http.read_timeout = 10
+
+            request                 = Net::HTTP::Put.new(uri.path)
+            request.basic_auth(user, pw)
+            request['Content-Type'] = 'application/json'
+            request.body            = JSON.generate(
+              {
+                pattern: policy[:pattern],
+                definition: policy[:definition],
+                'apply-to': policy[:apply_to],
+                priority: policy[:priority],
+              },
+            )
+
+            response = http.request(request)
+
+            case response.code.to_i
+            when 200, 201, 204
+              puts "  Policy '#{policy_name}' applied to vhost '#{vhost}'"
+            else
+              puts "  WARNING: Failed to apply policy '#{policy_name}': #{response.code} #{response.message}"
+              puts "  #{response.body}" if response.body && !response.body.empty?
+            end
+          end
+        rescue Errno::ECONNREFUSED
+          puts "  WARNING: Cannot connect to RabbitMQ Management API at #{management_url}"
+          puts '  DLQ policies were not applied. Apply manually if needed:'
+          Onetime::Jobs::QueueConfig::DLQ_POLICIES.each do |policy|
+            puts "    rabbitmqctl set_policy -p #{vhost} #{policy[:name]} '#{policy[:pattern]}' '#{JSON.generate(policy[:definition])}' --apply-to #{policy[:apply_to]} --priority #{policy[:priority]}"
+          end
+        rescue StandardError => ex
+          puts "  WARNING: Could not apply DLQ policies: #{ex.message}"
         end
       end
     end
