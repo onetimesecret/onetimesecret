@@ -117,9 +117,11 @@ module Onetime
             rescue OpenSSL::Cipher::CipherError => ex
               OT.le "[decrypted_value] r:#{receipt_identifier} s:#{identifier} CipherError #{ex.message}"
 
-              # Try nil secret if allowed (development mode only)
+              # Try nil secret if allowed (development mode only) and current global
+              # secret is nil. When global_secret is non-nil, a CipherError means
+              # the passphrase is wrong — not a nil-secret migration scenario.
               allow_nil = OT.conf['development'].fetch('allow_nil_global_secret', false)
-              if allow_nil
+              if allow_nil && OT.global_secret.nil?
                 OT.li "[decrypted_value] r:#{receipt_identifier} s:#{identifier} Trying nil global secret"
                 decryption_options = opts.merge(key: encryption_key_v2_with_nil)
                 return v_encrypted.decrypt(decryption_options)

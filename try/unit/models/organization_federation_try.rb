@@ -19,7 +19,7 @@
 require_relative '../../support/test_helpers'
 
 # Stub the HMAC secret for testing
-ENV['FEDERATION_HMAC_SECRET'] ||= 'test-hmac-secret-for-email-hash-32chars'
+ENV['FEDERATION_SECRET'] ||= 'test-hmac-secret-for-email-hash-32chars'
 
 require 'onetime/utils/email_hash'
 

@@ -142,11 +142,11 @@ module Onetime
 
           # Compute and store the HMAC email hash from billing_email
           #
-          # The hash is computed using FEDERATION_HMAC_SECRET and is deterministic:
+          # The hash is computed using FEDERATION_SECRET and is deterministic:
           # same email + same secret = same hash across all regions.
           #
           # @return [String, nil] The computed email hash, or nil if billing_email is empty
-          # @raise [Onetime::Problem] If FEDERATION_HMAC_SECRET is not configured
+          # @raise [Onetime::Problem] If FEDERATION_SECRET is not configured
           #
           def compute_email_hash!
             self.email_hash           = Onetime::Utils::EmailHash.compute(billing_email)

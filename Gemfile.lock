@@ -300,6 +300,8 @@ GEM
     parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
+    passforge (1.1.2)
+      securerandom (~> 0.3)
     pastel (0.8.0)
       tty-color (~> 0.5)
     pg (1.6.3)
@@ -600,6 +602,7 @@ DEPENDENCIES
   mustache
   omniauth_openid_connect (~> 0.8)
   otto (~> 2.0.0.pre10)
+  passforge (~> 1.1)
   pg (~> 1.6)
   psych (~> 5.2.3)
   public_suffix

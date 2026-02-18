@@ -21,7 +21,7 @@
 require_relative '../support/test_helpers'
 
 # Stub the HMAC secret for testing
-ENV['FEDERATION_HMAC_SECRET'] ||= 'test-hmac-secret-for-email-hash-32chars'
+ENV['FEDERATION_SECRET'] ||= 'test-hmac-secret-for-email-hash-32chars'
 
 require 'onetime/utils/email_hash'
 
@@ -134,10 +134,10 @@ recomputed == @stripe_metadata_hash
 
 ## DEFENSE CHECK 11: Different secret produces different hash
 setup_attack_scenario
-original_secret = ENV['FEDERATION_HMAC_SECRET']
-ENV['FEDERATION_HMAC_SECRET'] = 'different-secret-for-comparison'
+original_secret = ENV['FEDERATION_SECRET']
+ENV['FEDERATION_SECRET'] = 'different-secret-for-comparison'
 different_hash = Onetime::Utils::EmailHash.compute(@attacker_org.billing_email)
-ENV['FEDERATION_HMAC_SECRET'] = original_secret
+ENV['FEDERATION_SECRET'] = original_secret
 different_hash != @stripe_metadata_hash
 #=> true
 

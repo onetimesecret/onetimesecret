@@ -86,8 +86,8 @@ module Onetime
         true
       rescue Onetime::Problem => ex
         puts "\nConfiguration Error: #{ex.message}"
-        puts "\nTo configure, set FEDERATION_HMAC_SECRET in your environment"
-        puts 'or add site.federation_hmac_secret to your config file.'
+        puts "\nTo configure, set FEDERATION_SECRET in your environment"
+        puts 'or add site.federation_secret to your config file.'
         false
       end
 
@@ -275,7 +275,7 @@ module Onetime
             - Skips customers that already have email_hash metadata
             - Skips organizations without billing_email
             - Rate limited to ~10 requests/second for safety
-            - Requires STRIPE_SECRET_KEY and FEDERATION_HMAC_SECRET
+            - Requires STRIPE_SECRET_KEY and FEDERATION_SECRET
 
         USAGE
         true

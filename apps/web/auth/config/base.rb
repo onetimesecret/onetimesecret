@@ -9,6 +9,8 @@ module Auth::Config::Base
     # Core features required for all authentication flows
     auth.enable :base, :json, :login, :logout, :external_identity
     auth.enable :hmac_secret_guard
+    auth.hmac_secret_env_key 'AUTH_SECRET'
+    auth.hmac_old_secret ENV['AUTH_OLD_SECRET'] if ENV['AUTH_OLD_SECRET']
     auth.enable :internal_request
 
     # Block form defers evaluation until runtime, not class definition time.

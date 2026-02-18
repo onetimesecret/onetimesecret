@@ -11,14 +11,14 @@
 # Security model:
 # - Hash is computed at subscription creation and stored immutably in Stripe metadata
 # - Email changes post-subscription do NOT update the hash (prevents email-swap attacks)
-# - Uses HMAC-SHA256 with FEDERATION_HMAC_SECRET for domain separation
+# - Uses HMAC-SHA256 with FEDERATION_SECRET for domain separation
 #
 # Run: pnpm run test:tryouts:agent try/unit/utils/email_hash_try.rb
 
 require_relative '../../support/test_helpers'
 
 # Stub the HMAC secret for testing (must be set before EmailHash is loaded)
-ENV['FEDERATION_HMAC_SECRET'] ||= 'test-hmac-secret-for-email-hash-32chars'
+ENV['FEDERATION_SECRET'] ||= 'test-hmac-secret-for-email-hash-32chars'
 
 require 'onetime/utils/email_hash'
 
@@ -98,20 +98,20 @@ hash =~ /^[a-f0-9]{32}$/
 
 ## Missing HMAC secret raises configuration error
 # Save and clear the secret
-original_secret = ENV['FEDERATION_HMAC_SECRET']
-ENV.delete('FEDERATION_HMAC_SECRET')
+original_secret = ENV['FEDERATION_SECRET']
+ENV.delete('FEDERATION_SECRET')
 begin
   # Re-require to pick up the missing secret (or check at compute time)
   Onetime::Utils::EmailHash.compute(@test_email)
   'should_have_raised'
 rescue Onetime::Problem => e
-  e.message.include?('FEDERATION_HMAC_SECRET')
+  e.message.include?('FEDERATION_SECRET')
 rescue StandardError => e
   # Accept any error about missing secret
   e.message.include?('secret') || e.message.include?('HMAC') || e.message.include?('FEDERATION')
 ensure
   # Restore the secret
-  ENV['FEDERATION_HMAC_SECRET'] = original_secret
+  ENV['FEDERATION_SECRET'] = original_secret
 end
 #=> true
 

@@ -18,7 +18,7 @@ module Auth
 
       # 2. Base configuration (database, HMAC, JSON, session)
       db Auth::Database.connection
-      hmac_secret ENV['HMAC_SECRET']
+      hmac_secret ENV['AUTH_SECRET']
       # ... base config
 
       # 3. Call modular configuration methods
@@ -134,10 +134,10 @@ module Auth::Config::Base
     auth.db Auth::Database.connection
 
     # HMAC secret
-    hmac_value = ENV['HMAC_SECRET']
+    hmac_value = ENV['AUTH_SECRET']
     if hmac_value.nil? || hmac_value.empty?
       if Onetime.production?
-        raise 'HMAC_SECRET required in production'
+        raise 'AUTH_SECRET required in production'
       else
         hmac_value = 'dev-hmac-secret-change-in-prod'
       end
