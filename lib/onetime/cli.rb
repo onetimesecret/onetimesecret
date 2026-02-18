@@ -87,8 +87,12 @@ require_relative 'cli/worker_command'
 require_relative 'cli/scheduler_command'
 
 # Load email CLI commands
-require_relative 'cli/email_send_command'
-require_relative 'cli/email_templates_command'
+require_relative 'cli/email'
+require_relative 'cli/email/send_command'
+require_relative 'cli/email/test_command'
+require_relative 'cli/email/templates_command'
+require_relative 'cli/email/preview_command'
+require_relative 'cli/email/config_command'
 
 # Load queue CLI commands
 require_relative 'cli/queue/init_command'

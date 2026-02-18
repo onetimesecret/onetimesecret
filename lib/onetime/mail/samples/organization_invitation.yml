@@ -1,0 +1,6 @@
+invited_email: "newmember@example.com"
+organization_name: "Acme Corp"
+inviter_email: "admin@example.com"
+role: "member"
+invite_token: "invite-token-sample-abc"
+expires_in_days: 7
