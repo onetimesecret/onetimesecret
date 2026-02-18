@@ -312,15 +312,15 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Your email address was changed (%{display_domain})",
+    "text": "Your email address has been changed (%{display_domain})",
     "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Your Email Address Was Changed",
+    "text": "Your Email Address Has Been Changed",
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+    "text": "The email address for your %{product_name} account has been changed to %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -328,7 +328,7 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "The email address on your %{product_name} account was recently changed.",
+    "text": "The email address on your %{product_name} account has been changed.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
@@ -358,6 +358,46 @@
   "email.email_changed.postscript": {
     "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
     "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Email change requested (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "Email Change Requested",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "A request was made to change the email address on your %{product_name} account.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Requested new email:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Requested at:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Contact Support",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "Verify your new email address (%{display_domain})",

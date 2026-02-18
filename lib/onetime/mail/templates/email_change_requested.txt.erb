@@ -1,0 +1,14 @@
+<%= t('email.email_change_requested.change_notice', product_name: product_name) %>
+
+<%= t('email.email_change_requested.new_email_label') %> <%= new_email %>
+<%= t('email.email_change_requested.requested_at_label') %> <%= requested_at_formatted %>
+
+<%= t('email.email_change_requested.if_you_initiated') %>
+
+<%= t('email.email_change_requested.not_you_notice') %>
+<%= baseuri %><%= support_path %>
+
+<%= t('email.email_change_requested.signature') %>
+<%= baseuri %>
+
+<%= t('email.email_change_requested.postscript', email_address: old_email) %>

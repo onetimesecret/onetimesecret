@@ -328,8 +328,8 @@
     "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Email updated successfully. Please check your inbox to verify your new email address.",
-    "sha256": "58de2536"
+    "text": "Verification email sent. Please check your new inbox and click the confirmation link to complete the change.",
+    "sha256": ""
   },
   "web.settings.profile.email_change_error": {
     "text": "Failed to update email. Please try again.",
@@ -636,8 +636,8 @@
     "sha256": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Confirm Email Change",
-    "sha256": "a1b2c3d4"
+    "text": "Email Address Updated",
+    "sha256": ""
   },
   "web.settings.profile.email_confirmed_success": {
     "text": "Your email has been updated successfully. Please sign in with your new email address.",
@@ -646,6 +646,10 @@
   "web.settings.profile.email_confirm_verifying": {
     "text": "Verifying your new email address...",
     "sha256": "c9d0e1f2"
+  },
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Email Change Failed",
+    "sha256": ""
   },
   "web.settings.profile.email_confirm_invalid": {
     "text": "This verification link is invalid or has expired.",

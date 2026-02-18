@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title><%= t('email.email_changed.title') %></title>
+    <title><%= t('email.email_change_requested.title') %></title>
     <style type="text/css">
       body { margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
       table { border-spacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -33,39 +33,39 @@
 
                 <!-- Title -->
                 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
-                  <p style="margin: 0;"><%= t('email.email_changed.title') %></p>
+                  <p style="margin: 0;"><%= t('email.email_change_requested.title') %></p>
                 </div>
 
                 <!-- Body -->
                 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
-                  <p><%= t('email.email_changed.change_notice', product_name: product_name) %></p>
+                  <p><%= t('email.email_change_requested.change_notice', product_name: product_name) %></p>
 
                   <table border="0" cellpadding="0" cellspacing="0" style="margin: 16px 0; background-color: #f5f5f5; border-radius: 4px; width: 100%;">
                     <tr>
                       <td style="padding: 12px 16px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
-                        <strong><%= t('email.email_changed.new_email_label') %></strong> <%= h(new_email) %><br />
-                        <strong><%= t('email.email_changed.changed_at_label') %></strong> <%= h(changed_at_formatted) %>
+                        <strong><%= t('email.email_change_requested.new_email_label') %></strong> <%= h(new_email) %><br />
+                        <strong><%= t('email.email_change_requested.requested_at_label') %></strong> <%= h(requested_at_formatted) %>
                       </td>
                     </tr>
                   </table>
 
-                  <p><%= t('email.email_changed.if_you_initiated') %></p>
+                  <p><%= t('email.email_change_requested.if_you_initiated') %></p>
 
                   <p style="color: #666666; background-color: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 24px;">
-                    <%= t('email.email_changed.not_you_notice') %>
-                    <a href="<%= baseuri %><%= support_path %>" style="color: #dc4a22;"><%= t('email.email_changed.contact_support') %></a>
+                    <%= t('email.email_change_requested.not_you_notice') %>
+                    <a href="<%= baseuri %><%= support_path %>" style="color: #dc4a22;"><%= t('email.email_change_requested.contact_support') %></a>
                   </p>
                 </div>
 
                 <!-- Signature -->
                 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
-                  <p style="margin: 0;"><%= t('email.email_changed.signature') %><br />
+                  <p style="margin: 0;"><%= t('email.email_change_requested.signature') %><br />
                     <a href="<%= baseuri %>" style="color: #dc4a22;"><%= baseuri %></a></p>
                 </div>
 
                 <!-- Postscript -->
                 <p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 24px;">
-                  <%= h(t('email.email_changed.postscript', email_address: old_email)) %>
+                  <%= h(t('email.email_change_requested.postscript', email_address: old_email)) %>
                 </p>
               </td>
             </tr>
