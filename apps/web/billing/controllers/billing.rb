@@ -193,7 +193,10 @@ module Billing
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         if Billing::CurrencyMigrationService.currency_conflict?(ex)
-          currencies = Billing::CurrencyMigrationService.parse_currency_conflict(ex)
+          currencies = Billing::CurrencyMigrationService.parse_currency_conflict(
+            ex,
+            requested_currency_hint: plan.currency,
+          )
 
           billing_logger.info 'Currency conflict detected during checkout',
             {
@@ -235,10 +238,11 @@ module Billing
         else
           billing_logger.error 'Stripe checkout session creation failed',
             {
-              exception: ex,
+              error_class: ex.class.name,
+              error: ex.message,
               extid: req.params['extid'],
             }
-          json_error(ex.message, status: 400)
+          json_error('Unable to start checkout. Please contact support if this continues.', status: 400)
         end
       rescue Stripe::StripeError => ex
         billing_logger.error 'Stripe checkout session creation failed',
@@ -339,6 +343,7 @@ module Billing
               interval: plan.interval,
               amount: plan.amount,
               currency: plan.currency,
+              region: plan.region,
               features: plan.features.to_a,
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,

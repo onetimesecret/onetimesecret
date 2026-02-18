@@ -107,6 +107,8 @@ export interface Plan {
   includes_plan?: string;
   /** Human-readable name of included plan (resolved by backend) */
   includes_plan_name?: string;
+  /** Region identifier from Stripe product metadata */
+  region?: string;
 }
 
 /**

@@ -959,5 +959,10 @@
     "text": "Successfully switched to {plan}",
     "context": "Success message after plan change",
     "sha256": "e3f4a5b6"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "Available in your original subscription region only",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "f4a5b6c7"
   }
 }

@@ -24,11 +24,28 @@ module Billing
     extend self
 
     # Regex to extract currencies from Stripe's currency conflict error message.
-    # Stripe format: "...had a subscription or payment in <old>...pay in <new>."
+    #
+    # Stripe uses two formats depending on what's locking the currency:
+    #
+    # Old format (past payment/subscription):
+    #   "...This customer has had a subscription or payment in eur, but you are
+    #    trying to pay in usd."
+    #   → captures existing in group 1, requested in group 2
+    #
+    # New format (active objects — checkout sessions, subscriptions, etc.):
+    #   "You cannot combine currencies on a single customer. This customer has
+    #    an active subscription, subscription schedule, discount, quote, invoice
+    #    item or active subscription mode checkout session with currency usd."
+    #   → captures existing in group 3; requested currency is NOT in the message
+    #     and must be supplied via requested_currency_hint in parse_currency_conflict
     CURRENCY_CONFLICT_PATTERN = /
-      has\s+had\s+a.*?(?:subscription|payment)\s+in\s+(\w{3})\b
-      .*?
-      (?:pay|charge)\s+in\s+(\w{3})\b
+      (?:
+        has\s+had\s+a.*?(?:subscription|payment)\s+in\s+(\w{3})\b
+        .*?
+        (?:pay|charge)\s+in\s+(\w{3})\b
+      |
+        You\s+cannot\s+combine\s+currencies.*?with\s+currency\s+(\w{3})\b
+      )
     /ix
 
     # =========================================================================
@@ -48,14 +65,23 @@ module Billing
     # Parse currency pair from Stripe error message
     #
     # @param error [Stripe::InvalidRequestError] The Stripe error
+    # @param requested_currency_hint [String, nil] Fallback for the requested currency
+    #   when the new Stripe error format omits it (pass plan.currency from the call site)
     # @return [Hash, nil] { existing_currency: 'eur', requested_currency: 'usd' } or nil
-    def parse_currency_conflict(error)
+    def parse_currency_conflict(error, requested_currency_hint: nil)
       match = error.message.match(CURRENCY_CONFLICT_PATTERN)
       return nil unless match
 
+      # Old format: group 1 = existing, group 2 = requested
+      # New format: group 3 = existing, groups 1 & 2 are nil
+      existing  = (match[1] || match[3])&.downcase
+      requested = match[2]&.downcase || requested_currency_hint&.downcase
+
+      return nil unless existing
+
       {
-        existing_currency: match[1].downcase,
-        requested_currency: match[2].downcase,
+        existing_currency: existing,
+        requested_currency: requested,
       }
     end
 
