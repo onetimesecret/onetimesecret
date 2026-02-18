@@ -27,16 +27,13 @@ incoming_config = OT.conf.dig(:features, :incoming)
 incoming_config[:enabled]
 #=> false
 
-## GetConfig raises error when feature is disabled
-begin
-  logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
-  logic.raise_concerns
-  logic.process
-  false
-rescue OT::FormError => e
-  e.message
-end
-#=> "Incoming secrets feature is not enabled"
+## GetConfig returns enabled:false when feature is disabled
+logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
+logic.raise_concerns
+logic.process
+data = logic.success_data
+[logic.greenlighted, data[:config][:enabled]]
+#=> [true, false]
 
 # Reload with feature enabled
 ENV['INCOMING_ENABLED'] = 'true'

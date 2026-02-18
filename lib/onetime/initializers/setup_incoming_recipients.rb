@@ -19,6 +19,16 @@ module Onetime
       # e.g. INCOMING_RECIPIENT_1=support@example.com,Support
       raw_recipients = OT.conf.dig(:features, :incoming, :recipients) || []
 
+      # Validate site secret is configured — required for secure recipient hashing.
+      # Without it, hashes are computed with a known input (email:empty) and an
+      # attacker with a candidate email list can enumerate recipient hashes offline.
+      site_secret = OT.conf[:site][:secret]
+      if site_secret.nil? || site_secret.to_s.empty?
+        OT.lw "[IncomingSecrets] SECURITY: site.secret is not configured. " \
+              "Recipient hashes will be predictable. Set site.secret in config."
+        raise OT::Problem, "Incoming secrets feature requires site.secret to be configured for secure recipient hashing"
+      end
+
       # Create lookup tables
       recipient_lookup = {}
       public_recipients = []
@@ -28,12 +38,10 @@ module Onetime
 
         next if recipient.nil? || recipient.empty?
 
-        email = recipient.first
-        name = recipient.last || email.split('@').first
+        email = recipient.first&.strip
+        name = recipient[1]&.strip || email&.split('@')&.first
 
-        # Generate a stable hash for this email
-        # Use site secret as salt to ensure consistency across restarts
-        site_secret = OT.conf[:site][:secret] || 'default-secret'
+        # Generate a stable hash for this email using site secret as salt
         hash_key = Digest::SHA256.hexdigest("#{email}:#{site_secret}")[0..15]
 
         # Store for backend lookup

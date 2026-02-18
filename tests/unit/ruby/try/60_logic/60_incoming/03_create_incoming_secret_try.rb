@@ -18,7 +18,7 @@ require_relative '../../test_logic'
 
 # Load with feature disabled
 ENV['INCOMING_ENABLED'] = 'false'
-OT.boot! :test, false
+OT.boot! :test, true
 
 # Setup: Create session and customer
 @sess = Session.new '127.0.0.1', 'anon'
@@ -49,7 +49,7 @@ ENV['INCOMING_DEFAULT_TTL'] = '3600'
 ENV['INCOMING_DEFAULT_PASSPHRASE'] = 'test-passphrase-123'
 ENV['INCOMING_RECIPIENT_1'] = 'support@example.com,Support Team'
 ENV['INCOMING_RECIPIENT_2'] = 'security@example.com,Security Team'
-OT.boot! :test, false
+OT.boot! :test, true
 
 # Get valid recipient hashes for testing
 @support_hash = OT.incoming_public_recipients.find { |r| r[:name] == 'Support Team' }[:hash]
@@ -218,7 +218,7 @@ secret = V2::Secret.load logic.secret.key
 
 # Test without passphrase
 ENV.delete('INCOMING_DEFAULT_PASSPHRASE')
-OT.boot! :test, false
+OT.boot! :test, true
 
 ## CreateIncomingSecret works without passphrase config
 params = {
@@ -237,7 +237,7 @@ secret.passphrase.nil?
 # Test different TTL
 ENV['INCOMING_DEFAULT_TTL'] = '7200'
 ENV['INCOMING_DEFAULT_PASSPHRASE'] = 'test-passphrase-123'
-OT.boot! :test, false
+OT.boot! :test, true
 
 ## CreateIncomingSecret sets correct TTL
 params = {
@@ -332,6 +332,52 @@ secret = V2::Secret.load logic.secret.key
 decrypted = secret.can_decrypt? ? secret.decrypted_value : nil
 decrypted
 #=> 'This is the secret content'
+
+# Re-enable feature for concurrent tests
+ENV['INCOMING_ENABLED'] = 'true'
+ENV['INCOMING_DEFAULT_PASSPHRASE'] = 'test-passphrase-123'
+OT.boot! :test, true
+@support_hash = OT.incoming_public_recipients.find { |r| r[:name] == 'Support Team' }[:hash]
+
+## Duplicate payload creates distinct secrets (no deduplication)
+params = {
+  secret: {
+    memo: 'Duplicate Test',
+    secret: 'Same content twice',
+    recipient: @support_hash
+  }
+}
+logic1 = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
+logic1.raise_concerns
+logic1.process
+logic2 = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
+logic2.raise_concerns
+logic2.process
+[
+  logic1.metadata.key != logic2.metadata.key,
+  logic1.secret.key != logic2.secret.key,
+  logic1.greenlighted,
+  logic2.greenlighted
+]
+#=> [true, true, true, true]
+
+## Rapid successive creations each produce valid objects with unique keys
+keys = []
+3.times do |i|
+  p = {
+    secret: {
+      memo: "Rapid #{i}",
+      secret: 'rapid content',
+      recipient: @support_hash
+    }
+  }
+  logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, p
+  logic.raise_concerns
+  logic.process
+  keys << logic.metadata.key
+end
+[keys.uniq.length, keys.length]
+#=> [3, 3]
 
 # Teardown: Clean up test data
 @cust.destroy!
