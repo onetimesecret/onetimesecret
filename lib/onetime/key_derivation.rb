@@ -26,10 +26,10 @@ module Onetime
     SALT = 'onetimesecret-v1'
 
     PURPOSES = {
-      session:       { info: 'session',       length: 64 },
-      familia_enc:   { info: 'familia-enc',   length: 32 },
+      session: { info: 'session', length: 64 },
+      familia_enc: { info: 'familia-enc', length: 32 },
       argon2_pepper: { info: 'argon2-pepper', length: 32 },
-      federation:    { info: 'federation',    length: 32 },
+      federation: { info: 'federation', length: 32 },
     }.freeze
 
     # Derive raw bytes for a given purpose.
@@ -48,7 +48,7 @@ module Onetime
         salt: salt,
         info: config[:info],
         length: config[:length],
-        hash: 'SHA256'
+        hash: 'SHA256',
       )
     end
 
@@ -75,7 +75,7 @@ module Onetime
         salt: SALT,
         info: "session-#{sub_purpose}",
         length: 32,
-        hash: 'SHA256'
+        hash: 'SHA256',
       )
       raw.unpack1('H*')
     end

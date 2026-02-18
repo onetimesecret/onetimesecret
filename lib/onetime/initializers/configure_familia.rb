@@ -64,7 +64,7 @@ module Onetime
         v1_key = Base64.strict_encode64(Digest::SHA256.digest(secret_key))
         v2_key = Onetime::KeyDerivation.derive_base64(secret_key, :familia_enc)
 
-        Familia.config.encryption_keys = {
+        Familia.config.encryption_keys     = {
           v1: v1_key,
           v2: v2_key,
         }
