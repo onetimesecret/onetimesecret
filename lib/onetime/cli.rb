@@ -81,6 +81,9 @@ require_relative 'cli/totp_command'
 require_relative 'cli/worker_command'
 require_relative 'cli/scheduler_command'
 
+# Load email CLI commands
+require_relative 'cli/email_send_command'
+
 # Load queue CLI commands
 require_relative 'cli/queue/init_command'
 require_relative 'cli/queue/status_command'
