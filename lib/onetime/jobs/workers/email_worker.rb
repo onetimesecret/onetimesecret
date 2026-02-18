@@ -70,16 +70,33 @@ module Onetime
 
           log_debug "Processing email: #{data[:template]} (metadata: #{message_metadata})"
 
-          with_retry(max_retries: 3, base_delay: 2.0) do
+          # Only retry transient delivery errors (connection timeouts, server busy, etc.)
+          # Non-transient errors (auth failure, permanent rejection) go straight to DLQ
+          retriable = ->(ex) { !ex.is_a?(Onetime::Mail::DeliveryError) || ex.transient? }
+
+          with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
             deliver_email(data)
           end
 
           log_info "Email delivered: #{data[:template]}"
+          update_delivery_status(data, 'sent')
           ack!
+        rescue Onetime::Mail::DeliveryError => ex
+          if ex.transient?
+            log_error 'Transient delivery error (retries exhausted)', ex
+          else
+            log_error 'Non-transient delivery error, skipping to DLQ', ex
+          end
+          update_delivery_status(data, 'failed')
+          reject! # Send to DLQ
         rescue StandardError => ex
           log_error 'Unexpected error delivering email', ex
+          update_delivery_status(data, 'failed')
           reject! # Send to DLQ
         end
+
+        # Templates that support delivery status tracking on the customer model
+        TRACKABLE_TEMPLATES = [:email_change_confirmation].freeze
 
         private
 
@@ -97,9 +114,10 @@ module Onetime
             deliver_templated_email(data)
           end
         rescue Onetime::Mail::DeliveryError => ex
-          # Mail-specific errors - these might be transient
-          log_error "Mail delivery error: #{ex.message}"
-          raise # Trigger retry logic
+          # Log and re-raise; with_retry's retriable predicate handles
+          # whether to retry (transient) or skip to DLQ (non-transient)
+          log_error "Mail delivery error (transient=#{ex.transient?}): #{ex.message}"
+          raise
         rescue ArgumentError => ex
           # Bad message format - don't retry, send to DLQ
           log_error "Invalid message format: #{ex.message}"
@@ -130,6 +148,32 @@ module Onetime
           end
 
           Onetime::Mail.deliver_raw(email)
+        end
+
+        # Update the customer's pending_email_delivery_status field.
+        # Only applies to email change confirmation emails that include
+        # a customer_objid in their data payload.
+        #
+        # @param data [Hash] Parsed message payload
+        # @param status [String] 'sent' or 'failed'
+        def update_delivery_status(data, status)
+          template = data[:template]&.to_sym
+          return unless TRACKABLE_TEMPLATES.include?(template)
+
+          customer_objid = data.dig(:data, :customer_objid)
+          return unless customer_objid
+
+          customer = Onetime::Customer.find_by_identifier(customer_objid)
+          unless customer
+            log_debug "Customer not found for delivery status update: #{customer_objid}"
+            return
+          end
+
+          customer.pending_email_delivery_status = status
+          log_debug "Updated delivery status to '#{status}' for customer #{customer_objid}"
+        rescue StandardError => ex
+          # Status tracking is best-effort; don't let it break delivery flow
+          log_error "Failed to update delivery status: #{ex.message}"
         end
       end
     end

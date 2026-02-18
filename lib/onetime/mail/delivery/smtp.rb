@@ -20,6 +20,26 @@ module Onetime
       #   domain:   HELO domain (ENV: SMTP_DOMAIN)
       #
       class SMTP < Base
+        # Transient errors: network/connection issues that may resolve on retry
+        TRANSIENT_ERRORS = [
+          Errno::ECONNREFUSED,
+          Errno::ECONNRESET,
+          Errno::ETIMEDOUT,
+          Net::OpenTimeout,
+          Net::ReadTimeout,
+          Net::SMTPServerBusy,       # 4xx: temporary server issue
+          IOError,
+          SocketError,
+        ].freeze
+
+        # Fatal errors: configuration or policy issues that won't resolve on retry
+        FATAL_ERRORS = [
+          Net::SMTPAuthenticationError,  # 535: bad credentials
+          Net::SMTPFatalError,           # 5xx: permanent rejection
+          Net::SMTPSyntaxError,          # 500: malformed command
+          Net::SMTPUnknownError,         # unexpected response
+        ].freeze
+
         def deliver(email)
           email    = normalize_email(email)
           settings = smtp_settings
@@ -37,9 +57,29 @@ module Onetime
 
           log_delivery(email)
           mail_message
+        rescue *TRANSIENT_ERRORS => ex
+          log_error(email, ex)
+          raise Onetime::Mail::DeliveryError.new(
+            "Transient SMTP error: #{ex.message}",
+            original_error: ex,
+            transient: true,
+          )
+        rescue *FATAL_ERRORS => ex
+          log_error(email, ex)
+          raise Onetime::Mail::DeliveryError.new(
+            "Fatal SMTP error: #{ex.message}",
+            original_error: ex,
+            transient: false,
+          )
+        rescue Onetime::Mail::DeliveryError
+          raise # Already wrapped, don't double-wrap
         rescue StandardError => ex
           log_error(email, ex)
-          raise
+          raise Onetime::Mail::DeliveryError.new(
+            "SMTP delivery error: #{ex.message}",
+            original_error: ex,
+            transient: false,
+          )
         end
 
         protected

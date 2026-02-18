@@ -310,6 +310,112 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
         expect(attempt).to eq(1)
       end
     end
+
+    context 'with retriable: predicate' do
+      it 'skips retries and re-raises when retriable returns false' do
+        attempt = 0
+        non_retriable = ->(_ex) { false }
+
+        expect {
+          worker.with_retry(max_retries: 3, base_delay: 0.01, retriable: non_retriable) do
+            attempt += 1
+            raise StandardError, 'Non-retriable failure'
+          end
+        }.to raise_error(StandardError, 'Non-retriable failure')
+
+        # Should fail on first attempt without retrying
+        expect(attempt).to eq(1)
+      end
+
+      it 'allows normal retry flow when retriable returns true' do
+        attempt = 0
+        always_retriable = ->(_ex) { true }
+
+        result = worker.with_retry(max_retries: 3, base_delay: 0.01, retriable: always_retriable) do
+          attempt += 1
+          raise StandardError, 'Temporary' if attempt < 3
+          'recovered'
+        end
+
+        expect(result).to eq('recovered')
+        expect(attempt).to eq(3)
+      end
+
+      it 'retries all errors when retriable is nil (default behavior)' do
+        attempt = 0
+
+        result = worker.with_retry(max_retries: 3, base_delay: 0.01, retriable: nil) do
+          attempt += 1
+          raise StandardError, 'Retry me' if attempt < 2
+          'ok'
+        end
+
+        expect(result).to eq('ok')
+        expect(attempt).to eq(2)
+      end
+
+      it 'selectively retries based on error type' do
+        # Simulates the EmailWorker pattern: retry transient, skip non-transient
+        transient_error = Class.new(StandardError)
+        fatal_error = Class.new(StandardError)
+
+        selective = ->(ex) { ex.is_a?(transient_error) }
+        attempt = 0
+
+        # First: transient error gets retried, then fatal error skips retries
+        expect {
+          worker.with_retry(max_retries: 3, base_delay: 0.01, retriable: selective) do
+            attempt += 1
+            raise fatal_error, 'Permanent' if attempt >= 2
+            raise transient_error, 'Temporary'
+          end
+        }.to raise_error(fatal_error, 'Permanent')
+
+        # attempt 1: transient (retried), attempt 2: fatal (not retried)
+        expect(attempt).to eq(2)
+      end
+
+      it 'logs non-retriable error before re-raising' do
+        mock_logger = instance_double(SemanticLogger::Logger)
+        allow(worker).to receive(:logger).and_return(mock_logger)
+        expect(mock_logger).to receive(:error).with(/Non-retriable error/, hash_including(:worker))
+
+        non_retriable = ->(_ex) { false }
+
+        expect {
+          worker.with_retry(max_retries: 3, base_delay: 0.01, retriable: non_retriable) do
+            raise StandardError, 'Stop immediately'
+          end
+        }.to raise_error(StandardError)
+      end
+    end
+
+    context 'jitter behavior' do
+      it 'adds randomized jitter to backoff delays' do
+        # Run multiple retries and verify delays have variance (not constant)
+        delays = []
+        attempt = 0
+
+        allow(worker).to receive(:sleep) do |delay|
+          delays << delay
+        end
+
+        expect {
+          worker.with_retry(max_retries: 3, base_delay: 1.0) do
+            attempt += 1
+            raise StandardError, 'Keep retrying'
+          end
+        }.to raise_error(StandardError)
+
+        expect(delays.length).to eq(3)
+
+        # Base delays without jitter would be: 1.0, 2.0, 4.0
+        # With up to 30% jitter: [1.0..1.3], [2.0..2.6], [4.0..5.2]
+        expect(delays[0]).to be_between(1.0, 1.3)
+        expect(delays[1]).to be_between(2.0, 2.6)
+        expect(delays[2]).to be_between(4.0, 5.2)
+      end
+    end
   end
 
   describe '#worker_name' do

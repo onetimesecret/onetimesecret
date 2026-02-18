@@ -144,6 +144,10 @@ result = obj.process
 [result[:sent], @cust.pending_email_change.to_s.empty?]
 #=> [true, false]
 
+## Process sets pending_email_delivery_status to queued
+@cust.pending_email_delivery_status.to_s
+#=> 'queued'
+
 ## success_data returns the expected shape
 params = { 'password' => @password, 'new_email' => generate_unique_test_email('emailchange-shape') }
 obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params

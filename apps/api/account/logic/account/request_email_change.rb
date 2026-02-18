@@ -62,7 +62,7 @@ module AccountAPI::Logic
       end
 
       def success_data
-        { sent: true }
+        { sent: true, delivery_status: 'queued' }
       end
 
       private
@@ -100,7 +100,8 @@ module AccountAPI::Logic
         secret.save
 
         # Track the pending change on the customer (standalone dbkey, writes immediately)
-        cust.pending_email_change = secret.identifier
+        cust.pending_email_change          = secret.identifier
+        cust.pending_email_delivery_status = 'queued'
 
         OT.info "[request-email-change] Email change requested cid/#{cust.objid} new_email/#{OT::Utils.obscure_email(@new_email)}"
 
@@ -111,6 +112,7 @@ module AccountAPI::Logic
             {
               new_email: @new_email,
               confirmation_token: secret.identifier,
+              customer_objid: cust.objid,
               locale: locale || cust.locale || OT.default_locale,
             },
             fallback: :sync,
