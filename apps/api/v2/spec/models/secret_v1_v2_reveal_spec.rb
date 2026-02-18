@@ -343,12 +343,22 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
 
       expect(secret.decrypted_value).to eq(secret_value)
 
-      # Verify that decryption with dbkey-derived key would fail
-      wrong_key = Onetime::Secret.encryption_key(OT.global_secret, secret.dbkey, nil)
-      expect {
-        secret.value.dup.force_encoding('utf-8').decrypt(key: wrong_key)
-      }.to raise_error(OpenSSL::Cipher::CipherError),
-        'Decrypting with dbkey-based key must fail (identifier was used for encryption)'
+      # Verify the encryption key uses identifier, not dbkey
+      wrong_key   = Onetime::Secret.encryption_key(OT.global_secret, secret.dbkey, nil)
+      correct_key = Onetime::Secret.encryption_key(OT.global_secret, secret.identifier, secret.passphrase_temp)
+      expect(wrong_key).not_to eq(correct_key),
+        'Key derived from dbkey must differ from key derived from identifier'
+
+      # Decrypting with the dbkey-based key must not return the original plaintext.
+      # AES-256-CBC may raise CipherError (bad padding) or silently return garbage —
+      # both outcomes confirm the wrong key was used.
+      begin
+        wrong_result = secret.value.dup.force_encoding('utf-8').decrypt(key: wrong_key)
+        expect(wrong_result).not_to eq(secret_value),
+          'Decrypting with dbkey-based key must not return the original plaintext'
+      rescue OpenSSL::Cipher::CipherError
+        # Expected: padding check failed, confirming wrong key
+      end
     end
 
   end
