@@ -229,7 +229,7 @@ module Billing
         configured_region = Onetime.billing_config.region
         return true if configured_region.nil?
 
-        product.metadata[Metadata::FIELD_REGION] == configured_region
+        product.metadata[Metadata::FIELD_REGION].to_s.upcase == configured_region
       end
 
       # Refresh plan cache from Stripe API

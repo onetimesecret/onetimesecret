@@ -104,7 +104,7 @@ module Onetime
       val = config['region']
       return nil if val.nil? || val.to_s.strip.empty?
 
-      val.to_s.strip
+      val.to_s.strip.upcase
     end
 
     # Payment links configuration
