@@ -17,6 +17,7 @@
   const bootstrapStore = useBootstrapStore();
   const {
     requestEmailChange,
+    resendEmailChangeConfirmation,
     isLoading,
     error,
     fieldError,
@@ -27,6 +28,8 @@
   const isValidEmail = ref(true);
   const successMessage = ref('');
   const showPasswordModal = ref(false);
+  const isResending = ref(false);
+  const resendSuccess = ref(false);
 
   const currentEmail = computed(
     () => bootstrapStore.email
@@ -80,8 +83,9 @@
       password
     );
 
+    showPasswordModal.value = false;
+
     if (success) {
-      showPasswordModal.value = false;
       successMessage.value = t(
         'web.settings.profile.email_change_success'
       );
@@ -92,6 +96,21 @@
   const handlePasswordCancel = () => {
     showPasswordModal.value = false;
     clearErrors();
+  };
+
+  const handleResend = async () => {
+    isResending.value = true;
+    resendSuccess.value = false;
+    clearErrors();
+
+    const success =
+      await resendEmailChangeConfirmation();
+
+    isResending.value = false;
+
+    if (success) {
+      resendSuccess.value = true;
+    }
   };
 </script>
 
@@ -186,17 +205,67 @@
                 class="size-5 shrink-0 text-green-600
                   dark:text-green-400"
                 aria-hidden="true" />
-              <p
-                class="text-sm text-green-700
-                  dark:text-green-300">
-                {{ successMessage }}
-              </p>
+              <div class="flex-1">
+                <p
+                  class="text-sm text-green-700
+                    dark:text-green-300">
+                  {{ successMessage }}
+                </p>
+                <p
+                  v-if="resendSuccess"
+                  class="mt-2 text-sm text-green-700
+                    dark:text-green-300">
+                  {{
+                    t(
+                      'web.settings.profile.resend_confirmation_success'
+                    )
+                  }}
+                </p>
+                <div class="mt-3 flex items-center gap-2">
+                  <span
+                    class="text-sm text-green-600
+                      dark:text-green-400">
+                    {{
+                      t(
+                        'web.settings.profile.didnt_receive_email'
+                      )
+                    }}
+                  </span>
+                  <button
+                    type="button"
+                    :disabled="isResending"
+                    class="text-sm font-medium
+                      text-brand-600 underline
+                      hover:text-brand-700
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                      dark:text-brand-400
+                      dark:hover:text-brand-300"
+                    @click="handleResend">
+                    {{
+                      isResending
+                        ? t(
+                          'web.settings.profile.resend_confirmation_sending'
+                        )
+                        : t(
+                          'web.settings.profile.resend_confirmation'
+                        )
+                    }}
+                  </button>
+                </div>
+                <p
+                  v-if="error && !fieldError"
+                  class="mt-2 text-sm text-red-600
+                    dark:text-red-400">
+                  {{ error }}
+                </p>
+              </div>
             </div>
           </div>
 
           <!-- Error Message -->
           <div
-            v-if="error && !fieldError"
+            v-if="error && fieldError?.[0] !== 'new_email'"
             class="mb-6 rounded-lg border border-red-200
               bg-red-50 p-4 dark:border-red-800
               dark:bg-red-900/20"
