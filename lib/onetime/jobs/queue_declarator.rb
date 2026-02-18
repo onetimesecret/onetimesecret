@@ -246,7 +246,8 @@ module Onetime
         def declare_dead_letter_queues(conn, errors)
           channel = conn.create_channel
           QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
-            queue = channel.queue(config[:queue], durable: true)
+            queue_args = config.fetch(:arguments, {})
+            queue      = channel.queue(config[:queue], durable: true, arguments: queue_args)
             queue.bind(exchange_name)
             log_debug "Declared and bound DLQ '#{config[:queue]}'"
           rescue Bunny::PreconditionFailed => ex

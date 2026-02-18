@@ -70,11 +70,29 @@ module Onetime
 
       # Dead letter exchange and queue configuration
       # These must be declared BEFORE the main queues that reference them
+      #
+      # DLQ TTL (7 days) prevents unbounded growth from unmonitored failures.
+      # Messages older than this are dropped. Use `ots queue dlq replay`
+      # to reprocess messages before they expire.
+      DLQ_MESSAGE_TTL = 604_800_000 # 7 days in milliseconds
+
       DEAD_LETTER_CONFIG = {
-        'dlx.email.message' => { queue: 'dlq.email.message' },
-        'dlx.notifications.alert' => { queue: 'dlq.notifications.alert' },
-        'dlx.webhooks.payload' => { queue: 'dlq.webhooks.payload' },
-        'dlx.billing.event' => { queue: 'dlq.billing.event' },
+        'dlx.email.message' => {
+          queue: 'dlq.email.message',
+          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+        },
+        'dlx.notifications.alert' => {
+          queue: 'dlq.notifications.alert',
+          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+        },
+        'dlx.webhooks.payload' => {
+          queue: 'dlq.webhooks.payload',
+          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+        },
+        'dlx.billing.event' => {
+          queue: 'dlq.billing.event',
+          arguments: { 'x-message-ttl' => DLQ_MESSAGE_TTL },
+        },
       }.freeze
 
       # TTL for processed message idempotency keys (1 hour)
