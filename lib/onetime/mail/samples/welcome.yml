@@ -1,0 +1,2 @@
+email_address: "newuser@example.com"
+verification_path: "https://example.com/verify/sample-token-abc123"

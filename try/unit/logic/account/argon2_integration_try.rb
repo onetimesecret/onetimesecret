@@ -2,10 +2,10 @@
 #
 # frozen_string_literal: true
 
-# These tryouts test the AUTH_ARGON2_SECRET integration changes:
+# These tryouts test the ARGON2_SECRET integration changes:
 #
 # 1. Config guard: ENV handling for empty string vs nil vs valid secret
-# 2. Password verification dispatch in simple mode under varying AUTH_ARGON2_SECRET
+# 2. Password verification dispatch in simple mode under varying ARGON2_SECRET
 # 3. verify_password_full_mode error handling when auth DB unavailable
 # 4. Both RequestEmailChange and DestroyAccount share the same pattern
 #
@@ -29,37 +29,37 @@ OT.boot! :test, false
 
 # TRYOUTS
 
-# --- Config Guard: ENV handling for AUTH_ARGON2_SECRET ---
+# --- Config Guard: ENV handling for ARGON2_SECRET ---
 # Tests the guard logic: `secret && !secret.empty?`
 # This mirrors the fix in apps/web/auth/config/features/argon2.rb
 
-## Config guard: nil AUTH_ARGON2_SECRET skips pepper (short-circuits to nil)
-with_env('AUTH_ARGON2_SECRET', nil) do
-  secret = ENV.fetch('AUTH_ARGON2_SECRET', nil)
+## Config guard: nil ARGON2_SECRET skips pepper (short-circuits to nil)
+with_env('ARGON2_SECRET', nil) do
+  secret = ENV.fetch('ARGON2_SECRET', nil)
   should_set = secret && !secret.empty?
   [secret.nil?, should_set]
 end
 #=> [true, nil]
 
-## Config guard: empty string AUTH_ARGON2_SECRET is treated as unset
-with_env('AUTH_ARGON2_SECRET', '') do
-  secret = ENV.fetch('AUTH_ARGON2_SECRET', nil)
+## Config guard: empty string ARGON2_SECRET is treated as unset
+with_env('ARGON2_SECRET', '') do
+  secret = ENV.fetch('ARGON2_SECRET', nil)
   should_set = secret && !secret.empty?
   [secret, should_set]
 end
 #=> ['', false]
 
-## Config guard: valid AUTH_ARGON2_SECRET triggers pepper setting
-with_env('AUTH_ARGON2_SECRET', 'my-secret-pepper-key') do
-  secret = ENV.fetch('AUTH_ARGON2_SECRET', nil)
+## Config guard: valid ARGON2_SECRET triggers pepper setting
+with_env('ARGON2_SECRET', 'my-secret-pepper-key') do
+  secret = ENV.fetch('ARGON2_SECRET', nil)
   should_set = secret && !secret.empty?
   [secret, should_set]
 end
 #=> ['my-secret-pepper-key', true]
 
-## Config guard: whitespace-only AUTH_ARGON2_SECRET is treated as set (not stripped)
-with_env('AUTH_ARGON2_SECRET', '   ') do
-  secret = ENV.fetch('AUTH_ARGON2_SECRET', nil)
+## Config guard: whitespace-only ARGON2_SECRET is treated as set (not stripped)
+with_env('ARGON2_SECRET', '   ') do
+  secret = ENV.fetch('ARGON2_SECRET', nil)
   should_set = secret && !secret.empty?
   [secret, should_set]
 end
@@ -67,45 +67,45 @@ end
 
 ## Config guard: all three falsy cases produce falsy should_set
 results = [nil, ''].map do |val|
-  with_env('AUTH_ARGON2_SECRET', val) do
-    secret = ENV.fetch('AUTH_ARGON2_SECRET', nil)
+  with_env('ARGON2_SECRET', val) do
+    secret = ENV.fetch('ARGON2_SECRET', nil)
     !!(secret && !secret.empty?)
   end
 end
 results
 #=> [false, false]
 
-# --- Password Verification: simple mode with AUTH_ARGON2_SECRET variations ---
+# --- Password Verification: simple mode with ARGON2_SECRET variations ---
 
-## Correct password passes with AUTH_ARGON2_SECRET unset
+## Correct password passes with ARGON2_SECRET unset
 new_email = generate_unique_test_email('argon2-unset')
-with_env('AUTH_ARGON2_SECRET', nil) do
+with_env('ARGON2_SECRET', nil) do
   params = { 'password' => @password, 'new_email' => new_email }
   obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
   obj.raise_concerns
 end
 #=> nil
 
-## Correct password passes with AUTH_ARGON2_SECRET set to a value
+## Correct password passes with ARGON2_SECRET set to a value
 new_email = generate_unique_test_email('argon2-set')
-with_env('AUTH_ARGON2_SECRET', 'test-pepper-value') do
+with_env('ARGON2_SECRET', 'test-pepper-value') do
   params = { 'password' => @password, 'new_email' => new_email }
   obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
   obj.raise_concerns
 end
 #=> nil
 
-## Correct password passes with AUTH_ARGON2_SECRET as empty string
+## Correct password passes with ARGON2_SECRET as empty string
 new_email = generate_unique_test_email('argon2-empty')
-with_env('AUTH_ARGON2_SECRET', '') do
+with_env('ARGON2_SECRET', '') do
   params = { 'password' => @password, 'new_email' => new_email }
   obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
   obj.raise_concerns
 end
 #=> nil
 
-## Wrong password fails regardless of AUTH_ARGON2_SECRET value
-with_env('AUTH_ARGON2_SECRET', 'some-secret') do
+## Wrong password fails regardless of ARGON2_SECRET value
+with_env('ARGON2_SECRET', 'some-secret') do
   params = { 'password' => 'wrongpassword', 'new_email' => 'new@example.com' }
   obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
   begin
@@ -118,16 +118,16 @@ end
 
 # --- DestroyAccount: same verification pattern ---
 
-## DestroyAccount correct password passes with AUTH_ARGON2_SECRET unset
-with_env('AUTH_ARGON2_SECRET', nil) do
+## DestroyAccount correct password passes with ARGON2_SECRET unset
+with_env('ARGON2_SECRET', nil) do
   params = { 'confirmation' => 'destroy-me-123' }
   obj = AccountAPI::Logic::Account::DestroyAccount.new @da_strategy, params
   obj.raise_concerns
 end
 #=> nil
 
-## DestroyAccount wrong password fails with AUTH_ARGON2_SECRET set
-with_env('AUTH_ARGON2_SECRET', 'pepper-value') do
+## DestroyAccount wrong password fails with ARGON2_SECRET set
+with_env('ARGON2_SECRET', 'pepper-value') do
   params = { 'confirmation' => 'wrong-pass' }
   obj = AccountAPI::Logic::Account::DestroyAccount.new @da_strategy, params
   begin
