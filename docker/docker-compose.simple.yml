@@ -27,6 +27,9 @@ services:
       - SECRET=${SECRET:?SECRET must be set in .env}
       - SESSION_SECRET=${SESSION_SECRET:-${SECRET}}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
+      - HMAC_SECRET=${HMAC_SECRET:-}
+      - VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET:-}
+      - FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET:-}
       - ONETIME_HOME=/app
     entrypoint: ['./bin/entrypoint.sh']
     stdin_open: true

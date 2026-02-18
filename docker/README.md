@@ -53,6 +53,9 @@ cp --preserve --no-clobber ./etc/examples/Caddyfile-example ./etc/Caddyfile
 
 echo "SECRET=$(openssl rand -hex 32)" >> .env
 echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
+echo "HMAC_SECRET=$(openssl rand -hex 32)" >> .env
+echo "VERIFIABLE_ID_HMAC_SECRET=$(openssl rand -hex 32)" >> .env
+echo "FEDERATION_HMAC_SECRET=$(openssl rand -hex 32)" >> .env
 
 # Edit .env
 DOMAIN=secrets.example.com

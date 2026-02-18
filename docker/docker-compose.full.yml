@@ -55,6 +55,9 @@ services:
       - SECRET=${SECRET:?SECRET must be set in .env}
       - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set in .env}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
+      - HMAC_SECRET=${HMAC_SECRET:?HMAC_SECRET must be set in .env}
+      - VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET:?VERIFIABLE_ID_HMAC_SECRET must be set in .env}
+      - FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET:?FEDERATION_HMAC_SECRET must be set in .env}
       - ONETIME_HOME=/app
       - PUBLIC_DIR=/var/www/public
     entrypoint: ['./bin/entrypoint.sh']
