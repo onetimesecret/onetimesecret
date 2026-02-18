@@ -343,6 +343,7 @@ module Billing
               interval: plan.interval,
               amount: plan.amount,
               currency: plan.currency,
+              region: plan.region,
               features: plan.features.to_a,
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,

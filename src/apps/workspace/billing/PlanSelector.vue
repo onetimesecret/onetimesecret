@@ -87,6 +87,9 @@ const pendingMigration = computed(() => subscriptionStatus.value?.pending_curren
 // Early currency mismatch detection
 const currentCurrency = computed(() => subscriptionStatus.value?.current_currency ?? null);
 
+const isPlanCurrencyMismatch = (plan: BillingPlan): boolean =>
+  !!currentCurrency.value && !!plan.currency && currentCurrency.value !== plan.currency;
+
 // Current plan for the modal (find from plans list based on subscription)
 const currentPlanForModal = computed(() => {
   if (!subscriptionStatus.value?.current_price_id) return null;
@@ -214,19 +217,12 @@ const handlePlanSelect = async (plan: BillingPlan) => {
   error.value = '';
   successMessage.value = '';
 
-  // If user has active subscription, show plan change modal instead of checkout
+  if (isPlanCurrencyMismatch(plan)) return;
+
   if (hasActiveSubscription.value) {
-    // Early currency mismatch detection: compare plan currency with subscription currency
-    // before making an API call. The 409 from the backend is the fallback.
-    if (currentCurrency.value && plan.currency && currentCurrency.value !== plan.currency) {
-      // Let the backend provide full conflict details via the 409 response
-      // so we get formatted prices, period end, etc.
-      // Fall through to the checkout call which will return the conflict.
-    } else {
-      targetPlan.value = plan;
-      showPlanChangeModal.value = true;
-      return;
-    }
+    targetPlan.value = plan;
+    showPlanChangeModal.value = true;
+    return;
   }
 
   // New subscriber or currency-mismatch flow: redirect to Stripe Checkout
@@ -609,7 +605,8 @@ aria-live="polite">
             :is-recommended="isPlanRecommended(plan)"
             :is-suggested="suggestedPlanId === plan.id"
             :button-label="getButtonLabel(plan)"
-            :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.tier === 'free'"
+            :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.tier === 'free' || isPlanCurrencyMismatch(plan)"
+            :disabled-reason="isPlanCurrencyMismatch(plan) ? $t('web.billing.plan_unavailable_region_mismatch') : undefined"
             :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
             @select="handlePlanSelect" />
         </div>
