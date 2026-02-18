@@ -10,11 +10,11 @@
 # scheduler), comment out the simple include and uncomment full:
 #
 #     include:
-#       # - path: docker/docker-compose.simple.yml
-#       - path: docker/docker-compose.full.yml
+#       # - path: docker/compose/docker-compose.simple.yml
+#       - path: docker/compose/docker-compose.full.yml
 #
 # See docker/README.md for complete setup and usage documentation.
 
 include:
-  - path: docker/docker-compose.simple.yml
-  # - path: docker/docker-compose.full.yml
+  - path: docker/compose/docker-compose.simple.yml
+  # - path: docker/compose/docker-compose.full.yml

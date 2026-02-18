@@ -12,14 +12,14 @@
 services:
   app:
     build:
-      context: ..
+      context: ../..
       dockerfile: Dockerfile
     container_name: onetime-app
     depends_on:
       redis:
         condition: service_healthy
     env_file:
-      - ../.env
+      - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
       - REDIS_URL=redis://redis:6379/0
@@ -43,8 +43,8 @@ services:
       - '3000:3000'
     restart: unless-stopped
     volumes:
-      - ../data:/app/data
-      - ../etc:/app/etc
+      - ../../data:/app/data
+      - ../../etc:/app/etc
 
   redis:
     image: valkey/valkey:8.0-bookworm@sha256:3fb1247c0ae098a109f49e86a00bbae330044d610a608228a8350c0287c1e4f1
