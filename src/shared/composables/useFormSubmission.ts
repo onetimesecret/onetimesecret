@@ -72,7 +72,8 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
         body: urlSearchParams.toString(),
       });
 
-      // Refresh CSRF token from response header (mirrors Axios interceptor behavior)
+      // Refresh CSRF token from response header first; the JSON body's shrimp
+      // field takes precedence below as the primary CSRF token path.
       const responseShrimp = response.headers.get('x-csrf-token');
       if (responseShrimp && responseShrimp.length > 0) {
         csrfStore.updateShrimp(responseShrimp);

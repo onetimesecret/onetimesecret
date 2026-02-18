@@ -113,6 +113,23 @@ describe('useFormSubmission', () => {
       expect(csrfStore.shrimp).toBe('error-refreshed-token');
     });
 
+    it('updates CSRF token from 403 CSRF-rejected response header', async () => {
+      vi.mocked(global.fetch).mockResolvedValue(
+        createMockResponse(
+          { message: 'Forbidden' },
+          { status: 403, headers: { 'x-csrf-token': 'recovered-token' } }
+        )
+      );
+
+      const { submitForm, error } = createSubmission();
+      await submitForm();
+
+      // The composable surfaces the error but still refreshes the token
+      // so the next submission can succeed without a page reload.
+      expect(csrfStore.shrimp).toBe('recovered-token');
+      expect(error.value).toBe('Forbidden');
+    });
+
     it('handles missing x-csrf-token header gracefully', async () => {
       vi.mocked(global.fetch).mockResolvedValue(
         createMockResponse({ message: 'ok' })
@@ -122,6 +139,20 @@ describe('useFormSubmission', () => {
       await submitForm();
 
       // Token stays at initial value when no header present
+      expect(csrfStore.shrimp).toBe('initial-shrimp-token');
+    });
+
+    it('ignores empty x-csrf-token header', async () => {
+      vi.mocked(global.fetch).mockResolvedValue(
+        createMockResponse({ message: 'ok' }, {
+          headers: { 'x-csrf-token': '' },
+        })
+      );
+
+      const { submitForm } = createSubmission();
+      await submitForm();
+
+      // Empty header should not overwrite the existing token
       expect(csrfStore.shrimp).toBe('initial-shrimp-token');
     });
   });
