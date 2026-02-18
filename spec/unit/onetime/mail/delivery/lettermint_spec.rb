@@ -34,6 +34,10 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
     allow(backend).to receive(:log_error)
   end
 
+  after do
+    ::Lettermint.reset_configuration!
+  end
+
   describe '#deliver success' do
     it 'delivers and logs on success' do
       result = backend.deliver(email)
@@ -114,12 +118,44 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
       end
     end
 
-    context 'when SDK raises HttpRequestError with 4xx (auth failure)' do
-      [401, 403].each do |code|
+    context 'when SDK raises AuthenticationError (401/403)' do
+      it 'raises fatal DeliveryError' do
+        allow(mock_message).to receive(:deliver)
+          .and_raise(::Lettermint::AuthenticationError.new(
+                       message: 'invalid api token',
+                       status_code: 401,
+                     ))
+
+        expect { backend.deliver(email) }
+          .to raise_error(Onetime::Mail::DeliveryError) do |err|
+            expect(err.transient?).to be false
+            expect(err.original_error).to be_a(::Lettermint::AuthenticationError)
+          end
+      end
+    end
+
+    context 'when SDK raises RateLimitError (429)' do
+      it 'raises transient DeliveryError' do
+        allow(mock_message).to receive(:deliver)
+          .and_raise(::Lettermint::RateLimitError.new(
+                       message: 'too many requests',
+                       retry_after: 30,
+                     ))
+
+        expect { backend.deliver(email) }
+          .to raise_error(Onetime::Mail::DeliveryError) do |err|
+            expect(err.transient?).to be true
+            expect(err.original_error).to be_a(::Lettermint::RateLimitError)
+          end
+      end
+    end
+
+    context 'when SDK raises HttpRequestError with 4xx (generic)' do
+      [400, 404].each do |code|
         it "raises fatal DeliveryError for #{code}" do
           allow(mock_message).to receive(:deliver)
             .and_raise(::Lettermint::HttpRequestError.new(
-                         message: 'unauthorized',
+                         message: 'client error',
                          status_code: code,
                        ))
 
@@ -202,6 +238,24 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
   describe '#provider_name' do
     it 'returns Lettermint' do
       expect(backend.provider_name).to eq('Lettermint')
+    end
+  end
+
+  describe 'Lettermint.configure integration' do
+    it 'sets global base_url from config' do
+      described_class.new(api_token: 'lm_test-token', base_url: 'https://custom.api.com/v1')
+      expect(::Lettermint.configuration.base_url).to eq('https://custom.api.com/v1')
+    end
+
+    it 'sets global timeout from config' do
+      described_class.new(api_token: 'lm_test-token', timeout: 45)
+      expect(::Lettermint.configuration.timeout).to eq(45)
+    end
+
+    it 'does not override base_url when not provided' do
+      ::Lettermint.configure { |c| c.base_url = 'https://existing.api.com' }
+      described_class.new(api_token: 'lm_test-token')
+      expect(::Lettermint.configuration.base_url).to eq('https://existing.api.com')
     end
   end
 end

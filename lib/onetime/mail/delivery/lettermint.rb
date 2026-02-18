@@ -18,6 +18,7 @@ module Onetime
       class Lettermint < Base
         def initialize(config = {})
           require 'lettermint'
+          configure_lettermint_defaults!
           super
         end
 
@@ -34,11 +35,16 @@ module Onetime
           msg.deliver
         end
 
+        # Classify errors with specific types before the HttpRequestError
+        # catch-all. Order matters: RateLimitError and AuthenticationError
+        # are subclasses of HttpRequestError.
         def classify_error(error)
           case error
-          when ::Lettermint::TimeoutError
+          when ::Lettermint::TimeoutError, ::Lettermint::RateLimitError
             :transient
-          when ::Lettermint::ValidationError, ::Lettermint::ClientError
+          when ::Lettermint::AuthenticationError,
+               ::Lettermint::ValidationError,
+               ::Lettermint::ClientError
             :fatal
           when ::Lettermint::HttpRequestError
             error.status_code.between?(500, 599) ? :transient : :fatal
@@ -50,28 +56,24 @@ module Onetime
         protected
 
         def validate_config!
-          token = config[:api_token] || ENV.fetch('LETTERMINT_API_TOKEN', nil)
-          raise ArgumentError, 'Lettermint API token must be configured' if token.nil? || token.empty?
+          raise ArgumentError, 'Lettermint API token must be configured' if api_token.nil? || api_token.empty?
         end
 
         private
 
+        def configure_lettermint_defaults!
+          ::Lettermint.configure do |c|
+            c.base_url = config[:base_url] if config[:base_url]
+            c.timeout  = config[:timeout] if config[:timeout]
+          end
+        end
+
         def client
-          @client ||= ::Lettermint::Client.new(
-            api_token: api_token,
-            **client_options,
-          )
+          @client ||= ::Lettermint::Client.new(api_token: api_token)
         end
 
         def api_token
           @api_token ||= config[:api_token] || ENV.fetch('LETTERMINT_API_TOKEN', nil)
-        end
-
-        def client_options
-          opts            = {}
-          opts[:base_url] = config[:base_url] if config[:base_url]
-          opts[:timeout]  = config[:timeout] if config[:timeout]
-          opts
         end
       end
     end

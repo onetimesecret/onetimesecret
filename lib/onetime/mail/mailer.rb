@@ -199,7 +199,12 @@ module Onetime
           # Test environment always uses logger
           return 'logger' if ENV['RACK_ENV'] == 'test'
 
-          # Auto-detect based on configuration
+          # Auto-detect provider from config keys (first match wins):
+          #   region + user        -> ses (AWS SES credentials)
+          #   sendgrid_api_key     -> sendgrid
+          #   lettermint_api_token -> lettermint
+          #   host                 -> smtp (generic SMTP)
+          #   (none)               -> logger (safe fallback)
           if conf['region'] && conf['user']
             'ses' # AWS SES uses region + AWS credentials
           elsif conf['sendgrid_api_key']
