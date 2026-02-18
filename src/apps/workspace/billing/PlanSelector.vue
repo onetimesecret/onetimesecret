@@ -327,6 +327,18 @@ const handleImmediateRedirect = (checkoutUrl: string) => {
 const handleCompletePendingMigration = async () => {
   if (!selectedOrg.value?.extid || !pendingMigration.value) return;
 
+  // Guard: if the old subscription hasn't been cancelled yet, its currency
+  // still differs from the migration target — creating a checkout would
+  // trigger a currency conflict from Stripe.
+  if (
+    currentCurrency.value &&
+    pendingMigration.value.target_currency &&
+    currentCurrency.value !== pendingMigration.value.target_currency
+  ) {
+    error.value = t('web.billing.plan_unavailable_region_mismatch');
+    return;
+  }
+
   isCompletingPendingMigration.value = true;
   error.value = '';
 
