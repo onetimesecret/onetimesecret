@@ -96,6 +96,31 @@ module AuthModeHelpers
       email_auth_enabled?
     end
 
+    # Argon2 secret key (pepper) for password hashing defense-in-depth.
+    # Returns nil in tests (argon2id works fine without a pepper).
+    def argon2_secret
+      nil
+    end
+
+    # Feature flags hash (empty in tests; individual flags are set via options)
+    def features
+      {}
+    end
+
+    # SSO display name (nil unless omniauth is enabled and configured)
+    def sso_display_name
+      return nil unless omniauth_enabled?
+
+      @omniauth_provider_name
+    end
+
+    # OmniAuth route name for SSO callback URL
+    def omniauth_route_name
+      return nil unless omniauth_enabled?
+
+      'oidc'
+    end
+
     def database_url
       @mode == 'full' ? 'sqlite::memory:' : nil
     end
