@@ -264,4 +264,111 @@ describe('useAuth - Email Change', () => {
       expect(error.value).toBeNull();
     });
   });
+
+  describe('resendEmailChangeConfirmation', () => {
+    it('returns true on successful resend', async () => {
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .reply(200, { sent: true, resend_count: 1 });
+
+      const { resendEmailChangeConfirmation } = useAuth();
+      const result = await resendEmailChangeConfirmation();
+
+      expect(result).toBe(true);
+    });
+
+    it('sends correct payload with shrimp and locale', async () => {
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .reply(200, { sent: true, resend_count: 1 });
+
+      const { resendEmailChangeConfirmation } = useAuth();
+      await resendEmailChangeConfirmation();
+
+      const requestData = JSON.parse(axiosMock.history.post[0].data);
+      expect(requestData.shrimp).toBe('test-shrimp');
+      expect(requestData.locale).toBe('en');
+    });
+
+    it('returns false when rate limited (MAX_RESENDS exceeded)', async () => {
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .reply(200, { error: 'Maximum resend limit (3) reached' });
+
+      const { resendEmailChangeConfirmation, error } = useAuth();
+      const result = await resendEmailChangeConfirmation();
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('Maximum resend limit (3) reached');
+    });
+
+    it('returns false when no pending email change', async () => {
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .reply(200, { error: 'Email change request has expired' });
+
+      const { resendEmailChangeConfirmation, error } = useAuth();
+      const result = await resendEmailChangeConfirmation();
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('Email change request has expired');
+    });
+
+    it('returns false on network error', async () => {
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .networkError();
+
+      const { resendEmailChangeConfirmation } = useAuth();
+      const result = await resendEmailChangeConfirmation();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false on server 500 error', async () => {
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .reply(500, { error: 'Internal server error' });
+
+      const { resendEmailChangeConfirmation } = useAuth();
+      const result = await resendEmailChangeConfirmation();
+
+      expect(result).toBe(false);
+    });
+
+    it('clears previous errors before making request', async () => {
+      // First call fails
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .replyOnce(200, { error: 'Rate limited' });
+
+      const { resendEmailChangeConfirmation, error } = useAuth();
+      await resendEmailChangeConfirmation();
+      expect(error.value).toBe('Rate limited');
+
+      // Second call succeeds - error should be cleared
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .replyOnce(200, { sent: true, resend_count: 2 });
+
+      await resendEmailChangeConfirmation();
+      expect(error.value).toBeNull();
+    });
+
+    it('handles error with field-error tuple', async () => {
+      axiosMock
+        .onPost('/api/account/resend-email-change-confirmation')
+        .reply(200, {
+          error: 'Authentication required',
+          'field-error': ['session', 'has expired'],
+        });
+
+      const { resendEmailChangeConfirmation, error, fieldError } = useAuth();
+      const result = await resendEmailChangeConfirmation();
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('Authentication required');
+      expect(fieldError.value).toEqual(['session', 'has expired']);
+    });
+  });
 });
