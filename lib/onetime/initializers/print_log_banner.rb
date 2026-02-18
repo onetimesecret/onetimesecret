@@ -129,11 +129,11 @@ module Onetime
         system_rows
       end
 
-      # Builds development and experimental settings section rows
+      # Builds development settings section rows
       def build_dev_section
         dev_rows = []
 
-        %w[development experimental].each do |key|
+        %w[development].each do |key|
           next unless config_value = OT.conf.fetch(key, false)
 
           dev_rows << if is_feature_disabled?(config_value)
