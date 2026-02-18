@@ -164,6 +164,7 @@ export function isAuthError(
     | CloseAccountResponse
     | EmailChangeRequestResponse
     | EmailChangeConfirmResponse
+    | EmailChangeResendResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -343,3 +344,16 @@ export const emailChangeConfirmResponseSchema = z.union([
 ]);
 export type EmailChangeConfirmResponse =
   z.infer<typeof emailChangeConfirmResponseSchema>;
+
+// Email change resend confirmation response
+// Backend returns { sent: true, resend_count: number } on success
+const emailChangeResendSuccessSchema = z.object({
+  sent: z.boolean(),
+  resend_count: z.number(),
+});
+export const emailChangeResendResponseSchema = z.union([
+  emailChangeResendSuccessSchema,
+  authErrorSchema,
+]);
+export type EmailChangeResendResponse =
+  z.infer<typeof emailChangeResendResponseSchema>;

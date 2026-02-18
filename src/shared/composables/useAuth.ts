@@ -22,6 +22,7 @@ import {
   type CloseAccountResponse,
   type EmailChangeRequestResponse,
   type EmailChangeConfirmResponse,
+  type EmailChangeResendResponse,
   type BillingRedirect,
 } from '@/schemas/api/auth/endpoints/auth';
 import {
@@ -35,6 +36,7 @@ import {
   closeAccountResponseSchema,
   emailChangeRequestResponseSchema,
   emailChangeConfirmResponseSchema,
+  emailChangeResendResponseSchema,
 } from '@/schemas/api/auth/endpoints/auth';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -765,6 +767,39 @@ export function useAuth() {
     return result ?? false;
   }
 
+  /**
+   * Resends the email change confirmation email.
+   * Rate-limited to 3 resends per pending change.
+   *
+   * @returns true if resend was successful
+   */
+  async function resendEmailChangeConfirmation(): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<EmailChangeResendResponse>(
+        '/api/account/resend-email-change-confirmation',
+        {
+          shrimp: csrfStore.shrimp,
+          locale: locale.value,
+        }
+      );
+
+      const validated =
+        emailChangeResendResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error'],
+        });
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
   return {
     // State
     isLoading,
@@ -783,6 +818,7 @@ export function useAuth() {
     closeAccount,
     requestEmailChange,
     confirmEmailChange,
+    resendEmailChangeConfirmation,
     clearErrors,
   };
 }

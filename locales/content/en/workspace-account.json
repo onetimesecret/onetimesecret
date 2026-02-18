@@ -662,5 +662,25 @@
   "web.settings.profile.redirecting_to_signin": {
     "text": "Redirecting to sign in...",
     "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Resend confirmation email",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Confirmation email resent successfully.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Sending...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Didn't receive the email?",
+    "sha256": ""
   }
 }
