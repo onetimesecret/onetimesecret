@@ -51,14 +51,16 @@ export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
 
 /**
  * Schema for receipt record in the response
- * Note: Many fields can be null from the API, use .nullish() to accept both null and undefined
+ * Note: Many fields can be null or absent from the API via safe_dump.
+ * Use .nullish() to accept null, undefined, and missing fields.
+ * Fix for #2500: state was previously z.string() which rejected null.
  */
 const receiptRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
   custid: z.string().nullish(),
   owner_id: z.string().nullish(),
-  state: z.string(),
+  state: z.string().nullish(),
   secret_shortid: z.string().nullish(),
   shortid: z.string().nullish(),
   memo: z.string().nullish(),
@@ -86,11 +88,12 @@ const receiptRecordSchema = z.object({
 
 /**
  * Schema for secret object in the response
+ * Fix for #2500: state was previously z.string() which rejected null.
  */
 const secretRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
-  state: z.string(),
+  state: z.string().nullish(),
   shortid: z.string().nullish(),
   // Additional fields from actual API response
   secret_ttl: z.number().nullish(),
@@ -118,8 +121,8 @@ export const incomingSecretResponseSchema = z.object({
   }),
   details: z
     .object({
-      memo: z.string(),
-      recipient: z.string(),
+      memo: z.string().nullish(),
+      recipient: z.string().nullish(),
     })
     .nullish(),
 });
