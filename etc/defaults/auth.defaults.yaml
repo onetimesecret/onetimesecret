@@ -95,4 +95,4 @@ full:
   # Folded into password hashes — if the hash database is compromised,
   # passwords remain protected unless this secret is also leaked.
   # Leave unset (nil) to use argon2id without a pepper.
-  argon2_secret: <%= ENV["AUTH_ARGON2_SECRET"] || nil %>
+  argon2_secret: <%= ENV["ARGON2_SECRET"] || nil %>
