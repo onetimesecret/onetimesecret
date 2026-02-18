@@ -41,6 +41,8 @@ Three factors forced a deliberate architecture:
 - `SESSION_SECRET`: Sessions are ephemeral; rotation logs users out.
 - `IDENTIFIER_SECRET`: Previous values retained briefly to verify outstanding identifiers.
 
+The derived/independent split follows from an asymmetry in rotation capability: Familia's rolling key versioning (v1/v2) makes SECRET rotation for encrypted data a solved problem — old data remains decryptable while new data uses the new key. Rodauth's TOTP has no equivalent; it intentionally never re-wraps OTP keys. Secrets whose downstream systems handle rotation gracefully are derived; secrets whose systems don't are independent.
+
 *Independent per-instance* — generated randomly, must be backed up:
 - `AUTH_SECRET`: Decoupled from root key so Familia rotation doesn't cascade into MFA re-enrollment.
 - `ARGON2_SECRET`: Password re-hashing is a separate operational concern.
