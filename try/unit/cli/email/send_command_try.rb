@@ -1,41 +1,41 @@
-# try/unit/cli/email_send_command_try.rb
+# try/unit/cli/email/send_command_try.rb
 #
 # frozen_string_literal: true
 
-# Tests for Onetime::CLI::EmailSendCommand class.
+# Tests for Onetime::CLI::Email::SendCommand class.
 #
 # Covers AVAILABLE_TEMPLATES, parse_and_merge_data, resolve_template,
 # build_template, output_json, handle_argument_error, and invalid JSON.
 
-require_relative '../../support/test_helpers'
+require_relative '../../../support/test_helpers'
 
 OT.boot! :test, false
 
 require 'onetime/mail'
 require 'onetime/cli'
 
-@cmd = Onetime::CLI::EmailSendCommand.new
+@cmd = Onetime::CLI::Email::SendCommand.new
 
 # TRYOUTS
 
 ## AVAILABLE_TEMPLATES contains exactly 11 templates
-Onetime::CLI::EmailSendCommand::AVAILABLE_TEMPLATES.size
+Onetime::CLI::Email::AVAILABLE_TEMPLATES.size
 #=> 11
 
 ## AVAILABLE_TEMPLATES includes secret_link
-Onetime::CLI::EmailSendCommand::AVAILABLE_TEMPLATES.include?(:secret_link)
+Onetime::CLI::Email::AVAILABLE_TEMPLATES.include?(:secret_link)
 #=> true
 
 ## AVAILABLE_TEMPLATES includes welcome
-Onetime::CLI::EmailSendCommand::AVAILABLE_TEMPLATES.include?(:welcome)
+Onetime::CLI::Email::AVAILABLE_TEMPLATES.include?(:welcome)
 #=> true
 
 ## AVAILABLE_TEMPLATES includes email_change_confirmation
-Onetime::CLI::EmailSendCommand::AVAILABLE_TEMPLATES.include?(:email_change_confirmation)
+Onetime::CLI::Email::AVAILABLE_TEMPLATES.include?(:email_change_confirmation)
 #=> true
 
 ## AVAILABLE_TEMPLATES is frozen
-Onetime::CLI::EmailSendCommand::AVAILABLE_TEMPLATES.frozen?
+Onetime::CLI::Email::AVAILABLE_TEMPLATES.frozen?
 #=> true
 
 ## AVAILABLE_TEMPLATES contains all expected symbols
@@ -45,7 +45,7 @@ expected = %i[
   organization_invitation email_change_confirmation
   email_change_requested email_changed
 ]
-(expected - Onetime::CLI::EmailSendCommand::AVAILABLE_TEMPLATES).empty?
+(expected - Onetime::CLI::Email::AVAILABLE_TEMPLATES).empty?
 #=> true
 
 ## parse_and_merge_data parses JSON and symbolizes keys
@@ -159,10 +159,10 @@ rescue JSON::ParserError
 end
 #=> "raised"
 
-## EmailSendCommand inherits from Command
-Onetime::CLI::EmailSendCommand.ancestors.include?(Onetime::CLI::Command)
+## SendCommand inherits from Command
+Onetime::CLI::Email::SendCommand.ancestors.include?(Onetime::CLI::Command)
 #=> true
 
-## EmailSendCommand is a Dry::CLI::Command
-Onetime::CLI::EmailSendCommand.ancestors.include?(Dry::CLI::Command)
+## SendCommand is a Dry::CLI::Command
+Onetime::CLI::Email::SendCommand.ancestors.include?(Dry::CLI::Command)
 #=> true
