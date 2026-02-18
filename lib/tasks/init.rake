@@ -5,7 +5,6 @@
 require 'openssl'
 require 'securerandom'
 require 'base64'
-require 'set'
 
 # HKDF helper — intentionally self-contained so this task works without
 # booting the application (no Redis, no config needed).
@@ -13,9 +12,11 @@ module OTSInit
   SALT = 'onetimesecret-v1'
 
   DERIVED_KEYS = {
-    'SESSION_SECRET'         => { info: 'session',       length: 64 },
-    'ARGON2_SECRET'          => { info: 'argon2-pepper', length: 32 },
-    'FEDERATION_HMAC_SECRET' => { info: 'federation',    length: 32 },
+    'SESSION_SECRET' => { info: 'session', length: 64 },
+    'HMAC_SECRET' => { info: 'hmac', length: 32 },
+    'ARGON2_SECRET' => { info: 'argon2-pepper', length: 32 },
+    'FEDERATION_HMAC_SECRET' => { info: 'federation', length: 32 },
+    'VERIFIABLE_ID_HMAC_SECRET' => { info: 'verifiable-id', length: 32 },
   }.freeze
 
   def self.hkdf_hex(secret, info:, length:)
@@ -24,7 +25,7 @@ module OTSInit
       salt: SALT,
       info: info,
       length: length,
-      hash: 'SHA256'
+      hash: 'SHA256',
     )
     raw.unpack1('H*')
   end
@@ -46,12 +47,25 @@ module OTSInit
 
   def self.write_env(path, existing_lines, updates)
     updated_keys = Set.new
-    output = existing_lines.map do |line|
+    output       = existing_lines.map do |line|
       stripped = line.strip
-      next line if stripped.empty? || stripped.start_with?('#')
+      next line if stripped.empty?
+
+      # Check for commented-out derived key placeholders (e.g. #SESSION_SECRET=)
+      # but skip block markers (#-----BEGIN/END DERIVED SECRETS-----)
+      if stripped.start_with?('#') && !stripped.start_with?('#-')
+        commented_content = stripped.sub(/\A#\s*/, '')
+        key,              = commented_content.split('=', 2)
+        key               = key&.strip
+        if key && updates.key?(key)
+          updated_keys << key
+          next "#{key}=#{updates[key]}"
+        end
+        next line
+      end
 
       key, = stripped.split('=', 2)
-      key = key&.strip
+      key  = key&.strip
       if key && updates.key?(key)
         updated_keys << key
         "#{key}=#{updates[key]}"
@@ -71,8 +85,8 @@ end
 namespace :ots do
   desc 'Generate SECRET and derive child keys into .env (idempotent)'
   task :init do
-    derive = ENV['DERIVE'] == '1' || ENV['DERIVE'] == 'true'
-    force  = ENV['FORCE']  == '1' || ENV['FORCE']  == 'true'
+    derive   = %w[1 true].include?(ENV.fetch('DERIVE', nil))
+    force    = %w[1 true].include?(ENV.fetch('FORCE', nil))
     env_path = ENV['ENV_FILE'] || File.join(Dir.pwd, '.env')
 
     unless File.exist?(env_path)
@@ -87,10 +101,10 @@ namespace :ots do
       end
     end
 
-    existing = OTSInit.read_env(env_path)
+    existing       = OTSInit.read_env(env_path)
     existing_lines = File.readlines(env_path, chomp: true)
 
-    secret = existing['SECRET']
+    secret     = existing['SECRET']
     has_secret = secret && !secret.empty? && secret != 'CHANGEME'
 
     if derive
@@ -98,18 +112,18 @@ namespace :ots do
       puts "Reading existing SECRET from #{env_path}"
     elsif has_secret && !force
       puts "SECRET already set in #{env_path} (use FORCE=1 to regenerate)"
-      puts "Deriving child keys from existing SECRET."
+      puts 'Deriving child keys from existing SECRET.'
       derive = true
     else
       secret = SecureRandom.hex(64)
-      puts "Generated new SECRET (128 hex chars, 64 bytes entropy)"
+      puts 'Generated new SECRET (128 hex chars, 64 bytes entropy)'
     end
 
-    updates = {}
+    updates           = {}
     updates['SECRET'] = secret unless derive
 
     OTSInit::DERIVED_KEYS.each do |env_var, config|
-      value = OTSInit.hkdf_hex(secret, info: config[:info], length: config[:length])
+      value            = OTSInit.hkdf_hex(secret, info: config[:info], length: config[:length])
       updates[env_var] = value
       puts "  #{env_var} ← HKDF(SECRET, info=#{config[:info].inspect}, len=#{config[:length]})"
     end
@@ -119,8 +133,8 @@ namespace :ots do
     puts
     puts "Written to #{env_path}"
     puts
-    puts "IMPORTANT: Back up SECRET — it is the single root from which"
-    puts "all other secrets are derived. If SECRET is lost, encrypted"
-    puts "data (stored secrets, sessions) cannot be recovered."
+    puts 'IMPORTANT: Back up SECRET — it is the single root from which'
+    puts 'all other secrets are derived. If SECRET is lost, encrypted'
+    puts 'data (stored secrets, sessions) cannot be recovered.'
   end
 end
