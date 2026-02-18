@@ -24,7 +24,7 @@ require 'bunny'
 require 'json'
 require 'timeout'
 require 'onetime/jobs/publisher'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
   # Connection URL from environment or default

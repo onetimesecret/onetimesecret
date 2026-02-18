@@ -13,7 +13,7 @@
 # Run with: pnpm run test:rspec spec/unit/onetime/initializers/setup_rabbitmq_spec.rb
 
 require 'spec_helper'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 # rubocop:disable RSpec/SpecFilePathFormat
 # File name matches implementation file setup_rabbitmq.rb

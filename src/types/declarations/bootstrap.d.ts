@@ -184,6 +184,10 @@ export interface BootstrapPayload {
 
   features: {
     markdown: boolean;
+    /** Account lockout after failed login attempts */
+    lockout?: boolean;
+    /** Password complexity requirements enforcement */
+    password_requirements?: boolean;
     /** Email-based authentication (magic links) */
     email_auth?: boolean;
     /** WebAuthn/passkey authentication */

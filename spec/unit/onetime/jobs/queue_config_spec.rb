@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe Onetime::Jobs::QueueConfig do
   describe 'QUEUES' do
@@ -163,6 +163,24 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     it "contains 'dlx.billing.event' with queue 'dlq.billing.event'" do
       expect(dead_letter_config).to have_key('dlx.billing.event')
       expect(dead_letter_config['dlx.billing.event'][:queue]).to eq('dlq.billing.event')
+    end
+
+    it 'includes x-message-ttl in every entry matching DLQ_MESSAGE_TTL' do
+      dead_letter_config.each_value do |config|
+        expect(config[:arguments]).to have_key('x-message-ttl')
+        expect(config[:arguments]['x-message-ttl']).to eq(described_class::DLQ_MESSAGE_TTL)
+      end
+    end
+  end
+
+  describe 'DLQ_MESSAGE_TTL' do
+    it 'equals 604800000 (7 days in milliseconds)' do
+      expect(described_class::DLQ_MESSAGE_TTL).to eq(604_800_000)
+    end
+
+    it 'equals exactly 7 days in milliseconds' do
+      seven_days_ms = 7 * 24 * 60 * 60 * 1000
+      expect(described_class::DLQ_MESSAGE_TTL).to eq(seven_days_ms)
     end
   end
 

@@ -12,7 +12,6 @@
 #
 # Migration Guide:
 # - OT.global_secret        -> OT::Runtime.security.global_secret
-# - OT.rotated_secrets      -> OT::Runtime.security.rotated_secrets
 # - OT.i18n_enabled         -> OT::Runtime.internationalization.enabled
 # - OT.supported_locales    -> OT::Runtime.internationalization.supported_locales
 # - OT.default_locale       -> OT::Runtime.internationalization.default_locale
@@ -26,10 +25,6 @@ module Onetime
   # Security runtime state accessors
   def self.global_secret
     Runtime.security.global_secret
-  end
-
-  def self.rotated_secrets
-    Runtime.security.rotated_secrets
   end
 
   # Internationalization runtime state accessors

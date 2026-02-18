@@ -31,15 +31,15 @@ RSpec.describe 'Full Mode Test Infrastructure', type: :integration do
     end
 
     it 'has feature toggles' do
-      expect(Onetime.auth_config).to respond_to(:hardening_enabled?)
+      expect(Onetime.auth_config).to respond_to(:lockout_enabled?)
+      expect(Onetime.auth_config).to respond_to(:password_requirements_enabled?)
       expect(Onetime.auth_config).to respond_to(:active_sessions_enabled?)
       expect(Onetime.auth_config).to respond_to(:remember_me_enabled?)
       expect(Onetime.auth_config).to respond_to(:verify_account_enabled?)
       expect(Onetime.auth_config).to respond_to(:mfa_enabled?)
       expect(Onetime.auth_config).to respond_to(:email_auth_enabled?)
       expect(Onetime.auth_config).to respond_to(:webauthn_enabled?)
-      # Deprecated methods still available for backward compatibility
-      expect(Onetime.auth_config).to respond_to(:security_features_enabled?)
+      # Deprecated method still available for backward compatibility
       expect(Onetime.auth_config).to respond_to(:magic_links_enabled?)
     end
   end

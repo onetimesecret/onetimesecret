@@ -24,7 +24,6 @@ import { featuresSchema } from './section/features';
 import { capabilitiesSchema } from './section/capabilities';
 import { i18nSchema } from './section/i18n';
 import { developmentSchema } from './section/development';
-import { experimentalSchema } from './section/experimental';
 import { userInterfaceSchema, apiSchema } from './section/ui';
 import { limitsSchema } from './section/limits';
 import { secretOptionsSchema } from './section/secret_options';
@@ -369,7 +368,6 @@ export const staticConfigSchema = z.object({
   internationalization: i18nSchema.optional(),
   diagnostics: diagnosticsSchema.optional(),
   development: developmentSchema.optional(),
-  experimental: experimentalSchema.optional(),
 });
 
 /**
@@ -406,7 +404,6 @@ export const legacyStaticConfigSchema = z.object({
   logging: simpleLoggingSchema.optional(),
   i18n: i18nSchema.optional(),
   development: developmentSchema.optional(),
-  experimental: experimentalSchema.optional(),
   diagnostics: diagnosticsSchema.optional(),
 });
 
@@ -438,7 +435,6 @@ export {
   capabilitiesSchema,
   i18nSchema,
   developmentSchema,
-  experimentalSchema,
   userInterfaceSchema,
   apiSchema,
   limitsSchema,

@@ -4,8 +4,8 @@
 
 require 'stripe'
 require_relative 'base_worker'
-require_relative '../queue_config'
-require_relative '../queue_declarator'
+require_relative '../queues/config'
+require_relative '../queues/declarator'
 require_relative '../../../../apps/web/billing/operations/process_webhook_event'
 require_relative '../../../../apps/web/billing/models/stripe_webhook_event'
 

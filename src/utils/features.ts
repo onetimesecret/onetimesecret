@@ -35,6 +35,26 @@ export function isWebAuthnEnabled(): boolean {
 }
 
 /**
+ * Checks if account lockout (after failed login attempts) is enabled
+ */
+export function isLockoutEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.lockout === true;
+}
+
+/**
+ * Checks if password complexity requirements are enabled
+ */
+export function isPasswordRequirementsEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.password_requirements === true;
+}
+
+/**
  * Checks if OmniAuth/SSO authentication is enabled
  */
 export function isOmniAuthEnabled(): boolean {

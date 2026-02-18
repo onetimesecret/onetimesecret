@@ -137,6 +137,7 @@ group :development do
   gem 'rerun', '~> 0.14'
 
   # Code quality and language server
+  gem 'kanayago', '~> 0.7', require: false
   gem 'rubocop', '~> 1.81.7', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
@@ -164,13 +165,4 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
-end
-
-# ====================================
-# Optional Dependencies
-# ====================================
-
-# Optional alternate server - install with: bundle install --with optional
-group :optional do
-  gem 'thin'
 end

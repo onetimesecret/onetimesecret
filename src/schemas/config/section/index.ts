@@ -10,7 +10,6 @@
 export * from './capabilities';
 export * from './development';
 export * from './diagnostics';
-export * from './experimental';
 export * from './features';
 export * from './i18n';
 export * from './limits';

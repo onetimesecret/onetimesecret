@@ -1,8 +1,8 @@
-# lib/onetime/jobs/queue_declarator.rb
+# lib/onetime/jobs/queues/declarator.rb
 #
 # frozen_string_literal: true
 
-require_relative 'queue_config'
+require_relative 'config'
 
 module Onetime
   module Jobs
@@ -207,13 +207,37 @@ module Onetime
           QueueConfig::QUEUES.keys
         end
 
+        # List all known DLQ names
+        #
+        # @return [Array<String>] DLQ names from QueueConfig::DEAD_LETTER_CONFIG
+        #
+        def dlq_names
+          QueueConfig::DEAD_LETTER_CONFIG.values.map { |c| c[:queue] }
+        end
+
+        # Returns Bunny queue options for a DLQ
+        #
+        # @param dlq_name [String] DLQ name
+        # @return [Hash] Options hash with :durable, :arguments
+        # @raise [UnknownQueueError] if dlq_name not found
+        #
+        def dlq_options_for(dlq_name)
+          config = QueueConfig::DEAD_LETTER_CONFIG.values.find { |c| c[:queue] == dlq_name }
+          raise UnknownQueueError, "Unknown DLQ: #{dlq_name}" unless config
+
+          {
+            durable: true,
+            arguments: config.fetch(:arguments, {}),
+          }
+        end
+
         # Check if a queue name is valid
         #
         # @param queue_name [String] Queue name to check
         # @return [Boolean]
         #
         def known_queue?(queue_name)
-          QueueConfig::QUEUES.key?(queue_name)
+          QueueConfig::QUEUES.key?(queue_name) || dlq_names.include?(queue_name)
         end
 
         private
@@ -246,7 +270,8 @@ module Onetime
         def declare_dead_letter_queues(conn, errors)
           channel = conn.create_channel
           QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
-            queue = channel.queue(config[:queue], durable: true)
+            queue_args = config.fetch(:arguments, {})
+            queue      = channel.queue(config[:queue], durable: true, arguments: queue_args)
             queue.bind(exchange_name)
             log_debug "Declared and bound DLQ '#{config[:queue]}'"
           rescue Bunny::PreconditionFailed => ex

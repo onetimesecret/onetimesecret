@@ -15,12 +15,10 @@ RSpec.describe Onetime::Secret, allow_redis: false do
 
   before do
     allow(OT).to receive(:conf).and_return({
-      experimental: {
-        allow_nil_global_secret: false,
-        rotated_secrets: [],
+      'development' => {
+        'allow_nil_global_secret' => false,
       },
-    },
-                                          )
+    })
   end
 
   describe '.spawn_pair' do

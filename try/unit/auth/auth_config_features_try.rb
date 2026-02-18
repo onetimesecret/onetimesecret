@@ -22,10 +22,16 @@ config.instance_variable_get(:@config)['mode'] = 'full'
 config.features.class
 #=> Hash
 
-## hardening_enabled? returns true with test config
+## lockout_enabled? returns true with test config
 config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
-config.hardening_enabled?
+config.lockout_enabled?
+#=> true
+
+## password_requirements_enabled? returns true with test config
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+config.password_requirements_enabled?
 #=> true
 
 ## active_sessions_enabled? returns true with test config
@@ -114,13 +120,14 @@ config.verify_account_enabled?
 config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'simple'
 [
-  config.hardening_enabled?,
+  config.lockout_enabled?,
+  config.password_requirements_enabled?,
   config.mfa_enabled?,
   config.email_auth_enabled?,
   config.webauthn_enabled?,
   config.omniauth_enabled?
 ]
-#=> [false, false, false, false, false]
+#=> [false, false, false, false, false, false]
 
 ## omniauth_provider_name returns nil in simple mode even if configured
 config = Onetime::AuthConfig.instance
@@ -182,23 +189,6 @@ config = Onetime::AuthConfig.instance
 config.instance_variable_get(:@config)['mode'] = 'full'
 config.magic_links_enabled? == config.email_auth_enabled?
 #=> true
-
-## security_features_enabled? combines hardening, active_sessions, remember_me
-config = Onetime::AuthConfig.instance
-config.instance_variable_get(:@config)['mode'] = 'full'
-config.security_features_enabled?
-#=> true
-
-## security_features_enabled? returns false when any underlying feature is disabled
-config = Onetime::AuthConfig.instance
-config.instance_variable_get(:@config)['mode'] = 'full'
-features = config.instance_variable_get(:@config)['full']['features']
-original_remember_me = features['remember_me']
-features['remember_me'] = false
-result = config.security_features_enabled?
-features['remember_me'] = original_remember_me
-result
-#=> false
 
 # Teardown: Restore original method and clear singleton
 Onetime::Utils::ConfigResolver.define_singleton_method(:resolve, @original_resolve)

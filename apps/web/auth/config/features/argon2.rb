@@ -11,7 +11,7 @@ module Auth::Config::Features
   # handles argon2 directly in the Customer model.
   #
   # Configuration:
-  #   Set ARGON2_SECRET environment variable for additional security.
+  #   Set AUTH_ARGON2_SECRET environment variable (read via auth config YAML).
   #   This secret is folded into the hash and provides defense-in-depth
   #   if the password hash database is compromised.
   #
@@ -22,9 +22,9 @@ module Auth::Config::Features
 
       # Optional secret key for additional security.
       # If set, this is folded into the password hash.
-      if (secret = ENV.fetch('ARGON2_SECRET', nil))
-        auth.argon2_secret secret
-      end
+      # Empty-string normalization is handled by the config layer.
+      secret = Onetime.auth_config.argon2_secret
+      auth.argon2_secret secret if secret
 
       # Hash cost parameters.
       # Production defaults: t_cost=2, m_cost=16 (64 MiB), p_cost=1

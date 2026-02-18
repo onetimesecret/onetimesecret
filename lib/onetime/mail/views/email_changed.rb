@@ -7,14 +7,19 @@ require_relative 'base'
 module Onetime
   module Mail
     module Templates
-      # Security notification sent to OLD email when email address is changed.
+      # Security notification sent to OLD email after an email change is confirmed.
+      # This is a confirmation-time notification (the email HAS been changed).
+      #
+      # The full new email address is shown (not obfuscated) because the
+      # recipient is the legitimate account owner who needs to see exactly
+      # what address the change targets to assess whether it is legitimate.
       #
       # Required data:
-      #   old_email:        Previous email address (recipient)
-      #   new_email_masked: Masked new email (e.g., "j***@example.com")
+      #   old_email:  Previous email address (recipient)
+      #   new_email:  Full new email address
       #
       # Optional data:
-      #   changed_at: ISO8601 timestamp of email change
+      #   changed_at: ISO8601 timestamp of the confirmed change
       #   baseuri:    Override site base URI
       #
       class EmailChanged < Base
@@ -22,7 +27,7 @@ module Onetime
 
         def validate_data!
           raise ArgumentError, 'Old email required' unless data[:old_email]
-          raise ArgumentError, 'Masked new email required' unless data[:new_email_masked]
+          raise ArgumentError, 'New email required' unless data[:new_email]
         end
 
         public
@@ -31,6 +36,7 @@ module Onetime
           EmailTranslations.translate(
             'email.email_changed.subject',
             locale: locale,
+            display_domain: display_domain,
           )
         end
 
@@ -42,8 +48,8 @@ module Onetime
           data[:old_email]
         end
 
-        def new_email_masked
-          data[:new_email_masked]
+        def new_email
+          data[:new_email]
         end
 
         def changed_at
@@ -58,7 +64,7 @@ module Onetime
         end
 
         def support_path
-          '/support'
+          '/feedback?reason=email_change_unauthorized'
         end
 
         def baseuri
@@ -70,7 +76,7 @@ module Onetime
         def template_binding
           computed_data = data.merge(
             old_email: old_email,
-            new_email_masked: new_email_masked,
+            new_email: new_email,
             changed_at: changed_at,
             changed_at_formatted: changed_at_formatted,
             support_path: support_path,

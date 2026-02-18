@@ -701,8 +701,10 @@ development:
   #
   # SECURITY: Must remain false in production. No query param support.
   domain_context_enabled: <%= ENV['DOMAIN_CONTEXT_ENABLED'] == 'true' %>
-experimental:
-  # SECURITY FEATURE: Allow application to run without a site.secret
+  # DEVELOPMENT TOOL: Allow application to run without a site.secret
+  #
+  # Only effective when development.enabled is true. The config normalization
+  # layer forces this to false when development mode is off.
   #
   # WHY THIS EXISTS:
   # The application encrypts secret content using site.secret before storing
@@ -730,29 +732,4 @@ experimental:
   # - When decrypting, CipherErrors with the real secret will cause
   #   automatic retry with nil secret
   #
-  # RELATED: rotated_secrets (below) provides a safer rotation mechanism
-  # for planned secret changes. Use that instead when possible.
-  #
   allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
-  # SECURITY FEATURE: Support for rotating global secret
-  #
-  # FORMAT: Array of strings containing previous secret values
-  # ["old_secret_1", "old_secret_2", "oldest_secret"]
-  #
-  # USAGE: When rotating secrets, add old values here while setting new primary
-  # secret in site.secret or SECRET env var. The application will:
-  # 1. Use current primary secret for all new encryptions
-  # 2. Try each rotated secret (in order) for decryption when primary fails
-  #
-  # MAINTENANCE: Remove secrets from this list after the relevant secrets
-  # have expired or has been successfully re-encrypted with the current
-  # primary secret. An easy guideline is the maximum TTL in `ttl_options`.
-  #
-  # KNOWN LIMITATIONS:
-  # - Only works with Secret/Metadata content encryption (LegacyEncryptedFields)
-  # - Does NOT work with Familia's EncryptedFields (used for model attributes)
-  # - Does NOT affect SESSION_SECRET or HMAC_SECRET (separate systems)
-  # - Changing site.secret without proper rotation will break Familia-encrypted
-  #   data (e.g., encrypted model fields) - this is a known gap to be addressed
-  #
-  rotated_secrets: []
